@@ -11,7 +11,7 @@ from sqlalchemy import Column, Integer
 
 from .db import with_transaction
 from .participant import Participant
-from .timeline import EndPage, Page
+from .timeline import Page
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
 
 logger = get_logger()
@@ -199,27 +199,26 @@ class Bot(Participant):
         if "time_taken" not in response.metadata:
             response.metadata["time_taken"] = sleep_time
 
-        if not isinstance(page, EndPage):
-            try:
-                experiment.process_response(
-                    participant_id=self.id,
-                    raw_answer=response.raw_answer,
-                    blobs=response.blobs,
-                    metadata=response.metadata,
-                    page_uuid=self.page_uuid,
-                    client_ip_address=response.client_ip_address,
-                    answer=response.answer,
+        try:
+            experiment.process_response(
+                participant_id=self.id,
+                raw_answer=response.raw_answer,
+                blobs=response.blobs,
+                metadata=response.metadata,
+                page_uuid=self.page_uuid,
+                client_ip_address=response.client_ip_address,
+                answer=response.answer,
+            )
+        except RuntimeError as err:
+            if "Working outside of request context" in str(err):
+                err.args = (
+                    err.args[0]
+                    + "\n\nNote: The 'working outside of request context' error can usually be ignored "
+                    "during testing as it typically comes from Flask trying to construct an "
+                    "error page without a valid request context. The real error probably "
+                    "happened earlier though.",
                 )
-            except RuntimeError as err:
-                if "Working outside of request context" in str(err):
-                    err.args = (
-                        err.args[0]
-                        + "\n\nNote: The 'working outside of request context' error can usually be ignored "
-                        "during testing as it typically comes from Flask trying to construct an "
-                        "error page without a valid request context. The real error probably "
-                        "happened earlier though.",
-                    )
-                raise
+            raise
 
         self.page_count += 1
 

@@ -24,7 +24,6 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject, VarStore
-from .page import EndPage
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -1608,10 +1607,14 @@ class Timeline:
         return modules, module_list
 
     def check_elts(self):
+        from psynet.page import EndPage
+
         assert isinstance(self.branches, dict)
+
         for branch_id, branch in self.branches.items():
             assert isinstance(branch, list)
             assert len(branch) > 0
+
             if not isinstance(branch[-1], (GoTo, EndPage)):
                 raise ValueError(
                     f"The final element in the {branch_id} timeline must be an EndPage or a GoTo."
@@ -1861,8 +1864,12 @@ class CreditEstimate:
             elif isinstance(elt, EndSwitchBranch):
                 pos = elts.index(elt.target)
 
-            elif isinstance(elt, EndPage):
-                return time_credit
+            elif isinstance(elt, GoTo):
+                if callable(elt.target):
+                    raise ValueError(
+                        "Cannot proceed with timeline simulation as this GoTo's target is only known at run time"
+                    )
+                pos = elt.get_target_elt_id(experiment=None, participant=None)
 
             else:
                 pos += 1
@@ -1986,7 +1993,7 @@ def join(*args):
     from .asset import AssetSpecification
     from .sync import Barrier
 
-    valid_classes = (AssetSpecification, Elt, Module, Barrier)
+    valid_classes = (AssetSpecification, Elt, EltCollection)
 
     for i, arg in enumerate(args):
         if not (
@@ -1994,7 +2001,7 @@ def join(*args):
             or (isinstance(arg, valid_classes) or is_list_of(arg, valid_classes))
         ):
             raise TypeError(
-                f"Element {i + 1} of the input to join() was neither an Asset/Elt/Module/Barrier nor a list of such objects: ({arg})."
+                f"Element {i + 1} of the input to join() was neither an Asset/Elt/EltCollection nor a list of such objects: ({arg})."
             )
 
     args = [a for a in args if a is not None]
