@@ -1867,16 +1867,16 @@ def join(*args):
     elif len(args) == 1:
         if isinstance(args[0], Elt):
             return [args[0]]
-        elif isinstance(args[0], Module):
+        elif isinstance(args[0], EltCollection):
             return args[0].resolve()
         else:
             return args[0]
     else:
 
         def f(x, y):
-            if isinstance(x, (Module, Barrier)):
+            if isinstance(x, EltCollection):
                 x = x.resolve()
-            if isinstance(y, (Module, Barrier)):
+            if isinstance(y, EltCollection):
                 y = y.resolve()
             if x is None:
                 return y
@@ -2412,7 +2412,12 @@ class ModuleAssets:
         ).one()
 
 
-class Module:
+class EltCollection:
+    def resolve(self):
+        raise NotImplementedError
+
+
+class Module(EltCollection):
     default_id = None
     default_elts = None
     state_class = ModuleState  # type: Type[ModuleState]

@@ -12,13 +12,13 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonClass
 from psynet.page import WaitPage
 from psynet.participant import Participant
-from psynet.timeline import CodeBlock
+from psynet.timeline import CodeBlock, EltCollection
 from psynet.utils import call_function, get_logger
 
 logger = get_logger()
 
 
-class Barrier:
+class Barrier(EltCollection):
     """
     A barrier is a timeline construct that holds participants in a waiting area until certain conditions
     are satisfied to release them. The decision about which participants to release at any given point is taken by
