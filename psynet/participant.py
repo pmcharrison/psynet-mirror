@@ -451,8 +451,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.time_credit_fixes = []
         self.progress_fixes = []
         # To do - don't hard-code experiment in here, but instead begin with a goto
-        self.elt_id = ["experiment", -1]
-        self.elt_id_max = [None, len(experiment.timeline.branches["experiment"]) - 1]
+        self.elt_id = ["main", -1]
+        self.elt_id_max = [None, len(experiment.timeline.branches["main"]) - 1]
         self.answer_accumulators = []
         self.sequences = []
         self.complete = False

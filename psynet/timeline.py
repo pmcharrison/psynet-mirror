@@ -1423,12 +1423,12 @@ class EndPage(Page):
 class Timeline:
     def __init__(self, *args):
         self.branches = {
-            "experiment": join(*args),
+            "main": join(*args),
         }
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
-        self.estimated_time_credit = CreditEstimate(self.branches["experiment"])
+        self.estimated_time_credit = CreditEstimate(self.branches["main"])
 
     def compile_modules(self):
         modules = {}
@@ -1459,7 +1459,7 @@ class Timeline:
         self.check_modules()
 
     def check_for_time_estimate(self):
-        for i, elt in enumerate(self.branches["experiment"]):
+        for i, elt in enumerate(self.branches["main"]):
             if (
                 isinstance(elt, Page) or isinstance(elt, PageMaker)
             ) and elt.time_estimate is None:
@@ -1490,21 +1490,21 @@ class Timeline:
         from psynet.consent import Consent
         from psynet.page import InfoPage
 
-        first_elt = self.branches["experiment"][0]
+        first_elt = self.branches["main"][0]
         # ignore unless the timeline is fully initialized
         if (
             isinstance(first_elt, InfoPage)
             and first_elt.content == "Placeholder timeline"
         ):
             return
-        if all([not isinstance(elt, Consent) for elt in self.branches["experiment"]]):
+        if all([not isinstance(elt, Consent) for elt in self.branches["main"]]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
     @property
     def consents(self):
         from .consent import Consent
 
-        return [elt for elt in self.branches["experiment"] if isinstance(elt, Consent)]
+        return [elt for elt in self.branches["main"] if isinstance(elt, Consent)]
 
     def verify_consents(self, experiment):
         recruiter = experiment.recruiter
@@ -1521,7 +1521,7 @@ class Timeline:
     def trial_makers(self):
         return {
             e.trial_maker_id: e.trial_maker
-            for e in self.branches["experiment"]
+            for e in self.branches["main"]
             if isinstance(e, RegisterTrialMaker)
         }
 

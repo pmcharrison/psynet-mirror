@@ -29,7 +29,7 @@ class Exp(psynet.experiment.Experiment):
     links = ["welcome", "fish", "dog", "bird"]
 
     timeline = Timeline(
-        main=join(  # maybe call this 'main' instead of 'experiment'?
+        main=join(
             NoConsent(),
             GoTo("welcome"),
         ),
