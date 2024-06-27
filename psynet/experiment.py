@@ -2937,12 +2937,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id = request.args.get("participantId")
         participant = Participant.query.get(participant_id)
         progress_percentage = round(participant.progress * 100)
-        min_pct = 5
-        max_pct = 99
-        if progress_percentage > max_pct:
-            progress_percentage = max_pct
-        elif progress_percentage < min_pct:
-            progress_percentage = min_pct
         data = {
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
