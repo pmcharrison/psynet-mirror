@@ -4,7 +4,6 @@ from importlib import resources
 from math import ceil
 from typing import List, Optional, Union
 
-from dominate import tags
 from dominate.dom_tag import dom_tag
 from markupsafe import Markup, escape
 
@@ -12,8 +11,10 @@ from .asset import CachedAsset, ExternalAsset
 from .modular_page import AudioPrompt, ModularPage
 from .timeline import (
     CodeBlock,
-    EndPage,
+    Elt,
+    EltCollection,
     Event,
+    GoTo,
     Module,
     Page,
     PageMaker,
@@ -297,40 +298,23 @@ def wait_while(
     )
 
 
+class EndPage(EltCollection):
+    @property
+    def target_branch(self):
+        raise NotImplementedError
+
+
 class SuccessfulEndPage(EndPage):
-    """
-    Indicates a successful end to the experiment.
-    """
+    target_branch = "successful_end"
 
-    def get_message(self, experiment, participant):
-        _p = participant.pgettext
-
-        with tags.span():
-            tags.span(_p("final_page_successful", "That's the end of the experiment!"))
-
-            # tags.span()
-            #
-            # if self.show_reward:
-            #     text(" You have earned ")
-            #     text(participant.reward)
-            #     text(" points.")
-
-    def finalize_participant(self, experiment, participant):
-        super().finalize_participant(experiment, participant)
-        participant.complete = True
-        participant.progress = 1.0
+    def resolve(self) -> Union[Elt, List[Elt]]:
+        return GoTo(self.target_branch)
 
 
 class UnsuccessfulEndPage(EndPage):
-    """
-    Indicates an unsuccessful end to the experiment.
-    """
+    target_branch = "unsuccessful_end"
 
-    def __init__(
-        self,
-        failure_tags: Optional[List] = None,
-        **kwargs,
-    ):
+    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
         super().__init__()
 
         if failure_tags is None:
@@ -344,12 +328,13 @@ class UnsuccessfulEndPage(EndPage):
                 "Instead you should customize its content by subclassing its message attribute."
             )
 
-    def finalize_participant(self, experiment, participant):
-        super().finalize_participant(experiment, participant)
-        if self.failure_tags:
-            assert isinstance(self.failure_tags, list)
-            participant.append_failure_tags(*self.failure_tags)
-        participant.fail()
+    def resolve(self) -> Union[Elt, List[Elt]]:
+        return join(
+            CodeBlock(
+                lambda participant: participant.append_failure_tags(*self.failure_tags)
+            ),
+            GoTo(self.target_branch),
+        )
 
 
 class RejectedConsentPage(UnsuccessfulEndPage):
@@ -357,11 +342,7 @@ class RejectedConsentPage(UnsuccessfulEndPage):
     Indicates a consent that has been rejected.
     """
 
-    def __init__(self, failure_tags: Optional[List] = None):
-        super().__init__(
-            failure_tags=failure_tags,
-            template_filename="final-page-rejected-consent.html",
-        )
+    target_branch = "rejected_consent"
 
 
 class DebugResponsePage(PageMaker):
@@ -502,3 +483,12 @@ class JsPsychPage(Page):
 
     def format_answer(self, raw_answer, **kwargs):
         return json.loads(raw_answer)
+
+
+class ExecuteFrontEndJS(InfoPage):
+    def __init__(self, js: str):
+        super().__init__(
+            prompt="",
+            time_estimate=0,
+            scripts=[js],
+        )

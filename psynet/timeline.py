@@ -10,6 +10,7 @@ from importlib import resources
 from statistics import median
 from typing import Callable, Dict, List, Optional, Union
 
+import dominate
 from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
@@ -23,6 +24,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject, VarStore
+from .page import EndPage
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -185,7 +187,7 @@ class Elt:
 
 
 class EltCollection:
-    def resolve(self) -> List[Elt]:
+    def resolve(self) -> Union[Elt, List[Elt]]:
         raise NotImplementedError
 
 
@@ -1411,21 +1413,167 @@ class PageMakerFinishedError(Exception):
     pass
 
 
-class EndPage(EltCollection):
-    def get_message(self, experiment, participant):
-        raise NotImplementedError
-
-    def resolve(self) -> List[Elt]:
+class EndLogic(EltCollection):
+    def resolve(self) -> Union[Elt, List[Elt]]:
         return join(
+            PageMaker(self.debrief_participant, time_estimate=0.0),
             CodeBlock(self.finalize_participant),
-            PageMaker(self.get_message, time_estimate=0.0),
+            PageMaker(self.release_participant, time_estimate=0.0),
         )
+
+    def debrief_participant(self, experiment, participant):
+        raise NotImplementedError
 
     def finalize_participant(self, experiment, participant):
         from psynet.bot import Bot
 
         if isinstance(participant, Bot):
             participant.status = "approved"
+
+    def release_participant(self, experiment, participant):
+        # To do - make this recruiter-specific.
+        # To do - implement our functionality where we only submitAssignment if the reward is above base payment.
+
+        from .page import ExecuteFrontEndJS
+
+        return ExecuteFrontEndJS("dallinger.submitAssignment()")
+
+    def debrief_page(self, content, experiment, participant):
+        from .modular_page import ModularPage, PushButtonControl
+
+        events = {}
+        if experiment.with_lucid_recruitment():
+            seconds_until_redirect = 2.0
+            events["nextPage"] = Event(
+                is_triggered_by="trialConstruct", delay=seconds_until_redirect
+            )
+
+        return ModularPage(
+            self.__class__.__name__,
+            content,
+            PushButtonControl(["Finish"]),
+            events=events,
+        )
+
+    @property
+    def should_show_reward(self):
+        from psynet.experiment import get_experiment
+
+        exp = get_experiment()
+
+        from psynet.experiment import get_and_load_config
+
+        config = get_and_load_config()
+
+        return config.get("show_reward") and not exp.with_lucid_recruitment()
+
+    def summarize_reward(self, experiment, participant):
+        from psynet.experiment import get_and_load_config
+
+        config = get_and_load_config()
+        _, _p = (participant.gettext, participant.pgettext)
+
+        # To do - translation should not have HTML hard-coded.
+        # Fix that and then refactor using dominate package.
+        #
+        # To do - if there is no performance reward, skip reporting it.
+        text = _p(
+            "final-page-rewards",
+            (
+                "You will receive a reward of <strong>{{ CURRENCY }}{{ TIME_REWARD }}</strong> for the time you spent "
+                "on the experiment. You have also been awarded a performance reward of <strong>{{ CURRENCY }}{{ "
+                "PERFORMANCE_REWARD }}</strong>! "
+            ),
+        ).format(
+            CURRENCY=config.get("currency"),
+            TIME_REWARD=participant.time_reward,
+            PERFORMANCE_REWARD=participant.performance_reward,
+        )
+
+        return dominate.util.raw(text)
+
+
+class SuccessfulEndLogic(EndLogic):
+    def finalize_participant(self, experiment, participant):
+        super().finalize_participant(experiment, participant)
+        participant.complete = True
+        participant.progress = 1.0
+
+    def debrief_participant(self, experiment, participant):
+        _, _p = (participant.gettext, participant.pgettext)
+
+        html = tags.span()
+
+        with html:
+            tags.span(_p("final_page_successful", "That's the end of the experiment!"))
+
+            if self.should_show_reward:
+                tags.span(self.summarize_reward(experiment, participant))
+
+            tags.span(_("Thank you for taking part."))
+
+            if not experiment.with_lucid_recruitment():
+                tags.p(_('Please click "Finish" to complete the HIT.'))
+
+        return self.debrief_page(html, experiment, participant)
+
+
+class UnsuccessfulEndLogic(EndLogic):
+    def finalize_participant(self, experiment, participant):
+        super().finalize_participant(experiment, participant)
+        participant.fail()
+
+    def debrief_participant(self, experiment, participant):
+        _, _p = (participant.gettext, participant.pgettext)
+
+        html = tags.span()
+
+        with html:
+            tags.span(
+                _p(
+                    "final_page_unsuccessful",
+                    "Unfortunately the experiment must end early.",
+                )
+            )
+
+            if self.should_show_reward:
+                tags.span(
+                    _p(
+                        "final_page_unsuccessful",
+                        "However, you will still be paid for the time you spent already.",
+                    )
+                )
+                tags.span(self.summarize_reward(experiment, participant))
+
+            if experiment.with_lucid_recruitment():
+                tags.span(_("You will be redirected."))
+
+            tags.span(_("Thank you for taking part."))
+
+            if not experiment.with_lucid_recruitment():
+                tags.p(_('Please click "Finish" to complete the HIT.'))
+
+        return self.debrief_page(html, experiment, participant)
+
+
+class RejectedConsentLogic(EndLogic):
+    def finalize_participant(self, experiment, participant):
+        super().finalize_participant(experiment, participant)
+        participant.fail()
+
+    def debrief_participant(self, experiment, participant):
+        _, _p = (participant.gettext, participant.pgettext)
+
+        html = tags.span()
+
+        with html:
+            tags.span(_p("final_page_rejected_consent", "Consent was rejected."))
+            tags.span(_p("final_page_rejected_consent", "End of experiment."))
+
+            if not experiment.with_lucid_recruitment():
+                tags.p(_('Please click "Finish" to complete the HIT.'))
+
+        return self.debrief_page(html, experiment, participant)
 
 
 class Timeline:
