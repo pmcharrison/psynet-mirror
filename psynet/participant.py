@@ -24,7 +24,12 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
-from .utils import call_function_with_context, get_logger, organize_by_key
+from .utils import (
+    call_function_with_context,
+    get_logger,
+    get_translator,
+    organize_by_key,
+)
 
 logger = get_logger()
 
@@ -471,6 +476,23 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def initialize(self, experiment):
         pass
+
+    @property
+    def locale(self):
+        return self.var.get("locale", default=None)
+
+    @property
+    def get_translator(self):
+        gettext, pgettext = get_translator(self.locale)
+        return gettext, pgettext
+
+    @property
+    def gettext(self):
+        return self.get_translator[0]
+
+    @property
+    def pgettext(self):
+        return self.get_translator[1]
 
     @property
     def time_reward(self):
