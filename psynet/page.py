@@ -4,6 +4,7 @@ from importlib import resources
 from math import ceil
 from typing import List, Optional, Union
 
+from dominate import tags
 from dominate.dom_tag import dom_tag
 from markupsafe import Markup, escape
 
@@ -301,11 +302,21 @@ class SuccessfulEndPage(EndPage):
     Indicates a successful end to the experiment.
     """
 
-    def __init__(self, show_reward: bool = True):
-        super().__init__("final-page-successful.html", label="SuccessfulEndPage")
-        self.show_reward = show_reward
+    def get_message(self, experiment, participant):
+        _p = participant.pgettext
+
+        with tags.span():
+            tags.span(_p("final_page_successful", "That's the end of the experiment!"))
+
+            # tags.span()
+            #
+            # if self.show_reward:
+            #     text(" You have earned ")
+            #     text(participant.reward)
+            #     text(" points.")
 
     def finalize_participant(self, experiment, participant):
+        super().finalize_participant(experiment, participant)
         participant.complete = True
         participant.progress = 1.0
 
@@ -317,18 +328,24 @@ class UnsuccessfulEndPage(EndPage):
 
     def __init__(
         self,
-        show_reward: bool = True,
         failure_tags: Optional[List] = None,
-        template_filename: str = "final-page-unsuccessful.html",
+        **kwargs,
     ):
+        super().__init__()
+
         if failure_tags is None:
             failure_tags = []
         failure_tags = [*failure_tags, "UnsuccessfulEndPage"]
-        super().__init__(template_filename, label="UnsuccessfulEndPage")
         self.failure_tags = failure_tags
-        self.show_reward = show_reward
+
+        if "template_filename" in kwargs:
+            raise ValueError(
+                "UnsuccessfulEndPage no longer accepts a template_filename argument. "
+                "Instead you should customize its content by subclassing its message attribute."
+            )
 
     def finalize_participant(self, experiment, participant):
+        super().finalize_participant(experiment, participant)
         if self.failure_tags:
             assert isinstance(self.failure_tags, list)
             participant.append_failure_tags(*self.failure_tags)

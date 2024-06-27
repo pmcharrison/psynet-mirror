@@ -184,6 +184,11 @@ class Elt:
         return self
 
 
+class EltCollection:
+    def resolve(self) -> List[Elt]:
+        raise NotImplementedError
+
+
 class NullElt(Elt):
     def consume(self, experiment, participant):
         pass
@@ -1406,37 +1411,21 @@ class PageMakerFinishedError(Exception):
     pass
 
 
-class EndPage(Page):
-    def __init__(self, template_filename, label="EndPage"):
-        super().__init__(
-            time_estimate=0,
-            template_str=get_template(template_filename),
-            label=label,
+class EndPage(EltCollection):
+    def get_message(self, experiment, participant):
+        raise NotImplementedError
+
+    def resolve(self) -> List[Elt]:
+        return join(
+            CodeBlock(self.finalize_participant),
+            PageMaker(self.get_message, time_estimate=0.0),
         )
 
-    def consume(self, experiment, participant):
-        super().consume(experiment, participant)
-        self.finalize_participant(experiment, participant)
-
-    def get_bot_response(self, experiment, bot):
-        bot.status = "approved"
-        return None
-
     def finalize_participant(self, experiment, participant):
-        """
-        Executed when the participant completes the experiment.
+        from psynet.bot import Bot
 
-        Parameters
-        ----------
-
-        experiment:
-            An instantiation of :class:`psynet.experiment.Experiment`,
-            corresponding to the current experiment.
-
-        participant:
-            An instantiation of :class:`psynet.participant.Participant`,
-            corresponding to the current participant.
-        """
+        if isinstance(participant, Bot):
+            participant.status = "approved"
 
 
 class Timeline:
@@ -2410,11 +2399,6 @@ class ModuleAssets:
         return Asset.query.filter_by(
             module_id=self.module_id, key_within_module=item
         ).one()
-
-
-class EltCollection:
-    def resolve(self):
-        raise NotImplementedError
 
 
 class Module(EltCollection):
