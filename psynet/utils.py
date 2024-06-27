@@ -14,7 +14,7 @@ import sys
 import time
 from collections import OrderedDict
 from datetime import datetime
-from functools import lru_cache, reduce, wraps
+from functools import cache, lru_cache, reduce, wraps
 from os.path import abspath, dirname, exists
 from os.path import join as join_path
 from pathlib import Path
@@ -620,6 +620,7 @@ def render_string_with_translations(template_string, locale=None, **kwargs):
     )
 
 
+@cache
 def get_translator(
     locale=None,
     module="psynet",
