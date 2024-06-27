@@ -231,6 +231,10 @@ class Bot(Participant):
             "processing_time": processing_time,
         }
 
+    def submit_response(self, response=NoArgumentProvided):
+        page = self.get_current_page()
+        self.take_page(page, response=response)
+
 
 class BotResponse:
     """
