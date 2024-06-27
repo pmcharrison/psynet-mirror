@@ -224,37 +224,41 @@ class CodeBlock(Elt):
         )
 
 
-class FixElt(Elt):
+class StartFixElt(Elt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
 
-    def __init__(self, time_credit: float):
+    def __init__(self, time_credit: float, end_fix: "EndFixElt"):
         super().__init__()
         self.time_credit = time_credit
         self.expected_repetitions = 1
+        self.end_fix = end_fix
 
     def multiply_expected_repetitions(self, factor):
         self.expected_repetitions = self.expected_repetitions * factor
 
 
-class StartFixTimeCredit(FixElt):
+class EndFixElt(Elt):
+    def __init__(self, time_credit: float):
+        super().__init__()
+        self.time_credit = time_credit
+        self.expected_repetitions = 1
+
+
+class StartFixTimeCredit(StartFixElt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
-
-    def __init__(self, time_credit: float, end_fix: "EndFixTimeCredit"):
-        super().__init__(time_credit)
-        self.end_fix = end_fix
-
     def consume(self, experiment, participant):
         bound = participant.time_credit + self.time_credit
         participant.time_credit_fixes.append(bound)
 
 
-class EndFixTimeCredit(FixElt):
+
+class EndFixTimeCredit(EndFixElt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
@@ -264,12 +268,11 @@ class EndFixTimeCredit(FixElt):
         participant.time_credit = participant.time_credit_fixes.pop()
 
 
-class StartFixProgress(FixElt):
+class StartFixProgress(StartFixElt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
-
     def consume(self, experiment, participant):
         bound = (
             participant.progress
@@ -278,12 +281,11 @@ class StartFixProgress(FixElt):
         participant.progress_fixes.append(bound)
 
 
-class EndFixProgress(FixElt):
+class EndFixProgress(EndFixElt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
-
     def consume(self, experiment, participant):
         participant.progress = participant.progress_fixes.pop()
 
@@ -291,6 +293,12 @@ class EndFixProgress(FixElt):
 class GoTo(Elt):
     def __init__(self, target: Union[Elt, str, callable]):
         super().__init__()
+
+        if isinstance(target, str):
+            # For example, if the user specifies "unsuccessful_end", this will be
+            # interpreted as an instruction to go to the first element of the
+            # unsuccessful_end branch.
+            target = [target, 0]
 
         self.target = target
 
@@ -308,9 +316,6 @@ class GoTo(Elt):
         elif isinstance(target, list):
             return target
         elif isinstance(target, str):
-            # For example, if the user specifies "unsuccessful_end", this will be
-            # interpreted as an instruction to go to the first element of the
-            # unsuccessful_end branch.
             return [target, 0]
         else:
             raise ValueError(f"Unexpected type for target: got {target}")
@@ -1591,6 +1596,22 @@ class Timeline:
         self.add_elt_ids()
         self.estimated_time_credit = CreditEstimate(self.branches["main"])
 
+    def __getitem__(self, key: Union[str, list]):
+        if isinstance(key, str):
+            key = [key]
+
+        selected = self.branches
+        for k in key:
+            selected = selected[k]
+
+        return selected
+
+    def index(self, elt: Elt):
+        if elt.id is None:
+            raise ValueError("Cannot index an element that has yet to be assigned an ID.")
+
+        return elt.id
+
     def compile_modules(self):
         modules = {}
         module_list = []
@@ -1808,8 +1829,8 @@ class Timeline:
 
 class CreditEstimate:
     def __init__(self, elts):
-        self._elts = elts
-        self._max_time = self._estimate_max_time(elts)
+        self._elts = join(elts)
+        self._max_time = self._estimate_max_time(self._elts)
 
     def get_max(self, mode, wage_per_hour=None):
         if mode == "time":
@@ -1825,26 +1846,25 @@ class CreditEstimate:
                 "reward": self.get_max("reward", wage_per_hour=wage_per_hour),
             }
 
-    def _estimate_max_time(self, elts):
-        pos = 0
+    def _estimate_max_time(self, elts: Union[Timeline, List[Elt]]):
         time_credit = 0.0
-        n_elts = len(elts)
+        pos = self._get_first_elt(elts)
 
         while True:
-            if pos == n_elts:
-                return time_credit
+            elt = self._get_elt(pos, elts)
 
-            elt = elts[pos]
+            if self._is_terminal_elt(pos, elt, elts):
+                return time_credit
 
             if elt.returns_time_credit:
                 time_credit += elt.time_estimate * elt.expected_repetitions
 
-            if isinstance(elt, StartFixTimeCredit):
-                pos = elts.index(elt.end_fix)
+            if isinstance(elt, StartFixElt):
+                pos = self._jump_to_end_fix(start_fix=elt, elts=elts)
 
-            elif isinstance(elt, EndFixTimeCredit):
+            elif isinstance(elt, EndFixElt):
                 time_credit += elt.time_credit * elt.expected_repetitions
-                pos += 1
+                pos = self._get_next_elt(pos, elts)
 
             elif isinstance(elt, StartSwitch):
                 time_credit += max(
@@ -1859,20 +1879,66 @@ class CreditEstimate:
                         for key, branch_start in elt.branch_start_elts.items()
                     ]
                 )
-                pos = elts.index(elt.end_switch)
+                pos = self._jump_to_end_switch(start_switch=elt, elts=elts)
 
             elif isinstance(elt, EndSwitchBranch):
-                pos = elts.index(elt.target)
+                pos = self._exit_switch(end_switch_branch=elt, elts=elts)
 
             elif isinstance(elt, GoTo):
-                if callable(elt.target):
-                    raise ValueError(
-                        "Cannot proceed with timeline simulation as this GoTo's target is only known at run time"
-                    )
-                pos = elt.get_target_elt_id(experiment=None, participant=None)
+                pos = self._follow_go_to(go_to=elt, elts=elts)
 
             else:
-                pos += 1
+                pos = self._get_next_elt(pos, elts)
+
+    def _get_first_elt(self, elts) -> Union[List, int]:
+        if isinstance(elts, Timeline):
+            return ["main", 0]
+        else:
+            return 0
+
+    def _get_elt(self, pos, elts) -> Elt:
+        return elts[pos]
+
+    def _is_terminal_elt(self, pos, elt, elts) -> bool:
+        if isinstance(elt, GoTo):
+            if isinstance(elt.target, list):
+                if elt.target[0] in ["successful_end", "unsuccessful_end"]:
+                    return True
+        if isinstance(elts, Timeline):
+            return pos[1] == len(elts[pos[0]]) - 1
+        else:
+            return pos == len(elts) - 1
+
+    def _get_next_elt(self, pos, elts) -> Union[List, int]:
+        if isinstance(elts, Timeline):
+            return [pos[0], pos[1] + 1]
+        else:
+            return pos + 1
+
+    def _jump_to_end_fix(self, start_fix, elts) -> Union[List, int]:
+        return elts.index(start_fix.end_fix)
+
+    def _jump_to_end_switch(self, start_switch, elts) -> Union[List, int]:
+        return elts.index(start_switch.end_switch)
+
+    def _exit_switch(self, end_switch_branch, elts) -> Union[List, int]:
+        return elts.index(end_switch_branch.target)
+
+    def _follow_go_to(self, go_to, elts) -> Union[List, int]:
+        if callable(go_to.target):
+            raise ValueError(
+                "Cannot proceed with timeline simulation as this GoTo's target is only known at run time"
+            )
+        elif isinstance(go_to.target, Elt):
+            return elts.index(go_to.target)
+        elif isinstance(go_to.target, list):
+            if isinstance(elts, Timeline):
+                return go_to.target
+            else:
+                for i, elt in enumerate(elts):
+                    if elt.id == go_to.target:
+                        return i
+        raise ValueError(f"Failed to follow GoTo to target {go_to.target}")
 
 
 def estimate_duration(logic):
@@ -2198,21 +2264,9 @@ def while_loop(
 
 
 def check_branches(branches):
-    try:
-        assert isinstance(branches, dict)
-        for branch_name, branch_elts in branches.items():
-            assert isinstance(branch_elts, (Elt, Module)) or is_list_of(
-                branch_elts, Elt
-            )
-            if isinstance(branch_elts, Elt):
-                branches[branch_name] = [branch_elts]
-            elif isinstance(branch_elts, Module):
-                branches[branch_name] = branch_elts.resolve()
-        return branches
-    except AssertionError:
-        raise TypeError(
-            "<branches> must be a dict of Modules or (lists of) Elt objects."
-        )
+    for branch_name, branch_elts in branches.items():
+        branches[branch_name] = join(branch_elts)
+    return branches
 
 
 def switch(
@@ -2271,6 +2325,8 @@ def switch(
     for branch_name, branch_elts in branches.items():
         branch_start = StartSwitchBranch(branch_name)
         branch_end = EndSwitchBranch(branch_name, end_switch)
+        if isinstance(branch_elts, EltCollection):
+            branch_elts = branch_elts.resolve()
         all_branch_starts[branch_name] = branch_start
         all_elts = all_elts + [branch_start] + branch_elts + [branch_end]
 
@@ -2433,10 +2489,12 @@ def with_fixed_progress(elts: List[Elt], time_credit: float):
         The progress increment is calculated as if the participant had acquired
         this amount of time credit (in units of seconds).
     """
+    end_fix = EndFixProgress(time_credit)
+    start_fix = StartFixProgress(time_credit, end_fix)
     return join(
-        StartFixProgress(time_credit),
+        start_fix,
         elts,
-        EndFixProgress(time_credit),
+        end_fix,
     )
 
 
@@ -2970,8 +3028,6 @@ def for_loop(
         return len(iterate_over())
 
     def setup(experiment, participant):
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         nonlocal iterate_over
         nonlocal label
         if callable(iterate_over):
@@ -3005,8 +3061,6 @@ def for_loop(
         lst = state["lst"]
         index = state["index"]
         input = lst[index]
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         return call_function_with_context(
             logic,
             input,
@@ -3017,8 +3071,6 @@ def for_loop(
     def should_stay_in_loop(participant):
         nonlocal label
         # state = participant.for_loops[-1]
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         state = participant.for_loops[label]
         return state["index"] < len(state["lst"])
 
