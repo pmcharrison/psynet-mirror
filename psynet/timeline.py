@@ -283,17 +283,34 @@ class EndFixProgress(FixElt):
 
 
 class GoTo(Elt):
-    def __init__(self, target):
+    def __init__(self, target: Union[Elt, str, callable]):
         super().__init__()
+
         self.target = target
 
-    def get_target(self, experiment, participant):
+    def get_target_elt_id(self, experiment, participant):
         # pylint: disable=unused-argument
-        return self.target
+        target = self.target
+        if callable(target):
+            target = call_function_with_context(
+                target,
+                experiment=experiment,
+                participant=participant,
+            )
+        if isinstance(target, Elt):
+            return target.id
+        elif isinstance(target, list):
+            return target
+        elif isinstance(target, str):
+            # For example, if the user specifies "unsuccessful_end", this will be
+            # interpreted as an instruction to go to the first element of the
+            # unsuccessful_end branch.
+            return [target, 0]
+        else:
+            raise ValueError(f"Unexpected type for target: got {target}")
 
     def consume(self, experiment, participant):
-        target_elt = self.get_target(experiment, participant)
-        participant.elt_id = target_elt.id
+        participant.elt_id = self.get_target_elt_id(experiment, participant)
         # We subtract 1 because elt_id will be incremented again when
         # we return to the start of the advance page loop.
         # Remember that ``elt_id`` corresponds to a nested representation,
@@ -304,6 +321,7 @@ class GoTo(Elt):
         participant.elt_id[-1] -= 1
 
 
+# To do - remove ReactiveGoTo and move its code into Switch
 class ReactiveGoTo(GoTo):
     def __init__(
         self,
@@ -333,7 +351,7 @@ class ReactiveGoTo(GoTo):
         except AssertionError:
             raise TypeError("<targets> must be a dictionary of Elt objects.")
 
-    def get_target(self, experiment, participant):
+    def get_target_elt_id(self, experiment, participant):
         val = call_function_with_context(
             self.function,
             self=self,
@@ -341,12 +359,13 @@ class ReactiveGoTo(GoTo):
             participant=participant,
         )
         try:
-            return self.targets[val]
+            target_elt = self.targets[val]
         except KeyError:
             raise ValueError(
                 f"ReactiveGoTo returned {val}, which is not present among the target keys: "
                 + f"{list(self.targets)}."
             )
+        return target_elt.id
 
 
 class MediaSpec:
@@ -1421,10 +1440,16 @@ class EndPage(Page):
 
 
 class Timeline:
-    def __init__(self, *args):
-        self.branches = {
-            "main": join(*args),
-        }
+    def __init__(self, *args, **kwargs):
+        if len(args) > 0:
+            if "main" in kwargs:
+                raise ValueError(
+                    "If 'main' is provided as an argument then you cannot provide unnamed arguments as well"
+                )
+
+            kwargs["main"] = join(*args)
+
+        self.branches = kwargs
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
@@ -1450,9 +1475,9 @@ class Timeline:
         for branch_id, branch in self.branches.items():
             assert isinstance(branch, list)
             assert len(branch) > 0
-            if not isinstance(branch[-1], EndPage):
+            if not isinstance(branch[-1], (GoTo, EndPage)):
                 raise ValueError(
-                    f"The final element in the {branch_id} timeline must be an EndPage."
+                    f"The final element in the {branch_id} timeline must be an EndPage or a GoTo."
                 )
         self.check_for_time_estimate()
         self.check_for_consent()

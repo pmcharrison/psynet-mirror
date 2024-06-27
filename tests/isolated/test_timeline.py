@@ -189,3 +189,14 @@ def test_join_1():
     assert isinstance(x, list)
     assert len(x) == 1
     assert x[0] == page
+
+
+def test_timeline_args():
+    with pytest.raises(
+        ValueError,
+        match="If 'main' is provided as an argument then you cannot provide unnamed arguments as well",
+    ):
+        Timeline(
+            InfoPage("Test", time_estimate=5),
+            main=InfoPage("Test", time_estimate=5),
+        )

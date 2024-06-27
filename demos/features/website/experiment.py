@@ -9,15 +9,20 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-def content_page(label, content, navigation_options):
+def content_page(label, content, links):
     return join(
         ModularPage(
             label,
             tags.span(
                 tags.p(content),
-                tags.p(tags.em("For more content, click one of the buttons below:")),
+                tags.p(tags.em("Click below to visit another page.")),
             ),
-            PushButtonControl(navigation_options),
+            PushButtonControl(
+                choices=links,
+                labels=[choice.capitalize() for choice in links],
+                arrange_vertically=False,
+            ),
+            time_estimate=5.0,
         ),
         GoTo(lambda participant: participant.answer),
     )
@@ -26,7 +31,7 @@ def content_page(label, content, navigation_options):
 class Exp(psynet.experiment.Experiment):
     label = "Simple website demo"
 
-    links = ["welcome", "fish", "dog", "bird"]
+    links = ["welcome", "fish", "dogs", "birds"]
 
     timeline = Timeline(
         main=join(
@@ -34,22 +39,22 @@ class Exp(psynet.experiment.Experiment):
             GoTo("welcome"),
         ),
         welcome=content_page("welcome", "Welcome to my website!", links),
-        fish=content_page("fish", "My favorite fish is the goldfish", links),
-        dog=content_page("dog", "My favorite dog is the golden retriever", links),
-        bird=content_page("bird", "My favorite bird is the robin", links),
+        fish=content_page("fish", "My favorite fish is the goldfish.", links),
+        dogs=content_page("dogs", "My favorite dog is the golden retriever.", links),
+        birds=content_page("birds", "My favorite bird is the robin.", links),
     )
 
     def run_bot(self, bot):
-        assert bot.get_current_page().label == "Welcome"
+        assert bot.get_current_page().label == "welcome"
 
-        bot.submit_response("Bird")
-        assert bot.get_current_page().label == "Bird"
+        bot.submit_response("birds")
+        assert bot.get_current_page().label == "birds"
 
-        bot.submit_response("Fish")
-        assert bot.get_current_page().label == "Fish"
+        bot.submit_response("fish")
+        assert bot.get_current_page().label == "fish"
 
-        bot.submit_response("Dog")
-        assert bot.get_current_page().label == "Dog"
+        bot.submit_response("dogs")
+        assert bot.get_current_page().label == "dogs"
 
-        bot.submit_response("Welcome")
-        assert bot.get_current_page().label == "Welcome"
+        bot.submit_response("welcome")
+        assert bot.get_current_page().label == "welcome"

@@ -499,8 +499,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.time_credit = new_value
 
     def inc_progress(self, time_credit: float):
-        new_value = self.progress + time_credit / self.estimated_max_time_credit
-        new_value = min([new_value, *self.progress_fixes])
+        if self.estimated_max_time_credit == 0.0:
+            new_value = 1.0
+        else:
+            new_value = self.progress + time_credit / self.estimated_max_time_credit
+            new_value = min([new_value, *self.progress_fixes])
         self.progress = new_value
 
     def inc_performance_reward(self, value):
