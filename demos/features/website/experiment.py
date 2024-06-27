@@ -22,7 +22,9 @@ def content_page(label, content, links):
                 labels=[choice.capitalize() for choice in links],
                 arrange_vertically=False,
             ),
-            time_estimate=5.0,
+            # We have set the time_estimate to 0.0 to disable time-related payments.
+            # An alternative would be to set wage_per_hour = 0.0 in the experiment config.
+            time_estimate=0.0,
         ),
         GoTo(lambda participant: participant.answer),
     )
@@ -30,6 +32,11 @@ def content_page(label, content, links):
 
 class Exp(psynet.experiment.Experiment):
     label = "Simple website demo"
+
+    config = {
+        "show_reward": False,
+        "show_progress_bar": False,
+    }
 
     links = ["welcome", "fish", "dogs", "birds"]
 
