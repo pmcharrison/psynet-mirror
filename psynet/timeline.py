@@ -1484,14 +1484,14 @@ class EndLogic(EltCollection):
         text = _p(
             "final-page-rewards",
             (
-                "You will receive a reward of <strong>{{ CURRENCY }}{{ TIME_REWARD }}</strong> for the time you spent "
-                "on the experiment. You have also been awarded a performance reward of <strong>{{ CURRENCY }}{{ "
-                "PERFORMANCE_REWARD }}</strong>! "
+                "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for the time you spent "
+                "on the experiment. You have also been awarded a performance reward of <strong>{CURRENCY}"
+                "{PERFORMANCE_REWARD}</strong>! "
             ),
         ).format(
             CURRENCY=config.get("currency"),
-            TIME_REWARD=participant.time_reward,
-            PERFORMANCE_REWARD=participant.performance_reward,
+            TIME_REWARD=round(participant.time_reward, 2),
+            PERFORMANCE_REWARD=round(participant.performance_reward, 2),
         )
 
         return dominate.util.raw(text)
