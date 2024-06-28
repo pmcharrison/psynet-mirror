@@ -1590,7 +1590,19 @@ class Timeline:
 
             kwargs["main"] = join(*args)
 
-        self.branches = kwargs
+        self.branches = {
+            "successful_end": SuccessfulEndLogic(),
+            "unsuccessful_end": UnsuccessfulEndLogic(),
+            "rejected_consent": RejectedConsentLogic(),
+            **kwargs,
+        }
+
+        if not isinstance(self.branches["main"][-1], GoTo):
+            self.branches.append(GoTo("successful_end"))
+
+        for branch_name, elts in self.branches.items():
+            self.branches[branch_name] = join(elts)
+
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
@@ -1628,18 +1640,14 @@ class Timeline:
         return modules, module_list
 
     def check_elts(self):
-        from psynet.page import EndPage
-
         assert isinstance(self.branches, dict)
 
         for branch_id, branch in self.branches.items():
             assert isinstance(branch, list)
             assert len(branch) > 0
+            # We used to check that the timeline finished with an EndPage, but this is no longer necessary,
+            # as we now automatically add SuccessfulEndLogic to the main branch.
 
-            if not isinstance(branch[-1], (GoTo, EndPage)):
-                raise ValueError(
-                    f"The final element in the {branch_id} timeline must be an EndPage or a GoTo."
-                )
         self.check_for_time_estimate()
         self.check_for_consent()
         self.check_modules()
@@ -1851,9 +1859,12 @@ class CreditEstimate:
         pos = self._get_first_elt(elts)
 
         while True:
+            if self._exceeds_bounds(pos, elts):
+                return time_credit
+
             elt = self._get_elt(pos, elts)
 
-            if self._is_terminal_elt(pos, elt, elts):
+            if self._is_go_to_end_logic(elt):
                 return time_credit
 
             if elt.returns_time_credit:
@@ -1899,15 +1910,19 @@ class CreditEstimate:
     def _get_elt(self, pos, elts) -> Elt:
         return elts[pos]
 
-    def _is_terminal_elt(self, pos, elt, elts) -> bool:
+    def _exceeds_bounds(self, pos, elts) -> bool:
+        if isinstance(elts, Timeline):
+            return pos[1] >= len(elts[pos[0]])
+        else:
+            return pos >= len(elts)
+
+    def _is_go_to_end_logic(self, elt) -> bool:
         if isinstance(elt, GoTo):
             if isinstance(elt.target, list):
-                if elt.target[0] in ["successful_end", "unsuccessful_end"]:
+                if elt.target[0] in ["successful_end", "unsuccessful_end", "rejected_consent"]:
                     return True
-        if isinstance(elts, Timeline):
-            return pos[1] == len(elts[pos[0]]) - 1
-        else:
-            return pos == len(elts) - 1
+        return False
+
 
     def _get_next_elt(self, pos, elts) -> Union[List, int]:
         if isinstance(elts, Timeline):
@@ -2220,6 +2235,8 @@ def while_loop(
     else:
         after_timeout_logic = GoTo(end_while)
 
+    time_estimate = CreditEstimate(logic).get_max("time")
+
     elts = join(
         CodeBlock(
             lambda participant: participant.var.set(
@@ -2239,6 +2256,7 @@ def while_loop(
             # within this inner component.
             bound_progress=False,
             log_chosen_branch=False,
+            time_estimate=0.0,
         ),
         conditional(
             label,
@@ -2249,11 +2267,10 @@ def while_loop(
             # to fail if enabled here.
             bound_progress=False,
             log_chosen_branch=False,
+            time_estimate=time_estimate,
         ),
         end_while,
     )
-
-    time_estimate = CreditEstimate(logic).get_max("time")
 
     elts = with_fixed_progress(elts, time_estimate)
 
@@ -2276,6 +2293,7 @@ def switch(
     fix_time_credit: bool = False,
     bound_progress: bool = True,
     log_chosen_branch: bool = True,
+    time_estimate: float = None,
 ):
     """
     Selects a series of elts to display to the participant according to a
@@ -2309,6 +2327,10 @@ def switch(
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
 
+    time_estimate:
+        An optional time estimate to use for the switch construct. If not provided, the time estimate
+        will be estimated by computing time estimates for all branches and taking the maximum.
+
     Returns
     -------
 
@@ -2339,12 +2361,13 @@ def switch(
     )
     combined_elts = [start_switch] + all_elts + [end_switch]
 
-    time_estimate = max(
-        [
-            CreditEstimate(branch_elts).get_max("time")
-            for branch_elts in branches.values()
-        ]
-    )
+    if time_estimate is None:
+        time_estimate = max(
+            [
+                CreditEstimate(branch_elts).get_max("time")
+                for branch_elts in branches.values()
+            ]
+        )
 
     if bound_progress:
         combined_elts = with_fixed_progress(combined_elts, time_estimate)
@@ -2406,6 +2429,7 @@ def conditional(
     fix_time_credit: bool = False,
     bound_progress: bool = True,
     log_chosen_branch: bool = True,
+    time_estimate: float = None,
 ):
     """
     Executes a series of elts if and only if a certain condition is satisfied.
@@ -2440,6 +2464,10 @@ def conditional(
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
 
+    time_estimate:
+        An optional time estimate to use for the conditional construct. If not provided, the time estimate
+        will be estimated by computing time estimates for the two branches and taking the maximum.
+
     Returns
     -------
 
@@ -2456,6 +2484,7 @@ def conditional(
         fix_time_credit=fix_time_credit,
         bound_progress=bound_progress,
         log_chosen_branch=log_chosen_branch,
+        time_estimate=time_estimate,
     )
 
 
