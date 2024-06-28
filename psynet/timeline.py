@@ -1493,8 +1493,8 @@ class EndLogic(EltCollection):
             ),
         ).format(
             CURRENCY=config.get("currency"),
-            TIME_REWARD=round(participant.time_reward, 2),
-            PERFORMANCE_REWARD=round(participant.performance_reward, 2),
+            TIME_REWARD=f"{participant.time_reward:.2f}",
+            PERFORMANCE_REWARD=f"{participant.performance_reward:.2f}",
         )
 
         return dominate.util.raw(text)
@@ -1559,6 +1559,9 @@ class UnsuccessfulEndLogic(EndLogic):
                 tags.span(_("You will be redirected."))
 
             tags.span(_("Thank you for taking part."))
+
+            # To do - consider improving our CSS to add automatic spacing after paragraphs
+            tags.p(cls="vspace")
 
             if not experiment.with_lucid_recruitment():
                 tags.p(_('Please click "Finish" to complete the HIT.'))
