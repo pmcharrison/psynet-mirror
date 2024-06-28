@@ -234,6 +234,15 @@ class Bot(Participant):
         page = self.get_current_page()
         self.take_page(page, response=response)
 
+    def run_until(self, condition):
+        while True:
+            current_page = self.get_current_page()
+            if condition(current_page):
+                break
+            self.take_page(current_page)
+            if not self.status == "working":
+                raise RuntimeError("Bot finished the experiment before condition was met.")
+
 
 class BotResponse:
     """

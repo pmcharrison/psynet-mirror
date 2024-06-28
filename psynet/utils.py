@@ -22,6 +22,7 @@ from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
 
 import click
+import html2text
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
@@ -1778,3 +1779,10 @@ def check_todos_before_deployment():
         "To view all TODOs in your project in PyCharm, go to 'View' > 'Tool Windows' > 'TODO'. "
         "You can skip this check by writing `export SKIP_TODO_CHECK=1` (without quotes) in your terminal."
     )
+
+
+def as_plain_text(html):
+    text = html2text.HTML2Text().handle(str(html))
+    pattern = re.compile(r"\s+")
+    text = re.sub(pattern, " ", text).strip()
+    return text
