@@ -486,9 +486,10 @@ class JsPsychPage(Page):
 
 
 class ExecuteFrontEndJS(InfoPage):
-    def __init__(self, js: str):
+    def __init__(self, js: str, message: str = ""):
         super().__init__(
-            content="",
+            content=message,
             time_estimate=0.0,
             scripts=[js],
+            show_next_button=False,
         )

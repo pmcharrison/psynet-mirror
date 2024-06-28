@@ -1440,7 +1440,10 @@ class EndLogic(EltCollection):
 
         from .page import ExecuteFrontEndJS
 
-        return ExecuteFrontEndJS("dallinger.submitAssignment()")
+        return ExecuteFrontEndJS(
+            "dallinger.submitAssignment()",
+            message="Communicating with the recruiter...",
+        )
 
     def debrief_page(self, content, experiment, participant):
         from .modular_page import ModularPage, PushButtonControl
