@@ -488,7 +488,7 @@ class JsPsychPage(Page):
 class ExecuteFrontEndJS(InfoPage):
     def __init__(self, js: str):
         super().__init__(
-            prompt="",
-            time_estimate=0,
+            content="",
+            time_estimate=0.0,
             scripts=[js],
         )
