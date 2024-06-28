@@ -1519,6 +1519,9 @@ class SuccessfulEndLogic(EndLogic):
 
             tags.span(_("Thank you for taking part."))
 
+            # To do - consider improving our CSS to add automatic spacing after paragraphs
+            tags.p(cls="vspace")
+
             if not experiment.with_lucid_recruitment():
                 tags.p(_('Please click "Finish" to complete the HIT.'))
 
