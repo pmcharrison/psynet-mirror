@@ -568,7 +568,7 @@ def is_psynet_worker_process(process):
             for cmd in process.cmdline():
                 if "dallinger_heroku_" in cmd:
                     return True
-    except psutil.NoSuchProcess:
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
         pass
 
     return False
