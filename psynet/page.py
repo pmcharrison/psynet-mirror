@@ -20,7 +20,7 @@ from .timeline import (
     PageMaker,
     get_template,
     join,
-    while_loop,
+    while_loop, Elt, GoTo,
 )
 from .utils import get_logger
 
