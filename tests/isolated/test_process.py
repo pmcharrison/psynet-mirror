@@ -77,7 +77,7 @@ class TestProcesses2:
 
         with pytest.raises(
             ValueError,
-            match="You cannot use a function defined within another function in an async process.",
+            match="You cannot serialize a lambda function or a function defined within another function.",
         ):
             LocalAsyncProcess(
                 local_function,

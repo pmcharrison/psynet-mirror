@@ -1,3 +1,4 @@
+import inspect
 import pickle
 import re
 import warnings
@@ -7,6 +8,7 @@ import dominate.tags
 import jsonpickle
 from jsonpickle import Pickler
 from jsonpickle.unpickler import Unpickler, loadclass
+from jsonpickle.util import importable_name
 from markupsafe import Markup
 
 from .data import SQLBase
@@ -141,7 +143,9 @@ class PsyNetUnpickler(Unpickler):
 
 def serialize(x, **kwargs):
     pickler = PsyNetPickler()
-    return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("error", message="jsonpickle cannot pickle")
+        return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
 
 
 def to_dict(x):
@@ -233,3 +237,23 @@ class DominateHandler(jsonpickle.handlers.BaseHandler):
 
 
 jsonpickle.register(dominate.dom_tag.dom_tag, DominateHandler, base=True)
+
+
+def prepare_function_for_serialization(function, arguments):
+    if inspect.ismethod(function):
+        method_name = function.__name__
+        method_caller = function.__self__
+        function = getattr(method_caller.__class__, method_name)
+        arguments["self"] = method_caller
+
+    check_that_function_can_be_serialized(function)
+
+    return function, arguments
+
+
+def check_that_function_can_be_serialized(function):
+    assert callable(function)
+    if "<locals>" in importable_name(function):
+        raise ValueError(
+            "You cannot serialize a lambda function or a function defined within another function."
+        )

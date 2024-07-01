@@ -1018,10 +1018,14 @@
                                     );
                                 }
 
-                                let stopTimer = setTimeout(
-                                    () => sound.stop({fadeOut: options.fadeOut, manual: false}),
-                                    1000 * (options.startDelay + sound.duration - options.fadeOut)
-                                );
+                                let stopTimer;
+
+                                if (sound.options.fadeOut > 0.0) {
+                                    stopTimer = setTimeout(
+                                        () => sound.stop({fadeOut: options.fadeOut, manual: false}),
+                                        1000 * (options.startDelay + sound.duration - options.fadeOut)
+                                    );
+                                }
 
                                 sound.stop = function (providedOptions) {
                                     let options = {
