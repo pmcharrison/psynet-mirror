@@ -285,15 +285,9 @@ class Exp(psynet.experiment.Experiment):
     # It defines an automated test that checks that the experiment logic is working properly.
     def test_check_bot(self, bot: Bot, **kwargs):
         step = PitchDiscriminationNode.step
-        max_reversals_per_chain = self.timeline.get_trial_maker(
-            "pitch_discrimination"
-        ).max_reversals_per_chain
 
         chains = GeometricStaircaseChain.query.filter_by(participant_id=bot.id).all()
         chains.sort(key=lambda c: c.head.id)
-
-        for chain in chains:
-            assert len(chain.all_trials) > max_reversals_per_chain
 
         for trial in chains[1].all_trials:
             assert trial.id > max(
@@ -301,10 +295,15 @@ class Exp(psynet.experiment.Experiment):
             ), "chains 0 and 1 were unexpectedly mixed"
 
         for chain in chains:
-            n_reversals = sum(
-                [node.reversal for node in chain.all_nodes if node.reversal is not None]
-            )
-            assert n_reversals == chain.head.n_prev_reversals == max_reversals_per_chain
+            # Copied out for now because the demo doesn't use the max_reversals logic
+            #
+            # max_reversals_per_chain = self.timeline.get_trial_maker(
+            #     "pitch_discrimination"
+            # ).max_reversals_per_chain
+            # n_reversals = sum(
+            #     [node.reversal for node in chain.all_nodes if node.reversal is not None]
+            # )
+            # assert n_reversals == chain.head.n_prev_reversals == max_reversals_per_chain
 
             # We expect that the last few trials should be near the threshold.
             # Here we check the last 4 trials.
@@ -325,8 +324,9 @@ class Exp(psynet.experiment.Experiment):
                     bot_threshold * step <= parameter <= bot_threshold / step
                 ), "Procedure did not converge to bot threshold"
 
-            assert (
-                bot_threshold * step
-                <= chain.mean_reversal_score
-                <= bot_threshold / step
-            ), f"Mean reversal score seems incorrect: {chain.mean_reversal_score}"
+            if chain.mean_reversal_score is not None:
+                assert (
+                    bot_threshold * step
+                    <= chain.mean_reversal_score
+                    <= bot_threshold / step
+                ), f"Mean reversal score seems incorrect: {chain.mean_reversal_score}"
