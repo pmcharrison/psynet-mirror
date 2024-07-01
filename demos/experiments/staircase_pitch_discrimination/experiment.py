@@ -194,6 +194,10 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
                 arrange_vertically=False,
                 bot_response=self.get_bot_response,
             ),
+            events={
+                "responseEnable": Event(is_triggered_by="promptEnd"),
+                "submitEnable": Event(is_triggered_by="promptEnd"),
+            },
         )
 
     def show_feedback(self, experiment, participant):
