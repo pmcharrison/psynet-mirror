@@ -235,6 +235,14 @@ class Trial(SQLMixinDallinger, Info):
         Reports the amount of time credit that was allocated to the participant on the basis of this trial (in seconds).
         This should be equal to ``time_credit_after_trial - time_credit_before_trial``.
 
+    progress_before_trial: float
+        Reports the progress that the participant had before they started the trial.
+        Mainly useful for debugging.
+
+    progress_after_trial: float
+        Reports the progress that the participant had after they finished the trial.
+        Mainly useful for debugging.
+
     check_time_credit_received : bool
         If ``True`` (default), PsyNet will check at the end of the trial whether the participant received
         the expected amount of time credit. If the received amount is inconsistent with the amount
@@ -281,9 +289,13 @@ class Trial(SQLMixinDallinger, Info):
     n_repeat_trials = Column(Integer)
     time_taken = Column(Float)
     _initial_assets = deferred(Column(PythonDict))
+
     time_credit_before_trial = Column(Float)
     time_credit_after_trial = Column(Float)
     time_credit_from_trial = Column(Float)
+
+    progress_before_trial = Column(Float)
+    progress_after_trial = Column(Float)
 
     async_post_trial_required = Column(Boolean, default=False, index=True)
     async_post_trial_requested = Column(Boolean, default=False, index=True)
@@ -865,6 +877,7 @@ class Trial(SQLMixinDallinger, Info):
 
         return join(
             CodeBlock(cls._log_time_credit_before_trial),
+            CodeBlock(cls._log_progress_before_trial),
             PageMaker(
                 lambda experiment, participant: participant.current_trial._show_trial(
                     experiment, participant
@@ -875,6 +888,7 @@ class Trial(SQLMixinDallinger, Info):
             cls._finalize_trial(trial_maker),
             cls._construct_feedback_logic(trial_maker),
             CodeBlock(cls._log_time_credit_after_trial),
+            CodeBlock(cls._log_progress_after_trial),
         )
 
     @classmethod
@@ -903,6 +917,11 @@ class Trial(SQLMixinDallinger, Info):
         trial.time_credit_before_trial = participant.time_credit
 
     @classmethod
+    def _log_progress_before_trial(cls, participant):
+        trial = participant.current_trial
+        trial.progress_before_trial = participant.progress
+
+    @classmethod
     def _log_time_credit_after_trial(cls, participant):
         trial = participant.current_trial
         trial.time_credit_after_trial = participant.time_credit
@@ -922,6 +941,11 @@ class Trial(SQLMixinDallinger, Info):
                     f"Consider setting the trial's `time_estimate` parameter to {trial.time_credit_from_trial}."
                     "You can disable this warning message by setting `Trial.check_time_credit_received = False`."
                 )
+
+    @classmethod
+    def _log_progress_after_trial(cls, participant):
+        trial = participant.current_trial
+        trial.progress_after_trial = participant.progress
 
     @classmethod
     def _finalize_trial(cls, trial_maker=None):
