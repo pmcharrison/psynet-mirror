@@ -28,6 +28,7 @@ from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject  # , register_extra_var
 from .media import get_aws_credentials
 from .process import LocalAsyncProcess
+from .serialize import prepare_function_for_serialization
 from .utils import (
     cache,
     classproperty,
@@ -1524,14 +1525,13 @@ class FunctionAssetMixin:
         personal=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
-        assert callable(function)
-        if function.__name__ == "<lambda>":
-            raise ValueError(
-                "'function' cannot be a lambda function, please provide a named function instead"
-            )
+        if arguments is None:
+            arguments = {}
+
+        function, arguments = prepare_function_for_serialization(function, arguments)
 
         self.function = function
-        self.arguments = arguments if arguments else {}
+        self.arguments = arguments
         self.temp_dir = None
         self.input_path = None
 
@@ -1848,6 +1848,8 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
             shutil.copytree(tempdir + "/" + subfolder, path)
 
     def get_url(self):
+        # We need to flush to make sure that self.id is populated
+        db.session.flush()
         return f"/fast-function-asset?id={self.id}&secret={self.secret}"
 
     def generate_host_path(self):

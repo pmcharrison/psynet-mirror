@@ -153,6 +153,7 @@ class ChainNetwork(TrialNetwork):
     head_id = Column(Integer, ForeignKey("node.id"))
     trials_per_node = Column(Integer)
     definition = Column(PythonObject)
+    context = Column(PythonObject)
     block = Column(String, index=True)
 
     head = relationship(
@@ -331,6 +332,8 @@ class ChainNetwork(TrialNetwork):
 
     def add_node(self, node):
         node.set_network(self)
+        if node.degree == 0:
+            self.context = node.context
         if node.degree > 0:
             # previous_head = self.get_node_with_degree(node.degree - 1)
             previous_head = self.head
@@ -530,6 +533,14 @@ class ChainNode(TrialNode):
         post_update=True,
     )
 
+    @property
+    def chain(self):
+        return self.network
+
+    @chain.setter
+    def chain(self, value):
+        self.network = value
+
     def __init__(
         self,
         *,
@@ -563,6 +574,9 @@ class ChainNode(TrialNode):
             else:
                 block = "default"
 
+        if not isinstance(block, str):
+            raise ValueError(f"block must be a string (got {block}).")
+
         if degree is None:
             if parent:
                 degree = parent.degree + 1
@@ -579,21 +593,22 @@ class ChainNode(TrialNode):
             if parent:
                 context = parent.context
 
-        if not definition and not seed and degree == 0:
-            seed = self.create_initial_seed(experiment, participant)
-
-        if not definition:
-            definition = self.create_definition_from_seed(seed, experiment, participant)
-
         if assets is None:
             assets = {}
+
+        if not definition and not self.definition:
+            if not seed and degree == 0:
+                seed = self.create_initial_seed(experiment, participant)
+            definition = self.create_definition_from_seed(seed, experiment, participant)
+
+        if definition:
+            self.definition = definition
 
         self.assets = assets
         self.block = block
         self.participant_group = participant_group
         self.module_id = module_id
         self.seed = seed
-        self.definition = definition
         self.context = context
         self.propagate_failure = propagate_failure
         self._staged_assets = assets
@@ -912,6 +927,14 @@ class ChainTrial(Trial):
 
     block_position = Column(Integer, index=True)
     block = Column(String, index=True)
+
+    @property
+    def chain(self):
+        return self.network
+
+    @chain.setter
+    def chain(self, value):
+        self.network = value
 
     def __init__(self, experiment, node, participant, *args, **kwargs):
         super().__init__(experiment, node, participant, *args, **kwargs)

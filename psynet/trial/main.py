@@ -495,8 +495,6 @@ class Trial(SQLMixinDallinger, Info):
 
             db.session.add(self)
 
-            self._finalize_assets()
-
     def to_dict(self):
         x = super().to_dict()
         field.json_unpack_field(x, "definition")
@@ -641,7 +639,7 @@ class Trial(SQLMixinDallinger, Info):
         """
         return definition
 
-    def _finalize_assets(self):
+    def finalize_assets(self):
         for _, asset in self.assets.items():
             asset.receive_node_definition(self.definition)
             if not asset.deposited:
@@ -1737,7 +1735,7 @@ class TrialMaker(Module):
             participant.module_state.performance_check = results
 
             if type == "end":
-                reward = self.compute_performance_reward(**results)
+                reward = call_function(self.compute_performance_reward, **results)
                 participant.module_state.performance_reward = reward
                 participant.inc_performance_reward(reward)
 
@@ -2356,6 +2354,7 @@ class NetworkTrialMaker(TrialMaker):
             propagate_failure=self.propagate_failure,
             is_repeat_trial=False,
         )
+        trial.finalize_assets()
         trial._initial_assets = dict(trial.assets)
         db.session.add(trial)
         participant.module_state.n_created_trials += 1
@@ -2786,6 +2785,16 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     errors = relationship("ErrorRecord")
 
     all_trials = relationship("psynet.trial.main.Trial", foreign_keys=[Trial.node_id])
+
+    @property
+    def trial(self):
+        alive_trials = self.alive_trials
+        if len(alive_trials) == 0:
+            return None
+        elif len(alive_trials) == 1:
+            return alive_trials[0]
+        else:
+            raise RuntimeError(f"Node {self.id} has multiple trials.")
 
     @property
     def alive_trials(self):
