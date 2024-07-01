@@ -1349,6 +1349,9 @@ class PageMaker(Elt):
             res,
             EndAccumulateAnswers() if self.accumulate_answers else None,
         )
+
+        res = with_fixed_progress(res, self.time_estimate)
+
         for i, elt in enumerate(res):
             elt.id = position + [i]
             elt.created_within_page_maker = True
