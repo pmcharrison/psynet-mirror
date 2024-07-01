@@ -247,6 +247,8 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
         score = self.summarize_scores(chain_scores)
 
         passed = True
+        if score is None:
+            passed = False
         if self.min_passing_score is not None and score < self.min_passing_score:
             passed = False
         if self.max_passing_score is not None and score > self.max_passing_score:
@@ -262,4 +264,8 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
         }
 
     def summarize_scores(self, scores):
-        return mean(scores)
+        scores = [score for score in scores if score is not None]
+        if len(scores) == 0:
+            return None
+        else:
+            return mean(scores)
