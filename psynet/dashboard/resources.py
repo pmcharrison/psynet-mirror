@@ -66,9 +66,9 @@ def format_label(row):
         case "free_disk_space":
             return f"{int(row.y_unit)} GB free disk space"
         case "median_response_time":
-            return f"{round(row.y_unit, 2)} ms median response time within a minute"
+            return f"{round(row.y_unit, 2)} s median response time"
         case "requests_per_minute":
-            return f"{int(row.y_unit)} page loads within a minute"
+            return f"{int(row.y_unit)} page loads per minute"
         case "n_working_participants":
             return f"{int(row.y_unit)} total working participants"
         case _:

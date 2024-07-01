@@ -6,7 +6,7 @@ from dallinger import db
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
 from psynet.asset import CachedFunctionAsset, ExperimentAsset, LocalStorage
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 
 
 class MultiplyAsset(ExperimentAsset):
@@ -84,7 +84,7 @@ def folder_asset_clone(debug_storage):
 
 @pytest.mark.usefixtures("in_experiment_directory")
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("static")], indirect=True
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 class AssetTests:
     def test_lambda_function(self):
@@ -192,7 +192,7 @@ class AssetTests:
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("static")], indirect=True
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 def test_access_assets(

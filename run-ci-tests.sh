@@ -6,8 +6,8 @@ echo "Running tests on node $CI_NODE_INDEX of $CI_NODE_TOTAL"
 echo "Installing CI dependencies..."
 bash install-ci-dependencies.sh || exit 1
 
-for file in $(psynet list-demo-dirs --for-ci-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
-  echo "Testing demo $file"
+for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
+  echo "Testing experiment $file"
   pytest $file/test.py -q -o log_cli=False --chrome || exit 1
 done
 

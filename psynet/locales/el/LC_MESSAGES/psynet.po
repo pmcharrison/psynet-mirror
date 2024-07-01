@@ -429,12 +429,6 @@ msgstr "Υπήρξε ένα σφάλμα και δεν μπορείτε να σ�
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "Αναπροσανατολισμός..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Παρακαλείστε επίσης να αναφέρετε τις ακόλουθες πληροφορίες:"
@@ -485,12 +479,6 @@ msgstr "Πρέπει να επιλέξετε μια απάντηση!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "Γράψτε τον αριθμό στην εικόνα."
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Γράψτε τον αριθμό στην εικόνα."
@@ -534,17 +522,6 @@ msgstr "Ανακατεύθυνση σε Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"Πρέπει να συγκεντρώσετε <strong>τουλάχιστον "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> μπόνους για να "
-"μπορέσετε να αποζημιωθείτε."
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -571,24 +548,10 @@ msgstr ""
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr ""
-"Δείτε παρακάτω τις πληροφορίες σχετικά με το επί του παρόντος συσσωρευμένο "
-"μπόνους σας."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr ""
 "Δείτε παρακάτω πληροφορίες σχετικά με την τρέχουσα συσσωρευμένη ανταμοιβή "
 "σας."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "Συσσωρευμένο μπόνους"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -726,36 +689,6 @@ msgstr "Ματαίωση πειράματος"
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Κάντε κλικ στο παραπάνω κουμπί για να αποζημιωθείτε σε περίπτωση λάθους."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Θα δείτε επίσης μία ή περισσότερες σελίδες συγκατάθεσης και θα έχετε έως και"
-" <strong>%(TERMINATION_TIME)s</strong> για να τις διαβάσετε και να τις "
-"αποδεχτείτε/απορρίψετε."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr ""
-"Εάν το πρόγραμμα περιήγησής σας δεν είναι συμβατό, θα πρέπει να απορρίψουμε "
-"την έρευνα."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Τώρα θα ελέγξουμε το πρόγραμμα περιήγησής σας για συμβατότητα."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Για να προχωρήσετε, κάντε κλικ στο παρακάτω κουμπί."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1588,27 +1521,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "Ασφάλεια"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Ενεργοποιήστε τη Javascript και ανανεώστε αυτή τη σελίδα."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr ""
-"Η μελέτη δεν θα λειτουργήσει αν δεν είναι ενεργοποιημένη η Javascript στο "
-"πρόγραμμα περιήγησής σας."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr ""
-"Προειδοποίηση: Η Javascript δεν λειτουργεί στο πρόγραμμα περιήγησής σας"
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -2247,23 +2159,11 @@ msgstr ""
 "Αυτή η μελέτη είναι εντελώς εθελοντική- δεν θα λάβετε καμία χρηματική "
 "αποζημίωση για τη συμμετοχή σας."
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Σφάλμα!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Υποβολή έρευνας Lucid"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Για να ολοκληρώσετε την έρευνα Lucid, κάντε κλικ στο παρακάτω κουμπί."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2290,32 +2190,6 @@ msgstr "Φινίρισμα"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Κάντε κλικ στο \"Finish\" (Τέλος) για να ολοκληρώσετε το HIT."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Εκτός από τη βασική σας πληρωμή των "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, θα λάβετε ένα μπόνους των "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> για το χρόνο που αφιερώσατε στο"
-" πείραμα."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Εκτός από τη βασική σας αμοιβή των "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, θα λάβετε μια ανταμοιβή των "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> για το χρόνο που αφιερώσατε στο"
-" πείραμα."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2568,14 +2442,6 @@ msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr ""
 "Πρέπει να χρησιμοποιήσετε το Google Chrome για να λάβετε μέρος στο πείραμα."
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr ""
-"Πρέπει να χρησιμοποιήσετε τη λειτουργία incognito για να λάβετε μέρος στο "
-"πείραμα."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -3091,12 +2957,6 @@ msgstr "OK"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "Μπόνους"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "Βοήθεια!"
 
@@ -3148,6 +3008,12 @@ msgstr "Επαναφορτώστε τη σελίδα."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "Τερματισμός του πειράματος νωρίς"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Το πρόβλημα που αντιμετωπίζετε."
 
@@ -3180,22 +3046,6 @@ msgstr "Κάντε κλικ στο κουμπί όταν είστε έτοιμο
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Συνέχιση"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Δυστυχώς αυτή η συμπεριφορά δεν υποστηρίζεται επί του παρόντος."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"Το αναγνωριστικό του συμμετέχοντος είναι απροσδιόριστο, ίσως επειδή αλλάξατε"
-" πρόγραμμα περιήγησης κατά τη διάρκεια της δοκιμής."
 
 #: psynet/utils.py
 #, fuzzy

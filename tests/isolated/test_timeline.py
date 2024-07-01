@@ -99,7 +99,7 @@ def test_estimate_credit__simple():
     assert CreditEstimate(e).get_max("time") == 8
 
 
-def test_estimate_credit__switch__fix_time_true():
+def test_estimate_credit__switch__bound_reward_true():
     e = switch(
         "test",
         lambda experiment, participant: participant.var.switch,
@@ -112,7 +112,7 @@ def test_estimate_credit__switch__fix_time_true():
     assert CreditEstimate(e).get_max("time") == 7
 
 
-def test_estimate_credit__switch__fix_time_false():
+def test_estimate_credit__switch__bound_reward_false():
     e = switch(
         "test",
         lambda experiment, participant: participant.var.switch,
@@ -126,7 +126,7 @@ def test_estimate_credit__switch__fix_time_false():
     assert CreditEstimate(e).get_max("time") == 10
 
 
-def test_estimate_credit__while_loop__switch__fix_time_true():
+def test_estimate_credit__while_loop__switch__bound_reward_true():
     e = while_loop(
         "loop",
         lambda experiment, participant: experiment.var.not_ready,
@@ -144,7 +144,7 @@ def test_estimate_credit__while_loop__switch__fix_time_true():
     assert CreditEstimate(e).get_max("time") == 21
 
 
-def test_estimate_credit__while_loop__switch__fix_time_false():
+def test_estimate_credit__while_loop__switch__bound_reward_false():
     e = while_loop(
         "loop",
         lambda experiment, participant: experiment.var.not_ready,

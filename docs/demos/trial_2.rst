@@ -32,10 +32,10 @@ and perform any computations or uploads that are necessary.
 
 Source: ``demos/trial_2/experiment.py``
 
-.. literalinclude:: ../../demos/trial_2/experiment.py
+.. literalinclude:: ../../demos/experiments/trial_2/experiment.py
    :language: python
 
 Source: ``demos/trial_2/custom_synth.py``
 
-.. literalinclude:: ../../demos/trial_2/custom_synth.py
+.. literalinclude:: ../../demos/experiments/trial_2/custom_synth.py
    :language: python

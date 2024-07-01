@@ -431,12 +431,6 @@ msgstr "Terdapat ralat dan oleh itu anda tidak dapat meneruskan, maaf!"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "Mengubah hala..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Sila sebutkan juga maklumat berikut:"
@@ -487,12 +481,6 @@ msgstr "Anda perlu memilih jawapan!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "Tulis nombor dalam imej."
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Tulis nombor dalam imej."
@@ -537,17 +525,6 @@ msgstr "Mengubah hala ke Pasar Lucid..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"Anda perlu mengumpul <strong>sekurang-kurangnya "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> bonus untuk "
-"mendapat pampasan."
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -574,21 +551,9 @@ msgstr ""
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "Lihat maklumat di bawah tentang bonus terkumpul anda pada masa ini."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr ""
 "Lihat maklumat di bawah tentang ganjaran terkumpul anda pada masa ini."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "Bonus terkumpul"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -721,34 +686,6 @@ msgstr "Batalkan Eksperimen"
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Klik butang di atas untuk mendapatkan pampasan sekiranya berlaku ralat."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Anda juga akan melihat satu atau lebih halaman persetujuan dan mempunyai sehingga\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> untuk membaca dan menerima/menolaknya."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr ""
-"Jika penyemak imbas anda tidak serasi, kami perlu menolak tinjauan tersebut."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Kami kini akan menguji penyemak imbas anda untuk keserasian."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Untuk meneruskan, klik butang di bawah."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1563,26 +1500,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "Keselamatan"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Sila dayakan Javascript kemudian muat semula halaman ini."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr ""
-"Kajian tidak akan berfungsi melainkan Javascript didayakan pada penyemak "
-"imbas anda."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "Amaran: Javascript tidak berfungsi pada penyemak imbas anda"
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -2216,23 +2133,11 @@ msgstr ""
 "Kajian ini adalah secara sukarela sepenuhnya; anda tidak akan menerima "
 "sebarang pampasan wang untuk penyertaan."
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Ralat!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Penyerahan Tinjauan Lucid"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Untuk melengkapkan Tinjauan Lucid anda, klik butang di bawah."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2259,32 +2164,6 @@ msgstr "Selesai"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Sila klik \"Selesai\" untuk melengkapkan HIT."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Sebagai tambahan kepada bayaran asas anda sebanyak "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, anda akan menerima bonus "
-"sebanyak <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> untuk masa yang anda "
-"habiskan untuk eksperimen."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Sebagai tambahan kepada bayaran asas anda sebanyak "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, anda akan menerima ganjaran "
-"sebanyak <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> untuk masa yang anda "
-"habiskan untuk eksperimen."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2532,14 +2411,6 @@ msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr ""
 "Anda perlu menggunakan Google Chrome untuk mengambil bahagian dalam "
-"percubaan."
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr ""
-"Anda perlu menggunakan mod inkognito untuk mengambil bahagian dalam "
 "percubaan."
 
 #: psynet/templates/macros/browser-detect.html
@@ -3051,12 +2922,6 @@ msgstr "okey"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "Bonus"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "Tolong!"
 
@@ -3108,6 +2973,12 @@ msgstr "Muat semula halaman."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "Tamatkan percubaan lebih awal"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Masalah yang anda alami."
 
@@ -3140,22 +3011,6 @@ msgstr "Klik butang apabila anda bersedia untuk meneruskan percubaan."
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Sambung semula"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Malangnya tingkah laku ini tidak disokong pada masa ini."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"ID peserta anda tidak ditentukan, mungkin kerana anda menukar penyemak imbas"
-" semasa ujian."
 
 #: psynet/utils.py
 #, fuzzy

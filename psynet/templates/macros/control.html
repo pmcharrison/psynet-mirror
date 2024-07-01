@@ -1694,3 +1694,42 @@
     </script>
 
 {% endmacro %}
+
+
+{% macro terminate_control(params) %}
+    <style>
+        .push-button-container {
+            display: {% if params.arrange_vertically %}grid{% else %}flex{% endif %};
+            flex-wrap: wrap;
+            justify-content: center;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+    </style>
+
+    <div class="push-button-container">
+        {% for item in params.items %}
+        <button
+                type="button"
+                id="{{ item.id }}"
+                class="{{ item.class }}"
+                onclick="clickedButton(this, this.id, {{ item.allowed | tojson }});"
+        >
+            {% autoescape off %}
+            {{ item.label }}
+            {% endautoescape %}
+        </button>
+        {% endfor %}
+    </div>
+
+    <script>
+
+        clickedButton = function(button, id, allowed) {
+            if (allowed) {
+                psynet.nextPage(id);
+            } else {
+                terminateParticipant("{{ params.label }}_" + id)
+            }
+        };
+    </script>
+{% endmacro %}

@@ -1,8 +1,8 @@
-image: docker:25.0.3
+image: docker:26.1.1
 
 services:
-  - docker:25.0.3-dind
-  - postgres:12.2-alpine
+  - docker:26.1.1-dind
+  - postgres:16.2-bookworm
   - redis:latest
 
 variables:

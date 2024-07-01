@@ -10,7 +10,7 @@ These trials involve recording audio from the participant. This is achieved usin
 ``AudioRecordControl`` class.
 
 
-Source: ``demos/static_audio``
+Source: ``demos/experiments/static_audio``
 
-.. literalinclude:: ../../demos/static_audio/experiment.py
+.. literalinclude:: ../../demos/experiments/static_audio/experiment.py
    :language: python

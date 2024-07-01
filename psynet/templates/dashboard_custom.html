@@ -1,0 +1,20 @@
+{% extends "base/dashboard.html" %}
+{% block scripts %}
+
+{% endblock %}
+{% block stylesheets %}
+    {{ super() }}
+{% endblock %}
+{% block body %}
+    <style>
+
+    </style>
+    <h1>{{ title }}</h1>
+
+    {{ html | safe}}
+
+
+{% endblock %}
+{% block libs %}
+    {{ super() }}
+{% endblock %}

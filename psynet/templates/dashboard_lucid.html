@@ -1,0 +1,339 @@
+{% extends "base/dashboard.html" %}
+{% from "macros/dashboard.html" import make_card, make_status_card, make_status_selectpicker %}
+
+{% block scripts %}
+    <script src="/static/scripts/d3.v4.js"></script>
+    <script src="/static/scripts/d3-tip.min.js"></script>
+    <script src="/static/scripts/d3-visualizations.js"></script>
+    <script src="/static/scripts/jquery-3.6.0.min.js"></script>
+    <script src="/static/scripts/bootstrap-select.min.js"></script>
+{% endblock %}
+{% block stylesheets %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/css/d3-tip.css">
+    <link rel="stylesheet" href="/static/css/bootstrap-select.min.css"></script>
+{% endblock %}
+{% block body %}
+    <h1>{{ title }}</h1>
+    {% if params.survey_sid and params.survey_number %}
+        <div class='mb-2'>
+            <a class="btn btn-primary" role="button"
+               href="https://marketplace.samplicio.us/fulcrum/next/surveys/{{ params.survey_number }}/reports"
+               target="_blank">Reports</a>
+            <a class="btn btn-success" role="button"
+               href="https://www.samplicio.us/fulcrum/SurveyQualifications.aspx?SID={{ params.survey_sid }}"
+               target="_blank">Qualifications</a>
+            <a class="btn btn-danger" role="button"
+               href="https://www.samplicio.us/fulcrum/Reconciliations.aspx?SurveySID={{ params.survey_sid }}"
+               target="_blank">Reconciliations</a>
+            <a class="btn btn-secondary" role="button"
+               href="https://marketplace.samplicio.us/fulcrum/next/surveys/{{ params.survey_number }}/quotas"
+               target="_blank">Quota</a>
+            <a class="btn btn-secondary" role="button"
+               href="https://marketplace.samplicio.us/fulcrum/next/surveys/{{ params.survey_number }}/details"
+               target="_blank">Details</a>
+        </div>
+    {% endif %}
+    {% if params.last_status %}
+    <div class="alert alert-primary" role="alert">
+        Last API call: <span id="time"></span> seconds ago.
+    </div>
+    <script>
+        let time = {{params.last_status.api_call}};
+        document.getElementById('time').innerText = time;
+        setInterval(() => {
+            time += 1;
+            document.getElementById('time').innerText = time;
+        }, 1000);
+    </script>
+    <div class="row mb-2">
+        <div class="col-4">
+            <strong>Status</strong>: {{ make_status_selectpicker(params.last_status) }}
+            </br>
+        </div>
+        <div class="col-4">
+            <strong>Cost</strong>: {{ params.last_status.cost }} {{ params.last_status.currency }} </br>
+        </div>
+        {% if params.last_status.last_complete_date %}
+            <div class="col-4">
+                <strong>Last complete date</strong>: {{ params.last_status.last_complete_date }} </br>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% if params.display_cards %}
+        <h3>PsyNet</h3>
+        <div class="row">
+            {{ make_card(params.psynet_status) }}
+            {{ make_card(params.psynet_termination_reason) }}
+        </div>
+
+        <h3>Lucid</h3>
+        <div class="row">
+        {{ make_card(params.lucid_responent_activity) }}
+        {{ make_card(params.lucid_client_codes) }}
+        {{ make_card(params.lucid_market_place_codes) }}
+    {% endif %}
+    {% if params.display_status_cards %}
+        <h3>Metrics</h3>
+        <div class="row">
+            {{ make_status_card(params.lucid_conversion_rate) }}
+            {{ make_status_card(params.lucid_dropoff_rate) }}
+            {{ make_status_card(params.lucid_incidence_rate) }}
+        </div>
+    {% endif %}
+    {% if params.display_cards %}
+        <div class="row">
+            {{ make_card(params.epc) }}
+        </div>
+    {% endif %}
+
+    <h3>Respondents</h3>
+    {% if params.respondents %}
+        {{ make_status_card({
+            'title': 'Respondents',
+            'body': "How many respondents enter over time <div id='respondents'></div>",
+            'col': "col-12"
+        }) }}
+        <script>
+            document.addEventListener("DOMContentLoaded", function (e) {
+                let responseData = {{ params.respondents.data | safe }};
+                let margin = {top: 20, right: 30, bottom: 30, left: 40};
+                let n_bins = {{ params.respondents.n_bins }};
+                let type2color = {{ params.respondents.type2color | safe }};
+                let xDict = {{ params.respondents.x_dict | safe }};
+                let height = 500;
+                let tooltip = d3.tip().attr('class', 'd3-tip')
+                    .html(function (d) {
+                        let start = xDict[d.x0];
+                        let end = xDict[d.x1];
+                        // parse time HH:MM:SS, compute the difference and return it in MM
+                        let start_time = new Date(`2021-01-01 ${start}`);
+                        let end_time = new Date(`2021-01-01 ${end}`);
+                        let diff = (end_time - start_time) / 1000 / 60;
+                        diff = Math.round(diff);
+                        let rangeStr = start + "-" + end;
+                        // histogram over d.group
+                        let groupHistogram = {};
+                        d.forEach(function (bin) {
+                            if (groupHistogram[bin.group]) {
+                                groupHistogram[bin.group] += 1;
+                            } else {
+                                groupHistogram[bin.group] = 1;
+                            }
+                        });
+                        let groupStr = "";
+                        for (let group in groupHistogram) {
+                            let color = type2color[group]
+                            groupStr += `<br><strong style="color: ${color}">${group}</strong>: ${groupHistogram[group]}`;
+                        }
+                        return `<strong>${rangeStr}</strong><br>${diff} minutes<br>total: ${d.length}${groupStr}`;
+                    });
+                histogram("respondents", responseData, margin, n_bins, type2color, tooltip, height, xDict, false);
+            });
+        </script>
+    {% else %}
+        {{ make_status_card({
+            'title': 'Respondents',
+            'body': "No respondents yet for the survey.",
+            'col': "col-12"
+        }) }}
+    {% endif %}
+
+    <h3>Timing</h3>
+    {% if params.response_per_participant %}
+        {{ make_status_card({
+            'title': 'Responses per participant',
+            'body': "Comparison of termination LOI between  PsyNet vs Lucid. <div id='responses_per_participant'></div>",
+            'col': "col-12"
+        }) }}
+        <script>
+            document.addEventListener("DOMContentLoaded", function (e) {
+                let tooltip = d3.tip()
+                    .attr('class', 'd3-tip fullscreen')
+                    .html(function (d) {
+                        let type = d[0].type;
+                        let title = `<h5>${d.length} participants (${type}) did ${(d.x0).toFixed(0)} pages`;
+                        // button to close
+                        title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
+                        let table = '<table class="table table-striped">';
+                        table += '<tr>';
+                        table += '<th>Participant ID</th>';
+                        table += '<th>RID</th>';
+                        table += '<th>Reason</th>';
+                        table += '</tr>';
+                        d.forEach(function (bin) {
+                            table += '<tr>';
+                            table += `<td>${bin.participant_id}</td>`;
+                            table += `<td>${bin.rid}</td>`;
+                            table += `<td>${bin.reason}</td>`;
+                            table += '</tr>';
+                        });
+                        table += '</table>';
+                        return '<div class="container">' + title + table + "<div>";
+                    })
+                let responseData = {{ params.response_per_participant.data | safe }};
+                let margin = {top: 20, right: 30, bottom: 30, left: 40};
+                let n_bins = {{ params.response_per_participant.n_bins }};
+                let type2color = {{ params.response_per_participant.type2color | safe }};
+                let height = 500;
+                histogram("responses_per_participant", responseData, margin, n_bins, type2color, tooltip, height);
+            });
+        </script>
+    {% else %}
+        {{ make_status_card({
+            'title': 'Responses per participant',
+            'body': "No responses yet.",
+            'col': "col-12"
+        }) }}
+    {% endif %}
+
+    <div class="row">
+        {% if params.lucid_completion_loi %}
+            {{ make_status_card({
+        'title': params.lucid_completion_loi.title,
+        'body': params.lucid_completion_loi.body +  "<div id='completion_loi'></div>",
+        'status': params.lucid_completion_loi.status,
+        'col': "col-4",
+        'border': true
+            }) }}
+            <script>
+                let margin = {top: 20, right: 30, bottom: 30, left: 40};
+                let n_bins = 40;
+                let type2color = {"Lucid": "black"};
+                document.addEventListener("DOMContentLoaded", function (e) {
+                    let tooltip = d3.tip().attr('class', 'd3-tip fullscreen')
+                        .html(function (d) {
+                            let type = d[0].type;
+                            let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
+                            // button to close
+                            title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
+                            let table = '<table class="table table-striped">';
+                            table += '<tr>';
+                            table += '<th>Participant ID</th>';
+                            table += '<th>RID</th>';
+                            table += '<th>Reason</th>';
+                            table += '<th>PsyNet duration</th>';
+                            table += '<th>Lucid duration</th>';
+                            table += '<th>Client code</th>';
+                            table += '</tr>';
+                            d.forEach(function (bin) {
+                                table += '<tr>';
+                                table += `<td>${bin.pid}</td>`;
+                                table += `<td>${bin.rid}</td>`;
+                                table += `<td>${bin.reason}</td>`;
+                                table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
+                                table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
+                                table += `<td>${bin.code}</td>`;
+                                table += '</tr>';
+                            });
+                            table += '</table>';
+                            return '<div class="container">' + title + table + "</div>";
+                        });
+                    let responseData = {{ params.lucid_completion_loi.data | safe }};
+                    histogram("completion_loi", responseData, margin, n_bins, type2color, tooltip);
+                });
+            </script>
+        {% else %}
+            {{ make_status_card({
+        'title': 'Completion LOI',
+        'body': "No completed participants yet.",
+        'col': "col-4"
+    }) }}
+        {% endif %}
+
+        {% if params.lucid_termination_loi and params.lucid_termination_loi.data | length > 0 %}
+            {{ make_status_card({
+        'title': params.lucid_termination_loi.title,
+        'body': params.lucid_termination_loi.body +  "<div id='termination_loi'></div>",
+        'col': "col-4",
+        'status': params.lucid_termination_loi.status,
+        'border': true
+    }) }}
+            <script>
+                document.addEventListener("DOMContentLoaded", function (e) {
+                    let tooltip = d3.tip().attr('class', 'd3-tip fullscreen')
+                        .html(function (d) {
+                            let type = d[0].type;
+                            let title = `<h5>Bin: [${(d.x0).toFixed(2)}-${d.x1.toFixed(2)}], count: ${d.length} (${type})`;
+                            // button to close
+                            title += '<button type="button" class="btn-close" style="float:right" aria-label="Close" onclick="hideTooltips()"></button></h5>';
+                            let table = '<table class="table table-striped">';
+                            table += '<tr>';
+                            table += '<th>Participant ID</th>';
+                            table += '<th>RID</th>';
+                            table += '<th>Reason</th>';
+                            table += '<th>PsyNet duration</th>';
+                            table += '<th>Lucid duration</th>';
+                            table += '<th>Client code</th>';
+                            table += '</tr>';
+                            d.forEach(function (bin) {
+                                table += '<tr>';
+                                table += `<td>${bin.pid}</td>`;
+                                table += `<td>${bin.rid}</td>`;
+                                table += `<td>${bin.reason}</td>`;
+                                table += `<td>${toTwoDecimals(bin.psynet_duration)}</td>`;
+                                table += `<td>${toTwoDecimals(bin.lucid_duration)}</td>`;
+                                table += `<td>${bin.code}</td>`;
+                                table += '</tr>';
+                            });
+                            table += '</table>';
+                            return '<div class="container">' + title + table + "</div>";
+                        });
+                    let responseData = {{ params.lucid_termination_loi.data | safe }};
+                    let margin = {top: 20, right: 30, bottom: 30, left: 40};
+                    let n_bins = 40;
+                    let type2color = {"Lucid": "black"};
+                    histogram("termination_loi", responseData, margin, n_bins, type2color, tooltip);
+                });
+            </script>
+        {% else %}
+            {{ make_status_card({
+        'title': 'Termination LOI',
+        'body': "No terminated participants yet.",
+        'col': "col-4"
+    }) }}
+        {% endif %}
+
+
+        {% if params.termination_loi_scatter and params.termination_loi_scatter.data | length > 0 %}
+            {{ make_status_card({
+        'title': params.termination_loi_scatter.title,
+        'body': params.termination_loi_scatter.body + "<div id='termination_loi_scatter'></div>",
+        'col': "col-4",
+        'status': params.termination_loi_scatter.status,
+        'border': true
+    }) }}
+            <script>
+                document.addEventListener("DOMContentLoaded", function (e) {
+                    let tooltip = d3.tip().attr('class', 'd3-tip')
+                        .html(function (d) {
+                            return `Participant ${d.pid} (${d.rid}): ${d.reason}`;
+                        });
+                    let responseData = {{ params.termination_loi_scatter.data | safe }};
+                    let margin = {top: 20, right: 30, bottom: 30, left: 40};
+                    const xLabel = "LOI (Lucid)",
+                        yLabel = "LOI (PsyNet)";
+                    scatter("termination_loi_scatter", responseData, margin, xLabel, yLabel, tooltip);
+                });
+            </script>
+        {% endif %}
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        }
+    </script>
+
+
+    {{ html | safe }}
+{% endblock %}
+{% block libs %}
+    {{ super() }}
+{% endblock %}

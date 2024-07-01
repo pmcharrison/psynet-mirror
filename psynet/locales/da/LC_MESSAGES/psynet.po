@@ -428,12 +428,6 @@ msgstr "Der er sket en fejl, og du kan derfor ikke fortsætte, beklager!"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "Omdirigerer..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Angiv venligst også følgende oplysninger:"
@@ -484,12 +478,6 @@ msgstr "Du skal vælge et svar!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "Skriv tallet på billedet ned."
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Skriv tallet på billedet ned."
@@ -534,17 +522,6 @@ msgstr "Omdirigerer til Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"Du skal samle <strong>mindst "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> af bonus for at "
-"kunne blive kompenseret."
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -571,20 +548,8 @@ msgstr ""
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "Se nedenstående oplysninger om din aktuelle akkumulerede bonus."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "Se nedenstående oplysninger om din aktuelt akkumulerede belønning."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "Akkumuleret bonus"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -718,34 +683,6 @@ msgstr "Afbryd eksperimentet"
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Klik på ovenstående knap for at blive kompenseret i tilfælde af en fejl."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Du vil også se en eller flere samtykkesider og har op til "
-"<strong>%(TERMINATION_TIME)s</strong> til at læse og acceptere/afvise dem."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr ""
-"Hvis din browser ikke er kompatibel, er vi nødt til at afvise undersøgelsen."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Vi vil nu teste din browser for kompatibilitet."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Klik på knappen nedenfor for at fortsætte."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1552,26 +1489,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "Sikkerhed"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Aktiver venligst Javascript og opdater derefter denne side."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr ""
-"Undersøgelsen vil ikke fungere, medmindre Javascript er aktiveret i din "
-"browser."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "Advarsel: Javascript virker ikke i din browser"
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -2206,23 +2123,11 @@ msgstr ""
 "Denne undersøgelse er helt frivillig; du vil ikke modtage nogen økonomisk "
 "kompensation for din deltagelse."
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Fejl!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Indsendelse af Lucid Survey"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Klik på knappen nedenfor for at udfylde din Lucid-undersøgelse."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2249,30 +2154,6 @@ msgstr "Færdig"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Klik på \"Afslut\" for at afslutte HIT'en."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Ud over din basisbetaling på <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
-"får du en bonus på <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for den tid,"
-" du har brugt på eksperimentet."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Ud over din grundbetaling på <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong> "
-"får du en belønning på <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for den "
-"tid, du har brugt på eksperimentet."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2510,12 +2391,6 @@ msgstr "Du kan ikke deltage i eksperimentet fra en mobilenhed."
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "Du skal bruge Google Chrome for at deltage i eksperimentet."
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "Du skal bruge inkognitotilstand for at deltage i eksperimentet."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -3022,12 +2897,6 @@ msgstr "OK"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "Bonus"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "Hjælp!"
 
@@ -3079,6 +2948,12 @@ msgstr "Genindlæs siden."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "Afslut eksperimentet tidligt"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Det problem, du oplever."
 
@@ -3111,22 +2986,6 @@ msgstr "Klik på knappen, når du er klar til at fortsætte eksperimentet."
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Fortsæt"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Desværre er denne adfærd ikke understøttet i øjeblikket."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"Dit deltager-ID er udefineret, måske fordi du har skiftet browser under "
-"testen."
 
 #: psynet/utils.py
 #, fuzzy

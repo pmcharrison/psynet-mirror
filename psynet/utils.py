@@ -21,11 +21,12 @@ from pathlib import Path
 from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
 
+import click
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
-from dallinger.config import get_config
+from dallinger.config import experiment_available, get_config
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -514,6 +515,46 @@ def pretty_log_dict(dict, spaces_for_indentation=0):
         + "{}: {}".format(key, (f'"{value}"' if isinstance(value, str) else value))
         for key, value in dict.items()
     )
+
+
+def require_exp_directory(f):
+    """Decorator to verify that a command is run inside a valid PsyNet experiment directory."""
+    error_one = "The current directory is not a valid PsyNet experiment."
+    error_two = "There are problems with the current experiment. Please check with `dallinger verify`."
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            if not experiment_available():
+                raise click.UsageError(error_one)
+        except ValueError:
+            raise click.UsageError(error_two)
+
+        ensure_config_txt_exists()
+
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
+def ensure_config_txt_exists():
+    config_txt_path = Path("config.txt")
+    if not config_txt_path.exists():
+        config_txt_path.touch()
+
+
+def require_requirements_txt(f):
+    """Decorator to verify that a command is run inside a directory which contains a requirements.txt file."""
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not Path("requirements.txt").exists():
+            raise click.UsageError(
+                "The current directory does not contain a requirements.txt file."
+            )
+        return f(*args, **kwargs)
+
+    return wrapper
 
 
 def get_language():
@@ -1621,12 +1662,15 @@ def get_psynet_root():
     return Path(psynet.__file__).parent.parent
 
 
-def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
+def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
+    test_experiments_root = get_psynet_root() / "tests/experiments"
+
     dirs = sorted(
         [
             dir_
-            for dir_, sub_dirs, files in os.walk(demo_root)
+            for root in [demo_root, test_experiments_root]
+            for dir_, sub_dirs, files in os.walk(root)
             if (
                 "experiment.py" in files
                 and not dir_.endswith("/develop")
@@ -1635,9 +1679,9 @@ def list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
                     or not (
                         # Skip the recruiter demos because they're not meaningful to run here
                         "recruiters" in dir_
-                        # Skip the video_gibbs demo because it relies on ffmpeg which is not installed
+                        # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
                         # in the CI environment
-                        or dir_.endswith("/video_gibbs")
+                        or dir_.endswith("/gibbs_video")
                     )
                 )
             )
@@ -1657,10 +1701,79 @@ def with_parallel_ci(paths, ci_node_total, ci_node_index):
 
 
 def list_isolated_tests(ci_node_total=None, ci_node_index=None):
-    isolated_test_root = get_psynet_root() / "tests" / "isolated"
-    tests = glob.glob(str(isolated_test_root / "*.py"))
+    isolated_tests_root = get_psynet_root() / "tests" / "isolated"
+    isolated_tests_demos = isolated_tests_root / "demos"
+    isolated_tests_experiments = isolated_tests_root / "experiments"
+    isolated_tests_features = isolated_tests_root / "features"
+
+    tests = []
+    for directory in [
+        isolated_tests_root,
+        isolated_tests_demos,
+        isolated_tests_experiments,
+        isolated_tests_features,
+    ]:
+        tests.extend(glob.glob(str(directory / "*.py")))
 
     if ci_node_total is not None and ci_node_index is not None:
         tests = with_parallel_ci(tests, ci_node_total, ci_node_index)
 
     return tests
+
+
+# Check TODOs
+class PatternDir:
+    def __init__(self, pattern, glob_dir):
+        self.pattern = pattern
+        self.glob_dir = glob_dir
+
+    def __dict__(self):
+        return {"pattern": self.pattern, "glob_dir": self.glob_dir}
+
+
+def _check_todos(pattern, glob_dir):
+    from glob import iglob
+
+    todo_count = {}
+    for path in list(iglob(glob_dir, recursive=True)):
+        key = (path, pattern)
+        with open(path, "r") as f:
+            line_has_todo = [line.strip().startswith(pattern) for line in f.readlines()]
+            if any(line_has_todo):
+                todo_count[key] = sum(line_has_todo)
+    return todo_count
+
+
+def _aggregate_todos(pattern_dirs: [PatternDir]):
+    todo_count = {}
+    for pattern_dir in pattern_dirs:
+        todo_count.update(_check_todos(**pattern_dir.__dict__()))
+    return todo_count
+
+
+def check_todos_before_deployment():
+    if os.environ.get("SKIP_TODO_CHECK"):
+        print(
+            "SKIP_TODO_CHECK is set so we will not check if there are any TODOs in the experiment folder."
+        )
+        return
+
+    todo_count = _aggregate_todos(
+        [
+            # For now only limit to comments specific to the experiment logic (i.e. Python and JS)
+            PatternDir("# TODO", "**/*.py"),  # Python comments
+            PatternDir("// TODO", "**/*.py"),  # Javascript comment in py files
+            PatternDir("// TODO", "**/*.html"),  # Javascript comment in html files
+            PatternDir("// TODO", "**/*.js"),  # Javascript comment in js files
+        ]
+    )
+    file_names = [key[0] for key in todo_count.keys()]
+    total_todo_count = sum(todo_count.values())
+    n_files = len(set(file_names))
+
+    assert len(todo_count) == 0, (
+        f"You have {total_todo_count} TODOs in {n_files} file(s) in your experiment folder. "
+        "Please fix them or remove them before deploying. "
+        "To view all TODOs in your project in PyCharm, go to 'View' > 'Tool Windows' > 'TODO'. "
+        "You can skip this check by writing `export SKIP_TODO_CHECK=1` (without quotes) in your terminal."
+    )

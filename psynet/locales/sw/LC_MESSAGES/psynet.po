@@ -428,12 +428,6 @@ msgstr "Kumekuwa na hitilafu na kwa hivyo huwezi kuendelea, samahani!"
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "Inaelekeza..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Tafadhali pia nukuu habari ifuatayo:"
@@ -484,12 +478,6 @@ msgstr "Unahitaji kuchagua jibu!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "Andika nambari kwenye picha."
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Andika nambari kwenye picha."
@@ -531,17 +519,6 @@ msgstr "Inaelekezwa kwenye Soko la Lucid..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"Lazima ukusanye <strong>angalau "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ya bonasi ili "
-"uweze kulipwa."
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -567,20 +544,8 @@ msgstr ""
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "Tazama hapa chini maelezo kuhusu bonasi uliyokusanya kwa sasa."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "Tazama hapa chini maelezo kuhusu zawadi yako uliyokusanya kwa sasa."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "Bonasi iliyokusanywa"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -710,33 +675,6 @@ msgstr "Acha Jaribio"
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Bofya kitufe kilicho hapo juu ili kulipwa iwapo kutatokea hitilafu."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Pia utaona ukurasa mmoja au zaidi za idhini na utapewa hadi\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> ili kuzisoma na kuzikubali/kuzikataa."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr "Ikiwa kivinjari chako hakioani inabidi tukatae utafiti."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr "Sasa tutajaribu kivinjari chako ili kuona uoanifu."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Ili kuendelea, bofya kitufe kilicho hapa chini."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1537,26 +1475,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "Usalama"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Tafadhali wezesha Javascript kisha uonyeshe upya ukurasa huu."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr ""
-"Utafiti hautafanya kazi isipokuwa Javascript imewashwa kwenye kivinjari "
-"chako."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "Onyo: Javascript haifanyi kazi kwenye kivinjari chako"
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -2171,24 +2089,11 @@ msgstr ""
 "Utafiti huu ni wa hiari kabisa; hutapokea fidia yoyote ya fedha kwa "
 "ushiriki."
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Hitilafu!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Uwasilishaji wa Utafiti wa Lucid"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr ""
-"Ili kukamilisha Utafiti wako wa Lucid, bofya kitufe kilicho hapa chini."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2215,32 +2120,6 @@ msgstr "Maliza"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Tafadhali bofya \"Maliza\" ili kukamilisha HIT."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Pamoja na malipo yako ya awali ya "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, utapokea bonasi ya "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda uliotumia kwenye "
-"jaribio."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Pamoja na malipo yako ya awali ya "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, utapokea zawadi ya "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> kwa muda uliotumia kwenye "
-"jaribio."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2477,12 +2356,6 @@ msgstr "Huwezi kushiriki katika jaribio kutoka kwa kifaa cha mkononi."
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "Unahitaji kutumia Google Chrome ili kushiriki katika jaribio."
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "Unahitaji kutumia hali fiche ili kushiriki katika jaribio."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2984,12 +2857,6 @@ msgstr "sawa"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "Ziada"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "Msaada!"
 
@@ -3041,6 +2908,12 @@ msgstr "Pakia upya ukurasa."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "Sitisha jaribio mapema"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Tatizo unalokumbana nalo."
 
@@ -3073,22 +2946,6 @@ msgstr "Bofya kitufe ukiwa tayari ili kuendelea na jaribio."
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Rejea"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Kwa bahati mbaya tabia hii haitumiki kwa sasa."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"Kitambulisho chako cha mshiriki hakijafafanuliwa, labda kwa sababu "
-"ulibadilisha vivinjari wakati wa jaribio."
 
 #: psynet/utils.py
 #, fuzzy

@@ -323,10 +323,17 @@ def debug_experiment(
     if not config.ready:
         config.load()
 
+    config.set("dashboard_user", "test_admin")
+    config.set("dashboard_password", "test_password")
+
     p = pexpect.spawn(
         "psynet",
         ["debug", "local", "--legacy", "--no-browsers"],
-        env=env,
+        env={
+            **env,
+            "dashboard_user": "test_admin",
+            "dashboard_password": "test_password",
+        },
         encoding="utf-8",
     )
     patch_pexpect_error_reporter(p)
@@ -484,8 +491,28 @@ def deployment_id():
 #         raise
 
 
-def path_to_demo(demo):
-    return Path(__file__).parent.parent.joinpath("demos").joinpath(demo).__str__()
+def path_to_demo_experiment(demo):
+    return (
+        Path(__file__)
+        .parent.parent.joinpath("demos/experiments")
+        .joinpath(demo)
+        .__str__()
+    )
+
+
+def path_to_demo_feature(demo):
+    return (
+        Path(__file__).parent.parent.joinpath("demos/features").joinpath(demo).__str__()
+    )
+
+
+def path_to_test_experiment(experiment):
+    return (
+        Path(__file__)
+        .parent.parent.joinpath("tests/experiments")
+        .joinpath(experiment)
+        .__str__()
+    )
 
 
 nodes_1 = [

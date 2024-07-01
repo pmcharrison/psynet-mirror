@@ -8,7 +8,7 @@ from psynet.consent import NoConsent
 from psynet.experiment import get_experiment
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.participant import Participant
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.timeline import Module, Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
@@ -34,7 +34,9 @@ def get_random_id():
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("consents")], indirect=True
+    "experiment_directory",
+    [path_to_test_experiment("consents")],
+    indirect=True,
 )
 def test_progress_info(in_experiment_directory, db_session):
     exp = get_experiment()

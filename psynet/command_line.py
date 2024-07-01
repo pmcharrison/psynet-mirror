@@ -26,7 +26,7 @@ from dallinger.command_line.docker_ssh import (
     server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import experiment_available, get_config
+from dallinger.config import get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -40,15 +40,20 @@ from psynet.version import check_versions
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .internationalization import clean_po, load_po, po_to_dict
+from .log import bold
+from .lucid import get_lucid_service
+from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
     ISO_639_1_CODES,
     get_args,
-    list_demo_dirs,
+    list_experiment_dirs,
     list_isolated_tests,
     make_parents,
     pretty_format_seconds,
+    require_exp_directory,
+    require_requirements_txt,
     run_subprocess_with_live_output,
     working_directory,
 )
@@ -275,6 +280,7 @@ def _db(location, app, server):
 
 @psynet.group("debug")
 @click.pass_context
+@require_exp_directory
 def debug(ctx):
     pass
 
@@ -285,6 +291,7 @@ def debug(ctx):
         ignore_unknown_options=True,
     )
 )
+@require_exp_directory
 def sandbox(*args, **kwargs):
     raise click.ClickException(
         "`psynet sandbox` has been replaced with `psynet debug heroku`, please use the latter."
@@ -605,6 +612,7 @@ def _run_bot(real_time=False):
     help="Instead of running the bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
 )
 @click.pass_context
+@require_exp_directory
 def run_bot(ctx, real_time=False):
     """
     Run a bot through the local version of the experiment.
@@ -722,12 +730,13 @@ def _forget_tables_defined_in_experiment_directory():
 
 
 @psynet.group("deploy")
+@require_exp_directory
 def deploy():
     pass
 
 
 @deploy.command("heroku")
-@click.option("--app", required=True, help="Experiment id")
+@click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
 @click.pass_context
@@ -776,7 +785,7 @@ def _deploy__docker_heroku(ctx, app, archive):
 
 
 @deploy.command("ssh")
-@click.option("--app", required=True, help="Experiment id")
+@click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @server_option
 @click.option(
@@ -921,6 +930,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from dallinger.recruiters import MTurkRecruiter
 
     from .experiment import get_experiment
+    from .utils import check_todos_before_deployment
 
     exp = get_experiment()
     exp.check_config()
@@ -973,6 +983,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         config = get_config()
         if not config.ready:
             config.load()
+        check_todos_before_deployment()
 
         if docker:
             if config.get("docker_image_base_name", None) is None:
@@ -1042,7 +1053,9 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
 
 
 @debug.command("heroku")
-@click.option("--app", default=None, help="Name of the experiment app.")
+@click.option(
+    "--app", callback=verify_id, default=None, help="Name of the experiment app."
+)
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.pass_context
@@ -1087,7 +1100,9 @@ def debug__docker_heroku(ctx, app, archive):
 
 
 @debug.command("ssh")
-@click.option("--app", required=True, help="Name of the experiment app.")
+@click.option(
+    "--app", callback=verify_id, required=True, help="Name of the experiment app."
+)
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @server_option
 @click.option(
@@ -1338,6 +1353,7 @@ def _estimate(mode):
     type=click.Choice(["reward", "duration", "both"]),
     help="Type of result. Can be either 'reward', 'duration', or 'both'.",
 )
+@require_exp_directory
 def estimate(mode):
     """
     Estimate the maximum reward for a participant and the time for the experiment to complete, respectively.
@@ -1364,6 +1380,7 @@ def setup_experiment_variables(experiment_class):
 ########################
 @psynet.command()
 @click.pass_context
+@require_requirements_txt
 def generate_constraints(ctx):
     """
     Generate the constraints.txt file from requirements.txt.
@@ -1381,6 +1398,7 @@ def generate_constraints(ctx):
 
 
 @psynet.command()
+@require_requirements_txt
 def check_constraints():
     "Check whether the experiment contains an appropriate constraints.txt file."
     if os.environ.get("SKIP_DEPENDENCY_CHECK"):
@@ -1530,6 +1548,22 @@ def export_arguments(func):
             default=None,
             help="Number of parallel jobs for exporting assets",
         ),
+        click.option(
+            "--no-source",
+            flag_value="no_source",
+            default=False,
+            help="Skip exporting the experiment's source code",
+        ),
+        click.option(
+            "--username",
+            default=None,
+            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
+        ),
+        click.option(
+            "--password",
+            default=None,
+            help="This is used to authenticate to the remote server. If missing, this will be guessed from local config files.",
+        ),
     ]
     for arg in args:
         func = arg(func)
@@ -1561,6 +1595,7 @@ def export_arguments(func):
 
 
 @psynet.group("export")
+@require_exp_directory
 def export():
     pass
 
@@ -1619,9 +1654,12 @@ def export_(
     assets="experiment",
     anonymize="both",
     n_parallel=None,
+    no_source=False,
     docker_ssh=False,
     server=None,
     dns_host=None,
+    username=None,
+    password=None,
 ):
     """
     Export data from an experiment.
@@ -1648,11 +1686,6 @@ def export_(
     from .experiment import import_local_experiment
 
     log(header)
-
-    if not experiment_available():
-        raise click.UsageError(
-            "This command must be run within an experiment directory."
-        )
 
     deployment_id = exp_variables["deployment_id"]
     assert len(deployment_id) > 0
@@ -1707,8 +1740,10 @@ def export_(
     else:
         anonymize_modes = ["yes", "no"]
 
+    source_code_exported = False
     for anonymize_mode in anonymize_modes:
         _anonymize = anonymize_mode == "yes"
+        _export_source_code = not (source_code_exported or no_source)
         _export_(
             ctx,
             app,
@@ -1716,11 +1751,16 @@ def export_(
             path,
             assets,
             _anonymize,
+            _export_source_code,
             n_parallel,
             docker_ssh,
             server,
             dns_host,
+            username,
+            password,
         )
+        if _export_source_code:
+            source_code_exported = True
 
 
 def _export_(
@@ -1730,10 +1770,13 @@ def _export_(
     export_path,
     assets,
     anonymize: bool,
+    export_source_code: bool,
     n_parallel=None,
     docker_ssh=False,
     server=None,
     dns_host=None,
+    username=None,
+    password=None,
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
@@ -1741,11 +1784,6 @@ def _export_(
     database_zip_path = export_database(
         ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
     )
-
-    # We originally thought code should be exported here. However it makes better sense to
-    # export instead as part of psynet sandbox/deploy. We'll implement this soon.
-    # export_code(export_path, anonymize)
-
     export_data(local, anonymize, database_zip_path, export_path)
 
     if assets != "none":
@@ -1760,7 +1798,88 @@ def _export_(
             server,
         )
 
+    if export_source_code:
+        _export_source_code(app, local, server, export_path, username, password)
+
     log(f"Export complete. You can find your results at: {export_path}")
+
+
+def _export_source_code(app, local, server, export_path, username, password):
+    import requests
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    username = username or config.get("dashboard_user", None)
+    password = password or config.get("dashboard_password", None)
+
+    if not all([username, password]):
+        if not click.confirm(
+            "\nPsyNet failed to find dashboard credentials in your local config files. "
+            "These dashboard credentials are needed to authenticate to the remote server "
+            "in order to download the experiment's source code. "
+            "You can provide these credentials now in a follow-up dialog; you can find these "
+            "credentials printed to your console as part of the experiment deployment command. "
+            "Alternatively, you can choose to skip downloading the source code. "
+            "\nDo you want to proceed with entering username and password now? "
+            "Enter 'y', or 'n' to skip downloading the source code.",
+            default=True,
+            abort=False,
+        ):
+            log("WARNING: Experiment source code could not be downloaded.")
+            return
+
+    log("Downloading source code...")
+    if local:
+        url = "http://localhost:5000"
+    else:
+        url = f"https://{app}.{server}"
+    url += "/download_source"
+    source_code_zip_path = os.path.join(export_path, "source_code.zip")
+
+    while True:
+        if not all([username, password]):
+            username = click.prompt("Enter dashboard username")
+            password = click.prompt("Enter dashboard password", hide_input=True)
+
+        with yaspin(
+            text=f"Requesting source code from {url}", color="green"
+        ) as spinner:
+            response = requests.get(url, auth=(username, password))
+
+        if response.status_code == 200:
+            with open(source_code_zip_path, "wb") as f:
+                f.write(response.content)
+            spinner.ok("✔")
+            log(f"Experiment source code saved to {source_code_zip_path}.")
+            break
+        elif response.status_code == 401:
+            try_again = click.confirm(
+                "Authentication failed.\nPress ENTER to try again or 'n' to skip downloading the source code.",
+                default=True,
+                abort=False,
+            )
+            if not try_again:
+                log("Skipped downloading the source code.")
+                break
+            # Reset the credentials so the user gets another chance to enter them correctly
+            username, password = None, None
+        else:
+            spinner.color = "red"
+            spinner.fail("✘")
+            click.confirm(
+                "Experiment source code could not be downloaded."
+                "\nPress ENTER to continue...",
+                default=True,
+                prompt_suffix="",
+                show_default=False,
+            )
+            message = response.json().get("message")
+            log(
+                f"WARNING: Failed to download the experiment source code: {response.status_code} ({response.reason}). Reason: {message}."
+            )
+            break
 
 
 def export_database(
@@ -1816,27 +1935,6 @@ def export_database(
         spinner.ok("✔")
 
     return database_zip_path
-
-
-# def export_code(export_path, anonymize):
-#     subdir = "anonymous" if anonymize else "regular"
-#
-#     code_zip_path = os.path.join(export_path, subdir, "code.zip")
-#
-#     log(f"Exporting code to {code_zip_path}.")
-#
-#     with tempfile.TemporaryDirectory() as tempdir:
-#         temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
-#         shutil.copytree(os.path.join(os.getcwd()), os.path.join(temp_exp_dir), dirs_exist_ok=True, ignore_dangling_symlinks=True, ignore=lambda src, names: names if src == "develop" else [])
-#         shutil.rmtree(os.path.join(temp_exp_dir, ".git"), ignore_errors=True)
-#         shutil.make_archive(
-#             code_zip_path,
-#             "zip",
-#             temp_exp_dir,
-#         )
-#
-#     with yaspin(text="Completed.", color="green") as spinner:
-#         spinner.ok("✔")
 
 
 def export_data(local, anonymize, database_zip_path, export_path):
@@ -1911,6 +2009,7 @@ def rpdb(ip, port):
 ###########
 @psynet.command()
 @click.argument("path")
+@require_exp_directory
 def load(path):
     "Populates the local database with a provided zip file."
     from .experiment import import_local_experiment
@@ -1946,6 +2045,7 @@ def generate_config(ctx):
 
 
 @psynet.command()
+@require_exp_directory
 def update_scripts():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -2113,6 +2213,7 @@ def post_update_psynet_requirement_():
     required=True,
     type=click.Choice(ISO_639_1_CODES, case_sensitive=False),
 )
+@require_exp_directory
 def prepare_translation(iso_code):
     """
     To be run in an experiment directory; initializes scripts and help files to their
@@ -2260,7 +2361,7 @@ def _destroy(
     server=None,
     ask_for_confirmation=True,
 ):
-    delete_app = (
+    confirmed = (
         user_confirms(
             "Would you like to delete the app from the web server?", default=True
         )
@@ -2268,7 +2369,7 @@ def _destroy(
         else True
     )
 
-    if delete_app:
+    if confirmed:
         with yaspin("Destroying app...") as spinner:
             try:
                 kwargs = {"app": app}
@@ -2325,19 +2426,9 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
     from dallinger.command_line.docker_ssh import destroy
 
     example_usage = "`psynet destroy ssh <app> <app> [--server <server>]`"
-    ask_for_confirmation = True
-    if len(apps) > 0:
-        assert app is None, "You cannot provide both --app and a list of apps."
-        click.confirm(
-            "Would you like to delete the app from the web server?", abort=True
-        )
-        ask_for_confirmation = False
     if app:
         assert len(apps) == 0, "You cannot provide both --app and a list of apps."
         click.echo(f"Consider using the batch syntax: {example_usage}")
-        apps = [app]
-
-    for app in apps:
         _destroy(
             ctx,
             destroy,
@@ -2345,8 +2436,23 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
             app=app,
             expire_hit=expire_hit,
             server=server,
-            ask_for_confirmation=ask_for_confirmation,
         )
+    if len(apps) > 0:
+        assert app is None, "You cannot provide both --app and a list of apps."
+        confirmation = f"""
+            Are you sure you want to remove {len(apps)} apps on {server} ({apps})?
+            """
+        if click.confirm(confirmation, abort=True):
+            for app in apps:
+                _destroy(
+                    ctx,
+                    destroy,
+                    expire,
+                    app=app,
+                    expire_hit=expire_hit,
+                    server=server,
+                    ask_for_confirmation=False,
+                )
 
 
 # @local.command("experiment-mode")
@@ -2447,17 +2553,9 @@ def stats__docker_ssh(ctx, server):
     ctx.invoke(stats, server=server)
 
 
-def verify_id(ctx, param, app):
-    return app
-
-
-# The original Dallinger verify_id function forces app names to begin with dlgr-,
-# which is not appropriate for us
-dallinger.command_line.utils.verify_id = verify_id
-
-
 @psynet.group("test")
 @click.pass_context
+@require_exp_directory
 def test(ctx):
     pass
 
@@ -2608,6 +2706,7 @@ def test__docker_ssh(
 
 @psynet.command()
 @click.pass_context
+@require_exp_directory
 def simulate(ctx):
     """
     Generates simulated data for an experiment by running the experiment's regression test
@@ -2617,15 +2716,16 @@ def simulate(ctx):
     ctx.invoke(export__local)
 
 
-@psynet.command(name="list-demo-dirs")
+@psynet.command(name="list-experiment-dirs")
 @click.option("--for-ci-tests", is_flag=True)
 @click.option("--ci-node-total", default=None, type=int)
 @click.option("--ci-node-index", default=None, type=int)
-def _list_demo_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
+def _list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     """
-    Lists the directories of all the demo experiments that are available.
+    Lists the directories of all the experiments that are available under the 'demos' directory,
+    plus those inside the 'tests/experiments' directory.
     """
-    for directory in list_demo_dirs(
+    for directory in list_experiment_dirs(
         for_ci_tests=for_ci_tests,
         ci_node_total=ci_node_total,
         ci_node_index=ci_node_index,
@@ -2645,3 +2745,155 @@ def _list_isolated_tests(ci_node_total=None, ci_node_index=None):
         ci_node_index=ci_node_index,
     ):
         print(test_)
+
+
+# Recruiter specific
+@psynet.group("lucid")
+@click.pass_context
+def lucid(ctx):
+    pass
+
+
+@lucid.command("cost")
+@click.argument("survey_number", required=True)
+@click.pass_context
+def lucid__cost(ctx, survey_number):
+    summary = get_lucid_service().get_cost(survey_number)
+    c = summary["currency"]
+    print(bold(f"Cost summary for survey: {survey_number}"))
+    print(f"Sample:\t{summary['sample']} {c}")
+    print(f"Fee:\t{summary['fee']} {c}")
+    print(bold(f"Total:\t{summary['total']} {c}"))
+    print(
+        f"Total completes: {summary['total_completes']}, price per complete: {round(summary['cost_per_complete'], 2)} {c}"
+    )
+
+
+@lucid.command("compensate")
+@click.argument("survey_number", required=True, nargs=1)
+@click.argument("rids", required=True, nargs=-1)
+@click.pass_context
+def lucid__compensate(ctx, survey_number, rids):
+    rids = list(rids)
+    confirmation = f"""
+    Are you sure you want to compensate {len(rids)} participants?
+    Note: This will ONLY mark these participants as completed, all other participants will be marked as TERMINATED.
+    """
+    if click.confirm(confirmation, abort=True):
+        get_lucid_service().reconcile(survey_number, rids)
+        log(
+            f"{len(rids)} participants have been approved for survey number: {survey_number}"
+        )
+
+
+@lucid.command("locale")
+@click.pass_context
+def lucid__locale(ctx):
+    print(
+        get_lucid_service().get_lucid_country_language_lookup().to_markdown(index=False)
+    )
+
+
+@lucid.command("status")
+@click.argument("survey_number", required=True)
+@click.argument("status", required=True)
+@click.pass_context
+def lucid__status(ctx, survey_number, status):
+    available_statuses = ["live", "paused", "completed", "archived", "pending"]
+    assert (
+        status in available_statuses
+    ), f"Invalid status: {status}, pick from: {available_statuses}"
+    if status == "completed":
+        status = "complete"
+    get_lucid_service().change_status(survey_number, status)
+
+
+@lucid.command("qualifications")
+@click.argument("survey_number", required=True)
+@click.option("--path", default=None, help="Path to save the qualifications to")
+@click.pass_context
+def get_qualifications(ctx, survey_number, path):
+    qualifications = get_lucid_service().get_qualifications(survey_number)
+    json_string = json.dumps(qualifications, indent=4)
+    if path:
+        with open(path, "w") as file:
+            file.write(json_string)
+        log(f"Qualifications have been saved to {path}")
+    else:
+        print(json_string)
+
+
+def _get_local_pandas():
+    try:
+        import pandas as pd
+
+        return pd
+    except ImportError:
+        raise ImportError(
+            "This command requires the pandas library. Install it with 'pip install pandas'"
+        )
+
+
+@lucid.command("studies")
+@click.option("--live", is_flag=True, help="List live experiments")
+@click.option("--paused", is_flag=True, help="List paused experiments")
+@click.option("--completed", is_flag=True, help="List complete experiments")
+@click.option("--archived", is_flag=True, help="List archived experiments")
+@click.option("--pending", is_flag=True, help="List pending experiments")
+@click.option("--n", default=10, help="Number of experiments to list")
+@click.option("--order", default="id", help="Sort by column")
+@click.pass_context
+def lucid__list_studies(ctx, live, paused, completed, archived, pending, n, order):
+    pd = _get_local_pandas()
+    assert n > 0 and n < 200
+    allowed_statuses = []
+    if live:
+        allowed_statuses.append("live")
+    if paused:
+        allowed_statuses.append("paused")
+    if completed:
+        allowed_statuses.append("complete")
+    if archived:
+        allowed_statuses.append("archived")
+    if pending:
+        allowed_statuses.append("pending")
+    all_studies = pd.DataFrame(
+        get_lucid_service().list_studies(allowed_statuses, n, order_by=order)
+    )
+    if len(all_studies) == 0:
+        print("No studies found with the given filters.")
+        return
+    all_studies["completes"] = all_studies.apply(
+        lambda x: f"{x['total_completes']} / {x['expected_completes']}", axis=1
+    )
+    all_studies.create_date = all_studies.create_date.apply(
+        lambda x: pd.to_datetime(x).strftime("%Y-%m-%d")
+    )
+    all_studies = all_studies[
+        ["id", "create_date", "status", "locale", "completes", "total_screens", "name"]
+    ]
+    print(all_studies.to_markdown(index=False))
+
+
+@lucid.command("submissions")
+@click.argument("survey_number", required=True)
+@click.option("--order", default="entry_date", help="Sort by column")
+@click.pass_context
+def lucid__list_submissions(ctx, survey_number, order):
+    pd = _get_local_pandas()
+    submissions = pd.DataFrame(get_lucid_service().get_submissions(survey_number))
+    submissions.client_status = submissions.client_status.apply(
+        lambda x: BaseLucidRecruiter.client_codes.get(x, "Unknown")
+    )
+    submissions.fulcrum_status = submissions.fulcrum_status.apply(
+        lambda x: BaseLucidRecruiter.market_place_codes.get(x, "Unknown")
+    )
+    submissions.drop(columns=["panelist_id"], inplace=True)
+    submissions.entry_date = pd.to_datetime(submissions.entry_date)
+    submissions.last_date = pd.to_datetime(submissions.last_date)
+    submissions["duration"] = (
+        submissions.last_date - submissions.entry_date
+    ).dt.total_seconds() / 60
+    submissions.drop(columns=["last_date"], inplace=True)
+    submissions = submissions.sort_values(by=order, ascending=False)
+    print(submissions.to_markdown(index=False))

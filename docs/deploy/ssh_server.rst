@@ -228,7 +228,12 @@ Under the hood, the deployment command works as follows:
 
 This command can go wrong at several points. The parts that happen on the local
 machine are usually easiest to debug. When things go wrong on the remote server,
-you may need to connect to it via a separate SSH terminal to work out what's going on.
+you probably want to check the logs. You can do this by navigating to 
+`logs.<dns-host>`, where you replace `dns-host` with the DNS host you specified in the deploy command.
+(e.g. logs.musix.mus.cam.ac.uk).
+Often you will see the real error message in the `web` instance.
+
+In some cases you may need to connect to the server via a separate SSH terminal to work out what's going on.
 To connect to the server, run this in a separate terminal:
 
 .. code:: bash
@@ -244,15 +249,11 @@ Navigate to the experiment's folder:
 If this folder doesn't exist yet, your command probably failed before it got
 to the remote server.
 
-Now view the Docker logs:
+This gives you another way to view the Docker logs for the web instance:
 
 .. code:: bash
 
     docker compose logs
-
-Often you will see the real error message there. You may need to scroll up through
-the logs to see the full picture; sometimes there are multiple error messages,
-but only the first one is the 'real' problem.
 
 Sometimes it is useful to execute code on this remote Docker instance to work out
 what happened. You can do this as follows:

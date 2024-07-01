@@ -8,10 +8,10 @@ Trial
    :glob:
 
    audio
-   audio_gibbs
    chain
    dense
    gibbs
+   gibbs_audio
    graph
    imitation_chain
    main

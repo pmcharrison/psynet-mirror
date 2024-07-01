@@ -6,7 +6,7 @@ from dallinger import db
 
 import psynet.experiment  # noqa -- to ensure that all SQLAlchemy classes are registered
 from psynet.process import LocalAsyncProcess
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 
 
 def sleep_for_1s():
@@ -18,7 +18,7 @@ def failing_function():
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("static")], indirect=True
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestProcesses:
@@ -41,7 +41,7 @@ class TestProcesses:
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("static")], indirect=True
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestProcesses2:

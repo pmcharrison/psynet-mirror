@@ -1,11 +1,11 @@
 import pytest
 import requests
 
-from psynet.pytest_psynet import path_to_demo
+from psynet.pytest_psynet import path_to_test_experiment
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo("static")], indirect=True
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:

@@ -96,6 +96,7 @@ from .utils import (
     get_logger,
     get_translator,
     log_time_taken,
+    make_parents,
     pretty_log_dict,
     render_template_with_translations,
     serialise,
@@ -204,7 +205,10 @@ class ExperimentStatus(SQLBase, SQLMixin):
     extra_info = Column(PythonDict, default={})
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        named_arguments = {
+            key: value for key, value in kwargs.items() if key in self.sql_columns
+        }
+        super().__init__(**named_arguments)
         self.extra_info = {
             key: value for key, value in kwargs.items() if key not in self.sql_columns
         }
@@ -414,6 +418,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
+    max_allowed_base_payment = 30
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -649,7 +654,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         requests_df = pd.DataFrame([request.to_dict() for request in all_requests])
         summary = {}
         if len(requests_df) > 0:
-            summary["median_response_time"] = requests_df["duration"].median()
+            summary["median_response_time"] = float(requests_df["duration"].median())
             summary["requests_per_minute"] = len(requests_df)
         return summary
 
@@ -1048,6 +1053,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return
         exp = get_experiment()
         recruiter = exp.recruiter
+        logger.info("Running recruiter checks...")
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
 
@@ -1472,6 +1478,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
             )
 
+        cls.check_base_payment(config)
+
         parser = configparser.ConfigParser()
         parser.read("config.txt")
         config_txt = {}
@@ -1486,28 +1494,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Please choose just one location."
                 )
 
-    def fail_participant(self, participant):
-        failed_reason = ", ".join(participant.failure_tags)
-        logger.info(
-            "Failing participant %i (%i routine(s) found, reason: %s)",
-            participant.id,
-            len(self.participant_fail_routines),
-            failed_reason,
-        )
-        participant.failed = True
-        participant.failed_reason = failed_reason
-        participant.time_of_death = datetime.now()
-        for i, routine in enumerate(self.participant_fail_routines):
-            logger.info(
-                "Executing fail routine %i/%i ('%s')...",
-                i + 1,
-                len(self.participant_fail_routines),
-                routine.label,
-            )
-            call_function_with_context(
-                routine.function,
-                participant=participant,
-                experiment=self,
+    @classmethod
+    def check_base_payment(cls, config):
+        if config.get("base_payment") > cls.max_allowed_base_payment:
+            raise ValueError(
+                f"Your experiment's `base_payment` exceeds the maximum allowed value of {cls.max_allowed_base_payment}!\n\n"
+                "Check that you have the units right; for example, if your currency is dollars, then base payment "
+                "should be specified in dollars, not cents. If you're sure you want this large base payment, "
+                "then set `Experiment.max_allowed_base_payment` to a larger value in experiment.py."
             )
 
     @property
@@ -1711,6 +1705,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def with_lucid_recruitment(self):
         return issubclass(self.recruiter.__class__, BaseLucidRecruiter)
 
+    def with_prolific_recruitment(self):
+        return issubclass(self.recruiter.__class__, ProlificRecruiter)
+
     def process_response(
         self,
         participant_id,
@@ -1762,7 +1759,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             if not response.successful_validation:
                 return self.response_rejected(message=validation.message)
-            participant.time_credit.increment(event.time_estimate)
+
+            participant.inc_time_credit(event.time_estimate)
+            participant.inc_progress(event.time_estimate)
+
             self.timeline.advance_page(self, participant)
             return self.response_approved(participant)
         except Exception as err:
@@ -1773,12 +1773,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     err,
                     participant=participant,
                     trial=participant.current_trial,
-                    node=participant.current_trial.node
-                    if participant.current_trial
-                    else None,
-                    network=participant.current_trial.network
-                    if participant.current_trial
-                    else None,
+                    node=(
+                        participant.current_trial.node
+                        if participant.current_trial
+                        else None
+                    ),
+                    network=(
+                        participant.current_trial.network
+                        if participant.current_trial
+                        else None
+                    ),
                 )
             return error_response(participant=participant)
 
@@ -1879,8 +1883,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/d3-visualizations.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/css/bootstrap.min.css",
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap/bootstrap.bundle.min.js",
+                    "/static/scripts/bootstrap.bundle.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap-select/bootstrap-select.min.js",
+                    "/static/scripts/bootstrap-select.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap-select/bootstrap-select.min.css",
+                    "/static/css/bootstrap-select.min.css",
                 ),
                 (
                     resources.files("psynet") / "resources/css/consent.css",
@@ -1936,17 +1956,35 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/abc-js",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/d3",
-                    "/static/scripts/d3",
+                    resources.files("psynet") / "resources/libraries/d3/d3.v4.js",
+                    "/static/scripts/d3.v4.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/jqueryui",
-                    "/static/scripts/jqueryui",
+                    resources.files("psynet") / "resources/libraries/d3/d3-tip.min.js",
+                    "/static/scripts/d3-tip.min.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/d3/d3-tip.css",
+                    "/static/css/d3-tip.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jqueryui/jquery-ui.css",
+                    "/static/css/jquery-ui.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jqueryui/jquery-ui.min.js",
+                    "/static/scripts/jquery-ui.min.js",
                 ),
                 (
                     resources.files("psynet")
                     / "resources/scripts/prepare_docker_image.sh",
                     "prepare_docker_image.sh",
+                ),
+                (
+                    "config.txt",
+                    ".config.backup",
                 ),
                 (
                     ".deploy",
@@ -2048,6 +2086,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         from .dashboard.resources import report_resource_use
 
         return report_resource_use()
+
+    @dashboard_tab("Lucid", after_route="monitoring")
+    @classmethod
+    def lucid(cls):
+        from .dashboard.lucid import report_lucid
+
+        return report_lucid()
 
     @dashboard_tab("Participant", after_route="monitoring")
     @classmethod
@@ -2299,19 +2344,61 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
         return exp.deployment_id
 
-    @experiment_route("/dashboard/export", methods=["GET"])
+    @experiment_route("/download_source", methods=["GET"])
     @classmethod
+    def download_source(cls):
+        if not authenticate(request.authorization, get_and_load_config()):
+            return jsonify({"message": "Invalid credentials"}), 401
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            label = get_config().get("label")
+            temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
+            shutil.copytree(
+                os.path.join(os.getcwd()),
+                os.path.join(temp_exp_dir),
+                dirs_exist_ok=True,
+                ignore_dangling_symlinks=True,
+                ignore=shutil.ignore_patterns(
+                    ".git",
+                    "__pycache__",
+                    "develop",
+                    "static/assets",
+                    "config.txt",
+                    f"{label}-*",
+                ),
+            )
+            shutil.move(
+                os.path.join(temp_exp_dir, ".config.backup"),
+                os.path.join(temp_exp_dir, "config.txt"),
+            )
+            zip_filepath = shutil.make_archive(f"{label}-source", "zip", tempdir)
+            return send_file(zip_filepath, mimetype="zip")
+
+    @experiment_route("/dashboard/export", methods=["GET"])
     @with_transaction
-    def export(cls):
+    def export():
+        from flask_login import current_user
+
         from .command_line import export__local
+
+        config = get_and_load_config()
+
+        if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
+            return error_response(error_text="Invalid credentials", simple=True)
 
         with tempfile.TemporaryDirectory() as tempdir:
             ctx = Context(export__local)
-            ctx.invoke(export__local, path=tempdir, n_parallel=None)
+            ctx.invoke(
+                export__local,
+                path=tempdir,
+                n_parallel=None,
+                username=config.get("dashboard_user"),
+                password=config.get("dashboard_password"),
+            )
 
-            file_basename = get_config().get("label")
-            zip_filepath = shutil.make_archive(f"{file_basename}-data", "zip", tempdir)
-
+            zip_filepath = shutil.make_archive(
+                f'{get_config().get("label")}-data', "zip", tempdir
+            )
             return send_file(zip_filepath, mimetype="zip")
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
@@ -2359,8 +2446,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def render_error(cls):
         request_data = request.form.get("request_data")
         participant_id = request.form.get("participant_id")
+
         compensate = True
         participant = None
+        recruiter = None
+        external_submit_url = None
+
         if participant_id:
             participant = Participant.query.filter_by(id=participant_id).one()
             recruiter = get_experiment().recruiter
@@ -2373,7 +2464,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if isinstance(recruiter, (DevLucidRecruiter, LucidRecruiter)):
                 compensate = False
                 recruiter.set_termination_details(
-                    participant.assignment_id, "Terminated calling /error-page route"
+                    participant.assignment_id, "error-page_route"
                 )
 
         return cls.error_page(
@@ -2539,38 +2630,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     @with_transaction
     def terminate_participant(cls):
-        participant_id = request.values.get("participant_id")
-        reason = request.values["reason"]
-        external_submit_url = None
-
-        try:
-            participant = (
-                Participant.query.with_for_update(of=Participant)
-                .populate_existing()
-                .get(participant_id)
-            )
-            assignment_id = participant.assignment_id
-            recruiter = get_experiment().recruiter
-            external_submit_url = None
-            if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(
-                    assignment_id=assignment_id
-                )
-            if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(assignment_id, reason)
-                logger.info(
-                    f"Terminating participant with RID {assignment_id} with reason '{reason}'"
-                )
-
-        except Exception as e:
-            logger.error(
-                f"Error terminating participant with RID '{assignment_id}': {e}"
-            )
+        recruiter = get_experiment().recruiter
+        participant = recruiter.get_participant(request)
+        external_submit_url = recruiter.terminate_participant(
+            participant=participant, reason=request.values.get("reason")
+        )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
             external_submit_url=external_submit_url,
         )
+
+    @experiment_route("/change_lucid_status", methods=["GET"])
+    @classmethod
+    def change_lucid_status(cls):
+        get_experiment().recruiter.change_lucid_status(request.values.get("status", ""))
+        return success_response()
 
     @staticmethod
     def get_client_ip_address():
@@ -2656,6 +2731,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls._route_timeline(experiment, participant, mode)
 
     @classmethod
+    def fail_participant_on_error(cls, participant, error):
+        error_type = str(type(error))
+        # convert error type like <class 'Exception'> to 'Exception'
+        error_type = error_type.split("'")[1]
+        participant.failure_tags.append(error_type)
+        participant.fail(error_type)
+
+    @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
             page = cls.get_current_page(experiment, participant)
@@ -2670,13 +2753,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 err,
                 participant=participant,
                 trial=participant.current_trial,
-                node=participant.current_trial.node
-                if participant.current_trial
-                else None,
-                network=participant.current_trial.network
-                if participant.current_trial
-                else None,
+                node=(
+                    participant.current_trial.node
+                    if participant.current_trial
+                    else None
+                ),
+                network=(
+                    participant.current_trial.network
+                    if participant.current_trial
+                    else None
+                ),
             )
+            cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
 
     @classmethod
@@ -2849,18 +2937,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id = request.args.get("participantId")
         participant = Participant.query.get(participant_id)
         progress_percentage = round(participant.progress * 100)
-        min_pct = 5
-        max_pct = 99
-        if progress_percentage > max_pct:
-            progress_percentage = max_pct
-        elif progress_percentage < min_pct:
-            progress_percentage = min_pct
         data = {
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
         if get_and_load_config().get("show_reward"):
-            time_reward = participant.time_credit.get_time_reward()
+            time_reward = participant.time_reward
             performance_reward = participant.performance_reward
             total_reward = participant.calculate_reward()
             data["reward"] = {
@@ -3045,6 +3127,14 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
 
 def in_deployment_package():
     return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))
+
+
+def authenticate(auth, config):
+    return (
+        auth
+        and auth.username == config.get("dashboard_user")
+        and auth.password == config.get("dashboard_password")
+    )
 
 
 # Dallinger defines various HTTP routes that provide access to database content.

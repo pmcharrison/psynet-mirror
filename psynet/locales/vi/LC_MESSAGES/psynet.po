@@ -429,12 +429,6 @@ msgstr "Đã xảy ra lỗi và vì vậy bạn không thể tiếp tục, xin l
 
 #: psynet/experiment.py
 #, fuzzy
-msgctxt "lucid_error"
-msgid "Redirecting..."
-msgstr "Đang chuyển hướng..."
-
-#: psynet/experiment.py
-#, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr "Cũng xin trích dẫn các thông tin sau:"
@@ -485,12 +479,6 @@ msgstr "Bạn cần chọn một câu trả lời!"
 
 #: psynet/prescreen.py
 #, fuzzy
-msgctxt "color_blindnes_test"
-msgid "Write down the number in the image."
-msgstr "Viết ra số trong hình ảnh."
-
-#: psynet/prescreen.py
-#, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Viết ra số trong hình ảnh."
@@ -533,17 +521,6 @@ msgstr "Đang chuyển hướng đến Lucid Marketplace..."
 #, python-format, fuzzy
 msgid ""
 "You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of bonus to be "
-"able to be compensated."
-msgstr ""
-"Bạn phải tích lũy <strong>ít nhất "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> tiền thưởng để có "
-"thể được bồi thường."
-
-#: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
-msgid ""
-"You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
@@ -569,20 +546,8 @@ msgstr ""
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
-msgid "See below information on your currently accumulated bonus."
-msgstr "Xem thông tin bên dưới về tiền thưởng tích lũy hiện tại của bạn."
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy
-msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "Xem thông tin bên dưới về phần thưởng hiện đang tích lũy của bạn."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated bonus"
-msgstr "tiền thưởng tích lũy"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -714,35 +679,6 @@ msgstr "Hủy bỏ thử nghiệm"
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Bấm vào nút trên để được đền bù khi có lỗi."
-
-#: psynet/templates/consent.html
-#, python-format, fuzzy
-msgid ""
-"You will also see one or more consent pages and have up to\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> to read and accept/reject them."
-msgstr ""
-"Bạn cũng sẽ thấy một hoặc nhiều trang đồng ý và có tối đa\n"
-"                                <strong>%(TERMINATION_TIME)s</strong> để đọc và chấp nhận/từ chối chúng."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "If your browser is not compatible we have to reject the survey."
-msgstr ""
-"Nếu trình duyệt của bạn không tương thích, chúng tôi phải từ chối khảo sát."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "We are now going to test your browser for compatibility."
-msgstr ""
-"Bây giờ chúng tôi sẽ kiểm tra tính tương thích của trình duyệt của bạn."
-
-#: psynet/templates/consent.html
-#, fuzzy
-msgctxt "concent"
-msgid "To proceed, click the button below."
-msgstr "Để tiếp tục, hãy nhấp vào nút bên dưới."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -1548,26 +1484,6 @@ msgctxt "consent-security"
 msgid "Security"
 msgstr "Bảo vệ"
 
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Please enable Javascript then refresh this page."
-msgstr "Vui lòng bật Javascript rồi làm mới trang này."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "The study will not work unless Javascript is enabled on your browser."
-msgstr ""
-"Nghiên cứu sẽ không hoạt động trừ khi Javascript được bật trên trình duyệt "
-"của bạn."
-
-#: psynet/templates/consents/lucid_consent.html
-#, fuzzy
-msgctxt "consent-javascript"
-msgid "Warning: Javascript is not working on your browser"
-msgstr "Cảnh báo: Javascript không hoạt động trên trình duyệt của bạn"
-
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
@@ -2198,23 +2114,11 @@ msgstr ""
 "Nghiên cứu này là hoàn toàn tự nguyện; bạn sẽ không nhận được bất kỳ khoản "
 "bồi thường bằng tiền nào khi tham gia."
 
-#: psynet/templates/error.html
-#, fuzzy
-msgctxt "mturk_error"
-msgid "Error!"
-msgstr "Lỗi!"
-
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Gửi khảo sát sáng suốt"
-
-#: psynet/templates/exit_recruiter_lucid.html
-#, fuzzy
-msgctxt "exit_recruiter_lucid"
-msgid "To complete your Lucid Survey, click the button below."
-msgstr "Để hoàn thành Khảo sát Lucid của bạn, hãy nhấp vào nút bên dưới."
 
 #: psynet/templates/final-page-rejected-consent.html
 #, fuzzy
@@ -2241,31 +2145,6 @@ msgstr "Hoàn thành"
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
 msgstr "Vui lòng bấm \"Finish\" để hoàn thành HIT."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a bonus of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
-" bạn sẽ nhận được tiền thưởng <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
-"cho thời gian bạn dành cho thí nghiệm."
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"In addition to your base payment of "
-"<strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>, you will receive a reward of "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> for the time you spent on the "
-"experiment."
-msgstr ""
-"Ngoài khoản thanh toán cơ bản <strong>%(CURRENCY)s%(BASE_PAYMENT)s</strong>,"
-" bạn sẽ nhận được phần thưởng là "
-"<strong>%(CURRENCY)s%(TIME_REWARD)s</strong> cho thời gian bạn dành cho thí "
-"nghiệm."
 
 #: psynet/templates/final-page-rewards.html
 #, python-format, fuzzy
@@ -2502,12 +2381,6 @@ msgstr "Bạn không thể tham gia thử nghiệm từ thiết bị di động.
 msgctxt "browser_compatibility"
 msgid "You need to use Google Chrome to take part in the experiment."
 msgstr "Bạn cần sử dụng Google Chrome để tham gia thử nghiệm."
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "You need to use the incognito mode to take part in the experiment."
-msgstr "Bạn cần sử dụng chế độ ẩn danh để tham gia thử nghiệm."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -3013,12 +2886,6 @@ msgstr "ĐƯỢC RỒI"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Bonus"
-msgstr "Thưởng"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline"
 msgid "Help!"
 msgstr "Giúp đỡ!"
 
@@ -3070,6 +2937,12 @@ msgstr "Tải lại trang."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "Kết thúc thử nghiệm sớm"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
 msgstr "Vấn đề bạn đang gặp phải."
 
@@ -3102,22 +2975,6 @@ msgstr "Nhấp vào nút khi bạn đã sẵn sàng tiếp tục thử nghiệm.
 msgctxt "timeline_resume"
 msgid "Resume"
 msgstr "Bản tóm tắt"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid "Unfortunately this behaviour is not currently supported."
-msgstr "Thật không may, hành vi này hiện không được hỗ trợ."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_switched_browsers"
-msgid ""
-"Your participant ID is undefined, perhaps because you switched browsers "
-"during the test."
-msgstr ""
-"ID người tham gia của bạn không được xác định, có thể do bạn đã chuyển đổi "
-"trình duyệt trong quá trình thử nghiệm."
 
 #: psynet/utils.py
 #, fuzzy

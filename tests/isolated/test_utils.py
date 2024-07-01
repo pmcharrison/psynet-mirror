@@ -9,14 +9,16 @@ from mock import patch
 from psynet.timeline import Module
 from psynet.utils import (
     DuplicateKeyError,
+    check_todos_before_deployment,
     corr,
     get_psynet_root,
     linspace,
-    list_demo_dirs,
+    list_experiment_dirs,
     list_isolated_tests,
     make_parents,
     merge_dicts,
     organize_by_key,
+    working_directory,
 )
 
 
@@ -140,13 +142,19 @@ def get_datetime(str):
 
 def test_demo_dirs():
     psynet_root = get_psynet_root()
-    dirs = list_demo_dirs()
-    assert psynet_root.joinpath("demos/mcmcp").__str__() in dirs
-    assert psynet_root.joinpath("demos/recruiters/cap_recruiter").__str__() in dirs
+    dirs = list_experiment_dirs()
+    assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
+    assert (
+        psynet_root.joinpath("tests/experiments/recruiters/cap_recruiter").__str__()
+        in dirs
+    )
 
-    dirs = list_demo_dirs(for_ci_tests=True)
-    assert psynet_root.joinpath("demos/mcmcp").__str__() in dirs
-    assert psynet_root.joinpath("demos/recruiters/cap_recruiter").__str__() not in dirs
+    dirs = list_experiment_dirs(for_ci_tests=True)
+    assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
+    assert (
+        psynet_root.joinpath("tests/experiments/recruiters/cap_recruiter").__str__()
+        not in dirs
+    )
 
 
 def test_isolated_tests():
@@ -154,5 +162,58 @@ def test_isolated_tests():
     tests = list_isolated_tests()
 
     assert (
-        psynet_root.joinpath("tests/isolated/test_demo_timeline.py").__str__() in tests
+        psynet_root.joinpath(
+            "tests/isolated/experiments/test_experiment_timeline.py"
+        ).__str__()
+        in tests
     )
+
+
+def test_check_todos_before_deployment_raise():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            with open("file1.py", "w") as file:
+                file.write("# TODO (1) line with a Python comment")
+                file.flush()
+
+            with open("file2.py", "w") as file:
+                file.write("# TODO (2) line with a Python comment\n")
+                file.write("// TODO (3) line with a JavaScript comment")
+                file.flush()
+
+            os.mkdir("subdir")
+            with open("subdir/file.js", "w") as file:
+                file.write("// TODO (4) line with a JavaScript comment\n")
+                file.write("// TODO (5) line with a second JavaScript comment")
+                file.flush()
+
+            with open("subdir/file.html", "w") as file:
+                file.write("// TODO (6) line with a JavaScript comment")
+                file.flush()
+
+            with pytest.raises(
+                AssertionError,
+                match="You have 6 TODOs in 4 file\\(s\\) in your experiment folder. "
+                "Please fix them or remove them before deploying. To view all "
+                "TODOs in your project in PyCharm, go to 'View' > 'Tool Windows' > 'TODO'. "
+                "You can skip this check by writing `export SKIP_TODO_CHECK=1` "
+                "\\(without quotes\\) in your terminal.",
+            ):
+                check_todos_before_deployment()
+
+
+def test_check_todos_before_deployment_no_raise():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            with open("no_raise.py", "w") as file:
+                file.write("# FIXME line with unrecognized")
+                file.flush()
+
+            with open("no_raise.txt", "w") as file:
+                file.write("# TODO line in a file with unsupported file extension")
+                file.flush()
+
+            try:
+                check_todos_before_deployment()
+            except AssertionError:
+                assert False
