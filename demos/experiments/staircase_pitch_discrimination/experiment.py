@@ -320,9 +320,10 @@ class Exp(psynet.experiment.Experiment):
             ]
 
             for parameter in last_n_parameters:
-                assert (
-                    bot_threshold * step <= parameter <= bot_threshold / step
-                ), "Procedure did not converge to bot threshold"
+                assert bot_threshold * step <= parameter <= bot_threshold / step, (
+                    f"Procedure did not converge to bot threshold (chain ID = {chain.id}, "
+                    f"last_n_parameters = {last_n_parameters}, threshold = {bot_threshold})"
+                )
 
             if chain.mean_reversal_score is not None:
                 assert (
