@@ -114,6 +114,35 @@ you may have to examine your security group/IP address combination.
 
     ssh ubuntu@bob.psych-experiments.org
 
+.. note::
+
+    If you have used this subdomain before with a different (virtual) machine, you may see an error message
+    like this:
+
+    ::
+
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+        Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+        It is also possible that a host key has just been changed.
+        The fingerprint for the ED25519 key sent by the remote host is
+        SHA256:...
+        Please contact your system administrator.
+        Add correct host key in /Users/your-username/.ssh/known_hosts to get rid of this message.
+        Offending ED25519 key in /Users/your-username/.ssh/known_hosts:11
+        Host key for bob.psych-experiments.org has changed and you have requested strict checking.
+        Host key verification failed.
+
+    To fix this problem, enter the following on your local machine:
+
+    ::
+
+        ssh-keygen -R bob.psych-experiments.org
+
+    replacing the server name as appropriate.
+
 Now we need to create a wildcard subdomain for the apps you wish to deploy.
 Your apps will be accessible at URLs like `my-fun-app.bob.psych-experiments.org`.
 To do this, repeat the same steps for creating a subdomain as before,
