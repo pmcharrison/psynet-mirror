@@ -35,6 +35,14 @@ This can slow down data export if you have many files. You can disable this beha
 
     psynet export ssh --app my-app-name --assets none
 
+By default the export command will also try to export the experiment's source code. 
+This feature was causing some problems in PsyNet v11.7; if you experience an error
+during source code exporting, we recommend using the ``--no-source`` argument:
+
+.. code:: bash
+
+    psynet export ssh --app my-app-name --no-source
+
 **Anonymization**.
 Data can be exported in anonymous or non-anonymous mode. Anonymous mode strips
 worker IDs from the participants table and excludes assets that are marked
