@@ -51,7 +51,7 @@ chain_definitions = [
 ]
 
 n_chains = len(chain_definitions)
-chain_length = 10
+chain_length = 15
 
 # #############################################################################
 
