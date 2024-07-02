@@ -1,5 +1,31 @@
 # CHANGELOG
 
+# [11.6.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.6.0) Release 2024-07-03
+
+## Fixed
+- Fixed units for median request time taken in dashboard `Resources` tab visualization (author: Frank Höger, reviewer: Peter Harrison).
+- Respect comments in requirements.txt when specifying package versions (author: Frank Höger, reviewer: Peter Harrison).
+- Fix bug saving `ExperimentStatus` (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed issue in `BaseLucidRecruiter.run_checks` where the `participant` variable wasn't initialized (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed bug where progress bars did not increment properly when PageMakers returned unexpected amounts of credit.
+This most commonly affected trial makers with feedback pages (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug where sounds played from audio files (e.g. .wav) were stopping early on devices with high latency (e.g. Bluetooth headsets) (author: Peter Harrison, reviewer: Frank Höger).
+
+## Added
+- Added callback to `debug` and `deploy` commands leveraging Dallinger's `verify_id` method to check for a valid app name, e.g. no underscore in app name (author: Frank Höger, reviewer: Peter Harrison).
+- Added check to ensure a config.txt file exists when experiment.py is present (author: Frank Höger, reviewer: Peter Harrison).
+- Added a check that raises an error if `base_payment` is set to a value greater than `30` (author: Frank Höger, reviewer: Peter Harrison).
+- Added `bump-my-version` as a new optional dependency allowing for automated version bumping, incl. pre-release/development version specifiers (author: Frank Höger, reviewer: Peter Harrison).
+- Added test for participant failing logic (author: Peter Harrison, reviewer: Frank Höger).
+- Added support for staircase psychophysical procedures via GeometricStaircaseTrialMaker and associated utility classes. See staircase_pitch_discrimination demo for example usage (author: Peter Harrison, reviewer: Frank Höger).
+- Added warning that fade_out parameter in audio trials should be avoided as it currently has unreliable behavior (author: Peter Harrison, reviewer: Frank Höger).
+- Added convenience property Node.trial (author: Peter Harrison, reviewer: Frank Höger).
+- Added convenience properties ChainNode.chain and ChainTrial.chain (author: Peter Harrison, reviewer: Frank Höger).
+
+## Changed
+- Removed Experiment.fail_participant and moved its logic into Participant.fail (author: Peter Harrison, reviewer: Frank Höger).
+- Moved `finalize_assets outside Trial.__init__`, making it easier for users to override `Trial.__init__` (author: Peter Harrison, reviewer: Frank Höger).
+
 # [11.5.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.5.0) Release 2024-06-07
 
 ## Fixed
