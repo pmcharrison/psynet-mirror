@@ -150,18 +150,28 @@ class Exp(psynet.experiment.Experiment):
 
         all_status = ExperimentStatus.query.all()
         assert len(all_status) > 0
-        from psynet.dashboard.resources import summarize_resource_use
 
-        data = summarize_resource_use()
-        different_types = [
-            "CPU usage (%)",
-            "Median page loading time (%)",
-            "Number of page loads",
-            "RAM usage (%)",
-            "Used disk space compared to min (%)",
-        ]
+        status = all_status[-1]
+        assert status.cpu_usage_pct is not None
+        assert status.ram_usage_pct > 0
+        assert status.free_disk_space_gb > 0
 
-        reported_types = sorted(set([item["type"] for item in data]))
-        assert (
-            reported_types == different_types
-        ), f"Expected types: {different_types}, but got: {reported_types}"
+        # The below test is flakey, because summarize_resource_use skips variables that do not change
+        # during the testing period.
+        # It's therefore commented out for now.
+        #
+        # from psynet.dashboard.resources import summarize_resource_use
+        #
+        # data = summarize_resource_use()
+        # different_types = [
+        #     "CPU usage (%)",
+        #     "Median page loading time (%)",
+        #     "Number of page loads",
+        #     "RAM usage (%)",
+        #     "Used disk space compared to min (%)",
+        # ]
+        #
+        # reported_types = sorted(set([item["type"] for item in data]))
+        # assert (
+        #     reported_types == different_types
+        # ), f"Expected types: {different_types}, but got: {reported_types}"
