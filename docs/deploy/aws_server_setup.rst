@@ -47,7 +47,7 @@ Here is a brief summary of the steps involved:
 9. Click 'Create key pair' (RSA) and give it a name, e.g. 'test-psynet'.
    When done, a .pem file should be downloaded onto your computer.
    Move the file somewhere safe, for example ``~/Documents``.
-   Change this files permissions so that it can be used by the SSH client
+   Change this file's permissions so that it can be used by the SSH client
    by running ``chmod 400 ~/Documents/test-psynet.pem``
    using your own file path as appropriate.
    To save it within your SSH agent, run ``ssh-add ~/Documents/test-psynet.pem``,
@@ -114,6 +114,35 @@ you may have to examine your security group/IP address combination.
 
     ssh ubuntu@bob.psych-experiments.org
 
+.. note::
+
+    If you have used this subdomain before with a different (virtual) machine, you may see an error message
+    like this:
+
+    ::
+
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+        Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+        It is also possible that a host key has just been changed.
+        The fingerprint for the ED25519 key sent by the remote host is
+        SHA256:...
+        Please contact your system administrator.
+        Add correct host key in /Users/your-username/.ssh/known_hosts to get rid of this message.
+        Offending ED25519 key in /Users/your-username/.ssh/known_hosts:11
+        Host key for bob.psych-experiments.org has changed and you have requested strict checking.
+        Host key verification failed.
+
+    To fix this problem, enter the following on your local machine:
+
+    ::
+
+        ssh-keygen -R bob.psych-experiments.org
+
+    replacing the server name as appropriate.
+
 Now we need to create a wildcard subdomain for the apps you wish to deploy.
 Your apps will be accessible at URLs like `my-fun-app.bob.psych-experiments.org`.
 To do this, repeat the same steps for creating a subdomain as before,
@@ -168,3 +197,49 @@ research/domain name combination.
 
 20. Remember, AWS resources cost money and are billed incrementally. Once you are done using a server
     you should stop (if you want to use it again in the future) or terminate it (if you're completely done with it).
+
+
+Setting up another machine to run with this server
+--------------------------------------------------
+
+If you have already set up the AWS server following the instructions above and now want to access it from 
+another computer, you can follow these instructions:
+
+1. Get the PEM file from the person who set up the server.
+   Suppose you have saved it to ``~/Documents/test-psynet.pem``.
+   Change this file's permissions so that it can be used by the SSH client
+   by running ``chmod 400 ~/Documents/test-psynet.pem``
+   using your own file path as appropriate.
+   To save it within your SSH agent, run ``ssh-add ~/Documents/test-psynet.pem``,
+   using your own file path as appropriate.
+
+2. If the server was set up to only allow traffic from a fixed IP address,
+   verify that your current computer has the same IP address.
+
+3. Test that you can connect to the web server via SSH.
+   You need to know the server's domain name.
+   Here we will suppose that the domain name is ``bob.psych-experiments.org``,
+   with apps being deployed to subdomains like ``my-app.bob.psych-experiments.org``.
+   We can test the connection by running a command like:
+
+::
+
+    ssh ubuntu@my-app.bob.psych-experiments.org
+
+4. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
+    make sure you are on your PsyNet virtual environment on your local computer, 
+    and run the following to register the server for PsyNet:
+
+::
+
+    dallinger docker-ssh servers add --host bob.psych-experiments.org --user ubuntu
+
+where the ``host`` argument corresponds to the domain name you just registered.
+Here ``ubuntu`` is the default user for AWS instances, you shouldn't need to change this.
+
+5. Now you can try launching your own experiment by running the following within an experiment
+    directory, on your local machine (not on the SSH terminal):
+
+::
+
+    psynet debug ssh --app my-fun-app --dns-host bob.psych-experiments.org
