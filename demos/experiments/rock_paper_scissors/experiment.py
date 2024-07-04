@@ -11,7 +11,7 @@ from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.utils import get_logger
+from psynet.utils import as_plain_text, get_logger
 
 logger = get_logger()
 
@@ -203,4 +203,5 @@ class Exp(psynet.experiment.Experiment):
 
         pages = [bot.get_current_page() for bot in bots]
         for page in pages:
-            assert isinstance(page, SuccessfulEndPage)
+            text = as_plain_text(page.prompt.text)
+            assert "That's the end of the experiment!" in text

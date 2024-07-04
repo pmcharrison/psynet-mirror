@@ -8,6 +8,7 @@ from psynet.process import AsyncProcess
 from psynet.pytest_psynet import (
     assert_text,
     bot_class,
+    click_finish_button,
     next_page,
     path_to_test_experiment,
 )
@@ -99,4 +100,4 @@ class TestExp:
             text_input.send_keys("No technical problems.")
             next_page(driver, "next-button")
 
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

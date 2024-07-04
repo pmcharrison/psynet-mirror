@@ -3,7 +3,12 @@ import time
 import pytest
 from selenium.webdriver.common.by import By
 
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo_feature
+from psynet.pytest_psynet import (
+    bot_class,
+    click_finish_button,
+    next_page,
+    path_to_demo_feature,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -30,4 +35,4 @@ class TestExp(object):
             assert body.value_of_css_property("background-color") == col_powderblue
 
             next_page(driver, "next-button")
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

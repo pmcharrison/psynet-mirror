@@ -24,6 +24,7 @@ from psynet.timeline import (
     switch,
     while_loop,
 )
+from psynet.utils import as_plain_text
 
 
 class Exp(psynet.experiment.Experiment):
@@ -116,6 +117,7 @@ class Exp(psynet.experiment.Experiment):
                 Prompt("Do you like chocolate?"),
                 control=PushButtonControl(["Yes", "No"]),
                 time_estimate=3,
+                bot_response="Yes",
             ),
             conditional(
                 "like_chocolate",
@@ -139,6 +141,7 @@ class Exp(psynet.experiment.Experiment):
                     Prompt("Would you like to stay in this loop?"),
                     control=PushButtonControl(["Yes", "No"], arrange_vertically=False),
                     time_estimate=3,
+                    bot_response="No",
                 ),
             ),
             expected_repetitions=3,
@@ -195,6 +198,7 @@ class Exp(psynet.experiment.Experiment):
                     ["Red", "Green", "Blue"], arrange_vertically=False
                 ),
                 time_estimate=5,
+                bot_response="Red",
             ),
             CodeBlock(
                 lambda participant: participant.var.new(
@@ -218,3 +222,18 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
+
+    def run_bot(self, bot):
+        bot.run_until(
+            lambda page: hasattr(page, "prompt")
+            and "the end of the experiment!" in str(page.prompt.text),
+            render_pages=True,
+        )
+        page = bot.get_current_page()
+        text = as_plain_text(page.prompt.text)
+        assert (
+            text
+            == "That's the end of the experiment! You will receive a reward of **$0.36** for the time you "
+            "spent on the experiment. You have also been awarded a performance reward of **$0.00**! Thank "
+            'you for taking part. Please click "Finish" to complete the HIT.'
+        )

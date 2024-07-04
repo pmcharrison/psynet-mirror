@@ -7,6 +7,7 @@ from psynet.participant import Participant
 from psynet.pytest_psynet import (
     assert_text,
     bot_class,
+    click_finish_button,
     next_page,
     path_to_test_experiment,
 )
@@ -112,9 +113,9 @@ class TestExp:
                 """
                 That\'s the end of the experiment! You will receive a reward of $0.13
                 for the time you spent on the experiment. You have also been awarded a performance reward of $9.09!
-                You have also been awarded a performance reward of $9.09! Thank you for taking part.
+                Thank you for taking part.
                 Please click "Finish" to complete the HIT. Finish
                 """,
             )
 
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

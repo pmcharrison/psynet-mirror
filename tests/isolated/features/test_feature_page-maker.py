@@ -3,7 +3,13 @@ import time
 import pytest
 from selenium.webdriver.common.by import By
 
-from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo_feature
+from psynet.pytest_psynet import (
+    assert_text,
+    bot_class,
+    click_finish_button,
+    next_page,
+    path_to_demo_feature,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -61,4 +67,4 @@ class TestExp:
             assert_text(driver, "main-body", "You are on iteration 3/3. Next")
             next_page(driver, "next-button")
 
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

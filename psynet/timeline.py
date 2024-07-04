@@ -181,7 +181,13 @@ class Elt:
 
     def multiply_expected_repetitions(self, factor):
         # pylint: disable=unused-argument
-        return self
+        if self.expected_repetitions is not None:
+            self.expected_repetitions *= factor
+
+
+class EltCollection:
+    def resolve(self) -> Union[Elt, List[Elt]]:
+        raise NotImplementedError
 
 
 class NullElt(Elt):
@@ -218,37 +224,38 @@ class CodeBlock(Elt):
         )
 
 
-class FixElt(Elt):
+class StartFixElt(Elt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
 
+    def __init__(self, time_credit: float, end_fix: "EndFixElt"):
+        super().__init__()
+        self.time_credit = time_credit
+        self.expected_repetitions = 1
+        self.end_fix = end_fix
+
+
+class EndFixElt(Elt):
     def __init__(self, time_credit: float):
         super().__init__()
         self.time_credit = time_credit
         self.expected_repetitions = 1
 
-    def multiply_expected_repetitions(self, factor):
-        self.expected_repetitions = self.expected_repetitions * factor
 
-
-class StartFixTimeCredit(FixElt):
+class StartFixTimeCredit(StartFixElt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
-
-    def __init__(self, time_credit: float, end_fix: "EndFixTimeCredit"):
-        super().__init__(time_credit)
-        self.end_fix = end_fix
 
     def consume(self, experiment, participant):
         bound = participant.time_credit + self.time_credit
         participant.time_credit_fixes.append(bound)
 
 
-class EndFixTimeCredit(FixElt):
+class EndFixTimeCredit(EndFixElt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
@@ -258,21 +265,24 @@ class EndFixTimeCredit(FixElt):
         participant.time_credit = participant.time_credit_fixes.pop()
 
 
-class StartFixProgress(FixElt):
+class StartFixProgress(StartFixElt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
 
     def consume(self, experiment, participant):
-        bound = (
-            participant.progress
-            + self.time_credit / participant.estimated_max_time_credit
-        )
+        if participant.estimated_max_time_credit == 0.0:
+            bound = 1.0
+        else:
+            bound = (
+                participant.progress
+                + self.time_credit / participant.estimated_max_time_credit
+            )
         participant.progress_fixes.append(bound)
 
 
-class EndFixProgress(FixElt):
+class EndFixProgress(EndFixElt):
     """
     This class is not to be used directly; use instead
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
@@ -283,7 +293,7 @@ class EndFixProgress(FixElt):
 
 
 class GoTo(Elt):
-    def __init__(self, target):
+    def __init__(self, target: Union[Elt, str, callable]):
         super().__init__()
         self.target = target
 
@@ -304,6 +314,7 @@ class GoTo(Elt):
         participant.elt_id[-1] -= 1
 
 
+# Todo - remove ReactiveGoTo and move its code into Switch
 class ReactiveGoTo(GoTo):
     def __init__(
         self,
@@ -1245,10 +1256,6 @@ class Page(Elt):
     def define_media_requests(self):
         return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
 
-    def multiply_expected_repetitions(self, factor: float):
-        self.expected_repetitions = self.expected_repetitions * factor
-        return self
-
 
 class PageMaker(Elt):
     """
@@ -1381,52 +1388,20 @@ class PageMaker(Elt):
                     f"One of the elements in the page maker was missing a time estimate ({elt})"
                 )
 
-    def multiply_expected_repetitions(self, factor: float):
-        self.expected_repetitions = self.expected_repetitions * factor
-        return self
-
 
 class PageMakerFinishedError(Exception):
     pass
 
 
-class EndPage(Page):
-    def __init__(self, template_filename, label="EndPage"):
-        super().__init__(
-            time_estimate=0,
-            template_str=get_template(template_filename),
-            label=label,
-        )
-
-    def consume(self, experiment, participant):
-        super().consume(experiment, participant)
-        self.finalize_participant(experiment, participant)
-
-    def get_bot_response(self, experiment, bot):
-        bot.status = "approved"
-        return None
-
-    def finalize_participant(self, experiment, participant):
-        """
-        Executed when the participant completes the experiment.
-
-        Parameters
-        ----------
-
-        experiment:
-            An instantiation of :class:`psynet.experiment.Experiment`,
-            corresponding to the current experiment.
-
-        participant:
-            An instantiation of :class:`psynet.participant.Participant`,
-            corresponding to the current participant.
-        """
-
-
 class Timeline:
     def __init__(self, *args):
-        elts = join(*args)
-        self.elts = elts
+        # Todo - don't add SuccessfulEndLogic if it's already there.
+        # To achieve this, we should refactor EltCollection to make
+        # it easier to test for.
+        from psynet.end import SuccessfulEndLogic
+
+        self.elts = join(*args, SuccessfulEndLogic())
+
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
@@ -1447,8 +1422,8 @@ class Timeline:
     def check_elts(self):
         assert isinstance(self.elts, list)
         assert len(self.elts) > 0
-        if not isinstance(self.elts[-1], EndPage):
-            raise ValueError("The final element in the timeline must be an EndPage.")
+        # We used to check that the timeline finished with an EndPage, but this is no longer necessary,
+        # as we now automatically add SuccessfulEndLogic to the main branch.
         self.check_for_time_estimate()
         self.check_for_consent()
         self.check_modules()
@@ -1501,10 +1476,6 @@ class Timeline:
         if hasattr(recruiter, "verify_consents"):
             recruiter.verify_consents(self.consents)
 
-    @cached_property
-    def modules(self):
-        return {e.module_id: e.module for e in self.elts}
-
     def get_module(self, module_id):
         try:
             return self.modules[module_id]
@@ -1527,22 +1498,37 @@ class Timeline:
 
     def add_elt_ids(self):
         for i, elt in enumerate(self.elts):
-            elt.id = [i]
-        for i, elt in enumerate(self.elts):
-            if elt.id[0] != i:
+            if elt.id is not None and elt.id != [i]:
                 raise ValueError(
-                    "Failed to set unique IDs for each element in the timeline "
-                    + f"(the element at 0-indexed position {i} ended up with the ID {elt.id}). "
-                    + "This usually means that the same Python object instantiation is reused multiple times "
-                    + "in the same timeline. This kind of reusing is not permitted, instead you should "
-                    + "create a fresh instantiation of each element."
+                    f"Failed to set unique IDs for each element in the timeline "
+                    f"(the same element was reused at positions {elt.id} and {i}). "
+                    "This usually means that the same Python object instantiation is reused multiple times "
+                    "in the same timeline. This kind of reusing is not permitted, instead you should "
+                    "create a fresh instantiation of each element, e.g. by calling a function twice."
                 )
+
+            elt.id = [i]
 
     def __len__(self):
         return len(self.elts)
 
-    def __getitem__(self, key):
-        return self.elts[key]
+    def __getitem__(self, key: Union[str, list]):
+        if isinstance(key, str):
+            key = [key]
+
+        selected = self.elts
+        for k in key:
+            selected = selected[k]
+
+        return selected
+
+    def index(self, elt: Elt):
+        if elt.id is None:
+            raise ValueError(
+                "Cannot index an element that has yet to be assigned an ID."
+            )
+
+        return elt.id
 
     @log_time_taken
     def get_current_elt(self, experiment, participant):
@@ -1566,6 +1552,8 @@ class Timeline:
         # resolving it, and so on.
         #
         num_levels = len(participant.elt_id)
+        selected = self.elts
+
         for depth, index in enumerate(participant.elt_id):
             # Suppose ``participant.elt_id`` = ``[10, 3, 2]``
             # then:
@@ -1578,11 +1566,8 @@ class Timeline:
                 index_max = participant.elt_id_max[depth]
             except IndexError:
                 index_max = None
-            if depth == 0:
-                # We start just by going to the ith element in the timeline.
-                selected_elt = self[index]
-            else:
-                assert isinstance(selected_elt, PageMaker)
+
+            if isinstance(selected, PageMaker):
                 try:
                     # ``position`` corresponds to the page maker's location within the timeline.
                     # For example, suppose we are on the third level of the example above, then:
@@ -1592,10 +1577,9 @@ class Timeline:
                     if index_max is not None and index > index_max:
                         raise IndexError
                     position = participant.elt_id[0:depth]
-                    resolved = selected_elt.resolve(experiment, participant, position)
+                    selected = selected.resolve(experiment, participant, position)
                     if index_max is None:
-                        participant.elt_id_max.append(len(resolved) - 1)
-                    selected_elt = resolved[index]
+                        participant.elt_id_max.append(len(selected) - 1)
                 except IndexError:
                     # This occurs if the requested index goes past the number of
                     # elements produced by the current page maker.
@@ -1610,7 +1594,9 @@ class Timeline:
 
                     raise PageMakerFinishedError
 
-        return selected_elt
+            selected = selected[index]
+
+        return selected
 
     @log_time_taken
     def advance_page(self, experiment, participant):
@@ -1642,8 +1628,8 @@ class Timeline:
 
 class CreditEstimate:
     def __init__(self, elts):
-        self._elts = elts
-        self._max_time = self._estimate_max_time(elts)
+        self._elts = join(elts)
+        self._max_time = self._estimate_max_time(self._elts)
 
     def get_max(self, mode, wage_per_hour=None):
         if mode == "time":
@@ -1659,13 +1645,12 @@ class CreditEstimate:
                 "reward": self.get_max("reward", wage_per_hour=wage_per_hour),
             }
 
-    def _estimate_max_time(self, elts):
-        pos = 0
+    def _estimate_max_time(self, elts: List[Elt]):
         time_credit = 0.0
-        n_elts = len(elts)
+        pos = 0
 
         while True:
-            if pos == n_elts:
+            if pos == len(elts):
                 return time_credit
 
             elt = elts[pos]
@@ -1673,36 +1658,48 @@ class CreditEstimate:
             if elt.returns_time_credit:
                 time_credit += elt.time_estimate * elt.expected_repetitions
 
-            if isinstance(elt, StartFixTimeCredit):
+            if isinstance(elt, StartFixElt):
                 pos = elts.index(elt.end_fix)
 
-            elif isinstance(elt, EndFixTimeCredit):
+            elif isinstance(elt, EndFixElt):
                 time_credit += elt.time_credit * elt.expected_repetitions
                 pos += 1
 
             elif isinstance(elt, StartSwitch):
-                time_credit += max(
-                    [
-                        self._estimate_max_time(
-                            elts[
-                                elts.index(branch_start) : (
-                                    1 + elts.index(elt.end_switch)
-                                )
-                            ]
-                        )
-                        for key, branch_start in elt.branch_start_elts.items()
-                    ]
-                )
+                time_credit += self._estimate_switch_credit(elt, elts)
                 pos = elts.index(elt.end_switch)
 
             elif isinstance(elt, EndSwitchBranch):
                 pos = elts.index(elt.target)
 
-            elif isinstance(elt, EndPage):
-                return time_credit
+            elif isinstance(elt, GoTo):
+                pos = self._follow_go_to(go_to=elt, elts=elts)
 
             else:
                 pos += 1
+
+    def _estimate_switch_credit(self, elt, elts):
+        return max(
+            [
+                self._estimate_max_time(
+                    elts[elts.index(branch_start) : (1 + elts.index(elt.end_switch))]
+                )
+                for key, branch_start in elt.branch_start_elts.items()
+            ]
+        )
+
+    def _follow_go_to(self, go_to, elts) -> Union[List, int]:
+        if callable(go_to.target):
+            raise ValueError(
+                "Cannot proceed with timeline simulation as this GoTo's target is only known at run time"
+            )
+        elif isinstance(go_to.target, Elt):
+            return elts.index(go_to.target)
+        elif isinstance(go_to.target, list):
+            for i, elt in enumerate(elts):
+                if elt.id == go_to.target:
+                    return i
+        raise ValueError(f"Failed to follow GoTo to target {go_to.target}")
 
 
 def estimate_duration(logic):
@@ -1821,9 +1818,8 @@ def is_list_of(x, what):
 
 def join(*args):
     from .asset import AssetSpecification
-    from .sync import Barrier
 
-    valid_classes = (AssetSpecification, Elt, Module, Barrier)
+    valid_classes = (AssetSpecification, Elt, EltCollection)
 
     for i, arg in enumerate(args):
         if not (
@@ -1831,7 +1827,7 @@ def join(*args):
             or (isinstance(arg, valid_classes) or is_list_of(arg, valid_classes))
         ):
             raise TypeError(
-                f"Element {i + 1} of the input to join() was neither an Asset/Elt/Module/Barrier nor a list of such objects: ({arg})."
+                f"Element {i + 1} of the input to join() was neither an Asset/Elt/EltCollection nor a list of such objects: ({arg})."
             )
 
     args = [a for a in args if a is not None]
@@ -1841,16 +1837,16 @@ def join(*args):
     elif len(args) == 1:
         if isinstance(args[0], Elt):
             return [args[0]]
-        elif isinstance(args[0], Module):
+        elif isinstance(args[0], EltCollection):
             return args[0].resolve()
         else:
             return args[0]
     else:
 
         def f(x, y):
-            if isinstance(x, (Module, Barrier)):
+            if isinstance(x, EltCollection):
                 x = x.resolve()
-            if isinstance(y, (Module, Barrier)):
+            if isinstance(y, EltCollection):
                 y = y.resolve()
             if x is None:
                 return y
@@ -1984,6 +1980,8 @@ def while_loop(
     else:
         after_timeout_logic = GoTo(end_while)
 
+    time_estimate = CreditEstimate(logic).get_max("time")
+
     elts = join(
         CodeBlock(
             lambda participant: participant.var.set(
@@ -2003,6 +2001,7 @@ def while_loop(
             # within this inner component.
             bound_progress=False,
             log_chosen_branch=False,
+            time_estimate=0.0,
         ),
         conditional(
             label,
@@ -2013,11 +2012,10 @@ def while_loop(
             # to fail if enabled here.
             bound_progress=False,
             log_chosen_branch=False,
+            time_estimate=time_estimate,
         ),
         end_while,
     )
-
-    time_estimate = CreditEstimate(logic).get_max("time")
 
     elts = with_fixed_progress(elts, time_estimate)
 
@@ -2028,21 +2026,9 @@ def while_loop(
 
 
 def check_branches(branches):
-    try:
-        assert isinstance(branches, dict)
-        for branch_name, branch_elts in branches.items():
-            assert isinstance(branch_elts, (Elt, Module)) or is_list_of(
-                branch_elts, Elt
-            )
-            if isinstance(branch_elts, Elt):
-                branches[branch_name] = [branch_elts]
-            elif isinstance(branch_elts, Module):
-                branches[branch_name] = branch_elts.resolve()
-        return branches
-    except AssertionError:
-        raise TypeError(
-            "<branches> must be a dict of Modules or (lists of) Elt objects."
-        )
+    for branch_name, branch_elts in branches.items():
+        branches[branch_name] = join(branch_elts)
+    return branches
 
 
 def switch(
@@ -2052,6 +2038,7 @@ def switch(
     fix_time_credit: bool = False,
     bound_progress: bool = True,
     log_chosen_branch: bool = True,
+    time_estimate: float = None,
 ):
     """
     Selects a series of elts to display to the participant according to a
@@ -2085,6 +2072,10 @@ def switch(
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
 
+    time_estimate:
+        An optional time estimate to use for the switch construct. If not provided, the time estimate
+        will be estimated by computing time estimates for all branches and taking the maximum.
+
     Returns
     -------
 
@@ -2101,6 +2092,7 @@ def switch(
     for branch_name, branch_elts in branches.items():
         branch_start = StartSwitchBranch(branch_name)
         branch_end = EndSwitchBranch(branch_name, end_switch)
+        branch_elts = join(branch_elts)
         all_branch_starts[branch_name] = branch_start
         all_elts = all_elts + [branch_start] + branch_elts + [branch_end]
 
@@ -2113,12 +2105,13 @@ def switch(
     )
     combined_elts = [start_switch] + all_elts + [end_switch]
 
-    time_estimate = max(
-        [
-            CreditEstimate(branch_elts).get_max("time")
-            for branch_elts in branches.values()
-        ]
-    )
+    if time_estimate is None:
+        time_estimate = max(
+            [
+                CreditEstimate(branch_elts).get_max("time")
+                for branch_elts in branches.values()
+            ]
+        )
 
     if bound_progress:
         combined_elts = with_fixed_progress(combined_elts, time_estimate)
@@ -2180,6 +2173,7 @@ def conditional(
     fix_time_credit: bool = False,
     bound_progress: bool = True,
     log_chosen_branch: bool = True,
+    time_estimate: float = None,
 ):
     """
     Executes a series of elts if and only if a certain condition is satisfied.
@@ -2214,6 +2208,10 @@ def conditional(
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
 
+    time_estimate:
+        An optional time estimate to use for the conditional construct. If not provided, the time estimate
+        will be estimated by computing time estimates for the two branches and taking the maximum.
+
     Returns
     -------
 
@@ -2230,6 +2228,7 @@ def conditional(
         fix_time_credit=fix_time_credit,
         bound_progress=bound_progress,
         log_chosen_branch=log_chosen_branch,
+        time_estimate=time_estimate,
     )
 
 
@@ -2263,10 +2262,12 @@ def with_fixed_progress(elts: List[Elt], time_credit: float):
         The progress increment is calculated as if the participant had acquired
         this amount of time credit (in units of seconds).
     """
+    end_fix = EndFixProgress(time_credit)
+    start_fix = StartFixProgress(time_credit, end_fix)
     return join(
-        StartFixProgress(time_credit),
+        start_fix,
         elts,
-        EndFixProgress(time_credit),
+        end_fix,
     )
 
 
@@ -2386,7 +2387,7 @@ class ModuleAssets:
         ).one()
 
 
-class Module:
+class Module(EltCollection):
     default_id = None
     default_elts = None
     state_class = ModuleState  # type: Type[ModuleState]
@@ -2800,8 +2801,6 @@ def for_loop(
         return len(iterate_over())
 
     def setup(experiment, participant):
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         nonlocal iterate_over
         nonlocal label
         if callable(iterate_over):
@@ -2835,8 +2834,6 @@ def for_loop(
         lst = state["lst"]
         index = state["index"]
         input = lst[index]
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         return call_function_with_context(
             logic,
             input,
@@ -2847,8 +2844,6 @@ def for_loop(
     def should_stay_in_loop(participant):
         nonlocal label
         # state = participant.for_loops[-1]
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         state = participant.for_loops[label]
         return state["index"] < len(state["lst"])
 
@@ -2995,3 +2990,6 @@ class RegisterTrialMaker(NullElt):
         super().__init__()
         self.trial_maker_id = trial_maker.id
         self.trial_maker = trial_maker
+
+
+TimelineLogic = Union[Elt, List[Elt], EltCollection]

@@ -11,7 +11,7 @@ from sqlalchemy import Column, Integer
 
 from .db import with_transaction
 from .participant import Participant
-from .timeline import EndPage, Page
+from .timeline import Page
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
 
 logger = get_logger()
@@ -122,12 +122,9 @@ class Bot(Participant):
             # server (as accessed via the HTTP request) has access to this information too.
             db.session.commit()
 
-            if render_pages:
-                req = requests.get(
-                    f"http://localhost:5000/timeline?unique_id={self.unique_id}"
-                )
-                assert req.status_code == 200
-            sleep_time = self.take_page(page, time_factor)["sleep_time"]
+            sleep_time = self.take_page(page, time_factor, render_page=render_pages)[
+                "sleep_time"
+            ]
             db.session.commit()
 
             page_time_finished = time.monotonic()
@@ -150,7 +147,7 @@ class Bot(Participant):
 
         total_experiment_time = (datetime.now() - self.creation_time).total_seconds()
 
-        # To do - migrate these metrics to generic Participants (not just bots) so that we can report them
+        # Todo - migrate these metrics to generic Participants (not just bots) so that we can report them
         # everywhere
         stats = {
             "page_count": self.page_count,
@@ -174,7 +171,9 @@ class Bot(Participant):
     # We therefore do the same here, to ensure that the bot's behavior is as close as possible to that of a real
     # participant.
     @with_transaction
-    def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
+    def take_page(
+        self, page=None, time_factor=0, response=NoArgumentProvided, render_page=False
+    ):
         from .page import WaitPage
 
         start_time = time.monotonic()
@@ -185,6 +184,12 @@ class Bot(Participant):
         bot = self
         experiment = self.experiment
         assert isinstance(page, Page)
+
+        if render_page:
+            req = requests.get(
+                f"http://localhost:5000/timeline?unique_id={self.unique_id}"
+            )
+            assert req.status_code == 200
 
         sleep_time = page.time_estimate * time_factor
 
@@ -199,27 +204,26 @@ class Bot(Participant):
         if "time_taken" not in response.metadata:
             response.metadata["time_taken"] = sleep_time
 
-        if not isinstance(page, EndPage):
-            try:
-                experiment.process_response(
-                    participant_id=self.id,
-                    raw_answer=response.raw_answer,
-                    blobs=response.blobs,
-                    metadata=response.metadata,
-                    page_uuid=self.page_uuid,
-                    client_ip_address=response.client_ip_address,
-                    answer=response.answer,
+        try:
+            experiment.process_response(
+                participant_id=self.id,
+                raw_answer=response.raw_answer,
+                blobs=response.blobs,
+                metadata=response.metadata,
+                page_uuid=self.page_uuid,
+                client_ip_address=response.client_ip_address,
+                answer=response.answer,
+            )
+        except RuntimeError as err:
+            if "Working outside of request context" in str(err):
+                err.args = (
+                    err.args[0]
+                    + "\n\nNote: The 'working outside of request context' error can usually be ignored "
+                    "during testing as it typically comes from Flask trying to construct an "
+                    "error page without a valid request context. The real error probably "
+                    "happened earlier though.",
                 )
-            except RuntimeError as err:
-                if "Working outside of request context" in str(err):
-                    err.args = (
-                        err.args[0]
-                        + "\n\nNote: The 'working outside of request context' error can usually be ignored "
-                        "during testing as it typically comes from Flask trying to construct an "
-                        "error page without a valid request context. The real error probably "
-                        "happened earlier though.",
-                    )
-                raise
+            raise
 
         self.page_count += 1
 
@@ -230,6 +234,21 @@ class Bot(Participant):
             "sleep_time": sleep_time,
             "processing_time": processing_time,
         }
+
+    def submit_response(self, response=NoArgumentProvided):
+        page = self.get_current_page()
+        self.take_page(page, response=response)
+
+    def run_until(self, condition, render_pages=False):
+        while True:
+            current_page = self.get_current_page()
+            if condition(current_page):
+                break
+            self.take_page(current_page, render_page=render_pages)
+            if not self.status == "working":
+                raise RuntimeError(
+                    "Bot finished the experiment before condition was met."
+                )
 
 
 class BotResponse:

@@ -26,22 +26,59 @@ from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import get_lucid_service
 from .participant import Participant
-from .timeline import Response
+from .timeline import Response, TimelineLogic
 from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
 
 
-class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
-    """
-    The PsyNetRecruiter base class
-    """
-
+class PsyNetRecruiterMixin:
     show_termination_button = False
 
-    def compensate_worker(self, *args, **kwargs):
-        """A recruiter may provide a means to directly compensate a worker."""
-        raise RuntimeError("Compensation is not implemented.")
+    def terminate_participant(
+        self, participant=None, assignment_id=None, reason=None, details=None
+    ):
+        raise NotImplementedError
+
+    def release_participant(self, experiment, participant) -> TimelineLogic:
+        from .page import ExecuteFrontEndJS
+
+        return ExecuteFrontEndJS(
+            "dallinger.submitAssignment()",
+            message="Communicating with the recruiter...",
+        )
+
+
+class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
+    pass
+
+
+class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecruiter):
+    pass
+
+
+class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
+    pass
+
+
+# CAP Recruiter
+class BaseCapRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
+    """
+    The CapRecruiter base class
+    """
+
+    def recruit(self, n=1):
+        """Incremental recruitment isn't implemented for now, so we return an empty list."""
+        return []
+
+    def open_recruitment(self, n=1):
+        """
+        Return an empty list which otherwise would be a list of recruitment URLs.
+        """
+        return {"items": [], "message": ""}
+
+    def close_recruitment(self):
+        logger.info("No more participants required. Recruitment stopped.")
 
     def notify_duration_exceeded(self, participants, reference_time):
         """
@@ -52,31 +89,6 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
             participant.status = "abandoned"
             # We preserve this commit just in case Dallinger removes the external commit in the future
             session.commit()
-
-    def recruit(self, n=1):
-        """Incremental recruitment isn't implemented for now, so we return an empty list."""
-        return []
-
-    def terminate_participant(
-        self, participant=None, assignment_id=None, reason=None, details=None
-    ):
-        raise NotImplementedError
-
-
-# CAP Recruiter
-class BaseCapRecruiter(PsyNetRecruiter):
-    """
-    The CapRecruiter base class
-    """
-
-    def open_recruitment(self, n=1):
-        """
-        Return an empty list which otherwise would be a list of recruitment URLs.
-        """
-        return {"items": [], "message": ""}
-
-    def close_recruitment(self):
-        logger.info("No more participants required. Recruitment stopped.")
 
     def reward_bonus(self, participant, amount, reason):
         """
@@ -239,7 +251,7 @@ class LucidRecruiterException(Exception):
     """Custom exception for LucidRecruiter"""
 
 
-class BaseLucidRecruiter(PsyNetRecruiter):
+class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     MARKETPLACE_CODE = "Marketplace codes"
     IN_SURVEY = "Currently in Client Survey or Drop"
     COMPLETED = "Returned as Complete"
@@ -345,6 +357,20 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
         self.lucidservice = get_lucid_service(self.config, recruitment_config)
         self.store = kwargs.get("store", RedisStore())
+
+    def recruit(self, n=1):
+        """Incremental recruitment isn't implemented for now, so we return an empty list."""
+        return []
+
+    def notify_duration_exceeded(self, participants, reference_time):
+        """
+        The participant has been working longer than the time defined in
+        the "duration" config value.
+        """
+        for participant in participants:
+            participant.status = "abandoned"
+            # We preserve this commit just in case Dallinger removes the external commit in the future
+            session.commit()
 
     def run_checks(self):
         logger.info("Polling Lucid API to count entry_df")
@@ -997,12 +1023,15 @@ def get_lucid_settings(
     return settings
 
 
-class GenericRecruiter(PsyNetRecruiter):
+class GenericRecruiter(dallinger.recruiters.CLIRecruiter):
     """
     An improved version of Dallinger's Hot-Air Recruiter.
     """
 
     nickname = "generic"
+
+    def recruit(self, n=1):
+        return []
 
     def exit_response(self, experiment, participant):
         from psynet.timeline import Page
@@ -1049,3 +1078,13 @@ class GenericRecruiter(PsyNetRecruiter):
         )
 
         return res
+
+    def notify_duration_exceeded(self, participants, reference_time):
+        """
+        The participant has been working longer than the time defined in
+        the "duration" config value.
+        """
+        for participant in participants:
+            participant.status = "abandoned"
+            # We preserve this commit just in case Dallinger removes the external commit in the future
+            session.commit()

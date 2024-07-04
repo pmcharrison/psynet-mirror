@@ -10,6 +10,7 @@ from psynet.participant import Participant, get_participant
 from psynet.pytest_psynet import (
     assert_text,
     bot_class,
+    click_finish_button,
     next_page,
     path_to_test_experiment,
 )
@@ -238,10 +239,11 @@ class TestExp(object):
                 ),
             )
 
-            next_page(driver, "next-button", finished=True)
-
-            time.sleep(0.75)
+            click_finish_button(driver)
 
             db.session.commit()
             assert participant.base_payment == 0.34
+
+            # We haven't worked out by hand exactly what the bonus should be, so this number just comes
+            # from running the test ourselves.
             assert participant.bonus == 0.36

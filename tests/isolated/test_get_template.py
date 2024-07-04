@@ -9,5 +9,5 @@ def get_template_legacy(name):
 
 
 def test_get_template():
-    page = "final-page-successful.html"
+    page = "timeline-page.html"
     assert get_template(page) == get_template_legacy(page)
