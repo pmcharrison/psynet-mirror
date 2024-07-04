@@ -9,7 +9,7 @@ Troubleshooting
 No space left on device
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you see a ``No space left on device`` error when executing Docker commands, the solution
+If you see a ``No space left on device`` or ``You don't have enough free space`` error when executing Docker commands, the solution
 is typically to prune your local Docker storage. You can do this by running the following:
 
 .. code:: bash
