@@ -8,6 +8,7 @@ from psynet.participant import Participant
 from psynet.pytest_psynet import (
     assert_text,
     bot_class,
+    click_finish_button,
     next_page,
     path_to_test_experiment,
     psynet_loaded,
@@ -57,7 +58,7 @@ class TestExp(object):
 
                 # The first participant triggers an error on 'submit response'
                 assert_text(driver, "main-body", "Lorem ipsum Next")
-                next_page(driver, "next-button", finished=True)
+                click_finish_button(driver)
 
                 assert_text(
                     driver,
@@ -87,7 +88,7 @@ class TestExp(object):
 
             elif bot.participant_id == 2:
                 # We set finished=True because otherwise the bot will
-                # wait forever for the PsyNet library to load on the
+                # wait forever for the PsyNet library to load on
                 # the next page, which it never will, because it's an
                 # error page
                 next_page(driver, "next-button", finished=True)
@@ -123,7 +124,7 @@ class TestExp(object):
                 next_page(driver, "next-button")
 
                 # The third participant triggers an error in a worker asynchronous process'
-                next_page(driver, "next-button", finished=True)
+                click_finish_button(driver)
 
                 with log_pexpect_errors(debug_server_process):
                     debug_server_process.expect_exact(
@@ -150,7 +151,7 @@ class TestExp(object):
                 next_page(driver, "next-button")
 
                 # The third participant triggers an error in a worker asynchronous process'
-                next_page(driver, "next-button", finished=True)
+                click_finish_button(driver)
 
                 with log_pexpect_errors(debug_server_process):
                     debug_server_process.expect_exact(

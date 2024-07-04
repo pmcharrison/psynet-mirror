@@ -128,7 +128,7 @@ def test_estimate_credit__switch__bound_reward_false():
 
 def test_estimate_credit__while_loop__switch__bound_reward_true():
     e = while_loop(
-        "loop",
+        "loop123",
         lambda experiment, participant: experiment.var.not_ready,
         switch(
             "test",

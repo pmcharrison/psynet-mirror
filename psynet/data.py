@@ -515,7 +515,7 @@ def init_db(drop_all=False, bind=db.engine):
 
     import time
 
-    time.sleep(1)  # To do - remove this if it doesn't break the tests?
+    time.sleep(1)  # Todo - remove this if it doesn't break the tests?
 
     return db.session
 

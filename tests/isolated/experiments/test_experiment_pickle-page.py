@@ -5,6 +5,7 @@ import pytest
 from psynet.pytest_psynet import (
     assert_text,
     bot_class,
+    click_finish_button,
     next_page,
     path_to_test_experiment,
 )
@@ -26,4 +27,4 @@ class TestExp(object):
                 driver, "main-body", "This page was pickled in the database. Next"
             )
             next_page(driver, "next-button")
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

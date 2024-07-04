@@ -1,0 +1,203 @@
+from typing import List, Optional, Union
+
+import dominate
+from dominate import tags
+
+from psynet.timeline import (
+    CodeBlock,
+    Elt,
+    EltCollection,
+    Event,
+    PageMaker,
+    TimelineLogic,
+    join,
+)
+
+
+class EndLogic(EltCollection):
+    def resolve(self) -> Union[Elt, List[Elt]]:
+        return join(
+            CodeBlock(self.before_debrief),
+            PageMaker(self.debrief_participant, time_estimate=0.0),
+            CodeBlock(self.after_debrief),
+            PageMaker(self.release_participant, time_estimate=0.0),
+        )
+
+    def before_debrief(self, experiment, participant) -> None:
+        pass
+
+    def debrief_participant(self, experiment, participant) -> TimelineLogic:
+        raise NotImplementedError
+
+    def after_debrief(self, experiment, participant) -> None:
+        from psynet.bot import Bot
+
+        if isinstance(participant, Bot):
+            participant.status = "approved"
+
+    def release_participant(self, experiment, participant) -> TimelineLogic:
+        try:
+            return experiment.recruiter.release_participant(experiment, participant)
+        except AttributeError:
+            raise ValueError(
+                f"The selected recruiter ({experiment.recruiter}) is not fully implemented in PsyNet. "
+                "No release_participant method was found."
+            )
+
+    def debrief_page(self, content, experiment, participant) -> TimelineLogic:
+        from .modular_page import ModularPage, PushButtonControl
+
+        events = {}
+
+        # Todo - consider removing this redirect logic
+        if experiment.with_lucid_recruitment():
+            seconds_until_redirect = 2.0
+            events["nextPage"] = Event(
+                is_triggered_by="trialConstruct", delay=seconds_until_redirect
+            )
+
+        return ModularPage(
+            self.__class__.__name__,
+            content,
+            PushButtonControl(["Finish"]),
+            events=events,
+        )
+
+    @property
+    def should_show_reward(self) -> bool:
+        from psynet.experiment import get_and_load_config, get_experiment
+
+        exp = get_experiment()
+        config = get_and_load_config()
+
+        return config.get("show_reward") and not exp.with_lucid_recruitment()
+
+    def summarize_reward(self, experiment, participant):
+        from psynet.experiment import get_and_load_config
+
+        config = get_and_load_config()
+        _, _p = (participant.gettext, participant.pgettext)
+
+        # Todo - translation should not have HTML hard-coded.
+        # Fix that and then refactor using dominate package.
+        #
+        # Todo - if there is no performance reward, skip reporting it.
+        text = _p(
+            "final-page-rewards",
+            (
+                "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for the time you spent "
+                "on the experiment. You have also been awarded a performance reward of <strong>{CURRENCY}"
+                "{PERFORMANCE_REWARD}</strong>! "
+            ),
+        ).format(
+            CURRENCY=config.get("currency"),
+            TIME_REWARD=f"{participant.time_reward:.2f}",
+            PERFORMANCE_REWARD=f"{participant.performance_reward:.2f}",
+        )
+
+        return dominate.util.raw(text)
+
+
+class SuccessfulEndLogic(EndLogic):
+    def after_debrief(self, experiment, participant):
+        super().after_debrief(experiment, participant)
+        participant.complete = True
+        participant.progress = 1.0
+
+    def debrief_participant(self, experiment, participant) -> TimelineLogic:
+        _, _p = (participant.gettext, participant.pgettext)
+
+        html = tags.span()
+
+        with html:
+            tags.span(_p("final_page_successful", "That's the end of the experiment!"))
+
+            if self.should_show_reward:
+                tags.span(self.summarize_reward(experiment, participant))
+
+            tags.span(_("Thank you for taking part."))
+
+            # Todo - consider improving our CSS to add automatic spacing after paragraphs
+            tags.p(cls="vspace")
+
+            if not experiment.with_lucid_recruitment():
+                tags.p(_('Please click "Finish" to complete the HIT.'))
+
+        return self.debrief_page(html, experiment, participant)
+
+
+class UnsuccessfulEndLogic(EndLogic):
+    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
+        super().__init__()
+
+        if failure_tags is None:
+            failure_tags = []
+        failure_tags = [*failure_tags, "UnsuccessfulEndPage"]
+        self.failure_tags = failure_tags
+
+        if "template_filename" in kwargs:
+            raise ValueError(
+                "UnsuccessfulEndPage no longer accepts a template_filename argument. "
+                "Instead you should customize its content by subclassing its message attribute."
+            )
+
+    def before_debrief(self, experiment, participant) -> None:
+        super().before_debrief(experiment, participant)
+        participant.append_failure_tags(*self.failure_tags)
+        participant.fail()
+
+    def debrief_participant(self, experiment, participant) -> TimelineLogic:
+        _, _p = (participant.gettext, participant.pgettext)
+
+        html = tags.span()
+
+        with html:
+            tags.span(
+                _p(
+                    "final_page_unsuccessful",
+                    "Unfortunately the experiment must end early.",
+                )
+            )
+
+            if self.should_show_reward:
+                tags.span(
+                    _p(
+                        "final_page_unsuccessful",
+                        "However, you will still be paid for the time you spent already.",
+                    )
+                )
+                tags.span(self.summarize_reward(experiment, participant))
+
+            # Todo - remove this if we end up removing the redirect logic
+            if experiment.with_lucid_recruitment():
+                tags.span(_("You will be redirected."))
+
+            tags.span(_("Thank you for taking part."))
+
+            # Todo - consider improving our CSS to add automatic spacing after paragraphs
+            tags.p(cls="vspace")
+
+            if not experiment.with_lucid_recruitment():
+                tags.p(_('Please click "Finish" to complete the HIT.'))
+
+        return self.debrief_page(html, experiment, participant)
+
+
+class RejectedConsentLogic(UnsuccessfulEndLogic):
+    def after_debrief(self, experiment, participant):
+        super().after_debrief(experiment, participant)
+        participant.fail()
+
+    def debrief_participant(self, experiment, participant) -> TimelineLogic:
+        _, _p = (participant.gettext, participant.pgettext)
+
+        html = tags.span()
+
+        with html:
+            tags.span(_p("final_page_rejected_consent", "Consent was rejected."))
+            tags.span(_p("final_page_rejected_consent", "End of experiment."))
+
+            if not experiment.with_lucid_recruitment():
+                tags.p(_('Please click "Finish" to complete the HIT.'))
+
+        return self.debrief_page(html, experiment, participant)

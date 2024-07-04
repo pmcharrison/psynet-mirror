@@ -2,7 +2,13 @@ import time
 
 import pytest
 
-from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo_feature
+from psynet.pytest_psynet import (
+    assert_text,
+    bot_class,
+    click_finish_button,
+    next_page,
+    path_to_demo_feature,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -36,4 +42,4 @@ class TestExp:
             assert adjectives == ["angry"] * 3 + ["happy"] * 3
 
             next_page(driver, "next-button")
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

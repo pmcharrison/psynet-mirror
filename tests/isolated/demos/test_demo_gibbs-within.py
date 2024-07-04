@@ -6,7 +6,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo_experiment
+from psynet.pytest_psynet import (
+    bot_class,
+    click_finish_button,
+    next_page,
+    path_to_demo_experiment,
+)
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode
 
 logger = logging.getLogger(__file__)
@@ -51,4 +56,4 @@ class TestExp:
             ), "Dimensions are not visited in correct order."
 
             next_page(driver, "next-button")
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

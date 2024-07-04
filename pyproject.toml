@@ -35,6 +35,7 @@ dependencies = [
     "babel",
     "dallinger[docker]>=10.1.2,<11",
     "dominate",
+    "html2text",
     "joblib",
     "jsonpickle",
     "pandas",

@@ -9,6 +9,7 @@ from psynet.experiment import get_and_load_config
 from psynet.pytest_psynet import (
     assert_text,
     bot_class,
+    click_finish_button,
     next_page,
     path_to_demo_experiment,
 )
@@ -81,4 +82,4 @@ class TestExp(object):
             next_page(driver, "Übersetzung")
 
             # Page 5
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

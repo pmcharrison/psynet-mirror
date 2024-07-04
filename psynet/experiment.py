@@ -52,6 +52,7 @@ from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import with_transaction
+from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
@@ -3043,6 +3044,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         return stats
+
+
+Experiment.SuccessfulEndLogic = SuccessfulEndLogic
+Experiment.UnsuccessfulEndLogic = UnsuccessfulEndLogic
+Experiment.RejectedConsentLogic = RejectedConsentLogic
 
 
 @register_table

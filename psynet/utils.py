@@ -14,7 +14,7 @@ import sys
 import time
 from collections import OrderedDict
 from datetime import datetime
-from functools import lru_cache, reduce, wraps
+from functools import cache, lru_cache, reduce, wraps
 from os.path import abspath, dirname, exists
 from os.path import join as join_path
 from pathlib import Path
@@ -22,6 +22,7 @@ from typing import Type, Union
 from urllib.parse import ParseResult, urlparse
 
 import click
+import html2text
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
@@ -620,6 +621,7 @@ def render_string_with_translations(template_string, locale=None, **kwargs):
     )
 
 
+@cache
 def get_translator(
     locale=None,
     module="psynet",
@@ -1777,3 +1779,10 @@ def check_todos_before_deployment():
         "To view all TODOs in your project in PyCharm, go to 'View' > 'Tool Windows' > 'TODO'. "
         "You can skip this check by writing `export SKIP_TODO_CHECK=1` (without quotes) in your terminal."
     )
+
+
+def as_plain_text(html):
+    text = html2text.HTML2Text().handle(str(html))
+    pattern = re.compile(r"\s+")
+    text = re.sub(pattern, " ", text).strip()
+    return text

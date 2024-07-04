@@ -3,7 +3,12 @@ import time
 import pytest
 
 from psynet.participant import get_participant
-from psynet.pytest_psynet import bot_class, next_page, path_to_test_experiment
+from psynet.pytest_psynet import (
+    bot_class,
+    click_finish_button,
+    next_page,
+    path_to_test_experiment,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -56,4 +61,4 @@ class TestExp(object):
                 "Musical Training": 7.0,
             }
 
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)

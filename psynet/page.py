@@ -11,7 +11,6 @@ from .asset import CachedAsset, ExternalAsset
 from .modular_page import AudioPrompt, ModularPage
 from .timeline import (
     CodeBlock,
-    EndPage,
     Event,
     Module,
     Page,
@@ -296,54 +295,31 @@ def wait_while(
     )
 
 
-class SuccessfulEndPage(EndPage):
-    """
-    Indicates a successful end to the experiment.
-    """
-
-    def __init__(self, show_reward: bool = True):
-        super().__init__("final-page-successful.html", label="SuccessfulEndPage")
-        self.show_reward = show_reward
-
-    def finalize_participant(self, experiment, participant):
-        participant.complete = True
-        participant.progress = 1.0
-
-
-class UnsuccessfulEndPage(EndPage):
-    """
-    Indicates an unsuccessful end to the experiment.
-    """
-
-    def __init__(
-        self,
-        show_reward: bool = True,
-        failure_tags: Optional[List] = None,
-        template_filename: str = "final-page-unsuccessful.html",
-    ):
-        if failure_tags is None:
-            failure_tags = []
-        failure_tags = [*failure_tags, "UnsuccessfulEndPage"]
-        super().__init__(template_filename, label="UnsuccessfulEndPage")
-        self.failure_tags = failure_tags
-        self.show_reward = show_reward
-
-    def finalize_participant(self, experiment, participant):
-        if self.failure_tags:
-            assert isinstance(self.failure_tags, list)
-            participant.append_failure_tags(*self.failure_tags)
-        participant.fail()
-
-
-class RejectedConsentPage(UnsuccessfulEndPage):
-    """
-    Indicates a consent that has been rejected.
-    """
-
-    def __init__(self, failure_tags: Optional[List] = None):
+# At some point we might make deprecation warnings for these classes
+class SuccessfulEndPage(PageMaker):
+    def __init__(self):
         super().__init__(
-            failure_tags=failure_tags,
-            template_filename="final-page-rejected-consent.html",
+            lambda experiment: experiment.SuccessfulEndLogic(), time_estimate=0.0
+        )
+
+
+class UnsuccessfulEndPage(PageMaker):
+    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
+        super().__init__(
+            lambda experiment: experiment.UnsuccessfulEndLogic(
+                failure_tags=failure_tags, **kwargs
+            ),
+            time_estimate=0.0,
+        )
+
+
+class RejectedConsentPage(PageMaker):
+    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
+        super().__init__(
+            lambda experiment: experiment.RejectedConsentLogic(
+                failure_tags=failure_tags, **kwargs
+            ),
+            time_estimate=0.0,
         )
 
 
@@ -485,3 +461,13 @@ class JsPsychPage(Page):
 
     def format_answer(self, raw_answer, **kwargs):
         return json.loads(raw_answer)
+
+
+class ExecuteFrontEndJS(InfoPage):
+    def __init__(self, js: str, message: str = ""):
+        super().__init__(
+            content=message,
+            time_estimate=0.0,
+            scripts=[js],
+            show_next_button=False,
+        )

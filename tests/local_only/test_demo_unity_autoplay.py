@@ -5,7 +5,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from psynet.pytest_psynet import bot_class, next_page, path_to_demo_experiment
+from psynet.pytest_psynet import (
+    bot_class,
+    click_finish_button,
+    next_page,
+    path_to_demo_experiment,
+)
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -30,4 +35,4 @@ class TestExp:
                 EC.element_to_be_clickable((By.ID, "next-button"))
             )
             next_page(driver, "next-button")
-            next_page(driver, "next-button", finished=True)
+            click_finish_button(driver)
