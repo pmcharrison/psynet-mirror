@@ -118,23 +118,40 @@ Note that this does not quite match the Docker environment that the CI tests are
 but it should be close enough. We might document alternative approaches later.
 
 
-Ignorable errors
-----------------
+Occasional test failures, and running tests repeatedly
+------------------------------------------------------
 
-There are certain errors that occasionally occur in the automated test suite
-that have not been fixed yet because they only happen occasionally.
-If you see such errors in your own branch, don't worry, you don't have to fix them.
-They should normally go away if you click the rerun button for the particular
-test that failed. An up-to-date list of such error messages will be kept below.
-
-Deadlock error in gibbs demo
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Sometimes we encounter test failures that only occur occasionally. Often the best way to
+reproduce such failures is to run the test script repeatedly until a failure happens to occur.
+This can be done with a script like the following:
 
 ::
 
-    E       psycopg2.errors.DeadlockDetected: deadlock detected
-    E       DETAIL:  Process 60 waits for ShareLock on transaction 1205; blocked by process 71.
-    E       Process 71 waits for ShareLock on transaction 1206; blocked by process 60.
-    E       HINT:  See server log for query details.
-    E       CONTEXT:  while updating tuple (0,17) in relation "node"
-    /usr/local/lib/python3.10/site-packages/sqlalchemy/engine/default.py:736: DeadlockDetected
+    while psynet test local; do :; done
+
+Sporadic test failures typically involve race conditions where two separate processes try to 
+operate on the same database objects simultaneously. This can cause inconsistent object states
+and apparent logic errors. Processes to consider include:
+
+- 'Web' processes (invoked when a participant submits a response and/or navigates to a new page)
+- 'Clock' processes (in particular growing networks and checking barriers)
+- 'Worker' processes (e.g. asynchronous processing of an audio recording)
+
+The best way to avoid such errors is typically to add some database locking.
+In SQLAlchemy this is achieved using the ``.for_update`` method, which tells 
+the database that certain rows should be left alone by other processes until the current 
+process calls ``commit()``. For example, in the ``grow_network`` method we have the following:
+
+::
+
+    network = (
+        TrialNetwork.query.with_for_update(of=[TrialNetwork, TrialNode])
+        .populate_existing()
+        .get(network_id)
+    )
+
+This logic means that noone can touch the selected network or its head node until 
+the next ``commit()`` call.
+
+Note that we almost always combine ``with_for_update`` with ``.populate_existing``; 
+the latter is important for ensuring that object attributes are updated to their latest values.
