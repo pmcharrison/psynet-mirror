@@ -1115,13 +1115,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ~Participant.failed,
                 Participant.status == "working",
             )
-            .distinct(ParticipantLinkBarrier.barrier_id)
+            # We need to lock Participant rows to prevent race conditions with participants
+            # who are currently being processed in other tasks (e.g. advancing through the timeline).
+            .with_for_update(of=Participant)
+            .populate_existing()
             .all()
         )
 
+        # Before we used a DISTINCT clause --
+        # .distinct(ParticipantLinkBarrier.barrier_id)
+        # but DISTINCT is incompatible with FOR UPDATE in Postgres.
+        # We therefore do this filtering in Python instead.
+        processed_barriers = set()
         for link in barrier_links:
-            barrier = link.get_barrier()
-            barrier.process_potential_releases()
+            if link.barrier_id not in processed_barriers:
+                barrier = link.get_barrier()
+                barrier.process_potential_releases()
+                processed_barriers.add(link.barrier_id)
 
     @property
     def base_payment(self):
