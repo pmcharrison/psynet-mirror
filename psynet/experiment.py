@@ -1116,8 +1116,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 Participant.status == "working",
             )
             # We need to lock Participant rows to prevent race conditions with participants
-            # who are currently being processed in other tasks (e.g. advancing through the timeline).
-            .with_for_update(of=Participant)
+            # who are currently being processed in other tasks
+            # (e.g. advancing through the timeline).
+            .with_for_update(of=[ParticipantLinkBarrier, Participant])
             .populate_existing()
             .all()
         )
