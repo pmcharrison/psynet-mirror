@@ -1877,6 +1877,9 @@ class TrialMaker(Module):
                 experiment=experiment, participant=participant
             )
 
+        if trial_status == "available":
+            assert trial is not None
+
         return trial, trial_status
 
     def _prepare_repeat_trial(self, experiment, participant):
