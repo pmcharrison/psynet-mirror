@@ -22,11 +22,30 @@ def transaction():
     session = dallinger.db.session
     try:
         session.commit()
-        yield session
+        with forbid_committing("You can't commit inside a transaction"):
+            yield session
         session.commit()
     except Exception:
         session.rollback()
         raise
+
+
+@contextmanager
+def forbid_committing(message):
+    session = dallinger.db.session
+    original_commit = session.commit
+    session.commit = _forbidden(message)
+    try:
+        yield
+    finally:
+        session.commit = original_commit
+
+
+def _forbidden(message):
+    def f(*args, **kwargs):
+        raise RuntimeError(message)
+
+    return f
 
 
 def with_transaction(func):

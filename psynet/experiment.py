@@ -2752,8 +2752,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
+            if not isinstance(participant, Bot):
+                participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)
-            participant.client_ip_address = cls.get_client_ip_address()
             return cls.serialize_page(page, experiment, participant, mode)
         except cls.HandledError as err:
             return err.error_page()

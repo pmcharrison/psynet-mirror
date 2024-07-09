@@ -115,20 +115,11 @@ class Bot(Participant):
         while True:
             page_time_started = time.monotonic()
 
-            page = self.get_current_page()
-
             # This commit is necessary because get_current_page can make changes to the participant
             # (e.g. advancing them to the next page in the timeline). We need to commit so that the
             # server (as accessed via the HTTP request) has access to this information too.
-            db.session.commit()
 
-            if render_pages:
-                req = requests.get(
-                    f"http://localhost:5000/timeline?unique_id={self.unique_id}"
-                )
-                assert req.status_code == 200
-            sleep_time = self.take_page(page, time_factor)["sleep_time"]
-            db.session.commit()
+            sleep_time = self.take_page(time_factor=time_factor)["sleep_time"]
 
             page_time_finished = time.monotonic()
             page_total_time = page_time_finished - page_time_started
@@ -174,8 +165,17 @@ class Bot(Participant):
     # We therefore do the same here, to ensure that the bot's behavior is as close as possible to that of a real
     # participant.
     @with_transaction
-    def take_page(self, page=None, time_factor=0, response=NoArgumentProvided):
+    def take_page(
+        self, page=None, time_factor=0, response=NoArgumentProvided, render_page=False
+    ):
         from .page import WaitPage
+
+        # Locks the present participant row
+        self = (
+            self.__class__.query.with_for_update(of=self.__class__)
+            .populate_existing()
+            .get(self.id)
+        )
 
         start_time = time.monotonic()
 
@@ -185,6 +185,12 @@ class Bot(Participant):
         bot = self
         experiment = self.experiment
         assert isinstance(page, Page)
+
+        if render_page:
+            req = requests.get(
+                f"http://localhost:5000/timeline?unique_id={self.unique_id}"
+            )
+            assert req.status_code == 200
 
         sleep_time = page.time_estimate * time_factor
 
