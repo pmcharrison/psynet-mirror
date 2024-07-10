@@ -118,6 +118,10 @@ class StaticTrialMaker(ChainTrialMaker):
         a list. The latter is useful for generating nodes based on local files
         (e.g. large media assets) that are not available on the deployed server.
 
+    expected_trials_per_participant
+        Expected number of trials that each participant will complete.
+        This is used for timeline/progress estimation purposes.
+
     max_trials_per_participant
         Maximum number of trials that each participant may complete;
         once this number is reached, the participant will move on

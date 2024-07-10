@@ -1065,6 +1065,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         Either ``"within"`` for within-participant chains,
         or ``"across"`` for across-participant chains.
 
+    expected_trials_per_participant
+        Expected number of trials that each participant will complete.
+        This is used for timeline/progress estimation purposes.
+
     max_trials_per_participant
         Maximum number of trials that each participant may complete;
         once this number is reached, the participant will move on
