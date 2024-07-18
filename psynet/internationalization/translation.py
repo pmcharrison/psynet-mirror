@@ -9,20 +9,13 @@ from os.path import join as join_path
 import pexpect
 import polib
 
-from . import log
-from .utils import get_language_dict, logger
-
+from .. import log
+from ..utils import get_language_dict, logger
+from .utils import get_locales_dir
 
 ###################
 # PO utilities
 ###################
-def get_locales_dir(locales_dir):
-    """Get the locales directory."""
-    if locales_dir is None:
-        from .utils import LOCALES_DIR
-
-        locales_dir = LOCALES_DIR
-    return locales_dir
 
 
 def create_psynet_translation_template(locales_dir=None):
@@ -284,7 +277,7 @@ LANGUAGES_WITHOUT_CAPITALIZATION = [
 
 
 def get_all_translations(module, locales_dir):
-    from .utils import get_available_locales
+    from ..utils import get_available_locales
 
     locales = get_available_locales(locales_dir)
     translations = {}

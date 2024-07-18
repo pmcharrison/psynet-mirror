@@ -56,7 +56,13 @@ from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
-from .internationalization import check_translations, compile_mo, create_pot, load_po
+from .internationalization import LOCALES_DIR
+from .internationalization.translation import (
+    check_translations,
+    compile_mo,
+    create_pot,
+    load_po,
+)
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant
 from .recruiters import (  # noqa: F401
@@ -84,7 +90,6 @@ from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class
     Recording,
 )
 from .utils import (
-    LOCALES_DIR,
     NoArgumentProvided,
     cache,
     call_function,
@@ -2377,7 +2382,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/dashboard/export", methods=["GET"])
     @with_transaction
-    def export():
+    def export(self):
         from flask_login import current_user
 
         from .command_line import export__local

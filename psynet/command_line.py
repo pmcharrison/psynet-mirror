@@ -39,14 +39,14 @@ from psynet.version import check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
-from .internationalization import clean_po, load_po, po_to_dict
+from .internationalization import get_languages
+from .internationalization.translation import clean_po, load_po, po_to_dict
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
-    ISO_639_1_CODES,
     get_args,
     list_experiment_dirs,
     list_isolated_tests,
@@ -2211,7 +2211,7 @@ def post_update_psynet_requirement_():
 @click.argument(
     "iso_code",
     required=True,
-    type=click.Choice(ISO_639_1_CODES, case_sensitive=False),
+    type=click.Choice(get_languages().keys(), case_sensitive=False),
 )
 @require_exp_directory
 def prepare_translation(iso_code):
