@@ -25,8 +25,10 @@ from sqlalchemy.sql import func
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import get_lucid_service
+from .page import InfoPage
 from .participant import Participant
-from .timeline import Response, TimelineLogic
+from .process import LocalAsyncProcess
+from .timeline import Response, TimelineLogic, join, CodeBlock, PageMaker, while_loop
 from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
@@ -41,6 +43,12 @@ class PsyNetRecruiterMixin:
         raise NotImplementedError
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
+        return self.approve_assignment()
+
+    def approve_assignment(self) -> TimelineLogic:
+        # This calls dallinger.submitAssignment,
+        # and this will tell Dallinger to approve the assignment and pay the base payment,
+        # AND it also pays the participant a bonus, calculated from participant.bonus()
         from .page import ExecuteFrontEndJS
 
         return ExecuteFrontEndJS(
@@ -48,13 +56,67 @@ class PsyNetRecruiterMixin:
             message="Communicating with the recruiter...",  # Todo - translate
         )
 
-
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
     pass
 
 
 class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecruiter):
-    pass
+    def release_participant(self, experiment, participant) -> TimelineLogic:
+        if participant.successful:
+            return self.approve_assignment()
+        else:
+            # Once Jazkarta has implemented better recruiter communication in Dallinger,
+            # we will add a check that prevents the participant from continuing
+            # if they have not returned the assignment.
+            # Don't pay base payment
+            # Pay total reward as bonus
+            return self.reject_assignment()
+
+    def reject_assignment(self) -> TimelineLogic:
+        return PageMaker(self._reject_assignment)
+
+    def _reject_assignment(self, participant) -> TimelineLogic:
+        _ = participant.gettext
+
+        return join(
+            InfoPage(
+                _("Please return the assignment and you will be compensated for your time via the bonus mechanism.")
+            ),
+            CodeBlock(self._request_async_partial_payment),
+            PageMaker(self._wait_for_partial_payment),
+            CodeBlock(lambda experiment: experiment.recruiter.reward_bonus(
+                participant,
+                participant.get_total_reward(),
+                reason=_("Partial payment for incomplete participation"),
+            )),
+            # TODO - Once Jazkarta has done their thing, we can be confident that participant.status == "returned"
+            InfoPage(
+                _("You have now been compensated, you can close this page."),
+                show_next_button=False,
+            )
+        )
+
+    def _request_async_partial_payment(self, experiment, participant):
+        _ = participant.gettext
+
+        LocalAsyncProcess(
+            label="Requesting partial payment",
+            function=experiment.recruiter.reward_bonus,
+            arguments={
+                "participant": participant,
+                "amount": participant.get_total_reward(),
+                "reason": _("Partial payment for incomplete participation"),
+            },
+            participant=participant,
+        )
+
+    def _wait_for_partial_payment(self, participant) -> TimelineLogic:
+        _ = participant.gettext
+
+        return while_loop(
+            "Waiting for partial payment",
+            lambda participant: participant.async_processes ...
+        )
 
 
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
