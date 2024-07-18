@@ -45,7 +45,7 @@ class PsyNetRecruiterMixin:
 
         return ExecuteFrontEndJS(
             "dallinger.submitAssignment()",
-            message="Communicating with the recruiter...",
+            message="Communicating with the recruiter...",  # Todo - translate
         )
 
 
