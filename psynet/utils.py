@@ -26,13 +26,15 @@ import html2text
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
+
+import toml
 from babel.support import Translations
 from dallinger.config import experiment_available, get_config
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
 
-from psynet.internationalization import LOCALES_DIR, get_countries, get_languages
+from psynet.internationalization import LOCALES_DIR, get_known_countries, get_known_languages
 
 
 def get_logger():
@@ -690,11 +692,11 @@ def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
 
 
 def get_language_dict(locale, sort_by_name=True):
-    return _get_entity_dict_from_tuple_list(get_languages(locale), sort_by_name)
+    return _get_entity_dict_from_tuple_list(get_known_languages(locale), sort_by_name)
 
 
 def get_country_dict(locale, sort_by_name=True):
-    return _get_entity_dict_from_tuple_list(get_countries(locale), sort_by_name)
+    return _get_entity_dict_from_tuple_list(get_known_countries(locale), sort_by_name)
 
 
 def sample_from_surface_of_unit_sphere(n_dimensions):
@@ -1131,3 +1133,12 @@ def as_plain_text(html):
     pattern = re.compile(r"\s+")
     text = re.sub(pattern, " ", text).strip()
     return text
+
+
+def in_psynet_directory():
+    try:
+        with open(Path("pyproject.toml"), "r") as f:
+            return 'name = "psynet"' in f.read()
+
+    except FileNotFoundError:
+        return False

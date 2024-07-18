@@ -1,7 +1,51 @@
 from psynet.utils import get_translator
 
 
-def get_languages(locale=None):
+supported_languages = [
+    "ar",
+    "be",
+    "bg",
+    "cs",
+    "da",
+    "de",
+    "el",
+    "es",
+    "et",
+    "fi",
+    "fr",
+    "he",
+    "hi",
+    "hr",
+    "hu",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "lt",
+    "ms",
+    "nb",
+    "nl",
+    "no",
+    "pl",
+    "pt",
+    "ro",
+    "ru",
+    "sk",
+    "sl",
+    "sr",
+    "sv",
+    "sw",
+    "th",
+    "tl",
+    "tr",
+    "uk",
+    "ur",
+    "vi",
+    "zh",
+]
+
+
+def get_known_languages(locale=None):
     """
     List compiled using the pycountry package v20.7.3 with
 
@@ -205,3 +249,29 @@ def get_languages(locale=None):
         ("za", _p("language_name", "Zhuang")),
         ("zu", _p("language_name", "Zulu")),
     ]
+
+
+def get_supported_deepl_languages():
+    return {'bg', 'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'fi', 'fr', 'hu', 'id', 'it', 'ja', 'ko',
+                             'lt', 'lv', 'nb', 'nl', 'pl', 'pt', 'ro', 'ru', 'sk', 'sl', 'sv', 'tr', 'uk', 'zh'}
+
+def get_supported_gtrans_languages():
+    from googletrans import LANGCODES
+    languages = set(LANGCODES.values())
+
+    # Google translator now supports more languages
+    # https://timesofindia.indiatimes.com/gadgets-news/google-translate-now-supports-sanskrit-bhojpuri-dogri-and-these-indian-languages/articleshow/91513827.cms
+    languages.update({
+        'as',  # Assamese
+        'doi',  # Dogri
+        'gom',  # Goan Konkani
+        'mai',  # Maithili
+        'mni-Mtei',  # Manipuri
+        'sa',  # Sanskrit
+    })
+    return languages
+
+
+SUPPORTED_LANGUAGES_GTRANS += [
+
+]

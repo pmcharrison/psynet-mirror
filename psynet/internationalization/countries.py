@@ -1,7 +1,7 @@
 from psynet.utils import get_translator
 
 
-def get_countries(locale=None):
+def get_known_countries(locale=None):
     """
     List compiled using the pycountry package v20.7.3 with
 

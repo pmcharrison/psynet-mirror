@@ -2,16 +2,277 @@ import os
 import re
 import sys
 import tempfile
+import warnings
 from collections import OrderedDict
 from os.path import exists
 from os.path import join as join_path
+from typing import List
 
 import pexpect
 import polib
+import requests
 
+from . import supported_languages
 from .. import log
 from ..utils import get_language_dict, logger
 from .utils import get_locales_dir
+
+
+def translate_experiment(languages: List[str]):
+    from psynet.experiment import get_experiment
+
+    if len(languages) == 0:
+        exp = get_experiment()
+        languages = exp.supported_languages
+
+    check_languages(languages)
+
+    locales_dir = os.path.join(os.getcwd(), 'locales')
+    pot_path = os.path.join(locales_dir, 'experiment.pot')
+
+    pot = create_experiment_translation_template()
+    pot.save(pot_path)
+
+    for language in languages:
+        translate_pot(pot_path, target_language=language)
+
+
+
+def translate_psynet(languages: List[str]):
+    if len(languages) == 0:
+        languages = supported_languages
+
+    check_languages(languages)
+
+    locales_dir = os.path.join(os.getcwd(), 'psynet', 'locales')
+    pot_path = os.path.join(locales_dir, 'psynet.pot')
+
+    pot = create_psynet_translation_template()
+    pot.save(pot_path)
+
+    for language in languages:
+        translate_pot(pot_path, target_language=language)
+
+
+def translate_pot(pot_path, target_language, source_language="en", remove_unused_entries=False):
+    translator = choose_translator(target_language)
+    formality = "formal"
+
+    assert os.path.isabs(pot_path), 'Input path must be absolute.'
+    assert os.path.exists(pot_path), 'Input file does not exist.'
+    assert pot_path.endswith('.pot'), 'Input file must be a POT file.'
+
+    po_filename = os.path.basename(pot_path).replace('.pot', '.po')
+    dir_name = os.path.join(os.path.dirname(pot_path), target_language, 'LC_MESSAGES')
+    os.makedirs(dir_name, exist_ok=True)
+    po_path = os.path.join(dir_name, po_filename)
+
+    translate_po(pot_path, po_path, source_language, target_language, translator, remove_unused_entries, formality)
+
+
+def choose_translator(language: str):
+    from .languages import get_supported_deepl_languages, get_supported_gtrans_languages
+
+    if language in get_supported_deepl_languages():
+        return "DeepL"
+    elif language in get_supported_gtrans_languages():
+        return "GoogleTranslate"
+    else:
+        raise ValueError(
+            f"Language {language} is not supported by DeepL and Google Translate. "
+            f"DeepL supports {get_supported_deepl_languages()} and Google Translate supports {get_supported_gtrans_languages()}."
+        )
+
+
+def check_languages(languages):
+    from .languages import get_known_languages
+    known_languages = get_known_languages()
+    for language in languages:
+        assert language in known_languages, f"Unknown language: {language}"
+
+
+def translate_po(pot_path, po_path, input_lang, output_lang, translater, remove_unused_entries):
+    translations = get_old_translations(po_path)
+    po = initialize_po(pot_path, po_path, output_lang, translater)
+
+    contexts = get_contexts(po)
+    entries_without_context = get_entries_without_context(po)
+
+    for context in contexts:
+        context.translate()
+
+    for entry in entries_without_context:
+        entry.translate()
+
+
+def initialize_po(pot_path, po_path, output_lang, translater):
+    po = polib.pofile(pot_path)
+
+    if os.path.exists(po_path):
+        old_po = polib.pofile(po_path)
+        po.metadata = old_po.metadata
+    else:
+        po.metadata['Language'] = output_lang
+        po.metadata['Language-Team'] = translater
+        po.metadata['Last-Translator'] = translater + ' API'
+        po.metadata['MIME-Version'] = '1.0'
+        po.metadata['Content-Type'] = 'text/plain; charset=UTF-8'
+        po.metadata['Content-Transfer-Encoding'] = '8bit'
+
+    return po
+
+def get_old_translations(po_path):
+    translations = {}
+    if os.path.exists(po_path):
+        po = polib.pofile(po_path)
+        for entry in po:
+            translations[(entry.msgid, entry.msgctxt)] = entry.msgstr
+    return translations
+
+class Entry(polib.POEntry):
+    def translate(self):
+        pass
+
+class Context:
+    def __init__(self, label: str, entries: List[polib.POEntry]):
+        self.label = label
+        self.entries = entries
+
+    def translate(self):
+        sentences = [entry.msgid for entry in self.entries]
+
+        # translations[i][j] gives the jth alternative for the ith sentence
+        translations = translate(
+            sentences,
+            input_lang,
+            output_lang,
+            translater,
+            num_retries=3,
+            starting_sleep_time=5,
+            formality=formality
+        )
+
+def get_contexts(po):
+    contexts = {}
+    for entry in po:
+        if entry.msgctxt is not None:
+            if entry.msgctxt not in contexts:
+                contexts[entry.msgctxt] = []
+            contexts[entry.msgctxt].append(entry)
+    return [
+        Context(label, entries)
+        for label, entries in contexts.items()
+    ]
+
+def get_entries_without_context(po):
+    return [
+        entry
+        for entry in po
+        if entry.msgctxt is None
+    ]
+
+# TODO - when creating the pot file, ensure that the same context is not
+# used in different files
+
+def _translate(sentences, source, target, translater, num_retries, starting_sleep_time):
+    for n in range(num_retries): # Todo - refactor using Retry package
+        try:
+            if translater == 'DeepL':
+                sentence_translations = deepl_translate(sentences, source, target)
+            elif translater == 'GoogleTranslate':
+                sentence_translations = google_translate(sentences, source.lower(), target.lower())
+            else:
+                raise ValueError('Translator not supported')
+            assert len()
+
+            if len(alternatives) == 0:
+                raise ValueError("No valid translations found")
+            return alternatives[0]
+        except Exception as e:
+            print(f'Error: {e}')
+            print(f'Retrying in {starting_sleep_time} seconds...')
+            sleep(starting_sleep_time)
+            starting_sleep_time *= 2
+
+def deepl_translate(sentences, source, target):
+    translation_mapping = {}
+    flat_sentences = []
+    sentence_count = 0
+    for sent_idx, sentence in enumerate(sentences):
+        for plur_idx, plural in enumerate(sentence):
+            translation_mapping[sentence_count] = (sent_idx, plur_idx)
+            flat_sentences += [plural]
+            sentence_count += 1
+
+    json_data = {
+        'jsonrpc': '2.0',
+        'method': 'LMT_handle_jobs',
+        'params': {
+            'tag_handling': 'xml',
+            'jobs': _create_jobs(sentences),
+            'lang': {
+                'source_lang_computed': source.upper(),
+                'target_lang': target.upper(),
+            },
+            'priority': 1,
+            'commonJobParams': {
+                'mode': 'translate',
+                'browserType': 1,
+                'formality': "formal",
+            },
+        },
+    }
+
+    json_response = _get_response('https://api.deepl.com/jsonrpc', json_data)
+    translations = []
+    for sentence_count, translation_dict in enumerate(json_response['result']['translations']):
+        alternative_translations = []
+        for beam_dict in translation_dict['beams']:
+            alternative_translations.append(beam_dict['sentences'][0]['text'])
+        sent_idx, plur_idx = translation_mapping[sentence_count]
+        if plur_idx == 0:
+            translations.append([[alternative_translations]])
+        else:
+            translations[sent_idx].append([alternative_translations])
+    return translations
+
+
+def google_translate(sentences, source, target):
+    from googletrans import Translator
+
+    translator = Translator()
+    response = translator.translate(sentences, dest=target.lower(), src=source.lower())
+
+    return [
+        translation.text for translation in response
+    ]
+
+def _get_response(url, json_data):
+    response = requests.post(url, json=json_data)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f'Error: {response.status_code} {response.reason}')
+
+
+def _create_jobs(sentences, num_alternatives=1):
+    jobs = []
+    for i, sentence in enumerate(sentences):
+        jobs.append({
+            'kind': 'default',
+            'sentences': [
+                {
+                    'text': sentence,
+                    'id': i,
+                    'prefix': '',
+                },
+            ],
+            'raw_en_context_before': sentences[:i],
+            'raw_en_context_after': sentences[i + 1:],
+            'preferred_num_beams': num_alternatives,
+        })
+    return jobs
+
 
 ###################
 # PO utilities

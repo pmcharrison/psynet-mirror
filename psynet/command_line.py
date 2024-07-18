@@ -14,6 +14,7 @@ from hashlib import md5
 from importlib import resources
 from pathlib import Path
 from shutil import rmtree, which
+from typing import List
 
 import click
 import dallinger.command_line.utils
@@ -26,7 +27,7 @@ from dallinger.command_line.docker_ssh import (
     server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import get_config
+from dallinger.config import get_config, experiment_available
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -39,10 +40,11 @@ from psynet.version import check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
-from .internationalization import get_languages
-from .internationalization.translation import clean_po, load_po, po_to_dict
+from .internationalization import get_known_languages
+from .internationalization.translation import clean_po, load_po, po_to_dict, translate_experiment, translate_psynet
 from .log import bold
 from .lucid import get_lucid_service
+from .pytest_psynet import in_experiment_directory
 from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
@@ -55,7 +57,7 @@ from .utils import (
     require_exp_directory,
     require_requirements_txt,
     run_subprocess_with_live_output,
-    working_directory,
+    working_directory, in_psynet_directory,
 )
 
 dallinger.command_line.utils.header = ""
@@ -2211,7 +2213,7 @@ def post_update_psynet_requirement_():
 @click.argument(
     "iso_code",
     required=True,
-    type=click.Choice(get_languages().keys(), case_sensitive=False),
+    type=click.Choice(get_known_languages().keys(), case_sensitive=False),
 )
 @require_exp_directory
 def prepare_translation(iso_code):
@@ -2897,3 +2899,17 @@ def lucid__list_submissions(ctx, survey_number, order):
     submissions.drop(columns=["last_date"], inplace=True)
     submissions = submissions.sort_values(by=order, ascending=False)
     print(submissions.to_markdown(index=False))
+
+
+@click.command("translate")
+@click.argument("languages", required=False, nargs=-1)
+def translate(languages: List[str]):
+    if experiment_available():
+        translate_experiment(languages)
+    elif in_psynet_directory():
+        translate_psynet(languages)
+    else:
+        raise click.UsageError(
+            "This command should be run in a PsyNet experiment directory or with an active PsyNet experiment."
+        )
+

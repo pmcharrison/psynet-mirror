@@ -56,7 +56,7 @@ from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
-from .internationalization import LOCALES_DIR
+from .internationalization import LOCALES_DIR, supported_languages
 from .internationalization.translation import (
     check_translations,
     compile_mo,
@@ -429,6 +429,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
+
+    supported_languages = supported_languages
 
     asset_storage = NoStorage()
     css = []
