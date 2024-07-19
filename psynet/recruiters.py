@@ -129,6 +129,12 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
         return any([p.complete for p in relevant_processes])
 
 
+class DevProlificRecruiter(
+    PsyNetRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
+):
+    pass
+
+
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
     pass
 
