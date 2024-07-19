@@ -7,16 +7,16 @@ from collections import OrderedDict
 from functools import cached_property
 from os.path import exists
 from os.path import join as join_path
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import pexpect
 import polib
 import requests
-from tenacity import retry, wait_exponential, stop_after_delay
+from tqdm import tqdm
 
-from . import supported_languages
 from .. import log
 from ..utils import get_language_dict, logger
+from . import supported_languages
 from .utils import get_locales_dir
 
 
@@ -29,8 +29,8 @@ def translate_experiment(languages: List[str]):
 
     check_languages(languages)
 
-    locales_dir = os.path.join(os.getcwd(), 'locales')
-    pot_path = os.path.join(locales_dir, 'experiment.pot')
+    locales_dir = os.path.join(os.getcwd(), "locales")
+    pot_path = os.path.join(locales_dir, "experiment.pot")
 
     pot = create_experiment_translation_template()
     pot.save(pot_path)
@@ -39,15 +39,14 @@ def translate_experiment(languages: List[str]):
         translate_pot(pot_path, target_language=language)
 
 
-
 def translate_psynet(languages: List[str]):
     if len(languages) == 0:
         languages = supported_languages
 
     check_languages(languages)
 
-    locales_dir = os.path.join(os.getcwd(), 'psynet', 'locales')
-    pot_path = os.path.join(locales_dir, 'psynet.pot')
+    locales_dir = os.path.join(os.getcwd(), "psynet", "locales")
+    pot_path = os.path.join(locales_dir, "psynet.pot")
 
     pot = create_psynet_translation_template()
     pot.save(pot_path)
@@ -56,126 +55,200 @@ def translate_psynet(languages: List[str]):
         translate_pot(pot_path, target_language=language)
 
 
-def translate_pot(pot_path, target_language, source_language="en", remove_unused_entries=False):
-    translator = choose_translator(target_language)
+def translate_pot(
+    pot_path, target_language, source_language="en", remove_unused_entries=False
+):
     formality = "formal"
 
-    assert os.path.isabs(pot_path), 'Input path must be absolute.'
-    assert os.path.exists(pot_path), 'Input file does not exist.'
-    assert pot_path.endswith('.pot'), 'Input file must be a POT file.'
+    assert os.path.isabs(pot_path), "Input path must be absolute."
+    assert os.path.exists(pot_path), "Input file does not exist."
+    assert pot_path.endswith(".pot"), "Input file must be a POT file."
 
-    po_filename = os.path.basename(pot_path).replace('.pot', '.po')
-    dir_name = os.path.join(os.path.dirname(pot_path), target_language, 'LC_MESSAGES')
+    po_filename = os.path.basename(pot_path).replace(".pot", ".po")
+    dir_name = os.path.join(os.path.dirname(pot_path), target_language, "LC_MESSAGES")
     os.makedirs(dir_name, exist_ok=True)
     po_path = os.path.join(dir_name, po_filename)
 
-    translate_po(pot_path, po_path, source_language, target_language, translator, remove_unused_entries, formality)
-
-
-def choose_translator(language: str):
-    from .languages import get_supported_deepl_languages, get_supported_gtrans_languages
-
-    if language in get_supported_deepl_languages():
-        return "DeepL"
-    elif language in get_supported_gtrans_languages():
-        return "GoogleTranslate"
-    else:
-        raise ValueError(
-            f"Language {language} is not supported by DeepL and Google Translate. "
-            f"DeepL supports {get_supported_deepl_languages()} and Google Translate supports {get_supported_gtrans_languages()}."
-        )
+    translate_po(
+        pot_path,
+        po_path,
+        source_language,
+        target_language,
+        remove_unused_entries,
+        formality,
+    )
 
 
 def check_languages(languages):
     from .languages import get_known_languages
+
     known_languages = get_known_languages()
     for language in languages:
         assert language in known_languages, f"Unknown language: {language}"
 
 
-def translate_po(pot_path, po_path, input_lang, output_lang, translater, remove_unused_entries):
-    old_entries = get_old_entries(po_path)
-    po = initialize_po(pot_path, po_path, output_lang, translater)
+def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entries):
+    old_po = polib.pofile(po_path) if os.path.exists(po_path) else None
+    old_contexts = get_contexts(old_po) if old_po is not None else None
+    old_entries_without_context = (
+        get_entries_without_context(old_po) if old_po is not None else None
+    )
 
-    contexts = get_contexts(po)
-    entries_without_context = get_entries_without_context(po)
+    po = initialize_po(pot_path, po_path, target_lang)
+
+    contexts = get_contexts(po, exclude=old_contexts)
+    entries_without_context = get_entries_without_context(
+        po, exclude=old_entries_without_context
+    )
 
     for context in contexts:
-        context.translate()
+        context.translate(source_lang, target_lang)
 
-    entries_without_context.translate()
+    entries_without_context.translate(source_lang, target_lang)
+
+    for context_name, context in contexts.items():
+        if context_name in old_contexts:
+            contexts[context_name] = old_contexts[context_name].merge(context)
+
+    po = _insert_entries(
+        po,
+        contexts,
+        entries_without_context,
+        old_contexts,
+        old_entries_without_context,
+        remove_unused_entries,
+    )
+    po = clean_po(po)
+    po.save(po_path)
 
 
-def initialize_po(pot_path, po_path, output_lang, translater):
+def initialize_po(pot_path, po_path, output_lang):
     po = polib.pofile(pot_path)
 
     if os.path.exists(po_path):
         old_po = polib.pofile(po_path)
         po.metadata = old_po.metadata
     else:
-        po.metadata['Language'] = output_lang
-        po.metadata['Language-Team'] = translater
-        po.metadata['Last-Translator'] = translater + ' API'
-        po.metadata['MIME-Version'] = '1.0'
-        po.metadata['Content-Type'] = 'text/plain; charset=UTF-8'
-        po.metadata['Content-Transfer-Encoding'] = '8bit'
+        po.metadata["Language"] = output_lang
+        po.metadata["MIME-Version"] = "1.0"
+        po.metadata["Content-Type"] = "text/plain; charset=UTF-8"
+        po.metadata["Content-Transfer-Encoding"] = "8bit"
 
     return po
 
 
-def get_old_entries(po_path):
-    entries = {}
-    if os.path.exists(po_path):
-        po = polib.pofile(po_path)
-        for entry in po:
-            entries[(entry.msgid, entry.msgctxt)] = entry.msgstr
-    return entries
+def _insert_entries(
+    po,
+    contexts,
+    entries_without_context,
+    old_contexts,
+    old_entries_without_context,
+    remove_unused_entries,
+):
+    # We iterate over the po file, and in-place update with the new translations
+    # We also work out what old entries have not been included so far, and add those at the end
+    # in alphabetical order
+    pass
 
 
 class EntryCollection:
     def __init__(
-            self,
-            entries: Optional[List[polib.POEntry]] = None,
+        self,
+        entries: Optional[List[polib.POEntry]] = None,
     ):
         if entries is None:
             entries = []
 
         self.entries = entries
 
+    def __eq__(self, other):
+        # TODO - Implement
+        raise NotImplementedError
+
     def append(self, entry: polib.POEntry):
         self.entries.append(entry)
 
-    def translate(self):
-        # Translate all entries separately to avoid context contamination? or not?
-        source_texts = [entries.msgid for entries in self.entries]
+    @cached_property
+    def translator(self):
+        return MetaTranslator()
 
-        # translations[i][j] gives the jth alternative for the ith sentence
-        translations = translate(
-            source_texts,
-            input_lang,
-            output_lang,
-            translater,
-            num_retries=3,
-            starting_sleep_time=5,
-            formality=formality
-        )
+    def translate(self, source_lang: str, target_lang: str):
+        input_texts = [entries.msgid for entries in self.entries]
+        codebooks = [
+            self._get_codebook(text) for text in input_texts
+        ]  # [[], [('Participant name', 'X1')], [('Cat name', 'X1')]]
+        input_texts = [
+            self._encode(text, codebook)
+            for text, codebook in zip(input_texts, codebooks)
+        ]
+        translated_texts = self._translate(input_texts, source_lang, target_lang)
+        translated_texts = [
+            self._decode(text, codebook)
+            for text, codebook in zip(translated_texts, codebooks)
+        ]
+
+        for entry, translated_text in zip(self.entries, translated_texts):
+            translated_text = self.fix_translation(translated_text)
+            entry.msgstr = translated_text
+            entry.flags.append(
+                "fuzzy"
+            )  # Signals that the translation needs to be reviewed
+
+    def _translate(
+        self, texts: List[str], source_lang: str, target_lang: str
+    ) -> List[str]:
+        # Translate all entries separately to avoid context contamination
+        return [
+            self.translator.translate(
+                texts=[text], source_lang=source_lang, target_lang=target_lang
+            )[0]
+            for text in tqdm(
+                texts,
+                f"Translating {len(texts)} context-free entries from {source_lang} to {target_lang}...",
+            )
+        ]
+
+    def _get_codebook(self, text: str) -> List[tuple[str, str]]:
+        # Identify everything that needs encoding
+        # - Variables e.g. { PERSON }
+        # - Jinja variables e.g. {{ PERSON }}
+        # - HTML tags e.g. <b>...</b>
+        # Encode as ■1■, ■2■, ■3■, ...
+
+        raise NotImplementedError
+
+    def fix_translation(self, translation: str) -> str:
+        return translation
+
 
 class EntryCollectionWithContext(EntryCollection):
     def __init__(
-            self,
-            context: str,
-            entries: Optional[List[polib.POEntry]] = None,
+        self,
+        context: str,
+        entries: Optional[List[polib.POEntry]] = None,
     ):
         super().__init__(entries)
         self.context = context
 
-    def translate(self):
-        # Translate all as a batch
+    def translate(self, source_lang: str, target_lang: str):
+        # Translate all entries as a batch to preserve context
+        texts = [entries.msgid for entries in self.entries]
+        return self.translator.translate(
+            texts=texts, source_lang=source_lang, target_lang=target_lang
+        )
+
+    def __eq__(self, other):
+        # TODO - Implement
+        raise NotImplementedError
+
+    def merge(self, other: "EntryCollectionWithContext"):
+        # TODO - implement
+        # Entries from 'other' override entries from 'self'
         raise NotImplementedError
 
 
 class Translator:
-    def translate(self, passages: List[str], source_lang: str, target_lang: str):
+    def translate(self, texts: List[str], source_lang: str, target_lang: str):
         raise NotImplementedError
 
     def _get_response(self, url, json_data):
@@ -183,7 +256,7 @@ class Translator:
         if response.status_code == 200:
             return response.json()
         else:
-            raise Exception(f'Error: {response.status_code} {response.reason}')
+            raise Exception(f"Error: {response.status_code} {response.reason}")
 
 
 class DeepLTranslator(Translator):
@@ -193,72 +266,75 @@ class DeepLTranslator(Translator):
     #     wait=wait_exponential(multiplier=1, min=3),
     #     stop=stop_after_delay(4)
     # )
-    def translate(self, passages: List[str], source_lang: str, target_lang: str):
-        assert isinstance(passages, list)
-        payload, translation_mapping = self._make_payload(passages, source_lang, target_lang)
-        response = self._get_response('https://api.deepl.com/jsonrpc', payload)
-        return self._parse_response(response, translation_mapping)
+    def translate(self, texts: List[str], source_lang: str, target_lang: str):
+        assert isinstance(texts, list)
+        payload = self._make_payload(texts, source_lang, target_lang)
+        response = self._get_response("https://api.deepl.com/jsonrpc", payload)
+        return self._parse_response(response)
 
     def _make_payload(self, sentences: List[str], source_lang: str, target_lang: str):
-        translation_mapping = {}
-        flat_sentences = []
-        sentence_count = 0
-        for sent_idx, sentence in enumerate(sentences):
-            for plur_idx, plural in enumerate(sentence):
-                translation_mapping[sentence_count] = (sent_idx, plur_idx)
-                flat_sentences += [plural]
-                sentence_count += 1
-
-        json_data = {
-            'jsonrpc': '2.0',
-            'method': 'LMT_handle_jobs',
-            'params': {
-                'tag_handling': 'xml',
-                'jobs': self._create_jobs(sentences),
-                'lang': {
-                    'source_lang_computed': source_lang.upper(),
-                    'target_lang': target_lang.upper(),
+        return {
+            "jsonrpc": "2.0",
+            "method": "LMT_handle_jobs",
+            "params": {
+                "tag_handling": "xml",
+                "jobs": self._create_jobs(sentences),
+                "lang": {
+                    "source_lang_computed": source_lang.upper(),
+                    "target_lang": target_lang.upper(),
                 },
-                'priority': 1,
-                'commonJobParams': {
-                    'mode': 'translate',
-                    'browserType': 1,
-                    'formality': "formal",
+                "priority": 1,
+                "commonJobParams": {
+                    "mode": "translate",
+                    "browserType": 1,
+                    "formality": "formal",
                 },
             },
         }
-        return json_data, translation_mapping
 
     def _create_jobs(self, sentences, num_alternatives=1):
         jobs = []
         for i, sentence in enumerate(sentences):
-            jobs.append({
-                'kind': 'default',
-                'sentences': [
-                    {
-                        'text': sentence,
-                        'id': i,
-                        'prefix': '',
-                    },
-                ],
-                'raw_en_context_before': sentences[:i],
-                'raw_en_context_after': sentences[i + 1:],
-                'preferred_num_beams': num_alternatives,
-            })
+            jobs.append(
+                {
+                    "kind": "default",
+                    "sentences": [
+                        {
+                            "text": sentence,
+                            "id": i,
+                            "prefix": "",
+                        },
+                    ],
+                    "raw_en_context_before": sentences[:i],
+                    "raw_en_context_after": sentences[i + 1 :],
+                    "preferred_num_beams": num_alternatives,
+                }
+            )
         return jobs
 
-    def _parse_response(self, json_response, translation_mapping):
-        translations = []
-        for sentence_count, translation_dict in enumerate(json_response['result']['translations']):
-            alternative_translations = []
-            for beam_dict in translation_dict['beams']:
-                alternative_translations.append(beam_dict['sentences'][0]['text'])
-            sent_idx, plur_idx = translation_mapping[sentence_count]
-            if plur_idx == 0:
-                translations.append([[alternative_translations]])
-            else:
-                translations[sent_idx].append([alternative_translations])
-        return translations
+    def _parse_response(self, json_response):
+        return [
+            translation["beams"][0]["sentences"][0]["text"]
+            for translation in json_response["result"]["translations"]
+        ]
+
+
+class MetaTranslator(Translator):
+    def translate(self, texts: List[str], source_lang: str, target_lang: str):
+        from psynet.internationalization.languages import (
+            get_supported_deepl_languages,
+            get_supported_gtrans_languages,
+        )
+
+        if target_lang in get_supported_deepl_languages():
+            DeepLTranslator().translate(texts, target_lang, source_lang)
+        elif target_lang in get_supported_gtrans_languages():
+            GoogleTranslator().translate(texts, target_lang, source_lang)
+        else:
+            raise NotImplementedError(
+                f"Language {target_lang} is not supported by DeepL and Google Translate. "
+                f"DeepL supports {get_supported_deepl_languages()} and Google Translate supports {get_supported_gtrans_languages()}."
+            )
 
 
 class GoogleTranslator(Translator):
@@ -274,20 +350,25 @@ class GoogleTranslator(Translator):
     #     wait=wait_exponential(multiplier=1, min=3),
     #     stop=stop_after_delay(4)
     # )
-    def translate(self, passages: List[str], source_lang: str, target_lang: str):
-        assert isinstance(passages, list)
+    def translate(self, texts: List[str], source_lang: str, target_lang: str):
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        from googletrans import Translator
+            assert isinstance(texts, list)
 
-        translator = Translator()
-        response = translator.translate(passages, dest=source_lang.lower(), src=target_lang.lower())
+            from googletrans import Translator
 
-        return [
-            translation.text for translation in response
-        ]
+            translator = Translator()
+            response = translator.translate(
+                texts, dest=target_lang.lower(), src=source_lang.lower()
+            )
+
+            return [translation.text for translation in response]
 
 
-def get_contexts(po) -> dict[str, EntryCollectionWithContext]:
+def get_contexts(
+    po, exclude=Optional[dict[EntryCollectionWithContext]]
+) -> dict[str, EntryCollectionWithContext]:
     contexts = {}
     for entry in po:
         if entry.msgctxt is not None:
@@ -297,15 +378,29 @@ def get_contexts(po) -> dict[str, EntryCollectionWithContext]:
                 context = EntryCollectionWithContext(context=entry.msgctxt)
                 contexts[entry.msgctxt] = context
             context.append(entry)
+
+    if exclude:
+        for key, context in contexts.items():
+            if key in exclude and context == exclude[key]:
+                del contexts[key]
+
     return contexts
 
 
-def get_entries_without_context(po):
+def get_entries_without_context(
+    po, exclude: Optional[EntryCollection] = None
+) -> List[polib.POEntry]:
+    if exclude is None:
+        exclude_strings = set()
+    else:
+        exclude_strings = set([entry.msgstr for entry in exclude.entries])
+
     return [
-        passage
-        for passage in po
-        if passage.msgctxt is None
+        entry
+        for entry in po
+        if entry.msgctxt is None and entry.msgstr not in exclude_strings
     ]
+
 
 # TODO - when creating the pot file, ensure that the same context is not
 # used in different files

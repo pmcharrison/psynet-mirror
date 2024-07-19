@@ -52,6 +52,7 @@ def get_known_languages(locale=None):
             if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
     from psynet.utils import get_translator
+
     _, _p = get_translator(locale)
     return [
         ("ab", _p("language_name", "Abkhazian")),
@@ -250,21 +251,54 @@ def get_known_languages(locale=None):
 
 
 def get_supported_deepl_languages():
-    return {'bg', 'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'fi', 'fr', 'hu', 'id', 'it', 'ja', 'ko',
-                             'lt', 'lv', 'nb', 'nl', 'pl', 'pt', 'ro', 'ru', 'sk', 'sl', 'sv', 'tr', 'uk', 'zh'}
+    return {
+        "bg",
+        "cs",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "et",
+        "fi",
+        "fr",
+        "hu",
+        "id",
+        "it",
+        "ja",
+        "ko",
+        "lt",
+        "lv",
+        "nb",
+        "nl",
+        "pl",
+        "pt",
+        "ro",
+        "ru",
+        "sk",
+        "sl",
+        "sv",
+        "tr",
+        "uk",
+        "zh",
+    }
+
 
 def get_supported_gtrans_languages():
     from googletrans import LANGCODES
+
     languages = set(LANGCODES.values())
 
     # Google translator now supports more languages
     # https://timesofindia.indiatimes.com/gadgets-news/google-translate-now-supports-sanskrit-bhojpuri-dogri-and-these-indian-languages/articleshow/91513827.cms
-    languages.update({
-        'as',  # Assamese
-        'doi',  # Dogri
-        'gom',  # Goan Konkani
-        'mai',  # Maithili
-        'mni-Mtei',  # Manipuri
-        'sa',  # Sanskrit
-    })
+    languages.update(
+        {
+            "as",  # Assamese
+            "doi",  # Dogri
+            "gom",  # Goan Konkani
+            "mai",  # Maithili
+            "mni-Mtei",  # Manipuri
+            "sa",  # Sanskrit
+        }
+    )
     return languages
