@@ -25,10 +25,10 @@ from sqlalchemy.sql import func
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import get_lucid_service
-from .page import InfoPage
+from .page import InfoPage, WaitPage, wait_while
 from .participant import Participant
 from .process import LocalAsyncProcess
-from .timeline import Response, TimelineLogic, join, CodeBlock, PageMaker, while_loop
+from .timeline import CodeBlock, PageMaker, Response, TimelineLogic, join
 from .utils import get_logger, render_template_with_translations
 
 logger = get_logger()
@@ -56,6 +56,7 @@ class PsyNetRecruiterMixin:
             message="Communicating with the recruiter...",  # Todo - translate
         )
 
+
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
     pass
 
@@ -80,20 +81,17 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
 
         return join(
             InfoPage(
-                _("Please return the assignment and you will be compensated for your time via the bonus mechanism.")
+                _(
+                    "Please return the assignment and you will be compensated for your time via the bonus mechanism."
+                )
             ),
             CodeBlock(self._request_async_partial_payment),
             PageMaker(self._wait_for_partial_payment),
-            CodeBlock(lambda experiment: experiment.recruiter.reward_bonus(
-                participant,
-                participant.get_total_reward(),
-                reason=_("Partial payment for incomplete participation"),
-            )),
             # TODO - Once Jazkarta has done their thing, we can be confident that participant.status == "returned"
             InfoPage(
                 _("You have now been compensated, you can close this page."),
                 show_next_button=False,
-            )
+            ),
         )
 
     def _request_async_partial_payment(self, experiment, participant):
@@ -113,10 +111,22 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
     def _wait_for_partial_payment(self, participant) -> TimelineLogic:
         _ = participant.gettext
 
-        return while_loop(
-            "Waiting for partial payment",
-            lambda participant: participant.async_processes ...
+        return wait_while(
+            condition=lambda participant: not self._participant_partial_payment_complete(
+                participant
+            ),
+            expected_wait=5.0,
+            check_interval=2.0,
+            wait_page=WaitPage(wait_time=2.0, content=_("Processing payment...")),
         )
+
+    def _participant_partial_payment_complete(self, participant: Participant):
+        relevant_processes = [
+            p
+            for p in participant.async_processes
+            if p.label == "Requesting partial payment"
+        ]
+        return any([p.complete for p in relevant_processes])
 
 
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
