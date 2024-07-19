@@ -4,13 +4,15 @@ import sys
 import tempfile
 import warnings
 from collections import OrderedDict
+from functools import cached_property
 from os.path import exists
 from os.path import join as join_path
-from typing import List
+from typing import List, Optional, Union
 
 import pexpect
 import polib
 import requests
+from tenacity import retry, wait_exponential, stop_after_delay
 
 from . import supported_languages
 from .. import log
@@ -92,7 +94,7 @@ def check_languages(languages):
 
 
 def translate_po(pot_path, po_path, input_lang, output_lang, translater, remove_unused_entries):
-    translations = get_old_translations(po_path)
+    old_entries = get_old_entries(po_path)
     po = initialize_po(pot_path, po_path, output_lang, translater)
 
     contexts = get_contexts(po)
@@ -101,8 +103,7 @@ def translate_po(pot_path, po_path, input_lang, output_lang, translater, remove_
     for context in contexts:
         context.translate()
 
-    for entry in entries_without_context:
-        entry.translate()
+    entries_without_context.translate()
 
 
 def initialize_po(pot_path, po_path, output_lang, translater):
@@ -121,29 +122,36 @@ def initialize_po(pot_path, po_path, output_lang, translater):
 
     return po
 
-def get_old_translations(po_path):
-    translations = {}
+
+def get_old_entries(po_path):
+    entries = {}
     if os.path.exists(po_path):
         po = polib.pofile(po_path)
         for entry in po:
-            translations[(entry.msgid, entry.msgctxt)] = entry.msgstr
-    return translations
+            entries[(entry.msgid, entry.msgctxt)] = entry.msgstr
+    return entries
 
-class Entry(polib.POEntry):
-    def translate(self):
-        pass
 
-class Context:
-    def __init__(self, label: str, entries: List[polib.POEntry]):
-        self.label = label
+class EntryCollection:
+    def __init__(
+            self,
+            entries: Optional[List[polib.POEntry]] = None,
+    ):
+        if entries is None:
+            entries = []
+
         self.entries = entries
 
+    def append(self, entry: polib.POEntry):
+        self.entries.append(entry)
+
     def translate(self):
-        sentences = [entry.msgid for entry in self.entries]
+        # Translate all entries separately to avoid context contamination? or not?
+        source_texts = [entries.msgid for entries in self.entries]
 
         # translations[i][j] gives the jth alternative for the ith sentence
         translations = translate(
-            sentences,
+            source_texts,
             input_lang,
             output_lang,
             translater,
@@ -152,126 +160,155 @@ class Context:
             formality=formality
         )
 
-def get_contexts(po):
+class EntryCollectionWithContext(EntryCollection):
+    def __init__(
+            self,
+            context: str,
+            entries: Optional[List[polib.POEntry]] = None,
+    ):
+        super().__init__(entries)
+        self.context = context
+
+    def translate(self):
+        # Translate all as a batch
+        raise NotImplementedError
+
+
+class Translator:
+    def translate(self, passages: List[str], source_lang: str, target_lang: str):
+        raise NotImplementedError
+
+    def _get_response(self, url, json_data):
+        response = requests.post(url, json=json_data)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f'Error: {response.status_code} {response.reason}')
+
+
+class DeepLTranslator(Translator):
+    # TODO - Enable retry logic once we know what kind of exception needs catching
+    # @retry(
+    #     retry=retry_if_exception_type(NoResultFound),
+    #     wait=wait_exponential(multiplier=1, min=3),
+    #     stop=stop_after_delay(4)
+    # )
+    def translate(self, passages: List[str], source_lang: str, target_lang: str):
+        assert isinstance(passages, list)
+        payload, translation_mapping = self._make_payload(passages, source_lang, target_lang)
+        response = self._get_response('https://api.deepl.com/jsonrpc', payload)
+        return self._parse_response(response, translation_mapping)
+
+    def _make_payload(self, sentences: List[str], source_lang: str, target_lang: str):
+        translation_mapping = {}
+        flat_sentences = []
+        sentence_count = 0
+        for sent_idx, sentence in enumerate(sentences):
+            for plur_idx, plural in enumerate(sentence):
+                translation_mapping[sentence_count] = (sent_idx, plur_idx)
+                flat_sentences += [plural]
+                sentence_count += 1
+
+        json_data = {
+            'jsonrpc': '2.0',
+            'method': 'LMT_handle_jobs',
+            'params': {
+                'tag_handling': 'xml',
+                'jobs': self._create_jobs(sentences),
+                'lang': {
+                    'source_lang_computed': source_lang.upper(),
+                    'target_lang': target_lang.upper(),
+                },
+                'priority': 1,
+                'commonJobParams': {
+                    'mode': 'translate',
+                    'browserType': 1,
+                    'formality': "formal",
+                },
+            },
+        }
+        return json_data, translation_mapping
+
+    def _create_jobs(self, sentences, num_alternatives=1):
+        jobs = []
+        for i, sentence in enumerate(sentences):
+            jobs.append({
+                'kind': 'default',
+                'sentences': [
+                    {
+                        'text': sentence,
+                        'id': i,
+                        'prefix': '',
+                    },
+                ],
+                'raw_en_context_before': sentences[:i],
+                'raw_en_context_after': sentences[i + 1:],
+                'preferred_num_beams': num_alternatives,
+            })
+        return jobs
+
+    def _parse_response(self, json_response, translation_mapping):
+        translations = []
+        for sentence_count, translation_dict in enumerate(json_response['result']['translations']):
+            alternative_translations = []
+            for beam_dict in translation_dict['beams']:
+                alternative_translations.append(beam_dict['sentences'][0]['text'])
+            sent_idx, plur_idx = translation_mapping[sentence_count]
+            if plur_idx == 0:
+                translations.append([[alternative_translations]])
+            else:
+                translations[sent_idx].append([alternative_translations])
+        return translations
+
+
+class GoogleTranslator(Translator):
+    @cached_property
+    def _translator(self):
+        from googletrans import Translator
+
+        return Translator()
+
+    # TODO - Enable retry logic once we know what kind of exception needs catching
+    # @retry(
+    #     retry=retry_if_exception_type(NoResultFound),
+    #     wait=wait_exponential(multiplier=1, min=3),
+    #     stop=stop_after_delay(4)
+    # )
+    def translate(self, passages: List[str], source_lang: str, target_lang: str):
+        assert isinstance(passages, list)
+
+        from googletrans import Translator
+
+        translator = Translator()
+        response = translator.translate(passages, dest=source_lang.lower(), src=target_lang.lower())
+
+        return [
+            translation.text for translation in response
+        ]
+
+
+def get_contexts(po) -> dict[str, EntryCollectionWithContext]:
     contexts = {}
     for entry in po:
         if entry.msgctxt is not None:
-            if entry.msgctxt not in contexts:
-                contexts[entry.msgctxt] = []
-            contexts[entry.msgctxt].append(entry)
-    return [
-        Context(label, entries)
-        for label, entries in contexts.items()
-    ]
+            try:
+                context = contexts[entry.msgctxt]
+            except KeyError:
+                context = EntryCollectionWithContext(context=entry.msgctxt)
+                contexts[entry.msgctxt] = context
+            context.append(entry)
+    return contexts
+
 
 def get_entries_without_context(po):
     return [
-        entry
-        for entry in po
-        if entry.msgctxt is None
+        passage
+        for passage in po
+        if passage.msgctxt is None
     ]
 
 # TODO - when creating the pot file, ensure that the same context is not
 # used in different files
-
-def _translate(sentences, source, target, translater, num_retries, starting_sleep_time):
-    for n in range(num_retries): # Todo - refactor using Retry package
-        try:
-            if translater == 'DeepL':
-                sentence_translations = deepl_translate(sentences, source, target)
-            elif translater == 'GoogleTranslate':
-                sentence_translations = google_translate(sentences, source.lower(), target.lower())
-            else:
-                raise ValueError('Translator not supported')
-            assert len()
-
-            if len(alternatives) == 0:
-                raise ValueError("No valid translations found")
-            return alternatives[0]
-        except Exception as e:
-            print(f'Error: {e}')
-            print(f'Retrying in {starting_sleep_time} seconds...')
-            sleep(starting_sleep_time)
-            starting_sleep_time *= 2
-
-def deepl_translate(sentences, source, target):
-    translation_mapping = {}
-    flat_sentences = []
-    sentence_count = 0
-    for sent_idx, sentence in enumerate(sentences):
-        for plur_idx, plural in enumerate(sentence):
-            translation_mapping[sentence_count] = (sent_idx, plur_idx)
-            flat_sentences += [plural]
-            sentence_count += 1
-
-    json_data = {
-        'jsonrpc': '2.0',
-        'method': 'LMT_handle_jobs',
-        'params': {
-            'tag_handling': 'xml',
-            'jobs': _create_jobs(sentences),
-            'lang': {
-                'source_lang_computed': source.upper(),
-                'target_lang': target.upper(),
-            },
-            'priority': 1,
-            'commonJobParams': {
-                'mode': 'translate',
-                'browserType': 1,
-                'formality': "formal",
-            },
-        },
-    }
-
-    json_response = _get_response('https://api.deepl.com/jsonrpc', json_data)
-    translations = []
-    for sentence_count, translation_dict in enumerate(json_response['result']['translations']):
-        alternative_translations = []
-        for beam_dict in translation_dict['beams']:
-            alternative_translations.append(beam_dict['sentences'][0]['text'])
-        sent_idx, plur_idx = translation_mapping[sentence_count]
-        if plur_idx == 0:
-            translations.append([[alternative_translations]])
-        else:
-            translations[sent_idx].append([alternative_translations])
-    return translations
-
-
-def google_translate(sentences, source, target):
-    from googletrans import Translator
-
-    translator = Translator()
-    response = translator.translate(sentences, dest=target.lower(), src=source.lower())
-
-    return [
-        translation.text for translation in response
-    ]
-
-def _get_response(url, json_data):
-    response = requests.post(url, json=json_data)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise Exception(f'Error: {response.status_code} {response.reason}')
-
-
-def _create_jobs(sentences, num_alternatives=1):
-    jobs = []
-    for i, sentence in enumerate(sentences):
-        jobs.append({
-            'kind': 'default',
-            'sentences': [
-                {
-                    'text': sentence,
-                    'id': i,
-                    'prefix': '',
-                },
-            ],
-            'raw_en_context_before': sentences[:i],
-            'raw_en_context_after': sentences[i + 1:],
-            'preferred_num_beams': num_alternatives,
-        })
-    return jobs
 
 
 ###################

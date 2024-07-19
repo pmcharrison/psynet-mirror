@@ -1,6 +1,3 @@
-from psynet.utils import get_translator
-
-
 supported_languages = [
     "ar",
     "be",
@@ -54,6 +51,7 @@ def get_known_languages(locale=None):
         sorted([(lang.alpha_2, lang.name) for lang in pycountry.languages
             if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
+    from psynet.utils import get_translator
     _, _p = get_translator(locale)
     return [
         ("ab", _p("language_name", "Abkhazian")),
@@ -270,8 +268,3 @@ def get_supported_gtrans_languages():
         'sa',  # Sanskrit
     })
     return languages
-
-
-SUPPORTED_LANGUAGES_GTRANS += [
-
-]

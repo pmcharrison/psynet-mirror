@@ -4,6 +4,7 @@ from psynet.internationalization import (
     assert_translation_contains_same_variables,
     check_translations,
 )
+from psynet.internationalization.translation import DeepLTranslator
 
 
 def test_translation_verification():
