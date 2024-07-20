@@ -1,6 +1,7 @@
 import random
 from typing import List, Union
 
+from dominate import tags
 from markupsafe import Markup
 
 import psynet.experiment
@@ -8,7 +9,9 @@ from psynet.asset import LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import Timeline
+from psynet.participant import Participant
+from psynet.sync import GroupBarrier, SimpleGrouper
+from psynet.timeline import PageMaker, Timeline, join
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 from psynet.utils import get_logger
 
@@ -63,13 +66,6 @@ class ColorSliderPage(ModularPage):
             time_estimate=time_estimate,
         )
 
-    def metadata(self, **kwargs):
-        return {
-            "prompt": self.prompt.metadata,
-            "selected_idx": self.selected_idx,
-            "starting_values": self.starting_values,
-        }
-
 
 class CustomTrial(GibbsTrial):
     # If True, then the starting value for the free parameter is resampled
@@ -78,12 +74,25 @@ class CustomTrial(GibbsTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
-        target = self.context["target"]
-        prompt = Markup(
-            f"<h3 id='participant-group'>Participant group = {participant.module_state.participant_group}</h3>"
-            "<p>Adjust the slider to match the following word as well as possible: "
-            f"<strong>{target}</strong></p>"
+        return join(
+            PageMaker(self.choose_response),
+            GroupBarrier(
+                id_="see_group_responses",
+                group_type="gibbs",
+            ),
+            PageMaker(self.see_group_responses),
         )
+
+    def choose_response(self):
+        target = self.context["target"]
+
+        prompt = tags.span()
+        with prompt:
+            tags.span(
+                "Adjust the slider to match the following word as well as possible: "
+            )
+            tags.strong(target)
+
         return ColorSliderPage(
             "color_trial",
             prompt,
@@ -94,6 +103,31 @@ class CustomTrial(GibbsTrial):
             time_estimate=5,
         )
 
+    def see_group_responses(self, participant: Participant):
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
+
+        participant_response = (
+            participant.answer
+        )  # this is not actually right, we need to check this
+        other_participants = [
+            p for p in participant.sync_group.participants if p != participant
+        ]
+        other_responses = [p.answer for p in other_participants]
+
+        html = tags.span()
+        with html:
+            tags.p(f"You chose: {participant_response}")
+            tags.p("Other participants chose:")
+            with tags.ul():
+                for response in other_responses:
+                    tags.li(response)
+
+        return InfoPage(html, time_estimate=5)
+
 
 class CustomNode(GibbsNode):
     vector_length = 3
@@ -101,44 +135,25 @@ class CustomNode(GibbsNode):
     def random_sample(self, i):
         return random.randint(0, 255)
 
+    def summarize_trials(self, trials: list, experiment, participant):
+        # We need to get access to the participants' trials here.
+        # Currently they are not available because of the idiosyncratic way
+        # that the Barrier works
+        import pydevd_pycharm
 
-class CustomTrialMaker(GibbsTrialMaker):
-    give_end_feedback_passed = True
-    performance_threshold = -1.0
-    randomize_dimension_order_per_network = True
-
-    # If we set this to True, then the performance check will wait until all async_post_trial processes have finished
-    end_performance_check_waits = False
-
-    def get_end_feedback_passed_page(self, score):
-        score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
-
-        return InfoPage(
-            Markup(
-                f"Your consistency score was <strong>{score_to_display}&#37;</strong>."
-            ),
-            time_estimate=5,
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
         )
 
-    def compute_performance_reward(self, score, passed):
-        if score is None:
-            return 0.0
-        else:
-            return max(0.0, score)
 
-    def custom_network_filter(self, candidates, participant):
-        # As an example, let's make the participant join networks
-        # in order of increasing network ID.
-        return sorted(candidates, key=lambda x: x.id)
-
-
-trial_maker = CustomTrialMaker(
+trial_maker = GibbsTrialMaker(
     id_="gibbs_demo",
     start_nodes=lambda: [CustomNode(context={"target": random.sample(TARGETS, 1)[0]})],
     network_class=GibbsNetwork,
+    sync_group_type="gibbs",
     trial_class=CustomTrial,
     node_class=CustomNode,
-    chain_type="within",  # can be "within" or "across"
+    chain_type="within",
     expected_trials_per_participant=4,
     max_trials_per_participant=4,
     max_nodes_per_chain=10,
@@ -150,9 +165,7 @@ trial_maker = CustomTrialMaker(
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="n_participants",
-    target_n_participants=1,
-    n_repeat_trials=0,
-    wait_for_networks=True,  # wait for asynchronous processes to complete before continuing to the next trial
+    target_n_participants=3,
 )
 
 
@@ -163,6 +176,10 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
+        SimpleGrouper(
+            group_type="gibbs",
+            group_size=3,
+        ),
         trial_maker,
         SuccessfulEndPage(),
     )
