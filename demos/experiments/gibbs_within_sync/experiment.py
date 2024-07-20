@@ -5,7 +5,6 @@ from dominate import tags
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -170,8 +169,7 @@ trial_maker = GibbsTrialMaker(
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "Gibbs demo"
-    asset_storage = LocalStorage()
+    label = "Gibbs within sync demo"
     initial_recruitment_size = 1
 
     timeline = Timeline(
