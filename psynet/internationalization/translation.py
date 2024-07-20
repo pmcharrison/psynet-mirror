@@ -148,7 +148,7 @@ def _insert_entries(
     # We iterate over the po file, and in-place update with the new translations
     # We also work out what old entries have not been included so far, and add those at the end
     # in alphabetical order
-    pass
+    raise NotImplementedError
 
 
 class EntryCollection:
@@ -215,6 +215,12 @@ class EntryCollection:
         # - HTML tags e.g. <b>...</b>
         # Encode as ■1■, ■2■, ■3■, ...
 
+        raise NotImplementedError
+
+    def _encode(self, text: str, codebook: List[tuple[str, str]]) -> str:
+        raise NotImplementedError
+
+    def _decode(self, text: str, codebook: List[tuple[str, str]]) -> str:
         raise NotImplementedError
 
     def fix_translation(self, translation: str) -> str:
@@ -293,24 +299,22 @@ class DeepLTranslator(Translator):
         }
 
     def _create_jobs(self, sentences, num_alternatives=1):
-        jobs = []
-        for i, sentence in enumerate(sentences):
-            jobs.append(
-                {
-                    "kind": "default",
-                    "sentences": [
-                        {
-                            "text": sentence,
-                            "id": i,
-                            "prefix": "",
-                        },
-                    ],
-                    "raw_en_context_before": sentences[:i],
-                    "raw_en_context_after": sentences[i + 1 :],
-                    "preferred_num_beams": num_alternatives,
-                }
-            )
-        return jobs
+        return [
+            {
+                "kind": "default",
+                "sentences": [
+                    {
+                        "text": sentence,
+                        "id": i,
+                        "prefix": "",
+                    },
+                ],
+                "raw_en_context_before": sentences[:i],
+                "raw_en_context_after": sentences[i + 1 :],
+                "preferred_num_beams": num_alternatives,
+            }
+            for i, sentence in enumerate(sentences)
+        ]
 
     def _parse_response(self, json_response):
         return [
