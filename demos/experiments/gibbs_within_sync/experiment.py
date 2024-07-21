@@ -93,7 +93,6 @@ class CustomTrial(GibbsTrial):
             selected_idx=self.active_index,
             reverse_scale=self.reverse_scale,
             directional=False,
-            time_estimate=5,
         )
 
     def see_last_trial_responses(self, participant: Participant):
@@ -122,7 +121,7 @@ class CustomTrial(GibbsTrial):
                 f"The summarized response was {last_node.var.summarize_trials_output}."
             )
 
-        return InfoPage(html, time_estimate=5)
+        return InfoPage(html)
 
 
 class CustomNode(GibbsNode):
