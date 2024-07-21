@@ -23,6 +23,7 @@ from tqdm import tqdm
 from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
+from ..participant import Participant
 from ..timeline import is_list_of
 from ..utils import (
     NoArgumentProvided,
@@ -509,6 +510,7 @@ class ChainNode(TrialNode):
     key = Column(String, index=True)
     degree = Column(Integer)
     target_n_trials = Column(Integer)
+    ready_to_spawn = Column(Boolean)
     child_id = Column(Integer, ForeignKey("node.id"), index=True)
     parent_id = Column(Integer, ForeignKey("node.id"), index=True)
     seed = Column(PythonObject, default=lambda: {})
@@ -584,6 +586,7 @@ class ChainNode(TrialNode):
                 degree = 0
 
         self.degree = degree
+        self.ready_to_spawn = False
 
         if module_id is None:
             if parent:
@@ -741,13 +744,11 @@ class ChainNode(TrialNode):
     def reached_target_n_trials(cls):
         return cls.n_completed_and_processed_trials >= cls.target_n_trials
 
-    @hybrid_property
-    def ready_to_spawn(self):
-        return self.reached_target_n_trials
+    def check_ready_to_spawn(self):
+        self.ready_to_spawn = self._ready_to_spawn()
 
-    @ready_to_spawn.expression
-    def ready_to_spawn(cls):
-        return cls.reached_target_n_trials
+    def _ready_to_spawn(self):
+        return self.reached_target_n_trials and len(self.pending_trials) == 0
 
     @property
     def viable_trials(self):
@@ -952,6 +953,10 @@ class ChainTrial(Trial):
     # @property
     # def node(self):
     #     return self.origin
+
+    def fail(self, reason=None):
+        super().fail(reason)
+        self.node.check_ready_to_spawn()
 
     @property
     def failure_cascade(self):
@@ -1177,6 +1182,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         of each SyncGroup. The other members of this SyncGroup will follow that leader around,
         so that in every given trial the SyncGroup works on the same node together.
 
+    sync_group_max_wait_time
+        The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
+        If this time is exceeded then the participant will be failed and the experiment will
+        terminate early. Defaults to 45.0 seconds.
+
 
     Attributes
     ----------
@@ -1253,6 +1263,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         assets=None,
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_time: float = 45.0,
     ):
         if max_trials_per_participant == NoArgumentProvided:
             warnings.warn(
@@ -1360,6 +1371,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             wait_for_networks=wait_for_networks,
             assets=assets,
             sync_group_type=sync_group_type,
+            sync_group_max_wait_time=sync_group_max_wait_time,
         )
 
         self.check_initialization()
@@ -1387,22 +1399,38 @@ class ChainTrialMaker(NetworkTrialMaker):
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
         participant.module_state.participated_networks = []
-        if self.chain_type == "within":
-            networks = self.create_networks_within(experiment, participant)
+
+        sync_group = (
+            participant.active_sync_groups[self.sync_group_type]
+            if self.sync_group_type
+            else None
+        )
+        is_follower = sync_group and participant != sync_group.leader
+
+        if not is_follower:
+            if self.chain_type == "within":
+                networks = self.create_networks_within(experiment, participant)
+            else:
+                networks = self.networks
+                if len(self.networks) == 0:
+                    raise RuntimeError(
+                        f"Couldn't find any networks for the trial maker '{participant.module_state.module_id}'. "
+                        "A common reason for this is deploying your experiment using 'dallinger deploy' instead of "
+                        "'psynet deploy'. "
+                        "Another common reason is reloading the experiment in debug mode after adding a new trial maker. "
+                        "In the latter case you need to restart the debug session before continuing."
+                    )
+            self.check_participant_groups(networks)
+
+            blocks = set([network.block for network in networks])
+            self.init_block_order(experiment, participant, blocks)
         else:
-            networks = self.networks
-            if len(self.networks) == 0:
-                raise RuntimeError(
-                    f"Couldn't find any networks for the trial maker '{participant.module_state.module_id}'. "
-                    "A common reason for this is deploying your experiment using 'dallinger deploy' instead of "
-                    "'psynet deploy'. "
-                    "Another common reason is reloading the experiment in debug mode after adding a new trial maker. "
-                    "In the latter case you need to restart the debug session before continuing."
-                )
-        blocks = set([network.block for network in networks])
-        self.init_block_order(experiment, participant, blocks)
-        participant.module_state.set_block_position(0)
-        self.check_participant_groups(networks)
+            participant.module_state.block_order = (
+                sync_group.leader.module_state.block_order
+            )
+            participant.module_state.set_block_position(
+                sync_group.leader.module_state.block_position
+            )
 
     def init_block_order(self, experiment, participant, blocks):
         block_order = call_function_with_context(
@@ -1412,6 +1440,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             blocks=blocks,
         )
         participant.module_state.block_order = block_order
+        participant.module_state.set_block_position(0)
 
     def choose_block_order(self, experiment, participant, blocks):
         # pylint: disable=unused-argument
@@ -1524,7 +1553,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         if self.chain_type == "across":
             self.create_networks_across(experiment)
 
-    def create_networks_within(self, experiment, participant):
+    def create_networks_within(self, experiment, participant: Participant):
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+
         if self.start_nodes:
             nodes = call_function_with_context(
                 self.start_nodes, experiment=experiment, participant=participant
@@ -1639,7 +1671,12 @@ class ChainTrialMaker(NetworkTrialMaker):
             ):
                 return "exit"
             else:
-                participant.module_state.go_to_next_block()
+                if self.sync_group_type:
+                    group = participant.active_sync_groups[self.sync_group_type]
+                    for p in group.participants:
+                        p.module_state.go_to_next_block()
+                else:
+                    participant.module_state.go_to_next_block()
 
         # networks = db.session.query(
         #     self.network_class.chain_type,

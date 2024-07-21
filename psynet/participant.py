@@ -2,6 +2,7 @@
 
 import json
 from smtplib import SMTPAuthenticationError
+from typing import TYPE_CHECKING, Dict
 
 import dallinger.models
 from dallinger import db
@@ -32,6 +33,9 @@ from .utils import (
 )
 
 logger = get_logger()
+
+if TYPE_CHECKING:
+    from .sync import SyncGroup
 
 # pylint: disable=unused-import
 
@@ -290,7 +294,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # sync_groups is a relationship that gives a list of all SyncGroups for that participnat
 
     @property
-    def active_sync_groups(self):
+    def active_sync_groups(self) -> Dict[str, SyncGroup]:
         return {group.group_type: group for group in self.sync_groups if group.active}
 
     @property

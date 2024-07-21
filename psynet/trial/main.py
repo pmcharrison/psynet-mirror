@@ -786,6 +786,7 @@ class Trial(SQLMixinDallinger, Info):
     def on_finalized(self):
         self.score = self.score_answer(answer=self.answer, definition=self.definition)
         self._allocate_performance_reward()
+        self.node.check_ready_to_spawn()
 
     @classmethod
     def cue(cls, definition, assets=None):
@@ -883,6 +884,7 @@ class Trial(SQLMixinDallinger, Info):
                 time_estimate=time_estimate,
                 accumulate_answers=cls.accumulate_answers,
             ),
+            # cls._wait_for_finalize_trial(trial_maker),
             cls._finalize_trial(trial_maker),
             cls._construct_feedback_logic(trial_maker),
             CodeBlock(cls._log_time_credit_after_trial),
@@ -908,6 +910,17 @@ class Trial(SQLMixinDallinger, Info):
             participant=participant,
             trial_maker=self.trial_maker,
         )
+
+    # @classmethod
+    # def _wait_for_finalize_trial(cls, trial_maker: "TrialMaker"):
+    #     if trial_maker is None or trial_maker.sync_group_type is None:
+    #         return None
+    #     else:
+    #         return GroupBarrier(
+    #             "_wait_for_finalize_trial",
+    #             group_type=trial_maker.sync_group_type,
+    #             max_wait_time=trial_maker.sync_group_max_wait_time,
+    #         )
 
     @classmethod
     def _log_time_credit_before_trial(cls, participant):
@@ -1193,6 +1206,11 @@ class TrialMaker(Module):
         When this is set, then the ordinary node allocation logic will only apply to the 'leader'
         of each SyncGroup. The other members of this SyncGroup will follow that leader around,
         so that in every given trial the SyncGroup works on the same node together.
+
+    sync_group_max_wait_time
+        The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
+        If this time is exceeded then the participant will be failed and the experiment will
+        terminate early. Defaults to 45.0 seconds.
     """
 
     state_class = TrialMakerState
@@ -1212,6 +1230,7 @@ class TrialMaker(Module):
         n_repeat_trials: int,
         assets: List,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_time: float = 45.0,
     ):
         if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
@@ -1247,6 +1266,7 @@ class TrialMaker(Module):
         self.target_n_participants = target_n_participants
         self.n_repeat_trials = n_repeat_trials
         self.sync_group_type = sync_group_type
+        self.sync_group_max_wait_time = sync_group_max_wait_time
 
         elts = self.compile_elts()
 
@@ -1301,8 +1321,25 @@ class TrialMaker(Module):
                 self.with_namespace(), self.participant_fail_routine
             ),
             self.check_timeout_task,
-            CodeBlock(self.init_participant),
+            self._init_participant(),
         )
+
+    def _init_participant(self):
+        if self.sync_group_type:
+            return GroupBarrier(
+                "init_participant",
+                group_type=self.sync_group_type,
+                max_wait_time=self.sync_group_max_wait_time,
+                on_release=self._init_participants_in_sync_group,
+            )
+        else:
+            return CodeBlock(self.init_participant)
+
+    def _init_participants_in_sync_group(self, group: SyncGroup, experiment):
+        self.init_participant(experiment, group.leader)
+        for participant in group.participants:
+            if participant != group.leader:
+                self.init_participant(experiment, participant)
 
     @property
     def _setup_extra(self):
@@ -1600,14 +1637,25 @@ class TrialMaker(Module):
         self.init_participant_group(experiment, participant)
 
     def init_participant_group(self, experiment, participant):
-        if not participant.module_state.participant_group:
+        if participant.module_state.participant_group:
+            return
+
+        sync_group = (
+            participant.active_sync_groups[self.sync_group_type]
+            if self.sync_group_type
+            else None
+        )
+        is_follower = sync_group and participant != sync_group.leader
+        if is_follower:
+            participant_group = sync_group.leader.module_state.participant_group
+        else:
             if self.choose_participant_group is None:
-                group = "default"
+                participant_group = "default"
             else:
-                group = self.choose_participant_group(
+                participant_group = self.choose_participant_group(
                     participant=participant,
                 )
-            participant.module_state.participant_group = group
+        participant.module_state.participant_group = participant_group
 
     def on_complete(self, experiment, participant):
         """
@@ -1933,6 +1981,7 @@ class TrialMaker(Module):
                         group_type=self.sync_group_type,
                         on_release=_try_to_prepare_trial__group,
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
+                        max_wait_time=self.sync_group_max_wait_time,
                     )
                 )
             else:
@@ -2107,6 +2156,11 @@ class NetworkTrialMaker(TrialMaker):
         of each SyncGroup. The other members of this SyncGroup will follow that leader around,
         so that in every given trial the SyncGroup works on the same node together.
 
+    sync_group_max_wait_time
+        The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
+        If this time is exceeded then the participant will be failed and the experiment will
+        terminate early. Defaults to 45.0 seconds.
+
 
     Attributes
     ----------
@@ -2174,6 +2228,7 @@ class NetworkTrialMaker(TrialMaker):
         wait_for_networks: bool,
         assets=None,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_time: float = 45.0,
     ):
         performance_check_is_enabled = (
             check_performance_at_end or check_performance_every_trial
@@ -2211,6 +2266,7 @@ class NetworkTrialMaker(TrialMaker):
             n_repeat_trials=n_repeat_trials,
             assets=assets,
             sync_group_type=sync_group_type,
+            sync_group_max_wait_time=sync_group_max_wait_time,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
@@ -2797,11 +2853,15 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             raise RuntimeError(f"Node {self.id} has multiple trials.")
 
     @property
-    def alive_trials(self):
+    def alive_trials(self) -> List[Trial]:
         return [t for t in self.all_trials if not t.failed]
 
     @property
-    def failed_trials(self):
+    def pending_trials(self) -> List[Trial]:
+        return [t for t in self.alive_trials if not t.finalized]
+
+    @property
+    def failed_trials(self) -> List[Trial]:
         return [t for t in self.all_trials if t.failed]
 
     @property

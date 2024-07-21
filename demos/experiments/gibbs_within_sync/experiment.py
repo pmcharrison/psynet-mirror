@@ -11,8 +11,8 @@ from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.sync import SimpleGrouper
-from psynet.timeline import PageMaker, Timeline, join
-from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
+from psynet.timeline import Timeline, join
+from psynet.trial.gibbs import GibbsNode, GibbsTrial, GibbsTrialMaker
 from psynet.utils import as_plain_text, get_logger
 
 logger = get_logger()
@@ -33,7 +33,7 @@ class ColorSliderPage(ModularPage):
         time_estimate=None,
         **kwargs,
     ):
-        assert selected_idx >= 0 and selected_idx < len(COLORS)
+        assert 0 <= selected_idx < len(COLORS)
         self.prompt = prompt
         self.selected_idx = selected_idx
         self.starting_values = starting_values
@@ -71,11 +71,10 @@ class CustomTrial(GibbsTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
-        pages = []
-        if self.degree > 0:
-            pages.append(PageMaker(self.see_last_trial_responses))
-        pages.append(PageMaker(self.choose_response))
-        return join(*pages)
+        return join(
+            self.see_last_trial_responses(participant) if self.degree > 0 else None,
+            self.choose_response(),
+        )
 
     def choose_response(self):
         target = self.context["target"]
@@ -100,9 +99,10 @@ class CustomTrial(GibbsTrial):
     def see_last_trial_responses(self, participant: Participant):
         last_node = self.node.parent
         last_trials = last_node.all_trials
+        last_trials.sort(key=lambda t: t.participant_id)
         participant_answer = [
             t.answer for t in last_trials if t.participant == participant
-        ]
+        ][0]
         other_participant_answers = [
             t.answer for t in last_trials if t.participant != participant
         ]
@@ -114,6 +114,9 @@ class CustomTrial(GibbsTrial):
             with tags.ul():
                 for response in other_participant_answers:
                     tags.li(response)
+            tags.p(
+                f"The summarized response was {last_node.var.summarize_trials_output}."
+            )
 
         return InfoPage(html, time_estimate=5)
 
@@ -124,21 +127,10 @@ class CustomNode(GibbsNode):
     def random_sample(self, i):
         return random.randint(0, 255)
 
-    def summarize_trials(self, trials: list, experiment, participant):
-        # We need to get access to the participants' trials here.
-        # Currently they are not available because of the idiosyncratic way
-        # that the Barrier works
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
-
 
 trial_maker = GibbsTrialMaker(
     id_="gibbs_demo",
     start_nodes=lambda: [CustomNode(context={"target": random.sample(TARGETS, 1)[0]})],
-    network_class=GibbsNetwork,
     sync_group_type="gibbs",
     trial_class=CustomTrial,
     node_class=CustomNode,
@@ -146,15 +138,10 @@ trial_maker = GibbsTrialMaker(
     expected_trials_per_participant=4,
     max_trials_per_participant=4,
     max_nodes_per_chain=4,
-    chains_per_participant=1,  # set to None if chain_type="across"
-    chains_per_experiment=None,  # set to None if chain_type="within"
-    trials_per_node=1,
-    balance_across_chains=True,
-    check_performance_at_end=True,
-    check_performance_every_trial=False,
-    propagate_failure=False,
+    chains_per_participant=1,
     recruit_mode="n_participants",
     target_n_participants=3,
+    sync_group_max_wait_time=999999,
 )
 
 
@@ -174,34 +161,40 @@ class Exp(psynet.experiment.Experiment):
 
     test_n_bots = 3
 
-    def test_run_bots(self, bots: List[Bot]):
+    def test_serial_run_bots(self, bots: List[Bot]):
         from psynet.page import WaitPage
 
-        advance_past_wait_pages(bots)
+        advance_past_wait_pages(bots, max_iterations=99999999)
 
         page = bots[0].get_current_page()
         assert page.label == "color_trial"
-        bots[0].take_page(page, response="100")
+        bots[0].take_page(page, response=100)
         page = bots[0].get_current_page()
         assert isinstance(page, WaitPage)
 
-        bots[1].take_page(page, response="110")
-        bots[2].take_page(page, response="120")
+        bots[1].take_page(page, response=110)
+        bots[2].take_page(page, response=120)
 
         advance_past_wait_pages(bots)
         page = bots[0].get_current_page()
+
         assert (
-            as_plain_text(page.prompt)
-            == "You chose: 100 Other participants chose: 105 110"
+            as_plain_text(page.prompt.text)
+            == "You chose: 100 Other participants chose: * 110 * 120 The summarized response was 110."
         )
 
         for remaining_nodes in range(3):
-            bots[0].take_page(page)
-            bots[1].take_page(page)
-            bots[2].take_page(page)
+            for bot in bots:
+                page = bot.get_current_page()
+                assert isinstance(page, InfoPage)
+                bot.take_page(page)
+
+                page = bot.get_current_page()
+                assert page.label == "color_trial"
+                bot.take_page(page)
             advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
-        for page in pages:
+        for bot in bots:
+            page = bot.get_current_page()
             text = as_plain_text(page.prompt.text)
             assert "That's the end of the experiment!" in text

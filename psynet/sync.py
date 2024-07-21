@@ -13,7 +13,7 @@ from psynet.field import PythonClass
 from psynet.page import WaitPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock, EltCollection
-from psynet.utils import call_function, get_logger
+from psynet.utils import call_function_with_context, get_logger
 
 logger = get_logger()
 
@@ -279,7 +279,7 @@ class GroupBarrier(Barrier):
                     participants_to_release.append(participant)
 
                 if self.on_release:
-                    call_function(
+                    call_function_with_context(
                         self.on_release, group=group, participants=group.participants
                     )
 

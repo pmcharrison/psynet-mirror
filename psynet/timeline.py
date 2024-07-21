@@ -1298,7 +1298,7 @@ class PageMaker(Elt):
     def __init__(
         self,
         function,
-        time_estimate,
+        time_estimate: Optional[float] = None,
         accumulate_answers: bool = False,
         label: str = "page_maker",
     ):

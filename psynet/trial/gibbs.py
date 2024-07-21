@@ -149,7 +149,11 @@ class GibbsTrial(ChainTrial):
     @extra_var(__extra_vars__)
     def updated_vector(self):
         if self.answer is None:
-            return None
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
         new = self.initial_vector.copy()
         new[self.active_index] = self.answer
         return new
