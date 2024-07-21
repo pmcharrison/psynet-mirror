@@ -2615,6 +2615,15 @@ class TrialNetwork(SQLMixinDallinger, Network):
         Returns the network's :class:`~psynet.participant.Participant`,
         or ``None`` if none can be found.
 
+    sync_group_type : Optional[str]
+        The ``sync_group_type`` attribute of the trial maker that owns this network.
+
+    sync_group : Optional[SyncGroup]
+        The SyncGroup that owns this network (normally only relevant for within-style chains).
+
+    sync_group_id : Optional[int]
+        The ID of the SyncGroup that owns this network (normally only relevant for within-style chains).
+
     n_alive_nodes : int
         Returns the number of non-failed nodes in the network.
 
@@ -2652,6 +2661,10 @@ class TrialNetwork(SQLMixinDallinger, Network):
     module_id = Column(String)
     target_n_trials = Column(Integer)
     participant_group = Column(String)
+
+    sync_group_type = Column(String)
+    sync_group_id = Column(Integer, ForeignKey("sync_group.id"), index=True)
+    sync_group = relationship("SyncGroup", backref="networks")
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
@@ -2767,10 +2780,15 @@ class TrialNetwork(SQLMixinDallinger, Network):
         trial_maker_id: str,
         experiment,  # noqa
         module_id: Optional[str] = None,
+        sync_group_type: Optional[str] = None,
+        sync_group: Optional[SyncGroup] = None,
     ):
         # pylint: disable=unused-argument
         self.trial_maker_id = trial_maker_id
         self.assets = {}
+
+        self.sync_group_type = sync_group_type
+        self.sync_group = sync_group
 
         if not module_id:
             module_id = trial_maker_id

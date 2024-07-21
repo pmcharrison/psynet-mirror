@@ -1116,6 +1116,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ~Participant.failed,
                 Participant.status == "working",
             )
+            # TODO - see if we can introduce this locking once the transaction managemnet in the tests is fixed
+            # .with_for_update(of=[ParticipantLinkBarrier, Participant])
+            # .populate_existing()
             .distinct(ParticipantLinkBarrier.barrier_id)
             .all()
         )
@@ -1140,8 +1143,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         groups = (
             # Eagerly load all polymorphic subclasses to avoid lazy loading in the loop
-            db.session.query(with_polymorphic(SyncGroup, "*"))
-            .filter(SyncGroup.active)
+            db.session.query(with_polymorphic(SyncGroup, "*")).filter(SyncGroup.active)
+            # TODO - see if we can introduce this locking once the transaction managemnet in the tests is fixed
+            # .with_for_update(of=[SyncGroup, Participant])
+            # .populate_existing()
             .all()
         )
 

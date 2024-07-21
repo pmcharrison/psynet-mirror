@@ -24,6 +24,7 @@ from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..participant import Participant
+from ..sync import SyncGroup
 from ..timeline import is_list_of
 from ..utils import (
     NoArgumentProvided,
@@ -107,6 +108,13 @@ class ChainNetwork(TrialNetwork):
         If ``participant is not None``, then this provides an optional ID for the network
         that is unique within a given participant.
 
+    sync_group_type : Optional[str]
+        The ``sync_group_type`` attribute of the trial maker that owns this network.
+
+    sync_group : Optional[SyncGroup]
+        The SyncGroup that owns this network (normally only relevant for within-style chains).
+
+
     Attributes
     ----------
 
@@ -171,8 +179,15 @@ class ChainNetwork(TrialNetwork):
         target_n_nodes: int,
         participant=None,
         id_within_participant: Optional[int] = None,
+        sync_group_type: Optional[str] = None,
+        sync_group: Optional[SyncGroup] = None,
     ):
-        super().__init__(trial_maker_id, experiment)
+        super().__init__(
+            trial_maker_id,
+            experiment,
+            sync_group_type=sync_group_type,
+            sync_group=sync_group,
+        )
         db.session.add(self)
 
         if participant is not None:
@@ -1615,6 +1630,11 @@ class ChainTrialMaker(NetworkTrialMaker):
                 network=None, experiment=experiment, participant=participant
             )
 
+        if participant is not None and self.sync_group_type is not None:
+            sync_group = participant.active_sync_groups[self.sync_group_type]
+        else:
+            sync_group = None
+
         network = self.network_class(
             trial_maker_id=self.id,
             start_node=start_node,
@@ -1624,6 +1644,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             target_n_nodes=self.max_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
+            sync_group_type=self.sync_group_type,
+            sync_group=sync_group,
         )
         db.session.add(network)
         start_node.set_network(network)
@@ -1696,7 +1718,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         # )
 
         if self.chain_type == "within":
-            networks = self.filter_by_participant_id(networks, participant)
+            if self.sync_group_type is not None:
+                sync_group = participant.active_sync_groups[self.sync_group_type]
+                assert sync_group.id is not None
+                networks = networks.filter_by(sync_group_id=sync_group.id)
+            else:
+                networks = self.filter_by_participant_id(networks, participant)
         elif (
             self.chain_type == "across"
             and not self.allow_revisiting_networks_in_across_chains
