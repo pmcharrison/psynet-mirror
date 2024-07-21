@@ -485,6 +485,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return self.var.get("locale", default=None)
 
     @property
+    def failure_cascade(self):
+        return [lambda: self.alive_trials]
+
+    @property
     def translator(self):
         gettext, pgettext = get_translator(self.locale)
         return gettext, pgettext
@@ -691,6 +695,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             )
 
         super().fail(reason=reason)
+        for group in self.active_sync_groups.values():
+            from .sync import SimpleSyncGroup
+
+            if isinstance(group, SimpleSyncGroup):
+                group.check_numbers()
 
 
 def get_participant(participant_id: int, for_update: bool = False) -> Participant:

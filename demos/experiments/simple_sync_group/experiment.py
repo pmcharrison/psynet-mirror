@@ -73,6 +73,7 @@ class Exp(psynet.experiment.Experiment):
         pages = [bot.get_current_page() for bot in bots]
         for page in pages:
             assert page.content.startswith("You are now in group")
+        assert bots[0].sync_group.n_active_participants == 3
         for bot in bots:
             assert len(bot.sync_group.participants) == 3
 

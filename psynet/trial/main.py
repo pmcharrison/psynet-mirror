@@ -502,7 +502,7 @@ class Trial(SQLMixinDallinger, Info):
         return x
 
     @property
-    def trial_maker(self):
+    def trial_maker(self) -> "TrialMaker":
         from ..experiment import get_trial_maker
 
         if self.trial_maker_id:
@@ -875,6 +875,7 @@ class Trial(SQLMixinDallinger, Info):
         time_estimate = cls._get_trial_time_estimate(trial_maker)
 
         return join(
+            CodeBlock(cls.check_trial_not_none),
             CodeBlock(cls._log_time_credit_before_trial),
             CodeBlock(cls._log_progress_before_trial),
             PageMaker(
@@ -889,6 +890,15 @@ class Trial(SQLMixinDallinger, Info):
             CodeBlock(cls._log_time_credit_after_trial),
             CodeBlock(cls._log_progress_after_trial),
         )
+
+    @classmethod
+    def check_trial_not_none(cls, experiment, participant):
+        if participant.current_trial is None:
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
 
     @classmethod
     def _get_trial_time_estimate(cls, trial_maker):
@@ -1026,11 +1036,13 @@ class TrialMakerState(ModuleState):
     repeat_trial_index = Column(Integer)
     n_created_trials = Column(Integer)
     n_completed_trials = Column(Integer)
+    trial_maker_initialized = Column(Boolean)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_created_trials = 0
         self.n_completed_trials = 0
+        self.trial_maker_initialized = False
 
 
 class TrialMaker(Module):
@@ -1313,15 +1325,29 @@ class TrialMaker(Module):
         )
 
     def _init_participant(self):
-        if self.sync_group_type:
-            return GroupBarrier(
+        return conditional(
+            "init_participant",
+            # If the participant is in a sync group and the leader has not been initialized,
+            # then we put a GroupBarrier to ensure that the leader can be initialized first.
+            # Otherwise we go ahead and initialize the participant.
+            lambda participant: self.sync_group_type
+            and not self._leader_is_initialized(participant),
+            logic_if_true=GroupBarrier(
                 "init_participant",
                 group_type=self.sync_group_type,
                 max_wait_time=self.sync_group_max_wait_time,
                 on_release=self._init_participants_in_sync_group,
-            )
-        else:
-            return CodeBlock(self.init_participant)
+            ),
+            logic_if_false=CodeBlock(self.init_participant),
+        )
+
+    def _leader_is_initialized(self, participant):
+        group = participant.active_sync_groups[self.sync_group_type]
+        try:
+            leader_state = group.leader.module_states[self.id][-1]
+        except (KeyError, IndexError):
+            return False
+        return leader_state.trial_maker_initialized
 
     def _init_participants_in_sync_group(self, group: SyncGroup, experiment):
         self.init_participant(experiment, group.leader)
@@ -1623,6 +1649,7 @@ class TrialMaker(Module):
         participant.module_state.n_completed_trials = 0
         participant.module_state.in_repeat_phase = False
         self.init_participant_group(experiment, participant)
+        participant.module_state.trial_maker_initialized = True
 
     def init_participant_group(self, experiment, participant):
         if participant.module_state.participant_group:
@@ -1945,16 +1972,11 @@ class TrialMaker(Module):
             experiment = get_experiment()
 
             leader = group.leader
-            followers = [
-                participant
-                for participant in group.participants
-                if participant.id != leader.id
-            ]
 
             leader.current_trial, leader.trial_status = self._prepare_trial(
                 experiment=experiment, participant=group.leader
             )
-            for follower in followers:
+            for follower in group.active_followers:
                 follower.current_trial, follower.trial_status = self._prepare_trial(
                     experiment=experiment,
                     participant=follower,
@@ -2709,7 +2731,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             self.trial_maker.call_grow_network(self)
 
     @property
-    def trial_maker(self):
+    def trial_maker(self) -> "TrialMaker":
         from ..experiment import get_trial_maker
 
         if self.trial_maker_id:
@@ -2950,7 +2972,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.participant = network.participant
 
     @property
-    def trial_maker(self):
+    def trial_maker(self) -> "TrialMaker":
         from ..experiment import get_trial_maker
 
         if self.trial_maker_id:

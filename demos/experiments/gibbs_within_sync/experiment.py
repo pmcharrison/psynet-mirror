@@ -98,18 +98,22 @@ class CustomTrial(GibbsTrial):
 
     def see_last_trial_responses(self, participant: Participant):
         last_node = self.node.parent
-        last_trials = last_node.all_trials
+        last_trials = last_node.alive_trials
         last_trials.sort(key=lambda t: t.participant_id)
-        participant_answer = [
-            t.answer for t in last_trials if t.participant == participant
-        ][0]
+        try:
+            participant_answer = [
+                t.answer for t in last_trials if t.participant == participant
+            ][0]
+        except IndexError:
+            participant_answer = None
         other_participant_answers = [
             t.answer for t in last_trials if t.participant != participant
         ]
 
         html = tags.span()
         with html:
-            tags.p(f"You chose: {participant_answer}")
+            if participant_answer is not None:
+                tags.p(f"You chose: {participant_answer}")
             tags.p("Other participants chose:")
             with tags.ul():
                 for response in other_participant_answers:
@@ -141,6 +145,7 @@ trial_maker = GibbsTrialMaker(
     chains_per_participant=1,
     recruit_mode="n_participants",
     target_n_participants=3,
+    propagate_failure=False,
 )
 
 
@@ -150,42 +155,104 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
+        InfoPage("Welcome to the experiment!", time_estimate=5),
         SimpleGrouper(
             group_type="gibbs",
             group_size=3,
+            join_existing_groups=True,
         ),
         trial_maker,
         SuccessfulEndPage(),
     )
 
-    test_n_bots = 3
+    test_n_bots = 4
 
     def test_serial_run_bots(self, bots: List[Bot]):
         from psynet.page import WaitPage
 
+        original_bots = bots[:3]
+
+        for bot in original_bots:
+            assert bot.get_current_page().content == "Welcome to the experiment!"
+            bot.take_page()
+            assert isinstance(bot.get_current_page(), WaitPage)
+
+        # Send the first three bots into the trial maker
+        advance_past_wait_pages(original_bots)
+
+        # Trial 1 (degree = 0)
+        for bot, response in zip(original_bots, [100, 110, 120]):
+            page = bot.get_current_page()
+            assert page.label == "color_trial"
+            bot.take_page(page, response=response)
+            assert isinstance(bot.get_current_page(), WaitPage)
+
+        # Going now to the next trial;
+        # Trial 2 (degree = 1)
+        advance_past_wait_pages(original_bots)
+
+        # Check that the trials have been aggregated appropriately
+        page = bots[0].get_current_page()
+        info_message = "You chose: 100 Other participants chose: * 110 * 120 The summarized response was 110."
+        assert as_plain_text(page.prompt.text) == info_message
+
+        group = bots[0].sync_group
+
+        # Now we make one of the bots fail during a trial
+        bots[0].fail(reason="simulated_failure")
+        assert group.under_quota
+
+        # Bring in a new bot to replace the failed one
+        new_bot = bots[3]
+        assert new_bot.get_current_page().content == "Welcome to the experiment!"
+
+        # If we send the new bot into the trial maker, it should be able to join the group
+        new_bot.take_page()
+        assert new_bot in group.participants
+
+        # Now the participant should be waiting at the prepare_trial barrier.
+        # The other two bots need to finish the previous trial before this new trial can begin
+        assert isinstance(new_bot.get_current_page(), WaitPage)
+        assert "prepare_trial" in new_bot.active_barriers
+
+        # Let's have them finish the trial, then
+        for bot in [bots[1], bots[2]]:
+            page = bot.get_current_page()
+            assert isinstance(page, InfoPage)
+            bot.take_page(page)
+
+            page = bot.get_current_page()
+            assert page.label == "color_trial"
+            bot.take_page(page)
+
+        # Now all three remaining bots should be at the prepare_trial barrier
+        # Trial 3 (degree = 2)
+        bots = [bots[1], bots[2], new_bot]
+        for bot in bots:
+            assert isinstance(bot.get_current_page(), WaitPage)
+            assert "prepare_trial" in bot.active_barriers
+
+        # Now we can advance past the prepare_trial barrier
         advance_past_wait_pages(bots)
 
-        page = bots[0].get_current_page()
-        assert page.label == "color_trial"
-        bots[0].take_page(page, response=100)
-        page = bots[0].get_current_page()
-        assert isinstance(page, WaitPage)
+        for bot in bots:
+            assert bot.current_trial is not None
+            assert isinstance(bot.get_current_page(), InfoPage)
 
-        bots[1].take_page(page, response=110)
-        bots[2].take_page(page, response=120)
+        # They should all be assigned to the same node
+        assert len(set([bot.current_trial.node for bot in bots])) == 1
 
-        advance_past_wait_pages(bots)
-        page = bots[0].get_current_page()
+        # Great, the new bot has successfully joined the team! They can go ahead and finish the experiment now.
+        # There should be two more trials to complete, including this one, because max_nodes_per_chain == 4.
+        # We want to keep an eye out for the new bot, and make sure it follows the other two bots in finishing the
+        # trial maker, which will mean it only taking three trials instead of four.
 
-        assert (
-            as_plain_text(page.prompt.text)
-            == "You chose: 100 Other participants chose: * 110 * 120 The summarized response was 110."
-        )
-
-        for remaining_nodes in range(3):
+        for remaining_nodes in range(2):
             for bot in bots:
                 page = bot.get_current_page()
-                assert isinstance(page, InfoPage)
+                assert isinstance(
+                    page, InfoPage
+                ), f"Bot {bot.id} unexpectedly saw {page} instead of an InfoPage, on remaining_nodes = {remaining_nodes}."
                 bot.take_page(page)
 
                 page = bot.get_current_page()
@@ -197,3 +264,6 @@ class Exp(psynet.experiment.Experiment):
             page = bot.get_current_page()
             text = as_plain_text(page.prompt.text)
             assert "That's the end of the experiment!" in text
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        assert not bot.failed or bot.failed_reason == "simulated_failure"

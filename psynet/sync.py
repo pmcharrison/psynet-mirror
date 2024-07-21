@@ -6,6 +6,7 @@ from dallinger import db
 from dallinger.models import timenow
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import backref, joinedload, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
@@ -271,16 +272,19 @@ class GroupBarrier(Barrier):
             all_participants_present = all(
                 [
                     participant.id in waiting_participant_ids
-                    for participant in group.participants
+                    for participant in group.active_participants
                 ]
             )
             if all_participants_present:
-                for participant in group.participants:
+                group.check_leader()
+                for participant in group.active_participants:
                     participants_to_release.append(participant)
 
                 if self.on_release:
                     call_function_with_context(
-                        self.on_release, group=group, participants=group.participants
+                        self.on_release,
+                        group=group,
+                        participants=group.active_participants,
                     )
 
         return participants_to_release
@@ -299,7 +303,7 @@ class Grouper(Barrier):
         A textual label for the groups that are created. This label is used to link the Grouper with
         subsequent GroupBarriers.
 
-    id
+    id_
         Optional ID parameter for this grouper. If left blank the default value is ``group_type + "_" + "grouper"``.
         Groupers with the same ID are treated as equivalent and share the same participant waiting areas.
 
@@ -436,6 +440,11 @@ class SimpleGrouper(Grouper):
     batch_size
         Number of participants that should be waiting until the groups are created.
 
+    join_existing_groups
+        If set to ``True``, then before a new group is created, the Grouper will check if there are any existing
+        groups that are under-quota (e.g. because some participants left the experiment early).
+        If so, the arriving participant will be assigned to one of these groups instead.
+
     kwargs
         Further arguments to pass to Grouper.
     """
@@ -445,11 +454,40 @@ class SimpleGrouper(Grouper):
         group_type: str,
         group_size: int,
         batch_size: int = None,
+        join_existing_groups: bool = False,
         **kwargs,
     ):
         super().__init__(group_type=group_type, **kwargs)
         self.group_size = group_size
         self.batch_size = batch_size
+        self.join_existing_groups = join_existing_groups
+
+    def resolve(self):
+        from .timeline import conditional, join
+
+        return join(
+            CodeBlock(self._join_existing_groups),
+            conditional(
+                "joined_an_existing_group",
+                condition=lambda participant: self.group_type
+                in participant.active_sync_groups,
+                logic_if_true=[],
+                logic_if_false=super().resolve(),
+            ),
+        )
+
+    def _join_existing_groups(self, participant: Participant):
+        group = (
+            SimpleSyncGroup.query.filter_by(
+                group_type=self.group_type, under_quota=True, active=True
+            )
+            .order_by(SimpleSyncGroup.when_under_quota)
+            .one_or_none()
+        )
+        if group:
+            group.participants.append(participant)
+            assert participant.active_sync_groups[self.group_type] == group
+            group.check_numbers()
 
     def ready_to_group(self, participants: List[Participant]) -> bool:
         if self.batch_size:
@@ -468,7 +506,9 @@ class SimpleGrouper(Grouper):
         )
         groups = []
         for _participants in grouped_participants:
-            _group = SyncGroup(group_type=self.group_type)
+            _group = SimpleSyncGroup(
+                group_type=self.group_type, quota=self.group_size, under_quota=False
+            )
             groups.append(_group)
 
             for _participant in _participants:
@@ -526,10 +566,24 @@ class SyncGroup(SQLBase, SQLMixin):
         creator=lambda participant: ParticipantLinkSyncGroup(participant=participant),
     )
 
+    n_active_participants = Column(Integer)
+
+    @property
+    def active_participants(self):
+        return [p for p in self.participants if not p.failed and p.status == "working"]
+
     leader = relationship(
         "psynet.participant.Participant",
         cascade="all",
     )
+
+    def check_leader(self):
+        if self.leader not in self.active_participants:
+            self.leader = sorted(self.active_participants, key=lambda p: p.id)[0]
+
+    @property
+    def active_followers(self):
+        return [p for p in self.active_participants if p != self.leader]
 
     @classmethod
     def get_active_group(
@@ -542,6 +596,35 @@ class SyncGroup(SQLBase, SQLMixin):
     def close(self):
         self.active = False
         self.end_time = timenow()
+
+    def check_numbers(self):
+        self.n_active_participants = len(self.active_participants)
+
+
+class SimpleSyncGroup(SyncGroup):
+    """
+    A SyncGroup that is created by a SimpleGrouper.
+    """
+
+    quota = Column(Integer)
+    under_quota = Column(Boolean)
+    when_under_quota = Column(DateTime)
+
+    def check_numbers(self):
+        super().check_numbers()
+        was_previously_under_quota = self.under_quota
+        under_quota = self.n_active_participants < self.quota
+
+        if under_quota and not was_previously_under_quota:
+            self.under_quota = True
+            self.when_under_quota = timenow()
+        elif not under_quota and was_previously_under_quota:
+            self.under_quota = False
+            self.when_under_quota = None
+
+    @hybrid_property
+    def needs_more_participants(self):
+        return self.n_active_participants < self.quota
 
 
 @register_table

@@ -42,7 +42,7 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import joinedload, relationship
+from sqlalchemy.orm import joinedload, relationship, with_polymorphic
 
 from psynet import __version__
 
@@ -1123,6 +1123,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for link in barrier_links:
             barrier = link.get_barrier()
             barrier.process_potential_releases()
+
+    @scheduled_task("interval", seconds=2.5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _check_sync_groups():
+        if not is_experiment_launched():
+            return
+        exp = get_experiment()
+        exp.check_sync_groups()
+
+    @staticmethod
+    def check_sync_groups():
+        from .sync import SyncGroup
+
+        groups = (
+            # Eagerly load all polymorphic subclasses to avoid lazy loading in the loop
+            db.session.query(with_polymorphic(SyncGroup, "*"))
+            .filter(SyncGroup.active)
+            .all()
+        )
+
+        for group in groups:
+            group.check_numbers()
 
     @property
     def base_payment(self):
