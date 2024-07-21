@@ -874,7 +874,6 @@ class Trial(SQLMixinDallinger, Info):
         time_estimate = cls._get_trial_time_estimate(trial_maker)
 
         return join(
-            CodeBlock(cls.check_trial_not_none),
             CodeBlock(cls._log_time_credit_before_trial),
             CodeBlock(cls._log_progress_before_trial),
             PageMaker(
@@ -889,15 +888,6 @@ class Trial(SQLMixinDallinger, Info):
             CodeBlock(cls._log_time_credit_after_trial),
             CodeBlock(cls._log_progress_after_trial),
         )
-
-    @classmethod
-    def check_trial_not_none(cls, experiment, participant):
-        if participant.current_trial is None:
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-            )
 
     @classmethod
     def _get_trial_time_estimate(cls, trial_maker):
