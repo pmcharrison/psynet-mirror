@@ -1330,8 +1330,10 @@ class TrialMaker(Module):
             # If the participant is in a sync group and the leader has not been initialized,
             # then we put a GroupBarrier to ensure that the leader can be initialized first.
             # Otherwise we go ahead and initialize the participant.
-            lambda participant: self.sync_group_type
-            and not self._leader_is_initialized(participant),
+            lambda participant: (
+                self.sync_group_type is not None
+                and not self._leader_is_initialized(participant)
+            ),
             logic_if_true=GroupBarrier(
                 "init_participant",
                 group_type=self.sync_group_type,
