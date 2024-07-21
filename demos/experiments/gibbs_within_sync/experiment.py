@@ -141,7 +141,6 @@ trial_maker = GibbsTrialMaker(
     chains_per_participant=1,
     recruit_mode="n_participants",
     target_n_participants=3,
-    sync_group_max_wait_time=999999,
 )
 
 
@@ -164,7 +163,7 @@ class Exp(psynet.experiment.Experiment):
     def test_serial_run_bots(self, bots: List[Bot]):
         from psynet.page import WaitPage
 
-        advance_past_wait_pages(bots, max_iterations=99999999)
+        advance_past_wait_pages(bots)
 
         page = bots[0].get_current_page()
         assert page.label == "color_trial"
