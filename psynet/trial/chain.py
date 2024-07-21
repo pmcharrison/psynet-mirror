@@ -956,7 +956,8 @@ class ChainTrial(Trial):
 
     def fail(self, reason=None):
         super().fail(reason)
-        self.node.check_ready_to_spawn()
+        if isinstance(self.node, ChainNode):
+            self.node.check_ready_to_spawn()
 
     @property
     def failure_cascade(self):
@@ -972,6 +973,7 @@ class ChainTrial(Trial):
 
     def on_finalized(self):
         super().on_finalized()
+        self.node.check_ready_to_spawn()
         if self.trial_maker and self.trial_maker.chain_type == "within":
             self.trial_maker.call_grow_network(network=self.network)
 

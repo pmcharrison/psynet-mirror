@@ -786,7 +786,6 @@ class Trial(SQLMixinDallinger, Info):
     def on_finalized(self):
         self.score = self.score_answer(answer=self.answer, definition=self.definition)
         self._allocate_performance_reward()
-        self.node.check_ready_to_spawn()
 
     @classmethod
     def cue(cls, definition, assets=None):
@@ -1341,6 +1340,7 @@ class TrialMaker(Module):
                 on_release=self._init_participants_in_sync_group,
             ),
             logic_if_false=CodeBlock(self.init_participant),
+            time_estimate=0.0 if self.sync_group_type is None else 3.0,
         )
 
     def _leader_is_initialized(self, participant):

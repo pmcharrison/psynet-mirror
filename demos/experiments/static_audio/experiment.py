@@ -152,4 +152,6 @@ class Exp(psynet.experiment.Experiment):
             else:
                 assert trial.progress_after_trial == pytest.approx(1.0)
 
-        assert bot.time_credit == self.estimated_completion_time(wage_per_hour=0.0)
+        assert bot.time_credit == pytest.approx(
+            self.estimated_completion_time(wage_per_hour=0.0)
+        )
