@@ -884,7 +884,6 @@ class Trial(SQLMixinDallinger, Info):
                 time_estimate=time_estimate,
                 accumulate_answers=cls.accumulate_answers,
             ),
-            # cls._wait_for_finalize_trial(trial_maker),
             cls._finalize_trial(trial_maker),
             cls._construct_feedback_logic(trial_maker),
             CodeBlock(cls._log_time_credit_after_trial),
@@ -910,17 +909,6 @@ class Trial(SQLMixinDallinger, Info):
             participant=participant,
             trial_maker=self.trial_maker,
         )
-
-    # @classmethod
-    # def _wait_for_finalize_trial(cls, trial_maker: "TrialMaker"):
-    #     if trial_maker is None or trial_maker.sync_group_type is None:
-    #         return None
-    #     else:
-    #         return GroupBarrier(
-    #             "_wait_for_finalize_trial",
-    #             group_type=trial_maker.sync_group_type,
-    #             max_wait_time=trial_maker.sync_group_max_wait_time,
-    #         )
 
     @classmethod
     def _log_time_credit_before_trial(cls, participant):

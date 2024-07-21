@@ -1554,9 +1554,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             self.create_networks_across(experiment)
 
     def create_networks_within(self, experiment, participant: Participant):
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-
         if self.start_nodes:
             nodes = call_function_with_context(
                 self.start_nodes, experiment=experiment, participant=participant
