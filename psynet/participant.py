@@ -294,11 +294,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # sync_groups is a relationship that gives a list of all SyncGroups for that participnat
 
     @property
-    def active_sync_groups(self) -> Dict[str, SyncGroup]:
+    def active_sync_groups(self) -> Dict[str, "SyncGroup"]:
         return {group.group_type: group for group in self.sync_groups if group.active}
 
     @property
-    def sync_group(self):
+    def sync_group(self) -> "SyncGroup":
         candidates = self.active_sync_groups
         if len(candidates) == 1:
             return list(candidates.values())[0]
