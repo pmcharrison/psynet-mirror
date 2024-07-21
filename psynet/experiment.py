@@ -1151,10 +1151,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         groups = (
             # Eagerly load all polymorphic subclasses to avoid lazy loading in the loop
-            db.session.query(with_polymorphic(SyncGroup, "*")).filter(SyncGroup.active)
+            db.session.query(with_polymorphic(SyncGroup, "*"))
+            .filter(SyncGroup.active)
             # TODO - see if we can introduce this locking once the transaction managemnet in the tests is fixed
             # .with_for_update(of=[SyncGroup, Participant])
-            # .populate_existing()
+            .with_for_update(of=[SyncGroup])
+            .populate_existing()
             .all()
         )
 
