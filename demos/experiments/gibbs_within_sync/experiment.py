@@ -145,6 +145,9 @@ trial_maker = GibbsTrialMaker(
     chains_per_participant=1,
     recruit_mode="n_participants",
     target_n_participants=3,
+    # propagate_failure means that when a trial fails the chain is aggressively pruned
+    # such that no nodes are 'contaminated' by the failed trial. This is often desirable,
+    # but if we want to make maximum use of participant trials, we can set propagate_failure=False.
     propagate_failure=False,
 )
 
