@@ -738,11 +738,10 @@ class ChainNode(TrialNode):
 
     @hybrid_property
     def reached_target_n_trials(self):
-        return self.n_completed_and_processed_trials >= self.target_n_trials
-
-    @reached_target_n_trials.expression
-    def reached_target_n_trials(cls):
-        return cls.n_completed_and_processed_trials >= cls.target_n_trials
+        if self.target_n_trials is None:
+            return False
+        else:
+            return self.n_completed_and_processed_trials >= self.target_n_trials
 
     def check_ready_to_spawn(self):
         self.ready_to_spawn = self._ready_to_spawn()
