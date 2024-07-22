@@ -178,9 +178,10 @@ class Bot(Participant):
 
         # Locks the present participant row
         self = (
-            self.__class__.query.with_for_update(of=self.__class__)
-            .populate_existing()
-            .get(self.id)
+            self.__class__.query
+            # TODO - enable this locking - but we need to update other code to avoid deadlocks
+            # .with_for_update(of=self.__class__)
+            .populate_existing().get(self.id)
         )
 
         start_time = time.monotonic()
