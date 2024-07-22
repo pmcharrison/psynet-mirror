@@ -417,7 +417,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             )
         elif len(state) > 1:
             raise RuntimeError(
-                f"Participant had multiple unfinished module states with id = '{module.id}'."
+                (
+                    f"Participant had multiple unfinished module states with id = '{module.id}': "
+                    f"{[s.__json__() for s in state]}, participant: {self.__json__()}"
+                )
             )
 
         state = state[0]
