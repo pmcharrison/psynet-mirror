@@ -4,7 +4,6 @@ from datetime import datetime
 from statistics import mean
 from typing import List
 
-import requests
 from cached_property import cached_property
 from dallinger import db
 from sqlalchemy import Column, Integer
@@ -171,11 +170,11 @@ class Bot(Participant):
     ):
         from .page import WaitPage
 
-        if render_page:
-            req = requests.get(
-                f"http://localhost:5000/timeline?unique_id={self.unique_id}"
-            )
-            assert req.status_code == 200
+        # if render_page:
+        #     req = requests.get(
+        #         f"http://localhost:5000/timeline?unique_id={self.unique_id}"
+        #     )
+        #     assert req.status_code == 200
 
         with transaction():
             # Locks the present participant row
