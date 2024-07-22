@@ -403,7 +403,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         state = module.state_class(module, self)
         state.start()
         self.module_state = state
-        self._module_states.append(state)
 
     def end_module(self, module):
         # This should only fail (delivering multiple logs) if the experimenter has perversely
