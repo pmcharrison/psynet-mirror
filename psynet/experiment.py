@@ -2415,6 +2415,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return send_file(zip_filepath, mimetype="zip")
 
     @experiment_route("/dashboard/export", methods=["GET"])
+    @staticmethod
     @with_transaction
     def export():
         from flask_login import current_user
