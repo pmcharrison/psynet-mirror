@@ -2647,7 +2647,8 @@ def test__local(
     else:
         import pytest
 
-        pytest.main(["test.py"])
+        # Using sys.exit to return the exit code from pytest
+        return sys.exit(pytest.main(["test.py"]))
 
 
 @test.command("ssh")
