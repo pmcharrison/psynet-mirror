@@ -176,13 +176,6 @@ class Bot(Participant):
     ):
         from .page import WaitPage
 
-        # Locks the present participant row
-        self = (
-            self.__class__.query.with_for_update(of=self.__class__)
-            .populate_existing()
-            .get(self.id)
-        )
-
         start_time = time.monotonic()
 
         if page is None:
