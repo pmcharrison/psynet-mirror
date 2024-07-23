@@ -1,6 +1,5 @@
+import random
 from typing import List
-
-from dominate import tags
 
 import psynet.experiment
 from psynet.bot import Bot, advance_past_wait_pages
@@ -9,11 +8,9 @@ from psynet.modular_page import ModularPage, PushButtonControl, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
-from psynet.timeline import Timeline, join, CodeBlock, PageMaker
+from psynet.timeline import CodeBlock, PageMaker, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
-
-import random
 
 logger = get_logger()
 
@@ -29,17 +26,14 @@ class CreateRateTrial(StaticTrial):
     def show_trial(self, experiment, participant):
         return join(
             PageMaker(self.create, time_estimate=5),
-            GroupBarrier(
-                id_="finished_creating",
-                group_type="create_rate"
-            ),
+            GroupBarrier(id_="finished_creating", group_type="create_rate"),
             PageMaker(self.rate, time_estimate=5),
             GroupBarrier(
                 id_="finished_rating",
                 group_type="create_rate",
-                on_release=self.save_ratings
+                on_release=self.save_ratings,
             ),
-            PageMaker(self.show_ratings, time_estimate=5)
+            PageMaker(self.show_ratings, time_estimate=5),
         )
 
     def create(self):
@@ -52,7 +46,9 @@ class CreateRateTrial(StaticTrial):
                 time_estimate=5,
                 save_answer="create",
             ),
-            CodeBlock(lambda participant: self.var.set("create", participant.var.create))
+            CodeBlock(
+                lambda participant: self.var.set("create", participant.var.create)
+            ),
         )
 
     def rate(self, participant):
@@ -62,16 +58,20 @@ class CreateRateTrial(StaticTrial):
                 "rate",
                 prompt,
                 PushButtonControl(
-                    choices= self.find_creations(participant),
+                    choices=self.find_creations(participant),
                 ),
                 time_estimate=5,
                 save_answer="rate",
             ),
-            CodeBlock(lambda participant: self.var.set("rate", participant.var.rate))
+            CodeBlock(lambda participant: self.var.set("rate", participant.var.rate)),
         )
 
     def find_creations(self, participant):
-        creations = [p.var.create for p in participant.sync_group.participants if p != participant]
+        creations = [
+            p.var.create
+            for p in participant.sync_group.participants
+            if p != participant
+        ]
         random.shuffle(creations)
         return creations
 
@@ -94,7 +94,7 @@ class CreateRateTrial(StaticTrial):
         for i in range(len(participants)):
             participants[i].var.last_trial = {
                 "rating_self": ratings[i],
-                "rating_others": ratings[:i] + ratings[i+1:]
+                "rating_others": ratings[:i] + ratings[i + 1 :],
             }
 
 
@@ -113,11 +113,9 @@ class Exp(psynet.experiment.Experiment):
             id_="create_rate",
             trial_class=CreateRateTrial,
             nodes=[
-                StaticNode(definition={"target": target,
-                                       "placeholder": 'None'})
+                StaticNode(definition={"target": target, "placeholder": "None"})
                 for target in ["appetizer", "main dish", "dessert"]
             ],
-            # allow_repeated_nodes=True,
             expected_trials_per_participant=3,
             max_trials_per_participant=3,
             sync_group_type="create_rate",
@@ -133,7 +131,7 @@ class Exp(psynet.experiment.Experiment):
 
         advance_past_wait_pages(bots)
 
-        ## CREATE 1
+        # CREATE 1
         page = bots[0].get_current_page()
         assert page.label == "create"
         bots[0].take_page(page, response="chocolate")
@@ -150,7 +148,7 @@ class Exp(psynet.experiment.Experiment):
 
         advance_past_wait_pages(bots)
 
-        ## RATE 1
+        # RATE 1
         page = bots[0].get_current_page()
         assert page.label == "rate"
         bots[0].take_page(page, response="yoghurt")
@@ -166,44 +164,62 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]
-        assert pages[0].content == "You chose yoghurt, your partners chose yoghurt and pudding."
-        assert pages[1].content == "You chose yoghurt, your partners chose yoghurt and pudding."
-        assert pages[2].content == "You chose pudding, your partners chose yoghurt and yoghurt."
+        assert (
+            pages[0].content
+            == "You chose yoghurt, your partners chose yoghurt and pudding."
+        )
+        assert (
+            pages[1].content
+            == "You chose yoghurt, your partners chose yoghurt and pudding."
+        )
+        assert (
+            pages[2].content
+            == "You chose pudding, your partners chose yoghurt and yoghurt."
+        )
 
         bots[0].take_page()
         bots[1].take_page()
         bots[2].take_page()
         advance_past_wait_pages(bots)
 
-        ## CREATE 2
+        # CREATE 2
         bots[0].take_page(page, response="schnitzel")
         bots[1].take_page(page, response="salad")
         bots[2].take_page(page, response="burger")
         advance_past_wait_pages(bots)
 
-        ## RATE 2
+        # RATE 2
         bots[0].take_page(page, response="salad")
         bots[1].take_page(page, response="schnitzel")
         bots[2].take_page(page, response="salad")
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]
-        assert pages[0].content == "You chose salad, your partners chose schnitzel and salad."
-        assert pages[1].content == "You chose schnitzel, your partners chose salad and salad."
-        assert pages[2].content == "You chose salad, your partners chose salad and schnitzel."
+        assert (
+            pages[0].content
+            == "You chose salad, your partners chose schnitzel and salad."
+        )
+        assert (
+            pages[1].content
+            == "You chose schnitzel, your partners chose salad and salad."
+        )
+        assert (
+            pages[2].content
+            == "You chose salad, your partners chose salad and schnitzel."
+        )
 
         bots[0].take_page()
         bots[1].take_page()
         bots[2].take_page()
         advance_past_wait_pages(bots)
 
-        ## CREATE 3
+        # CREATE 3
         bots[0].take_page(page, response="melon")
         bots[1].take_page(page, response="shrimp")
         bots[2].take_page(page, response="soup")
         advance_past_wait_pages(bots)
 
-        ## RATE 3
+        # RATE 3
         bots[0].take_page(page, response="soup")
         bots[1].take_page(page, response="soup")
         bots[2].take_page(page, response="melon")
