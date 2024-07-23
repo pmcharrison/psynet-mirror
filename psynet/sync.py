@@ -486,7 +486,7 @@ class SimpleGrouper(Grouper):
         group_type: str,
         *,
         initial_group_size: Optional[int] = None,
-        max_group_size: Union[int, str] = "initial_group_size",
+        max_group_size: Optional[Union[int, str]] = "initial_group_size",
         min_group_size: Union[int, str] = "initial_group_size",
         batch_size: Union[int, str] = "initial_group_size",
         join_existing_groups: bool = False,
@@ -505,6 +505,11 @@ class SimpleGrouper(Grouper):
 
         if max_group_size == "initial_group_size":
             max_group_size = initial_group_size
+        else:
+            if not join_existing_groups:
+                raise ValueError(
+                    "If max_group_size != 'initial_group_size', you probably want to set join_existing_groups=True."
+                )
 
         if min_group_size == "initial_group_size":
             min_group_size = initial_group_size
@@ -533,16 +538,22 @@ class SimpleGrouper(Grouper):
         )
 
     def _join_existing_groups(self, participant: Participant):
-        group = (
-            SimpleSyncGroup.query.filter(
-                SimpleSyncGroup.group_type == self.group_type,
-                SimpleSyncGroup.n_active_participants < self.max_group_size,
-            )
-            # Preferentially join the smallest groups, and among those, the oldest
-            .order_by(
-                SimpleSyncGroup.n_active_participants, SimpleSyncGroup.id
-            ).one_or_none()
+        query = SimpleSyncGroup.query.filter(
+            SimpleSyncGroup.group_type == self.group_type
         )
+
+        if self.max_group_size is not None:
+            query = query.filter(
+                SimpleSyncGroup.n_active_participants < self.max_group_size
+            )
+
+        # Preferentially join the smallest groups, and among those, the oldest
+        query = query.order_by(
+            SimpleSyncGroup.n_active_participants, SimpleSyncGroup.id
+        )
+
+        group = query.one_or_none()
+
         if group:
             group.participants.append(participant)
             assert participant.active_sync_groups[self.group_type] == group

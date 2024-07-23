@@ -1297,12 +1297,14 @@ class PageMaker(Elt):
 
     def __init__(
         self,
-        function,
+        function: Callable[..., "TimelineLogic"],
         time_estimate: Optional[float] = None,
         accumulate_answers: bool = False,
         label: str = "page_maker",
     ):
         super().__init__()
+
+        assert callable(function)
 
         self.function = function
         self.time_estimate = time_estimate
@@ -2789,7 +2791,7 @@ def for_loop(
     time_estimate_per_iteration: Optional[float] = None,
     expected_repetitions=None,
 ):
-    if time_estimate_per_iteration is None and callable(logic):
+    if time_estimate_per_iteration is None:
         if callable(logic):
             raise ValueError(
                 "If logic is a callable, then time_estimate_per_iteration must be provided"
@@ -2798,12 +2800,15 @@ def for_loop(
             time_estimate_per_iteration = CreditEstimate(logic).get_max("time")
 
     def estimate_num_repetitions(iterate_over):
-        if len(get_args(iterate_over)) > 0:
-            raise ValueError(
-                "If iterate_over takes arguments then expected_repetitions cannot be inferred automatically "
-                "and must be provided explicitly."
-            )
-        return len(iterate_over())
+        if not callable(iterate_over):
+            return len(iterate_over)
+        else:
+            if len(get_args(iterate_over)) > 0:
+                raise ValueError(
+                    "If iterate_over takes arguments then expected_repetitions cannot be inferred automatically "
+                    "and must be provided explicitly."
+                )
+            return len(iterate_over())
 
     def setup(experiment, participant):
         nonlocal iterate_over
@@ -2868,7 +2873,7 @@ def for_loop(
         while_loop(
             "for_loop",
             should_stay_in_loop,
-            join(
+            logic=join(
                 PageMaker(content, time_estimate_per_iteration),
                 CodeBlock(increment_counter),
             ),
