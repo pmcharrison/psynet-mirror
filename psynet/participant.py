@@ -36,6 +36,7 @@ logger = get_logger()
 
 if TYPE_CHECKING:
     from .sync import SyncGroup
+    from .timeline import Module
 
 # pylint: disable=unused-import
 
@@ -399,10 +400,22 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             if log.finished
         ]
 
-    def start_module(self, module):
+    def start_module(self, module: "Module"):
+        self.check_module_not_already_started(module)
         state = module.state_class(module, self)
         state.start()
         self.module_state = state
+
+    def check_module_not_already_started(self, module: "Module"):
+        if module.id not in self.module_states:
+            return
+        else:
+            states = self.module_states[module.id]
+            for state in states:
+                if not state.finished:
+                    raise RuntimeError(
+                        f"Participant already has an unfinished module state for '{module.id}'..."
+                    )
 
     def end_module(self, module):
         # This should only fail (delivering multiple logs) if the experimenter has perversely
