@@ -179,6 +179,14 @@ class Bot(Participant):
             )
             assert req.status_code == 200
             db.session.commit()  # Make sure any server-side changes are visible to us
+        else:
+            # Ordinarily the timeline request triggers a check_barriers call.
+            # Without it, we have to do it manually.
+            with transaction():
+                from .experiment import get_experiment
+
+                exp = get_experiment()
+                exp.check_barriers()
 
         with transaction():
             # Locks the present participant row
