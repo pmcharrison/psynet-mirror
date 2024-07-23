@@ -1,19 +1,18 @@
 import random
 from math import floor
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Union
 
 from dallinger import db
 from dallinger.models import timenow
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import backref, joinedload, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonClass
-from psynet.page import WaitPage
+from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
-from psynet.timeline import CodeBlock, EltCollection
+from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.utils import call_function_with_context, get_logger
 
 logger = get_logger()
@@ -101,6 +100,13 @@ class Barrier(EltCollection):
                 expected_repetitions=self.waiting_logic_expected_repetitions,
                 max_loop_time=self.max_wait_time,
                 fix_time_credit=self.fix_time_credit,
+            ),
+            conditional(
+                "participant_failed",
+                condition=lambda participant: participant.failed,
+                logic_if_true=UnsuccessfulEndPage(),
+                time_estimate=0,
+                log_chosen_branch=False,
             ),
         )
         for elt in elts:
@@ -206,7 +212,11 @@ class Barrier(EltCollection):
 class GroupBarrier(Barrier):
     """
     A GroupBarrier is a Barrier that waits until all participants in a given :class:`~psynet.sync.SyncGroup`
-    have reached the Barrier.
+    have reached the Barrier. It also checks the current group size against the group's minimum size parameter;
+    the group won't be allowed to proceed if it's below this size.
+    If ``join_existing_groups=True`` for that group, it'll wait just in case new participants join the group.
+    If ``join_existing_groups=False``, then there's no hope for new participants, so the group will be released
+    and failed.
 
     Parameters
     ----------
@@ -269,6 +279,16 @@ class GroupBarrier(Barrier):
         }
 
         for group in groups.values():
+            if group.n_active_participants < group.min_group_size:
+                # If join_existing_groups is False, then the group will never be able
+                # to get to the minimum size, so we should fail all participants in the group
+                # and release them.
+                if not group.join_existing_groups:
+                    for participant in group.active_participants:
+                        participant.fail("sync group below minimum size")
+                    participants_to_release.append(participant)
+                continue
+
             all_participants_present = all(
                 [
                     participant.id in waiting_participant_ids
@@ -425,7 +445,7 @@ class Grouper(Barrier):
 class SimpleGrouper(Grouper):
     """
     A Simple Grouper waits until ``batch_size`` many participants are waiting,
-    and then randomly partitions this group of participants into groups of size ``group_size``.
+    and then randomly partitions this group of participants into groups of size ``initial_group_size``.
 
     Parameters
     ----------
@@ -434,11 +454,23 @@ class SimpleGrouper(Grouper):
         A textual label for the groups that are created. This label is used to link the Grouper with
         subsequent GroupBarriers.
 
-    group_size
+    initial_group_size
         Size of the groups to create.
+
+    max_group_size
+        If ``join_existing_groups=True``, then participants will be allowed to join groups until
+        they reach this maximum size. If set to ``"initial_group_size"`` (default),
+        then the maximum size will be set to the initial group size.
+
+    min_group_size
+        If the current group size is below this value (taking into account failed participants
+        and participants who have left the experiment), then the group will be considered under-quota.
+        The group will not be allowed to pass through barriers until it is at or above this size.
+        If set to ``"initial_group_size"`` (default), then the minimum size will be set to the initial group size.
 
     batch_size
         Number of participants that should be waiting until the groups are created.
+        If set to ``"initial_group_size"`` (default), then the batch size will be set to the initial group size.
 
     join_existing_groups
         If set to ``True``, then before a new group is created, the Grouper will check if there are any existing
@@ -452,13 +484,37 @@ class SimpleGrouper(Grouper):
     def __init__(
         self,
         group_type: str,
-        group_size: int,
-        batch_size: int = None,
+        *,
+        initial_group_size: Optional[int] = None,
+        max_group_size: Union[int, str] = "initial_group_size",
+        min_group_size: Union[int, str] = "initial_group_size",
+        batch_size: Union[int, str] = "initial_group_size",
         join_existing_groups: bool = False,
         **kwargs,
     ):
+        if "group_size" in kwargs:
+            raise ValueError(
+                "The group_size argument has been renamed to initial_group_size, "
+                "please update your code accordingly.",
+            )
+
+        if initial_group_size is None:
+            raise ValueError("initial_group_size must be provided.")
+
         super().__init__(group_type=group_type, **kwargs)
-        self.group_size = group_size
+
+        if max_group_size == "initial_group_size":
+            max_group_size = initial_group_size
+
+        if min_group_size == "initial_group_size":
+            min_group_size = initial_group_size
+
+        if batch_size == "initial_group_size":
+            batch_size = initial_group_size
+
+        self.initial_group_size = initial_group_size
+        self.max_group_size = max_group_size
+        self.min_group_size = min_group_size
         self.batch_size = batch_size
         self.join_existing_groups = join_existing_groups
 
@@ -478,11 +534,14 @@ class SimpleGrouper(Grouper):
 
     def _join_existing_groups(self, participant: Participant):
         group = (
-            SimpleSyncGroup.query.filter_by(
-                group_type=self.group_type, under_quota=True, active=True
+            SimpleSyncGroup.query.filter(
+                SimpleSyncGroup.group_type == self.group_type,
+                SimpleSyncGroup.n_active_participants < self.max_group_size,
             )
-            .order_by(SimpleSyncGroup.when_under_quota)
-            .one_or_none()
+            # Preferentially join the smallest groups, and among those, the oldest
+            .order_by(
+                SimpleSyncGroup.n_active_participants, SimpleSyncGroup.id
+            ).one_or_none()
         )
         if group:
             group.participants.append(participant)
@@ -490,24 +549,25 @@ class SimpleGrouper(Grouper):
             group.check_numbers()
 
     def ready_to_group(self, participants: List[Participant]) -> bool:
-        if self.batch_size:
-            quorum = self.batch_size
-        else:
-            quorum = self.group_size
-        return len(participants) >= quorum
+        return len(participants) >= self.batch_size
 
     def group(self, participants: List[Participant]) -> List["SyncGroup"]:
-        n_groups = floor(len(participants) / self.group_size)
-        n_participants_to_group = n_groups * self.group_size
+        n_groups = floor(len(participants) / self.initial_group_size)
+        n_participants_to_group = n_groups * self.initial_group_size
         participants_to_group = participants[:n_participants_to_group]
 
         grouped_participants = self.randomly_partition_list(
-            participants_to_group, group_size=self.group_size
+            participants_to_group, group_size=self.initial_group_size
         )
         groups = []
         for _participants in grouped_participants:
             _group = SimpleSyncGroup(
-                group_type=self.group_type, quota=self.group_size, under_quota=False
+                group_type=self.group_type,
+                initial_group_size=self.initial_group_size,
+                max_group_size=self.max_group_size,
+                min_group_size=self.min_group_size,
+                n_active_participants=len(_participants),
+                join_existing_groups=self.join_existing_groups,
             )
             groups.append(_group)
 
@@ -569,7 +629,7 @@ class SyncGroup(SQLBase, SQLMixin):
     n_active_participants = Column(Integer)
 
     @property
-    def active_participants(self):
+    def active_participants(self) -> List[Participant]:
         return [p for p in self.participants if not p.failed and p.status == "working"]
 
     leader = relationship(
@@ -606,25 +666,32 @@ class SimpleSyncGroup(SyncGroup):
     A SyncGroup that is created by a SimpleGrouper.
     """
 
-    quota = Column(Integer)
-    under_quota = Column(Boolean)
-    when_under_quota = Column(DateTime)
+    # group_type = self.group_type,
+    # initial_group_size = self.initial_group_size,
+    # max_group_size = self.max_group_size,
+    # min_group_size = self.min_group_size,
+    # n_active_participants = len(_participants),
 
-    def check_numbers(self):
-        super().check_numbers()
-        was_previously_under_quota = self.under_quota
-        under_quota = self.n_active_participants < self.quota
+    initial_group_size = Column(Integer)
+    max_group_size = Column(Integer)
+    min_group_size = Column(Integer)
+    join_existing_groups = Column(Boolean)
 
-        if under_quota and not was_previously_under_quota:
-            self.under_quota = True
-            self.when_under_quota = timenow()
-        elif not under_quota and was_previously_under_quota:
-            self.under_quota = False
-            self.when_under_quota = None
+    # def check_numbers(self):
+    #     super().check_numbers()
+    #     was_previously_under_quota = self.under_quota
+    #     under_quota = self.n_active_participants < self.quota
+    #
+    #     if under_quota and not was_previously_under_quota:
+    #         self.under_quota = True
+    #         self.when_under_quota = timenow()
+    #     elif not under_quota and was_previously_under_quota:
+    #         self.under_quota = False
+    #         self.when_under_quota = None
 
-    @hybrid_property
-    def needs_more_participants(self):
-        return self.n_active_participants < self.quota
+    # @hybrid_property
+    # def needs_more_participants(self):
+    #     return self.n_active_participants < self.quota
 
 
 @register_table

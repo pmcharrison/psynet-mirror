@@ -160,7 +160,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("Welcome to the experiment!", time_estimate=5),
         SimpleGrouper(
             group_type="gibbs",
-            group_size=3,
+            initial_group_size=3,
             join_existing_groups=True,
         ),
         trial_maker,
@@ -202,7 +202,7 @@ class Exp(psynet.experiment.Experiment):
 
         # Now we make one of the bots fail during a trial
         bots[0].fail(reason="simulated_failure")
-        assert group.under_quota
+        assert group.n_active_participants < group.min_group_size
 
         # Bring in a new bot to replace the failed one
         new_bot = bots[3]
