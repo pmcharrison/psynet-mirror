@@ -8,7 +8,7 @@ from datetime import datetime
 from functools import cached_property, reduce
 from importlib import resources
 from statistics import median
-from typing import Callable, Dict, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
 from dallinger import db
 from dallinger.config import get_config
@@ -40,6 +40,9 @@ from .utils import (
     serialise,
     unserialise_datetime,
 )
+
+if TYPE_CHECKING:
+    from .participant import Participant
 
 logger = get_logger()
 
@@ -271,15 +274,22 @@ class StartFixProgress(StartFixElt):
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
 
-    def consume(self, experiment, participant):
+    def consume(self, experiment, participant: "Participant"):
         if participant.estimated_max_time_credit == 0.0:
-            bound = 1.0
+            new_bound = 1.0
         else:
-            bound = (
+            try:
+                old_bound = participant.progress_fixes[-1]
+            except IndexError:
+                old_bound = 1.0
+
+            new_bound = (
                 participant.progress
                 + self.time_credit / participant.estimated_max_time_credit
             )
-        participant.progress_fixes.append(bound)
+            new_bound = min(new_bound, old_bound)
+
+        participant.progress_fixes.append(new_bound)
 
 
 class EndFixProgress(EndFixElt):
