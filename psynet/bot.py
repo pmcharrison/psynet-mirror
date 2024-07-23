@@ -48,6 +48,7 @@ class Bot(Participant):
             mode=mode,
         )
 
+        db.session.add(self)
         db.session.commit()
 
     def initialize(self, experiment):
@@ -172,11 +173,12 @@ class Bot(Participant):
         from .page import WaitPage
 
         if render_page:
-
+            db.session.commit()  # Make sure that any local changes to the participant are visible to the server
             req = requests.get(
                 f"http://localhost:5000/timeline?unique_id={self.unique_id}"
             )
             assert req.status_code == 200
+            db.session.commit()  # Make sure any server-side changes are visible to us
 
         with transaction():
             # Locks the present participant row
