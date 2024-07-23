@@ -22,7 +22,7 @@ It may be included in the timeline as follows:
 
     SimpleGrouper(
         group_type="rock_paper_scissors",
-        group_size=2,
+        initial_group_size=2,
     ),
 
 This ``SimpleGrouper`` organizes participants into groups of 2. By default it will create a new
@@ -120,8 +120,23 @@ GroupBarriers within the trial, for example:
 Demo
 ----
 
-The 'rock, paper, scissors' demo provides an example of the full-scale use of these features.
-The source code is provided below:
+Several demos are available that illustrate these features, see below.
+
+Rock, paper, scissors
+^^^^^^^^^^^^^^^^^^^^^^
 
 .. literalinclude:: ../../demos/experiments/rock_paper_scissors/experiment.py
+   :language: python
+
+Synchronized GSP
+^^^^^^^^^^^^^^^^
+
+.. literalinclude:: ../../demos/experiments/gibbs_within_sync/experiment.py
+   :language: python
+
+
+Quorum
+^^^^^^
+
+.. literalinclude:: ../../demos/experiments/sync_quorum/experiment.py
    :language: python
