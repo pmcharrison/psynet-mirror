@@ -680,32 +680,10 @@ class SimpleSyncGroup(SyncGroup):
     A SyncGroup that is created by a SimpleGrouper.
     """
 
-    # group_type = self.group_type,
-    # initial_group_size = self.initial_group_size,
-    # max_group_size = self.max_group_size,
-    # min_group_size = self.min_group_size,
-    # n_active_participants = len(_participants),
-
     initial_group_size = Column(Integer)
     max_group_size = Column(Integer)
     min_group_size = Column(Integer)
     join_existing_groups = Column(Boolean)
-
-    # def check_numbers(self):
-    #     super().check_numbers()
-    #     was_previously_under_quota = self.under_quota
-    #     under_quota = self.n_active_participants < self.quota
-    #
-    #     if under_quota and not was_previously_under_quota:
-    #         self.under_quota = True
-    #         self.when_under_quota = timenow()
-    #     elif not under_quota and was_previously_under_quota:
-    #         self.under_quota = False
-    #         self.when_under_quota = None
-
-    # @hybrid_property
-    # def needs_more_participants(self):
-    #     return self.n_active_participants < self.quota
 
 
 @register_table
