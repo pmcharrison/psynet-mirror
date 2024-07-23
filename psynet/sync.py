@@ -59,7 +59,7 @@ class Barrier(EltCollection):
         fix_time_credit=False,
     ):
         if waiting_logic is None:
-            waiting_logic = WaitPage(wait_time=2)
+            waiting_logic = WaitPage(wait_time=0.5)
 
         self.id = id_
         self.waiting_logic = waiting_logic
