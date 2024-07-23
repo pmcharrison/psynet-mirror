@@ -538,6 +538,9 @@ class SimpleGrouper(Grouper):
         )
 
     def _join_existing_groups(self, participant: Participant):
+        if not self.join_existing_groups:
+            return
+
         query = SimpleSyncGroup.query.filter(
             SimpleSyncGroup.group_type == self.group_type
         )
