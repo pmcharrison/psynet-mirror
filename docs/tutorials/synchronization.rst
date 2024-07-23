@@ -2,11 +2,6 @@
 Synchronization
 ===============
 
-.. warning::
-    This functionality is still experimental. Some users have reported database deadlock
-    issues when running live experiments, and we are currently trying to replicate and
-    debug these issues.
-
 In some experiments we need to be able to synchronize certain groups of participants
 to do the same things at the same time. For example, we might want to implement
 a behavioral economics game where participants have to make certain kinds of decisions
