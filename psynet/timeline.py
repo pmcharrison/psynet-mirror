@@ -8,7 +8,7 @@ from datetime import datetime
 from functools import cached_property, reduce
 from importlib import resources
 from statistics import median
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Sequence, Union
 
 from dallinger import db
 from dallinger.config import get_config
@@ -2783,14 +2783,19 @@ FOR_LOOP_STACK_DEPTH = -1
 
 def for_loop(
     *,
-    label,
-    iterate_over,
-    logic,
-    time_estimate_per_iteration,
+    label: str,
+    iterate_over: Union[Sequence, Callable[..., Sequence]],
+    logic: Union["TimelineLogic", Callable[..., "TimelineLogic"]],
+    time_estimate_per_iteration: Optional[float] = None,
     expected_repetitions=None,
 ):
-    assert callable(iterate_over)
-    assert callable(logic)
+    if time_estimate_per_iteration is None and callable(logic):
+        if callable(logic):
+            raise ValueError(
+                "If logic is a callable, then time_estimate_per_iteration must be provided"
+            )
+        else:
+            time_estimate_per_iteration = CreditEstimate(logic).get_max("time")
 
     def estimate_num_repetitions(iterate_over):
         if len(get_args(iterate_over)) > 0:
@@ -2809,6 +2814,8 @@ def for_loop(
                 experiment=experiment,
                 participant=participant,
             )
+        else:
+            lst = iterate_over
         state = {"lst": lst, "index": 0}
         # participant.for_loops.append(state)
         if label in participant.for_loops:
@@ -2829,6 +2836,8 @@ def for_loop(
         # global FOR_LOOP_STACK_DEPTH
         # FOR_LOOP_STACK_DEPTH += 1
         # state = participant.for_loops[FOR_LOOP_STACK_DEPTH]
+        if not callable(logic):
+            return logic
         nonlocal label
         state = participant.for_loops[label]
         lst = state["lst"]
