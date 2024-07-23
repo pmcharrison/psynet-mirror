@@ -51,7 +51,7 @@ from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
-from .db import transaction, with_transaction
+from .db import with_transaction
 from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
@@ -1095,7 +1095,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 n.grow(experiment=exp)
             logger.info("Finished growing networks.")
 
-    # @scheduled_task("interval", seconds=1, max_instances=1)
+    @scheduled_task("interval", seconds=1, max_instances=1)
     @log_time_taken
     @staticmethod
     @with_transaction
@@ -2762,17 +2762,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/timeline", methods=["GET"])
     @classmethod
+    @with_transaction
     def route_timeline(cls):
-        with transaction():
-            cls.check_barriers()
+        unique_id = request.args.get("unique_id")
+        mode = request.args.get("mode")
+        participant = cls.get_participant_from_unique_id(unique_id, for_update=False)
+        experiment = get_experiment()
 
-        with transaction():
-            unique_id = request.args.get("unique_id")
-            mode = request.args.get("mode")
-            participant = cls.get_participant_from_unique_id(unique_id, for_update=True)
-            experiment = get_experiment()
-
-            return cls._route_timeline(experiment, participant, mode)
+        return cls._route_timeline(experiment, participant, mode)
 
     @classmethod
     def fail_participant_on_error(cls, participant, error):
@@ -2999,10 +2996,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/response", methods=["POST"])
     @classmethod
+    @with_transaction
     def route_response(cls):
-        with transaction():
-            cls.check_barriers()
-
         exp = get_experiment()
         json_data = json.loads(request.values["json"])
         blobs = request.files.to_dict()
@@ -3015,17 +3010,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         metadata = get_arg_from_dict(json_data, "metadata")
         client_ip_address = cls.get_client_ip_address()
 
-        with transaction():
-            res = exp.process_response(
-                participant_id,
-                raw_answer,
-                blobs,
-                metadata,
-                page_uuid,
-                client_ip_address,
-            )
+        res = exp.process_response(
+            participant_id,
+            raw_answer,
+            blobs,
+            metadata,
+            page_uuid,
+            client_ip_address,
+        )
 
-            return res
+        return res
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
