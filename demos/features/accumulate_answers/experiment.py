@@ -16,7 +16,7 @@ logger = logging.getLogger()
 
 def animal_page(animal, time_estimate, bot_response):
     return ModularPage(
-        "animal",
+        animal,
         f"How much do you like the following animal: {animal}?",
         PushButtonControl(
             ["Not at all", "A little", "Very much"],
@@ -28,7 +28,7 @@ def animal_page(animal, time_estimate, bot_response):
 
 def color_page(color, time_estimate, bot_response):
     return ModularPage(
-        "color",
+        color,
         f"How much do you like {color}?",
         PushButtonControl(
             ["Not at all", "A little", "Very much"],
@@ -96,7 +96,7 @@ part_1_logic = PageMaker(
 
 def part_1_check(participant):
     if isinstance(participant, Bot):
-        assert participant.answer == {"animal": "Very much", "color": "A little"}
+        assert participant.answer == {"dog": "Very much", "red": "A little"}
 
 
 part_1 = join(
@@ -120,16 +120,21 @@ part_2 = join(
 )
 
 part_3_logic = PageMaker(
-    InfoPage(
-        "I'm going to ask you the same question 3 times in a row.", time_estimate=5
-    ),
-    lambda: for_loop(
-        label="Repeat 3 times",
-        iterate_over=lambda: range(3),
-        logic=lambda _: animal_page("dog", time_estimate=5, bot_response="Very much"),
-        time_estimate_per_iteration=5,
+    lambda: join(
+        InfoPage(
+            "I'm going to ask you the same question 3 times in a row.", time_estimate=5
+        ),
+        for_loop(
+            label="Repeat 3 times",
+            iterate_over=lambda: range(3),
+            logic=lambda _: animal_page(
+                "dog", time_estimate=5, bot_response="Very much"
+            ),
+            time_estimate_per_iteration=5,
+        ),
     ),
     accumulate_answers=True,
+    time_estimate=20,
 )
 
 
@@ -143,8 +148,8 @@ def part_3_check(participant):
 
 
 part_3 = join(
-    part_1_logic,
-    CodeBlock(part_1_check),
+    part_3_logic,
+    CodeBlock(part_3_check),
 )
 
 
@@ -156,5 +161,6 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         part_1,
         part_2,
+        part_3,
         SuccessfulEndPage(),
     )

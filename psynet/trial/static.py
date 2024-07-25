@@ -250,7 +250,7 @@ class StaticTrialMaker(ChainTrialMaker):
         trial_class,
         nodes: Optional[Union[callable, List["StaticNode"]]],
         expected_trials_per_participant: int,
-        max_trials_per_participant: int = NoArgumentProvided,
+        max_trials_per_participant: Optional[int] = NoArgumentProvided,
         recruit_mode: Optional[str] = None,
         target_n_participants: Optional[int] = None,
         target_trials_per_node: Optional[int] = None,

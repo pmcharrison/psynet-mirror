@@ -42,7 +42,7 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import joinedload, relationship
+from sqlalchemy.orm import joinedload, relationship, with_polymorphic
 
 from psynet import __version__
 
@@ -1095,7 +1095,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 n.grow(experiment=exp)
             logger.info("Finished growing networks.")
 
-    @scheduled_task("interval", seconds=1, max_instances=1)
+    @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
     @staticmethod
     @with_transaction
@@ -1116,13 +1116,52 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ~Participant.failed,
                 Participant.status == "working",
             )
-            .distinct(ParticipantLinkBarrier.barrier_id)
+            # We need to lock Participant rows to prevent race conditions with participants
+            # who are currently being processed in other tasks
+            # (e.g. advancing through the timeline).
+            .with_for_update(of=[ParticipantLinkBarrier, Participant])
+            .populate_existing()
             .all()
         )
 
+        # Before we used a DISTINCT clause --
+        # .distinct(ParticipantLinkBarrier.barrier_id)
+        # but DISTINCT is incompatible with FOR UPDATE in Postgres.
+        # We therefore do this filtering in Python instead.
+        processed_barriers = set()
         for link in barrier_links:
-            barrier = link.get_barrier()
-            barrier.process_potential_releases()
+            if link.barrier_id not in processed_barriers:
+                barrier = link.get_barrier()
+                barrier.process_potential_releases()
+                processed_barriers.add(link.barrier_id)
+
+    @scheduled_task("interval", seconds=2.5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _check_sync_groups():
+        if not is_experiment_launched():
+            return
+        exp = get_experiment()
+        exp.check_sync_groups()
+
+    @staticmethod
+    def check_sync_groups():
+        from .sync import SyncGroup
+
+        groups = (
+            # Eagerly load all polymorphic subclasses to avoid lazy loading in the loop
+            db.session.query(with_polymorphic(SyncGroup, "*"))
+            .filter(SyncGroup.active)
+            # TODO - see if we can introduce this locking once the transaction managemnet in the tests is fixed
+            # .with_for_update(of=[SyncGroup, Participant])
+            .with_for_update(of=[SyncGroup])
+            .populate_existing()
+            .all()
+        )
+
+        for group in groups:
+            group.check_numbers()
 
     @property
     def base_payment(self):
@@ -2376,6 +2415,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return send_file(zip_filepath, mimetype="zip")
 
     @experiment_route("/dashboard/export", methods=["GET"])
+    @staticmethod
     @with_transaction
     def export():
         from flask_login import current_user
@@ -2742,8 +2782,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
+            if not isinstance(participant, Bot):
+                participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)
-            participant.client_ip_address = cls.get_client_ip_address()
             return cls.serialize_page(page, experiment, participant, mode)
         except cls.HandledError as err:
             return err.error_page()

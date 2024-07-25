@@ -2,6 +2,7 @@
 
 import json
 from smtplib import SMTPAuthenticationError
+from typing import TYPE_CHECKING, Dict
 
 import dallinger.models
 from dallinger import db
@@ -32,6 +33,10 @@ from .utils import (
 )
 
 logger = get_logger()
+
+if TYPE_CHECKING:
+    from .sync import SyncGroup
+    from .timeline import Module
 
 # pylint: disable=unused-import
 
@@ -290,11 +295,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # sync_groups is a relationship that gives a list of all SyncGroups for that participnat
 
     @property
-    def active_sync_groups(self):
+    def active_sync_groups(self) -> Dict[str, "SyncGroup"]:
         return {group.group_type: group for group in self.sync_groups if group.active}
 
     @property
-    def sync_group(self):
+    def sync_group(self) -> "SyncGroup":
         candidates = self.active_sync_groups
         if len(candidates) == 1:
             return list(candidates.values())[0]
@@ -395,10 +400,22 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             if log.finished
         ]
 
-    def start_module(self, module):
+    def start_module(self, module: "Module"):
+        self.check_module_not_already_started(module)
         state = module.state_class(module, self)
         state.start()
         self.module_state = state
+
+    def check_module_not_already_started(self, module: "Module"):
+        if module.id not in self.module_states:
+            return
+        else:
+            states = self.module_states[module.id]
+            for state in states:
+                if not state.finished:
+                    raise RuntimeError(
+                        f"Participant already has an unfinished module state for '{module.id}'..."
+                    )
 
     def end_module(self, module):
         # This should only fail (delivering multiple logs) if the experimenter has perversely
@@ -413,7 +430,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             )
         elif len(state) > 1:
             raise RuntimeError(
-                f"Participant had multiple unfinished module states with id = '{module.id}'."
+                (
+                    f"Participant had multiple unfinished module states with id = '{module.id}': "
+                    f"{[s.__json__() for s in state]}, participant: {self.__json__()}"
+                )
             )
 
         state = state[0]
@@ -479,6 +499,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     def locale(self):
         return self.var.get("locale", default=None)
+
+    @property
+    def failure_cascade(self):
+        return [lambda: self.alive_trials]
 
     @property
     def translator(self):
@@ -691,6 +715,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             )
 
         super().fail(reason=reason)
+        for group in self.active_sync_groups.values():
+            from .sync import SimpleSyncGroup
+
+            if isinstance(group, SimpleSyncGroup):
+                group.check_numbers()
 
 
 def get_participant(participant_id: int, for_update: bool = False) -> Participant:

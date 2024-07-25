@@ -203,8 +203,7 @@ class GraphChainNode(ChainNode):
     vertex_id = claim_field("vertex_id", __extra_vars__, int)
     dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
 
-    @property
-    def ready_to_spawn(self):
+    def _ready_to_spawn(self):
         parents = (
             self.get_parents()
         )  # These are parent nodes from the same layer, to be passed to the next layer
@@ -212,7 +211,9 @@ class GraphChainNode(ChainNode):
             self.dependent_vertex_ids
         ):  # Make sure all parents exist
             all_parents_ready = all([p.reached_target_n_trials for p in parents])
-            current_vertex_ready = self.reached_target_n_trials
+            current_vertex_ready = (
+                self.reached_target_n_trials and len(self.pending_trials) == 0
+            )
             return all_parents_ready and current_vertex_ready
         elif len(parents) < len(self.dependent_vertex_ids):
             return False
@@ -264,7 +265,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         network_structure,
         chain_type: str,
         expected_trials_per_participant: int,
-        max_trials_per_participant: int,
+        max_trials_per_participant: Optional[int],
         chains_per_participant: Optional[int],
         # chains_per_experiment: Optional[int],
         trials_per_node: int,

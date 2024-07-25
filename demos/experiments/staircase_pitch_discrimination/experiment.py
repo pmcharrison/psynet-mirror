@@ -308,7 +308,7 @@ class Exp(psynet.experiment.Experiment):
             # We expect that the last few trials should be near the threshold.
             # Here we check the last 4 trials.
             n = 4
-            last_n_trials = chain.all_trials[-n:]
+            last_n_trials = sorted(chain.all_trials, key=lambda t: t.id)[-n:]
             last_n_parameters = [
                 trial.definition["parameter"] for trial in last_n_trials
             ]

@@ -43,7 +43,7 @@ def test_random_partition():
 )
 def test_group_allocator(in_experiment_directory, db_session):
     exp = get_experiment()
-    grouper = SimpleGrouper(group_type="main", group_size=3)
+    grouper = SimpleGrouper(group_type="main", initial_group_size=3)
     participants = [new_participant(exp) for _ in range(6)]
 
     assert len(grouper.get_waiting_participants()) == 0

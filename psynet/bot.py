@@ -9,7 +9,7 @@ from cached_property import cached_property
 from dallinger import db
 from sqlalchemy import Column, Integer
 
-from .db import with_transaction
+from .db import transaction
 from .participant import Participant
 from .timeline import Page
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
@@ -48,6 +48,7 @@ class Bot(Participant):
             mode=mode,
         )
 
+        db.session.add(self)
         db.session.commit()
 
     def initialize(self, experiment):
@@ -115,17 +116,13 @@ class Bot(Participant):
         while True:
             page_time_started = time.monotonic()
 
-            page = self.get_current_page()
-
             # This commit is necessary because get_current_page can make changes to the participant
             # (e.g. advancing them to the next page in the timeline). We need to commit so that the
             # server (as accessed via the HTTP request) has access to this information too.
-            db.session.commit()
 
-            sleep_time = self.take_page(page, time_factor, render_page=render_pages)[
-                "sleep_time"
-            ]
-            db.session.commit()
+            sleep_time = self.take_page(
+                time_factor=time_factor, render_page=render_pages
+            )["sleep_time"]
 
             page_time_finished = time.monotonic()
             page_total_time = page_time_finished - page_time_started
@@ -170,60 +167,69 @@ class Bot(Participant):
     # In a real launched experiment, taking a page involves a single HTTP request that is wrapped in a transaction.
     # We therefore do the same here, to ensure that the bot's behavior is as close as possible to that of a real
     # participant.
-    @with_transaction
     def take_page(
         self, page=None, time_factor=0, response=NoArgumentProvided, render_page=False
     ):
         from .page import WaitPage
 
-        start_time = time.monotonic()
-
-        if page is None:
-            page = self.get_current_page()
-
-        bot = self
-        experiment = self.experiment
-        assert isinstance(page, Page)
-
         if render_page:
+            db.session.commit()  # Make sure that any local changes to the participant are visible to the server
             req = requests.get(
                 f"http://localhost:5000/timeline?unique_id={self.unique_id}"
             )
             assert req.status_code == 200
+            db.session.commit()  # Make sure any server-side changes are visible to us
 
-        sleep_time = page.time_estimate * time_factor
-
-        if sleep_time == 0 and isinstance(page, WaitPage):
-            sleep_time = 0.5
-
-        if sleep_time > 0:
-            time.sleep(sleep_time)
-
-        response = page.call__bot_response(experiment, bot, response)
-
-        if "time_taken" not in response.metadata:
-            response.metadata["time_taken"] = sleep_time
-
-        try:
-            experiment.process_response(
-                participant_id=self.id,
-                raw_answer=response.raw_answer,
-                blobs=response.blobs,
-                metadata=response.metadata,
-                page_uuid=self.page_uuid,
-                client_ip_address=response.client_ip_address,
-                answer=response.answer,
+        with transaction():
+            # Locks the present participant row
+            self = (
+                self.__class__.query.with_for_update(of=self.__class__)
+                .populate_existing()
+                .get(self.id)
             )
-        except RuntimeError as err:
-            if "Working outside of request context" in str(err):
-                err.args = (
-                    err.args[0]
-                    + "\n\nNote: The 'working outside of request context' error can usually be ignored "
-                    "during testing as it typically comes from Flask trying to construct an "
-                    "error page without a valid request context. The real error probably "
-                    "happened earlier though.",
+
+            start_time = time.monotonic()
+
+            if page is None:
+                page = self.get_current_page()
+
+            bot = self
+            experiment = self.experiment
+            assert isinstance(page, Page)
+
+            sleep_time = page.time_estimate * time_factor
+
+            if sleep_time == 0 and isinstance(page, WaitPage):
+                sleep_time = 0.5
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
+            response = page.call__bot_response(experiment, bot, response)
+
+            if "time_taken" not in response.metadata:
+                response.metadata["time_taken"] = sleep_time
+
+            try:
+                experiment.process_response(
+                    participant_id=self.id,
+                    raw_answer=response.raw_answer,
+                    blobs=response.blobs,
+                    metadata=response.metadata,
+                    page_uuid=self.page_uuid,
+                    client_ip_address=response.client_ip_address,
+                    answer=response.answer,
                 )
-            raise
+            except RuntimeError as err:
+                if "Working outside of request context" in str(err):
+                    err.args = (
+                        err.args[0]
+                        + "\n\nNote: The 'working outside of request context' error can usually be ignored "
+                        "during testing as it typically comes from Flask trying to construct an "
+                        "error page without a valid request context. The real error probably "
+                        "happened earlier though.",
+                    )
+                raise
 
         self.page_count += 1
 

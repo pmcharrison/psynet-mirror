@@ -1,6 +1,6 @@
 import random
 from math import floor
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Union
 
 from dallinger import db
 from dallinger.models import timenow
@@ -10,10 +10,10 @@ from sqlalchemy.orm import backref, joinedload, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonClass
-from psynet.page import WaitPage
+from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
-from psynet.timeline import CodeBlock, EltCollection
-from psynet.utils import call_function, get_logger
+from psynet.timeline import CodeBlock, EltCollection, conditional
+from psynet.utils import call_function_with_context, get_logger
 
 logger = get_logger()
 
@@ -59,7 +59,7 @@ class Barrier(EltCollection):
         fix_time_credit=False,
     ):
         if waiting_logic is None:
-            waiting_logic = WaitPage(wait_time=2)
+            waiting_logic = WaitPage(wait_time=0.5)
 
         self.id = id_
         self.waiting_logic = waiting_logic
@@ -100,6 +100,13 @@ class Barrier(EltCollection):
                 expected_repetitions=self.waiting_logic_expected_repetitions,
                 max_loop_time=self.max_wait_time,
                 fix_time_credit=self.fix_time_credit,
+            ),
+            conditional(
+                "participant_failed",
+                condition=lambda participant: participant.failed,
+                logic_if_true=UnsuccessfulEndPage(),
+                time_estimate=0,
+                log_chosen_branch=False,
             ),
         )
         for elt in elts:
@@ -205,7 +212,11 @@ class Barrier(EltCollection):
 class GroupBarrier(Barrier):
     """
     A GroupBarrier is a Barrier that waits until all participants in a given :class:`~psynet.sync.SyncGroup`
-    have reached the Barrier.
+    have reached the Barrier. It also checks the current group size against the group's minimum size parameter;
+    the group won't be allowed to proceed if it's below this size.
+    If ``join_existing_groups=True`` for that group, it'll wait just in case new participants join the group.
+    If ``join_existing_groups=False``, then there's no hope for new participants, so the group will be released
+    and failed.
 
     Parameters
     ----------
@@ -268,19 +279,32 @@ class GroupBarrier(Barrier):
         }
 
         for group in groups.values():
+            if group.n_active_participants < group.min_group_size:
+                # If join_existing_groups is False, then the group will never be able
+                # to get to the minimum size, so we should fail all participants in the group
+                # and release them.
+                if not group.join_existing_groups:
+                    for participant in group.active_participants:
+                        participant.fail("sync group below minimum size")
+                    participants_to_release.append(participant)
+                continue
+
             all_participants_present = all(
                 [
                     participant.id in waiting_participant_ids
-                    for participant in group.participants
+                    for participant in group.active_participants
                 ]
             )
             if all_participants_present:
-                for participant in group.participants:
+                group.check_leader()
+                for participant in group.active_participants:
                     participants_to_release.append(participant)
 
                 if self.on_release:
-                    call_function(
-                        self.on_release, group=group, participants=group.participants
+                    call_function_with_context(
+                        self.on_release,
+                        group=group,
+                        participants=group.active_participants,
                     )
 
         return participants_to_release
@@ -299,7 +323,7 @@ class Grouper(Barrier):
         A textual label for the groups that are created. This label is used to link the Grouper with
         subsequent GroupBarriers.
 
-    id
+    id_
         Optional ID parameter for this grouper. If left blank the default value is ``group_type + "_" + "grouper"``.
         Groupers with the same ID are treated as equivalent and share the same participant waiting areas.
 
@@ -421,7 +445,7 @@ class Grouper(Barrier):
 class SimpleGrouper(Grouper):
     """
     A Simple Grouper waits until ``batch_size`` many participants are waiting,
-    and then randomly partitions this group of participants into groups of size ``group_size``.
+    and then randomly partitions this group of participants into groups of size ``initial_group_size``.
 
     Parameters
     ----------
@@ -430,11 +454,28 @@ class SimpleGrouper(Grouper):
         A textual label for the groups that are created. This label is used to link the Grouper with
         subsequent GroupBarriers.
 
-    group_size
+    initial_group_size
         Size of the groups to create.
+
+    max_group_size
+        If ``join_existing_groups=True``, then participants will be allowed to join groups until
+        they reach this maximum size. If set to ``"initial_group_size"`` (default),
+        then the maximum size will be set to the initial group size.
+
+    min_group_size
+        If the current group size is below this value (taking into account failed participants
+        and participants who have left the experiment), then the group will be considered under-quota.
+        The group will not be allowed to pass through barriers until it is at or above this size.
+        If set to ``"initial_group_size"`` (default), then the minimum size will be set to the initial group size.
 
     batch_size
         Number of participants that should be waiting until the groups are created.
+        If set to ``"initial_group_size"`` (default), then the batch size will be set to the initial group size.
+
+    join_existing_groups
+        If set to ``True``, then before a new group is created, the Grouper will check if there are any existing
+        groups that are under-quota (e.g. because some participants left the experiment early).
+        If so, the arriving participant will be assigned to one of these groups instead.
 
     kwargs
         Further arguments to pass to Grouper.
@@ -443,32 +484,105 @@ class SimpleGrouper(Grouper):
     def __init__(
         self,
         group_type: str,
-        group_size: int,
-        batch_size: int = None,
+        *,
+        initial_group_size: Optional[int] = None,
+        max_group_size: Optional[Union[int, str]] = "initial_group_size",
+        min_group_size: Union[int, str] = "initial_group_size",
+        batch_size: Union[int, str] = "initial_group_size",
+        join_existing_groups: bool = False,
         **kwargs,
     ):
+        if "group_size" in kwargs:
+            raise ValueError(
+                "The group_size argument has been renamed to initial_group_size, "
+                "please update your code accordingly.",
+            )
+
+        if initial_group_size is None:
+            raise ValueError("initial_group_size must be provided.")
+
         super().__init__(group_type=group_type, **kwargs)
-        self.group_size = group_size
+
+        if max_group_size == "initial_group_size":
+            max_group_size = initial_group_size
+        else:
+            if not join_existing_groups:
+                raise ValueError(
+                    "If max_group_size != 'initial_group_size', you probably want to set join_existing_groups=True."
+                )
+
+        if min_group_size == "initial_group_size":
+            min_group_size = initial_group_size
+
+        if batch_size == "initial_group_size":
+            batch_size = initial_group_size
+
+        self.initial_group_size = initial_group_size
+        self.max_group_size = max_group_size
+        self.min_group_size = min_group_size
         self.batch_size = batch_size
+        self.join_existing_groups = join_existing_groups
+
+    def resolve(self):
+        from .timeline import conditional, join
+
+        return join(
+            CodeBlock(self._join_existing_groups),
+            conditional(
+                "joined_an_existing_group",
+                condition=lambda participant: self.group_type
+                in participant.active_sync_groups,
+                logic_if_true=[],
+                logic_if_false=super().resolve(),
+            ),
+        )
+
+    def _join_existing_groups(self, participant: Participant):
+        if not self.join_existing_groups:
+            return
+
+        query = SimpleSyncGroup.query.filter(
+            SimpleSyncGroup.group_type == self.group_type
+        )
+
+        if self.max_group_size is not None:
+            query = query.filter(
+                SimpleSyncGroup.n_active_participants < self.max_group_size
+            )
+
+        # Preferentially join the smallest groups, and among those, the oldest
+        query = query.order_by(
+            SimpleSyncGroup.n_active_participants, SimpleSyncGroup.id
+        )
+
+        group = query.one_or_none()
+
+        if group:
+            group.participants.append(participant)
+            assert participant.active_sync_groups[self.group_type] == group
+            group.check_numbers()
 
     def ready_to_group(self, participants: List[Participant]) -> bool:
-        if self.batch_size:
-            quorum = self.batch_size
-        else:
-            quorum = self.group_size
-        return len(participants) >= quorum
+        return len(participants) >= self.batch_size
 
     def group(self, participants: List[Participant]) -> List["SyncGroup"]:
-        n_groups = floor(len(participants) / self.group_size)
-        n_participants_to_group = n_groups * self.group_size
+        n_groups = floor(len(participants) / self.initial_group_size)
+        n_participants_to_group = n_groups * self.initial_group_size
         participants_to_group = participants[:n_participants_to_group]
 
         grouped_participants = self.randomly_partition_list(
-            participants_to_group, group_size=self.group_size
+            participants_to_group, group_size=self.initial_group_size
         )
         groups = []
         for _participants in grouped_participants:
-            _group = SyncGroup(group_type=self.group_type)
+            _group = SimpleSyncGroup(
+                group_type=self.group_type,
+                initial_group_size=self.initial_group_size,
+                max_group_size=self.max_group_size,
+                min_group_size=self.min_group_size,
+                n_active_participants=len(_participants),
+                join_existing_groups=self.join_existing_groups,
+            )
             groups.append(_group)
 
             for _participant in _participants:
@@ -526,10 +640,24 @@ class SyncGroup(SQLBase, SQLMixin):
         creator=lambda participant: ParticipantLinkSyncGroup(participant=participant),
     )
 
+    n_active_participants = Column(Integer)
+
+    @property
+    def active_participants(self) -> List[Participant]:
+        return [p for p in self.participants if not p.failed and p.status == "working"]
+
     leader = relationship(
         "psynet.participant.Participant",
         cascade="all",
     )
+
+    def check_leader(self):
+        if self.leader not in self.active_participants:
+            self.leader = sorted(self.active_participants, key=lambda p: p.id)[0]
+
+    @property
+    def active_followers(self):
+        return [p for p in self.active_participants if p != self.leader]
 
     @classmethod
     def get_active_group(
@@ -542,6 +670,20 @@ class SyncGroup(SQLBase, SQLMixin):
     def close(self):
         self.active = False
         self.end_time = timenow()
+
+    def check_numbers(self):
+        self.n_active_participants = len(self.active_participants)
+
+
+class SimpleSyncGroup(SyncGroup):
+    """
+    A SyncGroup that is created by a SimpleGrouper.
+    """
+
+    initial_group_size = Column(Integer)
+    max_group_size = Column(Integer)
+    min_group_size = Column(Integer)
+    join_existing_groups = Column(Boolean)
 
 
 @register_table
