@@ -659,6 +659,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         }
 
     def fail(self, reason=None):
+        if self.failed:
+            logger.info("Participant %i already failed, not failing again.", self.id)
+            return
+
         if reason is not None:
             self.append_failure_tags(reason)
         reason = ", ".join(self.failure_tags)
