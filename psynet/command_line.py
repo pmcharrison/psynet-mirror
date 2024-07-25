@@ -2647,7 +2647,7 @@ def test__local(
     else:
         import pytest
 
-        pytest.main(["test.py"])
+        return pytest.main(["test.py"])
 
 
 @test.command("ssh")

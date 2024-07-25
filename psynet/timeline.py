@@ -8,7 +8,7 @@ from datetime import datetime
 from functools import cached_property, reduce
 from importlib import resources
 from statistics import median
-from typing import Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
 from dallinger import db
 from dallinger.config import get_config
@@ -40,6 +40,9 @@ from .utils import (
     serialise,
     unserialise_datetime,
 )
+
+if TYPE_CHECKING:
+    from .participant import Participant
 
 logger = get_logger()
 
@@ -271,15 +274,22 @@ class StartFixProgress(StartFixElt):
     ``with_fixed_time_credit`` and ``with_fixed_progress``.
     """
 
-    def consume(self, experiment, participant):
+    def consume(self, experiment, participant: "Participant"):
         if participant.estimated_max_time_credit == 0.0:
-            bound = 1.0
+            new_bound = 1.0
         else:
-            bound = (
+            try:
+                old_bound = participant.progress_fixes[-1]
+            except IndexError:
+                old_bound = 1.0
+
+            new_bound = (
                 participant.progress
                 + self.time_credit / participant.estimated_max_time_credit
             )
-        participant.progress_fixes.append(bound)
+            new_bound = min(new_bound, old_bound)
+
+        participant.progress_fixes.append(new_bound)
 
 
 class EndFixProgress(EndFixElt):
@@ -1297,12 +1307,14 @@ class PageMaker(Elt):
 
     def __init__(
         self,
-        function,
-        time_estimate,
+        function: Callable[..., "TimelineLogic"],
+        time_estimate: Optional[float] = None,
         accumulate_answers: bool = False,
         label: str = "page_maker",
     ):
         super().__init__()
+
+        assert callable(function)
 
         self.function = function
         self.time_estimate = time_estimate
@@ -2783,22 +2795,30 @@ FOR_LOOP_STACK_DEPTH = -1
 
 def for_loop(
     *,
-    label,
-    iterate_over,
-    logic,
-    time_estimate_per_iteration,
+    label: str,
+    iterate_over: Union[Sequence, Callable[..., Sequence]],
+    logic: Union["TimelineLogic", Callable[..., "TimelineLogic"]],
+    time_estimate_per_iteration: Optional[float] = None,
     expected_repetitions=None,
 ):
-    assert callable(iterate_over)
-    assert callable(logic)
+    if time_estimate_per_iteration is None:
+        if callable(logic):
+            raise ValueError(
+                "If logic is a callable, then time_estimate_per_iteration must be provided"
+            )
+        else:
+            time_estimate_per_iteration = CreditEstimate(logic).get_max("time")
 
     def estimate_num_repetitions(iterate_over):
-        if len(get_args(iterate_over)) > 0:
-            raise ValueError(
-                "If iterate_over takes arguments then expected_repetitions cannot be inferred automatically "
-                "and must be provided explicitly."
-            )
-        return len(iterate_over())
+        if not callable(iterate_over):
+            return len(iterate_over)
+        else:
+            if len(get_args(iterate_over)) > 0:
+                raise ValueError(
+                    "If iterate_over takes arguments then expected_repetitions cannot be inferred automatically "
+                    "and must be provided explicitly."
+                )
+            return len(iterate_over())
 
     def setup(experiment, participant):
         nonlocal iterate_over
@@ -2809,6 +2829,8 @@ def for_loop(
                 experiment=experiment,
                 participant=participant,
             )
+        else:
+            lst = iterate_over
         state = {"lst": lst, "index": 0}
         # participant.for_loops.append(state)
         if label in participant.for_loops:
@@ -2829,6 +2851,8 @@ def for_loop(
         # global FOR_LOOP_STACK_DEPTH
         # FOR_LOOP_STACK_DEPTH += 1
         # state = participant.for_loops[FOR_LOOP_STACK_DEPTH]
+        if not callable(logic):
+            return logic
         nonlocal label
         state = participant.for_loops[label]
         lst = state["lst"]
@@ -2859,7 +2883,7 @@ def for_loop(
         while_loop(
             "for_loop",
             should_stay_in_loop,
-            join(
+            logic=join(
                 PageMaker(content, time_estimate_per_iteration),
                 CodeBlock(increment_counter),
             ),

@@ -502,7 +502,7 @@ class Trial(SQLMixinDallinger, Info):
         return x
 
     @property
-    def trial_maker(self):
+    def trial_maker(self) -> "TrialMaker":
         from ..experiment import get_trial_maker
 
         if self.trial_maker_id:
@@ -1025,11 +1025,13 @@ class TrialMakerState(ModuleState):
     repeat_trial_index = Column(Integer)
     n_created_trials = Column(Integer)
     n_completed_trials = Column(Integer)
+    trial_maker_initialized = Column(Boolean)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_created_trials = 0
         self.n_completed_trials = 0
+        self.trial_maker_initialized = False
 
 
 class TrialMaker(Module):
@@ -1193,6 +1195,11 @@ class TrialMaker(Module):
         When this is set, then the ordinary node allocation logic will only apply to the 'leader'
         of each SyncGroup. The other members of this SyncGroup will follow that leader around,
         so that in every given trial the SyncGroup works on the same node together.
+
+    sync_group_max_wait_time
+        The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
+        If this time is exceeded then the participant will be failed and the experiment will
+        terminate early. Defaults to 45.0 seconds.
     """
 
     state_class = TrialMakerState
@@ -1212,6 +1219,7 @@ class TrialMaker(Module):
         n_repeat_trials: int,
         assets: List,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_time: float = 45.0,
     ):
         if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
@@ -1247,6 +1255,7 @@ class TrialMaker(Module):
         self.target_n_participants = target_n_participants
         self.n_repeat_trials = n_repeat_trials
         self.sync_group_type = sync_group_type
+        self.sync_group_max_wait_time = sync_group_max_wait_time
 
         elts = self.compile_elts()
 
@@ -1301,8 +1310,42 @@ class TrialMaker(Module):
                 self.with_namespace(), self.participant_fail_routine
             ),
             self.check_timeout_task,
-            CodeBlock(self.init_participant),
+            self._init_participant(),
         )
+
+    def _init_participant(self):
+        return conditional(
+            "init_participant",
+            # If the participant is in a sync group and the leader has not been initialized,
+            # then we put a GroupBarrier to ensure that the leader can be initialized first.
+            # Otherwise we go ahead and initialize the participant.
+            lambda participant: (
+                self.sync_group_type is not None
+                and not self._leader_is_initialized(participant)
+            ),
+            logic_if_true=GroupBarrier(
+                "init_participant",
+                group_type=self.sync_group_type,
+                max_wait_time=self.sync_group_max_wait_time,
+                on_release=self._init_participants_in_sync_group,
+            ),
+            logic_if_false=CodeBlock(self.init_participant),
+            time_estimate=0.0 if self.sync_group_type is None else 3.0,
+        )
+
+    def _leader_is_initialized(self, participant):
+        group = participant.active_sync_groups[self.sync_group_type]
+        try:
+            leader_state = group.leader.module_states[self.id][-1]
+        except (KeyError, IndexError):
+            return False
+        return leader_state.trial_maker_initialized
+
+    def _init_participants_in_sync_group(self, group: SyncGroup, experiment):
+        self.init_participant(experiment, group.leader)
+        for participant in group.participants:
+            if participant != group.leader:
+                self.init_participant(experiment, participant)
 
     @property
     def _setup_extra(self):
@@ -1598,16 +1641,28 @@ class TrialMaker(Module):
         participant.module_state.n_completed_trials = 0
         participant.module_state.in_repeat_phase = False
         self.init_participant_group(experiment, participant)
+        participant.module_state.trial_maker_initialized = True
 
     def init_participant_group(self, experiment, participant):
-        if not participant.module_state.participant_group:
+        if participant.module_state.participant_group:
+            return
+
+        sync_group = (
+            participant.active_sync_groups[self.sync_group_type]
+            if self.sync_group_type
+            else None
+        )
+        is_follower = sync_group and participant != sync_group.leader
+        if is_follower:
+            participant_group = sync_group.leader.module_state.participant_group
+        else:
             if self.choose_participant_group is None:
-                group = "default"
+                participant_group = "default"
             else:
-                group = self.choose_participant_group(
+                participant_group = self.choose_participant_group(
                     participant=participant,
                 )
-            participant.module_state.participant_group = group
+        participant.module_state.participant_group = participant_group
 
     def on_complete(self, experiment, participant):
         """
@@ -1822,6 +1877,9 @@ class TrialMaker(Module):
                 experiment=experiment, participant=participant
             )
 
+        if trial_status == "available":
+            assert trial is not None
+
         return trial, trial_status
 
     def _prepare_repeat_trial(self, experiment, participant):
@@ -1909,16 +1967,11 @@ class TrialMaker(Module):
             experiment = get_experiment()
 
             leader = group.leader
-            followers = [
-                participant
-                for participant in group.participants
-                if participant.id != leader.id
-            ]
 
             leader.current_trial, leader.trial_status = self._prepare_trial(
                 experiment=experiment, participant=group.leader
             )
-            for follower in followers:
+            for follower in group.active_followers:
                 follower.current_trial, follower.trial_status = self._prepare_trial(
                     experiment=experiment,
                     participant=follower,
@@ -1933,6 +1986,7 @@ class TrialMaker(Module):
                         group_type=self.sync_group_type,
                         on_release=_try_to_prepare_trial__group,
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
+                        max_wait_time=self.sync_group_max_wait_time,
                     )
                 )
             else:
@@ -2107,6 +2161,11 @@ class NetworkTrialMaker(TrialMaker):
         of each SyncGroup. The other members of this SyncGroup will follow that leader around,
         so that in every given trial the SyncGroup works on the same node together.
 
+    sync_group_max_wait_time
+        The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
+        If this time is exceeded then the participant will be failed and the experiment will
+        terminate early. Defaults to 45.0 seconds.
+
 
     Attributes
     ----------
@@ -2174,6 +2233,7 @@ class NetworkTrialMaker(TrialMaker):
         wait_for_networks: bool,
         assets=None,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_time: float = 45.0,
     ):
         performance_check_is_enabled = (
             check_performance_at_end or check_performance_every_trial
@@ -2211,6 +2271,7 @@ class NetworkTrialMaker(TrialMaker):
             n_repeat_trials=n_repeat_trials,
             assets=assets,
             sync_group_type=sync_group_type,
+            sync_group_max_wait_time=sync_group_max_wait_time,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
@@ -2547,6 +2608,15 @@ class TrialNetwork(SQLMixinDallinger, Network):
         Returns the network's :class:`~psynet.participant.Participant`,
         or ``None`` if none can be found.
 
+    sync_group_type : Optional[str]
+        The ``sync_group_type`` attribute of the trial maker that owns this network.
+
+    sync_group : Optional[SyncGroup]
+        The SyncGroup that owns this network (normally only relevant for within-style chains).
+
+    sync_group_id : Optional[int]
+        The ID of the SyncGroup that owns this network (normally only relevant for within-style chains).
+
     n_alive_nodes : int
         Returns the number of non-failed nodes in the network.
 
@@ -2584,6 +2654,10 @@ class TrialNetwork(SQLMixinDallinger, Network):
     module_id = Column(String)
     target_n_trials = Column(Integer)
     participant_group = Column(String)
+
+    sync_group_type = Column(String)
+    sync_group_id = Column(Integer, ForeignKey("sync_group.id"), index=True)
+    sync_group = relationship("SyncGroup", backref="networks")
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
@@ -2665,7 +2739,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             self.trial_maker.call_grow_network(self)
 
     @property
-    def trial_maker(self):
+    def trial_maker(self) -> "TrialMaker":
         from ..experiment import get_trial_maker
 
         if self.trial_maker_id:
@@ -2699,10 +2773,15 @@ class TrialNetwork(SQLMixinDallinger, Network):
         trial_maker_id: str,
         experiment,  # noqa
         module_id: Optional[str] = None,
+        sync_group_type: Optional[str] = None,
+        sync_group: Optional[SyncGroup] = None,
     ):
         # pylint: disable=unused-argument
         self.trial_maker_id = trial_maker_id
         self.assets = {}
+
+        self.sync_group_type = sync_group_type
+        self.sync_group = sync_group
 
         if not module_id:
             module_id = trial_maker_id
@@ -2797,11 +2876,15 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             raise RuntimeError(f"Node {self.id} has multiple trials.")
 
     @property
-    def alive_trials(self):
+    def alive_trials(self) -> List[Trial]:
         return [t for t in self.all_trials if not t.failed]
 
     @property
-    def failed_trials(self):
+    def pending_trials(self) -> List[Trial]:
+        return [t for t in self.alive_trials if not t.finalized]
+
+    @property
+    def failed_trials(self) -> List[Trial]:
         return [t for t in self.all_trials if t.failed]
 
     @property
@@ -2902,7 +2985,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.participant = network.participant
 
     @property
-    def trial_maker(self):
+    def trial_maker(self) -> "TrialMaker":
         from ..experiment import get_trial_maker
 
         if self.trial_maker_id:
