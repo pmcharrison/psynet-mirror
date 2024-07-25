@@ -36,7 +36,6 @@
                 {{ params.dimensions[0] }},
                 {{ params.dimensions[1] }}
             ];
-            let cursorLocation = null;
 
             paper.setViewBox(0, 0, blueprintDim[0], blueprintDim[1], true);
             paper.setSize("100%", "100%");
@@ -45,13 +44,12 @@
             svg.removeAttribute("width");
             svg.removeAttribute("height");
 
-            window.addEventListener("mousemove", function(e) {
-                let mouseLoc = [e.pageX, e.pageY];
+            function getCursorLocation(event) {
+                let mouseLoc = [event.pageX, event.pageY];
                 let paperLoc = [paperHtml.offset().left, paperHtml.offset().top];
                 let paperDim = [paperHtml.width(), paperHtml.height()];
-                cursorLocation = [0, 1].map(i => blueprintDim[i] * (mouseLoc[i] - paperLoc[i]) / paperDim[i]);
-                // psynet.log.debug("Cursor location: " + cursorLocation)
-            });
+                return [0, 1].map(i => blueprintDim[i] * (mouseLoc[i] - paperLoc[i]) / paperDim[i]);
+            }
 
             function submitAnswer(clickedObject, clickCoordinates) {
                 psynet.nextPage({
@@ -96,10 +94,14 @@
                                     this.raphael.attr({{ object.attributes | tojson }});
 
                                     {% if object.click_to_answer %}
-                                        this.raphael.click(function () {
+                                        this.raphael.click(function (e) {
                                             let clickedObject = object.id;
-                                            let clickCoordinates = cursorLocation;
-                                            submitAnswer(clickedObject, cursorLocation);
+                                            let clickCoordinates = getCursorLocation(e);
+                                            // Throw an error if clickCoordinates is not an array
+                                            if (!clickCoordinates || clickCoordinates.length !== 2) {
+                                                throw new Error("clickCoordinates must be an array of length 2");
+                                            }
+                                            submitAnswer(clickedObject, clickCoordinates);
                                         })
                                     {% endif %}
 

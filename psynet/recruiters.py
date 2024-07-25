@@ -457,7 +457,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             )
 
             potential = len(completes) + returned_because_of_qualifications
-            incidence_rate = len(completes) / potential if potential > 0 else 0
+            incidence_rate = float(len(completes) / potential if potential > 0 else 0.0)
 
         logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
         logger.info(f"Drop off rate: {drop_off_rate:.2%}")
