@@ -9,7 +9,7 @@ from psynet.modular_page import (
     ModularPage,
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.timeline import ProgressDisplay, ProgressStage, Timeline
+from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 from .custom_synth import synth_prosody
@@ -86,6 +86,7 @@ class CustomTrial(StaticTrial):
                     ),
                 ],
             ),
+            events={"recordStart": Event(is_triggered_by="promptEnd")},
         )
 
     def show_feedback(self, experiment, participant):

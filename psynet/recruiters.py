@@ -37,6 +37,8 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
     The PsyNetRecruiter base class
     """
 
+    show_termination_button = False
+
     def compensate_worker(self, *args, **kwargs):
         """A recruiter may provide a means to directly compensate a worker."""
         raise RuntimeError("Compensation is not implemented.")
@@ -54,6 +56,9 @@ class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
     def recruit(self, n=1):
         """Incremental recruitment isn't implemented for now, so we return an empty list."""
         return []
+
+    def terminate_participant(self, participant, reason, details=None):
+        raise NotImplementedError
 
 
 # CAP Recruiter
@@ -317,6 +322,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     The LucidRecruiter base class
     """
 
+    show_termination_button = True
+
     required_consent_page = LucidConsent.LucidConsentPage
     optional_consent_pages = (
         AudiovisualConsent.AudiovisualConsentPage,
@@ -493,7 +500,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
             if reason:
                 try:
-                    self.terminate_participant(entrant.rid, reason, details)
+                    self.terminate_participant(participant, reason, details)
                     logger.info(f"RID {entrant.rid} terminated")
                 except Exception as e:
                     logger.error(f"Error terminating participant {entrant.rid}: {e}")
@@ -684,7 +691,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 reason = "consent-rejected"
             else:
                 reason = "participant-did-not-complete"
-            self.terminate_participant(participant.assignment_id, reason)
+            self.terminate_participant(participant, reason)
 
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.get_survey_storage_key("survey_number"), survey_number)
@@ -713,7 +720,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
                 ris = 10
         if assignment_id is None:
             assignment_id = assignment_id
-        return {"ris": ris, "rid": assignment_id}
+        return {"rid": assignment_id, "ris": ris}
 
     def error_page_content(self, _, _p, assignment_id, external_submit_url):
         if external_submit_url is None:
@@ -746,8 +753,24 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def complete_participant(self, rid):
         return self.lucidservice.complete_respondent(rid)
 
-    def terminate_participant(self, rid, reason, details=None):
-        return self.lucidservice.terminate_respondent(rid, reason, details)
+    def terminate_participant(self, participant, reason, details=None):
+        participant.failed = True
+        participant.failed_reason = reason
+        participant.status = "returned"
+        db.session.commit()
+
+        assignment_id = participant.assignment_id
+        try:
+            self.lucidservice.terminate_respondent(assignment_id, reason, details)
+            logger.info(
+                f"Terminating respondent with RID '{assignment_id}'. Reason: '{reason}'"
+            )
+        except Exception as e:
+            logger.error(
+                f"Error terminating respondent with RID '{assignment_id}': {e}"
+            )
+
+        return self.external_submit_url(assignment_id=assignment_id)
 
     def set_termination_details(self, rid, reason):
         self.lucidservice.set_termination_details(rid, reason)
@@ -758,6 +781,44 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         )
 
         return lucid_recruitment_config.get(key)
+
+    def get_participant(self, request):
+        assignment_id = request.values.get("assignmentId")
+        unique_id = request.values.get("unique_id")
+        participant_id = request.values.get("participant_id")
+        rid = request.values.get("RID")
+        participant = None
+
+        if assignment_id is None:
+            if unique_id is not None:
+                assignment_id = unique_id.split(":")[1]
+            elif rid is not None:
+                assignment_id = rid
+            elif participant_id is not None:
+                participant = (
+                    Participant.query.with_for_update(of=Participant)
+                    .populate_existing()
+                    .get(int(participant_id))
+                )
+                assignment_id = participant.assignment_id
+
+        assert assignment_id is not None, "Could not determine assignment_id."
+
+        if participant is None:
+            try:
+                participant = Participant.query.filter_by(
+                    assignment_id=assignment_id
+                ).one()
+            except NoResultFound:
+                logger.error(
+                    f"No LucidRID for Lucid RID '{assignment_id}' found. This should never happen."
+                )
+            except MultipleResultsFound:
+                logger.error(
+                    f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
+                )
+
+        return participant
 
     @property
     def termination_time_in_s(self):
@@ -789,9 +850,12 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             ).count()
         return recruiter_info
 
-    # @property
-    # def max_response_time_in_s(self):
-    #     return self.get_config_entry("max_response_time_in_s")
+    def change_lucid_status(self, status):
+        survey_number = self.current_survey_number()
+        service = get_lucid_service()
+        service.change_status(survey_number, status)
+        LucidStatus.query.order_by(LucidStatus.id.desc()).first().status = status
+        db.session.commit()
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):
@@ -893,9 +957,9 @@ def get_lucid_settings(
     lucid_recruitment_config["survey"]["CollectsPII"] = collects_pii
     lucid_recruitment_config["inactivity_timeout_in_s"] = inactivity_timeout_in_s
     lucid_recruitment_config["no_focus_timeout_in_s"] = no_focus_timeout_in_s
-    lucid_recruitment_config[
-        "aggressive_no_focus_timeout_in_s"
-    ] = aggressive_no_focus_timeout_in_s
+    lucid_recruitment_config["aggressive_no_focus_timeout_in_s"] = (
+        aggressive_no_focus_timeout_in_s
+    )
     lucid_recruitment_config["initial_response_within_s"] = initial_response_within_s
 
     lucid_recruitment_config = json.dumps(lucid_recruitment_config)

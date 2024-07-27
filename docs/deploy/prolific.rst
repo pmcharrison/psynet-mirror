@@ -105,9 +105,9 @@ take on the experiment via Prolific's bonus functionality. You should explain br
 policy will be if the participant doesn't finish the experiment due to a technical error.
 
 .. warning::
-    Some of our participants have been seeing a phishing warning in their Chrome browser when they navigate to our experiment.
-    This error can intimidate participants. However, it disappears if you take the test in an incognito browser.
-    It's a good idea to mention this in the study description so they know not to worry.
+    If you do not use your own domain name (via the ``--dns-host`` argument), then Dallinger automatically
+    uses a ``nip.io`` subdomain. We think this may be causing certain participants to encounter phishing warnings.
+    It seems that this error can be avoided by instructing the participant to take the test in an incognito browser.
 
 You should select the Prolific recruiter by setting the config parameter ``recruiter`` to ``prolific``.
 Also, for most users we recommend setting the ``auto_recruit`` parameter to ``false``, meaning that you will manually
@@ -139,26 +139,68 @@ It's a good idea to test your experiment thoroughly before deploying it. There a
 3. Pilot it on your remote server by setting ``recruiter = generic`` in ``config.txt`` and then running
    ``bash docker/psynet debug ssh --app your-app-name``.
 
+.. warning::
+
+    If you are running automated experiment tests via Docker as instructed above,
+    and you are using an Apple Silicon Mac, then make sure you have selected
+    'Use Rosetta for x86/amd64 emulation on Apple Silicon' under the Docker preferences,
+    otherwise the tests will run very slowly.
+
 
 Deploying your experiment
 -------------------------
 
 When you're ready to deploy your experiment, give your config one last check, making sure that the
 ``prolific`` recruiter is selected.
-Now you can deploy your app:
+If you need to be connected to a VPN in order to access your server, make sure you are connected to the VPN.
+
+Now you can deploy your app.
+If you do not have a domain name, then PsyNet will automatically use a ``nip.io`` subdomain.
 
 ::
 
     psynet deploy ssh --app your-app-name
 
+If you do have a domain name, you should specify it via the ``--dns-host`` argument.
+For example, Cambridge users might use:
+
+::
+
+    psynet deploy ssh --app your-app-name --dns-host musix.mus.cam.ac.uk
+
+.. note::
+
+    Replace ``your-app-name`` with a name of your choice.
+    This name will become part of the URL that participants will visit to take part in your experiment,
+    so make sure it doesn't include any funny characters or spaces.
+    If your server is limited to a specific set of subdomains, your app name will be restricted to one of those subdomains.
+    For example, in Cambridge we use ``psynet-01``, ``psynet-02``, etc. as app names, which then resolve to URLs of the form
+    ``psynet-01.musix.cam.ac.uk``, ``psynet-02.musix.cam.ac.uk``, etc.
+
 If the command runs successfully, it should print a link to your Prolific dashboard.
 PsyNet will have automatically created a 'draft study' for your, populating certain elements such as the
 title, description, and so on. Go through this draft study carefully and make sure that all the details are
-set appropriately. You will need to set one of the dropdowns to 'Participants will be approved automatically'.
+set appropriately.
+
+There is one item that is labeled something like 'Process submissions',
+where the options are 'Manually review' and 'Approve and pay'.
+Currently we think the best thing is to select 'Approve and pay' but this might change in the future.
+
+Another item asks you how many participants you wish to recruit. This corresponds to the
+``initial_recruitment_size`` parameter in the ``config.txt`` file.
+Even if you plan to recruit a large number of participants, e.g. 100, it's normally best to start with a small number,
+and only increase the number of participants once you're sure that everything is working well.
+We've found in the past that if you give too small a number, however, Prolific deprioritizes your study,
+and recruitment is slow. We recommend starting with something like 10 participants.
 
 You can set particular demographic criteria via the Prolific interface at this point.
 For example, you might choose to select participants from only a certain few countries.
 Advanced users may instead want to control this behavior via PsyNet; see below for instructions.
+
+There is also an option to set a limit on the number of participants that can take the experiment at the same time.
+In theory this would be a great idea for protecting your server from excessive loads.
+However, I have found in practice that recruitment seems strangely slow (or even non-existent) when this is set.
+I would recommend skipping this option for now.
 
 At this point you can preview the study as if you were a Prolific participant. It's a good idea to do this
 and check that everything looks OK.
@@ -170,7 +212,7 @@ Monitor the study by keeping an eye on the following routes:
 
 - The experiment dashboard;
 - The Prolific messages page;
-- The docker-compose logs.
+- The Dozzle logs.
 
 Once you're happy that the experiment is running well, you can increase the number of participants.
 PsyNet seems to cope fine with e.g. 50 participants at a time, but this will depend a bit on the

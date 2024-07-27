@@ -218,28 +218,68 @@ class CodeBlock(Elt):
         )
 
 
-class FixTime(Elt):
-    def __init__(self, time_estimate: float):
+class FixElt(Elt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
+    def __init__(self, time_credit: float):
         super().__init__()
-        self.time_estimate = time_estimate
+        self.time_credit = time_credit
         self.expected_repetitions = 1
 
     def multiply_expected_repetitions(self, factor):
         self.expected_repetitions = self.expected_repetitions * factor
 
 
-class StartFixTime(FixTime):
-    def __init__(self, time_estimate, end_fix_time):
-        super().__init__(time_estimate)
-        self.end_fix_time = end_fix_time
+class StartFixTimeCredit(FixElt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
+    def __init__(self, time_credit: float, end_fix: "EndFixTimeCredit"):
+        super().__init__(time_credit)
+        self.end_fix = end_fix
 
     def consume(self, experiment, participant):
-        participant.time_credit.start_fix_time(self.time_estimate)
+        bound = participant.time_credit + self.time_credit
+        participant.time_credit_fixes.append(bound)
 
 
-class EndFixTime(FixTime):
+class EndFixTimeCredit(FixElt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
     def consume(self, experiment, participant):
-        participant.time_credit.end_fix_time(self.time_estimate)
+        participant.time_credit = participant.time_credit_fixes.pop()
+
+
+class StartFixProgress(FixElt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
+    def consume(self, experiment, participant):
+        bound = (
+            participant.progress
+            + self.time_credit / participant.estimated_max_time_credit
+        )
+        participant.progress_fixes.append(bound)
+
+
+class EndFixProgress(FixElt):
+    """
+    This class is not to be used directly; use instead
+    ``with_fixed_time_credit`` and ``with_fixed_progress``.
+    """
+
+    def consume(self, experiment, participant):
+        participant.progress = participant.progress_fixes.pop()
 
 
 class GoTo(Elt):
@@ -676,8 +716,8 @@ class Page(Elt):
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
 
     show_termination_button:
-        If ``True``, a button is displayed allowing the participant to terminate the experiment, Default ``False``
-        except for Lucid recruiter where it is ``True``.
+        If ``True``, a button is displayed allowing the participant to terminate the experiment, Defaults to ``recruiter.show_termination_button``
+        which can be ``False`` for all recruiters except for the Lucid recruiter where it should be ``True``.
 
     start_trial_automatically
         If ``True`` (default), the trial starts automatically, e.g. by the playing
@@ -862,9 +902,11 @@ class Page(Elt):
                 js="$('#buttonStart').attr('disabled', true)",
             ),
             "trialPrepare": Event(
-                is_triggered_by="trialConstruct"
-                if self.start_trial_automatically
-                else "trialManualRequest",
+                is_triggered_by=(
+                    "trialConstruct"
+                    if self.start_trial_automatically
+                    else "trialManualRequest"
+                ),
                 once=True,
             ),
             "trialStart": Event(is_triggered_by="trialPrepare", once=True),
@@ -1167,13 +1209,10 @@ class Page(Elt):
             "page": self,
             "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "time_reward": "%.2f" % participant.time_credit.get_time_reward(),
+            "time_reward": "%.2f" % participant.time_reward,
             "performance_reward": "%.2f" % participant.performance_reward,
             "total_reward": "%.2f"
-            % (
-                participant.performance_reward
-                + participant.time_credit.get_time_reward()
-            ),
+            % (participant.performance_reward + participant.time_reward),
             "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
@@ -1294,6 +1333,14 @@ class PageMaker(Elt):
             participant=participant,
         )
         res = join(res)
+
+        for elt in res:
+            if isinstance(elt, StartModule):
+                raise ValueError(
+                    "Sorry, you cannot use modules or trial makers inside the lambda functions of "
+                    "page makers or for loops. These need to be defined upon construction of the timeline."
+                )
+
         self.impute_time_estimates(res)
         self.check_time_estimates(res)
 
@@ -1400,7 +1447,6 @@ class Timeline:
         if not isinstance(self.elts[-1], EndPage):
             raise ValueError("The final element in the timeline must be an EndPage.")
         self.check_for_time_estimate()
-        self.check_start_fix_times()
         self.check_for_consent()
         self.check_modules()
 
@@ -1412,26 +1458,6 @@ class Timeline:
                 raise ValueError(
                     f"Element {i} of the timeline was missing a time_estimate value."
                 )
-
-    def check_start_fix_times(self):
-        try:
-            _fix_time = False
-            for i, elt in enumerate(self.elts):
-                if isinstance(elt, StartFixTime):
-                    assert not _fix_time
-                    _fix_time = True
-                elif isinstance(elt, EndFixTime):
-                    assert _fix_time
-                    _fix_time = False
-        except AssertionError:
-            raise ValueError(
-                "Nested 'fix-time' constructs detected. This typically means you have "
-                "nested conditionals or while loops with fix_time_credit=True. "
-                "Such constructs cannot be nested; instead you should choose one level "
-                "at which to set fix_time_credit=True. An example where this error might "
-                "occur is when you put a TrialMaker within a switch. In this case, "
-                "make sure to set `fix_time_credit=False` within that switch."
-            )
 
     def check_modules(self):
         modules = [x.label for x in self.elts if isinstance(x, StartModule)]
@@ -1644,11 +1670,11 @@ class CreditEstimate:
             if elt.returns_time_credit:
                 time_credit += elt.time_estimate * elt.expected_repetitions
 
-            if isinstance(elt, StartFixTime):
-                pos = elts.index(elt.end_fix_time)
+            if isinstance(elt, StartFixTimeCredit):
+                pos = elts.index(elt.end_fix)
 
-            elif isinstance(elt, EndFixTime):
-                time_credit += elt.time_estimate * elt.expected_repetitions
+            elif isinstance(elt, EndFixTimeCredit):
+                time_credit += elt.time_credit * elt.expected_repetitions
                 pos += 1
 
             elif isinstance(elt, StartSwitch):
@@ -1674,6 +1700,12 @@ class CreditEstimate:
 
             else:
                 pos += 1
+
+
+def estimate_duration(logic):
+    # This join ensures that any modules are resolved into lists of Elts.
+    elts = join(logic)
+    return CreditEstimate(elts).get_max("time")
 
 
 class FailedValidation:
@@ -1906,7 +1938,6 @@ def while_loop(
     list
         A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
-
     start_while = StartWhile(label)
     end_while = EndWhile(label)
 
@@ -1965,24 +1996,32 @@ def while_loop(
                 experiment=experiment,
             ),
             after_timeout_logic,
-            fix_time_credit=False,
+            # The while loop includes its own progress bounds, so we don't need to bound progress
+            # within this inner component.
+            bound_progress=False,
             log_chosen_branch=False,
         ),
         conditional(
             label,
             condition_wrapped,
             conditional_logic,
-            fix_time_credit=False,
+            # The while loop includes its own progress bounds, so we don't need to bound progress here.
+            # Moreover, this conditional contains a GoTo, which will cause the progress bound logic
+            # to fail if enabled here.
+            bound_progress=False,
             log_chosen_branch=False,
         ),
         end_while,
     )
 
+    time_estimate = CreditEstimate(logic).get_max("time")
+
+    elts = with_fixed_progress(elts, time_estimate)
+
     if fix_time_credit:
-        time_estimate = CreditEstimate(logic).get_max("time")
-        return fix_time(elts, time_estimate)
-    else:
-        return elts
+        elts = with_fixed_time_credit(elts, time_estimate)
+
+    return elts
 
 
 def check_branches(branches):
@@ -2008,6 +2047,7 @@ def switch(
     function: Callable,
     branches: dict,
     fix_time_credit: bool = False,
+    bound_progress: bool = True,
     log_chosen_branch: bool = True,
 ):
     """
@@ -2034,6 +2074,11 @@ def switch(
         Defaults to ``False``; if set to ``True``,
         all participants receive the same credit, corresponding to the branch with the maximum time credit.
 
+    bound_progress:
+        Whether the progress estimate should be 'bound' such that, whatever happens, when the participant
+        exits the conditional construct, the progress estimate will be the same as if the participant
+        had taken the branch with the maximum time credit. Defaults to ``True``.
+
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
 
@@ -2043,7 +2088,6 @@ def switch(
     list
         A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
-
     check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
 
@@ -2066,16 +2110,20 @@ def switch(
     )
     combined_elts = [start_switch] + all_elts + [end_switch]
 
+    time_estimate = max(
+        [
+            CreditEstimate(branch_elts).get_max("time")
+            for branch_elts in branches.values()
+        ]
+    )
+
+    if bound_progress:
+        combined_elts = with_fixed_progress(combined_elts, time_estimate)
+
     if fix_time_credit:
-        time_estimate = max(
-            [
-                CreditEstimate(branch_elts).get_max("time")
-                for branch_elts in branches.values()
-            ]
-        )
-        return fix_time(combined_elts, time_estimate)
-    else:
-        return combined_elts
+        combined_elts = with_fixed_time_credit(combined_elts, time_estimate)
+
+    return combined_elts
 
 
 class StartSwitch(ReactiveGoTo):
@@ -2127,6 +2175,7 @@ def conditional(
     logic_if_true,
     logic_if_false=None,
     fix_time_credit: bool = False,
+    bound_progress: bool = True,
     log_chosen_branch: bool = True,
 ):
     """
@@ -2154,6 +2203,11 @@ def conditional(
         Defaults to ``False``; if set to ``True``,
         all participants receive the same credit, corresponding to the branch with the maximum time credit.
 
+    bound_progress:
+        Whether the progress estimate should be 'bound' such that, whatever happens, when the participant
+        exits the conditional construct, the progress estimate will be the same as if the participant
+        had taken the branch with the maximum time credit. Defaults to ``True``.
+
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
 
@@ -2171,6 +2225,7 @@ def conditional(
             False: NullElt() if logic_if_false is None else logic_if_false,
         },
         fix_time_credit=fix_time_credit,
+        bound_progress=bound_progress,
         log_chosen_branch=log_chosen_branch,
     )
 
@@ -2189,10 +2244,47 @@ class EndConditional(ConditionalElt):
     pass
 
 
-def fix_time(elts, time_estimate):
-    end_fix_time = EndFixTime(time_estimate)
-    start_fix_time = StartFixTime(time_estimate, end_fix_time)
-    return join(start_fix_time, elts, end_fix_time)
+def with_fixed_progress(elts: List[Elt], time_credit: float):
+    """
+    Ensures that, when the provided list of elts has been consumed,
+    the participant's progress corresponds exactly to the specified
+    time credit, irrespective of whatever happens within those elts.
+
+    Parameters
+    ----------
+
+    elts :
+        A list of timeline Elts.
+
+    time_credit :
+        The progress increment is calculated as if the participant had acquired
+        this amount of time credit (in units of seconds).
+    """
+    return join(
+        StartFixProgress(time_credit),
+        elts,
+        EndFixProgress(time_credit),
+    )
+
+
+def with_fixed_time_credit(elts, time_credit):
+    """
+    Ensures that, when the provided list of elts has been consumed,
+    the participant's resulting time credit corresponds exactly to the specified
+    value, irrespective of whatever happens within those elts.
+
+    Parameters
+    ----------
+
+    elts :
+        A list of timeline Elts.
+
+    time_credit :
+        The amount of time credit to allocate (in units of seconds).
+    """
+    end_fix = EndFixTimeCredit(time_credit)
+    start_fix = StartFixTimeCredit(time_credit, end_fix)
+    return join(start_fix, elts, end_fix)
 
 
 def multiply_expected_repetitions(logic, factor: float):
@@ -2682,12 +2774,6 @@ class RecruitmentCriterion(NullElt):
         self.function = function
 
 
-def get_trial_maker(trial_maker_id):
-    raise ImportError(
-        "get_trial_maker has moved from psynet.timeline to psynet.experiment, please update your import statements."
-    )
-
-
 FOR_LOOP_STACK_DEPTH = -1
 
 
@@ -2779,24 +2865,125 @@ def for_loop(
                 PageMaker(content, time_estimate_per_iteration),
                 CodeBlock(increment_counter),
             ),
-            expected_repetitions=expected_repetitions
-            if expected_repetitions
-            else estimate_num_repetitions(iterate_over),
+            expected_repetitions=(
+                expected_repetitions
+                if expected_repetitions
+                else estimate_num_repetitions(iterate_over)
+            ),
             fix_time_credit=False,
         ),
         CodeBlock(wrapup),
     )
 
 
-def randomize(*, label, logic):
+def sequence(
+    *,
+    label: str,
+    function: Callable,
+    logic: list,
+):
+    """
+    Administers a sequence of logical units in an order determined by a function.
+    This could be used, for example, to determine the order of a series of questionnaires.
+    See ``randomize`` for a special case where the order is randomized.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+
+    function:
+        A function with up to two arguments named ``participant`` and ``experiment``,
+        that is executed once the participant reaches the corresponding part of the timeline,
+        returning a list of indices that will be used to determine the order of the sequence.
+
+    logic:
+        A list of logical units to be administered in the order determined by ``function``.
+        Each element should be a unit of timeline logic, for example a trial maker
+        or a sequence of Elts created through the join function.
+    """
     assert isinstance(logic, list)
+
+    for elt in logic:
+        if isinstance(elt, (StartModule, StartSwitch)):
+            raise ValueError(
+                f"Saw an unexpected element within `sequence`: f{elt} ."
+                "Perhaps you are misusing the function? "
+                "`logic` should be a list where each element is a unit of timeline to be inserted into a sequence. "
+                "This could be a page, or it could be a module, a trial maker, or something like that. "
+                "Note that you do NOT want to pass the output of `join` directly to `sequence`."
+            )
+
+    sequence_length = len(logic)
+
+    def initialize_sequence(participant, experiment):
+        seq = call_function_with_context(
+            function, participant=participant, experiment=experiment
+        )
+        assert isinstance(seq, list)
+        assert len(seq) == sequence_length
+        participant.sequences.append(seq)
+        flag_modified(participant, "sequences")
+
+    def sequence_is_not_finished(participant):
+        return len(participant.sequences[-1]) > 0
+
+    def get_current_position(participant):
+        return participant.sequences[-1][0]
+
+    def progress_sequence(participant):
+        participant.sequences[-1].pop(0)
+        flag_modified(participant, "sequences")
+
+    def tear_down_sequence(participant):
+        participant.sequences.pop()
+        flag_modified(participant, "sequences")
+
+    label = f"sequence_{label}"
+
+    return join(
+        CodeBlock(initialize_sequence),
+        while_loop(
+            label=label,
+            condition=sequence_is_not_finished,
+            logic=join(
+                switch(
+                    label=label,
+                    function=get_current_position,
+                    branches={i: logic[i] for i in range(sequence_length)},
+                ),
+                CodeBlock(progress_sequence),
+            ),
+            expected_repetitions=sequence_length,
+            fix_time_credit=False,
+        ),
+        CodeBlock(tear_down_sequence),
+    )
+
+
+def randomize(*, label, logic):
+    """
+    Randomizes the order of a series of logical units.
+    This could be used, for example, to randomize the order of a series of questionnaires.
+    Each participant will receive a different random order.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+
+    logic:
+        A list to be randomized.
+        Each element should be a unit of timeline logic, for example a trial maker
+        or a sequence of Elts created through the join function.
+    """
     n = len(logic)
-    total_time = sum(elt.time_estimate for elt in logic)
-    return for_loop(
+    return sequence(
         label=label,
-        iterate_over=lambda: random.sample(range(n), n),
-        logic=lambda i: logic[i],
-        time_estimate_per_iteration=total_time / n,
+        function=lambda participant: random.sample(range(n), k=n),
+        logic=logic,
     )
 
 

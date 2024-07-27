@@ -1,6 +1,7 @@
 """
 Video Imitation Chain Demo
 """
+
 import random
 
 from dallinger import db

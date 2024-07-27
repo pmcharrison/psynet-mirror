@@ -323,7 +323,7 @@ class Trial(SQLMixinDallinger, Info):
         post_update=True,
     )
     parent_trial = relationship(
-        "psynet.trial.main.Trial", foreign_keys=[parent_trial_id]
+        "psynet.trial.main.Trial", foreign_keys=[parent_trial_id], uselist=False
     )
     response = relationship("psynet.timeline.Response")
 
@@ -440,7 +440,7 @@ class Trial(SQLMixinDallinger, Info):
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
-        self.parent_trial_id = None if parent_trial is None else parent_trial.id
+        self.parent_trial = parent_trial
         self.repeat_trial_index = repeat_trial_index
         self.n_repeat_trials = n_repeat_trials
         self.score = None
@@ -900,18 +900,14 @@ class Trial(SQLMixinDallinger, Info):
         )
 
     @classmethod
-    def _get_current_time_credit(cls, participant):
-        return participant.time_credit.confirmed_credit
-
-    @classmethod
     def _log_time_credit_before_trial(cls, participant):
         trial = participant.current_trial
-        trial.time_credit_before_trial = cls._get_current_time_credit(participant)
+        trial.time_credit_before_trial = participant.time_credit
 
     @classmethod
     def _log_time_credit_after_trial(cls, participant):
         trial = participant.current_trial
-        trial.time_credit_after_trial = cls._get_current_time_credit(participant)
+        trial.time_credit_after_trial = participant.time_credit
         trial.time_credit_from_trial = (
             trial.time_credit_after_trial - trial.time_credit_before_trial
         )
@@ -1262,9 +1258,11 @@ class TrialMaker(Module):
             self.introduction,
             self._trial_loop(),
             self._wrapup_core,
-            self._check_performance_logic(type="end")
-            if self.check_performance_at_end
-            else None,
+            (
+                self._check_performance_logic(type="end")
+                if self.check_performance_at_end
+                else None
+            ),
         )
 
     def custom(self, *args, assets=None, nodes=None):
@@ -2475,10 +2473,8 @@ class NetworkTrialMaker(TrialMaker):
     def performance_check_consistency(
         self, experiment, participant, participant_trials
     ):
-        trials_by_id = {trial.id: trial for trial in participant_trials}
-
         repeat_trials = [t for t in participant_trials if t.is_repeat_trial]
-        parent_trials = [trials_by_id[t.parent_trial_id] for t in repeat_trials]
+        parent_trials = [t.parent_trial for t in repeat_trials]
 
         repeat_trial_answers = [
             self.get_answer_for_consistency_check(t) for t in repeat_trials
@@ -2536,7 +2532,7 @@ class NetworkTrialMaker(TrialMaker):
     def group_trials_by_parent(trials):
         res = {}
         for trial in trials:
-            parent_id = trial.parent_trial_id
+            parent_id = trial.parent_trial.id
             if parent_id not in res:
                 res[parent_id] = []
             res[parent_id].append(trial)
@@ -2611,6 +2607,13 @@ class TrialNetwork(SQLMixinDallinger, Network):
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         Participant, foreign_keys=[participant_id], post_update=True
+    )
+    participants = relationship(
+        Participant,
+        secondary="info",  # The info table is where Trials are stored (for historic reasons)
+        primaryjoin="psynet.trial.main.TrialNetwork.id == psynet.trial.main.Trial.network_id",
+        secondaryjoin="psynet.trial.main.Trial.participant_id == psynet.participant.Participant.id",
+        viewonly=True,
     )
 
     async_post_grow_network_required = Column(Boolean, default=False, index=True)

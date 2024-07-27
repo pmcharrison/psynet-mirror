@@ -10,7 +10,7 @@ from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
+from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial, StaticTrialMaker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -125,9 +125,34 @@ trial_maker = AnimalTrialMaker(
 class Exp(psynet.experiment.Experiment):
     label = "Static experiment demo"
     initial_recruitment_size = 1
+    test_n_bots = 2
 
     timeline = Timeline(
         NoConsent(),
         trial_maker,
         SuccessfulEndPage(),
     )
+
+    def test_check_bot(self, participant):
+        self.check_network_participants_relationship(participant)
+
+    def check_network_participants_relationship(self, participant):
+        """
+        This function checks that the network.participants relationship works correctly.
+        The relationship works by retrieving all participants with trials in that network.
+        We check this relationship by cross-referencing it against the participant.all_trials relationship.
+        """
+        participant_networks = set([trial.network for trial in participant.all_trials])
+        all_networks = StaticNetwork.query.all()
+
+        assert len(participant_networks) > 0
+
+        counter = 0
+        for network in all_networks:
+            if participant in network.participants:
+                assert network in participant_networks
+                counter += 1
+            else:
+                assert network not in participant_networks
+
+        assert counter == len(participant_networks)

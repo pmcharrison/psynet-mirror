@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "11.1.0"
+version = "11.4.0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -16,7 +16,7 @@ maintainers = [
   {name = "Peter Harrison", email = "pmch2@cam.ac.uk"}
 ]
 license = {file = "LICENSE"}
-description = "PsyNet – The online human behaviour lab of the future."  # A framework for running advanced psychological experiments
+description = "PsyNet – complex psychological experiments made easy"  # A framework for running advanced psychological experiments
 keywords = ["psychology", "experiments", "online", "networks"]
 readme = "README.md"
 requires-python = ">=3.10"  # recommended Python version: 3.12
@@ -32,20 +32,18 @@ classifiers = [
 ]
 
 dependencies = [
-    "dallinger[docker]>=10.0.1,<11",
+    "babel",
+    "dallinger[docker]>=10.1.1,<11",
     "dominate",
-    "ipywidgets",
     "joblib",
     "jsonpickle",
+    "pandas",
     "paramiko",
     "polib",
-    "praat-parselmouth",
     "progress",
     "pytest",
     "python-gettext",
     "rpdb",
-    "sphinx",
-    "statsmodels",
     "tenacity",
     "tqdm",
     "yaspin",
@@ -58,6 +56,7 @@ dev = [
     "mock",
     "pre-commit",
     "pybabel",
+    "sphinx",
     "sphinx-autodoc-typehints",
 ]
 

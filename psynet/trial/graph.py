@@ -6,8 +6,6 @@ from dallinger import db
 
 from ..field import claim_field
 from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
-
-# from psynet.trial.main import with_trial_maker_namespace
 from .main import with_trial_maker_namespace
 
 
@@ -36,7 +34,7 @@ class GraphChainNetwork(ChainNetwork):
     dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
     source_seed = claim_field("source_seed", __extra_vars__)
 
-    def __init__(  # overriden
+    def __init__(
         self,
         trial_maker_id: str,
         experiment,
@@ -71,7 +69,7 @@ class GraphChainTrial(ChainTrial):
     def make_definition(self, experiment, participant):
         """
         (Built-in)
-        In an graph chain, the trial's definition equals the definition of
+        In a graph chain, the trial's definition equals the definition of
         the node that created it.
 
         Parameters
@@ -132,11 +130,8 @@ class GraphChainNode(ChainNode):
             participant=participant,
         )
 
-    # def create_initial_seed(self, experiment, participant):
-    #     return self.network.source_seed
-
     @staticmethod
-    def generate_class_seed():
+    def generate_class_seed(vertex=None):
         raise NotImplementedError
 
     def create_definition_from_seed(self, seed, experiment, participant):
@@ -222,7 +217,7 @@ class GraphChainNode(ChainNode):
         elif len(parents) < len(self.dependent_vertex_ids):
             return False
         else:
-            raise ValueError("Invalid number of parent nodes!")
+            return False
 
     def get_parents(self):
         trial_maker_id = self.network.trial_maker_id
@@ -231,9 +226,16 @@ class GraphChainNode(ChainNode):
         current_layer = [
             n
             for n in nodes
-            if n.network.trial_maker_id == trial_maker_id and n.degree == degree
+            if n.network.trial_maker_id == trial_maker_id
+            and n.degree == degree
+            and not n.failed
         ]
-        parents = [n for n in current_layer if n.vertex_id in self.dependent_vertex_ids]
+        parents = [
+            n
+            for n in current_layer
+            if n.vertex_id in self.dependent_vertex_ids
+            and ((n.network.head == n) or (n.child))  # remove duplicate racing heads
+        ]
         return parents
 
 
@@ -379,10 +381,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         participant = None
         head = network.head
         if head.ready_to_spawn:
-            if head.degree > 0:
-                seed_bundle = self.create_seed_bundle(head, experiment, participant)
-            else:
-                seed_bundle = head.create_seed(experiment, participant)
+            seed_bundle = self.create_seed_bundle(head, experiment, participant)
             node = self.node_class(
                 seed_bundle,
                 head.degree + 1,
@@ -396,6 +395,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             db.session.add(node)
             network.add_node(node)
             db.session.commit()
+            node.check_on_create()
             node.check_on_deploy()
             db.session.commit()
             return True
@@ -404,6 +404,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
     def create_seed_bundle(self, head, experiment, participant):
         head_seed = head.create_seed(experiment, participant)
         parents = head.get_parents()
+        while len(parents) < len(head.dependent_vertex_ids):
+            parents = head.get_parents()
         bundle = [
             {
                 "vertex_id": head.network.vertex_id,
@@ -428,7 +430,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         centers = [
             {
                 "vertex_id": v,
-                "content": self.node_class.generate_class_seed(),
+                "content": self.node_class.generate_class_seed(v),
                 "is_center": True,
             }
             for v in vertices

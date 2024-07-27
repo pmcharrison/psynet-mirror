@@ -1,16 +1,14 @@
 {% extends "base/dashboard.html" %}
 {% block scripts %}
-    <script src="/static/scripts/d3/d3.v4.js"></script>
-    <script src="/static/scripts/d3/d3-tip.min.js"></script>
+    <script src="/static/scripts/d3.v4.js"></script>
+    <script src="/static/scripts/d3-tip.min.js"></script>
     <script src="/static/scripts/d3-visualizations.js"></script>
-    <script src="/static/scripts/jqueryui/jquery-ui.min.js"></script>
+    <script src="/static/scripts/jquery-ui.min.js"></script>
 {% endblock %}
 {% block stylesheets %}
     {{ super() }}
-    <link rel="stylesheet" href="/static/scripts/d3/d3-tip.css">
-    <link rel="stylesheet" href="/static/scripts/jqueryui/jquery-ui.css">
-
-
+    <link rel="stylesheet" href="/static/css/d3-tip.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui.css">
 {% endblock %}
 {% block body %}
     <style>

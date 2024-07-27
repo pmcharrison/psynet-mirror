@@ -42,7 +42,6 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm import joinedload, relationship
 
 from psynet import __version__
@@ -97,6 +96,7 @@ from .utils import (
     get_logger,
     get_translator,
     log_time_taken,
+    make_parents,
     pretty_log_dict,
     render_template_with_translations,
     serialise,
@@ -1264,7 +1264,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "lock_table_when_creating_participant": False,
             "min_browser_version": "80.0",
             "wage_per_hour": 9.0,
-            "max_wage_per_hour": 18.0,
             "currency": "$",
             "min_accumulated_reward_for_abort": 0.20,
             "show_abort_button": False,
@@ -1544,7 +1543,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.failed = True
         participant.failed_reason = failed_reason
         participant.time_of_death = datetime.now()
-        participant.status = "returned"
+
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(
                 "Executing fail routine %i/%i ('%s')...",
@@ -1813,7 +1812,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             if not response.successful_validation:
                 return self.response_rejected(message=validation.message)
-            participant.time_credit.increment(event.time_estimate)
+
+            participant.inc_time_credit(event.time_estimate)
+            participant.inc_progress(event.time_estimate)
+
             self.timeline.advance_page(self, participant)
             return self.response_approved(participant)
         except Exception as err:
@@ -1824,12 +1826,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     err,
                     participant=participant,
                     trial=participant.current_trial,
-                    node=participant.current_trial.node
-                    if participant.current_trial
-                    else None,
-                    network=participant.current_trial.network
-                    if participant.current_trial
-                    else None,
+                    node=(
+                        participant.current_trial.node
+                        if participant.current_trial
+                        else None
+                    ),
+                    network=(
+                        participant.current_trial.network
+                        if participant.current_trial
+                        else None
+                    ),
                 )
             return error_response(participant=participant)
 
@@ -1930,8 +1936,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/d3-visualizations.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/css/bootstrap.min.css",
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap/bootstrap.bundle.min.js",
+                    "/static/scripts/bootstrap.bundle.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap-select/bootstrap-select.min.js",
+                    "/static/scripts/bootstrap-select.min.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/bootstrap-select/bootstrap-select.min.css",
+                    "/static/css/bootstrap-select.min.css",
                 ),
                 (
                     resources.files("psynet") / "resources/css/consent.css",
@@ -1987,17 +2009,35 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/abc-js",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/d3",
-                    "/static/scripts/d3",
+                    resources.files("psynet") / "resources/libraries/d3/d3.v4.js",
+                    "/static/scripts/d3.v4.js",
                 ),
                 (
-                    resources.files("psynet") / "resources/libraries/jqueryui",
-                    "/static/scripts/jqueryui",
+                    resources.files("psynet") / "resources/libraries/d3/d3-tip.min.js",
+                    "/static/scripts/d3-tip.min.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/libraries/d3/d3-tip.css",
+                    "/static/css/d3-tip.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jqueryui/jquery-ui.css",
+                    "/static/css/jquery-ui.css",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/jqueryui/jquery-ui.min.js",
+                    "/static/scripts/jquery-ui.min.js",
                 ),
                 (
                     resources.files("psynet")
                     / "resources/scripts/prepare_docker_image.sh",
                     "prepare_docker_image.sh",
+                ),
+                (
+                    "config.txt",
+                    ".config.backup",
                 ),
                 (
                     ".deploy",
@@ -2033,7 +2073,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("label", unicode)
         config.register("min_browser_version", unicode)
         config.register("wage_per_hour", float)
-        config.register("max_wage_per_hour", float)
         config.register("currency", unicode)
         config.register("min_accumulated_reward_for_abort", float)
         config.register("show_abort_button", bool)
@@ -2358,19 +2397,61 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp = get_experiment()
         return exp.deployment_id
 
-    @experiment_route("/dashboard/export", methods=["GET"])
+    @experiment_route("/download_source", methods=["GET"])
     @classmethod
+    def download_source(cls):
+        if not authenticate(request.authorization, get_and_load_config()):
+            return jsonify({"message": "Invalid credentials"}), 401
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            label = get_config().get("label")
+            temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
+            shutil.copytree(
+                os.path.join(os.getcwd()),
+                os.path.join(temp_exp_dir),
+                dirs_exist_ok=True,
+                ignore_dangling_symlinks=True,
+                ignore=shutil.ignore_patterns(
+                    ".git",
+                    "__pycache__",
+                    "develop",
+                    "static/assets",
+                    "config.txt",
+                    f"{label}-*",
+                ),
+            )
+            shutil.move(
+                os.path.join(temp_exp_dir, ".config.backup"),
+                os.path.join(temp_exp_dir, "config.txt"),
+            )
+            zip_filepath = shutil.make_archive(f"{label}-source", "zip", tempdir)
+            return send_file(zip_filepath, mimetype="zip")
+
+    @experiment_route("/dashboard/export", methods=["GET"])
     @with_transaction
-    def export(cls):
+    def export():
+        from flask_login import current_user
+
         from .command_line import export__local
+
+        config = get_and_load_config()
+
+        if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
+            return error_response(error_text="Invalid credentials", simple=True)
 
         with tempfile.TemporaryDirectory() as tempdir:
             ctx = Context(export__local)
-            ctx.invoke(export__local, path=tempdir, n_parallel=None)
+            ctx.invoke(
+                export__local,
+                path=tempdir,
+                n_parallel=None,
+                username=config.get("dashboard_user"),
+                password=config.get("dashboard_password"),
+            )
 
-            file_basename = get_config().get("label")
-            zip_filepath = shutil.make_archive(f"{file_basename}-data", "zip", tempdir)
-
+            zip_filepath = shutil.make_archive(
+                f'{get_config().get("label")}-data', "zip", tempdir
+            )
             return send_file(zip_filepath, mimetype="zip")
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
@@ -2598,66 +2679,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     @with_transaction
     def terminate_participant(cls):
-        reason = request.values.get("reason", "")
-        assignment_id = request.values.get("assignmentId")
-        unique_id = request.values.get("unique_id")
-        participant_id = request.values.get("participant_id")
-        rid = request.values.get("RID")
-        participant = None
-        if assignment_id is None and unique_id is not None:
-            assignment_id = unique_id.split(":")[1]
-
-        if assignment_id is None and rid is not None:
-            assignment_id = rid
-
-        if assignment_id is None and participant_id is not None:
-            participant_id = int(participant_id)
-            participant = (
-                Participant.query.with_for_update(of=Participant)
-                .populate_existing()
-                .get(participant_id)
-            )
-            assignment_id = participant.assignment_id
-
-        assert assignment_id is not None, "No assignment ID provided"
-
-        if participant is None:
-            try:
-                participant = Participant.query.filter_by(
-                    assignment_id=assignment_id
-                ).one()
-            except NoResultFound:
-                logger.error(
-                    f"No LucidRID for Lucid RID '{assignment_id}' found. This should never happen."
-                )
-            except MultipleResultsFound:
-                logger.error(
-                    f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
-                )
-
-        if participant is not None:
-            participant.failed = True
-            participant.failed_reason = reason
-            participant.status = "returned"
-
-        external_submit_url = None
-
-        try:
-            recruiter = get_experiment().recruiter
-            if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(
-                    assignment_id=assignment_id
-                )
-            if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(assignment_id, reason)
-                logger.info(
-                    f"Terminating participant with RID {assignment_id} with reason '{reason}'"
-                )
-
-        except Exception as e:
-            logger.error(
-                f"Error terminating participant with RID '{assignment_id}': {e}"
-            )
+        recruiter = get_experiment().recruiter
+        external_submit_url = recruiter.terminate_participant(
+            recruiter.get_participant(request), request.values.get("reason")
+        )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",
@@ -2667,17 +2692,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/change_lucid_status", methods=["GET"])
     @classmethod
     def change_lucid_status(cls):
-        from .lucid import get_lucid_service
-        from .recruiters import LucidStatus
-
-        exp = get_experiment()
-        recruiter = exp.recruiter
-        survey_number = recruiter.current_survey_number()
-        service = get_lucid_service()
-        status = request.values.get("status", "")
-        service.change_status(survey_number, status)
-        LucidStatus.query.order_by(LucidStatus.id.desc()).first().status = status
-        db.session.commit()
+        get_experiment().recruiter.change_lucid_status(request.values.get("status", ""))
         return success_response()
 
     @staticmethod
@@ -2786,12 +2801,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 err,
                 participant=participant,
                 trial=participant.current_trial,
-                node=participant.current_trial.node
-                if participant.current_trial
-                else None,
-                network=participant.current_trial.network
-                if participant.current_trial
-                else None,
+                node=(
+                    participant.current_trial.node
+                    if participant.current_trial
+                    else None
+                ),
+                network=(
+                    participant.current_trial.network
+                    if participant.current_trial
+                    else None
+                ),
             )
             cls.fail_participant_on_error(participant, err)
             return handled_error.error_page()
@@ -2977,7 +2996,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentageStr": f"{progress_percentage}%",
         }
         if get_and_load_config().get("show_reward"):
-            time_reward = participant.time_credit.get_time_reward()
+            time_reward = participant.time_reward
             performance_reward = participant.performance_reward
             total_reward = participant.calculate_reward()
             data["reward"] = {
@@ -3162,6 +3181,14 @@ def get_trial_maker(trial_maker_id) -> TrialMaker:
 
 def in_deployment_package():
     return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))
+
+
+def authenticate(auth, config):
+    return (
+        auth
+        and auth.username == config.get("dashboard_user")
+        and auth.password == config.get("dashboard_password")
+    )
 
 
 # Dallinger defines various HTTP routes that provide access to database content.

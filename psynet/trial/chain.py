@@ -1,4 +1,5 @@
 import random
+import warnings
 from typing import Optional, Type
 
 from dallinger import db
@@ -23,7 +24,13 @@ from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
-from ..utils import call_function_with_context, get_logger, log_time_taken, negate
+from ..utils import (
+    NoArgumentProvided,
+    call_function_with_context,
+    get_logger,
+    log_time_taken,
+    negate,
+)
 from .main import (
     NetworkTrialMaker,
     NetworkTrialMakerState,
@@ -148,7 +155,9 @@ class ChainNetwork(TrialNetwork):
     definition = Column(PythonObject)
     block = Column(String, index=True)
 
-    head = relationship("ChainNode", foreign_keys=[head_id], post_update=True)
+    head = relationship(
+        "ChainNode", foreign_keys=[head_id], post_update=True, lazy="joined"
+    )
 
     def __init__(
         self,
@@ -301,9 +310,10 @@ class ChainNetwork(TrialNetwork):
 
     @property
     def degree(self):
-        if self.n_alive_nodes == 0:
+        if self.head is None:
             return 0
-        return max([node.degree for node in self.alive_nodes])
+        else:
+            return self.head.degree
 
     # @property
     # def head(self):
@@ -1194,7 +1204,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         network_class: Type[ChainNetwork] = None,
         chain_type: str,
         expected_trials_per_participant: int,
-        max_trials_per_participant: Optional[int] = None,
+        max_trials_per_participant: Optional[int] = NoArgumentProvided,
         max_trials_per_block: Optional[int] = None,
         max_nodes_per_chain: Optional[int] = None,
         chains_per_participant: Optional[int] = None,
@@ -1217,6 +1227,17 @@ class ChainTrialMaker(NetworkTrialMaker):
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
     ):
+        if max_trials_per_participant == NoArgumentProvided:
+            warnings.warn(
+                "It is now requested that you specify `max_trials_per_participant` explicitly. "
+                "Normally you should set this to the maximum number of trials that you "
+                "anticipate the participant being able to take. In rare cases you might want "
+                "to set it to `None`, which allows the participant to continue forever until "
+                "they are stopped by other factors (e.g. no more chains left to participate in).",
+                DeprecationWarning,
+            )
+            max_trials_per_participant = None
+
         if network_class is None:
             network_class = self.default_network_class
 
@@ -1634,7 +1655,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks = self.custom_network_filter(
             candidates=networks,
             participant=participant,
-            experiment=experiment,
         )
 
         logger.info("%i remain after applying custom network filters.", len(networks))
@@ -1733,7 +1753,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     def prioritize_networks(self, networks, participant, experiment):
         return networks
 
-    def custom_network_filter(self, candidates, participant, experiment):
+    def custom_network_filter(self, candidates, participant):
         """
         Override this function to define a custom filter for choosing the participant's next network.
 
@@ -1744,9 +1764,6 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         participant:
             The current participant.
-
-        experiment:
-            The current experiment.
 
         Returns
         -------

@@ -27,9 +27,9 @@ class Exp(psynet.experiment.Experiment):
                 ["Red", "Green", "Blue"],
             ),
             time_estimate=5,
-            validate=lambda answer: "Blue is an invalid answer!"
-            if answer == "blue"
-            else None,
+            validate=lambda answer: (
+                "Blue is an invalid answer!" if answer == "blue" else None
+            ),
             bot_response="blue",
         ),
         ModularPage(
