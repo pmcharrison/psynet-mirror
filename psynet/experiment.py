@@ -193,6 +193,23 @@ class Request(SQLBase, SQLMixin):
 
 
 @register_table
+class TrackJS(SQLBase, SQLMixin):
+    __tablename__ = "track_js"
+
+    # These fields are removed from the database table as they are not needed.
+    failed = None
+    failed_reason = None
+    time_of_death = None
+
+    ip = Column(String)
+    meta = Column(PythonDict, default={})
+    page_id = Column(String)
+    hash = Column(String)
+    page_uuid = Column(String, nullable=True, default=None)
+    participant_id = Column(Integer, nullable=True, default=None)
+
+
+@register_table
 class ExperimentStatus(SQLBase, SQLMixin):
     __tablename__ = "experiment_status"
 
@@ -1333,6 +1350,48 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         function = EXPOSED_FUNCTIONS[endpoint]
         return function(**data)
+
+    @experiment_route("/track", methods=["GET", "POST"])
+    @staticmethod
+    def track():
+        # get data from request
+        if request.method == "POST":
+            data = request.get_json()
+        elif request.method == "GET":
+            data = request.args
+        else:
+            return error_response(
+                "Unsupported request method %s" % request.method, simple=True
+            )
+
+        # check if data is valid
+        if not isinstance(data, dict):
+            return error_response("Data must be a dictionary", simple=True)
+
+        # check if data contains required fields
+        required_fields = ["ip", "meta", "pageID", "hash"]
+        missing_fields = [field for field in required_fields if field not in data]
+        if len(missing_fields) > 0:
+            return error_response(
+                f"Data must contain the following fields: {missing_fields}", simple=True
+            )
+
+        TrackJS.query.filter_by(
+            page_id=data["pageID"], ip=data["ip"], hash=data["hash"]
+        ).delete()
+
+        db.session.add(
+            TrackJS(
+                ip=data["ip"],
+                meta=data["meta"],
+                page_id=data["pageID"],
+                hash=data["hash"],
+                participant_id=data.get("participantId", None),
+                page_uuid=data.get("pageUuid", None),
+            )
+        )
+        db.session.commit()
+        return success_response(msg=f"Successfully tracked data {data}")
 
     @property
     def psynet_logo(self):
