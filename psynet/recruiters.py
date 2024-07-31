@@ -452,12 +452,18 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             )
 
             pattern = "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification|Standard Qualification"
-            returned_because_of_qualifications = (
+            n_returned_because_of_qualifications = (
                 entry_df.lucid_market_place_code.str.contains(pattern, regex=True).sum()
             )
 
-            potential = len(completes) + returned_because_of_qualifications
-            incidence_rate = float(len(completes) / potential if potential > 0 else 0.0)
+            n_potential_completes = (
+                len(completes) + n_returned_because_of_qualifications
+            )
+            incidence_rate = float(
+                len(completes) / n_potential_completes
+                if n_potential_completes > 0
+                else 0.0
+            )
 
         logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
         logger.info(f"Drop off rate: {drop_off_rate:.2%}")
