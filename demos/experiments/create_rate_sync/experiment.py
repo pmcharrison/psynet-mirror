@@ -37,7 +37,7 @@ class CreateRateTrial(StaticTrial):
         )
 
     def create(self):
-        prompt = f"Type something you can have as {self.definition["target"]}:"
+        prompt = f"Type something you can have as {self.definition['target']}:"
         return join(
             ModularPage(
                 "create",
@@ -52,7 +52,7 @@ class CreateRateTrial(StaticTrial):
         )
 
     def rate(self, participant):
-        prompt = f"Choose the {self.definition["target"]} you prefer:"
+        prompt = f"Choose the {self.definition['target']} you prefer:"
         return join(
             ModularPage(
                 "rate",
