@@ -250,16 +250,6 @@ class Exp(psynet.experiment.Experiment):
         bots[2].take_page()
         advance_past_wait_pages(bots)
 
-        bots[0].take_page()
-        bots[1].take_page()
-        bots[2].take_page()
-        advance_past_wait_pages(bots)
-
-        bots[0].take_page()
-        bots[1].take_page()
-        bots[2].take_page()
-        advance_past_wait_pages(bots)
-
         pages = [bot.get_current_page() for bot in bots]
         logger.info(f"GET PAGE CONTENT BOT 1: {pages[0]}")
         logger.info(
