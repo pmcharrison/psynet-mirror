@@ -51,8 +51,14 @@ tests:
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       -e CI_NODE_TOTAL -e CI_NODE_INDEX
+      -v "$PWD/public:/public"
       $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
-
+    # The docker containers are running in a different host, where the directory $PWD/public
+    # now contains junit.xml files we need access to. We merge them into a single file and cat the result to take it out of its container.
+    - docker run -v "$PWD/public:/public" $DOCKER_LOCAL_TAG bash -c 'pip install -q junitparser && junitparser merge /public/*junit.xml /public/junit.xml && cat /public/junit.xml' > junit.xml
+  artifacts:
+    reports:
+      junit: junit.xml
 deploy_docker:
   stage: deploy
   script:
@@ -81,3 +87,68 @@ pages:
     - public
   only:
     - master
+
+
+pg_badger:
+  image: python:3.12.2
+  services:
+    - docker:25.0.2-dind
+    - redis:latest
+  cache:
+      key: "$CI_BUILD_REF_NAME"
+      paths:
+      - venv/
+  before_script:
+    - echo Install Heroku CLI and docker
+    - curl https://cli-assets.heroku.com/install.sh | sh
+    - curl https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz | tar xzf - -C /usr/local
+    - ln -s /usr/local/docker/docker /usr/local/bin/
+    - echo "Starting postgresql server with aggressive logging enabled (via docker)"
+    - docker run --rm -d --name dallinger_postgres -p 5432:5432 -e POSTGRES_USER=dallinger -e POSTGRES_PASSWORD=dallinger -e POSTGRES_DB=dallinger -v dallinger_postgres:/var/lib/postgresql/data postgres:16.2-bookworm postgres -c log_min_duration_statement=0 -c log_checkpoints=on -c log_connections=on -c log_disconnections=on -c log_lock_waits=on -c log_temp_files=0 -c log_autovacuum_min_duration=0 -c log_error_verbosity=default
+    - echo Create a virtualenv and install psynet there
+    - pip install --upgrade pip virtualenv
+    - virtualenv venv -ppython3
+    - . venv/bin/activate
+    - pip install -e .[dev] pytest
+    - |
+      until docker exec -i dallinger_postgres pg_isready; do
+        echo "Waiting for PostgreSQL to become ready..."
+        sleep 1
+      done
+  script:
+    - cd "demos/experiments/$TEST_NAME"
+    - DATABASE_URL="postgresql://dallinger:dallinger@docker:5432/dallinger" psynet test local > /dev/null
+  after_script:
+    - mkdir public
+    - docker logs dallinger_postgres 2> public/postgresql.log > /dev/null
+    - curl -L https://github.com/darold/pgbadger/archive/refs/tags/v12.4.tar.gz | tar xzf - -C /usr/local
+    - (cd /usr/local/pgbadger-*; perl Makefile.PL; make; make install; cpan JSON::XS)
+    - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.html
+    - cp /tmp/pgbadger.html "public/${TEST_NAME//\//_}.html"
+    - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.txt
+    - cat /tmp/pgbadger.txt
+    - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.json
+    - cp /tmp/pgbadger.html /tmp/pgbadger.json /tmp/pgbadger.txt public/
+    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 month  # The pgbadger reports are pretty big so we shouldn't keep them around forever
+    reports:
+      junit: public/junit.xml
+  environment:
+      name: PgBadger-$CI_COMMIT_BRANCH-$TEST_NAME
+      url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/$TEST_NAME.html"
+  variables:
+      PUBLIC_URL: "/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public"
+  parallel:
+    matrix:
+      - TEST_NAME: [
+          "timeline",
+          "trial",
+          "trial_2",
+          "static",
+          "mcmcp",
+          "gibbs",
+          "rock_paper_scissors",
+        ]
