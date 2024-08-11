@@ -265,7 +265,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         network_structure,
         chain_type: str,
         expected_trials_per_participant: int,
-        max_trials_per_participant: int,
+        max_trials_per_participant: Optional[int],
         chains_per_participant: Optional[int],
         # chains_per_experiment: Optional[int],
         trials_per_node: int,

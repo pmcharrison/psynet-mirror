@@ -112,7 +112,7 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         SimpleGrouper(
             group_type="rock_paper_scissors",
-            group_size=2,
+            initial_group_size=2,
         ),
         RockPaperScissorsTrialMaker(
             id_="rock_paper_scissors",

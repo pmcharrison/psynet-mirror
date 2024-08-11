@@ -36,6 +36,7 @@ logger = get_logger()
 
 if TYPE_CHECKING:
     from .sync import SyncGroup
+    from .timeline import Module
 
 # pylint: disable=unused-import
 
@@ -399,10 +400,22 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             if log.finished
         ]
 
-    def start_module(self, module):
+    def start_module(self, module: "Module"):
+        self.check_module_not_already_started(module)
         state = module.state_class(module, self)
         state.start()
         self.module_state = state
+
+    def check_module_not_already_started(self, module: "Module"):
+        if module.id not in self.module_states:
+            return
+        else:
+            states = self.module_states[module.id]
+            for state in states:
+                if not state.finished:
+                    raise RuntimeError(
+                        f"Participant already has an unfinished module state for '{module.id}'..."
+                    )
 
     def end_module(self, module):
         # This should only fail (delivering multiple logs) if the experimenter has perversely
@@ -417,7 +430,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             )
         elif len(state) > 1:
             raise RuntimeError(
-                f"Participant had multiple unfinished module states with id = '{module.id}'."
+                (
+                    f"Participant had multiple unfinished module states with id = '{module.id}': "
+                    f"{[s.__json__() for s in state]}, participant: {self.__json__()}"
+                )
             )
 
         state = state[0]
@@ -667,6 +683,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         }
 
     def fail(self, reason=None):
+        if self.failed:
+            logger.info("Participant %i already failed, not failing again.", self.id)
+            return
+
         if reason is not None:
             self.append_failure_tags(reason)
         reason = ", ".join(self.failure_tags)

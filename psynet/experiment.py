@@ -1095,7 +1095,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 n.grow(experiment=exp)
             logger.info("Finished growing networks.")
 
-    @scheduled_task("interval", seconds=1, max_instances=1)
+    @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
     @staticmethod
     @with_transaction
@@ -2415,6 +2415,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return send_file(zip_filepath, mimetype="zip")
 
     @experiment_route("/dashboard/export", methods=["GET"])
+    @staticmethod
     @with_transaction
     def export():
         from flask_login import current_user
@@ -2781,8 +2782,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
+            if not isinstance(participant, Bot):
+                participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)
-            participant.client_ip_address = cls.get_client_ip_address()
             return cls.serialize_page(page, experiment, participant, mode)
         except cls.HandledError as err:
             return err.error_page()
