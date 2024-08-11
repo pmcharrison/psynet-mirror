@@ -10,7 +10,7 @@ from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import CodeBlock, PageMaker, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.utils import get_logger
+from psynet.utils import as_plain_text, get_logger
 
 logger = get_logger()
 
@@ -94,7 +94,7 @@ class CreateRateTrial(StaticTrial):
         for i in range(len(participants)):
             participants[i].var.last_trial = {
                 "rating_self": ratings[i],
-                "rating_others": ratings[:i] + ratings[i + 1 :],
+                "rating_others": sorted(ratings[:i] + ratings[i + 1 :]),
             }
 
 
@@ -107,7 +107,7 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         SimpleGrouper(
             group_type="create_rate",
-            group_size=3,
+            initial_group_size=3,
         ),
         CreateRateTrialMaker(
             id_="create_rate",
@@ -172,19 +172,18 @@ class Exp(psynet.experiment.Experiment):
         logger.info(f"GET PAGE CONTENT BOT 1: {pages[0].content}")
         logger.info(f"GET PAGE CONTENT BOT 2: {pages[1].content}")
         logger.info(f"GET PAGE CONTENT BOT 3: {pages[2].content}")
-        # assert pages[0].content == pages[1].content
-        # assert (
-        #     pages[0].content
-        #     == "You chose yoghurt, your partners chose yoghurt and pudding."
-        # )
-        # assert (
-        #     pages[1].content
-        #     == "You chose yoghurt, your partners chose yoghurt and pudding."
-        # )
-        # assert (
-        #     pages[2].content
-        #     == "You chose pudding, your partners chose yoghurt and yoghurt."
-        # )
+        assert (
+            as_plain_text(pages[0].prompt.text)
+            == "You chose yoghurt, your partners chose pudding and yoghurt."
+        )
+        assert (
+            as_plain_text(pages[1].prompt.text)
+            == "You chose yoghurt, your partners chose pudding and yoghurt."
+        )
+        assert (
+            as_plain_text(pages[2].prompt.text)
+            == "You chose pudding, your partners chose yoghurt and yoghurt."
+        )
 
         bots[0].take_page()
         bots[1].take_page()
@@ -207,18 +206,18 @@ class Exp(psynet.experiment.Experiment):
         logger.info(f"GET PAGE CONTENT BOT 1: {pages[0].content}")
         logger.info(f"GET PAGE CONTENT BOT 2: {pages[1].content}")
         logger.info(f"GET PAGE CONTENT BOT 3: {pages[2].content}")
-        # assert (
-        #     pages[0].content
-        #     == "You chose salad, your partners chose schnitzel and salad."
-        # )
-        # assert (
-        #     pages[1].content
-        #     == "You chose schnitzel, your partners chose salad and salad."
-        # )
-        # assert (
-        #     pages[2].content
-        #     == "You chose salad, your partners chose salad and schnitzel."
-        # )
+        assert (
+            as_plain_text(pages[0].prompt.text)
+            == "You chose salad, your partners chose salad and schnitzel."
+        )
+        assert (
+            as_plain_text(pages[1].prompt.text)
+            == "You chose schnitzel, your partners chose salad and salad."
+        )
+        assert (
+            as_plain_text(pages[2].prompt.text)
+            == "You chose salad, your partners chose salad and schnitzel."
+        )
 
         bots[0].take_page()
         bots[1].take_page()
@@ -241,9 +240,18 @@ class Exp(psynet.experiment.Experiment):
         logger.info(f"GET PAGE CONTENT BOT 1: {pages[0].content}")
         logger.info(f"GET PAGE CONTENT BOT 2: {pages[1].content}")
         logger.info(f"GET PAGE CONTENT BOT 3: {pages[2].content}")
-        # assert pages[0].content == "You chose soup, your partners chose soup and melon."
-        # assert pages[1].content == "You chose soup, your partners chose soup and melon."
-        # assert pages[2].content == "You chose melon, your partners chose soup and soup."
+        assert (
+            as_plain_text(pages[0].prompt.text)
+            == "You chose soup, your partners chose melon and soup."
+        )
+        assert (
+            as_plain_text(pages[1].prompt.text)
+            == "You chose soup, your partners chose melon and soup."
+        )
+        assert (
+            as_plain_text(pages[2].prompt.text)
+            == "You chose melon, your partners chose soup and soup."
+        )
 
         bots[0].take_page()
         bots[1].take_page()
@@ -251,12 +259,6 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]
-        logger.info(f"GET PAGE CONTENT BOT 1: {pages[0]}")
-        logger.info(
-            f"GET PAGE CONTENT BOT 2: {isinstance(pages[1], SuccessfulEndPage)}"
-        )
-        logger.info(
-            f"GET PAGE CONTENT BOT 3: {isinstance(pages[2], SuccessfulEndPage)}"
-        )
-        # for page in pages:
-        #     assert isinstance(page, SuccessfulEndPage)
+        for page in pages:
+            text = as_plain_text(page.prompt.text)
+            assert "That's the end of the experiment!" in text
