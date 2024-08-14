@@ -12,6 +12,15 @@ from psynet.timeline import CodeBlock, PageMaker, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import as_plain_text
 
+# Overview #####################################################################
+
+# This experiment implements a synchronous create and rate task. Groups of three participants
+# are created. In each trial, each participant is first asked to type the name of a food item.
+# In a second phase of each trial, each participant chooses between the food items given by
+# the other two participants, and is then informed about the choices made by the other participants.
+
+# #############################################################################
+
 
 class CreateRateTrialMaker(StaticTrialMaker):
     pass
