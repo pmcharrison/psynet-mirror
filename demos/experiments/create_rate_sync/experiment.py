@@ -111,7 +111,7 @@ class Exp(psynet.experiment.Experiment):
             id_="create_rate",
             trial_class=CreateRateTrial,
             nodes=[
-                StaticNode(definition={"target": target, "placeholder": "None"})
+                StaticNode(definition={"target": target})
                 for target in ["appetizer", "main dish", "dessert"]
             ],
             expected_trials_per_participant=3,
