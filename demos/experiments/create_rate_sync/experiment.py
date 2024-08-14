@@ -10,9 +10,7 @@ from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import CodeBlock, PageMaker, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.utils import as_plain_text, get_logger
-
-logger = get_logger()
+from psynet.utils import as_plain_text
 
 
 class CreateRateTrialMaker(StaticTrialMaker):
@@ -169,9 +167,6 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]
-        logger.info(f"GET PAGE CONTENT BOT 1: {pages[0].content}")
-        logger.info(f"GET PAGE CONTENT BOT 2: {pages[1].content}")
-        logger.info(f"GET PAGE CONTENT BOT 3: {pages[2].content}")
         assert (
             as_plain_text(pages[0].prompt.text)
             == "You chose yoghurt, your partners chose pudding and yoghurt."
@@ -203,9 +198,6 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]
-        logger.info(f"GET PAGE CONTENT BOT 1: {pages[0].content}")
-        logger.info(f"GET PAGE CONTENT BOT 2: {pages[1].content}")
-        logger.info(f"GET PAGE CONTENT BOT 3: {pages[2].content}")
         assert (
             as_plain_text(pages[0].prompt.text)
             == "You chose salad, your partners chose salad and schnitzel."
@@ -237,9 +229,6 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         pages = [bot.get_current_page() for bot in bots]
-        logger.info(f"GET PAGE CONTENT BOT 1: {pages[0].content}")
-        logger.info(f"GET PAGE CONTENT BOT 2: {pages[1].content}")
-        logger.info(f"GET PAGE CONTENT BOT 3: {pages[2].content}")
         assert (
             as_plain_text(pages[0].prompt.text)
             == "You chose soup, your partners chose melon and soup."
