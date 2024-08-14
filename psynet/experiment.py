@@ -1091,8 +1091,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
             exp = get_experiment()
-            for n in networks:
-                n.grow(experiment=exp)
+            for network in networks:
+                try:
+                    network.grow(experiment=exp)
+                except Exception as err:
+                    if not isinstance(err, exp.HandledError):
+                        exp.handle_error(
+                            err,
+                            network=network,
+                        )
+                    if network.head.degree > 0:
+                        network.head.fail()
+                    elif network.head.degree == 0:
+                        for trial in network.head.all_trials:
+                            trial.fail()
+
             logger.info("Finished growing networks.")
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
