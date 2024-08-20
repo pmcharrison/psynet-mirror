@@ -60,6 +60,13 @@
         <div class="col-3" style="clear: both; float: left; margin-top: 18px;">
             <button type="button" class="btn btn-primary" onclick="exportData()">Export</button>
         </div>
+        <div class="alert alert-info" style="clear: both; float: left; margin-top: 18px;">
+            If exporting via this button fails, we recommend trying instead to export via the command line, e.g.
+            <ul style="margin-top: 10px;">
+                <li><span style="font-family: monospace;">psynet export local</span> (for local debugging)</li>
+                <li><span style="font-family: monospace;">psynet export ssh --app your-app-name --server your-server-domain</span> (for a remote server)</li>
+            </ul>
+        </div>
     </div>
 {% endblock %}
 {% block libs %}
