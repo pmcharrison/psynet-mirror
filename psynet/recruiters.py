@@ -43,17 +43,19 @@ class PsyNetRecruiterMixin:
         raise NotImplementedError
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
-        return self.approve_assignment()
+        return self.approve_assignment(participant)
 
-    def approve_assignment(self) -> TimelineLogic:
+    def approve_assignment(self, participant) -> TimelineLogic:
         # This calls dallinger.submitAssignment,
         # and this will tell Dallinger to approve the assignment and pay the base payment,
         # AND it also pays the participant a bonus, calculated from participant.bonus()
         from .page import ExecuteFrontEndJS
 
+        _ = participant.gettext
+
         return ExecuteFrontEndJS(
             "dallinger.submitAssignment()",
-            message="Communicating with the recruiter...",  # Todo - translate
+            message=_("Communicating with the recruiter..."),
         )
 
 

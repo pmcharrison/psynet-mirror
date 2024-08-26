@@ -1734,8 +1734,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         :returns:
             The reward as a ``float``.
         """
-        reward = participant.calculate_reward() - self.base_payment
-        return self.check_bonus(reward, participant)  # TODO - check this
+        reward = participant.calculate_reward()
+        return self.check_bonus(reward, participant)
 
     def check_bonus(self, reward, participant):
         """
