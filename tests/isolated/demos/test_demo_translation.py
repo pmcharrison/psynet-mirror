@@ -25,9 +25,6 @@ class TestExp(object):
         exp = get_experiment()
         assert set(exp.supported_locales) == set(["en", "de", "nl"])
 
-    @pytest.mark.skip(
-        reason="Skipping this test temporarily as it makes the CI fail for unknown reasons."
-    )
     def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
