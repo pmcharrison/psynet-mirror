@@ -30,7 +30,7 @@ class TestExp(object):
             driver = bot.driver
 
             # Page 0
-            time.sleep(1)
+            time.sleep(5)
 
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
@@ -53,7 +53,7 @@ class TestExp(object):
                 driver.find_element(By.ID, "iso-language")
             )  # Switch to Dutch
             select.select_by_visible_text("Niederländisch")
-            time.sleep(1)
+            time.sleep(5)
             assert_text(
                 driver,
                 "main-body",
