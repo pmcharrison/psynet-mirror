@@ -31,24 +31,23 @@ classifiers = [
     "Intended Audience :: Science/Research",
 ]
 
-dependencies = [
-    "babel",
-    "dallinger[docker]>=10.1.3,<11",
-    "dominate",
-    "html2text",
-    "joblib",
-    "jsonpickle",
-    "pandas",
-    "paramiko",
-    "polib",
-    "progress",
-    "pytest",
-    "python-gettext",
-    "rpdb",
-    "tenacity",
-    "tqdm",
-    "yaspin",
-]
+[project.dependencies]
+babel = "*"
+dallinger = { version = ">=10.1.3,<11", extras = ["docker"] }
+dominate = "*"
+html2text = "*"
+joblib = "*"
+jsonpickle = "*"
+pandas = "*"
+paramiko = "*"
+polib = "*"
+progress = "*"
+pytest = "*"
+python-gettext = "*"
+rpdb = "*"
+tenacity = "*"
+tqdm = "*"
+yaspin = "*"
 
 [project.optional-dependencies]
 dev = [
