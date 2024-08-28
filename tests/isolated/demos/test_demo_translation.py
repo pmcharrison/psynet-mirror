@@ -64,7 +64,7 @@ class TestExp(object):
                 driver.find_element(By.ID, "iso-language")
             )  # Switch back to German
             select.select_by_visible_text("Duits")
-            time.sleep(1)
+            time.sleep(5)
             next_page(driver, "next-button")
 
             # Page 3
