@@ -533,8 +533,6 @@ def kill_chromedriver_processes():
 
 
 def list_psynet_chrome_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_psynet_chrome_process(p)]
 
 
@@ -546,15 +544,13 @@ def is_psynet_chrome_process(process):
                     return True
                 if "user-data-dir" in cmd:
                     return True
-    except psutil.NoSuchProcess:
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
         pass
 
     return False
 
 
 def list_psynet_worker_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_psynet_worker_process(p)]
 
 
@@ -575,8 +571,6 @@ def is_psynet_worker_process(process):
 
 
 def list_chromedriver_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_chromedriver_process(p)]
 
 
