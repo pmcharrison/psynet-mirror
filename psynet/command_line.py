@@ -1870,15 +1870,23 @@ def _export_source_code(app, local, server, export_path, username, password):
             spinner.fail("✘")
             click.confirm(
                 "Experiment source code could not be downloaded."
-                "\nPress ENTER to continue...",
+                "\nPress ENTER to continue with the remainder of data export, ignoring the source code."
+                "\nNote: To skip exporting the source code in the future, add `--no-source` option to your `psynet export` command.",
                 default=True,
                 prompt_suffix="",
                 show_default=False,
             )
-            message = response.json().get("message")
             log(
-                f"WARNING: Failed to download the experiment source code: {response.status_code} ({response.reason}). Reason: {message}."
+                f"WARNING: Failed to download experiment source code. Response: {response.reason} ({response.status_code})"
             )
+            try:
+                message = response.json().get("message")
+                log(f"\nReason: {message}.")
+            except json.JSONDecodeError as e:
+                log(
+                    f"\nAdditionally, decoding JSON data from the response failed with '{str(e)}'"
+                    f"\nResponse content: {response.content}"
+                )
             break
 
 
