@@ -197,7 +197,7 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
     return data
 
 
-def _prepare_db_export(scrub_pii):
+def _prepare_db_export(scrub_pii: bool):
     """
     Encodes the database to a JSON-style representation suitable for export.
 
@@ -230,6 +230,7 @@ def _prepare_db_export(scrub_pii):
             for obj in tqdm(_obj_sql_for_cls, desc=_cls_name)
         ]
         for _cls_name, _obj_sql_for_cls in obj_sql_by_cls.items()
+        if _cls_name not in exp.export_classes_to_skip
     }
     return obj_dict_by_cls
 

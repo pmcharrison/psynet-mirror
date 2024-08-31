@@ -241,6 +241,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         class Exp(psynet.experiment.Experiment):
             asset_storage = LocalStorage()
 
+    Another experiment attribute is `export_classes_to_skip`, which is a list of classes to be excluded
+    when exporting the database objects to JSON-style dictionaries. The default is `["ExperimentStatus"]`.
+
     Config variables can be set here, amongst other places (see online documentation for details):
 
     ::
@@ -417,6 +420,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
+    export_classes_to_skip = ["ExperimentStatus"]
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
     max_allowed_base_payment = 30
@@ -1091,8 +1095,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
             exp = get_experiment()
-            for n in networks:
-                n.grow(experiment=exp)
+            for network in networks:
+                try:
+                    network.grow(experiment=exp)
+                except Exception as err:
+                    if not isinstance(err, exp.HandledError):
+                        exp.handle_error(
+                            err,
+                            network=network,
+                        )
+                    if network.head.degree > 0:
+                        network.head.fail()
+                    elif network.head.degree == 0:
+                        for trial in network.head.all_trials:
+                            trial.fail()
+
             logger.info("Finished growing networks.")
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
