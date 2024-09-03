@@ -45,6 +45,9 @@ class MyPage(Page):
             **kwargs,
         )
 
+    def get_bot_response(self, experiment, bot):
+        return "I am a bot"
+
 
 class Exp(psynet.experiment.Experiment):
     label = "Single page demo"
