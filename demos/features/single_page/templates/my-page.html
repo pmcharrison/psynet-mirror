@@ -14,19 +14,19 @@
 {% block stylesheets %}
     {{ super() }}
     <!--    You can put custom CSS content here-->
-    <link rel="stylesheet" type="text/css" href="static/css/custom.css">
+    <link rel="stylesheet" type="text/css" href="static/custom.css">
 {% endblock %}
 
 {% block main_body %}
-    <p id="timer">Time since full page load: <span id="time"></span> seconds</p>
+    <p id="timer">Time since full page load: <span id="time">0</span> s</p>
 
     <p id="question"></p>
 
     <div id="text-input-container">
-        <input id="text-input" class="form-control" type="text" autocomplete="off" value="" ></input>
+        <input id="text-input" class="form-control" type="text" placeholder="Enter your response here" autocomplete="off" value="" ></input>
     </div>
 
-    <button type="button" id="next-button" onclick="onNextButton()">
+    <button type="button" class="btn btn-primary" id="next-button" onclick="onNextButton()">
         <span class="button-text">Submit</span>
     </button>
 
@@ -49,12 +49,7 @@
             document.getElementById("text-input").value = "";
         }
 
-        psynet.trial.onEvent("trialConstruct", populatePage);
+        populatePage();
         psynet.trial.onEvent("pageUpdated", populatePage);
-
-        psynet.trial.onEvent("pageUpdated", function() {
-            document.getElementById("text-input").value = "";
-            document.getElementById("next-button")
-        });
     </script>
 {% endblock %}

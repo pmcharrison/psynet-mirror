@@ -1448,9 +1448,11 @@
                     let passedValidation;
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
+                        debugger
                         let shouldRefreshPage = !(
                             response.page.attributes && psynet.page.attributes &&
-                            response.page.attributes.session_id == psynet.page.attributes.session_id
+                            response.page.attributes.session_id &&
+                            response.page.attributes.session_id === psynet.page.attributes.session_id
                         );
                         if (shouldRefreshPage) {
                             window.location = "/timeline?unique_id=" + psynet.uniqueId;
@@ -1460,6 +1462,10 @@
                             // Todo - migrate pageUuid to psynet.pageUuid. Problem is that this interacts with
                             // the Unity interface, so we need to communicate with Ofer about it.
                             pageUuid = response.page_uuid
+
+                            // Todo - updateProgressAndReward currently makes a separate HTTP request.
+                            // Instead we should get all necessary information from ``response``.
+                            updateProgressAndReward();
 
                             psynet.trial.registerEvent("pageUpdated");
                             psynet.nextPagePending = false;
