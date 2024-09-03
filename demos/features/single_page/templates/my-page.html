@@ -1,0 +1,60 @@
+{% extends "timeline-page.html" %}
+
+
+{% block head %}
+    {{ super() }}
+    <!--    You can put custom head content here-->
+{% endblock %}
+
+{% block libs %}
+    {{ super() }}
+    <!--    You can put custom JS content here-->
+{% endblock %}
+
+{% block stylesheets %}
+    {{ super() }}
+    <!--    You can put custom CSS content here-->
+    <link rel="stylesheet" type="text/css" href="static/css/custom.css">
+{% endblock %}
+
+{% block main_body %}
+    <p id="timer">Time since full page load: <span id="time"></span> seconds</p>
+
+    <p id="question"></p>
+
+    <div id="text-input-container">
+        <input id="text-input" class="form-control response" type="text" autocomplete="off" value="" ></input>
+    </div>
+
+    <button type="button" id="next-button" onclick="onNextButton()">
+        <span class="button-text">Submit</span>
+    </button>
+
+    <script>
+        let secondsElapsed = 0;
+        setInterval(updateTimer, 1000);
+
+        function updateTimer() {
+            secondsElapsed++;
+            document.getElementById("time").innerText = secondsElapsed.toString();
+        }
+
+        function onNextButton() {
+            let response = document.getElementById("text-input").value;
+            psynet.nextPage(response);
+        }
+
+        function populatePage() {
+            document.getElementById("question").innerHTML = psynet.page.contents.question;
+            document.getElementById("text-input").value = "";
+        }
+
+        psynet.trial.onEvent("trialConstruct", populatePage);
+        psynet.trial.onEvent("pageUpdated", populatePage);
+
+        psynet.trial.onEvent("pageUpdated", function() {
+            document.getElementById("text-input").value = "";
+            document.getElementById("next-button")
+        });
+    </script>
+{% endblock %}
