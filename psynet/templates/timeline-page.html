@@ -197,10 +197,7 @@
 
                 var psynet = {
                     media: {},
-                    page: {
-                        prompt: {},
-                        control: {}
-                    },
+                    page: {{ page_json | tojson }},
                     utils: {},
                     var: {{ js_vars | tojson }}
                 };
