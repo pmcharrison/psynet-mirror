@@ -1846,7 +1846,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def response_approved(self, participant):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
-        return success_response(submission="approved", page=page.__json__(participant))
+        return success_response(
+            submission="approved",
+            page=page.__json__(participant),
+            page_uuid=participant.page_uuid,
+        )
 
     def response_rejected(self, message):
         logger.warning(

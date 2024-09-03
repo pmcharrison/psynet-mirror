@@ -1456,6 +1456,11 @@
                             window.location = "/timeline?unique_id=" + psynet.uniqueId;
                         } else {
                             psynet.page = response.page;
+
+                            // Todo - migrate pageUuid to psynet.pageUuid. Problem is that this interacts with
+                            // the Unity interface, so we need to communicate with Ofer about it.
+                            pageUuid = response.page_uuid
+
                             psynet.trial.registerEvent("pageUpdated");
                             psynet.nextPagePending = false;
                         }
