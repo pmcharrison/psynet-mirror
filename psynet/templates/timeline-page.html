@@ -1475,18 +1475,6 @@
                     return passedValidation
                 };
 
-                onPageUpdated = function (event) {
-                    console.log("Dispatched 'onPageUpdated' event. Sending data to Unity:\nattributes:" + psynet.page.attributes + "\ncontents:" + psynet.page.contents);
-                    unityInstance.SendMessage(
-                        "PsynetObj",
-                        "GetData",
-                        JSON.stringify({
-                            attributes: psynet.page.attributes,
-                            contents: psynet.page.contents,
-                        })
-                    );
-                };
-
                 let onErrorResponse = function (request) {
                     dallinger.error({
                         "data": {
@@ -1666,7 +1654,6 @@
                     psynet.trial.onEvent("trialConstruct", init, {priority: -1000});
                     psynet.trial.onEvent(config.start, start);
                     psynet.trial.onEvent("trialStopped", stop);
-                    psynet.trial.onEvent("pageUpdated", onPageUpdated);
 
                     return {
                         stages: config.stages,

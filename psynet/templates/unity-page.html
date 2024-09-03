@@ -7,10 +7,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="shortcut icon" href="{{ resources }}/scripts/TemplateData/favicon.ico">
     <link rel="stylesheet" href="{{ resources }}/scripts/TemplateData/style.css">
-    <script>
-      psynet.page.attributes = {{ attributes(participant) | tojson }};
-      psynet.page.contents = {{ contents | tojson }};
-    </script>
 {% endblock %}
 
 {% block stylesheets %}
@@ -75,6 +71,18 @@
         });
       };
       document.body.appendChild(script);
+
+      psynet.trial.onEvent("pageUpdated", function() {
+        console.log("Dispatched 'pageUpdated' event. Sending data to Unity:\nattributes:" + psynet.page.attributes + "\ncontents:" + psynet.page.contents);
+        unityInstance.SendMessage(
+            "PsynetObj",
+            "GetData",
+            JSON.stringify({
+                attributes: psynet.page.attributes,
+                contents: psynet.page.contents,
+            })
+        );
+      });
     </script>
 {% endblock %}
 
