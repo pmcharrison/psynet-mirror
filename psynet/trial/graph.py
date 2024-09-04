@@ -117,6 +117,7 @@ class GraphChainNode(ChainNode):
         vertex_id: int,
         dependent_vertex_ids: List[int],
         participant=None,
+        participant_group=None,
     ):
         # pylint: disable=unused-argument
         self.vertex_id = vertex_id
@@ -128,6 +129,7 @@ class GraphChainNode(ChainNode):
             experiment=experiment,
             propagate_failure=propagate_failure,
             participant=participant,
+            participant_group=participant_group,
         )
 
     @staticmethod
