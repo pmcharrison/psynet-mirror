@@ -1,5 +1,7 @@
+import pytest
+
 import psynet.experiment
-from psynet.asset import CachedFunctionAsset, LocalStorage, S3Storage  # noqa
+from psynet.asset import CachedFunctionAsset, S3Storage
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import (
@@ -102,7 +104,8 @@ class CustomTrial(StaticTrial):
 
 class Exp(psynet.experiment.Experiment):
     label = "Static audio demo"
-    asset_storage = LocalStorage()
+
+    asset_storage = S3Storage("psynet-tests", "static-audio")
 
     timeline = Timeline(
         NoConsent(),
@@ -137,3 +140,15 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert len(bot.alive_trials) == len(nodes)
+
+        for trial in bot.alive_trials:
+            assert trial.progress_before_trial < 1.0
+
+            if trial.id < len(nodes):
+                assert trial.progress_after_trial < 1.0
+            else:
+                assert trial.progress_after_trial == pytest.approx(1.0)
+
+        assert bot.time_credit == pytest.approx(
+            self.estimated_completion_time(wage_per_hour=0.0)
+        )
