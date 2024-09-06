@@ -563,6 +563,9 @@ def drop_all_db_tables(bind=db.engine):
 
     trans.commit()
 
+    # Calling _old_drop_all helps clear up edge cases, such as the dropping of enum types
+    _old_drop_all(bind=bind)
+
 
 def list_fkeys():
     inspector = sqlalchemy.inspect(db.engine)
@@ -590,6 +593,7 @@ def list_fkeys():
     return all_fkeys, tables
 
 
+_old_drop_all = dallinger.db.Base.metadata.drop_all
 dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 
 
