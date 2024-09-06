@@ -5,7 +5,6 @@ import pytest
 from dallinger import db
 from selenium.webdriver.common.by import By
 
-from psynet.experiment import get_and_load_config
 from psynet.participant import Participant, get_participant
 from psynet.pytest_psynet import (
     assert_text,
@@ -14,6 +13,7 @@ from psynet.pytest_psynet import (
     next_page,
     path_to_test_experiment,
 )
+from psynet.utils import get_config
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -29,7 +29,7 @@ class TestExp(object):
         exp = get_experiment()
         assert exp.var.new_variable == "some-value"
 
-        config = get_and_load_config()
+        config = get_config()
         assert config.get("wage_per_hour") == 12.0
         assert config.get("min_accumulated_reward_for_abort") == 0.15
         assert config.get("show_abort_button") is True

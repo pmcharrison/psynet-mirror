@@ -31,7 +31,8 @@ from click import Context
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
-from dallinger.config import get_config, is_valid_json
+from dallinger.config import get_config as dallinger_get_config
+from dallinger.config import is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import nocache, success_response
@@ -45,6 +46,7 @@ from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, relationship, with_polymorphic
 
 from psynet import __version__
+from psynet.utils import get_config
 
 from . import deployment_info
 from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
@@ -111,13 +113,6 @@ database_template_path = ".deploy/database_template.zip"
 
 DEFAULT_LOCALE = "en"
 INITIAL_RECRUITMENT_SIZE = 1
-
-
-def get_and_load_config():
-    config = get_config()
-    if not config.ready:
-        config.load()
-    return config
 
 
 def error_response(*args, **kwargs):
@@ -462,7 +457,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.__class__.initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
         )
 
-        config = get_and_load_config()
+        config = get_config()
         if self.base_payment > 10 and not config.get("big_base_payment"):
             logger.warning(f"`base_payment` is set to `{self.base_payment}`!")
         assert self.base_payment <= 20 or config.get("big_base_payment"), (
@@ -615,7 +610,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self._nodes_on_deploy()
 
-        config = get_config()
+        config = dallinger_get_config()
         self.var.server_working_directory = os.getcwd()
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
@@ -695,7 +690,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
 
     def load_deployment_config(self):
-        config = get_config()
+        config = dallinger_get_config()
         if not config.ready:
             config.load()
         self.var.deployment_config = {
@@ -924,7 +919,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Render HTML for error page."""
         from flask import make_response, request
 
-        config = get_config()
         _, _p = get_translator(locale)
         if error_text is None:
             error_text = _p(
@@ -955,7 +949,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 locale=locale,
                 error_text=error_text,
                 compensate=compensate,
-                contact_address=config.get("contact_email_on_error"),
+                contact_address=get_config().get("contact_email_on_error"),
                 error_type=error_type,
                 hit_id=hit_id,
                 assignment_id=assignment_id,
@@ -1189,11 +1183,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {}
 
     def get_initial_recruitment_size(self):
-        return get_and_load_config().get("initial_recruitment_size")
+        return get_config().get("initial_recruitment_size")
 
     @classproperty
     def label(cls):  # noqa
-        return get_and_load_config().get("label")
+        return get_config().get("label")
 
     @property
     def var(self):
@@ -1299,7 +1293,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **cls.config,
         }
 
-        config_types = get_config().types
+        config_types = dallinger_get_config().types
 
         for key, value in config.items():
             if not isinstance(value, (bool, int, float, str)):
@@ -1370,8 +1364,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def description(self):
-        config = get_config()
-        return config.get("description")
+        return get_config().get("description")
 
     @property
     def ad_requirements(self):
@@ -1399,10 +1392,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def variables_initial_values(self):
-        config = get_and_load_config()
-
         for key, value in self.variables.items():
-            assert key not in list(config.as_dict().keys()), (
+            assert key not in list(get_config().as_dict().keys()), (
                 f"Variable {key} is a config variable and should solely be specified in the config.txt or in "
                 "experiment.config but NOT as experiment variable."
             )
@@ -1414,7 +1405,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def estimated_reward_in_dollars(self):
-        wage_per_hour = get_and_load_config().get("wage_per_hour")
+        wage_per_hour = get_config().get("wage_per_hour")
         return round(
             self.timeline.estimated_time_credit.get_max(
                 "reward",
@@ -1513,8 +1504,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def check_config(cls):
         config = get_config()
-        if not config.ready:
-            config.load()
 
         if not config.get("clock_on"):
             # We force the clock to be on because it's necessary for the check_networks functionality.
@@ -2066,7 +2055,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def extra_parameters(cls):
-        config = get_config()
+        config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
         config.register("lucid_api_key", unicode, sensitive=True)
@@ -2123,7 +2112,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def dashboard_timeline(cls):
         exp = get_experiment()
         panes = exp.monitoring_panels()
-        config = get_config()
 
         module_info = {
             "modules": [{"id": module.id} for module in exp.timeline.module_list]
@@ -2134,7 +2122,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             title="Timeline modules",
             panes=panes,
             timeline_modules=json.dumps(module_info, default=serialise),
-            currency=config.currency,
+            currency=get_config().currency,
         )
 
     @dashboard_tab("Resources", after_route="monitoring")
@@ -2316,8 +2304,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         This allows the account to investigate and debug Chrome warnings
         (e.g. 'Deceptive website ahead'). See https://search.google.com/u/4/search-console.
         """
-        config = get_config()
-        if config.get("enable_google_search_console", default=False):
+        if get_config().get("enable_google_search_console", default=False):
             return render_template("google3580fca13e19b596.html")
         else:
             return flask.Response(
@@ -2348,8 +2335,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     @with_transaction
     def consent():
-        config = get_config()
-
         entry_information = request.args.to_dict()
         exp = get_experiment()
         entry_data = exp.normalize_entry_information(entry_information)
@@ -2365,7 +2350,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assignment_id=assignment_id,
                 worker_id=worker_id,
                 unique_id=unique_id,
-                mode=config.get("mode"),
+                mode=get_config().get("mode"),
                 query_string=request.query_string.decode(),
             )
         except Exception as e:
@@ -2404,11 +2389,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/download_source", methods=["GET"])
     @classmethod
     def download_source(cls):
-        if not authenticate(request.authorization, get_and_load_config()):
+        config = get_config()
+
+        if not authenticate(request.authorization, config):
             return jsonify({"message": "Invalid credentials"}), 401
 
         with tempfile.TemporaryDirectory() as tempdir:
-            label = get_config().get("label")
+            label = config.get("label")
             temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
             shutil.copytree(
                 os.path.join(os.getcwd()),
@@ -2439,7 +2426,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         from .command_line import export__local
 
-        config = get_and_load_config()
+        config = get_config()
 
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
@@ -2455,7 +2442,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
             zip_filepath = shutil.make_archive(
-                f'{get_config().get("label")}-data', "zip", tempdir
+                f'{config.get("label")}-data', "zip", tempdir
             )
             return send_file(zip_filepath, mimetype="zip")
 
@@ -2463,8 +2450,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     @with_transaction
     def get_participant_info_for_debug_mode():
-        config = get_config()
-        if not config.get("mode") == "debug":
+        if not get_config().get("mode") == "debug":
             return error_response()
 
         participant = Participant.query.first()
@@ -2558,11 +2544,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return exp._get_progress_info(module_ids)
 
     def _get_progress_info(self, module_ids: list):
-        config = get_config()
         progress_info = {
             "spending": {
                 "amount_spent": self.amount_spent(),
-                "currency": config.currency,
+                "currency": get_config().currency,
                 "soft_max_experiment_payment": self.var.soft_max_experiment_payment,
                 "hard_max_experiment_payment": self.var.hard_max_experiment_payment,
             }
@@ -2759,7 +2744,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant = cls.get_participant_from_assignment_id(
                     assignment_id, for_update=False
                 )
-                if participant.calculate_reward() >= get_and_load_config().get(
+                if participant.calculate_reward() >= get_config().get(
                     "min_accumulated_reward_for_abort"
                 ):
                     template_name = "abort_possible.html"
@@ -3000,7 +2985,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
-        if get_and_load_config().get("show_reward"):
+        if get_config().get("show_reward"):
             time_reward = participant.time_reward
             performance_reward = participant.performance_reward
             total_reward = participant.calculate_reward()
@@ -3151,7 +3136,7 @@ def import_local_experiment():
     # import pdb; pdb.set_trace()
     #
     # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
-    get_config()
+    dallinger_get_config()
 
     import dallinger.experiment
 

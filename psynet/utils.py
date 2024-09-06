@@ -27,7 +27,7 @@ import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
-from dallinger.config import experiment_available, get_config
+from dallinger.config import experiment_available
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -161,6 +161,15 @@ def call_function_with_context(function, *args, **kwargs):
 config_defaults = {
     "keep_old_chrome_windows_in_debug_mode": False,
 }
+
+
+def get_config():
+    from dallinger.config import get_config as dallinger_get_config
+
+    config = dallinger_get_config()
+    if not config.ready:
+        config.load()
+    return config
 
 
 def get_from_config(key):
@@ -578,12 +587,12 @@ def _render_with_translations(
     locale, template_name=None, template_string=None, all_template_args=None
 ):
     """Render a template with translations applied."""
-    from psynet.experiment import get_and_load_config
+    from psynet.utils import get_config
 
     if all_template_args is None:
         all_template_args = {}
 
-    all_template_args["config"] = dict(get_and_load_config().as_dict().items())
+    all_template_args["config"] = dict(get_config().as_dict().items())
 
     assert [template_name, template_string].count(
         None
