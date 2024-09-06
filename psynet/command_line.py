@@ -2081,77 +2081,43 @@ def update_scripts_():
     """
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
-    click.echo("...updating .gitignore.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/.gitignore"
-    ) as path:
-        shutil.copyfile(
-            path,
-            ".gitignore",
-        )
-
-    click.echo("...updating Dockerfile.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/Dockerfile"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "Dockerfile",
-        )
+    files_to_copy = [
+        ".gitignore",
+        "Dockerfile",
+        "README.md",
+        "__init__.py",
+        "pytest.ini",
+        "test.py",
+    ]
+    for file in files_to_copy:
+        click.echo(f"...updating {file}.")
+        with resources.as_file(
+            resources.files("psynet") / f"resources/experiment_scripts/{file}"
+        ) as path:
+            shutil.copyfile(
+                path,
+                file,
+            )
 
     click.echo("...updating Dockertag.")
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
 
-    click.echo("...updating test.py and pytest.ini.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/test.py"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "test.py",
-        )
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/pytest.ini"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "pytest.ini",
-        )
-
-    click.echo("...updating docs directory.")
-    if Path("docs").exists():
-        shutil.rmtree("docs", ignore_errors=True)
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/docs"
-    ) as path:
-        shutil.copytree(
-            path,
-            "docs",
-            dirs_exist_ok=True,
-        )
-
-    click.echo("...updating Docker scripts.")
-    shutil.rmtree("docker", ignore_errors=True)
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/docker"
-    ) as path:
-        shutil.copytree(
-            path,
-            "docker",
-            dirs_exist_ok=True,
-        )
+    directories_to_copy = ["docs", "docker"]
+    for dir in directories_to_copy:
+        click.echo(f"...updating {dir} directory.")
+        if Path(dir).exists():
+            shutil.rmtree(dir, ignore_errors=True)
+        with resources.as_file(
+            resources.files("psynet") / f"resources/experiment_scripts/{dir}"
+        ) as path:
+            shutil.copytree(
+                path,
+                dir,
+                dirs_exist_ok=True,
+            )
     os.system("chmod +x docker/*")
-
-    click.echo("...updating README.md.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/README.md"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "README.md",
-        )
 
 
 def pre_update_constraints_(dir):
