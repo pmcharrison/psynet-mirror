@@ -910,11 +910,11 @@ def docs(force_rebuild):
 
 
 def check_prolific_payment(experiment, config):
-    from .experiment import get_and_load_config
+    from .utils import get_config
 
     base_payment = config.get("base_payment")
     minutes = config.get("prolific_estimated_completion_minutes")
-    wage_per_hour = get_and_load_config().get("wage_per_hour")
+    wage_per_hour = get_config().get("wage_per_hour")
     assert (
         wage_per_hour * minutes / 60 == base_payment
     ), "Wage per hour does not match Prolific reward"
@@ -1318,11 +1318,12 @@ def is_editable(project):
 # estimate #
 ############
 def _estimate(mode):
-    from .experiment import get_and_load_config, import_local_experiment
+    from .experiment import import_local_experiment
+    from .utils import get_config
 
     log(header)
     experiment_class = import_local_experiment()["class"]
-    wage_per_hour = get_and_load_config().get("wage_per_hour")
+    wage_per_hour = get_config().get("wage_per_hour")
 
     config = get_config()
     if not config.ready:

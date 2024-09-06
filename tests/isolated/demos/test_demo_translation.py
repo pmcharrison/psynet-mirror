@@ -5,7 +5,6 @@ import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 
-from psynet.experiment import get_and_load_config
 from psynet.pytest_psynet import (
     assert_text,
     bot_class,
@@ -13,6 +12,7 @@ from psynet.pytest_psynet import (
     next_page,
     path_to_demo_experiment,
 )
+from psynet.utils import get_config
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -23,7 +23,7 @@ PYTEST_BOT_CLASS = bot_class()
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
     def test_variables(self, db_session):
-        config = get_and_load_config()
+        config = get_config()
 
         assert json.loads(config.get("supported_locales")) == ["en", "de", "nl"]
         assert config.get("allow_switching_locale") is True
