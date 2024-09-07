@@ -633,7 +633,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def after_request(request, response):
         diff = time.monotonic() - flask_app_globals.request_start_time
-        relevant_endpoints = ["/timeline", "/response", "/ad", "/consent", "/start"]
+        relevant_endpoints = [
+            "/ad",
+            "/consent",
+            "/on-demand-asset",
+            "/response",
+            "/start",
+            "/timeline",
+        ]
         if any([endpoint == request.path for endpoint in relevant_endpoints]):
             params = dict(request.args)
             request_obj = Request(
