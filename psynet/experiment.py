@@ -49,7 +49,7 @@ from psynet import __version__
 from psynet.utils import get_config
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
+from .asset import Asset, AssetRegistry, NoStorage, OnDemandAsset
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
@@ -2486,9 +2486,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return json.dumps(json_data, default=serialise)
 
-    @experiment_route("/fast-function-asset", methods=["GET"])
+    @experiment_route("/on-demand-asset", methods=["GET"])
     @staticmethod
-    def get_fast_function_asset():
+    def get_on_demand_asset():
         id = request.args.get("id")
         secret = request.args.get("secret")
 
@@ -2497,7 +2497,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         id = int(id)
 
-        asset = FastFunctionAsset.query.filter_by(id=id).one()
+        asset = OnDemandAsset.query.filter_by(id=id).one()
         suffix = asset.extension if asset.extension else ""
 
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:

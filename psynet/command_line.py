@@ -1784,12 +1784,12 @@ def _export_(
 
     if assets != "none":
         experiment_assets_only = assets == "experiment"
-        include_fast_function_assets = assets == "all"
+        include_on_demand_assets = assets == "all"
         export_assets(
             export_path,
             anonymize,
             experiment_assets_only,
-            include_fast_function_assets,
+            include_on_demand_assets,
             n_parallel,
             server,
         )
@@ -1967,7 +1967,7 @@ def export_assets(
     export_path,
     anonymize,
     experiment_assets_only,
-    include_fast_function_assets,
+    include_on_demand_assets,
     n_parallel,
     server,
 ):
@@ -1985,7 +1985,7 @@ def export_assets(
         asset_path,
         include_private,
         experiment_assets_only,
-        include_fast_function_assets,
+        include_on_demand_assets,
         n_parallel,
         server,
     )

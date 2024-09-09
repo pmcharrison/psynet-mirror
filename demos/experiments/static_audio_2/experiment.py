@@ -1,7 +1,7 @@
 import random
 
 import psynet.experiment
-from psynet.asset import FastFunctionAsset, LocalStorage, S3Storage  # noqa
+from psynet.asset import LocalStorage, OnDemandAsset, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -51,7 +51,7 @@ class CustomTrial(StaticTrial):
         ]
         self.add_assets(
             {
-                "stimulus": FastFunctionAsset(
+                "stimulus": OnDemandAsset(
                     function=synth_stimulus,
                     extension=".wav",
                 )
