@@ -928,6 +928,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
     exp = get_experiment()
     exp.check_config()
+    exp.check_size()
 
     try:
         with open("requirements.txt", "r") as f:
