@@ -1069,26 +1069,46 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def grow_networks():
-        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
+        # We currently only grow ChainNetworks here, but we might need to extend this to
         # cover other types of networks in the future.
         from psynet.trial.chain import ChainNetwork
 
-        # This query could be further optimized by identifying which network classes are present in the table
-        # and making queries specific to these. This would allow subclass-specific attributes to be loaded
-        # in the initial query rather than being lazily loaded.
-        networks = (
-            ChainNetwork.query.filter(
+        # We run an initial query just to get the IDs of the networks we need to grow.
+        # We then run a second query to fetch the full objects.
+        # In theory we could do this in a single query, but this runs the risk of an
+        # expensive database operation, because object queries can be slow even with filtering
+        # if the class has eager-loading relationships or column properties.
+        # In the future we should try and remove these eager-loading relationships/column properties from PsyNet
+        # to avoid this problem.
+        network_ids = (
+            db.session.query(ChainNetwork.id)
+            .filter(
                 ChainNetwork.ready_to_spawn,
                 ChainNetwork.chain_type
                 != "within",  # participants are responsible for growing within-networks
             )
             .with_for_update()
-            .populate_existing()
-            .options(joinedload(ChainNetwork.head, innerjoin=True))
             .all()
         )
-        if len(networks) > 0:
-            logger.info("Growing %i networks...", len(networks))
+
+        # The query returns a list of tuples like this: [(1,), (2,), (3,)]
+        # We therefore extract the first element of each tuple to get a list of network IDs.
+        network_ids = [x[0] for x in network_ids]
+
+        logger.info("Found %i network(s) to grow.", len(network_ids))
+
+        if len(network_ids) > 0:
+            networks = (
+                db.session.query(
+                    # with_polymorphic ensures that all columns are loaded for all subclasses
+                    with_polymorphic(ChainNetwork, "*")
+                )
+                .filter(ChainNetwork.id.in_(network_ids))
+                .with_for_update()
+                .populate_existing()
+                .options(joinedload(ChainNetwork.head, innerjoin=True))
+                .all()
+            )
             exp = get_experiment()
             for network in networks:
                 try:
