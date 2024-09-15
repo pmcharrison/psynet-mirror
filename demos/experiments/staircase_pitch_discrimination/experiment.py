@@ -5,7 +5,7 @@ import soundfile as sf
 from dominate import tags
 
 import psynet.experiment
-from psynet.asset import FastFunctionAsset
+from psynet.asset import OnDemandAsset
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
@@ -134,7 +134,7 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
 
         self.add_assets(
             {
-                "stimulus": FastFunctionAsset(
+                "stimulus": OnDemandAsset(
                     function=self.synth_stimulus,
                     extension=".wav",
                 )

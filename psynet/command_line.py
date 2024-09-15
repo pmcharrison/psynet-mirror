@@ -533,8 +533,6 @@ def kill_chromedriver_processes():
 
 
 def list_psynet_chrome_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_psynet_chrome_process(p)]
 
 
@@ -546,15 +544,13 @@ def is_psynet_chrome_process(process):
                     return True
                 if "user-data-dir" in cmd:
                     return True
-    except psutil.NoSuchProcess:
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
         pass
 
     return False
 
 
 def list_psynet_worker_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_psynet_worker_process(p)]
 
 
@@ -575,8 +571,6 @@ def is_psynet_worker_process(process):
 
 
 def list_chromedriver_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_chromedriver_process(p)]
 
 
@@ -916,11 +910,11 @@ def docs(force_rebuild):
 
 
 def check_prolific_payment(experiment, config):
-    from .experiment import get_and_load_config
+    from .utils import get_config
 
     base_payment = config.get("base_payment")
     minutes = config.get("prolific_estimated_completion_minutes")
-    wage_per_hour = get_and_load_config().get("wage_per_hour")
+    wage_per_hour = get_config().get("wage_per_hour")
     assert (
         wage_per_hour * minutes / 60 == base_payment
     ), "Wage per hour does not match Prolific reward"
@@ -934,6 +928,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
     exp = get_experiment()
     exp.check_config()
+    exp.check_size()
 
     try:
         with open("requirements.txt", "r") as f:
@@ -1324,11 +1319,12 @@ def is_editable(project):
 # estimate #
 ############
 def _estimate(mode):
-    from .experiment import get_and_load_config, import_local_experiment
+    from .experiment import import_local_experiment
+    from .utils import get_config
 
     log(header)
     experiment_class = import_local_experiment()["class"]
-    wage_per_hour = get_and_load_config().get("wage_per_hour")
+    wage_per_hour = get_config().get("wage_per_hour")
 
     config = get_config()
     if not config.ready:
@@ -1788,12 +1784,12 @@ def _export_(
 
     if assets != "none":
         experiment_assets_only = assets == "experiment"
-        include_fast_function_assets = assets == "all"
+        include_on_demand_assets = assets == "all"
         export_assets(
             export_path,
             anonymize,
             experiment_assets_only,
-            include_fast_function_assets,
+            include_on_demand_assets,
             n_parallel,
             server,
         )
@@ -1971,7 +1967,7 @@ def export_assets(
     export_path,
     anonymize,
     experiment_assets_only,
-    include_fast_function_assets,
+    include_on_demand_assets,
     n_parallel,
     server,
 ):
@@ -1989,7 +1985,7 @@ def export_assets(
         asset_path,
         include_private,
         experiment_assets_only,
-        include_fast_function_assets,
+        include_on_demand_assets,
         n_parallel,
         server,
     )
@@ -2087,77 +2083,43 @@ def update_scripts_():
     """
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
-    click.echo("...updating .gitignore.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/.gitignore"
-    ) as path:
-        shutil.copyfile(
-            path,
-            ".gitignore",
-        )
-
-    click.echo("...updating Dockerfile.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/Dockerfile"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "Dockerfile",
-        )
+    files_to_copy = [
+        ".gitignore",
+        "Dockerfile",
+        "README.md",
+        "__init__.py",
+        "pytest.ini",
+        "test.py",
+    ]
+    for file in files_to_copy:
+        click.echo(f"...updating {file}.")
+        with resources.as_file(
+            resources.files("psynet") / f"resources/experiment_scripts/{file}"
+        ) as path:
+            shutil.copyfile(
+                path,
+                file,
+            )
 
     click.echo("...updating Dockertag.")
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
 
-    click.echo("...updating test.py and pytest.ini.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/test.py"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "test.py",
-        )
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/pytest.ini"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "pytest.ini",
-        )
-
-    click.echo("...updating docs directory.")
-    if Path("docs").exists():
-        shutil.rmtree("docs", ignore_errors=True)
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/docs"
-    ) as path:
-        shutil.copytree(
-            path,
-            "docs",
-            dirs_exist_ok=True,
-        )
-
-    click.echo("...updating Docker scripts.")
-    shutil.rmtree("docker", ignore_errors=True)
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/docker"
-    ) as path:
-        shutil.copytree(
-            path,
-            "docker",
-            dirs_exist_ok=True,
-        )
+    directories_to_copy = ["docs", "docker"]
+    for dir in directories_to_copy:
+        click.echo(f"...updating {dir} directory.")
+        if Path(dir).exists():
+            shutil.rmtree(dir, ignore_errors=True)
+        with resources.as_file(
+            resources.files("psynet") / f"resources/experiment_scripts/{dir}"
+        ) as path:
+            shutil.copytree(
+                path,
+                dir,
+                dirs_exist_ok=True,
+            )
     os.system("chmod +x docker/*")
-
-    click.echo("...updating README.md.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/README.md"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "README.md",
-        )
 
 
 def pre_update_constraints_(dir):

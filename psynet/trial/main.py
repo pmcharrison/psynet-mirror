@@ -627,12 +627,12 @@ class Trial(SQLMixinDallinger, Info):
 
             definition["bass_note"] = random.sample(10)
 
-        It can also be used to add FastFunctionAssets:
+        It can also be used to add OnDemandAsset:
 
         ::
 
             self.add_assets({
-                "audio": FastFunctionAsset(
+                "audio": OnDemandAsset(
                     function=synth_stimulus,
                     extension=".wav",
                 )

@@ -4,7 +4,7 @@ import pytest
 from dallinger import db
 from selenium.webdriver.common.by import By
 
-from psynet.experiment import get_and_load_config, get_experiment
+from psynet.experiment import get_experiment
 from psynet.participant import get_participant
 from psynet.pytest_psynet import (
     assert_text,
@@ -12,6 +12,7 @@ from psynet.pytest_psynet import (
     next_page,
     path_to_test_experiment,
 )
+from psynet.utils import get_config
 
 PYTEST_BOT_CLASS = bot_class()
 
@@ -22,7 +23,7 @@ PYTEST_BOT_CLASS = bot_class()
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_variables(self, db_session):
-        config = get_and_load_config()
+        config = get_config()
         assert config.get("min_accumulated_reward_for_abort") == 0.15
         assert config.get("show_abort_button") is True
 

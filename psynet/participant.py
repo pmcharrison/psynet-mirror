@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Dict
 
 import dallinger.models
 from dallinger import db
-from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
 from sqlalchemy import (
     Boolean,
@@ -27,6 +26,7 @@ from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
 from .utils import (
     call_function_with_context,
+    get_config,
     get_logger,
     get_translator,
     organize_by_key,
@@ -519,9 +519,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def time_reward(self):
-        from .experiment import get_and_load_config
-
-        wage_per_hour = get_and_load_config().get("wage_per_hour")
+        wage_per_hour = get_config().get("wage_per_hour")
         seconds = self.time_credit
         hours = seconds / 3600
         return hours * wage_per_hour

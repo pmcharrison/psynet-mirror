@@ -11,7 +11,6 @@ from statistics import median
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
 from dallinger import db
-from dallinger.config import get_config
 from dominate import tags
 from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
@@ -1211,7 +1210,7 @@ class Page(Elt):
         pass
 
     def render(self, experiment, participant):
-        from .experiment import get_and_load_config
+        from .utils import get_config
 
         internal_js_vars = {
             "uniqueId": participant.unique_id,
@@ -1220,7 +1219,7 @@ class Page(Elt):
         }
         locale = participant.get_locale(experiment)
         language_dict = get_language_dict(locale)
-        config = get_and_load_config()
+        config = get_config()
         js_vars = {**self.js_vars, **internal_js_vars}
 
         all_template_args = {
@@ -1235,8 +1234,8 @@ class Page(Elt):
             "total_reward": "%.2f"
             % (participant.performance_reward + participant.time_reward),
             "progress_percentage": round(participant.progress * 100),
-            "contact_email_on_error": get_config().get("contact_email_on_error"),
-            "experiment_title": get_config().get("title"),
+            "contact_email_on_error": config.get("contact_email_on_error"),
+            "experiment_title": config.get("title"),
             "app_id": experiment.app_id,
             "participant": participant,
             "unique_id": participant.unique_id,

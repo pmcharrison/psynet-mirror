@@ -563,7 +563,7 @@ trials with randomly sampled words:
 Trials used in this way can also incorporate Assets.
 However, this approach is only recommended for
 External Assets (i.e. Assets that are hosted externally on a web server)
-or for Fast Function Assets (i.e. Assets that are generated on-demand).
+or for On-Demand Assets (i.e. Assets that are generated on-demand).
 
 .. code-block:: python
 
@@ -581,7 +581,7 @@ or for Fast Function Assets (i.e. Assets that are generated on-demand).
             logic=lambda definition: RateTrial.cue(
                 definition,
                 assets={
-                    "audio": FastFunctionAsset(
+                    "audio": OnDemandAsset(
                         function=synth_stimulus,
                         extension=".wav",
                     ),

@@ -124,9 +124,9 @@ def create_lucid_recruitment_config(
 
     logger = get_logger()
     if config is None:
-        from psynet.experiment import get_and_load_config
+        from psynet.utils import get_config
 
-        config = get_and_load_config()
+        config = get_config()
     if service is None:
         service = get_lucid_service(config=config)
 

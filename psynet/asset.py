@@ -1622,11 +1622,11 @@ class FunctionAssetMixin:
 #     pass
 
 
-class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
+class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
     """
-    A fast function asset is an asset whose files are not stored directly in any storage back-end, but instead
+    An on-demand asset is an asset whose files are not stored directly in any storage back-end, but instead
     are created on demand when the asset is requested. This creation is typically triggered by making a call
-    to the asset's URL, accessible via the ``FastFunctionAsset.url`` attribute.
+    to the asset's URL, accessible via the ``OnDemandAsset.url`` attribute.
 
     Parameters
     ----------
@@ -1850,10 +1850,56 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     def get_url(self):
         # We need to flush to make sure that self.id is populated
         db.session.flush()
-        return f"/fast-function-asset?id={self.id}&secret={self.secret}"
+        return f"/on-demand-asset?id={self.id}&secret={self.secret}"
 
     def generate_host_path(self):
         return None
+
+
+class FastFunctionAsset(OnDemandAsset):
+    """
+    .. deprecated:: 11.7.0
+        Use ``OnDemandAsset`` instead.
+    """
+
+    def __init__(
+        self,
+        *,
+        function,
+        local_key=None,
+        key_within_module: Optional[str] = None,
+        key_within_experiment=None,
+        arguments: Optional[dict] = None,
+        is_folder: bool = False,
+        description=None,
+        data_type=None,
+        extension=None,
+        module_id: Optional[str] = None,
+        parent=None,
+        personal=False,
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+    ):
+        warnings.warn(
+            f"{self.__class__.__name__} is deprecated and will be removed in future versions. "
+            f"Please use OnDemandAsset instead.",
+            DeprecationWarning,
+        )
+
+        super().__init__(
+            function=function,
+            local_key=local_key,
+            key_within_module=key_within_module,
+            key_within_experiment=key_within_experiment,
+            arguments=arguments,
+            is_folder=is_folder,
+            description=description,
+            data_type=data_type,
+            extension=extension,
+            module_id=module_id,
+            parent=parent,
+            personal=personal,
+            obfuscate=obfuscate,
+        )
 
 
 class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):

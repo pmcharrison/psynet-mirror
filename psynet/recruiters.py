@@ -591,7 +591,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        from .experiment import get_and_load_config, get_experiment
+        from .utils import get_config, get_experiment
 
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
@@ -600,7 +600,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             )
 
         experiment = get_experiment()
-        wage_per_hour = get_and_load_config().get("wage_per_hour")
+        wage_per_hour = get_config().get("wage_per_hour")
         estimated_duration = experiment.estimated_completion_time(wage_per_hour)
         create_survey_request_params = {
             "bid_length_of_interview": ceil(estimated_duration / 60),

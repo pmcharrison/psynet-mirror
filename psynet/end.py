@@ -65,17 +65,18 @@ class EndLogic(EltCollection):
 
     @property
     def should_show_reward(self) -> bool:
-        from psynet.experiment import get_and_load_config, get_experiment
+        from psynet.experiment import get_experiment
+        from psynet.utils import get_config
 
         exp = get_experiment()
-        config = get_and_load_config()
+        config = get_config()
 
         return config.get("show_reward") and not exp.with_lucid_recruitment()
 
     def summarize_reward(self, experiment, participant):
-        from psynet.experiment import get_and_load_config
+        from psynet.utils import get_config
 
-        config = get_and_load_config()
+        config = get_config()
         _, _p = (participant.gettext, participant.pgettext)
 
         # Todo - translation should not have HTML hard-coded.
