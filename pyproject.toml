@@ -45,6 +45,7 @@ dependencies = [
     "pytest",
     "python-gettext",
     "rpdb",
+    "sqlalchemy==1.4.52",
     "tenacity",
     "tqdm",
     "yaspin",
