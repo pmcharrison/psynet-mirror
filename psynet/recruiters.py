@@ -83,15 +83,13 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
 
         return join(
             InfoPage(
-                _(
-                    "Please return the assignment and you will be compensated for your time via the bonus mechanism."
-                )
+                "Please return the assignment and you will be compensated for your time via the bonus mechanism."
             ),
             CodeBlock(self._request_async_partial_payment),
             PageMaker(self._wait_for_partial_payment),
             # TODO - Once Jazkarta has done their thing, we can be confident that participant.status == "returned"
             InfoPage(
-                _("You have now been compensated, you can close this page."),
+                "You have now been compensated, you can close this page.",
                 show_next_button=False,
             ),
         )
@@ -105,7 +103,7 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
             arguments={
                 "participant": participant,
                 "amount": participant.get_total_reward(),
-                "reason": _("Partial payment for incomplete participation"),
+                "reason": "Partial payment for incomplete participation",
             },
             participant=participant,
         )
@@ -119,7 +117,7 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
             ),
             expected_wait=5.0,
             check_interval=2.0,
-            wait_page=WaitPage(wait_time=2.0, content=_("Processing payment...")),
+            wait_page=WaitPage(wait_time=2.0, content="Processing payment..."),
         )
 
     def _participant_partial_payment_complete(self, participant: Participant):

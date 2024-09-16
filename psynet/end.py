@@ -122,7 +122,7 @@ class SuccessfulEndLogic(EndLogic):
             tags.p(cls="vspace")
 
             if not experiment.with_lucid_recruitment():
-                tags.p(_('Please click "Finish" to mark your submission as complete.'))
+                tags.p('Please click "Finish" to mark your submission as complete.')
 
         return self.debrief_page(html, experiment, participant)
 
@@ -179,7 +179,7 @@ class UnsuccessfulEndLogic(EndLogic):
             tags.p(cls="vspace")
 
             if not experiment.with_lucid_recruitment():
-                tags.p(_('Please click "Finish" to proceed.'))
+                tags.p('Please click "Finish" to proceed.')
 
         return self.debrief_page(html, experiment, participant)
 
