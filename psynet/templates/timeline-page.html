@@ -180,7 +180,7 @@
 {% block head %}
     {{ super() }}
 
-    <script src="/static/scripts/jquery-3.6.0.min.js"></script>
+    <script src="/static/scripts/jquery-3.7.1.min.js"></script>
     <script src="/static/scripts/JSZip/jszip.min.js"></script>
 
     {% for x in js_links %}
@@ -869,7 +869,7 @@
                     else {
                         return createRequest(url, mediaType, processMediaBatch[mediaType], args);
                     }
-                    
+
                 };
 
                 let preloadStimulus = function (stimulusId, url, mediaType) {
