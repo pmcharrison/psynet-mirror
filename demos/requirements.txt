@@ -1,5 +1,7 @@
 git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp@master#egg=repp
 git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension#egg=reppextension
+sing4me@git+https://gitlab.com/computational-audition/sing4me#egg=sing4me
+music21
 numpy
 praat-parselmouth
 scipy
