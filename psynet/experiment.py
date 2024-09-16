@@ -1979,8 +1979,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 (
                     resources.files("psynet")
-                    / "resources/libraries/jQuery/jquery-3.6.0.min.js",
-                    "/static/scripts/jquery-3.6.0.min.js",
+                    / "resources/libraries/jQuery/jquery-3.7.1.min.js",
+                    "/static/scripts/jquery-3.7.1.min.js",
                 ),
                 (
                     resources.files("psynet")
