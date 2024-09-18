@@ -433,6 +433,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     variables = {}
 
+    # Used only during testing
+    debug_server_process = None
+
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 

@@ -379,7 +379,9 @@ dallinger.pytest_dallinger.debug_experiment = debug_experiment
 
 @pytest.fixture(scope="class")
 def launched_experiment(debug_experiment):
-    return get_experiment()
+    exp = get_experiment()
+    exp.debug_server_process = debug_experiment
+    return exp
 
 
 @pytest.fixture(scope="class")
