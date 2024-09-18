@@ -216,7 +216,7 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
                     js="psynet.nextPage()",
                 ),
             },
-            show_next_button=False,
+            #show_next_button=False,
         )
 
     bot_thresholds = {
