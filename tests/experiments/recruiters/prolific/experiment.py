@@ -2,9 +2,8 @@
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.demography.general import BasicDemography
 from psynet.page import SuccessfulEndPage
-from psynet.prescreen import AttentionTest, HugginsHeadphoneTest
+from psynet.prescreen import AttentionTest
 from psynet.timeline import Timeline
 
 
@@ -13,8 +12,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        HugginsHeadphoneTest(),
-        BasicDemography(),
         AttentionTest(),
         SuccessfulEndPage(),
     )
