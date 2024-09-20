@@ -1,8 +1,72 @@
 # CHANGELOG
 
-# [11.6.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.6.0) Release 2024-07-03
+# [11.7.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.7.0) Release 2024-09-20
 
 ## Fixed
+- Fixed a bug where participants would receive payment even if they rejected the consent form (author: Peter Harrison, reviewer: Frank Höger).
+- Refactored updating of experiment scripts to include __init__.py and added comment to test.py (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed bug where `db.drop_all` was not upgrading enum types properly (author: Peter Harrison, reviewer: Frank Höger).
+- Added missing dependencies to demo experiments (author: Frank Höger, reviewer: Peter Harrison).
+- Added missing `participant_group` argument to `GraphChainNode` constructor (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed `AccessDenied` error in `list_psynet_chrome_processes` (author: Frank Höger, reviewer: Peter Harrison).
+- Fixed PsyNet logo layout issues on ad and consent pages (author: Frank Höger, reviewer: Peter Harrison).
+- Better serialization for numpy data structures (author: Peter Harrison, reviewer: Frank Höger).
+- Improved `Experiment.grow_networks` (author: Frank Höger, reviewer: Peter Harrison).
+- Immediately terminate participants on Lucid when using mobile browser when this should not be allowed (authors: Pol van Rijn, reviewer: Frank Höger).
+- Revamp of synchronous experiment support (author: Peter Harrison, reviewer: Frank Höger):
+  - Fixed deadlock problems in synchronous experiment framework.
+  - Fixed issue with synchronous experiment framework that made it hard to combine with chain experiments.
+  - Fixed flakey staircase pitch discrimination demo test.
+  - Fixed broken `accumulate_answers` test.
+  - Fixed bug in progress fixing.
+- Fixed type error in Lucid `incidence_rate` statistic caused by `numpy` version upgrade (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug where calling `participant.fail()` twice would produce an error (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed problem with out-of-date `click_coordinates` in graphics pages (author: Peter Harrison, reviewer: Frank Höger).
+
+## Added
+- Added new configuration variable `loglevel_worker` set to `1` (info) as default (author: Frank Höger, reviewer: Peter Harrison).
+- Added class `DevProlificRecruiter` to improve on debugging capabilities (author: Frank Höger, reviewer: Peter Harrison).
+- Added synchronous 'create and rate' demo experiment (author: Eline van Geert, reviewer: Peter Harrison).
+- Added 'vertical processing' demo experiment (author: Peter Harrison, Frank Höger, reviewer: Peter Harrison).
+- Added `/on-demand-asset` to logged requests (author: Frank Höger, reviewer: Peter Harrison).
+- Added check for a maximum experiment directory size of 256 MB in `pre_checks` (author: Frank Höger, reviewer: Peter Harrison).
+- Added `get_config` wrapper to get rid of `get_and_load_config` (author: Frank Höger, reviewer: Peter Harrison).
+- Added a version of the static audio demo to the tests folder (author: Frank Höger, reviewer: Peter Harrison).
+- Improved on error logs in source code export (author: Frank Höger, reviewer: Peter Harrison).
+- Added experiment attribute `export_classes_to_skip` for specifying a list of classes to be excluded when exporting data. `ExperimentStatus` is now excluded by default (author: Frank Höger, reviewer: Peter Harrison).
+- Added a note to the export part of the dashboard (author: Frank Höger, reviewer: Peter Harrison).
+- CI now creates reports analyzing database usage and shows which tests have passed and which have failed (author: Silvio Tomatis, reviewer: Peter Harrison).
+- Revamp of synchronous experiment support (author: Peter Harrison, reviewer: Frank Höger):
+  - Added `initial_group_size`, `max_group_size`, `min_group_size`, and `join_existing_groups` to `SimpleGrouper`, making its functionality much more flexible.
+  - Added `gibbs_within_sync` demo (aggregated GSP with synchronous decisions)
+  - Added `sync_quorum` demo (imposing a quorum on part of the experiment timeline)
+  - Added `test_rock_paper_scissors_parallel` (testing that the synchronous functionality scales well)
+- Documented expected_trials_per_participant better (author: Peter Harrison).
+- Added debugging text for staircase pitch discrimination demo experiment (author: Peter Harrison).
+
+## Changed
+- Renamed `FastFunctionAsset` to `OnDemandAsset` and route `fast-function-asset` to `on-demand-asset` (author: Frank Höger, reviewer: Peter Harrison).
+- Renamed some Lucid specific variables (author: Frank Höger, reviewer: Peter Harrison).
+- Refactored `recruiter.py` so that all recruiters receive a `PsyNetRecruiterMixin` (author: Peter Harrison, reviewer: Frank Höger).
+- Refactored the `EndPage` logic to be written in Python rather than in Jinja (author: Peter Harrison, reviewer: Frank Höger).
+
+## Disabled
+- Skipped the "demo translation" test as it makes the CI fail for unknown reasons (author: Frank Höger, reviewer: Peter Harrison).
+
+## Removed
+- Removed DeprecationWarning for `max_trials_per_participant` (author: Frank Höger, reviewer: Peter Harrison).
+
+## Updated
+- Updated Dallinger to version 10.2.1 (author: Frank Höger, reviewer: Peter Harrison).
+- Updated jQuery to version 3.7.1 (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Documentation changes
+- Updated deployment, and development sections (author: Peter Harrison).
+- Updated synchronization tutorial (author: Peter Harrison).
+- Render documentation for staircase paradigms (author: Peter Harrison).
+
+# [11.6.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.6.0) Release 2024-07-03
+
 - Fixed units for median request time taken in dashboard `Resources` tab visualization (author: Frank Höger, reviewer: Peter Harrison).
 - Respect comments in requirements.txt when specifying package versions (author: Frank Höger, reviewer: Peter Harrison).
 - Fix bug saving `ExperimentStatus` (author: Frank Höger, reviewer: Peter Harrison).
