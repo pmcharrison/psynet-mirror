@@ -57,6 +57,12 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
     pass
 
 
+class DevProlificRecruiter(
+    PsyNetRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
+):
+    pass
+
+
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
     pass
 
