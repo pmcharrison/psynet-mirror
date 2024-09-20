@@ -45,7 +45,7 @@ class EndLogic(EltCollection):
             )
 
     def debrief_page(
-        self, content, experiment, participant=True, show_finish_button=True
+        self, content, experiment, participant, show_finish_button=True
     ) -> TimelineLogic:
         from .modular_page import ModularPage, PushButtonControl
 
