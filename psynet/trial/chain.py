@@ -1,5 +1,4 @@
 import random
-import warnings
 from typing import List, Optional, Type, Union
 
 from dallinger import db
@@ -1282,14 +1281,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         sync_group_max_wait_time: float = 45.0,
     ):
         if max_trials_per_participant == NoArgumentProvided:
-            warnings.warn(
-                "It is now requested that you specify `max_trials_per_participant` explicitly. "
-                "Normally you should set this to the maximum number of trials that you "
-                "anticipate the participant being able to take. In rare cases you might want "
-                "to set it to `None`, which allows the participant to continue forever until "
-                "they are stopped by other factors (e.g. no more chains left to participate in).",
-                DeprecationWarning,
-            )
             max_trials_per_participant = None
 
         if network_class is None:
