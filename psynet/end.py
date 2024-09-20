@@ -3,11 +3,11 @@ from typing import List, Optional, Union
 import dominate
 from dominate import tags
 
+from psynet.modular_page import NullControl
 from psynet.timeline import (
     CodeBlock,
     Elt,
     EltCollection,
-    Event,
     PageMaker,
     TimelineLogic,
     join,
@@ -44,23 +44,23 @@ class EndLogic(EltCollection):
                 "No release_participant method was found."
             )
 
-    def debrief_page(self, content, experiment, participant) -> TimelineLogic:
+    def debrief_page(
+        self, content, experiment, participant, show_finish_button=True
+    ) -> TimelineLogic:
         from .modular_page import ModularPage, PushButtonControl
 
-        events = {}
-
-        # Todo - consider removing this redirect logic
-        if experiment.with_lucid_recruitment():
-            seconds_until_redirect = 2.0
-            events["nextPage"] = Event(
-                is_triggered_by="trialConstruct", delay=seconds_until_redirect
-            )
+        # Todo - Once automatic translation is updated, revisit the logic in RejectedConsentPage,
+        # and ask the participant to return the HIT if appropriate.
+        if show_finish_button:
+            control = PushButtonControl(["Finish"])
+        else:
+            control = NullControl()
 
         return ModularPage(
             self.__class__.__name__,
             content,
-            PushButtonControl(["Finish"]),
-            events=events,
+            control,
+            show_next_button=False,
         )
 
     @property
@@ -198,7 +198,6 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
             tags.span(_p("final_page_rejected_consent", "Consent was rejected."))
             tags.span(_p("final_page_rejected_consent", "End of experiment."))
 
-            if not experiment.with_lucid_recruitment():
-                tags.p(_('Please click "Finish" to complete the HIT.'))
-
-        return self.debrief_page(html, experiment, participant)
+        return self.debrief_page(
+            html, experiment, participant, show_finish_button=False
+        )
