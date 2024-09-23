@@ -34,7 +34,6 @@ from flask.templating import Environment, _render
 
 
 def get_logger():
-    logging.basicConfig(level=logging.INFO)
     return logging.getLogger()
 
 

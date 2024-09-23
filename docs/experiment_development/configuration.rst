@@ -138,6 +138,11 @@ General
     ``critical`` (4). Note that ``psynet debug`` ignores this setting and
     always runs at 0 (``debug``). Default: ``0``.
 
+``loglevel_worker`` *unicode* |dlgr-icon|
+    A number between 0 and 4 that controls the verbosity of worker logs and maps to
+    one of ``debug`` (0), ``info`` (1), ``warning`` (2), ``error`` (3), or
+    ``critical`` (4). Default: ``1``.
+
 ``protected_routes`` *unicode - JSON formatted* |dlgr-icon|
     An optional JSON array of Flask route rule names which should be made inaccessible.
     Example::
