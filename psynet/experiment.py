@@ -1298,6 +1298,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_incognito_mode": False,
             "allow_mobile_devices": False,
             "color_mode": "light",
+            "loglevel_worker": 1,
             **cls.config,
         }
 
