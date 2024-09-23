@@ -191,7 +191,7 @@ class WaitPage(Page):
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
 
-    content = "Please wait, the experiment should continue shortly..."
+    content = "Please wait, the speech training should continue shortly..."
 
     def __init__(self, wait_time: float, content=None, **kwargs):
         assert wait_time >= 0
@@ -214,6 +214,8 @@ class WaitPage(Page):
     def on_complete(self, experiment, participant):
         participant.total_wait_page_time += self.wait_time
         super().on_complete(experiment, participant)
+
+
 
 
 def wait_while(

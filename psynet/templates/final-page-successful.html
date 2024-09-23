@@ -1,16 +1,13 @@
 {% extends "timeline-page.html" %}
 
 {% block main_body %}
-    {{ pgettext("final_page_successful", "That's the end of the experiment!") }}
+    {{ pgettext("final_page_successful", "That's the end of the training!") }}
     {% if config.show_reward and not experiment.with_lucid_recruitment() %}
         {% include "final-page-rewards.html" %}
     {% endif %}
     {{ gettext("Thank you for taking part.") }}
     {% if not experiment.with_lucid_recruitment() %}
         <p class="vspace"></p>
-        <p>
-            {{ gettext('Please click "Finish" to complete the HIT.') }}
-        </p>
         <p class="vspace"></p>
         <button type="button" id="next-button" class="btn btn-primary btn-lg">{{ gettext("Finish") }}</button>
     {% endif %}
