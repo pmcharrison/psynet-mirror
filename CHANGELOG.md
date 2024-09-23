@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [11.7.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.7.0) Release 2024-09-20
+# [11.7.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.7.0) Release 2024-09-23
 
 ## Fixed
 - Fixed a bug where participants would receive payment even if they rejected the consent form (author: Peter Harrison, reviewer: Frank Höger).
