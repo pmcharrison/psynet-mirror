@@ -4,11 +4,13 @@ description = This experiment requires you to XXX. Please use a Chrome browser i
 contact_email_on_error = XXX@gmail.com
 organization_name = XXX
 
-recruiter = prolific
+recruiter = generic
 currency = $
 wage_per_hour = 12.0
 
 [Prolific]
+# recruiter = prolific
+
 # Setting `auto_recruit = false` means that PsyNet won't recruit participants itself,
 # you'll instead control recruitment via the Prolific interface.
 auto_recruit = false
