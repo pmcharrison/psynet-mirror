@@ -1035,7 +1035,7 @@ def get_lucid_settings(
     return settings
 
 
-class GenericRecruiter(dallinger.recruiters.CLIRecruiter):
+class GenericRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     """
     An improved version of Dallinger's Hot-Air Recruiter.
     """
