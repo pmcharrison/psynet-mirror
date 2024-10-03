@@ -774,7 +774,7 @@
                         resumeButton.click(async function () {
                             resumeModal.css("display", "none");
                             $("#js-psych").trigger("focus");
-                            psynet.media.user_clicked = true;
+                            psynet.media.userClicked = true;
                             await psynet.media.init();
                             resolve();
                         });
