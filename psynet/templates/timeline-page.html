@@ -781,22 +781,20 @@
                     });
                 };
                 psynet.media.user_clicked = false;
-                psynet.media.has_media = function (){
-                    let stimTypes = Object.keys(psynet.media.requests);
-                    let hasMedia = false;
-                    stimTypes.forEach(function (stimType) {
-                        if (Object.keys(psynet.media.requests[stimType]).length > 0) {
-                            hasMedia = true;
-                        }
-                    });
-                    return hasMedia;
+                psynet.media.hasMedia = function (type) {
+                    return psynet.media.requests[type].length > 0;
                 }
+
 
                 psynet.media.init = async function () {
                     psynet.media.initAudioContext();
 
                     if (
-                        psynet.media.has_media() &&
+                        (
+                            psynet.media.hasMedia("audio") ||
+                            psynet.media.hasMedia("video")
+                        )
+                        &&
                         psynet.media.audioContext.state == "suspended" &&
                         !psynet.media.user_clicked
                     ) {
