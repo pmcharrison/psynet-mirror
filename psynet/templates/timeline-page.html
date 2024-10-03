@@ -780,7 +780,7 @@
                         });
                     });
                 };
-                psynet.media.user_clicked = false;
+                psynet.media.userClicked = false;
                 psynet.media.hasMedia = function (type) {
                     return psynet.media.requests[type].length > 0;
                 }
@@ -796,7 +796,7 @@
                         )
                         &&
                         psynet.media.audioContext.state == "suspended" &&
-                        !psynet.media.user_clicked
+                        !psynet.media.userClicked
                     ) {
                         psynet.log.info(
                             "Audio context is suspended, and can only be resumed " +
