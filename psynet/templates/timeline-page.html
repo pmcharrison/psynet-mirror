@@ -782,7 +782,7 @@
                 };
                 psynet.media.userClicked = false;
                 psynet.media.hasMedia = function (type) {
-                    return psynet.media.requests[type].length > 0;
+                    return Object.keys(psynet.media.requests[type]).length > 0;
                 }
 
 
