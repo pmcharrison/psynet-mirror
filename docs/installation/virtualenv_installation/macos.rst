@@ -66,6 +66,35 @@ When prompted, enter the follwing password: *dallinger*
 
    brew services restart postgresql@14
 
+Install libpq
+~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   brew install libpq
+
+In the ensuing text, you should see something like this:
+
+.. code-block:: bash
+
+   For compilers to find libpq you may need to set:
+     export LDFLAGS="-L/usr/local/opt/libpq/lib"
+     export CPPFLAGS="-I/usr/local/opt/libpq/include"
+
+Execute the following:
+
+.. code-block:: bash
+
+   touch ~/.zshrc
+   open ~/.zshrc
+
+Then paste those two lines beginning with "export" at the bottom of the file (as new lines).
+
+.. warning::
+
+   If you skip this step you might see error messages like "symbol not found in flat namespace '_PQbackendPID'"
+   once you try and run PsyNet.
+
 Install Heroku
 ~~~~~~~~~~~~~~
 
