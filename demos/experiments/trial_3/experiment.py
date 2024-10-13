@@ -3,8 +3,8 @@ import random
 import psynet.experiment
 from psynet.asset import (  # noqa
     CachedFunctionAsset,
-    FastFunctionAsset,
     LocalStorage,
+    OnDemandAsset,
     S3Storage,
 )
 from psynet.bot import Bot
@@ -52,7 +52,7 @@ audio_ratings = Module(
         logic=lambda definition: RateTrial.cue(
             definition,
             assets={
-                "audio": FastFunctionAsset(
+                "audio": OnDemandAsset(
                     function=synth_stimulus,
                     extension=".wav",
                 ),

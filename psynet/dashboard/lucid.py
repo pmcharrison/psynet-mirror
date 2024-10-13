@@ -5,10 +5,10 @@ from math import ceil
 import pandas as pd
 from flask import render_template
 
-from psynet.experiment import get_and_load_config
 from psynet.participant import Participant
 from psynet.recruiters import BaseLucidRecruiter, LucidRID, LucidStatus
 from psynet.timeline import Response
+from psynet.utils import get_config
 
 TEMPLATE_NAME = "dashboard_lucid.html"
 
@@ -377,7 +377,7 @@ def report_lucid():
             "col": "col-4",
         }
 
-        config = get_and_load_config()
+        config = get_config()
         lucid_recruitment_config = json.loads(config.get("lucid_recruitment_config"))
         bid_incidence = lucid_recruitment_config["survey"]["BidIncidence"]
         ir_title = f"Incidence rate: {int(incidence_rate * 100)}%"

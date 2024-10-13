@@ -5,7 +5,7 @@ import soundfile as sf
 from dominate import tags
 
 import psynet.experiment
-from psynet.asset import FastFunctionAsset
+from psynet.asset import OnDemandAsset
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
@@ -134,7 +134,7 @@ class PitchDiscriminationTrial(GeometricStaircaseTrial):
 
         self.add_assets(
             {
-                "stimulus": FastFunctionAsset(
+                "stimulus": OnDemandAsset(
                     function=self.synth_stimulus,
                     extension=".wav",
                 )
@@ -308,7 +308,7 @@ class Exp(psynet.experiment.Experiment):
             # We expect that the last few trials should be near the threshold.
             # Here we check the last 4 trials.
             n = 4
-            last_n_trials = chain.all_trials[-n:]
+            last_n_trials = sorted(chain.all_trials, key=lambda t: t.id)[-n:]
             last_n_parameters = [
                 trial.definition["parameter"] for trial in last_n_trials
             ]

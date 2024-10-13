@@ -300,7 +300,7 @@ class CustomTrialMaker(GraphChainTrialMaker):
         grid_dimension: int,
         chain_type: str,
         expected_trials_per_participant: int,
-        max_trials_per_participant: int,
+        max_trials_per_participant: Optional[int],
         chains_per_participant: Optional[int],
         trials_per_node: int,
         balance_across_chains: bool,

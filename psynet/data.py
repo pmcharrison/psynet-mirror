@@ -197,7 +197,7 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
     return data
 
 
-def _prepare_db_export(scrub_pii):
+def _prepare_db_export(scrub_pii: bool):
     """
     Encodes the database to a JSON-style representation suitable for export.
 
@@ -230,6 +230,7 @@ def _prepare_db_export(scrub_pii):
             for obj in tqdm(_obj_sql_for_cls, desc=_cls_name)
         ]
         for _cls_name, _obj_sql_for_cls in obj_sql_by_cls.items()
+        if _cls_name not in exp.export_classes_to_skip
     }
     return obj_dict_by_cls
 
@@ -562,6 +563,9 @@ def drop_all_db_tables(bind=db.engine):
 
     trans.commit()
 
+    # Calling _old_drop_all helps clear up edge cases, such as the dropping of enum types
+    _old_drop_all(bind=bind)
+
 
 def list_fkeys():
     inspector = sqlalchemy.inspect(db.engine)
@@ -589,6 +593,7 @@ def list_fkeys():
     return all_fkeys, tables
 
 
+_old_drop_all = dallinger.db.Base.metadata.drop_all
 dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 
 
@@ -865,7 +870,7 @@ def export_assets(
     path,
     include_private: bool,
     experiment_assets_only: bool,
-    include_fast_function_assets: bool,
+    include_on_demand_assets: bool,
     n_parallel=None,
     server=None,
 ):
@@ -896,7 +901,7 @@ def export_assets(
         backend="threading",
         # backend="multiprocessing", # Slow compared to threading
     )(
-        delayed(export_asset)(asset_id, path, include_fast_function_assets, server)
+        delayed(export_asset)(asset_id, path, include_on_demand_assets, server)
         for asset_id in asset_ids
     )
     # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
@@ -905,8 +910,8 @@ def export_assets(
 # def close_parallel_db_sessions():
 
 
-def export_asset(asset_id, root, include_fast_function_assets, server):
-    from .asset import Asset, FastFunctionAsset
+def export_asset(asset_id, root, include_on_demand_assets, server):
+    from .asset import Asset, OnDemandAsset
     from .experiment import import_local_experiment
     from .utils import make_parents
 
@@ -921,7 +926,7 @@ def export_asset(asset_id, root, include_fast_function_assets, server):
     import_local_experiment()
     a = Asset.query.filter_by(id=asset_id).one()
 
-    if not include_fast_function_assets and isinstance(a, FastFunctionAsset):
+    if not include_on_demand_assets and isinstance(a, OnDemandAsset):
         return
 
     path = os.path.join(root, a.export_path)

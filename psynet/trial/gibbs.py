@@ -148,8 +148,7 @@ class GibbsTrial(ChainTrial):
     @property
     @extra_var(__extra_vars__)
     def updated_vector(self):
-        if self.answer is None:
-            return None
+        assert self.answer is not None
         new = self.initial_vector.copy()
         new[self.active_index] = self.answer
         return new

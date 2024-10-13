@@ -129,6 +129,12 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
         return any([p.complete for p in relevant_processes])
 
 
+class DevProlificRecruiter(
+    PsyNetRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
+):
+    pass
+
+
 class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
     pass
 
@@ -524,12 +530,18 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             )
 
             pattern = "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification|Standard Qualification"
-            returned_because_of_qualifications = (
+            n_returned_because_of_qualifications = (
                 entry_df.lucid_market_place_code.str.contains(pattern, regex=True).sum()
             )
 
-            potential = len(completes) + returned_because_of_qualifications
-            incidence_rate = len(completes) / potential if potential > 0 else 0
+            n_potential_completes = (
+                len(completes) + n_returned_because_of_qualifications
+            )
+            incidence_rate = float(
+                len(completes) / n_potential_completes
+                if n_potential_completes > 0
+                else 0.0
+            )
 
         logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
         logger.info(f"Drop off rate: {drop_off_rate:.2%}")
@@ -657,7 +669,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        from .experiment import get_and_load_config, get_experiment
+        from .utils import get_config, get_experiment
 
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
@@ -666,7 +678,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             )
 
         experiment = get_experiment()
-        wage_per_hour = get_and_load_config().get("wage_per_hour")
+        wage_per_hour = get_config().get("wage_per_hour")
         estimated_duration = experiment.estimated_completion_time(wage_per_hour)
         create_survey_request_params = {
             "bid_length_of_interview": ceil(estimated_duration / 60),
@@ -1095,7 +1107,7 @@ def get_lucid_settings(
     return settings
 
 
-class GenericRecruiter(dallinger.recruiters.CLIRecruiter):
+class GenericRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     """
     An improved version of Dallinger's Hot-Air Recruiter.
     """

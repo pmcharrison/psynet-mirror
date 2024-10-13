@@ -6,6 +6,7 @@ from functools import cached_property
 
 import dominate.tags
 import jsonpickle
+import jsonpickle.ext.numpy as jsonpickle_numpy
 from jsonpickle import Pickler
 from jsonpickle.unpickler import Unpickler, loadclass
 from jsonpickle.util import importable_name
@@ -16,28 +17,18 @@ from .utils import get_logger
 
 logger = get_logger()
 
-# old_loadclass = jsonpickle.unpickler.loadclass
-#
-#
-# def check_mappers():
-#     # If we don't manage the imports correctly, we can end up with a nasty bug where
-#     # SQLAlchemy ends up registering two mappers for every class in experiment.py.
-#     # The following test catches such cases.
-#     from dallinger.db import Base
-#
-#     animal_trial_mappers = [
-#         m for m in Base.registry.mappers if m.class_.__name__ == "AnimalTrial"
-#     ]
-#     assert len(animal_trial_mappers) == 1
-#
-#
-# def loadclass(module_and_name, classes=None):
-#     check_mappers()
-#     old_loadclass(module_and_name, classes)
-#     check_mappers()
 
-
-jsonpickle.unpickler.loadclass = loadclass
+# Without jsonpickle.ext.numpy.register_handlers(), numpy arrays are serialized very verbosely, e.g.
+# >>> serialize(np.array([1, 2, 3]))
+# '{"py/reduce": [{"py/function": "numpy._core.multiarray._reconstruct"}, {"py/tuple": [{"py/type": "numpy.ndarray"},
+# {"py/tuple": [0]}, {"py/b64": "Yg=="}]}, {"py/tuple": [1, {"py/tuple": [3]}, {"py/reduce": [{"py/type":
+# "numpy.dtype"}, {"py/tuple": ["i8", false, true]}, {"py/tuple": [3, "<", null, null, null, -1, -1, 0]}]}, false,
+# {"py/b64": "AQAAAAAAAAACAAAAAAAAAAMAAAAAAAAA"}]}]}'
+#
+# With jsonpickle.ext.numpy.register_handlers(), we get a much more concise representation:
+# >>> serialize(np.array([1, 2, 3]))
+# '{"py/object": "numpy.ndarray", "dtype": "int64", "values": [1, 2, 3]}'
+jsonpickle_numpy.register_handlers()
 
 
 def is_lambda_function(x):

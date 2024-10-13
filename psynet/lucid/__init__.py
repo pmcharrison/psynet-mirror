@@ -531,9 +531,9 @@ class LucidService(object):
 def get_lucid_service(config=None, recruitment_config=None):
     if os.path.exists("config.txt"):
         if config is None:
-            from psynet.experiment import get_and_load_config
+            from psynet.utils import get_config
 
-            config = get_and_load_config()
+            config = get_config()
         config_entries = config
     else:
         import configparser

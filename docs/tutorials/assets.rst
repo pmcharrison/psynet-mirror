@@ -85,7 +85,7 @@ It's also worth knowing about a few special cases of these asset types.
   such a file. This means that you can write your stimulus generation code transparently as part
   of your experiment code.
 
-- A :class:`~psynet.asset.FastFunctionAsset` is like a :class:`~psynet.asset.CachedFunctionAsset`
+- A :class:`~psynet.asset.OnDemandAsset` is like a :class:`~psynet.asset.CachedFunctionAsset`
   but has no caching at all; instead, the file is (re)generated on demand whenever it is requested
   from the front-end. This is suitable for files that can be generated very quickly.
 
@@ -512,7 +512,7 @@ demo):
             ]
             self.add_assets(
                 {
-                    "stimulus": FastFunctionAsset(
+                    "stimulus": OnDemandAsset(
                         function=synth_stimulus,
                         extension=".wav",
                     )
