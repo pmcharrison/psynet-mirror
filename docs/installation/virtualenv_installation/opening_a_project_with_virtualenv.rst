@@ -75,7 +75,7 @@ with the following command:
 
     .. code-block:: bash
 
-       mkvirtualenv my-project --python $(which python3)
+       mkvirtualenv my-project --python $(which python3.12)
 
     where in this case ``my-project`` is the name of the virtual environment.
 
