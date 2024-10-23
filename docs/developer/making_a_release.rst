@@ -7,6 +7,13 @@ Making a release
 
 PsyNet releases are made periodically by the core developers. There is no real rule about how often these releases are made; it comes down to a balance between making new features available early and avoiding spamming PsyNet users with too many updates to keep track of.
 
+Before making a final release, though, first a release candidate will be made public and PsyNet users are requested to test the release candidate, e.g. by making deployments and exporting data. Release candidate version use the suffix `rc0`, `rc1`, etc. To bump the PsyNet version from a development version with the `devN` suffix (`dev0`, `dev1`, etc.) use the command
+
+.. code-block:: console
+
+    bump-my-version bump pre_l
+
+
 After all changes to be released have been merged into the ``master`` branch follow these steps:
 
 1. Decide on a version number for the new release following `semantic versioning guidelines <https://semver.org/>`_. The upgrade type can be one of the following:
