@@ -61,9 +61,11 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
     pass
 
 
-class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecruiter):
-    def release_participant(self, experiment, participant) -> TimelineLogic:
-        if participant.successful:
+class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
+    def release_participant(
+        self, experiment, participant: Participant
+    ) -> TimelineLogic:
+        if not participant.failed:
             return self.approve_assignment()
         else:
             # Once Jazkarta has implemented better recruiter communication in Dallinger,
@@ -74,42 +76,94 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
             return self.reject_assignment()
 
     def reject_assignment(self) -> TimelineLogic:
-        return PageMaker(self._reject_assignment)
+        return PageMaker(self._reject_assignment, time_estimate=0.0)
 
     def _reject_assignment(self, participant) -> TimelineLogic:
         _ = participant.gettext
 
         return join(
+            CodeBlock(self._request_async_partial_payment),
+            PageMaker(self._wait_for_partial_payment, time_estimate=0.0),
             InfoPage(
                 _(
-                    "Please return the assignment and you will be compensated for your time via the bonus mechanism."
-                )
-            ),
-            CodeBlock(self._request_async_partial_payment),
-            PageMaker(self._wait_for_partial_payment),
-            # TODO - Once Jazkarta has done their thing, we can be confident that participant.status == "returned"
-            InfoPage(
-                _("You have now been compensated, you can close this page."),
+                    "Success! "
+                    "You have been credited for the time spent on the experiment. "
+                    "Your submission will now appear as 'screened out' in Prolific. "
+                    "You can now close this browser window."
+                ),
                 show_next_button=False,
+                time_estimate=0.0,
             ),
         )
 
-    def _request_async_partial_payment(self, experiment, participant):
+    def _request_async_partial_payment(self, experiment, participant: Participant):
         _ = participant.gettext
 
+        label = "Requesting partial payment"
         LocalAsyncProcess(
-            label="Requesting partial payment",
-            function=experiment.recruiter.reward_bonus,
+            label=label,
+            function=self._request_partial_payment,
             arguments={
                 "participant": participant,
-                "amount": participant.get_total_reward(),
-                "reason": _("Partial payment for incomplete participation"),
+                "payment": participant.calculate_reward(),
+                # "reason": _("Partial payment for incomplete participation"),
             },
             participant=participant,
+            unique=dict(participant_id=participant.id),
         )
+
+    def _request_partial_payment(self, participant, payment: float):
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
+
+        min_payment = 0.1
+
+        if payment < min_payment:
+            payment = 0.1
+            logger.warning(
+                f"Reward for participant {participant.id} ({payment}) is below {min_payment}. "
+                f"Setting to minimal reward of {min_payment}."
+            )
+
+        study_id = participant.hit_id
+        submission_id = participant.assignment_id
+
+        increase_places = get_config().get("auto_recruit")
+
+        params = {
+            "submission_ids": [submission_id],
+            "bonus_per_submission": payment,
+            "increase_places": increase_places,
+        }
+
+        endpoint = f"/studies/{study_id}/screen-out-submissions/"
+
+        # Todo: Update Dallinger DevProlificService so that `_req` deals appropriately with `screen-out-submissions`.
+        if isinstance(experiment.recruiter, DevProlificRecruiter):
+            logger.info(
+                f"Simulating API call to make partial payment to participant {participant.id} of {payment}. "
+                f"Endpoint: {endpoint}. Params: {params}"
+            )
+        else:
+            response = experiment.recruiter.prolificservice._req(
+                method="POST", endpoint=endpoint, json=params
+            )
+            assert (
+                response.status_code == 200
+            ), f"{response.status_code} error in response: {response.text}"
+
+            # To do - revert to logger.info when Dallinger has been updated
+            logger.warning(
+                f"Successfully made partial payment to participant {participant.id} of {payment} via the "
+                "screen-out-submissions API."
+            )
 
     def _wait_for_partial_payment(self, participant) -> TimelineLogic:
         _ = participant.gettext
+
+        class CustomWaitPage(WaitPage):
+            content = _("Communicating with Prolific...")
 
         return wait_while(
             condition=lambda participant: not self._participant_partial_payment_complete(
@@ -117,7 +171,7 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
             ),
             expected_wait=5.0,
             check_interval=2.0,
-            wait_page=WaitPage(wait_time=2.0, content=_("Processing payment...")),
+            wait_page=CustomWaitPage,
         )
 
     def _participant_partial_payment_complete(self, participant: Participant):
@@ -126,11 +180,21 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
             for p in participant.async_processes
             if p.label == "Requesting partial payment"
         ]
-        return any([p.complete for p in relevant_processes])
+        assert len(relevant_processes) == 1
+        process = relevant_processes[0]
+
+        assert not process.failed
+        return process.finished
+
+
+class ProlificRecruiter(
+    PsyNetProlificRecruiterMixin, dallinger.recruiters.ProlificRecruiter
+):
+    pass
 
 
 class DevProlificRecruiter(
-    PsyNetRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
+    PsyNetProlificRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
 ):
     pass
 
