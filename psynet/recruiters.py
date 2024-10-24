@@ -597,7 +597,8 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        from .utils import get_config, get_experiment
+        from .experiment import get_experiment
+        from .utils import get_config
 
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
