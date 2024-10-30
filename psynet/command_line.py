@@ -843,8 +843,6 @@ def export_launch_data(deployment_id, **kwargs):
     directory = Path("~/psynet-data/launch-data").expanduser() / deployment_id
     directory.mkdir(parents=True, exist_ok=True)
     _export_launch_info(directory, **kwargs)
-    if deployment_info.read("mode") == "live":
-        _export_code(directory)
 
 
 def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs):
@@ -859,15 +857,6 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
             f,
             indent=4,
         )
-
-
-def _export_code(directory):
-    file = directory.joinpath("code")
-    with yaspin(
-        text=f"Saving a snapshot of the code to {file}...", color="green"
-    ) as spinner:
-        shutil.make_archive(file, "zip", os.getcwd())
-        spinner.ok("✔")
 
 
 ########
@@ -929,6 +918,23 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     exp = get_experiment()
     exp.check_config()
     exp.check_size()
+
+    # Make sure source_code.zip is in .gitignore
+    try:
+        with open(".gitignore", "r") as f:
+            source_code_zip_found = False
+            for line in f.readlines():
+                if "source_code.zip" in line:
+                    source_code_zip_found = True
+                    break
+            if not source_code_zip_found:
+                raise click.ClickException(
+                    "Please add source_code.zip to .gitignore and try again."
+                )
+    except FileNotFoundError:
+        raise click.ClickException(
+            f".gitignore is missing from your experiment directory ({os.getcwd()})."
+        )
 
     try:
         with open("requirements.txt", "r") as f:

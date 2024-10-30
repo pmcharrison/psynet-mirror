@@ -38,7 +38,7 @@ def test_download_source_wrong_credentials(launched_experiment):
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
-def test_download_source_success(launched_experiment):
+def test_download_source_code_success(launched_experiment):
     response = requests.get(
         "http://localhost:5000/download_source",
         auth=("test_admin", "test_password"),
@@ -53,7 +53,8 @@ def test_download_source_success(launched_experiment):
         f.write(response.content)
 
     with ZipFile(zip_filename, "r") as zip_file:
-        assert "experiment/" in zip_file.namelist()
+        for filename in ["config.txt", "experiment.py"]:
+            assert filename in zip_file.namelist()
 
     cleanup(zip_filename)
 

@@ -99,7 +99,6 @@ from .utils import (
     get_logger,
     get_translator,
     log_time_taken,
-    make_parents,
     pretty_log_dict,
     render_template_with_translations,
     serialise,
@@ -1472,6 +1471,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.assets.prepare_for_deployment()
         self.create_database_snapshot()
+        self.create_source_code_zip_file()
+
+    @classmethod
+    def create_source_code_zip_file(cls):
+        from dallinger.command_line.utils import ExperimentFileSource
+        from yaspin import yaspin
+
+        # The config.txt file in the deployment package by default includes sensitive keys
+        # (e.g. AWS API keys), so we don't allow this method to be run there
+        assert not in_deployment_package()
+
+        # We also need to check that the user hasn't left any sensitive keys in the
+        # config.txt in their experiment directory.
+        assert_config_txt_does_not_contain_sensitive_values()
+
+        base_name = "source_code"
+        with yaspin(
+            text=f"Saving a snapshot of the experiment source code to {base_name}.zip ...",
+            color="green",
+        ) as spinner:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                cwd = os.getcwd()
+                ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
+                # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
+                # so we need to copy this manually.
+                shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
+                shutil.make_archive(base_name, "zip", temp_dir)
+            spinner.ok("✔")
 
     @classmethod
     def update_deployment_id(cls):
@@ -2058,6 +2085,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "prepare_docker_image.sh",
                 ),
                 (
+                    resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
+                    "DEPLOYMENT_PACKAGE",
+                ),
+                (
                     "config.txt",
                     ".config.backup",
                 ),
@@ -2066,8 +2097,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     ".deploy",
                 ),
                 (
-                    resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
-                    "DEPLOYMENT_PACKAGE",
+                    "source_code.zip",
+                    "source_code.zip",
                 ),
             ]
         )
@@ -2423,29 +2454,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not authenticate(request.authorization, config):
             return jsonify({"message": "Invalid credentials"}), 401
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            label = config.get("label")
-            temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
-            shutil.copytree(
-                os.path.join(os.getcwd()),
-                os.path.join(temp_exp_dir),
-                dirs_exist_ok=True,
-                ignore_dangling_symlinks=True,
-                ignore=shutil.ignore_patterns(
-                    ".git",
-                    "__pycache__",
-                    "develop",
-                    "static/assets",
-                    "config.txt",
-                    f"{label}-*",
-                ),
-            )
-            shutil.move(
-                os.path.join(temp_exp_dir, ".config.backup"),
-                os.path.join(temp_exp_dir, "config.txt"),
-            )
-            zip_filepath = shutil.make_archive(f"{label}-source", "zip", tempdir)
-            return send_file(zip_filepath, mimetype="zip")
+        filename = "source_code.zip"
+        logger.info(f"Downloading experiment source code from {os.getcwd()}/{filename}")
+        return send_file(filename, mimetype="zip")
 
     @experiment_route("/dashboard/export", methods=["GET"])
     @staticmethod
@@ -3201,6 +3212,18 @@ def get_experiment() -> Experiment:
 def get_trial_maker(trial_maker_id) -> TrialMaker:
     exp = get_experiment()
     return exp.timeline.get_trial_maker(trial_maker_id)
+
+
+def assert_config_txt_does_not_contain_sensitive_values():
+    config = get_config()
+    with open("config.txt", "r") as f:
+        for line in f.readlines():
+            for var in config.sensitive:
+                if var in line:
+                    raise ValueError(
+                        f"Sensitive key '{var}' found in config.txt. Please move all sensitive "
+                        "keys to `.dallingerconfig` and try again."
+                    )
 
 
 def in_deployment_package():
