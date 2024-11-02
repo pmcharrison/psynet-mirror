@@ -98,7 +98,7 @@ class Prompt:
         self.text = text
         self.text_align = text_align
 
-        if isinstance(text, str):
+        if isinstance(text, str) and not isinstance(text, Markup):
             self.text_html = tags.p(text)
         else:
             self.text_html = text
