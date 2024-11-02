@@ -390,6 +390,10 @@ Prolific
 ``prolific_estimated_completion_minutes`` *int* |dlgr-icon|
     Estimated duration in minutes of the experiment or survey.
 
+``prolific_is_custom_screening`` *bool* |dlgr-icon|
+    Whether or not this study includes a custom screening. Default: `True`.
+    See https://docs.prolific.com/docs/api-docs/public/#tag/Studies/operation/CreateStudy for more information.
+
 ``prolific_recruitment_config`` *unicode - JSON formatted* |dlgr-icon|
     JSON data to add additional recruitment parameters.
     Since some recruitment parameters are complex and are defined with relatively complex
