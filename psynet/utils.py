@@ -1519,8 +1519,12 @@ def get_file_size_mb(path):
 
 
 def get_folder_size_mb(path):
-    bytes = sum(entry.stat().st_size for entry in os.scandir(path))
-    return bytes_to_megabytes(bytes)
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return bytes_to_megabytes(total_size)
 
 
 # def run_async_command_locally(fun, *args, **kwargs):
