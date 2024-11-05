@@ -2067,7 +2067,7 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version = r"\d+\.\d+\.\d+"
+            version = r"\d+\.\d+\.\d+(-rc\d+)*"
             for line in orig_file:
                 match = re.search(
                     r"^psynet(\s?)==(\s?)" + version + "$",
@@ -2137,7 +2137,9 @@ def pre_update_constraints_(dir):
         .strip()
     )
     with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        psynet_requirement = (
+            "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*(-rc\\d+)*)"
+        )
         for line in file:
             print(
                 re.sub(

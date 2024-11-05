@@ -1,5 +1,25 @@
 # CHANGELOG
 
+# [11.8.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.8.0) Release 2024-11-05
+
+## Fixed
+- Add `PsyNetRecruiterMixin` to `GenericRecruiter` class definition (author: Frank Höger, reviewer: Peter Harrison).
+- Remove erroneous `Node.check_on_create` (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed importing of `get_experiment` in lucid.py (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug whereby `GibbsTrial` was causing an export error if no answer had been submitted (author: Eline Van Geert, reviewer: Peter Harrison)
+- Fixed rendering condition for markupsafe v3 (author: Frank Höger).
+
+## Added
+- Added config variable `prolific_is_custom_screening` with a default of `True` (author: Frank Höger, reviewer: Peter Harrison).
+- Added `source_code.zip` as part of the exported data (both when exporting from the command line as from the dashboard). The ZIP-file includes a snapshot of the experiment of the moment it was deployed (author: Frank Höger, reviewer: Peter Harrison).
+
+## Updated
+- Updated Dallinger to version 10.3.0 (author: Frank Höger, reviewer: Peter Harrison).
+- Updated 'update demos' logic to work with release candidates (author: Frank Höger).
+
+#### Documentation changes
+- Added libpq to MacOS installation instructions (author: Peter Harrison).
+
 # [11.7.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.7.0) Release 2024-09-23
 
 ## Fixed
