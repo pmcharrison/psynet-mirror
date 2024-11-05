@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [11.8.0-rc0] Release candidate 2024-11-04
+# [11.8.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.8.0) Release 2024-11-05
 
 ## Fixed
 - Add `PsyNetRecruiterMixin` to `GenericRecruiter` class definition (author: Frank Höger, reviewer: Peter Harrison).
@@ -15,6 +15,7 @@
 
 ## Updated
 - Updated Dallinger to version 10.3.0 (author: Frank Höger, reviewer: Peter Harrison).
+- Updated 'update demos' logic to work with release candidates (author: Frank Höger).
 
 #### Documentation changes
 - Added libpq to MacOS installation instructions (author: Peter Harrison).
