@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: ca45c979fc870ad928f53b77d975fa2b
+# Compiled from a requirement.txt file with md5sum: b5458e951bdab9a214fb0e7f1a9edc82
 #
 anyio==4.6.2.post1
     # via
@@ -284,7 +284,7 @@ json5==0.9.25
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.3.0/dev-requirements.txt
     #   jupyterlab-server
-jsonpickle==3.3.0
+jsonpickle==3.4.0
     # via psynet
 jsonpointer==3.0.0
     # via
@@ -379,7 +379,7 @@ markupsafe==3.0.2
     #   wtforms
 matplotlib==3.9.2
     # via
-    #   -r /tmp/tmpbt_gys2_/requirements.txt
+    #   -r /tmp/tmpppibokab/requirements.txt
     #   repp
 matplotlib-inline==0.1.7
     # via
@@ -507,7 +507,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v10.3.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==11.8.0-rc0
+psynet==11.8.0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
