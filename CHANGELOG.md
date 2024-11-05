@@ -8,6 +8,7 @@
 - Fixed importing of `get_experiment` in lucid.py (author: Peter Harrison, reviewer: Frank Höger).
 - Fixed bug whereby `GibbsTrial` was causing an export error if no answer had been submitted (author: Eline Van Geert, reviewer: Peter Harrison)
 - Fixed rendering condition for markupsafe v3 (author: Frank Höger).
+- Fixed bug in `get_folder_size_mb` (it was ignoring subdirectories) (author: Peter Harrison, reviewer: Frank Höger).
 
 ## Added
 - Added config variable `prolific_is_custom_screening` with a default of `True` (author: Frank Höger, reviewer: Peter Harrison).
