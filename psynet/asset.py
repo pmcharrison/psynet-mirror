@@ -2650,11 +2650,6 @@ class LocalStorage(AssetStorage):
                 shutil.copyfile(asset.input_path, os.path.expanduser(file_system_path))
         else:
             if deployment_info.read("is_ssh_deployment"):
-                if asset.is_folder:
-                    raise NotImplementedError(
-                        "Haven't implemented depositing folder assets to SSH yet, use file assets instead"
-                    )
-
                 ssh_host = deployment_info.read("ssh_host")
                 ssh_user = deployment_info.read("ssh_user")
 
@@ -2662,14 +2657,20 @@ class LocalStorage(AssetStorage):
                     self.ssh_host_home_dir(ssh_host, ssh_user) + file_system_path
                 )
 
-                self._put_file(
-                    asset.input_path,
-                    docker_host_path,
-                    ssh_host,
-                    ssh_user,
-                    make_parents=True,
-                )
-
+                if asset.is_folder:
+                    self._put_folder(
+                        asset.input_path,
+                        docker_host_path,
+                        ssh_host,
+                        ssh_user,
+                    )
+                else:
+                    self._put_file(
+                        asset.input_path,
+                        docker_host_path,
+                        ssh_host,
+                        ssh_user,
+                    )
             else:
                 raise NotImplementedError
 
@@ -2679,7 +2680,7 @@ class LocalStorage(AssetStorage):
         #     url=os.path.abspath(file_system_path),
         # )
 
-    def _put_file(self, input_path, dest_path, ssh_host, ssh_user, make_parents=True):
+    def _put_file(self, input_path, dest_path, ssh_host, ssh_user):
         from io import BytesIO
 
         sftp = self.sftp_connection(ssh_host, ssh_user)
@@ -2687,6 +2688,31 @@ class LocalStorage(AssetStorage):
         self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
         with open(input_path, "rb") as file:
             sftp.putfo(BytesIO(file.read()), dest_path)
+
+    def _put_folder(self, input_path, dest_path, ssh_host, ssh_user):
+        from io import BytesIO
+
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+
+        self._mk_dir_tree(dest_path, ssh_host, ssh_user)
+
+        # Traverse the local directory
+        for dirpath, dirnames, filenames in os.walk(input_path):
+            # For each directory in the local structure, create it remotely
+            for dirname in dirnames:
+                local_path = os.path.join(dirpath, dirname)
+                relative_path = os.path.relpath(local_path, input_path)
+                remote_path = os.path.join(dest_path, relative_path)
+                self._mk_dir_tree(remote_path, ssh_host, ssh_user)
+
+            # For each file, copy it to the remote directory
+            for filename in filenames:
+                local_path = os.path.join(dirpath, filename)
+                relative_path = os.path.relpath(local_path, input_path)
+                remote_path = os.path.join(dest_path, relative_path)
+
+                with open(local_path, "rb") as file:
+                    sftp.putfo(BytesIO(file.read()), remote_path)
 
     def _mk_dir_tree(self, dir, ssh_host, ssh_user):
         executor = self.ssh_executor(ssh_host, ssh_user)
@@ -2728,15 +2754,21 @@ class LocalStorage(AssetStorage):
         else:
             shutil.copyfile(from_, to_)
 
-    # def export_subfile(self, asset, subfile, path):
-    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
-    #     to_ = path
-    #     shutil.copyfile(from_, to_)
-    #
-    # def export_subfolder(self, asset, subfolder, path):
-    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
-    #     to_ = path
-    #     shutil.copytree(from_, to_, dirs_exist_ok=True)
+    def export_subfile(self, asset, subfile, path):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
+            to_ = path
+            shutil.copyfile(from_, to_)
+        else:
+            super().export_subfile(asset, subfile, path)
+
+    def export_subfolder(self, asset, subfolder, path):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
+            to_ = path
+            shutil.copytree(from_, to_, dirs_exist_ok=True)
+        else:
+            super().export_subfolder(asset, subfolder, path)
 
     def get_file_system_path(self, host_path):
         if host_path:
