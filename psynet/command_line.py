@@ -1836,7 +1836,11 @@ def _export_source_code(app, local, server, export_path, username, password):
     if local:
         url = "http://localhost:5000"
     else:
-        url = f"https://{app}.{server}"
+        if server:
+            url = f"https://{app}.{server}"
+        else:
+            url = HerokuApp(app).url
+
     url += "/download_source"
     source_code_zip_path = os.path.join(export_path, "source_code.zip")
 
