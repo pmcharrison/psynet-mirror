@@ -1477,7 +1477,7 @@ def verify_psynet_requirement():
         with open("requirements.txt", "r") as file:
             version_tag_or_commit_hash = [
                 "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-rc\\d+)?",
             ]
             file_content = file.read()
             for regex in version_tag_or_commit_hash:
@@ -1492,7 +1492,7 @@ def verify_psynet_requirement():
                     valid = True
                     break
                 match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+",
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(-rc\d+)?",
                     file_content,
                     re.MULTILINE,
                 )
