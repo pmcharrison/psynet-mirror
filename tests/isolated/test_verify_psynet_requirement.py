@@ -78,27 +78,15 @@ def test_verify_psynet_requirement_version_tag():
         with working_directory(dir):
             for extension in ["", ".git"]:
                 for egg in ["", "#egg=psynet"]:
-                    with open("requirements.txt", "w") as file:
-                        file.write(
-                            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet{extension}@v10.1.0{egg}\n"
-                        )
-                        file.flush()
+                    for space in ["", " "]:
+                        for rc in ["", "-rc0"]:
+                            with open("requirements.txt", "w") as file:
+                                file.write(
+                                    f"psynet{space}@{space}git+https://gitlab.com/PsyNetDev/PsyNet{extension}@v10.1.0{rc}{egg}\n"
+                                )
+                                file.flush()
 
-                        verify_psynet_requirement()
-
-
-def test_verify_psynet_requirement_version_tag_with_spaces():
-    with tempfile.TemporaryDirectory() as dir:
-        with working_directory(dir):
-            for extension in ["", ".git"]:
-                for egg in ["", "#egg=psynet"]:
-                    with open("requirements.txt", "w") as file:
-                        file.write(
-                            f"psynet @ git+https://gitlab.com/PsyNetDev/PsyNet{extension}@v10.1.0{egg}\n"
-                        )
-                        file.flush()
-
-                        verify_psynet_requirement()
+                                verify_psynet_requirement()
 
 
 def test_verify_psynet_requirement_name_based():
