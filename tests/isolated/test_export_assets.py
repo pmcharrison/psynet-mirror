@@ -115,8 +115,9 @@ class TestAssetExport:
         json_full = bot.to_dict()
         json_anon = bot.scrub_pii(bot.to_dict())
 
-        assert "worker_id" in json_full
-        assert "worker_id" not in json_anon
+        for key in ["client_ip_address", "worker_id"]:
+            assert key in json_full
+            assert key not in json_anon
 
         # Calling export_ multiple times in the same process causes SQLAlchemy errors due to repeated imports...
         # Temporary fix for now is to call in subprocess

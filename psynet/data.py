@@ -454,10 +454,12 @@ class SQLMixinDallinger(SharedMixin):
         Removes personally identifying information from the object's JSON representation.
         This is a destructive operation (it changes the input object).
         """
-        try:
-            del json["worker_id"]
-        except KeyError:
-            pass
+        to_scrub = ["client_ip_address", "worker_id"]
+        for key in to_scrub:
+            try:
+                del json[key]
+            except KeyError:
+                pass
 
         return json
 
