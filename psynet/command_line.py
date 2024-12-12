@@ -326,7 +326,13 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
         )
 
     _pre_launch(
-        ctx, mode="debug", archive=archive, local_=True, docker=docker, app=None
+        ctx,
+        mode="debug",
+        archive=archive,
+        local_=True,
+        live=False,
+        docker=docker,
+        app=None,
     )
     _cleanup_before_debug()
 
@@ -649,6 +655,7 @@ def _pre_launch(
     mode,
     archive,
     local_,
+    live=False,
     ssh=False,
     docker=False,
     heroku=False,
@@ -662,6 +669,7 @@ def _pre_launch(
     redis_vars.clear()
     deployment_info.init(
         redeploying_from_archive=archive is not None,
+        live=live,
         mode=mode,
         is_local_deployment=local_,
         is_ssh_deployment=ssh,
@@ -733,16 +741,28 @@ def deploy():
 @click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
+@click.option(
+    "--live",
+    is_flag=True,
+    default=False,
+    help="Start recruitment automatically when the experiment launches",
+)
 @click.pass_context
-def deploy__heroku(ctx, app, archive, docker):
+def deploy__heroku(ctx, app, archive, docker, live):
     if docker:
-        _deploy__docker_heroku(ctx, app, archive)
+        _deploy__docker_heroku(ctx, app, archive, live)
 
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
         _pre_launch(
-            ctx, mode="live", archive=archive, local_=False, heroku=True, app=app
+            ctx,
+            mode="live",
+            archive=archive,
+            local_=False,
+            live=live,
+            heroku=True,
+            app=app,
         )
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
         result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=None)
@@ -752,7 +772,7 @@ def deploy__heroku(ctx, app, archive, docker):
         reset_console()
 
 
-def _deploy__docker_heroku(ctx, app, archive):
+def _deploy__docker_heroku(ctx, app, archive, live):
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
 
@@ -767,6 +787,7 @@ def _deploy__docker_heroku(ctx, app, archive):
             mode="live",
             archive=archive,
             local_=False,
+            live=live,
             docker=True,
             heroku=True,
             app=app,
@@ -781,23 +802,29 @@ def _deploy__docker_heroku(ctx, app, archive):
 @deploy.command("ssh")
 @click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.option(
+    "--live",
+    is_flag=True,
+    default=False,
+    help="Start recruitment automatically when the experiment launches",
+)
 @server_option
 @click.option(
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
 )
 @click.pass_context
-def deploy__docker_ssh(ctx, app, archive, server, dns_host):
+def deploy__docker_ssh(ctx, app, archive, server, dns_host, live):
     try:
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
-
         _pre_launch(
             ctx,
             mode="live",
             archive=archive,
             local_=False,
+            live=live,
             ssh=True,
             docker=True,
             server=server,
@@ -1071,7 +1098,13 @@ def debug__heroku(ctx, app, docker, archive):
 
         try:
             _pre_launch(
-                ctx, mode="sandbox", archive=archive, local_=False, heroku=True, app=app
+                ctx,
+                mode="sandbox",
+                archive=archive,
+                local_=False,
+                live=False,
+                heroku=True,
+                app=app,
             )
             # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
             result = ctx.invoke(dallinger_sandbox, verbose=True, app=app, archive=None)
@@ -1091,7 +1124,13 @@ def debug__docker_heroku(ctx, app, archive):
                 "This shouldn't be hard to fix..."
             )
         _pre_launch(
-            ctx, mode="sandbox", archive=archive, local_=False, docker=True, app=app
+            ctx,
+            mode="sandbox",
+            archive=archive,
+            local_=False,
+            live=False,
+            docker=True,
+            app=app,
         )
         result = ctx.invoke(dallinger_sandbox, verbose=True, app=app)
         _post_deploy(result)
@@ -1125,6 +1164,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
             mode="sandbox",
             archive=archive,
             local_=False,
+            live=False,
             ssh=True,
             docker=True,
             server=server,

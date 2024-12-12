@@ -9,6 +9,7 @@ path = ".deploy/deployment_info.json"
 
 def init(
     redeploying_from_archive: bool,
+    live: bool,
     mode: bool,
     is_local_deployment: bool,
     is_ssh_deployment: bool,

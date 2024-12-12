@@ -221,6 +221,7 @@ General
 ~~~~~~~
 
 ``activate_recruiter_on_start`` *bool* |dlgr-icon|
+    DEPRECATED: Use `psynet deploy [ssh] --live` to start recruitment automatically after the experiment has launched
     A boolean on whether recruitment should start automatically when the experiment launches.
     If set to ``false`` the user has to manually initialize recruitment (e.g. via the Prolific panel).
     Default: ``true``.

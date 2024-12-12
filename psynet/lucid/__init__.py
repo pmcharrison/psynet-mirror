@@ -76,9 +76,8 @@ class LucidService(object):
         survey_data = self.recruitment_config["survey"]
         survey_status_code = "01"
         if (
-            self.exp_config.activate_recruiter_on_start
-            and deployment_info.read("mode") == "live"
-        ):
+            deployment_info.read("live") or self.exp_config.activate_recruiter_on_start
+        ) and deployment_info.read("mode") == "live":
             survey_status_code = "03"
         survey_data["SurveyStatusCode"] = survey_status_code
 
