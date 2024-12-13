@@ -18,6 +18,7 @@ def test_s3_asset_preparation(in_experiment_directory):
     exp.asset_storage.delete_all()
     deployment_info.init(
         redeploying_from_archive=False,
+        live=False,
         mode="debug",
         is_local_deployment=True,
         is_ssh_deployment=False,

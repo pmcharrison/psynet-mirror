@@ -212,6 +212,7 @@ def deployment_info():
     deployment_info.reset()
     deployment_info.init(
         redeploying_from_archive=False,
+        live=False,
         mode="debug",
         is_local_deployment=True,
         is_ssh_deployment=False,
