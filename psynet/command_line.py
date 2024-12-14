@@ -845,7 +845,7 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host, live):
             dns_host=dns_host,
             app_name=app,
             archive_path=None,
-            # config_options -- this could be useful
+            config_options={"mode": mode},
         )
 
         _post_deploy(result)
