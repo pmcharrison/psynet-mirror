@@ -815,6 +815,8 @@ def _deploy__docker_heroku(ctx, app, archive, live):
 )
 @click.pass_context
 def deploy__docker_ssh(ctx, app, archive, server, dns_host, live):
+    from .utils import get_config
+
     try:
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
@@ -836,6 +838,7 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host, live):
         )
 
         mode = "live" if live else "sandbox"
+        get_config().set("mode", mode)
 
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
