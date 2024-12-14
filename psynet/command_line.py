@@ -835,10 +835,12 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host, live):
             deploy as dallinger_docker_ssh_deploy,
         )
 
+        mode = "live" if live else "sandbox"
+
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
             dallinger_docker_ssh_deploy,
-            mode="sandbox",  # TODO - but does this even matter?
+            mode=mode,
             server=server,
             dns_host=dns_host,
             app_name=app,
