@@ -22,8 +22,8 @@ import psycopg2
 from dallinger import db
 from dallinger.command_line.docker_ssh import (
     CONFIGURED_HOSTS,
+    option_server,
     remote_postgres,
-    server_option,
 )
 from dallinger.command_line.utils import verify_id
 from dallinger.config import get_config
@@ -203,7 +203,7 @@ def _validate_location(ctx, param, value):
     default=None,
     help="Name of the experiment app (required for non-local deployments)",
 )
-@server_option
+@option_server
 def experiment_variables(location, app, server):
     with db_connection(location, app, server) as connection:
         return _experiment_variables(connection, echo=True)
@@ -781,7 +781,7 @@ def _deploy__docker_heroku(ctx, app, archive):
 @deploy.command("ssh")
 @click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
-@server_option
+@option_server
 @click.option(
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
@@ -1105,7 +1105,7 @@ def debug__docker_heroku(ctx, app, archive):
     "--app", callback=verify_id, required=True, help="Name of the experiment app."
 )
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
-@server_option
+@option_server
 @click.option(
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
@@ -1629,7 +1629,7 @@ def export__heroku(ctx, app, **kwargs):
     required=True,
     help="Name of the app to export",
 )
-@server_option
+@option_server
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
@@ -2395,7 +2395,7 @@ def _destroy(
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
 @click.argument("apps", required=False, nargs=-1)
-@server_option
+@option_server
 @click.option(
     "--expire-hit",
     flag_value=True,
@@ -2511,7 +2511,7 @@ def apps():
 
 
 @apps.command("ssh")
-@server_option
+@option_server
 @click.pass_context
 def apps__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import apps
@@ -2527,7 +2527,7 @@ def stats():
 
 
 @stats.command("ssh")
-@server_option
+@option_server
 @click.pass_context
 def stats__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import stats
@@ -2634,7 +2634,7 @@ def test__local(
 
 @test.command("ssh")
 @click.option("--app", required=True, help="Name of the experiment app.")
-@server_option
+@option_server
 @_test_options["n_bots"]
 @_test_options["parallel"]
 @_test_options["serial"]
