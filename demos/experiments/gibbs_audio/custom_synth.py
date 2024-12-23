@@ -5,6 +5,7 @@
 import os
 
 import numpy as np
+import tempfile
 
 TIMESTAMPS = [0.0, 0.071, 0.142, 0.213, 0.284, 0.355, 0.426]
 
@@ -165,5 +166,8 @@ def synth_batch(
             synth_main = call(sounds, "Concatenate")
 
         filepath = filenames[BPF_idx]
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('localhost', port=5010, stdoutToServer=True, stderrToServer=True)
+
         write_wav(filepath, int(synth_main.sampling_frequency), synth_main.values.T)
         call(synth_main, "Save as WAV file", filepath)
