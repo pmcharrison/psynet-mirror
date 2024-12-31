@@ -22,7 +22,7 @@ Advantages
 * **Local performance advantages**: Running complex experiments or handling sensitive data can be more straightforward on local infrastructure.
 
 Disadvantages
-^^^^^^^^^^^^
+^^^^^^^^^^^^^
 
 * **Onsite management required**: Physical servers must be maintained on-premises, including dealing with power cuts and physical restarts.
 
@@ -51,7 +51,7 @@ Software requirements
 --------------------
 
 What to install on the server
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 PsyNet's deployment system automates most installations. The following are the primary requirements:
 
