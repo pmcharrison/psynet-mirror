@@ -1,8 +1,8 @@
 .. _aws_server_setup:
 
-========================================
-Setting up an experiment server with AWS
-========================================
+========================
+Setting up an AWS server
+========================
 
 If you want to deploy your experiments online but don't want the cost of
 Heroku, another option is to set up a server on Amazon Web Services (AWS).
@@ -29,15 +29,15 @@ Here is a brief summary of the steps involved:
 
 7. Select 'Ubuntu' as the OS image.
 
-8. Choose an appropriate instance type. Different instance types have different costs 
+8. Choose an appropriate instance type. Different instance types have different costs
    and different performances. The appropriate instance type will depend on your use case.
-   You can explore options online at 
+   You can explore options online at
    https://aws.amazon.com/ec2/instance-types/
-   and 
+   and
    https://aws.amazon.com/ec2/pricing/on-demand/.
    Note that you need an instance with x86 rather than ARM architecture.
    For prototyping, something like `m7i.large` might work fine (2 vCPU, 8 GB RAM, c. $2.5/day);
-   for running an experiment with multiple simultaneous participants, it might 
+   for running an experiment with multiple simultaneous participants, it might
    be better to go with something larger like `m7i.xlarge` (4 vCPU, 16 GB RAM, c. $5/day).
    In order to avoid unnecessary costs, we recommend that you 'stop' or 'terminate' your instance
    when you're not using it. 'Stopping' pauses the instance, but you will still pay a small ongoing fee
@@ -80,7 +80,7 @@ Here is a brief summary of the steps involved:
 replacing the example with your own IPv4 DNS as appropriate.
 You will probably see a warning message of the form 'The authenticity of host XXX can't be established';
 this is to be accepted. Type yes and press enter.
-If your login doesn't work (especially if it freezes with no output printed to the terminal), 
+If your login doesn't work (especially if it freezes with no output printed to the terminal),
 you may have to examine your security group/IP address combination.
 
 15. If your lab is doing this for the first time, you probably need to acquire a domain name for your
@@ -156,7 +156,7 @@ To test that this worked, try the following
     ssh ubuntu@my-app.bob.psych-experiments.org
 
 17. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
-    make sure you are on your PsyNet virtual environment on your local computer, 
+    make sure you are on your PsyNet virtual environment on your local computer,
     and run the following to register the server for PsyNet:
 
 ::
@@ -202,7 +202,7 @@ research/domain name combination.
 Setting up another machine to run with this server
 --------------------------------------------------
 
-If you have already set up the AWS server following the instructions above and now want to access it from 
+If you have already set up the AWS server following the instructions above and now want to access it from
 another computer, you can follow these instructions:
 
 1. Get the PEM file from the person who set up the server.
@@ -227,7 +227,7 @@ another computer, you can follow these instructions:
     ssh ubuntu@my-app.bob.psych-experiments.org
 
 4. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
-    make sure you are on your PsyNet virtual environment on your local computer, 
+    make sure you are on your PsyNet virtual environment on your local computer,
     and run the following to register the server for PsyNet:
 
 ::
