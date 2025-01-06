@@ -1,7 +1,4 @@
-from os.path import abspath, dirname
-from os.path import join as join_path
-
-LOCALES_DIR = join_path(abspath(dirname(__file__)), "locales")
+LOCALES_DIR = "locales"
 
 
 def get_locales_dir(locales_dir):
