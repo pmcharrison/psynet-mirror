@@ -31,7 +31,8 @@ from click import Context
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
-from dallinger.config import get_config, is_valid_json
+from dallinger.config import get_config as dallinger_get_config
+from dallinger.config import is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import nocache, success_response
@@ -42,12 +43,13 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import joinedload, relationship
+from sqlalchemy.orm import joinedload, relationship, with_polymorphic
 
 from psynet import __version__
+from psynet.utils import get_config
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
+from .asset import Asset, AssetRegistry, NoStorage, OnDemandAsset
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
@@ -102,7 +104,6 @@ from .utils import (
     get_logger,
     get_translator,
     log_time_taken,
-    make_parents,
     pretty_log_dict,
     render_template_with_translations,
     serialise,
@@ -116,13 +117,6 @@ database_template_path = ".deploy/database_template.zip"
 
 DEFAULT_LOCALE = "en"
 INITIAL_RECRUITMENT_SIZE = 1
-
-
-def get_and_load_config():
-    config = get_config()
-    if not config.ready:
-        config.load()
-    return config
 
 
 def error_response(*args, **kwargs):
@@ -245,6 +239,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         class Exp(psynet.experiment.Experiment):
             asset_storage = LocalStorage()
+
+    Another experiment attribute is `export_classes_to_skip`, which is a list of classes to be excluded
+    when exporting the database objects to JSON-style dictionaries. The default is `["ExperimentStatus"]`.
 
     Config variables can be set here, amongst other places (see online documentation for details):
 
@@ -422,9 +419,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
+    export_classes_to_skip = ["ExperimentStatus"]
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
     max_allowed_base_payment = 30
+    max_exp_dir_size_in_mb = 256
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -465,7 +464,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.__class__.initial_recruitment_size != INITIAL_RECRUITMENT_SIZE
         )
 
-        config = get_and_load_config()
+        config = get_config()
         if self.base_payment > 10 and not config.get("big_base_payment"):
             logger.warning(f"`base_payment` is set to `{self.base_payment}`!")
         assert self.base_payment <= 20 or config.get("big_base_payment"), (
@@ -618,7 +617,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self._nodes_on_deploy()
 
-        config = get_config()
+        config = dallinger_get_config()
         self.var.server_working_directory = os.getcwd()
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
@@ -640,7 +639,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def after_request(request, response):
         diff = time.monotonic() - flask_app_globals.request_start_time
-        relevant_endpoints = ["/timeline", "/response", "/ad", "/consent", "/start"]
+        relevant_endpoints = [
+            "/ad",
+            "/consent",
+            "/on-demand-asset",
+            "/response",
+            "/start",
+            "/timeline",
+        ]
         if any([endpoint == request.path for endpoint in relevant_endpoints]):
             params = dict(request.args)
             request_obj = Request(
@@ -698,7 +704,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         db.session.commit()
 
     def load_deployment_config(self):
-        config = get_config()
+        config = dallinger_get_config()
         if not config.ready:
             config.load()
         self.var.deployment_config = {
@@ -927,7 +933,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Render HTML for error page."""
         from flask import make_response, request
 
-        config = get_config()
         _, _p = get_translator(locale)
         if error_text is None:
             error_text = _p(
@@ -958,7 +963,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 locale=locale,
                 error_text=error_text,
                 compensate=compensate,
-                contact_address=config.get("contact_email_on_error"),
+                contact_address=get_config().get("contact_email_on_error"),
                 error_type=error_type,
                 hit_id=hit_id,
                 assignment_id=assignment_id,
@@ -1098,11 +1103,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
             exp = get_experiment()
-            for n in networks:
-                n.grow(experiment=exp)
+            for network in networks:
+                try:
+                    network.grow(experiment=exp)
+                except Exception as err:
+                    if not isinstance(err, exp.HandledError):
+                        exp.handle_error(
+                            err,
+                            network=network,
+                        )
+                    if network.head.degree > 0:
+                        network.head.fail()
+                    elif network.head.degree == 0:
+                        for trial in network.head.all_trials:
+                            trial.fail()
+
             logger.info("Finished growing networks.")
 
-    @scheduled_task("interval", seconds=1, max_instances=1)
+    @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
     @staticmethod
     @with_transaction
@@ -1123,13 +1141,52 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ~Participant.failed,
                 Participant.status == "working",
             )
-            .distinct(ParticipantLinkBarrier.barrier_id)
+            # We need to lock Participant rows to prevent race conditions with participants
+            # who are currently being processed in other tasks
+            # (e.g. advancing through the timeline).
+            .with_for_update(of=[ParticipantLinkBarrier, Participant])
+            .populate_existing()
             .all()
         )
 
+        # Before we used a DISTINCT clause --
+        # .distinct(ParticipantLinkBarrier.barrier_id)
+        # but DISTINCT is incompatible with FOR UPDATE in Postgres.
+        # We therefore do this filtering in Python instead.
+        processed_barriers = set()
         for link in barrier_links:
-            barrier = link.get_barrier()
-            barrier.process_potential_releases()
+            if link.barrier_id not in processed_barriers:
+                barrier = link.get_barrier()
+                barrier.process_potential_releases()
+                processed_barriers.add(link.barrier_id)
+
+    @scheduled_task("interval", seconds=2.5, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def _check_sync_groups():
+        if not is_experiment_launched():
+            return
+        exp = get_experiment()
+        exp.check_sync_groups()
+
+    @staticmethod
+    def check_sync_groups():
+        from .sync import SyncGroup
+
+        groups = (
+            # Eagerly load all polymorphic subclasses to avoid lazy loading in the loop
+            db.session.query(with_polymorphic(SyncGroup, "*"))
+            .filter(SyncGroup.active)
+            # TODO - see if we can introduce this locking once the transaction managemnet in the tests is fixed
+            # .with_for_update(of=[SyncGroup, Participant])
+            .with_for_update(of=[SyncGroup])
+            .populate_existing()
+            .all()
+        )
+
+        for group in groups:
+            group.check_numbers()
 
     @property
     def base_payment(self):
@@ -1140,11 +1197,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return {}
 
     def get_initial_recruitment_size(self):
-        return get_and_load_config().get("initial_recruitment_size")
+        return get_config().get("initial_recruitment_size")
 
     @classproperty
     def label(cls):  # noqa
-        return get_and_load_config().get("label")
+        return get_config().get("label")
 
     @property
     def var(self):
@@ -1219,38 +1276,40 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         config = {
             **super().config_defaults(),
-            "host": "0.0.0.0",
+            "allow_mobile_devices": False,
+            "allow_switching_locale": True,
             "base_payment": 0.10,
             "big_base_payment": False,
             "clock_on": True,
-            "duration": 100000000.0,
+            "color_mode": "light",
+            "currency": "$",
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
-            "protected_routes": json.dumps(_protected_routes),
+            "duration": 100000000.0,
+            "force_google_chrome": True,
+            "force_incognito_mode": False,
+            "host": "0.0.0.0",
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),
             "lock_table_when_creating_participant": False,
-            "min_browser_version": "80.0",
-            "wage_per_hour": 9.0,
-            "currency": "$",
+            "loglevel_worker": 1,
             "min_accumulated_reward_for_abort": 0.20,
+            "min_browser_version": "80.0",
+            "prolific_is_custom_screening": True,
+            "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
-            "show_reward": True,
             "show_footer": True,
             "show_progress_bar": True,
+            "show_reward": True,
             "check_participant_opened_devtools": False,
-            "window_width": 1024,
-            "window_height": 768,
             "supported_locales": "[]",
-            "allow_switching_locale": True,
-            "force_google_chrome": True,
-            "force_incognito_mode": False,
-            "allow_mobile_devices": False,
-            "color_mode": "light",
+            "wage_per_hour": 9.0,
+            "window_height": 768,
+            "window_width": 1024,
             **cls.config,
         }
 
-        config_types = get_config().types
+        config_types = dallinger_get_config().types
 
         for key, value in config.items():
             if not isinstance(value, (bool, int, float, str)):
@@ -1321,8 +1380,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def description(self):
-        config = get_config()
-        return config.get("description")
+        return get_config().get("description")
 
     @property
     def ad_requirements(self):
@@ -1350,10 +1408,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def variables_initial_values(self):
-        config = get_and_load_config()
-
         for key, value in self.variables.items():
-            assert key not in list(config.as_dict().keys()), (
+            assert key not in list(get_config().as_dict().keys()), (
                 f"Variable {key} is a config variable and should solely be specified in the config.txt or in "
                 "experiment.config but NOT as experiment variable."
             )
@@ -1365,7 +1421,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def estimated_reward_in_dollars(self):
-        wage_per_hour = get_and_load_config().get("wage_per_hour")
+        wage_per_hour = get_config().get("wage_per_hour")
         return round(
             self.timeline.estimated_time_credit.get_max(
                 "reward",
@@ -1423,6 +1479,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.assets.prepare_for_deployment()
         self.create_database_snapshot()
+        self.create_source_code_zip_file()
+
+    @classmethod
+    def create_source_code_zip_file(cls):
+        from dallinger.command_line.utils import ExperimentFileSource
+        from yaspin import yaspin
+
+        # The config.txt file in the deployment package by default includes sensitive keys
+        # (e.g. AWS API keys), so we don't allow this method to be run there
+        assert not in_deployment_package()
+
+        # We also need to check that the user hasn't left any sensitive keys in the
+        # config.txt in their experiment directory.
+        assert_config_txt_does_not_contain_sensitive_values()
+
+        base_name = "source_code"
+        with yaspin(
+            text=f"Saving a snapshot of the experiment source code to {base_name}.zip ...",
+            color="green",
+        ) as spinner:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                cwd = os.getcwd()
+                ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
+                # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
+                # so we need to copy this manually.
+                shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
+                shutil.make_archive(base_name, "zip", temp_dir)
+            spinner.ok("✔")
 
     @classmethod
     def update_deployment_id(cls):
@@ -1462,10 +1546,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
     @classmethod
+    def check_size(cls):
+        from dallinger.command_line.utils import ExperimentFileSource
+
+        size_in_mb = ExperimentFileSource(os.getcwd()).size / (1024**2)
+        log(f"Experiment directory size: {round(size_in_mb, 3)} MB.")
+
+        if size_in_mb > cls.max_exp_dir_size_in_mb:
+            raise RuntimeError(
+                f"Your experiment source package exceeds the {cls.max_exp_dir_size_in_mb} MB limit. "
+                "Large packages are discouraged because they make deployment slow. You can override "
+                "this limit by setting `Experiment.max_exp_dir_size_in_mb` to a higher number in your "
+                "`Experiment` class. However, the recommended approach (assuming your large files are "
+                "assets, such as audio or video files) is to use PsyNet's asset management system; "
+                "see https://psynetdev.gitlab.io/PsyNet/tutorials/assets.html for a tutorial. "
+                "Importantly, you should either move your large files outside the experiment folder, "
+                "or add them to `.gitignore`, once they are registered as `Asset` objects; that way "
+                "they will not count towards your source package limit."
+            )
+
+    @classmethod
     def check_config(cls):
         config = get_config()
-        if not config.ready:
-            config.load()
 
         if not config.get("clock_on"):
             # We force the clock to be on because it's necessary for the check_networks functionality.
@@ -1920,8 +2022,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 (
                     resources.files("psynet")
-                    / "resources/libraries/jQuery/jquery-3.6.0.min.js",
-                    "/static/scripts/jquery-3.6.0.min.js",
+                    / "resources/libraries/jQuery/jquery-3.7.1.min.js",
+                    "/static/scripts/jquery-3.7.1.min.js",
                 ),
                 (
                     resources.files("psynet")
@@ -1991,6 +2093,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "prepare_docker_image.sh",
                 ),
                 (
+                    resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
+                    "DEPLOYMENT_PACKAGE",
+                ),
+                (
                     "config.txt",
                     ".config.backup",
                 ),
@@ -1999,8 +2105,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     ".deploy",
                 ),
                 (
-                    resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
-                    "DEPLOYMENT_PACKAGE",
+                    "source_code.zip",
+                    "source_code.zip",
                 ),
             ]
         )
@@ -2017,7 +2123,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def extra_parameters(cls):
-        config = get_config()
+        config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
         config.register("lucid_api_key", unicode, sensitive=True)
@@ -2074,7 +2180,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def dashboard_timeline(cls):
         exp = get_experiment()
         panes = exp.monitoring_panels()
-        config = get_config()
 
         module_info = {
             "modules": [{"id": module.id} for module in exp.timeline.module_list]
@@ -2085,7 +2190,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             title="Timeline modules",
             panes=panes,
             timeline_modules=json.dumps(module_info, default=serialise),
-            currency=config.currency,
+            currency=get_config().currency,
         )
 
     @dashboard_tab("Resources", after_route="monitoring")
@@ -2267,8 +2372,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         This allows the account to investigate and debug Chrome warnings
         (e.g. 'Deceptive website ahead'). See https://search.google.com/u/4/search-console.
         """
-        config = get_config()
-        if config.get("enable_google_search_console", default=False):
+        if get_config().get("enable_google_search_console", default=False):
             return render_template("google3580fca13e19b596.html")
         else:
             return flask.Response(
@@ -2299,8 +2403,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     @with_transaction
     def consent():
-        config = get_config()
-
         entry_information = request.args.to_dict()
         exp = get_experiment()
         entry_data = exp.normalize_entry_information(entry_information)
@@ -2316,7 +2418,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assignment_id=assignment_id,
                 worker_id=worker_id,
                 unique_id=unique_id,
-                mode=config.get("mode"),
+                mode=get_config().get("mode"),
                 query_string=request.query_string.decode(),
             )
         except Exception as e:
@@ -2355,41 +2457,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/download_source", methods=["GET"])
     @classmethod
     def download_source(cls):
-        if not authenticate(request.authorization, get_and_load_config()):
+        config = get_config()
+
+        if not authenticate(request.authorization, config):
             return jsonify({"message": "Invalid credentials"}), 401
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            label = get_config().get("label")
-            temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
-            shutil.copytree(
-                os.path.join(os.getcwd()),
-                os.path.join(temp_exp_dir),
-                dirs_exist_ok=True,
-                ignore_dangling_symlinks=True,
-                ignore=shutil.ignore_patterns(
-                    ".git",
-                    "__pycache__",
-                    "develop",
-                    "static/assets",
-                    "config.txt",
-                    f"{label}-*",
-                ),
-            )
-            shutil.move(
-                os.path.join(temp_exp_dir, ".config.backup"),
-                os.path.join(temp_exp_dir, "config.txt"),
-            )
-            zip_filepath = shutil.make_archive(f"{label}-source", "zip", tempdir)
-            return send_file(zip_filepath, mimetype="zip")
+        filename = "source_code.zip"
+        logger.info(f"Downloading experiment source code from {os.getcwd()}/{filename}")
+        return send_file(filename, mimetype="zip")
 
     @experiment_route("/dashboard/export", methods=["GET"])
+    @staticmethod
     @with_transaction
     def export(self):
         from flask_login import current_user
 
         from .command_line import export__local
 
-        config = get_and_load_config()
+        config = get_config()
 
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
@@ -2405,7 +2490,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
             zip_filepath = shutil.make_archive(
-                f'{get_config().get("label")}-data', "zip", tempdir
+                f'{config.get("label")}-data', "zip", tempdir
             )
             return send_file(zip_filepath, mimetype="zip")
 
@@ -2413,8 +2498,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     @with_transaction
     def get_participant_info_for_debug_mode():
-        config = get_config()
-        if not config.get("mode") == "debug":
+        if not get_config().get("mode") == "debug":
             return error_response()
 
         participant = Participant.query.first()
@@ -2429,9 +2513,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return json.dumps(json_data, default=serialise)
 
-    @experiment_route("/fast-function-asset", methods=["GET"])
+    @experiment_route("/on-demand-asset", methods=["GET"])
     @staticmethod
-    def get_fast_function_asset():
+    def get_on_demand_asset():
         id = request.args.get("id")
         secret = request.args.get("secret")
 
@@ -2440,7 +2524,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         id = int(id)
 
-        asset = FastFunctionAsset.query.filter_by(id=id).one()
+        asset = OnDemandAsset.query.filter_by(id=id).one()
         suffix = asset.extension if asset.extension else ""
 
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
@@ -2508,11 +2592,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return exp._get_progress_info(module_ids)
 
     def _get_progress_info(self, module_ids: list):
-        config = get_config()
         progress_info = {
             "spending": {
                 "amount_spent": self.amount_spent(),
-                "currency": config.currency,
+                "currency": get_config().currency,
                 "soft_max_experiment_payment": self.var.soft_max_experiment_payment,
                 "hard_max_experiment_payment": self.var.hard_max_experiment_payment,
             }
@@ -2709,7 +2792,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 participant = cls.get_participant_from_assignment_id(
                     assignment_id, for_update=False
                 )
-                if participant.calculate_reward() >= get_and_load_config().get(
+                if participant.calculate_reward() >= get_config().get(
                     "min_accumulated_reward_for_abort"
                 ):
                     template_name = "abort_possible.html"
@@ -2749,8 +2832,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def _route_timeline(cls, experiment, participant, mode):
         try:
+            if not isinstance(participant, Bot):
+                participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)
-            participant.client_ip_address = cls.get_client_ip_address()
             return cls.serialize_page(page, experiment, participant, mode)
         except cls.HandledError as err:
             return err.error_page()
@@ -2949,7 +3033,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "progressPercentage": progress_percentage,
             "progressPercentageStr": f"{progress_percentage}%",
         }
-        if get_and_load_config().get("show_reward"):
+        if get_config().get("show_reward"):
             time_reward = participant.time_reward
             performance_reward = participant.performance_reward
             total_reward = participant.calculate_reward()
@@ -3100,7 +3184,7 @@ def import_local_experiment():
     # import pdb; pdb.set_trace()
     #
     # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
-    get_config()
+    dallinger_get_config()
 
     import dallinger.experiment
 
@@ -3136,6 +3220,18 @@ def get_experiment() -> Experiment:
 def get_trial_maker(trial_maker_id) -> TrialMaker:
     exp = get_experiment()
     return exp.timeline.get_trial_maker(trial_maker_id)
+
+
+def assert_config_txt_does_not_contain_sensitive_values():
+    config = get_config()
+    with open("config.txt", "r") as f:
+        for line in f.readlines():
+            for var in config.sensitive:
+                if var in line:
+                    raise ValueError(
+                        f"Sensitive key '{var}' found in config.txt. Please move all sensitive "
+                        "keys to `.dallingerconfig` and try again."
+                    )
 
 
 def in_deployment_package():

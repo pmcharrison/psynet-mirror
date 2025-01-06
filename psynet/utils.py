@@ -29,7 +29,7 @@ from _hashlib import HASH as Hash
 
 import toml
 from babel.support import Translations
-from dallinger.config import experiment_available, get_config
+from dallinger.config import experiment_available
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -38,7 +38,6 @@ from psynet.internationalization import LOCALES_DIR, get_known_countries, get_kn
 
 
 def get_logger():
-    logging.basicConfig(level=logging.INFO)
     return logging.getLogger()
 
 
@@ -164,6 +163,15 @@ def call_function_with_context(function, *args, **kwargs):
 config_defaults = {
     "keep_old_chrome_windows_in_debug_mode": False,
 }
+
+
+def get_config():
+    from dallinger.config import get_config as dallinger_get_config
+
+    config = dallinger_get_config()
+    if not config.ready:
+        config.load()
+    return config
 
 
 def get_from_config(key):
@@ -581,12 +589,12 @@ def _render_with_translations(
     locale, template_name=None, template_string=None, all_template_args=None
 ):
     """Render a template with translations applied."""
-    from psynet.experiment import get_and_load_config
+    from psynet.utils import get_config
 
     if all_template_args is None:
         all_template_args = {}
 
-    all_template_args["config"] = dict(get_and_load_config().as_dict().items())
+    all_template_args["config"] = dict(get_config().as_dict().items())
 
     assert [template_name, template_string].count(
         None
@@ -858,8 +866,12 @@ def get_file_size_mb(path):
 
 
 def get_folder_size_mb(path):
-    bytes = sum(entry.stat().st_size for entry in os.scandir(path))
-    return bytes_to_megabytes(bytes)
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return bytes_to_megabytes(total_size)
 
 
 # def run_async_command_locally(fun, *args, **kwargs):

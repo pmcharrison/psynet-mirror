@@ -48,7 +48,7 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         SimpleGrouper(
             group_type="main",
-            group_size=3,
+            initial_group_size=3,
             waiting_logic=PageMaker(waiting_page, time_estimate=5),
             max_wait_time=20,
         ),
@@ -56,7 +56,7 @@ class Exp(psynet.experiment.Experiment):
         GroupCloser(group_type="main"),
         SimpleGrouper(
             group_type="main",
-            group_size=2,
+            initial_group_size=2,
             waiting_logic=PageMaker(waiting_page, time_estimate=5),
             max_wait_time=20,
         ),
@@ -73,6 +73,7 @@ class Exp(psynet.experiment.Experiment):
         pages = [bot.get_current_page() for bot in bots]
         for page in pages:
             assert page.content.startswith("You are now in group")
+        assert bots[0].sync_group.n_active_participants == 3
         for bot in bots:
             assert len(bot.sync_group.participants) == 3
 

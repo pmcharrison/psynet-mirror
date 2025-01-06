@@ -4,8 +4,9 @@ from importlib import resources
 from math import ceil
 from typing import List, Optional, Union
 
+from dominate import tags
 from dominate.dom_tag import dom_tag
-from markupsafe import Markup, escape
+from markupsafe import Markup
 
 from .asset import CachedAsset, ExternalAsset
 from .modular_page import AudioPrompt, ModularPage
@@ -58,9 +59,6 @@ class InfoPage(ModularPage):
             save_answer=False,
             **kwargs,
         )
-
-    def metadata(self, **kwargs):
-        return {"content": self.content}
 
     def get_bot_response(self, experiment, bot):
         from .bot import BotResponse
@@ -205,7 +203,7 @@ class WaitPage(Page):
         )
 
     def metadata(self, **kwargs):
-        return {"content": self.content, "wait_time": self.wait_time}
+        return {"wait_time": self.wait_time}
 
     def get_bot_response(self, experiment, bot):
         return None
@@ -338,23 +336,25 @@ class DebugResponsePage(PageMaker):
         response = participant.response
         if response is None:
             return InfoPage("No response found to display.")
-        page_type = escape(response.page_type)
-        answer = escape(response.answer)
-        metadata = escape(json.dumps(response.metadata, indent=4))
-        return InfoPage(
-            Markup(
-                f"""
-            <h3>Page type</h3>
-            {page_type}
-            <p class="vspace"></p>
-            <h3>Answer</h3>
-            {answer}
-            <p class="vspace"></p>
-            <h3>Metadata</h3>
-            <pre style="max-height: 200px; overflow: scroll;">{metadata}</pre>
-            """
+        page_type = response.page_type
+        answer = json.dumps(response.answer, indent=4)
+        metadata = json.dumps(response.metadata, indent=4)
+
+        html = tags.span()
+        with html:
+            tags.h3("Page type")
+            tags.p(page_type)
+            tags.p(cls="vspace")
+            tags.h3("Answer")
+            tags.pre(answer, style="background-color: #f0f0f0; padding: 10px;")
+            tags.p(cls="vspace")
+            tags.h3("Metadata")
+            tags.pre(
+                tags.html(metadata),
+                style="max-height: 400px; overflow: scroll; background-color: #f0f0f0; padding: 10px;",
             )
-        )
+
+        return InfoPage(html)
 
 
 class VolumeCalibration(Module):

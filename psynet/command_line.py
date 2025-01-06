@@ -535,8 +535,6 @@ def kill_chromedriver_processes():
 
 
 def list_psynet_chrome_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_psynet_chrome_process(p)]
 
 
@@ -548,15 +546,13 @@ def is_psynet_chrome_process(process):
                     return True
                 if "user-data-dir" in cmd:
                     return True
-    except psutil.NoSuchProcess:
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
         pass
 
     return False
 
 
 def list_psynet_worker_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_psynet_worker_process(p)]
 
 
@@ -577,8 +573,6 @@ def is_psynet_worker_process(process):
 
 
 def list_chromedriver_processes():
-    import psutil
-
     return [p for p in psutil.process_iter() if is_chromedriver_process(p)]
 
 
@@ -851,8 +845,6 @@ def export_launch_data(deployment_id, **kwargs):
     directory = Path("~/psynet-data/launch-data").expanduser() / deployment_id
     directory.mkdir(parents=True, exist_ok=True)
     _export_launch_info(directory, **kwargs)
-    if deployment_info.read("mode") == "live":
-        _export_code(directory)
 
 
 def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs):
@@ -867,15 +859,6 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
             f,
             indent=4,
         )
-
-
-def _export_code(directory):
-    file = directory.joinpath("code")
-    with yaspin(
-        text=f"Saving a snapshot of the code to {file}...", color="green"
-    ) as spinner:
-        shutil.make_archive(file, "zip", os.getcwd())
-        spinner.ok("✔")
 
 
 ########
@@ -918,11 +901,11 @@ def docs(force_rebuild):
 
 
 def check_prolific_payment(experiment, config):
-    from .experiment import get_and_load_config
+    from .utils import get_config
 
     base_payment = config.get("base_payment")
     minutes = config.get("prolific_estimated_completion_minutes")
-    wage_per_hour = get_and_load_config().get("wage_per_hour")
+    wage_per_hour = get_config().get("wage_per_hour")
     assert (
         wage_per_hour * minutes / 60 == base_payment
     ), "Wage per hour does not match Prolific reward"
@@ -936,6 +919,24 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
     exp = get_experiment()
     exp.check_config()
+    exp.check_size()
+
+    # Make sure source_code.zip is in .gitignore
+    try:
+        with open(".gitignore", "r") as f:
+            source_code_zip_found = False
+            for line in f.readlines():
+                if "source_code.zip" in line:
+                    source_code_zip_found = True
+                    break
+            if not source_code_zip_found:
+                raise click.ClickException(
+                    "Please add source_code.zip to .gitignore and try again."
+                )
+    except FileNotFoundError:
+        raise click.ClickException(
+            f".gitignore is missing from your experiment directory ({os.getcwd()})."
+        )
 
     try:
         with open("requirements.txt", "r") as f:
@@ -1326,11 +1327,12 @@ def is_editable(project):
 # estimate #
 ############
 def _estimate(mode):
-    from .experiment import get_and_load_config, import_local_experiment
+    from .experiment import import_local_experiment
+    from .utils import get_config
 
     log(header)
     experiment_class = import_local_experiment()["class"]
-    wage_per_hour = get_and_load_config().get("wage_per_hour")
+    wage_per_hour = get_config().get("wage_per_hour")
 
     config = get_config()
     if not config.ready:
@@ -1477,7 +1479,7 @@ def verify_psynet_requirement():
         with open("requirements.txt", "r") as file:
             version_tag_or_commit_hash = [
                 "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-rc\\d+)?",
             ]
             file_content = file.read()
             for regex in version_tag_or_commit_hash:
@@ -1492,7 +1494,7 @@ def verify_psynet_requirement():
                     valid = True
                     break
                 match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+",
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(-rc\d+)?",
                     file_content,
                     re.MULTILINE,
                 )
@@ -1790,12 +1792,12 @@ def _export_(
 
     if assets != "none":
         experiment_assets_only = assets == "experiment"
-        include_fast_function_assets = assets == "all"
+        include_on_demand_assets = assets == "all"
         export_assets(
             export_path,
             anonymize,
             experiment_assets_only,
-            include_fast_function_assets,
+            include_on_demand_assets,
             n_parallel,
             server,
         )
@@ -1836,7 +1838,11 @@ def _export_source_code(app, local, server, export_path, username, password):
     if local:
         url = "http://localhost:5000"
     else:
-        url = f"https://{app}.{server}"
+        if server:
+            url = f"https://{app}.{server}"
+        else:
+            url = HerokuApp(app).url
+
     url += "/download_source"
     source_code_zip_path = os.path.join(export_path, "source_code.zip")
 
@@ -1872,15 +1878,23 @@ def _export_source_code(app, local, server, export_path, username, password):
             spinner.fail("✘")
             click.confirm(
                 "Experiment source code could not be downloaded."
-                "\nPress ENTER to continue...",
+                "\nPress ENTER to continue with the remainder of data export, ignoring the source code."
+                "\nNote: To skip exporting the source code in the future, add `--no-source` option to your `psynet export` command.",
                 default=True,
                 prompt_suffix="",
                 show_default=False,
             )
-            message = response.json().get("message")
             log(
-                f"WARNING: Failed to download the experiment source code: {response.status_code} ({response.reason}). Reason: {message}."
+                f"WARNING: Failed to download experiment source code. Response: {response.reason} ({response.status_code})"
             )
+            try:
+                message = response.json().get("message")
+                log(f"\nReason: {message}.")
+            except json.JSONDecodeError as e:
+                log(
+                    f"\nAdditionally, decoding JSON data from the response failed with '{str(e)}'"
+                    f"\nResponse content: {response.content}"
+                )
             break
 
 
@@ -1965,7 +1979,7 @@ def export_assets(
     export_path,
     anonymize,
     experiment_assets_only,
-    include_fast_function_assets,
+    include_on_demand_assets,
     n_parallel,
     server,
 ):
@@ -1983,7 +1997,7 @@ def export_assets(
         asset_path,
         include_private,
         experiment_assets_only,
-        include_fast_function_assets,
+        include_on_demand_assets,
         n_parallel,
         server,
     )
@@ -2059,7 +2073,7 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version = r"\d+\.\d+\.\d+"
+            version = r"\d+\.\d+\.\d+(-rc\d+)*"
             for line in orig_file:
                 match = re.search(
                     r"^psynet(\s?)==(\s?)" + version + "$",
@@ -2081,77 +2095,43 @@ def update_scripts_():
     """
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
-    click.echo("...updating .gitignore.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/.gitignore"
-    ) as path:
-        shutil.copyfile(
-            path,
-            ".gitignore",
-        )
-
-    click.echo("...updating Dockerfile.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/Dockerfile"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "Dockerfile",
-        )
+    files_to_copy = [
+        ".gitignore",
+        "Dockerfile",
+        "README.md",
+        "__init__.py",
+        "pytest.ini",
+        "test.py",
+    ]
+    for file in files_to_copy:
+        click.echo(f"...updating {file}.")
+        with resources.as_file(
+            resources.files("psynet") / f"resources/experiment_scripts/{file}"
+        ) as path:
+            shutil.copyfile(
+                path,
+                file,
+            )
 
     click.echo("...updating Dockertag.")
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
 
-    click.echo("...updating test.py and pytest.ini.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/test.py"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "test.py",
-        )
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/pytest.ini"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "pytest.ini",
-        )
-
-    click.echo("...updating docs directory.")
-    if Path("docs").exists():
-        shutil.rmtree("docs", ignore_errors=True)
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/docs"
-    ) as path:
-        shutil.copytree(
-            path,
-            "docs",
-            dirs_exist_ok=True,
-        )
-
-    click.echo("...updating Docker scripts.")
-    shutil.rmtree("docker", ignore_errors=True)
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/docker"
-    ) as path:
-        shutil.copytree(
-            path,
-            "docker",
-            dirs_exist_ok=True,
-        )
+    directories_to_copy = ["docs", "docker"]
+    for dir in directories_to_copy:
+        click.echo(f"...updating {dir} directory.")
+        if Path(dir).exists():
+            shutil.rmtree(dir, ignore_errors=True)
+        with resources.as_file(
+            resources.files("psynet") / f"resources/experiment_scripts/{dir}"
+        ) as path:
+            shutil.copytree(
+                path,
+                dir,
+                dirs_exist_ok=True,
+            )
     os.system("chmod +x docker/*")
-
-    click.echo("...updating README.md.")
-    with resources.as_file(
-        resources.files("psynet") / "resources/experiment_scripts/README.md"
-    ) as path:
-        shutil.copyfile(
-            path,
-            "README.md",
-        )
 
 
 def pre_update_constraints_(dir):
@@ -2163,7 +2143,9 @@ def pre_update_constraints_(dir):
         .strip()
     )
     with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        psynet_requirement = (
+            "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*(-rc\\d+)*)"
+        )
         for line in file:
             print(
                 re.sub(
@@ -2649,7 +2631,7 @@ def test__local(
     else:
         import pytest
 
-        pytest.main(["test.py"])
+        return pytest.main(["test.py"])
 
 
 @test.command("ssh")

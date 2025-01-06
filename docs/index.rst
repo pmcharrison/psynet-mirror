@@ -88,6 +88,7 @@ but see the sidebar for a full list.
 
    deploy/web_servers
    deploy/aws_server_setup
+   deploy/physical_server_setup
    deploy/ssh_server
    deploy/heroku_server
    deploy/prolific
@@ -117,4 +118,4 @@ but see the sidebar for a full list.
 
    dashboards/translation
 
-   
+

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "11.7.0-dev0"
+version = "11.9.0-dev0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -33,7 +33,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=10.1.2,<11",
+    "dallinger[docker]>=10.3.0,<11",
     "dominate",
     "html2text",
     "joblib",

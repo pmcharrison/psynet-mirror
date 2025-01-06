@@ -9,6 +9,8 @@ currency = $
 wage_per_hour = 12.0
 
 [Prolific]
+# recruiter = prolific
+
 # Setting `auto_recruit = false` means that PsyNet won't recruit participants itself,
 # you'll instead control recruitment via the Prolific interface.
 auto_recruit = false

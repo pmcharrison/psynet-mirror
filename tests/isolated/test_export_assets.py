@@ -7,7 +7,7 @@ import pytest
 from click import Context
 from dallinger import db
 
-from psynet.asset import Asset, ExperimentAsset, ExternalAsset, FastFunctionAsset
+from psynet.asset import Asset, ExperimentAsset, ExternalAsset, OnDemandAsset
 from psynet.bot import Bot
 from psynet.command_line import export__local
 from psynet.pytest_psynet import path_to_test_experiment
@@ -50,13 +50,13 @@ def test_export_path__external_asset():
     assert asset.generate_export_path() == "test_external_asset.wav"
 
 
-def test_export_path__fast_function_asset():
-    asset = FastFunctionAsset(
+def test_export_path__on_demand_asset():
+    asset = OnDemandAsset(
         function=generate_text_file,
-        key_within_experiment="test_fast_function_asset",
+        key_within_experiment="test_on_demand_asset",
         extension=".txt",
     )
-    assert asset.generate_export_path() == "test_fast_function_asset.txt"
+    assert asset.generate_export_path() == "test_on_demand_asset.txt"
 
 
 @pytest.fixture(scope="class")
@@ -97,9 +97,9 @@ class TestAssetExport:
             )
             asset_3.deposit()
 
-            asset_4 = FastFunctionAsset(
+            asset_4 = OnDemandAsset(
                 function=generate_text_file,
-                local_key="test_fast_function_asset",
+                local_key="test_on_demand_asset",
             )
             asset_4.deposit()
 
@@ -115,8 +115,9 @@ class TestAssetExport:
         json_full = bot.to_dict()
         json_anon = bot.scrub_pii(bot.to_dict())
 
-        assert "worker_id" in json_full
-        assert "worker_id" not in json_anon
+        for key in ["client_ip_address", "worker_id"]:
+            assert key in json_full
+            assert key not in json_anon
 
         # Calling export_ multiple times in the same process causes SQLAlchemy errors due to repeated imports...
         # Temporary fix for now is to call in subprocess
@@ -181,7 +182,7 @@ class TestAssetExport:
             )
             assert not os.path.exists(
                 os.path.join(
-                    tempdir, "regular", "assets", "common", "test_fast_function_asset"
+                    tempdir, "regular", "assets", "common", "test_on_demand_asset"
                 )
             )
 
@@ -200,7 +201,7 @@ class TestAssetExport:
             )  # now we have this
             assert os.path.exists(
                 os.path.join(
-                    tempdir, "regular", "assets", "common", "test_fast_function_asset"
+                    tempdir, "regular", "assets", "common", "test_on_demand_asset"
                 )
             )  # and this
 

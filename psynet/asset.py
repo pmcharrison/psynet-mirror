@@ -1622,11 +1622,11 @@ class FunctionAssetMixin:
 #     pass
 
 
-class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
+class OnDemandAsset(FunctionAssetMixin, ExperimentAsset):
     """
-    A fast function asset is an asset whose files are not stored directly in any storage back-end, but instead
+    An on-demand asset is an asset whose files are not stored directly in any storage back-end, but instead
     are created on demand when the asset is requested. This creation is typically triggered by making a call
-    to the asset's URL, accessible via the ``FastFunctionAsset.url`` attribute.
+    to the asset's URL, accessible via the ``OnDemandAsset.url`` attribute.
 
     Parameters
     ----------
@@ -1850,10 +1850,56 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     def get_url(self):
         # We need to flush to make sure that self.id is populated
         db.session.flush()
-        return f"/fast-function-asset?id={self.id}&secret={self.secret}"
+        return f"/on-demand-asset?id={self.id}&secret={self.secret}"
 
     def generate_host_path(self):
         return None
+
+
+class FastFunctionAsset(OnDemandAsset):
+    """
+    .. deprecated:: 11.7.0
+        Use ``OnDemandAsset`` instead.
+    """
+
+    def __init__(
+        self,
+        *,
+        function,
+        local_key=None,
+        key_within_module: Optional[str] = None,
+        key_within_experiment=None,
+        arguments: Optional[dict] = None,
+        is_folder: bool = False,
+        description=None,
+        data_type=None,
+        extension=None,
+        module_id: Optional[str] = None,
+        parent=None,
+        personal=False,
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+    ):
+        warnings.warn(
+            f"{self.__class__.__name__} is deprecated and will be removed in future versions. "
+            f"Please use OnDemandAsset instead.",
+            DeprecationWarning,
+        )
+
+        super().__init__(
+            function=function,
+            local_key=local_key,
+            key_within_module=key_within_module,
+            key_within_experiment=key_within_experiment,
+            arguments=arguments,
+            is_folder=is_folder,
+            description=description,
+            data_type=data_type,
+            extension=extension,
+            module_id=module_id,
+            parent=parent,
+            personal=personal,
+            obfuscate=obfuscate,
+        )
 
 
 class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
@@ -2604,11 +2650,6 @@ class LocalStorage(AssetStorage):
                 shutil.copyfile(asset.input_path, os.path.expanduser(file_system_path))
         else:
             if deployment_info.read("is_ssh_deployment"):
-                if asset.is_folder:
-                    raise NotImplementedError(
-                        "Haven't implemented depositing folder assets to SSH yet, use file assets instead"
-                    )
-
                 ssh_host = deployment_info.read("ssh_host")
                 ssh_user = deployment_info.read("ssh_user")
 
@@ -2616,14 +2657,20 @@ class LocalStorage(AssetStorage):
                     self.ssh_host_home_dir(ssh_host, ssh_user) + file_system_path
                 )
 
-                self._put_file(
-                    asset.input_path,
-                    docker_host_path,
-                    ssh_host,
-                    ssh_user,
-                    make_parents=True,
-                )
-
+                if asset.is_folder:
+                    self._put_folder(
+                        asset.input_path,
+                        docker_host_path,
+                        ssh_host,
+                        ssh_user,
+                    )
+                else:
+                    self._put_file(
+                        asset.input_path,
+                        docker_host_path,
+                        ssh_host,
+                        ssh_user,
+                    )
             else:
                 raise NotImplementedError
 
@@ -2633,7 +2680,7 @@ class LocalStorage(AssetStorage):
         #     url=os.path.abspath(file_system_path),
         # )
 
-    def _put_file(self, input_path, dest_path, ssh_host, ssh_user, make_parents=True):
+    def _put_file(self, input_path, dest_path, ssh_host, ssh_user):
         from io import BytesIO
 
         sftp = self.sftp_connection(ssh_host, ssh_user)
@@ -2641,6 +2688,31 @@ class LocalStorage(AssetStorage):
         self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
         with open(input_path, "rb") as file:
             sftp.putfo(BytesIO(file.read()), dest_path)
+
+    def _put_folder(self, input_path, dest_path, ssh_host, ssh_user):
+        from io import BytesIO
+
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+
+        self._mk_dir_tree(dest_path, ssh_host, ssh_user)
+
+        # Traverse the local directory
+        for dirpath, dirnames, filenames in os.walk(input_path):
+            # For each directory in the local structure, create it remotely
+            for dirname in dirnames:
+                local_path = os.path.join(dirpath, dirname)
+                relative_path = os.path.relpath(local_path, input_path)
+                remote_path = os.path.join(dest_path, relative_path)
+                self._mk_dir_tree(remote_path, ssh_host, ssh_user)
+
+            # For each file, copy it to the remote directory
+            for filename in filenames:
+                local_path = os.path.join(dirpath, filename)
+                relative_path = os.path.relpath(local_path, input_path)
+                remote_path = os.path.join(dest_path, relative_path)
+
+                with open(local_path, "rb") as file:
+                    sftp.putfo(BytesIO(file.read()), remote_path)
 
     def _mk_dir_tree(self, dir, ssh_host, ssh_user):
         executor = self.ssh_executor(ssh_host, ssh_user)
@@ -2682,15 +2754,21 @@ class LocalStorage(AssetStorage):
         else:
             shutil.copyfile(from_, to_)
 
-    # def export_subfile(self, asset, subfile, path):
-    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
-    #     to_ = path
-    #     shutil.copyfile(from_, to_)
-    #
-    # def export_subfolder(self, asset, subfolder, path):
-    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
-    #     to_ = path
-    #     shutil.copytree(from_, to_, dirs_exist_ok=True)
+    def export_subfile(self, asset, subfile, path):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
+            to_ = path
+            shutil.copyfile(from_, to_)
+        else:
+            super().export_subfile(asset, subfile, path)
+
+    def export_subfolder(self, asset, subfolder, path):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
+            to_ = path
+            shutil.copytree(from_, to_, dirs_exist_ok=True)
+        else:
+            super().export_subfolder(asset, subfolder, path)
 
     def get_file_system_path(self, host_path):
         if host_path:

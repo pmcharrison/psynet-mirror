@@ -11,6 +11,7 @@ from psynet.utils import (
     DuplicateKeyError,
     check_todos_before_deployment,
     corr,
+    get_folder_size_mb,
     get_psynet_root,
     linspace,
     list_experiment_dirs,
@@ -217,3 +218,21 @@ def test_check_todos_before_deployment_no_raise():
                 check_todos_before_deployment()
             except AssertionError:
                 assert False
+
+
+def test_get_folder_size_mb():
+    with tempfile.TemporaryDirectory() as tempdir:
+        subdir = os.path.join(tempdir, "subdir")
+        os.mkdir(subdir)
+
+        file1_path = os.path.join(tempdir, "file1.txt")
+        file2_path = os.path.join(subdir, "file2.txt")
+
+        with open(file1_path, "w") as file1:
+            file1.write("a" * 1024 * 1024)  # 1 MB
+
+        with open(file2_path, "w") as file2:
+            file2.write("b" * 512 * 1024)  # 0.5 MB
+
+        assert get_folder_size_mb(tempdir) == pytest.approx(1.5, rel=1e-2)
+        assert get_folder_size_mb(subdir) == pytest.approx(0.5, rel=1e-2)

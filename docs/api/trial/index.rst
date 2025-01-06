@@ -18,5 +18,6 @@ Trial
    media_gibbs
    mcmcp
    record
+   staircase
    static
    video
