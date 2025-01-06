@@ -58,14 +58,13 @@ def generate(experiment, packages, languages):
     psynet translation generate --experiment --packages psynet --languages fr
         Translate both the current experiment and the PsyNet package to French.
     """
-    for language in languages:
-        if experiment:
-            click.echo(f"Translating experiment to {language}...")
-            translate_experiment(language)
+    if experiment:
+        click.echo(f"Translating experiment to {', '.join(languages)}...")
+        translate_experiment(languages)
 
-        for package in packages:
-            click.echo(f"Translating {package} package to {language}...")
-            translate_package(package, language)
+    for package in packages:
+        click.echo(f"Translating {package} package to {', '.join(languages)}...")
+        translate_package(package, languages)
 
 
 @translation.command("export")
@@ -82,12 +81,11 @@ def export(packages, languages):
     psynet translation export --packages psynet --languages fr
         Export French translations back to the PsyNet package.
     """
-    for language in languages:
-        for package in packages:
-            click.echo(
-                f"Exporting {language} translations to the {package} package ..."
-            )
-            export_package(package, language)
+    for package in packages:
+        click.echo(
+            f"Exporting {', '.join(languages)} translations to the {package} package ..."
+        )
+        export_package(package, languages)
 
 
 @translation.command("import")
@@ -105,12 +103,11 @@ def import_(packages, languages):
     psynet translation import --packages psynet --languages fr
         Import French translations from the PsyNet package.
     """
-    for language in languages:
-        for package in packages:
-            click.echo(
-                f"Importing {language} translations from the {package} package ..."
-            )
-            import_package(package, language)
+    for package in packages:
+        click.echo(
+            f"Importing {', '.join(languages)} translations from the {package} package ..."
+        )
+        import_package(package, languages)
 
 
 @translation.command("check")
@@ -127,9 +124,9 @@ def translate_package(package, languages):
     pass
 
 
-def export_package(package, language):
+def export_package(package, languages):
     pass
 
 
-def import_package(package, language):
+def import_package(package, languages):
     pass
