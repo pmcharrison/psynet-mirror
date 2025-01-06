@@ -15,11 +15,12 @@ import requests
 from tqdm import tqdm
 
 from .. import log
-from ..utils import get_language_dict, logger
+from ..utils import get_language_dict, logger, require_exp_directory
 from . import supported_languages
 from .utils import get_locales_dir
 
 
+@require_exp_directory
 def translate_experiment(languages: List[str]):
     from psynet.experiment import get_experiment
 
@@ -32,15 +33,15 @@ def translate_experiment(languages: List[str]):
     locales_dir = os.path.join(os.getcwd(), "locales")
     pot_path = os.path.join(locales_dir, "experiment.pot")
 
-    pot = create_experiment_translation_template()
+    pot = create_experiment_translation_template(pot_path)
     pot.save(pot_path)
 
     for language in languages:
         translate_pot(pot_path, target_language=language)
 
 
-def create_experiment_translation_template():
-    raise NotImplementedError
+def create_experiment_translation_template(pot_path):
+    return create_pot(os.getcwd(), ".", pot_path, start_with_fresh_file=True)
 
 
 def translate_psynet(languages: List[str]):
@@ -62,8 +63,6 @@ def translate_psynet(languages: List[str]):
 def translate_pot(
     pot_path, target_language, source_language="en", remove_unused_entries=False
 ):
-    formality = "formal"
-
     assert os.path.isabs(pot_path), "Input path must be absolute."
     assert os.path.exists(pot_path), "Input file does not exist."
     assert pot_path.endswith(".pot"), "Input file must be a POT file."
@@ -79,7 +78,6 @@ def translate_pot(
         source_language,
         target_language,
         remove_unused_entries,
-        formality,
     )
 
 
@@ -185,6 +183,10 @@ class EntryCollection:
 
     def translate(self, source_lang: str, target_lang: str):
         input_texts = [entries.msgid for entries in self.entries]
+
+        # We conceived of an encoding logic here to avoid things like variable names
+        # and HTML tags being translated.
+        # This is not implemented yet.
         codebooks = [
             self._get_codebook(text) for text in input_texts
         ]  # [[], [('Participant name', 'X1')], [('Cat name', 'X1')]]
@@ -219,20 +221,97 @@ class EntryCollection:
             )
         ]
 
-    def _get_codebook(self, text: str) -> List[tuple[str, str]]:
-        # Identify everything that needs encoding
-        # - Variables e.g. { PERSON }
-        # - Jinja variables e.g. {{ PERSON }}
-        # - HTML tags e.g. <b>...</b>
-        # Encode as ■1■, ■2■, ■3■, ...
+    @classmethod
+    def _get_codebook(cls, text: str) -> List[tuple[str, str]]:
+        """Get codebook mapping text patterns to encoded placeholders.
 
-        raise NotImplementedError
+        Parameters
+        ----------
+        text : str
+            Input text to analyze for patterns that need encoding
+
+        Returns
+        -------
+        list of tuple
+            List of (original_text, encoded_placeholder) pairs
+        """
+        import re
+
+        codebook = []
+        counter = 0
+        working_text = text
+
+        # Match Jinja variables {{ VAR }}
+        jinja_pattern = r"\{\{[^}]+\}\}"
+        matches = list(re.finditer(jinja_pattern, working_text))
+        for match in matches:
+            original = match.group(0)
+            encoded = f"■{counter}■"
+            codebook.append((original, encoded))
+            working_text = working_text.replace(original, encoded)
+            counter += 1
+
+        # Match simple variables { VAR }
+        var_pattern = r"\{[^}]+\}"
+        matches = list(re.finditer(var_pattern, working_text))
+        for match in matches:
+            original = match.group(0)
+            encoded = f"■{counter}■"
+            codebook.append((original, encoded))
+            working_text = working_text.replace(original, encoded)
+            counter += 1
+
+        # Match HTML tags <tag>...</tag>
+        html_pattern = r"<[^>]+>.*?</[^>]+>|<[^/>][^>]*>"
+        matches = list(re.finditer(html_pattern, working_text))
+        for match in matches:
+            original = match.group(0)
+            encoded = f"■{counter}■"
+            codebook.append((original, encoded))
+            working_text = working_text.replace(original, encoded)
+            counter += 1
+
+        return codebook
 
     def _encode(self, text: str, codebook: List[tuple[str, str]]) -> str:
-        raise NotImplementedError
+        """Encode text by replacing patterns with placeholders.
+
+        Parameters
+        ----------
+        text : str
+            Text to encode
+        codebook : list of tuple
+            List of (original_text, encoded_placeholder) pairs
+
+        Returns
+        -------
+        str
+            Encoded text with patterns replaced by placeholders
+        """
+        result = text
+        for original, encoded in codebook:
+            result = result.replace(original, encoded)
+        return result
 
     def _decode(self, text: str, codebook: List[tuple[str, str]]) -> str:
-        raise NotImplementedError
+        """Decode text by replacing placeholders with original patterns.
+
+        Parameters
+        ----------
+        text : str
+            Text to decode
+        codebook : list of tuple
+            List of (original_text, encoded_placeholder) pairs
+
+        Returns
+        -------
+        str
+            Decoded text with placeholders replaced by original patterns
+        """
+        result = text
+        for original, encoded in codebook:
+            result = result.replace(encoded, original)
+        return result
 
     def fix_translation(self, translation: str) -> str:
         return translation
@@ -404,17 +483,19 @@ def get_contexts(
 
 def get_entries_without_context(
     po, exclude: Optional[EntryCollection] = None
-) -> List[polib.POEntry]:
+) -> EntryCollection:
     if exclude is None:
         exclude_strings = set()
     else:
         exclude_strings = set([entry.msgstr for entry in exclude.entries])
 
-    return [
-        entry
-        for entry in po
-        if entry.msgctxt is None and entry.msgstr not in exclude_strings
-    ]
+    return EntryCollection(
+        [
+            entry
+            for entry in po
+            if entry.msgctxt is None and entry.msgstr not in exclude_strings
+        ]
+    )
 
 
 # TODO - when creating the pot file, ensure that the same context is not
@@ -431,9 +512,8 @@ def create_psynet_translation_template(locales_dir=None):
     locales_dir = get_locales_dir(locales_dir)
     psynet_folder = locales_dir.replace("psynet/locales", "")
     pot_path = join_path(locales_dir, "psynet.pot")
-    n_translatable_strings = create_pot(
-        psynet_folder, "psynet/.", pot_path, start_with_fresh_file=True
-    )
+    pot = create_pot(psynet_folder, "psynet/.", pot_path, start_with_fresh_file=True)
+    n_translatable_strings = len(pot.entries)
     print(f"Extracted {n_translatable_strings} translatable strings in {pot_path}")
     return load_po(pot_path)
 
@@ -570,7 +650,7 @@ def create_pot(
         pot = clean_po(pot, package_name)
         os.makedirs(os.path.dirname(pot_path), exist_ok=True)
         pot.save(pot_path)
-    return len(pot_entries)
+    return pot
 
 
 def clean_code_occurence_paths_in_po(po, package_name):
