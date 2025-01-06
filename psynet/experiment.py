@@ -12,7 +12,8 @@ import warnings
 from collections import OrderedDict
 from datetime import datetime
 from importlib import resources
-from os.path import exists
+from os.path import abspath, dirname, exists
+from os.path import join as join_path
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
@@ -80,7 +81,7 @@ from .timeline import (
     Response,
     Timeline,
 )
-from .translation import LOCALES_DIR, supported_languages
+from .translation import supported_languages
 from .translation.translation import check_translations, compile_mo, create_pot, load_po
 from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
@@ -577,7 +578,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             assert supported_locales == [], "No locales folder found"
 
     def compile_psynet_translations_if_necessary(self):
-        self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
+        self.compile_translations_if_necessary(
+            join_path(abspath(dirname(__file__)), "locales"), "psynet"
+        )
 
     @with_transaction
     def on_launch(self):
@@ -2127,6 +2130,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("google_translate_json_path", unicode, sensitive=True)
         config.register("openai_api_key", unicode, sensitive=True)
         config.register("openai_default_model", unicode)
+        config.register("openai_default_temperature", unicode)
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("lucid_recruitment_config", unicode)

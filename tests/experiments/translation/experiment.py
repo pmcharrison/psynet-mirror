@@ -1,37 +1,80 @@
 # pylint: disable=unused-import,abstract-method
 
 import logging
+import os
 
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import NoConsent
-from psynet.page import SuccessfulEndPage, ModularPage
-from psynet.modular_page import PushButtonControl
-from psynet.pytest_psynet import AnimalTrial, ColorTrial, trial_maker_1, trial_maker_2
-from psynet.timeline import Timeline, for_loop, join
+from psynet.modular_page import PushButtonControl, TextControl
+from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.timeline import CodeBlock, PageMaker, Timeline
+from psynet.utils import get_translator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
+locale = "nl"
+_, _p = get_translator(
+    locale, module="experiment", locales_dir=os.path.abspath("locales")
+)
+
 
 class Exp(psynet.experiment.Experiment):
     label = "Translation test"
+    config = {
+        "language": locale,
+        "supported_locales": ["en", "nl"],
+        "allow_switching_locale": True,
+    }
+    variable_placeholders = {"PET": "dog", "NAME": "John"}
 
     timeline = Timeline(
         NoConsent(),
         InfoPage(
             _("Hello, welcome to my experiment!"),
+            time_estimate=1,
         ),
         ModularPage(
-
-        )
+            "name",
+            prompt=_("What is your name?"),
+            control=TextControl(),
+            time_estimate=1,
+        ),
+        CodeBlock(lambda participant: participant.var.set("name", participant.answer)),
+        PageMaker(
+            lambda participant: InfoPage(
+                _("Hello, {NAME}!").format(NAME=participant.var.get("name")),
+            ),
+            time_estimate=1,
+        ),
+        ModularPage(
+            "pet",
+            prompt=_("What is your favorite pet?"),
+            control=PushButtonControl(
+                choices=["dog", "cat", "fish", "hamster", "bird", "snake"],
+                labels=[
+                    _("dog"),
+                    _("cat"),
+                    _("fish"),
+                    _("hamster"),
+                    _("bird"),
+                    _("snake"),
+                ],
+            ),
+            time_estimate=1,
+        ),
+        CodeBlock(
+            lambda participant: participant.var.set("pet", _(participant.answer))
+        ),
+        PageMaker(
+            lambda participant: InfoPage(
+                _("Great, I like {PET} too!").format(PET=participant.var.get("pet")),
+            ),
+            time_estimate=1,
+        ),
         SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        assert len(bot.alive_trials) == 6
-        trials = sorted(bot.alive_trials, key=lambda t: t.id)
-        for i in [0, 2, 4]:
-            assert isinstance(trials[i], AnimalTrial)
-        for i in [1, 3, 5]:
-            assert isinstance(trials[i], ColorTrial)
+        assert True
