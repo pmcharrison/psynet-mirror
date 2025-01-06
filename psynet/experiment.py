@@ -58,13 +58,6 @@ from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
-from .internationalization import LOCALES_DIR, supported_languages
-from .internationalization.translation import (
-    check_translations,
-    compile_mo,
-    create_pot,
-    load_po,
-)
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant
 from .recruiters import (  # noqa: F401
@@ -87,6 +80,8 @@ from .timeline import (
     Response,
     Timeline,
 )
+from .translation import LOCALES_DIR, supported_languages
+from .translation.translation import check_translations, compile_mo, create_pot, load_po
 from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,

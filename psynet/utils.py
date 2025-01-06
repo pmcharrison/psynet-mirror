@@ -26,15 +26,13 @@ import html2text
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
-
-import toml
 from babel.support import Translations
 from dallinger.config import experiment_available
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
 
-from psynet.internationalization import LOCALES_DIR, get_known_countries, get_known_languages
+from psynet.translation import LOCALES_DIR, get_known_countries, get_known_languages
 
 
 def get_logger():
@@ -638,7 +636,7 @@ def get_translator(
     module="psynet",
     locales_dir=LOCALES_DIR,
 ):
-    from .internationalization.translation import compile_mo
+    from .translation.translation import compile_mo
 
     if locale is None:
         try:
