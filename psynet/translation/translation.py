@@ -7,8 +7,8 @@ import polib
 import requests
 from tqdm import tqdm
 
-from . import supported_languages
 from ..utils import require_exp_directory
+from . import supported_languages
 
 
 @require_exp_directory
