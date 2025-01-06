@@ -2126,6 +2126,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
+        config.register("google_translate_project_id", unicode, sensitive=True)
+        config.register("google_translate_json_path", unicode, sensitive=True)
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("lucid_recruitment_config", unicode)
