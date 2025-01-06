@@ -43,6 +43,7 @@ dependencies = [
     "polib",
     "progress",
     "pytest",
+    "pytest-mock",
     "python-gettext",
     "rpdb",
     "tenacity",

@@ -69,5 +69,20 @@ def test_encode_decode():
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("translation")], indirect=True
 )
-def test_translate_experiment():
+def test_translate_experiment(mocker):
+    # Mock the translate method
+    mock_translate = mocker.patch(
+        "psynet.translation.translation.MetaTranslator.translate"
+    )
+    mock_translate.side_effect = [
+        ["Bonjour, bienvenue à mon expérience!"],  # First call returns French
+        # ["Hallo, willkommen zu meinem Experiment!"],  # Second call returns German
+        # ["Cliquez ici"],  # Third call returns French
+    ]
+
     translate_experiment(["fr"])
+
+    # Verify translate was called with correct parameters
+    mock_translate.assert_called_once_with(
+        texts=["Hello, welcome to my experiment!"], source_lang="en", target_lang="fr"
+    )

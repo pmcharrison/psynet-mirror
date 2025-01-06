@@ -98,26 +98,40 @@ def check_languages(languages: Iterable[str]):
 
 def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entries):
     old_po = polib.pofile(po_path) if os.path.exists(po_path) else None
-    old_contexts = get_contexts(old_po) if old_po is not None else None
+    old_contexts = get_contexts(old_po) if old_po is not None else {}
     old_entries_without_context = (
-        get_entries_without_context(old_po) if old_po is not None else None
+        get_entries_without_context(old_po) if old_po is not None else EntryCollection()
     )
 
     po = initialize_po(pot_path, po_path, target_lang)
 
-    contexts = get_contexts(po, exclude=old_contexts)
+    contexts = get_contexts(po)
+
+    n_contexts_reused = 0
+    contexts_to_translate = []
+
+    for id in contexts.keys():
+        if id in old_contexts and old_contexts[id] == contexts[id]:
+            contexts[id] = old_contexts[id]
+            n_contexts_reused += 1
+        else:
+            contexts_to_translate.append(contexts[id])
+
+    if len(contexts) == 0:
+        print("No contexts to translate.")
+    else:
+        print(
+            f"Found {n_contexts_reused} context(s) to reuse, translating the remaining {len(contexts_to_translate)}."
+        )
+
+    for context in contexts_to_translate:
+        context.translate(source_lang, target_lang)
+
     entries_without_context = get_entries_without_context(
         po, exclude=old_entries_without_context
     )
 
-    for context in contexts:
-        context.translate(source_lang, target_lang)
-
     entries_without_context.translate(source_lang, target_lang)
-
-    for context_name, context in contexts.items():
-        if context_name in old_contexts:
-            contexts[context_name] = old_contexts[context_name].merge(context)
 
     po = _insert_entries(
         po,
@@ -156,7 +170,9 @@ def _insert_entries(
 ):
     # We iterate over the po file, and in-place update with the new translations
     # We also work out what old entries have not been included so far, and add those at the end
-    # in alphabetical order
+    # in alphabetical order.
+    #
+
     raise NotImplementedError
 
 
@@ -171,8 +187,17 @@ class EntryCollection:
         self.entries = entries
 
     def __eq__(self, other):
-        # TODO - Implement
-        raise NotImplementedError
+        if not isinstance(other, EntryCollection):
+            return False
+        if len(self.entries) != len(other.entries):
+            return False
+        for self_entry, other_entry in zip(self.entries, other.entries):
+            if (
+                self_entry.msgid != other_entry.msgid
+                or self_entry.msgstr != other_entry.msgstr
+            ):
+                return False
+        return True
 
     def append(self, entry: polib.POEntry):
         self.entries.append(entry)
@@ -461,7 +486,7 @@ class GoogleTranslator(Translator):
 
 
 def get_contexts(
-    po, exclude=Optional[dict[EntryCollectionWithContext]]
+    po,  # , exclude: Optional[dict[EntryCollectionWithContext]] = None
 ) -> dict[str, EntryCollectionWithContext]:
     contexts = {}
     for entry in po:
@@ -473,10 +498,10 @@ def get_contexts(
                 contexts[entry.msgctxt] = context
             context.append(entry)
 
-    if exclude:
-        for key, context in contexts.items():
-            if key in exclude and context == exclude[key]:
-                del contexts[key]
+    # if exclude:
+    #     for key, context in contexts.items():
+    #         if key in exclude and context == exclude[key]:
+    #             del contexts[key]
 
     return contexts
 
