@@ -7,7 +7,7 @@ from collections import OrderedDict
 from functools import cached_property
 from os.path import exists
 from os.path import join as join_path
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 import pexpect
 import polib
@@ -37,6 +37,10 @@ def translate_experiment(languages: List[str]):
 
     for language in languages:
         translate_pot(pot_path, target_language=language)
+
+
+def create_experiment_translation_template():
+    raise NotImplementedError
 
 
 def translate_psynet(languages: List[str]):
@@ -79,12 +83,19 @@ def translate_pot(
     )
 
 
-def check_languages(languages):
+def check_languages(languages: Iterable[str]):
     from .languages import get_known_languages
 
+    assert isinstance(languages, Iterable) and not isinstance(languages, str)
+
     known_languages = get_known_languages()
+    language_codes = [language[0] for language in known_languages]
+
     for language in languages:
-        assert language in known_languages, f"Unknown language: {language}"
+        if language not in language_codes:
+            raise ValueError(f"Unknown language: {language}")
+
+    return True
 
 
 def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entries):
