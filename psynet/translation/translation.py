@@ -325,7 +325,7 @@ class DeepLTranslator(Translator):
 
 class MetaTranslator(Translator):
     def translate(self, texts: List[str], source_lang: str, target_lang: str):
-        from psynet.internationalization.languages import (
+        from psynet.translation.languages import (
             get_supported_deepl_languages,
             get_supported_gtrans_languages,
         )

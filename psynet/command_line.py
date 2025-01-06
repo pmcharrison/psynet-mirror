@@ -27,7 +27,7 @@ from dallinger.command_line.docker_ssh import (
     server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import get_config, experiment_available
+from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -40,16 +40,22 @@ from psynet.version import check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
-from .internationalization import get_known_languages
-from .internationalization.translation import clean_po, load_po, po_to_dict, translate_experiment, translate_psynet
 from .log import bold
 from .lucid import get_lucid_service
-from .pytest_psynet import in_experiment_directory
 from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
+from .translation import get_known_languages
+from .translation.translation import (
+    clean_po,
+    load_po,
+    po_to_dict,
+    translate_experiment,
+    translate_psynet,
+)
 from .utils import (
     get_args,
+    in_psynet_directory,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
@@ -57,7 +63,7 @@ from .utils import (
     require_exp_directory,
     require_requirements_txt,
     run_subprocess_with_live_output,
-    working_directory, in_psynet_directory,
+    working_directory,
 )
 
 dallinger.command_line.utils.header = ""
@@ -2894,4 +2900,3 @@ def translate(languages: List[str]):
         raise click.UsageError(
             "This command should be run in a PsyNet experiment directory or with an active PsyNet experiment."
         )
-

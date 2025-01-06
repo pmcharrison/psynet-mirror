@@ -8,6 +8,7 @@ def get_known_countries(locale=None):
             if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
     from psynet.utils import get_translator
+
     _, _p = get_translator(locale)
     return [
         ("AF", _p("country_name", "Afghanistan")),
