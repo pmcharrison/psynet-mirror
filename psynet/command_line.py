@@ -2201,7 +2201,9 @@ def post_update_psynet_requirement_():
 @click.argument(
     "iso_code",
     required=True,
-    type=click.Choice(get_known_languages(), case_sensitive=False),
+    type=click.Choice(
+        [pair[0] for pair in get_known_languages()], case_sensitive=False
+    ),
 )
 @require_exp_directory
 def prepare_translation(iso_code):
