@@ -1283,6 +1283,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "duration": 100000000.0,
             "force_google_chrome": True,
             "force_incognito_mode": False,
+            "openai_default_model": "gpt-4o",
+            "openai_default_temperature": 0.7,
             "host": "0.0.0.0",
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),
@@ -2121,6 +2123,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
+        config.register("google_translate_project_id", unicode, sensitive=True)
+        config.register("google_translate_json_path", unicode, sensitive=True)
+        config.register("openai_api_key", unicode, sensitive=True)
+        config.register("openai_default_model", unicode)
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("lucid_recruitment_config", unicode)
