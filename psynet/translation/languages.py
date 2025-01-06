@@ -53,7 +53,11 @@ def get_known_languages(locale=None):
     """
     from psynet.utils import get_translator
 
-    _, _p = get_translator(locale)
+    def _p(x, y):
+        return y
+
+    if locale is not None:
+        _, _p = get_translator(locale)  # noqa
     return [
         ("ab", _p("language_name", "Abkhazian")),
         ("aa", _p("language_name", "Afar")),

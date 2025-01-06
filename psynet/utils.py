@@ -636,7 +636,13 @@ def get_translator(
     module="psynet",
     locales_dir=LOCALES_DIR,
 ):
+    import pydevd_pycharm
+
     from .translation.translation import compile_mo
+
+    pydevd_pycharm.settrace(
+        "localhost", port=1234, stdoutToServer=True, stderrToServer=True
+    )
 
     if locale is None:
         try:
