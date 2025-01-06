@@ -96,108 +96,10 @@ def check_languages(languages: Iterable[str]):
     return True
 
 
-def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entries):
-    old_po = polib.pofile(po_path) if os.path.exists(po_path) else None
-    old_contexts = get_contexts(old_po) if old_po is not None else {}
-    old_entries_without_context = (
-        get_entries_without_context(old_po) if old_po is not None else EntryCollection()
-    )
-
-    po = initialize_po(pot_path, po_path, target_lang)
-
-    contexts = get_contexts(po)
-
-    n_contexts_reused = 0
-    contexts_to_translate = []
-
-    for id in contexts.keys():
-        if id in old_contexts and old_contexts[id] == contexts[id]:
-            contexts[id] = old_contexts[id]
-            n_contexts_reused += 1
-        else:
-            contexts_to_translate.append(contexts[id])
-
-    if len(contexts) == 0:
-        print("No contexts to translate.")
-    else:
-        print(
-            f"Found {n_contexts_reused} context(s) to reuse, translating the remaining {len(contexts_to_translate)}."
-        )
-
-    for context in contexts_to_translate:
-        context.translate(source_lang, target_lang)
-
-    entries_without_context = get_entries_without_context(
-        po, exclude=old_entries_without_context
-    )
-
-    entries_without_context.translate(source_lang, target_lang)
-
-    po = _insert_entries(
-        po,
-        contexts,
-        entries_without_context,
-        old_contexts,
-        old_entries_without_context,
-        remove_unused_entries,
-    )
-    po = clean_po(po)
-    po.save(po_path)
-
-
-def initialize_po(pot_path, po_path, output_lang):
-    po = polib.pofile(pot_path)
-
-    if os.path.exists(po_path):
-        old_po = polib.pofile(po_path)
-        po.metadata = old_po.metadata
-    else:
-        po.metadata["Language"] = output_lang
-        po.metadata["MIME-Version"] = "1.0"
-        po.metadata["Content-Type"] = "text/plain; charset=UTF-8"
-        po.metadata["Content-Transfer-Encoding"] = "8bit"
-
-    return po
-
-
-def _insert_entries(
-    po,
-    contexts,
-    entries_without_context,
-    old_contexts,
-    old_entries_without_context,
-    remove_unused_entries,
-):
-    # We iterate over the po file, and in-place update with the new translations
-    # We also work out what old entries have not been included so far, and add those at the end
-    # in alphabetical order.
-    #
-
-    raise NotImplementedError
-
-
-class EntryCollection:
-    def __init__(
-        self,
-        entries: Optional[List[polib.POEntry]] = None,
-    ):
-        if entries is None:
-            entries = []
-
-        self.entries = entries
-
-    def __eq__(self, other):
-        if not isinstance(other, EntryCollection):
-            return False
-        if len(self.entries) != len(other.entries):
-            return False
-        for self_entry, other_entry in zip(self.entries, other.entries):
-            if (
-                self_entry.msgid != other_entry.msgid
-                or self_entry.msgstr != other_entry.msgstr
-            ):
-                return False
-        return True
+class TranslationUnit:
+    def __init__(self, context: Optional[str] = None):
+        self.context = context
+        self.entries = []
 
     def append(self, entry: polib.POEntry):
         self.entries.append(entry)
@@ -206,20 +108,73 @@ class EntryCollection:
     def translator(self):
         return MetaTranslator()
 
-    def translate(self, source_lang: str, target_lang: str):
-        input_texts = [entries.msgid for entries in self.entries]
+    @classmethod
+    def from_po(
+        cls, po: Optional[polib.POFile]
+    ) -> dict[tuple[str, str], "TranslationUnit"]:
+        units = {}
 
-        # We conceived of an encoding logic here to avoid things like variable names
-        # and HTML tags being translated.
-        # This is not implemented yet.
-        codebooks = [
-            self._get_codebook(text) for text in input_texts
-        ]  # [[], [('Participant name', 'X1')], [('Cat name', 'X1')]]
+        if po is None:
+            return units
+
+        for entry in po:
+            has_context = entry.msgctxt is not None
+
+            if has_context:
+                key = ("msgctxt", entry.msgctxt)
+            else:
+                key = ("msgid", entry.msgid)
+
+            try:
+                unit = units[key]
+            except KeyError:
+                units[key] = unit = TranslationUnit(context=entry.msgctxt)
+
+            unit.append(entry)
+
+        return units
+
+    @classmethod
+    def inherit(
+        cls,
+        new: "dict[tuple[str, str], TranslationUnit]",
+        old: "dict[tuple[str, str], TranslationUnit]",
+    ):
+        result = {}
+
+        for key in new.keys():
+            if (
+                key in old
+                and old[key].is_translated
+                and old[key].text_to_translate == new[key].text_to_translate
+            ):
+                result[key] = old[key]
+            else:
+                result[key] = new[key]
+
+        return result
+
+    @property
+    def is_translated(self):
+        return all(entry.msgstr for entry in self.entries)
+
+    @property
+    def text_to_translate(self):
+        return [entry.msgid for entry in self.entries]
+
+    def translate(self, source_lang, target_lang):
+        input_texts = self.text_to_translate
+
+        codebooks = [self._get_codebook(text) for text in input_texts]
         input_texts = [
             self._encode(text, codebook)
             for text, codebook in zip(input_texts, codebooks)
         ]
-        translated_texts = self._translate(input_texts, source_lang, target_lang)
+
+        translated_texts = self.translator.translate(
+            texts=input_texts, source_lang=source_lang, target_lang=target_lang
+        )
+
         translated_texts = [
             self._decode(text, codebook)
             for text, codebook in zip(translated_texts, codebooks)
@@ -227,26 +182,12 @@ class EntryCollection:
 
         for entry, translated_text in zip(self.entries, translated_texts):
             translated_text = self.fix_translation(translated_text)
+
             entry.msgstr = translated_text
             entry.flags.append(
                 "fuzzy"
             )  # Signals that the translation needs to be reviewed
 
-    def _translate(
-        self, texts: List[str], source_lang: str, target_lang: str
-    ) -> List[str]:
-        # Translate all entries separately to avoid context contamination
-        return [
-            self.translator.translate(
-                texts=[text], source_lang=source_lang, target_lang=target_lang
-            )[0]
-            for text in tqdm(
-                texts,
-                f"Translating {len(texts)} context-free entries from {source_lang} to {target_lang}...",
-            )
-        ]
-
-    @classmethod
     def _get_codebook(cls, text: str) -> List[tuple[str, str]]:
         """Get codebook mapping text patterns to encoded placeholders.
 
@@ -342,30 +283,64 @@ class EntryCollection:
         return translation
 
 
-class EntryCollectionWithContext(EntryCollection):
-    def __init__(
-        self,
-        context: str,
-        entries: Optional[List[polib.POEntry]] = None,
+def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entries):
+    old_po = polib.pofile(po_path) if os.path.exists(po_path) else None
+    new_po = initialize_po(pot_path, po_path, target_lang)
+
+    old_units = TranslationUnit.from_po(old_po)
+    new_units = TranslationUnit.from_po(new_po)
+
+    combined_units = TranslationUnit.inherit(new_units, old_units)
+
+    for translation_unit in tqdm(
+        combined_units.values(), f"Translating {source_lang} to {target_lang} ..."
     ):
-        super().__init__(entries)
-        self.context = context
+        if not translation_unit.is_translated:
+            translation_unit.translate(source_lang, target_lang)
 
-    def translate(self, source_lang: str, target_lang: str):
-        # Translate all entries as a batch to preserve context
-        texts = [entries.msgid for entries in self.entries]
-        return self.translator.translate(
-            texts=texts, source_lang=source_lang, target_lang=target_lang
-        )
+    raise NotImplementedError
 
-    def __eq__(self, other):
-        # TODO - Implement
-        raise NotImplementedError
+    po = _insert_entries(
+        po,
+        contexts,
+        entries_without_context,
+        old_contexts,
+        old_entries_without_context,
+        remove_unused_entries,
+    )
+    po = clean_po(po)
+    po.save(po_path)
 
-    def merge(self, other: "EntryCollectionWithContext"):
-        # TODO - implement
-        # Entries from 'other' override entries from 'self'
-        raise NotImplementedError
+
+def initialize_po(pot_path, po_path, output_lang):
+    po = polib.pofile(pot_path)
+
+    if os.path.exists(po_path):
+        old_po = polib.pofile(po_path)
+        po.metadata = old_po.metadata
+    else:
+        po.metadata["Language"] = output_lang
+        po.metadata["MIME-Version"] = "1.0"
+        po.metadata["Content-Type"] = "text/plain; charset=UTF-8"
+        po.metadata["Content-Transfer-Encoding"] = "8bit"
+
+    return po
+
+
+def _insert_entries(
+    po,
+    contexts,
+    entries_without_context,
+    old_contexts,
+    old_entries_without_context,
+    remove_unused_entries,
+):
+    # We iterate over the po file, and in-place update with the new translations
+    # We also work out what old entries have not been included so far, and add those at the end
+    # in alphabetical order.
+    #
+
+    raise NotImplementedError
 
 
 class Translator:
@@ -483,44 +458,6 @@ class GoogleTranslator(Translator):
             )
 
             return [translation.text for translation in response]
-
-
-def get_contexts(
-    po,  # , exclude: Optional[dict[EntryCollectionWithContext]] = None
-) -> dict[str, EntryCollectionWithContext]:
-    contexts = {}
-    for entry in po:
-        if entry.msgctxt is not None:
-            try:
-                context = contexts[entry.msgctxt]
-            except KeyError:
-                context = EntryCollectionWithContext(context=entry.msgctxt)
-                contexts[entry.msgctxt] = context
-            context.append(entry)
-
-    # if exclude:
-    #     for key, context in contexts.items():
-    #         if key in exclude and context == exclude[key]:
-    #             del contexts[key]
-
-    return contexts
-
-
-def get_entries_without_context(
-    po, exclude: Optional[EntryCollection] = None
-) -> EntryCollection:
-    if exclude is None:
-        exclude_strings = set()
-    else:
-        exclude_strings = set([entry.msgstr for entry in exclude.entries])
-
-    return EntryCollection(
-        [
-            entry
-            for entry in po
-            if entry.msgctxt is None and entry.msgstr not in exclude_strings
-        ]
-    )
 
 
 # TODO - when creating the pot file, ensure that the same context is not

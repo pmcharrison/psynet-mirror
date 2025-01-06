@@ -12,9 +12,9 @@ def test_check_languages():
 
 
 def test_get_codebook():
-    from psynet.translation.translation import EntryCollection
+    from psynet.translation.translation import TranslationUnit
 
-    entry_collection = EntryCollection()
+    entry_collection = TranslationUnit()
 
     # Test Jinja variables
     text = "Hello {{ NAME }}"
@@ -42,9 +42,9 @@ def test_get_codebook():
 
 
 def test_encode_decode():
-    from psynet.translation.translation import EntryCollection
+    from psynet.translation.translation import TranslationUnit
 
-    entry_collection = EntryCollection()
+    entry_collection = TranslationUnit()
 
     # Test encoding
     text = "Hello {{ NAME }} {AGE} <b>world</b>"
@@ -70,19 +70,26 @@ def test_encode_decode():
     "experiment_directory", [path_to_test_experiment("translation")], indirect=True
 )
 def test_translate_experiment(mocker):
-    # Mock the translate method
     mock_translate = mocker.patch(
         "psynet.translation.translation.MetaTranslator.translate"
     )
-    mock_translate.side_effect = [
-        ["Bonjour, bienvenue à mon expérience!"],  # First call returns French
-        # ["Hallo, willkommen zu meinem Experiment!"],  # Second call returns German
-        # ["Cliquez ici"],  # Third call returns French
-    ]
 
     translate_experiment(["fr"])
 
-    # Verify translate was called with correct parameters
-    mock_translate.assert_called_once_with(
-        texts=["Hello, welcome to my experiment!"], source_lang="en", target_lang="fr"
-    )
+    expected_calls = [
+        mocker.call(texts=[text], source_lang="en", target_lang="fr")
+        for text in [
+            "Hello, welcome to my experiment!",
+            "What is your name?",
+            "Hello, {NAME}!",
+            "What is your favorite pet?",
+            "dog",
+            "cat",
+            "fish",
+            "hamster",
+            "bird",
+            "snake",
+            "Great, I like {PET} too!",
+        ]
+    ]
+    assert mock_translate.call_args_list == expected_calls
