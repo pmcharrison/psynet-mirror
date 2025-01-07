@@ -41,6 +41,12 @@ class Exp(psynet.experiment.Experiment):
             control=TextControl(),
             time_estimate=1,
         ),
+        ModularPage(
+            "name",
+            prompt=_("What is your name?"),
+            control=TextControl(),
+            time_estimate=1,
+        ),
         CodeBlock(lambda participant: participant.var.set("name", participant.answer)),
         PageMaker(
             lambda participant: InfoPage(

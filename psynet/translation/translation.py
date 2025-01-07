@@ -1,3 +1,4 @@
+from copy import copy
 import os
 from functools import cached_property
 from typing import Iterable, List, Optional
@@ -89,8 +90,8 @@ def check_languages(languages: Iterable[str]):
 
 
 class TranslationUnit:
-    def __init__(self, context: Optional[str] = None):
-        self.context = context
+    def __init__(self, file: str):
+        self.file = file
         self.entries = []
 
     def append(self, entry: polib.POEntry):
@@ -99,6 +100,13 @@ class TranslationUnit:
     @cached_property
     def translator(self):
         return MetaTranslator()
+
+    def sort(self):
+        # We can assume that each entry has only a single occurrence, by virtue of the logic in `from_po`.
+        # We can also assume that each entry comes from the same file. So, we just need to look at the first
+        # element in entry.occurrences, which is a tuple (file, line_number), and take the second element.
+        # Note that this line number is by default a string, so we need to convert it to an integer.
+        self.entries.sort(key=lambda entry: int(entry.occurrences[0][1]))
 
     @classmethod
     def from_po(
@@ -109,20 +117,23 @@ class TranslationUnit:
         if po is None:
             return units
 
+        # For each text that we find the po file, we look at each occurrence separately.
+        # Our aim is to create a TranslationUnit for each file, which contains one entry per occurrence.
+        # This involves creating multiple copies of the same entry, with the same msgid, but different occurrences.
         for entry in po:
-            has_context = entry.msgctxt is not None
+            occurrences = entry.occurrences  # list of tuples (file, line_number)
+            files = [occurrence[0] for occurrence in occurrences]
 
-            if has_context:
-                key = ("msgctxt", entry.msgctxt)
-            else:
-                key = ("msgid", entry.msgid)
+            for file, occurrence in zip(files, occurrences):
+                try:
+                    unit = units[file]
+                except KeyError:
+                    units[file] = unit = TranslationUnit(file=file)
 
-            try:
-                unit = units[key]
-            except KeyError:
-                units[key] = unit = TranslationUnit(context=entry.msgctxt)
+                _entry = copy(entry)
+                _entry.occurrences = [occurrence]
 
-            unit.append(entry)
+                unit.append(_entry)
 
         return units
 
@@ -131,6 +142,7 @@ class TranslationUnit:
         cls,
         new: "dict[tuple[str, str], TranslationUnit]",
         old: "dict[tuple[str, str], TranslationUnit]",
+        sort: bool,
     ):
         result = {}
 
@@ -140,9 +152,23 @@ class TranslationUnit:
                 and old[key].is_translated
                 and old[key].text_to_translate == new[key].text_to_translate
             ):
-                result[key] = old[key]
+                # The old translation is already translated, so we will inherit it directly.
+                # and not retranslate it.
+                # We will however update the `occurrences` property to match the new file.
+                old_unit = copy(old[key])
+                new_unit = copy(new[key])
+
+                for new_entry, old_entry in zip(new_unit.entries, old_unit.entries):
+                    old_entry.occurrences = new_entry.occurrences
+
+                result[key] = old_unit
             else:
                 result[key] = new[key]
+
+        if sort:
+            for unit in result.values():
+                # This sorts each TranslationUnit by line number. This will help the autotranslator algorithms.
+                unit.sort()
 
         return result
 
@@ -176,9 +202,7 @@ class TranslationUnit:
             translated_text = self.fix_translation(translated_text)
 
             entry.msgstr = translated_text
-            entry.flags.append(
-                "fuzzy"
-            )  # Signals that the translation needs to be reviewed
+            entry.fuzzy = True  # Signals that the translation needs to be reviewed
 
     def _get_codebook(cls, text: str) -> List[tuple[str, str]]:
         """Get codebook mapping text patterns to encoded placeholders.
@@ -282,7 +306,7 @@ def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entr
     old_units = TranslationUnit.from_po(old_po)
     new_units = TranslationUnit.from_po(new_po)
 
-    combined_units = TranslationUnit.inherit(new_units, old_units)
+    combined_units = TranslationUnit.inherit(new_units, old_units, sort=True)
 
     for translation_unit in tqdm(
         combined_units.values(), f"Translating {source_lang} to {target_lang} ..."
@@ -290,18 +314,65 @@ def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entr
         if not translation_unit.is_translated:
             translation_unit.translate(source_lang, target_lang)
 
-    raise NotImplementedError
+    # This function should try and preserve the ordering of the old_po file where possible
+    # Strategy: po should be sorted by (a) file path and (b) line number
+    # If the same _() call is used in multiple places, then we keep the first one.
+    # We won't actually store the line numbers in the saved version, but we use them for sorting before we remove them
+    # from the pot file.
 
-    po = _insert_entries(
-        po,
-        contexts,
-        entries_without_context,
-        old_contexts,
-        old_entries_without_context,
-        remove_unused_entries,
+    po = update_po(
+        new_po,  # We are going to in-place modify the new_po object:
+        combined_units,  # we will incorporate the new translations from combined_units;
+        old_po,  # we will preserve any manual translations from old_po.
     )
+
     po = clean_po(po)
     po.save(po_path)
+
+
+def update_po(
+    new_po: polib.POFile,
+    combined_units: dict[tuple[str, str], TranslationUnit],
+    old_po: Optional[polib.POFile],
+):
+    # Flatten the combined_units dictionary into a list of entries
+    newly_translated_entries = [entry for unit in combined_units.values() for entry in unit.entries]
+
+    # Convert this into a dictionary, keyed by (msgctxt, msgid)
+    newly_translated_entries = {
+        (entry.msgctxt, entry.msgid): entry
+        for entry in newly_translated_entries
+    }
+
+    # Convert old_po into an analogous dictionary, keyed by (msgctxt, msgid), only keeping manual translations
+    # (i.e. entries that have the 'fuzzy' flag set)
+    if old_po is None:
+        old_manual_translations = {}
+    else:
+        old_manual_translations = {
+            (entry.msgctxt, entry.msgid): entry
+            for entry in old_po
+            if entry.fuzzy
+        }
+
+    # Iterate over the new_po file.
+    # If the entry is in old_manual_translations, then use this old translation.
+    # Otherwise, use the new translation from combined_units.
+    # If neither works, throw an error.
+    for i, entry in enumerate(new_po):
+        occurrences = entry.occurrences
+
+        key = (entry.msgctxt, entry.msgid)
+        if key in old_manual_translations:
+            new_po[i] = old_manual_translations[key]
+        elif key in newly_translated_entries:
+            new_po[i] = newly_translated_entries[key]
+        else:
+            raise ValueError(f"Entry {key} not found in old_manual_translations or newly_translated_entries")
+
+        new_po[i].occurrences = occurrences
+
+    return new_po
 
 
 def initialize_po(pot_path, po_path, output_lang):

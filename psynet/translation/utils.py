@@ -95,9 +95,11 @@ def create_translation_template_with_xgettext(input_file):
 
 
 def clean_po(po, package_name):
-    po = clean_code_occurence_paths_in_po(po, package_name)
-    po = remove_duplicate_entries_po(po)
-    po.sort()
+    # We don't want this, at least not before we have done the automatic translation.
+
+    # po = clean_code_occurence_paths_in_po(po, package_name)
+    # po = remove_duplicate_entries_po(po)
+    # po.sort()
     return po
 
 
@@ -160,6 +162,8 @@ def create_pot(
     ]
     if len(pot_entries) > 0:
         pot.extend(pot_entries)
+
+        pot_to_save =
         pot = clean_po(pot, package_name)
         os.makedirs(os.path.dirname(pot_path), exist_ok=True)
         pot.save(pot_path)

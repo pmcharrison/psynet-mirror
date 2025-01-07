@@ -47,11 +47,13 @@ from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .translation import get_known_languages
 from .translation.translation import (
+    translate_experiment,
+    translate_psynet,
+)
+from .translation.utils import (
     clean_po,
     load_po,
     po_to_dict,
-    translate_experiment,
-    translate_psynet,
 )
 from .utils import (
     get_args,

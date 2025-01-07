@@ -82,7 +82,9 @@ from .timeline import (
     Timeline,
 )
 from .translation import supported_languages
-from .translation.translation import check_translations, compile_mo, create_pot, load_po
+from .translation.translation import create_pot
+from .translation.utils import compile_mo, load_po
+from .translation.check import check_translations
 from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
