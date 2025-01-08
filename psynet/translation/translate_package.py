@@ -32,6 +32,6 @@ def create_package_translation_template():
     package_name = get_package_name()
     source_directory = get_package_source_directory()
     pot_path = os.path.join(source_directory, "locales", package_name + ".pot")
-    pot = create_pot(source_directory, pot_path, start_with_fresh_file=True)
-    print(f"Created pot file at {pot_path} with {len(pot.entries)} entries")
+    pot = create_pot(source_directory, pot_path)
+    print(f"Created pot file at {pot_path} with {len(pot)} entries")
     return pot_path

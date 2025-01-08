@@ -34,7 +34,7 @@ def translate_experiment(languages: List[str]):
 
 
 def create_experiment_translation_template(pot_path):
-    return create_pot(os.getcwd(), pot_path, start_with_fresh_file=True)
+    return create_pot(os.getcwd(), pot_path)
 
 
 def translate_psynet(languages: List[str]):
@@ -56,7 +56,8 @@ def translate_psynet(languages: List[str]):
 def translate_pot(
     pot_path, target_language, source_language="en", remove_unused_entries=False
 ):
-    assert os.path.isabs(pot_path), "Input path must be absolute."
+    if not os.path.isabs(pot_path):
+        pot_path = os.path.abspath(pot_path)
     assert os.path.exists(pot_path), "Input file does not exist."
     assert pot_path.endswith(".pot"), "Input file must be a POT file."
 

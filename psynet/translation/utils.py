@@ -24,7 +24,7 @@ def create_psynet_translation_template(locales_dir=None):
     locales_dir = get_locales_dir(locales_dir)
     psynet_folder = locales_dir.replace("psynet/locales", "")
     pot_path = os.path.join(locales_dir, "psynet.pot")
-    pot = create_pot(psynet_folder, pot_path, start_with_fresh_file=True)
+    pot = create_pot(psynet_folder, pot_path)
     n_translatable_strings = len(pot.entries)
     print(f"Extracted {n_translatable_strings} translatable strings in {pot_path}")
     return load_po(pot_path)
@@ -124,7 +124,7 @@ def _po_sort_key(entry):
     return path, line_number
 
 
-def create_pot(input_path: str, pot_path: str, start_with_fresh_file=False):
+def create_pot(input_path: str, pot_path: str):
     """
     Extract translations from a file or multiple files using pybabel or xgettext.
     Parameters
@@ -135,51 +135,64 @@ def create_pot(input_path: str, pot_path: str, start_with_fresh_file=False):
     pot_path :
         path pointing to the pot file to write to
 
-    start_with_fresh_file :
-        if ``True``, the pot file will be deleted if it exists before extracting translations
-
     Returns
     -------
     Returns the number of entries
     """
     if not os.path.isabs(input_path):
         input_path = os.path.abspath(input_path)
-    if start_with_fresh_file and os.path.exists(pot_path):
-        os.remove(pot_path)
-    old_entries = []
-    new_entries = []
-    if os.path.exists(pot_path):
-        pot = load_po(pot_path)
-        old_entries = list(pot)
-    else:
-        pot = new_pot(pot_path)
+
+    entries = []
+
     if os.path.isdir(input_path):
-        new_entries.extend(create_translation_template_with_pybabel(input_path))
-        for root, dirs, files in os.walk(input_path):
-            for file in files:
-                if file.endswith(".py"):
-                    new_entries.extend(
-                        create_translation_template_with_xgettext(
-                            os.path.join(root, file)
-                        )
-                    )
+        entries.extend(_get_entries_from_dir(input_path))
     elif input_path.endswith(".html"):
-        new_entries.extend(create_translation_template_with_pybabel(input_path))
+        entries.extend(_get_html_entries_from_file(input_path))
     elif input_path.endswith(".py"):
-        new_entries.extend(create_translation_template_with_xgettext(input_path))
+        entries.extend(_get_py_entries_from_file(input_path))
     else:
-        raise ValueError("Input file must be a Python or Jinja file.")
-    blocked_entries = [(e.msgid, e.msgctxt) for e in old_entries]
-    pot_entries = [
-        e for e in new_entries if (e.msgid, e.msgctxt) not in blocked_entries
-    ]
-    if len(pot_entries) > 0:
-        pot.extend(pot_entries)
-        pot_to_save = deepcopy(pot)
-        pot_to_save = clean_po(pot_to_save)
-        os.makedirs(os.path.dirname(pot_path), exist_ok=True)
-        pot_to_save.save(pot_path)
+        raise ValueError("Input file must be a Python or HTML file.")
+
+    pot = new_pot(pot_path)
+    pot.extend(entries)
+
+    pot_to_save = deepcopy(pot)
+    pot_to_save = clean_po(pot_to_save)
+    os.makedirs(os.path.dirname(pot_path), exist_ok=True)
+    pot_to_save.save(pot_path)
+
     return pot
+
+
+def _get_entries_from_dir(input_path):
+    entries = []
+    entries.extend(_get_html_entries_from_dir(input_path))
+    entries.extend(_get_py_entries_from_dir(input_path))
+
+    return entries
+
+
+def _get_html_entries_from_dir(input_path):
+    # pybabel works recursively, so we can just call it on the directory
+    return create_translation_template_with_pybabel(input_path)
+
+
+def _get_html_entries_from_file(input_path):
+    return create_translation_template_with_pybabel(input_path)
+
+
+def _get_py_entries_from_dir(input_path):
+    # xgettext does not work recursively, so we need to walk the directory and call it on each file
+    entries = []
+    for root, dirs, files in os.walk(input_path):
+        for file in files:
+            if file.endswith(".py"):
+                entries.extend(_get_py_entries_from_file(os.path.join(root, file)))
+    return entries
+
+
+def _get_py_entries_from_file(input_path):
+    return create_translation_template_with_xgettext(input_path)
 
 
 def clean_code_occurence_paths_in_po(po):
