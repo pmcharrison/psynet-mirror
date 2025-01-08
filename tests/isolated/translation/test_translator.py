@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from psynet.experiment import import_local_experiment
@@ -6,8 +8,11 @@ from psynet.translation.translators import ChatGptTranslator, GoogleTranslator
 
 TEST_TRANSLATIONS = [
     (["Hello", "Goodbye"], ["Bonjour", "Au revoir"]),
-    (["Hello"], ["Bonjour"]),
-    (["Goodbye"], ["Au revoir"]),
+    (
+        ['<div class="alert alert-primary" role="alert">Hello</div>'],
+        ['<div class="alert alert-primary" role="alert">Bonjour</div>'],
+    ),
+    (["Goodbye ■0■!"], ["Au revoir ■0■!"]),  # The variable {NAME} gets encoded as ■0■
     (["Thank you"], ["Merci"]),
 ]
 
@@ -47,13 +52,47 @@ def test_translator(translator_class, english, expected_french, experiment_direc
 
 def test_translator_with_file_path():
     """Test that translators properly handle file paths."""
-    translator = GoogleTranslator()
-    translator.translate(
-        texts=["Hello", "Welcome to the experiment"],
+    translator = ChatGptTranslator()
+    os.chdir(path_to_test_experiment("translation"))
+
+    translations = translator.translate(
+        texts=[
+            "Hello, welcome to my experiment!",
+            "What is your name?",
+            "Hello, ■0■!",  # The variable {NAME} gets encoded as ■0■
+            "What is your favorite pet?",
+            "dog",
+            "cat",
+            "fish",
+            "hamster",
+            "bird",
+            "snake",
+            "Great, I like ■0■ too!",  # The variable {PET} gets encoded as ■0■
+        ],
         source_lang="en",
         target_lang="fr",
         file_path="experiment.py",
     )
+
+    expected_translations = [
+        "Bonjour, bienvenue dans mon expérience !",
+        "Quel est votre nom ?",
+        "Bonjour, ■0■ !",
+        "Quel est votre animal de compagnie préféré ?",
+        "chien",
+        "chat",
+        "poisson",
+        "hamster",
+        "oiseau",
+        "serpent",
+        "Super, j'aime ■0■ aussi !",
+    ]
+
+    for i, translation in enumerate(translations):
+        expected_translation = expected_translations[i]
+        assert (
+            translation.lower().strip() == expected_translation.lower().strip()
+        ), f"Translation {i} does not match expected translation. Expected: {expected_translation}, Got: {translation}"
 
 
 def test_invalid_language():

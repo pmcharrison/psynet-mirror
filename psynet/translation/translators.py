@@ -1,4 +1,5 @@
 import json
+import os.path
 from os.path import expanduser
 from typing import List
 
@@ -90,17 +91,23 @@ class ChatGptTranslator(Translator):
         target_language: str,
         file_path: str = None,
     ):
-        return (
-            f"You are a helpful assistant that translates {source_language} to {target_language}."
-            + """
-                If you see any HTML tags in the text, you should not translate them.
-                If you see any variables in the text, you should not translate them.
-                Variables are written in capital letters and are either surrounded by curly brackets (e.g., {VARIABLE}) or start with "%(" and end with ")s" (e.g., "%(VARIABLE)s").
-                You do not have to keep the original word order.
-                The translation is specified as a list using JSON format.
-                For example, ["Hello, {NAME}!", "My name is {NAME}"] would be converted to ["Bonjour, {NAME}!", "Je m'appelle {NAME}"] when translating to French.
-                """
+        prompt = f"You are a helpful assistant that translates {source_language} to {target_language}."
+        prompt += (
+            "If you see any HTML tags in the text, you should not translate them. "
+            "If you see any variables in the text, you should not translate them. "
+            """Variables are written in capital letters and are either surrounded by curly brackets (e.g., {VARIABLE}) or start with "%(" and end with ")s" (e.g., "%(VARIABLE)s"). """
+            "You do not have to keep the original word order. "
+            "The translation is specified as a list using JSON format. "
+            """For example, ["Hello, {NAME}!", "My name is {NAME}"] would be converted to ["Bonjour, {NAME}!", "Je m'appelle {NAME}"] when translating to French. """
         )
+
+        if file_path is not None and os.path.exists(file_path):
+            with open(file_path, "r") as f:
+                prompt += (
+                    f"\n\nThe translations are taken from {file_path}:\n\n{f.read()}"
+                )
+
+        return prompt
 
     def translate(
         self,
@@ -127,16 +134,15 @@ class ChatGptTranslator(Translator):
             raise CredentialsError(
                 "Please provide an OpenAI API key in your .dallingerconfig file under `openai_api_key`"
             )
-        openai_default_temperature = float(config.get("openai_default_temperature"))
+        temperature = float(config.get("openai_default_temperature"))
         openai_default_model = config.get("openai_default_model")
 
         client = OpenAI(api_key=openai_api_key)
         messages = [
-            # TODO add system prompt with the full file as context
             {
                 "role": "system",
                 "content": self.get_system_prompt(
-                    texts, source_language, target_language
+                    texts, source_language, target_language, file_path
                 ),
             },
             {"role": "user", "content": json.dumps(texts)},
@@ -144,7 +150,7 @@ class ChatGptTranslator(Translator):
         response = client.chat.completions.create(
             model=openai_default_model,
             messages=messages,
-            temperature=openai_default_temperature,
+            temperature=temperature,
         )
         try:
             return json.loads(response.choices[0].message.content)
