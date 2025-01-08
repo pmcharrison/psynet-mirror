@@ -547,7 +547,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def create_translation_template_from_experiment_folder(
         cls, input_directory, pot_path
     ):
-        create_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
+        create_pot(input_directory, pot_path)
 
     @classmethod
     def _create_translation_template_from_experiment_folder(cls, locales_dir="locales"):
