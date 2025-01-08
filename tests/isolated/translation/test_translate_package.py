@@ -1,11 +1,12 @@
+import json
 import shutil
-import time
 from pathlib import Path
 
+import polib
 import pytest
 
 from psynet.translation.translation import translate_package
-from psynet.utils import get_psynet_root
+from psynet.utils import get_psynet_root, working_directory
 
 mock_translate_counter = -1
 
@@ -13,7 +14,17 @@ mock_translate_counter = -1
 def mock_translate_func(texts, source_lang, target_lang, file_path=None):
     global mock_translate_counter
     mock_translate_counter += 1
-    return [f"{source_lang} -> {target_lang} {i}" for i in range(len(texts))]
+    return [
+        json.dumps(
+            {
+                "languages": f"{source_lang} -> {target_lang}",
+                "translation_file_context": file_path,
+                "api_call_id": mock_translate_counter,
+                "text": text,
+            }
+        )
+        for text in range(len(texts))
+    ]
 
 
 def reset_mock_translate_counter():
@@ -29,6 +40,8 @@ def backup_locales():
 
     # Backup existing locales if they exist
     if locales_dir.exists():
+        if backup_dir.exists():
+            shutil.rmtree(backup_dir)
         shutil.move(locales_dir, backup_dir)
 
     # Create fresh locales dir
@@ -60,23 +73,31 @@ def test_translate_psynet(mocker, backup_locales):
     mock_translate.side_effect = mock_translate_func
 
     reset_mock_translate_counter()
-    translate_package(["fr", "de"])
 
-    time.sleep(100000)
+    with working_directory(get_psynet_root()):
+        translate_package(["fr", "de"])
 
-    # Verify the mock was called with expected arguments
-    # The exact texts will depend on what's in the package, so we don't verify those
-    calls = mock_translate.call_args_list
-    assert len(calls) > 0
+    po_fr = polib.pofile("psynet/locales/fr/LC_MESSAGES/psynet.po")
+    entry_gender = [
+        entry for entry in po_fr if entry.msgid == "How do you identify yourself?"
+    ][0]
+    entry_gender_json = json.loads(entry_gender.msgstr)
+    assert entry_gender_json["languages"] == "en -> fr"
 
-    # Verify each call used correct source/target languages
-    languages_called = []
-    for call in calls:
-        _, kwargs = call
-        source_lang = kwargs.get("source_lang")
-        target_lang = kwargs.get("target_lang")
-        assert source_lang == "en"
-        languages_called.append(target_lang)
+    # Note that the po file is relative to the psynet root, so we need to check the end of the path
+    assert entry_gender_json["translation_file_context"].endswith(
+        "psynet/demography/general.py"
+    )
 
-    # Verify both target languages were used
-    assert set(languages_called) == {"fr", "de"}
+    entry_gender_api_call_id = int(entry_gender_json["api_call_id"])
+
+    entries_demography = [
+        entry
+        for entry in po_fr
+        if entry.occurrences[0][0] == "psynet/demography/general.py"
+    ]
+
+    # All entries in the demography file should have the same api_call_id,
+    # because translations are batched by file.
+    for entry in entries_demography:
+        assert json.loads(entry.msgstr)["api_call_id"] == entry_gender_api_call_id

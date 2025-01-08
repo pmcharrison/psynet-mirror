@@ -194,7 +194,10 @@ class TranslationUnit:
         ]
 
         translated_texts = self.translator.translate(
-            texts=input_texts, source_lang=source_lang, target_lang=target_lang
+            texts=input_texts,
+            source_lang=source_lang,
+            target_lang=target_lang,
+            file_path=self.file,
         )
 
         translated_texts = [
