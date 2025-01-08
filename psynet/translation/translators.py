@@ -115,7 +115,6 @@ class ChatGptTranslator(Translator):
         source_lang: str,
         target_lang: str,
         file_path: str = None,
-        temperature: float = None,
     ):
         from openai import OpenAI
 
@@ -135,8 +134,7 @@ class ChatGptTranslator(Translator):
             raise CredentialsError(
                 "Please provide an OpenAI API key in your .dallingerconfig file under `openai_api_key`"
             )
-        if temperature is None:
-            temperature = float(config.get("openai_default_temperature"))
+        temperature = float(config.get("openai_default_temperature"))
         openai_default_model = config.get("openai_default_model")
 
         client = OpenAI(api_key=openai_api_key)

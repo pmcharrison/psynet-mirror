@@ -1290,7 +1290,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_incognito_mode": False,
             "openai_default_model": "gpt-4o",
             "default_translator": "chat_gpt",
-            "openai_default_temperature": 0.7,
+            "openai_default_temperature": 0,
             "host": "0.0.0.0",
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),

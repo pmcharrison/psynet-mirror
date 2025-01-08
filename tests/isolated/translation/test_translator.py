@@ -72,7 +72,6 @@ def test_translator_with_file_path():
         source_lang="en",
         target_lang="fr",
         file_path="experiment.py",
-        temperature=0,
     )
 
     expected_translations = [
