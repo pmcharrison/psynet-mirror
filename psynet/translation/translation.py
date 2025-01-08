@@ -17,14 +17,14 @@ from .utils import create_pot, remove_line_numbers, sort_po
 
 
 @require_exp_directory
-def translate_experiment(languages: List[str]):
+def translate_experiment(languages: List[str], force: bool = False):
     if len(languages) == 0:
         from psynet.experiment import get_experiment
 
         languages = get_experiment().supported_locales
         if languages is None:
             raise ValueError(
-                "You must set Experiment.supported_localesto a list of the languages you want to support, "
+                "You must set Experiment.supported_locales to a list of the languages you want to support, "
                 "e.g. ['en', 'fr', 'de']."
             )
         for language in languages:
@@ -38,10 +38,10 @@ def translate_experiment(languages: List[str]):
     source_directory = os.getcwd()
     locales_directory = os.path.join(os.getcwd(), "locales")
 
-    translate(namespace, source_directory, locales_directory, languages)
+    translate(namespace, source_directory, locales_directory, languages, force=force)
 
 
-def translate_package(languages: List[str]):
+def translate_package(languages: List[str], force: bool = False):
     if len(languages) == 0:
         languages = psynet_supported_locales
 
@@ -49,10 +49,10 @@ def translate_package(languages: List[str]):
     source_directory = get_package_source_directory()
     locales_directory = os.path.join(source_directory, "locales")
 
-    translate(namespace, source_directory, locales_directory, languages)
+    translate(namespace, source_directory, locales_directory, languages, force=force)
 
 
-def translate(namespace, source_dir, locales_dir, languages):
+def translate(namespace, source_dir, locales_dir, languages, force: bool = False):
     languages.remove("en")
 
     check_languages(languages)
@@ -63,7 +63,7 @@ def translate(namespace, source_dir, locales_dir, languages):
     print(f"Translating {pot_path} to {', '.join(languages)}...")
 
     for language in languages:
-        translate_pot(pot_path, target_language=language)
+        translate_pot(pot_path, target_language=language, force=force)
 
     pot = remove_line_numbers(pot)
     pot.save(pot_path)
@@ -73,6 +73,7 @@ def translate_pot(
     pot_path,
     target_language,
     source_language="en",
+    force: bool = False,
 ):
     if not os.path.isabs(pot_path):
         pot_path = os.path.abspath(pot_path)
@@ -83,6 +84,12 @@ def translate_pot(
     dir_name = os.path.join(os.path.dirname(pot_path), target_language, "LC_MESSAGES")
     os.makedirs(dir_name, exist_ok=True)
     po_path = os.path.join(dir_name, po_filename)
+
+    if force:
+        try:
+            os.remove(po_path)
+        except FileNotFoundError:
+            pass
 
     translate_po(
         pot_path,

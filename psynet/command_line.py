@@ -2893,7 +2893,10 @@ class ListOfStrings(click.ParamType):
 
 @psynet.command("translate")
 @click.argument("languages", nargs=-1)
-def translate(languages):
+@click.option(
+    "--force", is_flag=True, help="Force retranslation of existing translations"
+)
+def translate(languages, force):
     """
     Inspects the code in the current directory and generates automatic translations for a given set of languages.
 
@@ -2907,6 +2910,8 @@ def translate(languages):
     ----------
     languages :
         The target languages, specified as space-separated language codes
+    force : bool
+        If True, force retranslation of existing translations
 
     Example
     -------
@@ -2918,13 +2923,13 @@ def translate(languages):
 
     if experiment_available():
         click.echo(f"Found an experiment to translate at {os.getcwd()}.")
-        translate_experiment(languages)
+        translate_experiment(languages, force=force)
 
     elif in_python_package():
         click.echo(
             f"Found a package called '{get_package_name()}' to translate at {os.getcwd()}."
         )
-        translate_package(languages)
+        translate_package(languages, force=force)
     else:
         raise RuntimeError(
             f"The current directory {os.getcwd()} does not seem to be the root of an experiment or a package."
