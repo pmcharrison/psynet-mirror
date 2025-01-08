@@ -49,6 +49,7 @@ def get_all_translations(module, locales_dir):
 
     locales = get_available_locales(locales_dir)
     translations = {}
+
     for locale in sorted(locales):
         po_path = os.path.join(locales_dir, locale, "LC_MESSAGES", module + ".po")
         translations[locale] = load_po(po_path)

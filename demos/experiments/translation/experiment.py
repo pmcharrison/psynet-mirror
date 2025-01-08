@@ -82,6 +82,7 @@ for elt in reference_timeline:
 
 class Exp(psynet.experiment.Experiment):
     label = "Translation demo"
+    supported_locales = supported_locales
 
     config = {
         "language": "de",

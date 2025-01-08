@@ -12,7 +12,7 @@ from ..utils import (
     get_package_source_directory,
     require_exp_directory,
 )
-from . import supported_languages
+from . import supported_locales as psynet_supported_locales
 from .utils import create_pot, remove_line_numbers, sort_po
 
 
@@ -21,7 +21,18 @@ def translate_experiment(languages: List[str]):
     if len(languages) == 0:
         from psynet.experiment import get_experiment
 
-        languages = get_experiment().supported_languages
+        languages = get_experiment().supported_locales
+        if languages is None:
+            raise ValueError(
+                "You must set Experiment.supported_localesto a list of the languages you want to support, "
+                "e.g. ['en', 'fr', 'de']."
+            )
+        for language in languages:
+            if language not in psynet_supported_locales:
+                raise ValueError(
+                    f"The locale {language} is not supported by the PsyNet library. You will need to add this "
+                    "language to PsyNet. See online documentation for more details."
+                )
 
     namespace = "experiment"
     source_directory = os.getcwd()
@@ -32,7 +43,7 @@ def translate_experiment(languages: List[str]):
 
 def translate_package(languages: List[str]):
     if len(languages) == 0:
-        languages = supported_languages
+        languages = psynet_supported_locales
 
     namespace = get_package_name()
     source_directory = get_package_source_directory()
@@ -42,10 +53,14 @@ def translate_package(languages: List[str]):
 
 
 def translate(namespace, source_dir, locales_dir, languages):
+    languages.remove("en")
+
     check_languages(languages)
 
     pot_path = os.path.join(locales_dir, namespace + ".pot")
     pot = create_pot(source_dir, pot_path)
+
+    print(f"Translating {pot_path} to {', '.join(languages)}...")
 
     for language in languages:
         translate_pot(pot_path, target_language=language)
@@ -317,6 +332,12 @@ class TranslationUnit:
 
 
 def translate_po(pot_path, po_path, source_lang, target_lang):
+    assert (
+        target_lang != "en"
+    ), "English is the source language, so doesn't need translation."
+
+    print(f"Generating translations for {target_lang}...")
+
     old_po = polib.pofile(po_path) if os.path.exists(po_path) else None
     new_po = initialize_po(pot_path, po_path, target_lang)
 
@@ -332,19 +353,15 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
     n_to_translate = len(units_to_translate)
     n_to_skip = len(combined_units) - n_to_translate
 
-    print(
-        f"Skipped translating {n_to_skip} files because no new text was found to translate."
-    )
-
-    if n_to_translate > 0:
+    if n_to_skip > 0:
         print(
-            f"Translating {n_to_translate} files from {source_lang} to {target_lang}..."
+            f"...skipped translating {n_to_skip} file(s) because no new text was found to translate."
         )
 
     for i, translation_unit in enumerate(units_to_translate):
         if not translation_unit.is_translated:
             print(
-                f"Translating file {1 + i} of {n_to_translate} "
+                f"translating file {1 + i} of {n_to_translate} "
                 f"({translation_unit.file}, {len(translation_unit)} entries) "
                 f"from {source_lang} to {target_lang}..."
             )

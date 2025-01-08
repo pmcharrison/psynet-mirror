@@ -2917,14 +2917,12 @@ def translate(languages):
     from psynet.translation.translation import translate_experiment, translate_package
 
     if experiment_available():
-        click.echo(
-            f"Translating experiment at {os.getcwd()} to {', '.join(languages)}..."
-        )
+        click.echo(f"Found an experiment to translate at {os.getcwd()}.")
         translate_experiment(languages)
 
     elif in_python_package():
         click.echo(
-            f"Translating {get_package_name()} package to {', '.join(languages)}..."
+            f"Found a package called '{get_package_name()}' to translate at {os.getcwd()}."
         )
         translate_package(languages)
     else:

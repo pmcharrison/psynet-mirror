@@ -81,7 +81,6 @@ from .timeline import (
     Response,
     Timeline,
 )
-from .translation import supported_languages
 from .translation.check import check_translations
 from .translation.translation import create_pot
 from .translation.utils import compile_mo, load_po
@@ -427,7 +426,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
-    supported_languages = supported_languages
+    supported_locales = None
 
     asset_storage = NoStorage()
     css = []

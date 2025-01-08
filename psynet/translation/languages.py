@@ -1,4 +1,4 @@
-supported_languages = [
+supported_locales = [
     "ar",
     "be",
     "bg",
@@ -6,6 +6,7 @@ supported_languages = [
     "da",
     "de",
     "el",
+    "en",
     "es",
     "et",
     "fi",
