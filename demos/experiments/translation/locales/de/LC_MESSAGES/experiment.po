@@ -13,6 +13,13 @@ msgstr ""
 #. ""
 #: experiment.py
 #, fuzzy
+msgctxt "welcome-page"
+msgid "Welcome to the translation demo!"
+msgstr "Willkommen bei der Übersetzungsdemo!"
+
+#. ""
+#: experiment.py
+#, fuzzy
 msgid "Below you will see this text translated!"
 msgstr "Unten sehen Sie diesen Text übersetzt!"
 
@@ -43,10 +50,3 @@ msgstr "auf"
 msgctxt "button"
 msgid "translation"
 msgstr "Übersetzung"
-
-#. ""
-#: experiment.py
-#, fuzzy
-msgctxt "welcome-page"
-msgid "Welcome to the translation demo!"
-msgstr "Willkommen bei der Übersetzungsdemo!"

@@ -4,7 +4,6 @@ from functools import cached_property
 from typing import Iterable, List, Optional
 
 import polib
-from tqdm import tqdm
 
 from psynet.translation.translators import DefaultTranslator
 
@@ -319,9 +318,10 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
 
     combined_units = TranslationUnit.inherit(new_units, old_units, sort=True)
 
-    for translation_unit in tqdm(
-        combined_units.values(), f"Translating {source_lang} to {target_lang} ..."
-    ):
+    for i, translation_unit in enumerate(combined_units.values()):
+        print(
+            f"Translating file {1 + i} of {len(combined_units)} ({translation_unit.file}) from {source_lang} to {target_lang}..."
+        )
         if not translation_unit.is_translated:
             translation_unit.translate(source_lang, target_lang)
 

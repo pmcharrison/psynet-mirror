@@ -45,7 +45,9 @@ def get_pot_from_command(cmd, tmp_pot_file):
     p = pexpect.spawn(cmd, timeout=timeout)
     while not p.eof():
         line = p.readline().decode("utf-8")
-        print(line, end="")
+        # Don't print the line if it's just a message about writing the PO template file
+        if not line.startswith("writing PO template file"):
+            print(line, end="")
     p.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)

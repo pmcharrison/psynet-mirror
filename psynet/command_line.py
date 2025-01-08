@@ -2929,7 +2929,9 @@ def generate(languages):
     from psynet.translation.translation import translate_experiment, translate_package
 
     if experiment_available():
-        click.echo("Translating experiment to {', '.join(languages)}...")
+        click.echo(
+            f"Translating experiment at {os.getcwd()} to {', '.join(languages)}..."
+        )
         translate_experiment(languages)
 
     elif in_python_package():
