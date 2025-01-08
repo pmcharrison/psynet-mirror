@@ -22,7 +22,7 @@ def cleanup_po_file():
 )
 def test_translate_experiment(mocker):
     mock_translate = mocker.patch(
-        "psynet.translation.translation.MetaTranslator.translate"
+        "psynet.translation.translators.DefaultTranslator.translate"
     )
 
     def mock_translate_func(texts, source_lang, target_lang):

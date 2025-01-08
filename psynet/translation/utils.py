@@ -153,9 +153,9 @@ def create_pot(input_path: str, pot_path: str, start_with_fresh_file=False):
         old_entries = list(pot)
     else:
         pot = new_pot(pot_path)
-    if input_path.endswith("."):
+    if os.path.isdir(input_path):
         new_entries.extend(create_translation_template_with_pybabel(input_path))
-        for root, dirs, files in os.walk(input_path[:-1]):
+        for root, dirs, files in os.walk(input_path):
             for file in files:
                 if file.endswith(".py"):
                     new_entries.extend(
