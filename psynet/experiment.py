@@ -2159,6 +2159,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return
             available_psynet_locales = get_available_locales()
             for locale in json.loads(value):
+                if locale == "en":
+                    continue
                 assert (
                     locale in available_psynet_locales
                 ), f"Locale {locale} not available in PsyNet."
