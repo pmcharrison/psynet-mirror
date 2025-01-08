@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from psynet.translation.translate_package import translate_package
+from psynet.translation.translation import translate_package
 from psynet.utils import get_psynet_root
 
 mock_translate_counter = -1

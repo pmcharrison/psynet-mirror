@@ -2,7 +2,6 @@ import os
 import sys
 import tempfile
 from collections import OrderedDict
-from copy import deepcopy
 
 import pexpect
 import polib
@@ -17,17 +16,6 @@ def get_locales_dir(locales_dir):
 
         locales_dir = LOCALES_DIR
     return locales_dir
-
-
-def create_psynet_translation_template(locales_dir=None):
-    """Extract the psynet pot file."""
-    locales_dir = get_locales_dir(locales_dir)
-    psynet_folder = locales_dir.replace("psynet/locales", "")
-    pot_path = os.path.join(locales_dir, "psynet.pot")
-    pot = create_pot(psynet_folder, pot_path)
-    n_translatable_strings = len(pot.entries)
-    print(f"Extracted {n_translatable_strings} translatable strings in {pot_path}")
-    return load_po(pot_path)
 
 
 def new_pot(fpath):
@@ -95,11 +83,11 @@ def create_translation_template_with_xgettext(input_file):
         )
 
 
-def clean_po(po):
-    po = sort_po(po)
-    po = clean_code_occurence_paths_in_po(po)
+# def clean_po(po):
+#     po = sort_po(po)
+#     po = clean_code_occurence_paths_in_po(po)
 
-    return po
+#     return po
 
 
 def sort_po(po: polib.POFile) -> polib.POFile:
@@ -124,7 +112,7 @@ def _po_sort_key(entry):
     return path, line_number
 
 
-def create_pot(input_path: str, pot_path: str):
+def create_pot(input_path: str, pot_path):
     """
     Extract translations from a file or multiple files using pybabel or xgettext.
     Parameters
@@ -137,7 +125,7 @@ def create_pot(input_path: str, pot_path: str):
 
     Returns
     -------
-    Returns the number of entries
+    Returns the generated pot file
     """
     if not os.path.isabs(input_path):
         input_path = os.path.abspath(input_path)
@@ -155,11 +143,9 @@ def create_pot(input_path: str, pot_path: str):
 
     pot = new_pot(pot_path)
     pot.extend(entries)
-
-    pot_to_save = deepcopy(pot)
-    pot_to_save = clean_po(pot_to_save)
+    pot = sort_po(pot)
     os.makedirs(os.path.dirname(pot_path), exist_ok=True)
-    pot_to_save.save(pot_path)
+    pot.save(pot_path)
 
     return pot
 

@@ -1,6 +1,5 @@
 import fileinput
 import json
-import logging
 import os
 import pathlib
 import re
@@ -14,7 +13,6 @@ from hashlib import md5
 from importlib import resources
 from pathlib import Path
 from shutil import rmtree, which
-from typing import List
 
 import click
 import dallinger.command_line.utils
@@ -27,7 +25,7 @@ from dallinger.command_line.docker_ssh import (
     server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import experiment_available, get_config
+from dallinger.config import get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -45,19 +43,8 @@ from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
-from .translation import get_known_languages
-from .translation.translation import (
-    translate_experiment,
-    translate_psynet,
-)
-from .translation.utils import (
-    clean_po,
-    load_po,
-    po_to_dict,
-)
 from .utils import (
     get_args,
-    in_psynet_directory,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
@@ -2199,119 +2186,119 @@ def post_update_psynet_requirement_():
             )
 
 
-@psynet.command()
-@click.argument(
-    "iso_code",
-    required=True,
-    type=click.Choice(
-        [pair[0] for pair in get_known_languages()], case_sensitive=False
-    ),
-)
-@require_exp_directory
-def prepare_translation(iso_code):
-    """
-    To be run in an experiment directory; initializes scripts and help files to their
-    latest PsyNet versions.
-    """
-    _prepare_translation(iso_code.lower())
+# @psynet.command()
+# @click.argument(
+#     "iso_code",
+#     required=True,
+#     type=click.Choice(
+#         [pair[0] for pair in get_known_languages()], case_sensitive=False
+#     ),
+# )
+# @require_exp_directory
+# def prepare_translation(iso_code):
+#     """
+#     To be run in an experiment directory; initializes scripts and help files to their
+#     latest PsyNet versions.
+#     """
+#     _prepare_translation(iso_code.lower())
 
 
-def _prepare_translation(iso_code):
-    po_path = os.path.join("locales", iso_code, "LC_MESSAGES", "experiment.po")
+# def _prepare_translation(iso_code):
+#     po_path = os.path.join("locales", iso_code, "LC_MESSAGES", "experiment.po")
 
-    # Surpress compilation warnings
-    logger = logging.getLogger()
-    logger.disabled = True
-    from .experiment import import_local_experiment
+#     # Surpress compilation warnings
+#     logger = logging.getLogger()
+#     logger.disabled = True
+#     from .experiment import import_local_experiment
 
-    experiment_class = import_local_experiment().get("class")
+#     experiment_class = import_local_experiment().get("class")
 
-    try:
-        pot = experiment_class._create_translation_template_from_experiment_folder()
-    except FileNotFoundError as e:
-        print(
-            '''
-        No translation template was found. Are you sure you are in the experiment folder? Also, make sure you have
-        marked the strings you want to translate with the _() and _p() function. Here's an example:
-        ###################
-        import os
-        from markupsafe import Markup
-        from psynet.page import InfoPage
-        from psynet.utils import get_translator
-        locale = "nl"
-        _, _p = get_translator(
-            locale, module="experiment", locales_dir=os.path.abspath("locales")
-        )
-        my_info_page = InfoPage(
-            Markup(
-                f"""
-                <h1>{_("Instructions")}</h1>
-                <hr>
-                {_("In this experiment, you will listen to different music clips.")} <br>
-                {_("You have to select the music you like most.")}
-                """
-            ),
-            time_estimate=5
-        )
-        ###################
-        Here's the equivalent for a HTML file would be:
-        ###################
-        <h1>{{ gettext("Instructions") }}</h1>
-        <hr>
-        {{ gettext("In this experiment, you will listen to different music clips.") }} <br>
-        {{ gettext("You have to select the music you like most.") }}
-        ###################
-        In case you have stored your strings in a subfolder, you can also register the subfolder to be scanned, by
-        extending the create_translation_template_from_experiment_folder function in your experiment class. Here's an example:
-        ###################
-        @classmethod
-        def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
-            super(Exp, cls).create_translation_template_from_experiment_folder(input_directory, pot_path)
-            from psynet.internationalization import create_pot
-            create_pot(input_directory, "my_module/.", pot_path)
-        ###################
-        This will look for strings in the my_module subfolder.
-        '''
-        )
-        raise e
-    logger.disabled = False
+#     try:
+#         pot = experiment_class._create_translation_template_from_experiment_folder()
+#     except FileNotFoundError as e:
+#         print(
+#             '''
+#         No translation template was found. Are you sure you are in the experiment folder? Also, make sure you have
+#         marked the strings you want to translate with the _() and _p() function. Here's an example:
+#         ###################
+#         import os
+#         from markupsafe import Markup
+#         from psynet.page import InfoPage
+#         from psynet.utils import get_translator
+#         locale = "nl"
+#         _, _p = get_translator(
+#             locale, module="experiment", locales_dir=os.path.abspath("locales")
+#         )
+#         my_info_page = InfoPage(
+#             Markup(
+#                 f"""
+#                 <h1>{_("Instructions")}</h1>
+#                 <hr>
+#                 {_("In this experiment, you will listen to different music clips.")} <br>
+#                 {_("You have to select the music you like most.")}
+#                 """
+#             ),
+#             time_estimate=5
+#         )
+#         ###################
+#         Here's the equivalent for a HTML file would be:
+#         ###################
+#         <h1>{{ gettext("Instructions") }}</h1>
+#         <hr>
+#         {{ gettext("In this experiment, you will listen to different music clips.") }} <br>
+#         {{ gettext("You have to select the music you like most.") }}
+#         ###################
+#         In case you have stored your strings in a subfolder, you can also register the subfolder to be scanned, by
+#         extending the create_translation_template_from_experiment_folder function in your experiment class. Here's an example:
+#         ###################
+#         @classmethod
+#         def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
+#             super(Exp, cls).create_translation_template_from_experiment_folder(input_directory, pot_path)
+#             from psynet.internationalization import create_pot
+#             create_pot(input_directory, "my_module/.", pot_path)
+#         ###################
+#         This will look for strings in the my_module subfolder.
+#         '''
+#         )
+#         raise e
+#     logger.disabled = False
 
-    if os.path.exists(po_path):
-        po = load_po(po_path)
-        po_entries = po_to_dict(po)
-        pot_entries = po_to_dict(pot)
+#     if os.path.exists(po_path):
+#         po = load_po(po_path)
+#         po_entries = po_to_dict(po)
+#         pot_entries = po_to_dict(pot)
 
-        if po_entries.keys() == pot_entries.keys():
-            print("No new translations found.")
-            return
+#         if po_entries.keys() == pot_entries.keys():
+#             print("No new translations found.")
+#             return
 
-        n_unused_po_entries = sum([key not in pot_entries for key in po_entries.keys()])
+#         n_unused_po_entries = sum([key not in pot_entries for key in po_entries.keys()])
 
-        po_entry_list = list(po_entries.values())
-        if n_unused_po_entries > 0:
-            remove_unused_entries = user_confirms(
-                f"Do you want to remove {n_unused_po_entries} unused translations?",
-                default=False,
-            )
-            if remove_unused_entries:
-                old_n = len(po_entries)
-                po_entry_list = [
-                    value for key, value in po_entries.items() if key in pot_entries
-                ]
-                print(f"Removed {old_n - len(po_entry_list)} unused translations.")
-        new_entries = [
-            value for key, value in pot_entries.items() if key not in po_entries
-        ]
-        if new_entries:
-            print(f"Added {len(new_entries)} new translations.")
-        po_entry_list += new_entries
-        po.clear()
-        po.extend(po_entry_list)
-        po = clean_po(po, "experiment")
-        po.save(po_path)
-    else:
-        os.makedirs(os.path.join("locales", iso_code, "LC_MESSAGES"), exist_ok=True)
-        pot.save(po_path)
+#         po_entry_list = list(po_entries.values())
+#         if n_unused_po_entries > 0:
+#             remove_unused_entries = user_confirms(
+#                 f"Do you want to remove {n_unused_po_entries} unused translations?",
+#                 default=False,
+#             )
+#             if remove_unused_entries:
+#                 old_n = len(po_entries)
+#                 po_entry_list = [
+#                     value for key, value in po_entries.items() if key in pot_entries
+#                 ]
+#                 print(f"Removed {old_n - len(po_entry_list)} unused translations.")
+#         new_entries = [
+#             value for key, value in pot_entries.items() if key not in po_entries
+#         ]
+#         if new_entries:
+#             print(f"Added {len(new_entries)} new translations.")
+#         po_entry_list += new_entries
+#         po.clear()
+#         po.extend(po_entry_list)
+#         po = clean_po(po, "experiment")
+#         po.save(po_path)
+#     else:
+#         os.makedirs(os.path.join("locales", iso_code, "LC_MESSAGES"), exist_ok=True)
+#         pot.save(po_path)
 
 
 @psynet.group("destroy")
@@ -2893,14 +2880,15 @@ def lucid__list_submissions(ctx, survey_number, order):
     print(submissions.to_markdown(index=False))
 
 
-@click.command("translate")
-@click.argument("languages", required=False, nargs=-1)
-def translate(languages: List[str]):
-    if experiment_available():
-        translate_experiment(languages)
-    elif in_psynet_directory():
-        translate_psynet(languages)
-    else:
-        raise click.UsageError(
-            "This command should be run in a PsyNet experiment directory or with an active PsyNet experiment."
-        )
+# TODO
+# @click.command("translate")
+# @click.argument("languages", required=False, nargs=-1)
+# def translate(languages: List[str]):
+#     if experiment_available():
+#         translate_experiment(languages)
+#     elif in_psynet_directory():
+#         translate_psynet(languages)
+#     else:
+#         raise click.UsageError(
+#             "This command should be run in a PsyNet experiment directory or with an active PsyNet experiment."
+#         )

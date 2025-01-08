@@ -3,14 +3,7 @@ import re
 
 from .. import log
 from ..utils import get_language_dict, logger
-from .utils import (
-    compile_mo,
-    create_psynet_translation_template,
-    get_locales_dir,
-    get_po_path,
-    load_po,
-    po_to_dict,
-)
+from .utils import compile_mo, get_locales_dir, get_po_path, load_po, po_to_dict
 
 JINJA_PATTERN = "%\\((.+?)\\)s"
 F_STRING_PATTERN = "{(.+?)}"
@@ -340,7 +333,7 @@ def check_translations(
     module="psynet",
     locales_dir=None,
     variable_placeholders=None,
-    create_translation_template_function=create_psynet_translation_template,
+    create_translation_template_function=None,  # todo # create_psynet_translation_template,
 ):
     locales_dir = get_locales_dir(locales_dir)
     pot = create_translation_template_function(locales_dir)

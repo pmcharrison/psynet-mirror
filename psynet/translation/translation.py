@@ -8,53 +8,57 @@ from tqdm import tqdm
 
 from psynet.translation.translators import DefaultTranslator
 
-from ..utils import require_exp_directory
+from ..utils import (
+    get_package_name,
+    get_package_source_directory,
+    require_exp_directory,
+)
 from . import supported_languages
-from .utils import clean_po, create_pot, create_psynet_translation_template
+from .utils import clean_code_occurence_paths_in_po, create_pot, sort_po
 
 
 @require_exp_directory
 def translate_experiment(languages: List[str]):
-    from psynet.experiment import get_experiment
-
     if len(languages) == 0:
-        exp = get_experiment()
-        languages = exp.supported_languages
+        from psynet.experiment import get_experiment
 
-    check_languages(languages)
+        languages = get_experiment().supported_languages
 
-    locales_dir = os.path.join(os.getcwd(), "locales")
-    pot_path = os.path.join(locales_dir, "experiment.pot")
+    namespace = "experiment"
+    source_directory = os.getcwd()
+    locales_directory = os.path.join(os.getcwd(), "locales")
 
-    pot = create_experiment_translation_template(pot_path)
-    pot.save(pot_path)
-
-    for language in languages:
-        translate_pot(pot_path, target_language=language)
+    translate(namespace, source_directory, locales_directory, languages)
 
 
-def create_experiment_translation_template(pot_path):
-    return create_pot(os.getcwd(), pot_path)
-
-
-def translate_psynet(languages: List[str]):
+def translate_package(languages: List[str]):
     if len(languages) == 0:
         languages = supported_languages
 
+    namespace = get_package_name()
+    source_directory = get_package_source_directory()
+    locales_directory = os.path.join(source_directory, "locales")
+
+    translate(namespace, source_directory, locales_directory, languages)
+
+
+def translate(namespace, source_dir, locales_dir, languages):
     check_languages(languages)
 
-    locales_dir = os.path.join(os.getcwd(), "psynet", "locales")
-    pot_path = os.path.join(locales_dir, "psynet.pot")
-
-    pot = create_psynet_translation_template()
-    pot.save(pot_path)
+    pot_path = os.path.join(locales_dir, namespace + ".pot")
+    pot = create_pot(source_dir, pot_path)
 
     for language in languages:
         translate_pot(pot_path, target_language=language)
 
+    pot = clean_code_occurence_paths_in_po(pot)
+    pot.save(pot_path)
+
 
 def translate_pot(
-    pot_path, target_language, source_language="en", remove_unused_entries=False
+    pot_path,
+    target_language,
+    source_language="en",
 ):
     if not os.path.isabs(pot_path):
         pot_path = os.path.abspath(pot_path)
@@ -71,7 +75,6 @@ def translate_pot(
         po_path,
         source_language,
         target_language,
-        remove_unused_entries,
     )
 
 
@@ -304,7 +307,7 @@ class TranslationUnit:
         return translation
 
 
-def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entries):
+def translate_po(pot_path, po_path, source_lang, target_lang):
     old_po = polib.pofile(po_path) if os.path.exists(po_path) else None
     new_po = initialize_po(pot_path, po_path, target_lang)
 
@@ -331,7 +334,9 @@ def translate_po(pot_path, po_path, source_lang, target_lang, remove_unused_entr
         old_po,  # we will preserve any manual translations from old_po.
     )
 
-    po = clean_po(po)
+    po = sort_po(po)
+    po = clean_code_occurence_paths_in_po(po)
+
     po.save(po_path)
 
 
@@ -384,6 +389,7 @@ def update_po(
 def initialize_po(pot_path, po_path, output_lang):
     po = polib.pofile(pot_path)
 
+    # Preserve the metadata from the old po file if it exists
     if os.path.exists(po_path):
         old_po = polib.pofile(po_path)
         po.metadata = old_po.metadata
