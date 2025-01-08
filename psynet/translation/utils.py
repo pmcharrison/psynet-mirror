@@ -149,7 +149,6 @@ def create_pot(
     """
 
     absolute_root_dir = os.path.abspath(root_dir)
-    package_name = absolute_root_dir.split("/")[-1]
     input_path = os.path.join(absolute_root_dir, input_path)
     assert os.path.isabs(input_path), "Input path must be absolute."
     if start_with_fresh_file and os.path.exists(pot_path):
@@ -184,7 +183,7 @@ def create_pot(
     if len(pot_entries) > 0:
         pot.extend(pot_entries)
         pot_to_save = deepcopy(pot)
-        pot_to_save = clean_po(pot_to_save, package_name)
+        pot_to_save = clean_po(pot_to_save)
         os.makedirs(os.path.dirname(pot_path), exist_ok=True)
         pot_to_save.save(pot_path)
     return pot
