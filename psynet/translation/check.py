@@ -332,11 +332,10 @@ def _check_translations(
 
 def check_translations(
     module="psynet",
-    locales_dir=None,
     variable_placeholders=None,
     create_translation_template_function=None,  # todo # create_psynet_translation_template,
 ):
-    locales_dir = get_locales_dir(locales_dir)
+    locales_dir = get_locales_dir()
     pot = create_translation_template_function(locales_dir)
     pot_entries = po_to_dict(pot)
     translations = get_all_translations(module, locales_dir)
