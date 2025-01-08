@@ -6,8 +6,11 @@ from psynet.translation.translators import ChatGptTranslator, GoogleTranslator
 
 TEST_TRANSLATIONS = [
     (["Hello", "Goodbye"], ["Bonjour", "Au revoir"]),
-    (["Hello"], ["Bonjour"]),
-    (["Goodbye"], ["Au revoir"]),
+    (
+        ['<div class="alert alert-primary" role="alert">Hello</div>'],
+        ['<div class="alert alert-primary" role="alert">Bonjour</div>'],
+    ),
+    (["Goodbye ■0■!"], ["Au revoir ■0■!"]),  # The variable {NAME} gets encoded as ■0■
     (["Thank you"], ["Merci"]),
 ]
 
