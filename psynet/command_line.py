@@ -2882,13 +2882,6 @@ def lucid__list_submissions(ctx, survey_number, order):
     print(submissions.to_markdown(index=False))
 
 
-@psynet.group("translation")
-def translation():
-    pass
-
-    """Translation management commands."""
-
-
 class ListOfStrings(click.ParamType):
     name = "list_of_strings"
 
@@ -2898,14 +2891,9 @@ class ListOfStrings(click.ParamType):
         return value.replace(",", " ").split()
 
 
-@translation.command("generate")
-@click.option(
-    "--languages",
-    help="The target languages, specified as a space or comma-separated list of language codes",
-    type=ListOfStrings(),
-    default="",
-)
-def generate(languages):
+@psynet.command("translate")
+@click.argument("languages", nargs=-1)
+def translate(languages):
     """
     Inspects the code in the current directory and generates automatic translations for a given set of languages.
 
@@ -2918,12 +2906,12 @@ def generate(languages):
     Parameters
     ----------
     languages :
-        The target languages, specified as a space or comma-separated list of language codes
+        The target languages, specified as space-separated language codes
 
     Example
     -------
 
-    psynet translation generate --languages fr,de
+    psynet translate fr de
         Generate translations for French and German.
     """
     from psynet.translation.translation import translate_experiment, translate_package
