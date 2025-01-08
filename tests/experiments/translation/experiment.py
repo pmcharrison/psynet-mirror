@@ -41,6 +41,7 @@ class Exp(psynet.experiment.Experiment):
             control=TextControl(),
             time_estimate=1,
         ),
+        # Repeat the same page to test whether the translation deals with duplicate texts correctly
         ModularPage(
             "name",
             prompt=_("What is your name?"),
