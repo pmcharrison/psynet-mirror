@@ -1,3 +1,5 @@
+import json
+from os.path import expanduser
 from typing import List
 
 from psynet.utils import get_config, get_descendent_class_by_name, get_language_dict
@@ -21,6 +23,10 @@ class CredentialsError(Exception):
 
 
 class UnsupportedLanguageError(Exception):
+    pass
+
+
+class InvalidTranslationError(Exception):
     pass
 
 
@@ -53,7 +59,7 @@ class GoogleTranslator(Translator):
             raise CredentialsError(error_msg)
 
         client = translate_v3.TranslationServiceClient.from_service_account_json(
-            args["google_translate_json_path"]
+            expanduser(args["google_translate_json_path"])
         )
         parent = f"projects/{args['google_translate_project_id']}/locations/global"
         try:
@@ -91,6 +97,8 @@ class ChatGptTranslator(Translator):
                 If you see any variables in the text, you should not translate them.
                 Variables are written in capital letters and are either surrounded by curly brackets (e.g., {VARIABLE}) or start with "%(" and end with ")s" (e.g., "%(VARIABLE)s").
                 You do not have to keep the original word order.
+                The translation is specified as a list using JSON format.
+                For example, ["Hello, {NAME}!", "My name is {NAME}"] would be converted to ["Bonjour, {NAME}!", "Je m'appelle {NAME}"] when translating to French.
                 """
         )
 
@@ -131,15 +139,19 @@ class ChatGptTranslator(Translator):
                     texts, source_language, target_language
                 ),
             },
+            {"role": "user", "content": json.dumps(texts)},
         ]
-        for text in texts:
-            messages.append({"role": "user", "content": text})
         response = client.chat.completions.create(
             model=openai_default_model,
             messages=messages,
             temperature=openai_default_temperature,
         )
-        return [choice.message.content for choice in response.choices]
+        try:
+            return json.loads(response.choices[0].message.content)
+        except json.JSONDecodeError:
+            InvalidTranslationError(
+                f"Invalid translation: {response.choices[0].message.content}"
+            )
 
 
 class DefaultTranslator(Translator):
@@ -150,7 +162,10 @@ class DefaultTranslator(Translator):
         target_lang: str,
         file_path: str = None,
     ):
+        from psynet.experiment import import_local_experiment
+
         config = get_config()
         default_translator = config.get("default_translator")
+        import_local_experiment()
         translator_class = get_descendent_class_by_name(Translator, default_translator)
         return translator_class().translate(texts, source_lang, target_lang, file_path)
