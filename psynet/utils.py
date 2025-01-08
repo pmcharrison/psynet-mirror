@@ -1185,6 +1185,19 @@ def in_psynet_directory():
         return False
 
 
+def in_python_package():
+    """
+    Test whether the current directory is the root of a Python package.
+
+    Returns
+    -------
+    bool
+        True if the current directory contains either pyproject.toml or setup.py,
+        indicating it is likely a Python package root directory.
+    """
+    return os.path.exists("pyproject.toml") or os.path.exists("setup.py")
+
+
 def get_package_name():
     """
     Finds the name of the package by introspecting the current working directory.

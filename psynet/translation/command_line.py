@@ -1,6 +1,11 @@
+import os
+
 import click
+from dallinger.config import experiment_available
 
 from psynet.command_line import psynet as psynet_cli
+from psynet.translation.translation import translate_experiment, translate_package
+from psynet.utils import get_package_name, in_python_package
 
 
 @psynet_cli.group("translation")
@@ -15,56 +20,62 @@ def parse_list(value):
 
 
 options = {
-    "experiment": click.option(
-        "--experiment",
-        help="Whether to translate the experiment directory",
-        default=False,
-        is_flag=True,
-    ),
+    # "experiment": click.option(
+    #     "--experiment",
+    #     help="Whether to translate the experiment directory",
+    #     default=False,
+    #     is_flag=True,
+    # ),
     "languages": click.option(
         "--languages",
         help="The target languages, specified as a space or comma-separated list of language codes",
         type=parse_list,
     ),
-    "packages": click.option(
-        "--packages",
-        help="The target packages, specified as a space or comma-separated list of package names",
-        default="",
-        type=parse_list,
-    ),
+    # "packages": click.option(
+    #     "--packages",
+    #     help="The target packages, specified as a space or comma-separated list of package names",
+    #     default="",
+    #     type=parse_list,
+    # ),
 }
 
 
 @translation.command("generate")
-@options["experiment"]
-@options["packages"]
 @options["languages"]
-def generate(experiment, packages, languages):
+def generate(languages):
     """
-    Generate translations for the specified experiment or packages.
-    Translation is done automatically using LLMs.
-    The translation files will be saved in the current directory.
+    Inspects the code in the current directory and generates automatic translations for a given set of languages.
 
-    Most users will want to run this command with the `--experiment` option.
-    If the selected languages are not included in the PsyNet package,
-    users will additionally need to specify PsyNet in the `--packages` option.
+    This command should be run from the root of either an experiment or a package.
+    If run from an experiment, the translations will be saved in the experiment's "locales" directory.
+    If run from a package, the translations will be saved in "{package_src_directory}/locales".
+
+    Note: Currently only .py and .html files are translated.
+
+    Parameters
+    ----------
+    languages :
+        The target languages, specified as a space or comma-separated list of language codes
 
     Example
     -------
 
-    psynet translation generate --experiment --languages fr
-        Translate the current experiment to French.
-
-    psynet translation generate --experiment --packages psynet --languages fr
-        Translate both the current experiment and the PsyNet package to French.
+    psynet translation generate --languages fr,de
+        Generate translations for French and German.
     """
-    if experiment:
-        click.echo(f"Translating experiment to {', '.join(languages)}...")
+    if experiment_available():
+        click.echo("Translating experiment to {', '.join(languages)}...")
         translate_experiment(languages)
 
-    for package in packages:
-        click.echo(f"Translating {package} package to {', '.join(languages)}...")
-        translate_package(package, languages)
+    elif in_python_package():
+        click.echo(
+            f"Translating {get_package_name()} package to {', '.join(languages)}..."
+        )
+        translate_package(languages)
+    else:
+        raise RuntimeError(
+            f"The current directory {os.getcwd()} does not seem to be the root of an experiment or a package."
+        )
 
 
 @translation.command("export")
@@ -113,14 +124,6 @@ def import_(packages, languages):
 @translation.command("check")
 def check():
     """Check translation files for issues."""
-    pass
-
-
-def translate_experiment(languages):
-    pass
-
-
-def translate_package(package, languages):
     pass
 
 
