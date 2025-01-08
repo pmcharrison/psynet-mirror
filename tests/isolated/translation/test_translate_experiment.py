@@ -76,12 +76,16 @@ def test_translate_experiment(mocker):
 
     translate_experiment(["fr"])
 
-    expected_calls = [
-        mocker.call(texts=[text], source_lang="en", target_lang="fr")
-        for text in [
+    # We expect all texts within experiment.py to be batched into a single call to the translator
+    # (because the rule is that all texts within a single file are translated together)
+    mock_translate.assert_called_once_with(
+        texts=[
             "Hello, welcome to my experiment!",
+            # The text is repeated in the source code file, so we repeat it in the translator too,
+            # because in theory this repetition is relevant context for the translator.
             "What is your name?",
-            "Hello, {NAME}!",
+            "What is your name?",
+            "Hello, ■0■!",  # The variable {NAME} gets encoded as ■0■
             "What is your favorite pet?",
             "dog",
             "cat",
@@ -89,7 +93,8 @@ def test_translate_experiment(mocker):
             "hamster",
             "bird",
             "snake",
-            "Great, I like {PET} too!",
-        ]
-    ]
-    assert mock_translate.call_args_list == expected_calls
+            "Great, I like ■0■ too!",  # The variable {PET} gets encoded as ■0■
+        ],
+        source_lang="en",
+        target_lang="fr",
+    )
