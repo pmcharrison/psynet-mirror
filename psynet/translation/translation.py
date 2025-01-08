@@ -204,6 +204,7 @@ class TranslationUnit:
             entry.msgstr = translated_text
             entry.fuzzy = True  # Signals that the translation needs to be reviewed
 
+    @classmethod
     def _get_codebook(cls, text: str) -> List[tuple[str, str]]:
         """Get codebook mapping text patterns to encoded placeholders.
 
@@ -255,7 +256,8 @@ class TranslationUnit:
 
         return codebook
 
-    def _encode(self, text: str, codebook: List[tuple[str, str]]) -> str:
+    @classmethod
+    def _encode(cls, text: str, codebook: List[tuple[str, str]]) -> str:
         """Encode text by replacing patterns with placeholders.
 
         Parameters
@@ -275,7 +277,8 @@ class TranslationUnit:
             result = result.replace(original, encoded)
         return result
 
-    def _decode(self, text: str, codebook: List[tuple[str, str]]) -> str:
+    @classmethod
+    def _decode(cls, text: str, codebook: List[tuple[str, str]]) -> str:
         """Decode text by replacing placeholders with original patterns.
 
         Parameters
@@ -295,7 +298,8 @@ class TranslationUnit:
             result = result.replace(encoded, original)
         return result
 
-    def fix_translation(self, translation: str) -> str:
+    @classmethod
+    def fix_translation(cls, translation: str) -> str:
         return translation
 
 
