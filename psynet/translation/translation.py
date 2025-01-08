@@ -13,7 +13,7 @@ from ..utils import (
     require_exp_directory,
 )
 from . import supported_languages
-from .utils import clean_code_occurence_paths_in_po, create_pot, sort_po
+from .utils import create_pot, remove_line_numbers, sort_po
 
 
 @require_exp_directory
@@ -50,7 +50,7 @@ def translate(namespace, source_dir, locales_dir, languages):
     for language in languages:
         translate_pot(pot_path, target_language=language)
 
-    pot = clean_code_occurence_paths_in_po(pot)
+    pot = remove_line_numbers(pot)
     pot.save(pot_path)
 
 
@@ -156,7 +156,7 @@ class TranslationUnit:
             if (
                 key in old
                 and old[key].is_translated
-                and old[key].text_to_translate == new[key].text_to_translate
+                and set(old[key].text_to_translate) == set(new[key].text_to_translate)
             ):
                 # The old translation is already translated, so we will inherit it directly.
                 # and not retranslate it.
@@ -325,13 +325,27 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
 
     combined_units = TranslationUnit.inherit(new_units, old_units, sort=True)
 
-    for i, translation_unit in enumerate(combined_units.values()):
+    n_to_translate = sum(
+        1 for unit in combined_units.values() if not unit.is_translated
+    )
+    n_to_skip = len(combined_units) - n_to_translate
+
+    print(
+        f"Skipped translating {n_to_skip} files because no new text was found to translate."
+    )
+
+    if n_to_translate > 0:
         print(
-            f"Translating file {1 + i} of {len(combined_units)} "
-            f"({translation_unit.file}, {len(translation_unit)} entries) "
-            f"from {source_lang} to {target_lang}..."
+            f"Translating {n_to_translate} files from {source_lang} to {target_lang}..."
         )
+
+    for i, translation_unit in enumerate(combined_units.values()):
         if not translation_unit.is_translated:
+            print(
+                f"Translating file {1 + i} of {len(combined_units)} "
+                f"({translation_unit.file}, {len(translation_unit)} entries) "
+                f"from {source_lang} to {target_lang}..."
+            )
             translation_unit.translate(source_lang, target_lang)
 
     # This function should try and preserve the ordering of the old_po file where possible
@@ -347,7 +361,7 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
     )
 
     po = sort_po(po)
-    po = clean_code_occurence_paths_in_po(po)
+    po = remove_line_numbers(po)
 
     po.save(po_path)
 

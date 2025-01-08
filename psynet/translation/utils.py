@@ -107,6 +107,16 @@ def sort_po(po: polib.POFile) -> polib.POFile:
     return po
 
 
+def make_file_paths_relative(po: polib.POFile) -> polib.POFile:
+    cwd = os.getcwd()
+    for entry in po:
+        for i, _ in enumerate(entry.occurrences):
+            full_path, line_number = entry.occurrences[i]
+            relative_path = os.path.relpath(full_path, cwd)
+            entry.occurrences[i] = (relative_path, line_number)
+    return po
+
+
 def _po_sort_key(entry):
     first_occurrence = entry.occurrences[0]
     path = first_occurrence[0]
@@ -145,7 +155,10 @@ def create_pot(input_path: str, pot_path):
 
     pot = new_pot(pot_path)
     pot.extend(entries)
+
     pot = sort_po(pot)
+    pot = make_file_paths_relative(pot)
+
     os.makedirs(os.path.dirname(pot_path), exist_ok=True)
     pot.save(pot_path)
 
@@ -183,28 +196,10 @@ def _get_py_entries_from_file(input_path):
     return create_translation_template_with_xgettext(input_path)
 
 
-def clean_code_occurence_paths_in_po(po):
-    """Clean code occurrence paths in a PO file.
-
-    Makes paths relative to the current working directory and removes line numbers.
-
-    Parameters
-    ----------
-    po : polib.POFile
-        The PO file to clean
-
-    Returns
-    -------
-    polib.POFile
-        The cleaned PO file with relative paths and no line numbers
-    """
-    cwd = os.getcwd()
+def remove_line_numbers(po):
     for entry in po:
         # Get unique occurrence paths without line numbers
         paths = sorted(set([path for path, _ in entry.occurrences]))
-
-        # Make paths relative to current working directory
-        paths = [os.path.relpath(path, cwd) for path in paths]
 
         # Store file paths without line numbers
         entry.occurrences = [(path, None) for path in paths]
