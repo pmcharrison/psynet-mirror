@@ -6,7 +6,7 @@ from typing import Iterable, List, Optional
 import polib
 from tqdm import tqdm
 
-from psynet.translation.translators import MetaTranslator
+from psynet.translation.translators import DefaultTranslator
 
 from ..utils import require_exp_directory
 from . import supported_languages
@@ -99,7 +99,7 @@ class TranslationUnit:
 
     @cached_property
     def translator(self):
-        return MetaTranslator()
+        return DefaultTranslator()
 
     def sort(self):
         # We can assume that each entry has only a single occurrence, by virtue of the logic in `from_po`.
