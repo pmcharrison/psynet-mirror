@@ -24,7 +24,7 @@ def create_psynet_translation_template(locales_dir=None):
     locales_dir = get_locales_dir(locales_dir)
     psynet_folder = locales_dir.replace("psynet/locales", "")
     pot_path = os.path.join(locales_dir, "psynet.pot")
-    pot = create_pot(psynet_folder, "psynet/.", pot_path, start_with_fresh_file=True)
+    pot = create_pot(psynet_folder, pot_path, start_with_fresh_file=True)
     n_translatable_strings = len(pot.entries)
     print(f"Extracted {n_translatable_strings} translatable strings in {pot_path}")
     return load_po(pot_path)
@@ -124,16 +124,11 @@ def _po_sort_key(entry):
     return path, line_number
 
 
-def create_pot(
-    root_dir: str, input_path: str, pot_path: str, start_with_fresh_file=False
-):
+def create_pot(input_path: str, pot_path: str, start_with_fresh_file=False):
     """
     Extract translations from a file or multiple files using pybabel or xgettext.
     Parameters
     ----------
-    root_dir :
-        path pointing to the root directory of the package or experiment folder
-
     input_path :
         path pointing to the file or directory to extract translations from
 
@@ -147,10 +142,8 @@ def create_pot(
     -------
     Returns the number of entries
     """
-
-    absolute_root_dir = os.path.abspath(root_dir)
-    input_path = os.path.join(absolute_root_dir, input_path)
-    assert os.path.isabs(input_path), "Input path must be absolute."
+    if not os.path.isabs(input_path):
+        input_path = os.path.abspath(input_path)
     if start_with_fresh_file and os.path.exists(pot_path):
         os.remove(pot_path)
     old_entries = []

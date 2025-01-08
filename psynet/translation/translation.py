@@ -34,7 +34,7 @@ def translate_experiment(languages: List[str]):
 
 
 def create_experiment_translation_template(pot_path):
-    return create_pot(os.getcwd(), ".", pot_path, start_with_fresh_file=True)
+    return create_pot(os.getcwd(), pot_path, start_with_fresh_file=True)
 
 
 def translate_psynet(languages: List[str]):
