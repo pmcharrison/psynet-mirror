@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 from collections import OrderedDict
+from copy import deepcopy
 
 import pexpect
 import polib
@@ -95,12 +96,32 @@ def create_translation_template_with_xgettext(input_file):
 
 
 def clean_po(po, package_name):
-    # We don't want this, at least not before we have done the automatic translation.
+    po = sort_po(po)
+    po = clean_code_occurence_paths_in_po(po, package_name)
 
-    # po = clean_code_occurence_paths_in_po(po, package_name)
-    # po = remove_duplicate_entries_po(po)
-    # po.sort()
     return po
+
+
+def sort_po(po: polib.POFile) -> polib.POFile:
+    """
+    Sorts the entries in the po file.
+
+    Each entry might have multiple occurrences, but we sort by the first occurrence
+    (i.e. the first time the string appears in the code).
+    In particular, we sort first by the file name, then by the line number.
+    Note that the file name strings might be absolute paths, which might vary by machine;
+    this doesn't matter for the sorting though, as a given po file will only contain paths
+    from the same top-level directory.
+    """
+    po.sort(key=_po_sort_key)
+    return po
+
+
+def _po_sort_key(entry):
+    first_occurrence = entry.occurrences[0]
+    path = first_occurrence[0]
+    line_number = int(first_occurrence[1])
+    return path, line_number
 
 
 def create_pot(
@@ -162,25 +183,38 @@ def create_pot(
     ]
     if len(pot_entries) > 0:
         pot.extend(pot_entries)
-
-        pot_to_save =
-        pot = clean_po(pot, package_name)
+        pot_to_save = deepcopy(pot)
+        pot_to_save = clean_po(pot_to_save, package_name)
         os.makedirs(os.path.dirname(pot_path), exist_ok=True)
-        pot.save(pot_path)
+        pot_to_save.save(pot_path)
     return pot
 
 
-def clean_code_occurence_paths_in_po(po, package_name):
-    """Make the paths in the code occurrences relative to the package and removes line numbers."""
-    key = package_name + "/"
+def clean_code_occurence_paths_in_po(po):
+    """Clean code occurrence paths in a PO file.
+
+    Makes paths relative to the current working directory and removes line numbers.
+
+    Parameters
+    ----------
+    po : polib.POFile
+        The PO file to clean
+
+    Returns
+    -------
+    polib.POFile
+        The cleaned PO file with relative paths and no line numbers
+    """
+    cwd = os.getcwd()
     for entry in po:
-        occurrences = sorted(set([occurrence for occurrence, _ in entry.occurrences]))
-        # Make paths relative to the package
-        occurrences = [
-            (key).join(occurrence.split(key)[1:]) for occurrence in occurrences
-        ]
-        # Only store the file name and not the line numbers
-        entry.occurrences = [(occurrence, None) for occurrence in occurrences]
+        # Get unique occurrence paths without line numbers
+        paths = sorted(set([path for path, _ in entry.occurrences]))
+
+        # Make paths relative to current working directory
+        paths = [os.path.relpath(path, cwd) for path in paths]
+
+        # Store file paths without line numbers
+        entry.occurrences = [(path, None) for path in paths]
     return po
 
 
@@ -194,14 +228,6 @@ def remove_unused_translations_po(pot_entries, po):
         entries.append(po_entry)
     po.clear()
     po.extend(entries)
-    return po
-
-
-def remove_duplicate_entries_po(po):
-    """Remove duplicate entries from a po file."""
-    entries_dict = po_to_dict(po)
-    po.clear()
-    po.extend(list(entries_dict.values()))
     return po
 
 

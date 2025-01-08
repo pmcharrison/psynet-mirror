@@ -1,5 +1,5 @@
-from copy import copy
 import os
+from copy import copy
 from functools import cached_property
 from typing import Iterable, List, Optional
 
@@ -10,7 +10,7 @@ from psynet.translation.translators import MetaTranslator
 
 from ..utils import require_exp_directory
 from . import supported_languages
-from .utils import create_pot, create_psynet_translation_template
+from .utils import clean_po, create_pot, create_psynet_translation_template
 
 
 @require_exp_directory
@@ -336,12 +336,13 @@ def update_po(
     old_po: Optional[polib.POFile],
 ):
     # Flatten the combined_units dictionary into a list of entries
-    newly_translated_entries = [entry for unit in combined_units.values() for entry in unit.entries]
+    newly_translated_entries = [
+        entry for unit in combined_units.values() for entry in unit.entries
+    ]
 
     # Convert this into a dictionary, keyed by (msgctxt, msgid)
     newly_translated_entries = {
-        (entry.msgctxt, entry.msgid): entry
-        for entry in newly_translated_entries
+        (entry.msgctxt, entry.msgid): entry for entry in newly_translated_entries
     }
 
     # Convert old_po into an analogous dictionary, keyed by (msgctxt, msgid), only keeping manual translations
@@ -350,9 +351,7 @@ def update_po(
         old_manual_translations = {}
     else:
         old_manual_translations = {
-            (entry.msgctxt, entry.msgid): entry
-            for entry in old_po
-            if entry.fuzzy
+            (entry.msgctxt, entry.msgid): entry for entry in old_po if entry.fuzzy
         }
 
     # Iterate over the new_po file.
@@ -368,7 +367,9 @@ def update_po(
         elif key in newly_translated_entries:
             new_po[i] = newly_translated_entries[key]
         else:
-            raise ValueError(f"Entry {key} not found in old_manual_translations or newly_translated_entries")
+            raise ValueError(
+                f"Entry {key} not found in old_manual_translations or newly_translated_entries"
+            )
 
         new_po[i].occurrences = occurrences
 
@@ -388,23 +389,3 @@ def initialize_po(pot_path, po_path, output_lang):
         po.metadata["Content-Transfer-Encoding"] = "8bit"
 
     return po
-
-
-def _insert_entries(
-    po,
-    contexts,
-    entries_without_context,
-    old_contexts,
-    old_entries_without_context,
-    remove_unused_entries,
-):
-    # We iterate over the po file, and in-place update with the new translations
-    # We also work out what old entries have not been included so far, and add those at the end
-    # in alphabetical order.
-    #
-
-    raise NotImplementedError
-
-
-# TODO - when creating the pot file, ensure that the same context is not
-# used in different files
