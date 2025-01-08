@@ -325,9 +325,11 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
 
     combined_units = TranslationUnit.inherit(new_units, old_units, sort=True)
 
-    n_to_translate = sum(
-        1 for unit in combined_units.values() if not unit.is_translated
-    )
+    units_to_translate = [
+        unit for unit in combined_units.values() if not unit.is_translated
+    ]
+
+    n_to_translate = len(units_to_translate)
     n_to_skip = len(combined_units) - n_to_translate
 
     print(
@@ -339,10 +341,10 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
             f"Translating {n_to_translate} files from {source_lang} to {target_lang}..."
         )
 
-    for i, translation_unit in enumerate(combined_units.values()):
+    for i, translation_unit in enumerate(units_to_translate):
         if not translation_unit.is_translated:
             print(
-                f"Translating file {1 + i} of {len(combined_units)} "
+                f"Translating file {1 + i} of {n_to_translate} "
                 f"({translation_unit.file}, {len(translation_unit)} entries) "
                 f"from {source_lang} to {target_lang}..."
             )
