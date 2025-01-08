@@ -661,13 +661,8 @@ def get_translator(
     module="psynet",
     locales_dir=LOCALES_DIR,
 ):
-    import pydevd_pycharm
 
-    from .translation.translation import compile_mo
-
-    pydevd_pycharm.settrace(
-        "localhost", port=1234, stdoutToServer=True, stderrToServer=True
-    )
+    from .translation.utils import compile_mo
 
     if locale is None:
         try:
@@ -952,6 +947,11 @@ def clear_all_caches():
                 obj.cache_clear()
         except ReferenceError:
             pass
+        except Exception as e:
+            if "openai.OpenAIError" in str(e.__class__):
+                pass
+            else:
+                raise e
 
 
 @contextlib.contextmanager

@@ -1,17 +1,24 @@
 import pytest
 
+from psynet.experiment import import_local_experiment
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.translation.translators import ChatGptTranslator, GoogleTranslator
 
 TEST_TRANSLATIONS = [
-    ("Hello", "Bonjour"),
-    ("Goodbye", "Au revoir"),
-    ("Thank you", "Merci"),
+    (["Hello", "Goodbye"], ["Bonjour", "Au revoir"]),
+    (["Hello"], ["Bonjour"]),
+    (["Goodbye"], ["Au revoir"]),
+    (["Thank you"], ["Merci"]),
 ]
 
 
+@pytest.mark.usefixtures("in_experiment_directory")
 @pytest.mark.parametrize("translator_class", [GoogleTranslator, ChatGptTranslator])
 @pytest.mark.parametrize("english,expected_french", TEST_TRANSLATIONS)
-def test_translator(translator_class, english, expected_french):
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("translation")], indirect=True
+)
+def test_translator(translator_class, english, expected_french, experiment_directory):
     """
     Test that translators correctly handle basic English to French translations.
 
@@ -19,16 +26,23 @@ def test_translator(translator_class, english, expected_french):
     ----------
     translator_class : class
         The translator class to test
-    english : str
-        Input English text
-    expected_french : str
+    english : list
+        Input English texts
+    expected_french : list
         Expected French translation
     """
+    import_local_experiment()
     translator = translator_class()
-    result = translator.translate(texts=[english], source_lang="en", target_lang="fr")
+    assert len(english) == len(expected_french)
+    result = translator.translate(texts=english, source_lang="en", target_lang="fr")
 
-    assert len(result) == 1
-    assert result[0].lower().strip() == expected_french.lower().strip()
+    assert len(english) == len(result)
+    assert all(
+        [
+            translation.lower().strip() == expected_french[i].lower().strip()
+            for i, translation in enumerate(result)
+        ]
+    )
 
 
 def test_invalid_language():
