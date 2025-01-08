@@ -82,9 +82,9 @@ from .timeline import (
     Timeline,
 )
 from .translation import supported_languages
+from .translation.check import check_translations
 from .translation.translation import create_pot
 from .translation.utils import compile_mo, load_po
-from .translation.check import check_translations
 from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
@@ -1289,6 +1289,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "force_google_chrome": True,
             "force_incognito_mode": False,
             "openai_default_model": "gpt-4o",
+            "default_translator": "chat_gpt",
             "openai_default_temperature": 0.7,
             "host": "0.0.0.0",
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
@@ -2128,6 +2129,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
+        config.register("default_translator", unicode)
         config.register("google_translate_project_id", unicode, sensitive=True)
         config.register("google_translate_json_path", unicode, sensitive=True)
         config.register("openai_api_key", unicode, sensitive=True)
