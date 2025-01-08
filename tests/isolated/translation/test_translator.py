@@ -45,6 +45,17 @@ def test_translator(translator_class, english, expected_french, experiment_direc
     )
 
 
+def test_translator_with_file_path():
+    """Test that translators properly handle file paths."""
+    translator = GoogleTranslator()
+    translator.translate(
+        texts=["Hello", "Welcome to the experiment"],
+        source_lang="en",
+        target_lang="fr",
+        file_path="experiment.py",
+    )
+
+
 def test_invalid_language():
     """Test that translators properly handle invalid language codes."""
     translator = GoogleTranslator()
