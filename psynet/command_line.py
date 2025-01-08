@@ -2889,15 +2889,21 @@ def translation():
     """Translation management commands."""
 
 
-def parse_list(value):
-    return value.replace(",", " ").split()
+class ListOfStrings(click.ParamType):
+    name = "list_of_strings"
+
+    def convert(self, value, param, ctx):
+        if value is None:
+            return []
+        return value.replace(",", " ").split()
 
 
 @translation.command("generate")
 @click.option(
     "--languages",
     help="The target languages, specified as a space or comma-separated list of language codes",
-    type=parse_list,
+    type=ListOfStrings(),
+    default="",
 )
 def generate(languages):
     """
