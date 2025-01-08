@@ -68,7 +68,17 @@ def test_encode_decode():
     assert entry_collection._decode("hello", []) == "hello"
 
 
-@pytest.mark.usefixtures("in_experiment_directory")
+po_path = os.path.join("locales", "fr", "LC_MESSAGES", "experiment.po")
+
+
+@pytest.fixture
+def cleanup_po_file():
+    yield
+    if os.path.exists(po_path):
+        os.remove(po_path)
+
+
+@pytest.mark.usefixtures("in_experiment_directory", "cleanup_po_file")
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("translation")], indirect=True
 )
@@ -108,7 +118,7 @@ def test_translate_experiment(mocker):
     )
 
     # Expect the translation to be written to the PO file
-    po_path = os.path.join("locales", "fr", "LC_MESSAGES", "experiment.po")
+    global po_path
     assert os.path.exists(po_path)
     po = polib.pofile(po_path)
 
