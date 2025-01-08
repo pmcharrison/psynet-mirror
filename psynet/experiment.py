@@ -2154,10 +2154,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("window_height", int)
 
         def is_valid_locale(value):
+            locales = json.loads(value)
+            if len(locales) == 0 or locales == ["en"]:
+                return
             available_psynet_locales = get_available_locales()
             for locale in json.loads(value):
-                if locale == "en":
-                    continue
                 assert (
                     locale in available_psynet_locales
                 ), f"Locale {locale} not available in PsyNet."
