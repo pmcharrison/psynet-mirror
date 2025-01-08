@@ -51,7 +51,7 @@ You can easily translate it by marking the strings that need to be translated wi
             <h1>{_("Instructions")}</h1>
             <hr>
             {_("In this experiment, you will listen to different music clips.")} <br>
-            {_("instruction", "You have to select the music you like most.")} <br>
+            {_("You have to select the music you like most.")} <br>
             {_('Press "Next" to continue.')}
             """
         ),
@@ -79,13 +79,21 @@ To resolve the variable, you have to use the ``.format`` method, like here:
     You have to use the ``.format`` method to replace the variables in the translation. F-strings are not allowed, as it would first replace the variable in the English string and then tries to lookup the translation which would fail. You can read more about translation in the section `Internationalization <../developer/internationalization.html>`_.
 
 
+Set the correct language
+========================
+Now you need to tell PsyNet two things:
+
+- The supported languages which are the languages your experiment is translated into, e.g. ``supported_locales = ["de", "en", "nl"]`` if you want to translate to German and Dutch.
+- The language you want to use for your experiment, e.g. ``locale = "de"`` if you want to use German.
+
+
 Perform automatic translation
 =============================
 Open a terminal in your experiment folder and run the following command:
 
 .. code-block:: console
 
-    psynet translate <iso_code_1> <iso_code_2>
+    psynet translate
 
 
 This will create a file ``locales/<iso_code>/LC_MESSAGES/experiment.po`` and provide automatic translations for each entry.
@@ -154,17 +162,8 @@ Best practices
 - Use ``_`` for most strings
 - Keep the strings short and simple
 - Avoid HTML tags in the strings as they might get translated or will lead to word order issues
-- Keep the use of inline variables to a minimum, e.g. instead of writing ``_("Make the stimulus as {TARGET} as possible using the slider").format(TARGET=_("happy"))``, write ``_("Adjust the slider to match the target:") + _("happy") ``.
-
-Set the correct language
-========================
-Finally, you need to tell PsyNet which language to use. You can do this by setting
+- Keep the use of inline variables to a minimum, e.g. instead of writing ``_("Make the stimulus as {TARGET} as possible using the slider").format(TARGET=_("happy"))``, write ``_("Adjust the slider to match the target:") + _("happy")``.
 
 
-.. code-block:: text
-
-   language = <your_language_iso_code>
-
-in your ``config.txt`` file. PsyNet will then automatically load the correct translation. That's it!
 
 To see the translation in action, have a look at the ``translation`` demo.
