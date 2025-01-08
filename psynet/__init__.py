@@ -12,8 +12,6 @@ old_load = Configuration.load
 
 
 def load(self):
-    old_load(self)
-
     if not experiment_available():
         # If we're not in an experiment directory, Dallinger won't have loaded our custom configurations.
         # We better do that now.
@@ -27,6 +25,8 @@ def load(self):
             else:
                 raise
         self.extend(Experiment.config_defaults(), strict=True)
+
+    old_load(self)
 
 
 Configuration.load = load
