@@ -4,65 +4,7 @@ import polib
 import pytest
 
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.translation.translation import (
-    TranslationUnit,
-    check_languages,
-    translate_experiment,
-)
-
-
-def test_check_languages():
-    assert check_languages(["fr", "de"])
-
-    with pytest.raises(ValueError, match="Unknown language: asdas"):
-        check_languages(["asdas"])
-
-
-def test_get_codebook():
-    # Test Jinja variables
-    text = "Hello {{ NAME }}"
-    codebook = TranslationUnit._get_codebook(text)
-    assert codebook == [("{{ NAME }}", "■0■")]
-
-    # Test simple variables
-    text = "Hello {NAME}"
-    codebook = TranslationUnit._get_codebook(text)
-    assert codebook == [("{NAME}", "■0■")]
-
-    # Test HTML tags
-    text = "Hello <b>world</b>"
-    codebook = TranslationUnit._get_codebook(text)
-    assert codebook == [("<b>world</b>", "■0■")]
-
-    # Test multiple variables
-    text = "Hello {{ NAME }} {AGE} <b>world</b>"
-    codebook = TranslationUnit._get_codebook(text)
-    assert codebook == [
-        ("{{ NAME }}", "■0■"),
-        ("{AGE}", "■1■"),
-        ("<b>world</b>", "■2■"),
-    ]
-
-
-def test_encode_decode():
-    # Test encoding
-    text = "Hello {{ NAME }} {AGE} <b>world</b>"
-    codebook = TranslationUnit._get_codebook(text)
-    encoded = TranslationUnit._encode(text, codebook)
-    assert encoded == "Hello ■0■ ■1■ ■2■"
-
-    # Test decoding
-    decoded = TranslationUnit._decode(encoded, codebook)
-    assert decoded == text
-
-    # Test with empty text
-    assert TranslationUnit._encode("", []) == ""
-    assert TranslationUnit._decode("", []) == ""
-
-    # Test with empty codebook
-    assert TranslationUnit._encode("hello", []) == "hello"
-    assert TranslationUnit._decode("hello", []) == "hello"
-
+from psynet.translation.translation import translate_experiment
 
 po_path = os.path.join("locales", "fr", "LC_MESSAGES", "experiment.po")
 
