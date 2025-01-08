@@ -664,8 +664,13 @@ def get_translator(
     module="psynet",
     locales_dir=get_locales_dir(),
 ):
-
+    from .experiment import in_deployment_package
     from .translation.utils import compile_mo
+
+    # We defer translation until we're in the deployment package. This is important for allowing us to
+    # import the experiment directory (to access config variables etc) when translations are not yet available.
+    if not in_deployment_package():
+        return null_translator, null_translator
 
     if locale is None:
         try:
@@ -708,6 +713,13 @@ def get_translator(
         translator = gettext.NullTranslations()
 
     return translator.gettext, translator.pgettext
+
+
+def null_translator(message, *args, **kwargs):
+    """
+    A translator that returns the message unchanged.
+    """
+    return message
 
 
 def get_available_locales(locales_dir=get_locales_dir()):
