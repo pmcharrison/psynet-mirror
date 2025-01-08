@@ -8,6 +8,7 @@ from psynet.utils import get_config, get_descendent_class_by_name, get_language_
 
 class Translator:
     nickname = None
+    use_codebook = True
 
     def translate(
         self,
@@ -83,6 +84,7 @@ class GoogleTranslator(Translator):
 
 class ChatGptTranslator(Translator):
     nickname = "chat_gpt"
+    use_codebook = False
 
     def get_system_prompt(
         self,
@@ -99,6 +101,7 @@ class ChatGptTranslator(Translator):
             "You do not have to keep the original word order. "
             "The translation is specified as a list using JSON format. "
             """For example, ["Hello, {NAME}!", "My name is {NAME}"] would be converted to ["Bonjour, {NAME}!", "Je m'appelle {NAME}"] when translating to French. """
+            "Your output should be pure JSON with no comments, formatting directives, or other modifiers"
         )
 
         if file_path is not None and os.path.exists(file_path):
@@ -152,12 +155,13 @@ class ChatGptTranslator(Translator):
             messages=messages,
             temperature=temperature,
         )
+        content = response.choices[0].message.content
         try:
-            return json.loads(response.choices[0].message.content)
-        except json.JSONDecodeError:
-            InvalidTranslationError(
-                f"Invalid translation: {response.choices[0].message.content}"
-            )
+            return json.loads(content)
+        except json.JSONDecodeError as e:
+            raise InvalidTranslationError(
+                f"ChatGPT did not return a proper JSON string: {content}"
+            ) from e
 
 
 class DefaultTranslator(Translator):
@@ -168,10 +172,7 @@ class DefaultTranslator(Translator):
         target_lang: str,
         file_path: str = None,
     ):
-        from psynet.experiment import import_local_experiment
-
         config = get_config()
         default_translator = config.get("default_translator")
-        import_local_experiment()
         translator_class = get_descendent_class_by_name(Translator, default_translator)
         return translator_class().translate(texts, source_lang, target_lang, file_path)

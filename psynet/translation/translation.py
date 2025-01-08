@@ -100,6 +100,9 @@ class TranslationUnit:
     def append(self, entry: polib.POEntry):
         self.entries.append(entry)
 
+    def __len__(self):
+        return len(self.entries)
+
     @cached_property
     def translator(self):
         return DefaultTranslator()
@@ -186,11 +189,12 @@ class TranslationUnit:
     def translate(self, source_lang, target_lang):
         input_texts = self.text_to_translate
 
-        codebooks = [self._get_codebook(text) for text in input_texts]
-        input_texts = [
-            self._encode(text, codebook)
-            for text, codebook in zip(input_texts, codebooks)
-        ]
+        if self.translator.use_codebook:
+            codebooks = [self._get_codebook(text) for text in input_texts]
+            input_texts = [
+                self._encode(text, codebook)
+                for text, codebook in zip(input_texts, codebooks)
+            ]
 
         translated_texts = self.translator.translate(
             texts=input_texts,
@@ -199,10 +203,13 @@ class TranslationUnit:
             file_path=self.file,
         )
 
-        translated_texts = [
-            self._decode(text, codebook)
-            for text, codebook in zip(translated_texts, codebooks)
-        ]
+        assert len(translated_texts) == len(input_texts) == len(codebooks)
+
+        if self.translator.use_codebook:
+            translated_texts = [
+                self._decode(text, codebook)
+                for text, codebook in zip(translated_texts, codebooks)
+            ]
 
         for entry, translated_text in zip(self.entries, translated_texts):
             translated_text = self.fix_translation(translated_text)
@@ -320,7 +327,9 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
 
     for i, translation_unit in enumerate(combined_units.values()):
         print(
-            f"Translating file {1 + i} of {len(combined_units)} ({translation_unit.file}) from {source_lang} to {target_lang}..."
+            f"Translating file {1 + i} of {len(combined_units)} "
+            f"({translation_unit.file}, {len(translation_unit)} entries) "
+            f"from {source_lang} to {target_lang}..."
         )
         if not translation_unit.is_translated:
             translation_unit.translate(source_lang, target_lang)
