@@ -25,6 +25,7 @@ import click
 import html2text
 import jsonpickle
 import pexpect
+import tomlkit
 from _hashlib import HASH as Hash
 from babel.support import Translations
 from dallinger.config import experiment_available
@@ -1182,3 +1183,128 @@ def in_psynet_directory():
 
     except FileNotFoundError:
         return False
+
+
+def get_package_name():
+    """
+    Finds the name of the package by introspecting the current working directory.
+    Assumes that either setup.py or pyproject.toml is present.
+    """
+    if os.path.exists("pyproject.toml"):
+        return get_package_name_from_pyproject()
+    elif os.path.exists("setup.py"):
+        name = get_package_name_from_setup()
+        if name is not None:
+            return name
+    raise FileNotFoundError(
+        "Could not find pyproject.toml or setup.py in current directory"
+    )
+
+
+def get_package_name_from_pyproject():
+    """
+    Get package name from pyproject.toml file.
+
+    Returns
+    -------
+    str
+        The package name from pyproject.toml.
+    """
+    with open("pyproject.toml", "r") as f:
+        pyproject = tomlkit.parse(f.read())
+        return pyproject["project"]["name"]
+
+
+def get_package_name_from_setup():
+    """
+    Get package name from setup.py file.
+
+    Returns
+    -------
+    str
+        The package name from setup.py.
+    """
+    import ast
+
+    with open("setup.py") as f:
+        setup_contents = f.read()
+    setup_ast = ast.parse(setup_contents)
+    for node in ast.walk(setup_ast):
+        if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "setup":
+            for keyword in node.keywords:
+                if keyword.arg == "name":
+                    return ast.literal_eval(keyword.value)
+    return None
+
+
+def get_package_source_directory():
+    """
+    Get the source directory of the package by inspecting pyproject.toml or setup.py.
+
+    Returns
+    -------
+    str
+        The path to the package source directory.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the package source directory cannot be found.
+    """
+    # First try pyproject.toml
+    if os.path.exists("pyproject.toml"):
+        with open("pyproject.toml", "r") as f:
+            pyproject = tomlkit.parse(f.read())
+
+        # Check for src_dir in [tool.setuptools]
+        if "tool" in pyproject and "setuptools" in pyproject["tool"]:
+            packages_dir = (
+                pyproject["tool"]["setuptools"]
+                .get("packages", {})
+                .get("find", {})
+                .get("where")
+            )
+            if packages_dir:
+                return packages_dir
+
+        # Check for packages-dir in [tool.poetry]
+        if "tool" in pyproject and "poetry" in pyproject["tool"]:
+            packages_dir = (
+                pyproject["tool"]["poetry"].get("packages", [{}])[0].get("from")
+            )
+            if packages_dir:
+                return packages_dir
+
+    # Then try setup.py
+    if os.path.exists("setup.py"):
+        import ast
+
+        with open("setup.py") as f:
+            setup_contents = f.read()
+        setup_ast = ast.parse(setup_contents)
+        for node in ast.walk(setup_ast):
+            if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "setup":
+                for keyword in node.keywords:
+                    # Check package_dir argument
+                    if keyword.arg == "package_dir":
+                        if isinstance(keyword.value, ast.Dict):
+                            for i, key in enumerate(keyword.value.keys):
+                                if ast.literal_eval(key) == "":
+                                    return ast.literal_eval(keyword.value.values[i])
+
+    # Fall back to default locations
+    package_name = get_package_name()
+    possible_locations = [
+        package_name,
+        os.path.join("src", package_name),
+        os.path.join("source", package_name),
+    ]
+
+    for location in possible_locations:
+        if os.path.isdir(location):
+            return location
+
+    raise FileNotFoundError(
+        f"Could not find package source directory for '{package_name}' "
+        f"in configuration files or in default locations: {', '.join(possible_locations)}"
+    )
