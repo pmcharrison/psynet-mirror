@@ -4,7 +4,11 @@ import polib
 import pytest
 
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.translation.translation import check_languages, translate_experiment
+from psynet.translation.translation import (
+    TranslationUnit,
+    check_languages,
+    translate_experiment,
+)
 
 
 def test_check_languages():
@@ -15,28 +19,24 @@ def test_check_languages():
 
 
 def test_get_codebook():
-    from psynet.translation.translation import TranslationUnit
-
-    entry_collection = TranslationUnit()
-
     # Test Jinja variables
     text = "Hello {{ NAME }}"
-    codebook = entry_collection._get_codebook(text)
+    codebook = TranslationUnit._get_codebook(text)
     assert codebook == [("{{ NAME }}", "■0■")]
 
     # Test simple variables
     text = "Hello {NAME}"
-    codebook = entry_collection._get_codebook(text)
+    codebook = TranslationUnit._get_codebook(text)
     assert codebook == [("{NAME}", "■0■")]
 
     # Test HTML tags
     text = "Hello <b>world</b>"
-    codebook = entry_collection._get_codebook(text)
+    codebook = TranslationUnit._get_codebook(text)
     assert codebook == [("<b>world</b>", "■0■")]
 
     # Test multiple variables
     text = "Hello {{ NAME }} {AGE} <b>world</b>"
-    codebook = entry_collection._get_codebook(text)
+    codebook = TranslationUnit._get_codebook(text)
     assert codebook == [
         ("{{ NAME }}", "■0■"),
         ("{AGE}", "■1■"),
@@ -45,27 +45,23 @@ def test_get_codebook():
 
 
 def test_encode_decode():
-    from psynet.translation.translation import TranslationUnit
-
-    entry_collection = TranslationUnit()
-
     # Test encoding
     text = "Hello {{ NAME }} {AGE} <b>world</b>"
-    codebook = entry_collection._get_codebook(text)
-    encoded = entry_collection._encode(text, codebook)
+    codebook = TranslationUnit._get_codebook(text)
+    encoded = TranslationUnit._encode(text, codebook)
     assert encoded == "Hello ■0■ ■1■ ■2■"
 
     # Test decoding
-    decoded = entry_collection._decode(encoded, codebook)
+    decoded = TranslationUnit._decode(encoded, codebook)
     assert decoded == text
 
     # Test with empty text
-    assert entry_collection._encode("", []) == ""
-    assert entry_collection._decode("", []) == ""
+    assert TranslationUnit._encode("", []) == ""
+    assert TranslationUnit._decode("", []) == ""
 
     # Test with empty codebook
-    assert entry_collection._encode("hello", []) == "hello"
-    assert entry_collection._decode("hello", []) == "hello"
+    assert TranslationUnit._encode("hello", []) == "hello"
+    assert TranslationUnit._decode("hello", []) == "hello"
 
 
 po_path = os.path.join("locales", "fr", "LC_MESSAGES", "experiment.po")
