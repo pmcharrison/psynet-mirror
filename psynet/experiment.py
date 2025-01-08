@@ -81,7 +81,6 @@ from .timeline import (
     Response,
     Timeline,
 )
-from .translation import supported_languages
 from .translation.check import check_translations
 from .translation.translation import create_pot
 from .translation.utils import compile_mo, load_po
@@ -426,8 +425,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
-
-    supported_languages = supported_languages
 
     asset_storage = NoStorage()
     css = []
@@ -2157,6 +2154,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             locales = json.loads(value)
             if len(locales) == 0 or locales == ["en"]:
                 return
+
             available_psynet_locales = get_available_locales()
             for locale in json.loads(value):
                 if locale == "en":

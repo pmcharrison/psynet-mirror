@@ -1,3 +1,4 @@
+import json
 import os
 from copy import copy
 from functools import cached_property
@@ -12,16 +13,19 @@ from ..utils import (
     get_package_source_directory,
     require_exp_directory,
 )
-from . import supported_languages
+from . import supported_locales
 from .utils import create_pot, remove_line_numbers, sort_po
 
 
 @require_exp_directory
 def translate_experiment(languages: List[str]):
-    if len(languages) == 0:
-        from psynet.experiment import get_experiment
 
-        languages = get_experiment().supported_languages
+    if len(languages) == 0:
+        from ..utils import get_config
+
+        locale = get_config().get("locale", "en")
+        languages = get_config().get("supported_locales", "[" + locale + "]")
+        languages = json.loads(languages)
 
     namespace = "experiment"
     source_directory = os.getcwd()
@@ -32,7 +36,7 @@ def translate_experiment(languages: List[str]):
 
 def translate_package(languages: List[str]):
     if len(languages) == 0:
-        languages = supported_languages
+        languages = supported_locales
 
     namespace = get_package_name()
     source_directory = get_package_source_directory()
