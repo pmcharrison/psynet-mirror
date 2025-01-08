@@ -28,6 +28,7 @@ import pexpect
 from _hashlib import HASH as Hash
 from babel.support import Translations
 from dallinger.config import experiment_available
+from dallinger.recruiters import _descendent_classes
 from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
@@ -628,6 +629,29 @@ def render_string_with_translations(template_string, locale=None, **kwargs):
     return _render_with_translations(
         template_string=template_string, locale=locale, all_template_args=kwargs
     )
+
+
+def get_descendent_class_by_name(parent_class, name):
+    """Attempt to return a subclass by name.
+
+    Actual class names and known nicknames are both supported.
+    """
+    by_name = {}
+    for cls in _descendent_classes(parent_class):
+        ids = [cls.nickname, cls.__name__]
+        for id_ in ids:
+            previous_registered_cls = by_name.get(id_, None)
+            if previous_registered_cls:
+                should_overwrite = issubclass(cls, previous_registered_cls)
+            else:
+                should_overwrite = True
+            if should_overwrite:
+                by_name[id_] = cls
+    klass = by_name.get(name)
+    assert (
+        klass is not None
+    ), f"Could not find class {name} in subclasses of {parent_class}"
+    return klass
 
 
 @cache
