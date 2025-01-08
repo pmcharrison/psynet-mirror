@@ -25,7 +25,7 @@ from dallinger.command_line.docker_ssh import (
     server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import get_config
+from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -45,6 +45,8 @@ from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
     get_args,
+    get_package_name,
+    in_python_package,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
@@ -2880,15 +2882,56 @@ def lucid__list_submissions(ctx, survey_number, order):
     print(submissions.to_markdown(index=False))
 
 
-# TODO
-# @click.command("translate")
-# @click.argument("languages", required=False, nargs=-1)
-# def translate(languages: List[str]):
-#     if experiment_available():
-#         translate_experiment(languages)
-#     elif in_psynet_directory():
-#         translate_psynet(languages)
-#     else:
-#         raise click.UsageError(
-#             "This command should be run in a PsyNet experiment directory or with an active PsyNet experiment."
-#         )
+@psynet.group("translation")
+def translation():
+    pass
+
+    """Translation management commands."""
+
+
+def parse_list(value):
+    return value.replace(",", " ").split()
+
+
+@translation.command("generate")
+@click.option(
+    "--languages",
+    help="The target languages, specified as a space or comma-separated list of language codes",
+    type=parse_list,
+)
+def generate(languages):
+    """
+    Inspects the code in the current directory and generates automatic translations for a given set of languages.
+
+    This command should be run from the root of either an experiment or a package.
+    If run from an experiment, the translations will be saved in the experiment's "locales" directory.
+    If run from a package, the translations will be saved in "{package_src_directory}/locales".
+
+    Note: Currently only .py and .html files are translated.
+
+    Parameters
+    ----------
+    languages :
+        The target languages, specified as a space or comma-separated list of language codes
+
+    Example
+    -------
+
+    psynet translation generate --languages fr,de
+        Generate translations for French and German.
+    """
+    from psynet.translation.translation import translate_experiment, translate_package
+
+    if experiment_available():
+        click.echo("Translating experiment to {', '.join(languages)}...")
+        translate_experiment(languages)
+
+    elif in_python_package():
+        click.echo(
+            f"Translating {get_package_name()} package to {', '.join(languages)}..."
+        )
+        translate_package(languages)
+    else:
+        raise RuntimeError(
+            f"The current directory {os.getcwd()} does not seem to be the root of an experiment or a package."
+        )
