@@ -389,7 +389,7 @@ def update_po(
         old_manual_translations = {}
     else:
         old_manual_translations = {
-            (entry.msgctxt, entry.msgid): entry for entry in old_po if entry.fuzzy
+            (entry.msgctxt, entry.msgid): entry for entry in old_po if not entry.fuzzy
         }
 
     # Iterate over the new_po file.

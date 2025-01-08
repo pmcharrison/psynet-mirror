@@ -16,7 +16,30 @@ def cleanup_po_file():
         os.remove(po_path)
 
 
-@pytest.mark.usefixtures("in_experiment_directory", "cleanup_po_file")
+@pytest.fixture
+def backup_experiment_py(in_experiment_directory):
+    """Save and restore experiment.py during test.
+
+    Creates a backup of experiment.py before the test runs and restores it afterwards.
+    """
+    import shutil
+    from pathlib import Path
+
+    experiment_py = Path("experiment.py")
+    backup_path = Path("experiment.py.bak")
+
+    shutil.copy2(experiment_py, backup_path)
+
+    yield
+
+    if experiment_py.exists():
+        experiment_py.unlink()
+    shutil.move(backup_path, experiment_py)
+
+
+@pytest.mark.usefixtures(
+    "in_experiment_directory", "cleanup_po_file", "backup_experiment_py"
+)
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("translation")], indirect=True
 )
@@ -25,7 +48,7 @@ def test_translate_experiment(mocker):
         "psynet.translation.translators.DefaultTranslator.translate"
     )
 
-    def mock_translate_func(texts, source_lang, target_lang):
+    def mock_translate_func(texts, source_lang, target_lang, file_path=None):
         return [f"{source_lang} -> {target_lang} {i}" for i in range(len(texts))]
 
     mock_translate.side_effect = mock_translate_func
@@ -53,6 +76,7 @@ def test_translate_experiment(mocker):
         ],
         source_lang="en",
         target_lang="fr",
+        file_path="experiment.py",
     )
 
     # Expect the translation to be written to the PO file
@@ -94,3 +118,41 @@ def test_translate_experiment(mocker):
 
         assert filename == "experiment.py"
         assert line_number == "" or line_number is None
+
+    # Now let's imagine that we manually edit one of the translations in the PO file.
+    # When doing so, we remove the fuzzy flag to indicate that the translation is complete.
+    po[0].msgstr = "manual translation"
+    po[0].fuzzy = False
+    po.save()
+
+    # Let's additonally append a new translatable string to experiment.py
+    with open("experiment.py", "a") as f:
+        f.write("\n_('Translate me please')")
+
+    # Now let's run the translation again
+    translate_experiment(["fr"])
+
+    # The original manual translation should still be there
+    po = polib.pofile(po_path)
+    assert po[0].msgstr == "manual translation"
+    assert not po[0].fuzzy
+
+    # The new translatable string should be translated
+    assert po[-1].msgid == "Translate me please"
+    assert po[-1].msgstr == "en -> fr 12"
+
+    # Now let's reinstate the fuzzy flag for the original manual translation
+    po[0].fuzzy = True
+    po.save()
+
+    # And add one more translatable string to experiment.py, to invalidate the existing translations
+    with open("experiment.py", "a") as f:
+        f.write("\n_('Translate me next')")
+
+    # Now let's run the translation again
+    translate_experiment(["fr"])
+
+    # The manual translation should now be overwritten by the machine translation
+    po = polib.pofile(po_path)
+    assert po[0].msgstr == "en -> fr 0"
+    assert po[0].fuzzy
