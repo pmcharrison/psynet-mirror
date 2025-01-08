@@ -95,9 +95,9 @@ def create_translation_template_with_xgettext(input_file):
         )
 
 
-def clean_po(po, package_name):
+def clean_po(po):
     po = sort_po(po)
-    po = clean_code_occurence_paths_in_po(po, package_name)
+    po = clean_code_occurence_paths_in_po(po)
 
     return po
 
