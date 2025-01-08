@@ -1,3 +1,4 @@
+import json
 import os
 from copy import copy
 from functools import cached_property
@@ -19,20 +20,11 @@ from .utils import create_pot, remove_line_numbers, sort_po
 @require_exp_directory
 def translate_experiment(languages: List[str], force: bool = False):
     if len(languages) == 0:
-        from psynet.experiment import get_experiment
+        from ..utils import get_config
 
-        languages = get_experiment().supported_locales
-        if languages is None:
-            raise ValueError(
-                "You must set Experiment.supported_locales to a list of the languages you want to support, "
-                "e.g. ['en', 'fr', 'de']."
-            )
-        for language in languages:
-            if language not in psynet_supported_locales:
-                raise ValueError(
-                    f"The locale {language} is not supported by the PsyNet library. You will need to add this "
-                    "language to PsyNet. See online documentation for more details."
-                )
+        locale = get_config().get("locale", "en")
+        languages = get_config().get("supported_locales", "[" + locale + "]")
+        languages = json.loads(languages)
 
     namespace = "experiment"
     source_directory = os.getcwd()

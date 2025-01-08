@@ -19,7 +19,8 @@ There are basically four steps to translate an experiment:
 3. Translating the strings into a ``.po`` file
 4. Compiling the ``.po`` file into a machine-readable ``.mo`` file
 
-PsyNet automatically handles steps 1, 2, and 4. Step 3 can be partly be automized using machine translation (see third-party package `internat <https://gitlab.com/computational-audition-lab/internationalization>`_), nevertheless we recommend to have a native speaker check the translations.
+PsyNet automatically handles all four steps.
+While PsyNet relies on two commonly used machine translators, we recommend to have a native speaker check the translations.
 
 
 
@@ -70,9 +71,7 @@ In PsyNet we use a wrapper for this:
     from psynet.utils import get_translator
 
     locale = "nl"
-    _, _p = get_translator(
-        locale, module="experiment", locales_dir=os.path.abspath("locales")
-    )
+    _ = get_translator()
 
     my_info_page = InfoPage(
         Markup(
@@ -86,11 +85,21 @@ In PsyNet we use a wrapper for this:
         time_estimate=5
     )
 
-Here you see two ways to mark strings for translation. The first one is ``_`` which is an alias of ``gettext`` and the second one is ``_p`` (alias of ``pgettext``) which takes the context a translation occurs in and the string which has to be translated. This is useful to disambiguate the same string in different contexts. For example, the word "play" can be a verb or a noun. In English, the translation would be the same, but in other languages, it might be different. In this case, we would use ``_p`` to mark the strings for translation.
+Most experiments only use ``_``, which is an alias of ``gettext``.
+Additionally, there is also ``_p`` (alias of ``pgettext``, ``_p = get_translator_with_context()``) which takes the context a translation occurs in and the string which has to be translated. This is useful to disambiguate the same string in different contexts. For example, the word "play" can be a verb or a noun. In English, the translation would be the same, but in other languages, it might be different. In this case, we would use ``_p`` to mark the strings for translation.
+
+However, adding a cumbersome to each string can be quite cumbersome. We, therefore, recommend to use ``_p`` only for strings that are ambiguous and need to be disambiguated (quite often you do not use the same word in different contexts).
 
 The same mechanism works for HTML templates:
 
 Extracting and marking the translatable strings in PsyNet are the same as for any other Python script. For Jinja2 templates (HTML files), you can use:
+
+::
+
+    {{ gettext("Unfortunately the experiment must end early.") }}
+
+
+Or if you want to disambiguate the string, you can use:
 
 ::
 
@@ -131,27 +140,23 @@ In PsyNet, we use a wrapper for this:
 ::
 
     create_pot(
-        input_folder, "path/to/my/files/*.html", pot_path
+        input_folder, pot_path
     )
 
-Which looks for all HTML files in the folder ``f"{input_folder}/path/to/my/files"`` and extracts the strings into the ``.pot`` file ``pot_path``.
+Which looks for all in the folder and extracts the strings into the ``.pot`` file ``pot_path``.
 
-We provide a default extraction script for the PsyNet package ``create_psynet_translation_template()`` and for experiment folder ``Experiment.create_translation_template_from_experiment_folder()``.
-
-While this probably works for most experiments (it scans all .py files in the experiment directory and the templates folder if it exists), it can be easily extended to scan other subdirectories:
+However, when using PsyNet you can use the high-level API:
 
 ::
 
-    class Exp(psynet.experiment.Experiment):
-        @classmethod
-        def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
-            super(Exp, cls).extract_pot_from_experiment_folder(input_directory, pot_path)
+    psynet translate
 
-            from psynet.internationalization import create_pot
 
-            create_pot(input_directory, "my_module/.", pot_path)
+which will:
 
-We also provide a command line interface to extract the strings: ``psynet prepare-translation <iso_code>``.
+- Create the ``.pot`` file
+- Perform machine translation to all languages supported by the package or those marked in ``supported_locales`` in your config or those marked manually ``psynet translate nl de``
+- Automatically check the translations
 
 PO format
 ---------
@@ -206,99 +211,26 @@ is mandatory) which in turn contains the ``.po`` and the compiled translations (
 Translating the strings into a ``.po`` file
 -------------------------------------------
 
-Let’s translate into Greek. We first have to set up a
-folder for the Greek translation file (``el`` is the ISO code for Greek,
-see
-`here <https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html>`__
-for full list):
+Let’s translate into Greek; ``cd`` into the experiment folder and run:
 
 ::
 
-   mkdir -p locales/el/LC_MESSAGES
+   psynet translate el
 
-We now have to copy the template to the directory:
+.. note::
+    ``el`` is the ISO code for Greek, see `here <https://www.gnu.org/software/gettext/manual/html_node/Usual-Language-Codes.html>`__ for full list
 
-::
-
-   cp locales/experiment.pot locales/el/LC_MESSAGES/experiment.po
-
-Open this file and add the translation to ``msgstr``:
-
-::
-
-   #: example.py:8
-   msgid "Instructions"
-   msgstr "Οδηγίες"
-
-
-A better way of doing this is to copy the ``.pot`` file to ``locales/<your_language>/LC_MESSAGES/experiment.po`` and open it with `POedit editor <https://poedit.net>`__.
-
-You can also use the package `internat <https://gitlab.com/computational-audition-lab/internationalization>`_ to create machine translation using Google Translate and DeepL for a ``.pot`` file. Note this package is still work in progress. To translate a ``.pot`` file you would run:
-
-::
-
-    from internat.translate import translate_pot
-
-    translate_pot(
-        pot_path,
-        input_language="en",
-        output_language=target_language,
-        translator="DeepL",
-        formality="formal",
-    )
-
-
-Note you should open the resulting ``.po`` file with `POedit editor <https://poedit.net>`__ and check the translations. Unchecked translations are flagged. Unflag them once you checked them. Otherwise they will not compile.
+You can now open the resulting ``.po`` file with `POedit editor <https://poedit.net>`__ and check the translations. Unchecked translations are flagged. Unflag them once you checked them.
 
 Combining translations
 ----------------------
 
-Many times you will have to update a translation because new strings are added, modified or removed. To manipulate the translation files and keep them updated, you can use the ``msgcat`` and ``msgmerge`` commands. We will now have a quick look at them.
-
-::
-
-    msgcat filename_1.po filename_2.po -o output.po
-
-Given two .po files, ``msgcat`` concatenates these two files into a single one.
-
-.. note::
-
-    If the same key exists within both files but with different translations, then ``msgcat`` adds both translations to the new file and the translator should fix the conflict.
-
-::
-
-    msgmerge previous.po updated.po -o output.po [--no-fuzzy-matching]``
-
-To merge two translations, you can use ``msgmerge``. Imagine you created a new PO file from all of your translatable strings from your code called ``updated.po``, but you already have the translations for a large part of the code in ``previous.po``. You can use ``msgmerge`` to only add the new entries of ``updated.po`` to ``previous.po`` and store the result in the final ``output.po`` file. The optional argument ``--no-fuzzy-matching`` will prevent the merging of fuzzy translations. Fuzzy matching means that it will not look for a 100% match, but will also match keys which changed slightly. Fuzzy matched translations will be flagged with the keyword ``fuzzy``:
-
-::
-
-    #: psynet/demography/general.py:145
-    #, fuzzy
-    msgctxt "gender"
-    msgid "Female"
-    msgstr "Weiblich"
-
-
-In practice, it turned out if a translation only changed minimally, it's fastest to simply do a text search over the ``.po`` files.
+To update the translations, you can run ``psynet translate``, which will update the ``.pot`` file and will provide new translations and overwrite the existing translations unless they were marked as checked.
 
 Compiling the ``.po`` file into a machine-readable ``.mo`` file
 ---------------------------------------------------------------
 
-In PsyNet translations are compiled on demand. This means that if you add a new translation, you do not have to compile the translations. Also, PsyNet makes sure fuzzy translations (i.e. unvalidated translations) are unflagged so they are shown in the experiments.
-
-If you would want to compile the translations manually, you can do so by running:
-
-In order to use the translation in PsyNet (or in any other code), we have to convert
-the ``.po`` file to a machine-readable translation ``.mo``-file. You can
-do so by running:
-
-::
-
-   msgfmt -o locales/el/LC_MESSAGES/experiment.po locales/el/LC_MESSAGES/experiment.mo
-
-Make sure to double check the translation before compiling, because gettext in Python `does not show` fuzzy translations. Also note that ``msgmerge`` removes keys that are not in the updated file (e.g., you might loose translations which were commented out). Lastly, keep in
-mind that the order of the files in this command matters.
+In PsyNet translations are compiled on demand. This means that if you add a new translation, you do not have to compile the translations.
 
 Setting the language
 --------------------
@@ -307,26 +239,7 @@ To load the translation, you need to access the current participant as language 
 
 ::
 
-   language = <your_language_iso_code>
-
-To get the translation from the participant, we can run:
-
-::
-
-   from os.path import abspath
-   from psynet.utils import get_translator
-
-   _, _p, _np = get_translator(
-       locale = participant.get_locale(),
-       module='experiment',
-       localedir=abspath('locales')
-   )
-
-
-Note that ``_`` is an alias for ``gettext`` and ``_p`` for ``pgettext``. ``participant.get_locale()`` will return the
-language settings of a participant.
-
-You can also set additional language settings in the config:
+   locale = <your_language_iso_code>
 
 - Supported languages the user can choose from
 
@@ -352,7 +265,6 @@ Design choices
 There are a few design choices that we made when implementing the translation system in PsyNet. We will explain these choices and the reasoning behind them.
 
 - Language is set on the level of the experiment. The participant inherits this language setting. The translation shown to the participant depends on the participants' language setting. The idea behind is that you can have multilingual experiments, where individual participants do the experiment in different languages. This also allows participants to potentially switch between languages during the experiment.
-- ``gettext`` provides various ways to translate strings, ``gettext`` simple key value, ``pgettext`` translation within a context and ``ngettext`` for plural forms. Then there are also all combinations of them. We decided to only use ``gettext`` and ``pgettext`` and not use any of the other functions. The reason is that plural forms are highly language dependent and it is not possible to write a generic function that works for all languages. Instead, we recommend to write separate translations for each condition.
-- Variables in translatable strings can be error prone as they might not be translated properly which can lead to runtime errors. PsyNet automatically checks them in a predeploy routine before starting the experiment. To minimize error, we have strong variable naming rules. You may only use f-string notation where the variable name only consists of captial letters and underscores. So ``_("My variable: {MY_VARIABLE}")`` would be allowed, but ``_("My variable: {my_variable}")`` or ``_("My variable: {}")`` would not. This is because the captial letters are less likely to be translated into the target language by machine translation. They are also more visible to human translators. You can also only use ``.format()`` and not f-strings as the latter will replace the variable before looking up the translation. Say ``"This is your {AGE}"`` is a defined translation, ``"This is your 12"`` is probably not! So the correct way to use variables in translations is ``_("This is your {AGE}").format(AGE=12)``.
+- Variables in translatable strings can be error prone as they might not be translated properly which can lead to runtime errors. PsyNet automatically checks them in a predeploy routine before starting the experiment. To minimize error, we have strong variable naming rules. You may only use f-string notation where the variable name only consists of capital letters and underscores. So ``_("My variable: {MY_VARIABLE}")`` would be allowed, but ``_("My variable: {my_variable}")`` or ``_("My variable: {}")`` would not. This is because the capital letters are less likely to be translated into the target language by machine translation. They are also more visible to human translators. You can also only use ``.format()`` and not f-strings as the latter will replace the variable before looking up the translation. Say ``"This is your {AGE}"`` is a defined translation, ``"This is your 12"`` is probably not! So the correct way to use variables in translations is ``_("This is your {AGE}").format(AGE=12)``.
 - Translations are structured into modules. Each module should have distinct name. So PsyNet has a separate module called ``psynet`` and the experiment called ``experiment``. Each package is responsible for the text in their package, so PsyNet stores all translations in ``psynet/locales``, where the template is stored in ``psynet/locales/psynet.pot`` and the translations are stored in ``psynet/locales/<language_code>/LC_MESSAGES/psynet.po``. The same is true for the experiment, where the template is stored in ``<experiment_dir>/locales/experiment.pot`` and the translations are stored in ``<experiment_dir>/locales/<language_code>/LC_MESSAGES/experiment.po``.
 - Translations of the experiment are checked automatically in a predeploy route. Translations of psynet are checked using CI.

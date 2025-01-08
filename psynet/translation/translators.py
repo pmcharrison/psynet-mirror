@@ -1,6 +1,5 @@
 import json
 import os.path
-from os.path import expanduser
 from typing import List
 
 from psynet.utils import get_config, get_descendent_class_by_name, get_language_dict
@@ -45,25 +44,21 @@ class GoogleTranslator(Translator):
         from google.cloud import translate_v3
 
         config = get_config()
-        args = {
-            "google_translate_project_id": config.get(
-                "google_translate_project_id", None
-            ),
-            "google_translate_json_path": config.get(
-                "google_translate_json_path", None
-            ),
-        }
-        if not all(args.values()):
-            error_msg = "Please provide the following credentials in your .dallingerconfig file: "
-            for key, value in args.items():
-                if not value:
-                    error_msg += f"{key}, "
-            raise CredentialsError(error_msg)
+        google_translate_json_path = config.get("google_translate_json_path", None)
+        if google_translate_json_path is None:
+            raise CredentialsError(
+                "Please provide a Google Cloud Translate API key in your .dallingerconfig file under `google_translate_json_path`"
+            )
+
+        google_translate_json_path = os.path.expanduser(google_translate_json_path)
+
+        with open(google_translate_json_path, "r") as f:
+            auth_dict = json.load(f)
 
         client = translate_v3.TranslationServiceClient.from_service_account_json(
-            expanduser(args["google_translate_json_path"])
+            google_translate_json_path
         )
-        parent = f"projects/{args['google_translate_project_id']}/locations/global"
+        parent = f"projects/{auth_dict['project_id']}/locations/global"
         try:
             response = client.translate_text(
                 contents=texts,

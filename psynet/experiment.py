@@ -426,8 +426,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
-    supported_locales = None
-
     asset_storage = NoStorage()
     css = []
     css_links = []
@@ -2156,6 +2154,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             locales = json.loads(value)
             if len(locales) == 0 or locales == ["en"]:
                 return
+
             available_psynet_locales = get_available_locales()
             for locale in json.loads(value):
                 if locale == "en":

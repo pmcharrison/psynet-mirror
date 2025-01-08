@@ -6,16 +6,11 @@ from collections import OrderedDict
 import pexpect
 import polib
 
-LOCALES_DIR = "locales"
 
+def get_locales_dir():
+    from ..utils import package_root
 
-def get_locales_dir(locales_dir):
-    """Get the locales directory."""
-    if locales_dir is None:
-        from ..utils import LOCALES_DIR
-
-        locales_dir = LOCALES_DIR
-    return locales_dir
+    return os.path.join(package_root, "locales")
 
 
 def new_pot(fpath):

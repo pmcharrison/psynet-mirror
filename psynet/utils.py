@@ -34,7 +34,10 @@ from flask import url_for
 from flask.globals import current_app, request
 from flask.templating import Environment, _render
 
-from psynet.translation import LOCALES_DIR, get_known_countries, get_known_languages
+from psynet.translation import get_known_countries, get_known_languages
+from psynet.translation.utils import get_locales_dir
+
+package_root = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_logger():
@@ -659,7 +662,7 @@ def get_descendent_class_by_name(parent_class, name):
 def get_translator(
     locale=None,
     module="psynet",
-    locales_dir=LOCALES_DIR,
+    locales_dir=get_locales_dir(),
 ):
 
     from .translation.utils import compile_mo
@@ -707,7 +710,7 @@ def get_translator(
     return translator.gettext, translator.pgettext
 
 
-def get_available_locales(locales_dir=LOCALES_DIR):
+def get_available_locales(locales_dir=get_locales_dir()):
     return [
         f for f in os.listdir(locales_dir) if os.path.isdir(join_path(locales_dir, f))
     ]
