@@ -18,6 +18,7 @@ from ..utils import (
     require_exp_directory,
 )
 from . import supported_locales as psynet_supported_locales
+from .check import check_translations
 from .utils import create_pot, remove_line_numbers, sort_po
 
 
@@ -391,6 +392,8 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
         po = remove_line_numbers(po)
 
         po.save(po_path)
+
+        check_translations(locales=[target_lang])
 
         if n_to_translate > 0:
             taken = round(time.time() - now)

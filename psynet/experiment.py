@@ -487,10 +487,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
-        locales_dir = os.path.abspath("locales")
-
         self.pre_deploy_routines = []
-        if self.translation_checks_needed(locales_dir):
+        if self.translation_checks_needed():
             self.pre_deploy_routines.append(
                 PreDeployRoutine(
                     "check_experiment_translations",
