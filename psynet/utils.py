@@ -670,7 +670,7 @@ def get_translator(
     # We defer translation until we're in the deployment package. This is important for allowing us to
     # import the experiment directory (to access config variables etc) when translations are not yet available.
     if not in_deployment_package():
-        return null_translator, null_translator
+        return null_translator, null_translator_with_context
 
     if locale is None:
         try:
@@ -715,7 +715,14 @@ def get_translator(
     return translator.gettext, translator.pgettext
 
 
-def null_translator(message, *args, **kwargs):
+def null_translator(message):
+    """
+    A translator that returns the message unchanged.
+    """
+    return message
+
+
+def null_translator_with_context(context, message):
     """
     A translator that returns the message unchanged.
     """
