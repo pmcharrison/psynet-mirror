@@ -276,7 +276,7 @@ def check_translations(path=".", locales: Optional[list[str]] = None):
         source_directory = get_package_source_directory(path)
         namespace = get_package_name()
         if locales is None:
-            from .languages import supported_locales as psynet_supported_locales
+            from .languages import psynet_supported_locales
 
             package = importlib.import_module(namespace)
             locales = getattr(package, "supported_locales", psynet_supported_locales)

@@ -1250,8 +1250,7 @@ class Page(Elt):
             "attributes": self.attributes,
             "contents": self.contents,
             "supported_language_dict": {
-                iso: language_dict[iso]
-                for iso in json.loads(config.get("supported_locales"))
+                iso: language_dict[iso] for iso in experiment.psynet_supported_locales
             },
             "locale": locale,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,

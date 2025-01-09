@@ -1,6 +1,6 @@
 from psynet.utils import get_translator_with_context
 
-supported_locales = [
+psynet_supported_locales = [
     "ar",
     "be",
     "bg",

@@ -550,9 +550,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def compile_translations_if_necessary(self, locales_dir, namespace):
         """Compiles translations if necessary."""
-        supported_locales = self.config.get("supported_locales", [])
         if self.translation_checks_needed(locales_dir):
-            for locale in supported_locales:
+            for locale in self.supported_locales:
                 if locale == "en":
                     continue
                 po_path = os.path.join(
@@ -561,7 +560,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assert os.path.exists(po_path), f"Could not find po file at {po_path}"
                 compile_mo(po_path)
         else:
-            assert supported_locales == [], "No locales folder found"
+            assert self.supported_locales == [], "No locales folder found"
 
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(
@@ -2137,7 +2136,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("window_height", int)
 
         def is_valid_locale(value):
-            from .translation import supported_locales
+            from .translation import psynet_supported_locales
 
             locales = json.loads(value)
             if len(locales) == 0 or locales == ["en"]:
@@ -2147,7 +2146,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 if locale == "en":
                     continue
                 assert (
-                    locale in supported_locales
+                    locale in psynet_supported_locales
                 ), f"Locale {locale} not available in PsyNet."
 
         config.register(

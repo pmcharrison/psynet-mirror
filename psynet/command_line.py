@@ -2892,11 +2892,11 @@ class ListOfStrings(click.ParamType):
 
 
 @psynet.command("translate")
-@click.argument("languages", nargs=-1)
+@click.argument("locales", nargs=-1)
 @click.option(
     "--force", is_flag=True, help="Force retranslation of existing translations"
 )
-def translate(languages, force):
+def translate(locales, force):
     """
     Inspects the code in the current directory and generates automatic translations for a given set of languages.
 
@@ -2930,11 +2930,11 @@ def translate(languages, force):
             bold(f"Found a package called '{get_package_name()}' to translate")
             + f" at {os.getcwd()}."
         )
-        translate_package(languages, force=force)
+        translate_package(locales, force=force)
 
     elif experiment_available():
         click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
-        translate_experiment(languages, force=force)
+        translate_experiment(locales, force=force)
 
     else:
         raise RuntimeError(
