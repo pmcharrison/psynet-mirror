@@ -19,6 +19,21 @@ msgid "Below you will see this text translated!"
 msgstr "Unten sehen Sie diesen Text übersetzt!"
 
 #: experiment.py
+#, fuzzy, python-brace-format
+msgid "My name is {NAME}."
+msgstr "Mein Name ist {NAME}."
+
+#: experiment.py
+#, fuzzy, python-brace-format
+msgid "My favorite food is {FOOD}."
+msgstr "Mein Lieblingsessen ist {FOOD}."
+
+#: experiment.py
+#, fuzzy, python-brace-format
+msgid "My least favorite food is {FOOD}."
+msgstr "Mein am wenigsten bevorzugtes Essen ist {FOOD}."
+
+#: experiment.py
 #, fuzzy
 msgid "You can also translate text in push buttons or any kind of page!"
 msgstr ""

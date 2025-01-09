@@ -199,8 +199,8 @@ def check_function_args(f, args, need_all=True):
         if actual != list(args):
             raise ValueError(f"Invalid argument list: {actual}")
     else:
-        for a in actual:
-            if a not in args:
+        for a in args:
+            if a not in actual:
                 raise ValueError(f"Invalid argument: {a}")
     return True
 

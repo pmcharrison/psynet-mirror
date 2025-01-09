@@ -2763,9 +2763,6 @@ class PreDeployRoutine(NullElt):
         super().__init__()
         if args is None:
             args = {}
-        provided_args = list(args.keys())
-        provided_args.append("experiment")
-        check_function_args(function, args=provided_args, need_all=False)
         self.label = label
         self.function = function
         self.args = args

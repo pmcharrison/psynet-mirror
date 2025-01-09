@@ -1,16 +1,11 @@
-from markupsafe import Markup
+from dominate import tags
 
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.utils import (
-    get_config,
-    get_logger,
-    get_translator,
-    get_translator_with_context,
-)
+from psynet.utils import get_logger, get_translator, get_translator_with_context
 
 logger = get_logger()
 
@@ -32,41 +27,44 @@ class Exp(psynet.experiment.Experiment):
             _p("welcome-page", "Welcome to the translation demo!"), time_estimate=2
         ),
         InfoPage(
-            Markup(
-                "<h2>"
-                + f"You have chosen to translate this experiment to {get_config.get('locale')}."
-                + "</h2>"
-                + "<hr>"
-                + "<p>"
-                + "Below you will see this text translated! <br>"
-                + _("Below you will see this text translated!")
-                + "</p>"
-                + "<hr>"
+            tags.span(
+                tags.h2(
+                    f"You have chosen to translate this experiment to {config.get('locale')}."
+                ),
+                tags.hr(),
+                tags.p(
+                    "Below you will see this text translated!",
+                    tags.br(),
+                    _("Below you will see this text translated!"),
+                ),
+                tags.hr(),
             ),
             time_estimate=5,
         ),
         InfoPage(
-            Markup(
-                "<h2>"
-                + "You can also change the translation during the experiment if you like. Try switching to another locale!"
-                + "</h2>"
-                + "<hr>"
-                + "<p>"
-                + "Below you will see this text translated! <br>"
-                + _("Below you will see this text translated!")
-                + "</p>"
-                + "<hr>"
+            tags.span(
+                tags.h2(
+                    "You can also change the translation during the experiment if you like. Try switching to another locale!"
+                ),
+                tags.hr(),
+                tags.p(
+                    "Below you will see this text translated!",
+                    tags.br(),
+                    _("Below you will see this text translated!"),
+                ),
+                tags.hr(),
             ),
             time_estimate=5,
         ),
         InfoPage(
-            Markup(
-                "This is a use of an inline variable:"
-                + _("My name is {name}.").format(name="Alice")
-                + _("My favorite food is {food}.").format(food="pizza")
-                + _("My least favorite food is {food}.").format(food="pizza")
-                + "</p>"
-                + "<hr>"
+            tags.span(
+                tags.p(
+                    "This is a use of an inline variable:",
+                    _("My name is {NAME}.").format(NAME="Alice"),
+                    _("My favorite food is {FOOD}.").format(FOOD="pizza"),
+                    _("My least favorite food is {FOOD}.").format(FOOD="pizza"),
+                ),
+                tags.hr(),
             ),
             time_estimate=5,
         ),
