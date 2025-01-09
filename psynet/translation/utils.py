@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import tempfile
 import time
@@ -133,6 +134,12 @@ def create_pot(input_path: str, pot_path):
     -------
     Returns the generated pot file
     """
+    from psynet.translation.check import (
+        F_STRING_PATTERN,
+        JINJA_PATTERN,
+        variable_name_check,
+    )
+
     if not os.path.isabs(input_path):
         input_path = os.path.abspath(input_path)
 
@@ -160,6 +167,28 @@ def create_pot(input_path: str, pot_path):
         os.makedirs(os.path.dirname(pot_path), exist_ok=True)
         pot.save(pot_path)
         taken = round(time.time() - now)
+
+        extracted_variables = []
+        for entry in entries:
+            extracted_variables.extend(re.findall(F_STRING_PATTERN, entry.msgid))
+            extracted_variables.extend(re.findall(JINJA_PATTERN, entry.msgid))
+        used_variables = list(set(extracted_variables))
+
+        illegal_variable_names = []
+        for var_name in used_variables:
+            try:
+                variable_name_check(var_name)
+            except AssertionError:
+                illegal_variable_names.append(var_name)
+        if len(illegal_variable_names) > 0:
+            sp.text = (
+                bold("Extracting translations failed") + ": "
+                "Some variable names do not comply with the naming convention for variables. "
+                f"Search and replace the following variables in your source code: {illegal_variable_names}"
+            )
+            sp.fail("💥")
+            exit(1)
+
         sp.text = bold("Translations extracted successfully.") + f" ({taken}s)"
         sp.ok("✅")
 

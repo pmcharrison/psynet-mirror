@@ -5,10 +5,7 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from yaspin import yaspin
-
 from .. import log
-from ..log import bold
 from ..utils import (
     get_language_dict,
     get_locales_dir_from_path,
@@ -61,6 +58,8 @@ def variable_name_check(variable_name):
 def get_translations(namespace, locales_dir, locales):
     translations = {}
     for locale in sorted(locales):
+        if locale == "en":
+            continue
         po_path = os.path.join(locales_dir, locale, "LC_MESSAGES", namespace + ".po")
         if not os.path.exists(po_path):
             raise RuntimeError(f"No translation found for {locale}")
@@ -76,11 +75,23 @@ def extract_variable_names(msgid):
 
 
 def assert_variable_names_match(pot_entries, po_entries):
+    translations_with_mismatching_variables = []
     for key, pot_entry in pot_entries.items():
         pot_variables = extract_variable_names(pot_entry.msgid)
         po_entry = po_entries[key]
         po_variables = extract_variable_names(po_entry.msgstr)
-        assert sorted(pot_variables) == sorted(po_variables)
+        if sorted(pot_variables) != sorted(po_variables):
+            translations_with_mismatching_variables.append(
+                (pot_variables, po_variables, po_entry)
+            )
+    if len(translations_with_mismatching_variables) > 0:
+        lines = [
+            f"{pot_variables} != {po_variables}, search for entry: '{po_entry.msgstr}'"
+            for pot_variables, po_variables, po_entry in translations_with_mismatching_variables
+        ]
+        raise ValueError(
+            f"Variable names do not match in the following translations (search for the translation and make sure the variable names match): {'\n'.join(lines)}"
+        )
 
 
 def assert_all_variables_defined(extracted_variables, variable_placeholders):
@@ -102,6 +113,7 @@ def assert_no_missing_translations(po_entries, pot_entries, locale):
     missing_translations = [
         parse_translation(msgid, msgctxt) for msgid, msgctxt in missing_translations
     ]
+
     if len(missing_translations) > 0:
         [
             logger.error(missing_translation)
@@ -144,11 +156,11 @@ def assert_no_duplicate_translations_in_same_context(po_entries, locale):
         assert all(translation_counts == 1), msg
 
 
-def assert_translation_contains_same_variables(
+def translation_contains_same_variables(
     original, translation, assume_same_variable_order=False
 ):
     """
-    Assert that the translation contains the same variables as the original.
+    Assess if the translation contains the same variables as the original.
 
     We check the following patterns: jinja variables, f-strings, format strings, and HTML tags. Machine translations
     tend to translate variable names, which will lead to runtime errors. Also, quite often HTML tags are not translated
@@ -182,6 +194,7 @@ def assert_translation_contains_same_variables(
             "assertion": "equals",
         },
     ]
+    checks = []
     for check in variable_checks:
         found_entries_original = re.findall(check["pattern"], original)
         found_entries_translation = re.findall(check["pattern"], translation)
@@ -189,22 +202,19 @@ def assert_translation_contains_same_variables(
             for entry in found_entries_original + found_entries_translation:
                 additional_check(entry)
         if check["assertion"] == "equals":
-            msg = f"Found entries in original and translation do not match: {found_entries_original} != {found_entries_translation} for pattern {check['pattern']} in original '{original}' and translation '{translation}'"
             if assume_same_variable_order:
-                assert found_entries_original == found_entries_translation, msg
+                checks.append(found_entries_original == found_entries_translation)
             else:
-                assert set(found_entries_original) == set(
-                    found_entries_translation
-                ), msg
+                checks.append(
+                    set(found_entries_original) == set(found_entries_translation)
+                )
         elif check["assertion"] == "does_not_contain":
             f_strings_in_original = set(re.findall(check["pattern"], original))
-            assert f_strings_in_original == set(
-                re.findall(check["pattern"], translation)
-            )
-            assert len(f_strings_in_original) == 0
+            f_strings_in_translation = set(re.findall(check["pattern"], translation))
+            checks.append(f_strings_in_original == f_strings_in_translation)
         else:
             raise ValueError(f"Unknown assertion {check['assertion']}")
-    return True
+        return all(checks)
 
 
 def assert_no_runtime_errors(
@@ -247,12 +257,13 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
         po_path = get_po_path(locale, locales_dir, namespace)
         compile_mo(po_path)
         translator = gettext.translation(namespace, locales_dir, [locale])
-
+        problematic_translations = []
         for key, po_entry in po_entries.items():
             msgid, msgctxt = key
             msgstr = str(po_entry.msgstr)
 
-            assert_translation_contains_same_variables(msgid, msgstr)
+            if not translation_contains_same_variables(msgid, msgstr):
+                problematic_translations.append((msgid, msgstr, msgctxt))
 
             variables = extract_variable_names(msgid)
             variable_placeholders = dict(zip(variables, len(variables) * [""]))
@@ -265,10 +276,20 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
                 msgctxt,
                 variable_placeholders,
             )
+        if len(problematic_translations) > 0:
+            lines = [
+                f"{msgid} -> {msgstr} in context {msgctxt}"
+                for msgid, msgstr, msgctxt in problematic_translations
+            ]
+            raise ValueError(
+                f"Variable names do not match in the following translations (search for the translation and make sure the variable names match): {'\n'.join(lines)}"
+            )
         os.remove(po_path.replace(".po", ".mo"))
 
 
-def check_translations(path=".", locales: Optional[list[str]] = None):
+def check_translations(
+    path=".", locales: Optional[list[str]] = None, recreate_pot=True
+):
     path = Path(path)
     locales_dir = get_locales_dir_from_path(path)
 
@@ -292,28 +313,15 @@ def check_translations(path=".", locales: Optional[list[str]] = None):
             f"{path} does not appear to be either a package or an experiment directory."
         )
 
-    with tempfile.NamedTemporaryFile(suffix=".pot") as f:
-        pot_path = f.name
-        pot = create_pot(source_directory, pot_path)
-        pot_entries = po_to_dict(pot)
+    if recreate_pot:
+        with tempfile.NamedTemporaryFile(suffix=".pot") as f:
+            pot_path = f.name
+            pot = create_pot(source_directory, pot_path)
+    else:
+        pot_path = os.path.join(locales_dir, namespace + ".pot")
+        pot = load_po(pot_path)
 
-    with yaspin() as spinner:
-        variable_errors = []
-        for key, po_entry in pot_entries.items():
-            msgid, msgctxt = key
-            msgstr = str(po_entry.msgstr)
-            try:
-                assert_translation_contains_same_variables(msgid, msgstr)
-            except AssertionError as e:
-                variable_errors.append(e)
-        if len(variable_errors) > 0:
-            for error in variable_errors:
-                logger.error(error)
-            spinner.text = (
-                bold("Variable errors found") + " See the details above and fix them."
-            )
-            spinner.fail("💥")
-            exit(1)
+    pot_entries = po_to_dict(pot)
 
     translations = get_translations(namespace, locales_dir, locales)
 

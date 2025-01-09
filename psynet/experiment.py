@@ -550,7 +550,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def compile_translations_if_necessary(self, locales_dir, namespace):
         """Compiles translations if necessary."""
-        if self.translation_checks_needed(locales_dir):
+        if self.translation_checks_needed():
             for locale in self.supported_locales:
                 if locale == "en":
                     continue

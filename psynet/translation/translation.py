@@ -389,8 +389,13 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
         po = remove_line_numbers(po)
 
         po.save(po_path)
-
-        check_translations(locales=[target_lang])
+        try:
+            check_translations(locales=[target_lang], recreate_pot=False)
+        except Exception as e:
+            error_message = str(e)
+            spinner.text = f"{bold_language}: Translation failed: {error_message}"
+            spinner.fail("💥")
+            return False
 
         if n_to_translate > 0:
             taken = round(time.time() - now)
