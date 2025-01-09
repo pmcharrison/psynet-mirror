@@ -1,10 +1,14 @@
 import os
 import sys
 import tempfile
+import time
 from collections import OrderedDict
 
 import pexpect
 import polib
+from yaspin import yaspin
+
+from psynet.log import bold
 
 
 def get_locales_dir():
@@ -34,15 +38,13 @@ def load_po(po_path):
     return polib.pofile(po_path)
 
 
-def get_pot_from_command(cmd, tmp_pot_file):
+def get_pot_from_command(cmd, tmp_pot_file, sp):
     """Create a pot file from a command and open."""
     timeout = 60
     p = pexpect.spawn(cmd, timeout=timeout)
     while not p.eof():
         line = p.readline().decode("utf-8")
-        # Don't print the line if it's just a message about writing the PO template file
-        if not line.startswith("writing PO template file"):
-            print(line, end="")
+        sp.text = line
     p.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)
@@ -54,7 +56,7 @@ def get_pot_from_command(cmd, tmp_pot_file):
         return []
 
 
-def create_translation_template_with_pybabel(input):
+def create_translation_template_with_pybabel(input, sp):
     """Extract translations from a file or multiple files using pybabel."""
     cfg = """
             [jinja2: **.html]
@@ -66,17 +68,20 @@ def create_translation_template_with_pybabel(input):
         with open(tmp_cfg_file, "w") as f:
             f.write(cfg)
         return get_pot_from_command(
-            f"pybabel extract -F {tmp_cfg_file} -o {tmp_pot_file} {input}", tmp_pot_file
+            f"pybabel extract -F {tmp_cfg_file} -o {tmp_pot_file} {input}",
+            tmp_pot_file,
+            sp,
         )
 
 
-def create_translation_template_with_xgettext(input_file):
+def create_translation_template_with_xgettext(input_file, sp):
     """Extract translations from a file using xgettext."""
     with tempfile.TemporaryDirectory() as tempdir:
         tmp_pot_file = os.path.join(tempdir, "xgettext.pot")
         return get_pot_from_command(
             f'xgettext -o {tmp_pot_file} {input_file} -L Python --keyword="_p:1c,2"',
             tmp_pot_file,
+            sp,
         )
 
 
@@ -139,56 +144,63 @@ def create_pot(input_path: str, pot_path):
 
     entries = []
 
-    if os.path.isdir(input_path):
-        entries.extend(_get_entries_from_dir(input_path))
-    elif input_path.endswith(".html"):
-        entries.extend(_get_html_entries_from_file(input_path))
-    elif input_path.endswith(".py"):
-        entries.extend(_get_py_entries_from_file(input_path))
-    else:
-        raise ValueError("Input file must be a Python or HTML file.")
+    with yaspin(text="Extracting translations...") as sp:
+        now = time.time()
+        if os.path.isdir(input_path):
+            entries.extend(_get_entries_from_dir(input_path, sp))
+        elif input_path.endswith(".html"):
+            entries.extend(_get_html_entries_from_file(input_path, sp))
+        elif input_path.endswith(".py"):
+            entries.extend(_get_py_entries_from_file(input_path, sp))
+        else:
+            sp.text = "Input file must be a Python or HTML file."
+            sp.fail("💥")
+            raise ValueError("Input file must be a Python or HTML file.")
 
-    pot = new_pot(pot_path)
-    pot.extend(entries)
+        pot = new_pot(pot_path)
+        pot.extend(entries)
 
-    pot = sort_po(pot)
-    pot = make_file_paths_relative(pot)
+        pot = sort_po(pot)
+        pot = make_file_paths_relative(pot)
 
-    os.makedirs(os.path.dirname(pot_path), exist_ok=True)
-    pot.save(pot_path)
+        os.makedirs(os.path.dirname(pot_path), exist_ok=True)
+        pot.save(pot_path)
+        taken = round(time.time() - now)
+        sp.text = bold("Translations extracted successfully.") + f" ({taken}s)"
+        sp.ok("✅")
 
     return pot
 
 
-def _get_entries_from_dir(input_path):
+def _get_entries_from_dir(input_path, sp):
     entries = []
-    entries.extend(_get_html_entries_from_dir(input_path))
-    entries.extend(_get_py_entries_from_dir(input_path))
+    entries.extend(_get_html_entries_from_dir(input_path, sp))
+    entries.extend(_get_py_entries_from_dir(input_path, sp))
 
     return entries
 
 
-def _get_html_entries_from_dir(input_path):
+def _get_html_entries_from_dir(input_path, sp):
     # pybabel works recursively, so we can just call it on the directory
-    return create_translation_template_with_pybabel(input_path)
+    return create_translation_template_with_pybabel(input_path, sp)
 
 
-def _get_html_entries_from_file(input_path):
-    return create_translation_template_with_pybabel(input_path)
+def _get_html_entries_from_file(input_path, sp):
+    return create_translation_template_with_pybabel(input_path, sp)
 
 
-def _get_py_entries_from_dir(input_path):
+def _get_py_entries_from_dir(input_path, sp):
     # xgettext does not work recursively, so we need to walk the directory and call it on each file
     entries = []
     for root, dirs, files in os.walk(input_path):
         for file in files:
             if file.endswith(".py"):
-                entries.extend(_get_py_entries_from_file(os.path.join(root, file)))
+                entries.extend(_get_py_entries_from_file(os.path.join(root, file), sp))
     return entries
 
 
-def _get_py_entries_from_file(input_path):
-    return create_translation_template_with_xgettext(input_path)
+def _get_py_entries_from_file(input_path, sp):
+    return create_translation_template_with_xgettext(input_path, sp)
 
 
 def remove_line_numbers(po):

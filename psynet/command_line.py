@@ -2919,15 +2919,20 @@ def translate(languages, force):
     psynet translate fr de
         Generate translations for French and German.
     """
+    import warnings
+
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
     from psynet.translation.translation import translate_experiment, translate_package
 
     if experiment_available():
-        click.echo(f"Found an experiment to translate at {os.getcwd()}.")
+        click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
         translate_experiment(languages, force=force)
 
     elif in_python_package():
         click.echo(
-            f"Found a package called '{get_package_name()}' to translate at {os.getcwd()}."
+            bold(f"Found a package called '{get_package_name()}' to translate")
+            + f" at {os.getcwd()}."
         )
         translate_package(languages, force=force)
     else:
