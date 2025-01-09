@@ -34,8 +34,6 @@ from flask import url_for
 from flask.globals import current_app
 from flask.templating import Environment, _render
 
-from psynet.translation import get_known_countries, get_known_languages
-
 package_root = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -754,10 +752,14 @@ def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
 
 
 def get_language_dict(locale, sort_by_name=True):
+    from psynet.translation.languages import get_known_languages
+
     return _get_entity_dict_from_tuple_list(get_known_languages(locale), sort_by_name)
 
 
 def get_country_dict(locale, sort_by_name=True):
+    from psynet.translation.countries import get_known_countries
+
     return _get_entity_dict_from_tuple_list(get_known_countries(locale), sort_by_name)
 
 

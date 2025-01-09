@@ -45,7 +45,7 @@ def translate_package(languages: List[str], force: bool = False):
 
 
 def translate(namespace, source_dir, locales_dir, locales, force: bool = False):
-    locales.remove("en")
+    locales = [locale for locale in locales if locale != "en"]
 
     check_locales(locales)
 
