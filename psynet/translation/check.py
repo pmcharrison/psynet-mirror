@@ -5,7 +5,10 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
+from yaspin import yaspin
+
 from .. import log
+from ..log import bold
 from ..utils import (
     get_language_dict,
     get_locales_dir_from_path,
@@ -72,11 +75,12 @@ def extract_variable_names(msgid):
     return variable_names
 
 
-def extract_variable_names_from_entries(pot_entries):
-    extracted_variables = []
+def assert_variable_names_match(pot_entries, po_entries):
     for key, pot_entry in pot_entries.items():
-        extracted_variables.extend(extract_variable_names(pot_entry.msgid))
-    return list(set(extracted_variables))
+        pot_variables = extract_variable_names(pot_entry.msgid)
+        po_entry = po_entries[key]
+        po_variables = extract_variable_names(po_entry.msgstr)
+        assert sorted(pot_variables) == sorted(po_variables)
 
 
 def assert_all_variables_defined(extracted_variables, variable_placeholders):
@@ -203,79 +207,6 @@ def assert_translation_contains_same_variables(
     return True
 
 
-def check_translation_capitalization_and_punctuation_match(
-    original, translation, locale, check_capitalization=None, check_symbols=True
-):
-    """
-    Check if the capitalization and punctuation of the original and translation match.
-
-    Concretely we check, if the first letter of the translation is capitalized (if the original was) and if the
-    translation is completely capitalized if the original was completely capitalized. We skip those tests for languages
-    which don't use capitalization, see `LANGUAGES_WITHOUT_CAPITALIZATION`.
-
-    We also check if the white space and punctuation match between the original and translation match. We check the
-    first and last character of the original and translation.
-    """
-    if check_capitalization is None:
-        check_capitalization = locale not in LANGUAGES_WITHOUT_CAPITALIZATION
-    assert len(original) > 0, f"The original ('{original}') must not be empty."
-    assert (
-        len(translation) > 0
-    ), f"Translation ('{translation}') of '{original}' must not be empty for {locale}."
-
-    # Inconsistent upper/lower case
-    if check_capitalization:
-        original_capital = original[0].isupper()
-        translation_capital = translation[0].isupper()
-
-        if original_capital is not translation_capital:
-            logger.warning(
-                f"Output string ('{translation}') should start with a capital letter."
-            )
-
-        original_all_capital = original.isupper()
-        translation_all_capital = translation.isupper()
-
-        if original_all_capital is not translation_all_capital:
-            logger.warning(
-                f"Translation ('{translation}') should be all capital letters."
-            )
-
-    # Inconsistent whitespace or punctuation
-    chars = {
-        "white space": lambda x: x == " ",
-        "line break": lambda x: x in ["\n", "\r"],
-        "period": lambda x: x in [".", "。"],
-        "exclamation mark": lambda x: x in ["!", "！"],
-        "question mark": lambda x: x in ["?", "？"],
-        "colon": lambda x: x in [":", "："],
-        "semicolon": lambda x: x in [";", "；"],
-        "comma": lambda x: x in [",", "，"],
-        "dash": lambda x: x in ["-", "—"],
-        "parenthesis": lambda x: x in ["(", ")", "（", "）"],
-        "bracket": lambda x: x in ["[", "]", "【", "】"],
-        "brace": lambda x: x in ["{", "}", "｛", "｝"],
-    }
-    if check_symbols:
-        for char_label, is_symbol in chars.items():
-            for position in ["starts", "ends"]:
-                idx = 0 if position == "starts" else -1
-                original_has_symbol = is_symbol(original[idx])
-                translation_has_symbol = is_symbol(translation[idx])
-
-                if original_has_symbol is not translation_has_symbol:
-                    info = f"\nOriginal: '{original}'\nTranslation: '{translation}'"
-                    if original_has_symbol and not translation_has_symbol:
-                        logger.warning(
-                            f"The original {position} with a {char_label}, but the translation doesn't. {info}"
-                        )
-                    elif translation_has_symbol and not original_has_symbol:
-                        logger.warning(
-                            f"The translation {position} with a {char_label}, but the original doesn't. {info}"
-                        )
-    return True
-
-
 def assert_no_runtime_errors(
     gettext, pgettext, locale, msgid, msgstr, msgctxt, variable_placeholders
 ):
@@ -295,13 +226,9 @@ def assert_no_runtime_errors(
         ) from e
 
 
-def _check_translations(
-    pot_entries, translations, locales_dir, variable_placeholders, namespace
-):
+def _check_translations(pot_entries, translations, locales_dir, namespace):
     import gettext
 
-    extracted_variables = extract_variable_names_from_entries(pot_entries)
-    assert_all_variables_defined(extracted_variables, variable_placeholders)
     language_dict = get_language_dict("en")
 
     for locale, po in translations.items():
@@ -310,6 +237,8 @@ def _check_translations(
             log.bold(f"Checking {locale} translation ({language_name}) for errors...")
         )
         po_entries = po_to_dict(po)
+
+        assert_variable_names_match(pot_entries, po_entries)
 
         assert_no_missing_translations(po_entries, pot_entries, locale)
 
@@ -324,9 +253,9 @@ def _check_translations(
             msgstr = str(po_entry.msgstr)
 
             assert_translation_contains_same_variables(msgid, msgstr)
-            check_translation_capitalization_and_punctuation_match(
-                msgid, msgstr, locale
-            )
+
+            variables = extract_variable_names(msgid)
+            variable_placeholders = dict(zip(variables, len(variables) * [""]))
             assert_no_runtime_errors(
                 translator.gettext,
                 translator.pgettext,
@@ -367,6 +296,24 @@ def check_translations(path=".", locales: Optional[list[str]] = None):
         pot_path = f.name
         pot = create_pot(source_directory, pot_path)
         pot_entries = po_to_dict(pot)
+
+    with yaspin() as spinner:
+        variable_errors = []
+        for key, po_entry in pot_entries.items():
+            msgid, msgctxt = key
+            msgstr = str(po_entry.msgstr)
+            try:
+                assert_translation_contains_same_variables(msgid, msgstr)
+            except AssertionError as e:
+                variable_errors.append(e)
+        if len(variable_errors) > 0:
+            for error in variable_errors:
+                logger.error(error)
+            spinner.text = (
+                bold("Variable errors found") + " See the details above and fix them."
+            )
+            spinner.fail("💥")
+            exit(1)
 
     translations = get_translations(namespace, locales_dir, locales)
 

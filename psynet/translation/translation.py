@@ -1,19 +1,24 @@
 import json
 import os
+import time
 from copy import copy
 from functools import cached_property
 from typing import Iterable, List, Optional
 
 import polib
+from yaspin import yaspin
 
 from psynet.translation.translators import DefaultTranslator
 
+from ..log import bold
 from ..utils import (
+    get_language_dict,
     get_package_name,
     get_package_source_directory,
     require_exp_directory,
 )
 from . import supported_locales as psynet_supported_locales
+from .check import check_translations
 from .utils import create_pot, remove_line_numbers, sort_po
 
 
@@ -52,7 +57,7 @@ def translate(namespace, source_dir, locales_dir, locales, force: bool = False):
     pot_path = os.path.join(locales_dir, namespace + ".pot")
     pot = create_pot(source_dir, pot_path)
 
-    print(f"Translating {pot_path} to {', '.join(locales)}...")
+    print(bold(f"Translating {pot_path} into {len(locales)} languages:"))
 
     for locale in locales:
         translate_pot(pot_path, target_language=locale, force=force)
@@ -331,57 +336,73 @@ class TranslationUnit:
 
 
 def translate_po(pot_path, po_path, source_lang, target_lang):
+    # Add yaspin spinner here
+    language_dict = get_language_dict("en")
+    assert (
+        target_lang in language_dict
+    ), f"Language {target_lang} not found in language_dict"
+    target_language = language_dict[target_lang]
     assert (
         target_lang != "en"
     ), "English is the source language, so doesn't need translation."
+    bold_language = bold(target_language)
+    with yaspin() as spinner:
+        now = time.time()
+        spinner.text = f"{bold_language}: Start translating..."
 
-    print(f"Generating translations for {target_lang}...")
+        old_po = polib.pofile(po_path) if os.path.exists(po_path) else None
+        new_po = initialize_po(pot_path, po_path, target_lang)
 
-    old_po = polib.pofile(po_path) if os.path.exists(po_path) else None
-    new_po = initialize_po(pot_path, po_path, target_lang)
+        old_units = TranslationUnit.from_po(old_po)
+        new_units = TranslationUnit.from_po(new_po)
 
-    old_units = TranslationUnit.from_po(old_po)
-    new_units = TranslationUnit.from_po(new_po)
+        combined_units = TranslationUnit.inherit(new_units, old_units, sort=True)
 
-    combined_units = TranslationUnit.inherit(new_units, old_units, sort=True)
+        units_to_translate = [
+            unit for unit in combined_units.values() if not unit.is_translated
+        ]
 
-    units_to_translate = [
-        unit for unit in combined_units.values() if not unit.is_translated
-    ]
+        n_to_translate = len(units_to_translate)
+        n_to_skip = len(combined_units) - n_to_translate
 
-    n_to_translate = len(units_to_translate)
-    n_to_skip = len(combined_units) - n_to_translate
+        if n_to_skip > 0:
+            spinner.text = f"{bold_language}: Skipping translations in {n_to_skip} file(s), because no new text was found to translate."
 
-    if n_to_skip > 0:
-        print(
-            f"...skipped translating {n_to_skip} file(s) because no new text was found to translate."
+        total_entries = sum(len(unit) for unit in units_to_translate)
+        remaining_entries = copy(total_entries)
+        for i, translation_unit in enumerate(units_to_translate):
+            if not translation_unit.is_translated:
+                remaining_entries -= len(translation_unit)
+                spinner.text = f"{bold_language}: Translating file {1 + i}/{n_to_translate} ({translation_unit.file}, {len(translation_unit)} entries, {remaining_entries} remaining)."
+                translation_unit.translate(source_lang, target_lang)
+
+        # This function should try and preserve the ordering of the old_po file where possible
+        # Strategy: po should be sorted by (a) file path and (b) line number
+        # If the same _() call is used in multiple places, then we keep the first one.
+        # We won't actually store the line numbers in the saved version, but we use them for sorting before we remove them
+        # from the pot file.
+
+        po = update_po(
+            new_po,  # We are going to in-place modify the new_po object:
+            combined_units,  # we will incorporate the new translations from combined_units;
+            old_po,  # we will preserve any manual translations from old_po.
         )
 
-    for i, translation_unit in enumerate(units_to_translate):
-        if not translation_unit.is_translated:
-            print(
-                f"translating file {1 + i} of {n_to_translate} "
-                f"({translation_unit.file}, {len(translation_unit)} entries) "
-                f"from {source_lang} to {target_lang}..."
-            )
-            translation_unit.translate(source_lang, target_lang)
+        po = sort_po(po)
+        po = remove_line_numbers(po)
 
-    # This function should try and preserve the ordering of the old_po file where possible
-    # Strategy: po should be sorted by (a) file path and (b) line number
-    # If the same _() call is used in multiple places, then we keep the first one.
-    # We won't actually store the line numbers in the saved version, but we use them for sorting before we remove them
-    # from the pot file.
+        po.save(po_path)
 
-    po = update_po(
-        new_po,  # We are going to in-place modify the new_po object:
-        combined_units,  # we will incorporate the new translations from combined_units;
-        old_po,  # we will preserve any manual translations from old_po.
-    )
+        check_translations(locales=[target_lang])
 
-    po = sort_po(po)
-    po = remove_line_numbers(po)
-
-    po.save(po_path)
+        if n_to_translate > 0:
+            taken = round(time.time() - now)
+            ms_per_entry = round(1000 * taken / total_entries)
+            spinner.text = f"{bold_language}: Translation complete ({taken}s, {ms_per_entry}ms/entry)."
+            spinner.ok("✅")
+        else:
+            spinner.text = f"{bold_language}: No new text found to translate."
+            spinner.ok("⚠️")
 
 
 def update_po(

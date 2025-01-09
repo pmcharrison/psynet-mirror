@@ -4,20 +4,25 @@ import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import Timeline
-from psynet.utils import get_config, get_logger, get_translator_with_context
+from psynet.timeline import Timeline, join
+from psynet.utils import get_logger, get_translator, get_translator_with_context
 
 logger = get_logger()
 
+_ = get_translator()
+_p = get_translator_with_context()
+locale = "de"
 
-_p = get_translator_with_context
+
+def timeline():
+    return join()
 
 
 class Exp(psynet.experiment.Experiment):
     label = "Translation demo"
 
     config = {
-        "locale": "de",
+        "locale": locale,
         "supported_locales": ["en", "de", "nl"],
     }
     timeline = Timeline(
@@ -28,7 +33,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage(
             Markup(
                 "<h2>"
-                + f"You have chosen to translate this experiment to {get_config().get('locale')}."
+                + f"You have chosen to translate this experiment to {locale}."
                 + "</h2>"
                 + "<hr>"
                 + "<p>"
@@ -48,6 +53,17 @@ class Exp(psynet.experiment.Experiment):
                 + "<p>"
                 + "Below you will see this text translated! <br>"
                 + _("Below you will see this text translated!")
+                + "</p>"
+                + "<hr>"
+            ),
+            time_estimate=5,
+        ),
+        InfoPage(
+            Markup(
+                "This is a use of an inline variable:"
+                + _("My name is {name}.").format(name="Alice")
+                + _("My favorite food is {food}.").format(food="pizza")
+                + _("My least favorite food is {food}.").format(food="pizza")
                 + "</p>"
                 + "<hr>"
             ),
