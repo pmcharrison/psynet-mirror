@@ -199,8 +199,8 @@ def check_function_args(f, args, need_all=True):
         if actual != list(args):
             raise ValueError(f"Invalid argument list: {actual}")
     else:
-        for a in actual:
-            if a not in args:
+        for a in args:
+            if a not in actual:
                 raise ValueError(f"Invalid argument: {a}")
     return True
 
@@ -645,10 +645,82 @@ def get_locale():
 
 
 def get_translator(locale=None, namespace=None, locales_dir=None):
+    """
+    Return a translator.
+
+    In most cases this function should be called with no arguments, in which case
+    the locale will be taken from the config.txt file,
+    the namespace will be inferred from the context in which the function was called,
+    and the locales directory will be inferred from the namespace.
+
+    If you need to override any of these defaults, you can provide the locale, namespace, and/or locales_dir explicitly.
+
+    In order for PsyNet's translation utilities to function properly, you should save the returned translator
+    as the variable _ (underscore).
+
+    Example usage
+    -------------
+
+    >>> _ = get_translator()
+    >>> _("Hello")  # Translate "Hello" into the current locale.
+
+    Parameters
+    ----------
+    locale : str, optional
+        The locale to use for translations. If not provided, the locale will be taken from the experiment config.
+    namespace : str, optional
+        The namespace to use for translations. If not provided, the namespace will be inferred from the context
+        in which the function was called. The experiment directory has a namespace of "experiment", and the package
+        directory has a namespace of the package name.
+    locales_dir : str, optional
+        The directory to use for translations. If not provided, the locales directory will be inferred from the namespace.
+        In the case of an experiment, the locales directory will be the "locales" directory of the experiment's source directory.
+        In the case of a package, the locales directory will be the "locales" directory of the package's source directory.
+
+    See also
+    --------
+
+    :func:`get_translator_with_context`
+    """
     return _get_translator(locale, namespace, locales_dir)[0]
 
 
 def get_translator_with_context(locale=None, namespace=None, locales_dir=None):
+    """
+    Return a translator that also takes a context argument.
+
+    The context argument is used to disambiguate translations that have the same input text
+    but different meanings in different contexts.
+    We recommend avoiding contexts unless they're really necessary because it adds complexity
+    to your code.
+
+    In order for PsyNet's translation utilities to function properly, you should save the returned translator
+    as the variable _ (underscore).
+
+    Example usage
+    -------------
+
+    >>> _p = get_translator_with_context()
+    >>> _p(context="welcome message", message="Hello")  # Translate "Hello" into the current locale.
+
+    Parameters
+    ----------
+    locale : str, optional
+        The locale to use for translations. If not provided, the locale will be taken from the experiment config.
+    namespace : str, optional
+        The namespace to use for translations. If not provided, the namespace will be inferred from the context
+        in which the function was called. The experiment directory has a namespace of "experiment", and the package
+        directory has a namespace of the package name.
+    locales_dir : str, optional
+        The directory to use for translations. If not provided, the locales directory will be inferred from the namespace.
+        In the case of an experiment, the locales directory will be the "locales" directory of the experiment's source directory.
+        In the case of a package, the locales directory will be the "locales" directory of the package's source directory.
+
+    See also
+    --------
+
+    :func:`get_translator`
+    """
     return _get_translator(locale, namespace, locales_dir)[1]
 
 
@@ -659,29 +731,42 @@ def _get_translator(
 ):
     from .experiment import in_deployment_package
 
-    # We defer translation until we're in the deployment package. This is important for allowing us to
-    # import the experiment directory (to access config variables etc) when translations are not yet available.
-    if not in_deployment_package():
-        return null_translator, null_translator_with_context
-
-    if locale is None:
-        locale = get_locale()
-
     if namespace is None:
-        # Find the package within which the get_translator function was called.
-        package_name = inspect.currentframe().f_back.f_globals["__package__"]
+        # Work out the appropriate namespace by inspecting the call stack.
+        frame = inspect.currentframe().f_back
+        parent_function = frame.f_code.co_name
+
+        # If _get_translator was called within one of its wrapper functions,
+        # look one level further up the call stack.
+        if parent_function in ["get_translator", "get_translator_with_context"]:
+            frame = frame.f_back
+
+        package_name = frame.f_globals["__package__"]
+
         if package_name == "dallinger_experiment":
             namespace = "experiment"
+        elif package_name == "":
+            raise ValueError(
+                "_get_translator could not work out what namespace to use. Try providing the namespace explicitly."
+            )
         else:
             namespace = package_name
 
-    if locales_dir is None:
-        locales_dir = get_locales_dir(namespace)
+    # We only load translations when we're in the deployment package. This is important for allowing us to
+    # import the experiment directory (to access config variables etc) when translations are not yet available.
+    if in_deployment_package():
+        if locale is None:
+            locale = get_locale()
 
-    compile_mo_file_if_necessary(locales_dir, locale, namespace)
+        if locales_dir is None:
+            locales_dir = get_locales_dir(namespace)
 
-    translator = gettext.translation(namespace, locales_dir, [locale])
-    _, _p = translator.gettext, translator.pgettext
+        compile_mo_file_if_necessary(locales_dir, locale, namespace)
+
+        translator = gettext.translation(namespace, locales_dir, [locale])
+        _, _p = translator.gettext, translator.pgettext
+    else:
+        _, _p = null_translator, null_translator_with_context
 
     _.namespace = namespace
     _p.namespace = namespace

@@ -1250,8 +1250,7 @@ class Page(Elt):
             "attributes": self.attributes,
             "contents": self.contents,
             "supported_language_dict": {
-                iso: language_dict[iso]
-                for iso in json.loads(config.get("supported_locales"))
+                iso: language_dict[iso] for iso in experiment.psynet_supported_locales
             },
             "locale": locale,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
@@ -2764,9 +2763,6 @@ class PreDeployRoutine(NullElt):
         super().__init__()
         if args is None:
             args = {}
-        provided_args = list(args.keys())
-        provided_args.append("experiment")
-        check_function_args(function, args=provided_args, need_all=False)
         self.label = label
         self.function = function
         self.args = args

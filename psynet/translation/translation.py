@@ -1,4 +1,3 @@
-import json
 import os
 import time
 from copy import copy
@@ -17,36 +16,34 @@ from ..utils import (
     get_package_source_directory,
     require_exp_directory,
 )
-from . import supported_locales as psynet_supported_locales
+from . import psynet_supported_locales
 from .check import check_translations
 from .utils import create_pot, remove_line_numbers, sort_po
 
 
 @require_exp_directory
-def translate_experiment(languages: List[str], force: bool = False):
-    if len(languages) == 0:
-        from ..utils import get_config
-
-        locale = get_config().get("locale", "en")
-        languages = get_config().get("supported_locales", "[" + locale + "]")
-        languages = json.loads(languages)
-
+def translate_experiment(locales: List[str], force: bool = False):
     namespace = "experiment"
     source_directory = os.getcwd()
     locales_directory = os.path.join(os.getcwd(), "locales")
 
-    translate(namespace, source_directory, locales_directory, languages, force=force)
+    if len(locales) == 0:
+        from psynet.experiment import get_experiment
+
+        locales = get_experiment().supported_locales
+
+    translate(namespace, source_directory, locales_directory, locales, force=force)
 
 
-def translate_package(languages: List[str], force: bool = False):
-    if len(languages) == 0:
-        languages = psynet_supported_locales
-
+def translate_package(locales: List[str], force: bool = False):
     namespace = get_package_name()
     source_directory = get_package_source_directory()
     locales_directory = os.path.join(source_directory, "locales")
 
-    translate(namespace, source_directory, locales_directory, languages, force=force)
+    if len(locales) == 0:
+        locales = psynet_supported_locales
+
+    translate(namespace, source_directory, locales_directory, locales, force=force)
 
 
 def translate(namespace, source_dir, locales_dir, locales, force: bool = False):
