@@ -138,19 +138,6 @@
                         </div>
                     {% endif %}
 
-                    {% if config.allow_switching_locale and supported_language_dict | length > 1 %}
-                        <div>
-                            <select id="iso-language" class="form-control">
-                                {% for iso, language in supported_language_dict.items() %}
-                                    {% if iso == current_locale %}
-                                        <option value="{{ iso }}" selected>{{ language }}️</option>
-                                    {% else %}
-                                        <option value="{{ iso }}">{{ language }}</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                        </div>
-                    {% endif %}
                     <button type="button" class="btn btn-light"
                             id="help-button">{{ pgettext("timeline", "Help!") }}</button>
 

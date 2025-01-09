@@ -14,7 +14,7 @@ import sys
 import time
 from collections import OrderedDict
 from datetime import datetime
-from functools import cache, lru_cache, reduce, wraps
+from functools import lru_cache, reduce, wraps
 from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
@@ -31,11 +31,8 @@ from babel.support import Translations
 from dallinger.config import experiment_available
 from dallinger.recruiters import _descendent_classes
 from flask import url_for
-from flask.globals import current_app, request
+from flask.globals import current_app
 from flask.templating import Environment, _render
-
-from psynet.translation import get_known_countries, get_known_languages
-from psynet.translation.utils import get_locales_dir
 
 package_root = os.path.dirname(os.path.abspath(__file__))
 
@@ -572,22 +569,6 @@ def require_requirements_txt(f):
     return wrapper
 
 
-def get_language():
-    """
-    Returns the language selected in config.txt.
-    Throws a KeyError if no such language is specified.
-
-    Returns
-    -------
-
-    A string, for example "en".
-    """
-    config = get_config()
-    if not config.ready:
-        config.load()
-    return config.get("language", "en")
-
-
 def _render_with_translations(
     locale, template_name=None, template_string=None, all_template_args=None
 ):
@@ -658,14 +639,25 @@ def get_descendent_class_by_name(parent_class, name):
     return klass
 
 
-@cache
-def get_translator(
+def get_locale():
+    config = get_config()
+    return config.get("locale", "en")
+
+
+def get_translator(locale=None, namespace=None, locales_dir=None):
+    return _get_translator(locale, namespace, locales_dir)[0]
+
+
+def get_translator_with_context(locale=None, namespace=None, locales_dir=None):
+    return _get_translator(locale, namespace, locales_dir)[1]
+
+
+def _get_translator(
     locale=None,
-    module="psynet",
-    locales_dir=get_locales_dir(),
+    namespace=None,
+    locales_dir=None,
 ):
     from .experiment import in_deployment_package
-    from .translation.utils import compile_mo
 
     # We defer translation until we're in the deployment package. This is important for allowing us to
     # import the experiment directory (to access config variables etc) when translations are not yet available.
@@ -673,46 +665,46 @@ def get_translator(
         return null_translator, null_translator_with_context
 
     if locale is None:
-        try:
-            GET = request.args.to_dict()
-            possible_keys = ["assignmentId", "workerId", "participantId"]
-            from psynet.participant import Participant
+        locale = get_locale()
 
-            if any([key in GET for key in possible_keys]):
-                if "assignmentId" in GET:
-                    participant = Participant.query.filter_by(
-                        assignment_id=GET["assignment_id"]
-                    ).one()
-                elif "workerId" in GET:
-                    participant = Participant.query.filter_by(
-                        worker_id=int(GET["worker_id"])
-                    ).one()
-                elif "participantId" in GET:
-                    participant = Participant.query.filter_by(
-                        id=GET["participant_id"]
-                    ).one()
-                locale = participant.var.locale
-        except Exception:
-            pass
-    if locale is None:
-        locale = get_language()
-    mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.mo")
-    po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.po")
-    if exists(mo_path):
-        if os.path.getmtime(po_path) > os.path.getmtime(mo_path):
-            logger.info(f"Compiling translation again, because {po_path} was updated.")
-            compile_mo(po_path)
-        translator = gettext.translation(module, locales_dir, [locale])
-    elif exists(po_path):
-        logger.info(f"Compiling translation file on demand {po_path}.")
-        compile_mo(po_path)
-        translator = gettext.translation(module, locales_dir, [locale])
+    if namespace is None:
+        # Find the package within which the get_translator function was called.
+        package_name = inspect.currentframe().f_back.f_globals["__package__"]
+        if package_name == "dallinger_experiment":
+            namespace = "experiment"
+        else:
+            namespace = package_name
+
+    if locales_dir is None:
+        locales_dir = get_locales_dir(namespace)
+
+    compile_mo_file_if_necessary(locales_dir, locale, namespace)
+
+    translator = gettext.translation(namespace, locales_dir, [locale])
+    _, _p = translator.gettext, translator.pgettext
+
+    _.namespace = namespace
+    _p.namespace = namespace
+
+    return _, _p
+
+
+def get_locales_dir(namespace: str):
+    if namespace == "experiment":
+        package_name = "dallinger_experiment"
     else:
-        if locale != "en":
-            logger.warning(f"No translation file found for locale {locale}.")
-        translator = gettext.NullTranslations()
+        package_name = namespace
+    source_dir = get_installed_package_source_directory(package_name)
+    return source_dir / "locales"
 
-    return translator.gettext, translator.pgettext
+
+def get_locales_dir_from_path(path="."):
+    path = Path(path)
+
+    if experiment_available():
+        return path / "locales"
+    else:
+        return get_package_source_directory(path)
 
 
 def null_translator(message):
@@ -729,10 +721,24 @@ def null_translator_with_context(context, message):
     return message
 
 
-def get_available_locales(locales_dir=get_locales_dir()):
-    return [
-        f for f in os.listdir(locales_dir) if os.path.isdir(join_path(locales_dir, f))
-    ]
+def compile_mo_file_if_necessary(locales_dir, locale, namespace):
+    from .translation.utils import compile_mo
+
+    mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.mo")
+    po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")
+
+    assert exists(po_path)
+
+    if not exists(mo_path) or os.path.getmtime(po_path) > os.path.getmtime(mo_path):
+        logger.info(f"Compiling translation file {po_path}.")
+        compile_mo(po_path)
+
+
+def _get_translator_called_within_psynet():
+    """
+    Used for testing what happens when you call get_translator from within the PsyNet package.
+    """
+    return get_translator()
 
 
 def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
@@ -746,10 +752,14 @@ def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
 
 
 def get_language_dict(locale, sort_by_name=True):
+    from psynet.translation.languages import get_known_languages
+
     return _get_entity_dict_from_tuple_list(get_known_languages(locale), sort_by_name)
 
 
 def get_country_dict(locale, sort_by_name=True):
+    from psynet.translation.countries import get_known_countries
+
     return _get_entity_dict_from_tuple_list(get_known_countries(locale), sort_by_name)
 
 
@@ -1217,17 +1227,26 @@ def in_python_package():
         True if the current directory contains either pyproject.toml or setup.py,
         indicating it is likely a Python package root directory.
     """
-    return os.path.exists("pyproject.toml") or os.path.exists("setup.py")
+    return is_a_package(".")
 
 
-def get_package_name():
+def is_a_package(path):
+    path = Path(path)
+    files_to_check = ["pyproject.toml", "setup.py"]
+    for file in files_to_check:
+        if path.joinpath(file).exists():
+            return True
+
+
+def get_package_name(path="."):
     """
     Finds the name of the package by introspecting the current working directory.
     Assumes that either setup.py or pyproject.toml is present.
     """
-    if os.path.exists("pyproject.toml"):
+    path = Path(path)
+    if (path / "pyproject.toml").exists():
         return get_package_name_from_pyproject()
-    elif os.path.exists("setup.py"):
+    elif (path / "setup.py").exists():
         name = get_package_name_from_setup()
         if name is not None:
             return name
@@ -1272,9 +1291,42 @@ def get_package_name_from_setup():
     return None
 
 
-def get_package_source_directory():
+def get_installed_package_source_directory(package_name: str) -> Path:
+    """
+    Get the source directory of an installed package.
+
+    Parameters
+    ----------
+    package_name : str
+        The name of the package.
+
+    Returns
+    -------
+    Path
+        The path to the package root directory.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the package root directory cannot be found.
+    """
+    package = importlib.import_module(package_name)
+    return Path(package.__file__).parent
+
+
+def get_package_locales_directory(package_name: str) -> Path:
+    return get_package_source_directory(package_name) / "locales"
+
+
+def get_package_source_directory(path="."):
     """
     Get the source directory of the package by inspecting pyproject.toml or setup.py.
+    Does not assume that the package is installed.
+
+    Parameters
+    ----------
+    path : str
+        The path to the package source directory.
 
     Returns
     -------
@@ -1286,9 +1338,13 @@ def get_package_source_directory():
     FileNotFoundError
         If the package source directory cannot be found.
     """
+    path = Path(path)
+    pyproject_path = path / "pyproject.toml"
+    setup_path = path / "setup.py"
+
     # First try pyproject.toml
-    if os.path.exists("pyproject.toml"):
-        with open("pyproject.toml", "r") as f:
+    if pyproject_path.exists():
+        with open(pyproject_path, "r") as f:
             pyproject = tomlkit.parse(f.read())
 
         # Check for src_dir in [tool.setuptools]
@@ -1311,10 +1367,10 @@ def get_package_source_directory():
                 return packages_dir
 
     # Then try setup.py
-    if os.path.exists("setup.py"):
+    if setup_path.exists():
         import ast
 
-        with open("setup.py") as f:
+        with open(setup_path, "r") as f:
             setup_contents = f.read()
         setup_ast = ast.parse(setup_contents)
         for node in ast.walk(setup_ast):

@@ -1,7 +1,6 @@
 # pylint: disable=unused-import,abstract-method
 
 import logging
-import os
 
 import psynet.experiment
 from psynet.bot import Bot
@@ -14,18 +13,15 @@ from psynet.utils import get_translator
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-locale = "nl"
-_, _p = get_translator(
-    locale, module="experiment", locales_dir=os.path.abspath("locales")
-)
+
+_ = get_translator()
 
 
 class Exp(psynet.experiment.Experiment):
     label = "Translation test"
     config = {
-        "language": locale,
+        "locale": "nl",
         "supported_locales": ["en", "nl"],
-        "allow_switching_locale": True,
     }
     variable_placeholders = {"PET": "dog", "NAME": "John"}
 

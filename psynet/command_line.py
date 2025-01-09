@@ -2925,16 +2925,17 @@ def translate(languages, force):
 
     from psynet.translation.translation import translate_experiment, translate_package
 
-    if experiment_available():
-        click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
-        translate_experiment(languages, force=force)
-
-    elif in_python_package():
+    if in_python_package():
         click.echo(
             bold(f"Found a package called '{get_package_name()}' to translate")
             + f" at {os.getcwd()}."
         )
         translate_package(languages, force=force)
+
+    elif experiment_available():
+        click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
+        translate_experiment(languages, force=force)
+
     else:
         raise RuntimeError(
             f"The current directory {os.getcwd()} does not seem to be the root of an experiment or a package."

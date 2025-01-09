@@ -78,7 +78,7 @@ def test_translator_with_file_path():
         "Bonjour, bienvenue dans mon expérience !",
         "Quel est votre nom ?",
         "Bonjour, ■0■ !",
-        "Quel est votre animal de compagnie préféré ?",
+        "Quel est votre animal préféré ?",
         "chien",
         "chat",
         "poisson",

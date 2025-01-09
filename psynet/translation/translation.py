@@ -48,18 +48,18 @@ def translate_package(languages: List[str], force: bool = False):
     translate(namespace, source_directory, locales_directory, languages, force=force)
 
 
-def translate(namespace, source_dir, locales_dir, languages, force: bool = False):
-    languages.remove("en")
+def translate(namespace, source_dir, locales_dir, locales, force: bool = False):
+    locales = [locale for locale in locales if locale != "en"]
 
-    check_languages(languages)
+    check_locales(locales)
 
     pot_path = os.path.join(locales_dir, namespace + ".pot")
     pot = create_pot(source_dir, pot_path)
 
-    print(bold(f"Translating {pot_path} into {len(languages)} languages:"))
+    print(bold(f"Translating {pot_path} into {len(locales)} languages:"))
 
-    for language in languages:
-        translate_pot(pot_path, target_language=language, force=force)
+    for locale in locales:
+        translate_pot(pot_path, target_language=locale, force=force)
 
     pot = remove_line_numbers(pot)
     pot.save(pot_path)
@@ -95,17 +95,17 @@ def translate_pot(
     )
 
 
-def check_languages(languages: Iterable[str]):
+def check_locales(locales: Iterable[str]):
     from .languages import get_known_languages
 
-    assert isinstance(languages, Iterable) and not isinstance(languages, str)
+    assert isinstance(locales, Iterable) and not isinstance(locales, str)
 
     known_languages = get_known_languages()
     language_codes = [language[0] for language in known_languages]
 
-    for language in languages:
-        if language not in language_codes:
-            raise ValueError(f"Unknown language: {language}")
+    for locale in locales:
+        if locale not in language_codes:
+            raise ValueError(f"Unknown locale: {locale}")
 
     return True
 

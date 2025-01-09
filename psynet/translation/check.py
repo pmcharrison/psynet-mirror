@@ -1,9 +1,20 @@
+import importlib
 import os
 import re
+import tempfile
+from pathlib import Path
+from typing import Optional
 
 from .. import log
-from ..utils import get_language_dict, logger
-from .utils import compile_mo, get_locales_dir, get_po_path, load_po, po_to_dict
+from ..utils import (
+    get_language_dict,
+    get_locales_dir_from_path,
+    get_package_name,
+    get_package_source_directory,
+    is_a_package,
+    logger,
+)
+from .utils import compile_mo, create_pot, get_po_path, load_po, po_to_dict
 
 JINJA_PATTERN = "%\\((.+?)\\)s"
 F_STRING_PATTERN = "{(.+?)}"
@@ -44,14 +55,12 @@ def variable_name_check(variable_name):
     ), f'Variable name "{variable_name}" must be uppercase and may only contain of underscore and capital letters.'
 
 
-def get_all_translations(module, locales_dir):
-    from ..utils import get_available_locales
-
-    locales = get_available_locales(locales_dir)
+def get_translations(namespace, locales_dir, locales):
     translations = {}
-
     for locale in sorted(locales):
-        po_path = os.path.join(locales_dir, locale, "LC_MESSAGES", module + ".po")
+        po_path = os.path.join(locales_dir, locale, "LC_MESSAGES", namespace + ".po")
+        if not os.path.exists(po_path):
+            raise RuntimeError(f"No translation found for {locale}")
         translations[locale] = load_po(po_path)
     return translations
 
@@ -287,7 +296,7 @@ def assert_no_runtime_errors(
 
 
 def _check_translations(
-    pot_entries, translations, locales_dir, variable_placeholders, module
+    pot_entries, translations, locales_dir, variable_placeholders, namespace
 ):
     import gettext
 
@@ -306,9 +315,9 @@ def _check_translations(
 
         assert_no_duplicate_translations_in_same_context(po_entries, locale)
 
-        po_path = get_po_path(locale, locales_dir, module)
+        po_path = get_po_path(locale, locales_dir, namespace)
         compile_mo(po_path)
-        translator = gettext.translation(module, locales_dir, [locale])
+        translator = gettext.translation(namespace, locales_dir, [locale])
 
         for key, po_entry in po_entries.items():
             msgid, msgctxt = key
@@ -330,22 +339,40 @@ def _check_translations(
         os.remove(po_path.replace(".po", ".mo"))
 
 
-def check_translations(
-    module="psynet",
-    variable_placeholders=None,
-    create_translation_template_function=None,  # todo # create_psynet_translation_template,
-):
-    locales_dir = get_locales_dir()
-    pot = create_translation_template_function(locales_dir)
-    pot_entries = po_to_dict(pot)
-    translations = get_all_translations(module, locales_dir)
+def check_translations(path=".", locales: Optional[list[str]] = None):
+    path = Path(path)
+    locales_dir = get_locales_dir_from_path(path)
 
-    if variable_placeholders is None:
-        variable_placeholders = {}
+    if is_a_package(path):
+        source_directory = get_package_source_directory(path)
+        namespace = get_package_name()
+        if locales is None:
+            from .languages import supported_locales as psynet_supported_locales
+
+            package = importlib.import_module(namespace)
+            locales = getattr(package, "supported_locales", psynet_supported_locales)
+    elif (path / "experiment.py").exists():
+        from ..experiment import get_experiment
+
+        source_directory = path
+        namespace = "experiment"
+        if locales is None:
+            locales = get_experiment().supported_locales
+    else:
+        raise ValueError(
+            f"{path} does not appear to be either a package or an experiment directory."
+        )
+
+    with tempfile.NamedTemporaryFile(suffix=".pot") as f:
+        pot_path = f.name
+        pot = create_pot(source_directory, pot_path)
+        pot_entries = po_to_dict(pot)
+
+    translations = get_translations(namespace, locales_dir, locales)
+
     _check_translations(
         pot_entries=pot_entries,
         translations=translations,
         locales_dir=locales_dir,
-        variable_placeholders=variable_placeholders,
-        module=module,
+        namespace=namespace,
     )
