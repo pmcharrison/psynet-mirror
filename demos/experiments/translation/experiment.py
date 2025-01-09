@@ -1,32 +1,34 @@
-from os.path import abspath
-
 from markupsafe import Markup
 
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import PageMaker, Timeline, join
-from psynet.utils import get_logger, get_translator
+from psynet.timeline import Timeline
+from psynet.utils import get_config, get_logger, get_translator_with_context
 
 logger = get_logger()
 
-supported_locales = ["en", "de", "nl"]
-reference_language = "en"
+
+_p = get_translator_with_context
 
 
-def get_timeline_in_locale(locale):
-    _, _p = get_translator(
-        locale=locale, module="experiment", locales_dir=abspath("locales")
-    )
-    return join(
+class Exp(psynet.experiment.Experiment):
+    label = "Translation demo"
+
+    config = {
+        "locale": "de",
+        "supported_locales": ["en", "de", "nl"],
+    }
+    timeline = Timeline(
+        NoConsent(),
         InfoPage(
             _p("welcome-page", "Welcome to the translation demo!"), time_estimate=2
         ),
         InfoPage(
             Markup(
                 "<h2>"
-                + f"You have chosen to translate this experiment from {reference_language} to {locale}"
+                + f"You have chosen to translate this experiment to {get_config().get('locale')}."
                 + "</h2>"
                 + "<hr>"
                 + "<p>"
@@ -40,7 +42,7 @@ def get_timeline_in_locale(locale):
         InfoPage(
             Markup(
                 "<h2>"
-                + "You can also change the translation during the experiment if you like. Try switching to another language!"
+                + "You can also change the translation during the experiment if you like. Try switching to another locale!"
                 + "</h2>"
                 + "<hr>"
                 + "<p>"
@@ -65,37 +67,6 @@ def get_timeline_in_locale(locale):
                 arrange_vertically=False,
             ),
             time_estimate=4,
-        ),
-    )
-
-
-timeline_by_locale = {
-    locale: get_timeline_in_locale(locale) for locale in supported_locales
-}
-reference_timeline = timeline_by_locale[reference_language]
-
-timeline_time_estimate = 0
-for elt in reference_timeline:
-    if hasattr(elt, "time_estimate"):
-        timeline_time_estimate += elt.time_estimate
-
-
-class Exp(psynet.experiment.Experiment):
-    label = "Translation demo"
-    supported_locales = supported_locales
-
-    config = {
-        "language": "de",
-        "supported_locales": supported_locales,
-        "allow_switching_locale": True,
-    }
-    timeline = Timeline(
-        NoConsent(),
-        PageMaker(
-            lambda participant, experiment: timeline_by_locale[
-                participant.get_locale(experiment)
-            ],
-            time_estimate=timeline_time_estimate,
         ),
         SuccessfulEndPage(),
     )

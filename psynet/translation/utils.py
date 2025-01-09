@@ -7,12 +7,6 @@ import pexpect
 import polib
 
 
-def get_locales_dir():
-    from ..utils import package_root
-
-    return os.path.join(package_root, "locales")
-
-
 def new_pot(fpath):
     """Returns an empty pot file."""
     pot = polib.POFile()
@@ -229,10 +223,8 @@ def po_to_dict(po):
     return entries_dict
 
 
-def get_po_path(locale, locales_dir, module):
-    return os.path.join(
-        get_locales_dir(locales_dir), locale, "LC_MESSAGES", module + ".po"
-    )
+def get_po_path(locale, locales_dir, namespace):
+    return os.path.join(locales_dir, locale, "LC_MESSAGES", namespace + ".po")
 
 
 def compile_mo(po_path):

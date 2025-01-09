@@ -31,6 +31,7 @@ from .utils import (
     format_datetime,
     get_args,
     get_language_dict,
+    get_locale,
     get_logger,
     log_time_taken,
     merge_dicts,
@@ -1217,7 +1218,7 @@ class Page(Elt):
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndReward": self.dynamically_update_progress_bar_and_reward,
         }
-        locale = participant.get_locale(experiment)
+        locale = get_locale(experiment)
         language_dict = get_language_dict(locale)
         config = get_config()
         js_vars = {**self.js_vars, **internal_js_vars}
@@ -1252,7 +1253,7 @@ class Page(Elt):
                 iso: language_dict[iso]
                 for iso in json.loads(config.get("supported_locales"))
             },
-            "current_locale": locale,
+            "locale": locale,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_termination_button": self.show_termination_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,

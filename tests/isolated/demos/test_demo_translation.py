@@ -26,7 +26,6 @@ class TestExp(object):
         config = get_config()
 
         assert json.loads(config.get("supported_locales")) == ["en", "de", "nl"]
-        assert config.get("allow_switching_locale") is True
 
     @pytest.mark.skip(
         reason="Skipping this test temporarily as it makes the CI fail for unknown reasons."

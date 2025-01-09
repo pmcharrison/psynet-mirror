@@ -96,8 +96,6 @@ from .utils import (
     classproperty,
     disable_logger,
     get_arg_from_dict,
-    get_available_locales,
-    get_language,
     get_logger,
     get_translator,
     log_time_taken,
@@ -383,10 +381,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         List of locales (i.e., ISO language codes) a user can pick from, e.g., ``'["en"]'``.
         Default: ``'[]'``.
 
-    allow_switching_locale : ``bool``
-        Allow the user to change the language of the experiment during the experiment.
-        Default: ``False``.
-
     force_google_chrome : ``bool``
         Forces the user to use the Google Chrome browser. If another browser is used, it will give detailed instructions
         on how to install Google Chrome.
@@ -501,12 +495,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 PreDeployRoutine(
                     "check_experiment_translations",
                     check_translations,
-                    {
-                        "module": "experiment",
-                        "locales_dir": locales_dir,
-                        "variable_placeholders": self.variable_placeholders,
-                        "create_translation_template_function": self._create_translation_template_from_experiment_folder,
-                    },
                 )
             )
 
@@ -516,7 +504,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.compile_translations_if_necessary,
                 {
                     "locales_dir": os.path.abspath("locales"),
-                    "module": "experiment",
+                    "namespace": "experiment",
                 },
             )
         )
@@ -535,10 +523,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def global_nodes(self):
         return self.experiment_config.global_nodes
 
-    def translation_checks_needed(self, locales_dir):
-        return (
-            os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
-        )
+    @property
+    def supported_locales(self):
+        config = get_config()
+        return json.loads(config.get("supported_locales", "[]"))
+
+    def translation_checks_needed(self):
+        non_en_locales = [locale for locale in self.supported_locales if locale != "en"]
+        return len(non_en_locales) > 0
 
     @classmethod
     def create_translation_template_from_experiment_folder(
@@ -558,20 +550,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise FileNotFoundError(f"Could not find pot file at {pot_path}")
         return load_po(pot_path)
 
-    def compile_translations_if_necessary(self, locales_dir, module):
+    def compile_translations_if_necessary(self, locales_dir, namespace):
         """Compiles translations if necessary."""
         supported_locales = self.config.get("supported_locales", [])
         if self.translation_checks_needed(locales_dir):
-            locales = get_available_locales(locales_dir)
             for locale in supported_locales:
                 if locale == "en":
                     continue
-                assert (
-                    locale in locales
-                ), f"Locale {locale} is not found in {locales_dir}"
                 po_path = os.path.join(
-                    locales_dir, locale, "LC_MESSAGES", module + ".po"
+                    locales_dir, locale, "LC_MESSAGES", namespace + ".po"
                 )
+                assert os.path.exists(po_path), f"Could not find po file at {po_path}"
                 compile_mo(po_path)
         else:
             assert supported_locales == [], "No locales folder found"
@@ -1274,7 +1263,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = {
             **super().config_defaults(),
             "allow_mobile_devices": False,
-            "allow_switching_locale": True,
             "base_payment": 0.10,
             "big_base_payment": False,
             "clock_on": True,
@@ -1332,7 +1320,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "python_version": python_version(),
             "hard_max_experiment_payment_email_sent": False,
             "soft_max_experiment_payment_email_sent": False,
-            "current_locale": get_language(),
             "hard_max_experiment_payment": 1100.0,
             "soft_max_experiment_payment": 1000.0,
             "max_participant_payment": 25.0,
@@ -2132,6 +2119,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("openai_api_key", unicode, sensitive=True)
         config.register("openai_default_model", unicode)
         config.register("openai_default_temperature", unicode)
+        config.register("locale", unicode)
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("lucid_recruitment_config", unicode)
@@ -2151,22 +2139,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("window_height", int)
 
         def is_valid_locale(value):
+            from .translation import supported_locales
+
             locales = json.loads(value)
             if len(locales) == 0 or locales == ["en"]:
                 return
 
-            available_psynet_locales = get_available_locales()
             for locale in json.loads(value):
                 if locale == "en":
                     continue
                 assert (
-                    locale in available_psynet_locales
+                    locale in supported_locales
                 ), f"Locale {locale} not available in PsyNet."
 
         config.register(
             "supported_locales", unicode, validators=[is_valid_json, is_valid_locale]
         )
-        config.register("allow_switching_locale", bool)
         config.register("force_google_chrome", bool)
         config.register("force_incognito_mode", bool)
         config.register("allow_mobile_devices", bool)
@@ -2754,28 +2742,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return request.environ["REMOTE_ADDR"]
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
-
-    @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
-    @classmethod
-    @with_transaction
-    def route_set_locale_participant(cls, participant_id):
-        participant = cls.get_participant_from_participant_id(
-            participant_id, for_update=True
-        )
-        try:
-            old_locale = participant.var.locale
-        except KeyError:
-            old_locale = get_language()
-        GET = request.args.to_dict()
-        assert "locale" in GET, "locale not in GET"
-        new_locale = GET["locale"]
-        assert len(new_locale) == 2, "Locale must be a two-letter code"
-        new_locale = new_locale.lower()
-        participant.var.set("locale", new_locale)
-        logger.info(
-            f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'."
-        )
-        return success_response()
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod

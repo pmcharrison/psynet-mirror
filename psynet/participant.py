@@ -655,17 +655,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.failure_tags = combined
         return self
 
-    def get_locale(self, experiment):
-        if self.var.has("locale"):
-            return self.var.locale
-        else:
-            locale = experiment.var.current_locale
-            self.var.set("locale", locale)
-            logger.warning(
-                f"Participant {self.id} locale was not set, setting to default locale of the experiment: {locale}"
-            )
-            return locale
-
     def abort_info(self):
         """
             Information that will be shown to a participant if they click the abort button,
