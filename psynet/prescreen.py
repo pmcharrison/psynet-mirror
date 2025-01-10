@@ -36,10 +36,9 @@ from .timeline import (
 )
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker
-from .utils import get_logger, get_translator
+from .utils import get_logger, get_translator, get_translator_with_context
 
 logger = get_logger()
-DEFAULT_LOCALE = "en"
 
 
 class REPPVolumeCalibration(Module):
@@ -1228,7 +1227,7 @@ class AttentionTest(Module):
 
 class ColorBlindnessTrial(StaticTrial):
     def show_trial(self, experiment, participant):
-        _, _p = get_translator(self.trial_maker.locale)
+        _p = get_translator_with_context()
         return ModularPage(
             "color_blindness_trial",
             ImagePrompt(
@@ -1290,12 +1289,10 @@ class ColorBlindnessTest(StaticTrialMaker):
         performance_threshold: int = 4,
         hide_after: Optional[float] = 3.0,
         trial_class=ColorBlindnessTrial,
-        locale=DEFAULT_LOCALE,
     ):
         self.hide_after = hide_after
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
-        self.locale = locale
 
         nodes = self.get_nodes(media_url)
 
@@ -1312,7 +1309,7 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     @property
     def introduction(self):
-        _, _p = get_translator(self.locale)
+        _, _p = get_translator()
 
         instructions = [
             _p(
