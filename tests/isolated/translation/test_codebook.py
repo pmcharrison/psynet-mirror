@@ -44,7 +44,7 @@ def test_encode_decode():
     text = "Hello {{ NAME }} {AGE} <b>world</b>"
     codebook = Translator._get_codebook(text)
     encoded = Translator._encode(text, codebook)
-    assert encoded == "Hello ■0■ ■1■ ■2■ world ■3■"
+    assert encoded == "Hello ■0■ ■1■ ■2■world■3■"
 
     # Test decoding
     decoded = Translator._decode(encoded, codebook)

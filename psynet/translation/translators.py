@@ -98,39 +98,40 @@ class Translator:
         """
         import re
 
+        def process_pattern(
+            pattern: str, text: str, codebook: list, counter: int
+        ) -> tuple[str, int]:
+            """Process a regex pattern and update codebook.
+
+            Returns
+            -------
+            tuple[str, int]
+                Updated text and counter
+            """
+            matches = list(re.finditer(pattern, text))
+            for match in matches:
+                original = match.group(0)
+                encoded = f"■{counter}■"
+                codebook.append((original, encoded))
+                text = text.replace(original, encoded)
+                counter += 1
+            return text, counter
+
+        patterns = [
+            r"\{\{[^}]+\}\}",  # Jinja variables
+            r"\{[^}]+\}",  # Simple variables
+            r"<[^/>][^>]*>",  # Opening HTML tags with optional attributes
+            r"</[^>]+>",  # Closing HTML tags
+        ]
+
         codebook = []
         counter = 0
         working_text = text
 
-        # Match Jinja variables {{ VAR }}
-        jinja_pattern = r"\{\{[^}]+\}\}"
-        matches = list(re.finditer(jinja_pattern, working_text))
-        for match in matches:
-            original = match.group(0)
-            encoded = f"■{counter}■"
-            codebook.append((original, encoded))
-            working_text = working_text.replace(original, encoded)
-            counter += 1
-
-        # Match simple variables { VAR }
-        var_pattern = r"\{[^}]+\}"
-        matches = list(re.finditer(var_pattern, working_text))
-        for match in matches:
-            original = match.group(0)
-            encoded = f"■{counter}■"
-            codebook.append((original, encoded))
-            working_text = working_text.replace(original, encoded)
-            counter += 1
-
-        # Match HTML tags <tag>...</tag>
-        html_pattern = r"<[^>]+>.*?</[^>]+>|<[^/>][^>]*>"
-        matches = list(re.finditer(html_pattern, working_text))
-        for match in matches:
-            original = match.group(0)
-            encoded = f"■{counter}■"
-            codebook.append((original, encoded))
-            working_text = working_text.replace(original, encoded)
-            counter += 1
+        for pattern in patterns:
+            working_text, counter = process_pattern(
+                pattern, working_text, codebook, counter
+            )
 
         return codebook
 
