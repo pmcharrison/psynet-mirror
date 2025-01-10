@@ -723,6 +723,39 @@ class TranslationNotFoundError(KeyError):
     pass
 
 
+def check_translation_is_available(message, context, locale, namespace):
+    from . import deployment_info
+    from .experiment import get_experiment, in_deployment_package
+
+    args = locals()
+
+    is_available = (context, message) in REGISTERED_TRANSLATIONS[namespace][locale]
+
+    if not is_available:
+        message = (
+            f"Could not find a translation for message {message!r} in locale = {locale}, context = {context}, namespace = {namespace}. "
+            "Perhaps the translatable string was not properly captured by `psynet translate`? "
+            "To mark a string as translatable, you should write e.g. _('Hello') or _p('welcome message', 'Hello'). "
+            "You cannot rename the functions _ or _p, and you must pass them strings directly, not variables or strings wrapped in parentheses."
+        )
+        is_live_experiment = (
+            in_deployment_package() and deployment_info.read("mode") == "live"
+        )
+        if is_live_experiment:
+            message += " Since this is a live experiment, we instead presented the untranslated text."
+        else:
+            message += " If this happened in a live experiment, we would default to presenting the untranslated text."
+
+        # We need to actually raise the TranslationNotFoundError here for it to be treated appropriately by report_error.
+        try:
+            raise TranslationNotFoundError(message)
+        except TranslationNotFoundError as e:
+            if is_live_experiment:
+                get_experiment().report_error(e)
+            else:
+                raise e
+
+
 def report_translation_error(message, context, locale):
     from psynet.experiment import get_experiment
 
@@ -796,13 +829,12 @@ def _get_translator(
                 REGISTERED_TRANSLATIONS[namespace][locale] = keys
 
             def _(message):
-                if (None, message) not in REGISTERED_TRANSLATIONS[namespace][locale]:
-                    report_translation_error(message, None, locale)
+                context = None
+                check_translation_is_available(message, context, locale, namespace)
                 return translator.gettext(message)
 
             def _p(context, message):
-                if (context, message) not in REGISTERED_TRANSLATIONS[namespace][locale]:
-                    report_translation_error(message, context, locale)
+                check_translation_is_available(message, context, locale, namespace)
                 return translator.pgettext(context, message)
 
     _.namespace = namespace
