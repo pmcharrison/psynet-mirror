@@ -3,7 +3,7 @@ import os
 import pytest
 
 from psynet.experiment import import_local_experiment
-from psynet.pytest_psynet import path_to_test_experiment
+from psynet.pytest_psynet import local_only, path_to_test_experiment
 from psynet.translation.translators import ChatGptTranslator, GoogleTranslator
 
 TEST_TRANSLATIONS = [
@@ -17,6 +17,7 @@ TEST_TRANSLATIONS = [
 ]
 
 
+@local_only  # We don't run this in the CI because it requires an API keys for the autotranslators
 @pytest.mark.usefixtures("in_experiment_directory")
 @pytest.mark.parametrize("translator_class", [GoogleTranslator, ChatGptTranslator])
 @pytest.mark.parametrize("english,expected_french", TEST_TRANSLATIONS)
@@ -50,6 +51,7 @@ def test_translator(translator_class, english, expected_french, experiment_direc
     )
 
 
+@local_only
 def test_translator_with_file_path():
     """Test that translators properly handle file paths."""
     translator = ChatGptTranslator()
@@ -90,11 +92,34 @@ def test_translator_with_file_path():
 
     for i, translation in enumerate(translations):
         expected_translation = expected_translations[i]
-        assert (
-            translation.lower().strip() == expected_translation.lower().strip()
+        assert preprocess_translation(translation) == preprocess_translation(
+            expected_translation
         ), f"Translation {i} does not match expected translation. Expected: {expected_translation}, Got: {translation}"
 
 
+def preprocess_translation(text: str) -> str:
+    """
+    Normalize translation text for comparison.
+
+    Parameters
+    ----------
+    text : str
+        The text to normalize
+
+    Returns
+    -------
+    str
+        Normalized text with standardized spacing and punctuation
+    """
+    return (
+        text.lower()
+        .strip()
+        .replace(" !", "!")
+        # Add any future normalization rules here
+    )
+
+
+@local_only
 def test_invalid_language():
     """Test that translators properly handle invalid language codes."""
     translator = GoogleTranslator()
