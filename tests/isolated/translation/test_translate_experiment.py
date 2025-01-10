@@ -64,7 +64,7 @@ def test_translate_experiment(mocker):
             # because in theory this repetition is relevant context for the translator.
             "What is your name?",
             "What is your name?",
-            "Hello, ■0■!",  # The variable {NAME} gets encoded as ■0■
+            "Hello, {NAME}!",
             "What is your favorite pet?",
             "dog",
             "cat",
@@ -72,7 +72,7 @@ def test_translate_experiment(mocker):
             "hamster",
             "bird",
             "snake",
-            "Great, I like ■0■ too!",  # The variable {PET} gets encoded as ■0■
+            "Great, I like {PET} too!",
         ],
         source_lang="en",
         target_lang="fr",
