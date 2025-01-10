@@ -20,18 +20,12 @@ msgstr "Unten sehen Sie diesen Text übersetzt!"
 
 #: experiment.py
 #, fuzzy, python-brace-format
-msgid "My name is {NAME}."
-msgstr "Mein Name ist {NAME}."
-
-#: experiment.py
-#, fuzzy, python-brace-format
-msgid "My favorite food is {FOOD}."
-msgstr "Mein Lieblingsessen ist {FOOD}."
-
-#: experiment.py
-#, fuzzy, python-brace-format
-msgid "My least favorite food is {FOOD}."
-msgstr "Mein am wenigsten bevorzugtes Essen ist {FOOD}."
+msgid ""
+"My name is {NAME}. My favorite food is {FAVFOOD}. My least favorite food is "
+"{HATEFOOD}."
+msgstr ""
+"Mein Name ist {NAME}. Mein Lieblingsessen ist {FAVFOOD}. Mein am wenigsten "
+"bevorzugtes Essen ist {HATEFOOD}."
 
 #: experiment.py
 #, fuzzy
@@ -43,17 +37,17 @@ msgstr ""
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "Click"
-msgstr "Klicken"
+msgid "Chocolate"
+msgstr "Schokolade"
 
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "on"
-msgstr "auf"
+msgid "Vanilla"
+msgstr "Vanille"
 
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "translation"
-msgstr "Übersetzung"
+msgid "Strawberry"
+msgstr "Erdbeere"

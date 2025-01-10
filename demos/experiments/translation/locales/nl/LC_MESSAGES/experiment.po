@@ -20,18 +20,12 @@ msgstr "Hieronder zie je deze tekst vertaald!"
 
 #: experiment.py
 #, fuzzy, python-brace-format
-msgid "My name is {NAME}."
-msgstr "Mijn naam is {NAME}."
-
-#: experiment.py
-#, fuzzy, python-brace-format
-msgid "My favorite food is {FOOD}."
-msgstr "Mijn favoriete eten is {FOOD}."
-
-#: experiment.py
-#, fuzzy, python-brace-format
-msgid "My least favorite food is {FOOD}."
-msgstr "Mijn minst favoriete eten is {FOOD}."
+msgid ""
+"My name is {NAME}. My favorite food is {FAVFOOD}. My least favorite food is "
+"{HATEFOOD}."
+msgstr ""
+"Mijn naam is {NAME}. Mijn favoriete eten is {FAVFOOD}. Mijn minst favoriete "
+"eten is {HATEFOOD}."
 
 #: experiment.py
 #, fuzzy
@@ -41,17 +35,17 @@ msgstr "Je kunt ook tekst vertalen in drukknoppen of op elke soort pagina!"
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "Click"
-msgstr "Klik"
+msgid "Chocolate"
+msgstr "Chocolade"
 
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "on"
-msgstr "op"
+msgid "Vanilla"
+msgstr "Vanille"
 
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "translation"
-msgstr "vertaling"
+msgid "Strawberry"
+msgstr "Aardbei"

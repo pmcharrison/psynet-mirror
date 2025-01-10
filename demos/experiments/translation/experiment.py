@@ -43,26 +43,11 @@ class Exp(psynet.experiment.Experiment):
         ),
         InfoPage(
             tags.span(
-                tags.h2(
-                    "You can also change the translation during the experiment if you like. Try switching to another locale!"
-                ),
-                tags.hr(),
+                tags.p("Here is an example of inline variable usage:"),
                 tags.p(
-                    "Below you will see this text translated!",
-                    tags.br(),
-                    _("Below you will see this text translated!"),
-                ),
-                tags.hr(),
-            ),
-            time_estimate=5,
-        ),
-        InfoPage(
-            tags.span(
-                tags.p(
-                    "This is a use of an inline variable:",
-                    _("My name is {NAME}.").format(NAME="Alice"),
-                    _("My favorite food is {FOOD}.").format(FOOD="pizza"),
-                    _("My least favorite food is {FOOD}.").format(FOOD="pizza"),
+                    _(
+                        "My name is {NAME}. My favorite food is {FAVFOOD}. My least favorite food is {HATEFOOD}."
+                    ).format(NAME="Alice", FAVFOOD="pizza", HATEFOOD="broccoli")
                 ),
                 tags.hr(),
             ),
@@ -75,9 +60,9 @@ class Exp(psynet.experiment.Experiment):
             ),
             control=PushButtonControl(
                 [
-                    _p("button", "Click"),
-                    _p("button", "on"),
-                    _p("button", "translation"),
+                    _p("button", "Chocolate"),
+                    _p("button", "Vanilla"),
+                    _p("button", "Strawberry"),
                 ],
                 arrange_vertically=False,
             ),
