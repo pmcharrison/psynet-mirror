@@ -86,15 +86,13 @@ def assert_variable_names_match(pot_entries, po_entries):
             )
     if len(translations_with_mismatching_variables) > 0:
         lines = [
-            f"{pot_variables} != {po_variables}, search for entry: '{po_entry.msgstr}'"
+            f"Expected variables {pot_variables} but found {po_variables} in translation: '{po_entry.msgstr}'"
             for pot_variables, po_variables, po_entry in translations_with_mismatching_variables
         ]
         raise ValueError(
-            (
-                "Variable names do not match in the following translations "
-                "(search for the translation and make sure the variable names match): "
-                "\n".join(lines)
-            )
+            "Found translations with mismatching variables:\n"
+            + "\n".join(lines)
+            + "\nPlease check these translations and ensure the variable names match exactly."
         )
 
 
