@@ -1243,7 +1243,7 @@ class Page(Elt):
             "attributes": self.attributes,
             "contents": self.contents,
             "supported_language_dict": {
-                iso: language_dict[iso] for iso in experiment.psynet_supported_locales
+                iso: language_dict[iso] for iso in experiment.supported_locales
             },
             "locale": locale,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
@@ -1251,7 +1251,7 @@ class Page(Elt):
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         return render_string_with_translations(
-            template_string=self.template_str, locale=locale, **all_template_args
+            template_string=self.template_str, **all_template_args
         )
 
     @property

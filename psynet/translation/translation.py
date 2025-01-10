@@ -56,9 +56,17 @@ def translate(namespace, source_dir, locales_dir, locales, force: bool = False):
 
     print(bold(f"Translating {pot_path} into {len(locales)} languages:"))
 
+    n_valid_translations = 0
     for locale in locales:
-        translate_pot(pot_path, target_language=locale, force=force)
+        translation_valid = translate_pot(pot_path, target_language=locale, force=force)
+        n_valid_translations += int(translation_valid)
 
+    n_failed_translations = len(locales) - n_valid_translations
+    if n_failed_translations > 0:
+        print(
+            bold("Some translations failed.")
+            + " Please check the output above and fix the errors and run `psynet translate` again"
+        )
     pot = remove_line_numbers(pot)
     pot.save(pot_path)
 
@@ -85,7 +93,7 @@ def translate_pot(
         except FileNotFoundError:
             pass
 
-    translate_po(
+    return translate_po(
         pot_path,
         po_path,
         source_language,
@@ -204,6 +212,12 @@ class TranslationUnit:
 
     def translate(self, source_lang, target_lang):
         input_texts = self.text_to_translate
+
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=1234, stdoutToServer=True, stderrToServer=True
+        )
 
         if self.translator.use_codebook:
             codebooks = [self._get_codebook(text) for text in input_texts]
@@ -391,6 +405,8 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
         po.save(po_path)
         try:
             check_translations(locales=[target_lang], recreate_pot=False)
+            # TODO TranslationCheckError
+
         except Exception as e:
             error_message = str(e)
             spinner.text = f"{bold_language}: Translation failed: {error_message}"
@@ -405,6 +421,7 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
         else:
             spinner.text = f"{bold_language}: No new text found to translate."
             spinner.ok("⚠️")
+        return True
 
 
 def update_po(

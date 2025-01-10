@@ -1,5 +1,3 @@
-from psynet.utils import get_translator_with_context, null_translator_with_context
-
 psynet_supported_locales = [
     "ar",
     "be",
@@ -54,6 +52,8 @@ def get_known_languages(locale=None):
         sorted([(lang.alpha_2, lang.name) for lang in pycountry.languages
             if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
+    from psynet.utils import get_translator_with_context, null_translator_with_context
+
     if locale is None:
         _p = null_translator_with_context
     else:
