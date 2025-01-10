@@ -36,7 +36,7 @@ from .timeline import (
 )
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker
-from .utils import get_logger, get_translator, get_translator_with_context
+from .utils import get_logger, get_translator_with_context
 
 logger = get_logger()
 
@@ -1309,7 +1309,7 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     @property
     def introduction(self):
-        _, _p = get_translator()
+        _p = get_translator_with_context()
 
         instructions = [
             _p(

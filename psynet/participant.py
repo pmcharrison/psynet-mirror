@@ -24,13 +24,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
-from .utils import (
-    call_function_with_context,
-    get_config,
-    get_logger,
-    get_translator,
-    organize_by_key,
-)
+from .utils import call_function_with_context, get_config, get_logger, organize_by_key
 
 logger = get_logger()
 
@@ -503,11 +497,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     def failure_cascade(self):
         return [lambda: self.alive_trials]
-
-    @property
-    def translator(self):
-        gettext, pgettext = get_translator(self.locale)
-        return gettext, pgettext
 
     @property
     def gettext(self):

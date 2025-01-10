@@ -571,7 +571,8 @@ def _render_with_translations(
     ) == 1, "Only one of template_name or template_string should be provided."
 
     app = current_app._get_current_object()  # type: ignore[attr-defined]
-    gettext, pgettext = get_translator(locale)
+    gettext = get_translator()
+    pgettext = get_translator_with_context()
     gettext_functions = [gettext, pgettext, url_for]
     gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
     translation = Translations.load("translations", [locale])

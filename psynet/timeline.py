@@ -1211,7 +1211,7 @@ class Page(Elt):
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndReward": self.dynamically_update_progress_bar_and_reward,
         }
-        locale = get_locale(experiment)
+        locale = get_locale()
         language_dict = get_language_dict(locale)
         config = get_config()
         js_vars = {**self.js_vars, **internal_js_vars}

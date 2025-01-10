@@ -2229,11 +2229,9 @@ def post_update_psynet_requirement_():
 #         import os
 #         from markupsafe import Markup
 #         from psynet.page import InfoPage
-#         from psynet.utils import get_translator
+#         from psynet.utils import get_translator_with_context
 #         locale = "nl"
-#         _, _p = get_translator(
-#             locale, module="experiment", locales_dir=os.path.abspath("locales")
-#         )
+#         _p = get_translator_with_context()
 #         my_info_page = InfoPage(
 #             Markup(
 #                 f"""

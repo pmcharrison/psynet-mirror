@@ -98,6 +98,7 @@ from .utils import (
     get_arg_from_dict,
     get_logger,
     get_translator,
+    get_translator_with_context,
     log_time_taken,
     pretty_log_dict,
     render_template_with_translations,
@@ -916,7 +917,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Render HTML for error page."""
         from flask import make_response, request
 
-        _, _p = get_translator(locale)
+        _p = get_translator_with_context()
         if error_text is None:
             error_text = _p(
                 "error-msg",
@@ -968,27 +969,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         worker_id,
         external_submit_url,
     ):
-        try:
-            from psynet.participant import Participant
-
-            participant = Participant.query.filter_by(worker_id=worker_id).one()
-            locale = participant.var.locale
-        except Exception:
-            locale = None
-        gettext, pgettext = get_translator(locale)
-        _, _p = gettext, pgettext
+        _ = get_translator()
+        _p = get_translator_with_context()
 
         if hasattr(self.recruiter, "error_page_content"):
             return self.recruiter.error_page_content(
-                gettext,
-                pgettext,
                 assignment_id=assignment_id,
                 external_submit_url=external_submit_url,
             )
 
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, ProlificRecruiter):
-            return self.error_page_content__prolific(gettext, pgettext)
+            return self.error_page_content__prolific()
         elif isinstance(self.recruiter, MTurkRecruiter):
             html = tags.div()
             with html:
@@ -1012,7 +1004,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return ""
 
-    def error_page_content__prolific(self, _, _p):
+    def error_page_content__prolific(self):
+        _p = get_translator_with_context()
+
         html = tags.div()
         with html:
             tags.p(
