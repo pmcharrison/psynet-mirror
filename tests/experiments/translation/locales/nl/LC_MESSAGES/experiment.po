@@ -7,13 +7,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: experiment.py
-#, python-brace-format
-msgid "Great, I like {PET} too!"
-msgstr "Super, ik hou ook van {PET}!"
-
-#: experiment.py
 msgid "Hello, welcome to my experiment!"
 msgstr "Hallo, welkom bij dit experiment!"
+
+#: experiment.py
+msgid "What is your name?"
+msgstr "Wat is je naam?"
 
 #: experiment.py
 #, python-brace-format
@@ -25,20 +24,12 @@ msgid "What is your favorite pet?"
 msgstr "Wat is je favoriete huisdier?"
 
 #: experiment.py
-msgid "What is your name?"
-msgstr "Wat is je naam?"
-
-#: experiment.py
-msgid "bird"
-msgstr "vogel"
+msgid "dog"
+msgstr "hond"
 
 #: experiment.py
 msgid "cat"
 msgstr "kat"
-
-#: experiment.py
-msgid "dog"
-msgstr "hond"
 
 #: experiment.py
 msgid "fish"
@@ -49,5 +40,14 @@ msgid "hamster"
 msgstr "hamster"
 
 #: experiment.py
+msgid "bird"
+msgstr "vogel"
+
+#: experiment.py
 msgid "snake"
 msgstr "slang"
+
+#: experiment.py
+#, python-brace-format
+msgid "Great, I like {PET} too!"
+msgstr "Super, ik hou ook van {PET}!"

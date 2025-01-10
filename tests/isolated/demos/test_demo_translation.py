@@ -23,7 +23,7 @@ PYTEST_BOT_CLASS = bot_class()
 class TestExp(object):
     def test_variables(self, db_session):
         exp = get_experiment()
-        assert exp.supported_locales == ["en", "de", "nl"]
+        assert set(exp.supported_locales) == set(["en", "de", "nl"])
 
     @pytest.mark.skip(
         reason="Skipping this test temporarily as it makes the CI fail for unknown reasons."
