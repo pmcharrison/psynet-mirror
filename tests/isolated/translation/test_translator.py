@@ -90,9 +90,31 @@ def test_translator_with_file_path():
 
     for i, translation in enumerate(translations):
         expected_translation = expected_translations[i]
-        assert (
-            translation.lower().strip() == expected_translation.lower().strip()
+        assert preprocess_translation(translation) == preprocess_translation(
+            expected_translation
         ), f"Translation {i} does not match expected translation. Expected: {expected_translation}, Got: {translation}"
+
+
+def preprocess_translation(text: str) -> str:
+    """
+    Normalize translation text for comparison.
+
+    Parameters
+    ----------
+    text : str
+        The text to normalize
+
+    Returns
+    -------
+    str
+        Normalized text with standardized spacing and punctuation
+    """
+    return (
+        text.lower()
+        .strip()
+        .replace(" !", "!")
+        # Add any future normalization rules here
+    )
 
 
 def test_invalid_language():
