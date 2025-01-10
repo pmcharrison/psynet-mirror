@@ -8,29 +8,45 @@ from psynet.translation.translation import check_translations
 def test_translation_verification():
     # Test variable name matching
     pot_entries = {
-        ("Hello %(NAME)s", None): type("Entry", (), {"msgid": "Hello %(NAME)s"}),
-        ("Hello {NAME}", None): type("Entry", (), {"msgid": "Hello {NAME}"}),
+        ("Hello %(NAME)s", None): type(
+            "Entry", (), {"msgid": "Hello %(NAME)s", "msgstr": ""}
+        ),
+        ("Hello {NAME}", None): type(
+            "Entry", (), {"msgid": "Hello {NAME}", "msgstr": ""}
+        ),
     }
 
     # Test matching variables
     po_entries = {
-        ("Hello %(NAME)s", None): type("Entry", (), {"msgstr": "Hello %(NAME)s"}),
-        ("Hello {NAME}", None): type("Entry", (), {"msgstr": "Hello {NAME}"}),
+        ("Hello %(NAME)s", None): type(
+            "Entry", (), {"msgid": "Hello %(NAME)s", "msgstr": "Hello %(NAME)s"}
+        ),
+        ("Hello {NAME}", None): type(
+            "Entry", (), {"msgid": "Hello {NAME}", "msgstr": "Hello {NAME}"}
+        ),
     }
     assert_variable_names_match(pot_entries, po_entries)
 
     # Test mismatched variables
     po_entries_mismatch = {
-        ("Hello %(NAME)s", None): type("Entry", (), {"msgstr": "Hello %(DIFFERENT)s"}),
-        ("Hello {NAME}", None): type("Entry", (), {"msgstr": "Hello {DIFFERENT}"}),
+        ("Hello %(NAME)s", None): type(
+            "Entry", (), {"msgid": "Hello %(NAME)s", "msgstr": "Hello %(DIFFERENT)s"}
+        ),
+        ("Hello {NAME}", None): type(
+            "Entry", (), {"msgid": "Hello {NAME}", "msgstr": "Hello {DIFFERENT}"}
+        ),
     }
     with pytest.raises(ValueError):
         assert_variable_names_match(pot_entries, po_entries_mismatch)
 
     # Test missing variables
     po_entries_missing = {
-        ("Hello %(NAME)s", None): type("Entry", (), {"msgstr": "Hello"}),
-        ("Hello {NAME}", None): type("Entry", (), {"msgstr": "Hello"}),
+        ("Hello %(NAME)s", None): type(
+            "Entry", (), {"msgid": "Hello %(NAME)s", "msgstr": "Hello"}
+        ),
+        ("Hello {NAME}", None): type(
+            "Entry", (), {"msgid": "Hello {NAME}", "msgstr": "Hello"}
+        ),
     }
     with pytest.raises(ValueError):
         assert_variable_names_match(pot_entries, po_entries_missing)
@@ -38,9 +54,13 @@ def test_translation_verification():
     # Test extra variables
     po_entries_extra = {
         ("Hello %(NAME)s", None): type(
-            "Entry", (), {"msgstr": "Hello %(NAME)s %(EXTRA)s"}
+            "Entry",
+            (),
+            {"msgid": "Hello %(NAME)s", "msgstr": "Hello %(NAME)s %(EXTRA)s"},
         ),
-        ("Hello {NAME}", None): type("Entry", (), {"msgstr": "Hello {NAME} {EXTRA}"}),
+        ("Hello {NAME}", None): type(
+            "Entry", (), {"msgid": "Hello {NAME}", "msgstr": "Hello {NAME} {EXTRA}"}
+        ),
     }
     with pytest.raises(ValueError):
         assert_variable_names_match(pot_entries, po_entries_extra)
