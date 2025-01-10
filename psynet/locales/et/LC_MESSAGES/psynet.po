@@ -419,10 +419,21 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Kui jah, siis palun kirjeldage probleemi mõne sõnaga."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Sa saad tasu <strong>■0■■1■</strong> aja eest, mille sa katses veetsid. "
+"Samuti on sulle antud soorituse eest tasu <strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
-msgstr "See on eksperimendi lõpp!"
+msgstr "See on katse lõpp!"
 
 #: psynet/end.py
 #, fuzzy
@@ -432,24 +443,24 @@ msgstr "Aitäh osalemast."
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Palun klõpsake \"Lõpeta\", et HIT lõpule viia."
+msgstr "Palun klõpsa \"Lõpeta\", et HIT lõpetada."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr "Kahjuks peab eksperiment varakult lõppema."
+msgstr "Kahjuks peab katse varem lõppema."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
-msgstr "Kuid teid tasustatakse siiski juba kulutatud aja eest."
+msgstr "Kuid sa saad siiski tasu juba veedetud aja eest."
 
 #: psynet/end.py
 #, fuzzy
 msgid "You will be redirected."
-msgstr "Teid suunatakse edasi."
+msgstr "Sind suunatakse edasi."
 
 #: psynet/end.py
 #, fuzzy
@@ -461,7 +472,7 @@ msgstr "Nõusolek lükati tagasi."
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
-msgstr "Eksperimendi lõpp."
+msgstr "Katse lõpp."
 
 #: psynet/experiment.py
 #, fuzzy

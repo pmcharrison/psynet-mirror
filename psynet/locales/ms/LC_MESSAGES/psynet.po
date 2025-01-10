@@ -422,10 +422,22 @@ msgstr ""
 "Jika ya, sila berikan beberapa perkataan yang menerangkan masalah tersebut."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Anda akan menerima ganjaran sebanyak <strong>■0■■1■</strong> untuk masa yang"
+" anda habiskan dalam eksperimen. Anda juga telah dianugerahkan ganjaran "
+"prestasi sebanyak <strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
-msgstr "Itulah akhir eksperimen!"
+msgstr "Itu adalah akhir eksperimen!"
 
 #: psynet/end.py
 #, fuzzy
@@ -460,7 +472,7 @@ msgstr "Anda akan dialihkan."
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
-msgstr "Persetujuan ditolak."
+msgstr "Persetujuan telah ditolak."
 
 #: psynet/end.py
 #, fuzzy

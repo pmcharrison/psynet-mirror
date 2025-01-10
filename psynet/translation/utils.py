@@ -29,6 +29,7 @@ def new_pot(fpath):
 def load_po(po_path):
     """Load a pot or po from file."""
     assert po_path.endswith((".po", ".pot")), "po_path must end with .po or .pot"
+    # TODO fix this for packages
     assert os.path.exists(po_path), f"File {po_path} does not exist"
     return polib.pofile(po_path)
 

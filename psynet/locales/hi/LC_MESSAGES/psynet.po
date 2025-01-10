@@ -419,6 +419,17 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "यदि हाँ, तो कृपया समस्या का वर्णन करने के लिए कुछ शब्द प्रदान करें।"
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"आपको प्रयोग पर बिताए गए समय के लिए <strong>■0■■1■</strong> का इनाम मिलेगा। "
+"आपको प्रदर्शन इनाम के रूप में <strong>■0■■3■</strong> भी दिया गया है!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -432,7 +443,7 @@ msgstr "भाग लेने के लिए धन्यवाद।"
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "कृपया \"समाप्त करें\" पर क्लिक करें ताकि HIT पूरा हो सके।"
+msgstr "कृपया \"समाप्त करें\" पर क्लिक करके HIT पूरा करें।"
 
 #: psynet/end.py
 #, fuzzy
@@ -455,7 +466,7 @@ msgstr "आपको पुनः निर्देशित किया ज�
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
-msgstr "सहमति अस्वीकृत कर दी गई।"
+msgstr "स्वीकृति अस्वीकृत कर दी गई।"
 
 #: psynet/end.py
 #, fuzzy

@@ -419,6 +419,18 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Ako jeste, molimo navedite nekoliko reči koje opisuju problem."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Dobićete nagradu od <strong>■0■■1■</strong> za vreme koje ste proveli na "
+"eksperimentu. Takođe ste nagrađeni nagradom za performanse od "
+"<strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -455,7 +467,7 @@ msgstr "Bićete preusmereni."
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
-msgstr "Pristanak je odbijen."
+msgstr "Saglasnost je odbijena."
 
 #: psynet/end.py
 #, fuzzy

@@ -34,6 +34,8 @@ from flask import url_for
 from flask.globals import current_app
 from flask.templating import Environment, _render
 
+from psynet.translation.utils import load_po
+
 package_root = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -570,11 +572,17 @@ def _render_with_translations(
         None
     ) == 1, "Only one of template_name or template_string should be provided."
 
+    if locale is None:
+        locale = get_locale()
+
     app = current_app._get_current_object()  # type: ignore[attr-defined]
     gettext = get_translator()
     pgettext = get_translator_with_context()
-    gettext_functions = [gettext, pgettext, url_for]
-    gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
+    # import pydevd_pycharm
+    # pydevd_pycharm.settrace('localhost', port=1234, stdoutToServer=True, stderrToServer=True)
+    gettext_abbr = {"gettext": gettext, "pgettext": pgettext, "url_for": url_for}
+    # gettext_functions = [gettext, pgettext, url_for]
+    # gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
     translation = Translations.load("translations", [locale])
 
     environment = Environment(
@@ -712,6 +720,23 @@ def get_translator_with_context(locale=None, namespace=None, locales_dir=None):
     return _get_translator(locale, namespace, locales_dir)[1]
 
 
+REGISTERED_TRANSLATIONS = {}
+
+
+class TranslationNotFoundError(KeyError):
+    pass
+
+
+def report_translation_error(message, context, locale):
+    from psynet.experiment import get_experiment
+
+    exp = get_experiment()
+    error = TranslationNotFoundError(
+        f"Translation not found for message '{message}' (context: {context}) in locale '{locale}'"
+    )
+    exp.report_error(error)
+
+
 def _get_translator(
     locale=None,
     namespace=None,
@@ -730,6 +755,8 @@ def _get_translator(
             frame = frame.f_back
 
         package_name = frame.f_globals["__package__"]
+
+        package_name = package_name.split(".")[0]  # Remove any subpackage names.
 
         if package_name == "dallinger_experiment":
             namespace = "experiment"
@@ -758,14 +785,32 @@ def _get_translator(
 
             translator = gettext.translation(namespace, locales_dir, [locale])
 
+            if locale not in REGISTERED_TRANSLATIONS:
+                po_path = join_path(
+                    locales_dir, locale, "LC_MESSAGES", f"{namespace}.po"
+                )
+                po = load_po(po_path)
+                keys = []
+                for entry in po:
+                    msgctxt = None if entry.msgctxt == "" else entry.msgctxt
+                    keys.append((msgctxt, entry.msgid))
+                REGISTERED_TRANSLATIONS[locale] = keys
+
             def _(message):
+                if (None, message) not in REGISTERED_TRANSLATIONS[locale]:
+                    report_translation_error(message, None, locale)
                 return translator.gettext(message)
 
             def _p(context, message):
+                if (context, message) not in REGISTERED_TRANSLATIONS[locale]:
+                    report_translation_error(message, context, locale)
                 return translator.pgettext(context, message)
 
     _.namespace = namespace
     _p.namespace = namespace
+
+    _.locale = locale
+    _p.locale = locale
 
     return _, _p
 
@@ -805,10 +850,15 @@ def null_translator_with_context(context, message):
 def compile_mo_file_if_necessary(locales_dir, locale, namespace):
     from .translation.utils import compile_mo
 
-    assert locale
-
     mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.mo")
     po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")
+
+    if not exists(po_path):
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=1234, stdoutToServer=True, stderrToServer=True
+        )
 
     assert exists(po_path)
 

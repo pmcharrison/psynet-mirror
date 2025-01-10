@@ -425,6 +425,18 @@ msgstr ""
 "Kung oo, mangyaring magbigay ng ilang salita na naglalarawan sa problema."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Makakatanggap ka ng gantimpala na <strong>■0■■1■</strong> para sa oras na "
+"ginugol mo sa eksperimento. Ikaw ay binigyan din ng gantimpala para sa "
+"pagganap na <strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -438,14 +450,13 @@ msgstr "Salamat sa iyong paglahok."
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Paki-click ang \"Tapos\" para makumpleto ang HIT."
+msgstr "Paki-click ang \"Tapos\" upang makumpleto ang HIT."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr ""
-"Sa kasamaang-palad, ang eksperimento ay kailangang matapos nang maaga."
+msgstr "Sa kasamaang palad, ang eksperimento ay kailangang magtapos ng maaga."
 
 #: psynet/end.py
 #, fuzzy

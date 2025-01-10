@@ -419,6 +419,17 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Ak áno, uveďte prosím niekoľko slov na opísanie problému."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Dostanete odmenu <strong>■0■■1■</strong> za čas strávený na experimente. "
+"Tiež ste získali výkonnostnú odmenu <strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -427,7 +438,7 @@ msgstr "To je koniec experimentu!"
 #: psynet/end.py
 #, fuzzy
 msgid "Thank you for taking part."
-msgstr "Ďakujeme, že ste sa zúčastnili."
+msgstr "Ďakujeme za účasť."
 
 #: psynet/end.py
 #, fuzzy
@@ -438,13 +449,13 @@ msgstr "Prosím, kliknite na \"Dokončiť\" pre dokončenie HIT."
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr "Bohužiaľ, experiment sa musí skončiť skôr."
+msgstr "Bohužiaľ, experiment musí skončiť skôr."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
-msgstr "Avšak, budete stále zaplatení za čas, ktorý ste už strávili."
+msgstr "Avšak, stále budete zaplatení za čas, ktorý ste už strávili."
 
 #: psynet/end.py
 #, fuzzy

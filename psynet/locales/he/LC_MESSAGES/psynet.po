@@ -415,20 +415,31 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "אם כן, אנא ספק כמה מילים המתארות את הבעיה."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"תקבלו תגמול של <strong>■0■■1■</strong> על הזמן שהשקעתם בניסוי. בנוסף, קיבלתם"
+" תגמול ביצועים של <strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
-msgstr "זה סוף הניסוי!"
+msgstr "זהו סוף הניסוי!"
 
 #: psynet/end.py
 #, fuzzy
 msgid "Thank you for taking part."
-msgstr "תודה על השתתפותך."
+msgstr "תודה על השתתפותכם."
 
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "אנא לחץ על \"סיום\" כדי להשלים את ה-HIT."
+msgstr "אנא לחצו על \"סיום\" כדי להשלים את ה-HIT."
 
 #: psynet/end.py
 #, fuzzy
@@ -440,12 +451,12 @@ msgstr "לצערנו הניסוי חייב להסתיים מוקדם."
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
-msgstr "עם זאת, עדיין תקבל תשלום עבור הזמן שכבר השקעת."
+msgstr "עם זאת, עדיין תקבלו תשלום על הזמן שכבר השקעתם."
 
 #: psynet/end.py
 #, fuzzy
 msgid "You will be redirected."
-msgstr "תועבר מחדש."
+msgstr "תועברו מחדש."
 
 #: psynet/end.py
 #, fuzzy
