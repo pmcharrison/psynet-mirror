@@ -44,6 +44,15 @@ warnings.filterwarnings(
 )
 
 
+ci_only = pytest.mark.skipif(
+    not os.environ.get("CI"), reason="This test only runs in CI environment"
+)
+
+local_only = pytest.mark.skipif(
+    os.environ.get("CI"), reason="This test only runs in local environment"
+)
+
+
 def assert_text(driver, element_id, value):
     def get_element():
         try:
