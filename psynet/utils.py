@@ -578,11 +578,7 @@ def _render_with_translations(
     app = current_app._get_current_object()  # type: ignore[attr-defined]
     gettext = get_translator()
     pgettext = get_translator_with_context()
-    # import pydevd_pycharm
-    # pydevd_pycharm.settrace('localhost', port=1234, stdoutToServer=True, stderrToServer=True)
     gettext_abbr = {"gettext": gettext, "pgettext": pgettext, "url_for": url_for}
-    # gettext_functions = [gettext, pgettext, url_for]
-    # gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
     translation = Translations.load("translations", [locale])
 
     environment = Environment(
@@ -785,7 +781,10 @@ def _get_translator(
 
             translator = gettext.translation(namespace, locales_dir, [locale])
 
-            if locale not in REGISTERED_TRANSLATIONS:
+            if namespace not in REGISTERED_TRANSLATIONS:
+                REGISTERED_TRANSLATIONS[namespace] = {}
+
+            if locale not in REGISTERED_TRANSLATIONS[namespace]:
                 po_path = join_path(
                     locales_dir, locale, "LC_MESSAGES", f"{namespace}.po"
                 )
@@ -794,15 +793,15 @@ def _get_translator(
                 for entry in po:
                     msgctxt = None if entry.msgctxt == "" else entry.msgctxt
                     keys.append((msgctxt, entry.msgid))
-                REGISTERED_TRANSLATIONS[locale] = keys
+                REGISTERED_TRANSLATIONS[namespace][locale] = keys
 
             def _(message):
-                if (None, message) not in REGISTERED_TRANSLATIONS[locale]:
+                if (None, message) not in REGISTERED_TRANSLATIONS[namespace][locale]:
                     report_translation_error(message, None, locale)
                 return translator.gettext(message)
 
             def _p(context, message):
-                if (context, message) not in REGISTERED_TRANSLATIONS[locale]:
+                if (context, message) not in REGISTERED_TRANSLATIONS[namespace][locale]:
                     report_translation_error(message, context, locale)
                 return translator.pgettext(context, message)
 
@@ -825,12 +824,14 @@ def get_locales_dir(namespace: str):
 
 
 def get_locales_dir_from_path(path="."):
-    path = Path(path)
 
-    if experiment_available():
+    if in_python_package():
+        return Path(get_package_source_directory(path)) / "locales"
+    elif experiment_available():
+        path = Path(path)
         return path / "locales"
     else:
-        return get_package_source_directory(path)
+        raise ValueError("Could not determine the locales directory.")
 
 
 def null_translator(message):
@@ -852,13 +853,6 @@ def compile_mo_file_if_necessary(locales_dir, locale, namespace):
 
     mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.mo")
     po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")
-
-    if not exists(po_path):
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=1234, stdoutToServer=True, stderrToServer=True
-        )
 
     assert exists(po_path)
 

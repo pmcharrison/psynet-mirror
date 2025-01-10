@@ -213,12 +213,6 @@ class TranslationUnit:
     def translate(self, source_lang, target_lang):
         input_texts = self.text_to_translate
 
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=1234, stdoutToServer=True, stderrToServer=True
-        )
-
         if self.translator.use_codebook:
             codebooks = [self._get_codebook(text) for text in input_texts]
             input_texts = [
