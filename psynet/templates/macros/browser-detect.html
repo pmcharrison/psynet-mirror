@@ -182,7 +182,8 @@
                 if (!browser.isIncognito) {
                     // only show this warning if people are using the right browser
                     if (warningMsg === "") {
-                        warningMsg = "{{ pgettext("browser_compatibility", "You need to use the incognito mode to take part in the experiment."  | replace('"',"'") | safe ) }} {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") | replace('"',"'") | safe }}";
+                        warningMsg = `{{ pgettext("browser_compatibility", "You need to use the incognito mode to take part in the experiment.") | safe }}`;
+                        warningMsg += ` {{ pgettext("browser_compatibility", "Please follow the instructions below to continue.") | replace('"',"'") | safe }}`;
                     }
                 }
             }
@@ -191,7 +192,9 @@
             var out = '<div class="container">';
             out += getPsyNetLogo();
             out += '<div class="alert alert-warning" role="alert">';
-            out += "<h4 class='alert-heading'>{{ pgettext("browser_compatibility", "Warning!")  | replace('"',"'") | safe }}</h4>";
+            out += "<h4 class='alert-heading'>";
+            out += `{{ pgettext("browser_compatibility", "Warning!")  | replace('"',"'") | safe }}`
+            out += "</h4>";
             out += '<p>' + warningMsg + '</p>';
             out += '</div>';
             out += '<table class="table mt-3">';
