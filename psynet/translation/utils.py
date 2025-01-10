@@ -56,6 +56,7 @@ def create_translation_template_with_pybabel(input, sp):
     cfg = """
             [jinja2: **.html]
             encoding = utf-8
+            keywords = _:1,2 pgettext:1c,2 gettext:1,2
             """
     with tempfile.TemporaryDirectory() as tempdir:
         tmp_cfg_file = os.path.join(tempdir, "babel.cfg")
