@@ -571,7 +571,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assert os.path.exists(po_path), f"Could not find po file at {po_path}"
                 compile_mo(po_path)
         else:
-            assert self.supported_locales == [], "No locales folder found"
+            assert self.supported_locales == [
+                "en"
+            ], "No translations are needed, so the supported locales should be ['en']"
 
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(
