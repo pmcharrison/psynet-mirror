@@ -419,6 +419,18 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Nếu có, vui lòng cung cấp một vài từ mô tả vấn đề."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Bạn sẽ nhận được phần thưởng <strong>■0■■1■</strong> cho thời gian bạn đã "
+"dành cho thí nghiệm. Bạn cũng đã được thưởng thêm phần thưởng hiệu suất là "
+"<strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -438,7 +450,7 @@ msgstr "Vui lòng nhấp vào \"Hoàn thành\" để hoàn tất HIT."
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr "Rất tiếc, thí nghiệm phải kết thúc sớm."
+msgstr "Thật không may, thí nghiệm phải kết thúc sớm."
 
 #: psynet/end.py
 #, fuzzy

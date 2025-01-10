@@ -417,6 +417,17 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Ha igen, kérjük, írjon néhány szót a problémáról."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Jutalmat kap <strong>■0■■1■</strong> az eltöltött időért a kísérlet során. "
+"Továbbá teljesítményjutalmat is kapott <strong>■0■■3■</strong>! "
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -425,12 +436,12 @@ msgstr "Ez a kísérlet vége!"
 #: psynet/end.py
 #, fuzzy
 msgid "Thank you for taking part."
-msgstr "Köszönjük, hogy részt vettél."
+msgstr "Köszönjük, hogy részt vett."
 
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Kérjük, kattints a \"Befejezés\" gombra a HIT befejezéséhez."
+msgstr "Kérjük, kattintson a \"Befejezés\" gombra a HIT befejezéséhez."
 
 #: psynet/end.py
 #, fuzzy
@@ -442,18 +453,18 @@ msgstr "Sajnos a kísérletet korán be kell fejezni."
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
-msgstr "Azonban a már eltöltött időért még mindig fizetést kapsz."
+msgstr "Azonban az eddig eltöltött időért még mindig fizetést kap."
 
 #: psynet/end.py
 #, fuzzy
 msgid "You will be redirected."
-msgstr "Át leszel irányítva."
+msgstr "Átirányításra kerül."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
-msgstr "A beleegyezés elutasítva."
+msgstr "A beleegyezést elutasították."
 
 #: psynet/end.py
 #, fuzzy

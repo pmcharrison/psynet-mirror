@@ -417,10 +417,22 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "اگر ایسا ہے تو، براہ کرم مسئلے کی وضاحت کے لئے کچھ الفاظ فراہم کریں۔"
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"آپ کو تجربے میں صرف کیے گئے وقت کے لیے <strong>■0■■1■</strong> کا انعام ملے "
+"گا۔ آپ کو کارکردگی کے انعام کے طور پر بھی <strong>■0■■3■</strong> دیا گیا "
+"ہے!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
-msgstr "یہ تجربہ ختم ہو گیا ہے!"
+msgstr "یہ تجربے کا اختتام ہے!"
 
 #: psynet/end.py
 #, fuzzy
@@ -430,19 +442,19 @@ msgstr "شکریہ کہ آپ نے حصہ لیا۔"
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "براہ کرم \"ختم کریں\" پر کلک کریں تاکہ HIT مکمل ہو سکے۔"
+msgstr "براہ کرم HIT مکمل کرنے کے لیے \"ختم کریں\" پر کلک کریں۔"
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr "بدقسمتی سے تجربہ جلدی ختم کرنا پڑا۔"
+msgstr "بدقسمتی سے تجربہ جلد ختم کرنا پڑا۔"
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
-msgstr "تاہم، آپ کو پہلے سے گزارے گئے وقت کے لیے ادائیگی کی جائے گی۔"
+msgstr "تاہم، آپ کو پہلے سے صرف کیے گئے وقت کے لیے ادائیگی کی جائے گی۔"
 
 #: psynet/end.py
 #, fuzzy
@@ -459,7 +471,7 @@ msgstr "رضامندی مسترد کر دی گئی۔"
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
-msgstr "تجربہ ختم ہو گیا۔"
+msgstr "تجربے کا اختتام۔"
 
 #: psynet/experiment.py
 #, fuzzy

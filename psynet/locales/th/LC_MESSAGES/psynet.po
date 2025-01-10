@@ -417,10 +417,21 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "ถ้าใช่ กรุณาอธิบายปัญหาเป็นคำไม่กี่คำ"
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"คุณจะได้รับรางวัล <strong>■0■■1■</strong> สำหรับเวลาที่คุณใช้ในทดลอง "
+"นอกจากนี้คุณยังได้รับรางวัลจากผลงาน <strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
-msgstr "สิ้นสุดการทดลองแล้ว!"
+msgstr "นี่คือจุดสิ้นสุดของการทดลอง!"
 
 #: psynet/end.py
 #, fuzzy
@@ -436,13 +447,13 @@ msgstr "กรุณาคลิก \"เสร็จสิ้น\" เพื่
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr "น่าเสียดายที่การทดลองต้องสิ้นสุดก่อนเวลา."
+msgstr "น่าเสียดายที่การทดลองต้องสิ้นสุดลงก่อนเวลา."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
-msgstr "อย่างไรก็ตาม คุณยังคงได้รับค่าตอบแทนสำหรับเวลาที่ใช้ไปแล้ว."
+msgstr "อย่างไรก็ตาม คุณยังคงได้รับค่าตอบแทนสำหรับเวลาที่คุณใช้ไปแล้ว."
 
 #: psynet/end.py
 #, fuzzy

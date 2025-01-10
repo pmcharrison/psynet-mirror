@@ -420,6 +420,18 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Αν ναι, παρακαλώ δώστε μερικές λέξεις που περιγράφουν το πρόβλημα."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Θα λάβετε μια ανταμοιβή <strong>■0■■1■</strong> για τον χρόνο που αφιερώσατε"
+" στο πείραμα. Έχετε επίσης λάβει μια ανταμοιβή απόδοσης "
+"<strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -445,7 +457,7 @@ msgstr "Δυστυχώς το πείραμα πρέπει να τελειώσε�
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
-msgstr "Ωστόσο, θα πληρωθείτε για τον χρόνο που έχετε ήδη περάσει."
+msgstr "Ωστόσο, θα πληρωθείτε για τον χρόνο που έχετε ήδη αφιερώσει."
 
 #: psynet/end.py
 #, fuzzy

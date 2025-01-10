@@ -413,6 +413,16 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "もしそうなら、問題を説明するためにいくつかの言葉を提供してください。"
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"実験に費やした時間に対して<strong>■0■■1■</strong>の報酬を受け取ります。また、パフォーマンス報酬として<strong>■0■■3■</strong>が授与されました！"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -426,7 +436,7 @@ msgstr "ご参加いただきありがとうございます。"
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "「完了」をクリックしてHITを完了してください。"
+msgstr "HITを完了するには「完了」をクリックしてください。"
 
 #: psynet/end.py
 #, fuzzy

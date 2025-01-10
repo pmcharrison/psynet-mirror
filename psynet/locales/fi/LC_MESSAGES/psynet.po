@@ -417,6 +417,17 @@ msgid "If so, please provide a few words describing the problem."
 msgstr "Jos kohtasit, kuvaile ongelmaa muutamalla sanalla."
 
 #: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"Saat palkkion <strong>■0■■1■</strong> ajasta, jonka käytit kokeeseen. "
+"Sinulle on myös myönnetty suorituspalkkio <strong>■0■■3■</strong>!"
+
+#: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
@@ -430,7 +441,7 @@ msgstr "Kiitos osallistumisestasi."
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Ole hyvä ja klikkaa \"Valmis\" suorittaaksesi HIT:n loppuun."
+msgstr "Ole hyvä ja klikkaa \"Valmis\" suorittaaksesi HIT:n."
 
 #: psynet/end.py
 #, fuzzy
@@ -459,7 +470,7 @@ msgstr "Suostumus hylättiin."
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
-msgstr "Koe päättyi."
+msgstr "Kokeen loppu."
 
 #: psynet/experiment.py
 #, fuzzy
