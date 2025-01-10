@@ -90,7 +90,11 @@ def assert_variable_names_match(pot_entries, po_entries):
             for pot_variables, po_variables, po_entry in translations_with_mismatching_variables
         ]
         raise ValueError(
-            f"Variable names do not match in the following translations (search for the translation and make sure the variable names match): {'\n'.join(lines)}"
+            (
+                "Variable names do not match in the following translations "
+                "(search for the translation and make sure the variable names match): "
+                "\n".join(lines)
+            )
         )
 
 
@@ -257,13 +261,10 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
         po_path = get_po_path(locale, locales_dir, namespace)
         compile_mo(po_path)
         translator = gettext.translation(namespace, locales_dir, [locale])
-        problematic_translations = []
+
         for key, po_entry in po_entries.items():
             msgid, msgctxt = key
             msgstr = str(po_entry.msgstr)
-
-            if not translation_contains_same_variables(msgid, msgstr):
-                problematic_translations.append((msgid, msgstr, msgctxt))
 
             variables = extract_variable_names(msgid)
             variable_placeholders = dict(zip(variables, len(variables) * [""]))
@@ -275,14 +276,6 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
                 msgstr,
                 msgctxt,
                 variable_placeholders,
-            )
-        if len(problematic_translations) > 0:
-            lines = [
-                f"{msgid} -> {msgstr} in context {msgctxt}"
-                for msgid, msgstr, msgctxt in problematic_translations
-            ]
-            raise ValueError(
-                f"Variable names do not match in the following translations (search for the translation and make sure the variable names match): {'\n'.join(lines)}"
             )
         os.remove(po_path.replace(".po", ".mo"))
 

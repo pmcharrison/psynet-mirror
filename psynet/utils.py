@@ -639,9 +639,10 @@ def get_descendent_class_by_name(parent_class, name):
     return klass
 
 
-def get_locale():
-    config = get_config()
-    return config.get("locale", "en")
+def get_locale() -> str:
+    from . import deployment_info
+
+    return deployment_info.read("locale")
 
 
 def get_translator(locale=None, namespace=None, locales_dir=None):
@@ -754,19 +755,27 @@ def _get_translator(
 
     # We only load translations when we're in the deployment package. This is important for allowing us to
     # import the experiment directory (to access config variables etc) when translations are not yet available.
-    if in_deployment_package():
+    if not in_deployment_package():
+        _, _p = null_translator, null_translator_with_context
+    else:
         if locale is None:
             locale = get_locale()
 
-        if locales_dir is None:
-            locales_dir = get_locales_dir(namespace)
+        if locale == "en":
+            _, _p = null_translator, null_translator_with_context
+        else:
+            if locales_dir is None:
+                locales_dir = get_locales_dir(namespace)
 
-        compile_mo_file_if_necessary(locales_dir, locale, namespace)
+            compile_mo_file_if_necessary(locales_dir, locale, namespace)
 
-        translator = gettext.translation(namespace, locales_dir, [locale])
-        _, _p = translator.gettext, translator.pgettext
-    else:
-        _, _p = null_translator, null_translator_with_context
+            translator = gettext.translation(namespace, locales_dir, [locale])
+
+            def _(message):
+                return translator.gettext(message)
+
+            def _p(context, message):
+                return translator.pgettext(context, message)
 
     _.namespace = namespace
     _p.namespace = namespace
@@ -808,6 +817,8 @@ def null_translator_with_context(context, message):
 
 def compile_mo_file_if_necessary(locales_dir, locale, namespace):
     from .translation.utils import compile_mo
+
+    assert locale
 
     mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.mo")
     po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")

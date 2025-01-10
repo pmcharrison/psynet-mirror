@@ -11,34 +11,47 @@ msgstr ""
 #, fuzzy
 msgctxt "welcome-page"
 msgid "Welcome to the translation demo!"
-msgstr "Willkommen zur Übersetzungsdemo!"
+msgstr "Welkom bij de vertaaldemo!"
 
 #: experiment.py
 #, fuzzy
 msgid "Below you will see this text translated!"
-msgstr "Unten sehen Sie diesen Text übersetzt!"
+msgstr "Hieronder zie je deze tekst vertaald!"
+
+#: experiment.py
+#, fuzzy, python-brace-format
+msgid "My name is {NAME}."
+msgstr "Mijn naam is {NAME}."
+
+#: experiment.py
+#, fuzzy, python-brace-format
+msgid "My favorite food is {FOOD}."
+msgstr "Mijn favoriete eten is {FOOD}."
+
+#: experiment.py
+#, fuzzy, python-brace-format
+msgid "My least favorite food is {FOOD}."
+msgstr "Mijn minst favoriete eten is {FOOD}."
 
 #: experiment.py
 #, fuzzy
 msgid "You can also translate text in push buttons or any kind of page!"
-msgstr ""
-"Sie können auch Text in Schaltflächen oder auf jeder Art von Seite "
-"übersetzen!"
+msgstr "Je kunt ook tekst vertalen in drukknoppen of op elke soort pagina!"
 
 #: experiment.py
 #, fuzzy
 msgctxt "button"
 msgid "Click"
-msgstr "Klicken"
+msgstr "Klik"
 
 #: experiment.py
 #, fuzzy
 msgctxt "button"
 msgid "on"
-msgstr "auf"
+msgstr "op"
 
 #: experiment.py
 #, fuzzy
 msgctxt "button"
 msgid "translation"
-msgstr "Übersetzung"
+msgstr "vertaling"

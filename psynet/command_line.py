@@ -689,6 +689,9 @@ def _pre_launch(
     experiment = get_experiment()
     experiment.update_deployment_id()
 
+    config = get_config()
+    deployment_info.write(locale=config.get("locale", "en"))
+
     if archive:
         from psynet.experiment import database_template_path
 
