@@ -632,8 +632,12 @@ def get_descendent_class_by_name(parent_class, name):
 
 def get_locale() -> str:
     from . import deployment_info
+    from .experiment import in_deployment_package
 
-    return deployment_info.read("locale")
+    if in_deployment_package():
+        return deployment_info.read("locale")
+    else:
+        return "en"
 
 
 def get_translator(locale=None, namespace=None, locales_dir=None):
