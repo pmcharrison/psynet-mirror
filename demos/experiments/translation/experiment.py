@@ -19,6 +19,7 @@ class Exp(psynet.experiment.Experiment):
     # You could also set these in the config.txt file
     config = {
         "locale": "de",
+        "supported_locales": ["en", "de", "nl"],
     }
     timeline = Timeline(
         NoConsent(),
