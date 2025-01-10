@@ -206,3 +206,17 @@ You can translate an arbitrary Python package for use in PsyNet by navigating to
 the package and running ``psynet translate``. This will create a ``locales`` directory in the package's
 source directory and populate it with the translations for the supported locales.
 If you do not specify which locales to translate it to, it will default to PsyNet's own list of supported locales.
+
+
+Contributing to PsyNet
+----------------------
+To contribute to PsyNet you need to:
+- have a local version of psynet on your computer e.g.: ``cd ~ && git clone https://gitlab.com/PsyNetDev/PsyNet``
+- go to the master branch and pull the latest changes: ``cd ~/PsyNet && git checkout master && git pull``
+- create a new branch for your changes: ``git checkout -b my_new_translations``
+- optionally translate to the new language: ``psynet translate <new_locale>``
+- go to the locale folder and your new locale: ``cd ~/PsyNet/tests/experiments/translation/locales/<new_locale>/LC_MESSAGES``
+- open the ``experiment.po`` file with PoEdit, go through each entry and validate it or change it
+- save the file, commit your changes, and push them
+- create a merge request on the GitLab page of PsyNet
+- thank you for your contribution!
