@@ -16,7 +16,7 @@ def test_get_codebook_simple_variables():
 def test_get_codebook_html_tags():
     text = "Hello <b>world</b>"
     codebook = Translator._get_codebook(text)
-    assert codebook == [("<b>world</b>", "■0■")]
+    assert codebook == [("<b>", "■0■"), ("</b>", "■1■")]
 
 
 def test_get_codebook_multiple_variables():
@@ -25,7 +25,8 @@ def test_get_codebook_multiple_variables():
     assert codebook == [
         ("{{ NAME }}", "■0■"),
         ("{AGE}", "■1■"),
-        ("<b>world</b>", "■2■"),
+        ("<b>", "■2■"),
+        ("</b>", "■3■"),
     ]
 
 
@@ -43,7 +44,7 @@ def test_encode_decode():
     text = "Hello {{ NAME }} {AGE} <b>world</b>"
     codebook = Translator._get_codebook(text)
     encoded = Translator._encode(text, codebook)
-    assert encoded == "Hello ■0■ ■1■ ■2■"
+    assert encoded == "Hello ■0■ ■1■ ■2■ world ■3■"
 
     # Test decoding
     decoded = Translator._decode(encoded, codebook)
