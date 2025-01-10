@@ -1,44 +1,49 @@
 import pytest
 
-from psynet.translation.translation import (
-    assert_translation_contains_same_variables,
-    check_translations,
-)
+from psynet.translation.check import assert_variable_names_match
+from psynet.translation.translation import check_translations
 
 
+# This test needs refactoring
 def test_translation_verification():
-    # Jinja strings
-    assert_translation_contains_same_variables("Hello %(NAME)s", "Hello %(NAME)s")
+    # Test variable name matching
+    pot_entries = {
+        ("Hello %(NAME)s", None): type("Entry", (), {"msgid": "Hello %(NAME)s"}),
+        ("Hello {NAME}", None): type("Entry", (), {"msgid": "Hello {NAME}"}),
+    }
 
-    with pytest.raises(AssertionError):
-        # Lower case variable name
-        assert_translation_contains_same_variables("Hello %(name)s", "Hello %(name)s")
+    # Test matching variables
+    po_entries = {
+        ("Hello %(NAME)s", None): type("Entry", (), {"msgstr": "Hello %(NAME)s"}),
+        ("Hello {NAME}", None): type("Entry", (), {"msgstr": "Hello {NAME}"}),
+    }
+    assert_variable_names_match(pot_entries, po_entries)
 
-    with pytest.raises(AssertionError):
-        # Illegal char
-        assert_translation_contains_same_variables("Hello %(NAME#)s", "Hello %(NAME#)s")
+    # Test mismatched variables
+    po_entries_mismatch = {
+        ("Hello %(NAME)s", None): type("Entry", (), {"msgstr": "Hello %(DIFFERENT)s"}),
+        ("Hello {NAME}", None): type("Entry", (), {"msgstr": "Hello {DIFFERENT}"}),
+    }
+    with pytest.raises(ValueError):
+        assert_variable_names_match(pot_entries, po_entries_mismatch)
 
-    with pytest.raises(AssertionError):
-        assert_translation_contains_same_variables("Hello %(NAME)s", "Hello %(DF)s")
+    # Test missing variables
+    po_entries_missing = {
+        ("Hello %(NAME)s", None): type("Entry", (), {"msgstr": "Hello"}),
+        ("Hello {NAME}", None): type("Entry", (), {"msgstr": "Hello"}),
+    }
+    with pytest.raises(ValueError):
+        assert_variable_names_match(pot_entries, po_entries_missing)
 
-    # f-strings
-    assert_translation_contains_same_variables("Hello {NAME}", "Hello {NAME}")
-
-    # format strings
-    with pytest.raises(AssertionError):
-        # empty format strings are not allowed
-        assert_translation_contains_same_variables("Hello {}", "Hello {}")
-
-    # HTML tags
-    html_in, html_out = (
-        "<b>hello</b> <span>good bye</span>",
-        "<span>good bye</span> <b>hello</b>",
-    )
-    assert_translation_contains_same_variables(html_in, html_out)
-    with pytest.raises(AssertionError):
-        assert_translation_contains_same_variables(
-            html_in, html_out, assume_same_variable_order=True
-        )
+    # Test extra variables
+    po_entries_extra = {
+        ("Hello %(NAME)s", None): type(
+            "Entry", (), {"msgstr": "Hello %(NAME)s %(EXTRA)s"}
+        ),
+        ("Hello {NAME}", None): type("Entry", (), {"msgstr": "Hello {NAME} {EXTRA}"}),
+    }
+    with pytest.raises(ValueError):
+        assert_variable_names_match(pot_entries, po_entries_extra)
 
 
 @pytest.mark.skip
