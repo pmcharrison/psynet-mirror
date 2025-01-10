@@ -524,8 +524,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def supported_locales(self):
+        """
+        Returns the list of supported locales for the experiment.
+
+        This can be specified in the config.txt file, or inferred from the locales present in the locales directory.
+        """
         config = get_config()
-        return json.loads(config.get("supported_locales", "[]"))
+        locale = config.get("locale", "en")
+        supported_locales = json.loads(config.get("supported_locales", "[]"))
+        supported_locales += [locale, "en"]
+        supported_locales = list(set(supported_locales))
+
+        return supported_locales
 
     def translation_checks_needed(self):
         non_en_locales = [locale for locale in self.supported_locales if locale != "en"]
