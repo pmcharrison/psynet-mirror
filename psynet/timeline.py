@@ -26,7 +26,6 @@ from .utils import (
     NoArgumentProvided,
     call_function,
     call_function_with_context,
-    check_function_args,
     dict_to_js_vars,
     format_datetime,
     get_args,
@@ -338,13 +337,7 @@ class ReactiveGoTo(GoTo):
         self.check_args()
 
     def check_args(self):
-        self.check_function()
         self.check_targets()
-
-    def check_function(self):
-        check_function_args(
-            self.function, ("self", "experiment", "participant"), need_all=False
-        )
 
     def check_targets(self):
         try:
@@ -2093,7 +2086,6 @@ def switch(
     list
         A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
-    check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
 
     all_branch_starts = dict()
@@ -2716,7 +2708,6 @@ class EndAccumulateAnswers(NullElt):
 class DatabaseCheck(NullElt):
     def __init__(self, label, function):
         super().__init__()
-        check_function_args(function, args=[])
         self.label = label
         self.function = function
 
@@ -2771,9 +2762,6 @@ class PreDeployRoutine(NullElt):
 class ParticipantFailRoutine(NullElt):
     def __init__(self, label, function):
         super().__init__()
-        check_function_args(
-            function, args=["participant", "experiment"], need_all=False
-        )
         self.label = label
         self.function = function
 
@@ -2781,7 +2769,6 @@ class ParticipantFailRoutine(NullElt):
 class RecruitmentCriterion(NullElt):
     def __init__(self, label, function):
         super().__init__()
-        check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
 
