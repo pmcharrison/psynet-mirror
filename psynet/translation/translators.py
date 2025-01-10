@@ -335,7 +335,7 @@ class ChatGptTranslator(Translator):
 
 
 class DefaultTranslator(Translator):
-    def _translate_texts(
+    def translate(
         self,
         texts: List[str],
         source_lang: str,
