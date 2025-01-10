@@ -1,29 +1,40 @@
 from psynet.translation.translators import Translator
 
 
-def test_get_codebook():
-    # Test Jinja variables
+def test_get_codebook_jinja_variables():
     text = "Hello {{ NAME }}"
     codebook = Translator._get_codebook(text)
     assert codebook == [("{{ NAME }}", "■0■")]
 
-    # Test simple variables
+
+def test_get_codebook_simple_variables():
     text = "Hello {NAME}"
     codebook = Translator._get_codebook(text)
     assert codebook == [("{NAME}", "■0■")]
 
-    # Test HTML tags
+
+def test_get_codebook_html_tags():
     text = "Hello <b>world</b>"
     codebook = Translator._get_codebook(text)
     assert codebook == [("<b>world</b>", "■0■")]
 
-    # Test multiple variables
+
+def test_get_codebook_multiple_variables():
     text = "Hello {{ NAME }} {AGE} <b>world</b>"
     codebook = Translator._get_codebook(text)
     assert codebook == [
         ("{{ NAME }}", "■0■"),
         ("{AGE}", "■1■"),
         ("<b>world</b>", "■2■"),
+    ]
+
+
+def test_get_codebook_html_with_attributes():
+    text = '<div class="alert alert-primary" role="alert">Hello</div>'
+    codebook = Translator._get_codebook(text)
+    assert codebook == [
+        ('<div class="alert alert-primary" role="alert">', "■0■"),
+        ("</div>", "■1■"),
     ]
 
 

@@ -43,12 +43,10 @@ def test_translator(translator_class, english, expected_french, experiment_direc
     result = translator.translate(texts=english, source_lang="en", target_lang="fr")
 
     assert len(english) == len(result)
-    assert all(
-        [
-            translation.lower().strip() == expected_french[i].lower().strip()
-            for i, translation in enumerate(result)
-        ]
-    )
+    for i, translation in enumerate(result):
+        assert preprocess_translation(translation) == preprocess_translation(
+            expected_french[i]
+        )
 
 
 @local_only
