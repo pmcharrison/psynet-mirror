@@ -213,19 +213,6 @@ class TranslationUnit:
     def translate(self, source_lang, target_lang):
         input_texts = self.text_to_translate
 
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=1234, stdoutToServer=True, stderrToServer=True
-        )
-
-        if self.translator.use_codebook:
-            codebooks = [self._get_codebook(text) for text in input_texts]
-            input_texts = [
-                self._encode(text, codebook)
-                for text, codebook in zip(input_texts, codebooks)
-            ]
-
         translated_texts = self.translator.translate(
             texts=input_texts,
             source_lang=source_lang,
@@ -233,117 +220,11 @@ class TranslationUnit:
             file_path=self.file,
         )
 
-        assert len(translated_texts) == len(input_texts) == len(codebooks)
-
-        if self.translator.use_codebook:
-            translated_texts = [
-                self._decode(text, codebook)
-                for text, codebook in zip(translated_texts, codebooks)
-            ]
+        assert len(translated_texts) == len(input_texts)
 
         for entry, translated_text in zip(self.entries, translated_texts):
-            translated_text = self.fix_translation(translated_text)
-
             entry.msgstr = translated_text
             entry.fuzzy = True  # Signals that the translation needs to be reviewed
-
-    @classmethod
-    def _get_codebook(cls, text: str) -> List[tuple[str, str]]:
-        """Get codebook mapping text patterns to encoded placeholders.
-
-        Parameters
-        ----------
-        text : str
-            Input text to analyze for patterns that need encoding
-
-        Returns
-        -------
-        list of tuple
-            List of (original_text, encoded_placeholder) pairs
-        """
-        import re
-
-        codebook = []
-        counter = 0
-        working_text = text
-
-        # Match Jinja variables {{ VAR }}
-        jinja_pattern = r"\{\{[^}]+\}\}"
-        matches = list(re.finditer(jinja_pattern, working_text))
-        for match in matches:
-            original = match.group(0)
-            encoded = f"■{counter}■"
-            codebook.append((original, encoded))
-            working_text = working_text.replace(original, encoded)
-            counter += 1
-
-        # Match simple variables { VAR }
-        var_pattern = r"\{[^}]+\}"
-        matches = list(re.finditer(var_pattern, working_text))
-        for match in matches:
-            original = match.group(0)
-            encoded = f"■{counter}■"
-            codebook.append((original, encoded))
-            working_text = working_text.replace(original, encoded)
-            counter += 1
-
-        # Match HTML tags <tag>...</tag>
-        html_pattern = r"<[^>]+>.*?</[^>]+>|<[^/>][^>]*>"
-        matches = list(re.finditer(html_pattern, working_text))
-        for match in matches:
-            original = match.group(0)
-            encoded = f"■{counter}■"
-            codebook.append((original, encoded))
-            working_text = working_text.replace(original, encoded)
-            counter += 1
-
-        return codebook
-
-    @classmethod
-    def _encode(cls, text: str, codebook: List[tuple[str, str]]) -> str:
-        """Encode text by replacing patterns with placeholders.
-
-        Parameters
-        ----------
-        text : str
-            Text to encode
-        codebook : list of tuple
-            List of (original_text, encoded_placeholder) pairs
-
-        Returns
-        -------
-        str
-            Encoded text with patterns replaced by placeholders
-        """
-        result = text
-        for original, encoded in codebook:
-            result = result.replace(original, encoded)
-        return result
-
-    @classmethod
-    def _decode(cls, text: str, codebook: List[tuple[str, str]]) -> str:
-        """Decode text by replacing placeholders with original patterns.
-
-        Parameters
-        ----------
-        text : str
-            Text to decode
-        codebook : list of tuple
-            List of (original_text, encoded_placeholder) pairs
-
-        Returns
-        -------
-        str
-            Decoded text with placeholders replaced by original patterns
-        """
-        result = text
-        for original, encoded in codebook:
-            result = result.replace(encoded, original)
-        return result
-
-    @classmethod
-    def fix_translation(cls, translation: str) -> str:
-        return translation
 
 
 def translate_po(pot_path, po_path, source_lang, target_lang):

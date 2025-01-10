@@ -16,7 +16,181 @@ class Translator:
         target_lang: str,
         file_path: str = None,
     ):
+        """Translate a list of texts from source language to target language.
+
+        Parameters
+        ----------
+        texts : List[str]
+            The texts to translate
+        source_lang : str
+            The source language code
+        target_lang : str
+            The target language code
+        file_path : str, optional
+            The path to the file being translated, by default None
+
+        Returns
+        -------
+        List[str]
+            The translated texts
+        """
+        if self.use_codebook:
+            codebooks = [self._get_codebook(text) for text in texts]
+            encoded_texts = [
+                self._encode(text, codebook) for text, codebook in zip(texts, codebooks)
+            ]
+            translated_encoded_texts = self._translate_texts(
+                encoded_texts, source_lang, target_lang, file_path
+            )
+            translated_texts = [
+                self._decode(text, codebook)
+                for text, codebook in zip(translated_encoded_texts, codebooks)
+            ]
+        else:
+            translated_texts = self._translate_texts(
+                texts, source_lang, target_lang, file_path
+            )
+
+        return [self.fix_translation(text) for text in translated_texts]
+
+    def _translate_texts(
+        self,
+        texts: List[str],
+        source_lang: str,
+        target_lang: str,
+        file_path: str = None,
+    ) -> List[str]:
+        """Internal method to perform the actual translation.
+
+        This method should be implemented by subclasses.
+
+        Parameters
+        ----------
+        texts : List[str]
+            The texts to translate
+        source_lang : str
+            The source language code
+        target_lang : str
+            The target language code
+        file_path : str, optional
+            The path to the file being translated, by default None
+
+        Returns
+        -------
+        List[str]
+            The translated texts
+        """
         raise NotImplementedError
+
+    @classmethod
+    def _get_codebook(cls, text: str) -> List[tuple[str, str]]:
+        """Get codebook mapping text patterns to encoded placeholders.
+
+        Parameters
+        ----------
+        text : str
+            Input text to analyze for patterns that need encoding
+
+        Returns
+        -------
+        list of tuple
+            List of (original_text, encoded_placeholder) pairs
+        """
+        import re
+
+        codebook = []
+        counter = 0
+        working_text = text
+
+        # Match Jinja variables {{ VAR }}
+        jinja_pattern = r"\{\{[^}]+\}\}"
+        matches = list(re.finditer(jinja_pattern, working_text))
+        for match in matches:
+            original = match.group(0)
+            encoded = f"■{counter}■"
+            codebook.append((original, encoded))
+            working_text = working_text.replace(original, encoded)
+            counter += 1
+
+        # Match simple variables { VAR }
+        var_pattern = r"\{[^}]+\}"
+        matches = list(re.finditer(var_pattern, working_text))
+        for match in matches:
+            original = match.group(0)
+            encoded = f"■{counter}■"
+            codebook.append((original, encoded))
+            working_text = working_text.replace(original, encoded)
+            counter += 1
+
+        # Match HTML tags <tag>...</tag>
+        html_pattern = r"<[^>]+>.*?</[^>]+>|<[^/>][^>]*>"
+        matches = list(re.finditer(html_pattern, working_text))
+        for match in matches:
+            original = match.group(0)
+            encoded = f"■{counter}■"
+            codebook.append((original, encoded))
+            working_text = working_text.replace(original, encoded)
+            counter += 1
+
+        return codebook
+
+    @classmethod
+    def _encode(cls, text: str, codebook: List[tuple[str, str]]) -> str:
+        """Encode text by replacing patterns with placeholders.
+
+        Parameters
+        ----------
+        text : str
+            Text to encode
+        codebook : list of tuple
+            List of (original_text, encoded_placeholder) pairs
+
+        Returns
+        -------
+        str
+            Encoded text with patterns replaced by placeholders
+        """
+        result = text
+        for original, encoded in codebook:
+            result = result.replace(original, encoded)
+        return result
+
+    @classmethod
+    def _decode(cls, text: str, codebook: List[tuple[str, str]]) -> str:
+        """Decode text by replacing placeholders with original patterns.
+
+        Parameters
+        ----------
+        text : str
+            Text to decode
+        codebook : list of tuple
+            List of (original_text, encoded_placeholder) pairs
+
+        Returns
+        -------
+        str
+            Decoded text with placeholders replaced by original patterns
+        """
+        result = text
+        for original, encoded in codebook:
+            result = result.replace(encoded, original)
+        return result
+
+    @classmethod
+    def fix_translation(cls, translation: str) -> str:
+        """Fix any issues in the translated text.
+
+        Parameters
+        ----------
+        translation : str
+            The translated text to fix
+
+        Returns
+        -------
+        str
+            The fixed translation
+        """
+        return translation
 
 
 class CredentialsError(Exception):
@@ -34,7 +208,7 @@ class InvalidTranslationError(Exception):
 class GoogleTranslator(Translator):
     nickname = "google_translate"
 
-    def translate(
+    def _translate_texts(
         self,
         texts: List[str],
         source_lang: str,
@@ -107,7 +281,7 @@ class ChatGptTranslator(Translator):
 
         return prompt
 
-    def translate(
+    def _translate_texts(
         self,
         texts: List[str],
         source_lang: str,
@@ -160,7 +334,7 @@ class ChatGptTranslator(Translator):
 
 
 class DefaultTranslator(Translator):
-    def translate(
+    def _translate_texts(
         self,
         texts: List[str],
         source_lang: str,
