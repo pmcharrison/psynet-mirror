@@ -131,7 +131,7 @@ class TranslationUnit:
     def translator(self):
         return DefaultTranslator()
 
-    def sort(self):
+    def sort_by_line_number(self):
         # We can assume that each entry has only a single occurrence, by virtue of the logic in `from_po`.
         # We can also assume that each entry comes from the same file. So, we just need to look at the first
         # element in entry.occurrences, which is a tuple (file, line_number), and take the second element.
@@ -172,7 +172,6 @@ class TranslationUnit:
         cls,
         new: "dict[tuple[str, str], TranslationUnit]",
         old: "dict[tuple[str, str], TranslationUnit]",
-        sort: bool,
     ):
         result = {}
 
@@ -194,11 +193,6 @@ class TranslationUnit:
                 result[key] = old_unit
             else:
                 result[key] = new[key]
-
-        if sort:
-            for unit in result.values():
-                # This sorts each TranslationUnit by line number. This will help the autotranslator algorithms.
-                unit.sort()
 
         return result
 
@@ -248,7 +242,10 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
         old_units = TranslationUnit.from_po(old_po)
         new_units = TranslationUnit.from_po(new_po)
 
-        combined_units = TranslationUnit.inherit(new_units, old_units, sort=True)
+        for unit in new_units.values():
+            unit.sort_by_line_number()
+
+        combined_units = TranslationUnit.inherit(new_units, old_units)
 
         units_to_translate = [
             unit for unit in combined_units.values() if not unit.is_translated
