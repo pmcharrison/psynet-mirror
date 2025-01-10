@@ -47,13 +47,13 @@ msgstr "Tôi không muốn trả lời"
 #, fuzzy
 msgctxt "gender"
 msgid "Specify yourself"
-msgstr "Tự xác định"
+msgstr "Tự chỉ định"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "age"
 msgid "What is your age?"
-msgstr "Tuổi của bạn là bao nhiêu?"
+msgstr "Bạn bao nhiêu tuổi?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -101,7 +101,7 @@ msgstr "Quốc gia cư trú hiện tại của bạn là gì?"
 #, fuzzy
 msgctxt "formal-education"
 msgid "What is your highest level of formal education?"
-msgstr "Trình độ học vấn cao nhất của bạn là gì?"
+msgstr "Trình độ học vấn chính quy cao nhất của bạn là gì?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -125,7 +125,7 @@ msgstr "Cao đẳng"
 #, fuzzy
 msgctxt "formal-education"
 msgid "Graduate School"
-msgstr "Trường đại học"
+msgstr "Trường sau đại học"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -158,7 +158,7 @@ msgstr "Bạn cần chọn một ngôn ngữ!"
 #, fuzzy
 msgctxt "language-select"
 msgid "Do you speak more than one language?"
-msgstr "Bạn có nói nhiều hơn một ngôn ngữ không?"
+msgstr "Bạn có nói được nhiều hơn một ngôn ngữ không?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -325,7 +325,7 @@ msgstr "Tổng thu nhập hộ gia đình của bạn mỗi năm là bao nhiêu?
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "Less than 10,000 {CURRENCY}"
-msgstr "Ít hơn 10,000 {CURRENCY}"
+msgstr "Dưới 10,000 {CURRENCY}"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -426,9 +426,9 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Bạn sẽ nhận được phần thưởng <strong>■0■■1■</strong> cho thời gian bạn đã "
-"dành cho thí nghiệm. Bạn cũng đã được thưởng thêm phần thưởng hiệu suất là "
-"<strong>■0■■3■</strong>!"
+"Bạn sẽ nhận được phần thưởng <strong>{CURRENCY}{TIME_REWARD}</strong> cho "
+"thời gian bạn đã dành cho thí nghiệm. Bạn cũng đã được thưởng thêm phần "
+"thưởng hiệu suất <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
@@ -596,7 +596,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Bạn phải tích lũy <strong>at least "
+"Bạn phải tích lũy <strong>ít nhất "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> phần thưởng để có "
 "thể được bồi thường."
 
@@ -644,7 +644,7 @@ msgid ""
 "be automatically paid the compensation you have earned so far."
 msgstr ""
 "Nếu bạn nhấp vào nút Hủy bỏ, thí nghiệm sẽ kết thúc sớm và bạn sẽ tự động "
-"được trả khoản bồi thường mà bạn đã kiếm được cho đến nay."
+"được trả tiền bồi thường mà bạn đã kiếm được cho đến nay."
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -658,7 +658,7 @@ msgstr ""
 #, fuzzy
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
-msgstr "Xem thông tin bên dưới để biết chi tiết về khoản bồi thường của bạn."
+msgstr "Xem thông tin dưới đây để biết chi tiết về tiền bồi thường của bạn."
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -764,8 +764,8 @@ msgid ""
 "For example, you may be asked to record your finger-tapping in response to a"
 " sound or video, or to record yourself speaking or singing."
 msgstr ""
-"Ví dụ, bạn có thể được yêu cầu ghi lại tiếng gõ ngón tay của mình để phản "
-"hồi âm thanh hoặc video, hoặc ghi lại bản thân đang nói hoặc hát."
+"Ví dụ, bạn có thể được yêu cầu ghi lại việc gõ ngón tay của mình để phản ứng"
+" với âm thanh hoặc video, hoặc ghi lại bản thân đang nói hoặc hát."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -787,8 +787,8 @@ msgid ""
 "I have received oral and written information about the fact that "
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
-"Tôi đã nhận được thông tin bằng miệng và văn bản về việc sẽ có các ghi "
-"âm/hình ảnh được thực hiện trong nghiên cứu này."
+"Tôi đã nhận được thông tin bằng miệng và văn bản về việc ghi âm <i>hình "
+"ảnh/âm thanh</i> sẽ được thực hiện trong nghiên cứu này."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -797,8 +797,8 @@ msgid ""
 "The recording serves the purpose of understanding how humans perceive and "
 "process information from sound and visual."
 msgstr ""
-"Ghi âm nhằm mục đích hiểu cách con người nhận thức và xử lý thông tin từ âm "
-"thanh và hình ảnh."
+"Việc ghi âm nhằm mục đích hiểu cách con người nhận thức và xử lý thông tin "
+"từ âm thanh và hình ảnh."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -817,8 +817,8 @@ msgid ""
 "By making recording people while moving, singing, tapping to rhythms, or "
 "speaking, we can infer the mechanisms of the auditory and visual systems."
 msgstr ""
-"Bằng cách ghi âm mọi người khi họ di chuyển, hát, gõ nhịp hoặc nói, chúng "
-"tôi có thể suy ra các cơ chế của hệ thống thính giác và thị giác."
+"Bằng cách ghi âm mọi người khi di chuyển, hát, gõ nhịp hoặc nói, chúng tôi "
+"có thể suy ra các cơ chế của hệ thống thính giác và thị giác."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -829,9 +829,10 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Tôi đã được thông báo rằng việc lưu trữ và xử lý ghi âm/hình ảnh sẽ được "
-"thực hiện dưới dạng giả danh, tức là sử dụng một số và không chứa tên của "
-"tôi, và có một danh sách mã hóa liên kết tên của tôi với số đó."
+"Tôi đã được thông báo rằng việc lưu trữ và xử lý ghi âm <i>hình ảnh/âm "
+"thanh</i> sẽ được thực hiện dưới dạng giả danh, tức là sử dụng một số và "
+"không chứa tên của tôi, và có một danh sách mã hóa liên kết tên của tôi với "
+"số đó."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -841,7 +842,7 @@ msgid ""
 "which will be destroyed after completion of the research project."
 msgstr ""
 "Các nhà điều tra là những người duy nhất có quyền truy cập vào danh sách mã "
-"hóa này, danh sách sẽ bị hủy sau khi hoàn thành dự án nghiên cứu."
+"hóa này, danh sách này sẽ bị hủy sau khi hoàn thành dự án nghiên cứu."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -852,7 +853,8 @@ msgid ""
 "material."
 msgstr ""
 "Các nhà nghiên cứu liên quan đến dự án này sẽ có quyền truy cập vào dữ liệu "
-"ghi âm/hình ảnh của tôi trong quá trình ghi âm và phân tích tài liệu."
+"<i>hình ảnh/âm thanh</i> của tôi trong quá trình ghi âm và phân tích tài "
+"liệu."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -863,13 +865,13 @@ msgid ""
 "storage of my personal data without negative consequences."
 msgstr ""
 "Tôi hiểu rằng tôi có quyền rút lại sự đồng ý của mình đối với việc thu thập "
-"và lưu trữ dữ liệu cá nhân của tôi mà không có hậu quả tiêu cực."
+"và lưu trữ dữ liệu cá nhân của mình mà không có hậu quả tiêu cực."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I agree to the handling of the recordings as described above."
-msgstr "Tôi đồng ý với việc xử lý các ghi âm như đã mô tả ở trên."
+msgstr "Tôi đồng ý với việc xử lý các bản ghi như đã mô tả ở trên."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -885,9 +887,9 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"Tôi đồng ý rằng các ghi âm/hình ảnh của tôi có thể được sử dụng cho mục đích"
-" trình diễn trong các buổi thuyết trình với số lượng người tham gia hạn chế "
-"(ví dụ, các khóa học giảng dạy hoặc thuyết trình khoa học)."
+"Tôi đồng ý rằng các bản ghi <i>hình ảnh/âm thanh</i> của tôi có thể được sử "
+"dụng cho mục đích trình diễn trong các buổi thuyết trình với số lượng người "
+"tham gia hạn chế (ví dụ: các khóa học giảng dạy hoặc thuyết trình khoa học)."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -912,7 +914,7 @@ msgstr "KHÔNG"
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "Tuyên bố đồng ý cho các ghi âm/hình ảnh là tự nguyện."
+msgstr "Tuyên bố đồng ý cho ghi âm <i>hình ảnh/âm thanh</i> là tự nguyện."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -945,8 +947,8 @@ msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
-"Tôi đã đọc và hiểu mọi thứ và đồng ý rằng các ghi âm/hình ảnh của tôi có thể"
-" được thực hiện."
+"Tôi đã đọc và hiểu mọi thứ và đồng ý rằng các bản ghi <i>hình ảnh/âm "
+"thanh</i> của tôi có thể được thực hiện."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -959,7 +961,7 @@ msgstr "Tôi đã nhận được một bản sao của biểu mẫu đồng ý 
 #, fuzzy
 msgctxt "consent"
 msgid "Investigator"
-msgstr "Nhà điều tra"
+msgstr "Nhà nghiên cứu"
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -981,7 +983,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-cap"
 msgid "I have read and understood all of the information completely."
-msgstr "Tôi đã đọc và hiểu tất cả thông tin một cách hoàn toàn."
+msgstr "Tôi đã đọc và hiểu tất cả thông tin hoàn toàn."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1026,8 +1028,8 @@ msgid ""
 "The investigators are the only persons who have access to this coding list "
 "and who are thus able to link the collected data to my name."
 msgstr ""
-"Các nhà điều tra là những người duy nhất có quyền truy cập vào danh sách mã "
-"hóa này và do đó có thể liên kết dữ liệu thu thập được với tên của tôi."
+"Các nhà nghiên cứu là những người duy nhất có quyền truy cập vào danh sách "
+"mã hóa này và do đó có thể liên kết dữ liệu thu thập được với tên của tôi."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1226,8 +1228,8 @@ msgid ""
 "remains in effect."
 msgstr ""
 "Dữ liệu của bạn sẽ được lưu trữ trong cơ sở dữ liệu liên hệ miễn là mục đích"
-" của việc lưu trữ này, tức là để liên hệ với bạn về việc tham gia một nghiên"
-" cứu, vẫn còn hiệu lực."
+" của việc lưu trữ này, tức là để liên lạc với bạn về việc tham gia một "
+"nghiên cứu, vẫn còn hiệu lực."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1239,13 +1241,13 @@ msgstr "Bạn có thể yêu cầu xóa dữ liệu của mình bất cứ lúc 
 #, fuzzy
 msgctxt "consent-duration"
 msgid "To do so, send an e-mail with the subject “Delete” to:"
-msgstr "Để làm như vậy, hãy gửi email với chủ đề “Xóa” đến:"
+msgstr "Để làm như vậy, hãy gửi email với tiêu đề “Xóa” đến:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
 msgctxt "consent-duration"
 msgid "Your personal data will then be deleted immediately."
-msgstr "Dữ liệu cá nhân của bạn sau đó sẽ được xóa ngay lập tức."
+msgstr "Dữ liệu cá nhân của bạn sẽ được xóa ngay lập tức."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1284,8 +1286,8 @@ msgid ""
 "The data entered in the form you fill out are transferred in encrypted form "
 "to an internal server."
 msgstr ""
-"Dữ liệu được nhập vào biểu mẫu bạn điền được chuyển dưới dạng mã hóa đến máy"
-" chủ nội bộ."
+"Dữ liệu nhập vào trong biểu mẫu bạn điền được chuyển dưới dạng mã hóa đến "
+"máy chủ nội bộ."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1352,8 +1354,8 @@ msgid ""
 " insofar as no legal exceptions apply in individual cases:"
 msgstr ""
 "Là một đối tượng dữ liệu có dữ liệu cá nhân được xử lý liên quan đến việc "
-"bạn tham gia vào các nghiên cứu của chúng tôi, bạn có các quyền sau về "
-"nguyên tắc và trong chừng mực không có ngoại lệ pháp lý nào áp dụng trong "
+"tham gia của bạn trong các nghiên cứu của chúng tôi, bạn có các quyền sau về"
+" nguyên tắc và trong chừng mực không có ngoại lệ pháp lý nào áp dụng trong "
 "từng trường hợp:"
 
 #: psynet/templates/consents/database_consent.html
@@ -1518,8 +1520,8 @@ msgstr ""
 msgctxt "consent-payment"
 msgid "In this case you will not receive any compensation for your time."
 msgstr ""
-"Trong trường hợp này, bạn sẽ không nhận được bất kỳ khoản bồi thường nào cho"
-" thời gian của mình."
+"Trong trường hợp này, bạn sẽ không nhận được bất kỳ bồi thường nào cho thời "
+"gian của bạn."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1709,8 +1711,8 @@ msgid ""
 "The investigator may withdraw you from this research if circumstances arise "
 "which warrant doing so."
 msgstr ""
-"Nhà nghiên cứu có thể rút bạn khỏi nghiên cứu này nếu có những tình huống "
-"phát sinh mà cần phải làm như vậy."
+"Nhà nghiên cứu có thể rút bạn ra khỏi nghiên cứu này nếu có những tình huống"
+" phát sinh mà cần phải làm như vậy."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/open_science_consent.html
@@ -1781,8 +1783,8 @@ msgid ""
 "experiment."
 msgstr ""
 "Điều này bao gồm các thí nghiệm mà chúng tôi thực hiện ghi âm hình ảnh hoặc "
-"âm thanh hoặc nơi chúng tôi cần thông tin liên hệ của bạn để liên hệ với bạn"
-" trong tương lai để tham gia một thí nghiệm khác."
+"nơi chúng tôi cần thông tin liên hệ của bạn để liên hệ với bạn trong tương "
+"lai để tham gia một thí nghiệm khác."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1816,8 +1818,9 @@ msgid ""
 "This code will not be used to derive your real identity, will not be shared "
 "with anyone outside of the research team and will be deleted after use."
 msgstr ""
-"Mã này sẽ không được sử dụng để suy ra danh tính thực của bạn, sẽ không được"
-" chia sẻ với bất kỳ ai ngoài nhóm nghiên cứu và sẽ bị xóa sau khi sử dụng."
+"Mã này sẽ không được sử dụng để xác định danh tính thực của bạn, sẽ không "
+"được chia sẻ với bất kỳ ai ngoài nhóm nghiên cứu và sẽ bị xóa sau khi sử "
+"dụng."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1828,9 +1831,9 @@ msgid ""
 "real identity, this record could be linked in some cases to your public "
 "profile page if a data breach takes place."
 msgstr ""
-"Mặc dù các nhà nghiên cứu sẽ không sử dụng mã số chữ cái của bạn để suy ra "
-"danh tính thực của bạn, bản ghi này có thể được liên kết trong một số trường"
-" hợp với trang hồ sơ công khai của bạn nếu xảy ra vi phạm dữ liệu."
+"Mặc dù các nhà nghiên cứu sẽ không sử dụng mã số chữ cái của bạn để xác định"
+" danh tính thực của bạn, bản ghi này có thể được liên kết trong một số "
+"trường hợp với trang hồ sơ công khai của bạn nếu xảy ra vi phạm dữ liệu."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1857,8 +1860,8 @@ msgid ""
 "For the purpose of helping scientific progress and replication, sometimes we"
 " may share the data with research collaborators."
 msgstr ""
-"Vì mục đích giúp tiến bộ khoa học và tái tạo, đôi khi chúng tôi có thể chia "
-"sẻ dữ liệu với các cộng tác viên nghiên cứu."
+"Với mục đích giúp tiến bộ khoa học và tái tạo, đôi khi chúng tôi có thể chia"
+" sẻ dữ liệu với các cộng tác viên nghiên cứu."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1881,7 +1884,7 @@ msgid ""
 "that are password protected."
 msgstr ""
 "Dữ liệu sẽ được lưu trữ tạm thời trên các máy chủ bên ngoài và máy tính để "
-"bàn/laptop được bảo vệ bằng mật khẩu."
+"bàn/máy tính xách tay được bảo vệ bằng mật khẩu."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1938,12 +1941,12 @@ msgid ""
 "abilities (e.g. in sound recognition and computer vision) and to help "
 "improve perceptual abilities in people whose hearing or sight is impaired."
 msgstr ""
-"Mặc dù nó có thể không mang lại lợi ích trực tiếp cho bạn, nghiên cứu này có"
-" thể mang lại lợi ích cho xã hội bằng cách giúp chúng tôi hiểu cách con "
-"người lấy thông tin từ âm thanh và hình ảnh, và có thể giúp kỹ sư máy móc có"
-" thể tái tạo khả năng của chúng ta (ví dụ, trong nhận dạng âm thanh và thị "
-"giác máy tính) và giúp cải thiện khả năng nhận thức ở những người có thính "
-"giác hoặc thị giác bị suy giảm."
+"Mặc dù có thể không mang lại lợi ích trực tiếp cho bạn, nghiên cứu này có "
+"thể mang lại lợi ích cho xã hội bằng cách giúp chúng ta hiểu cách con người "
+"lấy thông tin từ âm thanh và hình ảnh, và có thể giúp kỹ sư máy móc có thể "
+"tái tạo khả năng của chúng ta (ví dụ: trong nhận dạng âm thanh và thị giác "
+"máy tính) và giúp cải thiện khả năng nhận thức ở những người bị suy giảm "
+"thính giác hoặc thị giác."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
@@ -2003,8 +2006,7 @@ msgid ""
 msgstr ""
 "Bạn có quyền được thông tin về dữ liệu liên quan đến bạn được lưu trữ tại "
 "Viện Max-Planck, quyền sửa dữ liệu không chính xác, và quyền yêu cầu xóa dữ "
-"liệu trong trường hợp lưu trữ dữ liệu không được phép và quyền chuyển dữ "
-"liệu."
+"liệu trong trường hợp lưu trữ dữ liệu không hợp lệ và quyền chuyển dữ liệu."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2025,7 +2027,7 @@ msgstr ""
 msgctxt "consent-rights"
 msgid ""
 "You also have the right to submit an objection to the supervisory authority."
-msgstr "Bạn cũng có quyền gửi phản đối đến cơ quan giám sát."
+msgstr "Bạn cũng có quyền gửi khiếu nại đến cơ quan giám sát."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2055,8 +2057,8 @@ msgid ""
 "singing."
 msgstr ""
 "Điều này bao gồm các bản ghi âm thanh-hình ảnh, chẳng hạn như ghi lại việc "
-"gõ ngón tay của bạn để phản ứng với âm thanh hoặc video, hoặc ghi lại bản "
-"thân bạn nói hoặc hát."
+"gõ ngón tay của bạn để phản ứng với âm thanh hoặc video, hoặc ghi lại giọng "
+"nói hoặc hát của bạn."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2213,6 +2215,12 @@ msgstr "Bạn đang sử dụng:"
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Bạn cần sử dụng chế độ ẩn danh để tham gia vào thí nghiệm."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
 msgid "Warning!"
 msgstr "Cảnh báo!"
 
@@ -2262,19 +2270,19 @@ msgstr "Ở góc trên bên phải, nhấp vào Thêm"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "New Incognito Window"
-msgstr "Cửa sổ Ẩn danh mới"
+msgstr "Cửa sổ ẩn danh mới"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
-msgstr "Một cửa sổ mới xuất hiện. Ở góc trên, kiểm tra biểu tượng Ẩn danh"
+msgstr "Một cửa sổ mới xuất hiện. Ở góc trên, kiểm tra biểu tượng ẩn danh"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You can also use a keyboard shortcut to open an Incognito window"
-msgstr "Bạn cũng có thể sử dụng phím tắt để mở cửa sổ Ẩn danh"
+msgstr "Bạn cũng có thể sử dụng phím tắt để mở cửa sổ ẩn danh"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2387,7 +2395,7 @@ msgstr "Tôi đồng ý"
 #, fuzzy
 msgctxt "consent"
 msgid "No, thank you (return task)"
-msgstr "Không, cảm ơn (trở lại nhiệm vụ)"
+msgstr "Không, cảm ơn (trở về nhiệm vụ)"
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2493,9 +2501,9 @@ msgid ""
 "melody that you sang)."
 msgstr ""
 "Tuy nhiên, trong một số thí nghiệm, bản ghi âm của bạn có thể được xem hoặc "
-"nghe bởi các người tham gia khác để đánh giá chúng trong các thuộc tính khác"
-" nhau hoặc tạo ra tài liệu mới (ví dụ, tái tạo một nhịp điệu mà bạn đã tạo "
-"ra, hoặc tiếp tục một giai điệu mà bạn đã hát)."
+"nghe bởi những người tham gia khác để đánh giá chúng theo các thuộc tính "
+"khác nhau hoặc tạo ra tài liệu mới (ví dụ, tái tạo một nhịp điệu mà bạn đã "
+"tạo ra, hoặc tiếp tục một giai điệu mà bạn đã hát)."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2514,8 +2522,8 @@ msgid ""
 "Your recordings will not be used to derive your real identity, and they will"
 " not be made public."
 msgstr ""
-"Bản ghi âm của bạn sẽ không được sử dụng để suy ra danh tính thực của bạn, "
-"và chúng sẽ không được công khai."
+"Bản ghi âm của bạn sẽ không được sử dụng để xác định danh tính thực của bạn,"
+" và chúng sẽ không được công khai."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2536,9 +2544,9 @@ msgid ""
 "identity, personal information could be leaked if you are not in an isolated"
 " environment."
 msgstr ""
-"Mặc dù các nhà nghiên cứu sẽ không sử dụng bản ghi âm của bạn để suy ra danh"
-" tính thực của bạn, thông tin cá nhân có thể bị rò rỉ nếu bạn không ở trong "
-"môi trường cách ly."
+"Mặc dù các nhà nghiên cứu sẽ không sử dụng bản ghi âm của bạn để xác định "
+"danh tính thực của bạn, thông tin cá nhân có thể bị rò rỉ nếu bạn không ở "
+"trong môi trường cách ly."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2552,9 +2560,9 @@ msgid ""
 msgstr ""
 "Bạn có thể muốn đảm bảo rằng không có âm thanh/hình ảnh nào trong môi trường"
 " của bạn có thể liên kết với thông tin cá nhân của bạn. Ngoài ra, trong khi "
-"bạn thực hiện ghi âm, micro hoặc camera có thể ghi lại âm thanh hoặc video "
-"không mong muốn, ví dụ, camera có thể ghi lại một thành viên gia đình khác, "
-"hoặc micro có thể ghi lại điều gì đó bạn nói với người khác."
+"bạn thực hiện ghi âm, micro hoặc máy ảnh có thể ghi lại âm thanh hoặc video "
+"không mong muốn, ví dụ, máy ảnh có thể ghi lại một thành viên gia đình khác,"
+" hoặc micro có thể ghi lại điều gì đó bạn nói với người khác."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2585,8 +2593,8 @@ msgid ""
 "By consenting to this experiment, you are committing not to use profanity "
 "while recording audio or nudity while recording video."
 msgstr ""
-"Bằng cách đồng ý tham gia thí nghiệm này, bạn cam kết không sử dụng ngôn ngữ"
-" tục tĩu khi ghi âm hoặc khỏa thân khi ghi video."
+"Bằng cách đồng ý tham gia thí nghiệm này, bạn cam kết không sử dụng ngôn từ "
+"tục tĩu khi ghi âm hoặc khỏa thân khi ghi video."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2595,9 +2603,9 @@ msgid ""
 "In these cases, we may share your audio-visual material along with fully "
 "anonymized data, such as demographic, aggregated, or extracted data."
 msgstr ""
-"Trong những trường hợp này, chúng tôi có thể chia sẻ tài liệu hình ảnh âm "
-"thanh cùng với dữ liệu hoàn toàn ẩn danh, chẳng hạn như dữ liệu nhân khẩu "
-"học, dữ liệu tổng hợp hoặc dữ liệu được trích xuất."
+"Trong những trường hợp này, chúng tôi có thể chia sẻ tài liệu hình ảnh cùng "
+"với dữ liệu hoàn toàn ẩn danh, chẳng hạn như dữ liệu nhân khẩu học, dữ liệu "
+"tổng hợp hoặc dữ liệu được trích xuất."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2609,7 +2617,7 @@ msgid ""
 msgstr ""
 "Chúng tôi sẽ không bao giờ kết nối tên thật của bạn hoặc bất kỳ thông tin cá"
 " nhân nào của bạn trực tiếp với hình ảnh hoặc bản ghi âm của bạn, mặc dù tất"
-" nhiên có thể nhận ra cá nhân dựa trên tài liệu hình ảnh âm thanh."
+" nhiên có thể nhận ra cá nhân dựa trên tài liệu hình ảnh."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2618,8 +2626,8 @@ msgid ""
 "Audio-visual material will be shared only if your consent to an additional "
 "consent form as explained above."
 msgstr ""
-"Tài liệu hình ảnh âm thanh sẽ chỉ được chia sẻ nếu bạn đồng ý với một biểu "
-"mẫu đồng ý bổ sung như đã giải thích ở trên."
+"Tài liệu hình ảnh sẽ chỉ được chia sẻ nếu bạn đồng ý với một biểu mẫu đồng ý"
+" bổ sung như đã giải thích ở trên."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2628,8 +2636,8 @@ msgid ""
 "During data collection, audio-visual material will be recorded on a separate"
 " server."
 msgstr ""
-"Trong quá trình thu thập dữ liệu, tài liệu hình ảnh âm thanh sẽ được ghi lại"
-" trên một máy chủ riêng biệt."
+"Trong quá trình thu thập dữ liệu, tài liệu hình ảnh sẽ được ghi lại trên một"
+" máy chủ riêng biệt."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2638,8 +2646,8 @@ msgid ""
 "Audio-visual material will not be indexed by personal information but will "
 "be linked to personal information by a key (such as “afasd12314asdasd”)."
 msgstr ""
-"Tài liệu hình ảnh âm thanh sẽ không được lập chỉ mục bằng thông tin cá nhân "
-"mà sẽ được liên kết với thông tin cá nhân bằng một khóa (chẳng hạn như "
+"Tài liệu hình ảnh sẽ không được lập chỉ mục bằng thông tin cá nhân mà sẽ "
+"được liên kết với thông tin cá nhân bằng một khóa (chẳng hạn như "
 "“afasd12314asdasd”)."
 
 #: psynet/templates/macros/consent.html
@@ -2650,9 +2658,9 @@ msgid ""
 "and encrypted using a strong encryption protocol (such as Advanced "
 "Encryption Standard)."
 msgstr ""
-"Thông tin cá nhân sẽ được lưu trữ riêng biệt với tài liệu hình ảnh âm thanh "
-"và được mã hóa bằng một giao thức mã hóa mạnh (chẳng hạn như Tiêu chuẩn Mã "
-"hóa Tiên tiến)."
+"Thông tin cá nhân sẽ được lưu trữ riêng biệt với tài liệu hình ảnh và được "
+"mã hóa bằng một giao thức mã hóa mạnh (chẳng hạn như Tiêu chuẩn Mã hóa Tiên "
+"tiến)."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2708,8 +2716,8 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"Các tham số <strong>decay</strong> xác định lượng làm mịn xảy ra với tín "
-"hiệu và có đơn vị là giây."
+"Các tham số <strong>suy giảm</strong> xác định mức độ làm mịn tín hiệu và có"
+" đơn vị là giây."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2728,8 +2736,8 @@ msgid ""
 "There are three decay parameters: one for the displayed audio meter, one for"
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
-"Có ba tham số suy giảm: một cho đồng hồ đo âm thanh hiển thị, một cho máy dò"
-" 'quá cao' và một cho máy dò 'quá thấp'."
+"Có ba tham số suy giảm: một cho đồng hồ đo âm thanh hiển thị, một cho bộ "
+"phát hiện 'quá cao' và một cho bộ phát hiện 'quá thấp'."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2738,8 +2746,8 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Các tham số <strong>threshold</strong> xác định điểm mà âm lượng được xác "
-"định là 'quá cao' hoặc 'quá thấp'."
+"Các tham số <strong>ngưỡng</strong> xác định điểm mà âm lượng được xác định "
+"là 'quá cao' hoặc 'quá thấp'."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2748,7 +2756,7 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"Các tham số <strong>grace</strong> xác định thời gian âm lượng phải nằm "
+"Các tham số <strong>ân hạn</strong> xác định thời gian âm lượng phải nằm "
 "ngoài ngưỡng tương ứng để kích hoạt thông báo cảnh báo."
 
 #: psynet/templates/macros/control.html
@@ -2758,8 +2766,8 @@ msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
-"Các tham số <strong>message duration</strong> xác định thời gian thông báo "
-"cảnh báo được hiển thị."
+"Các tham số <strong>thời lượng thông báo</strong> xác định thời gian thông "
+"báo cảnh báo được hiển thị."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2819,8 +2827,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Bạn có thể hủy bỏ thí nghiệm bằng cách sử dụng nút <strong>Abort "
-"experiment</strong> <strong>on the MTurk ad page</strong>."
+"Bạn có thể hủy bỏ thí nghiệm bằng cách sử dụng nút <strong>Hủy bỏ thí "
+"nghiệm</strong> <strong>trên trang quảng cáo MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2830,7 +2838,7 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Sau khi hủy bỏ, không cần liên hệ với chúng tôi để nhận bồi thường; điều này"
-" sẽ được trao tự động qua MTurk sau vài phút."
+" sẽ được tự động trao cho bạn qua MTurk sau vài phút."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -2881,8 +2889,8 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Nếu các cách trên không giúp được, hãy gửi email cho chúng tôi với các thông"
-" tin sau:"
+"Nếu các cách trên không giúp được, hãy gửi email cho chúng tôi với thông tin"
+" sau:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -4616,7 +4624,7 @@ msgstr "Chechen"
 #, fuzzy
 msgctxt "language_name"
 msgid "Chinese"
-msgstr "Chinese"
+msgstr "Trung Quốc"
 
 #: psynet/translation/languages.py
 #, fuzzy

@@ -91,7 +91,7 @@ msgstr "Kailangan mong pumili ng bansa!"
 #, fuzzy
 msgctxt "country-select"
 msgid "What country are you from?"
-msgstr "Anong bansa ka nagmula?"
+msgstr "Saang bansa ka nagmula?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -221,7 +221,7 @@ msgstr "Madalas"
 #, fuzzy
 msgctxt "music"
 msgid "Sometimes"
-msgstr "Minsan"
+msgstr "Paminsan-minsan"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -432,9 +432,10 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Makakatanggap ka ng gantimpala na <strong>■0■■1■</strong> para sa oras na "
-"ginugol mo sa eksperimento. Ikaw ay binigyan din ng gantimpala para sa "
-"pagganap na <strong>■0■■3■</strong>!"
+"Makakatanggap ka ng gantimpala na <strong>{CURRENCY}{TIME_REWARD}</strong> "
+"para sa oras na ginugol mo sa eksperimento. Ikaw ay binigyan din ng "
+"gantimpala para sa pagganap na "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
@@ -456,7 +457,8 @@ msgstr "Paki-click ang \"Tapos\" upang makumpleto ang HIT."
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr "Sa kasamaang palad, ang eksperimento ay kailangang magtapos ng maaga."
+msgstr ""
+"Sa kasamaang palad, ang eksperimento ay kailangang matapos nang maaga."
 
 #: psynet/end.py
 #, fuzzy
@@ -518,7 +520,7 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr ""
 "Para magtanong tungkol sa kompensasyon, mangyaring magpadala ng mensahe sa "
-"mananaliksik sa pamamagitan ng Prolific website at ilarawan kung ano ang "
+"mananaliksik sa pamamagitan ng website ng Prolific at ilarawan kung ano ang "
 "nagdulot ng iyong error."
 
 #: psynet/modular_page.py
@@ -551,8 +553,8 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Gagawa tayo ng mabilisang pagsusuri upang suriin ang iyong kakayahang "
-"makakita ng mga kulay."
+"Gagawin natin ngayon ang isang mabilis na pagsubok upang suriin ang iyong "
+"kakayahang makakita ng mga kulay."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -560,8 +562,8 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
-"Sa bawat pagsubok, ipapakita sa iyo ang isang larawan na naglalaman ng "
-"numero."
+"Sa bawat pagsubok, ipapakita sa iyo ang isang larawan na naglalaman ng isang"
+" numero."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -603,14 +605,18 @@ msgid ""
 "You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
-msgstr "Kailangan mong makaipon ng ■■ na gantimpala upang makompensahan."
+msgstr ""
+"Kailangan mong makaipon ng <strong>hindi bababa sa "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> na gantimpala "
+"upang makompensahan."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr ""
-"Tingnan sa ibaba ang impormasyon sa iyong kasalukuyang naipon na gantimpala."
+"Tingnan sa ibaba ang impormasyon tungkol sa iyong kasalukuyang naipon na "
+"gantimpala."
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -640,7 +646,7 @@ msgstr "Isara ang bintana"
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Are you sure you want to abort the experiment?"
-msgstr "Sigurado ka bang gusto mong itigil ang eksperimento?"
+msgstr "Sigurado ka bang nais mong itigil ang eksperimento?"
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -650,8 +656,8 @@ msgid ""
 "be automatically paid the compensation you have earned so far."
 msgstr ""
 "Kung ikaw ay mag-click sa pindutan ng Itigil, ang eksperimento ay matatapos "
-"agad, at ikaw ay awtomatikong babayaran ng kompensasyon na iyong nakuha sa "
-"ngayon."
+"ng maaga, at ikaw ay awtomatikong babayaran ng kompensasyon na iyong nakuha "
+"sa ngayon."
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -728,7 +734,7 @@ msgstr "Babala"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Paki-disable ang mga pop-up blocker bago magpatuloy."
+msgstr "Paki-disable ang pop-up blockers bago magpatuloy."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -750,7 +756,7 @@ msgstr "I-click ang button sa itaas upang mabayaran sakaling may pagkakamali."
 #, fuzzy
 msgctxt "consent"
 msgid "To proceed, click the button below."
-msgstr "Upang magpatuloy, i-click ang pindutan sa ibaba."
+msgstr "Upang magpatuloy, i-click ang button sa ibaba."
 
 #: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
@@ -782,8 +788,8 @@ msgstr ""
 msgctxt "consent-title"
 msgid "Research Participant Consent Form for Image/Sound Recordings"
 msgstr ""
-"Pormularyo ng Pahintulot ng Kalahok sa Pananaliksik para sa mga Pagrekord ng"
-" Imahe/Tunog"
+"Pormularyo ng Pahintulot ng Kalahok sa Pananaliksik para sa mga Rekord ng "
+"Imahe/Tunog"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -800,7 +806,7 @@ msgid ""
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
 "Nakatanggap ako ng pasalita at nakasulat na impormasyon tungkol sa "
-"katotohanan na ang mga <i>audiovisual</i> pagrekord ay gagawin sa pag-aaral "
+"katotohanan na ang mga <i>audiovisual</i> na rekord ay gagawin sa pag-aaral "
 "na ito."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -810,8 +816,8 @@ msgid ""
 "The recording serves the purpose of understanding how humans perceive and "
 "process information from sound and visual."
 msgstr ""
-"Ang pagrekord ay nagsisilbing layunin na maunawaan kung paano nakikita at "
-"pinoproseso ng mga tao ang impormasyon mula sa tunog at biswal."
+"Ang pagre-record ay nagsisilbing layunin na maunawaan kung paano nakikita at"
+" pinoproseso ng mga tao ang impormasyon mula sa tunog at biswal."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -830,8 +836,8 @@ msgid ""
 "By making recording people while moving, singing, tapping to rhythms, or "
 "speaking, we can infer the mechanisms of the auditory and visual systems."
 msgstr ""
-"Sa pamamagitan ng pagrekord sa mga tao habang gumagalaw, kumakanta, "
-"tumutugtog sa ritmo, o nagsasalita, maaari naming maipaliwanag ang mga "
+"Sa pamamagitan ng pagre-record ng mga tao habang gumagalaw, kumakanta, "
+"tumutugtog sa ritmo, o nagsasalita, maaari naming maipahiwatig ang mga "
 "mekanismo ng mga sistema ng pandinig at biswal."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -843,10 +849,10 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Ako ay naipaalam na ang pag-iimbak at pagproseso ng <i>audiovisual</i> "
-"pagrekord ay isasagawa sa anyong pseudonymized, ibig sabihin, gamit ang "
-"isang numero at walang naglalaman ng aking pangalan, at mayroong listahan ng"
-" kodigo na nag-uugnay sa aking pangalan sa numero."
+"Ako ay naipaalam na ang pag-iimbak at pagproseso ng <i>audiovisual</i> na "
+"rekord ay isasagawa sa anyong pseudonymized, ibig sabihin, gamit ang isang "
+"numero at walang naglalaman ng aking pangalan, at mayroong listahan ng "
+"kodigo na nag-uugnay ng aking pangalan sa numero."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -867,8 +873,8 @@ msgid ""
 "material."
 msgstr ""
 "Ang mga mananaliksik na nauugnay sa proyektong ito ay magkakaroon ng access "
-"sa aking <i>audiovisual</i> data sa panahon ng pagrekord at pagsusuri ng "
-"materyal."
+"sa aking <i>audiovisual</i> na datos sa panahon ng pagre-record at pagsusuri"
+" ng materyal."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -887,7 +893,7 @@ msgstr ""
 msgctxt "consent-audiovisual"
 msgid "I agree to the handling of the recordings as described above."
 msgstr ""
-"Sumasang-ayon ako sa paghawak ng mga pagrekord ayon sa inilarawan sa itaas."
+"Sumasang-ayon ako sa paghawak ng mga rekord ayon sa inilarawan sa itaas."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -903,10 +909,10 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"Sumasang-ayon ako na ang aking mga <i>audiovisual</i> pagrekord ay maaaring "
+"Sumasang-ayon ako na ang aking mga <i>audiovisual</i> na rekord ay maaaring "
 "gamitin para sa mga layunin ng demonstrasyon sa mga presentasyon na may "
-"limitadong bilang ng mga kalahok (hal., mga kurso sa pagtuturo o mga "
-"presentasyong siyentipiko)."
+"limitadong bilang ng mga kalahok (hal., mga kurso sa pagtuturo o "
+"siyentipikong presentasyon)."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -932,7 +938,7 @@ msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
 msgstr ""
-"Ang deklarasyon ng pahintulot para sa mga <i>audiovisual</i> pagrekord ay "
+"Ang deklarasyon ng pahintulot para sa mga <i>audiovisual</i> na rekord ay "
 "kusang-loob."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -949,9 +955,9 @@ msgid ""
 "be other negative consequences; however, in this case, participation in the "
 "study will not be possible."
 msgstr ""
-"Sa kaso ng pagtanggi o pag-withdraw, walang gastos na maipapataw o "
-"magkakaroon ng iba pang negatibong kahihinatnan; gayunpaman, sa kasong ito, "
-"ang pakikilahok sa pag-aaral ay hindi magiging posible."
+"Sa kaso ng pagtanggi o pagbawi, walang gastos na maipapataw o magkakaroon ng"
+" iba pang negatibong kahihinatnan; gayunpaman, sa kasong ito, ang "
+"pakikilahok sa pag-aaral ay hindi magiging posible."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -967,7 +973,7 @@ msgid ""
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
 "Nabasa at naintindihan ko ang lahat at sa gayon ay sumasang-ayon na ang mga "
-"<i>audiovisual</i> pagrekord ng akin ay maaaring gawin."
+"<i>audiovisual</i> na rekord ng akin ay maaaring kunin."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1089,7 +1095,7 @@ msgid ""
 " possible to identify and thus to delete my data set."
 msgstr ""
 "Gayunpaman, kung ang listahan ng coding ay nasira na, hindi na magiging "
-"posible na kilalanin at kaya burahin ang aking datos."
+"posible na kilalanin at kaya burahin ang aking set ng datos."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1488,8 +1494,8 @@ msgid ""
 "This information will be available for you to review it when you login to "
 "the database."
 msgstr ""
-"Ang impormasyong ito ay magagamit para sa iyo upang suriin ito kapag nag-"
-"login ka sa database."
+"Ang impormasyong ito ay magagamit para sa iyo upang suriin ito kapag nag-log"
+" in ka sa database."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1519,7 +1525,7 @@ msgid ""
 "please search your bank in their website to ensure that you will be able to "
 "receive payment prior to taking part in our experiments."
 msgstr ""
-"Ang sistemang ito ay sumusuporta sa paglilipat ng pera sa karamihan ng mga "
+"Sinusuportahan ng sistemang ito ang paglilipat ng pera sa karamihan ng mga "
 "bangko sa buong mundo, mangyaring hanapin ang iyong bangko sa kanilang "
 "website upang matiyak na makakatanggap ka ng pagbabayad bago lumahok sa "
 "aming mga eksperimento."
@@ -1594,8 +1600,8 @@ msgid ""
 "color)."
 msgstr ""
 "Ang layunin ng proyektong ito ay pag-aralan kung paano nararanasan ng mga "
-"tao mula sa iba't ibang lugar sa mundo ang mga tunog (hal. pagsasalita, "
-"musika) at mga imahe (hal. mukha, kulay)."
+"tao mula sa iba't ibang lugar sa mundo ang mga tunog (hal., pagsasalita, "
+"musika) at mga imahe (hal., mga mukha, kulay)."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1646,9 +1652,9 @@ msgid ""
 "shapes, fractal images, or videos of natural environments."
 msgstr ""
 "Ang mga tiyak na tunog, larawan, at video na ginamit ay mag-iiba, ngunit "
-"maaaring kabilang ang: mga pag-record ng mga ambient na tunog, mga ingay, "
-"pagsasalita, musika, simpleng tono, naturalistic na mga larawan, animated na"
-" mga larawan, komiks, mga mukha, mga bagay, mga geometric na hugis, fractal "
+"maaaring kabilang ang: mga pag-record ng mga ambient na tunog, mga pagsabog "
+"ng ingay, pagsasalita, musika, simpleng tono, naturalistic na mga larawan, "
+"animated na mga larawan, komiks, mukha, bagay, geometric na hugis, fractal "
 "na mga larawan, o mga video ng natural na kapaligiran."
 
 #: psynet/templates/consents/main_consent.html
@@ -1663,7 +1669,7 @@ msgid ""
 msgstr ""
 "Sa ilang mga eksperimento, maaari kaming gumamit ng bahagyang panlilinlang, "
 "ibig sabihin, maaaring hindi namin ipaliwanag ang buong katotohanan tungkol "
-"sa isang gawain sa eksperimento (halimbawa, hindi namin sasabihin sa iyo na "
+"sa isang gawain sa eksperimento (halimbawa hindi namin sasabihin sa iyo na "
 "ang isang larawan ay ginawa ng isang artipisyal na sistema ng computer at "
 "hindi ng tao)."
 
@@ -1676,7 +1682,7 @@ msgid ""
 "prevent biasing the participants before taking the experiment."
 msgstr ""
 "Ang bahagyang panlilinlang ay gagamitin lamang sa ilang mga eksperimento "
-"kung saan kailangan naming maiwasan ang pag-bias sa mga kalahok bago gawin "
+"kung saan kailangan naming maiwasan ang pagkiling sa mga kalahok bago kunin "
 "ang eksperimento."
 
 #: psynet/templates/consents/main_consent.html
@@ -1701,7 +1707,7 @@ msgid ""
 "If the experiment will contain these elements we will ask for an additional "
 "consent."
 msgstr ""
-"Kung ang eksperimento ay maglalaman ng mga elementong ito, hihilingin namin "
+"Kung ang eksperimento ay maglalaman ng mga elementong ito hihilingin namin "
 "ang karagdagang pahintulot."
 
 #: psynet/templates/consents/main_consent.html
@@ -1736,7 +1742,7 @@ msgid ""
 "You are free to discontinue participation in this study at any time without "
 "penalty."
 msgstr ""
-"Malaya kang itigil ang pakikilahok sa pag-aaral na ito anumang oras nang "
+"Malaya kang ihinto ang pakikilahok sa pag-aaral na ito anumang oras nang "
 "walang parusa."
 
 #: psynet/templates/consents/main_consent.html
@@ -1748,7 +1754,7 @@ msgid ""
 "which warrant doing so."
 msgstr ""
 "Maaaring alisin ka ng imbestigador mula sa pananaliksik na ito kung may mga "
-"pangyayari na nag-uudyok na gawin ito."
+"pangyayaring nag-uudyok na gawin ito."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/open_science_consent.html
@@ -1848,9 +1854,9 @@ msgid ""
 " to distinguish participants who have already taken part in this or other "
 "experiments."
 msgstr ""
-"Ise-save lamang namin ang iyong anonymized alpha numeric code sa aming "
-"sistema, upang makilala ang mga kalahok na nakilahok na sa ito o iba pang "
-"mga eksperimento."
+"I-save lamang namin ang iyong anonymized alpha numeric code sa aming system,"
+" upang makilala ang mga kalahok na nakilahok na sa ito o iba pang mga "
+"eksperimento."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1876,7 +1882,7 @@ msgstr ""
 "Bagaman hindi gagamitin ng mga mananaliksik ang iyong alpha numeric code "
 "upang makuha ang iyong tunay na pagkakakilanlan, ang rekord na ito ay "
 "maaaring maiugnay sa ilang mga kaso sa iyong pampublikong pahina ng profile "
-"kung maganap ang isang paglabag sa data."
+"kung maganap ang paglabag sa data."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1886,8 +1892,8 @@ msgid ""
 "Thus, you may wish to restrict what information you choose to share "
 "publicly."
 msgstr ""
-"Kaya, maaaring nais mong limitahan kung anong impormasyon ang pipiliin mong "
-"ibahagi sa publiko."
+"Kaya, maaaring gusto mong limitahan kung anong impormasyon ang pipiliin mong"
+" ibahagi sa publiko."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1904,7 +1910,7 @@ msgid ""
 "For the purpose of helping scientific progress and replication, sometimes we"
 " may share the data with research collaborators."
 msgstr ""
-"Para sa layunin ng pagtulong sa pag-unlad ng agham at pag-uulit, minsan "
+"Para sa layunin ng pagtulong sa pag-unlad ng agham at replikasyon, minsan "
 "maaari naming ibahagi ang data sa mga kasamahan sa pananaliksik."
 
 #: psynet/templates/consents/main_consent.html
@@ -1938,9 +1944,9 @@ msgid ""
 "The data will be then stored permanently in the institute servers with hard "
 "disks encrypted using industry-standard encryption software."
 msgstr ""
-"Ang data ay pagkatapos ay itatago nang permanente sa mga server ng "
-"institusyon na may mga hard disk na naka-encrypt gamit ang software ng pag-"
-"encrypt na pamantayan sa industriya."
+"Ang data ay pagkatapos ay itatago nang permanente sa mga server ng instituto"
+" na may mga hard disk na naka-encrypt gamit ang software ng pag-encrypt na "
+"pamantayan sa industriya."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2014,7 +2020,7 @@ msgstr ""
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
 msgid "per hour"
-msgstr "kada oras"
+msgstr "bawat oras"
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -2050,10 +2056,10 @@ msgid ""
 "storage and the right to data portability."
 msgstr ""
 "May karapatan kang makakuha ng impormasyon tungkol sa data na nauugnay sa "
-"iyo na nakaimbak sa Max-Planck-Institute, ang karapatan na itama ang hindi "
-"tumpak na data, at ang karapatan na humiling ng pagbura ng data sa mga kaso "
-"ng hindi pinahihintulutang pag-iimbak ng data at ang karapatan sa "
-"portability ng data."
+"iyo na nakaimbak sa Max-Planck-Institute, ang karapatang itama ang hindi "
+"tumpak na data, at ang karapatang humiling ng pagbura ng data sa mga kaso ng"
+" hindi pinahihintulutang pag-iimbak ng data at ang karapatan sa data "
+"portability."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2064,7 +2070,7 @@ msgid ""
 "we will ask you specifically to consent to this procedure in a separate "
 "consent form."
 msgstr ""
-"Tandaan na sa ilang mga pag-aaral, ang pagbura ng data ay hindi posible, sa "
+"Tandaan na sa ilang mga pag-aaral ang pagbura ng data ay hindi posible, sa "
 "kasong ito ay hihilingin namin sa iyo na partikular na pumayag sa "
 "pamamaraang ito sa isang hiwalay na form ng pahintulot."
 
@@ -2115,9 +2121,9 @@ msgid ""
 "We may also want to publish certain materials as part of the scientific "
 "publication, such as a demo video of the task or part of an interview."
 msgstr ""
-"Maaaring nais din naming ilathala ang ilang mga materyales bilang bahagi ng "
-"publikasyong pang-agham, tulad ng demo video ng gawain o bahagi ng isang "
-"panayam."
+"Maaari rin naming nais na ilathala ang ilang mga materyales bilang bahagi ng"
+" publikasyong pang-agham, tulad ng isang demo video ng gawain o bahagi ng "
+"isang panayam."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2222,7 +2228,7 @@ msgstr ""
 msgctxt "consent-compensation"
 msgid "By doing the task you are helping science, thank you!"
 msgstr ""
-"Sa pamamagitan ng paggawa ng gawain, tinutulungan mo ang agham, salamat!"
+"Sa pamamagitan ng paggawa ng gawain ay tinutulungan mo ang agham, salamat!"
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2264,6 +2270,13 @@ msgstr ""
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "Ginagamit mo:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr ""
+"Kailangan mong gumamit ng incognito mode para makibahagi sa eksperimento."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2324,7 +2337,7 @@ msgstr "Bagong Incognito Window"
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
 msgstr ""
-"May lilitaw na bagong window. Sa itaas na sulok, tingnan ang Incognito icon"
+"Lilitaw ang bagong window. Sa itaas na sulok, tingnan ang Incognito icon"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2508,8 +2521,8 @@ msgid ""
 "in creating and affecting our perception, decisions and actions."
 msgstr ""
 "Ang layunin ng proyektong ito ay pag-aralan ang papel ng karanasan at "
-"pagkakalantad sa paglikha at pag-apekto sa ating persepsyon, desisyon, at "
-"mga aksyon."
+"pagkakalantad sa paglikha at pag-apekto sa ating persepsyon, desisyon at "
+"aksyon."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2521,10 +2534,10 @@ msgid ""
 "and visual (e.g., faces, color) domains."
 msgstr ""
 "Partikular, layunin naming pagsamahin ang malawak na hanay ng mga "
-"metodolohiyang pang-asal upang ilarawan ang mga paraan kung paano ang mga "
-"tao mula sa iba't ibang pinagmulan ay internalisahin at iproseso ang mga "
-"panlabas na kondisyon, kapwa sa pandinig (hal., pagsasalita, musika) at "
-"visual (hal., mga mukha, kulay) na mga domain."
+"metodolohiyang pang-asal upang ilarawan ang mga paraan kung paano "
+"internalisahin at iproseso ng mga tao mula sa iba't ibang pinagmulan ang mga"
+" panlabas na kondisyon, kapwa sa pandinig (hal., pagsasalita, musika) at "
+"visual (hal., mukha, kulay) na mga domain."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2533,8 +2546,8 @@ msgid ""
 "We are also interested in the way that these internal representations affect"
 " human decision making and behaviour."
 msgstr ""
-"Interesado rin kami sa paraan kung paano ang mga panloob na representasyon "
-"na ito ay nakakaapekto sa paggawa ng desisyon at pag-uugali ng tao."
+"Interesado rin kami sa paraan kung paano naaapektuhan ng mga panloob na "
+"representasyon na ito ang paggawa ng desisyon at pag-uugali ng tao."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2544,9 +2557,9 @@ msgid ""
 " and nobody outside the group of researchers will be able to share or store "
 "them."
 msgstr ""
-"Ang lahat ng mga pag-record na makukuha namin sa pananaliksik na ito ay "
-"mananatiling kumpidensyal, at walang sinuman sa labas ng grupo ng mga "
-"mananaliksik ang makakapagbahagi o makakapag-imbak ng mga ito."
+"Ang lahat ng mga pag-record na makukuha namin sa panahon ng pananaliksik na "
+"ito ay mananatiling kumpidensyal, at walang sinuman sa labas ng grupo ng mga"
+" mananaliksik ang makakapagbahagi o makakapag-imbak ng mga ito."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2559,7 +2572,7 @@ msgid ""
 msgstr ""
 "Gayunpaman, sa ilang mga eksperimento, ang iyong mga pag-record ay maaaring "
 "makita o marinig ng ibang mga kalahok upang suriin ang mga ito sa iba't "
-"ibang mga katangian o lumikha ng mga bagong materyales (halimbawa, kopyahin "
+"ibang mga katangian o lumikha ng mga bagong materyales (halimbawa, ulitin "
 "ang isang ritmo na iyong nilikha, o ipagpatuloy ang isang melodiya na iyong "
 "kinanta)."
 
@@ -2604,7 +2617,7 @@ msgid ""
 msgstr ""
 "Bagaman hindi gagamitin ng mga mananaliksik ang iyong mga pag-record upang "
 "makuha ang iyong tunay na pagkakakilanlan, ang personal na impormasyon ay "
-"maaaring ma-leak kung hindi ka nasa isang nakahiwalay na kapaligiran."
+"maaaring tumagas kung hindi ka nasa isang nakahiwalay na kapaligiran."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2616,10 +2629,10 @@ msgid ""
 "or video, for example the camera can capture another family member, or the "
 "microphone can capture something you say to another person."
 msgstr ""
-"Maaaring nais mong tiyakin na walang mga tunog/materyal na visual sa iyong "
+"Maaaring gusto mong tiyakin na walang mga tunog/visual na materyal sa iyong "
 "kapaligiran na maaaring maiugnay sa iyong personal na impormasyon. Bilang "
 "karagdagan, habang gumagawa ka ng isang pag-record, ang mikropono o kamera "
-"ay maaaring makakuha ng hindi sinasadyang audio o video, halimbawa, ang "
+"ay maaaring makakuha ng hindi sinasadyang audio o video, halimbawa ang "
 "kamera ay maaaring makakuha ng isa pang miyembro ng pamilya, o ang mikropono"
 " ay maaaring makakuha ng isang bagay na sinasabi mo sa ibang tao."
 
@@ -2632,8 +2645,8 @@ msgid ""
 "that you don’t intend to be recorded is recorded."
 msgstr ""
 "Kung pipiliin mong lumahok sa eksperimento, mahalaga at responsibilidad mo "
-"na tiyakin na habang nagre-record ka ng audio at video, walang bagay na "
-"hindi mo nais na ma-record ang ma-record."
+"na tiyakin na habang nagre-record ka ng audio at video ay walang anumang "
+"hindi mo nais na maitala ang maitala."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2642,7 +2655,7 @@ msgid ""
 "For example, you may want to sit in a room that is isolated from the rest of"
 " the house."
 msgstr ""
-"Halimbawa, maaaring nais mong umupo sa isang silid na nakahiwalay mula sa "
+"Halimbawa, maaaring gusto mong umupo sa isang silid na nakahiwalay mula sa "
 "natitirang bahagi ng bahay."
 
 #: psynet/templates/macros/consent.html
@@ -2727,7 +2740,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-contact"
 msgid "Contact information"
-msgstr "Impormasyon sa Pakikipag-ugnayan"
+msgstr "Impormasyon sa pakikipag-ugnayan"
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2787,8 +2800,8 @@ msgid ""
 "A high decay parameter means that the signal takes a long time to decay "
 "(i.e. high smoothing)."
 msgstr ""
-"Ang mataas na decay parameter ay nangangahulugang ang signal ay tumatagal ng"
-" mahabang oras bago maglaho (i.e. mataas na smoothing)."
+"Ang mataas na decay na parameter ay nangangahulugan na ang signal ay "
+"tumatagal ng mahabang oras bago mag-decay (i.e. mataas na smoothing)."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2819,7 +2832,7 @@ msgid ""
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
 "Ang mga <strong>grace</strong> na parameter ay tumutukoy kung gaano katagal "
-"ang volume ay dapat nasa labas ng kaukulang threshold para ma-trigger ang "
+"dapat ang volume ay nasa labas ng kaukulang threshold para ma-trigger ang "
 "isang warning message."
 
 #: psynet/templates/macros/control.html
@@ -2865,7 +2878,7 @@ msgstr "Ulitin"
 #: psynet/templates/macros/prompt.html
 #, fuzzy
 msgid "Play from start"
-msgstr "Simulan mula sa umpisa"
+msgstr "I-play mula sa simula"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -2891,7 +2904,7 @@ msgid ""
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
 "Maaari mong ihinto ang eksperimento gamit ang <strong>Abort "
-"experiment</strong> na button <strong>on the MTurk ad page</strong>."
+"experiment</strong> na button <strong>sa MTurk ad page</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2900,7 +2913,7 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Kapag naihinto na, hindi mo na kailangang makipag-ugnayan sa amin upang "
+"Kapag naihinto na, hindi na kailangang makipag-ugnayan sa amin upang "
 "matanggap ang kompensasyon; ito ay awtomatikong ibibigay sa iyo sa "
 "pamamagitan ng MTurk ilang minuto pagkatapos."
 
@@ -2927,13 +2940,13 @@ msgstr "Worker ID"
 #, fuzzy
 msgctxt "start"
 msgid "Starting experiment..."
-msgstr "Nagsisimula ng eksperimento..."
+msgstr "Nagsisimula ang eksperimento..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Kung sakaling may problema, subukan ang mga sumusunod:"
+msgstr "Kung sakaling magkaroon ng problema, subukan ang mga sumusunod:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2954,7 +2967,7 @@ msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
 "Kung hindi nakatulong ang nasa itaas, magpadala sa amin ng email na may "
-"sumusunod na impormasyon:"
+"kasamang sumusunod na impormasyon:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2990,7 +3003,7 @@ msgstr "Handa ka na ba?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Pindutin ang button kapag handa ka nang ipagpatuloy ang eksperimento."
+msgstr "I-click ang button kapag handa ka nang ipagpatuloy ang eksperimento."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3542,7 +3555,7 @@ msgstr "Gibraltar"
 #, fuzzy
 msgctxt "country_name"
 msgid "Greece"
-msgstr "Gresya"
+msgstr "Greece"
 
 #: psynet/translation/countries.py
 #, fuzzy

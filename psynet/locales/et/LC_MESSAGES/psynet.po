@@ -11,7 +11,7 @@ msgstr ""
 #, fuzzy
 msgctxt "gender"
 msgid "How do you identify yourself?"
-msgstr "Kuidas te end määratlete?"
+msgstr "Kuidas te ennast määratlete?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -35,7 +35,7 @@ msgstr "Mittebinaarne"
 #, fuzzy
 msgctxt "gender"
 msgid "Not specified"
-msgstr "Pole täpsustatud"
+msgstr "Pole määratud"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -47,7 +47,7 @@ msgstr "Eelistan mitte vastata"
 #, fuzzy
 msgctxt "gender"
 msgid "Specify yourself"
-msgstr "Määratlege end"
+msgstr "Määratle ennast"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -201,13 +201,13 @@ msgstr ""
 #, fuzzy
 msgctxt "music"
 msgid "On average, how many hours do you listen to music daily?"
-msgstr "Mitu tundi kuulate muusikat keskmiselt päevas?"
+msgstr "Mitu tundi kuulate muusikat päevas keskmiselt?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "Do you make money from playing music?"
-msgstr "Kas teenite muusikaga raha?"
+msgstr "Kas teenite muusikat mängides raha?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -285,7 +285,7 @@ msgstr "Sel aastal"
 #, fuzzy
 msgctxt "dance"
 msgid "Some years ago"
-msgstr "Mõned aastad tagasi"
+msgstr "Mõni aasta tagasi"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -320,7 +320,7 @@ msgstr "Kas teil on kunagi diagnoositud düsleksia?"
 #, fuzzy
 msgctxt "income"
 msgid "What is your total household income per year?"
-msgstr "Mis on teie leibkonna kogusissetulek aastas?"
+msgstr "Mis on teie leibkonna aastane kogusissetulek?"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -404,7 +404,7 @@ msgstr "Kas teile meeldis eksperiment?"
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you find the experiment difficult?"
-msgstr "Kas leidsite eksperimendi keerulise?"
+msgstr "Kas leidsite eksperimendi keeruliseks?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -426,14 +426,15 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Sa saad tasu <strong>■0■■1■</strong> aja eest, mille sa katses veetsid. "
-"Samuti on sulle antud soorituse eest tasu <strong>■0■■3■</strong>!"
+"Saate tasu <strong>{CURRENCY}{TIME_REWARD}</strong> eksperimendile kulutatud"
+" aja eest. Teile on antud ka soorituse preemia "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
-msgstr "See on katse lõpp!"
+msgstr "See on eksperimendi lõpp!"
 
 #: psynet/end.py
 #, fuzzy
@@ -443,24 +444,24 @@ msgstr "Aitäh osalemast."
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Palun klõpsa \"Lõpeta\", et HIT lõpetada."
+msgstr "Palun klõpsake \"Lõpeta\", et HIT lõpule viia."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr "Kahjuks peab katse varem lõppema."
+msgstr "Kahjuks peab eksperiment varem lõppema."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
-msgstr "Kuid sa saad siiski tasu juba veedetud aja eest."
+msgstr "Kuid teid tasustatakse siiski juba kulutatud aja eest."
 
 #: psynet/end.py
 #, fuzzy
 msgid "You will be redirected."
-msgstr "Sind suunatakse edasi."
+msgstr "Teid suunatakse edasi."
 
 #: psynet/end.py
 #, fuzzy
@@ -472,13 +473,13 @@ msgstr "Nõusolek lükati tagasi."
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
-msgstr "Katse lõpp."
+msgstr "Eksperimendi lõpp."
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Tekkis viga ja seetõttu ei saa te jätkata, vabandust!"
+msgstr "Tekkis viga ja seetõttu ei saa te jätkata, vabandame!"
 
 #: psynet/experiment.py
 #, fuzzy, python-brace-format
@@ -554,7 +555,7 @@ msgstr "Igas katses esitatakse teile pilt, mis sisaldab numbrit."
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "See pilt kaob pärast {HIDE_AFTER} sekundit."
+msgstr "See pilt kaob {HIDE_AFTER} sekundi pärast."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -572,7 +573,7 @@ msgstr "Ümbersuunamine Lucid Marketplace'i..."
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Aborting not possible."
-msgstr "Katkestamine pole võimalik."
+msgstr "Katkestamine ei ole võimalik."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -581,7 +582,8 @@ msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
 "it at this time!"
 msgstr ""
-"Katse katkestamine pole võimalik, kuna katse läbiviija ei luba seda praegu!"
+"Katse katkestamine ei ole võimalik, kuna katse läbiviija ei luba seda "
+"praegu!"
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy, python-format
@@ -590,7 +592,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Sa pead koguma vähemalt <strong>at least "
+"Sa pead koguma <strong>vähemalt "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> tasu, et saada "
 "kompensatsiooni."
 
@@ -678,14 +680,14 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Palun klõpsake ülaloleval Amazoni saidil nuppu \"Accept HIT\", et alustada "
-"ülesannet."
+"Palun klõpsake ülesande alustamiseks ülaloleval Amazoni saidil nupul "
+"\"Accept HIT\"."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "Täname, et võtsite selle HIT-i vastu."
+msgstr "Täname, et võtsite selle ülesande vastu."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -700,8 +702,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Klõpsates järgmist URL-i linki, suunatakse teid eksperimendile, sealhulgas "
-"täielikele juhistele ja teadliku nõusoleku lepingule."
+"Klõpsates järgmist URL-i linki, suunatakse teid eksperimendile, mis sisaldab"
+" täielikke juhiseid ja teadlikku nõusolekut."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -747,7 +749,7 @@ msgstr "Järgmine"
 msgctxt "consent-title"
 msgid ""
 "In this experiment, you may be asked to make a voice or video recording."
-msgstr "Selles katses võidakse teil paluda teha hääle- või videosalvestus."
+msgstr "Selles katses võidakse teil paluda teha heli- või videosalvestus."
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
@@ -780,7 +782,7 @@ msgid ""
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
 "Olen saanud suulist ja kirjalikku teavet selle kohta, et selles uuringus "
-"tehakse <i>audiovisual</i> salvestusi."
+"tehakse <i>audiovisuaalseid</i> salvestusi."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -821,10 +823,10 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Mind on teavitatud, et <i>audiovisual</i> salvestuse säilitamine ja "
-"töötlemine toimub pseudonüümiseeritud kujul, st kasutades numbrit ja ilma "
-"minu nime sisaldamata, ning et on olemas kodeerimisnimekiri, mis seob minu "
-"nime numbriga."
+"Mind on teavitatud, et <i>audiovisuaalse</i> salvestuse säilitamine ja "
+"töötlemine toimub pseudonüümitud kujul, st kasutades numbrit ja ilma minu "
+"nime sisaldamata, ning et on olemas kodeerimisnimekiri, mis seob minu nime "
+"numbriga."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -844,8 +846,8 @@ msgid ""
 "<i>audiovisual</i> data during the recording and the analysis of the "
 "material."
 msgstr ""
-"Selle projektiga seotud teadlastel on juurdepääs minu <i>audiovisual</i> "
-"andmetele salvestamise ja materjali analüüsi ajal."
+"Selle projektiga seotud teadlastel on juurdepääs minu "
+"<i>audiovisuaalsetele</i> andmetele salvestamise ja materjali analüüsi ajal."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -878,8 +880,8 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"Nõustun, et minu <i>audiovisual</i> salvestusi võib kasutada "
-"demonstratsioonieesmärkidel esitlustel, kus osalejate arv on piiratud (nt "
+"Nõustun, et minu <i>audiovisuaalseid</i> salvestusi võib kasutada "
+"demonstratsioonieesmärkidel esitlustel, kus osaleb piiratud arv inimesi (nt "
 "õpetamiskursused või teaduslikud ettekanded)."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -905,8 +907,7 @@ msgstr "EI"
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr ""
-"<i>audiovisual</i> salvestuste nõusoleku deklaratsioon on vabatahtlik."
+msgstr "<i>Audiovisuaalsete</i> salvestuste nõusoleku andmine on vabatahtlik."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -938,8 +939,8 @@ msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
-"Olen lugenud ja kõigest aru saanud ning nõustun, et minust võib teha "
-"<i>audiovisual</i> salvestusi."
+"Olen kõik läbi lugenud ja aru saanud ning nõustun, et minust võib teha "
+"<i>audiovisuaalseid</i> salvestusi."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -972,7 +973,7 @@ msgstr "Olen saanud kirjaliku teabe uuringu ja uuringu protseduuri kohta."
 #, fuzzy
 msgctxt "consent-cap"
 msgid "I have read and understood all of the information completely."
-msgstr "Olen kogu teabe täielikult läbi lugenud ja mõistnud."
+msgstr "Olen kogu teabe täielikult läbi lugenud ja aru saanud."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1002,13 +1003,14 @@ msgid ""
 "form by means of a code and do not contain my name."
 msgstr ""
 "Nende andmete salvestamine ja töötlemine toimub pseudonüümitud kujul koodi "
-"abil ja ei sisalda minu nime."
+"abil ega sisalda minu nime."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
 msgctxt "consent-cap"
 msgid "There is a coding list on paper that links my name to this number."
-msgstr "Paberil on kodeerimisnimekiri, mis seob minu nime selle numbriga."
+msgstr ""
+"On olemas paberil kodeerimisnimekiri, mis seob minu nime selle numbriga."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1144,7 +1146,7 @@ msgid ""
 msgstr ""
 "Lisaks teie kontaktandmetele (st nimi ja e-post) ja demograafilistele "
 "andmetele, mida küsitakse sisselogimisel (st vanus, sugu ja rahvus), "
-"salvestame ka kuupäeva ja kellaaja, millal te kirje tegite."
+"salvestame ka kuupäeva ja kellaaja, millal te sissekande tegite."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1194,8 +1196,8 @@ msgid ""
 "Your consent to participate in a study will be obtained separately for each "
 "study you participate in."
 msgstr ""
-"Teie nõusolek uuringus osalemiseks saadakse eraldi iga uuringu jaoks, milles"
-" osalete."
+"Teie nõusolek osaleda uuringus saadakse eraldi iga uuringu jaoks, milles "
+"osalete."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1211,8 +1213,8 @@ msgid ""
 "of such storage, i.e., to contact you about participating in a study, "
 "remains in effect."
 msgstr ""
-"Teie andmeid säilitatakse kontaktandmebaasis nii kaua, kui sellise "
-"säilitamise eesmärk, st teiega uuringus osalemise kohta ühenduse võtmine, "
+"Teie andmeid säilitatakse kontaktandmebaasis nii kaua, kuni sellise "
+"säilitamise eesmärk, st teiega ühenduse võtmine uuringus osalemiseks, "
 "kehtib."
 
 #: psynet/templates/consents/database_consent.html
@@ -1269,8 +1271,8 @@ msgid ""
 "The data entered in the form you fill out are transferred in encrypted form "
 "to an internal server."
 msgstr ""
-"Vormi, mille täidate, sisestatud andmed edastatakse krüpteeritud kujul "
-"sisemisele serverile."
+"Vormi, mille täidate, andmed edastatakse krüpteeritud kujul sisemisele "
+"serverile."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1323,8 +1325,8 @@ msgid ""
 "data, the General Data Protection Regulation (GDPR) of the European Union "
 "provides information about the rights of data subjects."
 msgstr ""
-"Isikuandmete töötlemise läbipaistvuse tagamiseks annab Euroopa Liidu "
-"isikuandmete kaitse üldmäärus (GDPR) teavet andmesubjektide õiguste kohta."
+"Isikuandmete töötlemise läbipaistvuse tagamiseks annab Euroopa Liidu üldine "
+"andmekaitsemäärus (GDPR) teavet andmesubjektide õiguste kohta."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1407,7 +1409,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-payment"
 msgid "Payment and Compensation"
-msgstr "Makse ja kompensatsioon"
+msgstr "Makse ja hüvitis"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1424,7 +1426,8 @@ msgid ""
 "However we do store completion records and payment details of every task you"
 " completed."
 msgstr ""
-"Kuid me salvestame iga teie lõpetatud ülesande täitmisandmed ja makseandmed."
+"Kuid me salvestame iga teie lõpetatud ülesande lõpetamise andmed ja makse "
+"üksikasjad."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1494,7 +1497,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-payment"
 msgid "In this case you will not receive any compensation for your time."
-msgstr "Sel juhul ei saa te oma aja eest mingit kompensatsiooni."
+msgstr "Sellisel juhul ei saa te oma aja eest mingit hüvitist."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1504,8 +1507,8 @@ msgid ""
 "Regulation in the context of personal data being processed in our studies, "
 "please contact the Data Protection Officer of the Max Planck Society:"
 msgstr ""
-"Kui teil on täiendavaid küsimusi isikuandmete kaitse üldmääruse kohta seoses"
-" meie uuringutes töödeldavate isikuandmetega, võtke ühendust Max Plancki "
+"Kui teil on täiendavaid küsimusi isikuandmete töötlemise kohta meie "
+"uuringutes seoses üldise andmekaitsemäärusega, võtke ühendust Max Plancki "
 "Ühingu andmekaitseametnikuga:"
 
 #: psynet/templates/consents/database_consent.html
@@ -1553,8 +1556,8 @@ msgid ""
 "while observing images or videos."
 msgstr ""
 "Kui te vabatahtlikult osalete selles uuringus, palutakse teil täita lihtsaid"
-" ülesandeid, kasutades oma klaviatuuri või hiirt, samal ajal kui kuulate "
-"helisid või vaatate pilte või videoid."
+" ülesandeid, kasutades oma klaviatuuri või hiirt, kuulates helisid või "
+"vaadates pilte või videoid."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1570,8 +1573,8 @@ msgstr ""
 "Näiteks võidakse teil paluda hinnata, kui meeldiv on konkreetne heli või "
 "pilt, või kategoriseerida helisid või pilte (nt kas heli või pilt on auto "
 "või lehma oma), või hinnata helide või piltide muid põhiomadusi (nt kui "
-"sageli te sellist heli või pilti kohtate? kui esteetiliselt meeldivaks peate"
-" konkreetset heli või pilti?)."
+"sageli te seda tüüpi heli või pilti kohtate? kui esteetiliselt meeldivaks "
+"peate konkreetset heli või pilti?)."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1600,8 +1603,8 @@ msgid ""
 "human)."
 msgstr ""
 "Mõnes eksperimendis võime kasutada kerget petmist, st me ei pruugi selgitada"
-" kogu tõde eksperimendi ülesande kohta (näiteks me ei ütle teile, et pilt on"
-" loodud tehisliku arvutisüsteemi, mitte inimese poolt)."
+" eksperimendi ülesande täielikku tõde (näiteks me ei ütle teile, et pilt on "
+"loodud tehisliku arvutisüsteemi, mitte inimese poolt)."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1649,7 +1652,7 @@ msgstr "Vabatahtlik osalemine"
 #, fuzzy
 msgctxt "consent-voluntary"
 msgid "Your participation in this research is voluntary."
-msgstr "Teie osalemine selles uurimistöös on vabatahtlik."
+msgstr "Teie osalemine selles uurimuses on vabatahtlik."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1680,7 +1683,7 @@ msgid ""
 "The investigator may withdraw you from this research if circumstances arise "
 "which warrant doing so."
 msgstr ""
-"Uurija võib teid sellest uurimistööst eemaldada, kui tekivad asjaolud, mis "
+"Uurija võib teid sellest uurimusest eemaldada, kui tekivad asjaolud, mis "
 "seda õigustavad."
 
 #: psynet/templates/consents/main_consent.html
@@ -1751,8 +1754,8 @@ msgid ""
 "experiment."
 msgstr ""
 "Nende hulka kuuluvad eksperimendid, kus teeme audiovisuaalseid salvestisi "
-"või kus vajame teie kontaktandmeid, et teiega tulevikus teise eksperimendi "
-"tegemiseks ühendust võtta."
+"või kus vajame teie kontaktandmeid, et teiega tulevikus ühendust võtta, et "
+"osaleda teises eksperimendis."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1773,7 +1776,7 @@ msgid ""
 "experiments."
 msgstr ""
 "Salvestame oma süsteemis ainult teie anonüümse tähtnumbrilise koodi, et "
-"eristada osalejaid, kes on juba selles või teistes eksperimentides osalenud."
+"eristada osalejaid, kes on juba osalenud selles või teistes eksperimentides."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1796,9 +1799,9 @@ msgid ""
 "real identity, this record could be linked in some cases to your public "
 "profile page if a data breach takes place."
 msgstr ""
-"Kuigi uurijad ei kasuta teie tähtnumbrilist koodi teie tegeliku identiteedi "
-"tuvastamiseks, võib see kirje mõnel juhul olla seotud teie avaliku profiili "
-"lehega, kui toimub andmeleke."
+"Kuigi teadlased ei kasuta teie tähtnumbrilist koodi teie tegeliku "
+"identiteedi tuvastamiseks, võib see kirje mõnel juhul olla seotud teie "
+"avaliku profiili lehega, kui toimub andmerikkumine."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1848,7 +1851,7 @@ msgid ""
 "that are password protected."
 msgstr ""
 "Andmeid salvestatakse ajutiselt välistel serveritel ja "
-"lauaarvutites/sülearvutites, mis on parooliga kaitstud."
+"lauaarvutitel/sülearvutitel, mis on parooliga kaitstud."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1910,7 +1913,7 @@ msgstr ""
 "nägemisest, ning potentsiaalselt aidata inseneridel luua masinaid, mis "
 "suudavad meie võimeid reprodutseerida (nt heli tuvastamisel ja "
 "arvutinägemises) ning aidata parandada tajuvõimeid inimestel, kelle kuulmine"
-" või nägemine on kahjustatud."
+" või nägemine on halvenenud."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
@@ -2008,7 +2011,7 @@ msgid ""
 msgstr ""
 "Järgides avatud teaduse praktikaid teaduse taaskasutatavuse ja "
 "reprodutseeritavuse parandamiseks, võime soovida avaldada selles "
-"eksperimendis kogutud andmekogu kohe pärast uuringu lõppu."
+"eksperimendis kogutud andmestiku kohe pärast uuringu lõppu."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2053,8 +2056,8 @@ msgid ""
 "audio/video materials of yours)."
 msgstr ""
 "Kuid teie andmeid ei seostata otseselt teie nime või muude "
-"identifikaatoritega (me ei täpsusta teie nime, kui esitame teie "
-"audio-/videomaterjale)."
+"identifikaatoritega (me ei täpsusta teie nime, kui esitame teie audio/video "
+"materjale)."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2171,6 +2174,12 @@ msgstr ""
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "Te kasutate:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Peate kasutama inkognito režiimi, et osaleda eksperimendis."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2396,7 +2405,7 @@ msgid ""
 "decide whether you want to take part in a research study."
 msgstr ""
 "Selle veebivormi eesmärk on anda teile teavet, mis aitab teil otsustada, kas"
-" soovite osaleda uurimistöös."
+" soovite osaleda uurimuses."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2417,9 +2426,9 @@ msgid ""
 "and process external conditions, both in the auditory (e.g., speech, music) "
 "and visual (e.g., faces, color) domains."
 msgstr ""
-"Eelkõige püüame kombineerida laia valikut käitumuslikke metoodikaid, et "
-"iseloomustada viise, kuidas erineva taustaga inimesed internaliseerivad ja "
-"töötlevad väliseid tingimusi nii auditiivses (nt kõne, muusika) kui ka "
+"Eelkõige püüame kombineerida laia valikut käitumuslikke meetodeid, et "
+"iseloomustada, kuidas erineva taustaga inimesed internaliseerivad ja "
+"töötlevad väliseid tingimusi nii auditoorses (nt kõne, muusika) kui ka "
 "visuaalses (nt näod, värv) valdkonnas."
 
 #: psynet/templates/macros/consent.html
@@ -2429,7 +2438,7 @@ msgid ""
 "We are also interested in the way that these internal representations affect"
 " human decision making and behaviour."
 msgstr ""
-"Samuti oleme huvitatud sellest, kuidas need sisemised representatsioonid "
+"Oleme huvitatud ka sellest, kuidas need sisemised representatsioonid "
 "mõjutavad inimeste otsuste tegemist ja käitumist."
 
 #: psynet/templates/macros/consent.html
@@ -2440,8 +2449,8 @@ msgid ""
 " and nobody outside the group of researchers will be able to share or store "
 "them."
 msgstr ""
-"Kõik selle uurimistöö käigus saadud salvestised hoitakse konfidentsiaalsena "
-"ja keegi väljaspool uurijate rühma ei saa neid jagada ega salvestada."
+"Kõik selle uurimuse käigus saadud salvestised hoitakse konfidentsiaalsena ja"
+" keegi väljaspool uurimisrühma ei saa neid jagada ega salvestada."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2463,7 +2472,7 @@ msgctxt "consent-confidentiality"
 msgid ""
 "Your recordings will not be associated with your name or other identifiers "
 "in any way."
-msgstr "Teie salvestisi ei seostata teie nime või muude identifikaatoritega."
+msgstr "Teie salvestisi ei seostata teie nime ega muude identifikaatoritega."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2493,8 +2502,8 @@ msgid ""
 "identity, personal information could be leaked if you are not in an isolated"
 " environment."
 msgstr ""
-"Kuigi uurijad ei kasuta teie salvestisi teie tegeliku identiteedi "
-"tuvastamiseks, võivad isikuandmed lekkida, kui te ei ole isoleeritud "
+"Kuigi teadlased ei kasuta teie salvestisi teie tegeliku identiteedi "
+"tuvastamiseks, võib isiklik teave lekkida, kui te ei ole isoleeritud "
 "keskkonnas."
 
 #: psynet/templates/macros/consent.html
@@ -2605,8 +2614,8 @@ msgid ""
 "Encryption Standard)."
 msgstr ""
 "Isikuandmed salvestatakse eraldi audiovisuaalsetest materjalidest ja "
-"krüpteeritakse tugeva krüpteerimisprotokolli abil (näiteks Advanced "
-"Encryption Standard)."
+"krüpteeritakse tugeva krüpteerimisprotokolliga (näiteks Advanced Encryption "
+"Standard)."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2630,7 +2639,7 @@ msgid ""
 msgstr ""
 "Nõustudes osalema, kinnitate, et olete 18-aastane või vanem, olete lugenud "
 "seda nõusolekuvormi, nõustute selle sisuga ja nõustute osalema selles "
-"uurimistöös."
+"uurimuses."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2662,8 +2671,8 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"Parameetrid <strong>decay</strong> määravad signaali silumise hulga ja neil "
-"on ühikud sekundites."
+"<strong>Lag</strong> parameetrid määravad signaali silumise määra ja nende "
+"ühikuks on sekundid."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2672,8 +2681,8 @@ msgid ""
 "A high decay parameter means that the signal takes a long time to decay "
 "(i.e. high smoothing)."
 msgstr ""
-"Kõrge lagunemisparameeter tähendab, et signaal võtab kaua aega, et laguneda "
-"(st kõrge silumine)."
+"Kõrge lag parameeter tähendab, et signaal võtab kaua aega, et hääbuda (st "
+"kõrge silumine)."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2682,8 +2691,8 @@ msgid ""
 "There are three decay parameters: one for the displayed audio meter, one for"
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
-"On kolm lagunemisparameetrit: üks kuvatud helimõõturi jaoks, üks 'liiga "
-"kõrge' detektori jaoks ja üks 'liiga madala' detektori jaoks."
+"On kolm lag parameetrit: üks kuvatava helimõõturi jaoks, üks 'liiga kõrge' "
+"detektori jaoks ja üks 'liiga madala' detektori jaoks."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2692,7 +2701,7 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Parameetrid <strong>threshold</strong> määravad punkti, millal helitugevus "
+"<strong>Läve</strong> parameetrid määravad punkti, millal helitugevus "
 "määratakse 'liiga kõrgeks' või 'liiga madalaks'."
 
 #: psynet/templates/macros/control.html
@@ -2702,8 +2711,8 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"Parameetrid <strong>grace</strong> määravad, kui kaua peab helitugevus olema"
-" väljaspool vastavat läve, et hoiatussõnum käivituks."
+"<strong>Armuaeg</strong> parameetrid määravad, kui kaua peab helitugevus "
+"olema väljaspool vastavat läve, et hoiatussõnum käivituks."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2712,13 +2721,13 @@ msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
-"Parameetrid <strong>message duration</strong> määravad, kui kaua "
+"<strong>Sõnumi kestuse</strong> parameetrid määravad, kui kaua "
 "hoiatussõnumeid kuvatakse."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Record from start"
-msgstr "Alusta salvestamist"
+msgstr "Salvesta algusest"
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2773,8 +2782,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Võite eksperimendi katkestada, kasutades nuppu <strong>Abort "
-"experiment</strong> <strong>on the MTurk ad page</strong>."
+"Võite eksperimendi katkestada, kasutades <strong>Katkesta "
+"eksperiment</strong> nuppu <strong>MTurk reklaamilehel</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2835,7 +2844,7 @@ msgstr "Kontrollige, kas teie internetiühendus töötab."
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr "Kui eelnev ei aita, saatke meile e-kiri järgmise teabega:"
+msgstr "Kui ülaltoodu ei aita, saatke meile e-kiri järgmise teabega:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3495,7 +3504,7 @@ msgstr "Heard ja McDonaldi saared"
 #, fuzzy
 msgctxt "country_name"
 msgid "Vatican City State"
-msgstr "Vatikani Linnriik"
+msgstr "Vatikan"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -3735,7 +3744,7 @@ msgstr "Malta"
 #, fuzzy
 msgctxt "country_name"
 msgid "Marshall Islands"
-msgstr "Marshalli Saared"
+msgstr "Marshalli saared"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -3885,7 +3894,7 @@ msgstr "Niue"
 #, fuzzy
 msgctxt "country_name"
 msgid "Norfolk Island"
-msgstr "Norfolki saar"
+msgstr "Norfolk"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -5319,7 +5328,7 @@ msgstr "Hispaania"
 #, fuzzy
 msgctxt "language_name"
 msgid "Sundanese"
-msgstr "Sundani"
+msgstr "Sunda"
 
 #: psynet/translation/languages.py
 #, fuzzy

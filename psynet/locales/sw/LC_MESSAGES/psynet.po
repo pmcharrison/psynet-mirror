@@ -41,7 +41,7 @@ msgstr "Haijatajwa"
 #, fuzzy
 msgctxt "gender"
 msgid "I prefer not to answer"
-msgstr "Ninapendelea kutokujibu"
+msgstr "Ningependa kutokujibu"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -140,7 +140,7 @@ msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
 "speaking from early childhood?"
 msgstr ""
-"Lugha yako ya kwanza ni ipi - yaani, lugha ambayo umekua ukizungumza tangu "
+"Lugha yako ya mama ni ipi - yaani, lugha ambayo umekua ukizungumza tangu "
 "utotoni?"
 
 #: psynet/demography/general.py
@@ -164,7 +164,7 @@ msgstr "Je, unazungumza zaidi ya lugha moja?"
 #: psynet/demography/general.py
 #, fuzzy
 msgid "Yes"
-msgstr "Ndio"
+msgstr "Ndiyo"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -225,7 +225,7 @@ msgstr "Wakati mwingine"
 #, fuzzy
 msgctxt "music"
 msgid "Never"
-msgstr "Hapana"
+msgstr "Kamwe"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -255,7 +255,7 @@ msgstr "Kitaalamu"
 #, fuzzy
 msgctxt "dance"
 msgid "I never dance"
-msgstr "Sichezi dansi"
+msgstr "Sichezi dansi kamwe"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -426,8 +426,9 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Utapokea zawadi ya <strong>■0■■1■</strong> kwa muda uliotumia kwenye "
-"jaribio. Pia umepewa zawadi ya utendaji ya <strong>■0■■3■</strong>!"
+"Utapokea zawadi ya <strong>{CURRENCY}{TIME_REWARD}</strong> kwa muda "
+"uliotumia kwenye jaribio. Pia umepewa zawadi ya utendaji ya "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
@@ -549,13 +550,13 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Katika kila jaribio, utapewa picha inayojumuisha nambari."
+msgstr "Kila jaribio, utapewa picha inayojumuisha nambari."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "Picha hii itatoweka baada ya {HIDE_AFTER} sekunde."
+msgstr "Picha hii itatoweka baada ya sekunde {HIDE_AFTER}."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -567,7 +568,7 @@ msgstr "Lazima uingize nambari unayoona kwenye kisanduku cha maandishi."
 #, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
-msgstr "Inapeleka kwa Soko la Lucid..."
+msgstr "Inahamisha kwenda Lucid Marketplace..."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -581,7 +582,7 @@ msgctxt "abort_possible"
 msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
 "it at this time!"
-msgstr "Kusitisha jaribio haiwezekani kwa kuwa mjaribu haruhusu kwa sasa!"
+msgstr "Kusitisha jaribio haiwezekani kwa kuwa mjaribu hajaruhusu kwa sasa!"
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy, python-format
@@ -590,7 +591,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Unahitaji kukusanya <strong>at least "
+"Unahitaji kukusanya <strong>angalau "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ya zawadi ili "
 "uweze kulipwa."
 
@@ -604,7 +605,7 @@ msgstr "Tazama taarifa hapa chini kuhusu zawadi yako iliyokusanywa kwa sasa."
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Assignment ID"
+msgstr "Kitambulisho cha Kazi"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -698,7 +699,7 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Kwa kubonyeza kiungo cha URL kilichofuata, utapelekwa kwenye jaribio, "
+"Kwa kubonyeza kiungo cha URL kilichofuata, utaelekezwa kwenye jaribio, "
 "ikijumuisha maelekezo kamili na makubaliano ya ridhaa ya taarifa."
 
 #: psynet/templates/ad.html
@@ -777,7 +778,7 @@ msgid ""
 "I have received oral and written information about the fact that "
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
-"Nimepokea taarifa ya mdomo na maandishi kuhusu ukweli kwamba rekodi za "
+"Nimepokea maelezo ya mdomo na maandishi kuhusu ukweli kwamba rekodi za "
 "<i>audiovisual</i> zitafanywa katika utafiti huu."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -807,8 +808,8 @@ msgid ""
 "By making recording people while moving, singing, tapping to rhythms, or "
 "speaking, we can infer the mechanisms of the auditory and visual systems."
 msgstr ""
-"Kwa kurekodi watu wakati wa kusonga, kuimba, kugonga kwa midundo, au "
-"kuzungumza, tunaweza kufahamu mifumo ya mifumo ya kusikia na kuona."
+"Kwa kurekodi watu wakati wakihama, kuimba, kugonga kwa midundo, au "
+"kuzungumza, tunaweza kufafanua mifumo ya mifumo ya kusikia na kuona."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -819,7 +820,7 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Nimejulishwa kuwa uhifadhi na uchakataji wa rekodi za <i>audiovisual</i> "
+"Nimejulishwa kuwa uhifadhi na uchakataji wa rekodi ya <i>audiovisual</i> "
 "utafanywa kwa njia ya kubuniwa, yaani, kwa kutumia nambari na bila "
 "kujumuisha jina langu, na kwamba kuna orodha ya usimbaji inayounganisha jina"
 " langu na nambari."
@@ -831,8 +832,8 @@ msgid ""
 "The investigators are the only persons who have access to this coding list, "
 "which will be destroyed after completion of the research project."
 msgstr ""
-"Wachunguzi ndio watu pekee wenye ufikiaji wa orodha hii ya usimbaji, ambayo "
-"itaharibiwa baada ya kukamilika kwa mradi wa utafiti."
+"Wachunguzi ndio pekee wanaopata orodha hii ya usimbaji, ambayo itaharibiwa "
+"baada ya kukamilika kwa mradi wa utafiti."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -842,7 +843,7 @@ msgid ""
 "<i>audiovisual</i> data during the recording and the analysis of the "
 "material."
 msgstr ""
-"Watafiti wanaohusishwa na mradi huu watakuwa na ufikiaji wa data yangu ya "
+"Watafiti wanaohusishwa na mradi huu watapata data yangu ya "
 "<i>audiovisual</i> wakati wa kurekodi na uchambuzi wa nyenzo."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -878,7 +879,7 @@ msgid ""
 msgstr ""
 "Ninakubali kwamba rekodi zangu za <i>audiovisual</i> zinaweza kutumika kwa "
 "madhumuni ya maonyesho katika mawasilisho yenye idadi ndogo ya washiriki "
-"(mfano, kozi za kufundisha au mawasilisho ya kisayansi)."
+"(kwa mfano, kozi za kufundisha au mawasilisho ya kisayansi)."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -903,7 +904,7 @@ msgstr "HAPANA"
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "Tamko la idhini kwa rekodi za <i>audiovisual</i> ni la hiari."
+msgstr "Taarifa ya idhini kwa rekodi za <i>audiovisual</i> ni ya hiari."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -936,7 +937,7 @@ msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
-"Nimesoma na kuelewa kila kitu na hapa nakubali kwamba rekodi za "
+"Nimesoma na kuelewa kila kitu na kwa hivyo nakubali kwamba rekodi za "
 "<i>audiovisual</i> za mimi zinaweza kuchukuliwa."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -980,7 +981,7 @@ msgid ""
 "If I had questions concerning the upcoming study, they were answered "
 "completely and to my satisfaction."
 msgstr ""
-"Ikiwa nilikuwa na maswali kuhusu utafiti ujao, yalijibiwa kikamilifu na kwa "
+"Kama nilikuwa na maswali kuhusu utafiti ujao, yalijibiwa kikamilifu na kwa "
 "kuridhika kwangu."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -990,8 +991,8 @@ msgid ""
 "I agree to the described collecting and processing of my age, gender, and "
 "country of birth."
 msgstr ""
-"Ninakubali ukusanyaji na usindikaji wa umri wangu, jinsia, na nchi yangu ya "
-"kuzaliwa kama ilivyoelezwa."
+"Ninakubali ukusanyaji na usindikaji wa umri wangu, jinsia, na nchi "
+"niliyokulia kama ilivyoelezwa."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1018,8 +1019,8 @@ msgid ""
 "The investigators are the only persons who have access to this coding list "
 "and who are thus able to link the collected data to my name."
 msgstr ""
-"Wachunguzi ndio pekee wenye ufikiaji wa orodha hii ya nambari na hivyo "
-"wanaweza kuunganisha data iliyokusanywa na jina langu."
+"Wachunguzi ndio watu pekee wenye ufikiaji wa orodha hii ya nambari na hivyo "
+"wana uwezo wa kuunganisha data iliyokusanywa na jina langu."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1055,7 +1056,7 @@ msgid ""
 " possible to identify and thus to delete my data set."
 msgstr ""
 "Hata hivyo, ikiwa orodha ya nambari tayari imeharibiwa, haitakuwa tena "
-"inawezekana kutambua na hivyo kufuta seti ya data zangu."
+"inawezekana kutambua na hivyo kufuta seti ya data yangu."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1122,8 +1123,8 @@ msgid ""
 "communication with you and for planning studies at the Max Planck Institute "
 "for Empirical Aesthetics (MPIEA)."
 msgstr ""
-"Tunatunza na kuchakata data yako kwa madhumuni ya kuanzisha mawasiliano na "
-"wewe na kwa kupanga tafiti katika Taasisi ya Max Planck ya Aesthetics ya "
+"Tunahifadhi na kuchakata data yako kwa madhumuni ya kuanzisha mawasiliano na"
+" wewe na kwa kupanga tafiti katika Taasisi ya Max Planck ya Aesthetics ya "
 "Kimaumbile (MPIEA)."
 
 #: psynet/templates/consents/database_consent.html
@@ -1344,7 +1345,7 @@ msgid ""
 msgstr ""
 "Kama mtu anayehusika na data ambaye data zake binafsi zinachakatwa kuhusiana"
 " na ushiriki wako katika tafiti zetu, una haki zifuatazo kimsingi na kwa "
-"kadri hakuna ubaguzi wa kisheria unaotumika katika kesi za kibinafsi:"
+"kadiri hakuna ubaguzi wa kisheria unavyotumika katika kesi za kibinafsi:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1380,7 +1381,7 @@ msgstr "Uhamishaji wa data (GDPR kifungu cha 20)"
 #, fuzzy
 msgctxt "consent-protection"
 msgid "Withdrawal of consent (GDPR art. 7, para. 3)"
-msgstr "Uondoaji wa idhini (GDPR kifungu cha 7, aya ya 3)"
+msgstr "Kujiondoa kwa idhini (GDPR kifungu cha 7, aya ya 3)"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1410,8 +1411,8 @@ msgid ""
 "Perception Group at the Max Planck Institute for Empirical Aesthetics:"
 msgstr ""
 "Ikiwa una maswali yoyote kuhusu utafiti huu, haki zako, au matibabu kama "
-"mshiriki, tafadhali usisite kuwasiliana na Kikundi cha Hisia za Kihesabu cha"
-" Max Planck Institute for Empirical Aesthetics:"
+"mshiriki, tafadhali usisite kuwasiliana na Kikundi cha Hisia za Sauti za "
+"Kompyuta katika Taasisi ya Max Planck ya Aesthetics ya Kimaumbile:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1426,7 +1427,7 @@ msgid ""
 "We will not store any banking information or payment information in our "
 "system."
 msgstr ""
-"Hatutaweka taarifa yoyote ya benki au taarifa za malipo katika mfumo wetu."
+"Hatuhifadhi taarifa zozote za benki au taarifa za malipo katika mfumo wetu."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1435,7 +1436,7 @@ msgid ""
 "However we do store completion records and payment details of every task you"
 " completed."
 msgstr ""
-"Hata hivyo, tunahifadhi rekodi za kukamilisha na maelezo ya malipo ya kila "
+"Hata hivyo tunahifadhi rekodi za kukamilisha na maelezo ya malipo ya kila "
 "kazi uliyokamilisha."
 
 #: psynet/templates/consents/database_consent.html
@@ -1474,7 +1475,7 @@ msgid ""
 "please search your bank in their website to ensure that you will be able to "
 "receive payment prior to taking part in our experiments."
 msgstr ""
-"Mfumo huu unasaidia kuhamisha pesa kwa benki nyingi duniani kote, tafadhali "
+"Mfumo huu unasaidia kuhamisha pesa kwa benki nyingi duniani, tafadhali "
 "tafuta benki yako kwenye tovuti yao ili kuhakikisha kuwa utaweza kupokea "
 "malipo kabla ya kushiriki katika majaribio yetu."
 
@@ -1564,8 +1565,8 @@ msgid ""
 "while observing images or videos."
 msgstr ""
 "Ikiwa utajitolea kushiriki katika utafiti huu, utaombwa kufanya kazi rahisi "
-"kwa kutumia kibodi au kipanya chako huku ukisikiliza sauti, au huku "
-"ukiangalia picha au video."
+"kwa kutumia kibodi au panya yako huku ukisikiliza sauti, au huku ukiangalia "
+"picha au video."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1578,11 +1579,11 @@ msgid ""
 "images (e.g., how frequently do you encounter this type of sound or image? "
 "how aesthetically pleasing you consider a particular sound or image?)."
 msgstr ""
-"Kwa mfano, unaweza kuombwa kuhukumu jinsi sauti au picha fulani "
+"Kwa mfano, unaweza kuombwa kuhukumu jinsi sauti fulani au picha "
 "inavyopendeza, au kuainisha sauti au picha (mfano, kama sauti au picha ni ya"
 " gari au ng'ombe), au kuhukumu vipengele vingine vya msingi vya sauti au "
-"picha (mfano, mara ngapi unakutana na aina hii ya sauti au picha? "
-"unachukuliaje sauti au picha fulani kuwa ya kupendeza?)."
+"picha (mfano, mara ngapi unakutana na aina hii ya sauti au picha? jinsi gani"
+" unavyopata sauti au picha fulani kuwa ya kupendeza?)."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1731,7 +1732,7 @@ msgid ""
 "languages spoken)."
 msgstr ""
 "Tunaweza kukusanya baadhi ya data za kidemografia (mfano, umri, jinsia, nchi"
-" ya makazi) pamoja na taarifa kuhusu historia yako ya kujifunza na mfiduo "
+" unayoishi) pamoja na taarifa kuhusu historia yako ya kujifunza na mfiduo "
 "(mfano, uzoefu wa muziki wa kucheza chombo, miaka ya elimu rasmi, lugha "
 "zinazozungumzwa)."
 
@@ -1784,7 +1785,7 @@ msgid ""
 " to distinguish participants who have already taken part in this or other "
 "experiments."
 msgstr ""
-"Tutaokoa tu nambari yako ya alphanumeric isiyojulikana katika mfumo wetu, "
+"Tutahifadhi tu nambari yako ya alphanumeric iliyofichwa katika mfumo wetu, "
 "ili kutofautisha washiriki ambao tayari wamechukua sehemu katika jaribio "
 "hili au mengine."
 
@@ -1849,7 +1850,7 @@ msgid ""
 "demographic, aggregated, or extracted data without any personal identifiers."
 msgstr ""
 "Katika matukio haya, tutashiriki tu data iliyofichwa kabisa, kama vile data "
-"ya kidemografia, iliyojumlishwa, au iliyotolewa bila vitambulisho vya "
+"ya kidemografia, iliyojumuishwa, au iliyotolewa bila vitambulisho vya "
 "kibinafsi."
 
 #: psynet/templates/consents/main_consent.html
@@ -1980,7 +1981,7 @@ msgstr ""
 "Una haki ya kupata taarifa kuhusu data inayohusiana na wewe ambayo "
 "imehifadhiwa katika Taasisi ya Max-Planck, haki ya kusahihisha data isiyo "
 "sahihi, na haki ya kudai kufutwa kwa data katika kesi za uhifadhi wa data "
-"usiokubalika na haki ya kubebeka kwa data."
+"usiokubalika na haki ya kubeba data."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2008,7 +2009,7 @@ msgstr "Pia una haki ya kuwasilisha pingamizi kwa mamlaka ya usimamizi."
 #, fuzzy
 msgctxt "consent-rights"
 msgid "For the Max-Planck-Society, this is:"
-msgstr "Kwa Jamii ya Max-Planck, hii ni:"
+msgstr "Kwa Max-Planck-Society, hii ni:"
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2018,8 +2019,8 @@ msgid ""
 "replicability, we may want to publish the dataset collected in this "
 "experiment as soon as the study is finished."
 msgstr ""
-"Kufuata mazoea ya sayansi wazi ili kuboresha matumizi tena na urudufishaji "
-"wa sayansi, tunaweza kutaka kuchapisha seti ya data iliyokusanywa katika "
+"Kufuata mazoea ya sayansi wazi ili kuboresha matumizi na urudufishaji wa "
+"sayansi, tunaweza kutaka kuchapisha seti ya data iliyokusanywa katika "
 "jaribio hili mara tu utafiti utakapokamilika."
 
 #: psynet/templates/consents/open_science_consent.html
@@ -2103,8 +2104,8 @@ msgid ""
 "Thus, you may wish to make sure you do not record any materials you do not "
 "want to make public."
 msgstr ""
-"Hivyo, unaweza kutaka kuhakikisha haujarekodi vifaa vyovyote ambavyo hutaki "
-"kuvifanya kuwa vya umma."
+"Kwa hivyo, unaweza kutaka kuhakikisha kuwa hurekodi vifaa vyovyote ambavyo "
+"hutaki kuvifanya kuwa vya umma."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2113,8 +2114,8 @@ msgid ""
 "By consenting to this experiment you are committing not to use profanity "
 "while recording audio or nudity while recording video."
 msgstr ""
-"Kwa kukubali jaribio hili unajitolea kutotumia matusi wakati wa kurekodi "
-"sauti au uchi wakati wa kurekodi video."
+"Kwa kukubali jaribio hili unakubali kutotumia matusi wakati wa kurekodi "
+"sauti au utupu wakati wa kurekodi video."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2186,6 +2187,12 @@ msgstr "Unatumia:"
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Unahitaji kutumia hali ya incognito kushiriki katika jaribio."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
 msgid "Warning!"
 msgstr "Tahadhari!"
 
@@ -2205,7 +2212,7 @@ msgstr "Sakinisha toleo jipya la Google Chrome"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Install Google Chrome if you haven't"
-msgstr "Sakinisha Google Chrome ikiwa huna"
+msgstr "Sakinisha Google Chrome ikiwa hujafanya hivyo"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2400,7 +2407,7 @@ msgid ""
 "the main researcher in this project, Nori Jacoby at:"
 msgstr ""
 "Ikiwa una maswali yoyote kuhusu utafiti huu, usisite kuwasiliana na mtafiti "
-"mkuu wa mradi huu, Nori Jacoby kwa:"
+"mkuu katika mradi huu, Nori Jacoby kwa:"
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2468,7 +2475,7 @@ msgstr ""
 "Hata hivyo, katika baadhi ya majaribio, rekodi zako zinaweza kuonekana au "
 "kusikilizwa na washiriki wengine ili kuzitathmini katika sifa tofauti au "
 "kuunda vifaa vipya (kwa mfano kurudia mdundo uliouunda, au kuendelea na "
-"melodi uliyoiimba)."
+"melodi uliyoimba)."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2522,11 +2529,11 @@ msgid ""
 "or video, for example the camera can capture another family member, or the "
 "microphone can capture something you say to another person."
 msgstr ""
-"Unaweza kutaka kuhakikisha kuwa hakuna sauti/nyenzo za kuona katika "
-"mazingira yako ambazo zinaweza kuhusishwa na taarifa zako za kibinafsi. "
-"Aidha, unapofanya rekodi, kipaza sauti au kamera inaweza kunasa sauti au "
-"video zisizotarajiwa, kwa mfano kamera inaweza kunasa mwanafamilia mwingine,"
-" au kipaza sauti kinaweza kunasa kitu unachosema kwa mtu mwingine."
+"Unaweza kutaka kuhakikisha kuwa hakuna sauti/vifaa vya kuona katika "
+"mazingira yako vinavyoweza kuhusishwa na taarifa zako za kibinafsi. Aidha, "
+"unapofanya rekodi, kipaza sauti au kamera inaweza kunasa sauti au video "
+"zisizotarajiwa, kwa mfano kamera inaweza kunasa mwanafamilia mwingine, au "
+"kipaza sauti kinaweza kunasa kitu unachosema kwa mtu mwingine."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2558,7 +2565,7 @@ msgid ""
 "while recording audio or nudity while recording video."
 msgstr ""
 "Kwa kukubali jaribio hili, unakubali kutotumia matusi wakati wa kurekodi "
-"sauti au utupu wakati wa kurekodi video."
+"sauti au uchi wakati wa kurekodi video."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2567,8 +2574,8 @@ msgid ""
 "In these cases, we may share your audio-visual material along with fully "
 "anonymized data, such as demographic, aggregated, or extracted data."
 msgstr ""
-"Katika matukio haya, tunaweza kushiriki nyenzo zako za sauti-visual pamoja "
-"na data iliyofichwa kabisa, kama vile data ya kidemografia, iliyojumlishwa, "
+"Katika matukio haya, tunaweza kushiriki vifaa vyako vya sauti-visual pamoja "
+"na data iliyofichwa kabisa, kama vile data ya kidemografia, iliyojumuishwa, "
 "au iliyotolewa."
 
 #: psynet/templates/macros/consent.html
@@ -2580,8 +2587,8 @@ msgid ""
 "possible to recognize individuals based on audio-visual material."
 msgstr ""
 "Hatutaunganisha jina lako halisi au taarifa yoyote ya kibinafsi moja kwa "
-"moja na picha yako au rekodi ya sauti, ingawa inawezekana kutambua watu "
-"binafsi kulingana na nyenzo za sauti-visual."
+"moja na picha yako au rekodi ya sauti, ingawa ni wazi inawezekana kutambua "
+"watu kulingana na vifaa vya sauti-visual."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2590,7 +2597,7 @@ msgid ""
 "Audio-visual material will be shared only if your consent to an additional "
 "consent form as explained above."
 msgstr ""
-"Nyenzo za sauti-visual zitashirikiwa tu ikiwa unakubali fomu ya ridhaa ya "
+"Vifaa vya sauti-visual vitashirikiwa tu ikiwa unakubali fomu ya ridhaa ya "
 "ziada kama ilivyoelezwa hapo juu."
 
 #: psynet/templates/macros/consent.html
@@ -2600,7 +2607,7 @@ msgid ""
 "During data collection, audio-visual material will be recorded on a separate"
 " server."
 msgstr ""
-"Wakati wa ukusanyaji wa data, nyenzo za sauti-visual zitarekodiwa kwenye "
+"Wakati wa ukusanyaji wa data, vifaa vya sauti-visual vitarekodiwa kwenye "
 "seva tofauti."
 
 #: psynet/templates/macros/consent.html
@@ -2610,8 +2617,8 @@ msgid ""
 "Audio-visual material will not be indexed by personal information but will "
 "be linked to personal information by a key (such as “afasd12314asdasd”)."
 msgstr ""
-"Nyenzo za sauti-visual hazitaorodheshwa na taarifa za kibinafsi lakini "
-"zitahusishwa na taarifa za kibinafsi kwa ufunguo (kama vile "
+"Vifaa vya sauti-visual havitaorodheshwa na taarifa za kibinafsi lakini "
+"vitahusishwa na taarifa za kibinafsi kwa ufunguo (kama vile "
 "“afasd12314asdasd”)."
 
 #: psynet/templates/macros/consent.html
@@ -2622,7 +2629,7 @@ msgid ""
 "and encrypted using a strong encryption protocol (such as Advanced "
 "Encryption Standard)."
 msgstr ""
-"Taarifa za kibinafsi zitahifadhiwa kando na nyenzo za sauti-visual na "
+"Taarifa za kibinafsi zitahifadhiwa kando na vifaa vya sauti-visual na "
 "kufichwa kwa kutumia itifaki ya usimbaji yenye nguvu (kama vile Advanced "
 "Encryption Standard)."
 
@@ -2680,8 +2687,8 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"Vigezo vya <strong>decay</strong> vinaamua kiasi cha kusawazisha "
-"kinachotokea kwenye ishara, na vina vitengo vya sekunde."
+"Vigezo vya <strong>kuharibika</strong> vinaamua kiasi cha kusawazisha "
+"kinachotokea kwa ishara, na vina vitengo vya sekunde."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2690,8 +2697,8 @@ msgid ""
 "A high decay parameter means that the signal takes a long time to decay "
 "(i.e. high smoothing)."
 msgstr ""
-"Kigezo cha decay cha juu kinamaanisha kuwa ishara inachukua muda mrefu "
-"kudhoofika (yaani, kusawazisha kwa juu)."
+"Kigezo cha juu cha kuharibika kinamaanisha kuwa ishara inachukua muda mrefu "
+"kupungua (yaani, kusawazisha kwa juu)."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2700,9 +2707,9 @@ msgid ""
 "There are three decay parameters: one for the displayed audio meter, one for"
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
-"Kuna vigezo vitatu vya decay: kimoja kwa kipimo cha sauti kinachoonyeshwa, "
-"kimoja kwa kigunduzi cha 'juu sana', na kimoja kwa kigunduzi cha 'chini "
-"sana'."
+"Kuna vigezo vitatu vya kuharibika: kimoja kwa kipimo cha sauti "
+"kinachoonyeshwa, kimoja kwa kigunduzi cha 'juu sana', na kimoja kwa "
+"kigunduzi cha 'chini sana'."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2711,7 +2718,7 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Vigezo vya <strong>threshold</strong> vinaamua kiwango ambacho sauti "
+"Vigezo vya <strong>kizingiti</strong> vinaamua hatua ambayo sauti "
 "inachukuliwa kuwa 'juu sana' au 'chini sana'."
 
 #: psynet/templates/macros/control.html
@@ -2721,8 +2728,8 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"Vigezo vya <strong>grace</strong> vinaamua muda ambao sauti lazima iwe nje "
-"ya kizingiti husika ili ujumbe wa onyo utoke."
+"Vigezo vya <strong>neema</strong> vinaamua muda ambao sauti lazima iwe nje "
+"ya kizingiti husika ili ujumbe wa onyo uweze kuchochewa."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2731,8 +2738,8 @@ msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
-"Vigezo vya <strong>message duration</strong> vinaamua muda ambao ujumbe wa "
-"onyo unaonyeshwa."
+"Vigezo vya <strong>muda wa ujumbe</strong> vinaamua muda ambao ujumbe wa "
+"onyo utaonyeshwa."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2792,8 +2799,9 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Unaweza kuwa na uwezo wa kusitisha jaribio kwa kutumia kitufe cha "
-"<strong>Abort experiment</strong> <strong>on the MTurk ad page</strong>."
+"Unaweza kuwa na uwezo wa kusitisha jaribio kwa kutumia kitufe cha <strong> "
+"Sitisha jaribio </strong> <strong> kwenye ukurasa wa tangazo la MTurk "
+"</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2811,8 +2819,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Ikiwa sivyo, tafadhali wasiliana nasi kwa %(EMAIL)s ukinukuu taarifa "
-"zifuatazo:"
+"Ikiwa sivyo, tafadhali wasiliana nasi kwa %(EMAIL)s ukinukuu maelezo "
+"yafuatayo:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2822,7 +2830,7 @@ msgstr "Aina ya hitilafu"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Worker ID"
+msgstr "Kitambulisho cha Mfanyakazi"
 
 #: psynet/templates/start.html
 #, fuzzy
@@ -2853,8 +2861,7 @@ msgstr "Hakikisha kuwa muunganisho wako wa intaneti unafanya kazi."
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Ikiwa hayo hapo juu hayasaidii, tutumie barua pepe na maelezo yafuatayo:"
+msgstr "Ikiwa hayo hayasaidii, tutumie barua pepe na maelezo yafuatayo:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3328,7 +3335,7 @@ msgstr "El Salvador"
 #, fuzzy
 msgctxt "country_name"
 msgid "Equatorial Guinea"
-msgstr "Equatorial Guinea"
+msgstr "Guinea ya Ikweta"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -3598,7 +3605,7 @@ msgstr "Jamaica"
 #, fuzzy
 msgctxt "country_name"
 msgid "Japan"
-msgstr "Japani"
+msgstr "Japan"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -3916,7 +3923,7 @@ msgstr "North Macedonia"
 #, fuzzy
 msgctxt "country_name"
 msgid "Northern Mariana Islands"
-msgstr "Visiwa vya Mariana Kaskazini"
+msgstr "Visiwa vya Mariana vya Kaskazini"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4162,7 +4169,7 @@ msgstr "Afrika Kusini"
 #, fuzzy
 msgctxt "country_name"
 msgid "South Georgia and the South Sandwich Islands"
-msgstr "Georgia Kusini na Visiwa vya Sandwich Kusini"
+msgstr "South Georgia na Visiwa vya South Sandwich"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4174,7 +4181,7 @@ msgstr "Sudan Kusini"
 #, fuzzy
 msgctxt "country_name"
 msgid "Spain"
-msgstr "Uhispania"
+msgstr "Hispania"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4420,37 +4427,37 @@ msgstr "Visiwa vya Åland"
 #, fuzzy
 msgctxt "language_name"
 msgid "Abkhazian"
-msgstr "Abkhazian"
+msgstr "Kiabkhazi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Afar"
-msgstr "Afar"
+msgstr "Kiafari"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Afrikaans"
-msgstr "Afrikaans"
+msgstr "Kiafrikana"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Akan"
-msgstr "Akan"
+msgstr "Kiakan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Albanian"
-msgstr "Albanian"
+msgstr "Kialbania"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Amharic"
-msgstr "Amharic"
+msgstr "Kiamhari"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4462,91 +4469,91 @@ msgstr "Kiarabu"
 #, fuzzy
 msgctxt "language_name"
 msgid "Aragonese"
-msgstr "Aragonese"
+msgstr "Kiaragoni"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Armenian"
-msgstr "Armenian"
+msgstr "Kiarmenia"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Assamese"
-msgstr "Assamese"
+msgstr "Kiassam"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Avaric"
-msgstr "Avaric"
+msgstr "Kiavari"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Avestan"
-msgstr "Avestan"
+msgstr "Kiavestan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Aymara"
-msgstr "Aymara"
+msgstr "Kiaymara"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Azerbaijani"
-msgstr "Azerbaijani"
+msgstr "Kiazerbaijani"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bambara"
-msgstr "Bambara"
+msgstr "Kibambara"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bashkir"
-msgstr "Bashkir"
+msgstr "Kibashkir"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Basque"
-msgstr "Basque"
+msgstr "Kibasque"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Belarusian"
-msgstr "Belarusian"
+msgstr "Kibelarusi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bengali"
-msgstr "Bengali"
+msgstr "Kibengali"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bislama"
-msgstr "Bislama"
+msgstr "Kibislama"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bosnian"
-msgstr "Bosnian"
+msgstr "Kibosnia"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Breton"
-msgstr "Breton"
+msgstr "Kibretoni"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4558,7 +4565,7 @@ msgstr "Kibulgaria"
 #, fuzzy
 msgctxt "language_name"
 msgid "Burmese"
-msgstr "Burmese"
+msgstr "Kiburma"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4570,19 +4577,19 @@ msgstr "Kikatalani"
 #, fuzzy
 msgctxt "language_name"
 msgid "Central Khmer"
-msgstr "Central Khmer"
+msgstr "Kikambodia"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Chamorro"
-msgstr "Chamorro"
+msgstr "Kichamorro"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Chechen"
-msgstr "Chechen"
+msgstr "Kichecheni"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4594,43 +4601,43 @@ msgstr "Kichina"
 #, fuzzy
 msgctxt "language_name"
 msgid "Church Slavic"
-msgstr "Church Slavic"
+msgstr "Kislovakia ya Kanisa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Chuvash"
-msgstr "Chuvash"
+msgstr "Kichuvash"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Cornish"
-msgstr "Cornish"
+msgstr "Kikornishi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Corsican"
-msgstr "Corsican"
+msgstr "Kikosikani"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Cree"
-msgstr "Cree"
+msgstr "Kikree"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Croatian"
-msgstr "Kroeshia"
+msgstr "Kikroeshia"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Cebuano"
-msgstr "Cebuano"
+msgstr "Kicebuano"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4642,13 +4649,13 @@ msgstr "Kicheki"
 #, fuzzy
 msgctxt "language_name"
 msgid "Danish"
-msgstr "Kideni"
+msgstr "Kidanishi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Dhivehi"
-msgstr "Dhivehi"
+msgstr "Kidhivehi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4660,7 +4667,7 @@ msgstr "Kiholanzi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Dzongkha"
-msgstr "Dzongkha"
+msgstr "Kidzongkha"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4684,19 +4691,19 @@ msgstr "Kiestonia"
 #, fuzzy
 msgctxt "language_name"
 msgid "Ewe"
-msgstr "Ewe"
+msgstr "Kiewe"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Faroese"
-msgstr "Faroese"
+msgstr "Kifaroe"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Fijian"
-msgstr "Fijian"
+msgstr "Kifiji"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4714,19 +4721,19 @@ msgstr "Kifaransa"
 #, fuzzy
 msgctxt "language_name"
 msgid "Fulah"
-msgstr "Fulah"
+msgstr "Kifulani"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Galician"
-msgstr "Galician"
+msgstr "Kigalisi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ganda"
-msgstr "Ganda"
+msgstr "Kiganda"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4744,37 +4751,37 @@ msgstr "Kijerumani"
 #, fuzzy
 msgctxt "language_name"
 msgid "Gothic"
-msgstr "Gothic"
+msgstr "Kigothiki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Guarani"
-msgstr "Guarani"
+msgstr "Kiguarani"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Gujarati"
-msgstr "Gujarati"
+msgstr "Kigujarati"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Haitian"
-msgstr "Haitian"
+msgstr "Kihaiti"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hausa"
-msgstr "Hausa"
+msgstr "Kihausa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hawaiian"
-msgstr "Hawaiian"
+msgstr "Kihawaii"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4786,7 +4793,7 @@ msgstr "Kiebrania"
 #, fuzzy
 msgctxt "language_name"
 msgid "Herero"
-msgstr "Herero"
+msgstr "Kiherero"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4798,13 +4805,13 @@ msgstr "Kihindi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Hiri Motu"
-msgstr "Hiri Motu"
+msgstr "Kihirimotu"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hmong"
-msgstr "Hmong"
+msgstr "Kihmong"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4816,19 +4823,19 @@ msgstr "Kihungaria"
 #, fuzzy
 msgctxt "language_name"
 msgid "Icelandic"
-msgstr "Icelandic"
+msgstr "Kiayisilandi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ido"
-msgstr "Ido"
+msgstr "Kiido"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Igbo"
-msgstr "Igbo"
+msgstr "Kiigbo"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4840,31 +4847,31 @@ msgstr "Kiindonesia"
 #, fuzzy
 msgctxt "language_name"
 msgid "Interlingua"
-msgstr "Interlingua"
+msgstr "Kiinterlingua"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Interlingue"
-msgstr "Interlingue"
+msgstr "Kiinterlingue"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Inuktitut"
-msgstr "Inuktitut"
+msgstr "Kiinuktitut"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Inupiaq"
-msgstr "Inupiaq"
+msgstr "Kiinupiaq"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Irish"
-msgstr "Kiairish"
+msgstr "Kiayalandi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4888,37 +4895,37 @@ msgstr "Kijava"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kalaallisut"
-msgstr "Kalaallisut"
+msgstr "Kikalaallisut"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kannada"
-msgstr "Kannada"
+msgstr "Kikannada"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kanuri"
-msgstr "Kanuri"
+msgstr "Kikanuri"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kashmiri"
-msgstr "Kashmiri"
+msgstr "Kikashmiri"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kazakh"
-msgstr "Kazakh"
+msgstr "Kikazakh"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kikuyu"
-msgstr "Kikuyu"
+msgstr "Kikikuyu"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4930,19 +4937,19 @@ msgstr "Kinyarwanda"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kirghiz"
-msgstr "Kirghiz"
+msgstr "Kikirghiz"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Komi"
-msgstr "Komi"
+msgstr "Kikomi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kongo"
-msgstr "Kongo"
+msgstr "Kikongo"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4954,7 +4961,7 @@ msgstr "Kikorea"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kuanyama"
-msgstr "Kuanyama"
+msgstr "Kikuanyama"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4966,7 +4973,7 @@ msgstr "Kikurdi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Lao"
-msgstr "Lao"
+msgstr "Kilaosi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4984,13 +4991,13 @@ msgstr "Kilatvia"
 #, fuzzy
 msgctxt "language_name"
 msgid "Limburgan"
-msgstr "Limburgan"
+msgstr "Kilimbugani"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Lingala"
-msgstr "Lingala"
+msgstr "Kilingala"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5002,13 +5009,13 @@ msgstr "Kilitwania"
 #, fuzzy
 msgctxt "language_name"
 msgid "Luba-Katanga"
-msgstr "Luba-Katanga"
+msgstr "Kiluba-Katanga"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Luxembourgish"
-msgstr "Luxembourgish"
+msgstr "Kilasembagi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5020,37 +5027,37 @@ msgstr "Kimasedonia"
 #, fuzzy
 msgctxt "language_name"
 msgid "Malagasy"
-msgstr "Malagasy"
+msgstr "Kimalagasi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Malay"
-msgstr "Kimalesia"
+msgstr "Kimalay"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Malayalam"
-msgstr "Malayalam"
+msgstr "Kimalayalam"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Maltese"
-msgstr "Kimalta"
+msgstr "Kimaltese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Manx"
-msgstr "Manx"
+msgstr "Kimanx"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Maori"
-msgstr "Maori"
+msgstr "Kimaori"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5062,7 +5069,7 @@ msgstr "Kimarathi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Marshallese"
-msgstr "Marshallese"
+msgstr "Kimashalisi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5080,19 +5087,19 @@ msgstr "Kimongolia"
 #, fuzzy
 msgctxt "language_name"
 msgid "Nauru"
-msgstr "Nauru"
+msgstr "Kinairu"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Navajo"
-msgstr "Navajo"
+msgstr "Kinavajo"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ndonga"
-msgstr "Ndonga"
+msgstr "Kindonga"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5104,13 +5111,13 @@ msgstr "Kinepali"
 #, fuzzy
 msgctxt "language_name"
 msgid "North Ndebele"
-msgstr "North Ndebele"
+msgstr "Kindebele ya Kaskazini"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Northern Sami"
-msgstr "Northern Sami"
+msgstr "Kisami ya Kaskazini"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5122,37 +5129,37 @@ msgstr "Kinorwe"
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Bokmål"
-msgstr "Norwegian Bokmål"
+msgstr "Kinorwe Bokmål"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Nynorsk"
-msgstr "Norwegian Nynorsk"
+msgstr "Kinorwe Nynorsk"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Nyanja"
-msgstr "Nyanja"
+msgstr "Kinyanja"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Occitan"
-msgstr "Occitan"
+msgstr "Kiokitani"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ojibwa"
-msgstr "Ojibwa"
+msgstr "Kiojibwa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Oriya"
-msgstr "Oriya"
+msgstr "Kioriya"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5164,13 +5171,13 @@ msgstr "Kioromo"
 #, fuzzy
 msgctxt "language_name"
 msgid "Ossetian"
-msgstr "Ossetian"
+msgstr "Kiosetia"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Pali"
-msgstr "Pali"
+msgstr "Kipali"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5194,19 +5201,19 @@ msgstr "Kipolandi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Portuguese"
-msgstr "Kireno"
+msgstr "Kiporugu"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Pushto"
-msgstr "Kipashito"
+msgstr "Kipushto"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Quechua"
-msgstr "Quechua"
+msgstr "Kiquechua"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5218,13 +5225,13 @@ msgstr "Kiromania"
 #, fuzzy
 msgctxt "language_name"
 msgid "Romansh"
-msgstr "Romansh"
+msgstr "Kiromanshi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Rundi"
-msgstr "Rundi"
+msgstr "Kirundi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5236,13 +5243,13 @@ msgstr "Kirusi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Samoan"
-msgstr "Samoan"
+msgstr "Kisamoa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sango"
-msgstr "Sango"
+msgstr "Kisango"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5254,13 +5261,13 @@ msgstr "Kisanskriti"
 #, fuzzy
 msgctxt "language_name"
 msgid "Sardinian"
-msgstr "Sardinian"
+msgstr "Kisardinia"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Scottish Gaelic"
-msgstr "Scottish Gaelic"
+msgstr "Kigaeli ya Kiskoti"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5272,31 +5279,31 @@ msgstr "Kiserbia"
 #, fuzzy
 msgctxt "language_name"
 msgid "Serbo-Croatian"
-msgstr "Serbo-Croatian"
+msgstr "Kiswahili-Kroeshia"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Shona"
-msgstr "Shona"
+msgstr "Kishona"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sichuan Yi"
-msgstr "Sichuan Yi"
+msgstr "Kisichuan Yi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sindhi"
-msgstr "Sindhi"
+msgstr "Kisindhi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sinhala"
-msgstr "Sinhala"
+msgstr "Kisinhala"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5320,13 +5327,13 @@ msgstr "Kisomali"
 #, fuzzy
 msgctxt "language_name"
 msgid "South Ndebele"
-msgstr "South Ndebele"
+msgstr "Kindebele ya Kusini"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Southern Sotho"
-msgstr "Southern Sotho"
+msgstr "Kisotho ya Kusini"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5338,7 +5345,7 @@ msgstr "Kihispania"
 #, fuzzy
 msgctxt "language_name"
 msgid "Sundanese"
-msgstr "Kisudan"
+msgstr "Kisundanese"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5350,7 +5357,7 @@ msgstr "Kiswahili"
 #, fuzzy
 msgctxt "language_name"
 msgid "Swati"
-msgstr "Swati"
+msgstr "Kiswati"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5362,7 +5369,7 @@ msgstr "Kiswidi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Taiwanese"
-msgstr "Taiwanese"
+msgstr "Kitaiwan"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5374,13 +5381,13 @@ msgstr "Kitagalog"
 #, fuzzy
 msgctxt "language_name"
 msgid "Tahitian"
-msgstr "Tahitian"
+msgstr "Kitahitian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tajik"
-msgstr "Tajik"
+msgstr "Kitajiki"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5392,7 +5399,7 @@ msgstr "Kitamil"
 #, fuzzy
 msgctxt "language_name"
 msgid "Tatar"
-msgstr "Tatar"
+msgstr "Kitatari"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5410,31 +5417,31 @@ msgstr "Kithai"
 #, fuzzy
 msgctxt "language_name"
 msgid "Tibetan"
-msgstr "Tibetan"
+msgstr "Kitibeti"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tigrinya"
-msgstr "Tigrinya"
+msgstr "Kitigrinya"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tonga"
-msgstr "Tonga"
+msgstr "Kitonga"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tsonga"
-msgstr "Tsonga"
+msgstr "Kitsonga"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tswana"
-msgstr "Tswana"
+msgstr "Kitswana"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5446,25 +5453,25 @@ msgstr "Kituruki"
 #, fuzzy
 msgctxt "language_name"
 msgid "Turkmen"
-msgstr "Turkmen"
+msgstr "Kiturukimeni"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Twi"
-msgstr "Twi"
+msgstr "Kitwi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Uighur"
-msgstr "Uighur"
+msgstr "Kiuyghur"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ukrainian"
-msgstr "Kiukreni"
+msgstr "Kiukraini"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5482,7 +5489,7 @@ msgstr "Kiuzbeki"
 #, fuzzy
 msgctxt "language_name"
 msgid "Venda"
-msgstr "Venda"
+msgstr "Kivenda"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5494,13 +5501,13 @@ msgstr "Kivietinamu"
 #, fuzzy
 msgctxt "language_name"
 msgid "Volapük"
-msgstr "Volapük"
+msgstr "Kivolapük"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Walloon"
-msgstr "Walloon"
+msgstr "Kiwaluni"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5512,19 +5519,19 @@ msgstr "Kiwelisi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Western Armenian"
-msgstr "Western Armenian"
+msgstr "Kiarmenia ya Magharibi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Western Frisian"
-msgstr "Western Frisian"
+msgstr "Kifrisia ya Magharibi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Wolof"
-msgstr "Wolof"
+msgstr "Kiwolofu"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5536,7 +5543,7 @@ msgstr "Kixhosa"
 #, fuzzy
 msgctxt "language_name"
 msgid "Yiddish"
-msgstr "Yiddish"
+msgstr "Kiyidi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5548,7 +5555,7 @@ msgstr "Kiyoruba"
 #, fuzzy
 msgctxt "language_name"
 msgid "Zhuang"
-msgstr "Zhuang"
+msgstr "Kizhuang"
 
 #: psynet/translation/languages.py
 #, fuzzy

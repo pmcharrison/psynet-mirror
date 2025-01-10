@@ -59,7 +59,7 @@ msgstr "Kiek jums metų?"
 #, fuzzy
 msgctxt "age"
 msgid "You need to provide your age as an integer between 0 and 120!"
-msgstr "Turite nurodyti savo amžių kaip sveiką skaičių nuo 0 iki 120!"
+msgstr "Jūs turite nurodyti savo amžių kaip sveiką skaičių nuo 0 iki 120!"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -83,7 +83,7 @@ msgstr "Pasirinkite šalį"
 #, fuzzy
 msgctxt "country-select"
 msgid "You need to select a country!"
-msgstr "Turite pasirinkti šalį!"
+msgstr "Jūs turite pasirinkti šalį!"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -153,7 +153,7 @@ msgstr "Pasirinkite kalbą"
 #, fuzzy
 msgctxt "language-select"
 msgid "You need to select a language!"
-msgstr "Turite pasirinkti kalbą!"
+msgstr "Jūs turite pasirinkti kalbą!"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -427,8 +427,9 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Jūs gausite atlygį <strong>■0■■1■</strong> už laiką, praleistą eksperimente."
-" Jums taip pat buvo suteiktas našumo atlygis <strong>■0■■3■</strong>!"
+"Jūs gausite <strong>{CURRENCY}{TIME_REWARD}</strong> atlygį už laiką, "
+"praleistą eksperimente. Jums taip pat buvo suteiktas našumo atlygis "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
@@ -488,8 +489,8 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"Norėdami sužinoti apie kompensaciją, susisiekite su tyrėju adresu {EMAIL} ir"
-" aprašykite, kas sukėlė šią klaidą."
+"Norėdami sužinoti apie kompensaciją, susisiekite su tyrėju el. paštu {EMAIL}"
+" ir aprašykite, kas sukėlė šią klaidą."
 
 #: psynet/experiment.py
 #, fuzzy
@@ -510,7 +511,7 @@ msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
-"Norėdami sužinoti apie kompensaciją, atsiųskite tyrėjui žinutę per Prolific "
+"Norėdami sužinoti apie kompensaciją, siųskite tyrėjui žinutę per Prolific "
 "svetainę ir aprašykite, kas sukėlė jūsų klaidą."
 
 #: psynet/modular_page.py
@@ -585,7 +586,7 @@ msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
 "it at this time!"
 msgstr ""
-"Eksperimento nutraukti neįmanoma, nes eksperimentatorius šiuo metu to "
+"Eksperimento nutraukti neįmanoma, nes eksperimentuotojas šiuo metu to "
 "neleidžia!"
 
 #: psynet/templates/abort_not_possible.html
@@ -595,7 +596,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Turite sukaupti mažiausiai <strong>at least "
+"Turite sukaupti <strong>mažiausiai "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> atlygio, kad "
 "galėtumėte būti kompensuoti."
 
@@ -643,7 +644,7 @@ msgid ""
 "be automatically paid the compensation you have earned so far."
 msgstr ""
 "Jei spustelėsite mygtuką Nutraukti, eksperimentas bus baigtas anksčiau, ir "
-"jums bus automatiškai sumokėta iki šiol uždirbta kompensacija."
+"jums bus automatiškai sumokėta kompensacija, kurią iki šiol uždirbote."
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -674,7 +675,7 @@ msgstr "Kvietimas dalyvauti"
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "Reikalavimai dalyvauti yra šie"
+msgstr "Reikalavimai dalyvauti yra tokie"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -787,8 +788,8 @@ msgid ""
 "I have received oral and written information about the fact that "
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
-"Aš gavau žodinę ir rašytinę informaciją apie tai, kad šiame tyrime bus "
-"daromi <i>audiovisual</i> įrašai."
+"Gavau žodinę ir rašytinę informaciją apie tai, kad šiame tyrime bus daromi "
+"<i>audiovizualiniai</i> įrašai."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -807,8 +808,8 @@ msgid ""
 "For example, we would like to understand how predictive mechanisms in "
 "perception rely on experience, learning, and memory."
 msgstr ""
-"Pavyzdžiui, mes norėtume suprasti, kaip suvokimo prognozavimo mechanizmai "
-"remiasi patirtimi, mokymusi ir atmintimi."
+"Pavyzdžiui, norime suprasti, kaip suvokimo prognozavimo mechanizmai remiasi "
+"patirtimi, mokymusi ir atmintimi."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -829,10 +830,10 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Aš buvau informuotas, kad <i>audiovisual</i> įrašo saugojimas ir apdorojimas"
-" bus atliekamas pseudonimizuota forma, t.y., naudojant numerį ir nenurodant "
-"mano vardo, ir kad yra kodavimo sąrašas, kuris susieja mano vardą su "
-"numeriu."
+"Buvau informuotas, kad <i>audiovizualinio</i> įrašo saugojimas ir "
+"apdorojimas bus atliekamas pseudonimizuota forma, t. y. naudojant numerį ir "
+"nenurodant mano vardo, ir kad yra kodavimo sąrašas, kuris susieja mano vardą"
+" su numeriu."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -842,7 +843,7 @@ msgid ""
 "which will be destroyed after completion of the research project."
 msgstr ""
 "Tyrėjai yra vieninteliai asmenys, turintys prieigą prie šio kodavimo sąrašo,"
-" kuris bus sunaikintas po tyrimo projekto pabaigos."
+" kuris bus sunaikintas pasibaigus tyrimo projektui."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -852,8 +853,8 @@ msgid ""
 "<i>audiovisual</i> data during the recording and the analysis of the "
 "material."
 msgstr ""
-"Su šiuo projektu susiję tyrėjai turės prieigą prie mano <i>audiovisual</i> "
-"duomenų įrašo metu ir medžiagos analizės metu."
+"Su šiuo projektu susiję tyrėjai turės prieigą prie mano "
+"<i>audiovizualinių</i> duomenų įrašymo ir medžiagos analizės metu."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -863,14 +864,14 @@ msgid ""
 "I understand that I am free to withdraw my consent to the collection and "
 "storage of my personal data without negative consequences."
 msgstr ""
-"Aš suprantu, kad galiu laisvai atšaukti savo sutikimą dėl mano asmens "
-"duomenų rinkimo ir saugojimo be neigiamų pasekmių."
+"Aš suprantu, kad galiu laisvai atšaukti savo sutikimą rinkti ir saugoti mano"
+" asmens duomenis be neigiamų pasekmių."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I agree to the handling of the recordings as described above."
-msgstr "Aš sutinku su aukščiau aprašytu įrašų tvarkymu."
+msgstr "Sutinku su aukščiau aprašytu įrašų tvarkymu."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -886,7 +887,7 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"Aš sutinku, kad mano <i>audiovisual</i> įrašai gali būti naudojami "
+"Sutinku, kad mano <i>audiovizualiniai</i> įrašai gali būti naudojami "
 "demonstravimo tikslais pristatymuose su ribotu dalyvių skaičiumi (pvz., "
 "mokymo kursuose ar moksliniuose pristatymuose)."
 
@@ -913,13 +914,14 @@ msgstr "NE"
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "Sutikimo deklaracija dėl <i>audiovisual</i> įrašų yra savanoriška."
+msgstr ""
+"Sutikimo deklaracija dėl <i>audiovizualinių</i> įrašų yra savanoriška."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I may withdraw my consent at any time."
-msgstr "Aš galiu bet kada atšaukti savo sutikimą."
+msgstr "Galiu bet kada atšaukti savo sutikimą."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -929,15 +931,14 @@ msgid ""
 "be other negative consequences; however, in this case, participation in the "
 "study will not be possible."
 msgstr ""
-"Atsisakymo ar atšaukimo atveju nebus patiriamos jokios išlaidos ir nebus "
-"kitų neigiamų pasekmių; tačiau tokiu atveju dalyvavimas tyrime nebus "
-"įmanomas."
+"Atsisakymo ar atšaukimo atveju nebus patirtos jokios išlaidos ir nebus kitų "
+"neigiamų pasekmių; tačiau tokiu atveju dalyvavimas tyrime nebus įmanomas."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I had sufficient time for this decision."
-msgstr "Aš turėjau pakankamai laiko šiam sprendimui."
+msgstr "Turėjau pakankamai laiko šiam sprendimui."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -946,14 +947,14 @@ msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
-"Aš perskaičiau ir supratau viską ir sutinku, kad gali būti daromi mano "
-"<i>audiovisual</i> įrašai."
+"Perskaičiau ir supratau viską ir sutinku, kad gali būti daromi mano "
+"<i>audiovizualiniai</i> įrašai."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I have received a copy of this consent form."
-msgstr "Aš gavau šios sutikimo formos kopiją."
+msgstr "Gavau šios sutikimo formos kopiją."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -989,8 +990,8 @@ msgid ""
 "If I had questions concerning the upcoming study, they were answered "
 "completely and to my satisfaction."
 msgstr ""
-"Jei turėjau klausimų dėl būsimo tyrimo, jie buvo visiškai atsakyti ir man "
-"patenkinti."
+"Jei turėjau klausimų dėl būsimo tyrimo, jie buvo visiškai ir man "
+"patenkinamai atsakyti."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1061,7 +1062,7 @@ msgid ""
 "However, if the coding list has already been destroyed, it will no longer be"
 " possible to identify and thus to delete my data set."
 msgstr ""
-"Tačiau, jei kodavimo sąrašas jau buvo sunaikintas, nebebus įmanoma "
+"Tačiau, jei kodavimo sąrašas jau buvo sunaikintas, nebus įmanoma "
 "identifikuoti ir todėl ištrinti mano duomenų rinkinio."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1089,7 +1090,7 @@ msgstr "Aš gavau dalyvio informacinio lapo ir sutikimo formos kopiją."
 #, fuzzy
 msgctxt "consent-title"
 msgid "We need your consent to proceed"
-msgstr "Mums reikia jūsų sutikimo, kad galėtume tęsti"
+msgstr "Mums reikia jūsų sutikimo tęsti"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1135,7 +1136,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-purpose"
 msgid "This data will never be shared with third parties."
-msgstr "Šie duomenys niekada nebus dalijami su trečiosiomis šalimis."
+msgstr "Šie duomenys niekada nebus perduoti trečiosioms šalims."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1203,7 +1204,7 @@ msgid ""
 "study you participate in."
 msgstr ""
 "Jūsų sutikimas dalyvauti tyrime bus gautas atskirai kiekvienam tyrimui, "
-"kuriame dalyvausite."
+"kuriame dalyvaujate."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1347,7 +1348,7 @@ msgid ""
 msgstr ""
 "Kaip duomenų subjektas, kurio asmens duomenys yra tvarkomi, susiję su jūsų "
 "dalyvavimu mūsų tyrimuose, jūs turite šias teises iš esmės ir tiek, kiek "
-"atskirais atvejais netaikomos teisinės išimtys:"
+"nėra teisinių išimčių atskirais atvejais:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1411,7 +1412,7 @@ msgid ""
 "Perception Group at the Max Planck Institute for Empirical Aesthetics:"
 msgstr ""
 "Jei turite klausimų apie šį tyrimą, savo teises ar elgesį kaip dalyvis, "
-"nedvejodami susisiekite su Kompiuterinės klausos suvokimo grupe Max Plancko "
+"nedvejodami kreipkitės į Kompiuterinės klausos suvokimo grupę Max Plancko "
 "Empirinės Estetikos Institute:"
 
 #: psynet/templates/consents/database_consent.html
@@ -1455,7 +1456,7 @@ msgid ""
 "Based on this information we allow you to receive payment via an external "
 "system such as PayPAL/WISE."
 msgstr ""
-"Remdamiesi šia informacija, mes leidžiame jums gauti mokėjimą per išorinę "
+"Remdamiesi šia informacija, leidžiame jums gauti mokėjimą per išorinę "
 "sistemą, tokią kaip PayPAL/WISE."
 
 #: psynet/templates/consents/database_consent.html
@@ -1488,7 +1489,7 @@ msgid ""
 "and see if you consent to use their system for payment."
 msgstr ""
 "Taip pat rekomenduojame patikrinti paslaugų teikimo sąlygas ir privatumo "
-"pareiškimą ir pamatyti, ar sutinkate naudoti jų sistemą mokėjimui."
+"pareiškimą ir pažiūrėti, ar sutinkate naudoti jų sistemą mokėjimui."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1516,7 +1517,7 @@ msgid ""
 "Regulation in the context of personal data being processed in our studies, "
 "please contact the Data Protection Officer of the Max Planck Society:"
 msgstr ""
-"Jei turite papildomų klausimų dėl Bendrojo duomenų apsaugos reglamento, "
+"Jei turite daugiau klausimų dėl Bendrojo duomenų apsaugos reglamento, "
 "susijusio su asmens duomenų tvarkymu mūsų tyrimuose, prašome susisiekti su "
 "Max Plancko draugijos duomenų apsaugos pareigūnu:"
 
@@ -1613,7 +1614,7 @@ msgid ""
 "human)."
 msgstr ""
 "Kai kuriuose eksperimentuose galime naudoti lengvą apgaulę, t. y. galime "
-"neatskleisti visos tiesos apie eksperimentinę užduotį (pavyzdžiui, mes "
+"neatskleisti visos tiesos apie eksperimentinę užduotį (pavyzdžiui, "
 "nepasakysime, kad vaizdą sukūrė dirbtinė kompiuterinė sistema, o ne žmogus)."
 
 #: psynet/templates/consents/main_consent.html
@@ -1673,7 +1674,8 @@ msgid ""
 "You are free to refuse to take part, and you may stop taking part at any "
 "time."
 msgstr ""
-"Jūs galite laisvai atsisakyti dalyvauti ir bet kada nustoti dalyvauti."
+"Jūs galite laisvai atsisakyti dalyvauti ir galite bet kada nustoti "
+"dalyvauti."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1735,7 +1737,7 @@ msgid ""
 msgstr ""
 "Mes galime rinkti kai kuriuos demografinius duomenis (pvz., amžių, lytį, "
 "gyvenamąją šalį) bei informaciją apie jūsų mokymosi ir poveikio istoriją "
-"(pvz., muzikinę patirtį grojant instrumentu, formaliojo švietimo metus, "
+"(pvz., muzikinę patirtį grojant instrumentu, formalaus išsilavinimo metus, "
 "kalbas, kuriomis kalbate)."
 
 #: psynet/templates/consents/main_consent.html
@@ -1779,7 +1781,7 @@ msgid ""
 "All of the information we obtain during the research will be kept "
 "confidential."
 msgstr ""
-"Visa informacija, kurią gausime tyrimo metu, bus laikoma konfidencialia."
+"Visa informacija, kurią gauname tyrimo metu, bus laikoma konfidencialia."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1843,8 +1845,8 @@ msgid ""
 "For the purpose of helping scientific progress and replication, sometimes we"
 " may share the data with research collaborators."
 msgstr ""
-"Siekiant padėti mokslo pažangai ir replikacijai, kartais mes galime dalintis"
-" duomenimis su tyrimų bendradarbiais."
+"Siekiant padėti mokslo pažangai ir replikacijai, kartais galime dalintis "
+"duomenimis su tyrimų bendradarbiais."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1893,7 +1895,7 @@ msgstr "Jokie duomenys nebus nuolat saugomi išoriniuose serveriuose."
 #, fuzzy
 msgctxt "consent-risks"
 msgid "Risks/Discomforts"
-msgstr "Rizikos/Nejaukumai"
+msgstr "Rizika/Nejaukumas"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1903,8 +1905,8 @@ msgid ""
 "There are no risks for participating in this study beyond those associated "
 "with normal computer use."
 msgstr ""
-"Dalyvavimas šiame tyrime nesukelia jokių rizikų, išskyrus tas, kurios "
-"susijusios su įprastu kompiuterio naudojimu."
+"Dalyvavimas šiame tyrime nesukelia jokios rizikos, išskyrus tą, kuri "
+"susijusi su įprastu kompiuterio naudojimu."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1928,7 +1930,8 @@ msgstr ""
 "visuomenei, padėdamas mums suprasti, kaip žmonės gauna informaciją iš garso "
 "ir vaizdo, ir galbūt padėti sukurti mašinas, kurios gali atkartoti mūsų "
 "gebėjimus (pvz., garso atpažinime ir kompiuterinėje vizijoje) ir padėti "
-"pagerinti suvokimo gebėjimus žmonėms, kurių klausa ar regėjimas yra sutrikę."
+"pagerinti suvokimo gebėjimus žmonėms, kurių klausa ar regėjimas yra "
+"sutrikęs."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
@@ -1945,7 +1948,7 @@ msgid ""
 "If you satisfactorily complete the study, we compensate you for your "
 "participation:"
 msgstr ""
-"Jei sėkmingai užbaigsite tyrimą, mes kompensuosime jums už dalyvavimą:"
+"Jei sėkmingai užbaigsite tyrimą, mes jums kompensuosime už dalyvavimą:"
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -1959,8 +1962,8 @@ msgid ""
 "You may also receive an additional payment based on your performance in the "
 "task."
 msgstr ""
-"Jūs taip pat galite gauti papildomą mokėjimą, priklausomai nuo jūsų atlikimo"
-" užduotyje."
+"Jūs taip pat galite gauti papildomą mokėjimą, atsižvelgiant į jūsų atlikimą "
+"užduotyje."
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -2000,8 +2003,8 @@ msgid ""
 "consent form."
 msgstr ""
 "Atkreipkite dėmesį, kad kai kuriuose tyrimuose duomenų ištrynimas nebus "
-"įmanomas, tokiu atveju mes specialiai paprašysime jūsų sutikti su šia "
-"procedūra atskiroje sutikimo formoje."
+"įmanomas, tokiu atveju mes paprašysime jūsų sutikti su šia procedūra "
+"atskiroje sutikimo formoje."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2039,9 +2042,9 @@ msgid ""
 "tapping in response to a sound or video, or to record yourself speaking or "
 "singing."
 msgstr ""
-"Tai apima vaizdo ir garso įrašus, tokius kaip jūsų pirštų bakstelėjimo "
-"įrašas reaguojant į garsą ar vaizdo įrašą, arba jūsų kalbėjimo ar dainavimo "
-"įrašas."
+"Tai apima vaizdo ir garso įrašus, pavyzdžiui, jūsų pirštų bakstelėjimo įrašą"
+" reaguojant į garsą ar vaizdo įrašą arba įrašą, kuriame kalbate ar "
+"dainuojate."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2085,9 +2088,9 @@ msgid ""
 "Data will be published on open science frameworks/websites such as OSF "
 "(https://osf.io/) and will be available to everybody with internet access."
 msgstr ""
-"Duomenys bus paskelbti atvirojo mokslo platformose/tinklalapiuose, tokiuose "
-"kaip OSF (https://osf.io/), ir bus prieinami visiems, turintiems interneto "
-"prieigą."
+"Duomenys bus paskelbti atvirosios mokslo platformose/tinklalapiuose, "
+"tokiuose kaip OSF (https://osf.io/), ir bus prieinami visiems, turintiems "
+"interneto prieigą."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2124,8 +2127,8 @@ msgid ""
 "By consenting to this experiment you are committing not to use profanity "
 "while recording audio or nudity while recording video."
 msgstr ""
-"Sutikdami dalyvauti šiame eksperimente, jūs įsipareigojate nenaudoti "
-"keiksmažodžių įrašant garsą ar nuogybių įrašant vaizdo įrašą."
+"Sutikdami su šiuo eksperimentu, jūs įsipareigojate nenaudoti keiksmažodžių "
+"įrašant garsą ar nuogybių įrašant vaizdo įrašą."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2178,7 +2181,7 @@ msgstr "Jūs naudojate"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please follow the instructions below to continue."
-msgstr "Prašome sekti toliau pateiktas instrukcijas, kad tęstumėte."
+msgstr "Prašome sekti toliau pateiktas instrukcijas, kad galėtumėte tęsti."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2195,6 +2198,13 @@ msgstr ""
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "Jūs naudojate:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr ""
+"Jums reikia naudoti inkognito režimą, kad galėtumėte dalyvauti eksperimente."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2255,7 +2265,7 @@ msgstr "Naujas inkognito langas"
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
 msgstr ""
-"Pasirodo naujas langas. Viršutiniame kampe patikrinkite, ar yra inkognito "
+"Atsiranda naujas langas. Viršutiniame kampe patikrinkite, ar yra inkognito "
 "piktograma"
 
 #: psynet/templates/macros/browser-detect.html
@@ -2351,7 +2361,7 @@ msgstr "Nukopijuokite dabartinį URL į iškarpinę:"
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window with  the following keyboard shortcuts:"
 msgstr ""
-"Atidarykite naują inkognito langą naudodami šiuos klaviatūros spartusis "
+"Atidarykite naują inkognito langą naudodami šiuos klaviatūros sparčiuosius "
 "klavišus:"
 
 #: psynet/templates/macros/browser-detect.html
@@ -2502,7 +2512,7 @@ msgid ""
 "Your recordings will not be used to derive your real identity, and they will"
 " not be made public."
 msgstr ""
-"Jūsų įrašai nebus naudojami jūsų tikrajai tapatybei nustatyti ir nebus "
+"Jūsų įrašai nebus naudojami jūsų tikrajai tapatybei nustatyti ir jie nebus "
 "viešinami."
 
 #: psynet/templates/macros/consent.html
@@ -2538,9 +2548,9 @@ msgid ""
 msgstr ""
 "Galbūt norėsite įsitikinti, kad jūsų aplinkoje nėra garsų/vaizdinės "
 "medžiagos, kuri galėtų būti susieta su jūsų asmenine informacija. Be to, "
-"atliekant įrašą, mikrofonas ar kamera gali užfiksuoti nepageidaujamą garsą "
-"ar vaizdą, pavyzdžiui, kamera gali užfiksuoti kitą šeimos narį, arba "
-"mikrofonas gali užfiksuoti ką nors, ką sakote kitam asmeniui."
+"įrašymo metu mikrofonas ar kamera gali užfiksuoti nepageidaujamą garsą ar "
+"vaizdą, pavyzdžiui, kamera gali užfiksuoti kitą šeimos narį, arba mikrofonas"
+" gali užfiksuoti ką nors, ką sakote kitam asmeniui."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2580,7 +2590,7 @@ msgid ""
 "In these cases, we may share your audio-visual material along with fully "
 "anonymized data, such as demographic, aggregated, or extracted data."
 msgstr ""
-"Tokiais atvejais mes galime dalintis jūsų garso-vaizdo medžiaga kartu su "
+"Tokiais atvejais galime dalintis jūsų garso-vaizdo medžiaga kartu su "
 "visiškai anonimizuotais duomenimis, tokiais kaip demografiniai, agreguoti ar"
 " išgauti duomenys."
 
@@ -2691,8 +2701,8 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"Parametrai <strong>decay</strong> nustato, kiek signalo išlyginimo vyksta, "
-"ir turi sekundžių vienetus."
+"Parametrai <strong>slopinimas</strong> nustato signalo išlyginimo kiekį ir "
+"yra matuojami sekundėmis."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2701,7 +2711,7 @@ msgid ""
 "A high decay parameter means that the signal takes a long time to decay "
 "(i.e. high smoothing)."
 msgstr ""
-"Didelis išnykimo parametras reiškia, kad signalas ilgai išnyksta (t. y. "
+"Didelis slopinimo parametras reiškia, kad signalas ilgai slopsta (t. y. "
 "didelis išlyginimas)."
 
 #: psynet/templates/macros/control.html
@@ -2711,7 +2721,7 @@ msgid ""
 "There are three decay parameters: one for the displayed audio meter, one for"
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
-"Yra trys išnykimo parametrai: vienas rodomam garso matuokliui, vienas 'per "
+"Yra trys slopinimo parametrai: vienas rodomam garso matuokliui, vienas 'per "
 "aukštam' detektoriui ir vienas 'per žemam' detektoriui."
 
 #: psynet/templates/macros/control.html
@@ -2721,7 +2731,7 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Parametrai <strong>threshold</strong> nustato tašką, kuriame garsumas "
+"Parametrai <strong>slenkstis</strong> nustato tašką, kuriame garsumas "
 "laikomas 'per aukštu' arba 'per žemu'."
 
 #: psynet/templates/macros/control.html
@@ -2731,8 +2741,8 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"Parametrai <strong>grace</strong> nustato, kiek laiko garsumas turi būti už "
-"atitinkamos ribos, kad būtų suaktyvintas įspėjimo pranešimas."
+"Parametrai <strong>malonė</strong> nustato, kiek laiko garsumas turi būti už"
+" atitinkamo slenksčio, kad būtų suaktyvintas įspėjimo pranešimas."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2741,8 +2751,8 @@ msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
-"Parametrai <strong>message duration</strong> nustato, kiek laiko įspėjimo "
-"pranešimai rodomi."
+"Parametrai <strong>pranešimo trukmė</strong> nustato, kiek laiko rodomi "
+"įspėjimo pranešimai."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2802,8 +2812,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Galite nutraukti eksperimentą naudodami <strong>Abort experiment</strong> "
-"mygtuką <strong>on the MTurk ad page</strong>."
+"Galite nutraukti eksperimentą naudodami mygtuką <strong>Nutraukti "
+"eksperimentą</strong> <strong>MTurk skelbimo puslapyje</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2812,8 +2822,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Nutraukus, nereikia su mumis susisiekti dėl kompensacijos gavimo; ji turėtų "
-"būti automatiškai suteikta per MTurk po kelių minučių."
+"Nutraukus, nereikia su mumis susisiekti dėl kompensacijos; ji turėtų būti "
+"automatiškai suteikta per MTurk po kelių minučių."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3829,7 +3839,7 @@ msgstr "Juodkalnija"
 #, fuzzy
 msgctxt "country_name"
 msgid "Montserrat"
-msgstr "Montserratas"
+msgstr "Montseratas"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4381,13 +4391,13 @@ msgstr "Vietnamas"
 #, fuzzy
 msgctxt "country_name"
 msgid "Virgin Islands (British)"
-msgstr "Mergelių salos (Britų)"
+msgstr "Mergelių Salos (Britų)"
 
 #: psynet/translation/countries.py
 #, fuzzy
 msgctxt "country_name"
 msgid "Virgin Islands (U.S.)"
-msgstr "Mergelių salos (JAV)"
+msgstr "Mergelių Salos (JAV)"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4495,7 +4505,7 @@ msgstr "Avarų"
 #, fuzzy
 msgctxt "language_name"
 msgid "Avestan"
-msgstr "Avestos"
+msgstr "Avestų"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4579,7 +4589,7 @@ msgstr "Katalonų"
 #, fuzzy
 msgctxt "language_name"
 msgid "Central Khmer"
-msgstr "Centrinės khmerų"
+msgstr "Centrinis khmerų"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4705,7 +4715,7 @@ msgstr "Farerų"
 #, fuzzy
 msgctxt "language_name"
 msgid "Fijian"
-msgstr "Fidžiečių"
+msgstr "Fidžio"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4867,7 +4877,7 @@ msgstr "Inuktitut"
 #, fuzzy
 msgctxt "language_name"
 msgid "Inupiaq"
-msgstr "Inupiakų"
+msgstr "Inupiatų"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5095,7 +5105,7 @@ msgstr "Nauru"
 #, fuzzy
 msgctxt "language_name"
 msgid "Navajo"
-msgstr "Navahų"
+msgstr "Navajo"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5107,13 +5117,13 @@ msgstr "Ndonga"
 #, fuzzy
 msgctxt "language_name"
 msgid "Nepali"
-msgstr "Nepaliečių"
+msgstr "Nepalų"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "North Ndebele"
-msgstr "Šiaurės ndebelų"
+msgstr "Šiaurės Ndebele"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5257,7 +5267,7 @@ msgstr "Sango"
 #, fuzzy
 msgctxt "language_name"
 msgid "Sanskrit"
-msgstr "Sanskrito"
+msgstr "Sanskritas"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5329,13 +5339,13 @@ msgstr "Somalių"
 #, fuzzy
 msgctxt "language_name"
 msgid "South Ndebele"
-msgstr "Pietų ndebelų"
+msgstr "Pietų Ndebele"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Southern Sotho"
-msgstr "Pietų soto"
+msgstr "Pietų Soto"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5359,7 +5369,7 @@ msgstr "Svahilių"
 #, fuzzy
 msgctxt "language_name"
 msgid "Swati"
-msgstr "Svazių"
+msgstr "Svazi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5503,7 +5513,7 @@ msgstr "Vietnamiečių"
 #, fuzzy
 msgctxt "language_name"
 msgid "Volapük"
-msgstr "Volapiuko"
+msgstr "Volapiuk"
 
 #: psynet/translation/languages.py
 #, fuzzy

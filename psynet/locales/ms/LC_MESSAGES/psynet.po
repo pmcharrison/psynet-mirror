@@ -178,8 +178,8 @@ msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
 msgstr ""
-"Sila senaraikan bahasa yang anda boleh bertutur mengikut kecekapan (bahasa "
-"pertama dahulu, bahasa kedua kedua, ...)"
+"Sila senaraikan bahasa yang anda bercakap mengikut kecekapan (bahasa pertama"
+" dahulu, bahasa kedua kedua, ...)"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -232,7 +232,7 @@ msgstr "Tidak pernah"
 msgctxt "music"
 msgid "Do you have hearing loss or any other hearing issues?"
 msgstr ""
-"Adakah anda mempunyai kehilangan pendengaran atau sebarang masalah "
+"Adakah anda mengalami kehilangan pendengaran atau sebarang masalah "
 "pendengaran lain?"
 
 #: psynet/demography/general.py
@@ -287,25 +287,25 @@ msgstr "Tahun ini"
 #, fuzzy
 msgctxt "dance"
 msgid "Some years ago"
-msgstr "Beberapa tahun lalu"
+msgstr "Beberapa tahun yang lalu"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "Many years ago"
-msgstr "Banyak tahun lalu"
+msgstr "Banyak tahun yang lalu"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "I never danced"
-msgstr "Saya tidak pernah menari"
+msgstr "Saya tidak pernah menari dalam hidup saya"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Did you get speech-language therapy as a child?"
-msgstr "Adakah anda mendapat terapi bahasa-bicara semasa kecil?"
+msgstr "Adakah anda mendapat terapi bahasa pertuturan semasa kecil?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -429,9 +429,10 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Anda akan menerima ganjaran sebanyak <strong>■0■■1■</strong> untuk masa yang"
-" anda habiskan dalam eksperimen. Anda juga telah dianugerahkan ganjaran "
-"prestasi sebanyak <strong>■0■■3■</strong>!"
+"Anda akan menerima ganjaran sebanyak "
+"<strong>{CURRENCY}{TIME_REWARD}</strong> untuk masa yang anda habiskan dalam"
+" eksperimen. Anda juga telah dianugerahkan ganjaran prestasi sebanyak "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
@@ -472,7 +473,7 @@ msgstr "Anda akan dialihkan."
 #, fuzzy
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
-msgstr "Persetujuan telah ditolak."
+msgstr "Persetujuan ditolak."
 
 #: psynet/end.py
 #, fuzzy
@@ -528,7 +529,7 @@ msgstr "Anda perlu menandakan sekurang-kurangnya satu jawapan!"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "Anda perlu memilih satu jawapan!"
+msgstr "Anda perlu memilih jawapan!"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -601,7 +602,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Anda perlu mengumpul <strong>at least "
+"Anda perlu mengumpul <strong>sekurang-kurangnya "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ganjaran untuk "
 "layak mendapat pampasan."
 
@@ -609,7 +610,7 @@ msgstr ""
 #, fuzzy
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
-msgstr "Lihat maklumat di bawah mengenai ganjaran yang telah anda kumpul."
+msgstr "Lihat maklumat di bawah mengenai ganjaran yang telah anda kumpulkan."
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -939,8 +940,8 @@ msgid ""
 "study will not be possible."
 msgstr ""
 "Sekiranya penolakan atau penarikan balik, tiada kos akan dikenakan dan tiada"
-" akibat negatif lain; walau bagaimanapun, dalam kes ini, penyertaan dalam "
-"kajian tidak akan dapat dilakukan."
+" akibat negatif lain; namun, dalam kes ini, penyertaan dalam kajian tidak "
+"akan dapat dilakukan."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1038,8 +1039,8 @@ msgid ""
 "and who are thus able to link the collected data to my name."
 msgstr ""
 "Penyelidik adalah satu-satunya orang yang mempunyai akses kepada senarai "
-"pengekodan ini dan oleh itu dapat mengaitkan data yang dikumpul dengan nama "
-"saya."
+"pengekodan ini dan yang oleh itu dapat mengaitkan data yang dikumpul dengan "
+"nama saya."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1056,8 +1057,8 @@ msgid ""
 "From this point on, my data are anonymous, which means that they cannot be "
 "linked to my person any longer."
 msgstr ""
-"Mulai saat ini, data saya adalah tanpa nama, yang bermaksud ia tidak boleh "
-"lagi dikaitkan dengan diri saya."
+"Mulai saat ini, data saya adalah tanpa nama, yang bermaksud bahawa ia tidak "
+"boleh lagi dikaitkan dengan diri saya."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1076,7 +1077,7 @@ msgid ""
 " possible to identify and thus to delete my data set."
 msgstr ""
 "Walau bagaimanapun, jika senarai pengekodan telah dimusnahkan, tidak lagi "
-"mungkin untuk mengenal pasti dan oleh itu memadam set data saya."
+"mungkin untuk mengenal pasti dan oleh itu untuk memadam set data saya."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1145,8 +1146,8 @@ msgid ""
 "for Empirical Aesthetics (MPIEA)."
 msgstr ""
 "Kami menyimpan dan memproses data anda hanya untuk tujuan memulakan "
-"komunikasi dengan anda dan untuk merancang kajian di Institut Max Planck "
-"untuk Estetika Empirikal (MPIEA)."
+"komunikasi dengan anda dan untuk merancang kajian di Max Planck Institute "
+"for Empirical Aesthetics (MPIEA)."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1168,7 +1169,7 @@ msgid ""
 "demographic data requested in the log in (i.e., age, gender, and "
 "nationality), we also store the date and time when you made the entry."
 msgstr ""
-"Selain daripada butiran hubungan anda (iaitu, nama dan e-mel) dan data "
+"Selain daripada maklumat hubungan anda (iaitu, nama dan e-mel) dan data "
 "demografi yang diminta semasa log masuk (iaitu, umur, jantina, dan "
 "kewarganegaraan), kami juga menyimpan tarikh dan masa apabila anda membuat "
 "entri."
@@ -1366,8 +1367,7 @@ msgid ""
 msgstr ""
 "Sebagai subjek data yang data peribadinya diproses berkenaan dengan "
 "penyertaan anda dalam kajian kami, anda mempunyai hak berikut pada dasarnya "
-"dan sejauh mana tiada pengecualian undang-undang terpakai dalam kes "
-"individu:"
+"dan sejauh mana tiada pengecualian undang-undang berlaku dalam kes individu:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1397,13 +1397,13 @@ msgstr "Sekatan pemprosesan (GDPR art. 18)"
 #, fuzzy
 msgctxt "consent-protection"
 msgid "Data portability (GDPR art. 20)"
-msgstr "Kebolehpindahan data (GDPR art. 20)"
+msgstr "Kebolehan data (GDPR art. 20)"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
 msgctxt "consent-protection"
 msgid "Withdrawal of consent (GDPR art. 7, para. 3)"
-msgstr "Penarikan balik persetujuan (GDPR art. 7, para. 3)"
+msgstr "Penarikan persetujuan (GDPR art. 7, para. 3)"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1420,7 +1420,7 @@ msgid ""
 "For the Max Planck Society, this is the Data Protection Authority of "
 "Bavaria, Postfach 1349, 91504 Ansbach, Germany."
 msgstr ""
-"Bagi Persatuan Max Planck, ini adalah Pihak Berkuasa Perlindungan Data "
+"Bagi Max Planck Society, ini adalah Pihak Berkuasa Perlindungan Data "
 "Bavaria, Postfach 1349, 91504 Ansbach, Jerman."
 
 #: psynet/templates/consents/database_consent.html
@@ -1431,10 +1431,10 @@ msgid ""
 "a participant, please do not hesitate to contact the Computational Auditory "
 "Perception Group at the Max Planck Institute for Empirical Aesthetics:"
 msgstr ""
-"Jika anda mempunyai sebarang pertanyaan tentang penyelidikan ini, hak anda, "
-"atau layanan sebagai peserta, sila jangan teragak-agak untuk menghubungi "
-"Kumpulan Persepsi Auditori Komputasi di Institut Max Planck untuk Estetika "
-"Empirikal:"
+"Jika anda mempunyai sebarang soalan tentang penyelidikan ini, hak anda, atau"
+" layanan sebagai peserta, sila jangan teragak-agak untuk menghubungi "
+"Computational Auditory Perception Group di Max Planck Institute for "
+"Empirical Aesthetics:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1525,8 +1525,8 @@ msgid ""
 "experiments voluntarily, without payment."
 msgstr ""
 "Jika anda tidak boleh atau tidak ingin menerima pembayaran melalui sistem "
-"ini, kami tidak dapat membayar anda, namun anda masih boleh menyertai "
-"eksperimen kami secara sukarela, tanpa pembayaran."
+"ini, kami tidak dapat membayar anda, walau bagaimanapun anda masih boleh "
+"menyertai eksperimen kami secara sukarela, tanpa pembayaran."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1545,7 +1545,7 @@ msgid ""
 msgstr ""
 "Jika anda mempunyai soalan lanjut mengenai Peraturan Perlindungan Data Umum "
 "dalam konteks data peribadi yang diproses dalam kajian kami, sila hubungi "
-"Pegawai Perlindungan Data Persatuan Max Planck:"
+"Pegawai Perlindungan Data Max Planck Society:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1554,8 +1554,8 @@ msgid ""
 "You may also address your inquiries directly to the Max Planck Institute for"
 " Empirical Aesthetics:"
 msgstr ""
-"Anda juga boleh mengemukakan pertanyaan anda terus kepada Institut Max "
-"Planck untuk Estetika Empirikal:"
+"Anda juga boleh mengarahkan pertanyaan anda terus kepada Max Planck "
+"Institute for Empirical Aesthetics:"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1653,7 +1653,8 @@ msgid ""
 "prevent biasing the participants before taking the experiment."
 msgstr ""
 "Penipuan ringan hanya akan digunakan dalam beberapa eksperimen di mana kami "
-"perlu mengelakkan berat sebelah peserta sebelum mengambil eksperimen."
+"perlu mengelakkan peserta daripada berat sebelah sebelum mengambil "
+"eksperimen."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1776,7 +1777,7 @@ msgid ""
 "If an experiment is collecting data that cannot be fully anonymized, we will"
 " inform you and also ask for additional consent."
 msgstr ""
-"Jika eksperimen mengumpul data yang tidak boleh dianonimkan sepenuhnya, kami"
+"Jika eksperimen mengumpul data yang tidak dapat dianonimkan sepenuhnya, kami"
 " akan memaklumkan anda dan juga meminta persetujuan tambahan."
 
 #: psynet/templates/consents/main_consent.html
@@ -1819,9 +1820,9 @@ msgid ""
 " to distinguish participants who have already taken part in this or other "
 "experiments."
 msgstr ""
-"Kami hanya akan menyimpan kod alfanumerik tanpa nama anda dalam sistem kami,"
-" untuk membezakan peserta yang telah mengambil bahagian dalam eksperimen ini"
-" atau eksperimen lain."
+"Kami hanya akan menyimpan kod alfanumerik anda yang dianonimkan dalam sistem"
+" kami, untuk membezakan peserta yang telah mengambil bahagian dalam "
+"eksperimen ini atau eksperimen lain."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1864,7 +1865,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-collaborations"
 msgid "Research collaborations"
-msgstr "Kerjasama penyelidikan"
+msgstr "Kerjasama Penyelidikan"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1885,7 +1886,7 @@ msgid ""
 "In these cases, we will only share fully anonymized data, such as "
 "demographic, aggregated, or extracted data without any personal identifiers."
 msgstr ""
-"Dalam kes ini, kami hanya akan berkongsi data yang sepenuhnya tanpa nama, "
+"Dalam kes ini, kami hanya akan berkongsi data yang dianonimkan sepenuhnya, "
 "seperti data demografi, agregat, atau data yang diekstrak tanpa sebarang "
 "pengecam peribadi."
 
@@ -1934,8 +1935,8 @@ msgid ""
 "There are no risks for participating in this study beyond those associated "
 "with normal computer use."
 msgstr ""
-"Tiada risiko untuk menyertai kajian ini melebihi yang berkaitan dengan "
-"penggunaan komputer biasa."
+"Tiada risiko untuk menyertai kajian ini selain daripada yang berkaitan "
+"dengan penggunaan komputer biasa."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2111,7 +2112,7 @@ msgid ""
 msgstr ""
 "Walau bagaimanapun, data anda tidak akan dikaitkan secara langsung dengan "
 "nama anda atau pengecam lain dalam apa jua cara (kami tidak akan menyatakan "
-"nama anda semasa membentangkan bahan audio/video anda)."
+"nama anda apabila membentangkan bahan audio/video anda)."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2160,9 +2161,9 @@ msgid ""
 "By consenting to this experiment you are committing not to use profanity "
 "while recording audio or nudity while recording video."
 msgstr ""
-"Dengan memberikan persetujuan kepada eksperimen ini, anda berjanji untuk "
-"tidak menggunakan kata-kata kesat semasa merakam audio atau ketelanjangan "
-"semasa merakam video."
+"Dengan bersetuju untuk menyertai eksperimen ini, anda berjanji untuk tidak "
+"menggunakan kata-kata kesat semasa merakam audio atau ketelanjangan semasa "
+"merakam video."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2183,8 +2184,8 @@ msgid ""
 "This study is completely voluntary; you will not receive any monetary "
 "compensation for participation."
 msgstr ""
-"Kajian ini adalah sepenuhnya sukarela; anda tidak akan menerima sebarang "
-"pampasan wang untuk penyertaan."
+"Kajian ini sepenuhnya sukarela; anda tidak akan menerima sebarang pampasan "
+"wang untuk penyertaan."
 
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/macros/consent.html
@@ -2232,6 +2233,12 @@ msgstr ""
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "Anda sedang menggunakan:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Anda perlu menggunakan mod incognito untuk menyertai eksperimen."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2348,13 +2355,13 @@ msgstr "Anda tidak boleh menyertai eksperimen dari peranti mudah alih."
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please open the survey on your computer."
-msgstr "Sila buka tinjauan pada komputer anda."
+msgstr "Sila buka tinjauan di komputer anda."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "This site requires JavaScript to function properly."
-msgstr "Laman ini memerlukan JavaScript untuk berfungsi dengan betul."
+msgstr "Laman ini memerlukan JavaScript untuk berfungsi dengan baik."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2485,7 +2492,7 @@ msgid ""
 msgstr ""
 "Secara khusus, kami bertujuan untuk menggabungkan pelbagai metodologi "
 "tingkah laku untuk mencirikan cara-cara di mana orang dari latar belakang "
-"yang pelbagai menginternalisasi dan memproses keadaan luaran, baik dalam "
+"yang berbeza menginternalisasi dan memproses keadaan luaran, baik dalam "
 "domain auditori (contohnya, ucapan, muzik) dan visual (contohnya, wajah, "
 "warna)."
 
@@ -2625,8 +2632,8 @@ msgid ""
 "anonymized data, such as demographic, aggregated, or extracted data."
 msgstr ""
 "Dalam kes ini, kami mungkin berkongsi bahan audio-visual anda bersama dengan"
-" data yang sepenuhnya tanpa nama, seperti data demografi, agregat, atau data"
-" yang diekstrak."
+" data yang dianonimkan sepenuhnya, seperti data demografi, agregat, atau "
+"data yang diekstrak."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2739,8 +2746,8 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"Parameter <strong>decay</strong> menentukan jumlah pelicinan yang berlaku "
-"pada isyarat, dan mempunyai unit dalam saat."
+"Parameter <strong>peluruhan</strong> menentukan jumlah pelicinan yang "
+"berlaku pada isyarat, dan mempunyai unit saat."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2749,8 +2756,8 @@ msgid ""
 "A high decay parameter means that the signal takes a long time to decay "
 "(i.e. high smoothing)."
 msgstr ""
-"Parameter pereputan yang tinggi bermaksud isyarat mengambil masa yang lama "
-"untuk mereput (iaitu pelicinan tinggi)."
+"Parameter peluruhan yang tinggi bermaksud isyarat mengambil masa yang lama "
+"untuk merosot (iaitu pelicinan tinggi)."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2759,7 +2766,7 @@ msgid ""
 "There are three decay parameters: one for the displayed audio meter, one for"
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
-"Terdapat tiga parameter pereputan: satu untuk meter audio yang dipaparkan, "
+"Terdapat tiga parameter peluruhan: satu untuk meter audio yang dipaparkan, "
 "satu untuk pengesan 'terlalu tinggi', dan satu untuk pengesan 'terlalu "
 "rendah'."
 
@@ -2770,7 +2777,7 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Parameter <strong>threshold</strong> menentukan titik di mana kelantangan "
+"Parameter <strong>ambang</strong> menentukan titik di mana kelantangan "
 "ditentukan sebagai 'terlalu tinggi' atau 'terlalu rendah'."
 
 #: psynet/templates/macros/control.html
@@ -2780,8 +2787,9 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"Parameter <strong>grace</strong> menentukan berapa lama kelantangan mesti "
-"berada di luar ambang masing-masing untuk mencetuskan mesej amaran."
+"Parameter <strong>tempoh budi bicara</strong> menentukan berapa lama "
+"kelantangan mesti berada di luar ambang masing-masing untuk mencetuskan "
+"mesej amaran."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2790,13 +2798,13 @@ msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
-"Parameter <strong>message duration</strong> menentukan berapa lama mesej "
-"amaran dipaparkan."
+"Parameter <strong>tempoh mesej</strong> menentukan berapa lama mesej amaran "
+"dipaparkan."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Record from start"
-msgstr "Rakaman dari mula"
+msgstr "Rakam dari mula"
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2851,8 +2859,9 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Anda mungkin boleh membatalkan eksperimen menggunakan butang <strong>Abort "
-"experiment</strong> <strong>on the MTurk ad page</strong>."
+"Anda mungkin boleh membatalkan eksperimen menggunakan butang "
+"<strong>Batalkan eksperimen</strong> <strong>pada halaman iklan "
+"MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2871,7 +2880,7 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Jika ini tidak berlaku, sila hubungi kami di %(EMAIL)s dengan menyebut "
+"Jika ini tidak berlaku, sila hubungi kami di %(EMAIL)s dengan menyertakan "
 "maklumat berikut:"
 
 #: psynet/templates/psynet_error.html
@@ -2894,7 +2903,7 @@ msgstr "Memulakan eksperimen..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Sekiranya terdapat masalah, cuba perkara berikut:"
+msgstr "Sekiranya terdapat masalah, cuba yang berikut:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2969,7 +2978,7 @@ msgstr "Ganjaran"
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "Tolong!"
+msgstr "Bantuan!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3365,7 +3374,7 @@ msgstr "Dominica"
 #, fuzzy
 msgctxt "country_name"
 msgid "Dominican Republic"
-msgstr "Republik Dominica"
+msgstr "Republik Dominika"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4481,7 +4490,7 @@ msgstr "Kepulauan Åland"
 #, fuzzy
 msgctxt "language_name"
 msgid "Abkhazian"
-msgstr "Abkhaz"
+msgstr "Abkhazian"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4511,7 +4520,7 @@ msgstr "Albania"
 #, fuzzy
 msgctxt "language_name"
 msgid "Amharic"
-msgstr "Amharik"
+msgstr "Amharic"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4523,7 +4532,7 @@ msgstr "Arab"
 #, fuzzy
 msgctxt "language_name"
 msgid "Aragonese"
-msgstr "Aragon"
+msgstr "Aragonese"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4535,13 +4544,13 @@ msgstr "Armenia"
 #, fuzzy
 msgctxt "language_name"
 msgid "Assamese"
-msgstr "Assam"
+msgstr "Assamese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Avaric"
-msgstr "Avarik"
+msgstr "Avaric"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4655,7 +4664,7 @@ msgstr "Cina"
 #, fuzzy
 msgctxt "language_name"
 msgid "Church Slavic"
-msgstr "Slavik Gereja"
+msgstr "Church Slavic"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4673,7 +4682,7 @@ msgstr "Cornish"
 #, fuzzy
 msgctxt "language_name"
 msgid "Corsican"
-msgstr "Corsica"
+msgstr "Corsican"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5021,7 +5030,7 @@ msgstr "Kuanyama"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kurdish"
-msgstr "Kurdistan"
+msgstr "Kurdish"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5237,7 +5246,7 @@ msgstr "Pali"
 #, fuzzy
 msgctxt "language_name"
 msgid "Panjabi"
-msgstr "Punjabi"
+msgstr "Panjabi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5261,7 +5270,7 @@ msgstr "Portugis"
 #, fuzzy
 msgctxt "language_name"
 msgid "Pushto"
-msgstr "Pashto"
+msgstr "Pushto"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5507,7 +5516,7 @@ msgstr "Turki"
 #, fuzzy
 msgctxt "language_name"
 msgid "Turkmen"
-msgstr "Turkmenistan"
+msgstr "Turkmen"
 
 #: psynet/translation/languages.py
 #, fuzzy

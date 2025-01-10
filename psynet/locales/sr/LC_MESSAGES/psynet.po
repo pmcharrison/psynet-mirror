@@ -89,7 +89,7 @@ msgstr "Morate izabrati zemlju!"
 #, fuzzy
 msgctxt "country-select"
 msgid "What country are you from?"
-msgstr "Iz koje zemlje dolazite?"
+msgstr "Iz koje ste zemlje?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -426,9 +426,9 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Dobićete nagradu od <strong>■0■■1■</strong> za vreme koje ste proveli na "
-"eksperimentu. Takođe ste nagrađeni nagradom za performanse od "
-"<strong>■0■■3■</strong>!"
+"Dobićete nagradu od <strong>{CURRENCY}{TIME_REWARD}</strong> za vreme koje "
+"ste proveli na eksperimentu. Takođe ste nagrađeni nagradom za performanse od"
+" <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
@@ -444,7 +444,7 @@ msgstr "Hvala vam što ste učestvovali."
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Molimo kliknite \"Završi\" da završite HIT."
+msgstr "Molimo kliknite \"Završi\" da biste završili HIT."
 
 #: psynet/end.py
 #, fuzzy
@@ -488,8 +488,8 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"Za informacije o nadoknadi, molimo kontaktirajte istraživača na {EMAIL} i "
-"opišite šta je dovelo do ove greške."
+"Da biste se raspitali o nadoknadi, molimo kontaktirajte istraživača na "
+"{EMAIL} i opišite šta je dovelo do ove greške."
 
 #: psynet/experiment.py
 #, fuzzy
@@ -510,20 +510,20 @@ msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
-"Za informacije o nadoknadi, pošaljite poruku istraživaču putem Prolific "
-"sajta i opišite šta je dovelo do vaše greške."
+"Da biste se raspitali o nadoknadi, pošaljite istraživaču poruku putem "
+"Prolific vebsajta i opišite šta je dovelo do vaše greške."
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Morate označiti bar jedan odgovor!"
+msgstr "Morate označiti barem jedan odgovor!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "Morate izabrati odgovor!"
+msgstr "Morate odabrati odgovor!"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -542,7 +542,9 @@ msgstr "Zapišite broj na slici."
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "Sada ćemo brzo testirati vašu sposobnost da percipirate boje."
+msgstr ""
+"Sada ćemo obaviti brzi test da proverimo vašu sposobnost da percipirate "
+"boje."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -592,7 +594,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Morate sakupiti <strong>at least "
+"Morate akumulirati <strong>najmanje "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> nagrade da biste "
 "mogli biti kompenzovani."
 
@@ -600,7 +602,7 @@ msgstr ""
 #, fuzzy
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
-msgstr "Pogledajte ispod informacije o trenutno sakupljenoj nagradi."
+msgstr "Pogledajte ispod informacije o trenutno akumuliranoj nagradi."
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -647,8 +649,7 @@ msgstr ""
 msgctxt "abort_possible"
 msgid "Please only contact us if you have trouble receiving your payment."
 msgstr ""
-"Molimo vas da nas kontaktirate samo ako imate problema sa primanjem vaše "
-"uplate."
+"Molimo vas da nas kontaktirate samo ako imate problema sa primanjem uplate."
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -783,8 +784,8 @@ msgid ""
 "I have received oral and written information about the fact that "
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
-"Dobio/la sam usmene i pisane informacije o činjenici da će "
-"<i>audiovisual</i> snimci biti napravljeni u ovoj studiji."
+"Dobio/la sam usmene i pisane informacije o tome da će <i>audiovizuelni</i> "
+"snimci biti napravljeni u ovoj studiji."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -813,8 +814,8 @@ msgid ""
 "By making recording people while moving, singing, tapping to rhythms, or "
 "speaking, we can infer the mechanisms of the auditory and visual systems."
 msgstr ""
-"Snimanjem ljudi dok se kreću, pevaju, tapkaju u ritmu ili govore, možemo "
-"zaključiti mehanizme auditivnog i vizuelnog sistema."
+"Pravljenje snimaka ljudi dok se kreću, pevaju, tapkaju u ritmu ili govore, "
+"omogućava nam da zaključimo o mehanizmima auditivnog i vizuelnog sistema."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -825,9 +826,9 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Obavešten/a sam da će skladištenje i obrada <i>audiovisual</i> snimka biti "
-"obavljeni u pseudonimizovanom obliku, tj. korišćenjem broja i bez mog imena,"
-" i da postoji lista kodiranja koja povezuje moje ime sa brojem."
+"Obavešten/a sam da će skladištenje i obrada <i>audiovizuelnog</i> snimka "
+"biti obavljeni u pseudonimizovanom obliku, tj. korišćenjem broja bez mog "
+"imena, i da postoji lista kodiranja koja povezuje moje ime sa brojem."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -848,7 +849,7 @@ msgid ""
 "material."
 msgstr ""
 "Istraživači povezani sa ovim projektom imaće pristup mojim "
-"<i>audiovisual</i> podacima tokom snimanja i analize materijala."
+"<i>audiovizuelnim</i> podacima tokom snimanja i analize materijala."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -865,7 +866,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I agree to the handling of the recordings as described above."
-msgstr "Slažem se sa rukovanjem snimcima kako je gore opisano."
+msgstr "Slažem se sa obradom snimaka kako je gore opisano."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -881,9 +882,9 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"Slažem se da se moji <i>audiovisual</i> snimci mogu koristiti u svrhe "
-"demonstracije u prezentacijama sa ograničenim brojem učesnika (npr. "
-"predavanja ili naučne prezentacije)."
+"Slažem se da se moji <i>audiovizuelni</i> snimci mogu koristiti u svrhe "
+"demonstracije u prezentacijama sa ograničenim brojem učesnika (npr. kursevi "
+"ili naučne prezentacije)."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -908,7 +909,7 @@ msgstr "NE"
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "Izjava o saglasnosti za <i>audiovisual</i> snimke je dobrovoljna."
+msgstr "Izjava o saglasnosti za <i>audiovizuelne</i> snimke je dobrovoljna."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -942,7 +943,7 @@ msgid ""
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
 "Pročitao/la sam i razumeo/la sve i ovim putem se slažem da se "
-"<i>audiovisual</i> snimci mene mogu napraviti."
+"<i>audiovizuelni</i> snimci mene mogu napraviti."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -985,7 +986,7 @@ msgid ""
 "completely and to my satisfaction."
 msgstr ""
 "Ako sam imao/la pitanja u vezi sa predstojećom studijom, ona su bila potpuno"
-" i zadovoljavajuće odgovorena."
+" i na moje zadovoljstvo odgovorena."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1011,7 +1012,8 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-cap"
 msgid "There is a coding list on paper that links my name to this number."
-msgstr "Postoji lista kodova na papiru koja povezuje moje ime sa ovim brojem."
+msgstr ""
+"Postoji lista kodiranja na papiru koja povezuje moje ime sa ovim brojem."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1020,8 +1022,8 @@ msgid ""
 "The investigators are the only persons who have access to this coding list "
 "and who are thus able to link the collected data to my name."
 msgstr ""
-"Istraživači su jedine osobe koje imaju pristup ovoj listi kodova i koji su "
-"stoga u mogućnosti da povežu prikupljene podatke sa mojim imenom."
+"Istraživači su jedine osobe koje imaju pristup ovoj listi kodiranja i koji "
+"su stoga u mogućnosti da povežu prikupljene podatke sa mojim imenom."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1029,7 +1031,7 @@ msgctxt "consent-cap"
 msgid ""
 "After completion of the research project, the coding list will be destroyed."
 msgstr ""
-"Nakon završetka istraživačkog projekta, lista kodova će biti uništena."
+"Nakon završetka istraživačkog projekta, lista kodiranja će biti uništena."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1057,8 +1059,8 @@ msgid ""
 "However, if the coding list has already been destroyed, it will no longer be"
 " possible to identify and thus to delete my data set."
 msgstr ""
-"Međutim, ako je lista kodova već uništena, više neće biti moguće "
-"identifikovati i stoga obrisati moj skup podataka."
+"Međutim, ako je lista kodiranja već uništena, više neće biti moguće "
+"identifikovati i time obrisati moj skup podataka."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1125,7 +1127,7 @@ msgid ""
 "for Empirical Aesthetics (MPIEA)."
 msgstr ""
 "Čuvamo i obrađujemo vaše podatke samo u svrhu uspostavljanja komunikacije sa"
-" vama i planiranja studija u Max Planck Institutu za Empirijsku Estetiku "
+" vama i planiranja studija u Max Planck Institutu za empirijsku estetiku "
 "(MPIEA)."
 
 #: psynet/templates/consents/database_consent.html
@@ -1149,8 +1151,8 @@ msgid ""
 "nationality), we also store the date and time when you made the entry."
 msgstr ""
 "Pored vaših kontakt podataka (tj. ime i email) i demografskih podataka "
-"traženih prilikom prijave (tj. starost, pol i nacionalnost), takođe čuvamo "
-"datum i vreme kada ste uneli podatke."
+"traženih prilikom prijave (tj. starost, pol i nacionalnost), čuvamo i datum "
+"i vreme kada ste uneli podatke."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1216,8 +1218,8 @@ msgid ""
 "of such storage, i.e., to contact you about participating in a study, "
 "remains in effect."
 msgstr ""
-"Vaši podaci će biti čuvani u kontakt bazi podataka sve dok svrha takvog "
-"čuvanja, tj. da vas kontaktiramo u vezi učešća u studiji, ostane na snazi."
+"Vaši podaci će biti čuvani u bazi kontakata sve dok svrha takvog čuvanja, "
+"tj. da vas kontaktiramo u vezi sa učešćem u studiji, ostane na snazi."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1229,7 +1231,7 @@ msgstr "Možete zatražiti brisanje vaših podataka u bilo kom trenutku."
 #, fuzzy
 msgctxt "consent-duration"
 msgid "To do so, send an e-mail with the subject “Delete” to:"
-msgstr "Da biste to učinili, pošaljite email sa naslovom “Obriši” na:"
+msgstr "Da biste to učinili, pošaljite email sa naslovom “Delete” na:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1244,8 +1246,8 @@ msgid ""
 "You can also delete your data from the database by deleting your account "
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
-"Takođe možete obrisati vaše podatke iz baze podataka brisanjem vašeg naloga "
-"(tj. pritisnite 'Obriši nalog' na stranici za prijavu cap-recruiter)."
+"Takođe možete obrisati svoje podatke iz baze brisanjem svog naloga (tj. "
+"pritisnite 'Delete account' na stranici za prijavu cap-recruiter)."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1264,7 +1266,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-security"
 msgid "Security"
-msgstr "Sigurnost"
+msgstr "Bezbednost"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1273,7 +1275,7 @@ msgid ""
 "The data entered in the form you fill out are transferred in encrypted form "
 "to an internal server."
 msgstr ""
-"Podaci uneti u formular koji popunjavate prenose se u šifrovanom obliku na "
+"Podaci uneti u obrazac koji popunjavate prenose se u šifrovanom obliku na "
 "interni server."
 
 #: psynet/templates/consents/database_consent.html
@@ -1406,7 +1408,7 @@ msgid ""
 msgstr ""
 "Ako imate bilo kakva pitanja o ovom istraživanju, vašim pravima ili tretmanu"
 " kao učesnika, slobodno kontaktirajte Grupu za računarsku auditivnu "
-"percepciju u Max Planck Institutu za Empirijsku Estetiku:"
+"percepciju u Max Planck Institutu za empirijsku estetiku:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1495,8 +1497,8 @@ msgid ""
 "experiments voluntarily, without payment."
 msgstr ""
 "Ako ne možete ili ne želite da primite plaćanje putem ovog sistema, nećemo "
-"moći da vas platimo, međutim, i dalje možete učestvovati u našim "
-"eksperimentima dobrovoljno, bez plaćanja."
+"moći da vas platimo, ali i dalje možete učestvovati u našim eksperimentima "
+"dobrovoljno, bez plaćanja."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1523,8 +1525,8 @@ msgid ""
 "You may also address your inquiries directly to the Max Planck Institute for"
 " Empirical Aesthetics:"
 msgstr ""
-"Takođe možete uputiti vaše upite direktno Max Planck Institutu za Empirijsku"
-" Estetiku:"
+"Takođe možete uputiti svoje upite direktno Max Planck Institutu za "
+"empirijsku estetiku:"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1591,8 +1593,8 @@ msgid ""
 "naturalistic images, animated images, comics, faces, objects, geometric "
 "shapes, fractal images, or videos of natural environments."
 msgstr ""
-"Specifični zvukovi, slike i video zapisi koji se koriste će varirati, ali "
-"mogu uključivati: snimke ambijentalnih zvukova, šumove, govor, muziku, "
+"Specifični zvuci, slike i video zapisi koji se koriste će varirati, ali mogu"
+" uključivati: snimke ambijentalnih zvukova, šumove, govor, muziku, "
 "jednostavne tonove, naturalističke slike, animirane slike, stripove, lica, "
 "predmete, geometrijske oblike, fraktalne slike ili video zapise prirodnih "
 "okruženja."
@@ -1609,8 +1611,7 @@ msgid ""
 msgstr ""
 "U nekim eksperimentima možemo koristiti blagu obmanu, tj. možda nećemo "
 "objasniti celu istinu u vezi sa eksperimentalnim zadatkom (na primer, nećemo"
-" vam reći da je slika generisana veštačkim kompjuterskim sistemom, a ne "
-"ljudskim)."
+" vam reći da je sliku generisao veštački kompjuterski sistem, a ne čovek)."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1798,7 +1799,7 @@ msgid ""
 "with anyone outside of the research team and will be deleted after use."
 msgstr ""
 "Ovaj kod neće biti korišćen za otkrivanje vašeg pravog identiteta, neće biti"
-" deljen sa bilo kim van istraživačkog tima i biće obrisan nakon upotrebe."
+" deljen sa bilo kim izvan istraživačkog tima i biće obrisan nakon upotrebe."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1873,7 +1874,7 @@ msgid ""
 "disks encrypted using industry-standard encryption software."
 msgstr ""
 "Podaci će zatim biti trajno čuvani na serverima instituta sa hard diskovima "
-"šifrovanim korišćenjem industrijskog standardnog softvera za šifrovanje."
+"šifrovanim korišćenjem industrijskog standarda šifrovanja."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1905,7 +1906,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-benefits"
 msgid "Benefits"
-msgstr "Koristi"
+msgstr "Prednosti"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1920,7 +1921,7 @@ msgid ""
 msgstr ""
 "Iako možda neće direktno koristiti vama, ova studija može koristiti društvu "
 "pomažući nam da razumemo kako ljudi izvode informacije iz zvuka i vida, i "
-"potencijalno da pomognemo u projektovanju mašina koje mogu replicirati naše "
+"potencijalno da pomognemo u inženjeringu mašina koje mogu replicirati naše "
 "sposobnosti (npr. u prepoznavanju zvuka i kompjuterskom vidu) i da pomognemo"
 " u poboljšanju perceptivnih sposobnosti kod ljudi čiji su sluh ili vid "
 "oštećeni."
@@ -1939,7 +1940,7 @@ msgctxt "consent-compensation"
 msgid ""
 "If you satisfactorily complete the study, we compensate you for your "
 "participation:"
-msgstr "Ako uspešno završite studiju, nadoknađujemo vam za vaše učešće:"
+msgstr "Ako uspešno završite studiju, nadoknadićemo vam za vaše učešće:"
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -1978,9 +1979,9 @@ msgid ""
 "and the right to demand the deletion of data in cases of inadmissible data "
 "storage and the right to data portability."
 msgstr ""
-"Imate pravo na informacije o podacima koji se odnose na vas i koji su "
-"pohranjeni na Max-Planck-Institutu, pravo na ispravku netačnih podataka i "
-"pravo da zahtevate brisanje podataka u slučajevima nedozvoljenog "
+"Imate pravo na informacije u vezi sa podacima koji se odnose na vas i koji "
+"su pohranjeni na Max-Planck-Institutu, pravo na ispravku netačnih podataka, "
+"i pravo da zahtevate brisanje podataka u slučajevima nedozvoljenog "
 "skladištenja podataka i pravo na prenosivost podataka."
 
 #: psynet/templates/consents/main_consent.html
@@ -2031,7 +2032,7 @@ msgid ""
 "tapping in response to a sound or video, or to record yourself speaking or "
 "singing."
 msgstr ""
-"Ovo uključuje audio-vizuelne snimke, kao što je snimanje vašeg tapkanja "
+"Ovo uključuje audio-vizuelne snimke, kao što je snimak vašeg tapkanja "
 "prstima kao odgovor na zvuk ili video, ili snimanje vašeg govora ili "
 "pevanja."
 
@@ -2066,7 +2067,7 @@ msgid ""
 "audio/video materials of yours)."
 msgstr ""
 "Međutim, vaši podaci neće biti direktno povezani sa vašim imenom ili drugim "
-"identifikatorima na bilo koji način (nećemo navoditi vaše ime prilikom "
+"identifikatorima na bilo koji način (nećemo navesti vaše ime prilikom "
 "predstavljanja vaših audio/video materijala)."
 
 #: psynet/templates/consents/open_science_consent.html
@@ -2105,7 +2106,7 @@ msgid ""
 "want to make public."
 msgstr ""
 "Stoga, možda ćete želeti da se uverite da ne snimate materijale koje ne "
-"želite da budu javno objavljeni."
+"želite da budu javno dostupni."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2188,6 +2189,12 @@ msgstr "Koristite:"
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Morate koristiti inkognito režim da biste učestvovali u eksperimentu."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
 msgid "Warning!"
 msgstr "Upozorenje!"
 
@@ -2237,23 +2244,22 @@ msgstr "U gornjem desnom uglu, kliknite Više"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "New Incognito Window"
-msgstr "Novi prozor za anonimno pregledanje"
+msgstr "Novi inkognito prozor"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
 msgstr ""
-"Pojaviće se novi prozor. U gornjem uglu, proverite da li postoji ikona za "
-"anonimno pregledanje"
+"Pojaviće se novi prozor. U gornjem uglu, proverite da li postoji ikonica "
+"inkognito režima"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You can also use a keyboard shortcut to open an Incognito window"
 msgstr ""
-"Takođe možete koristiti prečicu na tastaturi da otvorite prozor za anonimno "
-"pregledanje"
+"Takođe možete koristiti prečicu na tastaturi da otvorite inkognito prozor"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2265,34 +2271,31 @@ msgstr "Pritisnite"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window"
-msgstr "Otvorite novi prozor za anonimno pregledanje"
+msgstr "Otvorite novi inkognito prozor"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to continue the experiment"
-msgstr ""
-"Zalepite link u prozor za anonimno pregledanje da biste nastavili "
-"eksperiment"
+msgstr "Zalepite link u inkognito prozor da biste nastavili eksperiment"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to start the experiment"
-msgstr ""
-"Zalepite link u prozor za anonimno pregledanje da biste započeli eksperiment"
+msgstr "Zalepite link u inkognito prozor da biste započeli eksperiment"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to continue the experiment"
-msgstr "Zalepite link u Chrome pregledač da biste nastavili eksperiment"
+msgstr "Zalepite link u Chrome pretraživač da biste nastavili eksperiment"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the Chrome browser to start the experiment"
-msgstr "Zalepite link u Chrome pregledač da biste započeli eksperiment"
+msgstr "Zalepite link u Chrome pretraživač da biste započeli eksperiment"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2316,7 +2319,7 @@ msgstr "Ovaj sajt zahteva JavaScript da bi ispravno funkcionisao."
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please enable JavaScript in your browser."
-msgstr "Molimo vas da omogućite JavaScript u vašem pregledaču."
+msgstr "Molimo vas da omogućite JavaScript u vašem pretraživaču."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2334,21 +2337,20 @@ msgstr "Instalirajte najnoviju verziju Google Chrome-a na vašem računaru"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Copy the current URL to the clipboard:"
-msgstr "Kopirajte trenutni URL u međuspremnik:"
+msgstr "Kopirajte trenutni URL u klipbord:"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Open a new incognito window with  the following keyboard shortcuts:"
 msgstr ""
-"Otvorite novi prozor za anonimno pregledanje sa sledećim prečicama na "
-"tastaturi:"
+"Otvorite novi inkognito prozor koristeći sledeće prečice na tastaturi:"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "On Windows, Linux, or Chrome OS: Press"
-msgstr "Na Windows, Linux ili Chrome OS: Pritisnite"
+msgstr "Na Windows, Linux, ili Chrome OS: Pritisnite"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2407,8 +2409,8 @@ msgid ""
 "If you have any questions about this research, do not hesitate to contact "
 "the main researcher in this project, Nori Jacoby at:"
 msgstr ""
-"Ako imate bilo kakva pitanja o ovom istraživanju, ne ustručavajte se da "
-"kontaktirate glavnog istraživača u ovom projektu, Nori Jacoby na:"
+"Ako imate bilo kakva pitanja o ovom istraživanju, ne oklevajte da "
+"kontaktirate glavnog istraživača u ovom projektu, Norija Džakobija na:"
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2439,7 +2441,7 @@ msgid ""
 "and process external conditions, both in the auditory (e.g., speech, music) "
 "and visual (e.g., faces, color) domains."
 msgstr ""
-"Konkretno, cilj nam je da kombinujemo širok spektar bihevioralnih "
+"Konkretno, cilj nam je da kombinujemo širok spektar bihejvioralnih "
 "metodologija kako bismo karakterisali načine na koje ljudi iz različitih "
 "sredina internalizuju i obrađuju spoljašnje uslove, kako u auditivnim (npr. "
 "govor, muzika) tako i u vizuelnim (npr. lica, boje) domenima."
@@ -2463,7 +2465,7 @@ msgid ""
 "them."
 msgstr ""
 "Svi snimci koje dobijemo tokom ovog istraživanja biće čuvani poverljivo, i "
-"niko van grupe istraživača neće moći da ih deli ili skladišti."
+"niko izvan grupe istraživača neće moći da ih deli ili skladišti."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2533,9 +2535,9 @@ msgid ""
 msgstr ""
 "Možda ćete želeti da se uverite da nijedan zvuk/vizuelni materijal u vašem "
 "okruženju ne može biti povezan sa vašim ličnim informacijama. Pored toga, "
-"dok snimate, mikrofon ili kamera mogu zabeležiti nenamerni audio ili video, "
-"na primer, kamera može zabeležiti drugog člana porodice, ili mikrofon može "
-"zabeležiti nešto što kažete drugoj osobi."
+"dok snimate, mikrofon ili kamera mogu snimiti nenamerni audio ili video, na "
+"primer, kamera može snimiti drugog člana porodice, ili mikrofon može snimiti"
+" nešto što kažete drugoj osobi."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2545,9 +2547,9 @@ msgid ""
 "responsibility to make sure that while you record audio and video nothing "
 "that you don’t intend to be recorded is recorded."
 msgstr ""
-"Ako odlučite da učestvujete u eksperimentu, važno je i vaša odgovornost je "
+"Ako odlučite da učestvujete u eksperimentu, važno je i vaša je odgovornost "
 "da se uverite da dok snimate audio i video ništa što ne želite da bude "
-"zabeleženo nije zabeleženo."
+"snimljeno nije snimljeno."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2620,7 +2622,7 @@ msgid ""
 "be linked to personal information by a key (such as “afasd12314asdasd”)."
 msgstr ""
 "Audio-vizuelni materijal neće biti indeksiran po ličnim informacijama, već "
-"će biti povezan sa ličnim informacijama putem ključa (kao što je "
+"će biti povezan sa ličnim informacijama pomoću ključa (kao što je "
 "„afasd12314asdasd“)."
 
 #: psynet/templates/macros/consent.html
@@ -2663,12 +2665,12 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-consent"
 msgid "If you do not wish to consent, please close this page."
-msgstr "Ako ne želite da pristanete, molimo zatvorite ovu stranicu."
+msgstr "Ako ne želite da pristanete, molimo vas da zatvorite ovu stranicu."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Reset"
-msgstr "Poništi"
+msgstr "Resetuj"
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2689,7 +2691,7 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"Parametri <strong>decay</strong> određuju količinu izravnavanja koja se "
+"<strong>Parametri opadanja</strong> određuju količinu izravnavanja koja se "
 "dešava sa signalom i imaju jedinice u sekundama."
 
 #: psynet/templates/macros/control.html
@@ -2719,8 +2721,8 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Parametri <strong>threshold</strong> određuju tačku u kojoj se volumen "
-"smatra 'previsokim' ili 'preniskim'."
+"<strong>Parametri praga</strong> određuju tačku u kojoj se volumen smatra "
+"'previsokim' ili 'preniskim'."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2729,7 +2731,7 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"Parametri <strong>grace</strong> određuju koliko dugo volumen mora biti "
+"<strong>Parametri milosti</strong> određuju koliko dugo volumen mora biti "
 "izvan odgovarajućeg praga da bi se pokrenula poruka upozorenja."
 
 #: psynet/templates/macros/control.html
@@ -2739,7 +2741,7 @@ msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
-"Parametri <strong>message duration</strong> određuju koliko dugo se poruke "
+"<strong>Parametri trajanja poruke</strong> određuju koliko dugo se poruke "
 "upozorenja prikazuju."
 
 #: psynet/templates/macros/control.html
@@ -2800,8 +2802,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Možda ćete moći prekinuti eksperiment koristeći dugme <strong>Abort "
-"experiment</strong> <strong>on the MTurk ad page</strong>."
+"Možda ćete moći da prekinete eksperiment koristeći dugme <strong>Prekini "
+"eksperiment</strong> <strong>na MTurk oglasnoj stranici</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2811,7 +2813,7 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Nakon prekida, nema potrebe da nas kontaktirate da biste primili naknadu; "
-"ona bi vam trebala biti automatski dodeljena putem MTurk nekoliko minuta "
+"ona bi trebalo da vam bude automatski dodeljena putem MTurk nekoliko minuta "
 "kasnije."
 
 #: psynet/templates/psynet_error.html
@@ -3097,7 +3099,7 @@ msgstr "Bolivija"
 #, fuzzy
 msgctxt "country_name"
 msgid "Bonaire, Sint Eustatius and Saba"
-msgstr "Boner, Sint Eustatijus i Saba"
+msgstr "Bonaire, Sint Eustatius i Saba"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4441,7 +4443,7 @@ msgstr "Afar"
 #, fuzzy
 msgctxt "language_name"
 msgid "Afrikaans"
-msgstr "Afrikans"
+msgstr "Afrikaans"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4855,7 +4857,7 @@ msgstr "Interlingva"
 #, fuzzy
 msgctxt "language_name"
 msgid "Interlingue"
-msgstr "Interlingve"
+msgstr "Interlingue"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5185,7 +5187,7 @@ msgstr "Pali"
 #, fuzzy
 msgctxt "language_name"
 msgid "Panjabi"
-msgstr "Panjabi"
+msgstr "Pandžapski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5305,7 +5307,7 @@ msgstr "Sindi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Sinhala"
-msgstr "Singalski"
+msgstr "Sinhala"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5335,7 +5337,7 @@ msgstr "Južni Ndebele"
 #, fuzzy
 msgctxt "language_name"
 msgid "Southern Sotho"
-msgstr "Južni Sotski"
+msgstr "Južni Soto"
 
 #: psynet/translation/languages.py
 #, fuzzy

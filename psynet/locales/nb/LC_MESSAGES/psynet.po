@@ -131,7 +131,7 @@ msgstr "Universitet"
 #, fuzzy
 msgctxt "formal-education"
 msgid "Postgraduate degree or higher"
-msgstr "Postgraduate grad eller høyere"
+msgstr "Høyere utdanning eller mer"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -140,8 +140,8 @@ msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
 "speaking from early childhood?"
 msgstr ""
-"Hva er ditt morsmål - dvs. språket du har vokst opp med å snakke fra tidlig "
-"barndom?"
+"Hva er ditt morsmål - altså språket du har vokst opp med å snakke fra tidlig"
+" barndom?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -201,7 +201,7 @@ msgstr ""
 #, fuzzy
 msgctxt "music"
 msgid "On average, how many hours do you listen to music daily?"
-msgstr "I gjennomsnitt, hvor mange timer lytter du til musikk daglig?"
+msgstr "Hvor mange timer lytter du til musikk daglig i gjennomsnitt?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -426,9 +426,9 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Du vil motta en belønning på <strong>■0■■1■</strong> for tiden du brukte på "
-"eksperimentet. Du har også blitt tildelt en prestasjonsbelønning på "
-"<strong>■0■■3■</strong>!"
+"Du vil motta en belønning på <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"tiden du brukte på eksperimentet. Du har også blitt tildelt en "
+"prestasjonsbelønning på <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
@@ -480,8 +480,7 @@ msgstr "Slutt på eksperimentet."
 #, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr ""
-"Det har oppstått en feil, og du kan dessverre ikke fortsette, beklager!"
+msgstr "Det har oppstått en feil, og du kan dessverre ikke fortsette."
 
 #: psynet/experiment.py
 #, fuzzy, python-brace-format
@@ -545,7 +544,7 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Vi vil nå utføre en rask test for å sjekke din evne til å oppfatte farger."
+"Vi skal nå utføre en rask test for å sjekke din evne til å oppfatte farger."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -596,7 +595,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Du må samle opp <strong>at least "
+"Du må samle opp <strong>minst "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> i belønning for å "
 "kunne bli kompensert."
 
@@ -770,7 +769,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-title"
 msgid "Research Participant Consent Form for Image/Sound Recordings"
-msgstr "Samtykkeskjema for forskningsdeltakere for bilde/lydopptak"
+msgstr "Samtykkeskjema for forskningsdeltakere for bilde-/lydopptak"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -786,7 +785,7 @@ msgid ""
 "I have received oral and written information about the fact that "
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
-"Jeg har mottatt muntlig og skriftlig informasjon om at <i>audiovisual</i> "
+"Jeg har mottatt muntlig og skriftlig informasjon om at <i>audiovisuelle</i> "
 "opptak vil bli gjort i denne studien."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -797,7 +796,7 @@ msgid ""
 "process information from sound and visual."
 msgstr ""
 "Opptaket har som formål å forstå hvordan mennesker oppfatter og behandler "
-"informasjon fra lyd og visuell."
+"informasjon fra lyd og visuelle inntrykk."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -816,8 +815,8 @@ msgid ""
 "By making recording people while moving, singing, tapping to rhythms, or "
 "speaking, we can infer the mechanisms of the auditory and visual systems."
 msgstr ""
-"Ved å gjøre opptak av folk mens de beveger seg, synger, tapper til rytmer "
-"eller snakker, kan vi utlede mekanismene i de auditive og visuelle "
+"Ved å gjøre opptak av mennesker mens de beveger seg, synger, klapper til "
+"rytmer eller snakker, kan vi utlede mekanismene i de auditive og visuelle "
 "systemene."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -829,10 +828,10 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Jeg har blitt informert om at lagring og behandling av <i>audiovisual</i> "
-"opptaket vil bli utført i pseudonymisert form, dvs. ved bruk av et nummer og"
-" uten å inneholde mitt navn, og at det finnes en kodingsliste som kobler "
-"mitt navn til nummeret."
+"Jeg har blitt informert om at lagring og behandling av <i>audiovisuelle</i> "
+"opptak vil bli utført i pseudonymisert form, dvs. ved bruk av et nummer og "
+"uten å inneholde mitt navn, og at det finnes en kodingsliste som kobler mitt"
+" navn til nummeret."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -853,7 +852,7 @@ msgid ""
 "material."
 msgstr ""
 "Forskere tilknyttet dette prosjektet vil ha tilgang til mine "
-"<i>audiovisual</i> data under opptaket og analysen av materialet."
+"<i>audiovisuelle</i> data under opptaket og analysen av materialet."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -886,7 +885,7 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"Jeg samtykker i at mine <i>audiovisual</i> opptak kan brukes til "
+"Jeg samtykker i at mine <i>audiovisuelle</i> opptak kan brukes til "
 "demonstrasjonsformål i presentasjoner med et begrenset antall deltakere "
 "(f.eks. undervisningskurs eller vitenskapelige presentasjoner)."
 
@@ -913,7 +912,7 @@ msgstr "NEI"
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "Erklæringen om samtykke til <i>audiovisual</i> opptak er frivillig."
+msgstr "Erklæringen om samtykke til <i>audiovisuelle</i> opptak er frivillig."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -929,15 +928,15 @@ msgid ""
 "be other negative consequences; however, in this case, participation in the "
 "study will not be possible."
 msgstr ""
-"Ved avslag eller tilbaketrekking vil det ikke påløpe noen kostnader eller "
-"andre negative konsekvenser; imidlertid vil deltakelse i studien ikke være "
-"mulig i dette tilfellet."
+"Ved avslag eller tilbaketrekking vil ingen kostnader påløpe, og det vil "
+"heller ikke være andre negative konsekvenser; imidlertid vil deltakelse i "
+"studien ikke være mulig i dette tilfellet."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I had sufficient time for this decision."
-msgstr "Jeg hadde tilstrekkelig tid til denne avgjørelsen."
+msgstr "Jeg har hatt tilstrekkelig tid til denne avgjørelsen."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -946,8 +945,8 @@ msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
-"Jeg har lest og forstått alt og samtykker herved til at <i>audiovisual</i> "
-"opptak av meg kan tas."
+"Jeg har lest og forstått alt og samtykker herved til at <i>audiovisuelle</i>"
+" opptak av meg kan tas."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1010,7 +1009,7 @@ msgid ""
 "The recording and processing of these data are carried out in pseudonymized "
 "form by means of a code and do not contain my name."
 msgstr ""
-"Opptak og behandling av disse dataene utføres i pseudonymisert form ved "
+"Opptaket og behandlingen av disse dataene utføres i pseudonymisert form ved "
 "hjelp av en kode og inneholder ikke mitt navn."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1572,9 +1571,9 @@ msgid ""
 "simple tasks using your keyboard or mouse while listening to sounds, or "
 "while observing images or videos."
 msgstr ""
-"Hvis du melder deg frivillig til å delta i denne studien, vil du bli bedt om"
-" å utføre enkle oppgaver ved å bruke tastaturet eller musen mens du lytter "
-"til lyder, eller mens du observerer bilder eller videoer."
+"Hvis du frivillig deltar i denne studien, vil du bli bedt om å utføre enkle "
+"oppgaver ved å bruke tastaturet eller musen mens du lytter til lyder, eller "
+"mens du observerer bilder eller videoer."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1764,7 +1763,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-confidentiality"
 msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr "Å samtykke til disse tilleggskravene er også helt frivillig."
+msgstr "Samtykke til disse tilleggskravene er også helt frivillig."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1824,7 +1823,7 @@ msgid ""
 msgstr ""
 "Selv om forskere ikke vil bruke din alfanumeriske kode til å utlede din "
 "virkelige identitet, kan denne posten i noen tilfeller knyttes til din "
-"offentlige profilside hvis det oppstår et databrudd."
+"offentlige profilside hvis et datainnbrudd finner sted."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2017,7 +2016,8 @@ msgstr ""
 msgctxt "consent-rights"
 msgid ""
 "You also have the right to submit an objection to the supervisory authority."
-msgstr "Du har også rett til å sende inn en klage til tilsynsmyndigheten."
+msgstr ""
+"Du har også rett til å sende inn en innsigelse til tilsynsmyndigheten."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2034,7 +2034,7 @@ msgid ""
 "replicability, we may want to publish the dataset collected in this "
 "experiment as soon as the study is finished."
 msgstr ""
-"Ved å følge åpne vitenskapspraksiser for å forbedre vitenskapens "
+"I tråd med åpne vitenskapspraksiser for å forbedre vitenskapens "
 "gjenbrukbarhet og reproduserbarhet, kan vi ønske å publisere datasettet "
 "samlet i dette eksperimentet så snart studien er ferdig."
 
@@ -2120,8 +2120,8 @@ msgid ""
 "Thus, you may wish to make sure you do not record any materials you do not "
 "want to make public."
 msgstr ""
-"Derfor kan du ønske å sørge for at du ikke tar opp materialer du ikke ønsker"
-" å offentliggjøre."
+"Derfor kan du ønske å forsikre deg om at du ikke tar opp materialer du ikke "
+"ønsker å offentliggjøre."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2131,7 +2131,7 @@ msgid ""
 "while recording audio or nudity while recording video."
 msgstr ""
 "Ved å samtykke til dette eksperimentet forplikter du deg til å ikke bruke "
-"banning mens du tar opp lyd eller nakenhet mens du tar opp video."
+"banning under lydopptak eller nakenhet under videoopptak."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2160,13 +2160,13 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-compensation"
 msgid "By doing the task you are helping science, thank you!"
-msgstr "Ved å utføre oppgaven hjelper du vitenskapen, takk!"
+msgstr "Ved å gjøre oppgaven hjelper du vitenskapen, takk!"
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
-msgstr "Innsending av Lucid-undersøkelse"
+msgstr "Lucid undersøkelsesinnsending"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2201,6 +2201,12 @@ msgstr ""
 msgctxt "browser_compatibility"
 msgid "You are using:"
 msgstr "Du bruker:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Du må bruke inkognitomodus for å delta i eksperimentet."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2260,7 +2266,7 @@ msgstr "Nytt inkognitovindu"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
-msgstr "Et nytt vindu vises. I det øverste hjørnet, sjekk for inkognitoikonet"
+msgstr "Et nytt vindu vises. I hjørnet øverst, sjekk for inkognitoikonet"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2435,8 +2441,8 @@ msgid ""
 "The purpose of this project is to study the role of experience and exposure "
 "in creating and affecting our perception, decisions and actions."
 msgstr ""
-"Formålet med dette prosjektet er å studere rollen erfaring og eksponering "
-"har i å skape og påvirke vår oppfatning, beslutninger og handlinger."
+"Formålet med dette prosjektet er å studere rollen av erfaring og eksponering"
+" i å skape og påvirke vår oppfatning, beslutninger og handlinger."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2698,8 +2704,8 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"De <strong>decay</strong> parameterne bestemmer mengden utjevning som skjer "
-"med signalet, og har enheter av sekunder."
+"De <strong>forfalls</strong> parameterne bestemmer mengden utjevning som "
+"skjer med signalet, og har enheter av sekunder."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2728,8 +2734,8 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"De <strong>threshold</strong> parameterne bestemmer punktet hvor volumet "
-"anses å være 'for høyt' eller 'for lavt'."
+"De <strong>terskel</strong> parameterne bestemmer punktet hvor volumet "
+"bestemmes til å være 'for høyt' eller 'for lavt'."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2738,8 +2744,8 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"De <strong>grace</strong> parameterne bestemmer hvor lenge volumet må være "
-"utenfor den respektive terskelen for at en advarsel skal utløses."
+"De <strong>nåde</strong> parameterne bestemmer hvor lenge volumet må være "
+"utenfor den respektive terskelen for at en advarselsmelding skal utløses."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2748,7 +2754,7 @@ msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
-"De <strong>message duration</strong> parameterne bestemmer hvor lenge "
+"De <strong>meldingsvarighet</strong> parameterne bestemmer hvor lenge "
 "advarselsmeldinger vises."
 
 #: psynet/templates/macros/control.html
@@ -2809,8 +2815,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Du kan kanskje avbryte eksperimentet ved å bruke <strong>Abort "
-"experiment</strong>-knappen <strong>on the MTurk ad page</strong>."
+"Du kan kanskje avbryte eksperimentet ved å bruke <strong>Avbryt "
+"eksperiment</strong>-knappen <strong>på MTurk-annonsesiden</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -4103,7 +4109,7 @@ msgstr "San Marino"
 #, fuzzy
 msgctxt "country_name"
 msgid "Sao Tome and Principe"
-msgstr "São Tomé og Príncipe"
+msgstr "Sao Tome og Principe"
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4529,7 +4535,7 @@ msgstr "Bambara"
 #, fuzzy
 msgctxt "language_name"
 msgid "Bashkir"
-msgstr "Basjkirsk"
+msgstr "Baskirsk"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5441,7 +5447,7 @@ msgstr "Tigrinja"
 #, fuzzy
 msgctxt "language_name"
 msgid "Tonga"
-msgstr "Tongansk"
+msgstr "Tonga"
 
 #: psynet/translation/languages.py
 #, fuzzy

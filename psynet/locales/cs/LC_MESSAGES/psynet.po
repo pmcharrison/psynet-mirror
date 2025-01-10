@@ -41,7 +41,7 @@ msgstr "Nespecifikováno"
 #, fuzzy
 msgctxt "gender"
 msgid "I prefer not to answer"
-msgstr "Raději neodpovím"
+msgstr "Preferuji neodpovídat"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -89,7 +89,7 @@ msgstr "Musíte vybrat zemi!"
 #, fuzzy
 msgctxt "country-select"
 msgid "What country are you from?"
-msgstr "Ze které země pocházíte?"
+msgstr "Z jaké země pocházíte?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -178,14 +178,14 @@ msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
 msgstr ""
-"Uveďte jazyky, kterými mluvíte, podle úrovně znalosti (první jazyk první, "
-"druhý jazyk druhý, ...)"
+"Uveďte prosím jazyky, kterými mluvíte, v pořadí podle znalosti (první jazyk "
+"první, druhý jazyk druhý, ...)"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
 msgid "Please list at least one language!"
-msgstr "Uveďte alespoň jeden jazyk!"
+msgstr "Uveďte prosím alespoň jeden jazyk!"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -303,7 +303,7 @@ msgstr "Nikdy jsem netančil/a"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Did you get speech-language therapy as a child?"
-msgstr "Dostávali jste jako dítě logopedickou terapii?"
+msgstr "Podstoupili jste jako dítě logopedickou terapii?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -426,8 +426,9 @@ msgid ""
 "the time you spent on the experiment. You have also been awarded a "
 "performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 msgstr ""
-"Obdržíte odměnu <strong>■0■■1■</strong> za čas strávený na experimentu. Také"
-" jste obdrželi odměnu za výkon <strong>■0■■3■</strong>!"
+"Obdržíte odměnu <strong>{CURRENCY}{TIME_REWARD}</strong> za čas strávený na "
+"experimentu. Také jste obdrželi výkonnostní odměnu "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
 
 #: psynet/end.py
 #, fuzzy
@@ -487,14 +488,14 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"Pro dotazy ohledně kompenzace prosím kontaktujte výzkumníka na {EMAIL} a "
-"popište, co vedlo k této chybě."
+"Pro dotazy ohledně kompenzace kontaktujte výzkumníka na {EMAIL} a popište, "
+"co vedlo k této chybě."
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
-msgstr "Prosím, uveďte také následující informace:"
+msgstr "Uveďte také následující informace:"
 
 #: psynet/experiment.py
 #, fuzzy
@@ -509,8 +510,8 @@ msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
-"Pro dotazy ohledně kompenzace prosím pošlete výzkumníkovi zprávu přes web "
-"Prolific a popište, co vedlo k vaší chybě."
+"Pro dotazy ohledně kompenzace pošlete výzkumníkovi zprávu přes web Prolific "
+"a popište, co vedlo k vaší chybě."
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -593,7 +594,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Musíte nashromáždit <strong>at least "
+"Musíte nashromáždit <strong>alespoň "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> odměny, abyste "
 "mohli být kompenzováni."
 
@@ -631,7 +632,7 @@ msgstr "Zavřít okno"
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Are you sure you want to abort the experiment?"
-msgstr "Jste si jisti, že chcete ukončit experiment?"
+msgstr "Jste si jisti, že chcete přerušit experiment?"
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -640,7 +641,7 @@ msgid ""
 "If you click the Abort button, the experiment will end early, and you will "
 "be automatically paid the compensation you have earned so far."
 msgstr ""
-"Pokud kliknete na tlačítko Ukončit, experiment bude předčasně ukončen a "
+"Pokud kliknete na tlačítko Přerušit, experiment skončí předčasně a "
 "automaticky vám bude vyplacena kompenzace, kterou jste dosud získali."
 
 #: psynet/templates/abort_possible.html
@@ -658,7 +659,7 @@ msgstr "Podrobnosti o vaší kompenzaci naleznete níže."
 #: psynet/templates/abort_possible.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Ukončit experiment"
+msgstr "Přerušit experiment"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -679,8 +680,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Prosím, klikněte na tlačítko \"Přijmout HIT\" na výše uvedeném webu Amazon, "
-"abyste mohli začít úkol."
+"Prosím, klikněte na tlačítko \"Přijmout HIT\" na výše uvedené stránce "
+"Amazonu, abyste mohli začít úkol."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -731,7 +732,7 @@ msgstr "Přerušit experiment"
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
-"Klikněte na výše uvedené tlačítko, abyste byli odškodněni v případě chyby."
+"Klikněte na výše uvedené tlačítko, abyste byli kompenzováni v případě chyby."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -784,7 +785,7 @@ msgid ""
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
 "Obdržel/a jsem ústní a písemné informace o tom, že v této studii budou "
-"pořizovány <i>audiovisual</i> nahrávky."
+"pořizovány <i>audiovizuální</i> nahrávky."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -794,7 +795,7 @@ msgid ""
 "process information from sound and visual."
 msgstr ""
 "Nahrávka slouží k pochopení, jak lidé vnímají a zpracovávají informace ze "
-"zvuku a vizuálu."
+"zvuku a obrazu."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -803,7 +804,7 @@ msgid ""
 "For example, we would like to understand how predictive mechanisms in "
 "perception rely on experience, learning, and memory."
 msgstr ""
-"Například bychom rádi pochopili, jak prediktivní mechanismy ve vnímání "
+"Například bychom chtěli pochopit, jak prediktivní mechanismy ve vnímání "
 "závisí na zkušenostech, učení a paměti."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -825,7 +826,7 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Byl/a jsem informován/a, že ukládání a zpracování <i>audiovisual</i> "
+"Byl/a jsem informován/a, že ukládání a zpracování <i>audiovizuální</i> "
 "nahrávky bude prováděno v pseudonymizované formě, tj. pomocí čísla a bez "
 "uvedení mého jména, a že existuje kódovací seznam, který spojuje mé jméno s "
 "číslem."
@@ -849,7 +850,7 @@ msgid ""
 "material."
 msgstr ""
 "Výzkumníci spjatí s tímto projektem budou mít přístup k mým "
-"<i>audiovisual</i> datům během nahrávání a analýzy materiálu."
+"<i>audiovizuálním</i> datům během nahrávání a analýzy materiálu."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -859,8 +860,8 @@ msgid ""
 "I understand that I am free to withdraw my consent to the collection and "
 "storage of my personal data without negative consequences."
 msgstr ""
-"Rozumím, že mohu kdykoli odvolat svůj souhlas se shromažďováním a ukládáním "
-"mých osobních údajů bez negativních důsledků."
+"Rozumím, že mám právo kdykoli odvolat svůj souhlas se shromažďováním a "
+"ukládáním svých osobních údajů bez negativních důsledků."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -882,7 +883,7 @@ msgid ""
 "purposes in presentations with a limited number of participants (e.g., "
 "teaching courses or scientific presentations)."
 msgstr ""
-"Souhlasím s tím, že mé <i>audiovisual</i> nahrávky mohou být použity pro "
+"Souhlasím s tím, že mé <i>audiovizuální</i> nahrávky mohou být použity pro "
 "demonstrační účely v prezentacích s omezeným počtem účastníků (např. výukové"
 " kurzy nebo vědecké prezentace)."
 
@@ -909,7 +910,8 @@ msgstr "NE"
 msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "Prohlášení o souhlasu s <i>audiovisual</i> nahrávkami je dobrovolné."
+msgstr ""
+"Prohlášení o souhlasu s <i>audiovizuálními</i> nahrávkami je dobrovolné."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -941,8 +943,8 @@ msgid ""
 "I have read and understood everything and hereby agree that "
 "<i>audiovisual</i> recordings of me may be taken."
 msgstr ""
-"Přečetl/a jsem a pochopil/a vše a tímto souhlasím, že mohou být pořízeny "
-"<i>audiovisual</i> nahrávky mé osoby."
+"Přečetl/a jsem si vše a rozumím tomu, a tímto souhlasím, že mohou být "
+"pořízeny <i>audiovizuální</i> nahrávky mé osoby."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -975,7 +977,7 @@ msgstr "Obdržel/a jsem písemné informace o studii a postupu studie."
 #, fuzzy
 msgctxt "consent-cap"
 msgid "I have read and understood all of the information completely."
-msgstr "Přečetl/a jsem a zcela porozuměl/a všem informacím."
+msgstr "Přečetl/a jsem si a zcela porozuměl/a všem informacím."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1047,7 +1049,8 @@ msgctxt "consent-cap"
 msgid ""
 "I have been informed that I may request deletion of all my data at any time."
 msgstr ""
-"Byl/a jsem informován/a, že mohu kdykoli požádat o smazání všech mých údajů."
+"Byl/a jsem informován/a, že mohu kdykoli požádat o smazání všech svých "
+"údajů."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1106,7 +1109,7 @@ msgid ""
 "In addition, we would like to inform you about your rights with regard to "
 "the processing of personal data."
 msgstr ""
-"Kromě toho vás chceme informovat o vašich právech týkajících se zpracování "
+"Dále vás chceme informovat o vašich právech týkajících se zpracování "
 "osobních údajů."
 
 #: psynet/templates/consents/database_consent.html
@@ -1148,7 +1151,7 @@ msgid ""
 "nationality), we also store the date and time when you made the entry."
 msgstr ""
 "Kromě vašich kontaktních údajů (tj. jméno a e-mail) a demografických údajů "
-"požadovaných při přihlášení (tj. věk, pohlaví a národnost) ukládáme také "
+"požadovaných při přihlášení (tj. věk, pohlaví a národnost) také ukládáme "
 "datum a čas, kdy jste provedli záznam."
 
 #: psynet/templates/consents/database_consent.html
@@ -1186,8 +1189,8 @@ msgid ""
 " about the procedure of the study and the collection of data during the "
 "study."
 msgstr ""
-"Samozřejmě, před vaší účastí na studii budete podrobně informováni o postupu"
-" studie a sběru dat během studie."
+"Samozřejmě, před účastí ve studii budete podrobně informováni o postupu "
+"studie a sběru dat během studie."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1196,8 +1199,8 @@ msgid ""
 "Your consent to participate in a study will be obtained separately for each "
 "study you participate in."
 msgstr ""
-"Váš souhlas s účastí na studii bude získán samostatně pro každou studii, "
-"které se účastníte."
+"Váš souhlas s účastí ve studii bude získán samostatně pro každou studii, "
+"které se zúčastníte."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1242,8 +1245,8 @@ msgid ""
 "You can also delete your data from the database by deleting your account "
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
-"Svůj účet můžete také smazat z databáze (tj. stiskněte 'Smazat účet' na "
-"přihlašovací stránce cap-recruiter)."
+"Svůj účet můžete také smazat z databáze smazáním svého účtu (tj. stisknutím "
+"'Smazat účet' na přihlašovací stránce cap-recruiter)."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1339,8 +1342,8 @@ msgid ""
 " insofar as no legal exceptions apply in individual cases:"
 msgstr ""
 "Jako subjekt údajů, jehož osobní údaje jsou zpracovávány v souvislosti s "
-"vaší účastí na našich studiích, máte v zásadě následující práva, pokud se na"
-" jednotlivé případy nevztahují žádné právní výjimky:"
+"vaší účastí na našich studiích, máte v zásadě následující práva, pokud se v "
+"jednotlivých případech neuplatní žádné právní výjimky:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1512,9 +1515,10 @@ msgid ""
 "Regulation in the context of personal data being processed in our studies, "
 "please contact the Data Protection Officer of the Max Planck Society:"
 msgstr ""
-"Pokud máte další dotazy ohledně Obecného nařízení o ochraně osobních údajů v"
-" souvislosti se zpracováním osobních údajů v našich studiích, kontaktujte "
-"prosím pověřence pro ochranu osobních údajů Společnosti Maxe Plancka:"
+"Pokud máte další otázky týkající se Obecného nařízení o ochraně osobních "
+"údajů v souvislosti se zpracováním osobních údajů v našich studiích, "
+"kontaktujte prosím pověřence pro ochranu osobních údajů Společnosti Maxe "
+"Plancka:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1560,9 +1564,9 @@ msgid ""
 "simple tasks using your keyboard or mouse while listening to sounds, or "
 "while observing images or videos."
 msgstr ""
-"Pokud se dobrovolně rozhodnete zúčastnit této studie, budete požádáni o "
-"provádění jednoduchých úkolů pomocí klávesnice nebo myši při poslechu zvuků "
-"nebo při sledování obrázků či videí."
+"Pokud se dobrovolně rozhodnete zúčastnit této studie, budete požádáni, "
+"abyste prováděli jednoduché úkoly pomocí klávesnice nebo myši při poslechu "
+"zvuků nebo při sledování obrázků či videí."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1632,10 +1636,10 @@ msgid ""
 "recording, for example, you may be asked to record your finger-tapping in "
 "response to a sound or video, or to record yourself speaking or singing."
 msgstr ""
-"Nakonec, v některých experimentech můžete být požádáni o vytvoření hlasového"
-" nebo video záznamu, například můžete být požádáni, abyste nahráli klepání "
-"prsty v reakci na zvuk nebo video, nebo abyste nahráli sami sebe při mluvení"
-" nebo zpěvu."
+"Nakonec, v některých experimentech můžete být požádáni, abyste udělali "
+"hlasový nebo video záznam, například můžete být požádáni, abyste nahráli "
+"klepání prsty v reakci na zvuk nebo video, nebo abyste nahráli sami sebe při"
+" mluvení nebo zpěvu."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1644,7 +1648,8 @@ msgctxt "consent-procedure"
 msgid ""
 "If the experiment will contain these elements we will ask for an additional "
 "consent."
-msgstr "Pokud experiment bude obsahovat tyto prvky, požádáme o další souhlas."
+msgstr ""
+"Pokud experiment bude obsahovat tyto prvky, požádáme o dodatečný souhlas."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1667,7 +1672,8 @@ msgctxt "consent-voluntary"
 msgid ""
 "You are free to refuse to take part, and you may stop taking part at any "
 "time."
-msgstr "Máte právo odmítnout účast a můžete kdykoli přestat."
+msgstr ""
+"Můžete se svobodně rozhodnout nezúčastnit se a můžete kdykoli přestat."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1676,7 +1682,7 @@ msgctxt "consent-voluntary"
 msgid ""
 "You are free to discontinue participation in this study at any time without "
 "penalty."
-msgstr "Máte právo kdykoli přerušit účast v této studii bez postihu."
+msgstr "Můžete kdykoli přestat účastnit se této studie bez postihu."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1739,7 +1745,7 @@ msgid ""
 " inform you and also ask for additional consent."
 msgstr ""
 "Pokud experiment shromažďuje data, která nelze plně anonymizovat, budeme vás"
-" informovat a také požádáme o další souhlas."
+" informovat a také požádáme o dodatečný souhlas."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1757,7 +1763,7 @@ msgid ""
 "need your contact details to contact you in the future to take another "
 "experiment."
 msgstr ""
-"To zahrnuje experimenty, kde vytváříme audio-vizuální nahrávky nebo kde "
+"To zahrnuje experimenty, kde pořizujeme audio-vizuální záznamy nebo kde "
 "potřebujeme vaše kontaktní údaje, abychom vás mohli v budoucnu kontaktovat "
 "pro další experiment."
 
@@ -1868,7 +1874,7 @@ msgid ""
 "disks encrypted using industry-standard encryption software."
 msgstr ""
 "Data budou poté trvale uložena na serverech institutu s pevnými disky "
-"šifrovanými pomocí průmyslového standardu šifrovacího softwaru."
+"šifrovanými pomocí softwaru pro šifrování na průmyslové úrovni."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1892,8 +1898,8 @@ msgid ""
 "There are no risks for participating in this study beyond those associated "
 "with normal computer use."
 msgstr ""
-"Účast v této studii nepředstavuje žádná rizika nad rámec těch, která jsou "
-"spojena s běžným používáním počítače."
+"Neexistují žádná rizika spojená s účastí v této studii nad rámec těch, která"
+" jsou spojena s běžným používáním počítače."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1913,11 +1919,11 @@ msgid ""
 "abilities (e.g. in sound recognition and computer vision) and to help "
 "improve perceptual abilities in people whose hearing or sight is impaired."
 msgstr ""
-"I když vám tato studie nemusí přímo prospět, může prospět společnosti tím, "
-"že nám pomůže pochopit, jak lidé získávají informace ze zvuku a vidění, a "
-"potenciálně pomoci navrhnout stroje, které mohou replikovat naše schopnosti "
-"(např. v rozpoznávání zvuku a počítačovém vidění) a pomoci zlepšit percepční"
-" schopnosti u lidí, jejichž sluch nebo zrak je poškozen."
+"I když to nemusí přímo prospět vám, tato studie může prospět společnosti "
+"tím, že nám pomůže pochopit, jak lidé získávají informace ze zvuku a vidění,"
+" a potenciálně pomoci navrhnout stroje, které mohou replikovat naše "
+"schopnosti (např. v rozpoznávání zvuku a počítačovém vidění) a pomoci "
+"zlepšit percepční schopnosti u lidí, jejichž sluch nebo zrak je poškozen."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
@@ -1971,9 +1977,10 @@ msgid ""
 "and the right to demand the deletion of data in cases of inadmissible data "
 "storage and the right to data portability."
 msgstr ""
-"Máte právo na informace o datech, která se vás týkají a jsou uložena v Max-"
-"Planck-Institutu, právo na opravu nepřesných dat a právo požadovat vymazání "
-"dat v případech nepřípustného ukládání dat a právo na přenositelnost dat."
+"Máte právo na informace týkající se dat, která se vás týkají a jsou uložena "
+"v Max-Planck-Institutu, právo na opravu nepřesných dat a právo požadovat "
+"vymazání dat v případech nepřípustného ukládání dat a právo na "
+"přenositelnost dat."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2012,8 +2019,8 @@ msgid ""
 "experiment as soon as the study is finished."
 msgstr ""
 "V souladu s praktikami otevřené vědy pro zlepšení znovupoužitelnosti a "
-"reprodukovatelnosti vědy bychom mohli chtít zveřejnit datový soubor "
-"shromážděný v tomto experimentu, jakmile bude studie dokončena."
+"reprodukovatelnosti vědy můžeme chtít zveřejnit datový soubor shromážděný v "
+"tomto experimentu, jakmile bude studie dokončena."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2024,7 +2031,7 @@ msgid ""
 "singing."
 msgstr ""
 "To zahrnuje audiovizuální záznamy, jako je záznam vašeho klepání prsty v "
-"reakci na zvuk nebo video, nebo záznam vašeho mluvení či zpěvu."
+"reakci na zvuk nebo video, nebo nahrávání vašeho mluvení či zpěvu."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2056,9 +2063,9 @@ msgid ""
 "identifiers in any way (we will not specify your name when presenting "
 "audio/video materials of yours)."
 msgstr ""
-"Vaše data však nebudou přímo spojena s vaším jménem nebo jinými "
-"identifikátory (nebudeme uvádět vaše jméno při prezentaci vašich audio/video"
-" materiálů)."
+"Vaše data však nebudou žádným způsobem přímo spojena s vaším jménem nebo "
+"jinými identifikátory (nebudeme uvádět vaše jméno při prezentaci vašich "
+"audio/video materiálů)."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2178,6 +2185,12 @@ msgstr "Používáte:"
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "Musíte použít režim inkognito, abyste se mohli zúčastnit experimentu."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
 msgid "Warning!"
 msgstr "Varování!"
 
@@ -2239,7 +2252,7 @@ msgstr "Objeví se nové okno. V horním rohu zkontrolujte ikonu inkognito"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You can also use a keyboard shortcut to open an Incognito window"
-msgstr "Můžete také použít klávesovou zkratku pro otevření okna inkognito"
+msgstr "Můžete také použít klávesovou zkratku k otevření okna inkognito"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2344,7 +2357,7 @@ msgstr "Na Macu: Stiskněte"
 #: psynet/templates/macros/consent.html
 #, fuzzy
 msgid "Do you understand and consent to these terms?"
-msgstr "Rozumíte těmto podmínkám a souhlasíte s nimi?"
+msgstr "Chápete a souhlasíte s těmito podmínkami?"
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2361,7 +2374,7 @@ msgstr "Ne, děkuji (vrátit úkol)"
 #: psynet/templates/macros/consent.html
 #, fuzzy
 msgid "Scroll up/down to see all text"
-msgstr "Posuňte nahoru/dolů pro zobrazení celého textu"
+msgstr "Posuňte nahoru/dolů, abyste viděli celý text"
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2447,7 +2460,7 @@ msgid ""
 " and nobody outside the group of researchers will be able to share or store "
 "them."
 msgstr ""
-"Všechny nahrávky, které během tohoto výzkumu získáme, budou uchovány v "
+"Všechny záznamy, které během tohoto výzkumu získáme, budou uchovány v "
 "důvěrnosti a nikdo mimo skupinu výzkumníků je nebude moci sdílet nebo "
 "ukládat."
 
@@ -2460,10 +2473,10 @@ msgid ""
 " materials (for example replicate a rhythm that you created, or continue a "
 "melody that you sang)."
 msgstr ""
-"Nicméně, v některých experimentech mohou vaše nahrávky vidět nebo slyšet "
-"jiní účastníci, aby je mohli hodnotit v různých atributech nebo vytvářet "
-"nové materiály (například replikovat rytmus, který jste vytvořili, nebo "
-"pokračovat v melodii, kterou jste zpívali)."
+"Nicméně, v některých experimentech mohou být vaše záznamy viděny nebo "
+"slyšeny jinými účastníky, aby je mohli hodnotit v různých atributech nebo "
+"vytvářet nové materiály (například replikovat rytmus, který jste vytvořili, "
+"nebo pokračovat v melodii, kterou jste zpívali)."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2472,7 +2485,7 @@ msgid ""
 "Your recordings will not be associated with your name or other identifiers "
 "in any way."
 msgstr ""
-"Vaše nahrávky nebudou spojeny s vaším jménem nebo jinými identifikátory."
+"Vaše záznamy nebudou spojeny s vaším jménem nebo jinými identifikátory."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2481,7 +2494,7 @@ msgid ""
 "Your recordings will not be used to derive your real identity, and they will"
 " not be made public."
 msgstr ""
-"Vaše nahrávky nebudou použity k odvození vaší skutečné identity a nebudou "
+"Vaše záznamy nebudou použity k odvození vaší skutečné identity a nebudou "
 "zveřejněny."
 
 #: psynet/templates/macros/consent.html
@@ -2491,8 +2504,8 @@ msgid ""
 "Raw audio/video will not be shared with collaborators (we will only share "
 "extracted data from recordings without personal identifiers)."
 msgstr ""
-"Surový zvuk/video nebude sdílen s spolupracovníky (budeme sdílet pouze "
-"extrahovaná data z nahrávek bez osobních identifikátorů)."
+"Surové audio/video nebude sdíleno s spolupracovníky (budeme sdílet pouze "
+"extrahovaná data ze záznamů bez osobních identifikátorů)."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2502,7 +2515,7 @@ msgid ""
 "identity, personal information could be leaked if you are not in an isolated"
 " environment."
 msgstr ""
-"Ačkoli výzkumníci nebudou používat vaše nahrávky k odvození vaší skutečné "
+"Ačkoli výzkumníci nebudou používat vaše záznamy k odvození vaší skutečné "
 "identity, osobní informace by mohly uniknout, pokud nejste v izolovaném "
 "prostředí."
 
@@ -2517,8 +2530,8 @@ msgid ""
 "microphone can capture something you say to another person."
 msgstr ""
 "Možná budete chtít zajistit, aby žádné zvuky/vizuální materiály ve vašem "
-"prostředí nemohly být spojeny s vašimi osobními informacemi. Kromě toho, při"
-" nahrávání může mikrofon nebo kamera zachytit neúmyslný zvuk nebo video, "
+"prostředí nemohly být spojeny s vašimi osobními informacemi. Navíc, při "
+"nahrávání může mikrofon nebo kamera zachytit neúmyslné audio nebo video, "
 "například kamera může zachytit jiného člena rodiny nebo mikrofon může "
 "zachytit něco, co říkáte jiné osobě."
 
@@ -2531,7 +2544,8 @@ msgid ""
 "that you don’t intend to be recorded is recorded."
 msgstr ""
 "Pokud se rozhodnete zúčastnit experimentu, je důležité a vaší odpovědností "
-"zajistit, aby při nahrávání zvuku a videa nebylo nahráno nic, co nechcete."
+"zajistit, aby při nahrávání audia a videa nebylo nahráno nic, co nechcete, "
+"aby bylo nahráno."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2550,7 +2564,7 @@ msgid ""
 "while recording audio or nudity while recording video."
 msgstr ""
 "Souhlasem s tímto experimentem se zavazujete nepoužívat vulgarismy při "
-"nahrávání zvuku nebo nahotu při nahrávání videa."
+"nahrávání audia nebo nahotu při nahrávání videa."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2582,7 +2596,7 @@ msgid ""
 "Audio-visual material will be shared only if your consent to an additional "
 "consent form as explained above."
 msgstr ""
-"Audio-vizuální materiály budou sdíleny pouze pokud souhlasíte s dodatečným "
+"Audio-vizuální materiál bude sdílen pouze pokud souhlasíte s dodatečným "
 "souhlasem, jak je vysvětleno výše."
 
 #: psynet/templates/macros/consent.html
@@ -2592,8 +2606,7 @@ msgid ""
 "During data collection, audio-visual material will be recorded on a separate"
 " server."
 msgstr ""
-"Během sběru dat budou audio-vizuální materiály nahrávány na samostatný "
-"server."
+"Během sběru dat bude audio-vizuální materiál nahráván na samostatný server."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2602,8 +2615,8 @@ msgid ""
 "Audio-visual material will not be indexed by personal information but will "
 "be linked to personal information by a key (such as “afasd12314asdasd”)."
 msgstr ""
-"Audio-vizuální materiály nebudou indexovány osobními informacemi, ale budou "
-"spojeny s osobními informacemi klíčem (například „afasd12314asdasd“)."
+"Audio-vizuální materiál nebude indexován osobními informacemi, ale bude "
+"spojen s osobními informacemi klíčem (například „afasd12314asdasd“)."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2638,14 +2651,14 @@ msgid ""
 " part in this research."
 msgstr ""
 "Souhlasem s účastí potvrzujete, že je vám 18 let nebo více, přečetli jste si"
-" tento souhlasný formulář, souhlasíte s jeho obsahem a souhlasíte s účastí v"
-" tomto výzkumu."
+" tento souhlasný formulář, souhlasíte s jeho obsahem a souhlasíte s účastí "
+"na tomto výzkumu."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
 msgctxt "consent-consent"
 msgid "If you do not wish to consent, please close this page."
-msgstr "Pokud nechcete souhlasit, prosím zavřete tuto stránku."
+msgstr "Pokud si nepřejete souhlasit, prosím zavřete tuto stránku."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2671,8 +2684,8 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"Parametry <strong>decay</strong> určují množství vyhlazení, které se "
-"aplikuje na signál, a mají jednotky sekund."
+"<strong>Parametry útlumu</strong> určují míru vyhlazení, které se aplikuje "
+"na signál, a mají jednotky sekund."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2681,7 +2694,7 @@ msgid ""
 "A high decay parameter means that the signal takes a long time to decay "
 "(i.e. high smoothing)."
 msgstr ""
-"Vysoký parametr útlumu znamená, že signál trvá dlouho, než se útlumí (tj. "
+"Vysoký parametr útlumu znamená, že signál trvá dlouho, než se utlumí (tj. "
 "vysoké vyhlazení)."
 
 #: psynet/templates/macros/control.html
@@ -2692,7 +2705,7 @@ msgid ""
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
 "Existují tři parametry útlumu: jeden pro zobrazený audio metr, jeden pro "
-"detektor 'příliš vysoký' a jeden pro detektor 'příliš nízký'."
+"detektor 'příliš vysokého' a jeden pro detektor 'příliš nízkého'."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2701,8 +2714,8 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Parametry <strong>threshold</strong> určují bod, ve kterém je hlasitost "
-"určena jako 'příliš vysoká' nebo 'příliš nízká'."
+"<strong>Parametry prahu</strong> určují bod, ve kterém je hlasitost "
+"považována za 'příliš vysokou' nebo 'příliš nízkou'."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2711,8 +2724,8 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"Parametry <strong>grace</strong> určují, jak dlouho musí být hlasitost mimo "
-"příslušný práh, aby byla spuštěna varovná zpráva."
+"<strong>Parametry milosti</strong> určují, jak dlouho musí být hlasitost "
+"mimo příslušný práh, aby byla spuštěna varovná zpráva."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2721,7 +2734,7 @@ msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
-"Parametry <strong>message duration</strong> určují, jak dlouho jsou varovné "
+"<strong>Parametry trvání zprávy</strong> určují, jak dlouho jsou varovné "
 "zprávy zobrazeny."
 
 #: psynet/templates/macros/control.html
@@ -2782,8 +2795,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Možná budete moci experiment přerušit pomocí tlačítka <strong>Abort "
-"experiment</strong> <strong>on the MTurk ad page</strong>."
+"Možná budete moci experiment přerušit pomocí tlačítka <strong>Přerušit "
+"experiment</strong> <strong>na stránce inzerátu MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2792,8 +2805,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Jakmile je přerušeno, není třeba nás kontaktovat kvůli obdržení kompenzace; "
-"ta by vám měla být automaticky přidělena přes MTurk několik minut poté."
+"Po přerušení není třeba nás kontaktovat kvůli kompenzaci; ta by vám měla být"
+" automaticky přidělena prostřednictvím MTurk během několika minut."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -2856,7 +2869,7 @@ msgstr "Odkaz na aktuální webovou stránku;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Vaše Worker ID;"
+msgstr "Vaše ID pracovníka;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -4560,7 +4573,7 @@ msgstr "Katalánština"
 #, fuzzy
 msgctxt "language_name"
 msgid "Central Khmer"
-msgstr "Khmerština"
+msgstr "Střední Khmerština"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5070,7 +5083,7 @@ msgstr "Mongolština"
 #, fuzzy
 msgctxt "language_name"
 msgid "Nauru"
-msgstr "Nauruština"
+msgstr "Nauru"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5136,7 +5149,7 @@ msgstr "Okcitánština"
 #, fuzzy
 msgctxt "language_name"
 msgid "Ojibwa"
-msgstr "Ojibwe"
+msgstr "Ojibwština"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5262,7 +5275,7 @@ msgstr "Srbština"
 #, fuzzy
 msgctxt "language_name"
 msgid "Serbo-Croatian"
-msgstr "Srbština"
+msgstr "Srbchorvatština"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5352,7 +5365,7 @@ msgstr "Švédština"
 #, fuzzy
 msgctxt "language_name"
 msgid "Taiwanese"
-msgstr "Tchajwanština"
+msgstr "Tchajwanská čínština"
 
 #: psynet/translation/languages.py
 #, fuzzy

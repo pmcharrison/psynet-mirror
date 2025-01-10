@@ -422,22 +422,6 @@ msgid "Please also quote the following information:"
 msgstr ""
 
 #: psynet/experiment.py
-msgid "Error type"
-msgstr ""
-
-#: psynet/experiment.py
-msgid "HIT ID"
-msgstr ""
-
-#: psynet/experiment.py
-msgid "Assignment ID"
-msgstr ""
-
-#: psynet/experiment.py
-msgid "Worker ID"
-msgstr ""
-
-#: psynet/experiment.py
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
 msgstr ""
