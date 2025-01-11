@@ -19,7 +19,7 @@ from .utils import (
     call_function,
     call_function_with_context,
     get_logger,
-    get_translator_with_context,
+    get_translator,
     is_valid_html5_id,
     linspace,
 )
@@ -910,7 +910,7 @@ class CheckboxControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         if self.force_selection and len(response.answer) == 0:
             return FailedValidation(
                 _p("validation", "You need to check at least one answer!")
@@ -991,7 +991,7 @@ class DropdownControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         if self.force_selection and response.answer == "":
             return FailedValidation(_p("validation", "You need to select an answer!"))
         return None
@@ -1264,7 +1264,7 @@ class RadioButtonControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         if self.force_selection and response.answer is None:
             return FailedValidation(_p("validation", "You need to select an answer!"))
         return None
@@ -1312,7 +1312,7 @@ class NumberControl(Control):
         return {"width": self.width, "text_align": self.text_align}
 
     def validate(self, response, **kwargs):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         try:
             float(response.answer)
         except ValueError:

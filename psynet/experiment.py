@@ -98,7 +98,6 @@ from .utils import (
     get_arg_from_dict,
     get_logger,
     get_translator,
-    get_translator_with_context,
     log_time_taken,
     pretty_log_dict,
     render_template_with_translations,
@@ -929,7 +928,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Render HTML for error page."""
         from flask import make_response, request
 
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         if error_text is None:
             error_text = _p(
                 "error-msg",
@@ -982,7 +981,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         external_submit_url,
     ):
         _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
 
         if hasattr(self.recruiter, "error_page_content"):
             return self.recruiter.error_page_content(
@@ -1017,7 +1016,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return ""
 
     def error_page_content__prolific(self):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
 
         html = tags.div()
         with html:

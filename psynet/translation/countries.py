@@ -7,9 +7,9 @@ def get_known_countries(locale=None):
         sorted([(lang.alpha_2, lang.name) for lang in pycountry.countries
             if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
     """
-    from psynet.utils import get_translator_with_context
+    from psynet.utils import get_translator
 
-    _p = get_translator_with_context()
+    _p = get_translator(context=True)
     return [
         ("AF", _p("country_name", "Afghanistan")),
         ("AL", _p("country_name", "Albania")),

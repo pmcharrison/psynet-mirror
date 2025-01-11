@@ -36,7 +36,7 @@ from .timeline import (
 )
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker
-from .utils import get_logger, get_translator_with_context
+from .utils import get_logger, get_translator
 
 logger = get_logger()
 
@@ -1227,7 +1227,7 @@ class AttentionTest(Module):
 
 class ColorBlindnessTrial(StaticTrial):
     def show_trial(self, experiment, participant):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         return ModularPage(
             "color_blindness_trial",
             ImagePrompt(
@@ -1309,7 +1309,7 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     @property
     def introduction(self):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
 
         instructions = [
             _p(

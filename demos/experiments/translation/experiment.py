@@ -5,12 +5,12 @@ from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.utils import get_logger, get_translator, get_translator_with_context
+from psynet.utils import get_logger, get_translator
 
 logger = get_logger()
 
 _ = get_translator()
-_p = get_translator_with_context()
+_p = get_translator(context=True)
 
 
 class Exp(psynet.experiment.Experiment):

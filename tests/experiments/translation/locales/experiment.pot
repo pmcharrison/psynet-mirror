@@ -51,3 +51,11 @@ msgstr ""
 #, python-brace-format
 msgid "Great, I like {PET} too!"
 msgstr ""
+
+#: experiment.py
+msgid "Translate me please"
+msgstr ""
+
+#: experiment.py
+msgid "Translate me next"
+msgstr ""

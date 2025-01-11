@@ -188,9 +188,9 @@ To do this you can use ``_p``:
 
 .. code-block:: python
 
-    from psynet.utils import get_translator_with_context
+    from psynet.utils import get_translator
 
-    _p = get_translator_with_context()
+    _p = get_translator(context=True)
 
     bank_of_river = _p("river", "bank")
     financial_institution = _p("financial", "bank")

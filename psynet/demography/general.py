@@ -13,7 +13,6 @@ from psynet.utils import (
     get_locale,
     get_logger,
     get_translator,
-    get_translator_with_context,
 )
 
 logger = get_logger()
@@ -131,7 +130,7 @@ class Gender(ModularPage):
         self,
         label="gender",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         prompt = _p("gender", "How do you identify yourself?")
         self.label = label
         self.prompt = prompt
@@ -164,7 +163,7 @@ class Age(ModularPage):
         self,
         label="age",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p("age", "What is your age?")
         self.time_estimate = 5
@@ -177,7 +176,7 @@ class Age(ModularPage):
         )
 
     def validate(self, response, **kwargs):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         answer = response.answer
         error_msg = (
             _p("age", "You need to provide your age as an integer between 0 and 120!")
@@ -197,7 +196,7 @@ class Age(ModularPage):
 class CountryDropdown(ModularPage):
     def __init__(self, label):
         self.label = label
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.time_estimate = 5
         locale = get_locale()
         country_dict = get_country_dict(locale)
@@ -220,7 +219,7 @@ class CountryDropdown(ModularPage):
         raise NotImplementedError()
 
     def validate(self, response, **kwargs):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         if self.control.force_selection and response.answer == "":
             return FailedValidation(
                 _p("country-select", "You need to select a country!")
@@ -236,7 +235,7 @@ class CountryOfBirth(CountryDropdown):
         super().__init__(label)
 
     def get_prompt(self):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         return _p("country-select", "What country are you from?")
 
 
@@ -248,7 +247,7 @@ class CountryOfResidence(CountryDropdown):
         super().__init__(label)
 
     def get_prompt(self):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         return _p("country-select", "What is your current country of residence?")
 
 
@@ -257,7 +256,7 @@ class FormalEducation(ModularPage):
         self,
         label="formal_education",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "formal-education", "What is your highest level of formal education?"
@@ -297,7 +296,7 @@ class MotherTongue(ModularPage):
         label="mother_tongue",
         # TODO Change back to plural (add "(s)") once multi-select is implemented.
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "language-select",
@@ -322,7 +321,7 @@ class MotherTongue(ModularPage):
         )
 
     def validate(self, response, **kwargs):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         if self.control.force_selection and response.answer == "":
             return FailedValidation(
                 _p("language-select", "You need to select a language!")
@@ -336,7 +335,7 @@ class MoreThanOneLanguage(ModularPage):
         label="more_than_one_language",
     ):
         _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p("language-select", "Do you speak more than one language?")
         self.time_estimate = 5
@@ -360,7 +359,7 @@ class LanguagesInOrderOfProficiency(ModularPage):
         self,
         label="languages_in_order_of_proficiency",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "language-select",
@@ -376,7 +375,7 @@ class LanguagesInOrderOfProficiency(ModularPage):
         )
 
     def validate(self, response, **kwargs):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         if not response.answer != "":
             return FailedValidation(
                 _p("language-select", "Please list at least one language!")
@@ -390,7 +389,7 @@ class YearsOfFormalTraining(ModularPage):
         self,
         label="years_of_formal_training",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "music",
@@ -411,7 +410,7 @@ class HoursOfDailyMusicListening(ModularPage):
         self,
         label="hours_of_daily_music_listening",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "music", "On average, how many hours do you listen to music daily?"
@@ -431,7 +430,7 @@ class MoneyFromPlayingMusic(ModularPage):
         self,
         label="money_from_playing_music",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p("music", "Do you make money from playing music?")
         self.time_estimate = 5
@@ -457,7 +456,7 @@ class HearingLoss(ModularPage):
         label="hearing_loss",
     ):
         _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "music", "Do you have hearing loss or any other hearing issues?"
@@ -484,7 +483,7 @@ class DanceSociallyOrProfessionally(ModularPage):
         self,
         label="dance_socially_or_professionally",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p("dance", "Do you dance socially or professionally?")
         self.time_estimate = 5
@@ -512,7 +511,7 @@ class LastTimeDanced(ModularPage):
         self,
         label="last_time_danced",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "dance",
@@ -555,7 +554,7 @@ class SpeechLanguageTherapy(ModularPage):
         label="speech_language_therapy",
     ):
         _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "speech-disorder", "Did you get speech-language therapy as a child?"
@@ -582,7 +581,7 @@ class DiagnosedWithDyslexia(ModularPage):
         label="diagnosed_with_dyslexia",
     ):
         _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "speech-disorder", "Have you ever been diagnosed with dyslexia?"
@@ -610,7 +609,7 @@ class HouseholdIncomePerYear(ModularPage):
         label="household_income_per_year",
         currency="USD",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p("income", "What is your total household income per year?")
         self.time_estimate = 5
@@ -661,7 +660,7 @@ class LikedExperiment(ModularPage):
         self,
         label="liked_experiment",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p("experiment-feedback", "Did you like the experiment?")
         self.time_estimate = 5
@@ -681,7 +680,7 @@ class FoundExperimentDifficult(ModularPage):
         self,
         label="find_experiment_difficult",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = _p(
             "experiment-feedback", "Did you find the experiment difficult?"
@@ -702,7 +701,7 @@ class EncounteredTechnicalProblems(ModularPage):
         self,
         label="encountered_technical_problems",
     ):
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
         self.label = label
         self.prompt = (
             _p(

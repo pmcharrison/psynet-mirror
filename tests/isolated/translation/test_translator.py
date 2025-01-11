@@ -113,6 +113,7 @@ def preprocess_translation(text: str) -> str:
         text.lower()
         .strip()
         .replace(" !", "!")
+        .replace(" ?", "?")
         # Add any future normalization rules here
     )
 

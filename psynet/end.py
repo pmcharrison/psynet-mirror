@@ -12,7 +12,7 @@ from psynet.timeline import (
     TimelineLogic,
     join,
 )
-from psynet.utils import get_translator, get_translator_with_context
+from psynet.utils import get_translator
 
 
 class EndLogic(EltCollection):
@@ -78,8 +78,7 @@ class EndLogic(EltCollection):
         from psynet.utils import get_config
 
         config = get_config()
-        _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
 
         # Todo - translation should not have HTML hard-coded.
         # Fix that and then refactor using dominate package.
@@ -108,7 +107,7 @@ class SuccessfulEndLogic(EndLogic):
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
         _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
 
         html = tags.span()
 
@@ -151,7 +150,7 @@ class UnsuccessfulEndLogic(EndLogic):
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
         _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
 
         html = tags.span()
 
@@ -194,7 +193,7 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
         _ = get_translator()
-        _p = get_translator_with_context()
+        _p = get_translator(context=True)
 
         html = tags.span()
 
