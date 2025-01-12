@@ -2811,7 +2811,7 @@ def translate(locales, force):
 
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    from psynet.translation.translation import translate_experiment, translate_package
+    from psynet.translation.translate import translate_experiment, translate_package
 
     if in_python_package():
         click.echo(

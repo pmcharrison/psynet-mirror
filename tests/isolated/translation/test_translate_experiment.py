@@ -4,7 +4,7 @@ import polib
 import pytest
 
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.translation.translation import translate_experiment
+from psynet.translation.translate import translate_experiment
 
 po_path = os.path.join("locales", "fr", "LC_MESSAGES", "experiment.po")
 

@@ -1,6 +1,6 @@
 import pytest
 
-from psynet.translation.translation import check_locales
+from psynet.translation.translate import check_locales
 
 
 def test_check_languages():

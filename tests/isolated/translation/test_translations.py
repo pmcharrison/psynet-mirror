@@ -1,7 +1,7 @@
 import pytest
 
 from psynet.translation.check import assert_variable_names_match
-from psynet.translation.translation import check_translations
+from psynet.translation.translate import check_translations
 
 
 def make_entry(msgid="", msgstr=""):
