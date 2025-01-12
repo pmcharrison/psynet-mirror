@@ -8,6 +8,7 @@ from datetime import datetime
 from functools import cached_property, reduce
 from importlib import resources
 from statistics import median
+from types import FunctionType
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
 from dallinger import db
@@ -1830,7 +1831,7 @@ def is_list_of(x, what):
 def join(*args):
     from .asset import AssetSpecification
 
-    valid_classes = (AssetSpecification, Elt, EltCollection)
+    valid_classes = (AssetSpecification, Elt, EltCollection, FunctionType)
 
     for i, arg in enumerate(args):
         if not (
@@ -1846,7 +1847,8 @@ def join(*args):
     if len(args) == 0:
         return []
     elif len(args) == 1:
-        if isinstance(args[0], Elt):
+        # join called with a single argument
+        if isinstance(args[0], (Elt, FunctionType)):
             return [args[0]]
         elif isinstance(args[0], EltCollection):
             return args[0].resolve()
@@ -1855,6 +1857,10 @@ def join(*args):
     else:
 
         def f(x, y):
+            if isinstance(x, FunctionType):
+                x = CodeBlock(x)
+            if isinstance(y, FunctionType):
+                y = CodeBlock(y)
             if isinstance(x, EltCollection):
                 x = x.resolve()
             if isinstance(y, EltCollection):
