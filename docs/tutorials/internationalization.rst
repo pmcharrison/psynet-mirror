@@ -117,7 +117,7 @@ Each locale's translation will be stored in a file of the form ``locales/<iso_co
 PsyNet currently supports two translators:
 
 - OpenAI ChatGPT (``chat_gpt``, which is PsyNet's default) and
-- Google Translator (``google_translator``)
+- Google Translator (``google_translate``)
 
 You can set the default translator in your ``config.txt`` or ``.dallingerconfig`` with the following line:
 
@@ -135,6 +135,14 @@ To use OpenAI ChatGPT, you need to have an OpenAI API key. You can set it in you
     [Translator]
     openai_api_key = <your_openai_api_key>
 
+
+Also you need to install the ``openai`` package by running:
+
+.. code-block:: console
+
+    pip install openai
+
+
 Google Translator
 -----------------
 To use Google Translator, you need to do the following steps
@@ -148,6 +156,13 @@ To use Google Translator, you need to do the following steps
 
     [Translator]
     google_translate_json_path = <path_to_your_json_file>
+
+
+Also you need to install the ``google-cloud-translate`` package by running:
+
+.. code-block:: console
+
+    pip install google-cloud-translate==2.0.1
 
 The translation process
 ----------------------
