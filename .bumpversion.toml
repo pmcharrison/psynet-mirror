@@ -37,4 +37,3 @@ filename = "pyproject.toml"
 
 [[tool.bumpversion.files]]
 filename = "psynet/version.py"
-
