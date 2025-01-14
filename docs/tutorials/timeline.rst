@@ -169,6 +169,19 @@ way to page makers, except they don't return an output. For example:
         lambda participant: participant.var.set("score", 10)
     )
 
+Alternatively, you can just pass a function directly to the ``Timeline`` constructor,
+and ``psynet`` will automatically convert it to a ``CodeBlock``.
+
+::
+
+    from psynet.timeline import Timeline
+
+    Timeline(
+        NoConsent(),
+        lambda participant: participant.var.set("score", 10),
+        SuccessfulEndPage(),
+    )
+
 See :class:`~psynet.timeline.CodeBlock` documentation for more details.
 
 Control logic
