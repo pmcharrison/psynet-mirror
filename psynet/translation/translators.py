@@ -2,6 +2,8 @@ import json
 import os.path
 from typing import List
 
+import tenacity
+
 from psynet.utils import get_config, get_descendent_class_by_name, get_language_dict
 
 
@@ -293,6 +295,11 @@ class ChatGptTranslator(Translator):
 
         return prompt
 
+    @tenacity.retry(
+        wait=tenacity.wait_exponential(multiplier=1, min=2, max=8),
+        stop=tenacity.stop_after_attempt(5),
+        reraise=True,
+    )
     def _translate_texts(
         self,
         texts: List[str],
