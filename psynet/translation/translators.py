@@ -15,6 +15,7 @@ class Translator:
         source_lang: str,
         target_lang: str,
         file_path: str = None,
+        n_retries: int = 3,
     ):
         """Translate a list of texts from source language to target language.
 
@@ -28,6 +29,8 @@ class Translator:
             The target language code
         file_path : str, optional
             The path to the file being translated, by default None
+        n_retries : int, optional
+            The number of times to retry the translation request, by default 3
 
         Returns
         -------
@@ -47,9 +50,17 @@ class Translator:
                 for text, codebook in zip(translated_encoded_texts, codebooks)
             ]
         else:
-            translated_texts = self._translate_texts(
-                texts, source_lang, target_lang, file_path
-            )
+            for i in range(n_retries):
+                try:
+                    translated_texts = self._translate_texts(
+                        texts, source_lang, target_lang, file_path
+                    )
+                    break
+                except Exception as e:
+                    if i == n_retries - 1:
+                        raise e
+                    else:
+                        print(f"Retrying translation ({i + 1}/{n_retries})... {e}")
 
         return [self.fix_translation(text) for text in translated_texts]
 
@@ -329,9 +340,15 @@ class ChatGptTranslator(Translator):
         try:
             return json.loads(content)
         except json.JSONDecodeError as e:
-            raise InvalidTranslationError(
-                f"ChatGPT did not return a proper JSON string: {content}"
-            ) from e
+            msg = f"ChatGPT did not return a proper JSON string: {content}"
+            if temperature == 1:
+                msg += (
+                    "This may be due to the high temperature setting. "
+                    "Please try again with a lower temperature setting by setting `openai_default_temperature` in your "
+                    ".dallingerconfig file."
+                    "The default temperature of GPT4 is 0.7."
+                )
+            raise InvalidTranslationError(msg) from e
 
 
 class DefaultTranslator(Translator):
