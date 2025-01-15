@@ -1407,8 +1407,9 @@ def get_package_name_from_setup():
         setup_contents = f.read()
     setup_ast = ast.parse(setup_contents)
     for node in ast.walk(setup_ast):
-        if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "setup":
-            for keyword in node.keywords:
+        keywords = getattr(node, "keywords", None)
+        if isinstance(keywords, list) and len(keywords) > 0:
+            for keyword in keywords:
                 if keyword.arg == "name":
                     return ast.literal_eval(keyword.value)
     return None
