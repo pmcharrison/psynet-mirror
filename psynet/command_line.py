@@ -22,8 +22,9 @@ import psycopg2
 from dallinger import db
 from dallinger.command_line.docker_ssh import (
     CONFIGURED_HOSTS,
+    option_open_recruitment,
+    option_server,
     remote_postgres,
-    server_option,
 )
 from dallinger.command_line.utils import verify_id
 from dallinger.config import get_config
@@ -203,7 +204,7 @@ def _validate_location(ctx, param, value):
     default=None,
     help="Name of the experiment app (required for non-local deployments)",
 )
-@server_option
+@option_server
 def experiment_variables(location, app, server):
     with db_connection(location, app, server) as connection:
         return _experiment_variables(connection, echo=True)
@@ -654,6 +655,7 @@ def _pre_launch(
     heroku=False,
     server=None,
     app=None,
+    open_recruitment=False,
 ):
     log("Preparing for launch...")
 
@@ -665,6 +667,7 @@ def _pre_launch(
         mode=mode,
         is_local_deployment=local_,
         is_ssh_deployment=ssh,
+        open_recruitment=open_recruitment,
     )
 
     if ssh:
@@ -734,15 +737,22 @@ def deploy():
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
 @click.pass_context
-def deploy__heroku(ctx, app, archive, docker):
+@option_open_recruitment
+def deploy__heroku(ctx, app, archive, docker, open_recruitment):
     if docker:
-        _deploy__docker_heroku(ctx, app, archive)
+        _deploy__docker_heroku(ctx, app, archive, open_recruitment)
 
     try:
         from dallinger.command_line import deploy as dallinger_deploy
 
         _pre_launch(
-            ctx, mode="live", archive=archive, local_=False, heroku=True, app=app
+            ctx,
+            mode="live",
+            archive=archive,
+            local_=False,
+            heroku=True,
+            app=app,
+            open_recruitment=False,
         )
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
         result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=None)
@@ -752,7 +762,7 @@ def deploy__heroku(ctx, app, archive, docker):
         reset_console()
 
 
-def _deploy__docker_heroku(ctx, app, archive):
+def _deploy__docker_heroku(ctx, app, archive, open_recruitment):
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
 
@@ -770,6 +780,7 @@ def _deploy__docker_heroku(ctx, app, archive):
             docker=True,
             heroku=True,
             app=app,
+            open_recruitment=open_recruitment,
         )
         result = ctx.invoke(dallinger_deploy, verbose=True, app=app)
         _post_deploy(result)
@@ -781,13 +792,14 @@ def _deploy__docker_heroku(ctx, app, archive):
 @deploy.command("ssh")
 @click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
-@server_option
+@option_server
 @click.option(
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
 )
+@option_open_recruitment
 @click.pass_context
-def deploy__docker_ssh(ctx, app, archive, server, dns_host):
+def deploy__docker_ssh(ctx, app, archive, dns_host, open_recruitment, server):
     try:
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
@@ -802,6 +814,7 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
             docker=True,
             server=server,
             app=app,
+            open_recruitment=open_recruitment,
         )
 
         from dallinger.command_line.docker_ssh import (
@@ -811,12 +824,11 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
             dallinger_docker_ssh_deploy,
-            mode="sandbox",  # TODO - but does this even matter?
             server=server,
             dns_host=dns_host,
             app_name=app,
             archive_path=None,
-            # config_options -- this could be useful
+            open_recruitment=open_recruitment,
         )
 
         _post_deploy(result)
@@ -1105,7 +1117,7 @@ def debug__docker_heroku(ctx, app, archive):
     "--app", callback=verify_id, required=True, help="Name of the experiment app."
 )
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
-@server_option
+@option_server
 @click.option(
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
@@ -1116,7 +1128,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
     Debug the experiment on a remote server via SSH.
     """
     try:
-        from dallinger.command_line.docker_ssh import deploy
+        from dallinger.command_line.docker_ssh import sandbox
 
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
@@ -1133,8 +1145,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
 
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
-            deploy,
-            mode="sandbox",
+            sandbox,
             server=server,
             dns_host=dns_host,
             app_name=app,
@@ -1629,7 +1640,7 @@ def export__heroku(ctx, app, **kwargs):
     required=True,
     help="Name of the app to export",
 )
-@server_option
+@option_server
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
@@ -2395,7 +2406,7 @@ def _destroy(
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
 @click.argument("apps", required=False, nargs=-1)
-@server_option
+@option_server
 @click.option(
     "--expire-hit",
     flag_value=True,
@@ -2511,7 +2522,7 @@ def apps():
 
 
 @apps.command("ssh")
-@server_option
+@option_server
 @click.pass_context
 def apps__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import apps
@@ -2527,7 +2538,7 @@ def stats():
 
 
 @stats.command("ssh")
-@server_option
+@option_server
 @click.pass_context
 def stats__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import stats
@@ -2634,7 +2645,7 @@ def test__local(
 
 @test.command("ssh")
 @click.option("--app", required=True, help="Name of the experiment app.")
-@server_option
+@option_server
 @_test_options["n_bots"]
 @_test_options["parallel"]
 @_test_options["serial"]
