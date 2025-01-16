@@ -28,7 +28,7 @@
 - Removed obsolete _deploy.sh_ files in demos/tests (author: Frank Höger, reviewer: Peter Harrison).
 
 ## Updated
-- Updated Dallinger to version 11.0.0. Read about changes in Dallinger, e.g. the addition of new config variables `prolific_workspace` and `prolific_project` to support declaration of Prolific workspaces and project names: https://github.com/Dallinger/Dallinger/releases/tag/v11.0.0 (author: Frank Höger, reviewer: Peter Harrison).
+- Updated Dallinger to version 11.0.1. Read about changes in Dallinger, e.g. the addition of new config variables `prolific_workspace` and `prolific_project` to support declaration of Prolific workspaces and project names: https://github.com/Dallinger/Dallinger/releases/tag/v11.0.1 (author: Frank Höger, reviewer: Peter Harrison).
 
 #### Documentation changes
 - Added new section for setting up a physical server (author: Peter Harrison).
