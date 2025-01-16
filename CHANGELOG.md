@@ -1,5 +1,38 @@
 # CHANGELOG
 
+# [11.9.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.9.0) Release 2025-01-16
+
+## Fixed
+- Fixed construction of download source URL in `_export_source_code` (author: Peter Harrison).
+- Removed `client_ip_address` from anonymous data export (author: Frank Höger, reviewer: Peter Harrison).
+
+## Added
+- Added support for depositing folder assets to SSH deployments/debugging (author: Frank Höger, reviewer: Peter Harrison).
+- Allow release candidate tags in requirements.txt files (author: Frank Höger, reviewer: Peter Harrison).
+- It is now possible to provide functions directly to the timeline and they will be interpreted as code blocks (author: Peter Harrison, reviewer: Frank Höger).
+- Added `--open-recruitment` flag for `psynet deploy ssh|heroku` deployments (author: Frank Höger, reviewer: Peter Harrison).
+
+## Changed
+- Improved deploy logic (author: Frank Höger, reviewer: Peter Harrison):
+  - Renamed config variable `activate_recruiter_on_start` to `open_recruitment`
+  - Allow config variable `open_recruitment=False` to be overridden by using the `--open-recruitment` flag. Specifically, following logic now applies with respect to recruiters:
+    - `psynet deploy ssh` (Prolific): creates a draft study but will wait for you to launch it manually from the Prolific web GUI
+    - `psynet deploy ssh` (MTurk): fails and tells you to add the `--open-recruitment` flag
+    - `psynet deploy ssh` (Lucid): creates a draft Lucid survey
+    - `psynet deploy ssh --open-recruitment` (Prolific): creates and publishes the Prolific study
+    - `psynet deploy ssh --open-recruitment` (MTurk): creates and publishes the MTurk HIT
+    - `psynet deploy ssh --open-recruitment` (Lucid): creates a live Lucid survey
+- Renamed `server_option` to `option_server` in _dallinger.command_line.docker_ssh_ for Dallinger 11 compatibility (author: Frank Höger, reviewer: Peter Harrison).
+
+## Removed
+- Removed obsolete _deploy.sh_ files in demos/tests (author: Frank Höger, reviewer: Peter Harrison).
+
+## Updated
+- Updated Dallinger to version 11.0.0. Read about changes in Dallinger, e.g. the addition of new config variables `prolific_workspace` and `prolific_project` to support declaration of Prolific workspaces and project names: https://github.com/Dallinger/Dallinger/releases/tag/v11.0.0 (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Documentation changes
+- Added new section for setting up a physical server (author: Peter Harrison).
+
 # [11.8.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.8.0) Release 2024-11-05
 
 ## Fixed
