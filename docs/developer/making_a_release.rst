@@ -106,11 +106,11 @@ Commit the changes with
 
 .. note::
 
-    Install/Upgrade the `twine` package with
+    Install/Upgrade the `twine` and `pkginfo` packages with
 
 .. code-block:: console
 
-    ``python -m pip install --upgrade twine``
+    ``python -m pip install --upgrade twine pkginfo``
 
 .. code-block:: console
 
