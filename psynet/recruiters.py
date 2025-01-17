@@ -27,7 +27,7 @@ from .data import SQLBase, SQLMixin, register_table
 from .lucid import get_lucid_service
 from .participant import Participant
 from .timeline import Response, TimelineLogic
-from .utils import get_logger, render_template_with_translations
+from .utils import get_logger, get_translator, render_template_with_translations
 
 logger = get_logger()
 
@@ -776,7 +776,9 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             assignment_id = assignment_id
         return {"rid": assignment_id, "ris": ris}
 
-    def error_page_content(self, _, _p, assignment_id, external_submit_url):
+    def error_page_content(self, assignment_id, external_submit_url):
+        _p = get_translator(context=True)
+
         if external_submit_url is None:
             external_submit_url = self.external_submit_url(assignment_id=assignment_id)
 

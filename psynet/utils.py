@@ -14,8 +14,8 @@ import sys
 import time
 from collections import OrderedDict
 from datetime import datetime
-from functools import cache, lru_cache, reduce, wraps
-from os.path import abspath, dirname, exists
+from functools import lru_cache, reduce, wraps
+from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
 from typing import Type, Union
@@ -25,12 +25,18 @@ import click
 import html2text
 import jsonpickle
 import pexpect
+import tomlkit
 from _hashlib import HASH as Hash
 from babel.support import Translations
 from dallinger.config import experiment_available
+from dallinger.recruiters import _descendent_classes
 from flask import url_for
-from flask.globals import current_app, request
+from flask.globals import current_app
 from flask.templating import Environment, _render
+
+from psynet.translation.utils import load_po
+
+package_root = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_logger():
@@ -38,7 +44,6 @@ def get_logger():
 
 
 logger = get_logger()
-LOCALES_DIR = join_path(abspath(dirname(__file__)), "locales")
 
 
 class NoArgumentProvided:
@@ -186,20 +191,6 @@ def get_from_config(key):
 
 def get_args(f):
     return [str(x) for x in inspect.signature(f).parameters]
-
-
-def check_function_args(f, args, need_all=True):
-    if not callable(f):
-        raise TypeError("<f> is not a function (but it should be).")
-    actual = [str(x) for x in inspect.signature(f).parameters]
-    if need_all:
-        if actual != list(args):
-            raise ValueError(f"Invalid argument list: {actual}")
-    else:
-        for a in actual:
-            if a not in args:
-                raise ValueError(f"Invalid argument: {a}")
-    return True
 
 
 def get_object_from_module(module_name: str, object_name: str):
@@ -566,22 +557,6 @@ def require_requirements_txt(f):
     return wrapper
 
 
-def get_language():
-    """
-    Returns the language selected in config.txt.
-    Throws a KeyError if no such language is specified.
-
-    Returns
-    -------
-
-    A string, for example "en".
-    """
-    config = get_config()
-    if not config.ready:
-        config.load()
-    return config.get("language", "en")
-
-
 def _render_with_translations(
     locale, template_name=None, template_string=None, all_template_args=None
 ):
@@ -597,10 +572,13 @@ def _render_with_translations(
         None
     ) == 1, "Only one of template_name or template_string should be provided."
 
+    if locale is None:
+        locale = get_locale()
+
     app = current_app._get_current_object()  # type: ignore[attr-defined]
-    gettext, pgettext = get_translator(locale)
-    gettext_functions = [gettext, pgettext, url_for]
-    gettext_abbr = {_f.__name__: _f for _f in gettext_functions}
+    gettext = get_translator()
+    pgettext = get_translator(context=True)
+    gettext_abbr = {"gettext": gettext, "pgettext": pgettext, "url_for": url_for}
     translation = Translations.load("translations", [locale])
 
     environment = Environment(
@@ -629,717 +607,261 @@ def render_string_with_translations(template_string, locale=None, **kwargs):
     )
 
 
-@cache
-def get_translator(
-    locale=None,
-    module="psynet",
-    locales_dir=LOCALES_DIR,
-):
-    from psynet.internationalization import compile_mo
+def get_descendent_class_by_name(parent_class, name):
+    """Attempt to return a subclass by name.
 
-    if locale is None:
-        try:
-            GET = request.args.to_dict()
-            possible_keys = ["assignmentId", "workerId", "participantId"]
-            from psynet.participant import Participant
+    Actual class names and known nicknames are both supported.
+    """
+    by_name = {}
+    for cls in _descendent_classes(parent_class):
+        ids = [cls.nickname, cls.__name__]
+        for id_ in ids:
+            previous_registered_cls = by_name.get(id_, None)
+            if previous_registered_cls:
+                should_overwrite = issubclass(cls, previous_registered_cls)
+            else:
+                should_overwrite = True
+            if should_overwrite:
+                by_name[id_] = cls
+    klass = by_name.get(name)
+    assert (
+        klass is not None
+    ), f"Could not find class {name} in subclasses of {parent_class}"
+    return klass
 
-            if any([key in GET for key in possible_keys]):
-                if "assignmentId" in GET:
-                    participant = Participant.query.filter_by(
-                        assignment_id=GET["assignment_id"]
-                    ).one()
-                elif "workerId" in GET:
-                    participant = Participant.query.filter_by(
-                        worker_id=int(GET["worker_id"])
-                    ).one()
-                elif "participantId" in GET:
-                    participant = Participant.query.filter_by(
-                        id=GET["participant_id"]
-                    ).one()
-                locale = participant.var.locale
-        except Exception:
-            pass
-    if locale is None:
-        locale = get_language()
-    mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.mo")
-    po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{module}.po")
-    if exists(mo_path):
-        if os.path.getmtime(po_path) > os.path.getmtime(mo_path):
-            logger.info(f"Compiling translation again, because {po_path} was updated.")
-            compile_mo(po_path)
-        translator = gettext.translation(module, locales_dir, [locale])
-    elif exists(po_path):
-        logger.info(f"Compiling translation file on demand {po_path}.")
-        compile_mo(po_path)
-        translator = gettext.translation(module, locales_dir, [locale])
+
+def get_locale() -> str:
+    from . import deployment_info
+    from .experiment import in_deployment_package
+
+    if in_deployment_package():
+        return deployment_info.read("locale")
     else:
-        if locale != "en":
-            logger.warning(f"No translation file found for locale {locale}.")
-        translator = gettext.NullTranslations()
-
-    return translator.gettext, translator.pgettext
+        return "en"
 
 
-ISO_639_1_CODES = [
-    "ab",
-    "aa",
-    "af",
-    "ak",
-    "sq",
-    "am",
-    "ar",
-    "an",
-    "hy",
-    "as",
-    "av",
-    "ae",
-    "ay",
-    "az",
-    "bm",
-    "ba",
-    "eu",
-    "be",
-    "bn",
-    "bh",
-    "bi",
-    "bs",
-    "br",
-    "bg",
-    "my",
-    "ca",
-    "ch",
-    "ce",
-    "ny",
-    "zh",
-    "cv",
-    "kw",
-    "co",
-    "cr",
-    "hr",
-    "cs",
-    "da",
-    "dv",
-    "nl",
-    "dz",
-    "en",
-    "eo",
-    "et",
-    "ee",
-    "fo",
-    "fj",
-    "fi",
-    "fr",
-    "ff",
-    "gl",
-    "ka",
-    "de",
-    "el",
-    "gn",
-    "gu",
-    "ht",
-    "ha",
-    "he",
-    "hz",
-    "hi",
-    "ho",
-    "hu",
-    "ia",
-    "id",
-    "ie",
-    "ga",
-    "ig",
-    "ik",
-    "io",
-    "is",
-    "it",
-    "iu",
-    "ja",
-    "jv",
-    "kl",
-    "kn",
-    "kr",
-    "ks",
-    "kk",
-    "km",
-    "ki",
-    "rw",
-    "ky",
-    "kv",
-    "kg",
-    "ko",
-    "ku",
-    "kj",
-    "la",
-    "lb",
-    "lg",
-    "li",
-    "ln",
-    "lo",
-    "lt",
-    "lu",
-    "lv",
-    "gv",
-    "mk",
-    "mg",
-    "ms",
-    "ml",
-    "mt",
-    "mi",
-    "mr",
-    "mh",
-    "mn",
-    "na",
-    "nv",
-    "nd",
-    "ne",
-    "ng",
-    "nb",
-    "nn",
-    "no",
-    "ii",
-    "nr",
-    "oc",
-    "oj",
-    "cu",
-    "om",
-    "or",
-    "os",
-    "pa",
-    "pi",
-    "fa",
-    "pl",
-    "ps",
-    "pt",
-    "qu",
-    "rm",
-    "rn",
-    "ro",
-    "ru",
-    "sa",
-    "sc",
-    "sd",
-    "se",
-    "sh",
-    "sm",
-    "sg",
-    "sr",
-    "gd",
-    "sn",
-    "si",
-    "sk",
-    "sl",
-    "so",
-    "st",
-    "es",
-    "su",
-    "sw",
-    "ss",
-    "sv",
-    "ta",
-    "te",
-    "tg",
-    "th",
-    "ti",
-    "bo",
-    "tk",
-    "tl",
-    "tn",
-    "to",
-    "tr",
-    "ts",
-    "tt",
-    "tw",
-    "ty",
-    "ug",
-    "uk",
-    "ur",
-    "uz",
-    "ve",
-    "vi",
-    "vo",
-    "wa",
-    "cy",
-    "wo",
-    "fy",
-    "xh",
-    "yi",
-    "yo",
-    "za",
-]
+REGISTERED_TRANSLATIONS = {}
 
 
-def get_available_locales(locales_dir=LOCALES_DIR):
-    return [
-        f for f in os.listdir(locales_dir) if os.path.isdir(join_path(locales_dir, f))
-    ]
+class TranslationNotFoundError(KeyError):
+    pass
 
 
-def countries(locale=None):
+def check_translation_is_available(message, context, locale, namespace):
+    from . import deployment_info
+    from .experiment import get_experiment, in_deployment_package
+
+    args = locals()
+
+    is_available = (context, message) in REGISTERED_TRANSLATIONS[namespace][locale]
+
+    if not is_available:
+        message = (
+            f"Could not find a translation for message {message!r} in locale = {locale}, context = {context}, namespace = {namespace}. "
+            "Perhaps the translatable string was not properly captured by `psynet translate`? "
+            "To mark a string as translatable, you should write e.g. _('Hello') or _p('welcome message', 'Hello'). "
+            "You cannot rename the functions _ or _p, and you must pass them strings directly, not variables or strings wrapped in parentheses."
+        )
+        is_live_experiment = (
+            in_deployment_package() and deployment_info.read("mode") == "live"
+        )
+        if is_live_experiment:
+            message += " Since this is a live experiment, we instead presented the untranslated text."
+        else:
+            message += " If this happened in a live experiment, we would default to presenting the untranslated text."
+
+        # We need to actually raise the TranslationNotFoundError here for it to be treated appropriately by report_error.
+        try:
+            raise TranslationNotFoundError(message)
+        except TranslationNotFoundError as e:
+            if is_live_experiment:
+                get_experiment().report_error(e)
+            else:
+                raise e
+
+
+def report_translation_error(message, context, locale):
+    from psynet.experiment import get_experiment
+
+    exp = get_experiment()
+    error = TranslationNotFoundError(
+        f"Translation not found for message '{message}' (context: {context}) in locale '{locale}'"
+    )
+    exp.report_error(error)
+
+
+def get_translator(
+    context=False,
+    locale=None,
+    namespace=None,
+    locales_dir=None,
+):
     """
-    List compiled using the pycountry package v20.7.3 with
+    Return a translator.
 
-    ::
+    In most cases this function should be called with no arguments, in which case
+    the locale will be taken from the config.txt file,
+    the namespace will be inferred from the context in which the function was called,
+    and the locales directory will be inferred from the namespace.
 
-        sorted([(lang.alpha_2, lang.name) for lang in pycountry.countries
-            if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
+    The default translator is context-free, which means that it only takes a message argument.
+    We recommend using this in most cases.
+    You can obtain a context-aware translator by setting ``context = True``;
+    such a translator takes both a context and a message argument.
+
+    PsyNet uses automated code inspection tools to extract all translatable strings from your code.
+    In order for these tools to work properly, you should save the returned translator
+    with the name ``_`` if ``context = False`` or ``_p`` if ``context = True``.
+
+    Once you have marked up your code with the ``_`` and ``_p`` functions,
+    you can then run ``psynet translate`` to generate automatically translated versions of your strings.
+
+    Example usage
+    -------------
+
+    >>> _ = get_translator()
+    >>> _("Hello")  # Translate "Hello" into the current locale.
+
+    >>> _p = get_translator(context=True)
+    >>> _p("welcome message", "Hello")  # Translate "Hello" into the current locale, with context "welcome message".
+
+    Parameters
+    ----------
+    context : bool, optional
+        Whether to use the context argument. If True, the translator will be a function that takes a context argument and
+        a message argument. If False, the translator will be a function that just takes a message argument.
+    locale : str, optional
+        The locale to use for translations. If not provided, the locale will be taken from the experiment config.
+    namespace : str, optional
+        The namespace to use for translations. If not provided, the namespace will be inferred from the context
+        in which the function was called. The experiment directory has a namespace of "experiment", and the package
+        directory has a namespace of the package name.
+    locales_dir : str, optional
+        The directory to use for translations. If not provided, the locales directory will be inferred from the namespace.
+        In the case of an experiment, the locales directory will be the "locales" directory of the experiment's source directory.
+        In the case of a package, the locales directory will be the "locales" directory of the package's source directory.
     """
-    _, _p = get_translator(locale)
-    return [
-        ("AF", _p("country_name", "Afghanistan")),
-        ("AL", _p("country_name", "Albania")),
-        ("DZ", _p("country_name", "Algeria")),
-        ("AS", _p("country_name", "American Samoa")),
-        ("AD", _p("country_name", "Andorra")),
-        ("AO", _p("country_name", "Angola")),
-        ("AI", _p("country_name", "Anguilla")),
-        ("AQ", _p("country_name", "Antarctica")),
-        ("AG", _p("country_name", "Antigua and Barbuda")),
-        ("AR", _p("country_name", "Argentina")),
-        ("AM", _p("country_name", "Armenia")),
-        ("AW", _p("country_name", "Aruba")),
-        ("AU", _p("country_name", "Australia")),
-        ("AT", _p("country_name", "Austria")),
-        ("AZ", _p("country_name", "Azerbaijan")),
-        ("BS", _p("country_name", "Bahamas")),
-        ("BH", _p("country_name", "Bahrain")),
-        ("BD", _p("country_name", "Bangladesh")),
-        ("BB", _p("country_name", "Barbados")),
-        ("BY", _p("country_name", "Belarus")),
-        ("BE", _p("country_name", "Belgium")),
-        ("BZ", _p("country_name", "Belize")),
-        ("BJ", _p("country_name", "Benin")),
-        ("BM", _p("country_name", "Bermuda")),
-        ("BT", _p("country_name", "Bhutan")),
-        ("BO", _p("country_name", "Bolivia")),
-        ("BQ", _p("country_name", "Bonaire, Sint Eustatius and Saba")),
-        ("BA", _p("country_name", "Bosnia and Herzegovina")),
-        ("BW", _p("country_name", "Botswana")),
-        ("BV", _p("country_name", "Bouvet Island")),
-        ("BR", _p("country_name", "Brazil")),
-        ("IO", _p("country_name", "British Indian Ocean Territory")),
-        ("BN", _p("country_name", "Brunei Darussalam")),
-        ("BG", _p("country_name", "Bulgaria")),
-        ("BF", _p("country_name", "Burkina Faso")),
-        ("BI", _p("country_name", "Burundi")),
-        ("CV", _p("country_name", "Cabo Verde")),
-        ("KH", _p("country_name", "Cambodia")),
-        ("CM", _p("country_name", "Cameroon")),
-        ("CA", _p("country_name", "Canada")),
-        ("KY", _p("country_name", "Cayman Islands")),
-        ("CF", _p("country_name", "Central African Republic")),
-        ("TD", _p("country_name", "Chad")),
-        ("CL", _p("country_name", "Chile")),
-        ("CN", _p("country_name", "China")),
-        ("CX", _p("country_name", "Christmas Island")),
-        ("CC", _p("country_name", "Cocos  Islands")),
-        ("CO", _p("country_name", "Colombia")),
-        ("KM", _p("country_name", "Comoros")),
-        ("CG", _p("country_name", "Congo")),
-        ("CD", _p("country_name", "Congo (Democratic Republic)")),
-        ("CK", _p("country_name", "Cook Islands")),
-        ("CR", _p("country_name", "Costa Rica")),
-        ("HR", _p("country_name", "Croatia")),
-        ("CU", _p("country_name", "Cuba")),
-        ("CW", _p("country_name", "Curaçao")),
-        ("CY", _p("country_name", "Cyprus")),
-        ("CZ", _p("country_name", "Czechia")),
-        ("CI", _p("country_name", "Côte d'Ivoire")),
-        ("DK", _p("country_name", "Denmark")),
-        ("DJ", _p("country_name", "Djibouti")),
-        ("DM", _p("country_name", "Dominica")),
-        ("DO", _p("country_name", "Dominican Republic")),
-        ("EC", _p("country_name", "Ecuador")),
-        ("EG", _p("country_name", "Egypt")),
-        ("SV", _p("country_name", "El Salvador")),
-        ("GQ", _p("country_name", "Equatorial Guinea")),
-        ("ER", _p("country_name", "Eritrea")),
-        ("EE", _p("country_name", "Estonia")),
-        ("SZ", _p("country_name", "Eswatini")),
-        ("ET", _p("country_name", "Ethiopia")),
-        ("FK", _p("country_name", "Falkland Islands (Malvinas)")),
-        ("FO", _p("country_name", "Faroe Islands")),
-        ("FJ", _p("country_name", "Fiji")),
-        ("FI", _p("country_name", "Finland")),
-        ("FR", _p("country_name", "France")),
-        ("GF", _p("country_name", "French Guiana")),
-        ("PF", _p("country_name", "French Polynesia")),
-        ("TF", _p("country_name", "French Southern Territories")),
-        ("GA", _p("country_name", "Gabon")),
-        ("GM", _p("country_name", "Gambia")),
-        ("GE", _p("country_name", "Georgia")),
-        ("DE", _p("country_name", "Germany")),
-        ("GH", _p("country_name", "Ghana")),
-        ("GI", _p("country_name", "Gibraltar")),
-        ("GR", _p("country_name", "Greece")),
-        ("GL", _p("country_name", "Greenland")),
-        ("GD", _p("country_name", "Grenada")),
-        ("GP", _p("country_name", "Guadeloupe")),
-        ("GU", _p("country_name", "Guam")),
-        ("GT", _p("country_name", "Guatemala")),
-        ("GG", _p("country_name", "Guernsey")),
-        ("GN", _p("country_name", "Guinea")),
-        ("GW", _p("country_name", "Guinea-Bissau")),
-        ("GY", _p("country_name", "Guyana")),
-        ("HT", _p("country_name", "Haiti")),
-        ("HM", _p("country_name", "Heard Island and McDonald Islands")),
-        ("VA", _p("country_name", "Vatican City State")),
-        ("HN", _p("country_name", "Honduras")),
-        ("HK", _p("country_name", "Hong Kong")),
-        ("HU", _p("country_name", "Hungary")),
-        ("IS", _p("country_name", "Iceland")),
-        ("IN", _p("country_name", "India")),
-        ("ID", _p("country_name", "Indonesia")),
-        ("IR", _p("country_name", "Iran")),
-        ("IQ", _p("country_name", "Iraq")),
-        ("IE", _p("country_name", "Ireland")),
-        ("IM", _p("country_name", "Isle of Man")),
-        ("IL", _p("country_name", "Israel")),
-        ("IT", _p("country_name", "Italy")),
-        ("JM", _p("country_name", "Jamaica")),
-        ("JP", _p("country_name", "Japan")),
-        ("JE", _p("country_name", "Jersey")),
-        ("JO", _p("country_name", "Jordan")),
-        ("KZ", _p("country_name", "Kazakhstan")),
-        ("KE", _p("country_name", "Kenya")),
-        ("KI", _p("country_name", "Kiribati")),
-        ("KP", _p("country_name", "North Korea")),
-        ("KR", _p("country_name", "South Korea")),
-        ("KW", _p("country_name", "Kuwait")),
-        ("KG", _p("country_name", "Kyrgyzstan")),
-        ("LA", _p("country_name", "Lao")),
-        ("LV", _p("country_name", "Latvia")),
-        ("LB", _p("country_name", "Lebanon")),
-        ("LS", _p("country_name", "Lesotho")),
-        ("LR", _p("country_name", "Liberia")),
-        ("LY", _p("country_name", "Libya")),
-        ("LI", _p("country_name", "Liechtenstein")),
-        ("LT", _p("country_name", "Lithuania")),
-        ("LU", _p("country_name", "Luxembourg")),
-        ("MO", _p("country_name", "Macao")),
-        ("MG", _p("country_name", "Madagascar")),
-        ("MW", _p("country_name", "Malawi")),
-        ("MY", _p("country_name", "Malaysia")),
-        ("MV", _p("country_name", "Maldives")),
-        ("ML", _p("country_name", "Mali")),
-        ("MT", _p("country_name", "Malta")),
-        ("MH", _p("country_name", "Marshall Islands")),
-        ("MQ", _p("country_name", "Martinique")),
-        ("MR", _p("country_name", "Mauritania")),
-        ("MU", _p("country_name", "Mauritius")),
-        ("YT", _p("country_name", "Mayotte")),
-        ("MX", _p("country_name", "Mexico")),
-        ("FM", _p("country_name", "Micronesia")),
-        ("MD", _p("country_name", "Moldova")),
-        ("MC", _p("country_name", "Monaco")),
-        ("MN", _p("country_name", "Mongolia")),
-        ("ME", _p("country_name", "Montenegro")),
-        ("MS", _p("country_name", "Montserrat")),
-        ("MA", _p("country_name", "Morocco")),
-        ("MZ", _p("country_name", "Mozambique")),
-        ("MM", _p("country_name", "Myanmar")),
-        ("NA", _p("country_name", "Namibia")),
-        ("NR", _p("country_name", "Nauru")),
-        ("NP", _p("country_name", "Nepal")),
-        ("NL", _p("country_name", "Netherlands")),
-        ("NC", _p("country_name", "New Caledonia")),
-        ("NZ", _p("country_name", "New Zealand")),
-        ("NI", _p("country_name", "Nicaragua")),
-        ("NE", _p("country_name", "Niger")),
-        ("NG", _p("country_name", "Nigeria")),
-        ("NU", _p("country_name", "Niue")),
-        ("NF", _p("country_name", "Norfolk Island")),
-        ("MK", _p("country_name", "North Macedonia")),
-        ("MP", _p("country_name", "Northern Mariana Islands")),
-        ("NO", _p("country_name", "Norway")),
-        ("OM", _p("country_name", "Oman")),
-        ("PK", _p("country_name", "Pakistan")),
-        ("PW", _p("country_name", "Palau")),
-        ("PS", _p("country_name", "Palestine")),
-        ("PA", _p("country_name", "Panama")),
-        ("PG", _p("country_name", "Papua New Guinea")),
-        ("PY", _p("country_name", "Paraguay")),
-        ("PE", _p("country_name", "Peru")),
-        ("PH", _p("country_name", "Philippines")),
-        ("PN", _p("country_name", "Pitcairn")),
-        ("PL", _p("country_name", "Poland")),
-        ("PT", _p("country_name", "Portugal")),
-        ("PR", _p("country_name", "Puerto Rico")),
-        ("QA", _p("country_name", "Qatar")),
-        ("RO", _p("country_name", "Romania")),
-        ("RU", _p("country_name", "Russian Federation")),
-        ("RW", _p("country_name", "Rwanda")),
-        ("RE", _p("country_name", "Réunion")),
-        ("BL", _p("country_name", "Saint Barthélemy")),
-        ("SH", _p("country_name", "Saint Helena, Ascension and Tristan da Cunha")),
-        ("KN", _p("country_name", "Saint Kitts and Nevis")),
-        ("LC", _p("country_name", "Saint Lucia")),
-        ("PM", _p("country_name", "Saint Pierre and Miquelon")),
-        ("VC", _p("country_name", "Saint Vincent and the Grenadines")),
-        ("WS", _p("country_name", "Samoa")),
-        ("SM", _p("country_name", "San Marino")),
-        ("ST", _p("country_name", "Sao Tome and Principe")),
-        ("SA", _p("country_name", "Saudi Arabia")),
-        ("SN", _p("country_name", "Senegal")),
-        ("RS", _p("country_name", "Serbia")),
-        ("SC", _p("country_name", "Seychelles")),
-        ("SL", _p("country_name", "Sierra Leone")),
-        ("SG", _p("country_name", "Singapore")),
-        ("SX", _p("country_name", "Sint Maarten")),
-        ("SK", _p("country_name", "Slovakia")),
-        ("SI", _p("country_name", "Slovenia")),
-        ("SB", _p("country_name", "Solomon Islands")),
-        ("SO", _p("country_name", "Somalia")),
-        ("ZA", _p("country_name", "South Africa")),
-        ("GS", _p("country_name", "South Georgia and the South Sandwich Islands")),
-        ("SS", _p("country_name", "South Sudan")),
-        ("ES", _p("country_name", "Spain")),
-        ("LK", _p("country_name", "Sri Lanka")),
-        ("SD", _p("country_name", "Sudan")),
-        ("SR", _p("country_name", "Suriname")),
-        ("SJ", _p("country_name", "Svalbard and Jan Mayen")),
-        ("SE", _p("country_name", "Sweden")),
-        ("CH", _p("country_name", "Switzerland")),
-        ("SY", _p("country_name", "Syria")),
-        ("TW", _p("country_name", "Taiwan")),
-        ("TJ", _p("country_name", "Tajikistan")),
-        ("TZ", _p("country_name", "Tanzania")),
-        ("TH", _p("country_name", "Thailand")),
-        ("TL", _p("country_name", "Timor-Leste")),
-        ("TG", _p("country_name", "Togo")),
-        ("TK", _p("country_name", "Tokelau")),
-        ("TO", _p("country_name", "Tonga")),
-        ("TT", _p("country_name", "Trinidad and Tobago")),
-        ("TN", _p("country_name", "Tunisia")),
-        ("TR", _p("country_name", "Turkey")),
-        ("TM", _p("country_name", "Turkmenistan")),
-        ("TC", _p("country_name", "Turks and Caicos Islands")),
-        ("TV", _p("country_name", "Tuvalu")),
-        ("UG", _p("country_name", "Uganda")),
-        ("UA", _p("country_name", "Ukraine")),
-        ("AE", _p("country_name", "United Arab Emirates")),
-        ("GB", _p("country_name", "United Kingdom")),
-        ("US", _p("country_name", "United States")),
-        ("UM", _p("country_name", "United States Minor Outlying Islands")),
-        ("UY", _p("country_name", "Uruguay")),
-        ("UZ", _p("country_name", "Uzbekistan")),
-        ("VU", _p("country_name", "Vanuatu")),
-        ("VE", _p("country_name", "Venezuela")),
-        ("VN", _p("country_name", "Vietnam")),
-        ("VG", _p("country_name", "Virgin Islands (British)")),
-        ("VI", _p("country_name", "Virgin Islands (U.S.)")),
-        ("WF", _p("country_name", "Wallis and Futuna")),
-        ("EH", _p("country_name", "Western Sahara")),
-        ("YE", _p("country_name", "Yemen")),
-        ("ZM", _p("country_name", "Zambia")),
-        ("ZW", _p("country_name", "Zimbabwe")),
-        ("AX", _p("country_name", "Åland Islands")),
-    ]
+    from .experiment import in_deployment_package
+
+    if namespace is None:
+        frame = inspect.currentframe().f_back
+        package_name = frame.f_globals["__package__"]
+        package_name = package_name.split(".")[0]  # Remove any subpackage names.
+
+        if package_name == "dallinger_experiment":
+            namespace = "experiment"
+        elif package_name == "":
+            raise ValueError(
+                "_get_translator could not work out what namespace to use. Try providing the namespace explicitly."
+            )
+        else:
+            namespace = package_name
+
+    # We only load translations when we're in the deployment package. This is important for allowing us to
+    # import the experiment directory (to access config variables etc) when translations are not yet available.
+    if not in_deployment_package():
+        _, _p = null_translator, null_translator_with_context
+    else:
+        if locale is None:
+            locale = get_locale()
+
+        if locale == "en":
+            _, _p = null_translator, null_translator_with_context
+        else:
+            if locales_dir is None:
+                locales_dir = get_locales_dir(namespace)
+
+            compile_mo_file_if_necessary(locales_dir, locale, namespace)
+
+            translator = gettext.translation(namespace, locales_dir, [locale])
+
+            if namespace not in REGISTERED_TRANSLATIONS:
+                REGISTERED_TRANSLATIONS[namespace] = {}
+
+            if locale not in REGISTERED_TRANSLATIONS[namespace]:
+                po_path = join_path(
+                    locales_dir, locale, "LC_MESSAGES", f"{namespace}.po"
+                )
+                po = load_po(po_path)
+                keys = []
+                for entry in po:
+                    msgctxt = None if entry.msgctxt == "" else entry.msgctxt
+                    keys.append((msgctxt, entry.msgid))
+                REGISTERED_TRANSLATIONS[namespace][locale] = keys
+
+            def _(message):
+                context = None
+                check_translation_is_available(message, context, locale, namespace)
+                return translator.gettext(message)
+
+            def _p(context, message):
+                check_translation_is_available(message, context, locale, namespace)
+                return translator.pgettext(context, message)
+
+    _.namespace = namespace
+    _p.namespace = namespace
+
+    _.locale = locale
+    _p.locale = locale
+
+    if context:
+        return _p
+    else:
+        return _
 
 
-def languages(locale=None):
+def get_locales_dir(namespace: str):
+    if namespace == "experiment":
+        package_name = "dallinger_experiment"
+    else:
+        package_name = namespace
+    source_dir = get_installed_package_source_directory(package_name)
+    return source_dir / "locales"
+
+
+def get_locales_dir_from_path(path="."):
+
+    if in_python_package():
+        return Path(get_package_source_directory(path)) / "locales"
+    elif experiment_available():
+        path = Path(path)
+        return path / "locales"
+    else:
+        raise ValueError("Could not determine the locales directory.")
+
+
+def null_translator(message):
     """
-    List compiled using the pycountry package v20.7.3 with
-
-    ::
-
-        sorted([(lang.alpha_2, lang.name) for lang in pycountry.languages
-            if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
+    A translator that returns the message unchanged.
     """
-    _, _p = get_translator(locale)
-    return [
-        ("ab", _p("language_name", "Abkhazian")),
-        ("aa", _p("language_name", "Afar")),
-        ("af", _p("language_name", "Afrikaans")),
-        ("ak", _p("language_name", "Akan")),
-        ("sq", _p("language_name", "Albanian")),
-        ("am", _p("language_name", "Amharic")),
-        ("ar", _p("language_name", "Arabic")),
-        ("an", _p("language_name", "Aragonese")),
-        ("hy", _p("language_name", "Armenian")),
-        ("as", _p("language_name", "Assamese")),
-        ("av", _p("language_name", "Avaric")),
-        ("ae", _p("language_name", "Avestan")),
-        ("ay", _p("language_name", "Aymara")),
-        ("az", _p("language_name", "Azerbaijani")),
-        ("bm", _p("language_name", "Bambara")),
-        ("ba", _p("language_name", "Bashkir")),
-        ("eu", _p("language_name", "Basque")),
-        ("be", _p("language_name", "Belarusian")),
-        ("bn", _p("language_name", "Bengali")),
-        ("bi", _p("language_name", "Bislama")),
-        ("bs", _p("language_name", "Bosnian")),
-        ("br", _p("language_name", "Breton")),
-        ("bg", _p("language_name", "Bulgarian")),
-        ("my", _p("language_name", "Burmese")),
-        ("ca", _p("language_name", "Catalan")),
-        ("km", _p("language_name", "Central Khmer")),
-        ("ch", _p("language_name", "Chamorro")),
-        ("ce", _p("language_name", "Chechen")),
-        ("zh", _p("language_name", "Chinese")),
-        ("zh-cn", _p("language_name", "Chinese")),
-        ("cu", _p("language_name", "Church Slavic")),
-        ("cv", _p("language_name", "Chuvash")),
-        ("kw", _p("language_name", "Cornish")),
-        ("co", _p("language_name", "Corsican")),
-        ("cr", _p("language_name", "Cree")),
-        ("hr", _p("language_name", "Croatian")),
-        ("ceb", _p("language_name", "Cebuano")),
-        ("cs", _p("language_name", "Czech")),
-        ("da", _p("language_name", "Danish")),
-        ("dv", _p("language_name", "Dhivehi")),
-        ("nl", _p("language_name", "Dutch")),
-        ("dz", _p("language_name", "Dzongkha")),
-        ("en", _p("language_name", "English")),
-        ("eo", _p("language_name", "Esperanto")),
-        ("et", _p("language_name", "Estonian")),
-        ("ee", _p("language_name", "Ewe")),
-        ("fo", _p("language_name", "Faroese")),
-        ("fj", _p("language_name", "Fijian")),
-        ("fi", _p("language_name", "Finnish")),
-        ("fr", _p("language_name", "French")),
-        ("ff", _p("language_name", "Fulah")),
-        ("gl", _p("language_name", "Galician")),
-        ("lg", _p("language_name", "Ganda")),
-        ("ka", _p("language_name", "Georgian")),
-        ("de", _p("language_name", "German")),
-        ("got", _p("language_name", "Gothic")),
-        ("gn", _p("language_name", "Guarani")),
-        ("gu", _p("language_name", "Gujarati")),
-        ("ht", _p("language_name", "Haitian")),
-        ("ha", _p("language_name", "Hausa")),
-        ("haw", _p("language_name", "Hawaiian")),
-        ("he", _p("language_name", "Hebrew")),
-        ("hz", _p("language_name", "Herero")),
-        ("hi", _p("language_name", "Hindi")),
-        ("ho", _p("language_name", "Hiri Motu")),
-        ("hmn", _p("language_name", "Hmong")),
-        ("hu", _p("language_name", "Hungarian")),
-        ("is", _p("language_name", "Icelandic")),
-        ("io", _p("language_name", "Ido")),
-        ("ig", _p("language_name", "Igbo")),
-        ("id", _p("language_name", "Indonesian")),
-        ("ia", _p("language_name", "Interlingua")),
-        ("ie", _p("language_name", "Interlingue")),
-        ("iu", _p("language_name", "Inuktitut")),
-        ("ik", _p("language_name", "Inupiaq")),
-        ("ga", _p("language_name", "Irish")),
-        ("it", _p("language_name", "Italian")),
-        ("ja", _p("language_name", "Japanese")),
-        ("jv", _p("language_name", "Javanese")),
-        ("jw", _p("language_name", "Javanese")),
-        ("kl", _p("language_name", "Kalaallisut")),
-        ("kn", _p("language_name", "Kannada")),
-        ("kr", _p("language_name", "Kanuri")),
-        ("ks", _p("language_name", "Kashmiri")),
-        ("kk", _p("language_name", "Kazakh")),
-        ("ki", _p("language_name", "Kikuyu")),
-        ("rw", _p("language_name", "Kinyarwanda")),
-        ("ky", _p("language_name", "Kirghiz")),
-        ("kv", _p("language_name", "Komi")),
-        ("kg", _p("language_name", "Kongo")),
-        ("ko", _p("language_name", "Korean")),
-        ("kj", _p("language_name", "Kuanyama")),
-        ("ku", _p("language_name", "Kurdish")),
-        ("lo", _p("language_name", "Lao")),
-        ("la", _p("language_name", "Latin")),
-        ("lv", _p("language_name", "Latvian")),
-        ("li", _p("language_name", "Limburgan")),
-        ("ln", _p("language_name", "Lingala")),
-        ("lt", _p("language_name", "Lithuanian")),
-        ("lu", _p("language_name", "Luba-Katanga")),
-        ("lb", _p("language_name", "Luxembourgish")),
-        ("mk", _p("language_name", "Macedonian")),
-        ("mg", _p("language_name", "Malagasy")),
-        ("ms", _p("language_name", "Malay")),
-        ("ml", _p("language_name", "Malayalam")),
-        ("mt", _p("language_name", "Maltese")),
-        ("gv", _p("language_name", "Manx")),
-        ("mi", _p("language_name", "Maori")),
-        ("mr", _p("language_name", "Marathi")),
-        ("mh", _p("language_name", "Marshallese")),
-        ("el", _p("language_name", "Greek")),
-        ("mn", _p("language_name", "Mongolian")),
-        ("na", _p("language_name", "Nauru")),
-        ("nv", _p("language_name", "Navajo")),
-        ("ng", _p("language_name", "Ndonga")),
-        ("ne", _p("language_name", "Nepali")),
-        ("nd", _p("language_name", "North Ndebele")),
-        ("se", _p("language_name", "Northern Sami")),
-        ("no", _p("language_name", "Norwegian")),
-        ("nb", _p("language_name", "Norwegian Bokmål")),
-        ("nn", _p("language_name", "Norwegian Nynorsk")),
-        ("ny", _p("language_name", "Nyanja")),
-        ("oc", _p("language_name", "Occitan")),
-        ("oj", _p("language_name", "Ojibwa")),
-        ("or", _p("language_name", "Oriya")),
-        ("om", _p("language_name", "Oromo")),
-        ("os", _p("language_name", "Ossetian")),
-        ("pi", _p("language_name", "Pali")),
-        ("pa", _p("language_name", "Panjabi")),
-        ("fa", _p("language_name", "Persian")),
-        ("pl", _p("language_name", "Polish")),
-        ("pt", _p("language_name", "Portuguese")),
-        ("ps", _p("language_name", "Pushto")),
-        ("qu", _p("language_name", "Quechua")),
-        ("ro", _p("language_name", "Romanian")),
-        ("rm", _p("language_name", "Romansh")),
-        ("rn", _p("language_name", "Rundi")),
-        ("ru", _p("language_name", "Russian")),
-        ("sm", _p("language_name", "Samoan")),
-        ("sg", _p("language_name", "Sango")),
-        ("sa", _p("language_name", "Sanskrit")),
-        ("sc", _p("language_name", "Sardinian")),
-        ("gd", _p("language_name", "Scottish Gaelic")),
-        ("sr", _p("language_name", "Serbian")),
-        ("sh", _p("language_name", "Serbo-Croatian")),
-        ("sn", _p("language_name", "Shona")),
-        ("ii", _p("language_name", "Sichuan Yi")),
-        ("sd", _p("language_name", "Sindhi")),
-        ("si", _p("language_name", "Sinhala")),
-        ("sk", _p("language_name", "Slovak")),
-        ("sl", _p("language_name", "Slovenian")),
-        ("so", _p("language_name", "Somali")),
-        ("nr", _p("language_name", "South Ndebele")),
-        ("st", _p("language_name", "Southern Sotho")),
-        ("es", _p("language_name", "Spanish")),
-        ("su", _p("language_name", "Sundanese")),
-        ("sw", _p("language_name", "Swahili")),
-        ("ss", _p("language_name", "Swati")),
-        ("sv", _p("language_name", "Swedish")),
-        ("zh-tw", _p("language_name", "Taiwanese")),
-        ("tl", _p("language_name", "Tagalog")),
-        ("ty", _p("language_name", "Tahitian")),
-        ("tg", _p("language_name", "Tajik")),
-        ("ta", _p("language_name", "Tamil")),
-        ("tt", _p("language_name", "Tatar")),
-        ("te", _p("language_name", "Telugu")),
-        ("th", _p("language_name", "Thai")),
-        ("bo", _p("language_name", "Tibetan")),
-        ("ti", _p("language_name", "Tigrinya")),
-        ("to", _p("language_name", "Tonga")),
-        ("ts", _p("language_name", "Tsonga")),
-        ("tn", _p("language_name", "Tswana")),
-        ("tr", _p("language_name", "Turkish")),
-        ("tk", _p("language_name", "Turkmen")),
-        ("tw", _p("language_name", "Twi")),
-        ("ug", _p("language_name", "Uighur")),
-        ("uk", _p("language_name", "Ukrainian")),
-        ("ur", _p("language_name", "Urdu")),
-        ("uz", _p("language_name", "Uzbek")),
-        ("ve", _p("language_name", "Venda")),
-        ("vi", _p("language_name", "Vietnamese")),
-        ("vo", _p("language_name", "Volapük")),
-        ("wa", _p("language_name", "Walloon")),
-        ("cy", _p("language_name", "Welsh")),
-        ("hyw", _p("language_name", "Western Armenian")),
-        ("fy", _p("language_name", "Western Frisian")),
-        ("wo", _p("language_name", "Wolof")),
-        ("xh", _p("language_name", "Xhosa")),
-        ("yi", _p("language_name", "Yiddish")),
-        ("yo", _p("language_name", "Yoruba")),
-        ("za", _p("language_name", "Zhuang")),
-        ("zu", _p("language_name", "Zulu")),
-    ]
+    return message
+
+
+def null_translator_with_context(context, message):
+    """
+    A translator that returns the message unchanged.
+    """
+    return message
+
+
+def compile_mo_file_if_necessary(locales_dir, locale, namespace):
+    from .translation.utils import compile_mo
+
+    mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.mo")
+    po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")
+
+    assert exists(po_path)
+
+    if not exists(mo_path) or os.path.getmtime(po_path) > os.path.getmtime(mo_path):
+        logger.info(f"Compiling translation file {po_path}.")
+        compile_mo(po_path)
+
+
+def _get_translator_called_within_psynet():
+    """
+    Used for testing what happens when you call get_translator from within the PsyNet package.
+    """
+    return get_translator()
 
 
 def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
@@ -1353,11 +875,15 @@ def _get_entity_dict_from_tuple_list(tuple_list, sort_by_value):
 
 
 def get_language_dict(locale, sort_by_name=True):
-    return _get_entity_dict_from_tuple_list(languages(locale), sort_by_name)
+    from psynet.translation.languages import get_known_languages
+
+    return _get_entity_dict_from_tuple_list(get_known_languages(locale), sort_by_name)
 
 
 def get_country_dict(locale, sort_by_name=True):
-    return _get_entity_dict_from_tuple_list(countries(locale), sort_by_name)
+    from psynet.translation.countries import get_known_countries
+
+    return _get_entity_dict_from_tuple_list(get_known_countries(locale), sort_by_name)
 
 
 def sample_from_surface_of_unit_sphere(n_dimensions):
@@ -1576,6 +1102,11 @@ def clear_all_caches():
                 obj.cache_clear()
         except ReferenceError:
             pass
+        except Exception as e:
+            if "openai.OpenAIError" in str(e.__class__):
+                pass
+            else:
+                raise e
 
 
 @contextlib.contextmanager
@@ -1798,3 +1329,197 @@ def as_plain_text(html):
     pattern = re.compile(r"\s+")
     text = re.sub(pattern, " ", text).strip()
     return text
+
+
+def in_psynet_directory():
+    try:
+        with open(Path("pyproject.toml"), "r") as f:
+            return 'name = "psynet"' in f.read()
+
+    except FileNotFoundError:
+        return False
+
+
+def in_python_package():
+    """
+    Test whether the current directory is the root of a Python package.
+
+    Returns
+    -------
+    bool
+        True if the current directory contains either pyproject.toml or setup.py,
+        indicating it is likely a Python package root directory.
+    """
+    return is_a_package(".")
+
+
+def is_a_package(path):
+    path = Path(path)
+    files_to_check = ["pyproject.toml", "setup.py"]
+    for file in files_to_check:
+        if path.joinpath(file).exists():
+            return True
+
+
+def get_package_name(path="."):
+    """
+    Finds the name of the package by introspecting the current working directory.
+    Assumes that either setup.py or pyproject.toml is present.
+    """
+    path = Path(path)
+    if (path / "pyproject.toml").exists():
+        return get_package_name_from_pyproject()
+    elif (path / "setup.py").exists():
+        name = get_package_name_from_setup()
+        if name is not None:
+            return name
+    raise FileNotFoundError(
+        "Could not find pyproject.toml or setup.py in current directory"
+    )
+
+
+def get_package_name_from_pyproject():
+    """
+    Get package name from pyproject.toml file.
+
+    Returns
+    -------
+    str
+        The package name from pyproject.toml.
+    """
+    with open("pyproject.toml", "r") as f:
+        pyproject = tomlkit.parse(f.read())
+        return pyproject["project"]["name"]
+
+
+def get_package_name_from_setup():
+    """
+    Get package name from setup.py file.
+
+    Returns
+    -------
+    str
+        The package name from setup.py.
+    """
+    import ast
+
+    with open("setup.py") as f:
+        setup_contents = f.read()
+    setup_ast = ast.parse(setup_contents)
+    for node in ast.walk(setup_ast):
+        keywords = getattr(node, "keywords", None)
+        if isinstance(keywords, list) and len(keywords) > 0:
+            for keyword in keywords:
+                if keyword.arg == "name":
+                    return ast.literal_eval(keyword.value)
+    return None
+
+
+def get_installed_package_source_directory(package_name: str) -> Path:
+    """
+    Get the source directory of an installed package.
+
+    Parameters
+    ----------
+    package_name : str
+        The name of the package.
+
+    Returns
+    -------
+    Path
+        The path to the package root directory.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the package root directory cannot be found.
+    """
+    package = importlib.import_module(package_name)
+    return Path(package.__file__).parent
+
+
+def get_package_locales_directory(package_name: str) -> Path:
+    return get_package_source_directory(package_name) / "locales"
+
+
+def get_package_source_directory(path="."):
+    """
+    Get the source directory of the package by inspecting pyproject.toml or setup.py.
+    Does not assume that the package is installed.
+
+    Parameters
+    ----------
+    path : str
+        The path to the package source directory.
+
+    Returns
+    -------
+    str
+        The path to the package source directory.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the package source directory cannot be found.
+    """
+    path = Path(path)
+    pyproject_path = path / "pyproject.toml"
+    setup_path = path / "setup.py"
+
+    # First try pyproject.toml
+    if pyproject_path.exists():
+        with open(pyproject_path, "r") as f:
+            pyproject = tomlkit.parse(f.read())
+
+        # Check for src_dir in [tool.setuptools]
+        if "tool" in pyproject and "setuptools" in pyproject["tool"]:
+            packages_dir = (
+                pyproject["tool"]["setuptools"]
+                .get("packages", {})
+                .get("find", {})
+                .get("where")
+            )
+            if packages_dir:
+                return packages_dir
+
+        # Check for packages-dir in [tool.poetry]
+        if "tool" in pyproject and "poetry" in pyproject["tool"]:
+            packages_dir = (
+                pyproject["tool"]["poetry"].get("packages", [{}])[0].get("from")
+            )
+            if packages_dir:
+                return packages_dir
+
+    # Then try setup.py
+    if setup_path.exists():
+        import ast
+
+        with open(setup_path, "r") as f:
+            setup_contents = f.read()
+        setup_ast = ast.parse(setup_contents)
+        for node in ast.walk(setup_ast):
+            if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "setup":
+                for keyword in node.keywords:
+                    # Check package_dir argument
+                    if keyword.arg == "package_dir":
+                        if isinstance(keyword.value, ast.Dict):
+                            for i, key in enumerate(keyword.value.keys):
+                                if ast.literal_eval(key) == "":
+                                    return ast.literal_eval(keyword.value.values[i])
+
+    # Fall back to default locations
+    package_name = get_package_name()
+    possible_locations = [
+        package_name,
+        os.path.join("src", package_name),
+        os.path.join("source", package_name),
+    ]
+
+    for location in possible_locations:
+        if os.path.isdir(location):
+            return location
+
+    raise FileNotFoundError(
+        f"Could not find package source directory for '{package_name}' "
+        f"in configuration files or in default locations: {', '.join(possible_locations)}"
+    )

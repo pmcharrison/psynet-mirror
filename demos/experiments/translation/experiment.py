@@ -1,53 +1,55 @@
-from os.path import abspath
-
-from markupsafe import Markup
+from dominate import tags
 
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import PageMaker, Timeline, join
+from psynet.timeline import Timeline
 from psynet.utils import get_logger, get_translator
 
 logger = get_logger()
 
-supported_locales = ["en", "de", "nl"]
-reference_language = "en"
+_ = get_translator()
+_p = get_translator(context=True)
 
 
-def get_timeline_in_locale(locale):
-    _, _p = get_translator(
-        locale=locale, module="experiment", locales_dir=abspath("locales")
-    )
-    return join(
+class Exp(psynet.experiment.Experiment):
+    label = "Translation demo"
+
+    # You could also set these in the config.txt file
+    config = {
+        "locale": "de",
+        "supported_locales": ["en", "de", "nl"],
+    }
+    timeline = Timeline(
+        NoConsent(),
         InfoPage(
             _p("welcome-page", "Welcome to the translation demo!"), time_estimate=2
         ),
         InfoPage(
-            Markup(
-                "<h2>"
-                + f"You have chosen to translate this experiment from {reference_language} to {locale}"
-                + "</h2>"
-                + "<hr>"
-                + "<p>"
-                + "Below you will see this text translated! <br>"
-                + _("Below you will see this text translated!")
-                + "</p>"
-                + "<hr>"
+            tags.span(
+                tags.h2(
+                    f"You have chosen to translate this experiment to {config.get('locale')}."
+                ),
+                tags.hr(),
+                tags.p(
+                    "Below you will see this text translated!",
+                    tags.br(),
+                    _("Below you will see this text translated!"),
+                ),
+                tags.hr(),
             ),
             time_estimate=5,
         ),
         InfoPage(
-            Markup(
-                "<h2>"
-                + "You can also change the translation during the experiment if you like. Try switching to another language!"
-                + "</h2>"
-                + "<hr>"
-                + "<p>"
-                + "Below you will see this text translated! <br>"
-                + _("Below you will see this text translated!")
-                + "</p>"
-                + "<hr>"
+            tags.span(
+                tags.p("Here is an example of inline variable usage:"),
+                tags.p(
+                    _(
+                        "My name is {NAME}. My favorite food is {FAVFOOD}. My least favorite food is {HATEFOOD}."
+                    ).format(NAME="Alice", FAVFOOD="pizza", HATEFOOD="broccoli")
+                ),
+                tags.hr(),
             ),
             time_estimate=5,
         ),
@@ -58,43 +60,13 @@ def get_timeline_in_locale(locale):
             ),
             control=PushButtonControl(
                 [
-                    _p("button", "Click"),
-                    _p("button", "on"),
-                    _p("button", "translation"),
+                    _p("button", "Chocolate"),
+                    _p("button", "Vanilla"),
+                    _p("button", "Strawberry"),
                 ],
                 arrange_vertically=False,
             ),
             time_estimate=4,
-        ),
-    )
-
-
-timeline_by_locale = {
-    locale: get_timeline_in_locale(locale) for locale in supported_locales
-}
-reference_timeline = timeline_by_locale[reference_language]
-
-timeline_time_estimate = 0
-for elt in reference_timeline:
-    if hasattr(elt, "time_estimate"):
-        timeline_time_estimate += elt.time_estimate
-
-
-class Exp(psynet.experiment.Experiment):
-    label = "Translation demo"
-
-    config = {
-        "language": "de",
-        "supported_locales": supported_locales,
-        "allow_switching_locale": True,
-    }
-    timeline = Timeline(
-        NoConsent(),
-        PageMaker(
-            lambda participant, experiment: timeline_by_locale[
-                participant.get_locale(experiment)
-            ],
-            time_estimate=timeline_time_estimate,
         ),
         SuccessfulEndPage(),
     )

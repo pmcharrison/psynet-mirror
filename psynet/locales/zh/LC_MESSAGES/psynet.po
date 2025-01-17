@@ -2,380 +2,496 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-24/04/ 11:46:12\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: DeepL API\n"
-"Language-Team: DeepL\n"
 "Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: psynet/demography/general.py
-msgid "I don’t know"
-msgstr "我不知道"
+#, fuzzy
+msgctxt "gender"
+msgid "How do you identify yourself?"
+msgstr "您如何认同自己？"
 
 #: psynet/demography/general.py
-msgid "No"
-msgstr "没有"
-
-#: psynet/demography/general.py
-msgid "Yes"
-msgstr "是"
-
-#: psynet/demography/general.py
-msgctxt "age"
-msgid "What is your age?"
-msgstr "您的年龄是？"
-
-#: psynet/demography/general.py
-msgctxt "age"
-msgid "You need to provide your age as an integer between 0 and 120!"
-msgstr "您需要提供一个介于0到120之间的整数作为您的年龄！"
-
-#: psynet/demography/general.py
-msgctxt "age"
-msgid "Your answer was: '{AGE}'"
-msgstr "您的答案是：'{AGE}'"
-
-#: psynet/demography/general.py
-msgctxt "country-select"
-msgid "Other country"
-msgstr "其他国家"
-
-#: psynet/demography/general.py
-msgctxt "country-select"
-msgid "Select a country"
-msgstr "选择一个国家"
-
-#: psynet/demography/general.py
-msgctxt "country-select"
-msgid "What country are you from?"
-msgstr "您来自哪个国家？"
-
-#: psynet/demography/general.py
-msgctxt "country-select"
-msgid "What is your current country of residence?"
-msgstr "您目前居住的国家是什么？"
-
-#: psynet/demography/general.py
-msgctxt "country-select"
-msgid "You need to select a country!"
-msgstr "您需要选择一个国家!"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "Do you dance socially or professionally?"
-msgstr "您是在社交中跳舞还是职业舞者？"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "I never dance"
-msgstr "我从不跳舞"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "I never danced"
-msgstr "我从未跳过舞"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "Many years ago"
-msgstr "很多年前"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "Professionally"
-msgstr "职业上"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "Socially"
-msgstr "社交性的"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "Some years ago"
-msgstr "几年前"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "This month"
-msgstr "这个月"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "This week"
-msgstr "这个星期"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "This year"
-msgstr "这一年"
-
-#: psynet/demography/general.py
-msgctxt "dance"
-msgid "When was the last time you danced? (choose the most accurate answer):"
-msgstr "您最后一次跳舞是什么时候？ （请选择最准确的答案）："
-
-#: psynet/demography/general.py
-msgctxt "experiment-feedback"
-msgid "Did you encounter any technical problems during the experiment?"
-msgstr "在实验过程中，您是否遇到了任何技术问题？"
-
-#: psynet/demography/general.py
-msgctxt "experiment-feedback"
-msgid "Did you find the experiment difficult?"
-msgstr "您觉得这个实验难吗？"
-
-#: psynet/demography/general.py
-msgctxt "experiment-feedback"
-msgid "Did you like the experiment?"
-msgstr "您喜欢这个实验吗？"
-
-#: psynet/demography/general.py
-msgctxt "experiment-feedback"
-msgid "If so, please provide a few words describing the problem."
-msgstr "如果是，请用几句话描述一下问题的情况。"
-
-#: psynet/demography/general.py
-msgctxt "formal-education"
-msgid "College"
-msgstr "大学"
-
-#: psynet/demography/general.py
-msgctxt "formal-education"
-msgid "Graduate School"
-msgstr "研究生院"
-
-#: psynet/demography/general.py
-msgctxt "formal-education"
-msgid "High school"
-msgstr "高中"
-
-#: psynet/demography/general.py
-msgctxt "formal-education"
-msgid "None"
-msgstr "没有"
-
-#: psynet/demography/general.py
-msgctxt "formal-education"
-msgid "Postgraduate degree or higher"
-msgstr "研究生学位或更高"
-
-#: psynet/demography/general.py
-msgctxt "formal-education"
-msgid "What is your highest level of formal education?"
-msgstr "您的最高正规教育程度是什么？"
-
-#: psynet/demography/general.py
+#, fuzzy
 msgctxt "gender"
 msgid "Female"
 msgstr "女性"
 
 #: psynet/demography/general.py
-msgctxt "gender"
-msgid "How do you identify yourself?"
-msgstr "您如何认定自己的性别？"
-
-#: psynet/demography/general.py
-msgctxt "gender"
-msgid "I prefer not to answer"
-msgstr "我不愿意回答"
-
-#: psynet/demography/general.py
+#, fuzzy
 msgctxt "gender"
 msgid "Male"
 msgstr "男性"
 
 #: psynet/demography/general.py
+#, fuzzy
 msgctxt "gender"
 msgid "Non-binary"
-msgstr "非二元性"
+msgstr "非二元"
 
 #: psynet/demography/general.py
+#, fuzzy
 msgctxt "gender"
 msgid "Not specified"
-msgstr "保密"
+msgstr "未指定"
 
 #: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "I prefer not to answer"
+msgstr "我不想回答"
+
+#: psynet/demography/general.py
+#, fuzzy
 msgctxt "gender"
 msgid "Specify yourself"
-msgstr "指定您自己"
+msgstr "请说明您自己"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "10,000 to 19,999 {CURRENCY}"
-msgstr "10,000 至 19,999 {CURRENCY}"
+#, fuzzy
+msgctxt "age"
+msgid "What is your age?"
+msgstr "您的年龄是多少？"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "100,000 to 149,999 {CURRENCY}"
-msgstr "100,000至149,999 {CURRENCY}"
+#, fuzzy
+msgctxt "age"
+msgid "You need to provide your age as an integer between 0 and 120!"
+msgstr "您需要提供一个介于0到120之间的整数作为您的年龄！"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "150,000 {CURRENCY} or more"
-msgstr "150,000 {CURRENCY}或更多"
+#, fuzzy, python-brace-format
+msgctxt "age"
+msgid "Your answer was: '{AGE}'"
+msgstr "您的答案是：'{AGE}'"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "20,000 to 29,999 {CURRENCY}"
-msgstr "20,000 至 29,999 {CURRENCY}"
+#, fuzzy
+msgctxt "country-select"
+msgid "Other country"
+msgstr "其他国家"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "30,000 to 39,999 {CURRENCY}"
-msgstr "30,000至39,999 {CURRENCY}"
+#, fuzzy
+msgctxt "country-select"
+msgid "Select a country"
+msgstr "选择一个国家"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "40,000 to 49,999 {CURRENCY}"
-msgstr "40,000 至 49,999 {CURRENCY}"
+#, fuzzy
+msgctxt "country-select"
+msgid "You need to select a country!"
+msgstr "您需要选择一个国家！"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "50,000 to 59,999 {CURRENCY}"
-msgstr "50,000至59,999 {CURRENCY}"
+#, fuzzy
+msgctxt "country-select"
+msgid "What country are you from?"
+msgstr "您来自哪个国家？"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "60,000 to 69,999 {CURRENCY}"
-msgstr "60,000 至 69,999 {CURRENCY}"
+#, fuzzy
+msgctxt "country-select"
+msgid "What is your current country of residence?"
+msgstr "您目前居住在哪个国家？"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "70,000 to 79,999 {CURRENCY}"
-msgstr "70,000至79,999 {CURRENCY}"
+#, fuzzy
+msgctxt "formal-education"
+msgid "What is your highest level of formal education?"
+msgstr "您的最高学历是什么？"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "80,000 to 89,999 {CURRENCY}"
-msgstr "80,000至89,999 {CURRENCY}"
+#, fuzzy
+msgctxt "formal-education"
+msgid "None"
+msgstr "无"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "90,000 to 99,999 {CURRENCY}"
-msgstr "90,000至99,999 {CURRENCY}"
+#, fuzzy
+msgctxt "formal-education"
+msgid "High school"
+msgstr "高中"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "Less than 10,000 {CURRENCY}"
-msgstr "小于10,000 {CURRENCY}"
+#, fuzzy
+msgctxt "formal-education"
+msgid "College"
+msgstr "大学"
 
 #: psynet/demography/general.py
-msgctxt "income"
-msgid "What is your total household income per year?"
-msgstr "您的家庭年总收入是多少？"
+#, fuzzy
+msgctxt "formal-education"
+msgid "Graduate School"
+msgstr "研究生院"
 
 #: psynet/demography/general.py
-msgctxt "language-select"
-msgid "Do you speak more than one language?"
-msgstr "您会说多于一种语言吗？"
+#, fuzzy
+msgctxt "formal-education"
+msgid "Postgraduate degree or higher"
+msgstr "研究生学位或更高"
 
 #: psynet/demography/general.py
-msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "请至少列出一种语言!"
-
-#: psynet/demography/general.py
+#, fuzzy
 msgctxt "language-select"
 msgid ""
-"Please list the languages you speak in order of proficiency (first language "
-"first, second language second, ...)"
-msgstr "请按熟练程度列出您所讲的语言（第一语言第一，第二语言第二，...）"
+"What is your mother tongue - i.e., the language which you have grown up "
+"speaking from early childhood?"
+msgstr "您的母语是什么 - 即您从小就开始说的语言？"
 
 #: psynet/demography/general.py
+#, fuzzy
 msgctxt "language-select"
 msgid "Select a language"
 msgstr "选择一种语言"
 
 #: psynet/demography/general.py
-msgctxt "language-select"
-msgid ""
-"What is your mother tongue - i.e., the language which you have grown up "
-"speaking from early childhood?"
-msgstr "您的母语是什么 - 即您从小到大一直说的语言？"
-
-#: psynet/demography/general.py
+#, fuzzy
 msgctxt "language-select"
 msgid "You need to select a language!"
-msgstr "您需要选择一种语言!"
+msgstr "您需要选择一种语言！"
 
 #: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Do you speak more than one language?"
+msgstr "您会说不止一种语言吗？"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "Yes"
+msgstr "是"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "No"
+msgstr "否"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"Please list the languages you speak in order of proficiency (first language "
+"first, second language second, ...)"
+msgstr "请按熟练程度列出您会说的语言（第一语言排在第一，第二语言排在第二，...）"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "请至少列出一种语言！"
+
+#: psynet/demography/general.py
+#, fuzzy
 msgctxt "music"
-msgid "Do you have hearing loss or any other hearing issues?"
-msgstr "您否有听力损失或任何其他听力障碍？"
+msgid ""
+"How many years of formal training on a musical instrument (including voice) "
+"have you had during your lifetime?"
+msgstr "您一生中接受过多少年乐器（包括声乐）的正规训练？"
 
 #: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "On average, how many hours do you listen to music daily?"
+msgstr "您平均每天听音乐多少小时？"
+
+#: psynet/demography/general.py
+#, fuzzy
 msgctxt "music"
 msgid "Do you make money from playing music?"
-msgstr "您靠演奏音乐赚钱吗？"
+msgstr "您通过演奏音乐赚钱吗？"
 
 #: psynet/demography/general.py
+#, fuzzy
 msgctxt "music"
 msgid "Frequently"
 msgstr "经常"
 
 #: psynet/demography/general.py
-msgctxt "music"
-msgid ""
-"How many years of formal training on a musical instrument (including voice) "
-"have you had during your lifetime?"
-msgstr "在您的一生中，您接受过多少年的乐器（包括声音）的正式训练？"
-
-#: psynet/demography/general.py
-msgctxt "music"
-msgid "Never"
-msgstr "从不"
-
-#: psynet/demography/general.py
-msgctxt "music"
-msgid "On average, how many hours do you listen to music daily?"
-msgstr "平均而言，您每天听多少小时的音乐？"
-
-#: psynet/demography/general.py
+#, fuzzy
 msgctxt "music"
 msgid "Sometimes"
 msgstr "有时"
 
 #: psynet/demography/general.py
-msgctxt "speech-disorder"
-msgid "Did you get speech-language therapy as a child?"
-msgstr "您小时候是否接受过语言治疗？"
+#, fuzzy
+msgctxt "music"
+msgid "Never"
+msgstr "从不"
 
 #: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Do you have hearing loss or any other hearing issues?"
+msgstr "您有听力损失或其他听力问题吗？"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Do you dance socially or professionally?"
+msgstr "您是社交舞还是专业舞？"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Socially"
+msgstr "社交"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Professionally"
+msgstr "专业"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "I never dance"
+msgstr "我从不跳舞"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "When was the last time you danced? (choose the most accurate answer):"
+msgstr "您上次跳舞是什么时候？（选择最准确的答案）："
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This week"
+msgstr "本周"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This month"
+msgstr "本月"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This year"
+msgstr "今年"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Some years ago"
+msgstr "几年前"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Many years ago"
+msgstr "很多年前"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "I never danced"
+msgstr "我从未跳过舞"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Did you get speech-language therapy as a child?"
+msgstr "您小时候接受过语言治疗吗？"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "I don’t know"
+msgstr "我不知道"
+
+#: psynet/demography/general.py
+#, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "您是否曾被诊断出有阅读障碍？"
+msgstr "您曾被诊断为阅读障碍吗？"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "income"
+msgid "What is your total household income per year?"
+msgstr "您的家庭年收入是多少？"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "Less than 10,000 {CURRENCY}"
+msgstr "少于10,000 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "10,000 to 19,999 {CURRENCY}"
+msgstr "10,000到19,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "20,000 to 29,999 {CURRENCY}"
+msgstr "20,000到29,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "30,000 to 39,999 {CURRENCY}"
+msgstr "30,000到39,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "40,000 to 49,999 {CURRENCY}"
+msgstr "40,000到49,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "50,000 to 59,999 {CURRENCY}"
+msgstr "50,000到59,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "60,000 to 69,999 {CURRENCY}"
+msgstr "60,000到69,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "70,000 to 79,999 {CURRENCY}"
+msgstr "70,000到79,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "80,000 to 89,999 {CURRENCY}"
+msgstr "80,000到89,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "90,000 to 99,999 {CURRENCY}"
+msgstr "90,000到99,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "100,000 to 149,999 {CURRENCY}"
+msgstr "100,000到149,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "150,000 {CURRENCY} or more"
+msgstr "150,000 {CURRENCY}或更多"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you like the experiment?"
+msgstr "您喜欢这个实验吗？"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you find the experiment difficult?"
+msgstr "您觉得这个实验难吗？"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you encounter any technical problems during the experiment?"
+msgstr "在实验过程中您遇到过技术问题吗？"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "If so, please provide a few words describing the problem."
+msgstr "如果有，请简要描述问题。"
+
+#: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"您将获得<strong>{CURRENCY}{TIME_REWARD}</strong>的奖励，感谢您在实验中花费的时间。您还获得了<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>的表现奖励！"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "实验结束了！"
+
+#: psynet/end.py
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "感谢您的参与。"
+
+#: psynet/end.py
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "请点击“完成”以完成HIT。"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "不幸的是，实验必须提前结束。"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "但是，您仍将获得已花费时间的报酬。"
+
+#: psynet/end.py
+#, fuzzy
+msgid "You will be redirected."
+msgstr "您将被重定向。"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "同意被拒绝。"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "实验结束。"
 
 #: psynet/experiment.py
+#, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "出现了一个错误，导致您无法继续，对不起！"
+msgstr "发生错误，您无法继续，抱歉！"
+
+#: psynet/experiment.py
+#, fuzzy, python-brace-format
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr "如需查询赔偿，请通过{EMAIL}联系研究人员，并描述导致此错误的原因。"
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
-msgstr "请同时引用以下信息："
-
-#: psynet/experiment.py
-#, python-brace-format, fuzzy
-msgctxt "mturk_error"
-msgid ""
-"To enquire about compensation, please contact the researcher at {EMAIL} and "
-"describe what led to this error."
-msgstr "如需询问赔偿事宜，请通过{EMAIL}联系研究人员，并描述导致这一错误的原因。"
+msgstr "请同时提供以下信息："
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
-msgstr "别担心，你的进展已经被记录下来了。"
+msgstr "别担心，您的进度已被记录。"
 
 #: psynet/experiment.py
 #, fuzzy
@@ -383,19 +499,13 @@ msgctxt "prolific_error"
 msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
-msgstr "要询问赔偿问题，请通过Prolific网站给研究人员发信息，并描述导致你出错的原因。"
+msgstr "如需查询赔偿，请通过 Prolific 网站向研究人员发送消息，并描述导致您错误的原因。"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "您需要检查至少一个答案！"
-
-#: psynet/modular_page.py
-#, fuzzy
-msgctxt "validation"
-msgid "You need to provide a number!"
-msgstr "您需要提供一个数字！"
+msgstr "您需要至少选择一个答案！"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -403,71 +513,91 @@ msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr "您需要选择一个答案！"
 
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "您需要提供一个数字！"
+
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "写下图片中的数字。"
-
-#: psynet/prescreen.py
-#, fuzzy
-msgctxt "color_blindness_test_intro_1"
-msgid ""
-"In each trial, you will be presented with an image that contains a number."
-msgstr "在每次试验中，您将看到一个包含数字的图像。"
-
-#: psynet/prescreen.py
-#, python-brace-format, fuzzy
-msgctxt "color_blindness_test_intro_1"
-msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "该图像将在 {HIDE_AFTER} 秒后消失。"
+msgstr "写下图中的数字。"
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "现在我们将进行一个快速测试，检查您对颜色的感知能力。"
+msgstr "我们现在将进行一个快速测试，以检查您感知颜色的能力。"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr "在每个试验中，您将看到一张包含数字的图像。"
+
+#: psynet/prescreen.py
+#, fuzzy, python-brace-format
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "此图像将在{HIDE_AFTER}秒后消失。"
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "您必须在文本框中输入您看到的数字。"
+msgstr "您必须将看到的数字输入到文本框中。"
 
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
-msgstr "重定向到Lucid Marketplace..."
+msgstr "正在重定向到 Lucid Marketplace..."
 
 #: psynet/templates/abort_not_possible.html
-#, python-format, fuzzy
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr "无法中止。"
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr "无法中止实验，因为实验者此时不允许！"
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy, python-format
 msgid ""
 "You have to accumulate <strong>at least "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"您必须积累 <strong>至少 "
+"您必须累积<strong>至少 "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong>的奖励才能获得补偿。"
-
-#: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid "Aborting not possible."
-msgstr "不可以终止实验。"
-
-#: psynet/templates/abort_not_possible.html
-msgctxt "abort_possible"
-msgid ""
-"Aborting the experiment is not possible as the experimenter does not allow "
-"it at this time!"
-msgstr "终止实验是不可能的，因为实验者在这个时候不允许您这样做!"
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
-msgstr "请参阅以下有关您当前累积奖励的信息。"
+msgstr "请查看下方您当前累积的奖励信息。"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Assignment ID"
+msgstr "任务 ID"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "HIT ID"
+msgstr "HIT ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -477,589 +607,617 @@ msgstr "累计奖励"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
+#, fuzzy
 msgid "Close window"
 msgstr "关闭窗口"
 
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
-msgid "Assignment ID"
-msgstr "任务编号"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
-msgid "HIT ID"
-msgstr "HIT ID"
-
 #: psynet/templates/abort_possible.html
-msgid "Abort experiment"
-msgstr "中止实验"
-
-#: psynet/templates/abort_possible.html
+#, fuzzy
 msgctxt "abort_possible"
 msgid "Are you sure you want to abort the experiment?"
 msgstr "您确定要中止实验吗？"
 
 #: psynet/templates/abort_possible.html
+#, fuzzy
 msgctxt "abort_possible"
 msgid ""
 "If you click the Abort button, the experiment will end early, and you will "
 "be automatically paid the compensation you have earned so far."
-msgstr "如果您点击“终止”按钮，实验将提前结束，您将自动获得到目前为止累计的奖金。"
+msgstr "如果您点击中止按钮，实验将提前结束，您将自动获得迄今为止赚取的补偿。"
 
 #: psynet/templates/abort_possible.html
+#, fuzzy
 msgctxt "abort_possible"
 msgid "Please only contact us if you have trouble receiving your payment."
-msgstr "请只有当您在领取报酬时遇到困难时，与我们联系。"
+msgstr "如果您在收到付款时遇到问题，请仅联系我们。"
 
 #: psynet/templates/abort_possible.html
+#, fuzzy
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
-msgstr "关于您的奖金的细节，请看下面的信息。"
+msgstr "请参阅下面的信息以获取您的补偿详情。"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Abort experiment"
+msgstr "中止实验"
 
 #: psynet/templates/ad.html
-msgctxt "ad"
-msgid "Begin Experiment"
-msgstr "开始实验"
-
-#: psynet/templates/ad.html
-msgctxt "ad"
-msgid ""
-"By clicking the following URL link, you will be taken to the experiment, "
-"including complete instructions and an informed consent agreement."
-msgstr "通过点击以下URL链接，您将进入实验，包括完整的说明和知情同意协议。"
-
-#: psynet/templates/ad.html
+#, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "征集参与者"
+msgstr "招募参与者"
 
 #: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "参与的要求如下"
+
+#: psynet/templates/ad.html
+#, fuzzy
 msgctxt "ad"
 msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
-msgstr "请点击上面亚马逊网站上的 \"接受HIT\"按钮，开始执行任务。"
+msgstr "请点击上方亚马逊网站上的“接受HIT”按钮以开始任务。"
 
 #: psynet/templates/ad.html
-msgctxt "ad"
-msgid "Please disable pop-up blockers before continuing."
-msgstr "在继续之前，请关闭弹出窗口拦截器。"
-
-#: psynet/templates/ad.html
+#, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "谢谢您接受这项HIT。"
+msgstr "感谢您接受此HIT。"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "谢谢你对这个实验的兴趣。"
+msgstr "感谢您对本实验的兴趣。"
 
 #: psynet/templates/ad.html
+#, fuzzy
 msgctxt "ad"
-msgid "The requirements to participate are as follows"
-msgstr "对参与者的要求如下"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr "点击以下URL链接，您将进入实验，包括完整的说明和知情同意协议。"
 
 #: psynet/templates/ad.html
+#, fuzzy
 msgctxt "ad"
 msgid "Warning"
 msgstr "警告"
 
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr "请在继续之前禁用弹出窗口拦截器。"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "开始实验"
+
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
+#, fuzzy
 msgid "Abort Experiment"
 msgstr "中止实验"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
+#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "点击上面的按钮，在出现错误的情况下获得赔偿。"
+msgstr "点击上面的按钮以在出现错误时获得补偿。"
 
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "To proceed, click the button below."
-msgstr "要继续进行，请点击下面的按钮。"
+msgstr "要继续，请点击下面的按钮。"
 
 #: psynet/templates/consent.html psynet/templates/macros/control.html
+#, fuzzy
 msgid "Next"
-msgstr "下一页"
+msgstr "下一步"
 
 #: psynet/templates/consents/audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid ""
+"In this experiment, you may be asked to make a voice or video recording."
+msgstr "在此实验中，您可能会被要求进行语音或视频录制。"
+
+#: psynet/templates/consents/audiovisual_consent.html
+#, fuzzy
 msgctxt "consent-title"
 msgid ""
 "For example, you may be asked to record your finger-tapping in response to a"
 " sound or video, or to record yourself speaking or singing."
-msgstr "例如，您可能会被要求记录您对声音或视频的敲击，或者记录自己的说话或唱歌。"
+msgstr "例如，您可能会被要求录制自己对声音或视频的指尖敲击，或者录制自己说话或唱歌。"
 
-#: psynet/templates/consents/audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
 msgctxt "consent-title"
-msgid ""
-"In this experiment, you may be asked to make a voice or video recording."
-msgstr "在本实验中，您可能被要求进行语音或视频记录。"
+msgid "Research Participant Consent Form for Image/Sound Recordings"
+msgstr "图像/声音录制研究参与者同意书"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
 msgctxt "consent"
-msgid "(Please tick where applicable)"
-msgstr "(请在适用处打勾)"
+msgid "Title of study:"
+msgstr "研究标题："
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent"
-msgid "Addendum for demonstrations"
-msgstr "用于演示的补充说明。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent"
-msgid ""
-"I agree that my <i>audiovisual</i> recordings can be used for demonstration "
-"purposes in presentations with a limited number of participants (e.g., "
-"teaching courses or scientific presentations)."
-msgstr "我同意我的<i>音频和视频</i>数据可以在参与人数有限的演示（例如教学课程或科学展示）中用于演示目进行使用。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent"
-msgid "NO"
-msgstr "没有"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent"
-msgid "YES"
-msgstr "是"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
-"By making recording people while moving, singing, tapping to rhythms, or "
-"speaking, we can infer the mechanisms of the auditory and visual systems."
-msgstr "通过让人们在运动、唱歌、敲击节奏或说话时进行录音，我们可以推断出听觉和视觉系统的机制。"
+"I have received oral and written information about the fact that "
+"<i>audiovisual</i> recordings will be made in this study."
+msgstr "我已收到关于本研究中将进行<i>视听</i>录制的口头和书面信息。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The recording serves the purpose of understanding how humans perceive and "
+"process information from sound and visual."
+msgstr "录制的目的是了解人类如何感知和处理声音和视觉信息。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
 "For example, we would like to understand how predictive mechanisms in "
 "perception rely on experience, learning, and memory."
-msgstr "例如，我们想了解感知中的预测机制如何依赖于经验、学习和记忆。"
+msgstr "例如，我们希望了解感知中的预测机制如何依赖于经验、学习和记忆。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
 msgctxt "consent-audiovisual"
-msgid "I agree to the handling of the recordings as described above."
-msgstr "我同意按上述方式处理录音。"
+msgid ""
+"By making recording people while moving, singing, tapping to rhythms, or "
+"speaking, we can infer the mechanisms of the auditory and visual systems."
+msgstr "通过录制人们在移动、唱歌、跟随节奏敲击或说话时的表现，我们可以推断出听觉和视觉系统的机制。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-audiovisual"
-msgid "I had sufficient time for this decision."
-msgstr "我有足够的时间做这个决定。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
 "I have been informed that the storage and processing of the "
 "<i>audiovisual</i> recording will be carried out in pseudonymized form, "
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
-msgstr ""
-"我已被告知，对<i>音频和视频</i>数据的存储和处理将以化名的形式进行，即使用一个号码，不包含我的名字，并且有一个编码表，将我的名字和号码联系起来。"
+msgstr "我已被告知，<i>视听</i>录制的存储和处理将以假名化形式进行，即使用编号而不包含我的姓名，并且有一份将我的姓名与编号关联的编码列表。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
-"I have read and understood everything and hereby agree that "
-"<i>audiovisual</i> recordings of me may be taken."
-msgstr "我已经阅读并理解了所有内容，并在此同意对我进行<i>音频和视频</i>录制。"
+"The investigators are the only persons who have access to this coding list, "
+"which will be destroyed after completion of the research project."
+msgstr "研究人员是唯一可以访问此编码列表的人，该列表将在研究项目完成后销毁。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-audiovisual"
-msgid "I have received a copy of this consent form."
-msgstr "我已收到本同意书的副本。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-audiovisual"
-msgid ""
-"I have received oral and written information about the fact that "
-"<i>audiovisual</i> recordings will be made in this study."
-msgstr "我已经收到口头和书面的信息，说明在这项研究中将会进行<i>音频和视频</i>录制。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-audiovisual"
-msgid "I may withdraw my consent at any time."
-msgstr "我可以随时撤回我的同意。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-audiovisual"
-msgid ""
-"In case of refusal or withdrawal, no costs will be incurred nor will there "
-"be other negative consequences; however, in this case, participation in the "
-"study will not be possible."
-msgstr "如果我拒绝或撤回同意，将不会产生任何费用或其他负面后果；但是，在这种情况下，将无法参与研究。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
 msgctxt "consent-audiovisual"
 msgid ""
 "Researchers associated with this project will have access to my "
 "<i>audiovisual</i> data during the recording and the analysis of the "
 "material."
-msgstr "与该项目相关的研究人员在录音和分析材料期间将可以访问我的<i>音频和视频</i>数据。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-audiovisual"
-msgid ""
-"The declaration of consent for <i>audiovisual</i> recordings is voluntary."
-msgstr "对于<i>音频和视频</i>录制的声明是自愿的。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-audiovisual"
-msgid ""
-"The investigators are the only persons who have access to this coding list, "
-"which will be destroyed after completion of the research project."
-msgstr "调查人员是唯一可以访问此编码列表的人，该列表将在研究项目完成后被销毁。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-audiovisual"
-msgid ""
-"The recording serves the purpose of understanding how humans perceive and "
-"process information from sound and visual."
-msgstr "录制的目的是为了理解人类如何感知和处理来自声音和视觉的信息。"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-msgctxt "consent-title"
-msgid "Research Participant Consent Form for Image/Sound Recordings"
-msgstr "图像/声音记录的研究参与者同意书"
+msgstr "与本项目相关的研究人员将在录制和材料分析期间访问我的<i>视听</i>数据。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
 msgctxt "consent"
 msgid ""
 "I understand that I am free to withdraw my consent to the collection and "
 "storage of my personal data without negative consequences."
-msgstr "我明白，我可以自由地撤回对收集和储存我的个人数据的同意，而不会产生负面影响。"
+msgstr "我明白我可以自由撤回对收集和存储我个人数据的同意，而不会产生负面后果。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I agree to the handling of the recordings as described above."
+msgstr "我同意按照上述描述处理录音。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Addendum for demonstrations"
+msgstr "演示附录"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"I agree that my <i>audiovisual</i> recordings can be used for demonstration "
+"purposes in presentations with a limited number of participants (e.g., "
+"teaching courses or scientific presentations)."
+msgstr "我同意我的<i>视听</i>录音可以用于在有限数量的参与者（例如，教学课程或科学演示）中进行演示。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "(Please tick where applicable)"
+msgstr "（请在适用处打勾）"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "YES"
+msgstr "是"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "NO"
+msgstr "否"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The declaration of consent for <i>audiovisual</i> recordings is voluntary."
+msgstr "<i>视听</i>录音的同意声明是自愿的。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I may withdraw my consent at any time."
+msgstr "我可以随时撤回我的同意。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"In case of refusal or withdrawal, no costs will be incurred nor will there "
+"be other negative consequences; however, in this case, participation in the "
+"study will not be possible."
+msgstr "在拒绝或撤回的情况下，不会产生任何费用，也不会有其他负面后果；然而，在这种情况下，将无法参与研究。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I had sufficient time for this decision."
+msgstr "我有足够的时间做出这个决定。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have read and understood everything and hereby agree that "
+"<i>audiovisual</i> recordings of me may be taken."
+msgstr "我已阅读并理解所有内容，并在此同意可以对我进行<i>视听</i>录制。"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I have received a copy of this consent form."
+msgstr "我已收到此同意书的副本。"
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
 msgctxt "consent"
 msgid "Investigator"
-msgstr "调查员"
-
-#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent"
-msgid "Title of study:"
-msgstr "研究的标题："
+msgstr "研究人员"
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"After completion of the research project, the coding list will be destroyed."
-msgstr "研究项目完成后，编码表将被销毁。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"From this point on, my data are anonymous, which means that they cannot be "
-"linked to my person any longer."
-msgstr "从这时起，我的数据是匿名的，这意味着它们不能再与我本人联系起来。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"However, if the coding list has already been destroyed, it will no longer be"
-" possible to identify and thus to delete my data set."
-msgstr "然而，如果编码列表已经被销毁，将无法识别并因此删除我的数据集。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"I agree to the described collecting and processing of my age, gender, and "
-"country of birth."
-msgstr "我同意收集和处理我年龄、性别和出生国家的信息，如上所述。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"I have been informed that I may request deletion of all my data at any time."
-msgstr "我已经被告知，我可以在任何时候要求删除我的所有数据。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid "I have read and understood all of the information completely."
-msgstr "我已经阅读并完全理解了所有的信息。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"I have received a copy of the participant information sheet and of the "
-"consent form."
-msgstr "我已经收到了一份参与者信息表和同意书的副本。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"I have received written information about the study and the procedure of the"
-" study."
-msgstr "我已收到关于该研究和研究程序的书面信息。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"If I had questions concerning the upcoming study, they were answered "
-"completely and to my satisfaction."
-msgstr "如果我对即将进行的研究有疑问，它们已被完整地回答并得到了我的满意回应。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"The investigators are the only persons who have access to this coding list "
-"and who are thus able to link the collected data to my name."
-msgstr "调查员是唯一能够接触到这个编码表的人，因此只有他们能够将收集的数据与我的名字联系起来。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"The participant information sheet about the examination is part of this "
-"consent form."
-msgstr "关于测试的参与者信息表是本同意书的一部分。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid ""
-"The recording and processing of these data are carried out in pseudonymized "
-"form by means of a code and do not contain my name."
-msgstr "这些数据的记录和处理是通过编码的方式以假名的形式进行的，不包含我的名字。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
-msgctxt "consent-cap"
-msgid "There is a coding list on paper that links my name to this number."
-msgstr "在纸上有一个编码表，将我的名字和这个号码联系起来。"
-
-#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
 msgctxt "consent-title"
 msgid "Research Participant Consent Form"
 msgstr "研究参与者同意书"
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent"
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
 msgid ""
-"If you have further questions regarding the General Data Protection "
-"Regulation in the context of personal data being processed in our studies, "
-"please contact the Data Protection Officer of the Max Planck Society:"
-msgstr "如果您对我们的研究中处理的个人数据有更多关于《通用数据保护条例》的问题，请立即联系马克斯-普朗克协会的数据保护负责人："
+"I have received written information about the study and the procedure of the"
+" study."
+msgstr "我已收到关于研究和研究程序的书面信息。"
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-data"
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid "I have read and understood all of the information completely."
+msgstr "我已完全阅读并理解所有信息。"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
 msgid ""
-"If we invite you to participate in a study, we will store the date and time "
-"of this communication."
-msgstr "如果我们邀请您参加一项研究，我们将储存这一沟通的日期和时间。"
+"If I had questions concerning the upcoming study, they were answered "
+"completely and to my satisfaction."
+msgstr "如果我对即将进行的研究有疑问，它们已被完全解答并令我满意。"
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-data"
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
 msgid ""
-"If you agree to participate, we also will store the date and time of your "
-"communication of this choice, and whether you completed the experiment "
-"successfully or not."
-msgstr "如果您同意参与，我们也将保存您沟通这一选择的日期和时间，以及您是否成功完成实验。"
+"I agree to the described collecting and processing of my age, gender, and "
+"country of birth."
+msgstr "我同意收集和处理我的年龄、性别和出生国家。"
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-data"
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
 msgid ""
-"In addition to your contact details (i.e., name and email) and the "
-"demographic data requested in the log in (i.e., age, gender, and "
-"nationality), we also store the date and time when you made the entry."
-msgstr "除了您的联系方式（即姓名和电子邮件）和登录时要求的人口统计学数据（即年龄、性别和国籍）之外，我们还保存您进行输入的日期和时间。"
+"The recording and processing of these data are carried out in pseudonymized "
+"form by means of a code and do not contain my name."
+msgstr "这些数据的记录和处理是通过代码以假名形式进行的，不包含我的姓名。"
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-data"
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid "There is a coding list on paper that links my name to this number."
+msgstr "有一份纸质编码列表将我的姓名与此号码关联。"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
 msgid ""
-"In addition, we save the date and time when you verified your email address."
-msgstr "此外，我们还保存您验证的电子邮件地址的日期和时间。"
+"The investigators are the only persons who have access to this coding list "
+"and who are thus able to link the collected data to my name."
+msgstr "研究人员是唯一可以访问此编码列表并因此能够将收集的数据与我的姓名关联的人。"
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-data"
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
 msgid ""
-"Of course, before you participate in a study, you will be informed in detail"
-" about the procedure of the study and the collection of data during the "
-"study."
-msgstr "当然，在您参与研究之前，我们会详细告知您研究的程序和研究期间的数据收集。"
+"After completion of the research project, the coding list will be destroyed."
+msgstr "研究项目完成后，编码列表将被销毁。"
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-data"
-msgid "Which Data are stored"
-msgstr "哪些数据被存储"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-data"
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
 msgid ""
-"Your consent to participate in a study will be obtained separately for each "
-"study you participate in."
-msgstr "您参与每项研究时都需要单独同意参与。"
+"From this point on, my data are anonymous, which means that they cannot be "
+"linked to my person any longer."
+msgstr "从此时起，我的数据是匿名的，这意味着它们不能再与我个人关联。"
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-database"
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
 msgid ""
-"In addition, we would like to inform you about your rights with regard to "
-"the processing of personal data."
-msgstr "此外，我们还想告诉您，您在处理个人数据方面的权利。"
+"I have been informed that I may request deletion of all my data at any time."
+msgstr "我已被告知我可以随时请求删除我所有的数据。"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"However, if the coding list has already been destroyed, it will no longer be"
+" possible to identify and thus to delete my data set."
+msgstr "然而，如果编码列表已经被销毁，将不再可能识别并因此删除我的数据集。"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The participant information sheet about the examination is part of this "
+"consent form."
+msgstr "关于检查的参与者信息表是本同意书的一部分。"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have received a copy of the participant information sheet and of the "
+"consent form."
+msgstr "我已收到参与者信息表和同意书的副本。"
 
 #: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "We need your consent to proceed"
+msgstr "我们需要您的同意才能继续"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-database"
 msgid ""
 "With this privacy policy, we would like to inform you about the personal "
 "data we collect when you register for our participant pool and for what "
 "purposes we process this data."
-msgstr "通过这个隐私政策，我们想告知您，当您注册我们的参与者库时我们收集哪些个人数据以及我们处理这些数据的目的。"
+msgstr "通过此隐私政策，我们希望告知您在注册我们的参与者池时收集的个人数据以及我们处理这些数据的目的。"
 
 #: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-database"
+msgid ""
+"In addition, we would like to inform you about your rights with regard to "
+"the processing of personal data."
+msgstr "此外，我们希望告知您关于个人数据处理的权利。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purposes of Processing"
+msgstr "处理目的"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We store and process your data only for the purpose of initiating "
+"communication with you and for planning studies at the Max Planck Institute "
+"for Empirical Aesthetics (MPIEA)."
+msgstr "我们仅为与您沟通和计划在马克斯·普朗克经验美学研究所（MPIEA）进行研究的目的存储和处理您的数据。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "This data will never be shared with third parties."
+msgstr "这些数据绝不会与第三方共享。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid "Which Data are stored"
+msgstr "存储哪些数据"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"In addition to your contact details (i.e., name and email) and the "
+"demographic data requested in the log in (i.e., age, gender, and "
+"nationality), we also store the date and time when you made the entry."
+msgstr "除了您的联系方式（即姓名和电子邮件）和登录时要求的人口统计数据（即年龄、性别和国籍）外，我们还存储您输入信息的日期和时间。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"In addition, we save the date and time when you verified your email address."
+msgstr "此外，我们保存您验证电子邮件地址的日期和时间。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"If we invite you to participate in a study, we will store the date and time "
+"of this communication."
+msgstr "如果我们邀请您参加研究，我们将存储此通信的日期和时间。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"If you agree to participate, we also will store the date and time of your "
+"communication of this choice, and whether you completed the experiment "
+"successfully or not."
+msgstr "如果您同意参加，我们还将存储您选择的通信日期和时间，以及您是否成功完成实验。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"Of course, before you participate in a study, you will be informed in detail"
+" about the procedure of the study and the collection of data during the "
+"study."
+msgstr "当然，在您参加研究之前，您将详细了解研究的程序和研究期间的数据收集。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"Your consent to participate in a study will be obtained separately for each "
+"study you participate in."
+msgstr "您参加研究的同意将针对您参与的每项研究单独获得。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-duration"
 msgid "Duration of Data Storage"
-msgstr "数据存储的时长"
+msgstr "数据存储期限"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-duration"
-msgid ""
-"Note that all information, including the experiment and payment history will"
-" be removed from our database."
-msgstr "请注意，所有的信息，包括实验和支付历史都将从我们的数据库中删除。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-duration"
-msgid "To do so, send an e-mail with the subject “Delete” to:"
-msgstr "为此，请发送一封主题为 “Delete”的电子邮件至："
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-duration"
-msgid ""
-"You can also delete your data from the database by deleting your account "
-"(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
-msgstr "您也可以通过删除您的账户从数据库中删除您的数据（即在cap-recruiter的登录页面按 “Delete account”）。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-duration"
-msgid "You may request the deletion of your data at any time."
-msgstr "您可以在任何时候要求删除您的数据。"
-
-#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-duration"
 msgid ""
 "Your data will be stored in the contact database for as long as the purpose "
 "of such storage, i.e., to contact you about participating in a study, "
 "remains in effect."
-msgstr "只要存储的目的，即联系您参与研究，仍然有效，您的数据将存储在联系数据库中。"
+msgstr "您的数据将存储在联系数据库中，只要此类存储的目的，即联系您参与研究，仍然有效。"
 
 #: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "You may request the deletion of your data at any time."
+msgstr "您可以随时请求删除您的数据。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "To do so, send an e-mail with the subject “Delete” to:"
+msgstr "为此，请发送主题为“删除”的电子邮件至："
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-duration"
 msgid "Your personal data will then be deleted immediately."
-msgstr "然后您的个人数据将被立即删除。"
+msgstr "您的个人数据将立即被删除。"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
+#, fuzzy
+msgctxt "consent-duration"
 msgid ""
-"Based on this information we allow you to receive payment via an external "
-"system such as PayPAL/WISE."
-msgstr "基于这些信息，我们允许您通过外部系统（如PayPAL/WISE）接收付款。"
+"You can also delete your data from the database by deleting your account "
+"(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
+msgstr "您也可以通过删除您的帐户（即在cap-recruiter登录页面按“删除帐户”）从数据库中删除您的数据。"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
+#, fuzzy
+msgctxt "consent-duration"
 msgid ""
-"However we do store completion records and payment details of every task you"
-" completed."
-msgstr "但是，我们会存储您完成的每个任务的完成记录和支付细节。"
+"Note that all information, including the experiment and payment history will"
+" be removed from our database."
+msgstr "请注意，所有信息，包括实验和支付历史记录，将从我们的数据库中删除。"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "Security"
+msgstr "安全"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
 msgid ""
-"If you cannot or would not like to receive payment via this system, we would"
-" not be able to pay you, however you can still participate in our "
-"experiments voluntarily, without payment."
-msgstr "如果您无法或不愿通过此系统接收付款，我们将无法支付您，但是您仍然可以自愿参与我们的实验，而不获得报酬。"
+"The data entered in the form you fill out are transferred in encrypted form "
+"to an internal server."
+msgstr "您填写的表单中输入的数据将以加密形式传输到内部服务器。"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
-msgid "In this case you will not receive any compensation for your time."
-msgstr "在这种情况下，您参与实验的时间不会得到任何报酬。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
+#, fuzzy
+msgctxt "consent-security"
 msgid ""
-"It is your responsibility to make sure you can receive payment through this "
-"system and that you would want to consent to use it."
-msgstr "确保您可以通过此系统接收付款，并且您同意使用该系统是您的责任。"
+"We will then send you an e-mail with a confirmation link to verify your "
+"e-mail address."
+msgstr "然后我们会向您发送一封带有确认链接的电子邮件以验证您的电子邮件地址。"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
-msgid "Payment and Compensation"
-msgstr "付款和奖励"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
+#, fuzzy
+msgctxt "consent-security"
 msgid ""
-"This information will be available for you to review it when you login to "
-"the database."
-msgstr "当您登录到数据库时，您可以查看这些信息。"
+"We take all necessary technical and organizational security measures to "
+"protect your personal data from loss and abuse."
+msgstr "我们采取一切必要的技术和组织安全措施，以保护您的个人数据免受丢失和滥用。"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
+#, fuzzy
+msgctxt "consent-security"
 msgid ""
-"This system supports transferring money to most banks around the world, "
-"please search your bank in their website to ensure that you will be able to "
-"receive payment prior to taking part in our experiments."
-msgstr "该系统支持向世界上大多数银行转账，请在其网站上搜索您的银行以在参加我们的实验之前确保您能够收到付款。"
+"Your data are stored in a secure operating environment that is not "
+"accessible to the public."
+msgstr "您的数据存储在一个安全的操作环境中，公众无法访问。"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
+#, fuzzy
+msgctxt "consent-security"
 msgid ""
-"We also recommend checking the term of service and it’s privacy statement "
-"and see if you consent to use their system for payment."
-msgstr "我们还建议您查看服务条款和隐私声明，并查看您是否同意使用他们的系统进行付款。"
+"All connections between your computer and the web server are encrypted."
+msgstr "您计算机与网络服务器之间的所有连接都是加密的。"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-payment"
-msgid ""
-"We will not store any banking information or payment information in our "
-"system."
-msgstr "我们不会在我们的系统中储存任何银行信息或付款信息。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-protection"
-msgid "Access (GDPR art. 15)"
-msgstr "访问（GDPR第15条）"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-protection"
-msgid ""
-"As a data subject whose personal data are processed with regard to your "
-"participation in our studies, you have the following rights in principle and"
-" insofar as no legal exceptions apply in individual cases:"
-msgstr "身为我们研究项目中个人数据处理涉及的数据主体，您原则上享有以下权利，除非某些特殊情况有法律限制："
-
-#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-protection"
 msgid "Data Protection: Rights of Data Subjects"
 msgstr "数据保护：数据主体的权利"
 
 #: psynet/templates/consents/database_consent.html
-msgctxt "consent-protection"
-msgid "Data portability (GDPR art. 20)"
-msgstr "数据可移植性（GDPR第20条）"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-protection"
-msgid "Erasure (GDPR art. 17, para. 1)"
-msgstr "删除（GDPR第17条，第1款）"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-protection"
-msgid ""
-"For the Max Planck Society, this is the Data Protection Authority of "
-"Bavaria, Postfach 1349, 91504 Ansbach, Germany."
-msgstr "对于马克斯-普朗克协会来说，这就是巴伐利亚数据保护局，地址是Postfach 1349, 91504 Ansbach, Germany。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-protection"
-msgid ""
-"If you have any questions about this research, your rights, or treatment as "
-"a participant, please do not hesitate to contact the Computational Auditory "
-"Perception Group at the Max Planck Institute for Empirical Aesthetics:"
-msgstr "如果您对这项研究、您的权利或作为参与者的待遇有任何疑问，请立即联系马克斯-普朗克实证美学研究所的计算听觉感知小组："
-
-#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-protection"
 msgid ""
 "In order to ensure transparency with regard to the processing of personal "
@@ -1068,288 +1226,205 @@ msgid ""
 msgstr "为了确保个人数据处理的透明度，欧盟的《通用数据保护条例》（GDPR）提供了关于数据主体权利的信息。"
 
 #: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"As a data subject whose personal data are processed with regard to your "
+"participation in our studies, you have the following rights in principle and"
+" insofar as no legal exceptions apply in individual cases:"
+msgstr "作为参与我们研究的数据主体，您的个人数据被处理，您原则上拥有以下权利，除非个别情况下存在法律例外："
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Access (GDPR art. 15)"
+msgstr "访问权（GDPR第15条）"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-protection"
 msgid "Rectification (GDPR art. 16)"
-msgstr "纠正(GDPR第16条)"
+msgstr "更正权（GDPR第16条）"
 
 #: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Erasure (GDPR art. 17, para. 1)"
+msgstr "删除权（GDPR第17条，第1款）"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-protection"
 msgid "Restriction of processing (GDPR art. 18)"
-msgstr "限制处理(GDPR第18条)"
+msgstr "限制处理权（GDPR第18条）"
 
 #: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Data portability (GDPR art. 20)"
+msgstr "数据可携权（GDPR第20条）"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Withdrawal of consent (GDPR art. 7, para. 3)"
+msgstr "撤回同意权（GDPR第7条，第3款）"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-protection"
 msgid ""
 "Right to lodge a complaint with a supervisory authority (GDPR art. 77)."
-msgstr "向监督机构提出投诉的权利（GDPR第77条）。"
+msgstr "向监督机构投诉的权利（GDPR第77条）。"
 
 #: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-protection"
-msgid "Withdrawal of consent (GDPR art. 7, para. 3)"
-msgstr "撤销同意(GDPR第7条第3款)"
+msgid ""
+"For the Max Planck Society, this is the Data Protection Authority of "
+"Bavaria, Postfach 1349, 91504 Ansbach, Germany."
+msgstr "对于马克斯·普朗克学会，这是巴伐利亚的数据保护局，邮政信箱1349，91504安斯巴赫，德国。"
 
 #: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"If you have any questions about this research, your rights, or treatment as "
+"a participant, please do not hesitate to contact the Computational Auditory "
+"Perception Group at the Max Planck Institute for Empirical Aesthetics:"
+msgstr "如果您对这项研究、您的权利或作为参与者的待遇有任何疑问，请随时联系马克斯·普朗克经验美学研究所的计算听觉感知小组："
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid "Payment and Compensation"
+msgstr "支付和补偿"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"We will not store any banking information or payment information in our "
+"system."
+msgstr "我们不会在系统中存储任何银行信息或支付信息。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"However we do store completion records and payment details of every task you"
+" completed."
+msgstr "但是，我们确实存储您完成的每项任务的完成记录和支付详情。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"This information will be available for you to review it when you login to "
+"the database."
+msgstr "当您登录数据库时，您可以查看这些信息。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"Based on this information we allow you to receive payment via an external "
+"system such as PayPAL/WISE."
+msgstr "基于此信息，我们允许您通过外部系统（如PayPAL/WISE）接收付款。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"It is your responsibility to make sure you can receive payment through this "
+"system and that you would want to consent to use it."
+msgstr "确保您可以通过此系统接收付款并同意使用它是您的责任。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"This system supports transferring money to most banks around the world, "
+"please search your bank in their website to ensure that you will be able to "
+"receive payment prior to taking part in our experiments."
+msgstr "此系统支持向世界大多数银行转账，请在其网站上搜索您的银行，以确保您在参与我们的实验之前能够接收付款。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"We also recommend checking the term of service and it’s privacy statement "
+"and see if you consent to use their system for payment."
+msgstr "我们还建议您查看服务条款及其隐私声明，并查看您是否同意使用其系统进行支付。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"If you cannot or would not like to receive payment via this system, we would"
+" not be able to pay you, however you can still participate in our "
+"experiments voluntarily, without payment."
+msgstr "如果您不能或不想通过此系统接收付款，我们将无法支付您，但您仍然可以自愿参加我们的实验，不收取任何费用。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid "In this case you will not receive any compensation for your time."
+msgstr "在这种情况下，您将不会获得任何时间补偿。"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have further questions regarding the General Data Protection "
+"Regulation in the context of personal data being processed in our studies, "
+"please contact the Data Protection Officer of the Max Planck Society:"
+msgstr "如果您对在我们研究中处理个人数据的《通用数据保护条例》有进一步问题，请联系马克斯·普朗克学会的数据保护官："
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
 msgctxt "consent-protection"
 msgid ""
 "You may also address your inquiries directly to the Max Planck Institute for"
 " Empirical Aesthetics:"
-msgstr "您也可以直接向马克斯-普朗克实证美学研究所提出询问："
+msgstr "您也可以直接向马克斯·普朗克经验美学研究所提出询问："
 
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-purpose"
-msgid "Purposes of Processing"
-msgstr "处理的目的"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-purpose"
-msgid "This data will never be shared with third parties."
-msgstr "这些数据绝不会与第三方共享。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-purpose"
-msgid ""
-"We store and process your data only for the purpose of initiating "
-"communication with you and for planning studies at the Max Planck Institute "
-"for Empirical Aesthetics (MPIEA)."
-msgstr "我们存储和处理您的数据只是为了与您进行沟通，以及在马克斯-普朗克实证美学研究所（MPIEA）规划研究。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-security"
-msgid ""
-"All connections between your computer and the web server are encrypted."
-msgstr "您的电脑和网络服务器之间的所有连接都是加密的。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-security"
-msgid ""
-"The data entered in the form you fill out are transferred in encrypted form "
-"to an internal server."
-msgstr "您所填写的表格中的数据将以加密的形式传输到内部服务器。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-security"
-msgid ""
-"We take all necessary technical and organizational security measures to "
-"protect your personal data from loss and abuse."
-msgstr "我们采取所有必要的技术和组织安全措施来保护您的个人数据不被丢失和滥用。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-security"
-msgid ""
-"We will then send you an e-mail with a confirmation link to verify your "
-"e-mail address."
-msgstr "然后，我们将向您发送一封带有确认链接的电子邮件，以验证您的电子邮件地址。"
-
-#: psynet/templates/consents/database_consent.html
-msgctxt "consent-security"
-msgid ""
-"Your data are stored in a secure operating environment that is not "
-"accessible to the public."
-msgstr "您的数据被储存在一个安全的操作环境中，公众无法进入。"
-
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/lucid_consent.html
 #: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-msgctxt "consent-title"
-msgid "We need your consent to proceed"
-msgstr "我们需要您的同意才能进行"
-
-#: psynet/templates/consents/database_consent.html
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-security"
-msgid "Security"
-msgstr "安全性"
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "目的"
 
 #: psynet/templates/consents/main_consent.html
-msgid "per hour"
-msgstr "每小时"
-
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-compensation"
-msgid ""
-"If you satisfactorily complete the study, we compensate you for your "
-"participation:"
-msgstr "如果您令人满意地完成了测试，我们将对您的参与进行奖励："
-
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-compensation"
-msgid "We appreciate your contribution to science!"
-msgstr "我们感谢您对科学的贡献!"
-
-#: psynet/templates/consents/main_consent.html
-msgctxt "consent-compensation"
-msgid ""
-"You may also receive an additional payment based on your performance in the "
-"task."
-msgstr "您也可以根据您在任务中的表现获得额外的报酬。"
-
-#: psynet/templates/consents/main_consent.html
+#, fuzzy
 msgctxt "consent-purpose"
 msgid ""
 "The purpose of this project is to study how people from different places in "
 "the world experience sounds (e.g., speech, music) and images (e.g., faces, "
 "color)."
-msgstr "此项目的目的是研究来自世界不同地区的人们如何体验声音（例如：语音、音乐）和图像（例如：面孔、颜色）。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/open_science_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid "Confidentiality"
-msgstr "保密性"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-compensation"
-msgid "Compensation"
-msgstr "补偿"
+msgstr "本项目的目的是研究世界各地的人们如何体验声音（例如，语音、音乐）和图像（例如，面孔、颜色）。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-benefits"
-msgid ""
-"Although it may not directly benefit you, this study may benefit society by "
-"helping us understanding how humans derive information from sound and "
-"vision, and potentially to help engineer machines that can replicate our "
-"abilities (e.g. in sound recognition and computer vision) and to help "
-"improve perceptual abilities in people whose hearing or sight is impaired."
-msgstr ""
-"虽然这项研究可能并不会直接使您受益，但它有助于我们了解人类如何从声音和视觉中获取信息，从而可能帮助工程师开发能够模仿我们能力的机器（例如声音识别和计算机视觉），并有助于提高听力或视力受损者的感知能力，从而让社会受益。"
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "程序"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-benefits"
-msgid "Benefits"
-msgstr "效益"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-collaborations"
-msgid ""
-"For the purpose of helping scientific progress and replication, sometimes we"
-" may share the data with research collaborators."
-msgstr "为了帮助科学进步和重复研究，有时我们可能会与研究合作者分享数据。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-collaborations"
-msgid ""
-"In these cases, we will only share fully anonymized data, such as "
-"demographic, aggregated, or extracted data without any personal identifiers."
-msgstr "在这些情况下，我们将只分享完全匿名的数据，如没有任何个人标识的人口统计、汇总或提取的数据。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-collaborations"
-msgid "Research collaborations"
-msgstr "研究合作"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"All of the information we obtain during the research will be kept "
-"confidential."
-msgstr "我们在研究中获取的所有信息都将保密。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your alpha numeric code to derive your "
-"real identity, this record could be linked in some cases to your public "
-"profile page if a data breach takes place."
-msgstr "虽然研究人员不会使用您的字母数字代码来确定您的真实身份，但如果发生数据泄露，该记录有时可能与您的公共个人资料页面相关联。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid "Consenting to these additional requirements is also fully voluntary."
-msgstr "同意这些额外要求也是完全自愿的。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"If an experiment is collecting data that cannot be fully anonymized, we will"
-" inform you and also ask for additional consent."
-msgstr "如果实验收集的数据无法完全匿名化，我们将告知您并要求额外的同意。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"No personal identifiers (e.g. your name or contact data) will be collected "
-"or used at any stage of the experiment."
-msgstr "在实验的任何阶段，都不会收集或使用任何个人识别信息（如您的姓名或联系数据）。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"These include experiments where we make audio-visual recordings or where we "
-"need your contact details to contact you in the future to take another "
-"experiment."
-msgstr "这些包括我们进行视听记录的实验，或者我们需要您的联系方式，以便在将来联系您，进行另一个实验。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"This code will not be used to derive your real identity, will not be shared "
-"with anyone outside of the research team and will be deleted after use."
-msgstr "此代码将不会用于确定您的真实身份，也不会与研究团队以外的任何人共享，并将在使用后被删除。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid "Thus, the experimental data is anonymous."
-msgstr "因此，实验数据是匿名的。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Thus, you may wish to restrict what information you choose to share "
-"publicly."
-msgstr "因此，您可能希望限制您选择公开分享的信息。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We may collect some demographic data (e.g. age, gender, country of "
-"residence) as well as information about your learning and exposure history "
-"(e.g. musical experience playing an instrument, years of formal education, "
-"languages spoken)."
-msgstr ""
-"我们可能会收集一些人口统计数据（例如年龄、性别、居住国家）以及您过往学习和接触的信息（例如音乐经验、演奏乐器、正式教育年限、语言掌握情况）。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"We will only save your anonymized alpha numeric code in our system, in order"
-" to distinguish participants who have already taken part in this or other "
-"experiments."
-msgstr "我们将只保存您匿名化的字母数字代码在我们的系统中，以便区分已经参加过此或其他实验的参与者。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-procedure"
 msgid ""
-"Finally, in some experiments you may be asked to make a voice or video "
-"recording, for example, you may be asked to record your finger-tapping in "
-"response to a sound or video, or to record yourself speaking or singing."
-msgstr "最后，在某些实验中，您可能会被要求进行语音或视频录制，例如，您可能会被要求记录响应声音或视频的手指敲击，或录制自己的说话或唱歌。"
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr "如果您自愿参加此研究，您将被要求在听声音或观察图像或视频时使用键盘或鼠标执行简单任务。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-procedure"
 msgid ""
 "For example, you may be asked to judge how pleasant a particular sound or an"
@@ -1358,52 +1433,11 @@ msgid ""
 "images (e.g., how frequently do you encounter this type of sound or image? "
 "how aesthetically pleasing you consider a particular sound or image?)."
 msgstr ""
-"例如，您可能会被要求评估特定声音或图像的愉悦程度，或对声音或图像进行分类（例如，这个声音或图像是汽车还是奶牛），或评估声音或图像的其他基本特征（例如，您多频繁遇到这种声音或图像？您认为某个特定声音或图像的审美价值如何？）。"
+"例如，您可能会被要求判断某个声音或图像的愉悦程度，或对声音或图像进行分类（例如，判断声音或图像是汽车还是牛），或判断声音或图像的其他基本特征（例如，您多频繁遇到这种声音或图像？您认为某个声音或图像有多美观？）。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-procedure"
-msgid ""
-"If the experiment will contain these elements we will ask for an additional "
-"consent."
-msgstr "如果实验将包含这些内容，我们会要求您额外同意。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-procedure"
-msgid ""
-"If you volunteer to participate in this study, you will be asked to perform "
-"simple tasks using your keyboard or mouse while listening to sounds, or "
-"while observing images or videos."
-msgstr "如果您自愿参与此研究，您将被要求在听声音或观看图像或视频时使用键盘或鼠标执行简单的任务。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-procedure"
-msgid ""
-"In some experiments, we may use mild deception, i.e., we may not explain the"
-" full truth regarding an experimental task (for example we will not tell you"
-" that an image was generated by an artificial computer system and not a "
-"human)."
-msgstr ""
-"在某些实验中，我们可能会使用轻微的欺骗，即我们可能不会完全解释实验任务的全部真相（例如，我们可能不会告诉您某张图片是由一个人造计算机系统生成而非人类所为）。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-procedure"
-msgid ""
-"Mild deception will only be used in some experiments where we need to "
-"prevent biasing the participants before taking the experiment."
-msgstr "轻微的欺骗仅在某些实验中使用，其中我们需要在进行实验之前防止影响参与者的判断。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-procedure"
-msgid "Procedure"
-msgstr "程序"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-procedure"
 msgid ""
 "The specific sounds, images, and videos used will vary, but may include: "
@@ -1411,191 +1445,432 @@ msgid ""
 "naturalistic images, animated images, comics, faces, objects, geometric "
 "shapes, fractal images, or videos of natural environments."
 msgstr ""
-"使用的具体声音、图像和视频会有所不同，但可能包括：环境声音、噪音、语音、音乐、简单的音调、自然图像、动画图像、漫画、人脸、物体、几何形状、分形图像或自然环境的视频。"
+"使用的具体声音、图像和视频会有所不同，但可能包括：环境声音录音、噪声爆发、语音、音乐、简单音调、自然图像、动画图像、漫画、面孔、物体、几何形状、分形图像或自然环境视频。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-purpose"
-msgid "Purpose"
-msgstr "目的"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-rights"
-msgid "For the Max-Planck-Society, this is:"
-msgstr "对于Max-Planck-Society来说，这就是："
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-rights"
+#, fuzzy
+msgctxt "consent-procedure"
 msgid ""
-"Note that in some studies data deletion will not be possible, in this case "
-"we will ask you specifically to consent to this procedure in a separate "
-"consent form."
-msgstr "请注意，在某些研究中，数据的删除是不可能的，在这种情况下，我们会在单独的同意书中特别要求您同意这一程序。"
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"在某些实验中，我们可能会使用轻微的欺骗，即我们可能不会解释实验任务的全部真相（例如，我们不会告诉您图像是由人工计算机系统生成的而不是人类）。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-rights"
+#, fuzzy
+msgctxt "consent-procedure"
 msgid ""
-"You also have the right to submit an objection to the supervisory authority."
-msgstr "您也有权向监管机构提交异议。"
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr "轻微的欺骗只会在某些实验中使用，以防止在实验前对参与者产生偏见。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-rights"
+#, fuzzy
+msgctxt "consent-procedure"
 msgid ""
-"You have the right to information regarding the data relating to you that is"
-" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
-"and the right to demand the deletion of data in cases of inadmissible data "
-"storage and the right to data portability."
-msgstr "您有权了解存储在马普研究所中与您相关的数据，有权更正不准确的数据，有权在不允许的数据存储情况下要求删除数据，并享有数据可移植性的权利。"
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr "最后，在某些实验中，您可能会被要求进行语音或视频录制，例如，您可能会被要求录制自己对声音或视频的指尖敲击，或录制自己说话或唱歌。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-rights"
-msgid "Your rights"
-msgstr "您的权利"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-risks"
-msgid "Risks/Discomforts"
-msgstr "风险/不适"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-risks"
+#, fuzzy
+msgctxt "consent-procedure"
 msgid ""
-"There are no risks for participating in this study beyond those associated "
-"with normal computer use."
-msgstr "除了与正常电脑使用有关的风险外，参加这项研究没有任何风险。"
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr "如果实验包含这些元素，我们将要求额外的同意。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-security"
-msgid ""
-"Data will be stored temporarily on external servers and desktops/laptops "
-"that are password protected."
-msgstr "数据将暂时储存在受密码保护的外部服务器和台式电脑/笔记本电脑上。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-security"
-msgid "No data will be stored permanently on external servers."
-msgstr "没有数据会被永久地储存在外部服务器上。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-security"
-msgid ""
-"The data will be then stored permanently in the institute servers with hard "
-"disks encrypted using industry-standard encryption software."
-msgstr "然后，数据将被永久地储存在学院的服务器上，硬盘使用行业标准的加密软件进行加密。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
-msgctxt "consent-voluntary"
-msgid ""
-"The investigator may withdraw you from this research if circumstances arise "
-"which warrant doing so."
-msgstr "如果出现有必要的情况，调查员可以让您退出本研究。"
-
-#: psynet/templates/consents/main_consent.html
-#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-voluntary"
 msgid "Voluntary participation"
 msgstr "自愿参与"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-voluntary"
-msgid ""
-"You are free to discontinue participation in this study at any time without "
-"penalty."
-msgstr "您可以在任何时候停止参与本研究而不受任何惩罚。"
+msgid "Your participation in this research is voluntary."
+msgstr "您参与这项研究是自愿的。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-voluntary"
 msgid ""
 "You are free to refuse to take part, and you may stop taking part at any "
 "time."
-msgstr "您可以自由地拒绝参与，也可以在任何时候停止参与。"
+msgstr "您可以自由拒绝参与，并且可以随时停止参与。"
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-voluntary"
-msgid "Your participation in this research is voluntary."
-msgstr "您对这项研究的参与是自愿的。"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr "您可以随时自由中止参与此研究而不受处罚。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr "如果出现需要这样做的情况，研究人员可能会将您从这项研究中撤回。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "保密"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr "在实验的任何阶段都不会收集或使用个人标识符（例如您的姓名或联系数据）。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "因此，实验数据是匿名的。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"我们可能会收集一些人口统计数据（例如年龄、性别、居住国家）以及关于您的学习和接触历史的信息（例如，演奏乐器的音乐经验、正规教育年限、所讲语言）。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr "如果实验收集的数据无法完全匿名化，我们会通知您并要求额外的同意。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr "同意这些额外要求也是完全自愿的。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr "这些包括我们进行视听录音的实验，或我们需要您的联系方式以便将来联系您参加另一个实验。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr "我们在研究过程中获得的所有信息将被保密。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr "我们只会在我们的系统中保存您的匿名字母数字代码，以区分已经参与过此实验或其他实验的参与者。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr "此代码不会被用来推导您的真实身份，不会与研究团队以外的任何人共享，并将在使用后删除。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr "尽管研究人员不会使用您的字母数字代码来推导您的真实身份，但如果发生数据泄露，此记录可能会在某些情况下与您的公共个人资料页面相关联。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr "因此，您可能希望限制您选择公开分享的信息。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "研究合作"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr "为了帮助科学进步和复制，有时我们可能会与研究合作者分享数据。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr "在这些情况下，我们只会分享完全匿名的数据，例如人口统计、聚合或提取的数据，不包含任何个人标识符。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr "数据将暂时存储在受密码保护的外部服务器和台式机/笔记本电脑上。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr "然后，数据将永久存储在研究所的服务器中，硬盘使用行业标准加密软件加密。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "没有数据会永久存储在外部服务器上。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "风险/不适"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr "参与此研究的风险仅限于正常使用计算机的风险。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "益处"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"尽管它可能不会直接使您受益，但这项研究可能会通过帮助我们理解人类如何从声音和视觉中获取信息来使社会受益，并可能帮助工程师设计能够复制我们能力的机器（例如在声音识别和计算机视觉方面），以及帮助提高听力或视力受损者的感知能力。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "Compensation"
+msgstr "补偿"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"If you satisfactorily complete the study, we compensate you for your "
+"participation:"
+msgstr "如果您满意地完成研究，我们将补偿您的参与："
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgid "per hour"
+msgstr "每小时"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"You may also receive an additional payment based on your performance in the "
+"task."
+msgstr "您还可能根据您在任务中的表现获得额外的付款。"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "We appreciate your contribution to science!"
+msgstr "我们感谢您对科学的贡献！"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "您的权利"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"您有权了解存储在马克斯·普朗克研究所的与您相关的数据，有权更正不准确的数据，并有权在数据存储不当的情况下要求删除数据以及数据可移植性的权利。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr "请注意，在某些研究中，数据删除将不可能，在这种情况下，我们将特别要求您在单独的同意表格中同意此程序。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr "您还有权向监督机构提出异议。"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "对于马克斯·普朗克协会，这是："
 
 #: psynet/templates/consents/open_science_consent.html
+#, fuzzy
 msgctxt "consent"
 msgid ""
 "Following open science practices to improve science reusability and "
 "replicability, we may want to publish the dataset collected in this "
 "experiment as soon as the study is finished."
-msgstr "按照开放科学的做法，为了提高科学的可重用性和可复制性，我们可能希望在研究结束后立即公布本实验中收集的数据集。"
+msgstr "为了提高科学的可重用性和可重复性，遵循开放科学实践，我们可能希望在研究完成后立即发布在此实验中收集的数据集。"
 
 #: psynet/templates/consents/open_science_consent.html
+#, fuzzy
 msgctxt "consent"
 msgid ""
 "This includes audio-visual recordings, such as a recording of your finger-"
 "tapping in response to a sound or video, or to record yourself speaking or "
 "singing."
-msgstr "这包括音视频记录，例如录制您对声音或视频进行手指鼓击或录制自己的语音或唱歌。"
+msgstr "这包括视听录音，例如记录您对声音或视频的指尖敲击，或记录您自己说话或唱歌。"
 
 #: psynet/templates/consents/open_science_consent.html
+#, fuzzy
 msgctxt "consent"
 msgid ""
 "We may also want to publish certain materials as part of the scientific "
 "publication, such as a demo video of the task or part of an interview."
-msgstr "我们也可能要发表某些材料作为科学出版物的一部分，如任务的演示视频或采访的一部分。"
+msgstr "我们也可能希望将某些材料作为科学出版物的一部分发布，例如任务的演示视频或采访的一部分。"
 
 #: psynet/templates/consents/open_science_consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"However, your data will not be directly associated with your name or other "
-"identifiers in any way (we will not specify your name when presenting "
-"audio/video materials of yours)."
-msgstr "但是，您的数据不会以任何方式直接与您的姓名或其他标识符相关联（我们在展示您的音频/视频材料时不会指明您的姓名）。"
-
-#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
 "Since the audio-visual recordings collected in this experiment may be made "
 "public, we cannot guarantee anonymity of your data if you participate in "
 "this experiment."
-msgstr "由于本实验中收集的视听记录可能会被公开，如果您参加本实验，我们不能保证您的数据的匿名性。"
+msgstr "由于在此实验中收集的视听录音可能会公开，如果您参与此实验，我们无法保证您的数据匿名性。"
 
 #: psynet/templates/consents/open_science_consent.html
-msgctxt "consent-disclaimer"
+#, fuzzy
+msgctxt "consent-confidentiality"
 msgid ""
-"Although your data will not be associated with personal identifiers, it is "
-"possible to link your personal information based on audio-visual recordings"
-msgstr "尽管您的数据不会与个人身份识别符相关联，但有可能根据视听记录将您的个人信息联系起来"
+"However, your data will not be directly associated with your name or other "
+"identifiers in any way (we will not specify your name when presenting "
+"audio/video materials of yours)."
+msgstr "然而，您的数据不会以任何方式直接与您的姓名或其他标识符相关联（我们在展示您的音频/视频材料时不会指定您的姓名）。"
 
 #: psynet/templates/consents/open_science_consent.html
-msgctxt "consent-disclaimer"
+#, fuzzy
+msgctxt "consent-security"
 msgid ""
-"By consenting to this experiment you are committing not to use profanity "
-"while recording audio or nudity while recording video."
-msgstr "通过同意这项实验，您承诺在录制音频时不使用脏话，在录制视频时不使用裸体。"
+"Data will be published on open science frameworks/websites such as OSF "
+"(https://osf.io/) and will be available to everybody with internet access."
+msgstr "数据将发布在开放科学框架/网站上，例如 OSF (https://osf.io/)，并将对所有有互联网访问权限的人开放。"
 
 #: psynet/templates/consents/open_science_consent.html
+#, fuzzy
 msgctxt "consent-disclaimer"
 msgid "Disclaimer"
 msgstr "免责声明"
 
 #: psynet/templates/consents/open_science_consent.html
+#, fuzzy
 msgctxt "consent-disclaimer"
 msgid ""
 "Since some materials will be published as part of the scientific "
 "publication, you will not be able to delete such materials, as they will "
 "become public (either immediately or soon after data collection)."
-msgstr "由于一些材料将作为科学出版物的一部分发表，您将无法删除这些材料，因为它们将成为公开的（立即或在数据收集后不久）。"
+msgstr "由于某些材料将作为科学出版物的一部分发布，您将无法删除这些材料，因为它们将成为公开的（无论是立即还是在数据收集后不久）。"
 
 #: psynet/templates/consents/open_science_consent.html
+#, fuzzy
 msgctxt "consent-disclaimer"
 msgid ""
 "Thus, you may wish to make sure you do not record any materials you do not "
@@ -1603,257 +1878,68 @@ msgid ""
 msgstr "因此，您可能希望确保不记录任何您不想公开的材料。"
 
 #: psynet/templates/consents/open_science_consent.html
-msgctxt "consent-security"
+#, fuzzy
+msgctxt "consent-disclaimer"
 msgid ""
-"Data will be published on open science frameworks/websites such as OSF "
-"(https://osf.io/) and will be available to everybody with internet access."
-msgstr "数据将公布在开放的科学框架/网站上，如OSF（https://osf.io/），并将提供给所有可以上网的人。"
+"By consenting to this experiment you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr "通过同意此实验，您承诺在录制音频时不使用亵渎语言或在录制视频时不出现裸露。"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Although your data will not be associated with personal identifiers, it is "
+"possible to link your personal information based on audio-visual recordings"
+msgstr "尽管您的数据不会与个人标识符相关联，但根据视听录音，仍有可能链接到您的个人信息。"
 
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
 #: psynet/templates/macros/consent.html
-msgctxt "consent-compensation"
-msgid "By doing the task you are helping science, thank you!"
-msgstr "通过完成这项任务，您就是在帮助科学，谢谢您!"
-
-#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
-#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-compensation"
 msgid ""
 "This study is completely voluntary; you will not receive any monetary "
 "compensation for participation."
-msgstr "这项研究完全是自愿的；您不会因为参与而得到任何金钱上的补偿。"
+msgstr "这项研究是完全自愿的；您不会因参与而获得任何金钱补偿。"
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "By doing the task you are helping science, thank you!"
+msgstr "通过完成任务，您正在帮助科学，谢谢！"
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
-msgstr "提交Lucid调查报告"
-
-#: psynet/templates/final-page-rejected-consent.html
-msgctxt "final_page_rejected_consent"
-msgid "Consent was rejected."
-msgstr "协议被拒绝。"
-
-#: psynet/templates/final-page-rejected-consent.html
-msgctxt "final_page_rejected_consent"
-msgid "End of experiment."
-msgstr "实验结束。"
-
-#: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Finish"
-msgstr "完成"
-
-#: psynet/templates/final-page-rejected-consent.html
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Please click \"Finish\" to complete the HIT."
-msgstr "请点击 \"完成 \"来完成HIT。"
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"You have also been awarded a performance reward of "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr "你还获得了<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>的业绩奖金!"
-
-#: psynet/templates/final-page-rewards.html
-#, python-format, fuzzy
-msgid ""
-"You will receive a reward of <strong>%(CURRENCY)s%(TIME_REWARD)s</strong> "
-"for the time you spent on the experiment. You have also been awarded a "
-"performance reward of <strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>!"
-msgstr ""
-"您在实验中花费的时间将获得 <strong>%(CURRENCY)s%(TIME_REWARD)s</strong>的奖励。 您还获得了 "
-"<strong>%(CURRENCY)s%(PERFORMANCE_REWARD)s</strong>的绩效奖励！"
-
-#: psynet/templates/final-page-successful.html
-msgctxt "final_page_successful"
-msgid "That's the end of the experiment!"
-msgstr "这里是实验的末尾!"
-
-#: psynet/templates/final-page-successful.html
-#: psynet/templates/final-page-unsuccessful.html
-msgid "Thank you for taking part."
-msgstr "谢谢您的参与。"
-
-#: psynet/templates/final-page-unsuccessful.html
-#, fuzzy
-msgid "You will be redirected."
-msgstr "你将会被重新定向。"
-
-#: psynet/templates/final-page-unsuccessful.html
-msgctxt "final_page_unsuccessful"
-msgid "However, you will still be paid for the time you spent already."
-msgstr "然而，您仍然会因为您已经花费的时间而得到报酬。"
-
-#: psynet/templates/final-page-unsuccessful.html
-msgctxt "final_page_unsuccessful"
-msgid "Unfortunately the experiment must end early."
-msgstr "不幸的是，这个实验必须提前结束。"
+msgstr "Lucid调查提交"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
-msgid "A new window appears. In the top corner, check for the Incognito icon"
-msgstr "出现一个新的窗口，在顶部角落，检查隐身图标"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "At the top right, click More"
-msgstr "在右上方，点击更多"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Click here"
-msgstr "点击这里"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Copy the current URL to the clipboard:"
-msgstr "将当前的URL复制到剪贴板上："
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Copy the link below"
-msgstr "复制下面的链接"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Follow the steps below to make sure the experiment works."
-msgstr "按照下面的步骤，确保实验成功。"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Install Google Chrome if you haven't"
-msgstr "如果你还没有安装谷歌浏览器"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Install the latest version of Google Chrome"
-msgstr "安装最新版本的谷歌浏览器"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Install the latest version of Google Chrome on your computer"
-msgstr "在你的电脑上安装最新版本的谷歌浏览器"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "New Incognito Window"
-msgstr "新建隐身窗口"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "On Mac: Press"
-msgstr "在Mac上：按"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "On Windows, Linux, or Chrome OS: Press"
-msgstr "在Windows、Linux或Chrome OS上：按下"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "On your computer, open Chrome."
-msgstr "在你的电脑上，打开Chrome。"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Open Google Chrome"
-msgstr "打开谷歌浏览器"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Open a new incognito window"
-msgstr "打开一个新的隐身窗口"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Open a new incognito window with  the following keyboard shortcuts:"
-msgstr "用以下键盘快捷键打开一个新的隐身窗口："
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Paste the link into the Chrome browser to continue the experiment"
-msgstr "将链接粘贴到Chrome浏览器中，继续进行实验"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Paste the link into the Chrome browser to start the experiment"
-msgstr "将链接粘贴到Chrome浏览器中，开始实验"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Paste the link into the incognito window to continue the experiment"
-msgstr "将链接粘贴到隐身窗口中，继续进行实验"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Paste the link into the incognito window to start the experiment"
-msgstr "将链接粘贴到隐身窗口中，开始实验"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please enable JavaScript in your browser."
-msgstr "请在您的浏览器中启用JavaScript。"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please follow the instructions below to continue."
-msgstr "请按照下面的指示继续。"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Please open the survey on your computer."
-msgstr "请在您的电脑上打开调查问卷。"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Press"
-msgstr "按"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "This site requires JavaScript to function properly."
-msgstr "本网站需要JavaScript才能正常运行。"
-
-#: psynet/templates/macros/browser-detect.html
-#, fuzzy
-msgctxt "browser_compatibility"
-msgid "Warning!"
-msgstr "警告!"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr "您需要使用谷歌浏览器来参与实验。"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You are using"
-msgstr "你正在使用"
+msgstr "您正在使用"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr "请按照下面的说明继续。"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr "您需要使用最新版本的谷歌浏览器来参与实验。"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -1864,136 +1950,310 @@ msgstr "您正在使用："
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "您需要使用隐身模式来参与实验。"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr "警告！"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Click here"
+msgstr "点击这里"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr "安装最新版本的谷歌浏览器"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr "如果您还没有安装谷歌浏览器，请安装"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr "复制下面的链接"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr "打开谷歌浏览器"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr "在您的电脑上，打开Chrome。"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr "在右上角，点击更多"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr "新建隐身窗口"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr "出现一个新窗口。在顶部角落，检查是否有隐身图标"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
 msgid "You can also use a keyboard shortcut to open an Incognito window"
-msgstr "您也可以使用键盘快捷键来打开隐身窗口"
+msgstr "您也可以使用键盘快捷键打开隐身窗口"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr "按"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr "打开一个新的隐身窗口"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr "将链接粘贴到隐身窗口中以继续实验"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr "将链接粘贴到隐身窗口中以开始实验"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr "将链接粘贴到Chrome浏览器中以继续实验"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr "将链接粘贴到Chrome浏览器中以开始实验"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "You cannot take part in the experiment from a mobile device."
-msgstr "你不能从移动设备上参加实验。"
+msgstr "您无法从移动设备参与实验。"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
-msgid "You need to use Google Chrome to take part in the experiment."
-msgstr "你需要使用谷歌浏览器来参加实验。"
+msgid "Please open the survey on your computer."
+msgstr "请在您的电脑上打开调查。"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
-msgid ""
-"You need to use the latest version of Google Chrome to take part in the "
-"experiment."
-msgstr "你需要使用最新版本的谷歌浏览器来参加实验。"
+msgid "This site requires JavaScript to function properly."
+msgstr "此网站需要JavaScript才能正常运行。"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr "请在您的浏览器中启用JavaScript。"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr "请按照下面的步骤确保实验正常工作。"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr "在您的电脑上安装最新版本的谷歌浏览器"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr "将当前URL复制到剪贴板："
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr "使用以下键盘快捷键打开一个新的隐身窗口："
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr "在Windows、Linux或Chrome OS上：按"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr "在Mac上：按"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
 msgid "Do you understand and consent to these terms?"
 msgstr "您是否理解并同意这些条款？"
 
 #: psynet/templates/macros/consent.html
-msgid "Scroll up/down to see all text"
-msgstr "向上/向下滚动以查看所有文本"
-
-#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent"
 msgid "I agree"
 msgstr "我同意"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "不，谢谢（返回任务）"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "向上/向下滚动以查看所有文本"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Principal Investigator"
+msgstr "首席研究员"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "概述"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr "这项研究由马克斯·普朗克经验美学研究所的研究人员进行。"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent"
 msgid ""
 "If you have any questions about this research, do not hesitate to contact "
 "the main researcher in this project, Nori Jacoby at:"
-msgstr "如果您对此研究有任何问题，请随时联系本项目的主要研究者Nori Jacoby，他的联系方式是："
+msgstr "如果您对这项研究有任何疑问，请随时联系本项目的主要研究员，Nori Jacoby，联系方式："
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent"
-msgid "No, thank you (return task)"
-msgstr "不同意，谢谢 (返回任务)"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent"
-msgid "Principal Investigator"
-msgstr "主要研究人员"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-collaborations"
+#, fuzzy
+msgctxt "consent-overview"
 msgid ""
-"Audio-visual material will be shared only if your consent to an additional "
-"consent form as explained above."
-msgstr "只有在您同意上述附加同意书的情况下，才会分享视听材料。"
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr "此在线表单的目的是为您提供信息，以帮助您决定是否要参与研究。"
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent-collaborations"
+#, fuzzy
+msgctxt "consent-purpose"
 msgid ""
-"In these cases, we may share your audio-visual material along with fully "
-"anonymized data, such as demographic, aggregated, or extracted data."
-msgstr "在这些情况下，我们可能会将您的视听材料与完全匿名的数据一起分享，如人口统计、汇总或提取的数据。"
+"The purpose of this project is to study the role of experience and exposure "
+"in creating and affecting our perception, decisions and actions."
+msgstr "本项目的目的是研究经验和接触在创造和影响我们的感知、决策和行为中的作用。"
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent-collaborations"
+#, fuzzy
+msgctxt "consent-purpose"
 msgid ""
-"We will never connect your real name or any of your personal information "
-"directly to your image or sound recording, even though it is off course "
-"possible to recognize individuals based on audio-visual material."
-msgstr "我们永远不会直接将您的真实姓名或任何个人信息与您的图像或声音记录相关联，尽管基于音频和视觉材料识别个人身份是可能的。"
+"Specifically, we aim to combine a wide range of behavioural methodologies to"
+" characterize the ways in which people from diverse backgrounds internalize "
+"and process external conditions, both in the auditory (e.g., speech, music) "
+"and visual (e.g., faces, color) domains."
+msgstr ""
+"具体来说，我们旨在结合广泛的行为方法来描述来自不同背景的人们如何在听觉（例如，语音、音乐）和视觉（例如，面孔、颜色）领域内化和处理外部条件。"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We are also interested in the way that these internal representations affect"
+" human decision making and behaviour."
+msgstr "我们还对这些内部表征如何影响人类决策和行为感兴趣。"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
 "All the recordings we obtain during this research will be kept confidential,"
 " and nobody outside the group of researchers will be able to share or store "
 "them."
-msgstr "我们在此研究中获得的所有录音和录像将被保密，除研究小组外，没有人可以分享或存储它们。"
+msgstr "我们在这项研究中获得的所有录音将被保密，研究小组以外的任何人都无法分享或存储它们。"
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"Although researchers will not use your recordings to derive your real "
-"identity, personal information could be leaked if you are not in an isolated"
-" environment."
-msgstr "虽然研究人员不会使用您的录音或录像来推断您的真实身份，但如果您不处于隔离的环境中，个人信息仍可能被泄露。"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"By consenting to this experiment, you are committing not to use profanity "
-"while recording audio or nudity while recording video."
-msgstr "通过同意这项实验，您承诺在录制音频时不使用脏话，在录制视频时不使用裸体。"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-confidentiality"
-msgid ""
-"For example, you may want to sit in a room that is isolated from the rest of"
-" the house."
-msgstr "例如，您可能需要坐在一个与其他地方隔离的房间里。"
-
-#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
 "However, in some experiments, your recordings may be seen or heard by other "
 "participants in order to evaluate them in different attributes or create new"
 " materials (for example replicate a rhythm that you created, or continue a "
 "melody that you sang)."
-msgstr "然而，在一些实验中，为了评估不同属性或创建新材料（例如复制您创作的节奏，或继续您唱的旋律），您的录音或录像可能会被其他参与者查看或听到。"
+msgstr "然而，在某些实验中，您的录音可能会被其他参与者看到或听到，以便在不同属性上进行评估或创建新材料（例如复制您创建的节奏，或继续您唱的旋律）。"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"If you choose to participate in the experiment, it is important and your "
-"responsibility to make sure that while you record audio and video nothing "
-"that you don’t intend to be recorded is recorded."
-msgstr "如果您选择参加实验，那么确保在收集音频和视频信息时不录入您不想被收集的内容，这是非常重要的，并且是您自己的责任。"
+"Your recordings will not be associated with your name or other identifiers "
+"in any way."
+msgstr "您的录音不会以任何方式与您的姓名或其他标识符相关联。"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be used to derive your real identity, and they will"
+" not be made public."
+msgstr "您的录音不会被用来推导您的真实身份，并且不会公开。"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
 "Raw audio/video will not be shared with collaborators (we will only share "
 "extracted data from recordings without personal identifiers)."
-msgstr "原始的音频和视频不会与合作者共享（我们只会分享从录音中提取的没有个人身份标识的数据）。"
+msgstr "原始音频/视频不会与合作者共享（我们只会分享从录音中提取的数据，而不包含个人标识符）。"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your recordings to derive your real "
+"identity, personal information could be leaked if you are not in an isolated"
+" environment."
+msgstr "尽管研究人员不会使用您的录音来推导您的真实身份，但如果您不在一个隔离的环境中，个人信息可能会泄露。"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
 "You may wish to make sure that no sounds/visual material in your environment"
@@ -2002,115 +2262,184 @@ msgid ""
 "or video, for example the camera can capture another family member, or the "
 "microphone can capture something you say to another person."
 msgstr ""
-"您可能希望确保在您的环境中没有任何声音/视觉材料可以与您的个人信息联系起来。 "
-"此外，在您进行录音时，麦克风或摄像机可能会捕捉到无意的音频或视频，例如，摄像机可以捕捉到另一个家庭成员，或者麦克风可以捕捉到您与另一个人的对话。"
+"您可能希望确保您环境中的声音/视觉材料不会与您的个人信息相关联。此外，在您进行录音时，麦克风或摄像头可能会捕捉到意外的音频或视频，例如摄像头可能会捕捉到其他家庭成员，或麦克风可能会捕捉到您对其他人说的话。"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"Your recordings will not be associated with your name or other identifiers "
-"in any way."
-msgstr "您的录音或录像不会与您的姓名或其他标识符以任何方式相关联。"
+"If you choose to participate in the experiment, it is important and your "
+"responsibility to make sure that while you record audio and video nothing "
+"that you don’t intend to be recorded is recorded."
+msgstr "如果您选择参与实验，重要的是您有责任确保在录制音频和视频时没有录制到您不打算录制的内容。"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-confidentiality"
 msgid ""
-"Your recordings will not be used to derive your real identity, and they will"
-" not be made public."
-msgstr "您的录音或录像不会被用来推断你的真实身份，它们也不会被公开。"
+"For example, you may want to sit in a room that is isolated from the rest of"
+" the house."
+msgstr "例如，您可能希望坐在一个与房子其他部分隔离的房间里。"
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent-consent"
+#, fuzzy
+msgctxt "consent-confidentiality"
 msgid ""
-"By consenting to participate, you acknowledge that you are 18 years or "
-"older, have read this consent form, agree to its contents, and agree to take"
-" part in this research."
-msgstr "通过同意参与，您确认您是18岁或以上，已经阅读了本同意书，同意其内容，并同意参加本研究。"
+"By consenting to this experiment, you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr "通过同意参与此实验，您承诺在录制音频时不使用粗话或在录制视频时不出现裸体。"
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent-consent"
-msgid "Consent"
-msgstr "同意书"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-consent"
-msgid "If you do not wish to consent, please close this page."
-msgstr "如果您不愿意同意，请关闭本页面。"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-contact"
-msgid "Contact information"
-msgstr "联系信息"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-overview"
-msgid "Overview"
-msgstr "概述"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-overview"
+#, fuzzy
+msgctxt "consent-collaborations"
 msgid ""
-"The purpose of this online form is to give you information to help you "
-"decide whether you want to take part in a research study."
-msgstr "这个在线表单的目的是为了向您提供信息，以帮助您决定是否要参加一项研究。"
+"In these cases, we may share your audio-visual material along with fully "
+"anonymized data, such as demographic, aggregated, or extracted data."
+msgstr "在这些情况下，我们可能会分享您的视听材料以及完全匿名的数据，例如人口统计、聚合或提取的数据。"
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent-overview"
+#, fuzzy
+msgctxt "consent-collaborations"
 msgid ""
-"This research is being conducted by researchers at the Max-Planck-Institute "
-"for Empirical Aesthetics."
-msgstr "这项研究是由马克斯-普朗克实证美学研究所的研究人员进行的。"
+"We will never connect your real name or any of your personal information "
+"directly to your image or sound recording, even though it is off course "
+"possible to recognize individuals based on audio-visual material."
+msgstr "我们绝不会将您的真实姓名或任何个人信息直接与您的图像或声音录音相关联，尽管当然可以根据视听材料识别个人。"
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent-purpose"
+#, fuzzy
+msgctxt "consent-collaborations"
 msgid ""
-"Specifically, we aim to combine a wide range of behavioural methodologies to"
-" characterize the ways in which people from diverse backgrounds internalize "
-"and process external conditions, both in the auditory (e.g., speech, music) "
-"and visual (e.g., faces, color) domains."
-msgstr ""
-"具体来说，我们的目标是结合广泛的行为学方法来描述来自不同背景的人内化和处理外部条件的方式，包括在听觉（如语音、音乐）和视觉（如脸、颜色）领域。"
+"Audio-visual material will be shared only if your consent to an additional "
+"consent form as explained above."
+msgstr "视听材料只有在您同意额外的同意表格时才会共享，如上所述。"
 
 #: psynet/templates/macros/consent.html
-msgctxt "consent-purpose"
-msgid ""
-"The purpose of this project is to study the role of experience and exposure "
-"in creating and affecting our perception, decisions and actions."
-msgstr "这个项目的目的是研究经验和接触在创造和影响我们的感知、决定和行动方面的作用。"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-purpose"
-msgid ""
-"We are also interested in the way that these internal representations affect"
-" human decision making and behaviour."
-msgstr "我们还对这些内部表征影响人类决策和行为的方式感兴趣。"
-
-#: psynet/templates/macros/consent.html
-msgctxt "consent-security"
-msgid ""
-"Audio-visual material will not be indexed by personal information but will "
-"be linked to personal information by a key (such as “afasd12314asdasd”)."
-msgstr "视听材料不会被个人信息索引，但会通过一个密钥（如 \"afasd12314asdasd\"）与个人信息链接。"
-
-#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-security"
 msgid ""
 "During data collection, audio-visual material will be recorded on a separate"
 " server."
-msgstr "在数据收集期间，视听材料将被记录在一个单独的服务器上。"
+msgstr "在数据收集期间，视听材料将记录在单独的服务器上。"
 
 #: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Audio-visual material will not be indexed by personal information but will "
+"be linked to personal information by a key (such as “afasd12314asdasd”)."
+msgstr "视听材料不会通过个人信息进行索引，而是通过密钥（例如“afasd12314asdasd”）与个人信息相关联。"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
 msgctxt "consent-security"
 msgid ""
 "Personal information will be stored separately from audio-visual materials "
 "and encrypted using a strong encryption protocol (such as Advanced "
 "Encryption Standard)."
-msgstr "个人信息将与视听材料分开存储，并使用强大的加密协议（比如Advanced Encryption Standard）进行加密。"
+msgstr "个人信息将与视听材料分开存储，并使用强加密协议（例如高级加密标准）进行加密。"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "联系信息"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "同意"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr "通过同意参与，您承认您已年满18岁，已阅读本同意书，同意其内容，并同意参与此研究。"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "如果您不希望同意，请关闭此页面。"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Reset"
+msgstr "重置"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr "滑块"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr "文档"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr "<strong>衰减</strong>参数决定了信号平滑的程度，单位为秒。"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr "高衰减参数意味着信号需要很长时间才能衰减（即高平滑）。"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr "有三个衰减参数：一个用于显示的音频计量器，一个用于'过高'检测器，一个用于'过低'检测器。"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr "<strong>阈值</strong>参数决定了音量被认为'过高'或'过低'的点。"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr "<strong>宽限</strong>参数决定了音量必须在相应阈值之外多长时间才能触发警告消息。"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr "<strong>消息持续时间</strong>参数决定了警告消息显示的时间长度。"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Record from start"
+msgstr "从头开始录制"
 
 #: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Play all"
-msgstr "播放所有"
+msgstr "播放全部"
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2122,151 +2451,142 @@ msgstr "播放提示"
 msgid "Play recording"
 msgstr "播放录音"
 
-#: psynet/templates/macros/control.html
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
 #, fuzzy
-msgid "Record from start"
-msgstr "从头开始记录"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Reset"
-msgstr "复位"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"A high decay parameter means that the signal takes a long time to decay "
-"(i.e. high smoothing)."
-msgstr "高衰减参数意味着信号需要很长的时间来衰减（即高平滑度）。"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid "Documentation"
-msgstr "文件"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid "Sliders"
-msgstr "滑块"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>decay</strong> parameters determine the amount of smoothing that"
-" happens to the signal, and have units of seconds."
-msgstr "<strong>decay</strong>参数决定信号的平滑程度，单位是秒。"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>grace</strong> parameters determine how long the volume must be "
-"outside the respective threshold for a warning message to be triggered."
-msgstr "<strong>grace</strong>参数决定音量必须在各自的阈值之外多长时间才会触发警告信息。"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>message duration</strong> parameters determine how long warning "
-"messages are displayed for."
-msgstr "<strong>信息持续时间</strong>参数决定了警告信息的显示时间。"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"The <strong>threshold</strong> parameters determine the point at which the "
-"volume is determined to be 'too high' or 'too low'."
-msgstr "<strong>阈值</strong>参数决定了音量被确定为 \"过高 \"或 \"过低 \"的点。"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgctxt "audio_meter_calibrate"
-msgid ""
-"There are three decay parameters: one for the displayed audio meter, one for"
-" the 'too-high' detector, and one for the 'too-low' detector."
-msgstr "有三个衰减参数：一个用于显示的音频表，一个用于 \"过高 \"检测器，一个用于 \"过低 \"检测器。"
+msgid "Stop"
+msgstr "停止"
 
 #: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
 #, fuzzy
 msgid "Loop"
 msgstr "循环"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
-#, fuzzy
-msgid "Stop"
-msgstr "停止"
-
-#: psynet/templates/macros/prompt.html
-#, fuzzy
-msgid "Image not found"
-msgstr "未找到图像"
-
 #: psynet/templates/macros/prompt.html
 #, fuzzy
 msgid "Play from start"
-msgstr "从头开始玩"
+msgstr "从头播放"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
 msgid "Video not found"
 msgstr "未找到视频"
 
-#: psynet/templates/psynet_error.html
-msgid "Error type"
-msgstr "错误类型"
-
-#: psynet/templates/psynet_error.html
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr "如果不是这种情况，请通过%(EMAIL)s联系我们，并引用以下信息："
-
-#: psynet/templates/psynet_error.html
-msgid "Worker ID"
-msgstr "工作者身份"
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Image not found"
+msgstr "未找到图像"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "error"
 msgid "Error!"
-msgstr "错误!"
+msgstr "错误！"
 
 #: psynet/templates/psynet_error.html
-msgctxt "mturk_error"
-msgid ""
-"Once aborted, there is no need to contact us to receive the compensation; "
-"this should be awarded to you automatically via MTurk a few minutes after."
-msgstr "一旦中止，就不需要联系我们以获得补偿；这应该在几分钟后通过MTurk自动授予您。"
-
-#: psynet/templates/psynet_error.html
+#, fuzzy
 msgctxt "mturk_error"
 msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
-msgstr "您可以使用MTurk广告页面上的<strong>中止试验</strong>按钮</strong>来中止试验。"
+msgstr "您可以使用 <strong>MTurk 广告页面上的 <strong>中止实验</strong> 按钮</strong>中止实验。"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr "一旦中止，您无需联系我们以获得补偿；几分钟后，MTurk 应自动将其授予您。"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr "如果不是这种情况，请通过 %(EMAIL)s 联系我们，并引用以下信息："
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "错误类型"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "工人 ID"
 
 #: psynet/templates/start.html
+#, fuzzy
 msgctxt "start"
 msgid "Starting experiment..."
-msgstr "开始实验..."
+msgstr "实验开始..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "如果出现问题，请尝试以下操作："
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "重新加载页面。"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "检查您的互联网连接是否正常。"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr "如果上述方法无效，请通过电子邮件发送以下信息："
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "当前网页的链接；"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "您的工人ID；"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "您遇到的问题。"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "好的"
+msgstr "确定"
 
 #: psynet/templates/timeline-page.html
-msgctxt "timeline"
-msgid "Help!"
-msgstr "帮助!"
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "准备好了吗？"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "当您准备好继续实验时，点击按钮。"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "继续"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2275,36 +2595,10 @@ msgid "Reward"
 msgstr "奖励"
 
 #: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "当前网页的链接；"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "检查您的互联网连接是否正常。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr "如果通过以上方法没有得到帮助，请向我们发送一封电子邮件，并提供以下信息："
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "如果出现问题，请尝试以下方法："
-
-#: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Please wait for the page to load."
-msgstr "请等待页面加载。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "重新加载页面。"
+msgctxt "timeline"
+msgid "Help!"
+msgstr "帮助！"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2313,2222 +2607,2641 @@ msgid "Terminate the experiment early"
 msgstr "提前终止实验"
 
 #: psynet/templates/timeline-page.html
+#, fuzzy
 msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "您所遇到的问题。"
+msgid "Please wait for the page to load."
+msgstr "请等待页面加载。"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "几秒钟后再试。"
+msgstr "几秒钟后再试一次。"
 
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "您的工人编号（Worker ID）；"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Are you ready?"
-msgstr "您准备好了吗？"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Click the button when you're ready to continue the experiment."
-msgstr "当您准备好继续进行实验时，请点击该按钮。"
-
-#: psynet/templates/timeline-page.html
-msgctxt "timeline_resume"
-msgid "Resume"
-msgstr "恢复"
-
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Afghanistan"
 msgstr "阿富汗"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Albania"
 msgstr "阿尔巴尼亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Algeria"
 msgstr "阿尔及利亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "American Samoa"
 msgstr "美属萨摩亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Andorra"
 msgstr "安道尔"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Angola"
 msgstr "安哥拉"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Anguilla"
 msgstr "安圭拉"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Antarctica"
 msgstr "南极洲"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Antigua and Barbuda"
 msgstr "安提瓜和巴布达"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Argentina"
 msgstr "阿根廷"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Armenia"
 msgstr "亚美尼亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Aruba"
 msgstr "阿鲁巴"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Australia"
 msgstr "澳大利亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Austria"
 msgstr "奥地利"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Azerbaijan"
 msgstr "阿塞拜疆"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bahamas"
 msgstr "巴哈马"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bahrain"
 msgstr "巴林"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bangladesh"
-msgstr "孟加拉"
+msgstr "孟加拉国"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Barbados"
 msgstr "巴巴多斯"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Belarus"
 msgstr "白俄罗斯"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Belgium"
 msgstr "比利时"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Belize"
 msgstr "伯利兹"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Benin"
 msgstr "贝宁"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bermuda"
-msgstr "百慕大群岛"
+msgstr "百慕大"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bhutan"
 msgstr "不丹"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bolivia"
 msgstr "玻利维亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bonaire, Sint Eustatius and Saba"
-msgstr "博内尔岛、圣尤斯特歇斯岛和萨巴岛"
+msgstr "博内尔、圣尤斯特歇斯和萨巴"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bosnia and Herzegovina"
-msgstr "波斯尼亚和黑塞哥维纳"
+msgstr "波斯尼亚和黑塞哥维那"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Botswana"
 msgstr "博茨瓦纳"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bouvet Island"
 msgstr "布韦岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Brazil"
 msgstr "巴西"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "British Indian Ocean Territory"
 msgstr "英属印度洋领地"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Brunei Darussalam"
 msgstr "文莱达鲁萨兰国"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Bulgaria"
 msgstr "保加利亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Burkina Faso"
 msgstr "布基纳法索"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Burundi"
 msgstr "布隆迪"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Cabo Verde"
 msgstr "佛得角"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Cambodia"
 msgstr "柬埔寨"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Cameroon"
 msgstr "喀麦隆"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Canada"
 msgstr "加拿大"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Cayman Islands"
 msgstr "开曼群岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Central African Republic"
 msgstr "中非共和国"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Chad"
 msgstr "乍得"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Chile"
 msgstr "智利"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "China"
 msgstr "中国"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Christmas Island"
 msgstr "圣诞岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Cocos  Islands"
 msgstr "科科斯群岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Colombia"
 msgstr "哥伦比亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Comoros"
 msgstr "科摩罗"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Congo"
 msgstr "刚果"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Congo (Democratic Republic)"
-msgstr "刚果（民主共和国）"
+msgstr "刚果（金）"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Cook Islands"
 msgstr "库克群岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Costa Rica"
 msgstr "哥斯达黎加"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Croatia"
 msgstr "克罗地亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Cuba"
 msgstr "古巴"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Curaçao"
-msgstr "库拉索岛"
+msgstr "库拉索"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Cyprus"
 msgstr "塞浦路斯"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Czechia"
 msgstr "捷克"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Côte d'Ivoire"
 msgstr "科特迪瓦"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Denmark"
 msgstr "丹麦"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Djibouti"
 msgstr "吉布提"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Dominica"
 msgstr "多米尼克"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Dominican Republic"
 msgstr "多米尼加共和国"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Ecuador"
 msgstr "厄瓜多尔"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Egypt"
 msgstr "埃及"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "El Salvador"
 msgstr "萨尔瓦多"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Equatorial Guinea"
 msgstr "赤道几内亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Eritrea"
 msgstr "厄立特里亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Estonia"
 msgstr "爱沙尼亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Eswatini"
 msgstr "埃斯瓦蒂尼"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Ethiopia"
 msgstr "埃塞俄比亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Falkland Islands (Malvinas)"
-msgstr "福克兰群岛(马尔维纳斯)"
+msgstr "福克兰群岛（马尔维纳斯）"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Faroe Islands"
 msgstr "法罗群岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Fiji"
 msgstr "斐济"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Finland"
 msgstr "芬兰"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "France"
 msgstr "法国"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "French Guiana"
 msgstr "法属圭亚那"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "French Polynesia"
 msgstr "法属波利尼西亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "French Southern Territories"
-msgstr "法属南方领土"
+msgstr "法属南部领地"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Gabon"
 msgstr "加蓬"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Gambia"
 msgstr "冈比亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Georgia"
 msgstr "格鲁吉亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Germany"
 msgstr "德国"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Ghana"
 msgstr "加纳"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Gibraltar"
 msgstr "直布罗陀"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Greece"
 msgstr "希腊"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Greenland"
-msgstr "格陵兰岛"
+msgstr "格陵兰"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Grenada"
 msgstr "格林纳达"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Guadeloupe"
-msgstr "瓜德罗普岛"
+msgstr "瓜德罗普"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Guam"
 msgstr "关岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Guatemala"
 msgstr "危地马拉"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Guernsey"
-msgstr "格恩西岛"
+msgstr "根西岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Guinea"
 msgstr "几内亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Guinea-Bissau"
-msgstr "几内亚-比绍"
+msgstr "几内亚比绍"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Guyana"
 msgstr "圭亚那"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Haiti"
 msgstr "海地"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Heard Island and McDonald Islands"
 msgstr "赫德岛和麦克唐纳群岛"
 
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Honduras"
-msgstr "洪都拉斯"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Hong Kong"
-msgstr "香港"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Hungary"
-msgstr "匈牙利"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Iceland"
-msgstr "冰岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "India"
-msgstr "印度"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Indonesia"
-msgstr "印度尼西亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Iran"
-msgstr "伊朗"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Iraq"
-msgstr "伊拉克"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Ireland"
-msgstr "爱尔兰"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Isle of Man"
-msgstr "马恩岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Israel"
-msgstr "以色列"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Italy"
-msgstr "意大利"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Jamaica"
-msgstr "牙买加"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Japan"
-msgstr "日本"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Jersey"
-msgstr "泽西岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Jordan"
-msgstr "约旦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Kazakhstan"
-msgstr "哈萨克斯坦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Kenya"
-msgstr "肯尼亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Kiribati"
-msgstr "基里巴斯"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Kuwait"
-msgstr "科威特"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Kyrgyzstan"
-msgstr "吉尔吉斯斯坦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Lao"
-msgstr "老挝语"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Latvia"
-msgstr "拉脱维亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Lebanon"
-msgstr "黎巴嫩"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Lesotho"
-msgstr "莱索托"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Liberia"
-msgstr "利比里亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Libya"
-msgstr "利比亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Liechtenstein"
-msgstr "列支敦士登"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Lithuania"
-msgstr "立陶宛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Luxembourg"
-msgstr "卢森堡"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Macao"
-msgstr "澳门"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Madagascar"
-msgstr "马达加斯加"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Malawi"
-msgstr "马拉维"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Malaysia"
-msgstr "马来西亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Maldives"
-msgstr "马尔代夫"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Mali"
-msgstr "马里"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Malta"
-msgstr "马耳他"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Marshall Islands"
-msgstr "马绍尔群岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Martinique"
-msgstr "马提尼克岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Mauritania"
-msgstr "毛里塔尼亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Mauritius"
-msgstr "毛里求斯"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Mayotte"
-msgstr "马约特岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Mexico"
-msgstr "墨西哥"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Micronesia"
-msgstr "密克罗尼西亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Moldova"
-msgstr "摩尔多瓦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Monaco"
-msgstr "摩纳哥"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Mongolia"
-msgstr "蒙古国"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Montenegro"
-msgstr "黑山"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Montserrat"
-msgstr "蒙特塞拉特"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Morocco"
-msgstr "摩洛哥"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Mozambique"
-msgstr "莫桑比克"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Myanmar"
-msgstr "缅甸"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Namibia"
-msgstr "纳米比亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Nauru"
-msgstr "瑙鲁语"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Nepal"
-msgstr "尼泊尔"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Netherlands"
-msgstr "荷兰"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "New Caledonia"
-msgstr "新喀里多尼亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "New Zealand"
-msgstr "新西兰"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Nicaragua"
-msgstr "尼加拉瓜"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Niger"
-msgstr "尼日尔"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Nigeria"
-msgstr "尼日利亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Niue"
-msgstr "纽埃"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Norfolk Island"
-msgstr "诺福克岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "North Korea"
-msgstr "北韩"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "North Macedonia"
-msgstr "北马其顿"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Northern Mariana Islands"
-msgstr "北马里亚纳群岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Norway"
-msgstr "挪威"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Oman"
-msgstr "阿曼"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Pakistan"
-msgstr "巴基斯坦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Palau"
-msgstr "帕劳"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Palestine"
-msgstr "巴勒斯坦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Panama"
-msgstr "巴拿马"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Papua New Guinea"
-msgstr "巴布亚新几内亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Paraguay"
-msgstr "巴拉圭"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Peru"
-msgstr "秘鲁"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Philippines"
-msgstr "菲律宾"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Pitcairn"
-msgstr "皮特凯恩"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Poland"
-msgstr "波兰"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Portugal"
-msgstr "葡萄牙"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Puerto Rico"
-msgstr "波多黎各"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Qatar"
-msgstr "卡塔尔"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Romania"
-msgstr "罗马尼亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Russian Federation"
-msgstr "俄罗斯"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Rwanda"
-msgstr "卢旺达"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Réunion"
-msgstr "留尼汪岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Saint Barthélemy"
-msgstr "圣巴泰勒米"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Saint Helena, Ascension and Tristan da Cunha"
-msgstr "圣赫勒拿、阿森松和特里斯坦-达库尼亚岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Saint Kitts and Nevis"
-msgstr "圣基茨和尼维斯"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Saint Lucia"
-msgstr "圣卢西亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Saint Pierre and Miquelon"
-msgstr "圣皮埃尔和密克隆"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Saint Vincent and the Grenadines"
-msgstr "圣文森特和格林纳丁斯"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Samoa"
-msgstr "萨摩亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "San Marino"
-msgstr "圣马力诺"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Sao Tome and Principe"
-msgstr "圣多美和普林西比"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Saudi Arabia"
-msgstr "沙特阿拉伯"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Senegal"
-msgstr "塞内加尔"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Serbia"
-msgstr "塞尔维亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Seychelles"
-msgstr "塞舌尔"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Sierra Leone"
-msgstr "塞拉里昂"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Singapore"
-msgstr "新加坡"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Sint Maarten"
-msgstr "圣马丁岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Slovakia"
-msgstr "斯洛伐克"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Slovenia"
-msgstr "斯洛文尼亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Solomon Islands"
-msgstr "所罗门群岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Somalia"
-msgstr "索马里"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "South Africa"
-msgstr "南非"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "South Georgia and the South Sandwich Islands"
-msgstr "南乔治亚岛和南桑威奇群岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "South Korea"
-msgstr "韩国"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "South Sudan"
-msgstr "南苏丹"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Spain"
-msgstr "西班牙"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Sri Lanka"
-msgstr "斯里兰卡"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Sudan"
-msgstr "苏丹"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Suriname"
-msgstr "苏里南"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Svalbard and Jan Mayen"
-msgstr "斯瓦尔巴群岛和扬马延岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Sweden"
-msgstr "瑞典"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Switzerland"
-msgstr "刚果民主共和国"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Syria"
-msgstr "叙利亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Taiwan"
-msgstr "台湾"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Tajikistan"
-msgstr "塔吉克斯坦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Tanzania"
-msgstr "坦桑尼亚"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Thailand"
-msgstr "泰国"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Timor-Leste"
-msgstr "东帝汶"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Togo"
-msgstr "多哥"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Tokelau"
-msgstr "托克劳群岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Tonga"
-msgstr "汤加"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Trinidad and Tobago"
-msgstr "特立尼达和多巴哥"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Tunisia"
-msgstr "突尼斯"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Turkey"
-msgstr "土耳其"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Turkmenistan"
-msgstr "土库曼尼斯坦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Turks and Caicos Islands"
-msgstr "特克斯和凯科斯群岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Tuvalu"
-msgstr "图瓦卢"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Uganda"
-msgstr "乌干达"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Ukraine"
-msgstr "乌克兰"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "United Arab Emirates"
-msgstr "阿拉伯联合酋长国"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "United Kingdom"
-msgstr "英国"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "United States"
-msgstr "美国"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "United States Minor Outlying Islands"
-msgstr "美国外围小群岛"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Uruguay"
-msgstr "乌拉圭"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Uzbekistan"
-msgstr "乌兹别克斯坦"
-
-#: psynet/utils.py
-msgctxt "country_name"
-msgid "Vanuatu"
-msgstr "瓦努阿图"
-
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Vatican City State"
 msgstr "梵蒂冈城国"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Honduras"
+msgstr "洪都拉斯"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Hong Kong"
+msgstr "香港"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Hungary"
+msgstr "匈牙利"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iceland"
+msgstr "冰岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "India"
+msgstr "印度"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Indonesia"
+msgstr "印度尼西亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iran"
+msgstr "伊朗"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iraq"
+msgstr "伊拉克"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ireland"
+msgstr "爱尔兰"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Isle of Man"
+msgstr "马恩岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Israel"
+msgstr "以色列"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Italy"
+msgstr "意大利"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jamaica"
+msgstr "牙买加"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Japan"
+msgstr "日本"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jersey"
+msgstr "泽西岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jordan"
+msgstr "约旦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kazakhstan"
+msgstr "哈萨克斯坦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kenya"
+msgstr "肯尼亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kiribati"
+msgstr "基里巴斯"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "North Korea"
+msgstr "朝鲜"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Korea"
+msgstr "韩国"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kuwait"
+msgstr "科威特"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kyrgyzstan"
+msgstr "吉尔吉斯斯坦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao"
+msgstr "老挝"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Latvia"
+msgstr "拉脱维亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lebanon"
+msgstr "黎巴嫩"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lesotho"
+msgstr "莱索托"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Liberia"
+msgstr "利比里亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Libya"
+msgstr "利比亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Liechtenstein"
+msgstr "列支敦士登"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lithuania"
+msgstr "立陶宛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Luxembourg"
+msgstr "卢森堡"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Macao"
+msgstr "澳门"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Madagascar"
+msgstr "马达加斯加"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malawi"
+msgstr "马拉维"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malaysia"
+msgstr "马来西亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Maldives"
+msgstr "马尔代夫"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mali"
+msgstr "马里"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malta"
+msgstr "马耳他"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Marshall Islands"
+msgstr "马绍尔群岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Martinique"
+msgstr "马提尼克"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritania"
+msgstr "毛里塔尼亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritius"
+msgstr "毛里求斯"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mayotte"
+msgstr "马约特"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mexico"
+msgstr "墨西哥"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Micronesia"
+msgstr "密克罗尼西亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Moldova"
+msgstr "摩尔多瓦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Monaco"
+msgstr "摩纳哥"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mongolia"
+msgstr "蒙古"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Montenegro"
+msgstr "黑山"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Montserrat"
+msgstr "蒙特塞拉特"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Morocco"
+msgstr "摩洛哥"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mozambique"
+msgstr "莫桑比克"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Myanmar"
+msgstr "缅甸"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Namibia"
+msgstr "纳米比亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "瑙鲁"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nepal"
+msgstr "尼泊尔"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Netherlands"
+msgstr "荷兰"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "New Caledonia"
+msgstr "新喀里多尼亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "New Zealand"
+msgstr "新西兰"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nicaragua"
+msgstr "尼加拉瓜"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Niger"
+msgstr "尼日尔"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nigeria"
+msgstr "尼日利亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Niue"
+msgstr "纽埃"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Norfolk Island"
+msgstr "诺福克岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "North Macedonia"
+msgstr "北马其顿"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Northern Mariana Islands"
+msgstr "北马里亚纳群岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Norway"
+msgstr "挪威"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Oman"
+msgstr "阿曼"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Pakistan"
+msgstr "巴基斯坦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Palau"
+msgstr "帕劳"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Palestine"
+msgstr "巴勒斯坦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Panama"
+msgstr "巴拿马"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Papua New Guinea"
+msgstr "巴布亚新几内亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Paraguay"
+msgstr "巴拉圭"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Peru"
+msgstr "秘鲁"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Philippines"
+msgstr "菲律宾"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Pitcairn"
+msgstr "皮特凯恩"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Poland"
+msgstr "波兰"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Portugal"
+msgstr "葡萄牙"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Puerto Rico"
+msgstr "波多黎各"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Qatar"
+msgstr "卡塔尔"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Romania"
+msgstr "罗马尼亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Russian Federation"
+msgstr "俄罗斯联邦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Rwanda"
+msgstr "卢旺达"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Réunion"
+msgstr "留尼汪"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Barthélemy"
+msgstr "圣巴泰勒米"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Helena, Ascension and Tristan da Cunha"
+msgstr "圣赫勒拿、阿森松和特里斯坦-达库尼亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Kitts and Nevis"
+msgstr "圣基茨和尼维斯"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Lucia"
+msgstr "圣卢西亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Pierre and Miquelon"
+msgstr "圣皮埃尔和密克隆"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Vincent and the Grenadines"
+msgstr "圣文森特和格林纳丁斯"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Samoa"
+msgstr "萨摩亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "San Marino"
+msgstr "圣马力诺"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sao Tome and Principe"
+msgstr "圣多美和普林西比"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saudi Arabia"
+msgstr "沙特阿拉伯"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Senegal"
+msgstr "塞内加尔"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Serbia"
+msgstr "塞尔维亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Seychelles"
+msgstr "塞舌尔"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sierra Leone"
+msgstr "塞拉利昂"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Singapore"
+msgstr "新加坡"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sint Maarten"
+msgstr "荷属圣马丁"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovakia"
+msgstr "斯洛伐克"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovenia"
+msgstr "斯洛文尼亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Solomon Islands"
+msgstr "所罗门群岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Somalia"
+msgstr "索马里"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Africa"
+msgstr "南非"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "南乔治亚和南桑威奇群岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Sudan"
+msgstr "南苏丹"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Spain"
+msgstr "西班牙"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sri Lanka"
+msgstr "斯里兰卡"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sudan"
+msgstr "苏丹"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Suriname"
+msgstr "苏里南"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Svalbard and Jan Mayen"
+msgstr "斯瓦尔巴和扬马延"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sweden"
+msgstr "瑞典"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Switzerland"
+msgstr "瑞士"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Syria"
+msgstr "叙利亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Taiwan"
+msgstr "台湾"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tajikistan"
+msgstr "塔吉克斯坦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tanzania"
+msgstr "坦桑尼亚"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Thailand"
+msgstr "泰国"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Timor-Leste"
+msgstr "东帝汶"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Togo"
+msgstr "多哥"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tokelau"
+msgstr "托克劳"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "汤加"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Trinidad and Tobago"
+msgstr "特立尼达和多巴哥"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tunisia"
+msgstr "突尼斯"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkey"
+msgstr "土耳其"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkmenistan"
+msgstr "土库曼斯坦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turks and Caicos Islands"
+msgstr "特克斯和凯科斯群岛"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tuvalu"
+msgstr "图瓦卢"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uganda"
+msgstr "乌干达"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ukraine"
+msgstr "乌克兰"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United Arab Emirates"
+msgstr "阿拉伯联合酋长国"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United Kingdom"
+msgstr "英国"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United States"
+msgstr "美国"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United States Minor Outlying Islands"
+msgstr "美国本土外小岛屿"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uruguay"
+msgstr "乌拉圭"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uzbekistan"
+msgstr "乌兹别克斯坦"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vanuatu"
+msgstr "瓦努阿图"
+
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Venezuela"
 msgstr "委内瑞拉"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Vietnam"
 msgstr "越南"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Virgin Islands (British)"
-msgstr "维尔京群岛（英属）"
+msgstr "英属维尔京群岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Virgin Islands (U.S.)"
-msgstr "维尔京群岛（美国）"
+msgstr "美属维尔京群岛"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Wallis and Futuna"
 msgstr "瓦利斯和富图纳"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Western Sahara"
 msgstr "西撒哈拉"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Yemen"
 msgstr "也门"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Zambia"
 msgstr "赞比亚"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Zimbabwe"
 msgstr "津巴布韦"
 
-#: psynet/utils.py
+#: psynet/translation/countries.py
+#, fuzzy
 msgctxt "country_name"
 msgid "Åland Islands"
 msgstr "奥兰群岛"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Abkhazian"
 msgstr "阿布哈兹语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Afar"
 msgstr "阿法尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Afrikaans"
-msgstr "南非语"
+msgstr "南非荷兰语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Akan"
-msgstr "阿肯语"
+msgstr "阿坎语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Albanian"
 msgstr "阿尔巴尼亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Amharic"
 msgstr "阿姆哈拉语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Arabic"
 msgstr "阿拉伯语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Aragonese"
 msgstr "阿拉贡语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Armenian"
 msgstr "亚美尼亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Assamese"
 msgstr "阿萨姆语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Avaric"
-msgstr "阿瓦里语"
+msgstr "阿瓦尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Avestan"
-msgstr "阿维斯坦语"
+msgstr "阿维斯陀语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Aymara"
-msgstr "艾玛拉语"
+msgstr "艾马拉语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Azerbaijani"
 msgstr "阿塞拜疆语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Bambara"
 msgstr "班巴拉语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Bashkir"
 msgstr "巴什基尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Basque"
 msgstr "巴斯克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Belarusian"
 msgstr "白俄罗斯语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Bengali"
 msgstr "孟加拉语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Bislama"
 msgstr "比斯拉马语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Bosnian"
 msgstr "波斯尼亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Breton"
 msgstr "布列塔尼语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Bulgarian"
 msgstr "保加利亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Burmese"
 msgstr "缅甸语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Catalan"
 msgstr "加泰罗尼亚语"
 
-#: psynet/utils.py
-msgctxt "language_name"
-msgid "Cebuano"
-msgstr "宿雾语"
-
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Central Khmer"
-msgstr "中高棉语"
+msgstr "中部高棉语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Chamorro"
 msgstr "查莫罗语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Chechen"
 msgstr "车臣语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Chinese"
 msgstr "中文"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Church Slavic"
 msgstr "教会斯拉夫语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Chuvash"
-msgstr "丘瓦士语"
+msgstr "楚瓦什语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Cornish"
-msgstr "粟特语"
+msgstr "康沃尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Corsican"
 msgstr "科西嘉语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Cree"
 msgstr "克里语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Croatian"
-msgstr "克羅地亞語"
+msgstr "克罗地亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cebuano"
+msgstr "宿务语"
+
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Czech"
 msgstr "捷克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Danish"
 msgstr "丹麦语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Dhivehi"
 msgstr "迪维希语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Dutch"
 msgstr "荷兰语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Dzongkha"
 msgstr "宗卡语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "English"
 msgstr "英语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Esperanto"
 msgstr "世界语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Estonian"
 msgstr "爱沙尼亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Ewe"
 msgstr "埃维语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Faroese"
-msgstr "法罗群岛语"
+msgstr "法罗语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Fijian"
 msgstr "斐济语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Finnish"
 msgstr "芬兰语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "French"
 msgstr "法语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Fulah"
 msgstr "富拉语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Galician"
 msgstr "加利西亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Ganda"
-msgstr "甘达语"
+msgstr "干达语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Georgian"
 msgstr "格鲁吉亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "German"
 msgstr "德语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Gothic"
 msgstr "哥特语"
 
-#: psynet/utils.py
-msgctxt "language_name"
-msgid "Greek"
-msgstr "希腊语"
-
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Guarani"
 msgstr "瓜拉尼语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Gujarati"
 msgstr "古吉拉特语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Haitian"
 msgstr "海地语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Hausa"
 msgstr "豪萨语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Hawaiian"
 msgstr "夏威夷语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Hebrew"
 msgstr "希伯来语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Herero"
 msgstr "赫雷罗语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Hindi"
 msgstr "印地语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Hiri Motu"
 msgstr "希里莫图语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Hmong"
-msgstr "苗族语"
+msgstr "苗语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Hungarian"
 msgstr "匈牙利语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Icelandic"
 msgstr "冰岛语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Ido"
 msgstr "伊多语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Igbo"
 msgstr "伊博语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Indonesian"
 msgstr "印度尼西亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Interlingua"
 msgstr "国际语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Interlingue"
-msgstr "拉丁国际语"
+msgstr "因特语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Inuktitut"
 msgstr "因纽特语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Inupiaq"
 msgstr "伊努皮克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Irish"
 msgstr "爱尔兰语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Italian"
 msgstr "意大利语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Japanese"
 msgstr "日语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Javanese"
 msgstr "爪哇语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kalaallisut"
 msgstr "格陵兰语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kannada"
 msgstr "卡纳达语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kanuri"
 msgstr "卡努里语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kashmiri"
 msgstr "克什米尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kazakh"
 msgstr "哈萨克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kikuyu"
 msgstr "基库尤语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kinyarwanda"
-msgstr "基尼亚卢旺达语"
+msgstr "基尼阿万达语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kirghiz"
-msgstr "刚果（金）语"
+msgstr "柯尔克孜语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Komi"
 msgstr "科米语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kongo"
 msgstr "刚果语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Korean"
 msgstr "韩语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kuanyama"
-msgstr "关山语"
+msgstr "宽亚玛语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Kurdish"
 msgstr "库尔德语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Lao"
 msgstr "老挝语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Latin"
 msgstr "拉丁语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Latvian"
 msgstr "拉脱维亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Limburgan"
-msgstr "林布尔干语"
+msgstr "林堡语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Lingala"
 msgstr "林加拉语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Lithuanian"
 msgstr "立陶宛语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Luba-Katanga"
-msgstr "卢巴-卡坦加语"
+msgstr "卢巴加丹加语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Luxembourgish"
 msgstr "卢森堡语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Macedonian"
 msgstr "马其顿语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Malagasy"
-msgstr "马达加斯加语"
+msgstr "马尔加什语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Malay"
 msgstr "马来语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Malayalam"
 msgstr "马拉雅拉姆语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Maltese"
 msgstr "马耳他语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Manx"
-msgstr "曼克斯语"
+msgstr "马恩语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Maori"
 msgstr "毛利语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Marathi"
 msgstr "马拉地语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Marshallese"
 msgstr "马绍尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Greek"
+msgstr "希腊语"
+
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Mongolian"
 msgstr "蒙古语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Nauru"
 msgstr "瑙鲁语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Navajo"
 msgstr "纳瓦霍语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Ndonga"
 msgstr "恩东加语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Nepali"
 msgstr "尼泊尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "North Ndebele"
 msgstr "北恩德贝勒语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Northern Sami"
 msgstr "北萨米语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Norwegian"
 msgstr "挪威语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Bokmål"
-msgstr "挪威布克莫尔语"
+msgstr "书面挪威语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Nynorsk"
-msgstr "挪威尼诺尔克语"
+msgstr "新挪威语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Nyanja"
-msgstr "尼亚加语"
+msgstr "尼扬贾语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Occitan"
-msgstr "奥克西坦语"
+msgstr "奥克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Ojibwa"
 msgstr "奥吉布瓦语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Oriya"
-msgstr "奥里雅语"
+msgstr "奥里亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Oromo"
 msgstr "奥罗莫语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Ossetian"
 msgstr "奥塞梯语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Pali"
-msgstr "帕利语"
+msgstr "巴利语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Panjabi"
-msgstr "潘贾比语"
+msgstr "旁遮普语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Persian"
 msgstr "波斯语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Polish"
 msgstr "波兰语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Portuguese"
 msgstr "葡萄牙语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Pushto"
 msgstr "普什图语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Quechua"
 msgstr "克丘亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Romanian"
 msgstr "罗马尼亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Romansh"
-msgstr "罗曼斯语"
+msgstr "罗曼什语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Rundi"
-msgstr "伦迪语"
+msgstr "隆迪语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Russian"
-msgstr "俄罗斯语"
+msgstr "俄语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Samoan"
 msgstr "萨摩亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Sango"
 msgstr "桑戈语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Sanskrit"
 msgstr "梵语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Sardinian"
-msgstr "萨丁尼亚语"
+msgstr "撒丁语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Scottish Gaelic"
 msgstr "苏格兰盖尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Serbian"
 msgstr "塞尔维亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Serbo-Croatian"
 msgstr "塞尔维亚-克罗地亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Shona"
 msgstr "绍纳语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Sichuan Yi"
 msgstr "四川彝语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Sindhi"
 msgstr "信德语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Sinhala"
 msgstr "僧伽罗语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Slovak"
 msgstr "斯洛伐克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Slovenian"
 msgstr "斯洛文尼亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Somali"
 msgstr "索马里语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "South Ndebele"
-msgstr "南恩德培勒语"
+msgstr "南恩德贝勒语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Southern Sotho"
 msgstr "南索托语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Spanish"
 msgstr "西班牙语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Sundanese"
 msgstr "巽他语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Swahili"
 msgstr "斯瓦希里语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Swati"
-msgstr "斯瓦特语"
+msgstr "斯瓦蒂语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Swedish"
 msgstr "瑞典语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Taiwanese"
+msgstr "台湾话"
+
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tagalog"
-msgstr "塔加路语"
+msgstr "塔加洛语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tahitian"
 msgstr "塔希提语"
 
-#: psynet/utils.py
-msgctxt "language_name"
-msgid "Taiwanese"
-msgstr "台湾语"
-
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tajik"
 msgstr "塔吉克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tamil"
 msgstr "泰米尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tatar"
 msgstr "鞑靼语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Telugu"
 msgstr "泰卢固语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Thai"
 msgstr "泰语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tibetan"
 msgstr "藏语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tigrinya"
 msgstr "提格里尼亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tonga"
-msgstr "汤加"
+msgstr "汤加语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tsonga"
-msgstr "桑加语"
+msgstr "宗加语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Tswana"
 msgstr "茨瓦纳语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Turkish"
 msgstr "土耳其语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Turkmen"
 msgstr "土库曼语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Twi"
-msgstr "特维语"
+msgstr "契维语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Uighur"
 msgstr "维吾尔语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Ukrainian"
 msgstr "乌克兰语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Urdu"
 msgstr "乌尔都语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Uzbek"
 msgstr "乌兹别克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Venda"
 msgstr "文达语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Vietnamese"
 msgstr "越南语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Volapük"
 msgstr "沃拉普克语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Walloon"
 msgstr "瓦隆语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Welsh"
 msgstr "威尔士语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Western Armenian"
-msgstr "西亚美尼亚语"
+msgstr "西部亚美尼亚语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Western Frisian"
-msgstr "西弗里斯兰语"
+msgstr "西弗里斯语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Wolof"
 msgstr "沃洛夫语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Xhosa"
-msgstr "绍萨语"
+msgstr "科萨语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Yiddish"
 msgstr "意第绪语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Yoruba"
 msgstr "约鲁巴语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Zhuang"
 msgstr "壮语"
 
-#: psynet/utils.py
+#: psynet/translation/languages.py
+#, fuzzy
 msgctxt "language_name"
 msgid "Zulu"
 msgstr "祖鲁语"

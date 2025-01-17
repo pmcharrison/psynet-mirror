@@ -26,8 +26,6 @@ from .utils import (
 
 logger = get_logger()
 
-DEFAULT_LOCALE = "en"
-
 
 class Blob:
     """
@@ -612,13 +610,11 @@ class Control:
     def __init__(
         self,
         bot_response=NoArgumentProvided,
-        locale=DEFAULT_LOCALE,
         buttons: Optional[List] = None,
         show_next_button: Optional[bool] = True,
     ):
         self.page = None
         self._bot_response = bot_response
-        self.locale = locale
 
         if buttons is None:
             buttons = []
@@ -872,7 +868,6 @@ class CheckboxControl(OptionControl):
         arrange_vertically: bool = True,
         force_selection: bool = False,
         show_reset_button: str = "never",
-        locale=DEFAULT_LOCALE,
     ):
         if show_reset_button != "never":
             buttons = [ResetButton()]
@@ -894,7 +889,6 @@ class CheckboxControl(OptionControl):
             )
             for choice, label in zip(self.choices, self.labels)
         ]
-        self.locale = locale
 
     macro = "checkboxes"
 
@@ -916,7 +910,7 @@ class CheckboxControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
-        _, _p = get_translator(self.locale)
+        _p = get_translator(context=True)
         if self.force_selection and len(response.answer) == 0:
             return FailedValidation(
                 _p("validation", "You need to check at least one answer!")
@@ -965,7 +959,6 @@ class DropdownControl(OptionControl):
         name: str = "dropdown",
         force_selection: bool = True,
         default_text="Select an option",
-        locale=DEFAULT_LOCALE,
     ):
         super().__init__(choices, labels, style)
         self.validate_name(name)
@@ -977,7 +970,6 @@ class DropdownControl(OptionControl):
             DropdownOption(value=value, text=text)
             for value, text in zip(self.choices, self.labels)
         ]
-        self.locale = locale
 
     macro = "dropdown"
 
@@ -999,7 +991,7 @@ class DropdownControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
-        _, _p = get_translator(self.locale)
+        _p = get_translator(context=True)
         if self.force_selection and response.answer == "":
             return FailedValidation(_p("validation", "You need to select an answer!"))
         return None
@@ -1219,7 +1211,6 @@ class RadioButtonControl(OptionControl):
         show_reset_button: str = "never",
         show_free_text_option: bool = False,
         placeholder_text_free_text: str = None,
-        locale=DEFAULT_LOCALE,
     ):
         if show_reset_button != "never":
             buttons = [ResetButton()]
@@ -1254,7 +1245,6 @@ class RadioButtonControl(OptionControl):
                     style=self.style,
                 )
             )
-            self.locale = locale
 
     macro = "radiobuttons"
 
@@ -1274,7 +1264,7 @@ class RadioButtonControl(OptionControl):
         return html.render()
 
     def validate(self, response, **kwargs):
-        _, _p = get_translator(self.locale)
+        _p = get_translator(context=True)
         if self.force_selection and response.answer is None:
             return FailedValidation(_p("validation", "You need to select an answer!"))
         return None
@@ -1310,9 +1300,8 @@ class NumberControl(Control):
         width: Optional[str] = "120px",
         text_align: Optional[str] = "right",
         bot_response=NoArgumentProvided,
-        locale=DEFAULT_LOCALE,
     ):
-        super().__init__(bot_response=bot_response, locale=locale)
+        super().__init__(bot_response=bot_response)
         self.width = width
         self.text_align = text_align
 
@@ -1323,7 +1312,7 @@ class NumberControl(Control):
         return {"width": self.width, "text_align": self.text_align}
 
     def validate(self, response, **kwargs):
-        _, _p = get_translator(self.locale)
+        _p = get_translator(context=True)
         try:
             float(response.answer)
         except ValueError:

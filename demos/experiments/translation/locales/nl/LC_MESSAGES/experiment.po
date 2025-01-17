@@ -2,50 +2,50 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Last-Translator: DeepL API\n"
-"Language-Team: DeepL\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#. ""
-#: experiment.py
-#, fuzzy
-msgid "Below you will see this text translated!"
-msgstr "Hieronder ziet u deze tekst vertaald!"
-
-#. ""
-#: experiment.py
-#, fuzzy
-msgid "You can also translate text in push buttons or any kind of page!"
-msgstr "U kunt ook tekst vertalen in drukknoppen of eender welke pagina!"
-
-#. ""
-#: experiment.py
-#, fuzzy
-msgctxt "button"
-msgid "Click"
-msgstr "Klik op"
-
-#. ""
-#: experiment.py
-#, fuzzy
-msgctxt "button"
-msgid "on"
-msgstr "op"
-
-#. ""
-#: experiment.py
-#, fuzzy
-msgctxt "button"
-msgid "translation"
-msgstr "vertaling"
-
-#. ""
 #: experiment.py
 #, fuzzy
 msgctxt "welcome-page"
 msgid "Welcome to the translation demo!"
 msgstr "Welkom bij de vertaaldemo!"
+
+#: experiment.py
+#, fuzzy
+msgid "Below you will see this text translated!"
+msgstr "Hieronder zie je deze tekst vertaald!"
+
+#: experiment.py
+#, fuzzy, python-brace-format
+msgid ""
+"My name is {NAME}. My favorite food is {FAVFOOD}. My least favorite food is "
+"{HATEFOOD}."
+msgstr ""
+"Mijn naam is {NAME}. Mijn favoriete eten is {FAVFOOD}. Mijn minst favoriete "
+"eten is {HATEFOOD}."
+
+#: experiment.py
+#, fuzzy
+msgid "You can also translate text in push buttons or any kind of page!"
+msgstr "Je kunt ook tekst vertalen in drukknoppen of op elke soort pagina!"
+
+#: experiment.py
+#, fuzzy
+msgctxt "button"
+msgid "Chocolate"
+msgstr "Chocolade"
+
+#: experiment.py
+#, fuzzy
+msgctxt "button"
+msgid "Vanilla"
+msgstr "Vanille"
+
+#: experiment.py
+#, fuzzy
+msgctxt "button"
+msgid "Strawberry"
+msgstr "Aardbei"

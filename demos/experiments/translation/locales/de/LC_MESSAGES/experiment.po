@@ -2,51 +2,52 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Last-Translator: DeepL API\n"
-"Language-Team: DeepL\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#. ""
+#: experiment.py
+#, fuzzy
+msgctxt "welcome-page"
+msgid "Welcome to the translation demo!"
+msgstr "Willkommen zur Übersetzungsdemo!"
+
 #: experiment.py
 #, fuzzy
 msgid "Below you will see this text translated!"
 msgstr "Unten sehen Sie diesen Text übersetzt!"
 
-#. ""
+#: experiment.py
+#, fuzzy, python-brace-format
+msgid ""
+"My name is {NAME}. My favorite food is {FAVFOOD}. My least favorite food is "
+"{HATEFOOD}."
+msgstr ""
+"Mein Name ist {NAME}. Mein Lieblingsessen ist {FAVFOOD}. Mein am wenigsten "
+"bevorzugtes Essen ist {HATEFOOD}."
+
 #: experiment.py
 #, fuzzy
 msgid "You can also translate text in push buttons or any kind of page!"
 msgstr ""
-"Sie können auch Text in Drucktasten oder auf jeder Art von Seite übersetzen!"
+"Sie können auch Text in Schaltflächen oder auf jeder Art von Seite "
+"übersetzen!"
 
-#. ""
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "Click"
-msgstr "Klicken Sie"
+msgid "Chocolate"
+msgstr "Schokolade"
 
-#. ""
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "on"
-msgstr "auf"
+msgid "Vanilla"
+msgstr "Vanille"
 
-#. ""
 #: experiment.py
 #, fuzzy
 msgctxt "button"
-msgid "translation"
-msgstr "Übersetzung"
-
-#. ""
-#: experiment.py
-#, fuzzy
-msgctxt "welcome-page"
-msgid "Welcome to the translation demo!"
-msgstr "Willkommen bei der Übersetzungsdemo!"
+msgid "Strawberry"
+msgstr "Erdbeere"
