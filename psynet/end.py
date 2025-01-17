@@ -12,6 +12,7 @@ from psynet.timeline import (
     TimelineLogic,
     join,
 )
+from psynet.utils import get_translator
 
 
 class EndLogic(EltCollection):
@@ -77,7 +78,7 @@ class EndLogic(EltCollection):
         from psynet.utils import get_config
 
         config = get_config()
-        _, _p = (participant.gettext, participant.pgettext)
+        _p = get_translator(context=True)
 
         # Todo - translation should not have HTML hard-coded.
         # Fix that and then refactor using dominate package.
@@ -85,12 +86,11 @@ class EndLogic(EltCollection):
         # Todo - if there is no performance reward, skip reporting it.
         text = _p(
             "final-page-rewards",
-            (
-                "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for the time you spent "
-                "on the experiment. You have also been awarded a performance reward of <strong>{CURRENCY}"
-                "{PERFORMANCE_REWARD}</strong>! "
-            ),
-        ).format(
+            "You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for the time you spent "
+            "on the experiment. You have also been awarded a performance reward of <strong>{CURRENCY}"
+            "{PERFORMANCE_REWARD}</strong>! ",
+        )
+        text = text.format(
             CURRENCY=config.get("currency"),
             TIME_REWARD=f"{participant.time_reward:.2f}",
             PERFORMANCE_REWARD=f"{participant.performance_reward:.2f}",
@@ -106,7 +106,8 @@ class SuccessfulEndLogic(EndLogic):
         participant.progress = 1.0
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
-        _, _p = (participant.gettext, participant.pgettext)
+        _ = get_translator()
+        _p = get_translator(context=True)
 
         html = tags.span()
 
@@ -148,7 +149,8 @@ class UnsuccessfulEndLogic(EndLogic):
         participant.fail()
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
-        _, _p = (participant.gettext, participant.pgettext)
+        _ = get_translator()
+        _p = get_translator(context=True)
 
         html = tags.span()
 
@@ -190,7 +192,8 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
         participant.fail()
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
-        _, _p = (participant.gettext, participant.pgettext)
+        _ = get_translator()
+        _p = get_translator(context=True)
 
         html = tags.span()
 

@@ -1,0 +1,53 @@
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: experiment.py
+msgid "Hello, welcome to my experiment!"
+msgstr "Hallo, welkom bij dit experiment!"
+
+#: experiment.py
+msgid "What is your name?"
+msgstr "Wat is je naam?"
+
+#: experiment.py
+#, python-brace-format
+msgid "Hello, {NAME}!"
+msgstr "Hallo, {NAME}!"
+
+#: experiment.py
+msgid "What is your favorite pet?"
+msgstr "Wat is je favoriete huisdier?"
+
+#: experiment.py
+msgid "dog"
+msgstr "hond"
+
+#: experiment.py
+msgid "cat"
+msgstr "kat"
+
+#: experiment.py
+msgid "fish"
+msgstr "vis"
+
+#: experiment.py
+msgid "hamster"
+msgstr "hamster"
+
+#: experiment.py
+msgid "bird"
+msgstr "vogel"
+
+#: experiment.py
+msgid "snake"
+msgstr "slang"
+
+#: experiment.py
+#, python-brace-format
+msgid "Great, I like {PET} too!"
+msgstr "Super, ik hou ook van {PET}!"

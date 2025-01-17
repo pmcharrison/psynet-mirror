@@ -12,7 +12,8 @@ import warnings
 from collections import OrderedDict
 from datetime import datetime
 from importlib import resources
-from os.path import exists
+from os.path import abspath, dirname, exists
+from os.path import join as join_path
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
@@ -58,7 +59,6 @@ from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
-from .internationalization import check_translations, compile_mo, create_pot, load_po
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant
 from .recruiters import (  # noqa: F401
@@ -81,12 +81,14 @@ from .timeline import (
     Response,
     Timeline,
 )
+from .translation.check import check_translations
+from .translation.translate import create_pot
+from .translation.utils import compile_mo, load_po
 from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
 from .utils import (
-    LOCALES_DIR,
     NoArgumentProvided,
     cache,
     call_function,
@@ -94,8 +96,6 @@ from .utils import (
     classproperty,
     disable_logger,
     get_arg_from_dict,
-    get_available_locales,
-    get_language,
     get_logger,
     get_translator,
     log_time_taken,
@@ -381,10 +381,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         List of locales (i.e., ISO language codes) a user can pick from, e.g., ``'["en"]'``.
         Default: ``'[]'``.
 
-    allow_switching_locale : ``bool``
-        Allow the user to change the language of the experiment during the experiment.
-        Default: ``False``.
-
     force_google_chrome : ``bool``
         Forces the user to use the Google Chrome browser. If another browser is used, it will give detailed instructions
         on how to install Google Chrome.
@@ -491,20 +487,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
-        locales_dir = os.path.abspath("locales")
-
         self.pre_deploy_routines = []
-        if self.translation_checks_needed(locales_dir):
+        if self.translation_checks_needed():
             self.pre_deploy_routines.append(
                 PreDeployRoutine(
                     "check_experiment_translations",
                     check_translations,
-                    {
-                        "module": "experiment",
-                        "locales_dir": locales_dir,
-                        "variable_placeholders": self.variable_placeholders,
-                        "create_translation_template_function": self._create_translation_template_from_experiment_folder,
-                    },
                 )
             )
 
@@ -514,7 +502,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.compile_translations_if_necessary,
                 {
                     "locales_dir": os.path.abspath("locales"),
-                    "module": "experiment",
+                    "namespace": "experiment",
                 },
             )
         )
@@ -533,16 +521,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def global_nodes(self):
         return self.experiment_config.global_nodes
 
-    def translation_checks_needed(self, locales_dir):
-        return (
-            os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
-        )
+    @property
+    def supported_locales(self):
+        """
+        Returns the list of supported locales for the experiment.
+
+        This can be specified in the config.txt file, or inferred from the locales present in the locales directory.
+        """
+        config = get_config()
+        locale = config.get("locale", "en")
+        supported_locales = json.loads(config.get("supported_locales", "[]"))
+        supported_locales += [locale, "en"]
+        supported_locales = list(set(supported_locales))
+
+        return supported_locales
+
+    def translation_checks_needed(self):
+        non_en_locales = [locale for locale in self.supported_locales if locale != "en"]
+        return len(non_en_locales) > 0
 
     @classmethod
     def create_translation_template_from_experiment_folder(
         cls, input_directory, pot_path
     ):
-        create_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
+        create_pot(input_directory, pot_path)
 
     @classmethod
     def _create_translation_template_from_experiment_folder(cls, locales_dir="locales"):
@@ -556,26 +558,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise FileNotFoundError(f"Could not find pot file at {pot_path}")
         return load_po(pot_path)
 
-    def compile_translations_if_necessary(self, locales_dir, module):
+    def compile_translations_if_necessary(self, locales_dir, namespace):
         """Compiles translations if necessary."""
-        supported_locales = self.config.get("supported_locales", [])
-        if self.translation_checks_needed(locales_dir):
-            locales = get_available_locales(locales_dir)
-            for locale in supported_locales:
+        if self.translation_checks_needed():
+            for locale in self.supported_locales:
                 if locale == "en":
                     continue
-                assert (
-                    locale in locales
-                ), f"Locale {locale} is not found in {locales_dir}"
                 po_path = os.path.join(
-                    locales_dir, locale, "LC_MESSAGES", module + ".po"
+                    locales_dir, locale, "LC_MESSAGES", namespace + ".po"
                 )
+                assert os.path.exists(po_path), f"Could not find po file at {po_path}"
                 compile_mo(po_path)
         else:
-            assert supported_locales == [], "No locales folder found"
+            assert self.supported_locales == [
+                "en"
+            ], "No translations are needed, so the supported locales should be ['en']"
 
     def compile_psynet_translations_if_necessary(self):
-        self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
+        self.compile_translations_if_necessary(
+            join_path(abspath(dirname(__file__)), "locales"), "psynet"
+        )
 
     @with_transaction
     def on_launch(self):
@@ -926,7 +928,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Render HTML for error page."""
         from flask import make_response, request
 
-        _, _p = get_translator(locale)
+        _p = get_translator(context=True)
         if error_text is None:
             error_text = _p(
                 "error-msg",
@@ -978,27 +980,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         worker_id,
         external_submit_url,
     ):
-        try:
-            from psynet.participant import Participant
-
-            participant = Participant.query.filter_by(worker_id=worker_id).one()
-            locale = participant.var.locale
-        except Exception:
-            locale = None
-        gettext, pgettext = get_translator(locale)
-        _, _p = gettext, pgettext
+        _ = get_translator()
+        _p = get_translator(context=True)
 
         if hasattr(self.recruiter, "error_page_content"):
             return self.recruiter.error_page_content(
-                gettext,
-                pgettext,
                 assignment_id=assignment_id,
                 external_submit_url=external_submit_url,
             )
 
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, ProlificRecruiter):
-            return self.error_page_content__prolific(gettext, pgettext)
+            return self.error_page_content__prolific()
         elif isinstance(self.recruiter, MTurkRecruiter):
             html = tags.div()
             with html:
@@ -1022,7 +1015,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return ""
 
-    def error_page_content__prolific(self, _, _p):
+    def error_page_content__prolific(self):
+        _p = get_translator(context=True)
+
         html = tags.div()
         with html:
             tags.p(
@@ -1270,17 +1265,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = {
             **super().config_defaults(),
             "allow_mobile_devices": False,
-            "allow_switching_locale": True,
             "base_payment": 0.10,
             "big_base_payment": False,
             "clock_on": True,
             "color_mode": "light",
             "currency": "$",
+            "default_translator": "chat_gpt",
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "duration": 100000000.0,
             "force_google_chrome": True,
             "force_incognito_mode": False,
+            "openai_default_model": "gpt-4o",
+            "openai_default_temperature": 0,
             "host": "0.0.0.0",
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),
@@ -1325,7 +1322,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "python_version": python_version(),
             "hard_max_experiment_payment_email_sent": False,
             "soft_max_experiment_payment_email_sent": False,
-            "current_locale": get_language(),
             "hard_max_experiment_payment": 1100.0,
             "soft_max_experiment_payment": 1000.0,
             "max_participant_payment": 25.0,
@@ -2119,6 +2115,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
+        config.register("default_translator", unicode)
+        config.register("google_translate_project_id", unicode, sensitive=True)
+        config.register("google_translate_json_path", unicode, sensitive=True)
+        config.register("openai_api_key", unicode, sensitive=True)
+        config.register("openai_default_model", unicode)
+        config.register("openai_default_temperature", unicode)
+        config.register("locale", unicode)
         config.register("lucid_api_key", unicode, sensitive=True)
         config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("lucid_recruitment_config", unicode)
@@ -2138,18 +2141,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("window_height", int)
 
         def is_valid_locale(value):
-            available_psynet_locales = get_available_locales()
+            from .translation import psynet_supported_locales
+
+            locales = json.loads(value)
+            if len(locales) == 0 or locales == ["en"]:
+                return
+
             for locale in json.loads(value):
                 if locale == "en":
                     continue
                 assert (
-                    locale in available_psynet_locales
+                    locale in psynet_supported_locales
                 ), f"Locale {locale} not available in PsyNet."
 
         config.register(
             "supported_locales", unicode, validators=[is_valid_json, is_valid_locale]
         )
-        config.register("allow_switching_locale", bool)
         config.register("force_google_chrome", bool)
         config.register("force_incognito_mode", bool)
         config.register("allow_mobile_devices", bool)
@@ -2462,7 +2469,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/dashboard/export", methods=["GET"])
     @staticmethod
     @with_transaction
-    def export():
+    def export(self):
         from flask_login import current_user
 
         from .command_line import export__local
@@ -2737,28 +2744,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return request.environ["REMOTE_ADDR"]
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
-
-    @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
-    @classmethod
-    @with_transaction
-    def route_set_locale_participant(cls, participant_id):
-        participant = cls.get_participant_from_participant_id(
-            participant_id, for_update=True
-        )
-        try:
-            old_locale = participant.var.locale
-        except KeyError:
-            old_locale = get_language()
-        GET = request.args.to_dict()
-        assert "locale" in GET, "locale not in GET"
-        new_locale = GET["locale"]
-        assert len(new_locale) == 2, "Locale must be a two-letter code"
-        new_locale = new_locale.lower()
-        participant.var.set("locale", new_locale)
-        logger.info(
-            f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'."
-        )
-        return success_response()
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod

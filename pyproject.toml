@@ -43,9 +43,11 @@ dependencies = [
     "polib",
     "progress",
     "pytest",
+    "pytest-mock",
     "python-gettext",
     "rpdb",
     "tenacity",
+    "tomlkit",
     "tqdm",
     "yaspin",
 ]
@@ -54,8 +56,10 @@ dependencies = [
 dev = [
     "bump-my-version",
     "furo",
+    "google-cloud-translate",
     "isort",
     "mock",
+    "openai",
     "pre-commit",
     "pybabel",
     "sphinx",

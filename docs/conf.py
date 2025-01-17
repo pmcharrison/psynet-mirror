@@ -213,7 +213,7 @@ def extract_translation_information():
                 "percent_translated": round(
                     (total_entries - untranslated_entries) / total_entries * 100, 1
                 ),
-                "translator": po.metadata["Last-Translator"],
+                "translator": po.metadata.get("Last-Translator", "Unknown"),
             }
         )
 

@@ -27,11 +27,11 @@ from .utils import (
     NoArgumentProvided,
     call_function,
     call_function_with_context,
-    check_function_args,
     dict_to_js_vars,
     format_datetime,
     get_args,
     get_language_dict,
+    get_locale,
     get_logger,
     log_time_taken,
     merge_dicts,
@@ -338,13 +338,7 @@ class ReactiveGoTo(GoTo):
         self.check_args()
 
     def check_args(self):
-        self.check_function()
         self.check_targets()
-
-    def check_function(self):
-        check_function_args(
-            self.function, ("self", "experiment", "participant"), need_all=False
-        )
 
     def check_targets(self):
         try:
@@ -1218,7 +1212,7 @@ class Page(Elt):
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndReward": self.dynamically_update_progress_bar_and_reward,
         }
-        locale = participant.get_locale(experiment)
+        locale = get_locale()
         language_dict = get_language_dict(locale)
         config = get_config()
         js_vars = {**self.js_vars, **internal_js_vars}
@@ -1250,16 +1244,15 @@ class Page(Elt):
             "attributes": self.attributes,
             "contents": self.contents,
             "supported_language_dict": {
-                iso: language_dict[iso]
-                for iso in json.loads(config.get("supported_locales"))
+                iso: language_dict[iso] for iso in experiment.supported_locales
             },
-            "current_locale": locale,
+            "locale": locale,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_termination_button": self.show_termination_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
         return render_string_with_translations(
-            template_string=self.template_str, locale=locale, **all_template_args
+            template_string=self.template_str, **all_template_args
         )
 
     @property
@@ -2099,7 +2092,6 @@ def switch(
     list
         A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
-    check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
 
     all_branch_starts = dict()
@@ -2722,7 +2714,6 @@ class EndAccumulateAnswers(NullElt):
 class DatabaseCheck(NullElt):
     def __init__(self, label, function):
         super().__init__()
-        check_function_args(function, args=[])
         self.label = label
         self.function = function
 
@@ -2769,9 +2760,6 @@ class PreDeployRoutine(NullElt):
         super().__init__()
         if args is None:
             args = {}
-        provided_args = list(args.keys())
-        provided_args.append("experiment")
-        check_function_args(function, args=provided_args, need_all=False)
         self.label = label
         self.function = function
         self.args = args
@@ -2780,9 +2768,6 @@ class PreDeployRoutine(NullElt):
 class ParticipantFailRoutine(NullElt):
     def __init__(self, label, function):
         super().__init__()
-        check_function_args(
-            function, args=["participant", "experiment"], need_all=False
-        )
         self.label = label
         self.function = function
 
@@ -2790,7 +2775,6 @@ class ParticipantFailRoutine(NullElt):
 class RecruitmentCriterion(NullElt):
     def __init__(self, label, function):
         super().__init__()
-        check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
 
