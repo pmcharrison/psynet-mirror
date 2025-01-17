@@ -12,6 +12,7 @@ def init(
     mode: bool,
     is_local_deployment: bool,
     is_ssh_deployment: bool,
+    open_recruitment: bool,
     folder_name: str = os.path.basename(os.getcwd()),
 ):
     secret = uuid.uuid4()

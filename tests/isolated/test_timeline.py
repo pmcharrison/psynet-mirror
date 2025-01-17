@@ -3,6 +3,7 @@ import pytest
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import (
+    CodeBlock,
     CreditEstimate,
     MediaSpec,
     Timeline,
@@ -189,3 +190,21 @@ def test_join_1():
     assert isinstance(x, list)
     assert len(x) == 1
     assert x[0] == page
+
+
+def test_lambda_compiles_as_code_block_in_timeline():
+    def my_function(participant):
+        participant.var.apples = 3
+
+    timeline = Timeline(
+        NoConsent(),
+        my_function,
+        SuccessfulEndPage(),
+    )
+    found_lambda = None
+    for elt in timeline.elts:
+        if isinstance(elt, CodeBlock):
+            found_lambda = elt
+            break
+    assert found_lambda is not None
+    assert found_lambda.function == my_function

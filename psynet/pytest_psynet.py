@@ -224,6 +224,7 @@ def deployment_info():
         mode="debug",
         is_local_deployment=True,
         is_ssh_deployment=False,
+        open_recruitment=False,
     )
     deployment_info.write(deployment_id="Test deployment")
     yield
