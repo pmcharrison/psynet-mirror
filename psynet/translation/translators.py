@@ -296,7 +296,6 @@ class ChatGptTranslator(Translator):
         return prompt
 
     @tenacity.retry(
-        wait=tenacity.wait_exponential(multiplier=1, min=2, max=8),
         stop=tenacity.stop_after_attempt(5),
         reraise=True,
     )
