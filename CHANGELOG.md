@@ -7,6 +7,8 @@
 - Removed `client_ip_address` from anonymous data export (author: Frank Höger, reviewer: Peter Harrison).
 
 ## Added
+- The new `psynet translate` command generates translations for the current directory (e.g. an experiment or a package). 
+  By default these translations are generated using OpenAI's ChatGPT but Google Translate is also supported. API tokens are needed in both case.
 - Added support for depositing folder assets to SSH deployments/debugging (author: Frank Höger, reviewer: Peter Harrison).
 - Allow release candidate tags in requirements.txt files (author: Frank Höger, reviewer: Peter Harrison).
 - It is now possible to provide functions directly to the timeline and they will be interpreted as code blocks (author: Peter Harrison, reviewer: Frank Höger).
@@ -23,6 +25,25 @@
     - `psynet deploy ssh --open-recruitment` (MTurk): creates and publishes the MTurk HIT
     - `psynet deploy ssh --open-recruitment` (Lucid): creates a live Lucid survey
 - Renamed `server_option` to `option_server` in _dallinger.command_line.docker_ssh_ for Dallinger 11 compatibility (author: Frank Höger, reviewer: Peter Harrison).
+- The `get_translator` interface has been simplified. It now returns a single translator, `gettext`, commonly abbreviated to `_`. Locale, and namespace (previously called 'module') are inferred automatically from the context. This means you can mark translations as simply as this:
+
+```py
+_ = get_translator()
+InfoPage(_("Welcome to the experiment!"), time_estimate=5)
+```
+
+- If you want to use a translator with context, you can write this instead:
+
+```py
+_p = get_translator(context=True)
+InfoPage(_("welcome page", "Welcome to the experiment!"), time_estimate=5)
+```
+
+- Changing locales during the experiment is no longer supported (support before was patchy anyway).
+- PsyNet will now throw an error if you try to debug an experiment with missing translations. You will need to generate these with `psynet translate`.
+- Various ModularPage, TrialMaker, etc classes no longer accept a `locale` argument or attribute.
+- Translation documentation has been simplified and extended.
+- The config variable 'language' has been renamed to 'locale'. 
 
 ## Removed
 - Removed obsolete _deploy.sh_ files in demos/tests (author: Frank Höger, reviewer: Peter Harrison).
