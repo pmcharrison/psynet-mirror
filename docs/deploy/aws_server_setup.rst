@@ -50,8 +50,19 @@ Here is a brief summary of the steps involved:
    Change this file's permissions so that it can be used by the SSH client
    by running ``chmod 400 ~/Documents/test-psynet.pem``
    using your own file path as appropriate.
-   To save it within your SSH agent, run ``ssh-add ~/Documents/test-psynet.pem``,
-   using your own file path as appropriate.
+   To save it within your SSH agent, you will need to use the ``ssh-add`` command.
+   If you are using a Mac, you can do this by running the following command in your terminal:
+
+    ::
+
+        ssh-add --apple-use-keychain ~/Documents/test-psynet.pem
+
+    Note that, if you omit the ``--apple-use-keychain`` flag, you will need to rerun ``ssh-add``
+    every time your reboot your machine.
+
+    If you are using Linux, the ``--apple-use-keychain`` flag is not available,
+    but you can use another Linux tool like ``seahorse`` to add the key to your keychain.
+
 
 10. Click 'Create security group'. You have some decisions here about security.
     Tick all boxes (allow SSH, allow HTTPS, allow HTTP).
@@ -210,8 +221,10 @@ another computer, you can follow these instructions:
    Change this file's permissions so that it can be used by the SSH client
    by running ``chmod 400 ~/Documents/test-psynet.pem``
    using your own file path as appropriate.
-   To save it within your SSH agent, run ``ssh-add ~/Documents/test-psynet.pem``,
-   using your own file path as appropriate.
+   To save it within your SSH agent,
+   run ``ssh-add --apple-use-keychain ~/Documents/test-psynet.pem`` (on MacOS)
+   or just ``ssh-add ~/Documents/test-psynet.pem`` (on Linux, bearing in mind that you may
+   need to use a different tool like ``seahorse`` to add the key to your keychain).
 
 2. If the server was set up to only allow traffic from a fixed IP address,
    verify that your current computer has the same IP address.
