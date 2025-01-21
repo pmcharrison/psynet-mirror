@@ -224,11 +224,6 @@ Recruitment
 General
 ~~~~~~~
 
-``open_recruitment`` *bool* |dlgr-icon|
-    A boolean on whether recruitment should start automatically when the experiment launches.
-    If set to ``false`` the user has to manually initialize recruitment (e.g. via the Prolific panel).
-    Default: ``true``.
-
 ``auto_recruit`` *bool* |dlgr-icon|
     A boolean on whether recruitment should be automatic.
 

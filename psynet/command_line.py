@@ -21,7 +21,6 @@ import psycopg2
 from dallinger import db
 from dallinger.command_line.docker_ssh import (
     CONFIGURED_HOSTS,
-    option_open_recruitment,
     option_server,
     remote_postgres,
 )
@@ -654,7 +653,6 @@ def _pre_launch(
     heroku=False,
     server=None,
     app=None,
-    open_recruitment=False,
 ):
     log("Preparing for launch...")
 
@@ -666,7 +664,6 @@ def _pre_launch(
         mode=mode,
         is_local_deployment=local_,
         is_ssh_deployment=ssh,
-        open_recruitment=open_recruitment,
     )
 
     if ssh:
@@ -742,10 +739,9 @@ def deploy():
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
 @click.pass_context
-@option_open_recruitment
-def deploy__heroku(ctx, app, archive, docker, open_recruitment):
+def deploy__heroku(ctx, app, archive, docker):
     if docker:
-        _deploy__docker_heroku(ctx, app, archive, open_recruitment)
+        _deploy__docker_heroku(ctx, app, archive)
 
     try:
         from dallinger.command_line import deploy as dallinger_deploy
@@ -757,7 +753,6 @@ def deploy__heroku(ctx, app, archive, docker, open_recruitment):
             local_=False,
             heroku=True,
             app=app,
-            open_recruitment=False,
         )
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
         result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=None)
@@ -767,7 +762,7 @@ def deploy__heroku(ctx, app, archive, docker, open_recruitment):
         reset_console()
 
 
-def _deploy__docker_heroku(ctx, app, archive, open_recruitment):
+def _deploy__docker_heroku(ctx, app, archive):
     try:
         from dallinger.command_line.docker import deploy as dallinger_deploy
 
@@ -785,7 +780,6 @@ def _deploy__docker_heroku(ctx, app, archive, open_recruitment):
             docker=True,
             heroku=True,
             app=app,
-            open_recruitment=open_recruitment,
         )
         result = ctx.invoke(dallinger_deploy, verbose=True, app=app)
         _post_deploy(result)
@@ -802,9 +796,8 @@ def _deploy__docker_heroku(ctx, app, archive, open_recruitment):
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
 )
-@option_open_recruitment
 @click.pass_context
-def deploy__docker_ssh(ctx, app, archive, dns_host, open_recruitment, server):
+def deploy__docker_ssh(ctx, app, archive, dns_host, server):
     try:
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
@@ -819,7 +812,6 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, open_recruitment, server):
             docker=True,
             server=server,
             app=app,
-            open_recruitment=open_recruitment,
         )
 
         from dallinger.command_line.docker_ssh import (
@@ -833,7 +825,6 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, open_recruitment, server):
             dns_host=dns_host,
             app_name=app,
             archive_path=None,
-            open_recruitment=open_recruitment,
         )
 
         _post_deploy(result)

@@ -603,7 +603,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
             raise LucidRecruiterException(
-                "Tried to open_recruitment on already open recruiter."
+                "Tried to open recruitment on already open recruiter."
             )
 
         experiment = get_experiment()
