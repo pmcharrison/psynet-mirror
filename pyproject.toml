@@ -61,7 +61,6 @@ dev = [
     "isort",
     "openai",
     "pre-commit",
-    "pybabel",
     "sphinx",
     "sphinx-autodoc-typehints",
 ]
