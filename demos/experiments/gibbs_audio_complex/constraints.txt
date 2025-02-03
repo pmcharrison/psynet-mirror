@@ -335,7 +335,7 @@ s3transfer==0.10.4
     #   boto3
 scipy==1.15.1
     # via -r requirements.txt
-selenium==4.27.1
+selenium==4.28.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   dallinger
