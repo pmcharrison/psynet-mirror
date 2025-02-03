@@ -73,6 +73,10 @@ General
 ``base_port`` *int* |dlgr-icon|
     The port to be used to access the web application. Normally there should not be the need to change this from the default. Default ``5000``.
 
+``check_dallinger_version`` *bool* |psynet-icon|
+    Set this to ``False`` if you want to bypass the check for the version of Dallinger that is recommended for the current PsyNet release. This allows for flexibility, e.g. when deploying `Dallinger` development branches.
+    Default: ``True``.
+
 ``check_participant_opened_devtools`` *bool* |psynet-icon|
     If ``True``, whenever a participant opens the developer tools in the web browser,
     this is logged as participant.var.opened_devtools = ``True``,

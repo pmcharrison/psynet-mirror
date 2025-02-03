@@ -30,7 +30,6 @@ import rpdb
 import sqlalchemy.orm.exc
 from click import Context
 from dallinger import db
-from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
@@ -40,6 +39,7 @@ from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
+from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
@@ -1267,6 +1267,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "allow_mobile_devices": False,
             "base_payment": 0.10,
             "big_base_payment": False,
+            "check_dallinger_version": True,
             "clock_on": True,
             "color_mode": "light",
             "currency": "$",
@@ -2115,30 +2116,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
+        config.register("check_dallinger_version", bool)
+        config.register("check_participant_opened_devtools", bool)
+        config.register("currency", unicode)
         config.register("default_translator", unicode)
-        config.register("google_translate_project_id", unicode, sensitive=True)
+        config.register("enable_google_search_console", bool)
         config.register("google_translate_json_path", unicode, sensitive=True)
+        config.register("google_translate_project_id", unicode, sensitive=True)
+        config.register("initial_recruitment_size", int)
         config.register("openai_api_key", unicode, sensitive=True)
         config.register("openai_default_model", unicode)
         config.register("openai_default_temperature", unicode)
+        config.register("label", unicode)
         config.register("locale", unicode)
         config.register("lucid_api_key", unicode, sensitive=True)
-        config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("lucid_recruitment_config", unicode)
-        config.register("enable_google_search_console", bool)
-        config.register("initial_recruitment_size", int)
-        config.register("label", unicode)
-        config.register("min_browser_version", unicode)
-        config.register("wage_per_hour", float)
-        config.register("currency", unicode)
+        config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("min_accumulated_reward_for_abort", float)
+        config.register("min_browser_version", unicode)
         config.register("show_abort_button", bool)
-        config.register("show_reward", bool)
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
-        config.register("check_participant_opened_devtools", bool)
-        config.register("window_width", int)
+        config.register("show_reward", bool)
+        config.register("wage_per_hour", float)
         config.register("window_height", int)
+        config.register("window_width", int)
 
         def is_valid_locale(value):
             from .translation import psynet_supported_locales
@@ -2165,7 +2167,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             assert value in ["light", "dark", "auto"]
 
         config.register("color_mode", unicode, validators=[color_mode_validator])
-        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Export", after_route="database")
     @classmethod

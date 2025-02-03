@@ -1,9 +1,8 @@
 from dallinger.config import Configuration, experiment_available
 
 import psynet.recruiters  # noqa: F401
-from psynet.version import check_dallinger_version, psynet_version
+from psynet.version import psynet_version
 
-check_dallinger_version()
 __version__ = psynet_version
 
 

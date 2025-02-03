@@ -162,9 +162,7 @@ def call_function_with_context(function, *args, **kwargs):
     return call_function(function, *args, **new_kwargs)
 
 
-config_defaults = {
-    "keep_old_chrome_windows_in_debug_mode": False,
-}
+config_defaults = {}
 
 
 def get_config():
