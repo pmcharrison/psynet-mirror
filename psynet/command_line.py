@@ -35,7 +35,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-from psynet.version import check_versions
+from psynet.version import check_dallinger_version, check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
@@ -694,6 +694,9 @@ def _pre_launch(
 
     config = get_config()
     deployment_info.write(locale=config.get("locale", "en"))
+
+    if config.get("check_dallinger_version"):
+        check_dallinger_version()
 
     if archive:
         from psynet.experiment import database_template_path
