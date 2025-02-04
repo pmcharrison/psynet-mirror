@@ -1,9 +1,11 @@
+import datetime
 import logging
 import os
 import re
 import subprocess
 import sys
 import time
+import urllib.parse
 import warnings
 from pathlib import Path
 
@@ -20,6 +22,7 @@ from dallinger.models import Node
 from dallinger.pytest_dallinger import flush_output
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -626,3 +629,35 @@ trial_maker_2 = StaticTrialMaker(
     recruit_mode="n_participants",
     n_repeat_trials=3,
 )
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Capture screenshot on test failure."""
+    outcome = yield
+    rep = outcome.get_result()
+    if rep.when == "call" and rep.failed:
+        driver = getattr(item.instance, "driver", None)
+        if isinstance(driver, WebDriver):
+            screenshots_dir = Path("screenshots")
+            screenshots_dir.mkdir(exist_ok=True)
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            screenshot_file = (
+                screenshots_dir / f"{item.nodeid.replace('::', '_')}_{timestamp}.png"
+            )
+            driver.save_screenshot(str(screenshot_file))
+            logger.info(f"Screenshot saved to {screenshot_file}")
+
+            ci_project_url = os.getenv("CI_PROJECT_URL")
+            ci_job_id = os.getenv("CI_JOB_ID")
+
+            if ci_project_url and ci_job_id:
+                encoded_filename = urllib.parse.quote(str(screenshot_file))
+                artifact_url = (
+                    f"{ci_project_url}/-/jobs/{ci_job_id}/artifacts/{encoded_filename}"
+                )
+                logger.info(f"Screenshot artifact URL: {artifact_url}")
+            else:
+                logger.warning(
+                    "CI_PROJECT_URL or CI_JOB_ID not set. Cannot construct artifact URL."
+                )
