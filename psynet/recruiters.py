@@ -620,7 +620,9 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             ),
         }
 
-        survey_info = self.lucidservice.create_survey(**create_survey_request_params)
+        survey_info = self.lucidservice.create_survey(
+            self.config.get("publish_experiment"), **create_survey_request_params
+        )
         self._record_current_survey_number(survey_info["SurveyNumber"])
         self._record_survey_sid(survey_info["SurveySID"])
 
