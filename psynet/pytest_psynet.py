@@ -634,10 +634,13 @@ trial_maker_2 = StaticTrialMaker(
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Capture screenshot on test failure."""
+    logger.info("Calling pytest_runtest_makereport")
     outcome = yield
     rep = outcome.get_result()
     if rep.when == "call" and rep.failed:
         driver = getattr(item.instance, "driver", None)
+        logger.info(f"Driver: {driver}")
+        logger.info(f"isinstance(driver, WebDriver): {isinstance(driver, WebDriver)}")
         if isinstance(driver, WebDriver):
             screenshots_dir = Path("screenshots")
             screenshots_dir.mkdir(exist_ok=True)
