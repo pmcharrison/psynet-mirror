@@ -224,11 +224,6 @@ Recruitment
 General
 ~~~~~~~
 
-``open_recruitment`` *bool* |dlgr-icon|
-    A boolean on whether recruitment should start automatically when the experiment launches.
-    If set to ``false`` the user has to manually initialize recruitment (e.g. via the Prolific panel).
-    Default: ``true``.
-
 ``auto_recruit`` *bool* |dlgr-icon|
     A boolean on whether recruitment should be automatic.
 
@@ -301,6 +296,13 @@ Allowed browsers and devices
 
 Recruiters
 ~~~~~~~~~~
+
+General
+-------
+
+``publish_experiment`` *bool* |dlgr-icon|
+    Whether the experiment should be published when deploying. It is currently used in Prolific and Lucid recruitment: In the case of Prolific recruitment, if ``False`` a draft study will be created which later can be published via the Prolific web UI; in the case of Lucid recruitment, if ``False`` an awarded survey will be created which later can be published (set 'live') via the Lucid web UI. Default is ``True``.
+    Default: ``True``.
 
 Amazon Mechanical Turk
 ----------------------

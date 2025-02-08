@@ -603,7 +603,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
             raise LucidRecruiterException(
-                "Tried to open_recruitment on already open recruiter."
+                "Tried to open recruitment on already open recruiter."
             )
 
         experiment = get_experiment()
@@ -620,7 +620,9 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             ),
         }
 
-        survey_info = self.lucidservice.create_survey(**create_survey_request_params)
+        survey_info = self.lucidservice.create_survey(
+            self.config.get("publish_experiment"), **create_survey_request_params
+        )
         self._record_current_survey_number(survey_info["SurveyNumber"])
         self._record_survey_sid(survey_info["SurveySID"])
 

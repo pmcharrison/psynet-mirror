@@ -54,6 +54,7 @@ class LucidService(object):
 
     def create_survey(
         self,
+        publish_experiment,
         bid_length_of_interview,
         live_url,
         name,
@@ -75,7 +76,7 @@ class LucidService(object):
         # Apply survey configuration from 'lucid_recruitment_config.json' file.
         survey_data = self.recruitment_config["survey"]
         survey_status_code = "01"
-        if self.exp_config.open_recruitment and deployment_info.read("mode") == "live":
+        if deployment_info.read("mode") == "live" and publish_experiment:
             survey_status_code = "03"
         survey_data["SurveyStatusCode"] = survey_status_code
 
