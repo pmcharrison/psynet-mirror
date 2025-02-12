@@ -11,7 +11,7 @@ msgstr ""
 #, fuzzy
 msgctxt "welcome-page"
 msgid "Welcome to the translation demo!"
-msgstr "Willkommen zur Übersetzungsdemo!"
+msgstr "Willkommen bei der Übersetzungsdemo!"
 
 #: experiment.py
 #, fuzzy
