@@ -35,9 +35,7 @@ class TestExp(object):
             )
 
             # Page 1
-            assert_text(
-                driver, "main-body", "Willkommen bei der Übersetzungsdemo! Weiter"
-            )
+            assert_text(driver, "main-body", "Willkommen zur Übersetzungsdemo! Weiter")
             next_page(driver, "next-button")
 
             # Page 2
