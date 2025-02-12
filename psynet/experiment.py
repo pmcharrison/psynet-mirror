@@ -59,7 +59,7 @@ from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
-from .page import InfoPage, SuccessfulEndPage
+from .page import InfoPage
 from .participant import Participant
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
@@ -415,9 +415,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     max_allowed_base_payment = 30
     max_exp_dir_size_in_mb = 256
 
-    timeline = Timeline(
-        InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
-    )
+    timeline = Timeline(InfoPage("Placeholder timeline", time_estimate=5))
 
     asset_storage = LocalStorage()
     css = []
@@ -586,7 +584,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
-        self.timeline.verify_consents(self)
         self.on_every_launch()
         logger.info("Experiment launch complete!")
         db.session.commit()
@@ -3114,6 +3111,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         return stats
+
+    def check_consents(self):
+        if (
+            deployment_info.read("is_local_deployment")
+            and deployment_info.read("mode") == "debug"
+        ):
+            return
+        self.timeline.check_consents(self)
 
 
 Experiment.SuccessfulEndLogic = SuccessfulEndLogic

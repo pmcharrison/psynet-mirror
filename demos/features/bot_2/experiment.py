@@ -11,10 +11,9 @@ from statistics import mean
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.experiment import scheduled_task
 from psynet.modular_page import ModularPage, Prompt, TextControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
     ImitationChainNode,
@@ -96,7 +95,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Bot demo (2)"
 
     timeline = Timeline(
-        NoConsent(),
         CustomTrialMaker(
             id_="imitation_demo",
             trial_class=CustomTrial,
@@ -115,7 +113,6 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=10,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

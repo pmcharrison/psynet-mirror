@@ -3,9 +3,7 @@ import numpy as np
 
 import psynet.experiment
 import psynet.media
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import MediaSpec, Timeline
 from psynet.trial.audio_gibbs import (
     AudioGibbsNode,
@@ -240,7 +238,5 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         make_trial_maker(RATE_MODE),
-        SuccessfulEndPage(),
     )

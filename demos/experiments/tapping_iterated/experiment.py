@@ -16,9 +16,8 @@ from scipy.io import wavfile
 import psynet.experiment
 from psynet.asset import Asset, LocalStorage, S3Storage  # noqa
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.prescreen import (
     NumpySerializer,
     REPPMarkersTest,
@@ -205,7 +204,6 @@ class Exp(psynet.experiment.Experiment):
     # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
 
     timeline = Timeline(
-        NoConsent(),
         REPPVolumeCalibrationMarkers(),  # calibrate volume for markers
         REPPTappingCalibration(),  # calibrate tapping
         REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
@@ -251,7 +249,6 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=TOTAL_NUM_PARTICIPANTS,
             wait_for_networks=True,
         ),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

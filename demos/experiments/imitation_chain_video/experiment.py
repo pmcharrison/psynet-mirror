@@ -8,7 +8,6 @@ from dallinger import db
 
 import psynet.experiment
 from psynet.asset import asset
-from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
     ModularPage,
@@ -16,7 +15,6 @@ from psynet.modular_page import (
     VideoPrompt,
     VideoRecordControl,
 )
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.video import (
     CameraImitationChainNode,
@@ -142,7 +140,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "record_calibrate",
             """
@@ -173,5 +170,4 @@ class Exp(psynet.experiment.Experiment):
                 "5s_silence": asset("assets/5s_silence.wav", cache=True),
             },
         ),
-        SuccessfulEndPage(),
     )

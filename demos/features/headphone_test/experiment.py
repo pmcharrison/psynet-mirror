@@ -2,8 +2,7 @@
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
-from psynet.page import SuccessfulEndPage, VolumeCalibration
+from psynet.page import VolumeCalibration
 from psynet.prescreen import AntiphaseHeadphoneTest, HugginsHeadphoneTest
 from psynet.timeline import Timeline
 
@@ -12,11 +11,9 @@ class Exp(psynet.experiment.Experiment):
     label = "Headphone test demo"
 
     timeline = Timeline(
-        NoConsent(),
         VolumeCalibration(),
         HugginsHeadphoneTest(),
         AntiphaseHeadphoneTest(),
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 2

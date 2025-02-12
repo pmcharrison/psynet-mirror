@@ -4,9 +4,8 @@ from typing import List, Union
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, Prompt, SliderControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 from psynet.utils import get_logger
@@ -179,7 +178,5 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         trial_maker,
-        SuccessfulEndPage(),
     )

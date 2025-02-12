@@ -1,7 +1,6 @@
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import NumberControl, Prompt, PushButtonControl
-from psynet.page import CodeBlock, InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import CodeBlock, InfoPage, ModularPage
 from psynet.timeline import PageMaker, Timeline, while_loop
 from psynet.utils import get_logger
 
@@ -12,7 +11,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Page maker demo"
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "choose_number",
             Prompt("What number would you like to count to?"),
@@ -85,5 +83,4 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=5 * 3,
         ),
-        SuccessfulEndPage(),
     )

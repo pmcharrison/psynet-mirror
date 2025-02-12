@@ -4,7 +4,6 @@ import psynet.experiment
 import psynet.media
 from psynet.consent import CAPRecruiterStandardConsent
 from psynet.modular_page import Markup
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
     VideoGibbsNode,
@@ -110,5 +109,4 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         CAPRecruiterStandardConsent(),
         trial_maker,
-        SuccessfulEndPage(),
     )

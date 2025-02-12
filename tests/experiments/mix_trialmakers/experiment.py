@@ -4,8 +4,6 @@ import logging
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
-from psynet.page import SuccessfulEndPage
 from psynet.pytest_psynet import AnimalTrial, ColorTrial, trial_maker_1, trial_maker_2
 from psynet.timeline import Timeline, for_loop, join
 
@@ -18,7 +16,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         trial_maker_1.custom(
             trial_maker_2.custom(
                 for_loop(
@@ -32,7 +29,6 @@ class Exp(psynet.experiment.Experiment):
                 )
             )
         ),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

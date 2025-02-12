@@ -5,7 +5,7 @@ import psynet.media
 from psynet.consent import LucidConsent
 from psynet.demography.general import BasicDemography
 from psynet.demography.gmsi import GMSI
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.prescreen import AttentionTest, HugginsHeadphoneTest, LexTaleTest
 from psynet.timeline import Timeline
 from psynet.utils import get_logger
@@ -38,7 +38,6 @@ class Exp(psynet.experiment.Experiment):
         LexTaleTest(performance_threshold=0),
         GMSI(),
         BasicDemography(),
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

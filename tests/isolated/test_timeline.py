@@ -1,7 +1,6 @@
 import pytest
 
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import (
     CodeBlock,
     CreditEstimate,
@@ -84,7 +83,9 @@ def test_get_trial_maker():
     tm_1 = new_trial_maker(id_="tm-1")
     tm_2 = new_trial_maker(id_="tm-2")
     timeline = Timeline(
-        NoConsent(), InfoPage("Hello", time_estimate=5), tm_1, tm_2, SuccessfulEndPage()
+        InfoPage("Hello", time_estimate=5),
+        tm_1,
+        tm_2,
     )
     assert timeline.get_trial_maker("tm-1") == tm_1
     assert timeline.get_trial_maker("tm-2") == tm_2
@@ -168,7 +169,6 @@ def test_switch_with_trial_maker():
     tm_1 = new_trial_maker(id_="tm-1")
     tm_2 = new_trial_maker(id_="tm-2")
     timeline = Timeline(
-        NoConsent(),
         switch(
             "test",
             lambda experiment, participant: participant.var.switch,
@@ -178,7 +178,6 @@ def test_switch_with_trial_maker():
             },
             fix_time_credit=False,
         ),
-        SuccessfulEndPage(),
     )
     assert timeline.get_trial_maker("tm-1") == tm_1
     assert timeline.get_trial_maker("tm-2") == tm_2
@@ -197,9 +196,7 @@ def test_lambda_compiles_as_code_block_in_timeline():
         participant.var.apples = 3
 
     timeline = Timeline(
-        NoConsent(),
         my_function,
-        SuccessfulEndPage(),
     )
     found_lambda = None
     for elt in timeline.elts:

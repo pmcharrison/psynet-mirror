@@ -3,9 +3,8 @@ from typing import List
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.sync import SimpleGrouper
 from psynet.timeline import PageMaker, Timeline, conditional, for_loop, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
@@ -49,7 +48,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Quorum experiment"
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage(
             (
                 "This demo demonstrates an experiment that operates with a quorum. "
@@ -93,7 +91,6 @@ class Exp(psynet.experiment.Experiment):
                 ),
             ),
         ),
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 5

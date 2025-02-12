@@ -14,7 +14,7 @@ from psynet.modular_page import (
     VideoPrompt,
     VideoRecordControl,
 )
-from psynet.page import InfoPage, SuccessfulEndPage, wait_while
+from psynet.page import InfoPage, wait_while
 from psynet.timeline import (
     Event,
     MediaSpec,
@@ -461,7 +461,6 @@ class Exp(psynet.experiment.Experiment):
             example_preloading,
             assets=all_assets,
         ),
-        SuccessfulEndPage(),
     )
 
     @property

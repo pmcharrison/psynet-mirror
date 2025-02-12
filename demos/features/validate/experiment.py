@@ -1,7 +1,5 @@
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Response, Timeline
 from psynet.utils import get_logger
 
@@ -18,7 +16,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Validation demo"
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "colors_no_blue",
             prompt="This page has a custom validation function that prohibits the answer 'blue'.",
@@ -41,7 +38,6 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=5,
         ),
-        SuccessfulEndPage(),
     )
 
     def run_bot(self, bot):

@@ -4,9 +4,8 @@ import numpy as np
 from markupsafe import Markup, escape
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioSliderControl, ModularPage
-from psynet.page import DebugResponsePage, SuccessfulEndPage
+from psynet.page import DebugResponsePage
 from psynet.timeline import MediaSpec, Timeline, join
 from psynet.utils import get_logger
 
@@ -83,7 +82,6 @@ class CustomExp(psynet.experiment.Experiment):
     ratios = np.linspace(0.1, 0.9, num=GRANULARITY_SLIDER)
 
     timeline = Timeline(
-        NoConsent(),
         new_example(
             Markup(
                 """
@@ -241,5 +239,4 @@ class CustomExp(psynet.experiment.Experiment):
             random_wrap=True,
             input_type="circular_slider",
         ),
-        SuccessfulEndPage(),
     )
