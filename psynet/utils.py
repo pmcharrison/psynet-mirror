@@ -576,7 +576,14 @@ def _render_with_translations(
     app = current_app._get_current_object()  # type: ignore[attr-defined]
     gettext = get_translator()
     pgettext = get_translator(context=True)
-    gettext_abbr = {"gettext": gettext, "pgettext": pgettext, "url_for": url_for}
+
+    jinja_functions = {
+        **app.jinja_env.globals,
+        "gettext": gettext,
+        "pgettext": pgettext,
+        "url_for": url_for,
+    }
+
     translation = Translations.load("translations", [locale])
 
     environment = Environment(
@@ -584,7 +591,7 @@ def _render_with_translations(
     )
     environment.install_gettext_translations(translation)
 
-    environment.globals.update(**gettext_abbr)
+    environment.globals.update(**jinja_functions)
 
     if template_name is not None:
         template = environment.get_template(template_name)
