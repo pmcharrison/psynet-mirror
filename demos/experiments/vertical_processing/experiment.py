@@ -9,7 +9,7 @@ from dominate import tags
 from scipy import stats
 
 import psynet.experiment
-from psynet.asset import ExperimentAsset, LocalStorage
+from psynet.asset import asset
 from psynet.consent import NoConsent
 from psynet.demography.general import Age, Gender
 from psynet.demography.gmsi import GMSI
@@ -291,7 +291,7 @@ class VerticalProcessingTrial(StaticTrial):
             self.var.sung_pitches = result["pitches"]
             self.var.singing_analysis = result["raw"]
 
-            plot = ExperimentAsset(
+            plot = asset(
                 f_plot.name,
                 local_key="plot",
                 parent=self,
@@ -718,7 +718,6 @@ def debrief_and_feedback():
 
 class Exp(psynet.experiment.Experiment):
     label = "Vertical processing experiment"
-    asset_storage = LocalStorage()
     # asset_storage = S3Storage("psynet-tests", "audio-record")
 
     config = {"show_reward": False}

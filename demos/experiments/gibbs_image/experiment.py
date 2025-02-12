@@ -4,7 +4,6 @@ from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.asset import LocalStorage
 from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -103,7 +102,6 @@ trial_maker = CustomGibbsTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Image Gibbs sampling demo"
-    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(

@@ -4,7 +4,6 @@ from typing import List, Union
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -177,7 +176,6 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
-    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(

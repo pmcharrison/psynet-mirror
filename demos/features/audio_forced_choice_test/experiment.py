@@ -1,7 +1,6 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 import psynet.experiment
-from psynet.asset import LocalStorage
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
@@ -61,7 +60,6 @@ class ReadAudioTest(AudioForcedChoiceTest):
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio forced choice demo"
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

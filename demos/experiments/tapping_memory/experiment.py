@@ -210,7 +210,6 @@ class ExperimentNode(CustomNode):
 class Exp(psynet.experiment.Experiment):
     label = "Tapping memory demo"
 
-    asset_storage = LocalStorage()
     # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
 
     timeline = Timeline(

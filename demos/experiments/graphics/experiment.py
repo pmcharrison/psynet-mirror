@@ -29,7 +29,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Graphics demo"
 
     # asset_storage = S3Storage("psynet-tests", "graphics")
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

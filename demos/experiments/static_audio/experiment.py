@@ -1,5 +1,5 @@
 import psynet.experiment
-from psynet.asset import CachedFunctionAsset, LocalStorage, S3Storage  # noqa
+from psynet.asset import asset  # noqa
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import (
@@ -31,9 +31,10 @@ nodes = [
             "frequencies": [start_frequency + i * frequency_gradient for i in range(5)],
         },
         assets={
-            "stimulus": CachedFunctionAsset(
-                function=synth_stimulus,
+            "stimulus": asset(
+                synth_stimulus,
                 extension=".wav",
+                on_demand=True,
             )
         },
     )
@@ -102,7 +103,6 @@ class CustomTrial(StaticTrial):
 
 class Exp(psynet.experiment.Experiment):
     label = "Static audio demo"
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

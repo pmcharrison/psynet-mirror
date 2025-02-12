@@ -5,14 +5,7 @@ import time
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import (
-    CachedAsset,
-    CachedFunctionAsset,
-    ExperimentAsset,
-    ExternalAsset,
-    ExternalS3Asset,
-    LocalStorage,
-)
+from psynet.asset import asset
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
@@ -27,46 +20,29 @@ def slow_computation(path, n, k):
 
 
 headphone_assets = {
-    "stimulus_1": ExternalS3Asset(
-        s3_bucket="headphone-check",
-        s3_key="antiphase_HC_ISO.wav",
-        description="A stimulus for the headphone check",
+    "stimulus_1": asset(
+        "https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav"
     ),
-    "stimulus_2": ExternalS3Asset(
-        s3_bucket="headphone-check",
-        s3_key="antiphase_HC_IOS.wav",
-        description="A stimulus for the headphone check",
+    "stimulus_2": asset(
+        "https://s3.amazonaws.com/headphone-check/antiphase_HC_IOS.wav"
     ),
-    "stimulus_3": ExternalS3Asset(
-        s3_bucket="headphone-check",
-        s3_key="antiphase_HC_SOI.wav",
-        description="A stimulus for the headphone check",
+    "stimulus_3": asset(
+        "https://s3.amazonaws.com/headphone-check/antiphase_HC_SOI.wav"
     ),
 }
 
 misc_assets = {
-    "slow_computation": CachedFunctionAsset(
-        function=slow_computation,
-        arguments=dict(n=200, k=5),
-        extension=".txt",
+    "slow_computation": asset(
+        slow_computation, arguments=dict(n=200, k=5), extension=".txt", cache=True
     ),
-    "psynet_logo": ExternalAsset(
-        url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
-        description="The PsyNet Logo",
+    "psynet_logo": asset(
+        "https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
     ),
-    "headphone_check_folder": ExternalS3Asset(
-        s3_bucket="headphone-check",
-        s3_key="",
-        description="A folder of stimuli for the headphone check",
+    "headphone_check_folder": asset(
+        "https://s3.amazonaws.com/headphone-check", is_folder=True
     ),
-    "config": ExperimentAsset(
-        input_path="config.txt",
-        description="A file containing configuration variables",
-    ),
-    "bier": CachedAsset(
-        input_path="bier.wav",
-        description="A recording of someone saying 'bier'",
-    ),
+    "config": asset("config.txt"),
+    "bier": asset("bier.wav"),
 }
 
 
@@ -75,19 +51,18 @@ def save_text(participant):
     with tempfile.NamedTemporaryFile("w") as file:
         file.write(text)
         file.flush()
-        asset = ExperimentAsset(
+        _asset = asset(
+            file.name,
             local_key="text_input",
-            input_path=file.name,
             extension=".txt",
             description="Some text that the participant filled out",
             parent=participant,
         )
-        asset.deposit()
+        _asset.deposit()
 
 
 class Exp(psynet.experiment.Experiment):
     label = "Assets demo"
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),

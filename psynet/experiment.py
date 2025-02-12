@@ -50,7 +50,7 @@ from psynet import __version__
 from psynet.utils import get_config
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, NoStorage, OnDemandAsset
+from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
@@ -233,7 +233,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     ::
 
         class Exp(psynet.experiment.Experiment):
-            asset_storage = LocalStorage()
 
     Another experiment attribute is `export_classes_to_skip`, which is a list of classes to be excluded
     when exporting the database objects to JSON-style dictionaries. The default is `["ExperimentStatus"]`.
@@ -420,7 +419,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
-    asset_storage = NoStorage()
+    asset_storage = LocalStorage()
     css = []
     css_links = []
 
