@@ -30,10 +30,6 @@ class TestExp(object):
             # Page 0
             time.sleep(1)
 
-            driver.execute_script(
-                "$('html').animate({ scrollTop: $(document).height() }, 0);"
-            )
-
             # Page 1
             assert_text(driver, "main-body", "Willkommen zur Übersetzungsdemo! Weiter")
             next_page(driver, "next-button")
