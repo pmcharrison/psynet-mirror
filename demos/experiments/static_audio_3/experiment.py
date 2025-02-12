@@ -2,9 +2,8 @@ from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import asset
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
@@ -83,7 +82,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Static audio demo (3)"
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage(
             Markup(
                 """
@@ -106,5 +104,4 @@ class Exp(psynet.experiment.Experiment):
             expected_trials_per_participant=len(nodes),
             allow_repeated_nodes=False,
         ),
-        SuccessfulEndPage(),
     )

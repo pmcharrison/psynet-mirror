@@ -48,6 +48,24 @@ class PsyNetRecruiterMixin:
             message="Communicating with the recruiter...",
         )
 
+    def check_consents(self, consents):
+        """
+        Check that the consent elements are suitable for the recruiter.
+        By default this check is skipped in ``psynet debug local``.
+
+        Parameters
+        ----------
+        consents : list
+            List of consent objects from the timeline
+        """
+        if len(consents) == 0:
+            raise RuntimeError(
+                "It looks like your experiment is missing a consent page. "
+                "Is that right? You can resolve this check by adding a pre-prepared consent page from psynet.consent "
+                "to your timeline, or a custom subclass of psynet.consent.Consent, "
+                "or psynet.consent.NoConsent to skip this check entirely."
+            )
+
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
     pass
@@ -567,7 +585,8 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         """Does a Lucid survey for the current experiment ID already exist?"""
         return self.current_survey_number() is not None
 
-    def verify_consents(self, consents):
+    def check_consents(self, consents):
+        super().check_consents(consents)
         error_msg = "Lucid recruitment requires consent 'LucidConsent' and optionally one of `AudiovisualConsent` or `OpenScienceConsent` (in this order)."
         if isinstance(consents[0], self.required_consent_page):
             if len(consents) == 1:

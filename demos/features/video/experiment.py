@@ -2,14 +2,13 @@ from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import asset
-from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioRecordControl,
     ModularPage,
     VideoPrompt,
     VideoRecordControl,
 )
-from psynet.page import SuccessfulEndPage, wait_while
+from psynet.page import wait_while
 from psynet.timeline import (
     Event,
     MediaSpec,
@@ -255,11 +254,9 @@ class Exp(psynet.experiment.Experiment):
     label = "Video demo"
 
     timeline = Timeline(
-        NoConsent(),
         Module(
             "video_demo",
             video_pages,
             assets=all_assets,
         ),
-        SuccessfulEndPage(),
     )

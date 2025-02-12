@@ -1,5 +1,4 @@
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.demography.general import (
     BasicDemography,
     BasicMusic,
@@ -12,7 +11,6 @@ from psynet.demography.general import (
 )
 from psynet.demography.gmsi import GMSI
 from psynet.demography.pei import PEI
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 
 
@@ -20,7 +18,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Demography demo"
 
     timeline = Timeline(
-        NoConsent(),
         BasicDemography(),
         Language(),
         BasicMusic(),
@@ -31,7 +28,6 @@ class Exp(psynet.experiment.Experiment):
         ExperimentFeedback(),
         GMSI(),
         PEI(),
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

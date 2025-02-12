@@ -3,9 +3,8 @@ from typing import List
 
 import psynet.experiment
 from psynet.bot import Bot, advance_past_wait_pages
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl, TextControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import CodeBlock, PageMaker, Timeline, join
@@ -111,7 +110,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         SimpleGrouper(
             group_type="create_rate",
             initial_group_size=3,
@@ -127,7 +125,6 @@ class Exp(psynet.experiment.Experiment):
             max_trials_per_participant=3,
             sync_group_type="create_rate",
         ),
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 3

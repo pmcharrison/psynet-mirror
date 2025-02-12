@@ -771,7 +771,7 @@ class Page(Elt):
         A dictionary containing experiment specific data.
 
     session_id : str
-        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with Javascript code like window.addEventListener(”pageUpdated”, ...).
+        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it's time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with Javascript code like window.addEventListener(”pageUpdated”, ...).
 
     dynamically_update_progress_bar_and_reward : bool
         If ``True``, then the page will regularly poll for updates to the progress bar and the reward.
@@ -1430,7 +1430,6 @@ class Timeline:
         # We used to check that the timeline finished with an EndPage, but this is no longer necessary,
         # as we now automatically add SuccessfulEndLogic to the main branch.
         self.check_for_time_estimate()
-        self.check_for_consent()
         self.check_modules()
 
     def check_for_time_estimate(self):
@@ -1456,30 +1455,15 @@ class Timeline:
                 + "trial makers and/or pre-screening tasks."
             )
 
-    def check_for_consent(self):
-        from psynet.consent import Consent
-        from psynet.page import InfoPage
-
-        first_elt = self.elts[0]
-        # ignore unless the timeline is fully initialized
-        if (
-            isinstance(first_elt, InfoPage)
-            and first_elt.content == "Placeholder timeline"
-        ):
-            return
-        if all([not isinstance(elt, Consent) for elt in self.elts]):
-            raise ValueError("At least one element in the timeline must be a consent.")
-
     @property
     def consents(self):
         from .consent import Consent
 
         return [elt for elt in self.elts if isinstance(elt, Consent)]
 
-    def verify_consents(self, experiment):
+    def check_consents(self, experiment):
         recruiter = experiment.recruiter
-        if hasattr(recruiter, "verify_consents"):
-            recruiter.verify_consents(self.consents)
+        recruiter.check_consents(self.consents)
 
     def get_module(self, module_id):
         try:

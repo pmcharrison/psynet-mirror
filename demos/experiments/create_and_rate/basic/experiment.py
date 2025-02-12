@@ -5,9 +5,7 @@
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ImagePrompt, ModularPage, PushButtonControl, TextControl
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline, switch
 from psynet.trial.create_and_rate import (
     CreateAndRateNode,
@@ -158,7 +156,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "pick_demo_page",
             "Pick a demo you are interested in.",
@@ -178,5 +175,4 @@ class Exp(psynet.experiment.Experiment):
             branches=branches,
             fix_time_credit=False,
         ),
-        SuccessfulEndPage(),
     )

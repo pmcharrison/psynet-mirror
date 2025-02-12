@@ -11,9 +11,8 @@ from repp.utils import save_json_to_file, save_samples_to_file
 
 import psynet.experiment
 from psynet.asset import asset
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.prescreen import (
     NumpySerializer,
     REPPMarkersTest,
@@ -287,16 +286,13 @@ music_tapping = join(
 # Experiment
 class Exp(psynet.experiment.Experiment):
     label = "Tapping (static) demo"
-    # asset_storage = S3Storage("psynet-tests", "tapping-static")
 
     timeline = Timeline(
-        NoConsent(),
         REPPVolumeCalibrationMusic(),  # calibrate volume with music
         REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
         REPPTappingCalibration(),  # calibrate tapping
         ISO_tapping,
         music_tapping,
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

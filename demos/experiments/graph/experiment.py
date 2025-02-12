@@ -11,7 +11,7 @@ import psynet.experiment
 from psynet.consent import MainConsent
 from psynet.graphics import Circle, Frame, GraphicPrompt
 from psynet.modular_page import ModularPage
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.graph import GraphChainNode, GraphChainTrial, GraphChainTrialMaker
 from psynet.utils import get_logger
@@ -439,7 +439,6 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=None,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 3

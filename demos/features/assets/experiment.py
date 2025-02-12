@@ -6,9 +6,8 @@ from markupsafe import Markup
 
 import psynet.experiment
 from psynet.asset import asset
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
-from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import InfoPage, ModularPage
 from psynet.timeline import CodeBlock, Module, PageMaker, Timeline
 
 
@@ -65,7 +64,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Assets demo"
 
     timeline = Timeline(
-        NoConsent(),
         Module(
             "headphone_check",
             [
@@ -105,5 +103,4 @@ class Exp(psynet.experiment.Experiment):
             CodeBlock(save_text),
             assets=misc_assets,
         ),
-        SuccessfulEndPage(),
     )

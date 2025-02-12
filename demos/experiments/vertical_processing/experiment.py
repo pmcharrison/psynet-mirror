@@ -10,7 +10,6 @@ from scipy import stats
 
 import psynet.experiment
 from psynet.asset import asset
-from psynet.consent import NoConsent
 from psynet.demography.general import Age, Gender
 from psynet.demography.gmsi import GMSI
 from psynet.js_synth import Chord, InstrumentTimbre, JSSynth
@@ -23,7 +22,7 @@ from psynet.modular_page import (
     SurveyJSControl,
     TextControl,
 )
-from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import InfoPage, ModularPage
 from psynet.timeline import (
     CodeBlock,
     Event,
@@ -723,7 +722,6 @@ class Exp(psynet.experiment.Experiment):
     config = {"show_reward": False}
 
     timeline = Timeline(
-        NoConsent(),
         requirements(),
         overview(),
         equipment_test(),
@@ -733,7 +731,6 @@ class Exp(psynet.experiment.Experiment):
         main(),
         questionnaire(),
         debrief_and_feedback(),
-        SuccessfulEndPage(),
     )
 
     test_num_bots = 1

@@ -926,6 +926,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     exp = get_experiment()
     exp.check_config()
     exp.check_size()
+    exp.check_consents()
 
     # Make sure source_code.zip is in .gitignore
     try:

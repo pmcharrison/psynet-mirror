@@ -1,7 +1,6 @@
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.prescreen import ColorVocabularyTest
 from psynet.timeline import Timeline
 
@@ -10,12 +9,10 @@ class Exp(psynet.experiment.Experiment):
     label = "Colour vocabulary demo"
 
     timeline = Timeline(
-        NoConsent(),
         ColorVocabularyTest(),
         InfoPage(
             "You passed the color vocabulary task! Congratulations.", time_estimate=3
         ),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

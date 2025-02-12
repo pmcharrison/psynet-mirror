@@ -4,9 +4,8 @@ import uuid
 import pytest
 from dallinger import db
 
-from psynet.consent import NoConsent
 from psynet.experiment import get_experiment
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.timeline import Module, Timeline
@@ -19,13 +18,11 @@ def test_repeated_modules():
         match="Duplicated module name detected: my-module",
     ):
         Timeline(
-            NoConsent(),
             Module("my-module", [InfoPage("My page", time_estimate=5)]),
             Module("my-module", [InfoPage("My page", time_estimate=5)]),
             Module("my-module-2", [InfoPage("My page", time_estimate=5)]),
             Module("my-module-2", [InfoPage("My page", time_estimate=5)]),
             Module("my-module-3", [InfoPage("My page", time_estimate=5)]),
-            SuccessfulEndPage(),
         )
 
 

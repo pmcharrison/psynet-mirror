@@ -1,14 +1,13 @@
 import psynet.experiment
 from psynet.asset import asset  # noqa
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
     ModularPage,
 )
-from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
+from psynet.page import InfoPage, VolumeCalibration
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
@@ -105,7 +104,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Static audio demo"
 
     timeline = Timeline(
-        NoConsent(),
         VolumeCalibration(),
         ModularPage(
             "record_calibrate",
@@ -132,7 +130,6 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=3,
             recruit_mode="n_participants",
         ),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

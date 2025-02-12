@@ -2,7 +2,6 @@
 
 import psynet.experiment
 from psynet.asset import LocalStorage, S3Storage  # noqa
-from psynet.consent import NoConsent
 from psynet.graphics import (
     Animation,
     Circle,
@@ -21,7 +20,7 @@ from psynet.modular_page import (
     ModularPage,
     Prompt,
 )
-from psynet.page import DebugResponsePage, InfoPage, SuccessfulEndPage
+from psynet.page import DebugResponsePage, InfoPage
 from psynet.timeline import MediaSpec, Timeline
 
 
@@ -31,7 +30,6 @@ class Exp(psynet.experiment.Experiment):
     # asset_storage = S3Storage("psynet-tests", "graphics")
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage(
             "Graphic components provide a way to display interactive visual animations to the participant.",
             time_estimate=5,
@@ -297,5 +295,4 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=6,
         ),
-        SuccessfulEndPage(),
     )

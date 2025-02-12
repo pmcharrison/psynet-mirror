@@ -4,8 +4,6 @@ from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.consent import NoConsent
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import HtmlGibbsNode, HtmlGibbsTrial, HtmlGibbsTrialMaker
 from psynet.utils import get_logger
@@ -92,7 +90,5 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         trial_maker,
-        SuccessfulEndPage(),
     )

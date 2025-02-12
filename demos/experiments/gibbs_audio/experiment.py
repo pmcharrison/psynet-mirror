@@ -8,7 +8,7 @@ import psynet.experiment
 import psynet.media
 from psynet.bot import Bot
 from psynet.consent import CAPRecruiterStandardConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
     AudioGibbsNode,
@@ -108,7 +108,6 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         CAPRecruiterStandardConsent(),
         trial_maker,
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 2

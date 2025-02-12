@@ -1,9 +1,8 @@
 import random
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, TextControl
-from psynet.page import SuccessfulEndPage, UnsuccessfulEndPage
+from psynet.page import UnsuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline, conditional
 from psynet.utils import get_logger
 
@@ -30,7 +29,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         CodeBlock(
             lambda participant: participant.var.set(
                 "is_good_participant", bool(participant.id % 2)
@@ -63,5 +61,4 @@ class Exp(psynet.experiment.Experiment):
             lambda participant: not participant.var.is_good_participant,
             UnsuccessfulEndPage(),
         ),
-        SuccessfulEndPage(),
     )

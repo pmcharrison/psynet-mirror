@@ -6,10 +6,9 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import PushButtonControl
-from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import InfoPage, ModularPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock, PageMaker, Timeline, join, while_loop
 
@@ -59,7 +58,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Custom table (simple) demo"
 
     timeline = Timeline(
-        NoConsent(),
         CodeBlock(lambda participant: participant.var.set("collecting_coins", "Yes")),
         while_loop(
             "loop",
@@ -71,5 +69,4 @@ class Exp(psynet.experiment.Experiment):
             ),
             expected_repetitions=3,
         ),
-        SuccessfulEndPage(),
     )
