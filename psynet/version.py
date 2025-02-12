@@ -6,7 +6,7 @@ import click
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
-psynet_version = "11.10.0-dev0"
+psynet_version = "12.0.0-dev0"
 
 # Bump Dallinger version by changing the line below
 dallinger_recommended_version = "11.1.0"
