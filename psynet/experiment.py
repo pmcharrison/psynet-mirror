@@ -1272,6 +1272,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "color_mode": "light",
             "currency": "$",
             "default_translator": "chat_gpt",
+            "disable_browser_autotranslate": True,
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "duration": 100000000.0,

@@ -33,7 +33,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=11.0.1,<12",
+    "dallinger[docker]>=11.1.0,<12",
     "dominate",
     "html2text",
     "joblib",
