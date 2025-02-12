@@ -1,5 +1,58 @@
 # CHANGELOG
 
+# [12.0.0-rc0] Release candidate 2025-02-12
+
+## Added
+- The new `psynet translate` command generates translations for the current directory (e.g. an experiment or a package). By default these translations are generated using OpenAI's ChatGPT but Google Translate is also supported. API tokens are needed in both case (authors: Pol van Rijn, Peter Harrison)
+  - If you want to use a translator with context, you can write this instead:
+
+  ```py
+  _p = get_translator(context=True)
+  InfoPage(_("welcome page", "Welcome to the experiment!"), time_estimate=5)
+  ```
+
+  - Changing locales during the experiment is no longer supported (support before was patchy anyway).
+  - PsyNet will now throw an error if you try to debug an experiment with missing translations. You will need to generate these with `psynet translate`.
+  - Various `ModularPage`, `TrialMaker`, etc classes no longer accept a `locale` argument or attribute.
+
+  #### Other translation related changes
+  - Translation documentation has been simplified and extended
+  - The config variable `language` has been renamed to `locale`
+
+- Added `asset` helper function for creating assets. This now can be used instead of the confusing variety of Asset subclasses, e.g. `ExperimentAsset`, `CachedAsset`, `CachedFunctionAsset`, etc. For example (author: Peter Harrison; reviewer: Frank Höger):
+
+```py
+asset("audio.wav")
+asset("audio.wav", cache=True)
+asset(synthesize_sine_wav, arguments: {"frequency": 440})
+asset("https://s3.amazonaws.com/mybucket/audio.mp3")
+
+## Breaking changes
+- The `get_translator` interface has been simplified. It now returns a single translator, `gettext`, commonly abbreviated to `_`. Locale, and namespace (previously called 'module') are inferred automatically from the context. This means you can mark translations as simply as this:
+
+```py
+_ = get_translator()
+InfoPage(_("Welcome to the experiment!"), time_estimate=5)
+```
+
+- Added documentation for the Dallinger `publish_experiment` config variable to indicate if the experiment should be also published when deploying. In the case of Prolific recruitment, if `False` a draft study will be created which later can be published via the Prolific web UI; in the case of Lucid recruitment, if `False` an awarded survey will be created which later can be published (set 'live') via the Lucid web UI. Default: `True` (author: Frank Höger, reviewer: Peter Harrison).
+- Added a Dallinger config variable `disable_browser_autotranslate` to turn on or off autotranslate. In Dallinger the default is off, in psynet the default is on (i.e. block automatic translation) (author: Pol van Rijn, Peter Harrison)
+- Added interactive option to disable Dallinger version check (authors: Peter Harrison; reviewer: Pol van Rijn)
+
+## Changed
+- Removed exact pinning of the Dallinger version by allowing (again) any greater minor version (author: Frank Höger, reviewer: Peter Harrison).
+- Introduced `dallinger_recommended_version` variable and replaced environment variable `SKIP_CHECK_DALLINGER_VERSION` with config variable `check_dallinger_version` to allow for flexibility, e.g. when deploying `Dallinger` development branches. When set to `False` PsyNet bypasses the check for the version of Dallinger that is recommended for the current PsyNet release. Default: `True` (author: Frank Höger, reviewer: Peter Harrison).
+- Moved `mock` package from optional-dependencies to dependencies in _pyproject.toml_ (author: Frank Höger).
+
+## Removed
+- Removed unneeded dependency `pybabel` which crashed CI (author: Pol van Rijn, reviewer: Frank Höger).
+- Removed `--open-recruitment` config variable; removed `--open-recruitment` flag from deploy commands (author: Frank Höger, reviewer: Peter Harrison).
+
+## Updated
+- Updated Dallinger to version 11.1.0. Read about changes in Dallinger: https://github.com/Dallinger/Dallinger/releases/tag/v11.1.0 (author: Frank Höger).
+- Improved asset documentation (author: Peter Harrison, reviewer: Frank Höger).
+- Updated demos to use the `asset` helper function (author: Peter Harrison, reviewer: Frank Höger).
+
 # [11.9.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.9.0) Release 2025-01-16
 
 ## Fixed
@@ -7,8 +60,6 @@
 - Removed `client_ip_address` from anonymous data export (author: Frank Höger, reviewer: Peter Harrison).
 
 ## Added
-- The new `psynet translate` command generates translations for the current directory (e.g. an experiment or a package). 
-  By default these translations are generated using OpenAI's ChatGPT but Google Translate is also supported. API tokens are needed in both case.
 - Added support for depositing folder assets to SSH deployments/debugging (author: Frank Höger, reviewer: Peter Harrison).
 - Allow release candidate tags in requirements.txt files (author: Frank Höger, reviewer: Peter Harrison).
 - It is now possible to provide functions directly to the timeline and they will be interpreted as code blocks (author: Peter Harrison, reviewer: Frank Höger).
@@ -25,25 +76,6 @@
     - `psynet deploy ssh --open-recruitment` (MTurk): creates and publishes the MTurk HIT
     - `psynet deploy ssh --open-recruitment` (Lucid): creates a live Lucid survey
 - Renamed `server_option` to `option_server` in _dallinger.command_line.docker_ssh_ for Dallinger 11 compatibility (author: Frank Höger, reviewer: Peter Harrison).
-- The `get_translator` interface has been simplified. It now returns a single translator, `gettext`, commonly abbreviated to `_`. Locale, and namespace (previously called 'module') are inferred automatically from the context. This means you can mark translations as simply as this:
-
-```py
-_ = get_translator()
-InfoPage(_("Welcome to the experiment!"), time_estimate=5)
-```
-
-- If you want to use a translator with context, you can write this instead:
-
-```py
-_p = get_translator(context=True)
-InfoPage(_("welcome page", "Welcome to the experiment!"), time_estimate=5)
-```
-
-- Changing locales during the experiment is no longer supported (support before was patchy anyway).
-- PsyNet will now throw an error if you try to debug an experiment with missing translations. You will need to generate these with `psynet translate`.
-- Various ModularPage, TrialMaker, etc classes no longer accept a `locale` argument or attribute.
-- Translation documentation has been simplified and extended.
-- The config variable 'language' has been renamed to 'locale'. 
 
 ## Removed
 - Removed obsolete _deploy.sh_ files in demos/tests (author: Frank Höger, reviewer: Peter Harrison).
