@@ -5,7 +5,14 @@ import pytest
 from dallinger import db
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
-from psynet.asset import CachedFunctionAsset, ExperimentAsset, LocalStorage
+from psynet.asset import (
+    CachedFunctionAsset,
+    ExperimentAsset,
+    ExternalAsset,
+    LocalStorage,
+    OnDemandAsset,
+    asset,
+)
 from psynet.pytest_psynet import path_to_test_experiment
 
 
@@ -247,3 +254,85 @@ def test_access_assets(
         assert len(t.assets) == 1
         assert isinstance(t.assets["trial_asset"], ExperimentAsset)
         assert t.assets["trial_asset"].export_path.endswith(".txt")
+
+
+# Test function asset - cached
+def placeholder_function(path, param):
+    with open(path, "w") as f:
+        f.write(f"Generated content: {param}")
+
+
+def test_asset_constructor():
+    """Test the asset constructor function with different input types and parameters."""
+    import tempfile
+    from pathlib import Path
+
+    # Test external URL asset
+    url_asset = asset(
+        "http://example.com/file.mp3", description="An external audio file"
+    )
+    assert isinstance(url_asset, ExternalAsset)
+    assert url_asset.url == "http://example.com/file.mp3"
+    assert url_asset.description == "An external audio file"
+
+    # Test local file asset
+    with tempfile.NamedTemporaryFile(suffix=".txt") as f:
+        f.write(b"test content")
+        f.flush()
+        file_asset = asset(f.name, description="A local file")
+        assert isinstance(file_asset, ExperimentAsset)
+        assert file_asset.input_path == f.name
+        assert file_asset.description == "A local file"
+
+        # Test Path object input
+        path_asset = asset(Path(f.name), description="A path object file")
+        assert isinstance(path_asset, ExperimentAsset)
+        assert str(path_asset.input_path) == f.name
+
+    cached_asset = asset(
+        placeholder_function, cache=True, description="A cached function asset"
+    )
+    assert isinstance(cached_asset, CachedFunctionAsset)
+    assert cached_asset.function == placeholder_function
+    assert cached_asset.description == "A cached function asset"
+
+    # Test function asset - on demand
+    on_demand_asset = asset(
+        placeholder_function, on_demand=True, description="An on-demand function asset"
+    )
+    assert isinstance(on_demand_asset, OnDemandAsset)
+    assert on_demand_asset.function == placeholder_function
+    assert on_demand_asset.description == "An on-demand function asset"
+
+    # Test function asset with arguments
+    args_asset = asset(
+        placeholder_function,
+        on_demand=True,
+        arguments={"param": "value"},
+        description="Function with args",
+    )
+    assert isinstance(args_asset, OnDemandAsset)
+    assert args_asset.arguments == {"param": "value"}
+
+    # Test invalid combinations
+    with pytest.raises(
+        ValueError,
+        match="Sorry, currently function assets can't be both cached and on-demand.",
+    ):
+        asset(placeholder_function, cache=True, on_demand=True)
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Sorry, currently function assets must be marked as either cached or on-demand. "
+            "Select the former if you want to pre-generate your assets, or the latter otherwise."
+        ),
+    ):
+        asset(placeholder_function)
+
+    with pytest.raises(
+        ValueError, match="Arguments can only be provided for function assets."
+    ):
+        asset(
+            "local_file.txt", arguments={"param": "value"}
+        )  # Arguments only for functions

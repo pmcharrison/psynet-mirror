@@ -1,12 +1,7 @@
 import random
 
 import psynet.experiment
-from psynet.asset import (  # noqa
-    CachedFunctionAsset,
-    LocalStorage,
-    OnDemandAsset,
-    S3Storage,
-)
+from psynet.asset import asset
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
@@ -52,10 +47,7 @@ audio_ratings = Module(
         logic=lambda definition: RateTrial.cue(
             definition,
             assets={
-                "audio": OnDemandAsset(
-                    function=synth_stimulus,
-                    extension=".wav",
-                ),
+                "audio": asset(synth_stimulus, extension=".wav", on_demand=True),
             },
         ),
         time_estimate_per_iteration=RateTrial.time_estimate,

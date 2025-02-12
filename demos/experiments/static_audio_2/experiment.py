@@ -84,7 +84,6 @@ class CustomTrial(StaticTrial):
 class Exp(psynet.experiment.Experiment):
     label = "Static audio demo (2)"
 
-    asset_storage = LocalStorage()
     # asset_storage = S3Storage("psynet-tests", "static-audio")
 
     timeline = Timeline(

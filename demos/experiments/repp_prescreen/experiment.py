@@ -20,7 +20,6 @@ class Exp(psynet.experiment.Experiment):
     label = "REPP tests demo"
 
     # asset_storage = S3Storage("psynet-tests", "repp-tests")
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
         NoConsent(),
