@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 34e581ee520952490b60f026fa2111a9
+# Compiled from a requirement.txt file with md5sum: 84f39a33b166535318871d8f5f35a5ed
 #
 apscheduler==3.11.0
     # via
@@ -262,7 +262,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.1.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==12.0.0-rc0
+psynet==12.0.0rc1
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
