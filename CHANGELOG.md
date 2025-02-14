@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [12.0.0-rc0] Release candidate 2025-02-12
+# [12.0.0rc1] Release candidate 2025-02-12
 
 ## Added
 - The new `psynet translate` command generates translations for the current directory (e.g. an experiment or a package). By default these translations are generated using OpenAI's ChatGPT but Google Translate is also supported. API tokens are needed in both case (authors: Pol van Rijn, Peter Harrison)
