@@ -1,4 +1,4 @@
-psynet==12.0.0-rc0
+psynet==12.0.0rc1
 
 # Alternatively, you can use one of the following syntaxes to specify a custom PsyNet version
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.4.0#egg=psynet
