@@ -83,7 +83,7 @@ for path in [
     "psynet/resources/experiment_scripts/docker/generate-constraints",
 ]:
     with fileinput.FileInput(path, inplace=True) as file:
-        version_tag = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        version_tag = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)*"
         for line in file:
             print(re.sub(version_tag, f"psynet:v{__version__}", line), end="")
 
