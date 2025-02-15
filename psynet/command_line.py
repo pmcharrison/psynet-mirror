@@ -1485,7 +1485,7 @@ def verify_psynet_requirement():
         with open("requirements.txt", "r") as file:
             version_tag_or_commit_hash = [
                 "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-rc\\d+)?",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
             ]
             file_content = file.read()
             for regex in version_tag_or_commit_hash:
@@ -1500,7 +1500,7 @@ def verify_psynet_requirement():
                     valid = True
                     break
                 match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(-rc\d+)?",
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?",
                     file_content,
                     re.MULTILINE,
                 )
@@ -2079,7 +2079,7 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version = r"\d+\.\d+\.\d+(-rc\d+)*"
+            version = r"\d+\.\d+\.\d+(rc\d+)*"
             for line in orig_file:
                 match = re.search(
                     r"^psynet(\s?)==(\s?)" + version + "$",
@@ -2150,7 +2150,7 @@ def pre_update_constraints_(dir):
     )
     with fileinput.FileInput("requirements.txt", inplace=True) as file:
         psynet_requirement = (
-            "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*(-rc\\d+)*)"
+            "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*(rc\\d+)*)"
         )
         for line in file:
             print(
