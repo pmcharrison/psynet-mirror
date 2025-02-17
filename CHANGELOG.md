@@ -15,12 +15,12 @@
   - If you want to use a translator with context, you can write this instead:
 
   ```py
-  _p = get_translator(context=True)
+  _ = get_translator(context=True)
   InfoPage(_("welcome page", "Welcome to the experiment!"), time_estimate=5)
   ```
 
   - Changing locales during the experiment is no longer supported (support before was patchy anyway).
-  - PsyNet will now throw an error if you try to debug an experiment with missing translations. You will need to generate these with `psynet translate`.
+  - PsyNet will now throw an error if you try to debug an experiment with missing translations. You will need to generate these with `psynet translate`. It will require valid translations for all locales specified in `supported_locales`. If this is not set, it falls back to the experiment `locale`.
   - Various `ModularPage`, `TrialMaker`, etc classes no longer accept a `locale` argument or attribute.
 
   #### Other translation related changes
