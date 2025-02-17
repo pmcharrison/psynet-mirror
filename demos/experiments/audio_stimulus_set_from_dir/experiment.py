@@ -1,10 +1,8 @@
 import random
 
 import psynet.experiment
-from psynet.asset import LocalStorage
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial import compile_nodes_from_directory
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
@@ -27,10 +25,8 @@ class CustomTrial(StaticTrial):
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio stimulus set from directory demo"
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage("We begin with the practice trials.", time_estimate=5),
         StaticTrialMaker(
             id_="audio_practice",
@@ -57,5 +53,4 @@ class Exp(psynet.experiment.Experiment):
                 ["participant-group-1", "participant-group-2"]
             ),
         ),
-        SuccessfulEndPage(),
     )

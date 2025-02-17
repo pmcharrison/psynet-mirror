@@ -13,7 +13,6 @@ from psynet.consent import (
     VoluntaryWithNoCompensationConsent,
 )
 from psynet.graphics import PrincetonLogo
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 
 
@@ -32,5 +31,4 @@ class Exp(psynet.experiment.Experiment):
         CAPRecruiterAudiovisualConsent(),
         PrincetonConsent(),
         PrincetonCAPRecruiterConsent(),
-        SuccessfulEndPage(),
     )

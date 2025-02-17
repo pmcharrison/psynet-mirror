@@ -4,9 +4,7 @@ from markupsafe import Markup
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Module, Timeline, for_loop
 from psynet.trial.main import Trial
 
@@ -55,9 +53,7 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         word_ratings,
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 3

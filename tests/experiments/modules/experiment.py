@@ -3,8 +3,7 @@
 import logging
 
 import psynet.experiment
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, Module, PageMaker, Timeline, for_loop, join
 
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +24,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         Module(
             "module_a",
             for_loop(
@@ -55,5 +53,4 @@ class Exp(psynet.experiment.Experiment):
                 time_estimate=5,
             ),
         ),
-        SuccessfulEndPage(),
     )

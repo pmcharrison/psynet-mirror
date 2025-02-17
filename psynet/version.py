@@ -2,13 +2,14 @@ import os
 import re
 import subprocess
 
+import click
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
 psynet_version = "11.10.0-dev0"
 
 # Bump Dallinger version by changing the line below
-dallinger_recommended_version = "11.0.1"
+dallinger_recommended_version = "11.1.0"
 
 
 def check_versions():
@@ -177,9 +178,13 @@ def check_dallinger_version():
     current_dallinger_version = dallinger.version.__version__
 
     if current_dallinger_version != dallinger_recommended_version:
-        raise ValueError(
+        message = (
             f"The current installed version of Dallinger ({current_dallinger_version}) "
-            f"is incompatible with the version recommended by PsyNet ({dallinger_recommended_version}). "
-            "Please install an appropriate version of Dallinger, or (only if you know what you're doing!) "
-            f"disable this check by setting the config variable `check_dallinger_version` to `False`."
+            f"is not the one recommended for this version of PsyNet "
+            f"(PsyNet v{psynet_version} recommends Dallinger v{dallinger_recommended_version}). "
+            "You can fix this problem by updating your requirements.txt file "
+            f"to state dallinger=={dallinger_recommended_version}, "
+            "or, if you know what you're doing, type 'y' to continue anyway."
         )
+        if not click.confirm(message, default=False):
+            raise click.Abort

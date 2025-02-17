@@ -6,9 +6,8 @@ from statistics import mean
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, Prompt, TextControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
     ImitationChainNetwork,
@@ -111,7 +110,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage(
             """
             We will demonstrate a particular form of the imitation chain experiment where each
@@ -139,7 +137,6 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=10,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

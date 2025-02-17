@@ -2,9 +2,8 @@
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import ColorPrompt, PushButtonControl
-from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import InfoPage, ModularPage
 from psynet.timeline import Timeline
 from psynet.trial.dense import (
     DenseNode,
@@ -62,7 +61,6 @@ class Exp(psynet.experiment.Experiment):
     trials_per_participant = 6
 
     timeline = Timeline(
-        NoConsent(),
         DenseTrialMaker(
             id_="color",
             trial_class=CustomTrial,
@@ -74,7 +72,6 @@ class Exp(psynet.experiment.Experiment):
             max_trials_per_participant=trials_per_participant,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot):

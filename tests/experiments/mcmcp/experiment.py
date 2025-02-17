@@ -5,7 +5,7 @@ import random
 import psynet.experiment
 from psynet.consent import MainConsent
 from psynet.modular_page import Prompt, PushButtonControl
-from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import InfoPage, ModularPage
 from psynet.timeline import Timeline
 from psynet.trial.mcmcp import MCMCPNode, MCMCPTrial, MCMCPTrialMaker
 from psynet.utils import get_logger
@@ -87,7 +87,6 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=1,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

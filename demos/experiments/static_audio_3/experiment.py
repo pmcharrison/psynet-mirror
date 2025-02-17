@@ -1,10 +1,9 @@
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import CachedAsset, DebugStorage
-from psynet.consent import NoConsent
+from psynet.asset import asset
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
@@ -43,18 +42,10 @@ file_names = [
 # from os.path import isfile, join
 # file_names = [f for f in listdir(INPUT_PATH_DIR) if isfile(join(INPUT_PATH_DIR, f))]
 
-
 nodes = [
     StaticNode(
-        definition={
-            "name": file_name,
-        },
-        assets={
-            "stimulus": CachedAsset(
-                input_path=INPUT_PATH_DIR + file_name,
-                extension=".mp3",
-            )
-        },
+        definition={"name": file_name},
+        assets={"stimulus": asset(INPUT_PATH_DIR + file_name)},
     )
     for file_name in file_names
 ]
@@ -89,10 +80,8 @@ class SoundRatingTrial(StaticTrial):
 
 class Exp(psynet.experiment.Experiment):
     label = "Static audio demo (3)"
-    asset_storage = DebugStorage()
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage(
             Markup(
                 """
@@ -115,5 +104,4 @@ class Exp(psynet.experiment.Experiment):
             expected_trials_per_participant=len(nodes),
             allow_repeated_nodes=False,
         ),
-        SuccessfulEndPage(),
     )

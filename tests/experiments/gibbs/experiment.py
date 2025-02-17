@@ -9,13 +9,12 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
-from psynet.asset import ExperimentAsset, LocalStorage
+from psynet.asset import ExperimentAsset
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.demography.general import ExperimentFeedback
 from psynet.modular_page import ModularPage, Prompt, PushButtonControl, SliderControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.process import AsyncProcess
 from psynet.timeline import CodeBlock, Timeline
@@ -248,11 +247,9 @@ def _collect_coin(participant):
 
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
-    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "choose_network",
             Prompt("What participant group would you like to join?"),
@@ -264,7 +261,6 @@ class Exp(psynet.experiment.Experiment):
         trial_maker,
         collect_coin(),
         ExperimentFeedback(),
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 6

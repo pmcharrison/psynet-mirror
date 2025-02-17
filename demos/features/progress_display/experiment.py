@@ -1,7 +1,6 @@
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline
 from psynet.utils import get_logger
 
@@ -14,7 +13,6 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "progress_bar_demo",
             "Check out this progress bar!",
@@ -66,5 +64,4 @@ class Exp(psynet.experiment.Experiment):
                 ),
             },
         ),
-        SuccessfulEndPage(),
     )

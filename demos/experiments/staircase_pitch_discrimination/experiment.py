@@ -7,9 +7,8 @@ from dominate import tags
 import psynet.experiment
 from psynet.asset import OnDemandAsset
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Event, Timeline
 from psynet.trial.staircase import (
     GeometricStaircaseChain,
@@ -256,7 +255,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Pitch discrimination demo"
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage(
             """
             In each trial you will hear two tones. One will be higher in pitch than the other.
@@ -278,7 +276,6 @@ class Exp(psynet.experiment.Experiment):
             # This parameter is used to determine when to stop automatic recruitment (if active).
             target_n_participants=1,
         ),
-        SuccessfulEndPage(),
     )
 
     # This part of the code is optional but good practice.

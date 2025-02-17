@@ -1,6 +1,5 @@
 import psynet.experiment
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.process import LocalAsyncProcess, WorkerAsyncProcess
 from psynet.timeline import CodeBlock, Timeline, switch
@@ -58,7 +57,6 @@ class Exp(psynet.experiment.Experiment):
         return Participant.query.count() < 4
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage("Welcome to the experiment!", time_estimate=5),
         switch(
             "switch",
@@ -71,7 +69,6 @@ class Exp(psynet.experiment.Experiment):
                 3: local_async_process_error(73722),
             },
         ),
-        SuccessfulEndPage(),
     )
 
     def test_experiment(self):

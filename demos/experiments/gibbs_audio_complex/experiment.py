@@ -6,10 +6,8 @@ from markupsafe import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.asset import LocalStorage
 from psynet.bot import Bot
 from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
     AudioGibbsNode,
@@ -133,14 +131,12 @@ trial_maker = CustomTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Complex audio Gibbs sampling demo"
-    asset_storage = LocalStorage()
     initial_recruitment_size = 1
 
     timeline = Timeline(
         CAPRecruiterStandardConsent(),
         CAPRecruiterAudiovisualConsent(),
         trial_maker,
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 2

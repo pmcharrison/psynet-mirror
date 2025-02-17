@@ -1,16 +1,9 @@
 import random
 
 import psynet.experiment
-from psynet.asset import (  # noqa
-    CachedFunctionAsset,
-    LocalStorage,
-    OnDemandAsset,
-    S3Storage,
-)
+from psynet.asset import asset
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Module, Timeline, for_loop
 from psynet.trial.main import Trial
 
@@ -52,10 +45,7 @@ audio_ratings = Module(
         logic=lambda definition: RateTrial.cue(
             definition,
             assets={
-                "audio": OnDemandAsset(
-                    function=synth_stimulus,
-                    extension=".wav",
-                ),
+                "audio": asset(synth_stimulus, extension=".wav", on_demand=True),
             },
         ),
         time_estimate_per_iteration=RateTrial.time_estimate,
@@ -67,9 +57,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Simple trial demo (3)"
 
     timeline = Timeline(
-        NoConsent(),
         audio_ratings,
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

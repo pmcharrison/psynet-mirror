@@ -3,7 +3,7 @@
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import MainConsent
-from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
+from psynet.page import InfoPage, UnsuccessfulEndPage
 from psynet.timeline import CodeBlock, ParticipantFailRoutine, Timeline, switch
 from psynet.utils import get_logger
 
@@ -33,7 +33,6 @@ class Exp(psynet.experiment.Experiment):
             "var",
             lambda participant: participant.var.set("fail_routine_executed", True),
         ),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

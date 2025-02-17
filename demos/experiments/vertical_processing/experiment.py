@@ -9,8 +9,7 @@ from dominate import tags
 from scipy import stats
 
 import psynet.experiment
-from psynet.asset import ExperimentAsset, LocalStorage
-from psynet.consent import NoConsent
+from psynet.asset import asset
 from psynet.demography.general import Age, Gender
 from psynet.demography.gmsi import GMSI
 from psynet.js_synth import Chord, InstrumentTimbre, JSSynth
@@ -23,7 +22,7 @@ from psynet.modular_page import (
     SurveyJSControl,
     TextControl,
 )
-from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import InfoPage, ModularPage
 from psynet.timeline import (
     CodeBlock,
     Event,
@@ -291,7 +290,7 @@ class VerticalProcessingTrial(StaticTrial):
             self.var.sung_pitches = result["pitches"]
             self.var.singing_analysis = result["raw"]
 
-            plot = ExperimentAsset(
+            plot = asset(
                 f_plot.name,
                 local_key="plot",
                 parent=self,
@@ -718,13 +717,11 @@ def debrief_and_feedback():
 
 class Exp(psynet.experiment.Experiment):
     label = "Vertical processing experiment"
-    asset_storage = LocalStorage()
     # asset_storage = S3Storage("psynet-tests", "audio-record")
 
     config = {"show_reward": False}
 
     timeline = Timeline(
-        NoConsent(),
         requirements(),
         overview(),
         equipment_test(),
@@ -734,7 +731,6 @@ class Exp(psynet.experiment.Experiment):
         main(),
         questionnaire(),
         debrief_and_feedback(),
-        SuccessfulEndPage(),
     )
 
     test_num_bots = 1

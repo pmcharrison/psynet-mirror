@@ -4,7 +4,7 @@ from typing import Optional
 
 import psynet.experiment
 from psynet.consent import MainConsent
-from psynet.page import InfoPage, SuccessfulEndPage, UnityPage
+from psynet.page import InfoPage, UnityPage
 from psynet.participant import Participant
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
@@ -141,5 +141,4 @@ class Exp(psynet.experiment.Experiment):
         MainConsent(),
         trial_maker,  # The Unity game
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage(),
     )

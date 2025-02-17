@@ -50,7 +50,7 @@ from psynet import __version__
 from psynet.utils import get_config
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, NoStorage, OnDemandAsset
+from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
@@ -59,7 +59,7 @@ from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
-from .page import InfoPage, SuccessfulEndPage
+from .page import InfoPage
 from .participant import Participant
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
@@ -233,7 +233,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     ::
 
         class Exp(psynet.experiment.Experiment):
-            asset_storage = LocalStorage()
 
     Another experiment attribute is `export_classes_to_skip`, which is a list of classes to be excluded
     when exporting the database objects to JSON-style dictionaries. The default is `["ExperimentStatus"]`.
@@ -416,11 +415,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     max_allowed_base_payment = 30
     max_exp_dir_size_in_mb = 256
 
-    timeline = Timeline(
-        InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
-    )
+    timeline = Timeline(InfoPage("Placeholder timeline", time_estimate=5))
 
-    asset_storage = NoStorage()
+    asset_storage = LocalStorage()
     css = []
     css_links = []
 
@@ -587,7 +584,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
-        self.timeline.verify_consents(self)
         self.on_every_launch()
         logger.info("Experiment launch complete!")
         db.session.commit()
@@ -1272,6 +1268,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "color_mode": "light",
             "currency": "$",
             "default_translator": "chat_gpt",
+            "disable_browser_autotranslate": True,
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "duration": 100000000.0,
@@ -3114,6 +3111,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         return stats
+
+    def check_consents(self):
+        if (
+            deployment_info.read("is_local_deployment")
+            and deployment_info.read("mode") == "debug"
+        ):
+            return
+        self.timeline.check_consents(self)
 
 
 Experiment.SuccessfulEndLogic = SuccessfulEndLogic

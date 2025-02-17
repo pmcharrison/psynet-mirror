@@ -1,7 +1,7 @@
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import CachedAsset, LocalStorage
+from psynet.asset import asset
 from psynet.consent import AudiovisualConsent, MainConsent
 from psynet.js_synth import Chord, InstrumentTimbre, JSSynth, Note, Rest, ShepardTimbre
 from psynet.modular_page import (
@@ -14,7 +14,7 @@ from psynet.modular_page import (
     VideoPrompt,
     VideoRecordControl,
 )
-from psynet.page import InfoPage, SuccessfulEndPage, wait_while
+from psynet.page import InfoPage, wait_while
 from psynet.timeline import (
     Event,
     MediaSpec,
@@ -30,10 +30,10 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 all_assets = {
-    "bier": CachedAsset(input_path="assets/bier.wav"),
-    "file-concatenated": CachedAsset(input_path="assets/file_concatenated.mp3"),
-    "funk-game-loop": CachedAsset(input_path="assets/funk-game-loop.mp3"),
-    "train-1": CachedAsset(input_path="assets/train1.wav"),
+    "bier": asset("local_only/bier.wav", cache=True),
+    "file-concatenated": asset("local_only/file_concatenated.mp3", cache=True),
+    "funk-game-loop": asset("local_only/funk-game-loop.mp3", cache=True),
+    "train-1": asset("local_only/train1.wav", cache=True),
 }
 
 example_js_synth_1 = ModularPage(
@@ -437,7 +437,6 @@ example_record_audio_video = join(
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio demo"
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
         MainConsent(),
@@ -462,7 +461,6 @@ class Exp(psynet.experiment.Experiment):
             example_preloading,
             assets=all_assets,
         ),
-        SuccessfulEndPage(),
     )
 
     @property

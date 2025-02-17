@@ -2,8 +2,7 @@ from typing import List
 
 import psynet.experiment
 from psynet.bot import Bot, advance_past_wait_pages
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage, WaitPage
+from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
 from psynet.sync import GroupCloser, SimpleGrouper
 from psynet.timeline import PageMaker, Timeline
@@ -45,7 +44,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         SimpleGrouper(
             group_type="main",
             initial_group_size=3,
@@ -61,7 +59,6 @@ class Exp(psynet.experiment.Experiment):
             max_wait_time=20,
         ),
         show_current_group(),
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 6

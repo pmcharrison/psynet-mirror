@@ -1,11 +1,9 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 import psynet.experiment
-from psynet.asset import LocalStorage
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
+from psynet.page import InfoPage, VolumeCalibration
 from psynet.prescreen import AudioForcedChoiceTest, AudioForcedChoiceTrial
 from psynet.timeline import Timeline
 
@@ -61,10 +59,8 @@ class ReadAudioTest(AudioForcedChoiceTest):
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio forced choice demo"
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
-        NoConsent(),
         VolumeCalibration(),
         AudioForcedChoiceTest(
             csv_path="cats_dogs_birds.csv",
@@ -99,7 +95,6 @@ class Exp(psynet.experiment.Experiment):
                         """,
         ),
         InfoPage("You passed all screening tasks! Congratulations.", time_estimate=3),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

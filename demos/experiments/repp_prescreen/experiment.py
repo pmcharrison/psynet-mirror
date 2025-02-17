@@ -3,8 +3,7 @@
 import psynet.experiment
 from psynet.asset import LocalStorage, S3Storage  # noqa
 from psynet.bot import Bot
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.prescreen import (
     FreeTappingRecordTest,
     REPPMarkersTest,
@@ -20,10 +19,8 @@ class Exp(psynet.experiment.Experiment):
     label = "REPP tests demo"
 
     # asset_storage = S3Storage("psynet-tests", "repp-tests")
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
-        NoConsent(),
         # Volume calibration tests
         REPPVolumeCalibrationMarkers(),  # Use this for SMS experiments with markers
         REPPVolumeCalibrationMusic(),  # Use this for experiments using music
@@ -35,7 +32,6 @@ class Exp(psynet.experiment.Experiment):
         ),
         REPPMarkersTest(),  # Use this for SMS tapping experiments (with markers).
         InfoPage("You passed the recording test! Congratulations.", time_estimate=3),
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

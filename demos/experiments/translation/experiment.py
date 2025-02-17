@@ -3,7 +3,7 @@ from dominate import tags
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.utils import get_logger, get_translator
 
@@ -68,5 +68,4 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=4,
         ),
-        SuccessfulEndPage(),
     )
