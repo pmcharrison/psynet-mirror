@@ -532,13 +532,13 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Għandek bżonn tipprovdi numru!"
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Ikteb in-numru fl-immaġni."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
@@ -547,32 +547,32 @@ msgstr ""
 "Issa se nagħmlu test malajr biex niċċekkjaw il-ħila tiegħek li tipperċepixxi"
 " l-kuluri."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr "F'kull prova, inti ser tiġi ppreżentat b'immaġni li fiha numru."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Din l-immaġni se tgħib wara {HIDE_AFTER} sekondi."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Għandek tidħol in-numru li tara fil-kaxxa tat-test."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
 msgstr "Liema ħoss huwa differenti mill-oħrajn tnejn: 1, 2, jew 3?"
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."

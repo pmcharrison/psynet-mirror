@@ -537,13 +537,13 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "O hloka ho fana ka nomoro!"
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Ngola palo e setšoantšong."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
@@ -551,7 +551,7 @@ msgid ""
 msgstr ""
 "Re tla etsa teko e potlakileng ho hlahloba bokhoni ba hau ba ho bona mebala."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
@@ -559,25 +559,25 @@ msgid ""
 msgstr ""
 "Tekong e 'ngoe le e 'ngoe, u tla hlahisoa ka setšoantšo se nang le palo."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Setšoantšo sena se tla nyamela ka mor'a metsotsoana e {HIDE_AFTER}."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "U tlameha ho kenya nomoro eo u e bonang ka lebokoseng la mongolo."
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
 msgstr "Ke molumo ofe o fapaneng le lialuma tse ling tse peli: 1, 2, kapa 3?"
 
-#: psynet/prescreen/__init__.py
+#: psynet/prescreen.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."

@@ -450,136 +450,42 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1236
+#: psynet/prescreen.py:1236
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1317
+#: psynet/prescreen.py:1317
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1321
+#: psynet/prescreen.py:1321
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1329
+#: psynet/prescreen.py:1329
 #, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1335
+#: psynet/prescreen.py:1335
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1753
+#: psynet/prescreen.py:1752
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1791
+#: psynet/prescreen.py:1791
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:93
-msgid "Your score was"
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:94
-msgid "Press the button to continue."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:342
-msgid "We will perform a test to check your language abilities."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:343
-msgid "In each trial, you will see a string of characters."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:344
-msgid "The string will automatically disappear."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:346
-#, python-brace-format
-msgid ""
-"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
-"or not."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:363
-#, python-brace-format
-msgid ""
-"If you don’t know the exact meaning of the word, but you are certain that it"
-" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:366
-#, python-brace-format
-msgid ""
-"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
-"mark it as a fake word."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:370
-msgid "In this experiment, you might find a mix between spelling variants."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:373
-msgid "You should not pay attention to subtle spelling differences."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:376
-msgid "The words are presented in either only uppercase or lowercase letters."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:378
-msgid "You can ignore the case of the word."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:389
-msgid "To do the task quickly, you should use the keys on your keyboard."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:390
-msgid "You can use the following keys:"
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:393
-msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:396
-msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:400
-msgid "Familiarize yourself with the two keys on your keyboard."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:402
-msgid "If you press them, they will light up in the keyboard on the right."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:407
-msgid ""
-"You need to press both keys at least once to progress to the next page."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:412
-msgid "In case you forget the keys, they will be printed on every page."
-msgstr ""
-
-#: psynet/prescreen/vocabtest.py:423
-msgid "The test will start on the next page."
 msgstr ""
 
 #: psynet/recruiters.py:813
@@ -722,8 +628,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr ""
 
-#: psynet/templates/consent.html:31 psynet/templates/keyboard.html:113
-#: psynet/templates/macros/control.html:47
+#: psynet/templates/consent.html:31 psynet/templates/macros/control.html:47
 msgid "Next"
 msgstr ""
 
@@ -1777,14 +1682,6 @@ msgstr ""
 #: psynet/templates/exit_recruiter_lucid.html:6
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
-msgstr ""
-
-#: psynet/templates/keyboard.html:9
-msgid "Select a keyboard layout:"
-msgstr ""
-
-#: psynet/templates/keyboard.html:105
-msgid "You did not press all required keys."
 msgstr ""
 
 #: psynet/templates/macros/browser-detect.html:173
@@ -3632,977 +3529,952 @@ msgctxt "country_name"
 msgid "Åland Islands"
 msgstr ""
 
-#: psynet/translation/languages.py:99
+#: psynet/translation/languages.py:63
 msgctxt "language_name"
 msgid "Abkhazian"
 msgstr ""
 
-#: psynet/translation/languages.py:100
+#: psynet/translation/languages.py:64
 msgctxt "language_name"
 msgid "Afar"
 msgstr ""
 
-#: psynet/translation/languages.py:101
+#: psynet/translation/languages.py:65
 msgctxt "language_name"
 msgid "Afrikaans"
 msgstr ""
 
-#: psynet/translation/languages.py:102
+#: psynet/translation/languages.py:66
 msgctxt "language_name"
 msgid "Akan"
 msgstr ""
 
-#: psynet/translation/languages.py:103
+#: psynet/translation/languages.py:67
 msgctxt "language_name"
 msgid "Albanian"
 msgstr ""
 
-#: psynet/translation/languages.py:104
+#: psynet/translation/languages.py:68
 msgctxt "language_name"
 msgid "Amharic"
 msgstr ""
 
-#: psynet/translation/languages.py:105
+#: psynet/translation/languages.py:69
 msgctxt "language_name"
 msgid "Arabic"
 msgstr ""
 
-#: psynet/translation/languages.py:106
+#: psynet/translation/languages.py:70
 msgctxt "language_name"
 msgid "Aragonese"
 msgstr ""
 
-#: psynet/translation/languages.py:107
+#: psynet/translation/languages.py:71
 msgctxt "language_name"
 msgid "Armenian"
 msgstr ""
 
-#: psynet/translation/languages.py:108
+#: psynet/translation/languages.py:72
 msgctxt "language_name"
 msgid "Assamese"
 msgstr ""
 
-#: psynet/translation/languages.py:109
+#: psynet/translation/languages.py:73
 msgctxt "language_name"
 msgid "Avaric"
 msgstr ""
 
-#: psynet/translation/languages.py:110
+#: psynet/translation/languages.py:74
 msgctxt "language_name"
 msgid "Avestan"
 msgstr ""
 
-#: psynet/translation/languages.py:111
+#: psynet/translation/languages.py:75
 msgctxt "language_name"
 msgid "Aymara"
 msgstr ""
 
-#: psynet/translation/languages.py:112
+#: psynet/translation/languages.py:76
 msgctxt "language_name"
 msgid "Azerbaijani"
 msgstr ""
 
-#: psynet/translation/languages.py:113
+#: psynet/translation/languages.py:77
 msgctxt "language_name"
 msgid "Bambara"
 msgstr ""
 
-#: psynet/translation/languages.py:114
+#: psynet/translation/languages.py:78
 msgctxt "language_name"
 msgid "Bashkir"
 msgstr ""
 
-#: psynet/translation/languages.py:115
+#: psynet/translation/languages.py:79
 msgctxt "language_name"
 msgid "Basque"
 msgstr ""
 
-#: psynet/translation/languages.py:116
+#: psynet/translation/languages.py:80
 msgctxt "language_name"
 msgid "Belarusian"
 msgstr ""
 
-#: psynet/translation/languages.py:117
+#: psynet/translation/languages.py:81
 msgctxt "language_name"
 msgid "Bengali"
 msgstr ""
 
-#: psynet/translation/languages.py:118
+#: psynet/translation/languages.py:82
 msgctxt "language_name"
 msgid "Bislama"
 msgstr ""
 
-#: psynet/translation/languages.py:119
+#: psynet/translation/languages.py:83
 msgctxt "language_name"
 msgid "Bosnian"
 msgstr ""
 
-#: psynet/translation/languages.py:120
+#: psynet/translation/languages.py:84
 msgctxt "language_name"
 msgid "Breton"
 msgstr ""
 
-#: psynet/translation/languages.py:121
+#: psynet/translation/languages.py:85
 msgctxt "language_name"
 msgid "Bulgarian"
 msgstr ""
 
-#: psynet/translation/languages.py:122
+#: psynet/translation/languages.py:86
 msgctxt "language_name"
 msgid "Burmese"
 msgstr ""
 
-#: psynet/translation/languages.py:123
+#: psynet/translation/languages.py:87
 msgctxt "language_name"
 msgid "Catalan"
 msgstr ""
 
-#: psynet/translation/languages.py:124
+#: psynet/translation/languages.py:88
 msgctxt "language_name"
 msgid "Central Khmer"
 msgstr ""
 
-#: psynet/translation/languages.py:125
+#: psynet/translation/languages.py:89
 msgctxt "language_name"
 msgid "Chamorro"
 msgstr ""
 
-#: psynet/translation/languages.py:126
+#: psynet/translation/languages.py:90
 msgctxt "language_name"
 msgid "Chechen"
 msgstr ""
 
-#: psynet/translation/languages.py:127 psynet/translation/languages.py:128
+#: psynet/translation/languages.py:91 psynet/translation/languages.py:92
 msgctxt "language_name"
 msgid "Chinese"
 msgstr ""
 
-#: psynet/translation/languages.py:129
+#: psynet/translation/languages.py:93
 msgctxt "language_name"
 msgid "Church Slavic"
 msgstr ""
 
-#: psynet/translation/languages.py:130
+#: psynet/translation/languages.py:94
 msgctxt "language_name"
 msgid "Chuvash"
 msgstr ""
 
-#: psynet/translation/languages.py:131
+#: psynet/translation/languages.py:95
 msgctxt "language_name"
 msgid "Cornish"
 msgstr ""
 
-#: psynet/translation/languages.py:132
+#: psynet/translation/languages.py:96
 msgctxt "language_name"
 msgid "Corsican"
 msgstr ""
 
-#: psynet/translation/languages.py:133
+#: psynet/translation/languages.py:97
 msgctxt "language_name"
 msgid "Cree"
 msgstr ""
 
-#: psynet/translation/languages.py:134
+#: psynet/translation/languages.py:98
 msgctxt "language_name"
 msgid "Croatian"
 msgstr ""
 
-#: psynet/translation/languages.py:135
+#: psynet/translation/languages.py:99
 msgctxt "language_name"
 msgid "Cebuano"
 msgstr ""
 
-#: psynet/translation/languages.py:136
+#: psynet/translation/languages.py:100
 msgctxt "language_name"
 msgid "Czech"
 msgstr ""
 
-#: psynet/translation/languages.py:137
-msgctxt "language_name"
-msgid "Dogri"
-msgstr ""
-
-#: psynet/translation/languages.py:138
+#: psynet/translation/languages.py:101
 msgctxt "language_name"
 msgid "Danish"
 msgstr ""
 
-#: psynet/translation/languages.py:139
+#: psynet/translation/languages.py:102
 msgctxt "language_name"
 msgid "Dhivehi"
 msgstr ""
 
-#: psynet/translation/languages.py:140
+#: psynet/translation/languages.py:103
 msgctxt "language_name"
 msgid "Dutch"
 msgstr ""
 
-#: psynet/translation/languages.py:141
+#: psynet/translation/languages.py:104
 msgctxt "language_name"
 msgid "Dzongkha"
 msgstr ""
 
-#: psynet/translation/languages.py:142
+#: psynet/translation/languages.py:105
 msgctxt "language_name"
 msgid "English"
 msgstr ""
 
-#: psynet/translation/languages.py:143
+#: psynet/translation/languages.py:106
 msgctxt "language_name"
 msgid "Esperanto"
 msgstr ""
 
-#: psynet/translation/languages.py:144
+#: psynet/translation/languages.py:107
 msgctxt "language_name"
 msgid "Estonian"
 msgstr ""
 
-#: psynet/translation/languages.py:145
+#: psynet/translation/languages.py:108
 msgctxt "language_name"
 msgid "Ewe"
 msgstr ""
 
-#: psynet/translation/languages.py:146
+#: psynet/translation/languages.py:109
 msgctxt "language_name"
 msgid "Faroese"
 msgstr ""
 
-#: psynet/translation/languages.py:147
+#: psynet/translation/languages.py:110
 msgctxt "language_name"
 msgid "Fijian"
 msgstr ""
 
-#: psynet/translation/languages.py:148
+#: psynet/translation/languages.py:111
 msgctxt "language_name"
 msgid "Finnish"
 msgstr ""
 
-#: psynet/translation/languages.py:149
+#: psynet/translation/languages.py:112
 msgctxt "language_name"
 msgid "French"
 msgstr ""
 
-#: psynet/translation/languages.py:150
+#: psynet/translation/languages.py:113
 msgctxt "language_name"
 msgid "Fulah"
 msgstr ""
 
-#: psynet/translation/languages.py:151
+#: psynet/translation/languages.py:114
 msgctxt "language_name"
 msgid "Galician"
 msgstr ""
 
-#: psynet/translation/languages.py:152
+#: psynet/translation/languages.py:115
 msgctxt "language_name"
 msgid "Ganda"
 msgstr ""
 
-#: psynet/translation/languages.py:153
+#: psynet/translation/languages.py:116
 msgctxt "language_name"
 msgid "Georgian"
 msgstr ""
 
-#: psynet/translation/languages.py:154
+#: psynet/translation/languages.py:117
 msgctxt "language_name"
 msgid "German"
 msgstr ""
 
-#: psynet/translation/languages.py:155
+#: psynet/translation/languages.py:118
 msgctxt "language_name"
 msgid "Gothic"
 msgstr ""
 
-#: psynet/translation/languages.py:156
+#: psynet/translation/languages.py:119
 msgctxt "language_name"
 msgid "Guarani"
 msgstr ""
 
-#: psynet/translation/languages.py:157
+#: psynet/translation/languages.py:120
 msgctxt "language_name"
 msgid "Gujarati"
 msgstr ""
 
-#: psynet/translation/languages.py:158
+#: psynet/translation/languages.py:121
 msgctxt "language_name"
 msgid "Haitian"
 msgstr ""
 
-#: psynet/translation/languages.py:159
+#: psynet/translation/languages.py:122
 msgctxt "language_name"
 msgid "Hausa"
 msgstr ""
 
-#: psynet/translation/languages.py:160
+#: psynet/translation/languages.py:123
 msgctxt "language_name"
 msgid "Hawaiian"
 msgstr ""
 
-#: psynet/translation/languages.py:161
+#: psynet/translation/languages.py:124
 msgctxt "language_name"
 msgid "Hebrew"
 msgstr ""
 
-#: psynet/translation/languages.py:162
+#: psynet/translation/languages.py:125
 msgctxt "language_name"
 msgid "Herero"
 msgstr ""
 
-#: psynet/translation/languages.py:163
+#: psynet/translation/languages.py:126
 msgctxt "language_name"
 msgid "Hindi"
 msgstr ""
 
-#: psynet/translation/languages.py:164
+#: psynet/translation/languages.py:127
 msgctxt "language_name"
 msgid "Hiri Motu"
 msgstr ""
 
-#: psynet/translation/languages.py:165
+#: psynet/translation/languages.py:128
 msgctxt "language_name"
 msgid "Hmong"
 msgstr ""
 
-#: psynet/translation/languages.py:166
+#: psynet/translation/languages.py:129
 msgctxt "language_name"
 msgid "Hungarian"
 msgstr ""
 
-#: psynet/translation/languages.py:167
+#: psynet/translation/languages.py:130
 msgctxt "language_name"
 msgid "Icelandic"
 msgstr ""
 
-#: psynet/translation/languages.py:168
+#: psynet/translation/languages.py:131
 msgctxt "language_name"
 msgid "Ido"
 msgstr ""
 
-#: psynet/translation/languages.py:169
+#: psynet/translation/languages.py:132
 msgctxt "language_name"
 msgid "Igbo"
 msgstr ""
 
-#: psynet/translation/languages.py:170
+#: psynet/translation/languages.py:133
 msgctxt "language_name"
 msgid "Indonesian"
 msgstr ""
 
-#: psynet/translation/languages.py:171
+#: psynet/translation/languages.py:134
 msgctxt "language_name"
 msgid "Interlingua"
 msgstr ""
 
-#: psynet/translation/languages.py:172
+#: psynet/translation/languages.py:135
 msgctxt "language_name"
 msgid "Interlingue"
 msgstr ""
 
-#: psynet/translation/languages.py:173
+#: psynet/translation/languages.py:136
 msgctxt "language_name"
 msgid "Inuktitut"
 msgstr ""
 
-#: psynet/translation/languages.py:174
+#: psynet/translation/languages.py:137
 msgctxt "language_name"
 msgid "Inupiaq"
 msgstr ""
 
-#: psynet/translation/languages.py:175
+#: psynet/translation/languages.py:138
 msgctxt "language_name"
 msgid "Irish"
 msgstr ""
 
-#: psynet/translation/languages.py:176
+#: psynet/translation/languages.py:139
 msgctxt "language_name"
 msgid "Italian"
 msgstr ""
 
-#: psynet/translation/languages.py:177
+#: psynet/translation/languages.py:140
 msgctxt "language_name"
 msgid "Japanese"
 msgstr ""
 
-#: psynet/translation/languages.py:178 psynet/translation/languages.py:179
+#: psynet/translation/languages.py:141 psynet/translation/languages.py:142
 msgctxt "language_name"
 msgid "Javanese"
 msgstr ""
 
-#: psynet/translation/languages.py:180
+#: psynet/translation/languages.py:143
 msgctxt "language_name"
 msgid "Kalaallisut"
 msgstr ""
 
-#: psynet/translation/languages.py:181
+#: psynet/translation/languages.py:144
 msgctxt "language_name"
 msgid "Kannada"
 msgstr ""
 
-#: psynet/translation/languages.py:182
+#: psynet/translation/languages.py:145
 msgctxt "language_name"
 msgid "Kanuri"
 msgstr ""
 
-#: psynet/translation/languages.py:183
+#: psynet/translation/languages.py:146
 msgctxt "language_name"
 msgid "Kashmiri"
 msgstr ""
 
-#: psynet/translation/languages.py:184
+#: psynet/translation/languages.py:147
 msgctxt "language_name"
 msgid "Kazakh"
 msgstr ""
 
-#: psynet/translation/languages.py:185
+#: psynet/translation/languages.py:148
 msgctxt "language_name"
 msgid "Kikuyu"
 msgstr ""
 
-#: psynet/translation/languages.py:186
+#: psynet/translation/languages.py:149
 msgctxt "language_name"
 msgid "Kinyarwanda"
 msgstr ""
 
-#: psynet/translation/languages.py:187
+#: psynet/translation/languages.py:150
 msgctxt "language_name"
 msgid "Kirghiz"
 msgstr ""
 
-#: psynet/translation/languages.py:188
+#: psynet/translation/languages.py:151
 msgctxt "language_name"
 msgid "Komi"
 msgstr ""
 
-#: psynet/translation/languages.py:189
+#: psynet/translation/languages.py:152
 msgctxt "language_name"
 msgid "Kongo"
 msgstr ""
 
-#: psynet/translation/languages.py:190
-msgctxt "language_name"
-msgid "Konkani"
-msgstr ""
-
-#: psynet/translation/languages.py:191
+#: psynet/translation/languages.py:153
 msgctxt "language_name"
 msgid "Korean"
 msgstr ""
 
-#: psynet/translation/languages.py:192
+#: psynet/translation/languages.py:154
 msgctxt "language_name"
 msgid "Kuanyama"
 msgstr ""
 
-#: psynet/translation/languages.py:193
+#: psynet/translation/languages.py:155
 msgctxt "language_name"
 msgid "Kurdish"
 msgstr ""
 
-#: psynet/translation/languages.py:194
+#: psynet/translation/languages.py:156
 msgctxt "language_name"
 msgid "Lao"
 msgstr ""
 
-#: psynet/translation/languages.py:195
+#: psynet/translation/languages.py:157
 msgctxt "language_name"
 msgid "Latin"
 msgstr ""
 
-#: psynet/translation/languages.py:196
+#: psynet/translation/languages.py:158
 msgctxt "language_name"
 msgid "Latvian"
 msgstr ""
 
-#: psynet/translation/languages.py:197
+#: psynet/translation/languages.py:159
 msgctxt "language_name"
 msgid "Limburgan"
 msgstr ""
 
-#: psynet/translation/languages.py:198
+#: psynet/translation/languages.py:160
 msgctxt "language_name"
 msgid "Lingala"
 msgstr ""
 
-#: psynet/translation/languages.py:199
+#: psynet/translation/languages.py:161
 msgctxt "language_name"
 msgid "Lithuanian"
 msgstr ""
 
-#: psynet/translation/languages.py:200
+#: psynet/translation/languages.py:162
 msgctxt "language_name"
 msgid "Luba-Katanga"
 msgstr ""
 
-#: psynet/translation/languages.py:201
+#: psynet/translation/languages.py:163
 msgctxt "language_name"
 msgid "Luxembourgish"
 msgstr ""
 
-#: psynet/translation/languages.py:202
+#: psynet/translation/languages.py:164
 msgctxt "language_name"
 msgid "Macedonian"
 msgstr ""
 
-#: psynet/translation/languages.py:203
-msgctxt "language_name"
-msgid "Maithili"
-msgstr ""
-
-#: psynet/translation/languages.py:204
+#: psynet/translation/languages.py:165
 msgctxt "language_name"
 msgid "Malagasy"
 msgstr ""
 
-#: psynet/translation/languages.py:205
+#: psynet/translation/languages.py:166
 msgctxt "language_name"
 msgid "Malay"
 msgstr ""
 
-#: psynet/translation/languages.py:206
+#: psynet/translation/languages.py:167
 msgctxt "language_name"
 msgid "Malayalam"
 msgstr ""
 
-#: psynet/translation/languages.py:207
+#: psynet/translation/languages.py:168
 msgctxt "language_name"
 msgid "Maltese"
 msgstr ""
 
-#: psynet/translation/languages.py:208
-msgctxt "language_name"
-msgid "Manipuri"
-msgstr ""
-
-#: psynet/translation/languages.py:209
+#: psynet/translation/languages.py:169
 msgctxt "language_name"
 msgid "Manx"
 msgstr ""
 
-#: psynet/translation/languages.py:210
+#: psynet/translation/languages.py:170
 msgctxt "language_name"
 msgid "Maori"
 msgstr ""
 
-#: psynet/translation/languages.py:211
+#: psynet/translation/languages.py:171
 msgctxt "language_name"
 msgid "Marathi"
 msgstr ""
 
-#: psynet/translation/languages.py:212
+#: psynet/translation/languages.py:172
 msgctxt "language_name"
 msgid "Marshallese"
 msgstr ""
 
-#: psynet/translation/languages.py:213
+#: psynet/translation/languages.py:173
 msgctxt "language_name"
 msgid "Greek"
 msgstr ""
 
-#: psynet/translation/languages.py:214
+#: psynet/translation/languages.py:174
 msgctxt "language_name"
 msgid "Mongolian"
 msgstr ""
 
-#: psynet/translation/languages.py:215
+#: psynet/translation/languages.py:175
 msgctxt "language_name"
 msgid "Nauru"
 msgstr ""
 
-#: psynet/translation/languages.py:216
+#: psynet/translation/languages.py:176
 msgctxt "language_name"
 msgid "Navajo"
 msgstr ""
 
-#: psynet/translation/languages.py:217
+#: psynet/translation/languages.py:177
 msgctxt "language_name"
 msgid "Ndonga"
 msgstr ""
 
-#: psynet/translation/languages.py:218
+#: psynet/translation/languages.py:178
 msgctxt "language_name"
 msgid "Nepali"
 msgstr ""
 
-#: psynet/translation/languages.py:219
+#: psynet/translation/languages.py:179
 msgctxt "language_name"
 msgid "North Ndebele"
 msgstr ""
 
-#: psynet/translation/languages.py:220
+#: psynet/translation/languages.py:180
 msgctxt "language_name"
 msgid "Northern Sami"
 msgstr ""
 
-#: psynet/translation/languages.py:221
+#: psynet/translation/languages.py:181
 msgctxt "language_name"
 msgid "Norwegian"
 msgstr ""
 
-#: psynet/translation/languages.py:222
+#: psynet/translation/languages.py:182
 msgctxt "language_name"
 msgid "Norwegian Bokmål"
 msgstr ""
 
-#: psynet/translation/languages.py:223
+#: psynet/translation/languages.py:183
 msgctxt "language_name"
 msgid "Norwegian Nynorsk"
 msgstr ""
 
-#: psynet/translation/languages.py:224
+#: psynet/translation/languages.py:184
 msgctxt "language_name"
 msgid "Nyanja"
 msgstr ""
 
-#: psynet/translation/languages.py:225
+#: psynet/translation/languages.py:185
 msgctxt "language_name"
 msgid "Occitan"
 msgstr ""
 
-#: psynet/translation/languages.py:226
-msgctxt "language_name"
-msgid "Odia"
-msgstr ""
-
-#: psynet/translation/languages.py:227
+#: psynet/translation/languages.py:186
 msgctxt "language_name"
 msgid "Ojibwa"
 msgstr ""
 
-#: psynet/translation/languages.py:228
+#: psynet/translation/languages.py:187
+msgctxt "language_name"
+msgid "Oriya"
+msgstr ""
+
+#: psynet/translation/languages.py:188
 msgctxt "language_name"
 msgid "Oromo"
 msgstr ""
 
-#: psynet/translation/languages.py:229
+#: psynet/translation/languages.py:189
 msgctxt "language_name"
 msgid "Ossetian"
 msgstr ""
 
-#: psynet/translation/languages.py:230
+#: psynet/translation/languages.py:190
 msgctxt "language_name"
 msgid "Pali"
 msgstr ""
 
-#: psynet/translation/languages.py:231
+#: psynet/translation/languages.py:191
 msgctxt "language_name"
 msgid "Panjabi"
 msgstr ""
 
-#: psynet/translation/languages.py:232
+#: psynet/translation/languages.py:192
 msgctxt "language_name"
 msgid "Persian"
 msgstr ""
 
-#: psynet/translation/languages.py:233
+#: psynet/translation/languages.py:193
 msgctxt "language_name"
 msgid "Polish"
 msgstr ""
 
-#: psynet/translation/languages.py:234
+#: psynet/translation/languages.py:194
 msgctxt "language_name"
 msgid "Portuguese"
 msgstr ""
 
-#: psynet/translation/languages.py:235
+#: psynet/translation/languages.py:195
 msgctxt "language_name"
 msgid "Pushto"
 msgstr ""
 
-#: psynet/translation/languages.py:236
+#: psynet/translation/languages.py:196
 msgctxt "language_name"
 msgid "Quechua"
 msgstr ""
 
-#: psynet/translation/languages.py:237
+#: psynet/translation/languages.py:197
 msgctxt "language_name"
 msgid "Romanian"
 msgstr ""
 
-#: psynet/translation/languages.py:238
+#: psynet/translation/languages.py:198
 msgctxt "language_name"
 msgid "Romansh"
 msgstr ""
 
-#: psynet/translation/languages.py:239
+#: psynet/translation/languages.py:199
 msgctxt "language_name"
 msgid "Rundi"
 msgstr ""
 
-#: psynet/translation/languages.py:240
+#: psynet/translation/languages.py:200
 msgctxt "language_name"
 msgid "Russian"
 msgstr ""
 
-#: psynet/translation/languages.py:241
+#: psynet/translation/languages.py:201
 msgctxt "language_name"
 msgid "Samoan"
 msgstr ""
 
-#: psynet/translation/languages.py:242
+#: psynet/translation/languages.py:202
 msgctxt "language_name"
 msgid "Sango"
 msgstr ""
 
-#: psynet/translation/languages.py:243
+#: psynet/translation/languages.py:203
 msgctxt "language_name"
 msgid "Sanskrit"
 msgstr ""
 
-#: psynet/translation/languages.py:244
+#: psynet/translation/languages.py:204
 msgctxt "language_name"
 msgid "Sardinian"
 msgstr ""
 
-#: psynet/translation/languages.py:245
-msgctxt "language_name"
-msgid "Santali"
-msgstr ""
-
-#: psynet/translation/languages.py:246
+#: psynet/translation/languages.py:205
 msgctxt "language_name"
 msgid "Scottish Gaelic"
 msgstr ""
 
-#: psynet/translation/languages.py:247
+#: psynet/translation/languages.py:206
 msgctxt "language_name"
 msgid "Serbian"
 msgstr ""
 
-#: psynet/translation/languages.py:248
+#: psynet/translation/languages.py:207
 msgctxt "language_name"
 msgid "Serbo-Croatian"
 msgstr ""
 
-#: psynet/translation/languages.py:249
+#: psynet/translation/languages.py:208
 msgctxt "language_name"
 msgid "Shona"
 msgstr ""
 
-#: psynet/translation/languages.py:250
+#: psynet/translation/languages.py:209
 msgctxt "language_name"
 msgid "Sichuan Yi"
 msgstr ""
 
-#: psynet/translation/languages.py:251
+#: psynet/translation/languages.py:210
 msgctxt "language_name"
 msgid "Sindhi"
 msgstr ""
 
-#: psynet/translation/languages.py:252
+#: psynet/translation/languages.py:211
 msgctxt "language_name"
 msgid "Sinhala"
 msgstr ""
 
-#: psynet/translation/languages.py:253
+#: psynet/translation/languages.py:212
 msgctxt "language_name"
 msgid "Slovak"
 msgstr ""
 
-#: psynet/translation/languages.py:254
+#: psynet/translation/languages.py:213
 msgctxt "language_name"
 msgid "Slovenian"
 msgstr ""
 
-#: psynet/translation/languages.py:255
+#: psynet/translation/languages.py:214
 msgctxt "language_name"
 msgid "Somali"
 msgstr ""
 
-#: psynet/translation/languages.py:256
+#: psynet/translation/languages.py:215
 msgctxt "language_name"
 msgid "South Ndebele"
 msgstr ""
 
-#: psynet/translation/languages.py:257
+#: psynet/translation/languages.py:216
 msgctxt "language_name"
 msgid "Southern Sotho"
 msgstr ""
 
-#: psynet/translation/languages.py:258
+#: psynet/translation/languages.py:217
 msgctxt "language_name"
 msgid "Spanish"
 msgstr ""
 
-#: psynet/translation/languages.py:259
+#: psynet/translation/languages.py:218
 msgctxt "language_name"
 msgid "Sundanese"
 msgstr ""
 
-#: psynet/translation/languages.py:260
+#: psynet/translation/languages.py:219
 msgctxt "language_name"
 msgid "Swahili"
 msgstr ""
 
-#: psynet/translation/languages.py:261
+#: psynet/translation/languages.py:220
 msgctxt "language_name"
 msgid "Swati"
 msgstr ""
 
-#: psynet/translation/languages.py:262
+#: psynet/translation/languages.py:221
 msgctxt "language_name"
 msgid "Swedish"
 msgstr ""
 
-#: psynet/translation/languages.py:263
+#: psynet/translation/languages.py:222
 msgctxt "language_name"
 msgid "Taiwanese"
 msgstr ""
 
-#: psynet/translation/languages.py:264
+#: psynet/translation/languages.py:223
 msgctxt "language_name"
 msgid "Tagalog"
 msgstr ""
 
-#: psynet/translation/languages.py:265
+#: psynet/translation/languages.py:224
 msgctxt "language_name"
 msgid "Tahitian"
 msgstr ""
 
-#: psynet/translation/languages.py:266
+#: psynet/translation/languages.py:225
 msgctxt "language_name"
 msgid "Tajik"
 msgstr ""
 
-#: psynet/translation/languages.py:267
+#: psynet/translation/languages.py:226
 msgctxt "language_name"
 msgid "Tamil"
 msgstr ""
 
-#: psynet/translation/languages.py:268
+#: psynet/translation/languages.py:227
 msgctxt "language_name"
 msgid "Tatar"
 msgstr ""
 
-#: psynet/translation/languages.py:269
+#: psynet/translation/languages.py:228
 msgctxt "language_name"
 msgid "Telugu"
 msgstr ""
 
-#: psynet/translation/languages.py:270
+#: psynet/translation/languages.py:229
 msgctxt "language_name"
 msgid "Thai"
 msgstr ""
 
-#: psynet/translation/languages.py:271
+#: psynet/translation/languages.py:230
 msgctxt "language_name"
 msgid "Tibetan"
 msgstr ""
 
-#: psynet/translation/languages.py:272
+#: psynet/translation/languages.py:231
 msgctxt "language_name"
 msgid "Tigrinya"
 msgstr ""
 
-#: psynet/translation/languages.py:273
+#: psynet/translation/languages.py:232
 msgctxt "language_name"
 msgid "Tonga"
 msgstr ""
 
-#: psynet/translation/languages.py:274
+#: psynet/translation/languages.py:233
 msgctxt "language_name"
 msgid "Tsonga"
 msgstr ""
 
-#: psynet/translation/languages.py:275
+#: psynet/translation/languages.py:234
 msgctxt "language_name"
 msgid "Tswana"
 msgstr ""
 
-#: psynet/translation/languages.py:276
+#: psynet/translation/languages.py:235
 msgctxt "language_name"
 msgid "Turkish"
 msgstr ""
 
-#: psynet/translation/languages.py:277
+#: psynet/translation/languages.py:236
 msgctxt "language_name"
 msgid "Turkmen"
 msgstr ""
 
-#: psynet/translation/languages.py:278
+#: psynet/translation/languages.py:237
 msgctxt "language_name"
 msgid "Twi"
 msgstr ""
 
-#: psynet/translation/languages.py:279
+#: psynet/translation/languages.py:238
 msgctxt "language_name"
 msgid "Uighur"
 msgstr ""
 
-#: psynet/translation/languages.py:280
+#: psynet/translation/languages.py:239
 msgctxt "language_name"
 msgid "Ukrainian"
 msgstr ""
 
-#: psynet/translation/languages.py:281
+#: psynet/translation/languages.py:240
 msgctxt "language_name"
 msgid "Urdu"
 msgstr ""
 
-#: psynet/translation/languages.py:282
+#: psynet/translation/languages.py:241
 msgctxt "language_name"
 msgid "Uzbek"
 msgstr ""
 
-#: psynet/translation/languages.py:283
+#: psynet/translation/languages.py:242
 msgctxt "language_name"
 msgid "Venda"
 msgstr ""
 
-#: psynet/translation/languages.py:284
+#: psynet/translation/languages.py:243
 msgctxt "language_name"
 msgid "Vietnamese"
 msgstr ""
 
-#: psynet/translation/languages.py:285
+#: psynet/translation/languages.py:244
 msgctxt "language_name"
 msgid "Volapük"
 msgstr ""
 
-#: psynet/translation/languages.py:286
+#: psynet/translation/languages.py:245
 msgctxt "language_name"
 msgid "Walloon"
 msgstr ""
 
-#: psynet/translation/languages.py:287
+#: psynet/translation/languages.py:246
 msgctxt "language_name"
 msgid "Welsh"
 msgstr ""
 
-#: psynet/translation/languages.py:288
+#: psynet/translation/languages.py:247
 msgctxt "language_name"
 msgid "Western Armenian"
 msgstr ""
 
-#: psynet/translation/languages.py:289
+#: psynet/translation/languages.py:248
 msgctxt "language_name"
 msgid "Western Frisian"
 msgstr ""
 
-#: psynet/translation/languages.py:290
+#: psynet/translation/languages.py:249
 msgctxt "language_name"
 msgid "Wolof"
 msgstr ""
 
-#: psynet/translation/languages.py:291
+#: psynet/translation/languages.py:250
 msgctxt "language_name"
 msgid "Xhosa"
 msgstr ""
 
-#: psynet/translation/languages.py:292
+#: psynet/translation/languages.py:251
 msgctxt "language_name"
 msgid "Yiddish"
 msgstr ""
 
-#: psynet/translation/languages.py:293
+#: psynet/translation/languages.py:252
 msgctxt "language_name"
 msgid "Yoruba"
 msgstr ""
 
-#: psynet/translation/languages.py:294
+#: psynet/translation/languages.py:253
 msgctxt "language_name"
 msgid "Zhuang"
 msgstr ""
 
-#: psynet/translation/languages.py:295
+#: psynet/translation/languages.py:254
 msgctxt "language_name"
 msgid "Zulu"
 msgstr ""
