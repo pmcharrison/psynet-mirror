@@ -1,0 +1,5797 @@
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Language: st\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "How do you identify yourself?"
+msgstr "O ikhetha joang?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Female"
+msgstr "Mosali"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Male"
+msgstr "Monna"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Non-binary"
+msgstr "E seng binary"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Not specified"
+msgstr "Ha e hlalosoe"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "I prefer not to answer"
+msgstr "Ke khetha ho se arabe"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Specify yourself"
+msgstr "Ipehele ka boeena"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "age"
+msgid "What is your age?"
+msgstr "Ke lilemo li kae?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "age"
+msgid "You need to provide your age as an integer between 0 and 120!"
+msgstr ""
+"O hloka ho fana ka lilemo tsa hau ka nomoro e felletseng lipakeng tsa 0 le "
+"120!"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "age"
+msgid "Your answer was: '{AGE}'"
+msgstr "Karabo ea hau e ne e le: '{AGE}'"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "Other country"
+msgstr "Naha e 'ngoe"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "Select a country"
+msgstr "Khetha naha"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "You need to select a country!"
+msgstr "O hloka ho khetha naha!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "What country are you from?"
+msgstr "U tsoa naheng efe?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "What is your current country of residence?"
+msgstr "Naha eo u lulang ho eona hona joale ke efe?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "What is your highest level of formal education?"
+msgstr "Boemo ba hau bo phahameng ka ho fetisisa ba thuto ke bofe?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "None"
+msgstr "Ha ho letho"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "High school"
+msgstr "Sekolo se phahameng"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "College"
+msgstr "Kholejeng"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "Graduate School"
+msgstr "Sekolo sa Graduate"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "Postgraduate degree or higher"
+msgstr "Degree ea maemo a ka holimo kapa e phahameng"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"What is your mother tongue - i.e., the language which you have grown up "
+"speaking from early childhood?"
+msgstr ""
+"Puo ea hau ea pele ke efe - ke hore, puo eo u hōletseng ho e bua ho tloha "
+"bongoaneng?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Select a language"
+msgstr "Khetha puo"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "You need to select a language!"
+msgstr "O hloka ho khetha puo!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Do you speak more than one language?"
+msgstr "Na u bua lipuo tse fetang e le 'ngoe?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "Yes"
+msgstr "Ee"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "No"
+msgstr "Che"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"Please list the languages you speak in order of proficiency (first language "
+"first, second language second, ...)"
+msgstr ""
+"Ka kopo thathamisa lipuo tseo u li buang ho latela bokhoni (puo ea pele "
+"pele, ea bobeli ea bobeli, ...)"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "Ka kopo thathamisa bonyane puo e le 'ngoe!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid ""
+"How many years of formal training on a musical instrument (including voice) "
+"have you had during your lifetime?"
+msgstr ""
+"Ke lilemo tse kae u koetlisitsoeng ka molao ho liletsa tsa 'mino (ho "
+"kenyelletsa le lentsoe) bophelong ba hau?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "On average, how many hours do you listen to music daily?"
+msgstr "Ka karolelano, u mamela 'mino lihora tse kae ka letsatsi?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Do you make money from playing music?"
+msgstr "Na u fumana chelete ka ho bapala 'mino?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Frequently"
+msgstr "Hangata"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Sometimes"
+msgstr "Ka nako e 'ngoe"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Never"
+msgstr "Ha ho mohla"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Do you have hearing loss or any other hearing issues?"
+msgstr "Na u na le tahlehelo ea kutlo kapa mathata a mang a kutlo?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Do you dance socially or professionally?"
+msgstr "Na u tantša sechabeng kapa ka botsebi?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Socially"
+msgstr "Sechabeng"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Professionally"
+msgstr "Ka botsebi"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "I never dance"
+msgstr "Ha ke tantše"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "When was the last time you danced? (choose the most accurate answer):"
+msgstr ""
+"E ne e le neng lekhetlo la ho qetela u tantsang? (khetha karabo e "
+"nepahetseng haholo):"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This week"
+msgstr "Beke ena"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This month"
+msgstr "Khoeli ena"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This year"
+msgstr "Selemong sena"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Some years ago"
+msgstr "Lilemong tse 'maloa tse fetileng"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Many years ago"
+msgstr "Lilemong tse ngata tse fetileng"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "I never danced"
+msgstr "Ha ke so ka ke tantša"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Did you get speech-language therapy as a child?"
+msgstr "Na u ile ua fumana kalafo ea puo ha u sa le ngoana?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "I don’t know"
+msgstr "Ha ke tsebe"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Have you ever been diagnosed with dyslexia?"
+msgstr "Na u kile ua fumanoa u na le dyslexia?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "income"
+msgid "What is your total household income per year?"
+msgstr "Ke chelete e kae eo lelapa la hau le e fumanang ka selemo?"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "Less than 10,000 {CURRENCY}"
+msgstr "Ka tlase ho 10,000 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "10,000 to 19,999 {CURRENCY}"
+msgstr "10,000 ho 19,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "20,000 to 29,999 {CURRENCY}"
+msgstr "20,000 ho 29,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "30,000 to 39,999 {CURRENCY}"
+msgstr "30,000 ho 39,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "40,000 to 49,999 {CURRENCY}"
+msgstr "40,000 ho 49,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "50,000 to 59,999 {CURRENCY}"
+msgstr "50,000 ho 59,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "60,000 to 69,999 {CURRENCY}"
+msgstr "60,000 ho 69,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "70,000 to 79,999 {CURRENCY}"
+msgstr "70,000 ho 79,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "80,000 to 89,999 {CURRENCY}"
+msgstr "80,000 ho 89,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "90,000 to 99,999 {CURRENCY}"
+msgstr "90,000 ho 99,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "100,000 to 149,999 {CURRENCY}"
+msgstr "100,000 ho 149,999 {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "150,000 {CURRENCY} or more"
+msgstr "150,000 {CURRENCY} kapa ho feta"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you like the experiment?"
+msgstr "Na u ratile teko?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you find the experiment difficult?"
+msgstr "Na u fumane teko e le thata?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you encounter any technical problems during the experiment?"
+msgstr "Na u ile ua fumana mathata a theknoloji nakong ea teko?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "If so, please provide a few words describing the problem."
+msgstr ""
+"Ha ho joalo, ka kopo fana ka mantsoe a seng makae a hlalosang bothata."
+
+#: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"U tla fumana moputso oa <strong>{CURRENCY}{TIME_REWARD}</strong> bakeng sa "
+"nako eo u e qetileng tekong. U bile u fuoe moputso oa ts'ebetso oa "
+"<strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "Sena ke pheletso ea teko!"
+
+#: psynet/end.py
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "Rea leboha ka ho nka karolo."
+
+#: psynet/end.py
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "Ka kopo tobetsa \"Qeta\" ho phethela HIT."
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "Ka bomalimabe teko e tlameha ho fela kapele."
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr ""
+"Leha ho le joalo, u tla ntse u lefshoa bakeng sa nako eo u seng u e qetile."
+
+#: psynet/end.py
+#, fuzzy
+msgid "You will be redirected."
+msgstr "U tla fetisetsoa."
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "Tumello e ile ea haneloa."
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "Pheletso ea teko."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "Ho bile le phoso 'me ha o khone ho tsoela pele, maswabi!"
+
+#: psynet/experiment.py
+#, fuzzy, python-brace-format
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"Ho botsa ka tefo, ka kopo ikopanye le mofuputsi ho {EMAIL} mme o hlalose se "
+"entseng hore ho be le phoso ena."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "Ka kopo boela o qotse tlhahisoleseding e latelang:"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "Se ts'oenyehe, tsoelopele ya hao e ngotswe."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"Ho botsa ka tefo, ka kopo romela mofuputsi molaetsa ka webosaete ya Prolific"
+" le ho hlalosa se entseng hore ho be le phoso ya hao."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "O hloka ho hlahloba bonyane karabo e le 'ngoe!"
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "O hloka ho khetha karabo!"
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "O hloka ho fana ka nomoro!"
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "Ngola palo e setšoantšong."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr ""
+"Re tla etsa teko e potlakileng ho hlahloba bokhoni ba hau ba ho bona mebala."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr ""
+"Tekong e 'ngoe le e 'ngoe, u tla hlahisoa ka setšoantšo se nang le palo."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy, python-brace-format
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "Setšoantšo sena se tla nyamela ka mor'a metsotsoana e {HIDE_AFTER}."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "U tlameha ho kenya nomoro eo u e bonang ka lebokoseng la mongolo."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Ke molumo ofe o fapaneng le lialuma tse ling tse peli: 1, 2, kapa 3?"
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Tšebetso ea hau e tla ba ho ahlola <strong>ke molumo ofe o fapaneng le e "
+"meng.</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Score ea hau e ne e le"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Tobetsa konopo ho tsoela pele."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Re tla etsa tlhahlobo ho hlahloba bokhoni ba hau ba puo."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Ketsahalong e 'ngoe le e 'ngoe, u tla bona letoto la litlhaku."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Letoto la litlhaku le tla nyamela ka bo eona."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Mosebetsi oa hau ke ho etsa qeto ea hore na ee ke lentsoe le teng ka "
+"{LANGUAGE_NAME} kapa che."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Haeba u sa tsebe moelelo o nepahetseng oa lentsoe, empa u na le bonnete ba "
+"hore le teng ka {LANGUAGE_NAME}, u lokela ho le tšoaea e le lentsoe la "
+"nnete."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Haeba u sa tsebe hantle hore na lentsoe le teng ka {LANGUAGE_NAME}, u lokela"
+" ho le tšoaea e le lentsoe la bohata."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"Tekong ena, u ka fumana motsoako pakeng tsa mefuta e fapaneng ea mopeleto."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Ha ua lokela ho ela hloko phapang e nyenyane ea mopeleto."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Mantsoe a hlahisoa ka litlhaku tse kholo feela kapa tse nyane feela."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "U ka hlokomoloha litlhaku tse kholo kapa tse nyane tsa lentsoe."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Ho etsa mosebetsi kapele, u lokela ho sebelisa likonopo tse ka har'a "
+"keyboard ea hau."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "U ka sebelisa likonopo tse latelang:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Tobetsa <kbd>A</kbd> haeba lentsoe le hlahisitsoeng le <strong>la "
+"nnete</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Tobetsa <kbd>L</kbd> haeba lentsoe le hlahisitsoeng le <strong>la "
+"bohata</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Tloaelana le likonopo tse peli ho keyboard ea hau."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Haeba u li tobetsa, li tla khanya ka har'a keyboard ka ho le letona."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"U hloka ho tobetsa likonopo ka bobeli bonyane hanngoe ho tsoela pele "
+"leqepheng le latelang."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Haeba u lebala likonopo, li tla hatisoa leqepheng le leng le le leng."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Teko e tla qala leqepheng le latelang."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "Ho fetolela Lucid Marketplace..."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr "Ho sitwa ho emisa."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"Ho sitwa ho emisa teko kaha moetsi oa teko ha a lumelle hona ka nako ena!"
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"O tlameha ho bokella <strong>bonyane "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> ea moputso ho "
+"khoneha ho lefshoa."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr ""
+"Sheba tlhahisoleseling e ka tlase mabapi le moputso oa hau o bokelletsoeng "
+"hona joale."
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Assignment ID"
+msgstr "Assignment ID"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "HIT ID"
+msgstr "HIT ID"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "Moputso o bokelletsoeng"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Close window"
+msgstr "Koala fensetere"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "Na u tiile hore u batla ho emisa teko?"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"Haeba u tobetsa konopo ea Ho emisa, teko e tla fela kapele, 'me u tla lefuoa"
+" ka bo eona puseletso eo u e fumaneng ho fihlela joale."
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr ""
+"Ka kopo ikopanye le rona feela haeba u na le bothata ba ho fumana tefo ea "
+"hau."
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See the information below for details of your compensation."
+msgstr ""
+"Sheba tlhahisoleseling e ka tlase bakeng sa lintlha tsa puseletso ea hau."
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Abort experiment"
+msgstr "Emisa teko"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Call for participants"
+msgstr "Pitsetsa bakopi"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "Litlhoko tsa ho nka karolo ke tse latelang"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr ""
+"Ka kopo tobetsa konopo ea \"Amohela HIT\" sebakeng sa Amazon se kaholimo ho "
+"qala mosebetsi."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr "Rea leboha ka ho amohela HIT ena."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for your interest in this experiment."
+msgstr "Rea leboha ka thahasello ea hau tekong ena."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr ""
+"Ka ho tobetsa sehokelo sa URL se latelang, u tla isoa tekong, ho kenyeletsa "
+"litaelo tse felletseng le tumellano ea tumello e tsebisitsoeng."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Warning"
+msgstr "Tlhokomeliso"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr "Ka kopo tima li-pop-up blockers pele u tsoela pele."
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "Qala Teko"
+
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "Emisa Teko"
+
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Click the above button to be compensated in case of an error."
+msgstr "Tobetsa konopo e kaholimo ho lefshoa haeba ho na le phoso."
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "To proceed, click the button below."
+msgstr "Ho tsoela pele, tobetsa konopo e ka tlase."
+
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Next"
+msgstr "E 'ngoe"
+
+#: psynet/templates/consents/audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid ""
+"In this experiment, you may be asked to make a voice or video recording."
+msgstr ""
+"Phuputsong ena, o ka 'na oa kōptjoa ho etsa ho rekota lentsoe kapa video."
+
+#: psynet/templates/consents/audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid ""
+"For example, you may be asked to record your finger-tapping in response to a"
+" sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Mohlala, o ka 'na oa kōptjoa ho rekota ho tlanya menoana ea hao ka karabelo "
+"ea molumo kapa video, kapa ho rekota u bua kapa u bina."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "Research Participant Consent Form for Image/Sound Recordings"
+msgstr ""
+"Foromo ea Tumello ea Moitseki oa Patlisiso bakeng sa Litšoantšo/Liankora tsa"
+" Molumo"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Title of study:"
+msgstr "Sehlooho sa thuto:"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have received oral and written information about the fact that "
+"<i>audiovisual</i> recordings will be made in this study."
+msgstr ""
+"Ke amohetse tlhahisoleseding ka molomo le ka mongolo mabapi le taba ea hore "
+"<i>liankora tsa molumo le litšoantšo</i> li tla etsoa thutong ena."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The recording serves the purpose of understanding how humans perceive and "
+"process information from sound and visual."
+msgstr ""
+"Ho etsa liankora tsena ho sebeletsa ho utloisisa kamoo batho ba amohang le "
+"ho sebetsana le tlhahisoleseding e tsoang molumo le pono."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"For example, we would like to understand how predictive mechanisms in "
+"perception rely on experience, learning, and memory."
+msgstr ""
+"Mohlala, re ka rata ho utloisisa kamoo mekhoa ea ho bolela esale pele e "
+"itšetlehileng ka phihlelo, ho ithuta, le mohopolo."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"By making recording people while moving, singing, tapping to rhythms, or "
+"speaking, we can infer the mechanisms of the auditory and visual systems."
+msgstr ""
+"Ka ho etsa liankora tsa batho ha ba ntse ba tsamaea, ba bina, ba kokota "
+"melodi, kapa ba bua, re ka fumana mekhoa ea tsamaiso ea mamelo le pono."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have been informed that the storage and processing of the "
+"<i>audiovisual</i> recording will be carried out in pseudonymized form, "
+"i.e., using a number and without containing my name, and that there is a "
+"coding list that links my name to the number."
+msgstr ""
+"Ke tsebisitsoe hore polokelo le ts'ebetso ea <i>liankora tsa molumo le "
+"litšoantšo</i> e tla etsoa ka mokhoa o sa senoleng mabitso, ke hore, ka ho "
+"sebelisa nomoro le ntle le ho kenyelletsa lebitso la ka, 'me ho na le lenane"
+" la khoutu le amanang lebitso la ka le nomoro."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The investigators are the only persons who have access to this coding list, "
+"which will be destroyed after completion of the research project."
+msgstr ""
+"Bafuputsi ke bona feela ba nang le phihlello lenaneng lena la khoutu, le tla"
+" senngoa ka mor'a ho phethoa ha projeke ea lipatlisiso."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"Researchers associated with this project will have access to my "
+"<i>audiovisual</i> data during the recording and the analysis of the "
+"material."
+msgstr ""
+"Bafuputsi ba amanang le projeke ena ba tla ba le phihlello ts'ebetsong ea ka"
+" ea <i>liankora tsa molumo le litšoantšo</i> nakong ea ho rekota le "
+"tlhahlobo ea thepa."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"I understand that I am free to withdraw my consent to the collection and "
+"storage of my personal data without negative consequences."
+msgstr ""
+"Ke utloisisa hore ke lokolohile ho ikhula tumello ea ka ea ho bokella le ho "
+"boloka data ea ka e ikemetseng ntle le litlamorao tse mpe."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I agree to the handling of the recordings as described above."
+msgstr "Ke lumela ho sebetsana le liankora tse boletsoeng ka holimo."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Addendum for demonstrations"
+msgstr "Tlatsetso bakeng sa lipontšo"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"I agree that my <i>audiovisual</i> recordings can be used for demonstration "
+"purposes in presentations with a limited number of participants (e.g., "
+"teaching courses or scientific presentations)."
+msgstr ""
+"Ke lumela hore <i>liankora tsa molumo le litšoantšo</i> tsa ka li ka "
+"sebelisoa bakeng sa lipontšo ka lipuo tse nang le palo e lekanyelitsoeng ea "
+"barupeluoa (mohlala, lithuto tsa ho ruta kapa lipontšo tsa saense)."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "(Please tick where applicable)"
+msgstr "(Ka kopo khetha moo ho hlokahalang)"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "YES"
+msgstr "EE"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "NO"
+msgstr "CHE"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The declaration of consent for <i>audiovisual</i> recordings is voluntary."
+msgstr ""
+"Phatlalatso ea tumello bakeng sa <i>liankora tsa molumo le litšoantšo</i> ke"
+" ea boithatelo."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I may withdraw my consent at any time."
+msgstr "Ke ka hula tumello ea ka neng kapa neng."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"In case of refusal or withdrawal, no costs will be incurred nor will there "
+"be other negative consequences; however, in this case, participation in the "
+"study will not be possible."
+msgstr ""
+"Ha ho hana kapa ho hula, ha ho litšenyehelo tse tla hlahisoa kapa litlamorao"
+" tse ling tse mpe; leha ho le joalo, tabeng ena, ho nka karolo thutong ho ke"
+" ke ha khoneha."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I had sufficient time for this decision."
+msgstr "Ke bile le nako e lekaneng bakeng sa qeto ena."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have read and understood everything and hereby agree that "
+"<i>audiovisual</i> recordings of me may be taken."
+msgstr ""
+"Ke balile le ho utloisisa tsohle 'me ka hona ke lumela hore <i>liankora tsa "
+"molumo le litšoantšo</i> tsa ka li ka nkoa."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I have received a copy of this consent form."
+msgstr "Ke amohetse kopi ea foromo ena ea tumello."
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Investigator"
+msgstr "Mofuputsi"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "Research Participant Consent Form"
+msgstr "Foromo ea Tumello ea Moikarabelo oa Patlisiso"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have received written information about the study and the procedure of the"
+" study."
+msgstr "Ke amohetse tlhahisoleseling e ngotsoeng ka thuto le mokhoa oa thuto."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid "I have read and understood all of the information completely."
+msgstr "Ke balile le ho utloisisa tlhahisoleseling eohle ka botlalo."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"If I had questions concerning the upcoming study, they were answered "
+"completely and to my satisfaction."
+msgstr ""
+"Haeba ke ne ke na le lipotso tse amanang le thuto e tlang, li ile tsa arajoa"
+" ka botlalo le ho khotsofatsa."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I agree to the described collecting and processing of my age, gender, and "
+"country of birth."
+msgstr ""
+"Ke lumela ho bokelloa le ho sebetsoa ha lilemo tsa ka, bong, le naha ea "
+"tsoalo."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The recording and processing of these data are carried out in pseudonymized "
+"form by means of a code and do not contain my name."
+msgstr ""
+"Ho rekota le ho sebetsoa ha data ena ho etsoa ka mokhoa o sa tsejoeng ka "
+"tsela ea khoutu 'me ha e na lebitso la ka."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid "There is a coding list on paper that links my name to this number."
+msgstr ""
+"Ho na le lethathamo la khoutu ka pampiri le amanang lebitso la ka le nomoro "
+"ena."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The investigators are the only persons who have access to this coding list "
+"and who are thus able to link the collected data to my name."
+msgstr ""
+"Bafuputsi ke bona feela ba nang le phihlello ho lethathamo lena la khoutu "
+"'me ba khona ho hokahanya data e bokelitsoeng le lebitso la ka."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"After completion of the research project, the coding list will be destroyed."
+msgstr ""
+"Kamora ho phethoa ha projeke ea lipatlisiso, lethathamo la khoutu le tla "
+"senngoa."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"From this point on, my data are anonymous, which means that they cannot be "
+"linked to my person any longer."
+msgstr ""
+"Ho tloha nako ena, data ea ka e tla ba ea lekunutu, e bolelang hore e ke ke "
+"ea hokahanngoa le 'na hape."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have been informed that I may request deletion of all my data at any time."
+msgstr ""
+"Ke tsebisitsoe hore nka kopa ho hlakoloa ha data ea ka eohle ka nako efe "
+"kapa efe."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"However, if the coding list has already been destroyed, it will no longer be"
+" possible to identify and thus to delete my data set."
+msgstr ""
+"Leha ho le joalo, haeba lethathamo la khoutu le se le sentsoe, ho ke ke ha "
+"khoneha ho tseba le ho hlakola data ea ka."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The participant information sheet about the examination is part of this "
+"consent form."
+msgstr ""
+"Leqephe la tlhahisoleseling la moithuti mabapi le tlhahlobo ke karolo ea "
+"foromo ena ea tumello."
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have received a copy of the participant information sheet and of the "
+"consent form."
+msgstr ""
+"Ke amohetse kopi ea leqephe la tlhahisoleseling la moithuti le foromo ea "
+"tumello."
+
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "We need your consent to proceed"
+msgstr "Re hloka tumello ea hau ho tsoela pele"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-database"
+msgid ""
+"With this privacy policy, we would like to inform you about the personal "
+"data we collect when you register for our participant pool and for what "
+"purposes we process this data."
+msgstr ""
+"Ka leano lena la lekunutu, re ka rata ho u tsebisa ka data ea botho eo re e "
+"bokellang ha u ingolisa bakeng sa letamo la barupeluoa ba rona le ka merero "
+"ea hore na re e sebetsa ka lebaka lefe."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-database"
+msgid ""
+"In addition, we would like to inform you about your rights with regard to "
+"the processing of personal data."
+msgstr ""
+"Ntle le moo, re ka rata ho u tsebisa ka litokelo tsa hau mabapi le ts'ebetso"
+" ea data ea botho."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purposes of Processing"
+msgstr "Merero ea Ts'ebetso"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We store and process your data only for the purpose of initiating "
+"communication with you and for planning studies at the Max Planck Institute "
+"for Empirical Aesthetics (MPIEA)."
+msgstr ""
+"Re boloka le ho sebetsa data ea hau feela ka morero oa ho qala puisano le "
+"uena le bakeng sa ho rera lithuto Setsing sa Max Planck sa Aesthetics ea "
+"Empirical (MPIEA)."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "This data will never be shared with third parties."
+msgstr "Data ena e ke ke ea arolelanoa le mekha ea boraro."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid "Which Data are stored"
+msgstr "Ke Data efe e bolokiloeng"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"In addition to your contact details (i.e., name and email) and the "
+"demographic data requested in the log in (i.e., age, gender, and "
+"nationality), we also store the date and time when you made the entry."
+msgstr ""
+"Ntle le lintlha tsa hau tsa puisano (ke hore, lebitso le imeile) le lintlha "
+"tsa demography tse kopiloeng ha u kena (ke hore, lilemo, bong, le bochaba), "
+"re boetse re boloka letsatsi le nako eo u entseng kenyelletso ka eona."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"In addition, we save the date and time when you verified your email address."
+msgstr ""
+"Ntle le moo, re boloka letsatsi le nako eo u netefaditseng aterese ea imeile"
+" ea hau."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"If we invite you to participate in a study, we will store the date and time "
+"of this communication."
+msgstr ""
+"Haeba re u mema hore u nke karolo thutong, re tla boloka letsatsi le nako ea"
+" puisano ena."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"If you agree to participate, we also will store the date and time of your "
+"communication of this choice, and whether you completed the experiment "
+"successfully or not."
+msgstr ""
+"Haeba u lumela ho nka karolo, re tla boela re boloke letsatsi le nako ea "
+"puisano ea hau ea khetho ena, le hore na u phethile teko ka katleho kapa "
+"che."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"Of course, before you participate in a study, you will be informed in detail"
+" about the procedure of the study and the collection of data during the "
+"study."
+msgstr ""
+"Ehlile, pele o nka karolo thutong, o tla tsebisoa ka botlalo ka mokhoa oa "
+"thuto le pokello ea data nakong ea thuto."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"Your consent to participate in a study will be obtained separately for each "
+"study you participate in."
+msgstr ""
+"Tumello ea hau ea ho nka karolo thutong e tla fumanoa ka thoko thutong e "
+"'ngoe le e 'ngoe eo u nkang karolo ho eona."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "Duration of Data Storage"
+msgstr "Bolelele ba Nako ea Polokelo ea Data"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"Your data will be stored in the contact database for as long as the purpose "
+"of such storage, i.e., to contact you about participating in a study, "
+"remains in effect."
+msgstr ""
+"Lintlha tsa hau li tla bolokoa polokelong ea lintlha tsa puisano hafeela "
+"morero oa polokelo eo, ke hore, ho ikopanya le uena mabapi le ho nka karolo "
+"thutong, o ntse o sebetsa."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "You may request the deletion of your data at any time."
+msgstr "U ka kopa ho hlakoloa ha data ea hau ka nako efe kapa efe."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "To do so, send an e-mail with the subject “Delete” to:"
+msgstr "Ho etsa joalo, romella imeile ka sehlooho se reng “Hlakola” ho:"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "Your personal data will then be deleted immediately."
+msgstr "Lintlha tsa hau tsa botho li tla hlakoloa hang-hang."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"You can also delete your data from the database by deleting your account "
+"(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
+msgstr ""
+"U ka boela ua hlakola lintlha tsa hau polokelong ea data ka ho hlakola "
+"akhaonto ea hau (ke hore, tobetsa 'Hlakola akhaonto' leqepheng la ho kena la"
+" cap-recruiter)."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"Note that all information, including the experiment and payment history will"
+" be removed from our database."
+msgstr ""
+"Ela hloko hore tlhahisoleseling eohle, ho kenyeletsoa nalane ea teko le tefo"
+" e tla tlosoa polokelong ea rona ea litaba."
+
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "Security"
+msgstr "Tshireletso"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data entered in the form you fill out are transferred in encrypted form "
+"to an internal server."
+msgstr ""
+"Lintlha tse kenngoa foromong eo u e tlatsang li fetisetsoa ka mokhoa o "
+"patiloeng ho seva ea ka hare."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"We will then send you an e-mail with a confirmation link to verify your "
+"e-mail address."
+msgstr ""
+"Re tla u romella imeile e nang le sehokelo sa netefatso ho netefatsa aterese"
+" ea hau ea imeile."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"We take all necessary technical and organizational security measures to "
+"protect your personal data from loss and abuse."
+msgstr ""
+"Re nka mehato eohle ea tekheniki le ea mokhatlo ea ts'ireletso ho sireletsa "
+"data ea hau ea botho morerong oa tahlehelo le tlhekefetso."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Your data are stored in a secure operating environment that is not "
+"accessible to the public."
+msgstr ""
+"Lintlha tsa hau li bolokiloe tikolohong e bolokehileng ea ts'ebetso e sa "
+"fumaneheng phatlalatsa."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"All connections between your computer and the web server are encrypted."
+msgstr ""
+"Likhokahano tsohle pakeng tsa komporo ea hau le seva ea webo li patiloe."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Data Protection: Rights of Data Subjects"
+msgstr "Tshireletso ea Data: Litokelo tsa Batho ba nang le Data"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"In order to ensure transparency with regard to the processing of personal "
+"data, the General Data Protection Regulation (GDPR) of the European Union "
+"provides information about the rights of data subjects."
+msgstr ""
+"E le ho netefatsa ponaletso mabapi le ts'ebetso ea data ea botho, Melao e "
+"Akaretsang ea Ts'ireletso ea Data (GDPR) ea European Union e fana ka "
+"tlhaiso-leseling ka litokelo tsa batho ba nang le data."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"As a data subject whose personal data are processed with regard to your "
+"participation in our studies, you have the following rights in principle and"
+" insofar as no legal exceptions apply in individual cases:"
+msgstr ""
+"Joaloka motho ea nang le data eo data ea hae ea botho e sebetsanang le eona "
+"mabapi le ho nka karolo ha hao lithutong tsa rona, u na le litokelo tse "
+"latelang ka kakaretso le ha ho se na mekhelo ea molao e sebetsang maemong a "
+"itseng:"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Access (GDPR art. 15)"
+msgstr "Ho fihlella (GDPR art. 15)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Rectification (GDPR art. 16)"
+msgstr "Tokiso (GDPR art. 16)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Erasure (GDPR art. 17, para. 1)"
+msgstr "Ho hlakola (GDPR art. 17, para. 1)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Restriction of processing (GDPR art. 18)"
+msgstr "Ho thibela ts'ebetso (GDPR art. 18)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Data portability (GDPR art. 20)"
+msgstr "Ho fetolela data (GDPR art. 20)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Withdrawal of consent (GDPR art. 7, para. 3)"
+msgstr "Ho hula tumello (GDPR art. 7, para. 3)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"Right to lodge a complaint with a supervisory authority (GDPR art. 77)."
+msgstr "Tokelo ea ho kenya tletlebo ho bolaoli bo okamelang (GDPR art. 77)."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"For the Max Planck Society, this is the Data Protection Authority of "
+"Bavaria, Postfach 1349, 91504 Ansbach, Germany."
+msgstr ""
+"Bakeng sa Mokhatlo oa Max Planck, ena ke Bolaoli ba Ts'ireletso ea Data ea "
+"Bavaria, Postfach 1349, 91504 Ansbach, Jeremane."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"If you have any questions about this research, your rights, or treatment as "
+"a participant, please do not hesitate to contact the Computational Auditory "
+"Perception Group at the Max Planck Institute for Empirical Aesthetics:"
+msgstr ""
+"Haeba u na le lipotso mabapi le lipatlisiso tsena, litokelo tsa hau, kapa "
+"kalafo e le sebui, ka kopo u se ke ua tsilatsila ho ikopanya le Sehlopha sa "
+"Computational Auditory Perception ho Max Planck Institute for Empirical "
+"Aesthetics:"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid "Payment and Compensation"
+msgstr "Tefo le Matšeliso"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"We will not store any banking information or payment information in our "
+"system."
+msgstr ""
+"Ha re boloke tlhahisoleseling efe kapa efe ea banka kapa tlhahisoleseling ea"
+" tefo tsamaisong ea rona."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"However we do store completion records and payment details of every task you"
+" completed."
+msgstr ""
+"Leha ho le joalo re boloka lirekoto tsa ho phethela le lintlha tsa tefo ea "
+"mosebetsi o mong le o mong oo u o phethileng."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"This information will be available for you to review it when you login to "
+"the database."
+msgstr ""
+"Tlhahisoleseling ena e tla fumaneha hore u e hlahlobe ha u kena polokelong "
+"ea data."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"Based on this information we allow you to receive payment via an external "
+"system such as PayPAL/WISE."
+msgstr ""
+"Ho ipapisitsoe le tlhahisoleseling ena re u lumella hore u fumane tefo ka "
+"mokhoa o kantle o kang PayPAL/WISE."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"It is your responsibility to make sure you can receive payment through this "
+"system and that you would want to consent to use it."
+msgstr ""
+"Ke boikarabello ba hau ho etsa bonnete ba hore u ka amohela tefo ka mokhoa "
+"ona le hore u ka rata ho fana ka tumello ea ho e sebelisa."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"This system supports transferring money to most banks around the world, "
+"please search your bank in their website to ensure that you will be able to "
+"receive payment prior to taking part in our experiments."
+msgstr ""
+"Mokhoa ona o ts'ehetsa ho fetisetsa chelete libankeng tse ngata lefatšeng ka"
+" bophara, ka kopo batla banka ea hau ho webosaete ea bona ho etsa bonnete ba"
+" hore u tla khona ho amohela tefo pele u nka karolo liphuputsong tsa rona."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"We also recommend checking the term of service and it’s privacy statement "
+"and see if you consent to use their system for payment."
+msgstr ""
+"Re boetse re khothaletsa ho hlahloba nako ea tšebeletso le polelo ea eona ea"
+" lekunutu mme u bone hore na u lumela ho sebelisa tsamaiso ea bona bakeng sa"
+" tefo."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"If you cannot or would not like to receive payment via this system, we would"
+" not be able to pay you, however you can still participate in our "
+"experiments voluntarily, without payment."
+msgstr ""
+"Haeba u sitwa kapa u sa rate ho amohela tefo ka mokhoa ona, re ke ke ra "
+"khona ho u lefa, leha ho le joalo u ka ntse u nka karolo thutong tsa rona ka"
+" boithatelo, ntle le tefo."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid "In this case you will not receive any compensation for your time."
+msgstr ""
+"Maemong a joalo u ke ke ua fumana matšeliso afe kapa afe bakeng sa nako ea "
+"hau."
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have further questions regarding the General Data Protection "
+"Regulation in the context of personal data being processed in our studies, "
+"please contact the Data Protection Officer of the Max Planck Society:"
+msgstr ""
+"Haeba u na le lipotso tse ling mabapi le Melao e Akaretsang ea Ts'ireletso "
+"ea Data mabapi le data ea botho e sebetsoang lithutong tsa rona, ka kopo "
+"ikopanya le Ofisiri ea Ts'ireletso ea Data ea Mokhatlo oa Max Planck:"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"You may also address your inquiries directly to the Max Planck Institute for"
+" Empirical Aesthetics:"
+msgstr ""
+"U ka boela ua lebisa lipotso tsa hau ka kotloloho ho Max Planck Institute "
+"for Empirical Aesthetics:"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "Morero"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr ""
+"Morero oa projeke ena ke ho ithuta kamoo batho ba tsoang libakeng tse "
+"fapaneng lefatšeng ba utloang melumo (mohlala, puo, 'mino) le litšoantšo "
+"(mohlala, lifahleho, 'mala)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "Ts'ebetso"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"Haeba u ithaopa ho nka karolo thutong ena, u tla kōptjoa ho etsa mesebetsi e"
+" bonolo u sebelisa keyboard kapa mouse ha u ntse u mametse melumo, kapa ha u"
+" ntse u shebella litšoantšo kapa livideo."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"Mohlala, u ka kōptjoa ho ahlola hore na molumo o itseng kapa setšoantšo se "
+"monate hakae, kapa ho arola melumo kapa litšoantšo (mohlala, haeba molumo "
+"kapa setšoantšo ke sa koloi kapa khomo), kapa ho ahlola likarolo tse ling "
+"tsa mantlha tsa melumo kapa litšoantšo (mohlala, hangata hakae u kopana le "
+"mofuta ona oa molumo kapa setšoantšo? u nahanisisa hore na molumo kapa "
+"setšoantšo se itseng se khahleha hakae?)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"Melumo e itseng, litšoantšo, le livideo tse sebelisitsoeng li tla fapana, "
+"empa li ka kenyelletsa: lirekoto tsa melumo ea tikoloho, litšisinyeho tsa "
+"lerata, puo, 'mino, melumo e bonolo, litšoantšo tsa tlhaho, litšoantšo tse "
+"phelisang, metlae, lifahleho, lintho, libopeho tsa jiometri, litšoantšo tsa "
+"fractal, kapa livideo tsa tikoloho ea tlhaho."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"Litšoantšong tse ling, re ka sebelisa thetso e bonolo, ke hore, re ka 'na ra"
+" se ke ra hlalosa 'nete eohle mabapi le mosebetsi oa liteko (mohlala re ke "
+"ke ra u bolella hore setšoantšo se hlahisitsoe ke sistimi ea lik'homphieutha"
+" e entsoeng ka maiketsetso eseng motho)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+"Thetso e bonolo e tla sebelisoa feela litšoantšong tse ling moo re hlokang "
+"ho thibela ho khetholla ba nkang karolo pele ba nka teko."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"Qetellong, litšoantšong tse ling u ka kōptjoa ho etsa lirekoto tsa lentsoe "
+"kapa video, mohlala, u ka kōptjoa ho rekota ho phaphatha menoana ea hao ho "
+"arabela molumo kapa video, kapa ho rekota u bua kapa u bina."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr ""
+"Haeba teko e tla ba le likarolo tsena re tla kōpa tumello e eketsehileng."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "Boithaopo ba ho nka karolo"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "Ho nka karolo ha hao patlisong ena ke boithaopo."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+"U lokolohile ho hana ho nka karolo, 'me u ka khaotsa ho nka karolo ka nako "
+"efe kapa efe."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+"U lokolohile ho khaotsa ho nka karolo thutong ena ka nako efe kapa efe ntle "
+"le kotlo."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+"Mofuputsi a ka u ntša patlisisong ena haeba maemo a hlaha a hlokang ho etsa "
+"joalo."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "Boinotši"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+"Ha ho li-identifiers tsa botho (mohlala, lebitso la hao kapa lintlha tsa "
+"puisano) tse tla bokelloa kapa ho sebelisoa neng kapa neng oa teko."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "Kahoo, data ea liteko e sa tsejoe."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"Re ka bokella lintlha tse ling tsa sechaba (mohlala, lilemo, bong, naha ea "
+"bolulo) hammoho le tlhahisoleseling ka nalane ea hao ea ho ithuta le ho "
+"pepeseha (mohlala, phihlelo ea 'mino ho bapala seletsa, lilemo tsa thuto ea "
+"semmuso, lipuo tse buuoang)."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr ""
+"Haeba teko e bokella data e ke keng ea tsejoa ka botlalo, re tla u tsebisa "
+"hape re kope tumello e eketsehileng."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr ""
+"Ho lumellana le litlhoko tsena tse ling le hona ke boithaopo ka botlalo."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+"Tsena li kenyelletsa litšoantšo moo re etsang lirekoto tsa audio-visual kapa"
+" moo re hlokang lintlha tsa hau tsa puisano ho ikopanya le uena nakong e "
+"tlang ho nka teko e 'ngoe."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr ""
+"Litsebiso tsohle tseo re li fumanang nakong ea patlisiso li tla bolokoa e le"
+" lekunutu."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr ""
+"Re tla boloka feela khoutu ea hau e sa tsejoang ka alphanumeric tsamaisong "
+"ea rona, molemong oa ho khetholla ba nkang karolo ba seng ba nkile karolo "
+"tekong ena kapa e meng."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr ""
+"Khoutu ena e ke ke ea sebelisoa ho fumana boitsebiso ba hao ba nnete, e ke "
+"ke ea arolelanoa le mang kapa mang ea ka ntle ho sehlopha sa lipatlisiso 'me"
+" e tla hlakoloa ka mor'a hore e sebelisoe."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr ""
+"Le hoja bafuputsi ba ke ke ba sebelisa khoutu ea hau ea alphanumeric ho "
+"fumana boitsebiso ba hao ba nnete, rekoto ena e ka amanang maemong a mang le"
+" leqephe la hau la setjhaba haeba ho ka etsahala hore data e lutle."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"Kahoo, u ka lakatsa ho thibela tlhahisoleseling eo u khethang ho e arolelana"
+" phatlalatsa."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "Tšebelisano 'moho ea lipatlisiso"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+"Molemong oa ho thusa tsoelo-pele ea mahlale le ho pheta-pheta, ka linako tse"
+" ling re ka arolelana data le basebetsi-'moho le bafuputsi."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+"Maemong ana, re tla arolelana feela data e sa tsejoang ka botlalo, joalo ka "
+"data ea sechaba, e bokelletsoeng, kapa e nkiloeng ntle le li-identifiers tsa"
+" botho."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+"Lintlha li tla bolokoa ka nakoana ho li-server tsa kantle le li-"
+"desktops/laptops tse sirelelitsoeng ka password."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+"Lintlha li tla bolokoa ka ho sa feleng ho li-server tsa setheo ka li-disk "
+"tse thata tse ngotsoeng ka software ea encryption ea maemo a indasteri."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "Ha ho data e tla bolokoa ka ho sa feleng ho li-server tsa kantle."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "Kotsi/Kutloisiso"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+"Ha ho na likotsi bakeng sa ho nka karolo thutong ena ho feta tse amanang le "
+"tšebeliso e tloaelehileng ea khomphutha."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "Melemo"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"Le hoja e ka 'na ea se ke ea u tsoela molemo ka kotloloho, thuto ena e ka "
+"'na ea tsoela sechaba molemo ka ho re thusa ho utloisisa kamoo batho ba "
+"fumanang leseli ho tsoa melumo le pono, mme mohlomong ho thusa ho qapa "
+"mechine e ka etsang bokhoni ba rona (mohlala, ho lemoha molumo le pono ea "
+"khomphutha) le ho thusa ho ntlafatsa bokhoni ba ho utloa ho batho bao kutlo "
+"kapa pono ea bona e holofetseng."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "Compensation"
+msgstr "Tefo"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"If you satisfactorily complete the study, we compensate you for your "
+"participation:"
+msgstr ""
+"Haeba u phethela thuto ka khotsofalo, re u putsa bakeng sa ho nka karolo ha "
+"hao:"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgid "per hour"
+msgstr "ka hora"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"You may also receive an additional payment based on your performance in the "
+"task."
+msgstr ""
+"U ka boela ua fumana tefo e eketsehileng e thehiloeng ts'ebetsong ea hau "
+"mosebetsing."
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "We appreciate your contribution to science!"
+msgstr "Re ananela tlatsetso ea hau ho mahlale!"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "Litokelo tsa hao"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"U na le tokelo ea tlhahisoleseding mabapi le data e amanang le uena e "
+"bolokiloeng ho Max-Planck-Institute, tokelo ea ho lokisa data e fosahetseng,"
+" le tokelo ea ho kopa ho hlakoloa ha data maemong a polokelo e sa "
+"amoheleheng ea data le tokelo ea ho tsamaisa data."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"Hlokomela hore litlhalosong tse ling ho hlakola data ho ke ke ha khoneha, "
+"maemong ana re tla kopa hore u lumellane le mokhoa ona ka foromo e arohaneng"
+" ea tumello."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr ""
+"U boetse u na le tokelo ea ho fana ka khanyetso ho bolaoli bo okametseng."
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "Bakeng sa Max-Planck-Society, sena ke:"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"Following open science practices to improve science reusability and "
+"replicability, we may want to publish the dataset collected in this "
+"experiment as soon as the study is finished."
+msgstr ""
+"Re latela mekhoa ea saense e bulehileng ho ntlafatsa ho sebelisoa hape le ho"
+" pheta-pheta ha saense, re ka 'na ra batla ho phatlalatsa sehlopha sa data "
+"se bokelletsoeng tekong ena hang ha thuto e qetile."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"This includes audio-visual recordings, such as a recording of your finger-"
+"tapping in response to a sound or video, or to record yourself speaking or "
+"singing."
+msgstr ""
+"Sena se kenyelletsa lirekoto tsa audio-visual, tse kang ho rekota menoana ea"
+" hao e thetsang ho arabela molumo kapa video, kapa ho rekota u bua kapa u "
+"bina."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"We may also want to publish certain materials as part of the scientific "
+"publication, such as a demo video of the task or part of an interview."
+msgstr ""
+"Re ka boela ra batla ho phatlalatsa lisebelisoa tse itseng e le karolo ea "
+"phatlalatso ea saense, tse kang video ea demo ea mosebetsi kapa karolo ea "
+"lipuisano."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Since the audio-visual recordings collected in this experiment may be made "
+"public, we cannot guarantee anonymity of your data if you participate in "
+"this experiment."
+msgstr ""
+"Kaha lirekoto tsa audio-visual tse bokelletsoeng tekong ena li ka etsoa "
+"phatlalatsa, re ke ke ra tiisa ho se tsejoe ha data ea hau haeba u nka "
+"karolo tekong ena."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"However, your data will not be directly associated with your name or other "
+"identifiers in any way (we will not specify your name when presenting "
+"audio/video materials of yours)."
+msgstr ""
+"Leha ho le joalo, data ea hau e ke ke ea amanang ka ho toba le lebitso la "
+"hau kapa litlhaku tse ling ka tsela efe kapa efe (re ke ke ra bolela lebitso"
+" la hau ha re hlahisa lisebelisoa tsa audio/video tsa hau)."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be published on open science frameworks/websites such as OSF "
+"(https://osf.io/) and will be available to everybody with internet access."
+msgstr ""
+"Data e tla phatlalatsoa mefuteng e bulehileng ea saense/marete a kang OSF "
+"(https://osf.io/) 'me e tla fumaneha ho mang kapa mang ea nang le phihlello "
+"ea inthanete."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid "Disclaimer"
+msgstr "Tlhakiso"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Since some materials will be published as part of the scientific "
+"publication, you will not be able to delete such materials, as they will "
+"become public (either immediately or soon after data collection)."
+msgstr ""
+"Kaha lisebelisoa tse ling li tla phatlalatsoa e le karolo ea phatlalatso ea "
+"saense, u ke ke ua khona ho hlakola lisebelisoa tse joalo, kaha li tla "
+"fetoha phatlalatsa (kapa hang-hang kapa haufinyane kamora ho bokella data)."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Thus, you may wish to make sure you do not record any materials you do not "
+"want to make public."
+msgstr ""
+"Ka hona, u ka 'na ua batla ho etsa bonnete ba hore ha u rekote lisebelisoa "
+"tseo u sa batleng ho li etsa phatlalatsa."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"By consenting to this experiment you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+"Ka ho lumela ho teko ena u ikemiselitse ho se sebelise mantsoe a litšila ha "
+"u rekota audio kapa ho hlobola ha u rekota video."
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Although your data will not be associated with personal identifiers, it is "
+"possible to link your personal information based on audio-visual recordings"
+msgstr ""
+"Leha data ea hau e ke ke ea amanang le litlhaloso tsa botho, ho a khonahala "
+"ho hokahanya tlhahisoleseling ea hau ea botho ho latela lirekoto tsa audio-"
+"visual."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"This study is completely voluntary; you will not receive any monetary "
+"compensation for participation."
+msgstr ""
+"Thuto ena e ikemetse ka botlalo; u ke ke ua fumana tefo ea chelete bakeng sa"
+" ho nka karolo."
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "By doing the task you are helping science, thank you!"
+msgstr "Ka ho etsa mosebetsi u thusa mahlale, kea leboha!"
+
+#: psynet/templates/exit_recruiter_lucid.html
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "Tlhahiso ea Patlisiso ea Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Khetha sebopeho sa keyboard:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Ha o a tobetsa linotlolo tsohle tse hlokahalang."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr "O hloka ho sebelisa Google Chrome ho nka karolo tekong."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using"
+msgstr "U sebelisa"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr "Ka kopo latela litaelo tse ka tlase ho tsoela pele."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr ""
+"O hloka ho sebelisa mofuta oa morao-rao oa Google Chrome ho nka karolo "
+"tekong."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using:"
+msgstr "U sebelisa:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr "U hloka ho sebelisa mokhoa oa incognito ho nka karolo tekong."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr "Temoso!"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Click here"
+msgstr "Tobetsa mona"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr "Kenya mofuta oa morao-rao oa Google Chrome"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr "Kenya Google Chrome haeba o so e etse"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr "Kopitsa sehokelo se ka tlase"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr "Bula Google Chrome"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr "Khompiteng ea hau, bula Chrome."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr "Ka holimo ka letsohong le letona, tobetsa Hape"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr "Fesetere e ncha ea Incognito"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr ""
+"Fesetere e ncha e hlaha. K'honeng e ka holimo, sheba letšoao la Incognito"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You can also use a keyboard shortcut to open an Incognito window"
+msgstr ""
+"U ka boela ua sebelisa tsela e khutšoanyane ea keyboard ho bula fensetere ea"
+" Incognito"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr "Tobetsa"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr "Bula fensetere e ncha ea incognito"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr "Manamisa sehokelo ka fensetereng ea incognito ho tsoela pele ka teko"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr "Manamisa sehokelo ka fensetereng ea incognito ho qala teko"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr "Manamisa sehokelo ka sebatli sa Chrome ho tsoela pele ka teko"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr "Manamisa sehokelo ka sebatli sa Chrome ho qala teko"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You cannot take part in the experiment from a mobile device."
+msgstr "U sitwa ho nka karolo tekong ho tsoa sesebelisoa sa mobile."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please open the survey on your computer."
+msgstr "Ka kopo bula phuputso khomphuteng ea hau."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This site requires JavaScript to function properly."
+msgstr "Sebaka sena se hloka JavaScript ho sebetsa hantle."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr "Ka kopo nolofatsa JavaScript sebatling sa hau."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr "Latela mehato e ka tlase ho etsa bonnete ba hore teko e sebetsa."
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr "Kenya mofuta oa morao-rao oa Google Chrome khomphuteng ea hau"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr "Kopitsa URL ea hona joale clipboard:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr ""
+"Bula fensetere e ncha ea incognito ka litsela tse latelang tse khutšoanyane "
+"tsa keyboard:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr "Ho Windows, Linux, kapa Chrome OS: Tobetsa"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr "Ho Mac: Tobetsa"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Do you understand and consent to these terms?"
+msgstr "Na u utloisisa le ho lumellana le lipehelo tsee?"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "I agree"
+msgstr "Ke lumellana"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "Che, kea leboha (kgutlisa mosebetsi)"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "Scrolla holimo/fatše ho bona mongolo oohle"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Principal Investigator"
+msgstr "Mofuputsi ea ka Sehloohong"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "Kakaretso"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+"Patlisiso ena e etsoa ke bafuputsi ba Max-Planck-Institute bakeng sa "
+"Aesthetics ea Empirical."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+"Haeba u na le lipotso mabapi le patlisiso ena, u se ke ua tsilatsila ho "
+"ikopanya le mofuputsi ea ka sehloohong morerong ona, Nori Jacoby ho:"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+"Morero oa foromo ena ea inthanete ke ho u fa tlhahisoleseling e ka u thusang"
+" ho etsa qeto ea hore na u batla ho nka karolo thutong ea lipatlisiso."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study the role of experience and exposure "
+"in creating and affecting our perception, decisions and actions."
+msgstr ""
+"Morero oa projeke ena ke ho ithuta karolo ea boiphihlelo le ho pepeseha ho "
+"theheng le ho ama maikutlo a rona, liqeto le liketso."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"Specifically, we aim to combine a wide range of behavioural methodologies to"
+" characterize the ways in which people from diverse backgrounds internalize "
+"and process external conditions, both in the auditory (e.g., speech, music) "
+"and visual (e.g., faces, color) domains."
+msgstr ""
+"Ka ho khetheha, re ikemiselitse ho kopanya mekhoa e mengata ea boits'oaro ho"
+" hlalosa mekhoa eo batho ba tsoang mererong e fapaneng ba iponahatsang le ho"
+" sebetsana le maemo a kantle, ka bobeli lithutong tsa kutlo (mohlala, puo, "
+"'mino) le pono (mohlala, lifahleho, mebala)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We are also interested in the way that these internal representations affect"
+" human decision making and behaviour."
+msgstr ""
+"Re boetse re thahasella tsela eo lipono tsena tsa ka hare li amang qeto ea "
+"batho le boitšoaro."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All the recordings we obtain during this research will be kept confidential,"
+" and nobody outside the group of researchers will be able to share or store "
+"them."
+msgstr ""
+"Lirekoto tsohle tseo re li fumanang nakong ea patlisiso ena li tla bolokoa e"
+" le lekunutu, 'me ha ho motho ea ka ntle ho sehlopha sa bafuputsi ea tla "
+"khona ho li arolelana kapa ho li boloka."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"However, in some experiments, your recordings may be seen or heard by other "
+"participants in order to evaluate them in different attributes or create new"
+" materials (for example replicate a rhythm that you created, or continue a "
+"melody that you sang)."
+msgstr ""
+"Leha ho le joalo, litšoantšong tse ling, lirekoto tsa hao li ka bonoa kapa "
+"tsa utluoa ke ba bang ba nkang karolo molemong oa ho li lekola ka litšobotsi"
+" tse fapaneng kapa ho theha lisebelisoa tse ncha (mohlala, ho pheta-pheta "
+"morethetho oo u o bopileng, kapa ho tsoela pele pina eo u e bineng)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be associated with your name or other identifiers "
+"in any way."
+msgstr ""
+"Lirekoto tsa hao li ke ke tsa amahanngoa le lebitso la hao kapa lintho tse "
+"ling tse u tsebahatsang ka tsela efe kapa efe."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be used to derive your real identity, and they will"
+" not be made public."
+msgstr ""
+"Lirekoto tsa hao li ke ke tsa sebelisoa ho fumana boitsebiso ba hao ba "
+"nnete, 'me li ke ke tsa etsoa phatlalatsa."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Raw audio/video will not be shared with collaborators (we will only share "
+"extracted data from recordings without personal identifiers)."
+msgstr ""
+"Audio/video e tala e ke ke ea arolelanoa le basebetsi-'moho (re tla "
+"arolelana feela data e ntšitsoeng ho lirekoto ntle le tsebahatso ea motho)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your recordings to derive your real "
+"identity, personal information could be leaked if you are not in an isolated"
+" environment."
+msgstr ""
+"Le hoja bafuputsi ba ke ke ba sebelisa lirekoto tsa hao ho fumana boitsebiso"
+" ba hao ba nnete, tlhahisoleseling ea botho e ka lutla haeba u se tikolohong"
+" e ikemetseng."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information. In addition, while you "
+"perform a recording, the microphone or camera can capture unintended audio "
+"or video, for example the camera can capture another family member, or the "
+"microphone can capture something you say to another person."
+msgstr ""
+"U ka lakatsa ho etsa bonnete ba hore ha ho melumo/lintho tse bonahalang "
+"tikolohong ea hao tse ka amanang le tlhahisoleseling ea hau ea botho. Ho "
+"feta moo, ha u etsa lirekoto, microphone kapa khamera li ka hapa melumo kapa"
+" video eo u sa e rerang, mohlala khamera e ka hapa setho sa lelapa le leng, "
+"kapa microphone e ka hapa seo u se bolelang ho motho e mong."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If you choose to participate in the experiment, it is important and your "
+"responsibility to make sure that while you record audio and video nothing "
+"that you don’t intend to be recorded is recorded."
+msgstr ""
+"Haeba u khetha ho nka karolo tekong, ho bohlokoa le boikarabello ba hao ho "
+"etsa bonnete ba hore ha u rekota audio le video ha ho letho leo u sa rerang "
+"ho le rekota le rekotoang."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"For example, you may want to sit in a room that is isolated from the rest of"
+" the house."
+msgstr ""
+"Mohlala, u ka lakatsa ho lula ka phaposing e ikemetseng ho tloha karolong e "
+"'ngoe ea ntlo."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"By consenting to this experiment, you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+"Ka ho amohela teko ena, u itlama ho se sebelise mantsoe a hlabang ha u "
+"rekota lentsoe kapa ho hlobola ha u rekota video."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we may share your audio-visual material along with fully "
+"anonymized data, such as demographic, aggregated, or extracted data."
+msgstr ""
+"Maemong ana, re ka arolelana lisebelisoa tsa hau tsa audio-visual hammoho le"
+" data e sa tsejoang ka botlalo, joalo ka data ea sechaba, e bokelletsoeng, "
+"kapa e nkiloeng."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"We will never connect your real name or any of your personal information "
+"directly to your image or sound recording, even though it is off course "
+"possible to recognize individuals based on audio-visual material."
+msgstr ""
+"Re ke ke ra hokahanya lebitso la hao la nnete kapa tlhahisoleseling leha e "
+"le efe ea hau ea botho ka kotloloho le setšoantšo sa hau kapa lirekoto tsa "
+"molumo, le hoja ho hlakile hore ho ka khoneha ho tseba batho ka lisebelisoa "
+"tsa audio-visual."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"Audio-visual material will be shared only if your consent to an additional "
+"consent form as explained above."
+msgstr ""
+"Lisebelisoa tsa audio-visual li tla arolelanoa feela haeba u lumellana le "
+"foromo e eketsehileng ea tumello joalokaha ho hlalositsoe kaholimo."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"During data collection, audio-visual material will be recorded on a separate"
+" server."
+msgstr ""
+"Nakong ea pokello ea data, lisebelisoa tsa audio-visual li tla rekotwa ho "
+"seva e arohaneng."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Audio-visual material will not be indexed by personal information but will "
+"be linked to personal information by a key (such as “afasd12314asdasd”)."
+msgstr ""
+"Lisebelisoa tsa audio-visual li ke ke tsa hlahlojoa ke tlhahisoleseling ea "
+"botho empa li tla hokahanngoa le tlhahisoleseling ea botho ka senotlolo "
+"(joalo ka “afasd12314asdasd”)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Personal information will be stored separately from audio-visual materials "
+"and encrypted using a strong encryption protocol (such as Advanced "
+"Encryption Standard)."
+msgstr ""
+"Lintlha tsa botho li tla bolokoa ka thoko ho lisebelisoa tsa audio-visual "
+"'me li tla ngoloa ka mokhoa o matla oa encryption (joalo ka Advanced "
+"Encryption Standard)."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "Litsebiso tsa puisano"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "Tumello"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"Ka ho lumellana ho nka karolo, u amohela hore u lilemo tse 18 kapa ho feta, "
+"u balile foromo ena ea tumello, u lumellana le litaba tsa eona, 'me u "
+"lumellana ho nka karolo patlisong ena."
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "Haeba u sa batle ho lumellana, ka kōpo koala leqephe lena."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Reset"
+msgstr "Hlakola"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr "Li-Sliders"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr "Litokomane"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr ""
+"Likarolo tsa <strong>decay</strong> li etsa qeto ea hore na ho na le ho "
+"boreleli hakae ho etsahalang lets'oao, 'me li na le lilithara tsa motsotso."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr ""
+"Paramethara e phahameng ea decay e bolela hore lets'oao le nka nako e telele"
+" ho theoha (ke hore, ho boreleli bo phahameng)."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr ""
+"Ho na le likarolo tse tharo tsa decay: e 'ngoe bakeng sa audio meter e "
+"bontšitsoeng, e 'ngoe bakeng sa 'detector e phahameng haholo', le e 'ngoe "
+"bakeng sa 'detector e tlase haholo'."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr ""
+"Likarolo tsa <strong>threshold</strong> li etsa qeto ea moo molumo o "
+"khetholloang ho ba 'o phahameng haholo' kapa 'o tlase haholo'."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr ""
+"Likarolo tsa <strong>grace</strong> li etsa qeto ea hore na molumo o tlameha"
+" ho ba kantle ho threshold e itseng nako e kae hore molaetsa oa temoso o "
+"hlahe."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr ""
+"Likarolo tsa <strong>message duration</strong> li etsa qeto ea hore na "
+"melaetsa ea temoso e bontšoa nako e kae."
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Record from start"
+msgstr "Rekota ho tloha qalong"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play all"
+msgstr "Bapala tsohle"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play prompt"
+msgstr "Bapala temoso"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play recording"
+msgstr "Bapala rekoto"
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Stop"
+msgstr "Emisa"
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Loop"
+msgstr "Pheta-pheta"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Play from start"
+msgstr "Bapala ho tloha qalong"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Video not found"
+msgstr "Video ha e fumanehe"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Image not found"
+msgstr "Setšoantšo ha se fumanehe"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "Phoso!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"U ka khona ho emisa teko u sebelisa konopo ea <strong>Emisa teko</strong> "
+"<strong>leqepheng la papatso la MTurk</strong>."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"Hang ha e emisitsoe, ha ho hlokahale ho ikopanya le rona ho fumana "
+"puseletso; sena se lokela ho fanoa ka bo eona ka MTurk metsotsong e seng "
+"mekae ka mor'a moo."
+
+#: psynet/templates/psynet_error.html
+#, fuzzy, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"Haeba sena se sa etsahale, ka kōpo ikopanye le rona ho %(EMAIL)s u qotsa "
+"tlhahisoleseling e latelang:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "Mofuta oa phoso"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "Worker ID"
+
+#: psynet/templates/start.html
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "Ho qala teko..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "Haeba ho na le bothata, leka tse latelang:"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "Qala leqephe hape."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "Lekola hore na khokahano ea hau ea inthanete e sebetsa."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"Haeba tse kaholimo li sa thuse, re romelle lengolo-tsoibila le tse latelang:"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "Sehokelo sa leqephe la webo la hajoale;"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ID ea hau ea Mosebetsi;"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "Bothata boo u tobaneng le bona."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "HO LOKILE"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "Na u se u itokiselitse?"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "Tobetsa konopo ha u se u itokiselitse ho tsoela pele ka teko."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "Tsoela Pele"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "Moputso"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "Thusa!"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "Qetella teko pele ho nako"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "Ka kopo ema hore leqephe le jarwe."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "Leka hape ka mor'a metsotsoana e seng mekae."
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Afghanistan"
+msgstr "Afghanistan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Albania"
+msgstr "Albania"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Algeria"
+msgstr "Algeria"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "American Samoa"
+msgstr "American Samoa"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Andorra"
+msgstr "Andorra"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Angola"
+msgstr "Angola"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Anguilla"
+msgstr "Anguilla"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Antarctica"
+msgstr "Antarctica"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Antigua and Barbuda"
+msgstr "Antigua le Barbuda"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Argentina"
+msgstr "Argentina"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Armenia"
+msgstr "Armenia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Aruba"
+msgstr "Aruba"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Australia"
+msgstr "Australia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Austria"
+msgstr "Austria"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Azerbaijan"
+msgstr "Azerbaijan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahamas"
+msgstr "Bahamas"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahrain"
+msgstr "Bahrain"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bangladesh"
+msgstr "Bangladesh"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Barbados"
+msgstr "Barbados"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belarus"
+msgstr "Belarus"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belgium"
+msgstr "Belgium"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belize"
+msgstr "Belize"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Benin"
+msgstr "Benin"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bermuda"
+msgstr "Bermuda"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bhutan"
+msgstr "Bhutan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bolivia"
+msgstr "Bolivia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "Bonaire, Sint Eustatius le Saba"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bosnia and Herzegovina"
+msgstr "Bosnia le Herzegovina"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Botswana"
+msgstr "Botswana"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bouvet Island"
+msgstr "Bouvet Island"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Brazil"
+msgstr "Brazil"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "British Indian Ocean Territory"
+msgstr "British Indian Ocean Territory"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Brunei Darussalam"
+msgstr "Brunei Darussalam"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bulgaria"
+msgstr "Bulgaria"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Burkina Faso"
+msgstr "Burkina Faso"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Burundi"
+msgstr "Burundi"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cabo Verde"
+msgstr "Cabo Verde"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cambodia"
+msgstr "Cambodia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cameroon"
+msgstr "Cameroon"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Canada"
+msgstr "Canada"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cayman Islands"
+msgstr "Cayman Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Central African Republic"
+msgstr "Central African Republic"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Chad"
+msgstr "Chad"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Chile"
+msgstr "Chile"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "China"
+msgstr "China"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Christmas Island"
+msgstr "Christmas Island"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cocos  Islands"
+msgstr "Cocos Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Colombia"
+msgstr "Colombia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Comoros"
+msgstr "Comoros"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo"
+msgstr "Congo"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo (Democratic Republic)"
+msgstr "Congo (Democratic Republic)"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cook Islands"
+msgstr "Cook Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Costa Rica"
+msgstr "Costa Rica"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Croatia"
+msgstr "Croatia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cuba"
+msgstr "Cuba"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Curaçao"
+msgstr "Curaçao"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cyprus"
+msgstr "Cyprus"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Czechia"
+msgstr "Czechia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Côte d'Ivoire"
+msgstr "Côte d'Ivoire"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Denmark"
+msgstr "Denmark"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Djibouti"
+msgstr "Djibouti"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominica"
+msgstr "Dominica"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominican Republic"
+msgstr "Dominican Republic"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ecuador"
+msgstr "Ecuador"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Egypt"
+msgstr "Egypt"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "El Salvador"
+msgstr "El Salvador"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Equatorial Guinea"
+msgstr "Equatorial Guinea"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Eritrea"
+msgstr "Eritrea"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Estonia"
+msgstr "Estonia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Eswatini"
+msgstr "Eswatini"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ethiopia"
+msgstr "Ethiopia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Falkland Islands (Malvinas)"
+msgstr "Falkland Islands (Malvinas)"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Faroe Islands"
+msgstr "Faroe Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Fiji"
+msgstr "Fiji"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Finland"
+msgstr "Finland"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "France"
+msgstr "France"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Guiana"
+msgstr "French Guiana"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Polynesia"
+msgstr "French Polynesia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Southern Territories"
+msgstr "French Southern Territories"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gabon"
+msgstr "Gabon"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gambia"
+msgstr "Gambia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Georgia"
+msgstr "Georgia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Germany"
+msgstr "Germany"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ghana"
+msgstr "Ghana"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gibraltar"
+msgstr "Gibraltar"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Greece"
+msgstr "Greece"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Greenland"
+msgstr "Greenland"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Grenada"
+msgstr "Grenada"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guadeloupe"
+msgstr "Guadeloupe"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guam"
+msgstr "Guam"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guatemala"
+msgstr "Guatemala"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guernsey"
+msgstr "Guernsey"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea"
+msgstr "Guinea"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea-Bissau"
+msgstr "Guinea-Bissau"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guyana"
+msgstr "Guyana"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Haiti"
+msgstr "Haiti"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Heard Island and McDonald Islands"
+msgstr "Heard Island and McDonald Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vatican City State"
+msgstr "Vatican City State"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Honduras"
+msgstr "Honduras"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Hong Kong"
+msgstr "Hong Kong"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Hungary"
+msgstr "Hungary"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iceland"
+msgstr "Iceland"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "India"
+msgstr "India"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Indonesia"
+msgstr "Indonesia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iran"
+msgstr "Iran"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iraq"
+msgstr "Iraq"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ireland"
+msgstr "Ireland"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Isle of Man"
+msgstr "Isle of Man"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Israel"
+msgstr "Israel"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Italy"
+msgstr "Italy"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jamaica"
+msgstr "Jamaica"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Japan"
+msgstr "Japan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jersey"
+msgstr "Jersey"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jordan"
+msgstr "Jordan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kazakhstan"
+msgstr "Kazakhstan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kenya"
+msgstr "Kenya"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kiribati"
+msgstr "Kiribati"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "North Korea"
+msgstr "North Korea"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Korea"
+msgstr "South Korea"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kuwait"
+msgstr "Kuwait"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kyrgyzstan"
+msgstr "Kyrgyzstan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao"
+msgstr "Lao"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Latvia"
+msgstr "Latvia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lebanon"
+msgstr "Lebanon"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lesotho"
+msgstr "Lesotho"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Liberia"
+msgstr "Liberia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Libya"
+msgstr "Libya"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Liechtenstein"
+msgstr "Liechtenstein"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lithuania"
+msgstr "Lithuania"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Luxembourg"
+msgstr "Luxembourg"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Macao"
+msgstr "Macao"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Madagascar"
+msgstr "Madagascar"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malawi"
+msgstr "Malawi"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malaysia"
+msgstr "Malaysia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Maldives"
+msgstr "Maldives"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mali"
+msgstr "Mali"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malta"
+msgstr "Malta"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Marshall Islands"
+msgstr "Marshall Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Martinique"
+msgstr "Martinique"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritania"
+msgstr "Mauritania"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritius"
+msgstr "Mauritius"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mayotte"
+msgstr "Mayotte"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mexico"
+msgstr "Mexico"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Micronesia"
+msgstr "Micronesia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Moldova"
+msgstr "Moldova"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Monaco"
+msgstr "Monaco"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mongolia"
+msgstr "Mongolia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Montenegro"
+msgstr "Montenegro"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Montserrat"
+msgstr "Montserrat"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Morocco"
+msgstr "Morocco"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mozambique"
+msgstr "Mozambique"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Myanmar"
+msgstr "Myanmar"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Namibia"
+msgstr "Namibia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "Nauru"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nepal"
+msgstr "Nepal"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Netherlands"
+msgstr "Netherlands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "New Caledonia"
+msgstr "New Caledonia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "New Zealand"
+msgstr "New Zealand"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nicaragua"
+msgstr "Nicaragua"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Niger"
+msgstr "Niger"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nigeria"
+msgstr "Nigeria"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Niue"
+msgstr "Niue"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Norfolk Island"
+msgstr "Norfolk Island"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "North Macedonia"
+msgstr "North Macedonia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Northern Mariana Islands"
+msgstr "Northern Mariana Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Norway"
+msgstr "Norway"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Oman"
+msgstr "Oman"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Pakistan"
+msgstr "Pakistan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Palau"
+msgstr "Palau"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Palestine"
+msgstr "Palestine"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Panama"
+msgstr "Panama"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Papua New Guinea"
+msgstr "Papua New Guinea"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Paraguay"
+msgstr "Paraguay"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Peru"
+msgstr "Peru"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Philippines"
+msgstr "Philippines"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Pitcairn"
+msgstr "Pitcairn"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Poland"
+msgstr "Poland"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Portugal"
+msgstr "Portugal"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Puerto Rico"
+msgstr "Puerto Rico"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Qatar"
+msgstr "Qatar"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Romania"
+msgstr "Romania"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Russian Federation"
+msgstr "Russian Federation"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Rwanda"
+msgstr "Rwanda"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Réunion"
+msgstr "Réunion"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Barthélemy"
+msgstr "Saint Barthélemy"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Helena, Ascension and Tristan da Cunha"
+msgstr "Saint Helena, Ascension le Tristan da Cunha"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Kitts and Nevis"
+msgstr "Saint Kitts le Nevis"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Lucia"
+msgstr "Saint Lucia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Pierre and Miquelon"
+msgstr "Saint Pierre le Miquelon"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Vincent and the Grenadines"
+msgstr "Saint Vincent le Grenadines"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Samoa"
+msgstr "Samoa"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "San Marino"
+msgstr "San Marino"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sao Tome and Principe"
+msgstr "Sao Tome le Principe"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saudi Arabia"
+msgstr "Saudi Arabia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Senegal"
+msgstr "Senegal"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Serbia"
+msgstr "Serbia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Seychelles"
+msgstr "Seychelles"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sierra Leone"
+msgstr "Sierra Leone"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Singapore"
+msgstr "Singapore"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sint Maarten"
+msgstr "Sint Maarten"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovakia"
+msgstr "Slovakia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovenia"
+msgstr "Slovenia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Solomon Islands"
+msgstr "Solomon Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Somalia"
+msgstr "Somalia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Africa"
+msgstr "South Africa"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "South Georgia le South Sandwich Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Sudan"
+msgstr "South Sudan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Spain"
+msgstr "Spain"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sri Lanka"
+msgstr "Sri Lanka"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sudan"
+msgstr "Sudan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Suriname"
+msgstr "Suriname"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Svalbard and Jan Mayen"
+msgstr "Svalbard le Jan Mayen"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sweden"
+msgstr "Sweden"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Switzerland"
+msgstr "Switzerland"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Syria"
+msgstr "Syria"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Taiwan"
+msgstr "Taiwan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tajikistan"
+msgstr "Tajikistan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tanzania"
+msgstr "Tanzania"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Thailand"
+msgstr "Thailand"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Timor-Leste"
+msgstr "Timor-Leste"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Togo"
+msgstr "Togo"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tokelau"
+msgstr "Tokelau"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "Tonga"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Trinidad and Tobago"
+msgstr "Trinidad le Tobago"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tunisia"
+msgstr "Tunisia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkey"
+msgstr "Turkey"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkmenistan"
+msgstr "Turkmenistan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turks and Caicos Islands"
+msgstr "Turks le Caicos Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tuvalu"
+msgstr "Tuvalu"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uganda"
+msgstr "Uganda"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ukraine"
+msgstr "Ukraine"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United Arab Emirates"
+msgstr "United Arab Emirates"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United Kingdom"
+msgstr "United Kingdom"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United States"
+msgstr "United States"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United States Minor Outlying Islands"
+msgstr "United States Minor Outlying Islands"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uruguay"
+msgstr "Uruguay"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uzbekistan"
+msgstr "Uzbekistan"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vanuatu"
+msgstr "Vanuatu"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Venezuela"
+msgstr "Venezuela"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vietnam"
+msgstr "Vietnam"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands (British)"
+msgstr "Virgin Islands (British)"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands (U.S.)"
+msgstr "Virgin Islands (U.S.)"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Wallis and Futuna"
+msgstr "Wallis le Futuna"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Western Sahara"
+msgstr "Western Sahara"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Yemen"
+msgstr "Yemen"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Zambia"
+msgstr "Zambia"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Zimbabwe"
+msgstr "Zimbabwe"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Åland Islands"
+msgstr "Åland Islands"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Abkhazian"
+msgstr "Se-Abkhazian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Afar"
+msgstr "Se-Afar"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Afrikaans"
+msgstr "Se-Afrikaans"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Akan"
+msgstr "Se-Akan"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Albanian"
+msgstr "Se-Albanian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Amharic"
+msgstr "Se-Amharic"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Arabic"
+msgstr "Se-Arabic"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Aragonese"
+msgstr "Se-Aragonese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Armenian"
+msgstr "Se-Armenian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Assamese"
+msgstr "Se-Assamese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Avaric"
+msgstr "Se-Avaric"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Avestan"
+msgstr "Se-Avestan"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Aymara"
+msgstr "Se-Aymara"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Azerbaijani"
+msgstr "Se-Azerbaijani"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bambara"
+msgstr "Se-Bambara"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bashkir"
+msgstr "Se-Bashkir"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Basque"
+msgstr "Se-Basque"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Belarusian"
+msgstr "Se-Belarusian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bengali"
+msgstr "Se-Bengali"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bislama"
+msgstr "Se-Bislama"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bosnian"
+msgstr "Se-Bosnian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Breton"
+msgstr "Se-Breton"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bulgarian"
+msgstr "Se-Bulgarian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Burmese"
+msgstr "Se-Burmese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Catalan"
+msgstr "Se-Catalan"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Central Khmer"
+msgstr "Se-Central Khmer"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chamorro"
+msgstr "Se-Chamorro"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chechen"
+msgstr "Se-Chechen"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chinese"
+msgstr "Se-Chinese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Church Slavic"
+msgstr "Se-Church Slavic"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chuvash"
+msgstr "Se-Chuvash"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cornish"
+msgstr "Se-Cornish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Corsican"
+msgstr "Se-Corsican"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cree"
+msgstr "Se-Cree"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Croatian"
+msgstr "Se-Croatian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cebuano"
+msgstr "Se-Cebuano"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Czech"
+msgstr "Se-Czech"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dogri"
+msgstr "Se-Dogri"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Danish"
+msgstr "Se-Danish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dhivehi"
+msgstr "Se-Dhivehi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dutch"
+msgstr "Se-Dutch"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dzongkha"
+msgstr "Se-Dzongkha"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "English"
+msgstr "Se-English"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Esperanto"
+msgstr "Se-Esperanto"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Estonian"
+msgstr "Se-Estonian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ewe"
+msgstr "Se-Ewe"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Faroese"
+msgstr "Se-Faroese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Fijian"
+msgstr "Se-Fijian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Finnish"
+msgstr "Se-Finnish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "French"
+msgstr "Se-French"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Fulah"
+msgstr "Se-Fulah"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Galician"
+msgstr "Se-Galician"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ganda"
+msgstr "Se-Ganda"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Georgian"
+msgstr "Se-Georgian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "German"
+msgstr "Se-German"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Gothic"
+msgstr "Se-Gothic"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Guarani"
+msgstr "Se-Guarani"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Gujarati"
+msgstr "Se-Gujarati"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Haitian"
+msgstr "Se-Haitian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hausa"
+msgstr "Se-Hausa"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hawaiian"
+msgstr "Se-Hawaiian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hebrew"
+msgstr "Se-Hebrew"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Herero"
+msgstr "Se-Herero"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hindi"
+msgstr "Se-Hindi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hiri Motu"
+msgstr "Se-Hiri Motu"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hmong"
+msgstr "Se-Hmong"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hungarian"
+msgstr "Se-Hungarian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Icelandic"
+msgstr "Se-Icelandic"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ido"
+msgstr "Se-Ido"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Igbo"
+msgstr "Se-Igbo"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Indonesian"
+msgstr "Se-Indonesian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingua"
+msgstr "Se-Interlingua"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingue"
+msgstr "Se-Interlingue"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Inuktitut"
+msgstr "Se-Inuktitut"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Inupiaq"
+msgstr "Se-Inupiaq"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Irish"
+msgstr "Se-Irish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Italian"
+msgstr "Se-Italian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Japanese"
+msgstr "Se-Japanese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Javanese"
+msgstr "Se-Javanese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kalaallisut"
+msgstr "Se-Kalaallisut"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kannada"
+msgstr "Se-Kannada"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kanuri"
+msgstr "Se-Kanuri"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kashmiri"
+msgstr "Se-Kashmiri"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kazakh"
+msgstr "Se-Kazakh"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kikuyu"
+msgstr "Se-Kikuyu"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kinyarwanda"
+msgstr "Se-Kinyarwanda"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kirghiz"
+msgstr "Se-Kirghiz"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Komi"
+msgstr "Se-Komi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kongo"
+msgstr "Se-Kongo"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Konkani"
+msgstr "Se-Konkani"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Korean"
+msgstr "Se-Korean"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kuanyama"
+msgstr "Se-Kuanyama"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kurdish"
+msgstr "Se-Kurdish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lao"
+msgstr "Se-Lao"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Latin"
+msgstr "Se-Latin"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Latvian"
+msgstr "Se-Latvian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Limburgan"
+msgstr "Se-Limburgan"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lingala"
+msgstr "Se-Lingala"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lithuanian"
+msgstr "Se-Lithuanian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Luba-Katanga"
+msgstr "Se-Luba-Katanga"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Luxembourgish"
+msgstr "Se-Luxembourgish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Macedonian"
+msgstr "Se-Macedonian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maithili"
+msgstr "Se-Maithili"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malagasy"
+msgstr "Se-Malagasy"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malay"
+msgstr "Se-Malay"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malayalam"
+msgstr "Se-Malayalam"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maltese"
+msgstr "Se-Maltese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Manipuri"
+msgstr "Se-Manipuri"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Manx"
+msgstr "Se-Manx"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maori"
+msgstr "Se-Maori"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Marathi"
+msgstr "Se-Marathi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Marshallese"
+msgstr "Se-Marshallese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Greek"
+msgstr "Se-Greek"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Mongolian"
+msgstr "Se-Mongolian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nauru"
+msgstr "Se-Nauru"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Navajo"
+msgstr "Se-Navajo"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ndonga"
+msgstr "Se-Ndonga"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nepali"
+msgstr "Se-Nepali"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "North Ndebele"
+msgstr "Se-North Ndebele"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Northern Sami"
+msgstr "Se-Northern Sami"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian"
+msgstr "Se-Norwegian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Bokmål"
+msgstr "Se-Norwegian Bokmål"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Nynorsk"
+msgstr "Se-Norwegian Nynorsk"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nyanja"
+msgstr "Se-Nyanja"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Occitan"
+msgstr "Se-Occitan"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Odia"
+msgstr "Se-Odia"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ojibwa"
+msgstr "Se-Ojibwa"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Oromo"
+msgstr "Se-Oromo"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ossetian"
+msgstr "Se-Ossetian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Pali"
+msgstr "Se-Pali"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Panjabi"
+msgstr "Se-Panjabi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Persian"
+msgstr "Se-Persian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Polish"
+msgstr "Se-Polish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Portuguese"
+msgstr "Se-Portuguese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Pushto"
+msgstr "Se-Pushto"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Quechua"
+msgstr "Se-Quechua"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Romanian"
+msgstr "Se-Romanian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Romansh"
+msgstr "Se-Romansh"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Rundi"
+msgstr "Se-Rundi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Russian"
+msgstr "Se-Russian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Samoan"
+msgstr "Se-Samoan"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sango"
+msgstr "Se-Sango"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sanskrit"
+msgstr "Se-Sanskrit"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sardinian"
+msgstr "Se-Sardinian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Santali"
+msgstr "Se-Santali"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Scottish Gaelic"
+msgstr "Se-Scottish Gaelic"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbian"
+msgstr "Se-Serbian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbo-Croatian"
+msgstr "Se-Serbo-Croatian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Shona"
+msgstr "Se-Shona"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sichuan Yi"
+msgstr "Se-Sichuan Yi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sindhi"
+msgstr "Se-Sindhi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sinhala"
+msgstr "Se-Sinhala"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovak"
+msgstr "Se-Slovak"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovenian"
+msgstr "Se-Slovenian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Somali"
+msgstr "Se-Somali"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "South Ndebele"
+msgstr "Se-South Ndebele"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Southern Sotho"
+msgstr "Se-Southern Sotho"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Spanish"
+msgstr "Se-Spanish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sundanese"
+msgstr "Se-Sundanese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swahili"
+msgstr "Se-Swahili"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swati"
+msgstr "Se-Swati"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swedish"
+msgstr "Se-Swedish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Taiwanese"
+msgstr "Se-Taiwanese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tagalog"
+msgstr "Se-Tagalog"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tahitian"
+msgstr "Se-Tahitian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tajik"
+msgstr "Se-Tajik"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tamil"
+msgstr "Se-Tamil"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tatar"
+msgstr "Se-Tatar"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Telugu"
+msgstr "Se-Telugu"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Thai"
+msgstr "Se-Thai"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tibetan"
+msgstr "Se-Tibetan"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tigrinya"
+msgstr "Se-Tigrinya"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tonga"
+msgstr "Se-Tonga"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tsonga"
+msgstr "Se-Tsonga"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tswana"
+msgstr "Se-Tswana"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkish"
+msgstr "Se-Turkish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkmen"
+msgstr "Se-Turkmen"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Twi"
+msgstr "Se-Twi"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Uighur"
+msgstr "Se-Uighur"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ukrainian"
+msgstr "Se-Ukrainian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Urdu"
+msgstr "Se-Urdu"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Uzbek"
+msgstr "Se-Uzbek"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Venda"
+msgstr "Se-Venda"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Vietnamese"
+msgstr "Se-Vietnamese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Volapük"
+msgstr "Se-Volapük"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Walloon"
+msgstr "Se-Walloon"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Welsh"
+msgstr "Se-Welsh"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Armenian"
+msgstr "Se-Western Armenian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Frisian"
+msgstr "Se-Western Frisian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Wolof"
+msgstr "Se-Wolof"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Xhosa"
+msgstr "Se-Xhosa"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Yiddish"
+msgstr "Se-Yiddish"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Yoruba"
+msgstr "Se-Yoruba"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Zhuang"
+msgstr "Se-Zhuang"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Zulu"
+msgstr "Se-Zulu"

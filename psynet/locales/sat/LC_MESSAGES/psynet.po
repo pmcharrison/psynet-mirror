@@ -1,0 +1,5728 @@
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Language: sat\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "How do you identify yourself?"
+msgstr "ᱟᱢ ᱪᱤᱠᱟᱹᱛᱮ ᱟᱢᱛᱮᱢ ᱩᱨᱩᱢ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Female"
+msgstr "ᱢᱟᱭᱡᱩ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Male"
+msgstr "ᱦᱮᱨᱮᱞ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Non-binary"
+msgstr "ᱱᱚᱱ-ᱵᱟᱭᱱᱟᱨᱤ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Not specified"
+msgstr "ᱵᱟᱝ ᱩᱯᱨᱩᱢ ᱟᱠᱟᱱᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "I prefer not to answer"
+msgstr "ᱤᱧ ᱛᱮᱞᱟ ᱵᱟᱝ ᱮᱢ ᱵᱮᱥ ᱤᱧ ᱵᱩᱡᱷᱟᱹᱣᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "gender"
+msgid "Specify yourself"
+msgstr "ᱟᱢ ᱟᱢᱛᱮ ᱩᱯᱨᱩᱢ ᱢᱮ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "age"
+msgid "What is your age?"
+msgstr "ᱟᱢᱟᱜ ᱩᱢᱮᱨ ᱛᱤᱱᱟᱹᱜ ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "age"
+msgid "You need to provide your age as an integer between 0 and 120!"
+msgstr "ᱟᱢ ᱟᱢᱟᱜ ᱩᱢᱮᱨ ᱐ ᱠᱷᱚᱱ ᱑᱒᱐ ᱛᱟᱞᱟ ᱨᱮ ᱢᱤᱫ ᱯᱩᱨᱟᱹ ᱮᱞ ᱞᱮᱠᱟᱛᱮ ᱮᱢ ᱞᱟᱹᱠᱛᱤᱭᱟᱢᱟ!"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "age"
+msgid "Your answer was: '{AGE}'"
+msgstr "ᱟᱢᱟᱜ ᱛᱮᱞᱟ ᱛᱟᱦᱮᱸ ᱠᱟᱱᱟ: '{AGE}'"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "Other country"
+msgstr "ᱮᱴᱟᱜ ᱫᱤᱥᱚᱢ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "Select a country"
+msgstr "ᱢᱤᱫ ᱫᱤᱥᱚᱢ ᱵᱟᱪᱷᱟᱣ ᱢᱮ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "You need to select a country!"
+msgstr "ᱟᱢ ᱢᱤᱫ ᱫᱤᱥᱚᱢ ᱵᱟᱪᱷᱟᱣ ᱞᱟᱹᱠᱛᱤᱭᱟᱢᱟ!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "What country are you from?"
+msgstr "ᱟᱢ ᱫᱚ ᱚᱠᱟ ᱫᱤᱥᱚᱢ ᱨᱮᱱ ᱠᱟᱱᱟᱢ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "country-select"
+msgid "What is your current country of residence?"
+msgstr "ᱟᱢᱟᱜ ᱱᱤᱛᱚᱜ ᱛᱟᱦᱮᱱ ᱫᱤᱥᱚᱢ ᱫᱚ ᱚᱠᱟ ᱠᱟᱱᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "What is your highest level of formal education?"
+msgstr "ᱟᱢᱟᱜ ᱥᱚᱨᱮᱥ ᱥᱮᱪᱮᱫ ᱨᱮᱭᱟᱜ ᱪᱮᱛᱟᱱ ᱫᱷᱟᱯ ᱪᱮᱫ ᱠᱟᱱᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "None"
+msgstr "ᱚᱠᱚᱭ ᱦᱚᱸ ᱵᱟᱝ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "High school"
+msgstr "ᱦᱟᱭ ᱥᱠᱩᱞ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "College"
+msgstr "ᱠᱚᱞᱮᱡᱽ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "Graduate School"
+msgstr "ᱜᱽᱨᱮᱡᱩᱣᱮᱴ ᱟᱥᱲᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "formal-education"
+msgid "Postgraduate degree or higher"
+msgstr "ᱯᱚᱥᱴᱜᱽᱨᱮᱡᱩᱣᱮᱴ ᱰᱤᱜᱽᱨᱤ ᱵᱟᱝᱠᱷᱟᱱ ᱪᱮᱛᱟᱱ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"What is your mother tongue - i.e., the language which you have grown up "
+"speaking from early childhood?"
+msgstr ""
+"ᱟᱢᱟᱜ ᱟᱭᱳ ᱯᱟᱹᱨᱥᱤ ᱪᱮᱫ ᱠᱟᱱᱟ - ᱢᱮᱱᱠᱷᱟᱱ, ᱚᱱᱟ ᱯᱟᱹᱨᱥᱤ ᱡᱟᱦᱟᱸ ᱫᱚ ᱟᱢ ᱜᱤᱫᱽᱨᱟᱹ ᱩᱢᱮᱨ ᱠᱷᱚᱱ"
+" ᱨᱚᱲ ᱠᱟᱛᱮᱢ ᱢᱟᱨᱟᱝ ᱟᱠᱟᱱᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Select a language"
+msgstr "ᱢᱤᱫ ᱯᱟᱹᱨᱥᱤ ᱵᱟᱪᱷᱟᱣ ᱢᱮ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "You need to select a language!"
+msgstr "ᱟᱢ ᱢᱤᱫ ᱯᱟᱹᱨᱥᱤ ᱵᱟᱪᱷᱟᱣ ᱞᱟᱹᱠᱛᱤᱭᱟᱢᱟ!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Do you speak more than one language?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱢᱤᱫ ᱠᱷᱚᱱ ᱵᱟᱹᱲᱛᱤ ᱯᱟᱹᱨᱥᱤ ᱮᱢ ᱨᱚᱲ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "Yes"
+msgstr "ᱦᱮᱸ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "No"
+msgstr "ᱵᱟᱝ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"Please list the languages you speak in order of proficiency (first language "
+"first, second language second, ...)"
+msgstr ""
+"ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱟᱢ ᱚᱠᱟ ᱯᱟᱹᱨᱥᱤ ᱮᱢ ᱨᱚᱲ ᱮᱫᱟ ᱚᱱᱟ ᱥᱩᱪᱤ ᱢᱮ (ᱯᱩᱭᱞᱩ ᱯᱟᱹᱨᱥᱤ ᱯᱩᱭᱞᱩ, ᱫᱚᱥᱟᱨ "
+"ᱯᱟᱹᱨᱥᱤ ᱫᱚᱥᱟᱨ,...)"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱠᱚᱢ ᱥᱮ ᱠᱚᱢ ᱢᱤᱫ ᱯᱟᱹᱨᱥᱤ ᱥᱩᱪᱤ ᱢᱮ!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid ""
+"How many years of formal training on a musical instrument (including voice) "
+"have you had during your lifetime?"
+msgstr ""
+"ᱟᱢᱟᱜ ᱡᱤᱭᱚᱱ ᱨᱮ ᱛᱤᱱᱟᱹᱜ ᱥᱮᱨᱢᱟ ᱥᱮᱨᱮᱧ ᱵᱟᱡᱟᱱ ᱨᱮ ᱯᱚᱨᱢᱟᱱᱟᱜ ᱥᱮᱱᱮᱪᱮᱫ (ᱟᱲᱟᱝ ᱥᱟᱶᱛᱮ) ᱮᱢ "
+"ᱦᱟᱛᱟᱣ ᱟᱠᱟᱫᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "On average, how many hours do you listen to music daily?"
+msgstr "ᱜᱚᱲᱦᱚᱱ ᱛᱮ, ᱟᱢ ᱫᱤᱱᱟᱹᱢ ᱛᱤᱱᱟᱹᱜ ᱴᱟᱲᱟᱝ ᱥᱮᱨᱮᱧ ᱟᱧᱡᱚᱢ ᱮᱫᱟᱢ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Do you make money from playing music?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱥᱮᱨᱮᱧ ᱵᱟᱡᱟᱣ ᱠᱟᱛᱮ ᱴᱟᱠᱟᱢ ᱠᱟᱢᱟᱣ ᱮᱫᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Frequently"
+msgstr "ᱵᱟᱨᱭᱟ ᱵᱟᱨᱭᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Sometimes"
+msgstr "ᱚᱠᱟ ᱫᱚ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Never"
+msgstr "ᱛᱤᱥ ᱦᱚᱸ ᱟᱞᱚᱢ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "music"
+msgid "Do you have hearing loss or any other hearing issues?"
+msgstr "ᱪᱮᱫ ᱟᱢᱟᱜ ᱟᱸᱡᱚᱢ ᱦᱟᱨᱟᱣ ᱥᱮ ᱮᱴᱟᱜ ᱟᱸᱡᱚᱢ ᱮᱴᱠᱮᱴᱚᱬᱮ ᱢᱮᱱᱟᱜᱼᱟ ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Do you dance socially or professionally?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱥᱟᱶᱛᱟ ᱞᱮᱠᱟ ᱥᱮ ᱯᱨᱚᱯᱷᱮᱥᱚᱱᱟᱞ ᱞᱮᱠᱟᱢ ᱮᱱᱮᱡ ᱠᱟᱱᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Socially"
+msgstr "ᱥᱟᱶᱛᱟ ᱞᱮᱠᱟᱛᱮ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Professionally"
+msgstr "ᱯᱨᱚᱯᱷᱮᱥᱚᱱᱟᱞ ᱞᱮᱠᱟᱛᱮ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "I never dance"
+msgstr "ᱤᱧ ᱛᱤᱥ ᱦᱚᱸ ᱵᱟᱹᱧ ᱮᱱᱮᱡ ᱟᱠᱟᱱᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "When was the last time you danced? (choose the most accurate answer):"
+msgstr "ᱟᱢ ᱢᱩᱪᱟᱹᱫ ᱫᱷᱟᱣ ᱛᱤᱱ ᱨᱮᱢ ᱮᱱᱮᱡ ᱞᱮᱱᱟ? (ᱡᱚᱛᱚ ᱠᱷᱚᱱ ᱴᱷᱤᱠ ᱛᱮᱞᱟ ᱵᱟᱪᱷᱟᱣ ᱢᱮ):"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This week"
+msgstr "ᱱᱚᱣᱟ ᱦᱟᱯᱛᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This month"
+msgstr "ᱱᱤᱭᱟᱹ ᱪᱟᱸᱫᱚ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "This year"
+msgstr "ᱱᱚᱣᱟ ᱥᱮᱨᱢᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Some years ago"
+msgstr "ᱛᱤᱱᱟᱹᱜ ᱜᱟᱱ ᱥᱮᱨᱢᱟ ᱞᱟᱦᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "Many years ago"
+msgstr "ᱟᱹᱰᱤ ᱥᱮᱨᱢᱟ ᱞᱟᱦᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "dance"
+msgid "I never danced"
+msgstr "ᱤᱧ ᱤᱧᱟᱜ ᱡᱤᱭᱚᱱ ᱨᱮ ᱛᱤᱥ ᱦᱚᱸ ᱵᱟᱹᱧ ᱮᱱᱮᱡ ᱟᱠᱟᱱᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Did you get speech-language therapy as a child?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱜᱤᱫᱽᱨᱟᱹ ᱞᱮᱠᱟ ᱨᱚᱲ-ᱯᱟᱹᱨᱥᱤ ᱛᱷᱮᱨᱟᱯᱭ ᱧᱟᱢ ᱞᱮᱫᱟᱢ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgid "I don’t know"
+msgstr "ᱤᱧ ᱵᱟᱹᱧ ᱵᱟᱰᱟᱭᱟ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "speech-disorder"
+msgid "Have you ever been diagnosed with dyslexia?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱛᱤᱥᱦᱚᱸ ᱰᱤᱥᱞᱮᱠᱥᱤᱭᱟ ᱛᱮᱢ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱟᱠᱟᱱᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "income"
+msgid "What is your total household income per year?"
+msgstr "ᱥᱮᱨᱢᱟ ᱯᱤᱪᱷᱤ ᱟᱢᱟᱜ ᱚᱲᱟᱜ ᱨᱮᱱᱟᱜ ᱢᱩᱴ ᱟᱹᱨᱟᱹᱭ ᱛᱤᱱᱟᱹᱜ ?"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "Less than 10,000 {CURRENCY}"
+msgstr "᱑᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱠᱚᱢ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "10,000 to 19,999 {CURRENCY}"
+msgstr "᱑᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱑᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "20,000 to 29,999 {CURRENCY}"
+msgstr "᱒᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱒᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "30,000 to 39,999 {CURRENCY}"
+msgstr "᱓᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱓᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "40,000 to 49,999 {CURRENCY}"
+msgstr "᱔᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱔᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "50,000 to 59,999 {CURRENCY}"
+msgstr "᱕᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱕᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "60,000 to 69,999 {CURRENCY}"
+msgstr "᱖᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱖᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "70,000 to 79,999 {CURRENCY}"
+msgstr "᱗᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱗᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "80,000 to 89,999 {CURRENCY}"
+msgstr "᱘᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱘᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "90,000 to 99,999 {CURRENCY}"
+msgstr "᱙᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱙᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "100,000 to 149,999 {CURRENCY}"
+msgstr "᱑᱐᱐,᱐᱐᱐ ᱠᱷᱚᱱ ᱑᱔᱙,᱙᱙᱙ {CURRENCY}"
+
+#: psynet/demography/general.py
+#, fuzzy, python-brace-format
+msgctxt "income"
+msgid "150,000 {CURRENCY} or more"
+msgstr "᱑᱕᱐,᱐᱐᱐ {CURRENCY} ᱵᱟᱝᱠᱷᱟᱱ ᱵᱟᱹᱲᱛᱤ"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you like the experiment?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱠᱩᱥᱤ ᱟᱠᱟᱫᱟᱢ ᱥᱮ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you find the experiment difficult?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱟᱸᱴ ᱮᱢ ᱵᱩᱡᱷᱟᱹᱣ ᱠᱮᱫᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "Did you encounter any technical problems during the experiment?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱚᱠᱛᱚ ᱨᱮ ᱡᱟᱦᱟᱱ ᱴᱮᱠᱱᱤᱠᱟᱞ ᱮᱴᱠᱮᱴᱚᱬᱮᱢ ᱧᱟᱢ ᱟᱠᱟᱫᱟ?"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "experiment-feedback"
+msgid "If so, please provide a few words describing the problem."
+msgstr "ᱡᱩᱫᱤ ᱚᱱᱠᱟ, ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱮᱴᱠᱮᱴᱚᱬᱮ ᱵᱚᱨᱱᱚᱱ ᱞᱟᱹᱜᱤᱫ ᱛᱤᱱᱟᱹᱜ ᱜᱟᱱ ᱟᱹᱲᱟᱹ ᱮᱢᱚᱜ ᱢᱮ᱾"
+
+#: psynet/end.py
+#, fuzzy, python-brace-format
+msgctxt "final-page-rewards"
+msgid ""
+"You will receive a reward of <strong>{CURRENCY}{TIME_REWARD}</strong> for "
+"the time you spent on the experiment. You have also been awarded a "
+"performance reward of <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong>! "
+msgstr ""
+"ᱟᱢ ᱵᱤᱰᱟᱹᱣ ᱨᱮ ᱠᱷᱚᱨᱚᱪ ᱚᱠᱛᱚ ᱞᱟᱹᱜᱤᱫ <strong>{CURRENCY}{TIME_REWARD}</strong> "
+"ᱨᱮᱭᱟᱜ ᱥᱤᱨᱯᱟᱹᱢ ᱧᱟᱢᱟ᱾ᱟᱢ ᱫᱚ <strong>{CURRENCY}{PERFORMANCE_REWARD}</strong> "
+"ᱨᱮᱭᱟᱜ ᱠᱟᱹᱢᱤᱦᱚᱨᱟ ᱥᱤᱨᱯᱟᱹ ᱦᱚᱸ ᱮᱢ ᱦᱩᱭ ᱟᱠᱟᱱᱟ!"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_successful"
+msgid "That's the end of the experiment!"
+msgstr "ᱚᱱᱟ ᱫᱚ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱨᱮᱭᱟᱜ ᱢᱩᱪᱟᱹᱫ ᱠᱟᱱᱟ!"
+
+#: psynet/end.py
+#, fuzzy
+msgid "Thank you for taking part."
+msgstr "ᱦᱟᱯᱟᱴᱤᱧ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱟᱭᱢᱟ ᱥᱟᱨᱦᱟᱣ ᱾"
+
+#: psynet/end.py
+#, fuzzy
+msgid "Please click \"Finish\" to complete the HIT."
+msgstr "HIT ᱯᱩᱨᱟᱹᱣ ᱞᱟᱹᱜᱤᱫ ᱫᱟᱭᱟ ᱠᱟᱛᱮ &quot;ᱪᱟᱹᱵᱟ&quot; ᱨᱮ ᱚᱛᱟᱭ ᱢᱮ ᱾"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "Unfortunately the experiment must end early."
+msgstr "ᱚᱵᱷᱟᱹᱜᱽ ᱞᱮᱠᱟᱛᱮ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱞᱚᱜᱚᱱ ᱢᱩᱪᱟᱹᱫᱚᱜ ᱞᱟᱹᱠᱛᱤᱭᱟ᱾"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_unsuccessful"
+msgid "However, you will still be paid for the time you spent already."
+msgstr "ᱢᱮᱱᱠᱷᱟᱱ, ᱟᱢ ᱢᱟᱲᱟᱝ ᱠᱷᱚᱱ ᱠᱷᱚᱨᱚᱪ ᱟᱠᱟᱫ ᱚᱠᱛᱚ ᱨᱮᱭᱟᱜ ᱯᱩᱭᱥᱟᱹ ᱮᱢ ᱧᱟᱢᱟ᱾"
+
+#: psynet/end.py
+#, fuzzy
+msgid "You will be redirected."
+msgstr "ᱟᱢ ᱫᱚ ᱨᱤᱰᱟᱭᱨᱮᱠᱴ ᱦᱩᱭᱩᱜ ᱛᱟᱢᱟ᱾"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "Consent was rejected."
+msgstr "ᱥᱚᱦᱢᱚᱛᱤ ᱵᱟᱝ ᱦᱩᱭ ᱞᱮᱱᱟ ᱾"
+
+#: psynet/end.py
+#, fuzzy
+msgctxt "final_page_rejected_consent"
+msgid "End of experiment."
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱨᱮᱭᱟᱜ ᱢᱩᱪᱟᱹᱫ᱾"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "error-msg"
+msgid "There has been an error and so you are unable to continue, sorry!"
+msgstr "ᱢᱤᱫ ᱦᱩᱰᱟᱹᱜ ᱦᱩᱭ ᱟᱠᱟᱱᱟ ᱟᱨ ᱚᱱᱟᱛᱮ ᱟᱢ ᱞᱟᱦᱟ ᱵᱟᱢ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱟᱱᱟ, ᱤᱠᱟᱹ ᱠᱟᱹᱧ ᱢᱮ!"
+
+#: psynet/experiment.py
+#, fuzzy, python-brace-format
+msgctxt "mturk_error"
+msgid ""
+"To enquire about compensation, please contact the researcher at {EMAIL} and "
+"describe what led to this error."
+msgstr ""
+"ᱠᱷᱟᱹᱴᱤ ᱵᱟᱵᱚᱛ ᱛᱚᱞᱟᱥ ᱞᱟᱹᱜᱤᱫ, ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱠᱷᱚᱱᱫᱽᱨᱚᱱᱤᱭᱟᱹ ᱥᱟᱶ {EMAIL} ᱨᱮ ᱡᱚᱯᱚᱲᱟᱣ ᱢᱮ"
+" ᱟᱨ ᱞᱟᱹᱭ ᱢᱮ ᱪᱮᱫ ᱠᱷᱟᱹᱛᱤᱨ ᱛᱮ ᱱᱚᱣᱟ ᱦᱤᱲᱤᱡ ᱦᱩᱭᱮᱱᱟ ᱾"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "mturk_error"
+msgid "Please also quote the following information:"
+msgstr "ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱱᱚᱶᱟ ᱠᱚ ᱵᱤᱵᱨᱚᱬ ᱦᱚᱸ ᱞᱟᱹᱭ ᱢᱮ:"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid "Don't worry, your progress has been recorded."
+msgstr "ᱟᱞᱚᱢ ᱵᱷᱟᱵᱽᱱᱟᱜᱼᱟ, ᱟᱢᱟᱜ ᱞᱟᱦᱟᱱᱛᱤ ᱨᱮᱠᱚᱨᱰ ᱦᱩᱭ ᱟᱠᱟᱱᱟ᱾"
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "prolific_error"
+msgid ""
+"To enquire about compensation, please send the researcher a message via the "
+"Prolific website and describe what led to your error."
+msgstr ""
+"ᱠᱷᱟᱹᱴᱤ ᱵᱟᱵᱚᱛ ᱛᱚᱞᱟᱥ ᱞᱟᱹᱜᱤᱫ, ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱯᱨᱚᱞᱤᱯᱷᱤᱠ ᱣᱮᱵᱽᱥᱟᱭᱤᱴ ᱦᱚᱛᱮᱛᱮ "
+"ᱠᱷᱚᱱᱫᱽᱨᱚᱱᱤᱭᱟᱹ ᱢᱤᱫ ᱥᱟᱱᱫᱮᱥ ᱵᱷᱮᱡᱟᱭ ᱢᱮ ᱟᱨ ᱞᱟᱹᱭ ᱢᱮ ᱟᱢᱟᱜ ᱦᱤᱲᱤᱡ ᱪᱮᱫ ᱠᱷᱟᱹᱛᱤᱨ ᱛᱮ ᱦᱩᱭ "
+"ᱞᱮᱱᱟ᱾"
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to check at least one answer!"
+msgstr "ᱟᱢ ᱠᱚᱢ ᱥᱮ ᱠᱚᱢ ᱢᱤᱫ ᱛᱮᱞᱟ ᱧᱮᱞ ᱞᱟᱹᱠᱛᱤᱭᱟᱢᱟ!"
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to select an answer!"
+msgstr "ᱟᱢ ᱢᱤᱫ ᱛᱮᱞᱟ ᱵᱟᱪᱷᱟᱣ ᱞᱟᱹᱠᱛᱤᱭᱟᱢᱟ!"
+
+#: psynet/modular_page.py
+#, fuzzy
+msgctxt "validation"
+msgid "You need to provide a number!"
+msgstr "ᱟᱢ ᱢᱤᱫ ᱮᱞ ᱮᱢ ᱞᱟᱹᱠᱛᱤᱜ ᱠᱟᱱᱟ!"
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "color_blindness_test"
+msgid "Write down the number in the image."
+msgstr "ᱟᱢ ᱡᱚᱞ ᱟᱨ ᱟᱢᱛᱮ ᱠᱚᱨ ᱠᱟᱭᱞᱟᱹ ᱠᱚᱯᱟᱲ ᱢᱟᱦᱟᱜ."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"We will now perform a quick test to check your ability to perceive colors."
+msgstr "ᱚᱨᱟᱜ ᱤᱧ ᱟᱢᱞᱚᱜ ᱪᱤᱠᱟ ᱞᱚᱜᱟᱹ ᱠᱚᱞᱨ ᱥᱟᱢᱮᱛᱮ ᱨᱚᱭᱦᱟᱹᱛ ᱛᱷᱟᱸᱜᱟ ᱵᱟᱞ."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid ""
+"In each trial, you will be presented with an image that contains a number."
+msgstr "ᱚᱨᱟᱜ ᱤᱧ ᱟᱢᱞᱚᱜ ᱥᱟᱢᱮᱛᱮ, ᱞᱮᱭ ᱟᱢᱛᱮ ᱠᱚᱨ ᱟᱢᱛᱮ ᱞᱚᱜᱟᱹ ᱠᱚᱯᱟᱲ ᱢᱟᱦᱟᱜ."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy, python-brace-format
+msgctxt "color_blindness_test_intro_1"
+msgid "This image will disappear after {HIDE_AFTER} seconds."
+msgstr "ᱟᱢ ᱠᱚᱨ ᱠᱟᱭᱞᱟᱹ {HIDE_AFTER} ᱥᱮᱠᱥᱷᱟᱹᱨ ᱞᱚᱜᱟᱹ ᱵᱚᱪᱟᱞᱟᱜ."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "color_blindness_test_intro_1"
+msgid "You must enter the number that you see into the text box."
+msgstr "ᱞᱚᱜᱟᱹ ᱠᱚᱯᱟᱲ ᱢᱟᱦᱟᱜ ᱟᱢ ᱛᱚᱲ ᱟᱢᱟᱢ ᱚᱨᱟᱜ ᱠᱚᱲᱟ ᱠᱷᱚᱱ ᱵᱟᱞ ᱟᱜᱤᱫᱟ ᱟᱦᱟᱢᱞᱟᱹᱲ."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "ᱛᱚᱲ ᱟᱢᱟᱢ ᱵᱚᱱᱚᱭ ᱫᱤᱦᱨᱟᱹ ᱨᱮᱠᱮ ᱟᱢᱛᱮ ᱠᱯᱮᱨ ᱢᱟᱦᱟᱜ: 1, 2, ᱟᱨ 3?"
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr "ᱞᱮᱜᱮ ᱟᱢᱛᱮ ᱛᱚᱲ ᱟᱢᱟᱢ ᱵᱚᱱᱚᱭ ᱠᱚᱱ ᱚᱩᱱᱮ ᱵᱮᱨᱮᱱ <strong>ᱟᱹᱨᱮ ᱠᱚᱲᱟᱜ</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Apni kered score"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Button dabhena kile hena."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Apni kered kariye test kari kilen amge bhasa daka'ni."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Sakhan trial re, apni ek char actar dekhate."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Char actar apa'd automatically gujuyon."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Apni kered kariye decide kari kilen e {LANGUAGE_NAME} re asra kini na."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Yadi apni {LANGUAGE_NAME} re sabdo kered meaning nihi jani, kintu apni sure "
+"achi ki e asra, tahen real sabdo angela'd mark kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Yadi apni sure nihi achi ki sabdo {LANGUAGE_NAME} re asra, tahen fake sabdo "
+"angela'd mark kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "E experiment re, spelling variant mix dekhe kutam."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Apni subtle spelling difference nihi pay attention kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Sabdo uppercase are lowercase letter re dekhate."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Apni sabdo case ignore kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "Kered kariye task joldi kariya, apni keyboard re key use kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Apni kered kariye key use kariya:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "Word real asra tahen, <kbd>A</kbd> dabhena."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "Word fake asra tahen, <kbd>L</kbd> dabhena."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Apni keyboard re duta key familiarize kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Apni dabhena tahen, keyboard re light up kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "Apni duta key at least ekbar dabhena kilen next page re jaya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Apni key bhuli jaya tahen, pratyek page re print kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Test next page re start kariya."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "lucid_error"
+msgid "Redirecting to Lucid Marketplace..."
+msgstr "ᱞᱩᱥᱤᱰ ᱵᱟᱡᱟᱨ ᱨᱮ ᱫᱚᱦᱲᱟ ᱞᱟᱹᱭ..."
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Aborting not possible."
+msgstr "ᱜᱤᱫᱽᱨᱟᱹ ᱜᱚᱡ ᱫᱚ ᱵᱟᱝ ᱥᱚᱢᱵᱷᱚᱵᱚᱱᱟ ᱾"
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"Aborting the experiment is not possible as the experimenter does not allow "
+"it at this time!"
+msgstr ""
+"ᱵᱮᱵᱷᱟᱨ ᱵᱚᱱᱫᱚ ᱫᱚ ᱵᱟᱝ ᱥᱚᱢᱵᱷᱚᱵᱚᱱᱟ ᱪᱮᱫᱟᱜ ᱥᱮ ᱵᱮᱵᱷᱟᱨᱤᱭᱟᱹ ᱫᱚ ᱱᱤᱛᱚᱜ ᱵᱟᱭ ᱟᱲᱟᱜ ᱟᱭᱟ ᱾"
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy, python-format
+msgid ""
+"You have to accumulate <strong>at least "
+"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
+"able to be compensated."
+msgstr ""
+"ᱟᱢ ᱫᱚ ᱠᱚᱢ ᱥᱮ ᱠᱚᱢ %(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s ᱥᱤᱨᱯᱟᱹ "
+"ᱡᱟᱣᱨᱟ ᱦᱩᱭᱩᱜ ᱛᱟᱢᱟ ᱡᱮᱢᱚᱱ ᱯᱩᱭᱥᱟᱹ ᱧᱟᱢ ᱫᱟᱲᱮᱭᱟᱜ ᱢᱮ᱾"
+
+#: psynet/templates/abort_not_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See below information on your currently accumulated reward."
+msgstr "ᱟᱢᱟᱜ ᱱᱤᱛᱚᱜ ᱡᱟᱣᱨᱟ ᱟᱠᱟᱱ ᱥᱤᱨᱯᱟᱹ ᱵᱟᱵᱚᱛ ᱞᱟᱛᱟᱨ ᱨᱮ ᱵᱟᱰᱟᱭ ᱧᱮᱞ ᱢᱮ᱾"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Assignment ID"
+msgstr "ᱮᱥᱟᱭᱤᱱᱢᱮᱱᱴ ᱟᱭᱰᱤ"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "HIT ID"
+msgstr "ᱦᱤᱴ ᱟᱭᱰᱤ"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Accumulated reward"
+msgstr "ᱡᱟᱣᱨᱟ ᱥᱤᱨᱯᱟᱹ"
+
+#: psynet/templates/abort_not_possible.html
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Close window"
+msgstr "ᱡᱷᱚᱨᱠᱟ ᱵᱚᱱᱫᱚ ᱢᱮ"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Are you sure you want to abort the experiment?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱜᱮᱭᱟᱢ ᱟᱢ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱵᱚᱱᱫᱚ ᱥᱟᱱᱟᱭᱮᱫ ᱢᱮᱭᱟ?"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid ""
+"If you click the Abort button, the experiment will end early, and you will "
+"be automatically paid the compensation you have earned so far."
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱟᱵᱚᱨᱴ ᱵᱩᱛᱟᱢ ᱚᱛᱟᱭᱟ, ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱞᱚᱜᱚᱱ ᱪᱟᱵᱟᱜᱼᱟ, ᱟᱨ ᱟᱢ ᱱᱤᱛ ᱦᱟᱹᱵᱤᱡ ᱟᱨᱡᱟᱣ"
+" ᱟᱠᱟᱱ ᱠᱷᱟᱹᱭᱫᱟᱹᱨᱤ ᱟᱡ ᱛᱮ ᱮᱢᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "Please only contact us if you have trouble receiving your payment."
+msgstr "ᱯᱮᱢᱮᱱᱴ ᱧᱟᱢ ᱨᱮ ᱮᱴᱠᱮᱴᱚᱬᱮ ᱛᱟᱦᱮᱱ ᱠᱷᱟᱱ ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱟᱞᱮ ᱥᱟᱶ ᱡᱚᱯᱚᱲᱟᱣ ᱢᱮ᱾"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgctxt "abort_possible"
+msgid "See the information below for details of your compensation."
+msgstr "ᱟᱢᱟᱜ ᱠᱷᱟᱹᱭᱫᱟᱹᱨᱤ ᱨᱮᱭᱟᱜ ᱵᱤᱵᱨᱚᱬ ᱞᱟᱹᱜᱤᱫ ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱵᱤᱵᱨᱚᱬ ᱧᱮᱞ ᱢᱮ᱾"
+
+#: psynet/templates/abort_possible.html
+#, fuzzy
+msgid "Abort experiment"
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱵᱚᱱᱫᱚ ᱢᱮ"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Call for participants"
+msgstr "ᱥᱮᱞᱮᱫᱚᱜ ᱠᱚ ᱞᱟᱹᱜᱤᱫ ᱦᱚᱦᱚ ᱢᱮ"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "The requirements to participate are as follows"
+msgstr "ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱹᱜᱤᱫ ᱞᱟᱹᱠᱛᱤᱭᱟᱱ ᱠᱚ ᱫᱚ ᱱᱚᱶᱟ ᱞᱮᱠᱟ ᱠᱟᱱᱟ"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"Please click the \"Accept HIT\" button on the Amazon site above to begin the"
+" task."
+msgstr ""
+"ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱠᱟᱹᱢᱤ ᱮᱦᱚᱵ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ ᱨᱮ ᱮᱢᱮᱡᱚᱱ ᱥᱟᱭᱤᱴ ᱨᱮ &quot;ᱦᱤᱴ ᱟᱝᱜᱚᱪ "
+"ᱢᱮ&quot; ᱵᱚᱛᱚᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ᱾"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for accepting this HIT."
+msgstr "ᱱᱚᱣᱟ ᱦᱤᱴ ᱟᱝᱜᱚᱪ ᱞᱟᱹᱜᱤᱫ ᱥᱟᱨᱦᱟᱣ ᱾"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Thanks for your interest in this experiment."
+msgstr "ᱱᱚᱣᱟ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱨᱮ ᱟᱢᱟᱜ ᱨᱟᱹᱥᱠᱟᱹ ᱞᱟᱹᱜᱤᱫ ᱥᱟᱨᱦᱟᱣ ᱾"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid ""
+"By clicking the following URL link, you will be taken to the experiment, "
+"including complete instructions and an informed consent agreement."
+msgstr ""
+"ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ URL ᱞᱤᱝᱠ ᱨᱮ ᱞᱤᱱ ᱠᱟᱛᱮ, ᱟᱢ ᱫᱚ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱛᱮ ᱤᱫᱤ ᱢᱮᱭᱟ, ᱡᱟᱦᱟᱸ "
+"ᱨᱮ ᱯᱩᱨᱟᱹ ᱞᱟᱹᱭ ᱟᱨ ᱵᱟᱰᱟᱭ ᱥᱚᱦᱢᱚᱛ ᱥᱚᱦᱢᱚᱛ ᱥᱮᱞᱮᱫ ᱢᱮᱱᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Warning"
+msgstr "ᱪᱮᱦᱟᱣᱱᱟ"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Please disable pop-up blockers before continuing."
+msgstr "ᱞᱟᱦᱟ ᱪᱟᱞᱟᱣ ᱞᱟᱦᱟᱨᱮ ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱯᱚᱯ-ᱟᱯ ᱵᱞᱚᱠᱟᱨ ᱚᱠᱟᱹᱡᱽᱣᱟᱹ ᱢᱮ ᱾"
+
+#: psynet/templates/ad.html
+#, fuzzy
+msgctxt "ad"
+msgid "Begin Experiment"
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱮᱦᱚᱵ ᱢᱮ"
+
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Abort Experiment"
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱵᱚᱱᱫᱚ ᱢᱮ"
+
+#: psynet/templates/ad.html psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Click the above button to be compensated in case of an error."
+msgstr "ᱦᱤᱲᱤᱡ ᱦᱩᱭᱩᱜ ᱠᱷᱟᱱ ᱯᱷᱩᱨᱜᱟᱹᱞ ᱧᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ ᱨᱮ ᱢᱮᱱᱟᱜ ᱵᱩᱛᱟᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ ᱾"
+
+#: psynet/templates/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "To proceed, click the button below."
+msgstr "ᱞᱟᱦᱟ ᱥᱮᱱᱚᱜ ᱞᱟᱹᱜᱤᱫ, ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱵᱩᱛᱟᱢ ᱨᱮ ᱚᱛᱟᱭ ᱢᱮ ᱾"
+
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Next"
+msgstr "ᱛᱟᱭᱚᱢ"
+
+#: psynet/templates/consents/audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid ""
+"In this experiment, you may be asked to make a voice or video recording."
+msgstr ""
+"ᱱᱚᱣᱟ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱨᱮ, ᱟᱢ ᱫᱚ ᱟᱲᱟᱝ ᱵᱟᱝᱠᱷᱟᱱ ᱵᱷᱤᱰᱤᱭᱚ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱞᱟᱹᱜᱤᱫ ᱠᱚ ᱢᱮᱛᱟᱢᱟ᱾"
+
+#: psynet/templates/consents/audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid ""
+"For example, you may be asked to record your finger-tapping in response to a"
+" sound or video, or to record yourself speaking or singing."
+msgstr ""
+"ᱫᱟᱹᱭᱠᱟᱹ ᱞᱮᱠᱟᱛᱮ, ᱟᱢ ᱫᱚ ᱥᱟᱰᱮ ᱥᱮ ᱵᱷᱤᱰᱤᱭᱳ ᱨᱮᱭᱟᱜ ᱛᱮᱞᱟ ᱞᱮᱠᱟᱛᱮ ᱟᱢᱟᱜ ᱠᱟᱹᱴᱩᱵ ᱴᱮᱯ "
+"ᱨᱮᱠᱚᱨᱰ ᱞᱟᱹᱜᱤᱫ ᱠᱚ ᱢᱮᱛᱟᱢᱟ, ᱟᱨᱵᱟᱝ ᱟᱢ ᱟᱢᱛᱮ ᱨᱚᱲ ᱥᱮ ᱥᱮᱨᱮᱧ ᱨᱮᱠᱚᱨᱰ ᱞᱟᱹᱜᱤᱫ ᱠᱚ ᱢᱮᱛᱟᱢᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "Research Participant Consent Form for Image/Sound Recordings"
+msgstr "ᱪᱤᱛᱟᱹᱨ/ᱥᱟᱰᱮ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱞᱟᱹᱜᱤᱫ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱦᱟᱯᱟᱴᱤᱧᱤᱭᱟᱹ ᱥᱚᱦᱢᱚᱛᱤ ᱯᱷᱚᱨᱢ"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Title of study:"
+msgstr "ᱯᱟᱲᱦᱟᱣ ᱨᱮᱭᱟᱜ ᱢᱩᱴᱷᱟᱹᱱ:"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have received oral and written information about the fact that "
+"<i>audiovisual</i> recordings will be made in this study."
+msgstr ""
+"ᱤᱧ ᱱᱚᱣᱟ ᱠᱟᱛᱷᱟ ᱵᱟᱵᱚᱛ ᱢᱚᱪᱟ ᱟᱨ ᱚᱞ ᱛᱮ ᱵᱟᱲᱟᱭ ᱧᱟᱢ ᱟᱠᱟᱫᱟᱹᱧ ᱡᱮ ᱱᱚᱣᱟ ᱚᱫᱷᱭᱚᱱ ᱨᱮ "
+"ᱨᱮᱠᱚᱨᱰᱤᱝ ᱦᱩᱭᱩᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The recording serves the purpose of understanding how humans perceive and "
+"process information from sound and visual."
+msgstr ""
+"ᱨᱮᱠᱚᱨᱰᱤᱝ ᱫᱚ ᱱᱚᱶᱟ ᱵᱩᱡᱷᱟᱹᱣ ᱨᱮᱭᱟᱜ ᱡᱚᱥ ᱮ ᱠᱟᱹᱢᱤᱭᱟ ᱡᱮ ᱪᱮᱫ ᱞᱮᱠᱟ ᱢᱟᱱᱣᱟ ᱠᱚ ᱥᱟᱰᱮ ᱟᱨ "
+"ᱧᱮᱞ ᱠᱷᱚᱱ ᱵᱟᱯᱟᱰᱟᱭ ᱠᱚ ᱵᱩᱡᱷᱟᱹᱣᱟ ᱟᱨ ᱠᱚ ᱯᱨᱚᱥᱮᱥ ᱮᱫᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"For example, we would like to understand how predictive mechanisms in "
+"perception rely on experience, learning, and memory."
+msgstr ""
+"ᱢᱤᱫ ᱫᱟᱹᱭᱠᱟᱹ ᱞᱮᱠᱟᱛᱮ, ᱟᱞᱮ ᱵᱩᱡᱷᱟᱹᱣ ᱥᱟᱱᱟᱭᱮᱫ ᱞᱮᱭᱟ ᱡᱮ ᱪᱮᱫ ᱞᱮᱠᱟ ᱛᱮ ᱵᱩᱡᱷᱟᱹᱣ ᱨᱮ "
+"ᱵᱷᱟᱵᱤᱛ ᱛᱚᱞᱦᱟ ᱫᱚ ᱟᱹᱱᱟᱹᱭᱠᱟᱹᱣ, ᱥᱮᱪᱮᱫ ᱟᱨ ᱫᱤᱥᱟᱹ ᱨᱮ ᱯᱟᱹᱨᱛᱩᱞ ᱢᱮᱱᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"By making recording people while moving, singing, tapping to rhythms, or "
+"speaking, we can infer the mechanisms of the auditory and visual systems."
+msgstr ""
+"ᱪᱟᱞᱟᱣ, ᱥᱮᱨᱮᱧ, ᱥᱟᱰᱮ ᱴᱮᱯ, ᱥᱮ ᱨᱚᱲ ᱚᱠᱛᱮ ᱦᱚᱲ ᱠᱚ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱠᱟᱛᱮ ᱟᱵᱚ ᱟᱸᱡᱚᱢ ᱟᱨ ᱧᱮᱞ "
+"ᱥᱤᱥᱴᱚᱢ ᱨᱮᱭᱟᱜ ᱛᱚᱞᱟᱥ ᱵᱚᱱ ᱵᱩᱡᱷᱟᱹᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have been informed that the storage and processing of the "
+"<i>audiovisual</i> recording will be carried out in pseudonymized form, "
+"i.e., using a number and without containing my name, and that there is a "
+"coding list that links my name to the number."
+msgstr ""
+"ᱤᱧ ᱫᱚ ᱵᱟᱰᱟᱭ ᱧᱟᱢ ᱟᱠᱟᱱᱟ ᱡᱮ <i>audiovisual</i> ᱨᱮᱠᱚᱨᱰᱤᱝ ᱨᱮᱭᱟᱜ ᱥᱴᱚᱨ ᱟᱨ ᱯᱨᱚᱥᱮᱥᱤᱝ "
+"ᱫᱚ ᱯᱷᱮᱰᱚᱱ ᱯᱷᱚᱨᱢ ᱨᱮ ᱦᱩᱭᱩᱜ-ᱟ, ᱢᱮᱱᱠᱷᱟᱱ ᱢᱤᱫ ᱱᱚᱢᱵᱚᱨ ᱵᱮᱵᱚᱦᱟᱨ ᱠᱟᱛᱮ ᱟᱨ ᱤᱧᱟᱜ ᱧᱩᱛᱩᱢ "
+"ᱵᱟᱝ ᱛᱟᱦᱮᱱ ᱠᱟᱛᱮ, ᱟᱨ ᱤᱧᱟᱜ ᱧᱩᱛᱩᱢ ᱱᱚᱢᱵᱚᱨ ᱥᱟᱶ ᱡᱚᱲᱟᱣ ᱠᱟᱛᱮ ᱠᱚᱰᱤᱝ ᱞᱤᱥᱴ ᱢᱮᱱᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The investigators are the only persons who have access to this coding list, "
+"which will be destroyed after completion of the research project."
+msgstr ""
+"ᱛᱚᱞᱟᱥᱤᱭᱟᱹ ᱠᱚ ᱫᱚ ᱮᱠᱞᱟ ᱦᱚᱲ ᱠᱟᱱᱟ ᱠᱚ ᱡᱟᱦᱟᱸᱭ ᱴᱷᱮᱱ ᱱᱚᱣᱟ ᱠᱚᱰᱤᱝ ᱛᱟᱞᱠᱟ ᱢᱮᱱᱟᱜᱼᱟ, ᱚᱠᱟ "
+"ᱫᱚ ᱛᱚᱞᱟᱥ ᱯᱨᱚᱡᱮᱠᱴ ᱢᱩᱪᱟᱹᱫ ᱛᱟᱭᱚᱢ ᱵᱟᱹᱲᱤᱡᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"Researchers associated with this project will have access to my "
+"<i>audiovisual</i> data during the recording and the analysis of the "
+"material."
+msgstr ""
+"ᱱᱚᱶᱟ ᱯᱨᱚᱡᱮᱠᱴ ᱥᱟᱶ ᱡᱚᱲᱟᱣ ᱠᱟᱱ ᱠᱷᱚᱱᱫᱽᱨᱚᱠ ᱠᱚ ᱫᱚ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱟᱨ ᱡᱤᱱᱤᱥ ᱠᱚ ᱵᱤᱰᱟᱹᱣ ᱚᱠᱛᱮ "
+"ᱤᱧᱟᱜ <i>ᱚᱰᱤᱭᱚᱵᱷᱤᱡᱩᱞ</i> ᱰᱟᱴᱟ ᱠᱚ ᱧᱟᱢ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"I understand that I am free to withdraw my consent to the collection and "
+"storage of my personal data without negative consequences."
+msgstr ""
+"ᱤᱧ ᱵᱩᱡᱷᱟᱹᱣ ᱮᱫᱟᱹᱧ ᱡᱮ ᱤᱧ ᱯᱷᱩᱨᱜᱟᱹᱞ ᱜᱮᱭᱟᱹᱧ ᱵᱤᱱᱟᱹ ᱵᱟᱹᱲᱤᱡ ᱚᱨᱡᱚ ᱛᱮ ᱤᱧᱟᱜ ᱯᱚᱨᱥᱚᱱᱟᱞ "
+"ᱰᱟᱴᱟ ᱡᱟᱣᱨᱟ ᱟᱨ ᱫᱚᱦᱚ ᱞᱟᱹᱜᱤᱫ ᱤᱧᱟᱜ ᱥᱚᱦᱢᱚᱛᱤ ᱚᱪᱚᱜ ᱞᱟᱹᱜᱤᱫ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I agree to the handling of the recordings as described above."
+msgstr "ᱤᱧ ᱪᱮᱛᱟᱱ ᱨᱮ ᱵᱚᱨᱱᱚᱱ ᱟᱠᱟᱱ ᱞᱮᱠᱟ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱦᱮᱱᱰᱞᱤᱝ ᱨᱮ ᱨᱮᱵᱮᱱ ᱢᱤᱱᱟᱹᱧᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Addendum for demonstrations"
+msgstr "ᱩᱱᱩᱫᱩᱜ ᱞᱟᱹᱜᱤᱫ ᱥᱮᱞᱮᱫ"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"I agree that my <i>audiovisual</i> recordings can be used for demonstration "
+"purposes in presentations with a limited number of participants (e.g., "
+"teaching courses or scientific presentations)."
+msgstr ""
+"ᱤᱧ ᱫᱚ ᱢᱮᱱ ᱮᱫᱟᱹᱧ ᱡᱮ ᱤᱧᱟᱜ <i>audiovisual</i> ᱨᱮᱠᱚᱨᱰᱤᱝ ᱫᱚ ᱢᱤᱫ ᱜᱟᱱ ᱦᱚᱲ ᱥᱟᱶ "
+"ᱥᱟᱯᱲᱟᱣ ᱠᱚ ᱨᱮ ᱩᱫᱩᱜ ᱞᱟᱹᱜᱤᱫ ᱵᱮᱵᱚᱦᱟᱨ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ (ᱡᱮᱞᱮᱠᱟ, ᱯᱟᱲᱦᱟᱣ ᱠᱚ ᱥᱮ ᱵᱤᱜᱽᱭᱟᱱ "
+"ᱥᱟᱯᱲᱟᱣ ᱠᱚ)᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "(Please tick where applicable)"
+msgstr "(ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱴᱤᱠ ᱢᱮ ᱚᱠᱟᱨᱮ ᱞᱟᱹᱜᱩᱜᱼᱟ)"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "YES"
+msgstr "ᱦᱮᱸ"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "NO"
+msgstr "ᱵᱟᱝ"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"The declaration of consent for <i>audiovisual</i> recordings is voluntary."
+msgstr "ᱨᱮᱠᱚᱨᱰᱤᱝ ᱞᱟᱹᱜᱤᱫ ᱥᱚᱦᱢᱚᱛᱤ ᱨᱮᱭᱟᱜ ᱜᱚᱴᱟ ᱫᱚ ᱟᱡ ᱥᱮᱪᱮᱫ ᱜᱮᱭᱟ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I may withdraw my consent at any time."
+msgstr "ᱤᱧ ᱡᱟᱦᱟᱸ ᱚᱠᱛᱚ ᱨᱮᱜᱮ ᱤᱧᱟᱜ ᱥᱚᱦᱢᱚᱛᱤ ᱤᱧ ᱦᱟᱛᱟᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"In case of refusal or withdrawal, no costs will be incurred nor will there "
+"be other negative consequences; however, in this case, participation in the "
+"study will not be possible."
+msgstr ""
+"ᱵᱟᱝ ᱢᱟᱱᱟᱣ ᱥᱮ ᱚᱰᱚᱠ ᱨᱮᱭᱟᱜ ᱠᱟᱛᱷᱟ ᱨᱮ, ᱪᱮᱫ ᱠᱷᱚᱨᱚᱪ ᱵᱟᱝ ᱦᱩᱭᱩᱜᱼᱟ ᱟᱨ ᱮᱴᱟᱜ ᱵᱟᱹᱲᱤᱡ ᱚᱨᱡᱚ"
+" ᱦᱚᱸ ᱵᱟᱝ ᱦᱩᱭᱩᱜᱼᱟ; ᱮᱱᱛᱮᱨᱮᱦᱚᱸ, ᱱᱚᱣᱟ ᱠᱷᱮᱛᱨᱮ, ᱚᱞᱚᱜ ᱯᱟᱲᱦᱟᱣ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱵᱟᱝ "
+"ᱥᱚᱢᱵᱷᱚᱵᱚᱱᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I had sufficient time for this decision."
+msgstr "ᱤᱧ ᱴᱷᱮᱱ ᱱᱚᱣᱟ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱞᱟᱹᱜᱤᱫ ᱰᱷᱮᱨ ᱚᱠᱛᱚ ᱛᱟᱦᱮᱸ ᱠᱟᱱᱟ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid ""
+"I have read and understood everything and hereby agree that "
+"<i>audiovisual</i> recordings of me may be taken."
+msgstr ""
+"ᱤᱧ ᱥᱟᱱᱟᱢᱟᱜ ᱯᱟᱲᱦᱟᱣ ᱟᱨ ᱵᱩᱡᱷᱟᱹᱣ ᱠᱮᱫᱟᱹᱧ ᱟᱨ ᱱᱚᱣᱟ ᱛᱮ ᱦᱮᱸ ᱥᱮᱱᱟᱹᱧ ᱠᱟᱱᱟ ᱡᱮ ᱤᱧᱟᱜ "
+"ᱨᱮᱠᱚᱨᱰᱤᱝ ᱦᱟᱛᱟᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#, fuzzy
+msgctxt "consent-audiovisual"
+msgid "I have received a copy of this consent form."
+msgstr "ᱤᱧ ᱱᱚᱣᱟ ᱥᱚᱦᱢᱚᱛᱤ ᱯᱷᱚᱨᱢ ᱨᱮᱭᱟᱜ ᱢᱤᱫ ᱱᱚᱠᱚᱞ ᱧᱟᱢ ᱟᱠᱟᱫᱟᱹᱧ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Investigator"
+msgstr "ᱛᱚᱞᱟᱥᱤᱭᱟᱹ"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "Research Participant Consent Form"
+msgstr "ᱠᱷᱚᱱᱫᱽᱨᱚ ᱥᱮᱞᱮᱫᱤᱭᱟᱹ ᱥᱚᱦᱢᱚᱛᱤ ᱯᱷᱚᱨᱢ"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have received written information about the study and the procedure of the"
+" study."
+msgstr "ᱤᱧ ᱯᱟᱲᱦᱟᱣ ᱟᱨ ᱯᱟᱲᱦᱟᱣ ᱨᱮᱭᱟᱜ ᱠᱟᱹᱢᱤᱦᱚᱨᱟ ᱵᱟᱵᱚᱛ ᱚᱞ ᱛᱮ ᱵᱟᱰᱟᱭ ᱧᱟᱢ ᱟᱠᱟᱫᱟᱹᱧ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid "I have read and understood all of the information completely."
+msgstr "ᱤᱧ ᱥᱟᱱᱟᱢ ᱵᱮᱣᱨᱟ ᱯᱩᱨᱟᱹ ᱯᱟᱲᱦᱟᱣ ᱟᱨ ᱵᱩᱡᱷᱟᱹᱣ ᱠᱮᱫᱟᱹᱧ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"If I had questions concerning the upcoming study, they were answered "
+"completely and to my satisfaction."
+msgstr ""
+"ᱡᱩᱫᱤ ᱤᱧ ᱴᱷᱮᱱ ᱦᱤᱡᱩᱜ ᱠᱟᱱ ᱯᱟᱲᱦᱟᱣ ᱵᱟᱵᱚᱛ ᱠᱩᱠᱞᱤ ᱠᱚ ᱛᱟᱦᱮᱸᱱ ᱠᱷᱟᱱ, ᱚᱱᱟ ᱨᱮᱭᱟᱜ ᱛᱮᱞᱟ "
+"ᱯᱩᱨᱟᱹ ᱟᱨ ᱤᱧᱟᱜ ᱥᱚᱱᱛᱚᱥ ᱞᱮᱠᱟ ᱛᱮ ᱮᱢ ᱞᱮᱱᱟ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I agree to the described collecting and processing of my age, gender, and "
+"country of birth."
+msgstr ""
+"ᱤᱧ ᱤᱧᱟᱜ ᱩᱢᱟᱹᱨ, ᱡᱟᱱᱟᱝ ᱟᱨ ᱡᱟᱱᱟᱢ ᱫᱤᱥᱚᱢ ᱨᱮᱭᱟᱜ ᱵᱚᱨᱱᱚᱱ ᱡᱟᱣᱨᱟ ᱟᱨ ᱯᱨᱚᱥᱮᱥᱤᱝ ᱨᱮᱧ ᱨᱮᱵᱮᱱ"
+" ᱜᱮᱭᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The recording and processing of these data are carried out in pseudonymized "
+"form by means of a code and do not contain my name."
+msgstr ""
+"ᱱᱚᱶᱟ ᱰᱟᱴᱟ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱟᱨ ᱯᱨᱚᱥᱮᱥᱤᱝ ᱫᱚ ᱠᱚᱰ ᱛᱮ ᱥᱩᱰᱚᱱᱤᱢᱟᱭᱤᱡᱽ ᱯᱷᱚᱨᱢ ᱨᱮ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ ᱟᱨ"
+" ᱤᱧᱟᱜ ᱧᱩᱛᱩᱢ ᱵᱟᱝ ᱛᱟᱦᱮᱸᱱᱟ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid "There is a coding list on paper that links my name to this number."
+msgstr ""
+"ᱠᱟᱜᱚᱡᱽ ᱨᱮ ᱢᱤᱫ ᱠᱚᱰᱤᱝ ᱛᱟᱞᱠᱟ ᱢᱮᱱᱟᱜᱼᱟ ᱡᱟᱦᱟᱸ ᱫᱚ ᱤᱧᱟᱜ ᱧᱩᱛᱩᱢ ᱱᱚᱣᱟ ᱮᱞ ᱥᱟᱶ ᱡᱚᱲᱟᱣ ᱮᱫᱟᱭ"
+" ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The investigators are the only persons who have access to this coding list "
+"and who are thus able to link the collected data to my name."
+msgstr ""
+"ᱛᱚᱞᱟᱥᱤᱭᱟᱹ ᱠᱚ ᱫᱚ ᱮᱠᱮᱱ ᱱᱚᱝᱠᱟᱱ ᱦᱚᱲ ᱠᱟᱱᱟ ᱠᱚ ᱡᱟᱦᱟᱸᱭ ᱴᱷᱮᱱ ᱱᱚᱣᱟ ᱠᱚᱰᱤᱝ ᱛᱟᱞᱠᱟ ᱥᱮᱴᱮᱨᱚᱜ"
+" ᱠᱟᱱᱟ ᱟᱨ ᱚᱠᱚᱭ ᱫᱚ ᱱᱚᱝᱠᱟ ᱥᱟᱢᱴᱟᱣ ᱟᱠᱟᱱ ᱰᱟᱴᱟ ᱤᱧᱟᱜ ᱧᱩᱛᱩᱢ ᱥᱟᱶ ᱠᱚ ᱡᱚᱲᱟᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"After completion of the research project, the coding list will be destroyed."
+msgstr "ᱠᱷᱚᱱᱫᱽᱨᱚ ᱯᱨᱚᱡᱮᱠᱴ ᱢᱩᱪᱟᱹᱫ ᱛᱟᱭᱚᱢ, ᱠᱚᱰᱤᱝ ᱛᱟᱞᱠᱟ ᱫᱚ ᱵᱟᱹᱲᱤᱡᱚᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"From this point on, my data are anonymous, which means that they cannot be "
+"linked to my person any longer."
+msgstr ""
+"ᱱᱚᱣᱟ ᱠᱷᱚᱱ, ᱤᱧᱟᱜ ᱰᱟᱴᱟ ᱫᱚ ᱵᱤᱱ ᱵᱟᱰᱟᱭ ᱜᱮᱭᱟ, ᱡᱟᱦᱟᱸ ᱨᱮᱭᱟᱜ ᱢᱮᱱᱮᱛ ᱫᱚ ᱚᱱᱟ ᱫᱚ ᱤᱧ ᱨᱮᱱ "
+"ᱦᱚᱲ ᱥᱟᱶ ᱵᱟᱝ ᱡᱚᱯᱲᱟᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have been informed that I may request deletion of all my data at any time."
+msgstr ""
+"ᱤᱧ ᱵᱟᱰᱟᱭ ᱚᱪᱚ ᱟᱠᱟᱫᱤᱧᱟ ᱡᱮ ᱤᱧ ᱡᱟᱦᱟᱸ ᱚᱠᱛᱚ ᱨᱮᱜᱮ ᱤᱧᱟᱜ ᱡᱚᱛᱚ ᱰᱟᱴᱟ ᱰᱤᱞᱤᱴ ᱞᱟᱹᱜᱤᱫ ᱤᱧ "
+"ᱱᱮᱦᱚᱨ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"However, if the coding list has already been destroyed, it will no longer be"
+" possible to identify and thus to delete my data set."
+msgstr ""
+"ᱢᱮᱱᱠᱷᱟᱱ, ᱡᱩᱫᱤ ᱠᱚᱰᱤᱝ ᱛᱟᱞᱠᱟ ᱞᱟᱦᱟ ᱠᱷᱚᱱ ᱜᱮ ᱵᱟᱹᱲᱤᱡ ᱮᱱᱟ, ᱮᱱᱠᱷᱟᱱ ᱚᱱᱟ ᱩᱨᱩᱢ ᱵᱟᱝ "
+"ᱥᱚᱢᱵᱷᱚᱵᱚᱱᱟ ᱟᱨ ᱚᱱᱠᱟ ᱤᱧᱟᱜ ᱰᱟᱴᱟ ᱥᱮᱴ ᱰᱤᱞᱤᱴ ᱦᱩᱭᱩᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"The participant information sheet about the examination is part of this "
+"consent form."
+msgstr ""
+"ᱵᱤᱱᱤᱰ ᱵᱟᱵᱚᱛ ᱥᱮᱞᱮᱫᱚᱜ ᱠᱚᱣᱟᱜ ᱵᱟᱯᱟᱰᱟᱭ ᱥᱤᱴ ᱫᱚ ᱱᱚᱣᱟ ᱥᱚᱦᱢᱚᱛᱤ ᱯᱷᱚᱨᱢ ᱨᱮᱱᱟᱜ ᱦᱟᱹᱴᱤᱧ "
+"ᱠᱟᱱᱟ ᱾"
+
+#: psynet/templates/consents/cap-recruiter_standard_consent.html
+#, fuzzy
+msgctxt "consent-cap"
+msgid ""
+"I have received a copy of the participant information sheet and of the "
+"consent form."
+msgstr ""
+"ᱤᱧ ᱫᱚ ᱥᱮᱞᱮᱫᱚᱜ ᱠᱚᱣᱟᱜ ᱵᱟᱯᱟᱰᱟᱭ ᱥᱤᱴ ᱟᱨ ᱥᱚᱦᱢᱚᱛᱤ ᱯᱷᱚᱨᱢ ᱨᱮᱭᱟᱜ ᱢᱤᱫ ᱴᱮᱱ ᱧᱟᱢ ᱟᱠᱟᱫᱟᱹᱧ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/lucid_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#, fuzzy
+msgctxt "consent-title"
+msgid "We need your consent to proceed"
+msgstr "ᱟᱞᱮ ᱞᱟᱦᱟ ᱥᱮᱱᱚᱜ ᱞᱟᱹᱜᱤᱫ ᱟᱢᱟᱜ ᱥᱚᱦᱢᱚᱛᱤ ᱞᱮ ᱠᱷᱚᱡᱚᱜ ᱠᱟᱱᱟ"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-database"
+msgid ""
+"With this privacy policy, we would like to inform you about the personal "
+"data we collect when you register for our participant pool and for what "
+"purposes we process this data."
+msgstr ""
+"ᱱᱚᱶᱟ ᱯᱨᱟᱭᱣᱮᱥᱤ ᱯᱚᱞᱤᱥᱤ ᱥᱟᱶᱛᱮ, ᱟᱞᱮ ᱟᱢ ᱟᱞᱮ ᱨᱮᱱ ᱥᱮᱞᱮᱫᱚᱜ ᱯᱩᱞ ᱞᱟᱹᱜᱤᱫ ᱨᱮᱡᱤᱥᱴᱟᱨ ᱛᱟᱦᱮᱱ"
+" ᱡᱷᱚᱜ ᱞᱮ ᱡᱟᱣᱨᱟ ᱟᱠᱟᱫ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱰᱟᱴᱟ ᱵᱟᱵᱚᱛ ᱞᱮ ᱵᱟᱰᱟᱭ ᱚᱪᱚ ᱢᱮᱭᱟ ᱟᱨ ᱚᱠᱟ ᱡᱚᱥ ᱞᱟᱹᱜᱤᱫ "
+"ᱱᱚᱶᱟ ᱰᱟᱴᱟ ᱞᱮ ᱯᱨᱚᱥᱮᱥ ᱮᱫᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-database"
+msgid ""
+"In addition, we would like to inform you about your rights with regard to "
+"the processing of personal data."
+msgstr ""
+"ᱱᱚᱶᱟ ᱪᱷᱟᱰᱟ ᱠᱟᱛᱮ, ᱟᱞᱮ ᱟᱢ ᱟᱢᱟᱜ ᱟᱹᱭᱫᱟᱹᱨᱤ ᱵᱟᱵᱚᱛ ᱞᱮ ᱵᱟᱰᱟᱭ ᱚᱪᱚ ᱢᱮᱭᱟ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱰᱟᱴᱟ "
+"ᱥᱟᱢᱲᱟᱣ ᱥᱟᱹᱜᱟᱹᱭ ᱛᱮ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purposes of Processing"
+msgstr "ᱯᱨᱚᱥᱮᱥᱤᱝ ᱨᱮᱭᱟᱜ ᱡᱚᱥ"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We store and process your data only for the purpose of initiating "
+"communication with you and for planning studies at the Max Planck Institute "
+"for Empirical Aesthetics (MPIEA)."
+msgstr ""
+"ᱟᱞᱮ ᱫᱚ ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱮᱠᱮᱱ ᱟᱢ ᱥᱟᱶ ᱡᱚᱜᱟᱡᱩᱜᱽ ᱮᱦᱚᱵ ᱟᱨ ᱢᱮᱠᱥ ᱯᱞᱟᱱᱠ ᱤᱱᱥᱴᱤᱴᱭᱩᱴ ᱯᱷᱚᱨ "
+"ᱮᱢᱯᱤᱨᱤᱠᱟᱞ ᱮᱥᱛᱷᱮᱴᱤᱠᱥ (MPIEA) ᱨᱮ ᱯᱟᱲᱦᱟᱣ ᱯᱚᱱᱛᱷᱟ ᱞᱟᱹᱜᱤᱫ ᱞᱮ ᱫᱚᱦᱚ ᱟᱨ ᱯᱨᱚᱥᱮᱥ ᱮᱫᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "This data will never be shared with third parties."
+msgstr "ᱱᱚᱣᱟ ᱰᱟᱴᱟ ᱫᱚ ᱛᱮᱥᱟᱨ ᱯᱟᱨᱴᱤ ᱥᱟᱶ ᱛᱤᱥ ᱦᱚᱸ ᱵᱟᱝ ᱦᱟᱹᱴᱤᱧᱚᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid "Which Data are stored"
+msgstr "ᱚᱠᱟ ᱰᱟᱴᱟ ᱡᱟᱣᱨᱟ ᱢᱮᱱᱟᱜᱼᱟ"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"In addition to your contact details (i.e., name and email) and the "
+"demographic data requested in the log in (i.e., age, gender, and "
+"nationality), we also store the date and time when you made the entry."
+msgstr ""
+"ᱟᱢᱟᱜ ᱡᱚᱯᱚᱲᱟᱣ ᱵᱤᱵᱨᱚᱬ (ᱢᱮᱱᱠᱷᱟᱱ, ᱧᱩᱛᱩᱢ ᱟᱨ ᱤᱢᱮᱞ) ᱟᱨ ᱞᱚᱜᱚᱱ ᱨᱮ ᱟᱨᱡᱟᱣ ᱟᱠᱟᱱ "
+"ᱰᱮᱢᱚᱜᱽᱨᱟᱯᱷᱤᱠ ᱰᱟᱴᱟ (ᱢᱮᱱᱠᱷᱟᱱ, ᱩᱢᱟᱹᱨ, ᱡᱟᱱᱟᱝ, ᱟᱨ ᱡᱟᱹᱛᱨᱤᱭᱟᱹ) ᱥᱟᱶᱛᱮ ᱟᱢ ᱵᱚᱞᱚᱱ ᱠᱟᱱ "
+"ᱢᱟᱦᱟᱸ ᱟᱨ ᱚᱠᱛᱚ ᱦᱚᱸ ᱞᱮ ᱫᱚᱦᱚᱭᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"In addition, we save the date and time when you verified your email address."
+msgstr ""
+"ᱱᱚᱶᱟ ᱪᱷᱟᱰᱟ ᱠᱟᱛᱮ, ᱟᱞᱮ ᱢᱟᱹᱦᱤᱛ ᱟᱨ ᱚᱠᱛᱚ ᱞᱮ ᱥᱟᱧᱪᱟᱣ ᱮᱫᱟ ᱡᱚᱠᱷᱚᱱ ᱟᱢ ᱟᱢᱟᱜ ᱤᱢᱮᱞ "
+"ᱴᱷᱤᱠᱟᱹᱱᱟ ᱮᱢ ᱯᱩᱥᱴᱟᱹᱣ ᱞᱮᱫᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"If we invite you to participate in a study, we will store the date and time "
+"of this communication."
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱞᱮ ᱟᱢ ᱯᱟᱲᱦᱟᱣ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱹᱜᱤᱫ ᱞᱮ ᱱᱮᱣᱛᱟ ᱢᱮᱭᱟ, ᱟᱞᱮ ᱱᱚᱣᱟ ᱡᱚᱜᱟᱡᱩᱜᱽ ᱨᱮᱭᱟᱜ "
+"ᱢᱟᱹᱦᱤᱛ ᱟᱨ ᱚᱠᱛᱚ ᱞᱮ ᱫᱚᱦᱚᱭᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"If you agree to participate, we also will store the date and time of your "
+"communication of this choice, and whether you completed the experiment "
+"successfully or not."
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱥᱮᱞᱮᱫᱚᱜ ᱮᱢ ᱦᱮᱸᱥᱚᱜ ᱠᱟᱱᱟ, ᱟᱞᱮ ᱦᱚᱸ ᱟᱢᱟᱜ ᱠᱩᱥᱤ ᱡᱚᱜᱟᱡᱩᱜᱽ ᱨᱮᱭᱟᱜ ᱢᱟᱹᱦᱤᱛ ᱟᱨ "
+"ᱚᱠᱛᱚ ᱞᱮ ᱫᱚᱦᱚᱭᱟ, ᱟᱨ ᱟᱢ ᱵᱮᱵᱷᱟᱨ ᱥᱟᱹᱦᱤᱡ ᱮᱢ ᱯᱩᱨᱟᱹᱣ ᱠᱮᱫᱟ ᱥᱮ ᱵᱟᱝ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"Of course, before you participate in a study, you will be informed in detail"
+" about the procedure of the study and the collection of data during the "
+"study."
+msgstr ""
+"ᱥᱟᱨᱤ ᱜᱮ, ᱟᱢ ᱯᱟᱲᱦᱟᱣ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱦᱟᱨᱮ, ᱟᱢ ᱯᱟᱲᱦᱟᱣ ᱨᱮᱭᱟᱜ ᱠᱟᱹᱢᱤᱦᱚᱨᱟ ᱟᱨ ᱯᱟᱲᱦᱟᱣ "
+"ᱚᱠᱛᱚ ᱨᱮ ᱰᱟᱴᱟ ᱡᱟᱣᱨᱟ ᱵᱟᱵᱚᱛ ᱵᱤᱥᱛᱤ ᱛᱮ ᱵᱟᱰᱟᱭ ᱧᱟᱢᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-data"
+msgid ""
+"Your consent to participate in a study will be obtained separately for each "
+"study you participate in."
+msgstr ""
+"ᱟᱢᱟᱜ ᱯᱟᱲᱦᱟᱣ ᱨᱮ ᱦᱤᱸᱥ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱟᱢᱟᱜ ᱥᱚᱦᱢᱚᱛᱤ ᱫᱚ ᱟᱢ ᱡᱟᱦᱟᱸ ᱯᱟᱲᱦᱟᱣ ᱨᱮᱢ ᱦᱤᱸᱥ "
+"ᱦᱟᱛᱟᱣᱟ ᱚᱱᱟ ᱞᱟᱹᱜᱤᱫ ᱡᱩᱫᱟᱹ ᱡᱩᱫᱟᱹ ᱧᱟᱢᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "Duration of Data Storage"
+msgstr "ᱰᱟᱴᱟ ᱫᱚᱦᱚ ᱨᱮᱭᱟᱜ ᱚᱠᱛᱚ"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"Your data will be stored in the contact database for as long as the purpose "
+"of such storage, i.e., to contact you about participating in a study, "
+"remains in effect."
+msgstr ""
+"ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱫᱚ ᱡᱟᱦᱟᱸ ᱛᱤᱱ ᱦᱟᱹᱵᱤᱡ ᱱᱚᱝᱠᱟᱱ ᱫᱚᱦᱚ ᱨᱮᱭᱟᱜ ᱡᱚᱥ, ᱢᱮᱱᱠᱷᱟᱱ ᱯᱟᱲᱦᱟᱣ ᱨᱮ "
+"ᱥᱮᱞᱮᱫᱚᱜ ᱵᱟᱵᱚᱛ ᱟᱢ ᱥᱟᱶ ᱡᱚᱯᱚᱲᱟᱣ ᱞᱟᱹᱜᱤᱫ, ᱚᱱᱟ ᱞᱟᱹᱜᱤᱫ ᱠᱚᱱᱴᱟᱠᱴ ᱰᱟᱴᱟᱵᱮᱥ ᱨᱮ ᱫᱚᱦᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "You may request the deletion of your data at any time."
+msgstr "ᱟᱢ ᱡᱟᱦᱟᱸ ᱚᱠᱛᱚ ᱨᱮᱜᱮ ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱰᱤᱞᱤᱴ ᱞᱟᱹᱜᱤᱫ ᱮᱢ ᱱᱮᱦᱚᱨ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "To do so, send an e-mail with the subject “Delete” to:"
+msgstr "ᱱᱚᱝᱠᱟ ᱠᱚᱨᱟᱣ ᱞᱟᱹᱜᱤᱫ, ᱥᱟᱛᱟᱢ ᱥᱟᱶ ᱢᱤᱫ ᱤ-ᱢᱮᱞ ᱵᱷᱮᱡᱟᱭ ᱢᱮ “ᱰᱤᱞᱤᱴ” ᱱᱚᱸᱰᱮᱺ"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid "Your personal data will then be deleted immediately."
+msgstr "ᱟᱢᱟᱜ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱰᱟᱴᱟ ᱫᱚ ᱛᱟᱞᱟ ᱜᱮ ᱢᱮᱴᱟᱣ ᱪᱟᱵᱟᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"You can also delete your data from the database by deleting your account "
+"(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
+msgstr ""
+"ᱟᱢ ᱟᱢᱟᱜ ᱮᱠᱟᱣᱩᱱᱴ ᱰᱤᱞᱤᱴ ᱠᱟᱛᱮ ᱰᱟᱴᱟᱵᱮᱥ ᱠᱷᱚᱱ ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱰᱤᱞᱤᱴ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ (ᱢᱮᱱᱠᱷᱟᱱ,"
+" ᱠᱮᱯ-ᱨᱤᱠᱨᱩᱴᱟᱨ ᱞᱚᱜᱽ-ᱤᱱ ᱥᱟᱦᱴᱟ ᱨᱮ &#39;ᱰᱤᱞᱤᱴ ᱮᱠᱟᱣᱩᱱᱴ&#39; ᱞᱤᱱ ᱢᱮ)᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-duration"
+msgid ""
+"Note that all information, including the experiment and payment history will"
+" be removed from our database."
+msgstr ""
+"ᱫᱤᱥᱟᱹ ᱫᱚᱦᱚᱭᱟᱢ ᱡᱮ ᱥᱟᱱᱟᱢ ᱵᱟᱯᱟᱰᱟᱭ, ᱵᱮᱵᱷᱟᱨ ᱟᱨ ᱯᱮᱭᱢᱮᱱᱴ ᱱᱟᱜᱟᱢ ᱥᱟᱶᱛᱮ ᱟᱞᱮᱭᱟᱜ ᱰᱟᱴᱟᱵᱮᱥ"
+" ᱠᱷᱚᱱ ᱚᱪᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "Security"
+msgstr "ᱨᱩᱠᱷᱤᱭᱟᱹ"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data entered in the form you fill out are transferred in encrypted form "
+"to an internal server."
+msgstr ""
+"ᱟᱢ ᱯᱮᱨᱮᱡ ᱟᱠᱟᱱ ᱯᱷᱚᱨᱢ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱰᱟᱴᱟ ᱫᱚ ᱮᱱᱠᱨᱤᱯᱴᱰ ᱯᱷᱚᱨᱢ ᱨᱮ ᱤᱱᱴᱚᱨᱱᱟᱞ ᱥᱮᱨᱵᱷᱟᱨ ᱨᱮ"
+" ᱩᱪᱟᱹᱲᱚᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"We will then send you an e-mail with a confirmation link to verify your "
+"e-mail address."
+msgstr ""
+"ᱟᱞᱮ ᱟᱢᱟᱜ ᱤ-ᱢᱮᱞ ᱴᱷᱤᱠᱟᱹᱱᱟ ᱯᱩᱥᱴᱟᱹᱣ ᱞᱟᱹᱜᱤᱫ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱞᱤᱝᱠ ᱥᱟᱶᱛᱮ ᱤ-ᱢᱮᱞ ᱞᱮ ᱠᱩᱞ ᱟᱢᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"We take all necessary technical and organizational security measures to "
+"protect your personal data from loss and abuse."
+msgstr ""
+"ᱟᱞᱮ ᱟᱢᱟᱜ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱰᱟᱴᱟ ᱦᱟᱹᱱ ᱟᱨ ᱵᱟᱹᱲᱤᱡ ᱵᱮᱵᱷᱟᱨ ᱠᱷᱚᱱ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱞᱟᱹᱜᱤᱫ ᱡᱚᱛᱚ "
+"ᱞᱟᱹᱠᱛᱤᱭᱟᱱ ᱛᱟᱠᱱᱤᱠᱤ ᱟᱨ ᱥᱚᱱᱜᱚᱛᱷᱟᱱ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱫᱷᱟᱯ ᱞᱮ ᱦᱟᱛᱟᱣᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Your data are stored in a secure operating environment that is not "
+"accessible to the public."
+msgstr ""
+"ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱨᱟᱠᱷᱟ ᱪᱟᱹᱞᱩ ᱯᱟᱨᱤᱵᱮᱥᱛᱟ ᱨᱮ ᱡᱟᱣᱨᱟ ᱢᱮᱱᱟᱜᱼᱟ ᱡᱟᱦᱟᱸ ᱫᱚ ᱡᱟᱦᱟᱸᱭ ᱦᱚᱲ ᱞᱟᱹᱜᱤᱫ "
+"ᱵᱟᱝ ᱥᱮᱴᱮᱨᱚᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"All connections between your computer and the web server are encrypted."
+msgstr "ᱟᱢᱟᱜ ᱠᱚᱢᱯᱭᱩᱴᱟᱨ ᱟᱨ ᱣᱮᱵᱽ ᱥᱮᱨᱵᱷᱟᱨ ᱛᱟᱞᱟ ᱨᱮ ᱡᱚᱛᱚ ᱡᱚᱯᱲᱟᱣ ᱮᱱᱠᱨᱤᱯᱴ ᱜᱮᱭᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Data Protection: Rights of Data Subjects"
+msgstr "ᱰᱟᱴᱟ ᱨᱩᱠᱷᱤᱭᱟᱹ: ᱰᱟᱴᱟ ᱥᱟᱛᱟᱢ ᱠᱚ ᱨᱮᱭᱟᱜ ᱟᱹᱭᱫᱟᱹᱨ"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"In order to ensure transparency with regard to the processing of personal "
+"data, the General Data Protection Regulation (GDPR) of the European Union "
+"provides information about the rights of data subjects."
+msgstr ""
+"ᱯᱚᱨᱥᱚᱱᱟᱞ ᱰᱟᱴᱟ ᱠᱚ ᱠᱟᱹᱢᱤ ᱨᱮ ᱯᱷᱟᱨᱪᱟ ᱞᱟᱹᱜᱤᱫ ᱭᱩᱨᱚᱯᱤᱭᱟᱱ ᱭᱩᱱᱤᱭᱚᱱ ᱨᱮᱭᱟᱜ ᱡᱮᱱᱮᱨᱟᱞ ᱰᱟᱴᱟ"
+" ᱯᱨᱚᱴᱮᱠᱥᱚᱱ ᱨᱮᱜᱮᱞ (GDPR) ᱫᱚ ᱰᱟᱴᱟ ᱵᱤᱥᱟᱹᱭ ᱠᱚ ᱨᱮᱭᱟᱜ ᱟᱹᱭᱫᱟᱹᱨᱤ ᱠᱚ ᱵᱟᱰᱟᱭ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"As a data subject whose personal data are processed with regard to your "
+"participation in our studies, you have the following rights in principle and"
+" insofar as no legal exceptions apply in individual cases:"
+msgstr ""
+"ᱢᱤᱫ ᱰᱟᱴᱟ ᱥᱟᱛᱟᱢ ᱞᱮᱠᱟᱛᱮ ᱚᱠᱚᱭᱟᱜ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱰᱟᱴᱟ ᱟᱞᱮᱭᱟᱜ ᱚᱫᱷᱭᱟᱱ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱹᱜᱤᱫ "
+"ᱯᱨᱚᱥᱮᱥ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ, ᱟᱢ ᱴᱷᱮᱱ ᱱᱚᱶᱟ ᱠᱚ ᱟᱹᱭᱫᱟᱹᱨ ᱢᱮᱱᱟᱜᱼᱟ ᱟᱨ ᱡᱟᱦᱟᱸ ᱛᱤᱱᱟᱹᱜ ᱜᱟᱱ "
+"ᱟᱹᱭᱤᱱᱤ ᱵᱟᱝ ᱞᱟᱹᱜᱩᱜ-ᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Access (GDPR art. 15)"
+msgstr "ᱮᱠᱥᱮᱥ (ᱡᱤᱰᱤᱯᱤᱟᱨ ᱟᱨᱴ᱾ ᱑᱕)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Rectification (GDPR art. 16)"
+msgstr "ᱥᱩᱫᱷᱨᱟᱹᱣ (ᱡᱤᱰᱤᱯᱤᱟᱨ ᱟᱨᱴ᱾ ᱑᱖)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Erasure (GDPR art. 17, para. 1)"
+msgstr "ᱢᱮᱴᱟᱣ (ᱡᱤᱰᱤᱯᱤᱟᱨ ᱟᱨᱴ᱾ ᱑᱗, ᱯᱟᱨᱟ᱾ ᱑)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Restriction of processing (GDPR art. 18)"
+msgstr "ᱯᱨᱚᱥᱮᱥᱤᱝ ᱨᱮᱭᱟᱜ ᱵᱟᱨᱚᱱ (ᱡᱤᱰᱤᱯᱤᱟᱨ ᱟᱨᱴ᱾ ᱑᱘)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Data portability (GDPR art. 20)"
+msgstr "ᱰᱟᱴᱟ ᱯᱚᱨᱴᱮᱵᱤᱞᱤᱴᱤ (ᱡᱤᱰᱤᱯᱤᱟᱨ ᱟᱨᱴ᱾ ᱒᱐)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid "Withdrawal of consent (GDPR art. 7, para. 3)"
+msgstr "ᱥᱚᱦᱢᱚᱛᱤ ᱨᱮᱭᱟᱜ ᱚᱰᱚᱠ (ᱡᱤᱰᱤᱯᱤᱟᱨ ᱟᱨᱴ᱾ ᱗, ᱯᱮᱨᱟ᱾ ᱓)"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"Right to lodge a complaint with a supervisory authority (GDPR art. 77)."
+msgstr ""
+"ᱢᱤᱫ ᱧᱮᱞ ᱛᱚᱞᱟᱥ ᱯᱨᱟᱫᱷᱤᱠᱚᱨᱚᱱ ᱴᱷᱮᱱ ᱞᱟᱹᱞᱤᱥ ᱫᱟᱠᱷᱚᱞ ᱨᱮᱭᱟᱜ ᱟᱹᱭᱫᱟᱹᱨ (ᱡᱤᱰᱤᱯᱤᱟᱨ ᱟᱨᱴ. "
+"᱗᱗)᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"For the Max Planck Society, this is the Data Protection Authority of "
+"Bavaria, Postfach 1349, 91504 Ansbach, Germany."
+msgstr ""
+"ᱢᱮᱠᱥ ᱯᱞᱟᱱᱠ ᱥᱚᱥᱟᱭᱤᱴᱤ ᱞᱟᱹᱜᱤᱫ, ᱱᱚᱣᱟ ᱫᱚ ᱵᱟᱣᱟᱨᱤᱭᱟ ᱨᱮᱭᱟᱜ ᱰᱟᱴᱟ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱯᱨᱟᱫᱷᱤᱠᱚᱨᱚᱱ"
+" ᱠᱟᱱᱟ, ᱯᱚᱥᱴᱯᱷᱮᱪ ᱑᱓᱔᱙, ᱙᱑᱕᱐᱔ ᱟᱱᱥᱵᱟᱪ, ᱡᱟᱨᱢᱟᱱᱤ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"If you have any questions about this research, your rights, or treatment as "
+"a participant, please do not hesitate to contact the Computational Auditory "
+"Perception Group at the Max Planck Institute for Empirical Aesthetics:"
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱴᱷᱮᱱ ᱱᱚᱶᱟ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱵᱟᱵᱚᱛ ᱡᱟᱦᱟᱱ ᱠᱩᱠᱞᱤ ᱢᱮᱱᱟᱜ ᱠᱷᱟᱱ, ᱟᱢᱟᱜ ᱟᱹᱭᱫᱟᱹᱨ, ᱥᱮ "
+"ᱥᱮᱞᱮᱫᱚᱜ ᱞᱮᱠᱟᱛᱮ ᱵᱮᱵᱷᱟᱨ, ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱢᱮᱠᱥ ᱯᱞᱟᱱᱠ ᱤᱱᱥᱴᱤᱴᱭᱩᱴ ᱯᱷᱚᱨ ᱮᱢᱯᱤᱨᱤᱠᱟᱞ "
+"ᱮᱥᱛᱷᱮᱴᱤᱠᱥ ᱨᱮ ᱠᱚᱢᱯᱭᱩᱴᱮᱥᱚᱱᱟᱞ ᱚᱰᱤᱴᱚᱨᱤ ᱯᱟᱨᱥᱮᱯᱥᱚᱱ ᱜᱟᱫᱮᱞ ᱥᱟᱶ ᱡᱚᱯᱚᱲᱟᱣ ᱨᱮ ᱟᱞᱚᱢ "
+"ᱫᱤᱜᱽᱫᱷᱟᱹᱜᱼᱟ:"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid "Payment and Compensation"
+msgstr "ᱯᱮᱢᱮᱱᱴ ᱟᱨ ᱠᱚᱢᱯᱮᱱᱥᱚᱱ"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"We will not store any banking information or payment information in our "
+"system."
+msgstr ""
+"ᱟᱞᱮ ᱟᱞᱮᱭᱟᱜ ᱥᱤᱥᱴᱚᱢ ᱨᱮ ᱡᱟᱦᱟᱱ ᱵᱮᱝᱠᱤᱝ ᱵᱮᱣᱨᱟ ᱵᱟᱝᱠᱷᱟᱱ ᱯᱮᱢᱮᱱᱴ ᱵᱮᱣᱨᱟ ᱵᱟᱝ ᱞᱮ ᱫᱚᱦᱚᱭᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"However we do store completion records and payment details of every task you"
+" completed."
+msgstr ""
+"ᱮᱱᱛᱮᱨᱮᱦᱚᱸ ᱟᱞᱮ ᱟᱢ ᱢᱩᱪᱟᱹᱫ ᱟᱠᱟᱫ ᱡᱚᱛᱚ ᱠᱟᱹᱢᱤ ᱨᱮᱭᱟᱜ ᱢᱩᱪᱟᱹᱫ ᱨᱮᱠᱚᱨᱰ ᱟᱨ ᱯᱮᱭᱢᱮᱱᱴ "
+"ᱵᱤᱵᱨᱚᱬ ᱞᱮ ᱫᱚᱦᱚᱭᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"This information will be available for you to review it when you login to "
+"the database."
+msgstr "ᱱᱚᱣᱟ ᱵᱟᱰᱟᱭ ᱫᱚ ᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱧᱟᱢᱚᱜᱼᱟ ᱡᱚᱠᱷᱚᱱ ᱟᱢ ᱰᱟᱴᱟᱵᱮᱥ ᱨᱮᱢ ᱞᱚᱜᱤᱱᱚᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"Based on this information we allow you to receive payment via an external "
+"system such as PayPAL/WISE."
+msgstr ""
+"ᱱᱚᱣᱟ ᱠᱷᱚᱵᱚᱨ ᱞᱮᱠᱟᱛᱮ ᱟᱞᱮ ᱟᱢ ᱵᱟᱦᱨᱮ ᱥᱤᱥᱴᱚᱢ ᱡᱮᱞᱠᱟ ᱯᱮᱯᱟᱞ/ᱣᱟᱭᱤᱡᱽ ᱦᱚᱛᱮᱛᱮ ᱯᱮᱢᱮᱱᱴ ᱧᱟᱢ "
+"ᱞᱟᱹᱜᱤᱫ ᱞᱮ ᱟᱹᱭᱫᱟᱹᱨ ᱮᱫᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"It is your responsibility to make sure you can receive payment through this "
+"system and that you would want to consent to use it."
+msgstr ""
+"ᱱᱚᱣᱟ ᱥᱤᱥᱴᱚᱢ ᱦᱚᱛᱮᱛᱮ ᱯᱮᱢᱮᱱᱴ ᱧᱟᱢ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ ᱟᱨ ᱱᱚᱣᱟ ᱵᱮᱵᱷᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱟᱢ ᱥᱚᱢᱵᱷᱚᱵᱚᱱ "
+"ᱮᱢ ᱥᱟᱱᱟᱭᱮᱫ ᱢᱮᱭᱟ ᱚᱱᱟ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱞᱟᱹᱜᱤᱫ ᱟᱢᱟᱜ ᱟᱝᱜᱤᱵᱷᱟᱨ ᱠᱟᱱᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"This system supports transferring money to most banks around the world, "
+"please search your bank in their website to ensure that you will be able to "
+"receive payment prior to taking part in our experiments."
+msgstr ""
+"ᱱᱚᱶᱟ ᱥᱤᱥᱴᱚᱢ ᱫᱚ ᱡᱮᱜᱮᱛ ᱨᱮᱱᱟᱜ ᱵᱟᱹᱲᱛᱤ ᱵᱮᱝᱠ ᱠᱚ ᱯᱩᱭᱥᱟᱹ ᱩᱪᱟᱹᱲ ᱞᱟᱹᱜᱤᱫ ᱥᱟᱯᱚᱨᱴ ᱮᱢᱟᱭᱟ, "
+"ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱟᱢᱟᱜ ᱵᱮᱝᱠ ᱩᱱᱠᱩᱣᱟᱜ ᱣᱮᱵᱽᱥᱟᱭᱤᱴ ᱨᱮ ᱥᱮᱸᱫᱽᱨᱟ ᱢᱮ ᱡᱮ ᱟᱢ ᱟᱞᱮᱭᱟᱜ ᱵᱮᱵᱚᱦᱟᱨ ᱨᱮ "
+"ᱦᱤᱸᱥ ᱦᱟᱛᱟᱣ ᱞᱟᱦᱟᱨᱮ ᱯᱮᱭᱢᱮᱱᱴ ᱧᱟᱢ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"We also recommend checking the term of service and it’s privacy statement "
+"and see if you consent to use their system for payment."
+msgstr ""
+"ᱟᱞᱮ ᱦᱚᱸ ᱥᱮᱵᱟ ᱨᱮᱭᱟᱜ ᱢᱟᱹᱦᱤᱛ ᱟᱨ ᱱᱚᱣᱟ ᱨᱮᱭᱟᱜ ᱯᱨᱟᱭᱣᱮᱥᱤ ᱥᱴᱮᱴᱢᱮᱱᱴ ᱧᱮᱞ ᱞᱟᱹᱜᱤᱫ ᱞᱮ "
+"ᱢᱮᱛᱟᱜ ᱢᱮᱭᱟ ᱟᱨ ᱧᱮᱞ ᱢᱮ ᱟᱢ ᱯᱮᱭᱢᱮᱱᱴ ᱞᱟᱹᱜᱤᱫ ᱩᱱᱠᱩᱣᱟᱜ ᱥᱤᱥᱴᱚᱢ ᱵᱮᱵᱷᱟᱨ ᱨᱮᱢ ᱥᱚᱦᱢᱚᱛᱚᱜ "
+"ᱠᱟᱱᱟ ᱥᱮ ᱵᱟᱝᱟ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid ""
+"If you cannot or would not like to receive payment via this system, we would"
+" not be able to pay you, however you can still participate in our "
+"experiments voluntarily, without payment."
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱱᱚᱶᱟ ᱥᱤᱥᱴᱚᱢ ᱦᱚᱛᱮᱛᱮ ᱯᱮᱭᱢᱮᱱᱴ ᱵᱟᱢ ᱧᱟᱢ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ ᱥᱮ ᱵᱟᱢ ᱠᱷᱚᱡᱚᱜ ᱠᱟᱱᱟ, ᱟᱞᱮ"
+" ᱫᱚ ᱟᱢ ᱵᱟᱞᱮ ᱯᱮᱭᱢᱮᱱᱴ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ, ᱮᱱᱛᱮ ᱦᱚᱸ ᱟᱢ ᱫᱚ ᱵᱤᱱᱟᱹ ᱯᱮᱭᱢᱮᱱᱴ ᱛᱮ ᱟᱞᱮᱭᱟᱜ "
+"ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱫᱟᱲᱮᱭᱟᱜ-ᱟᱢ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-payment"
+msgid "In this case you will not receive any compensation for your time."
+msgstr "ᱱᱚᱣᱟ ᱠᱷᱮᱛᱨᱮ ᱟᱢ ᱟᱢᱟᱜ ᱚᱠᱛᱚ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱫ ᱦᱚᱸ ᱠᱷᱟᱹᱭᱫᱟᱹᱨᱤ ᱵᱟᱢ ᱧᱟᱢᱟ ᱾"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have further questions regarding the General Data Protection "
+"Regulation in the context of personal data being processed in our studies, "
+"please contact the Data Protection Officer of the Max Planck Society:"
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱴᱷᱮᱱ ᱟᱞᱮᱭᱟᱜ ᱚᱫᱷᱭᱟᱱ ᱨᱮ ᱵᱮᱵᱷᱟᱨᱚᱜ ᱠᱟᱱ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱰᱟᱴᱟ ᱨᱮᱭᱟᱜ ᱥᱚᱢᱟᱱ ᱨᱮ "
+"ᱥᱟᱫᱷᱟᱨᱚᱱ ᱰᱟᱴᱟ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱱᱤᱭᱚᱢ ᱵᱤᱥᱟᱹᱭ ᱛᱮ ᱟᱨᱦᱚᱸ ᱠᱩᱠᱞᱤ ᱠᱚ ᱢᱮᱱᱟᱜᱼᱟ, ᱫᱟᱭᱟ ᱠᱟᱛᱮ "
+"ᱢᱮᱠᱥ ᱯᱞᱟᱱᱠ ᱥᱚᱥᱟᱭᱤᱴᱤ ᱨᱮᱱ ᱰᱟᱴᱟ ᱨᱩᱠᱷᱤᱭᱟᱹ ᱟᱢᱞᱟ ᱥᱟᱶ ᱡᱚᱯᱚᱲᱟᱣ ᱢᱮ:"
+
+#: psynet/templates/consents/database_consent.html
+#, fuzzy
+msgctxt "consent-protection"
+msgid ""
+"You may also address your inquiries directly to the Max Planck Institute for"
+" Empirical Aesthetics:"
+msgstr ""
+"ᱟᱢ ᱟᱢᱟᱜ ᱠᱩᱠᱞᱤ ᱠᱚ ᱥᱚᱡᱷᱮ ᱢᱮᱠᱥ ᱯᱞᱟᱱᱠ ᱤᱱᱥᱴᱤᱴᱭᱩᱴ ᱯᱷᱚᱨ ᱮᱢᱯᱤᱨᱤᱠᱟᱞ ᱮᱥᱛᱷᱮᱴᱤᱠᱥ ᱴᱷᱮᱱ "
+"ᱥᱟᱢᱵᱚᱫᱷ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ:"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid "Purpose"
+msgstr "ᱡᱚᱥ"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study how people from different places in "
+"the world experience sounds (e.g., speech, music) and images (e.g., faces, "
+"color)."
+msgstr ""
+"ᱱᱚᱣᱟ ᱯᱨᱚᱡᱮᱠᱴ ᱨᱮᱭᱟᱜ ᱡᱚᱥ ᱫᱚ ᱱᱚᱣᱟ ᱯᱟᱲᱦᱟᱣ ᱠᱟᱱᱟ ᱡᱮ ᱡᱮᱜᱮᱛ ᱨᱮᱱᱟᱜ ᱮᱴᱟᱜ ᱮᱴᱟᱜ ᱡᱟᱭᱜᱟ "
+"ᱨᱮᱱ ᱦᱚᱲ ᱠᱚ ᱪᱮᱫ ᱞᱮᱠᱟ ᱥᱟᱰᱮ (ᱡᱮᱞᱠᱟ, ᱨᱚᱲ, ᱥᱮᱨᱮᱧ) ᱟᱨ ᱪᱤᱛᱟᱹᱨ (ᱡᱮᱞᱠᱟ, ᱪᱮᱦᱨᱟ, ᱨᱚᱝ) "
+"ᱠᱚ ᱟᱹᱭᱠᱟᱹᱣᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid "Procedure"
+msgstr "ᱠᱟᱹᱢᱤᱦᱚᱨᱟ"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If you volunteer to participate in this study, you will be asked to perform "
+"simple tasks using your keyboard or mouse while listening to sounds, or "
+"while observing images or videos."
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱱᱚᱶᱟ ᱯᱚᱲᱦᱚᱱ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱹᱜᱤᱫ ᱟᱢ ᱫᱚ ᱥᱟᱰᱮ ᱟᱸᱡᱚᱢ ᱚᱠᱛᱮ, ᱥᱮ ᱪᱤᱛᱟᱹᱨ ᱥᱮ "
+"ᱵᱷᱤᱰᱤᱭᱳ ᱧᱮᱞ ᱚᱠᱛᱮ ᱟᱢᱟᱜ ᱠᱤᱵᱚᱨᱰ ᱥᱮ ᱢᱟᱣᱩᱥ ᱵᱮᱵᱷᱟᱨ ᱠᱟᱛᱮ ᱟᱞᱜᱟ ᱠᱟᱹᱢᱤ ᱠᱚ ᱠᱚᱨᱟᱣ ᱞᱟᱹᱜᱤᱫ"
+" ᱠᱚ ᱢᱮᱛᱟᱢᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"For example, you may be asked to judge how pleasant a particular sound or an"
+" image is, or to categorize sounds or images (e.g., if a sound or an image "
+"is that of a car or a cow), or to judge other basic features of sounds or "
+"images (e.g., how frequently do you encounter this type of sound or image? "
+"how aesthetically pleasing you consider a particular sound or image?)."
+msgstr ""
+"ᱢᱤᱫ ᱫᱟᱹᱭᱠᱟᱹ ᱞᱮᱠᱟᱛᱮ, ᱟᱢ ᱫᱚ ᱵᱤᱪᱟᱹᱨ ᱞᱟᱹᱜᱤᱫ ᱠᱚ ᱢᱮᱛᱟᱢᱟ ᱡᱮ ᱢᱤᱫ ᱥᱟᱰᱮ ᱥᱮ ᱪᱤᱛᱟᱹᱨ ᱫᱚ "
+"ᱛᱤᱱᱟᱹᱜ ᱨᱟᱹᱥᱠᱟᱹ ᱜᱮᱭᱟ, ᱥᱮ ᱥᱟᱰᱮ ᱥᱮ ᱪᱤᱛᱟᱹᱨ ᱫᱚ ᱛᱷᱚᱠ ᱞᱟᱹᱜᱤᱫ (ᱡᱮᱞᱠᱟ, ᱡᱩᱫᱤ ᱢᱤᱫ ᱥᱟᱰᱮ "
+"ᱥᱮ ᱪᱤᱛᱟᱹᱨ ᱫᱚ ᱜᱟᱹᱰᱤ ᱥᱮ ᱜᱟᱹᱭ ᱨᱮᱭᱟᱜ ᱠᱟᱱᱟ), ᱥᱮ ᱥᱟᱰᱮ ᱥᱮ ᱪᱤᱛᱟᱹᱨ ᱨᱮᱭᱟᱜ ᱮᱴᱟᱜ ᱢᱩᱲᱩᱫ "
+"ᱜᱩᱱ ᱠᱚ ᱵᱤᱪᱟᱹᱨ ᱞᱟᱹᱜᱤᱫ (ᱡᱮᱞᱮᱠᱟ, ᱟᱢ ᱫᱚ ᱛᱤᱱᱟᱹᱜ ᱫᱷᱟᱣ ᱟᱢ ᱱᱚᱝᱠᱟᱱ ᱥᱟᱰᱮ ᱮᱢ ᱧᱮᱞᱟ? "
+"ᱪᱤᱛᱟᱹᱨ?)᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"The specific sounds, images, and videos used will vary, but may include: "
+"recordings of ambient sounds, noise-bursts, speech, music, simple tones, "
+"naturalistic images, animated images, comics, faces, objects, geometric "
+"shapes, fractal images, or videos of natural environments."
+msgstr ""
+"ᱵᱮᱵᱚᱦᱟᱨᱚᱜ ᱠᱟᱱ ᱠᱷᱟᱥ ᱥᱟᱰᱮ, ᱪᱤᱛᱟᱹᱨ ᱟᱨ ᱵᱷᱤᱰᱤᱭᱳ ᱵᱷᱮᱜᱟᱨ ᱜᱮᱭᱟ, ᱢᱮᱱᱠᱷᱟᱱ ᱱᱚᱶᱟ ᱠᱚ "
+"ᱥᱮᱞᱮᱫ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ: ᱥᱟᱰᱮ ᱥᱟᱰᱮ, ᱠᱟᱞᱠᱟᱞᱟᱣ, ᱨᱚᱲ, ᱥᱮᱨᱮᱧ, ᱟᱞᱜᱟ ᱥᱩᱨ, ᱥᱤᱨᱡᱚᱱ ᱪᱤᱛᱟᱹᱨ, "
+"ᱮᱱᱤᱢᱮᱴᱮᱰ ᱪᱤᱛᱟᱹᱨ, ᱠᱚᱢᱤᱠ, ᱪᱮᱦᱨᱟ, ᱡᱤᱱᱤᱥ, ᱡᱤᱭᱚᱢᱴᱨᱤᱠ ᱜᱚᱲᱦᱚᱱ, ᱯᱷᱨᱟᱠᱴᱟᱞ ᱪᱤᱛᱟᱹᱨ, ᱥᱮ "
+"ᱥᱤᱨᱡᱚᱱ ᱯᱟᱨᱤᱵᱷᱮᱥᱚᱱ ᱨᱮᱭᱟᱜ ᱵᱷᱤᱰᱤᱭᱳ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"In some experiments, we may use mild deception, i.e., we may not explain the"
+" full truth regarding an experimental task (for example we will not tell you"
+" that an image was generated by an artificial computer system and not a "
+"human)."
+msgstr ""
+"ᱢᱤᱫ ᱵᱮᱵᱚᱦᱟᱨ ᱨᱮ, ᱟᱵᱚ ᱫᱚ ᱢᱟᱪᱷᱟ ᱫᱷᱟᱠᱷᱟ ᱵᱮᱵᱚᱦᱟᱨ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ, ᱢᱮᱱᱠᱷᱟᱱ ᱵᱮᱵᱚᱦᱟᱨ ᱠᱟᱹᱢᱤ"
+" ᱵᱤᱥᱟᱹᱭ ᱛᱮ ᱯᱩᱨᱟᱹ ᱥᱟᱹᱨᱤ ᱵᱟᱵᱚᱱ ᱞᱟᱹᱭ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ (ᱫᱟᱹᱭᱠᱟᱹ ᱞᱮᱠᱟᱛᱮ ᱟᱵᱚ ᱫᱚ ᱵᱟᱝ ᱞᱟᱹᱭ "
+"ᱟᱢᱟ ᱡᱮ ᱪᱤᱛᱟᱹᱨ ᱫᱚ ᱟᱨᱴᱤᱯᱷᱤᱥᱤᱭᱟᱞ ᱠᱚᱢᱯᱭᱩᱴᱟᱨ ᱥᱤᱥᱴᱚᱢ ᱛᱮ ᱵᱮᱱᱟᱣ ᱟᱠᱟᱱᱟ ᱟᱨ ᱢᱟᱱᱣᱟ ᱫᱚ "
+"ᱵᱟᱝ)᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Mild deception will only be used in some experiments where we need to "
+"prevent biasing the participants before taking the experiment."
+msgstr ""
+"ᱞᱮᱵᱽᱲᱮᱡ ᱫᱷᱟᱠᱷᱟ ᱫᱚ ᱥᱩᱢᱩᱝ ᱠᱤᱪᱷᱩ ᱵᱮᱵᱷᱟᱨ ᱨᱮ ᱜᱮ ᱵᱮᱵᱷᱟᱨᱚᱜᱼᱟ ᱡᱟᱦᱟᱸ ᱨᱮ ᱵᱮᱵᱷᱟᱨ ᱦᱟᱛᱟᱣ "
+"ᱞᱟᱦᱟᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱠᱚ ᱵᱟᱝ ᱛᱟᱦᱮᱱ ᱞᱟᱹᱠᱛᱤᱭᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"Finally, in some experiments you may be asked to make a voice or video "
+"recording, for example, you may be asked to record your finger-tapping in "
+"response to a sound or video, or to record yourself speaking or singing."
+msgstr ""
+"ᱢᱩᱪᱟᱹᱫ ᱨᱮ, ᱟᱫᱚᱢ ᱵᱮᱵᱚᱦᱟᱨ ᱨᱮ ᱟᱢ ᱫᱚ ᱟᱲᱟᱝ ᱥᱮ ᱵᱷᱤᱰᱤᱭᱚ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱞᱟᱹᱜᱤᱫ ᱠᱚ ᱢᱮᱛᱟᱢᱟ, "
+"ᱢᱮᱱᱠᱷᱟᱱ, ᱟᱢ ᱫᱚ ᱟᱢᱟᱜ ᱠᱟᱹᱴᱩᱵ ᱨᱮ ᱥᱟᱰᱮ ᱥᱮ ᱵᱷᱤᱰᱤᱭᱚ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱞᱟᱹᱜᱤᱫ ᱠᱚ ᱢᱮᱛᱟᱢᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-procedure"
+msgid ""
+"If the experiment will contain these elements we will ask for an additional "
+"consent."
+msgstr ""
+"ᱡᱩᱫᱤ ᱵᱤᱰᱟᱹᱣ ᱨᱮ ᱱᱚᱶᱟ ᱠᱚ ᱛᱮᱛᱮᱫ ᱛᱟᱦᱮᱱᱟ ᱮᱱᱠᱷᱟᱱ ᱟᱞᱮ ᱵᱟᱹᱲᱛᱤ ᱥᱚᱦᱢᱚᱛᱤ ᱞᱮ ᱠᱷᱚᱡᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Voluntary participation"
+msgstr "ᱥᱟᱱᱜᱚᱨ ᱦᱟᱯᱟᱴᱤᱧ"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid "Your participation in this research is voluntary."
+msgstr "ᱱᱚᱣᱟ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱨᱮ ᱟᱢᱟᱜ ᱥᱮᱞᱮᱫᱚᱜ ᱫᱚ ᱟᱡ ᱥᱮᱪᱮᱫ ᱜᱮᱭᱟ ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to refuse to take part, and you may stop taking part at any "
+"time."
+msgstr ""
+"ᱟᱢ ᱫᱚ ᱯᱷᱩᱨᱜᱟᱹᱞ ᱜᱮᱭᱟᱢ ᱦᱟᱯᱟᱴᱤᱧ ᱞᱟᱹᱜᱤᱫ ᱵᱟᱝ ᱢᱟᱱᱟᱣ ᱞᱟᱹᱜᱤᱫ, ᱟᱨ ᱟᱢ ᱡᱟᱦᱟᱸ ᱚᱠᱛᱚ ᱨᱮᱜᱮ "
+"ᱦᱟᱯᱟᱴᱤᱧ ᱵᱚᱱᱫᱚ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"You are free to discontinue participation in this study at any time without "
+"penalty."
+msgstr ""
+"ᱟᱢ ᱫᱚ ᱵᱤᱱᱟᱹ ᱯᱮᱱᱟᱞᱴᱤ ᱛᱮ ᱡᱟᱦᱟᱸ ᱚᱠᱛᱚ ᱨᱮᱜᱮ ᱱᱚᱣᱟ ᱚᱫᱷᱭᱟᱱ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱵᱚᱱᱫᱚ ᱞᱟᱹᱜᱤᱫ "
+"ᱯᱷᱩᱨᱜᱟᱹᱞ ᱜᱮᱭᱟᱢ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-voluntary"
+msgid ""
+"The investigator may withdraw you from this research if circumstances arise "
+"which warrant doing so."
+msgstr ""
+"ᱛᱚᱞᱟᱥᱤᱭᱟᱹ ᱫᱚ ᱟᱢ ᱱᱚᱶᱟ ᱛᱚᱞᱟᱥ ᱠᱷᱚᱱ ᱮ ᱚᱰᱚᱠ ᱫᱟᱲᱮᱭᱟᱢᱟ ᱡᱩᱫᱤ ᱱᱚᱝᱠᱟᱱ ᱚᱵᱚᱥᱛᱟ ᱥᱤᱨᱡᱟᱹᱜ "
+"ᱠᱷᱟᱱ ᱚᱠᱟ ᱫᱚ ᱱᱚᱝᱠᱟ ᱠᱚᱨᱟᱣ ᱞᱟᱹᱠᱛᱤᱭᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/open_science_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Confidentiality"
+msgstr "ᱜᱩᱯᱷᱤᱰᱮᱱᱥᱤᱭᱟᱞᱤ"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"No personal identifiers (e.g. your name or contact data) will be collected "
+"or used at any stage of the experiment."
+msgstr ""
+"ᱵᱤᱰᱟᱹᱣ ᱨᱮᱭᱟᱜ ᱡᱟᱦᱟᱱ ᱫᱷᱟᱯ ᱨᱮ ᱵᱟᱝ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱩᱨᱩᱢ (ᱡᱮᱞᱠᱟ ᱟᱢᱟᱜ ᱧᱩᱛᱩᱢ ᱵᱟᱝᱠᱷᱟᱱ "
+"ᱡᱚᱯᱲᱟᱣ ᱰᱟᱴᱟ) ᱵᱟᱝ ᱥᱟᱢᱴᱟᱣ ᱥᱮ ᱵᱮᱵᱷᱟᱨᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Thus, the experimental data is anonymous."
+msgstr "ᱱᱚᱝᱠᱟ, ᱵᱮᱵᱷᱟᱨ ᱰᱟᱴᱟ ᱫᱚ ᱵᱤᱱ ᱵᱟᱰᱟᱭ ᱜᱮᱭᱟ ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We may collect some demographic data (e.g. age, gender, country of "
+"residence) as well as information about your learning and exposure history "
+"(e.g. musical experience playing an instrument, years of formal education, "
+"languages spoken)."
+msgstr ""
+"ᱟᱞᱮ ᱫᱚ ᱟᱫᱚᱢ ᱰᱮᱢᱚᱜᱽᱨᱟᱯᱷᱤᱠ ᱰᱟᱴᱟ (ᱡᱮᱞᱮᱠᱟ ᱩᱢᱮᱨ, ᱡᱟᱱᱟᱝ, ᱛᱟᱦᱮᱱ ᱫᱤᱥᱚᱢ) ᱟᱨ ᱟᱢᱟᱜ "
+"ᱥᱮᱪᱮᱫ ᱟᱨ ᱥᱮᱪᱮᱫ ᱱᱟᱜᱟᱢ ᱵᱟᱵᱚᱛ ᱨᱮ ᱵᱟᱰᱟᱭ ᱞᱮ ᱡᱟᱣᱨᱟ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ (ᱡᱮᱞᱮᱠᱟ ᱵᱟᱡᱟᱱ ᱵᱟᱡᱟᱱ "
+"ᱨᱮᱭᱟᱜ ᱟᱹᱱᱟᱹᱭᱠᱟᱹᱣ, ᱥᱮᱨᱢᱟ ᱨᱮᱭᱟᱜ ᱥᱮᱪᱮᱫ, ᱨᱚᱲ ᱯᱟᱹᱨᱥᱤ)᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If an experiment is collecting data that cannot be fully anonymized, we will"
+" inform you and also ask for additional consent."
+msgstr ""
+"ᱡᱩᱫᱤ ᱢᱤᱫ ᱵᱮᱵᱷᱟᱨ ᱰᱟᱴᱟ ᱡᱟᱣᱨᱟ ᱠᱟᱱᱟ ᱚᱠᱟ ᱫᱚ ᱯᱩᱨᱟᱹ ᱵᱤᱱ ᱵᱟᱰᱟᱭ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ, "
+"ᱟᱞᱮ ᱟᱢ ᱞᱮ ᱵᱟᱰᱟᱭ ᱚᱪᱚ ᱢᱮᱭᱟ ᱟᱨ ᱵᱟᱹᱲᱛᱤ ᱥᱚᱦᱢᱚᱛᱤ ᱞᱮ ᱠᱷᱚᱡᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid "Consenting to these additional requirements is also fully voluntary."
+msgstr "ᱱᱚᱶᱟ ᱵᱟᱹᱲᱛᱤ ᱞᱟᱹᱠᱛᱤ ᱠᱚ ᱨᱮ ᱥᱚᱦᱢᱚᱛᱤ ᱫᱚ ᱯᱩᱨᱟᱹ ᱥᱟᱱᱜᱚᱨ ᱜᱮᱭᱟ ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"These include experiments where we make audio-visual recordings or where we "
+"need your contact details to contact you in the future to take another "
+"experiment."
+msgstr ""
+"ᱱᱚᱣᱟ ᱠᱚ ᱢᱩᱸᱫᱨᱮ ᱚᱱᱠᱟᱱ ᱵᱮᱵᱷᱟᱨ ᱥᱮᱞᱮᱫ ᱢᱮᱱᱟᱜᱼᱟ ᱡᱟᱦᱟᱸ ᱨᱮ ᱟᱞᱮ ᱚᱰᱤᱭᱚ-ᱵᱷᱤᱡᱩᱣᱟᱞ "
+"ᱨᱮᱠᱚᱨᱰᱤᱝ ᱞᱮ ᱵᱮᱱᱟᱣᱟ ᱟᱨ ᱵᱟᱝ ᱡᱟᱦᱟᱸ ᱨᱮ ᱟᱞᱮ ᱟᱢᱟᱜ ᱡᱚᱯᱚᱲᱟᱣ ᱵᱤᱵᱨᱚᱬ ᱞᱟᱹᱠᱛᱤᱜ ᱠᱟᱱᱟ ᱟᱢ "
+"ᱥᱟᱶ ᱡᱚᱯᱚᱲᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱟᱜᱟᱢ ᱨᱮ ᱮᱴᱟᱜ ᱵᱮᱵᱷᱟᱨ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All of the information we obtain during the research will be kept "
+"confidential."
+msgstr ""
+"ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱚᱠᱛᱚ ᱨᱮ ᱟᱞᱮ ᱡᱟᱦᱟᱸ ᱵᱮᱣᱨᱟ ᱞᱮ ᱧᱟᱢᱟ ᱚᱱᱟ ᱫᱚ ᱜᱩᱯᱷᱤᱰᱮᱱᱥᱤᱭᱟᱞ ᱜᱮ ᱫᱚᱦᱚᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"We will only save your anonymized alpha numeric code in our system, in order"
+" to distinguish participants who have already taken part in this or other "
+"experiments."
+msgstr ""
+"ᱟᱞᱮ ᱫᱚ ᱟᱢᱟᱜ ᱵᱤᱱ ᱵᱟᱰᱟᱭ ᱟᱞᱯᱷᱟ ᱱᱚᱢᱮᱨᱤᱠ ᱠᱚᱰ ᱜᱮ ᱟᱞᱮᱭᱟᱜ ᱥᱤᱥᱴᱚᱢ ᱨᱮ ᱥᱟᱧᱪᱟᱣ ᱫᱚᱦᱚᱭᱟ "
+"ᱞᱮ, ᱡᱮᱢᱚᱱ ᱩᱱᱠᱩ ᱵᱷᱮᱜᱟᱨ ᱫᱟᱲᱮᱭᱟᱜ ᱠᱚᱣᱟ ᱚᱠᱚᱭ ᱫᱚ ᱱᱚᱶᱟ ᱥᱮ ᱮᱴᱟᱜ ᱵᱮᱵᱷᱟᱨ ᱨᱮ ᱦᱤᱸᱥ ᱠᱚ "
+"ᱦᱟᱛᱟᱣ ᱟᱠᱟᱫᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"This code will not be used to derive your real identity, will not be shared "
+"with anyone outside of the research team and will be deleted after use."
+msgstr ""
+"ᱱᱚᱣᱟ ᱠᱚᱰ ᱫᱚ ᱟᱢᱟᱜ ᱥᱟᱹᱨᱤ ᱩᱯᱨᱩᱢ ᱧᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱵᱟᱝ ᱵᱮᱵᱷᱟᱨᱚᱜᱼᱟ, ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱫᱚᱞ ᱵᱟᱦᱨᱮ "
+"ᱚᱠᱚᱭ ᱥᱟᱶ ᱦᱚᱸ ᱵᱟᱝ ᱦᱟᱹᱴᱤᱧᱚᱜᱼᱟ ᱟᱨ ᱵᱮᱵᱷᱟᱨ ᱛᱟᱭᱚᱢ ᱢᱮᱴᱟᱣᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your alpha numeric code to derive your "
+"real identity, this record could be linked in some cases to your public "
+"profile page if a data breach takes place."
+msgstr ""
+"ᱡᱩᱫᱤ ᱦᱚᱸ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱠᱚ ᱟᱢᱟᱜ ᱟᱥᱚᱞ ᱯᱟᱹᱨᱥᱤ ᱵᱟᱰᱟᱭ ᱞᱟᱹᱜᱤᱫ ᱟᱢᱟᱜ ᱟᱞᱯᱷᱟ ᱱᱚᱢᱵᱚᱨ ᱠᱚᱰ "
+"ᱵᱟᱠᱚ ᱵᱮᱵᱚᱦᱟᱨᱟ, ᱱᱚᱶᱟ ᱨᱮᱠᱚᱨᱰ ᱫᱚ ᱟᱢᱟᱜ ᱯᱟᱹᱵᱤᱞ ᱯᱨᱚᱯᱷᱟᱭᱤᱞ ᱥᱟᱦᱴᱟ ᱥᱟᱶ ᱡᱚᱲᱟᱣ "
+"ᱫᱟᱲᱮᱭᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Thus, you may wish to restrict what information you choose to share "
+"publicly."
+msgstr ""
+"ᱱᱚᱝᱠᱟ, ᱟᱢ ᱫᱚ ᱚᱱᱟ ᱵᱟᱱᱫᱷᱟᱣ ᱥᱟᱱᱟᱭᱮᱫ ᱢᱮᱭᱟ ᱡᱮ ᱟᱢ ᱚᱠᱟ ᱵᱮᱣᱨᱟ ᱥᱟᱱᱟᱢ ᱦᱚᱲ ᱞᱟᱹᱜᱤᱫ ᱮᱢ "
+"ᱵᱟᱪᱷᱟᱣ ᱮᱫᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid "Research collaborations"
+msgstr "ᱛᱚᱞᱟᱥ ᱥᱚᱦᱚᱫ ᱠᱚ"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"For the purpose of helping scientific progress and replication, sometimes we"
+" may share the data with research collaborators."
+msgstr ""
+"ᱵᱤᱜᱽᱭᱟᱱᱤᱠ ᱞᱟᱦᱟᱱᱛᱤ ᱟᱨ ᱫᱚᱦᱲᱟ ᱜᱚᱲᱚ ᱞᱟᱹᱜᱤᱫ, ᱚᱠᱟ ᱚᱠᱟ ᱫᱚ ᱟᱵᱚ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱥᱚᱦᱚᱫ ᱠᱚ "
+"ᱥᱟᱶ ᱰᱟᱴᱟ ᱵᱚᱱ ᱦᱟᱹᱴᱤᱧ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we will only share fully anonymized data, such as "
+"demographic, aggregated, or extracted data without any personal identifiers."
+msgstr ""
+"ᱱᱚᱣᱟ ᱠᱷᱮᱛᱨᱮ, ᱟᱞᱮ ᱫᱚ ᱮᱠᱮᱱ ᱯᱩᱨᱟᱹ ᱵᱤᱱ ᱵᱟᱰᱟᱭ ᱰᱟᱴᱟ ᱞᱮ ᱦᱟᱹᱴᱤᱧᱟ, ᱡᱮᱞᱮᱠᱟ "
+"ᱰᱮᱢᱚᱜᱽᱨᱟᱯᱷᱤᱠ, ᱥᱟᱢᱴᱟᱣ, ᱥᱮ ᱵᱤᱱᱟᱹ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱩᱯᱨᱩᱢ ᱛᱮ ᱚᱰᱚᱠ ᱰᱟᱴᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be stored temporarily on external servers and desktops/laptops "
+"that are password protected."
+msgstr ""
+"ᱰᱟᱴᱟ ᱫᱚ ᱵᱟᱦᱨᱮ ᱥᱮᱨᱵᱷᱟᱨ ᱟᱨ ᱰᱮᱥᱠᱴᱚᱯ/ᱞᱮᱯᱴᱚᱯ ᱨᱮ ᱢᱤᱫ ᱜᱷᱟᱹᱲᱤ ᱞᱟᱹᱜᱤᱫ ᱡᱟᱣᱨᱟ ᱛᱟᱦᱮᱱᱟ "
+"ᱚᱠᱟ ᱫᱚ ᱯᱟᱥᱣᱟᱨᱰ ᱛᱮ ᱨᱟᱠᱷᱟ ᱢᱮᱱᱟᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"The data will be then stored permanently in the institute servers with hard "
+"disks encrypted using industry-standard encryption software."
+msgstr ""
+"ᱚᱱᱟ ᱛᱟᱭᱚᱢ ᱰᱟᱴᱟ ᱫᱚ ᱥᱮᱢᱟᱱ ᱞᱟᱹᱜᱤᱫ ᱤᱱᱥᱴᱤᱴᱭᱩᱴ ᱥᱮᱨᱵᱷᱟᱨ ᱨᱮ ᱦᱟᱨᱰ ᱰᱤᱥᱠ ᱥᱟᱶᱛᱮ ᱤᱱᱰᱟᱥᱴᱨᱤ"
+" ᱥᱴᱮᱱᱰᱟᱨᱰ ᱮᱱᱠᱨᱤᱯᱥᱚᱱ ᱥᱚᱯᱷᱴᱣᱮᱭᱟᱨ ᱵᱮᱵᱷᱟᱨ ᱠᱟᱛᱮ ᱡᱟᱣᱨᱟ ᱫᱚᱦᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid "No data will be stored permanently on external servers."
+msgstr "ᱵᱟᱦᱨᱮ ᱥᱮᱨᱵᱷᱟᱨ ᱨᱮ ᱥᱮᱢᱟᱱ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱫ ᱰᱟᱴᱟ ᱦᱚᱸ ᱵᱟᱝ ᱡᱟᱣᱨᱟᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid "Risks/Discomforts"
+msgstr "ᱡᱷᱩᱠᱤ/ᱵᱟᱝ ᱟᱨᱟᱢ"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-risks"
+msgid ""
+"There are no risks for participating in this study beyond those associated "
+"with normal computer use."
+msgstr ""
+"ᱥᱟᱫᱷᱟᱨᱚᱱ ᱠᱚᱢᱯᱭᱩᱴᱟᱨ ᱵᱮᱵᱷᱟᱨ ᱥᱟᱶ ᱡᱚᱲᱟᱣ ᱠᱟᱱ ᱠᱚ ᱪᱷᱟᱰᱟ ᱠᱟᱛᱮ ᱱᱚᱶᱟ ᱚᱫᱷᱭᱟᱱ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ"
+" ᱨᱮ ᱪᱮᱫ ᱦᱚᱸ ᱡᱷᱩᱠᱤ ᱵᱟᱹᱱᱩᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid "Benefits"
+msgstr "ᱞᱟᱵᱷ ᱠᱚ"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-benefits"
+msgid ""
+"Although it may not directly benefit you, this study may benefit society by "
+"helping us understanding how humans derive information from sound and "
+"vision, and potentially to help engineer machines that can replicate our "
+"abilities (e.g. in sound recognition and computer vision) and to help "
+"improve perceptual abilities in people whose hearing or sight is impaired."
+msgstr ""
+"ᱡᱩᱫᱤ ᱦᱚᱸ ᱱᱚᱣᱟ ᱥᱚᱡᱷᱮ ᱞᱟᱵᱷ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ, ᱱᱚᱣᱟ ᱚᱫᱷᱭᱟᱱ ᱫᱚ ᱥᱚᱢᱟᱡᱽ ᱞᱟᱵᱷ "
+"ᱫᱟᱲᱮᱭᱟᱜ-ᱟ ᱟᱵᱚ ᱵᱩᱡᱷᱟᱹᱣ ᱞᱟᱹᱜᱤᱫ ᱜᱚᱲᱚ ᱮᱢᱟᱭᱟ ᱪᱮᱫ ᱞᱮᱠᱟ ᱢᱟᱱᱣᱟ ᱠᱚ ᱥᱟᱰᱮ ᱟᱨ ᱧᱮᱞ ᱠᱷᱚᱱ "
+"ᱵᱟᱯᱟᱰᱟᱭ ᱠᱚ ᱧᱟᱢᱟ, ᱟᱨ ᱥᱚᱢᱵᱷᱚᱵᱚᱱ ᱛᱮ ᱤᱱᱡᱤᱱᱤᱭᱟᱨ ᱢᱟᱥᱤᱱ ᱠᱚ ᱜᱚᱲᱚ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ ᱚᱠᱟ ᱫᱚ "
+"ᱟᱵᱚᱣᱟᱜ ᱫᱟᱲᱮ ᱠᱚ ᱫᱚᱦᱚ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ (ᱡᱮᱞᱠᱟ ᱥᱟᱰᱮ ᱚᱨᱚᱢ ᱟᱨ ᱠᱚᱢᱯᱭᱩᱴᱟᱨ ᱧᱮᱞ ᱨᱮ) ᱟᱨ ᱚᱠᱚᱭ "
+"ᱦᱚᱲ ᱠᱚ ᱟᱸᱡᱚᱢ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "Compensation"
+msgstr "ᱠᱷᱟᱹᱭᱫᱟᱹᱨᱤ"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"If you satisfactorily complete the study, we compensate you for your "
+"participation:"
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱥᱚᱱᱛᱚᱥᱚᱱᱟᱱ ᱞᱮᱠᱟᱛᱮ ᱯᱟᱲᱦᱟᱣ ᱮᱢ ᱯᱩᱨᱟᱹᱣ ᱮᱫᱟ, ᱟᱞᱮ ᱟᱢᱟᱜ ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱹᱜᱤᱫ "
+"ᱠᱷᱩᱛᱤ ᱞᱮ ᱮᱢᱟᱢᱟ:"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgid "per hour"
+msgstr "ᱯᱨᱚᱛᱤ ᱴᱟᱲᱟᱝ"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"You may also receive an additional payment based on your performance in the "
+"task."
+msgstr ""
+"ᱟᱢᱟᱜ ᱠᱟᱹᱢᱤ ᱨᱮᱭᱟᱜ ᱠᱟᱹᱢᱤᱦᱚᱨᱟ ᱞᱮᱠᱟᱛᱮ ᱟᱢ ᱵᱟᱹᱲᱛᱤ ᱯᱮᱢᱮᱱᱴ ᱦᱚᱸᱢ ᱧᱟᱢ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "We appreciate your contribution to science!"
+msgstr "ᱟᱞᱮ ᱥᱟᱬᱮᱥ ᱞᱟᱹᱜᱤᱫ ᱟᱢᱟᱜ ᱮᱱᱮᱢ ᱞᱮ ᱥᱟᱨᱦᱟᱣ ᱮᱫᱟ!"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "Your rights"
+msgstr "ᱟᱢᱟᱜ ᱟᱹᱭᱫᱟᱹᱨᱤ"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You have the right to information regarding the data relating to you that is"
+" stored at the Max-Planck-Institute, the right to correct inaccurate data, "
+"and the right to demand the deletion of data in cases of inadmissible data "
+"storage and the right to data portability."
+msgstr ""
+"ᱢᱮᱠᱥ-ᱯᱞᱟᱱᱠ-ᱤᱱᱥᱴᱤᱴ ᱨᱮ ᱫᱚᱦᱚ ᱟᱠᱟᱱ ᱟᱢ ᱥᱟᱶ ᱡᱚᱲᱟᱣ ᱟᱠᱟᱱ ᱰᱟᱴᱟ ᱵᱤᱥᱟᱹᱭ ᱛᱮ ᱟᱢ ᱴᱷᱮᱱ "
+"ᱵᱟᱰᱟᱭ ᱧᱟᱢ ᱨᱮᱭᱟᱜ ᱟᱹᱭᱫᱟᱹᱨ ᱢᱮᱱᱟᱜ-ᱟ, ᱵᱟᱝ ᱴᱷᱤᱠ ᱰᱟᱴᱟ ᱥᱟᱢᱲᱟᱣ ᱨᱮᱭᱟᱜ ᱟᱹᱭᱫᱟᱹᱨ ᱟᱨ ᱰᱟᱴᱟ "
+"ᱯᱚᱨᱴᱮᱵᱤᱞᱤ ᱨᱮᱭᱟᱜ ᱟᱹᱭᱫᱟᱹᱨ ᱢᱮᱱᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"Note that in some studies data deletion will not be possible, in this case "
+"we will ask you specifically to consent to this procedure in a separate "
+"consent form."
+msgstr ""
+"ᱩᱯᱨᱩᱢ ᱢᱮ ᱡᱮ ᱛᱤᱱᱟᱹᱜ ᱜᱟᱱ ᱯᱚᱲᱦᱚᱱ ᱨᱮ ᱰᱟᱴᱟ ᱚᱪᱚᱜ ᱵᱟᱝ ᱥᱚᱢᱵᱷᱚᱵᱚᱱᱟ, ᱱᱚᱣᱟ ᱠᱷᱮᱛᱨᱮ ᱟᱞᱮ "
+"ᱟᱢ ᱠᱷᱟᱥ ᱠᱟᱭᱛᱮ ᱱᱚᱣᱟ ᱠᱟᱹᱢᱤᱦᱚᱨᱟ ᱨᱮ ᱥᱚᱦᱢᱚᱛ ᱯᱷᱚᱨᱢ ᱨᱮ ᱥᱚᱢᱵᱷᱚᱵᱚᱱ ᱞᱟᱹᱜᱤᱫ ᱞᱮ ᱢᱮᱛᱟᱢᱟ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid ""
+"You also have the right to submit an objection to the supervisory authority."
+msgstr ""
+"ᱟᱢ ᱴᱷᱮᱱ ᱦᱚᱸ ᱧᱮᱞ ᱛᱚᱞᱟᱥ ᱯᱨᱟᱫᱷᱤᱠᱚᱨᱚᱱ ᱴᱷᱮᱱ ᱟᱯᱚᱛᱟᱱ ᱡᱚᱢᱟᱣ ᱨᱮᱭᱟᱜ ᱟᱹᱭᱫᱟᱹᱨ ᱢᱮᱱᱟᱜᱼᱟ ᱾"
+
+#: psynet/templates/consents/main_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-rights"
+msgid "For the Max-Planck-Society, this is:"
+msgstr "ᱢᱮᱠᱥ-ᱯᱞᱟᱱᱠ-ᱥᱚᱢᱟᱭᱴᱤ ᱞᱟᱹᱜᱤᱫ, ᱱᱚᱣᱟ ᱫᱚ:"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"Following open science practices to improve science reusability and "
+"replicability, we may want to publish the dataset collected in this "
+"experiment as soon as the study is finished."
+msgstr ""
+"ᱵᱤᱜᱽᱭᱟᱱ ᱫᱚᱦᱚ ᱟᱨ ᱵᱮᱵᱷᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱠᱷᱩᱞᱟᱹ ᱵᱤᱜᱽᱭᱟᱱ ᱠᱟᱹᱢᱤ ᱠᱚ ᱯᱟᱧᱡᱟ ᱠᱟᱛᱮ, ᱟᱵᱚ ᱫᱚ "
+"ᱱᱚᱶᱟ ᱵᱮᱵᱚᱦᱟᱨ ᱨᱮ ᱥᱟᱢᱴᱟᱣ ᱟᱠᱟᱱ ᱰᱟᱴᱟᱥᱮᱴ ᱯᱟᱹᱦᱤᱞ ᱪᱟᱵᱟ ᱠᱟᱛᱮ ᱯᱟᱹᱦᱤᱞ ᱞᱟᱹᱜᱤᱫ ᱵᱚᱱ ᱠᱷᱚᱡᱽ"
+" ᱫᱟᱲᱮᱭᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"This includes audio-visual recordings, such as a recording of your finger-"
+"tapping in response to a sound or video, or to record yourself speaking or "
+"singing."
+msgstr ""
+"ᱱᱚᱣᱟ ᱨᱮ ᱚᱰᱤᱭᱚ-ᱵᱷᱤᱡᱩᱣᱟᱞ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱥᱮᱞᱮᱫ ᱢᱮᱱᱟᱜᱼᱟ, ᱡᱮᱞᱠᱟ ᱥᱟᱰᱮ ᱥᱮ ᱵᱷᱤᱰᱤᱭᱳ ᱨᱮᱭᱟᱜ "
+"ᱛᱮᱞᱟ ᱞᱮᱠᱟᱛᱮ ᱟᱢᱟᱜ ᱠᱟᱹᱴᱩᱵ ᱴᱮᱯ ᱨᱮᱭᱟᱜ ᱨᱮᱠᱚᱨᱰᱤᱝ, ᱥᱮ ᱟᱢ ᱟᱢᱛᱮ ᱨᱚᱲ ᱥᱮ ᱥᱮᱨᱮᱧ "
+"ᱨᱮᱠᱚᱨᱰᱤᱝ᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"We may also want to publish certain materials as part of the scientific "
+"publication, such as a demo video of the task or part of an interview."
+msgstr ""
+"ᱟᱵᱚ ᱦᱚᱸ ᱵᱤᱜᱽᱭᱟᱱᱤᱠ ᱯᱟᱹᱨᱥᱟᱞ ᱨᱮᱭᱟᱜ ᱦᱟᱹᱴᱤᱧ ᱞᱮᱠᱟᱛᱮ ᱠᱤᱪᱷᱩ ᱡᱤᱱᱤᱥ ᱯᱟᱹᱨᱥᱟᱞ ᱥᱟᱱᱟ ᱵᱚᱱᱟ,"
+" ᱡᱮᱞᱠᱟ ᱠᱟᱹᱢᱤ ᱨᱮᱭᱟᱜ ᱰᱮᱢᱚ ᱵᱷᱤᱰᱤᱭᱚ ᱥᱮ ᱠᱩᱞᱤ ᱠᱩᱯᱩᱞᱤ ᱨᱮᱭᱟᱜ ᱦᱟᱹᱴᱤᱧ᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Since the audio-visual recordings collected in this experiment may be made "
+"public, we cannot guarantee anonymity of your data if you participate in "
+"this experiment."
+msgstr ""
+"ᱪᱮᱫᱟᱜ ᱥᱮ ᱱᱚᱣᱟ ᱵᱮᱵᱷᱟᱨ ᱨᱮ ᱡᱟᱣᱨᱟ ᱟᱠᱟᱱ ᱚᱰᱤᱭᱚ-ᱵᱷᱤᱡᱩᱣᱟᱞ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱫᱚ ᱥᱟᱱᱟᱢ ᱦᱚᱲ ᱠᱚ "
+"ᱞᱟᱹᱭ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ, ᱟᱢ ᱡᱩᱫᱤ ᱱᱚᱣᱟ ᱵᱮᱵᱷᱟᱨ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱠᱷᱟᱱ ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱵᱟᱝ ᱵᱟᱰᱟᱭ ᱞᱮ "
+"ᱮᱢ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"However, your data will not be directly associated with your name or other "
+"identifiers in any way (we will not specify your name when presenting "
+"audio/video materials of yours)."
+msgstr ""
+"ᱢᱮᱱᱠᱷᱟᱱ, ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱫᱚ ᱟᱢᱟᱜ ᱧᱩᱛᱩᱢ ᱥᱮ ᱮᱴᱟᱜ ᱩᱯᱨᱩᱢ ᱠᱚ ᱥᱟᱶ ᱥᱚᱡᱷᱮ ᱵᱟᱝ ᱡᱚᱲᱟᱣ ᱛᱟᱦᱮᱱᱟ"
+" (ᱟᱢᱟᱜ ᱚᱰᱤᱭᱚ/ᱵᱷᱤᱰᱤᱭᱚ ᱡᱤᱱᱤᱥ ᱥᱟᱯᱲᱟᱣ ᱚᱠᱛᱮ ᱟᱢᱟᱜ ᱧᱩᱛᱩᱢ ᱵᱟᱞᱮ ᱞᱟᱹᱭᱟ)᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Data will be published on open science frameworks/websites such as OSF "
+"(https://osf.io/) and will be available to everybody with internet access."
+msgstr ""
+"ᱰᱟᱴᱟ ᱫᱚ ᱚᱯᱷᱚᱱ ᱥᱟᱬᱮᱥ ᱯᱷᱨᱟᱢᱣᱟᱨᱠ/ᱣᱮᱵᱽᱥᱟᱭᱤᱴ ᱡᱮᱞᱠᱟ OSF (https://osf.io/) ᱨᱮ "
+"ᱪᱷᱟᱯᱟᱜᱼᱟ ᱟᱨ ᱤᱱᱴᱟᱨᱱᱮᱴ ᱮᱠᱥᱮᱥ ᱛᱮ ᱡᱚᱛᱚ ᱦᱚᱲ ᱞᱟᱹᱜᱤᱫ ᱧᱟᱢᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid "Disclaimer"
+msgstr "ᱰᱤᱥᱠᱞᱮᱢᱟᱨ"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Since some materials will be published as part of the scientific "
+"publication, you will not be able to delete such materials, as they will "
+"become public (either immediately or soon after data collection)."
+msgstr ""
+"ᱪᱮᱫᱟᱜ ᱥᱮ ᱟᱫᱚᱢ ᱡᱤᱱᱤᱥ ᱫᱚ ᱥᱟᱬᱮᱥᱤ ᱯᱟᱹᱨᱥᱤ ᱨᱮᱭᱟᱜ ᱦᱟᱹᱴᱤᱧ ᱞᱮᱠᱟ ᱯᱟᱹᱨᱥᱤ ᱦᱩᱭᱩᱜ-ᱟ, ᱟᱢ ᱫᱚ"
+" ᱱᱚᱝᱠᱟᱱ ᱡᱤᱱᱤᱥ ᱵᱟᱢ ᱰᱤᱞᱤᱴ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ, ᱪᱮᱫᱟᱜ ᱥᱮ ᱚᱱᱟ ᱫᱚ ᱯᱟᱹᱵᱤᱞ ᱦᱩᱭᱩᱜ-ᱟ (ᱰᱟᱴᱟ ᱡᱚᱢ "
+"ᱠᱟᱛᱮ ᱛᱤᱥ ᱜᱮ ᱥᱮ ᱩᱥᱟᱹᱨᱟ ᱛᱟᱭᱚᱢ)᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Thus, you may wish to make sure you do not record any materials you do not "
+"want to make public."
+msgstr ""
+"ᱱᱚᱝᱠᱟ ᱟᱢ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱥᱟᱱᱟᱭᱮᱫ ᱢᱮᱭᱟ ᱟᱢ ᱡᱟᱦᱟᱱ ᱡᱤᱱᱤᱥ ᱟᱞᱚᱢ ᱨᱮᱠᱚᱨᱰ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ ᱡᱟᱦᱟᱸ ᱫᱚ"
+" ᱟᱢ ᱵᱟᱝ ᱯᱟᱹᱵᱤᱞ ᱥᱟᱱᱟᱭᱮᱫ ᱢᱮᱭᱟ᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"By consenting to this experiment you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+"ᱱᱚᱣᱟ ᱵᱮᱵᱷᱟᱨ ᱨᱮ ᱥᱚᱦᱢᱚᱛᱤ ᱮᱢ ᱠᱟᱛᱮ ᱟᱢ ᱫᱚ ᱚᱰᱤᱭᱳ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱚᱠᱛᱮ ᱵᱟᱹᱲᱤᱡ ᱠᱟᱛᱷᱟ ᱵᱟᱝ "
+"ᱵᱮᱵᱷᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱟᱨ ᱵᱟᱝ ᱵᱷᱤᱰᱤᱭᱳ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱚᱠᱛᱮ ᱞᱩᱜᱽᱲᱤ ᱵᱟᱝ ᱵᱮᱵᱷᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱮᱢ ᱢᱮᱱ "
+"ᱮᱫᱟ᱾"
+
+#: psynet/templates/consents/open_science_consent.html
+#, fuzzy
+msgctxt "consent-disclaimer"
+msgid ""
+"Although your data will not be associated with personal identifiers, it is "
+"possible to link your personal information based on audio-visual recordings"
+msgstr ""
+"ᱡᱩᱫᱤ ᱦᱚᱸ ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱵᱟᱝ ᱡᱚᱲᱟᱣ ᱛᱟᱦᱮᱱᱟ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱩᱨᱩᱢ ᱥᱟᱶ, ᱱᱚᱶᱟ ᱫᱚ ᱥᱚᱢᱵᱷᱚᱵᱚᱱ "
+"ᱜᱮᱭᱟ ᱟᱢᱟᱜ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱵᱟᱯᱟᱰᱟᱭ ᱚᱰᱤᱭᱚ-ᱧᱮᱞ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱞᱮᱠᱟᱛᱮ ᱡᱚᱲᱟᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ"
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid ""
+"This study is completely voluntary; you will not receive any monetary "
+"compensation for participation."
+msgstr ""
+"ᱱᱚᱣᱟ ᱯᱟᱲᱦᱟᱣ ᱫᱚ ᱯᱩᱨᱟᱹ ᱥᱟᱱᱜᱚᱨ ᱜᱮᱭᱟ; ᱟᱢ ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱫ ᱯᱩᱭᱥᱟᱹ ᱠᱷᱟᱹᱭᱫᱟᱹᱨᱤ "
+"ᱵᱟᱢ ᱧᱟᱢᱟ᱾"
+
+#: psynet/templates/consents/voluntary_with_no_compensation_consent.html
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-compensation"
+msgid "By doing the task you are helping science, thank you!"
+msgstr "ᱠᱟᱹᱢᱤ ᱠᱚᱨᱟᱣ ᱠᱟᱛᱮ ᱟᱢ ᱥᱟᱬᱮᱥ ᱮᱢ ᱜᱚᱲᱚ ᱮᱫᱟ, ᱟᱭᱢᱟ ᱥᱟᱨᱦᱟᱣ!"
+
+#: psynet/templates/exit_recruiter_lucid.html
+#, fuzzy
+msgctxt "exit_recruiter_lucid"
+msgid "Lucid Survey Submission"
+msgstr "ᱞᱩᱥᱤᱰ ᱥᱟᱨᱵᱷᱮ ᱡᱚᱢᱟᱣ"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "ᱢᱤᱫ ᱠᱤᱵᱚᱨᱰ ᱞᱮᱭᱟᱣᱩᱴ ᱵᱟᱪᱷᱟᱣ ᱢᱮ:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "ᱟᱢ ᱥᱟᱱᱟᱢ ᱞᱟᱹᱠᱛᱤᱭᱟᱱ ᱪᱟᱹᱵᱤ ᱠᱚ ᱵᱟᱢ ᱞᱤᱱ ᱟᱠᱟᱫᱟ ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use Google Chrome to take part in the experiment."
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱸᱴ ᱨᱮ ᱦᱤᱸᱥ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱟᱢ ᱜᱩᱜᱚᱞ ᱠᱨᱚᱢ ᱵᱮᱵᱷᱟᱨ ᱛᱮ ᱦᱩᱭᱟᱢᱟ ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using"
+msgstr "ᱟᱢ ᱵᱮᱵᱷᱟᱨ ᱮᱫᱟᱢ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please follow the instructions below to continue."
+msgstr "ᱞᱟᱦᱟᱜ ᱞᱟᱹᱜᱤᱫ ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱫᱤᱥ ᱠᱚ ᱯᱟᱱᱛᱮ ᱢᱮ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid ""
+"You need to use the latest version of Google Chrome to take part in the "
+"experiment."
+msgstr ""
+"ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱨᱮ ᱦᱤᱸᱥ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱟᱢ ᱫᱚ ᱜᱩᱜᱚᱞ ᱠᱨᱚᱢ ᱨᱮᱭᱟᱜ ᱱᱟᱶᱟ ᱵᱷᱟᱨᱥᱚᱱ ᱵᱮᱵᱷᱟᱨ "
+"ᱞᱟᱹᱠᱛᱤᱭᱟᱢᱟ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You are using:"
+msgstr "ᱟᱢ ᱵᱮᱵᱷᱟᱨ ᱮᱫᱟᱢ:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You need to use the incognito mode to take part in the experiment."
+msgstr ""
+"ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱸᱴ ᱨᱮ ᱦᱤᱸᱥ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱟᱢ ᱫᱚ ᱤᱱᱠᱚᱜᱽᱱᱤᱴᱳ ᱢᱳᱰ ᱵᱮᱵᱷᱟᱨ ᱛᱮ ᱦᱩᱭᱟᱢᱟ ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Warning!"
+msgstr "ᱪᱮᱦᱟᱣᱱᱟ!"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Click here"
+msgstr "ᱱᱚᱸᱰᱮ ᱚᱛᱟᱭ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome"
+msgstr "ᱜᱩᱜᱚᱞ ᱠᱨᱚᱢ ᱨᱮᱭᱟᱜ ᱱᱟᱶᱟ ᱵᱷᱟᱨᱥᱚᱱ ᱤᱱᱥᱴᱚᱞ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install Google Chrome if you haven't"
+msgstr "ᱡᱩᱫᱤ ᱟᱢ ᱵᱟᱝ ᱜᱩᱜᱚᱞ ᱠᱨᱚᱢ ᱤᱱᱥᱴᱚᱞ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the link below"
+msgstr "ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱞᱤᱝᱠ ᱠᱚᱯᱤ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open Google Chrome"
+msgstr "ᱜᱩᱜᱚᱞ ᱠᱨᱚᱢ ᱡᱷᱤᱡᱽ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On your computer, open Chrome."
+msgstr "ᱟᱢᱟᱜ ᱠᱚᱢᱯᱭᱩᱴᱟᱨ ᱨᱮ, ᱠᱨᱚᱢ ᱡᱷᱤᱡᱽ ᱢᱮ ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "At the top right, click More"
+msgstr "ᱪᱮᱛᱟᱱ ᱡᱚᱡᱚᱢ ᱯᱟᱦᱴᱟ ᱨᱮ, ᱵᱟᱹᱲᱛᱤ ᱞᱤᱱ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "New Incognito Window"
+msgstr "ᱱᱟᱶᱟ ᱤᱱᱠᱚᱜᱽᱱᱤᱴᱚ ᱡᱷᱚᱨᱠᱟ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "A new window appears. In the top corner, check for the Incognito icon"
+msgstr "ᱢᱤᱫ ᱱᱟᱶᱟ ᱡᱷᱚᱨᱠᱟ ᱧᱮᱞᱚᱜ ᱠᱟᱱᱟ ᱾ ᱪᱮᱛᱟᱱ ᱠᱚᱱᱟ ᱨᱮ, ᱤᱱᱠᱚᱜᱽᱱᱤᱴᱚ ᱟᱭᱠᱚᱱ ᱧᱮᱞ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You can also use a keyboard shortcut to open an Incognito window"
+msgstr "ᱤᱱᱠᱚᱜᱽᱱᱤᱴᱚ ᱣᱤᱱᱰᱚ ᱡᱷᱤᱡᱽ ᱞᱟᱹᱜᱤᱫ ᱟᱢ ᱠᱤᱵᱚᱨᱰ ᱥᱚᱴᱠᱟᱴ ᱦᱚᱸ ᱵᱮᱵᱷᱟᱨ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Press"
+msgstr "ᱞᱤᱱ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window"
+msgstr "ᱢᱤᱫ ᱱᱟᱶᱟ ᱤᱱᱠᱚᱜᱽᱱᱤᱴᱚ ᱡᱷᱚᱨᱠᱟ ᱡᱷᱤᱡᱽ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to continue the experiment"
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱞᱟᱦᱟᱜ ᱞᱟᱹᱜᱤᱫ ᱤᱱᱠᱚᱜᱽᱱᱤᱴᱚ ᱣᱤᱱᱰᱚ ᱨᱮ ᱞᱤᱝᱠ ᱞᱟᱴᱷᱟᱭ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the incognito window to start the experiment"
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱮᱦᱚᱵ ᱞᱟᱹᱜᱤᱫ ᱤᱱᱠᱚᱜᱽᱱᱤᱴᱚ ᱣᱤᱱᱰᱚ ᱨᱮ ᱞᱤᱝᱠ ᱞᱟᱴᱷᱟᱭ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to continue the experiment"
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱞᱟᱦᱟᱜ ᱞᱟᱹᱜᱤᱫ ᱠᱨᱚᱢ ᱵᱽᱨᱟᱣᱩᱡᱟᱨ ᱨᱮ ᱞᱤᱝᱠ ᱞᱟᱴᱷᱟᱭ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Paste the link into the Chrome browser to start the experiment"
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱮᱦᱚᱵ ᱞᱟᱹᱜᱤᱫ ᱠᱨᱚᱢ ᱵᱽᱨᱟᱣᱩᱡᱟᱨ ᱨᱮ ᱞᱤᱝᱠ ᱞᱟᱴᱷᱟᱭ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "You cannot take part in the experiment from a mobile device."
+msgstr "ᱟᱢ ᱢᱚᱵᱟᱭᱤᱞ ᱥᱟᱫᱷᱚᱱ ᱠᱷᱚᱱ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱨᱮ ᱦᱤᱸᱥ ᱵᱟᱢ ᱦᱟᱛᱟᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please open the survey on your computer."
+msgstr "ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱟᱢᱟᱜ ᱠᱚᱢᱯᱭᱩᱴᱟᱨ ᱨᱮ ᱥᱚᱨᱵᱷᱮ ᱡᱷᱤᱡᱽ ᱢᱮ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "This site requires JavaScript to function properly."
+msgstr "ᱱᱚᱣᱟ ᱥᱟᱭᱤᱴ ᱵᱮᱥ ᱛᱮ ᱠᱟᱹᱢᱤ ᱞᱟᱹᱜᱤᱫ ᱡᱟᱶᱟ ᱥᱠᱨᱤᱯᱴ ᱞᱟᱹᱠᱛᱤᱜ ᱠᱟᱱᱟ ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Please enable JavaScript in your browser."
+msgstr "ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱟᱢᱟᱜ ᱵᱽᱨᱟᱣᱩᱡᱟᱨ ᱨᱮ ᱡᱟᱶᱟ ᱥᱠᱨᱤᱯᱴ ᱪᱟᱹᱞᱩᱭ ᱢᱮ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Follow the steps below to make sure the experiment works."
+msgstr ""
+"ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱠᱟᱹᱢᱤ ᱠᱟᱱᱟ ᱢᱮᱱᱛᱮ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱞᱟᱹᱜᱤᱫ ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱫᱷᱟᱯ ᱠᱚ ᱯᱟᱱᱛᱮ "
+"ᱢᱮ᱾"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Install the latest version of Google Chrome on your computer"
+msgstr "ᱟᱢᱟᱜ ᱠᱚᱢᱯᱭᱩᱴᱟᱨ ᱨᱮ ᱜᱩᱜᱚᱞ ᱠᱨᱚᱢ ᱨᱮᱭᱟᱜ ᱱᱟᱶᱟ ᱵᱷᱟᱨᱥᱚᱱ ᱤᱱᱥᱴᱚᱞ ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Copy the current URL to the clipboard:"
+msgstr "ᱱᱤᱛᱚᱜ URL ᱠᱞᱤᱯᱵᱚᱨᱰ ᱨᱮ ᱱᱚᱠᱚᱞ ᱢᱮ:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "Open a new incognito window with  the following keyboard shortcuts:"
+msgstr ""
+"ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱠᱤᱵᱚᱨᱰ ᱥᱚᱴᱠᱟᱴ ᱥᱟᱶ ᱢᱤᱫ ᱱᱟᱶᱟ ᱤᱱᱠᱚᱜᱽᱱᱤᱴᱚ ᱣᱤᱱᱰᱚ ᱡᱷᱤᱡᱽ ᱢᱮ:"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Windows, Linux, or Chrome OS: Press"
+msgstr "ᱣᱤᱱᱰᱚᱡᱽ, ᱞᱤᱱᱟᱠᱥ, ᱵᱟᱝᱠᱷᱟᱱ ᱠᱨᱚᱢ ᱚᱮᱥ ᱨᱮᱺ ᱞᱤᱱ ​​ᱢᱮ"
+
+#: psynet/templates/macros/browser-detect.html
+#, fuzzy
+msgctxt "browser_compatibility"
+msgid "On Mac: Press"
+msgstr "ᱢᱮᱠ ᱨᱮ: ᱞᱤᱱ ᱢᱮ"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Do you understand and consent to these terms?"
+msgstr "ᱪᱮᱫ ᱟᱢ ᱱᱚᱶᱟ ᱠᱚ ᱥᱟᱨᱛ ᱮᱢ ᱵᱩᱡᱷᱟᱹᱣ ᱟᱨ ᱥᱚᱢᱵᱷᱚᱵᱚᱱᱟ ?"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "I agree"
+msgstr "ᱤᱧ ᱨᱮᱵᱮᱱ ᱢᱤᱱᱟᱹᱧᱟ"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "No, thank you (return task)"
+msgstr "ᱵᱟᱝ, ᱟᱭᱢᱟ ᱥᱟᱨᱦᱟᱣ (ᱨᱩᱣᱟᱹᱲ ᱠᱟᱹᱢᱤ)"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgid "Scroll up/down to see all text"
+msgstr "ᱥᱟᱱᱟᱢ ᱚᱞ ᱧᱮᱞ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ/ᱞᱟᱛᱟᱨ ᱥᱠᱨᱚᱞ ᱢᱮ"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid "Principal Investigator"
+msgstr "ᱢᱩᱲᱩᱫ ᱛᱚᱞᱟᱥᱤᱭᱟᱹ"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid "Overview"
+msgstr "ᱚᱵᱷᱟᱨᱵᱷᱤᱭᱩ"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"This research is being conducted by researchers at the Max-Planck-Institute "
+"for Empirical Aesthetics."
+msgstr ""
+"ᱱᱚᱣᱟ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱫᱚ ᱢᱮᱠᱥ-ᱯᱞᱟᱱᱠ-ᱤᱱᱥᱴᱤᱴᱭᱩᱴ ᱯᱷᱚᱨ ᱮᱢᱯᱤᱨᱤᱠᱟᱞ ᱮᱥᱛᱷᱮᱴᱤᱠᱥ ᱨᱮᱱ "
+"ᱠᱷᱚᱱᱫᱽᱨᱚᱠᱤᱭᱟᱹ ᱠᱚ ᱦᱚᱛᱮᱛᱮ ᱠᱚ ᱪᱟᱞᱟᱣ ᱮᱫᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent"
+msgid ""
+"If you have any questions about this research, do not hesitate to contact "
+"the main researcher in this project, Nori Jacoby at:"
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱴᱷᱮᱱ ᱱᱚᱣᱟ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱵᱟᱵᱚᱛ ᱡᱟᱦᱟᱱ ᱠᱩᱠᱞᱤ ᱢᱮᱱᱟᱜᱼᱟ, ᱱᱚᱣᱟ ᱯᱨᱚᱡᱮᱠᱴ ᱨᱮᱱ ᱢᱩᱬ "
+"ᱠᱷᱚᱱᱫᱽᱨᱚᱠᱤᱭᱟᱹ ᱱᱚᱨᱤ ᱡᱮᱠᱚᱵᱤ ᱥᱟᱶ ᱡᱚᱯᱚᱲᱟᱣ ᱨᱮ ᱟᱞᱚᱢ ᱫᱤᱜᱽᱫᱷᱟᱹᱜᱼᱟ:"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-overview"
+msgid ""
+"The purpose of this online form is to give you information to help you "
+"decide whether you want to take part in a research study."
+msgstr ""
+"ᱱᱚᱣᱟ ᱚᱱᱞᱟᱭᱤᱱ ᱯᱷᱚᱨᱢ ᱨᱮᱭᱟᱜ ᱡᱚᱥ ᱫᱚ ᱟᱢ ᱵᱟᱯᱟᱰᱟᱭ ᱮᱢ ᱠᱟᱛᱮ ᱜᱚᱴᱟᱭ ᱧᱟᱢᱟ ᱡᱮ ᱟᱢ ᱫᱚ "
+"ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱯᱟᱲᱦᱟᱣ ᱨᱮ ᱦᱤᱸᱥ ᱦᱟᱛᱟᱣ ᱥᱟᱱᱟᱭᱮᱫ ᱢᱮᱭᱟ ᱥᱮ ᱵᱟᱝᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"The purpose of this project is to study the role of experience and exposure "
+"in creating and affecting our perception, decisions and actions."
+msgstr ""
+"ᱱᱚᱣᱟ ᱯᱨᱚᱡᱮᱠᱴ ᱨᱮᱭᱟᱜ ᱡᱚᱥ ᱫᱚ ᱟᱵᱚᱣᱟᱜ ᱩᱭᱦᱟᱹᱨ, ᱯᱷᱟᱭᱥᱟᱞ ᱟᱨ ᱠᱟᱹᱢᱤ ᱵᱮᱱᱟᱣ ᱟᱨ ᱮᱥᱮᱨ ᱨᱮ "
+"ᱟᱹᱱᱟᱹᱭᱠᱟᱹᱣ ᱟᱨ ᱥᱚᱫᱚᱨ ᱨᱮᱭᱟᱜ ᱵᱷᱩᱢᱤᱠᱟ ᱯᱟᱲᱦᱟᱣ ᱠᱟᱱᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"Specifically, we aim to combine a wide range of behavioural methodologies to"
+" characterize the ways in which people from diverse backgrounds internalize "
+"and process external conditions, both in the auditory (e.g., speech, music) "
+"and visual (e.g., faces, color) domains."
+msgstr ""
+"ᱠᱷᱟᱥ ᱠᱟᱛᱮ, ᱟᱵᱚᱣᱟᱜ ᱡᱚᱥ ᱫᱚ ᱟᱭᱢᱟ ᱞᱮᱠᱟᱱ ᱵᱮᱵᱷᱟᱨ ᱦᱚᱨᱟ ᱠᱚ ᱢᱤᱫ ᱛᱮ ᱢᱮᱥᱟ ᱠᱟᱛᱮ ᱵᱷᱮᱜᱟᱨ "
+"ᱯᱟᱹᱪᱷᱞᱟᱹ ᱠᱷᱚᱱ ᱦᱚᱲ ᱠᱚ ᱵᱟᱦᱨᱮ ᱥᱛᱤᱛᱤ ᱠᱚ ᱵᱷᱤᱛᱨᱤ ᱟᱨ ᱠᱚ ᱠᱟᱹᱢᱤᱭᱟ, ᱟᱸᱡᱚᱢ (ᱡᱮᱞᱮᱠᱟ, "
+"ᱨᱚᱲ, ᱥᱮᱨᱮᱧ) ᱟᱨ ᱧᱮᱞ (ᱡᱮᱞᱮᱠᱟ, ᱪᱮᱦᱨᱟ, ᱨᱚᱝ) ᱰᱚᱢᱮᱱ ᱵᱟᱱᱟᱨ ᱨᱮ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-purpose"
+msgid ""
+"We are also interested in the way that these internal representations affect"
+" human decision making and behaviour."
+msgstr ""
+"ᱟᱞᱮ ᱦᱚᱸ ᱱᱚᱣᱟ ᱵᱷᱤᱛᱨᱤ ᱨᱮ ᱥᱚᱫᱚᱨ ᱠᱚ ᱢᱟᱱᱣᱟ ᱠᱚᱣᱟᱜ ᱯᱷᱟᱭᱥᱟᱞ ᱟᱨ ᱵᱮᱵᱷᱟᱨ ᱨᱮ ᱮᱥᱮᱨ ᱯᱟᱲᱟᱣ "
+"ᱞᱟᱹᱜᱤᱫ ᱞᱮ ᱢᱚᱱᱮ ᱮᱫᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"All the recordings we obtain during this research will be kept confidential,"
+" and nobody outside the group of researchers will be able to share or store "
+"them."
+msgstr ""
+"ᱱᱚᱣᱟ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱚᱠᱛᱚ ᱨᱮ ᱟᱞᱮ ᱡᱟᱦᱟᱸ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱞᱮ ᱧᱟᱢᱟ ᱚᱱᱟ ᱫᱚ ᱜᱩᱯᱷᱤᱰᱮᱱᱥᱤᱭᱟᱞ "
+"ᱫᱚᱦᱚᱜᱼᱟ, ᱟᱨ ᱠᱷᱚᱱᱫᱽᱨᱚᱠᱤᱭᱟᱹ ᱫᱚᱞ ᱵᱟᱦᱨᱮ ᱚᱠᱚᱭ ᱦᱚᱸ ᱵᱟᱠᱚ ᱦᱟᱹᱴᱤᱧ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ ᱥᱮ ᱵᱟᱠᱚ "
+"ᱫᱚᱦᱚ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"However, in some experiments, your recordings may be seen or heard by other "
+"participants in order to evaluate them in different attributes or create new"
+" materials (for example replicate a rhythm that you created, or continue a "
+"melody that you sang)."
+msgstr ""
+"ᱢᱮᱱᱠᱷᱟᱱ, ᱟᱫᱚᱢ ᱵᱮᱵᱚᱦᱟᱨ ᱨᱮ, ᱟᱢᱟᱜ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱫᱚ ᱮᱴᱟᱜ ᱥᱮᱞᱮᱫ ᱠᱚ ᱧᱮᱞ ᱥᱮ ᱟᱸᱡᱚᱢ "
+"ᱫᱟᱲᱮᱭᱟᱜ-ᱟ ᱡᱮ ᱩᱱᱠᱩ ᱫᱚ ᱵᱷᱮᱜᱟᱨ ᱵᱷᱮᱜᱟᱨ ᱜᱩᱱ ᱠᱚ ᱵᱮᱱᱟᱣ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ (ᱫᱟᱹᱭᱠᱟᱹ ᱞᱮᱠᱟ ᱛᱮ "
+"ᱟᱢ ᱵᱮᱱᱟᱣ ᱟᱠᱟᱱ ᱢᱤᱫ ᱥᱟᱰᱮ ᱫᱚᱦᱚ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ)᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be associated with your name or other identifiers "
+"in any way."
+msgstr ""
+"ᱟᱢᱟᱜ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱫᱚ ᱟᱢᱟᱜ ᱧᱩᱛᱩᱢ ᱥᱮ ᱮᱴᱟᱜ ᱩᱨᱩᱢ ᱥᱟᱶ ᱡᱟᱦᱟᱱ ᱞᱮᱠᱟ ᱛᱮ ᱵᱟᱝ ᱡᱚᱲᱟᱣᱜᱼᱟ ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Your recordings will not be used to derive your real identity, and they will"
+" not be made public."
+msgstr ""
+"ᱟᱢᱟᱜ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱫᱚ ᱟᱢᱟᱜ ᱥᱟᱹᱨᱤ ᱩᱯᱨᱩᱢ ᱧᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱵᱟᱝ ᱵᱮᱵᱷᱟᱨᱚᱜᱼᱟ, ᱟᱨ ᱚᱱᱟ ᱫᱚ ᱥᱟᱱᱟᱢ"
+" ᱦᱚᱲ ᱞᱟᱹᱜᱤᱫ ᱵᱟᱝ ᱵᱟᱰᱟᱭᱚᱜᱼᱟ ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Raw audio/video will not be shared with collaborators (we will only share "
+"extracted data from recordings without personal identifiers)."
+msgstr ""
+"ᱨᱚ ᱚᱰᱤᱭᱳ/ᱵᱷᱤᱰᱤᱭᱳ ᱫᱚ ᱥᱚᱦᱚᱫ ᱠᱚ ᱥᱟᱶ ᱵᱟᱝ ᱦᱟᱹᱴᱤᱧᱚᱜᱼᱟ (ᱟᱞᱮ ᱫᱚ ᱥᱩᱢᱩᱝ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱠᱷᱚᱱ "
+"ᱚᱰᱚᱠ ᱟᱠᱟᱱ ᱰᱟᱴᱟ ᱵᱤᱱᱟᱹ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱩᱨᱩᱢ ᱛᱮ ᱦᱟᱹᱴᱤᱧᱚᱜᱼᱟ)᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"Although researchers will not use your recordings to derive your real "
+"identity, personal information could be leaked if you are not in an isolated"
+" environment."
+msgstr ""
+"ᱡᱩᱫᱤ ᱦᱚᱸ ᱠᱷᱚᱱᱫᱽᱨᱚᱱᱤᱭᱟᱹ ᱠᱚ ᱟᱢᱟᱜ ᱥᱟᱹᱨᱤ ᱩᱯᱨᱩᱢ ᱵᱟᱰᱟᱭ ᱞᱟᱹᱜᱤᱫ ᱟᱢᱟᱜ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱵᱟᱠᱚ "
+"ᱵᱮᱵᱷᱟᱨᱟ, ᱟᱢ ᱡᱩᱫᱤ ᱢᱤᱫ ᱵᱷᱮᱜᱟᱨ ᱯᱟᱨᱤᱵᱮᱥ ᱨᱮ ᱵᱟᱝ ᱛᱟᱦᱮᱱ ᱠᱷᱟᱱ ᱟᱢᱟᱜ ᱵᱤᱠᱛᱤ ᱵᱟᱰᱟᱭ ᱞᱤᱠ "
+"ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"You may wish to make sure that no sounds/visual material in your environment"
+" could be linked to your personal information. In addition, while you "
+"perform a recording, the microphone or camera can capture unintended audio "
+"or video, for example the camera can capture another family member, or the "
+"microphone can capture something you say to another person."
+msgstr ""
+"ᱟᱢ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱥᱟᱱᱟᱭᱮᱫ ᱢᱮᱭᱟ ᱡᱮ ᱟᱢᱟᱜ ᱯᱟᱨᱤᱵᱮᱥᱛᱟ ᱨᱮ ᱡᱟᱦᱟᱱ ᱥᱟᱰᱮ/ᱧᱮᱞ ᱡᱤᱱᱤᱥ ᱟᱢᱟᱜ "
+"ᱵᱟᱯᱞᱟ ᱵᱟᱯᱟᱰᱟᱭ ᱥᱟᱶ ᱵᱟᱝ ᱡᱚᱯᱲᱟᱣ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾ ᱱᱚᱶᱟ ᱪᱷᱟᱰᱟ ᱠᱟᱛᱮ, ᱟᱢ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱠᱚᱨᱟᱣ "
+"ᱚᱠᱛᱮ, ᱢᱟᱭᱠᱨᱚᱯᱷᱚᱱ ᱥᱮ ᱠᱮᱢᱮᱨᱟ ᱵᱟᱝ ᱩᱭᱦᱟᱹᱨ ᱟᱠᱟᱱ ᱚᱰᱤᱭᱚ ᱥᱮ ᱵᱷᱤᱰᱤᱭᱚ ᱠᱮᱯᱴᱚᱨ "
+"ᱫᱟᱲᱮᱭᱟᱜ-ᱟ, ᱫᱟᱹᱭᱠᱟᱹ ᱞᱮᱠᱟ ᱠᱮᱢᱮᱨᱟ ᱫᱚ ᱜᱷᱟᱨᱚᱧᱡᱽ ᱨᱮᱱ ᱮᱴᱟᱜ ᱦᱚᱲ ᱠᱚ ᱠᱮᱯᱴᱚᱨ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ,"
+" ᱟᱨ ᱢᱟᱭᱠᱨᱚᱯᱷᱚᱱ ᱫᱚ ᱟᱢ ᱮᱴᱟᱜ ᱦᱚᱲ ᱴᱷᱮᱱ ᱮᱢ ᱞᱟᱹᱭ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"If you choose to participate in the experiment, it is important and your "
+"responsibility to make sure that while you record audio and video nothing "
+"that you don’t intend to be recorded is recorded."
+msgstr ""
+"ᱡᱩᱫᱤ ᱟᱢ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱮᱢ ᱵᱟᱪᱷᱟᱣ ᱮᱫᱟ, ᱮᱱᱠᱷᱟᱱ ᱱᱚᱶᱟ ᱫᱚ ᱟᱹᱰᱤ ᱡᱟᱹᱨᱩᱲ ᱟᱨ "
+"ᱟᱢᱟᱜ ᱟᱝᱜᱤᱵᱷᱟᱨ ᱠᱟᱱᱟ ᱡᱮ ᱟᱢ ᱚᱰᱤᱭᱚ ᱟᱨ ᱵᱷᱤᱰᱤᱭᱚ ᱨᱮᱠᱚᱨᱰ ᱚᱠᱛᱮ ᱡᱟᱦᱟᱸ ᱜᱮ ᱨᱮᱠᱚᱨᱰ ᱵᱟᱝ "
+"ᱦᱩᱭᱩᱜ-ᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"For example, you may want to sit in a room that is isolated from the rest of"
+" the house."
+msgstr ""
+"ᱫᱟᱹᱭᱠᱟᱹ ᱞᱮᱠᱟᱛᱮ, ᱟᱢ ᱢᱤᱫ ᱠᱟᱱᱫᱷᱟ ᱨᱮ ᱫᱩᱲᱩᱵ ᱥᱟᱱᱟᱭᱮᱫ ᱢᱮᱭᱟ ᱚᱠᱟ ᱫᱚ ᱚᱲᱟᱜ ᱨᱮᱭᱟᱜ ᱢᱩᱪᱟᱹᱫ"
+" ᱠᱷᱚᱱ ᱵᱷᱮᱜᱟᱨ ᱜᱮᱭᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-confidentiality"
+msgid ""
+"By consenting to this experiment, you are committing not to use profanity "
+"while recording audio or nudity while recording video."
+msgstr ""
+"ᱱᱚᱣᱟ ᱵᱮᱵᱷᱟᱨ ᱨᱮ ᱥᱚᱦᱢᱚᱛᱤ ᱮᱢ ᱠᱟᱛᱮ, ᱟᱢ ᱫᱚ ᱚᱰᱤᱭᱳ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱚᱠᱛᱮ ᱵᱟᱹᱲᱤᱡ ᱠᱟᱛᱷᱟ ᱵᱟᱝ "
+"ᱵᱮᱵᱷᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱟᱨ ᱵᱷᱤᱰᱤᱭᱳ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱚᱠᱛᱮ ᱞᱩᱜᱽᱲᱤ ᱵᱟᱝ ᱵᱮᱵᱷᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱮᱢ ᱢᱮᱱ ᱮᱫᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"In these cases, we may share your audio-visual material along with fully "
+"anonymized data, such as demographic, aggregated, or extracted data."
+msgstr ""
+"ᱱᱚᱣᱟ ᱠᱚ ᱠᱷᱮᱛᱨᱮ, ᱟᱞᱮ ᱟᱢᱟᱜ ᱚᱰᱤᱭᱚ-ᱵᱷᱤᱡᱩᱣᱟᱞ ᱡᱤᱱᱤᱥ ᱥᱟᱶᱛᱮ ᱯᱩᱨᱟᱹ ᱵᱤᱱ ᱵᱟᱰᱟᱭ ᱰᱟᱴᱟ, "
+"ᱡᱮᱞᱮᱠᱟ ᱰᱮᱢᱚᱜᱽᱨᱟᱯᱷᱤᱠ, ᱟᱜᱽᱨᱮᱜᱽᱴᱮᱰ, ᱥᱮ ᱚᱰᱚᱠ ᱰᱟᱴᱟ ᱞᱮ ᱦᱟᱹᱴᱤᱧ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"We will never connect your real name or any of your personal information "
+"directly to your image or sound recording, even though it is off course "
+"possible to recognize individuals based on audio-visual material."
+msgstr ""
+"ᱟᱞᱮ ᱫᱚ ᱟᱢᱟᱜ ᱥᱟᱹᱨᱤ ᱧᱩᱛᱩᱢ ᱥᱮ ᱟᱢᱟᱜ ᱡᱟᱦᱟᱱ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱵᱮᱣᱨᱟ ᱥᱚᱡᱷᱮ ᱟᱢᱟᱜ ᱪᱤᱛᱟᱹᱨ ᱥᱮ "
+"ᱥᱟᱰᱮ ᱨᱮᱠᱚᱨᱰᱤᱝ ᱥᱟᱶ ᱵᱟᱞᱮ ᱡᱚᱲᱟᱣᱟ, ᱡᱩᱫᱤ ᱦᱚᱸ ᱟᱰᱤᱭᱚ-ᱵᱷᱤᱡᱩᱞ ᱡᱤᱱᱤᱥ ᱨᱮ ᱵᱮᱵᱷᱟᱨ ᱠᱟᱛᱮ "
+"ᱦᱚᱲ ᱠᱚ ᱵᱟᱰᱟᱭ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-collaborations"
+msgid ""
+"Audio-visual material will be shared only if your consent to an additional "
+"consent form as explained above."
+msgstr ""
+"ᱪᱮᱛᱟᱱ ᱨᱮ ᱞᱟᱹᱭ ᱟᱠᱟᱱ ᱞᱮᱠᱟ ᱵᱟᱹᱲᱛᱤ ᱥᱚᱦᱢᱚᱛᱤ ᱯᱷᱚᱨᱢ ᱨᱮ ᱟᱢᱟᱜ ᱥᱚᱦᱢᱚᱛᱤ ᱛᱟᱦᱮᱱ ᱠᱷᱟᱱ ᱜᱮ "
+"ᱚᱰᱤᱭᱚ-ᱧᱮᱧᱮᱞ ᱡᱤᱱᱤᱥ ᱦᱟᱹᱴᱤᱧᱚᱜᱼᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"During data collection, audio-visual material will be recorded on a separate"
+" server."
+msgstr ""
+"ᱰᱟᱴᱟ ᱡᱟᱣᱨᱟ ᱚᱠᱛᱚ ᱨᱮ, ᱚᱰᱤᱭᱚ-ᱧᱮᱧᱮᱞ ᱡᱤᱱᱤᱥ ᱫᱚ ᱵᱷᱮᱜᱟᱨ ᱥᱮᱨᱵᱷᱟᱨ ᱨᱮ ᱨᱮᱠᱚᱨᱰ ᱦᱩᱭᱩᱜᱼᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Audio-visual material will not be indexed by personal information but will "
+"be linked to personal information by a key (such as “afasd12314asdasd”)."
+msgstr ""
+"ᱚᱰᱤᱭᱚ-ᱧᱮᱞ ᱡᱤᱱᱤᱥ ᱫᱚ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱵᱟᱯᱟᱰᱟᱭ ᱛᱮ ᱵᱟᱝ ᱤᱱᱰᱮᱠᱥ ᱦᱩᱭᱩᱜᱼᱟ ᱢᱮᱱᱠᱷᱟᱱ ᱢᱤᱫ ᱴᱟᱹᱵᱤ "
+"ᱛᱮ ᱯᱚᱨᱥᱚᱱᱟᱞ ᱵᱟᱯᱟᱰᱟᱭ ᱥᱟᱶ ᱡᱚᱲᱟᱣ ᱦᱩᱭᱩᱜᱼᱟ (ᱡᱮᱞᱠᱟ “afasd12314asdasd”)᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-security"
+msgid ""
+"Personal information will be stored separately from audio-visual materials "
+"and encrypted using a strong encryption protocol (such as Advanced "
+"Encryption Standard)."
+msgstr ""
+"ᱵᱤᱠᱛᱤ ᱵᱮᱣᱨᱟ ᱫᱚ ᱚᱰᱤᱭᱚ-ᱧᱮᱧᱮᱞ ᱡᱤᱱᱤᱥ ᱠᱷᱚᱱ ᱡᱩᱫᱟᱹ ᱡᱩᱫᱟᱹ ᱡᱟᱣᱨᱟ ᱫᱚᱦᱚᱜᱼᱟ ᱟᱨ ᱢᱤᱫ ᱠᱮᱴᱮᱡ"
+" ᱮᱱᱠᱨᱤᱯᱥᱚᱱ ᱯᱨᱚᱴᱚᱠᱚᱞ ᱵᱮᱵᱷᱟᱨ ᱠᱟᱛᱮ ᱮᱱᱠᱨᱤᱯᱴ ᱦᱩᱭᱩᱜᱼᱟ (ᱡᱮᱞᱠᱟ ᱮᱰᱵᱷᱟᱱᱥ ᱮᱱᱠᱨᱤᱯᱥᱚᱱ "
+"ᱥᱴᱮᱱᱰᱟᱨᱠ)᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-contact"
+msgid "Contact information"
+msgstr "ᱡᱚᱯᱲᱟᱣ ᱵᱤᱵᱨᱚᱬ"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "Consent"
+msgstr "ᱥᱚᱦᱢᱚᱛᱤ"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid ""
+"By consenting to participate, you acknowledge that you are 18 years or "
+"older, have read this consent form, agree to its contents, and agree to take"
+" part in this research."
+msgstr ""
+"ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱹᱜᱤᱫ ᱥᱚᱦᱢᱚᱛᱤ ᱮᱢ ᱠᱟᱛᱮ, ᱟᱢ ᱥᱤᱠᱟᱨ ᱮᱫᱟᱢ ᱡᱮ ᱟᱢ ᱫᱚ 18 ᱥᱮᱨᱢᱟ ᱥᱮ ᱚᱱᱟ ᱠᱷᱚᱱ "
+"ᱦᱚᱸ ᱵᱟᱹᱲᱛᱤ ᱩᱢᱮᱨ ᱜᱮᱭᱟᱢ, ᱱᱚᱶᱟ ᱥᱚᱦᱢᱚᱛᱤ ᱯᱷᱚᱨᱢ ᱯᱟᱲᱦᱟᱣ ᱟᱠᱟᱱᱟ, ᱱᱚᱶᱟ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱢᱮ, "
+"ᱟᱨ ᱱᱚᱶᱟ ᱠᱷᱚᱱᱫᱽᱨᱚᱝ ᱨᱮ ᱥᱮᱞᱮᱫᱚᱜ ᱞᱟᱹᱜᱤᱫ ᱮᱢ ᱥᱚᱦᱮᱫ ᱟᱠᱟᱱᱟ᱾"
+
+#: psynet/templates/macros/consent.html
+#, fuzzy
+msgctxt "consent-consent"
+msgid "If you do not wish to consent, please close this page."
+msgstr "ᱡᱩᱫᱤ ᱟᱢ ᱥᱚᱦᱢᱚᱛᱤ ᱵᱟᱢ ᱥᱟᱱᱟᱭᱮᱫᱟ, ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱱᱚᱣᱟ ᱥᱟᱦᱴᱟ ᱵᱚᱱᱫᱚᱭ ᱢᱮ᱾"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Reset"
+msgstr "ᱨᱤᱥᱮᱴ"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Sliders"
+msgstr "ᱥᱞᱟᱭᱰᱟᱨ"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid "Documentation"
+msgstr "ᱰᱚᱠᱭᱩᱢᱮᱱᱴᱮᱥᱚᱱ"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>decay</strong> parameters determine the amount of smoothing that"
+" happens to the signal, and have units of seconds."
+msgstr ""
+"<strong>decay</strong> ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱫᱚ ᱥᱤᱜᱽᱱᱟᱞ ᱨᱮ ᱦᱩᱭᱩᱜ ᱠᱟᱱ ᱥᱢᱩᱴᱤᱝ ᱨᱮᱭᱟᱜ "
+"ᱯᱚᱨᱤᱢᱟᱱ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱮᱫᱟᱭ, ᱟᱨ ᱥᱮᱠᱮᱱᱰ ᱨᱮᱭᱟᱜ ᱭᱩᱱᱤᱴ ᱢᱮᱱᱟᱜᱼᱟ᱾"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"A high decay parameter means that the signal takes a long time to decay "
+"(i.e. high smoothing)."
+msgstr ""
+"ᱢᱤᱫ ᱵᱟᱹᱲᱛᱤ ᱰᱤᱠᱮᱭ ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱨᱮᱭᱟᱜ ᱢᱮᱱᱮᱛ ᱫᱚ ᱥᱤᱜᱽᱱᱟᱞ ᱰᱤᱠᱮᱭ ᱞᱟᱹᱜᱤᱫ ᱟᱹᱰᱤ ᱚᱠᱛᱚ "
+"ᱞᱟᱜᱟᱜᱼᱟ (ᱢᱮᱱᱠᱷᱟᱱ ᱵᱟᱹᱲᱛᱤ ᱪᱩᱢᱩᱞ)᱾"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"There are three decay parameters: one for the displayed audio meter, one for"
+" the 'too-high' detector, and one for the 'too-low' detector."
+msgstr ""
+"ᱯᱮᱭᱟ ᱰᱤᱠᱮ ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱢᱮᱱᱟᱜᱼᱟ: ᱢᱤᱫ ᱫᱚ ᱩᱫᱩᱜ ᱟᱠᱟᱱ ᱚᱰᱤᱭᱚ ᱢᱤᱴᱟᱨ ᱞᱟᱹᱜᱤᱫ, ᱢᱤᱫ ᱫᱚ "
+"&#39;ᱟᱹᱰᱤ ᱩᱥᱩᱞ&#39; ᱰᱤᱴᱮᱠᱴᱚᱨ ᱞᱟᱹᱜᱤᱫ, ᱟᱨ ᱢᱤᱫ ᱫᱚ &#39;ᱟᱹᱰᱤ ᱞᱟᱛᱟᱨ&#39; ᱰᱤᱴᱮᱠᱴᱚᱨ"
+" ᱞᱟᱹᱜᱤᱫ᱾"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>threshold</strong> parameters determine the point at which the "
+"volume is determined to be 'too high' or 'too low'."
+msgstr ""
+"<strong>ᱛᱷᱨᱮᱥᱦᱚᱞᱰ</strong> ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱫᱚ ᱚᱱᱟ ᱯᱚᱭᱮᱱᱴ ᱴᱷᱟᱹᱣᱠᱟᱹᱭᱟ ᱡᱟᱦᱟᱸ ᱨᱮ "
+"ᱵᱷᱚᱞᱭᱩᱢ ᱫᱚ &#39;ᱟᱹᱰᱤ ᱪᱮᱛᱟᱱ&#39; ᱥᱮ &#39;ᱟᱹᱰᱤ ᱠᱚᱢ&#39; ᱢᱮᱱᱛᱮ ᱴᱷᱟᱹᱣᱠᱟᱹᱜᱼᱟ᱾"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>grace</strong> parameters determine how long the volume must be "
+"outside the respective threshold for a warning message to be triggered."
+msgstr ""
+"<strong>grace</strong> ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱠᱚ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱮᱫᱟ ᱡᱮ ᱪᱮᱦᱟᱣ ᱥᱟᱱᱫᱮᱥ ᱴᱨᱤᱜᱚᱨ "
+"ᱞᱟᱹᱜᱤᱫ ᱛᱤᱱᱟᱹᱜ ᱜᱷᱟᱹᱲᱤᱡ ᱵᱷᱚᱞᱢ ᱵᱟᱦᱨᱮ ᱨᱮ ᱛᱟᱦᱮᱱ ᱞᱟᱹᱠᱛᱤᱭᱟ᱾"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgctxt "audio_meter_calibrate"
+msgid ""
+"The <strong>message duration</strong> parameters determine how long warning "
+"messages are displayed for."
+msgstr ""
+"<strong>ᱥᱟᱱᱫᱮᱥ ᱚᱠᱛᱚ</strong> ᱯᱟᱨᱟᱢᱤᱴᱟᱨ ᱫᱚ ᱴᱷᱟᱹᱣᱠᱟᱹ ᱮᱫᱟᱭ ᱪᱮᱦᱟᱣ ᱥᱟᱱᱫᱮᱥ ᱛᱤᱱᱟᱹᱜ "
+"ᱜᱷᱟᱹᱲᱤᱡ ᱞᱟᱹᱜᱤᱫ ᱩᱫᱩᱜᱚᱜᱼᱟ ᱾"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Record from start"
+msgstr "ᱮᱛᱚᱦᱚᱵ ᱠᱷᱚᱱ ᱨᱮᱠᱚᱨᱰ"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play all"
+msgstr "ᱡᱷᱚᱛᱚ ᱠᱷᱮᱞᱚᱜ ᱢᱮ"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play prompt"
+msgstr "ᱯᱨᱚᱢᱯᱴ ᱯᱞᱮ"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Play recording"
+msgstr "ᱨᱮᱠᱚᱨᱰᱤᱝ ᱪᱟᱹᱞᱩᱭ ᱢᱮ"
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Stop"
+msgstr "ᱛᱷᱤᱨᱚᱜ ᱢᱮ"
+
+#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Loop"
+msgstr "ᱞᱩᱯ"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Play from start"
+msgstr "ᱮᱛᱚᱦᱚᱵ ᱠᱷᱚᱱ ᱠᱷᱮᱞᱚᱜ ᱢᱮ"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Video not found"
+msgstr "ᱵᱷᱤᱰᱤᱭᱚ ᱵᱟᱝ ᱧᱟᱢ ᱟᱠᱟᱱᱟ"
+
+#: psynet/templates/macros/prompt.html
+#, fuzzy
+msgid "Image not found"
+msgstr "ᱪᱤᱛᱟᱹᱨ ᱵᱟᱝ ᱧᱟᱢ ᱟᱠᱟᱱᱟ"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "error"
+msgid "Error!"
+msgstr "ᱦᱤᱲᱤᱡ!"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"You may be able to abort the experiment using the <strong>Abort "
+"experiment</strong> button <strong>on the MTurk ad page</strong>."
+msgstr ""
+"ᱟᱢ ᱫᱚ MTurk ad page</strong> ᱨᱮ <strong>Abort experiment</strong> ᱵᱟᱴᱚᱱ "
+"<strong>0<strong>ᱵᱮᱵᱚᱦᱟᱨ ᱠᱟᱛᱮ ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱵᱟᱝ ᱫᱟᱲᱮᱭᱟᱜ-ᱟ᱾"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgctxt "mturk_error"
+msgid ""
+"Once aborted, there is no need to contact us to receive the compensation; "
+"this should be awarded to you automatically via MTurk a few minutes after."
+msgstr ""
+"ᱢᱤᱫ ᱫᱷᱟᱣ ᱜᱤᱫᱽᱨᱟᱹ ᱪᱟᱵᱟ ᱠᱟᱛᱮ, ᱠᱷᱟᱹᱭᱫᱟᱹᱨᱤ ᱧᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱟᱞᱮ ᱥᱟᱶ ᱡᱚᱯᱚᱲᱟᱣ ᱨᱮᱭᱟᱜ "
+"ᱞᱟᱹᱠᱛᱤ ᱵᱟᱹᱱᱩᱜᱼᱟ; ᱱᱚᱣᱟ ᱫᱚ ᱟᱢ ᱟᱡ ᱛᱮ MTurk ᱦᱚᱛᱮᱛᱮ ᱛᱤᱱᱟᱹᱜ ᱜᱟᱱ ᱴᱤᱯᱤᱡ ᱛᱟᱭᱚᱢ ᱥᱤᱨᱯᱟᱹ"
+" ᱮᱢ ᱦᱩᱭᱩᱜ ᱛᱟᱢᱟ᱾"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy, python-format
+msgid ""
+"If this is not the case, please contact us at %(EMAIL)s quoting the "
+"following information:"
+msgstr ""
+"ᱡᱩᱫᱤ ᱱᱚᱣᱟ ᱵᱟᱝ ᱠᱟᱱᱟ, ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱟᱞᱮ ᱥᱟᱶ ᱡᱚᱯᱚᱲᱟᱣ ᱢᱮ %(EMAIL)s ᱨᱮ ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ "
+"ᱟᱠᱟᱱ ᱵᱟᱯᱟᱰᱟᱭ ᱠᱚ ᱞᱟᱹᱭ ᱠᱟᱛᱮ:"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Error type"
+msgstr "ᱦᱤᱲᱤᱡ ᱞᱮᱠᱟᱱ"
+
+#: psynet/templates/psynet_error.html
+#, fuzzy
+msgid "Worker ID"
+msgstr "ᱠᱟᱹᱢᱤᱭᱟᱹ ᱟᱭᱰᱤ"
+
+#: psynet/templates/start.html
+#, fuzzy
+msgctxt "start"
+msgid "Starting experiment..."
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱮᱦᱚᱵᱚᱜ ᱠᱟᱱᱟ..."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "In case of a problem, try the following:"
+msgstr "ᱮᱴᱠᱮᱴᱚᱬᱮ ᱨᱮ, ᱱᱚᱶᱟ ᱠᱚ ᱪᱮᱥᱴᱟᱭ ᱢᱮ:"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Reload the page."
+msgstr "ᱥᱟᱦᱴᱟ ᱫᱚᱦᱲᱟ ᱞᱳᱰ ᱢᱮ᱾"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Check that your internet connection is working."
+msgstr "ᱧᱮᱞ ᱢᱮ ᱟᱢᱟᱜ ᱤᱱᱴᱟᱨᱱᱮᱴ ᱠᱚᱱᱮᱠᱥᱚᱱ ᱠᱟᱹᱢᱤ ᱠᱟᱱᱟ ᱥᱮ ᱵᱟᱝᱟ ᱾"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"If the above doesn't help, send us an email with the following information:"
+msgstr ""
+"ᱡᱩᱫᱤ ᱪᱮᱛᱟᱱ ᱨᱮ ᱞᱟᱹᱭ ᱟᱠᱟᱱ ᱠᱟᱛᱷᱟ ᱵᱟᱭ ᱜᱚᱲᱚ ᱞᱮᱭᱟ, ᱮᱱᱠᱷᱟᱱ ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱵᱟᱯᱟᱰᱟᱭ"
+" ᱥᱟᱶ ᱤᱢᱮᱞ ᱵᱷᱮᱡᱟᱭ ᱢᱮ:"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "A link to the current web page;"
+msgstr "ᱱᱤᱛᱚᱜ ᱣᱮᱵᱽ ᱥᱟᱦᱴᱟ ᱨᱮᱭᱟᱜ ᱢᱤᱫ ᱞᱤᱝᱠ;"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Your Worker ID;"
+msgstr "ᱟᱢᱤᱡ ᱠᱟᱹᱢᱤᱭᱟᱹ ᱟᱭᱰᱤ;"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "The problem you're experiencing."
+msgstr "ᱟᱢ ᱡᱟᱦᱟᱸ ᱮᱴᱠᱮᱴᱚᱬᱮᱢ ᱟᱴᱠᱟᱨ ᱮᱫᱟ᱾"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "alert_ok"
+msgid "OK"
+msgstr "ᱴᱷᱤᱠ ᱜᱮᱭᱟ"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Are you ready?"
+msgstr "ᱟᱢ ᱥᱟᱯᱲᱟᱣ ᱜᱮᱭᱟᱢ ᱥᱮ?"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Click the button when you're ready to continue the experiment."
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱞᱟᱦᱟᱜ ᱞᱟᱹᱜᱤᱫ ᱥᱟᱯᱲᱟᱣ ᱛᱟᱦᱮᱱ ᱠᱷᱟᱱ ᱵᱩᱛᱟᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ ᱾"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid "Resume"
+msgstr "ᱫᱚᱦᱲᱟ ᱪᱟᱹᱞᱩᱭ ᱢᱮ"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Reward"
+msgstr "ᱥᱤᱨᱯᱟᱹ"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline"
+msgid "Help!"
+msgstr "ᱜᱚᱲᱚ!"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Terminate the experiment early"
+msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱞᱚᱜᱚᱱ ᱪᱟᱵᱟᱭ ᱢᱮ"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Please wait for the page to load."
+msgstr "ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱥᱟᱦᱴᱟ ᱞᱳᱰ ᱞᱟᱹᱜᱤᱫ ᱛᱟᱺᱜᱤ ᱢᱮ᱾"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Try again in a couple of seconds."
+msgstr "ᱢᱤᱫ ᱵᱟᱨ ᱴᱤᱯᱤᱡ ᱛᱟᱭᱚᱢ ᱫᱚᱦᱲᱟ ᱪᱮᱥᱴᱟᱭ ᱢᱮ᱾"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Afghanistan"
+msgstr "ᱟᱯᱷᱜᱽᱧᱟᱱᱤᱥᱛᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Albania"
+msgstr "ᱟᱞᱵᱟᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Algeria"
+msgstr "ᱟᱞᱡᱮᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "American Samoa"
+msgstr "ᱟᱢᱮᱨᱤᱠᱟᱱ ᱥᱟᱢᱳᱣᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Andorra"
+msgstr "ᱟᱱᱰᱚᱨᱨᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Angola"
+msgstr "ᱮᱝᱜᱳᱞᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Anguilla"
+msgstr "ᱮᱝᱜᱩᱭᱞᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Antarctica"
+msgstr "ᱮᱱᱴᱟᱨᱠᱴᱤᱠᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Antigua and Barbuda"
+msgstr "ᱮᱱᱴᱤᱜᱩᱣᱟ ᱟᱨ ᱵᱟᱨᱵᱩᱰᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Argentina"
+msgstr "ᱟᱨᱡᱮᱱᱴᱤᱱᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Armenia"
+msgstr "ᱟᱨᱢᱮᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Aruba"
+msgstr "ᱟᱨᱩᱵᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Australia"
+msgstr "ᱚᱥᱴᱨᱮᱞᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Austria"
+msgstr "ᱚᱥᱴᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Azerbaijan"
+msgstr "ᱟᱡᱮᱨᱵᱟᱭᱡᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahamas"
+msgstr "ᱵᱟᱦᱟᱢᱟᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bahrain"
+msgstr "ᱵᱟᱦᱨᱮᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bangladesh"
+msgstr "ᱵᱟᱝᱞᱟ ᱫᱤᱥᱚᱢ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Barbados"
+msgstr "ᱵᱟᱨᱵᱟᱰᱚᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belarus"
+msgstr "ᱵᱮᱞᱟᱨᱩᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belgium"
+msgstr "ᱵᱮᱞᱡᱤᱭᱚᱢ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Belize"
+msgstr "ᱵᱮᱞᱤᱡᱽ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Benin"
+msgstr "ᱵᱮᱱᱤᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bermuda"
+msgstr "ᱵᱟᱨᱢᱩᱰᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bhutan"
+msgstr "ᱵᱷᱩᱴᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bolivia"
+msgstr "ᱵᱚᱞᱤᱵᱷᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "ᱵᱚᱱᱟᱭᱨᱮ, ᱥᱤᱱᱴ ᱤᱭᱩᱥᱴᱮᱥᱤᱭᱟᱥ ᱟᱨ ᱥᱟᱵᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bosnia and Herzegovina"
+msgstr "ᱵᱚᱥᱱᱤᱭᱟ ᱟᱨ ᱦᱟᱨᱡᱮᱜᱳᱵᱷᱤᱱᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Botswana"
+msgstr "ᱵᱚᱥᱴᱣᱟᱱᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bouvet Island"
+msgstr "ᱵᱚᱣᱣᱮᱴ ᱟᱭᱞᱟᱸᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Brazil"
+msgstr "ᱵᱨᱟᱡᱤᱞ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "British Indian Ocean Territory"
+msgstr "ᱵᱨᱤᱴᱤᱥ ᱵᱷᱟᱨᱚᱛ ᱥᱟᱢᱩᱫᱽ ᱴᱮᱨᱮᱴᱚᱨᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Brunei Darussalam"
+msgstr "ᱵᱨᱩᱱᱮᱭ ᱫᱟᱨᱩᱥᱟᱞᱟᱢ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Bulgaria"
+msgstr "ᱵᱩᱞᱜᱟᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Burkina Faso"
+msgstr "ᱵᱩᱨᱠᱤᱱᱟ ᱯᱷᱟᱥᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Burundi"
+msgstr "ᱵᱩᱨᱩᱱᱰᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cabo Verde"
+msgstr "ᱠᱟᱵᱳ ᱵᱷᱟᱨᱰᱮ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cambodia"
+msgstr "ᱠᱟᱢᱵᱷᱚᱰᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cameroon"
+msgstr "ᱠᱮᱢᱮᱨᱩᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Canada"
+msgstr "ᱠᱟᱱᱟᱰᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cayman Islands"
+msgstr "ᱠᱮᱢᱮᱱ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Central African Republic"
+msgstr "ᱛᱟᱞᱟ ᱟᱯᱷᱨᱤᱠᱟ ᱨᱤᱯᱚᱞᱤᱠ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Chad"
+msgstr "ᱪᱟᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Chile"
+msgstr "ᱪᱤᱞᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "China"
+msgstr "ᱪᱟᱭᱱᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Christmas Island"
+msgstr "ᱠᱨᱤᱥᱴᱢᱟᱥ ᱟᱭᱞᱟᱸᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cocos  Islands"
+msgstr "ᱠᱚᱠᱚᱥ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Colombia"
+msgstr "ᱠᱚᱞᱚᱢᱵᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Comoros"
+msgstr "ᱠᱚᱢᱚᱨᱚᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo"
+msgstr "ᱠᱚᱝᱜᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Congo (Democratic Republic)"
+msgstr "ᱠᱚᱝᱜᱳ (ᱰᱮᱢᱚᱠᱨᱮᱴᱤᱠ ᱨᱤᱯᱚᱵᱷᱟᱞᱤᱠ)"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cook Islands"
+msgstr "ᱠᱩᱠ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Costa Rica"
+msgstr "ᱠᱚᱥᱴᱟ ᱨᱤᱠᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Croatia"
+msgstr "ᱠᱨᱚᱮᱥᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cuba"
+msgstr "ᱠᱤᱭᱩᱵᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Curaçao"
+msgstr "ᱠᱩᱨᱟᱥᱟᱣ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Cyprus"
+msgstr "ᱥᱟᱭᱯᱨᱚᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Czechia"
+msgstr "ᱪᱮᱪᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Côte d'Ivoire"
+msgstr "ᱠᱚᱴ ᱰᱤ ᱟᱭᱵᱷᱚᱭᱟᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Denmark"
+msgstr "ᱰᱮᱱᱢᱟᱨᱠ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Djibouti"
+msgstr "ᱡᱤᱵᱩᱴᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominica"
+msgstr "ᱰᱚᱢᱤᱱᱤᱠᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Dominican Republic"
+msgstr "ᱰᱚᱢᱤᱱᱤᱠᱟᱱ ᱨᱤᱯᱚᱵᱷᱟᱞᱤᱠ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ecuador"
+msgstr "ᱤᱠᱣᱟᱰᱚᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Egypt"
+msgstr "ᱤᱡᱤᱯᱴ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "El Salvador"
+msgstr "ᱮᱞ ᱥᱟᱞᱵᱟᱰᱚᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Equatorial Guinea"
+msgstr "ᱤᱠᱣᱮᱴᱚᱨᱤᱭᱟᱞ ᱜᱤᱱᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Eritrea"
+msgstr "ᱮᱨᱤᱴᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Estonia"
+msgstr "ᱮᱥᱴᱚᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Eswatini"
+msgstr "ᱮᱥᱣᱟᱴᱤᱱᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ethiopia"
+msgstr "ᱤᱛᱷᱤᱭᱚᱯᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Falkland Islands (Malvinas)"
+msgstr "ᱯᱷᱚᱠᱞᱮᱱᱰ ᱟᱭᱞᱟᱸᱰᱥ (ᱢᱟᱞᱵᱷᱤᱱᱟᱥ)"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Faroe Islands"
+msgstr "ᱯᱷᱟᱨᱳ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Fiji"
+msgstr "ᱯᱷᱤᱡᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Finland"
+msgstr "ᱯᱷᱤᱱᱞᱮᱱᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "France"
+msgstr "ᱯᱷᱨᱟᱱᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Guiana"
+msgstr "ᱯᱷᱨᱮᱸᱪ ᱜᱩᱭᱟᱱᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Polynesia"
+msgstr "ᱯᱷᱨᱮᱸᱪ ᱯᱚᱞᱤᱱᱮᱥᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "French Southern Territories"
+msgstr "ᱯᱷᱨᱮᱸᱪ ᱫᱟᱠᱷᱤᱱ ᱴᱮᱨᱤᱴᱚᱨᱤᱡᱽ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gabon"
+msgstr "ᱜᱮᱵᱚᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gambia"
+msgstr "ᱜᱟᱢᱵᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Georgia"
+msgstr "ᱡᱳᱨᱡᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Germany"
+msgstr "ᱡᱟᱨᱢᱟᱱᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ghana"
+msgstr "ᱜᱷᱟᱱᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Gibraltar"
+msgstr "ᱡᱤᱵᱨᱟᱞᱴᱟᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Greece"
+msgstr "ᱜᱽᱨᱤᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Greenland"
+msgstr "ᱜᱨᱤᱱᱞᱮᱱᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Grenada"
+msgstr "ᱜᱽᱨᱮᱱᱟᱰᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guadeloupe"
+msgstr "ᱜᱩᱣᱟᱰᱮᱞᱳᱯ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guam"
+msgstr "ᱜᱩᱣᱟᱢ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guatemala"
+msgstr "ᱜᱩᱣᱟᱴᱮᱢᱟᱞᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guernsey"
+msgstr "ᱜᱩᱨᱱᱥᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea"
+msgstr "ᱜᱤᱱᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guinea-Bissau"
+msgstr "ᱜᱤᱱᱤ-ᱵᱤᱥᱟᱣ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Guyana"
+msgstr "ᱜᱩᱭᱟᱱᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Haiti"
+msgstr "ᱦᱟᱭᱴᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Heard Island and McDonald Islands"
+msgstr "ᱦᱟᱨᱰ ᱟᱭᱞᱟᱸᱰ ᱟᱨ ᱢᱮᱠᱰᱚᱱᱟᱞᱰ ᱟᱭᱞᱟᱸᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vatican City State"
+msgstr "ᱣᱮᱴᱤᱠᱟᱱ ᱥᱤᱴᱤ ᱯᱚᱱᱚᱛ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Honduras"
+msgstr "ᱦᱚᱱᱰᱩᱨᱟᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Hong Kong"
+msgstr "ᱦᱚᱝᱠᱚᱝ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Hungary"
+msgstr "ᱦᱟᱝᱜᱮᱨᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iceland"
+msgstr "ᱟᱭᱤᱥᱞᱮᱱᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "India"
+msgstr "ᱵᱷᱟᱨᱚᱛ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Indonesia"
+msgstr "ᱤᱱᱰᱚᱱᱥᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iran"
+msgstr "ᱤᱨᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Iraq"
+msgstr "ᱤᱨᱟᱠ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ireland"
+msgstr "ᱟᱭᱟᱨᱞᱮᱱᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Isle of Man"
+msgstr "ᱟᱭᱤᱞ ᱚᱯᱷ ᱢᱮᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Israel"
+msgstr "ᱤᱥᱨᱟᱭᱮᱞ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Italy"
+msgstr "ᱤᱴᱟᱞᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jamaica"
+msgstr "ᱡᱟᱢᱟᱭᱠᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Japan"
+msgstr "ᱡᱟᱯᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jersey"
+msgstr "ᱡᱟᱨᱥᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Jordan"
+msgstr "ᱡᱳᱨᱰᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kazakhstan"
+msgstr "ᱠᱟᱡᱟᱠᱥᱛᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kenya"
+msgstr "ᱠᱮᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kiribati"
+msgstr "ᱠᱤᱨᱤᱵᱟᱴᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "North Korea"
+msgstr "ᱩᱛᱚᱨ ᱠᱚᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Korea"
+msgstr "ᱫᱟᱹᱠᱷᱤᱱ ᱠᱚᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kuwait"
+msgstr "ᱠᱩᱣᱮᱴ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Kyrgyzstan"
+msgstr "ᱠᱤᱨᱜᱤᱡᱽᱥᱴᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lao"
+msgstr "ᱞᱟᱣ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Latvia"
+msgstr "ᱞᱟᱴᱵᱷᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lebanon"
+msgstr "ᱞᱮᱵᱟᱱᱚᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lesotho"
+msgstr "ᱞᱮᱥᱳᱛᱷᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Liberia"
+msgstr "ᱞᱟᱭᱵᱮᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Libya"
+msgstr "ᱞᱤᱵᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Liechtenstein"
+msgstr "ᱞᱤᱪᱴᱮᱱᱥᱴᱟᱭᱤᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Lithuania"
+msgstr "ᱞᱤᱛᱷᱩᱭᱟᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Luxembourg"
+msgstr "ᱞᱟᱠᱥᱮᱢᱵᱚᱨᱜᱽ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Macao"
+msgstr "ᱢᱟᱠᱟᱣ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Madagascar"
+msgstr "ᱢᱟᱰᱟᱜᱟᱥᱠᱟᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malawi"
+msgstr "ᱢᱟᱞᱟᱣᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malaysia"
+msgstr "ᱢᱟᱞᱮᱥᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Maldives"
+msgstr "ᱢᱟᱞᱰᱤᱵᱷᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mali"
+msgstr "ᱢᱟᱞᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Malta"
+msgstr "ᱢᱟᱞᱴᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Marshall Islands"
+msgstr "ᱢᱟᱨᱥᱟᱞ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Martinique"
+msgstr "ᱢᱟᱨᱴᱤᱱᱤᱠ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritania"
+msgstr "ᱢᱚᱨᱤᱴᱟᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mauritius"
+msgstr "ᱢᱚᱨᱤᱥᱟᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mayotte"
+msgstr "ᱢᱟᱭᱚᱴᱴᱮ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mexico"
+msgstr "ᱢᱮᱠᱥᱤᱠᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Micronesia"
+msgstr "ᱢᱟᱭᱠᱨᱚᱱᱮᱥᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Moldova"
+msgstr "ᱢᱚᱞᱰᱚᱵᱷᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Monaco"
+msgstr "ᱢᱚᱱᱟᱠᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mongolia"
+msgstr "ᱢᱚᱝᱜᱚᱞᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Montenegro"
+msgstr "ᱢᱚᱱᱴᱮᱱᱜᱨᱚ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Montserrat"
+msgstr "ᱢᱚᱱᱴᱥᱮᱨᱟᱴ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Morocco"
+msgstr "ᱢᱚᱨᱚᱠᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Mozambique"
+msgstr "ᱢᱚᱡᱟᱢᱵᱤᱠ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Myanmar"
+msgstr "ᱢᱟᱭᱟᱱᱢᱟᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Namibia"
+msgstr "ᱱᱟᱢᱤᱵᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nauru"
+msgstr "ᱱᱟᱣᱨᱩ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nepal"
+msgstr "ᱱᱮᱯᱟᱞ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Netherlands"
+msgstr "ᱱᱮᱰᱟᱨᱞᱮᱱᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "New Caledonia"
+msgstr "ᱱᱟᱶᱟ ᱠᱮᱞᱮᱰᱚᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "New Zealand"
+msgstr "ᱱᱭᱩ ᱡᱤᱞᱮᱱᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nicaragua"
+msgstr "ᱱᱤᱠᱟᱨᱟᱜᱩᱣᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Niger"
+msgstr "ᱱᱟᱭᱡᱟᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Nigeria"
+msgstr "ᱱᱟᱭᱡᱤᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Niue"
+msgstr "ᱱᱤᱭᱩ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Norfolk Island"
+msgstr "ᱱᱚᱨᱯᱷᱚᱞᱠ ᱟᱭᱞᱟᱸᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "North Macedonia"
+msgstr "ᱩᱛᱚᱨ ᱢᱟᱥᱮᱰᱚᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Northern Mariana Islands"
+msgstr "ᱩᱛᱚᱨ ᱢᱟᱨᱤᱭᱟᱱᱟ ᱴᱟᱹᱯᱩ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Norway"
+msgstr "ᱱᱚᱨᱣᱮ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Oman"
+msgstr "ᱚᱢᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Pakistan"
+msgstr "ᱯᱟᱠᱤᱥᱛᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Palau"
+msgstr "ᱯᱟᱞᱟᱣ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Palestine"
+msgstr "ᱯᱮᱞᱮᱥᱴᱟᱭᱤᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Panama"
+msgstr "ᱯᱟᱱᱟᱢᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Papua New Guinea"
+msgstr "ᱯᱟᱯᱩᱭᱟ ᱱᱭᱩ ᱜᱤᱱᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Paraguay"
+msgstr "ᱯᱟᱨᱟᱜᱩᱣᱮ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Peru"
+msgstr "ᱯᱮᱨᱩ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Philippines"
+msgstr "ᱯᱷᱤᱞᱤᱯᱷᱤᱱᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Pitcairn"
+msgstr "ᱯᱤᱴᱠᱮᱨᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Poland"
+msgstr "ᱯᱚᱞᱮᱱᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Portugal"
+msgstr "ᱯᱚᱨᱴᱩᱜᱟᱞ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Puerto Rico"
+msgstr "ᱯᱩᱭᱮᱨᱴᱳ ᱨᱤᱠᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Qatar"
+msgstr "ᱠᱟᱴᱟᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Romania"
+msgstr "ᱨᱚᱢᱟᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Russian Federation"
+msgstr "ᱨᱟᱥᱤᱭᱟᱱ ᱯᱷᱮᱰᱮᱨᱮᱥᱚᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Rwanda"
+msgstr "ᱨᱳᱣᱟᱱᱰᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Réunion"
+msgstr "ᱨᱤᱭᱩᱱᱤᱭᱚᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Barthélemy"
+msgstr "ᱥᱮᱱᱴ ᱵᱟᱨᱛᱷᱮᱞᱢᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Helena, Ascension and Tristan da Cunha"
+msgstr "ᱥᱮᱱᱴ ᱦᱮᱞᱮᱱᱟ, ᱟᱥᱮᱱᱥᱚᱱ ᱟᱨ ᱴᱨᱤᱥᱴᱟᱱ ᱰᱟ ᱠᱩᱱᱦᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Kitts and Nevis"
+msgstr "ᱥᱮᱱᱴ ᱠᱤᱴᱥ ᱟᱨ ᱱᱮᱣᱤᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Lucia"
+msgstr "ᱥᱮᱱᱴ ᱞᱩᱥᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Pierre and Miquelon"
+msgstr "ᱥᱮᱱᱴ ᱯᱤᱭᱟᱨᱭ ᱟᱨ ᱢᱤᱠᱩᱭᱮᱞᱚᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saint Vincent and the Grenadines"
+msgstr "ᱥᱮᱱᱴ ᱵᱷᱤᱱᱥᱮᱱᱴ ᱟᱨ ᱜᱽᱨᱮᱱᱟᱰᱤᱱᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Samoa"
+msgstr "ᱥᱟᱢᱳᱣᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "San Marino"
+msgstr "ᱥᱟᱱ ᱢᱟᱨᱤᱱᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sao Tome and Principe"
+msgstr "ᱥᱟᱣ ᱴᱳᱢᱮ ᱟᱨ ᱯᱨᱤᱱᱥᱤᱯ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Saudi Arabia"
+msgstr "ᱥᱟᱣᱩᱰᱤ ᱟᱨᱟᱵᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Senegal"
+msgstr "ᱥᱮᱱᱮᱜᱟᱞ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Serbia"
+msgstr "ᱥᱟᱨᱵᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Seychelles"
+msgstr "ᱥᱮᱪᱮᱞᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sierra Leone"
+msgstr "ᱥᱤᱭᱟᱨᱟ ᱞᱤᱭᱚᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Singapore"
+msgstr "ᱥᱤᱝᱜᱟᱯᱩᱨ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sint Maarten"
+msgstr "ᱥᱤᱱᱴ ᱢᱟᱨᱴᱮᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovakia"
+msgstr "ᱥᱞᱚᱣᱟᱠᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Slovenia"
+msgstr "ᱥᱞᱚᱵᱷᱮᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Solomon Islands"
+msgstr "ᱥᱚᱞᱚᱢᱚᱱ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Somalia"
+msgstr "ᱥᱳᱢᱟᱞᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Africa"
+msgstr "ᱫᱟᱹᱠᱷᱤᱱ ᱟᱯᱷᱨᱤᱠᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "ᱫᱟᱹᱠᱷᱤᱱ ᱡᱳᱨᱡᱤᱭᱟ ᱟᱨ ᱫᱟᱹᱠᱷᱤᱱ ᱥᱮᱱᱰᱣᱤᱪ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "South Sudan"
+msgstr "ᱫᱟᱹᱠᱷᱤᱱ ᱥᱩᱰᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Spain"
+msgstr "ᱥᱯᱮᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sri Lanka"
+msgstr "ᱥᱨᱤ ᱞᱟᱸᱠᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sudan"
+msgstr "ᱥᱩᱰᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Suriname"
+msgstr "ᱥᱩᱨᱤᱱᱟᱢ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Svalbard and Jan Mayen"
+msgstr "ᱥᱣᱟᱞᱵᱟᱨᱰ ᱟᱨ ᱡᱟᱱ ᱢᱟᱭᱮᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Sweden"
+msgstr "ᱥᱣᱤᱰᱮᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Switzerland"
+msgstr "ᱥᱣᱤᱴᱡᱟᱨᱞᱮᱱᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Syria"
+msgstr "ᱥᱤᱨᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Taiwan"
+msgstr "ᱛᱟᱭᱣᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tajikistan"
+msgstr "ᱛᱟᱡᱤᱠᱤᱥᱛᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tanzania"
+msgstr "ᱛᱟᱱᱡᱟᱱᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Thailand"
+msgstr "ᱛᱷᱟᱭᱞᱮᱱᱰ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Timor-Leste"
+msgstr "ᱴᱤᱢᱚᱨ-ᱞᱮᱥᱴᱮ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Togo"
+msgstr "ᱴᱳᱜᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tokelau"
+msgstr "ᱴᱚᱠᱮᱞᱟᱣ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tonga"
+msgstr "ᱴᱚᱝᱜᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Trinidad and Tobago"
+msgstr "ᱛᱨᱤᱱᱤᱰᱟᱰ ᱟᱨ ᱴᱚᱵᱟᱜᱳ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tunisia"
+msgstr "ᱴᱩᱱᱤᱥᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkey"
+msgstr "ᱛᱟᱨᱠᱤ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turkmenistan"
+msgstr "ᱛᱩᱨᱠᱢᱮᱱᱤᱥᱛᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Turks and Caicos Islands"
+msgstr "ᱛᱩᱨᱠᱥ ᱟᱨ ᱠᱟᱭᱠᱚᱥ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Tuvalu"
+msgstr "ᱴᱩᱣᱟᱞᱩ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uganda"
+msgstr "ᱭᱩᱜᱟᱱᱰᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Ukraine"
+msgstr "ᱤᱭᱩᱠᱨᱮᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United Arab Emirates"
+msgstr "ᱭᱩᱱᱟᱭᱴᱮᱰ ᱟᱨᱟᱵ ᱮᱢᱤᱨᱮᱴᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United Kingdom"
+msgstr "ᱭᱩᱱᱟᱭᱴᱮᱰ ᱠᱤᱝᱰᱚᱢ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United States"
+msgstr "ᱭᱩᱱᱟᱭᱴᱮᱰ ᱥᱴᱮᱴᱥ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "United States Minor Outlying Islands"
+msgstr "ᱭᱩᱱᱟᱭᱴᱮᱰ ᱥᱴᱮᱴᱥ ᱠᱟᱹᱴᱤᱡ ᱵᱟᱦᱨᱮ ᱴᱟᱹᱯᱩ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uruguay"
+msgstr "ᱩᱨᱩᱜᱩᱣᱮ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Uzbekistan"
+msgstr "ᱩᱡᱵᱮᱠᱤᱥᱛᱟᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vanuatu"
+msgstr "ᱣᱟᱱᱩᱣᱟᱴᱩ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Venezuela"
+msgstr "ᱵᱷᱮᱱᱮᱡᱩᱣᱮᱞᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Vietnam"
+msgstr "ᱵᱷᱤᱭᱮᱴᱱᱟᱢ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands (British)"
+msgstr "ᱵᱷᱟᱨᱡᱤᱱ ᱟᱭᱞᱟᱸᱰᱥ (ᱵᱨᱤᱴᱤᱥ)"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Virgin Islands (U.S.)"
+msgstr "ᱵᱷᱟᱨᱡᱤᱱ ᱟᱭᱞᱟᱸᱰᱥ (ᱭᱩᱮᱥ)"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Wallis and Futuna"
+msgstr "ᱣᱟᱞᱤᱥ ᱟᱨ ᱯᱷᱩᱴᱩᱱᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Western Sahara"
+msgstr "ᱯᱟᱪᱷᱤᱢ ᱥᱟᱦᱟᱨᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Yemen"
+msgstr "ᱭᱮᱢᱮᱱ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Zambia"
+msgstr "ᱡᱟᱢᱵᱤᱭᱟ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Zimbabwe"
+msgstr "ᱡᱤᱢᱵᱟᱵᱩ"
+
+#: psynet/translation/countries.py
+#, fuzzy
+msgctxt "country_name"
+msgid "Åland Islands"
+msgstr "ᱟᱞᱮᱱᱰ ᱟᱭᱞᱟᱸᱰᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Abkhazian"
+msgstr "ᱟᱵᱠᱦᱟᱡᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Afar"
+msgstr "ᱟᱯᱟᱨ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Afrikaans"
+msgstr "ᱟᱯᱷᱨᱤᱠᱟᱱᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Akan"
+msgstr "ᱟᱠᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Albanian"
+msgstr "ᱟᱞᱵᱮᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Amharic"
+msgstr "ᱟᱢᱦᱟᱨᱤᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Arabic"
+msgstr "ᱟᱨᱟᱵᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Aragonese"
+msgstr "ᱟᱨᱟᱜᱳᱱᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Armenian"
+msgstr "ᱟᱨᱢᱮᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Assamese"
+msgstr "ᱟᱥᱚᱢᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Avaric"
+msgstr "ᱟᱣᱟᱨᱤᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Avestan"
+msgstr "ᱟᱵᱷᱮᱥᱴᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Aymara"
+msgstr "ᱟᱭᱢᱟᱨᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Azerbaijani"
+msgstr "ᱟᱡᱮᱨᱵᱟᱭᱡᱟᱱᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bambara"
+msgstr "ᱵᱟᱢᱵᱟᱨᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bashkir"
+msgstr "ᱵᱟᱥᱠᱤᱨ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Basque"
+msgstr "ᱵᱟᱥᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Belarusian"
+msgstr "ᱵᱮᱞᱟᱨᱩᱥᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bengali"
+msgstr "ᱵᱮᱝᱜᱟᱞᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bislama"
+msgstr "ᱵᱤᱥᱞᱟᱢᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bosnian"
+msgstr "ᱵᱚᱥᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Breton"
+msgstr "ᱵᱨᱮᱴᱚᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Bulgarian"
+msgstr "ᱵᱩᱞᱜᱟᱨᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Burmese"
+msgstr "ᱵᱟᱨᱢᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Catalan"
+msgstr "ᱠᱟᱴᱟᱞᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Central Khmer"
+msgstr "ᱛᱟᱞᱟ ᱠᱷᱢᱮᱨ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chamorro"
+msgstr "ᱪᱟᱢᱚᱨᱨᱳ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chechen"
+msgstr "ᱪᱮᱪᱮᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chinese"
+msgstr "ᱪᱟᱭᱱᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Church Slavic"
+msgstr "ᱪᱟᱨᱪ ᱥᱞᱟᱵᱷᱤᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Chuvash"
+msgstr "ᱪᱩᱣᱟᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cornish"
+msgstr "ᱠᱚᱨᱱᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Corsican"
+msgstr "ᱠᱚᱨᱥᱤᱠᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cree"
+msgstr "ᱠᱨᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Croatian"
+msgstr "ᱠᱨᱚᱥᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Cebuano"
+msgstr "ᱥᱮᱵᱩᱟᱱᱳ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Czech"
+msgstr "ᱪᱮᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dogri"
+msgstr "ᱰᱚᱜᱨᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Danish"
+msgstr "ᱰᱮᱱᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dhivehi"
+msgstr "ᱫᱷᱤᱣᱮᱦᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dutch"
+msgstr "ᱰᱟᱪ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dzongkha"
+msgstr "ᱰᱡᱚᱝᱠᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "English"
+msgstr "ᱤᱝᱨᱟᱡᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Esperanto"
+msgstr "ᱮᱥᱯᱮᱨᱟᱱᱴᱳ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Estonian"
+msgstr "ᱮᱥᱴᱚᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ewe"
+msgstr "ᱤᱣᱮ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Faroese"
+msgstr "ᱯᱷᱟᱨᱳᱭᱤᱡ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Fijian"
+msgstr "ᱯᱷᱤᱡᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Finnish"
+msgstr "ᱯᱷᱤᱱᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "French"
+msgstr "ᱯᱷᱨᱮᱸᱪ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Fulah"
+msgstr "ᱯᱷᱩᱞᱟᱦ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Galician"
+msgstr "ᱜᱮᱞᱤᱥᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ganda"
+msgstr "ᱜᱟᱱᱰᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Georgian"
+msgstr "ᱡᱳᱨᱡᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "German"
+msgstr "ᱡᱟᱨᱢᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Gothic"
+msgstr "ᱜᱳᱛᱷᱤᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Guarani"
+msgstr "ᱜᱩᱣᱟᱨᱟᱱᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Gujarati"
+msgstr "ᱜᱩᱡᱟᱨᱟᱴᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Haitian"
+msgstr "ᱦᱟᱭᱴᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hausa"
+msgstr "ᱦᱟᱣᱥᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hawaiian"
+msgstr "ᱦᱟᱣᱟᱭᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hebrew"
+msgstr "ᱦᱤᱵᱽᱨᱭᱩ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Herero"
+msgstr "ᱦᱮᱨᱮᱨᱚ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hindi"
+msgstr "ᱦᱤᱱᱰᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hiri Motu"
+msgstr "ᱦᱤᱨᱤ ᱢᱚᱴᱩ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hmong"
+msgstr "ᱦᱢᱚᱝᱜᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Hungarian"
+msgstr "ᱦᱟᱝᱜᱮᱨᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Icelandic"
+msgstr "ᱟᱭᱤᱥᱞᱮᱱᱰᱤᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ido"
+msgstr "ᱤᱰᱚ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Igbo"
+msgstr "ᱤᱜᱽᱵᱷᱳ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Indonesian"
+msgstr "ᱤᱱᱰᱚᱱᱥᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingua"
+msgstr "ᱤᱱᱴᱟᱨᱞᱤᱝᱜᱩᱣᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Interlingue"
+msgstr "ᱤᱱᱴᱟᱨᱞᱤᱝᱜᱩ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Inuktitut"
+msgstr "ᱤᱱᱩᱠᱴᱤᱴᱩᱴ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Inupiaq"
+msgstr "ᱤᱱᱩᱯᱤᱭᱟᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Irish"
+msgstr "ᱟᱭᱨᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Italian"
+msgstr "ᱤᱴᱟᱞᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Japanese"
+msgstr "ᱡᱟᱯᱟᱱᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Javanese"
+msgstr "ᱡᱟᱣᱟᱱᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kalaallisut"
+msgstr "ᱠᱟᱞᱟᱞᱞᱤᱥᱩᱴ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kannada"
+msgstr "ᱠᱟᱱᱱᱟᱰᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kanuri"
+msgstr "ᱠᱟᱱᱩᱨᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kashmiri"
+msgstr "ᱠᱟᱥᱢᱤᱨᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kazakh"
+msgstr "ᱠᱟᱡᱟᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kikuyu"
+msgstr "ᱠᱤᱠᱩᱭᱩ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kinyarwanda"
+msgstr "ᱠᱤᱱᱭᱟᱨᱣᱟᱱᱰᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kirghiz"
+msgstr "ᱠᱤᱨᱜᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Komi"
+msgstr "ᱠᱚᱢᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kongo"
+msgstr "ᱠᱚᱝᱜᱳ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Konkani"
+msgstr "ᱠᱚᱱᱠᱟᱱᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Korean"
+msgstr "ᱠᱚᱨᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kuanyama"
+msgstr "ᱠᱩᱣᱟᱱᱭᱟᱢᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Kurdish"
+msgstr "ᱠᱩᱨᱫᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lao"
+msgstr "ᱞᱟᱣ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Latin"
+msgstr "ᱞᱮᱴᱤᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Latvian"
+msgstr "ᱞᱟᱴᱵᱷᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Limburgan"
+msgstr "ᱞᱤᱢᱵᱩᱨᱜᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lingala"
+msgstr "ᱞᱤᱝᱜᱟᱞᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Lithuanian"
+msgstr "ᱞᱤᱛᱷᱩᱭᱟᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Luba-Katanga"
+msgstr "ᱞᱩᱵᱟ-ᱠᱟᱴᱟᱝᱜᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Luxembourgish"
+msgstr "ᱞᱟᱠᱥᱮᱢᱵᱚᱨᱜᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Macedonian"
+msgstr "ᱢᱟᱥᱮᱰᱚᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maithili"
+msgstr "ᱢᱟᱭᱛᱷᱤᱞᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malagasy"
+msgstr "ᱢᱟᱞᱟᱜᱟᱥᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malay"
+msgstr "ᱢᱟᱞᱭ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Malayalam"
+msgstr "ᱢᱟᱞᱟᱭᱟᱞᱟᱢ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maltese"
+msgstr "ᱢᱟᱞᱴᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Manipuri"
+msgstr "ᱢᱟᱱᱤᱯᱩᱨᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Manx"
+msgstr "ᱢᱮᱱᱠᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maori"
+msgstr "ᱢᱟᱣᱨᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Marathi"
+msgstr "ᱢᱟᱨᱟᱛᱷᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Marshallese"
+msgstr "ᱢᱟᱨᱥᱟᱞᱞᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Greek"
+msgstr "ᱜᱽᱨᱤᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Mongolian"
+msgstr "ᱢᱚᱝᱜᱚᱞᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nauru"
+msgstr "ᱱᱟᱣᱨᱩ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Navajo"
+msgstr "ᱱᱟᱣᱟᱡᱚ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ndonga"
+msgstr "ᱰᱳᱱᱜᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nepali"
+msgstr "ᱱᱮᱯᱟᱞᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "North Ndebele"
+msgstr "ᱩᱛᱟᱹᱨ ᱱᱰᱮᱵᱮᱞᱮ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Northern Sami"
+msgstr "ᱩᱛᱚᱨ ᱥᱟᱢᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian"
+msgstr "ᱱᱚᱨᱣᱮᱡᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Bokmål"
+msgstr "ᱱᱚᱨᱣᱮᱡᱤᱭᱟᱱ ᱵᱚᱠᱢᱚᱞ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Norwegian Nynorsk"
+msgstr "ᱱᱚᱨᱣᱮᱡᱤᱭᱟᱱ ᱱᱟᱭᱱᱚᱨᱥᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Nyanja"
+msgstr "ᱱᱭᱟᱱᱡᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Occitan"
+msgstr "ᱚᱠᱥᱤᱴᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Odia"
+msgstr "ᱚᱰᱤᱭᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ojibwa"
+msgstr "ᱚᱡᱤᱵᱷᱣᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Oromo"
+msgstr "ᱚᱨᱚᱢᱚ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ossetian"
+msgstr "ᱚᱥᱮᱴᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Pali"
+msgstr "ᱯᱟᱞᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Panjabi"
+msgstr "ᱯᱟᱱᱡᱟᱵᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Persian"
+msgstr "ᱯᱟᱨᱥᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Polish"
+msgstr "ᱯᱚᱞᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Portuguese"
+msgstr "ᱯᱩᱨᱴᱩᱜᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Pushto"
+msgstr "ᱯᱩᱥᱴᱳ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Quechua"
+msgstr "ᱠᱩᱭᱪᱩᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Romanian"
+msgstr "ᱨᱚᱢᱟᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Romansh"
+msgstr "ᱨᱚᱢᱟᱱᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Rundi"
+msgstr "ᱨᱩᱱᱰᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Russian"
+msgstr "ᱨᱟᱥᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Samoan"
+msgstr "ᱥᱟᱢᱳᱣᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sango"
+msgstr "ᱥᱟᱝᱜᱳ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sanskrit"
+msgstr "ᱥᱟᱸᱥᱠᱨᱛ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sardinian"
+msgstr "ᱥᱟᱨᱰᱤᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Santali"
+msgstr "ᱥᱟᱱᱛᱟᱲᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Scottish Gaelic"
+msgstr "ᱥᱠᱳᱴᱤᱥ ᱜᱮᱞᱤᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbian"
+msgstr "ᱥᱟᱨᱵᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Serbo-Croatian"
+msgstr "ᱥᱟᱨᱵᱳ-ᱠᱨᱚᱥᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Shona"
+msgstr "ᱥᱳᱱᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sichuan Yi"
+msgstr "ᱥᱤᱪᱩᱟᱱ ᱭᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sindhi"
+msgstr "ᱥᱤᱱᱫᱷᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sinhala"
+msgstr "ᱥᱤᱱᱦᱟᱞᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovak"
+msgstr "ᱥᱞᱚᱣᱟᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Slovenian"
+msgstr "ᱥᱞᱚᱵᱷᱮᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Somali"
+msgstr "ᱥᱳᱢᱟᱞᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "South Ndebele"
+msgstr "ᱫᱟᱹᱠᱷᱤᱱ ᱮᱱᱰᱮᱵᱮᱞᱮ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Southern Sotho"
+msgstr "ᱫᱟᱠᱷᱤᱱ ᱥᱳᱛᱷᱳ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Spanish"
+msgstr "ᱥᱯᱮᱱᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Sundanese"
+msgstr "ᱥᱩᱱᱰᱟᱱᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swahili"
+msgstr "ᱥᱣᱟᱦᱤᱞᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swati"
+msgstr "ᱥᱣᱟᱛᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Swedish"
+msgstr "ᱥᱣᱤᱰᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Taiwanese"
+msgstr "ᱛᱟᱭᱣᱟᱱᱤᱡᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tagalog"
+msgstr "ᱴᱟᱜᱟᱞᱚᱜᱽ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tahitian"
+msgstr "ᱛᱟᱦᱤᱴᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tajik"
+msgstr "ᱛᱟᱡᱤᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tamil"
+msgstr "ᱛᱟᱢᱤᱞ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tatar"
+msgstr "ᱛᱟᱴᱟᱨ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Telugu"
+msgstr "ᱛᱮᱞᱩᱜᱩ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Thai"
+msgstr "ᱛᱷᱟᱭᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tibetan"
+msgstr "ᱛᱤᱵᱮᱴᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tigrinya"
+msgstr "ᱴᱤᱜᱽᱨᱤᱱᱭᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tonga"
+msgstr "ᱴᱚᱝᱜᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tsonga"
+msgstr "ᱥᱳᱱᱜᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Tswana"
+msgstr "ᱥᱣᱟᱱᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkish"
+msgstr "ᱛᱩᱨᱠᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Turkmen"
+msgstr "ᱛᱩᱨᱠᱢᱮᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Twi"
+msgstr "ᱴᱣᱤ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Uighur"
+msgstr "ᱩᱭᱜᱩᱨ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Ukrainian"
+msgstr "ᱭᱩᱠᱨᱮᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Urdu"
+msgstr "ᱩᱨᱰᱩ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Uzbek"
+msgstr "ᱩᱡᱷᱮᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Venda"
+msgstr "ᱵᱷᱮᱱᱰᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Vietnamese"
+msgstr "ᱵᱷᱤᱭᱮᱴᱱᱟᱢᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Volapük"
+msgstr "ᱣᱳᱞᱟᱯᱩᱠ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Walloon"
+msgstr "ᱣᱟᱞᱩᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Welsh"
+msgstr "ᱣᱮᱞᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Armenian"
+msgstr "ᱯᱟᱪᱷᱤᱢ ᱟᱨᱢᱮᱱᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Western Frisian"
+msgstr "ᱯᱟᱪᱷᱤᱢ ᱯᱷᱨᱤᱥᱤᱭᱟᱱ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Wolof"
+msgstr "ᱣᱳᱞᱳᱯᱷ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Xhosa"
+msgstr "ᱡᱷᱚᱥᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Yiddish"
+msgstr "ᱭᱤᱰᱤᱥ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Yoruba"
+msgstr "ᱭᱳᱨᱩᱵᱟ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Zhuang"
+msgstr "ᱡᱩᱣᱟᱝ"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Zulu"
+msgstr "ᱡᱩᱞᱩ"

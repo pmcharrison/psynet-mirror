@@ -519,37 +519,162 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "数字を入力する必要があります！"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "画像の中の数字を書き留めてください。"
+msgstr "画像の中の数字を書き写してください。"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr "色を識別する能力を確認するための簡単なテストを行います。"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr "各試行では、数字が含まれた画像が表示されます。"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "この画像は{HIDE_AFTER}秒後に消えます。"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "見た数字をテキストボックスに入力してください。"
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "他の2つと異なる音はどれですか: 1, 2, 3?"
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr "あなたの課題は、<strong>どの音が異なっているか</strong>を判断することです。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "あなたのスコアは"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "続行するにはボタンを押してください。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "私たちはあなたの言語能力をチェックするテストを行います。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "各試行では、一連の文字が表示されます。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "文字列は自動的に消えます。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr "あなたのタスクは、これが{LANGUAGE_NAME}の既存の単語かどうかを決定することです。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"その単語の正確な意味がわからない場合でも、それが{LANGUAGE_NAME}に存在することを確信している場合は、それを実際の単語としてマークする必要があります。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr "その単語が{LANGUAGE_NAME}に存在するかどうか確信が持てない場合は、それを偽の単語としてマークする必要があります。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "この実験では、スペルのバリエーションが混在しているかもしれません。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "微妙なスペルの違いには注意を払う必要はありません。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "単語はすべて大文字または小文字のみで表示されます。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "単語の大文字小文字は無視できます。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "タスクを迅速に行うには、キーボードのキーを使用する必要があります。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "次のキーを使用できます："
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "<kbd>A</kbd>を押すと、提示された単語が<strong>本物</strong>の場合"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "<kbd>L</kbd>を押すと、提示された単語が<strong>偽物</strong>の場合"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "キーボード上の2つのキーに慣れてください。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "それらを押すと、右のキーボードで点灯します。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "次のページに進むには、両方のキーを少なくとも1回は押す必要があります。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "キーを忘れた場合、それらはすべてのページに印刷されます。"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "テストは次のページで始まります。"
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -716,7 +841,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "続行するには、下のボタンをクリックしてください。"
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "次へ"
@@ -1933,6 +2059,16 @@ msgstr "タスクを行うことで科学に貢献しています。ありがと
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "ルシッド調査提出"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "キーボードレイアウトを選択してください："
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "必要なキーをすべて押していません。"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -4197,7 +4333,7 @@ msgstr "アッサム語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Avaric"
-msgstr "アヴァル語"
+msgstr "アバル語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4354,6 +4490,12 @@ msgstr "セブアノ語"
 msgctxt "language_name"
 msgid "Czech"
 msgstr "チェコ語"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Dogri"
+msgstr "ドグリ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4557,13 +4699,13 @@ msgstr "インドネシア語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Interlingua"
-msgstr "インターリングア"
+msgstr "インターリンガ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Interlingue"
-msgstr "インターリング"
+msgstr "インターリンゲ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4605,7 +4747,7 @@ msgstr "ジャワ語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kalaallisut"
-msgstr "カラリスット語"
+msgstr "カラリスート語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4641,7 +4783,7 @@ msgstr "キクユ語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kinyarwanda"
-msgstr "キニヤルワンダ語"
+msgstr "キニアルワンダ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4660,6 +4802,12 @@ msgstr "コミ語"
 msgctxt "language_name"
 msgid "Kongo"
 msgstr "コンゴ語"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Konkani"
+msgstr "コンカニ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4719,7 +4867,7 @@ msgstr "リトアニア語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Luba-Katanga"
-msgstr "ルバカタンガ語"
+msgstr "ルバ・カタンガ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4732,6 +4880,12 @@ msgstr "ルクセンブルク語"
 msgctxt "language_name"
 msgid "Macedonian"
 msgstr "マケドニア語"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Maithili"
+msgstr "マイティリ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4756,6 +4910,12 @@ msgstr "マラヤーラム語"
 msgctxt "language_name"
 msgid "Maltese"
 msgstr "マルタ語"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Manipuri"
+msgstr "マニプリ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4839,13 +4999,13 @@ msgstr "ノルウェー語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Bokmål"
-msgstr "ノルウェー語（ブークモール）"
+msgstr "ノルウェー語ブークモール"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Nynorsk"
-msgstr "ノルウェー語（ニーノシュク）"
+msgstr "ノルウェー語ニーノシュク"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4862,14 +5022,14 @@ msgstr "オック語"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Ojibwa"
-msgstr "オジブワ語"
+msgid "Odia"
+msgstr "オディア語"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Oriya"
-msgstr "オリヤー語"
+msgid "Ojibwa"
+msgstr "オジブウェー語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4917,7 +5077,7 @@ msgstr "ポルトガル語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Pushto"
-msgstr "パシュトー語"
+msgstr "パシュトゥー語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4976,6 +5136,12 @@ msgstr "サルデーニャ語"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Santali"
+msgstr "サンタリ語"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
 msgid "Scottish Gaelic"
 msgstr "スコットランド・ゲール語"
 
@@ -4989,7 +5155,7 @@ msgstr "セルビア語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Serbo-Croatian"
-msgstr "セルボ・クロアチア語"
+msgstr "セルビア・クロアチア語"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5247,7 +5413,7 @@ msgstr "ウォロフ語"
 #, fuzzy
 msgctxt "language_name"
 msgid "Xhosa"
-msgstr "コーサ語"
+msgstr "コサ語"
 
 #: psynet/translation/languages.py
 #, fuzzy
