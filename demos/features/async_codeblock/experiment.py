@@ -11,13 +11,12 @@ class Exp(psynet.experiment.Experiment):
     label = "Demo demonstrating asynchronous CodeBlock execution"
     initial_recruitment_size = 1
 
-    def set_async_flag(participant):
+    def set_participant_var(participant):
         participant.var.set("test_async", "SUCCESS")
 
-    # TODO raise if a lambda function was supplied
     timeline = Timeline(
         CodeBlock(
-            set_async_flag,
+            set_participant_var,
             is_async=True,
         ),
         wait_while(

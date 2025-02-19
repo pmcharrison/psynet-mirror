@@ -23,6 +23,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject, VarStore
+from .serialize import is_lambda_function
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -223,6 +224,11 @@ class CodeBlock(Elt):
         super().__init__()
         self.function = function
         self.is_async = is_async
+
+        if is_async and is_lambda_function(self.function):
+            raise Exception(
+                "Asynchronous code blocks require named functions rather than lambda functions!"
+            )
 
     def consume(self, experiment, participant):
         if self.is_async:
