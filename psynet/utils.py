@@ -807,7 +807,7 @@ def get_translator(
             locale = get_locale()
 
         if locale == "en":
-            # Skil translation if English
+            # Skill translation if English
             _, _p = null_translator, null_translator_with_context
         else:
             _, _p = _get_translators(locales_dir, locale, namespace)
