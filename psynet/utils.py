@@ -93,6 +93,78 @@ def call_function(function, *args, **kwargs):
     return function(*args, **kwargs)
 
 
+def launch_async_process_with_context(function, *args, **kwargs):
+    from psynet.participant import Participant
+    from psynet.process import WorkerAsyncProcess
+    from psynet.trial.main import Trial
+
+    participant = kwargs.get("participant", NoArgumentProvided)
+    experiment = kwargs.get("experiment", NoArgumentProvided)
+    assets = kwargs.get("assets", NoArgumentProvided)
+    nodes = kwargs.get("nodes", NoArgumentProvided)
+    trial_maker = kwargs.get("trial_maker", NoArgumentProvided)
+
+    requested = get_args(function)
+
+    if experiment == NoArgumentProvided:
+        from .experiment import get_experiment
+
+        experiment = get_experiment()
+
+    if "assets" in requested and assets == NoArgumentProvided:
+        assets = {}
+        for asset in experiment.global_assets:
+            if asset.module_id is None:
+                assets[asset.local_key] = asset
+            elif participant != NoArgumentProvided:
+                assert isinstance(participant, Participant)
+                if (
+                    participant.module_state
+                    and asset.module_id == participant.module_state.module_id
+                ):
+                    assets[asset.local_key] = asset
+
+        if participant != NoArgumentProvided:
+            assert isinstance(participant, Participant)
+
+            if participant.module_state:
+                assets = {
+                    **assets,
+                    **participant.module_state.assets,
+                }
+
+    if participant != NoArgumentProvided and participant.module_state:
+        if "nodes" in requested and nodes == NoArgumentProvided:
+            nodes = []
+            for node in experiment.global_nodes:
+                if node.module_id is None:
+                    nodes.append(node)
+                elif node.module_id == participant.module_state.module_id:
+                    nodes.append(node)
+            nodes += participant.module_state.nodes
+
+    if "trial_maker" in requested and trial_maker == NoArgumentProvided:
+        if (
+            participant != NoArgumentProvided
+            and participant.in_module
+            and isinstance(participant.current_trial, Trial)
+        ):
+            trial_maker = participant.current_trial.trial_maker
+
+    # TODO How to serialize experiment, assets, nodes, trial_maker?
+    new_kwargs = {
+        "experiment": str(experiment),
+        "participant": participant,
+        "assets": assets,
+        "nodes": nodes,
+        "trial_maker": trial_maker,
+    }
+
+    WorkerAsyncProcess(
+        function, label="CodeBlock", participant=participant, arguments=new_kwargs
+    )
+
+
 def call_function_with_context(function, *args, **kwargs):
     from psynet.participant import Participant
     from psynet.trial.main import Trial

@@ -33,6 +33,7 @@ from .utils import (
     get_language_dict,
     get_locale,
     get_logger,
+    launch_async_process_with_context,
     log_time_taken,
     merge_dicts,
     pretty_format_seconds,
@@ -212,19 +213,33 @@ class CodeBlock(Elt):
     function:
         A function with up to two arguments named ``participant`` and ``experiment``,
         that is executed once the participant reaches the corresponding part of the timeline.
+
+    is_async: bool, optional
+        If ``True``, indicates that the function should be executed asynchronously.
+        Default is False.
     """
 
-    def __init__(self, function):
+    def __init__(self, function, is_async=False):
         super().__init__()
         self.function = function
+        self.is_async = is_async
 
     def consume(self, experiment, participant):
-        call_function_with_context(
-            self.function,
-            self=self,
-            experiment=experiment,
-            participant=participant,
-        )
+        if self.is_async:
+            launch_async_process_with_context(
+                self.function,
+                self=self,
+                label="CodeBlock",
+                experiment=experiment,
+                participant=participant,
+            )
+        else:
+            call_function_with_context(
+                self.function,
+                self=self,
+                experiment=experiment,
+                participant=participant,
+            )
 
 
 class StartFixElt(Elt):
