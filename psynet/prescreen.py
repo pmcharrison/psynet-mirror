@@ -40,6 +40,7 @@ from .utils import get_logger, get_translator
 
 logger = get_logger()
 
+_ = get_translator()
 _p = get_translator(context=True)
 
 
@@ -1521,8 +1522,8 @@ class HeadphoneTrial(StaticTrial):
             wrong_answers.remove(correct_answer)
             return random.choice(wrong_answers)
 
-    @staticmethod
-    def get_task_description(self):
+    @property
+    def task_description(self):
         raise NotImplementedError()
 
     @staticmethod
@@ -1629,14 +1630,14 @@ class GeneralHeadphoneTest(StaticTrialMaker):
         raise NotImplementedError()
 
     @property
-    def instructions(self):
+    def introduction(self):
         return InfoPage(
             Markup(
                 f"""
             <p>We will now perform a quick test to check that you are wearing headphones.</p>
             <p>
                 In each trial, you will hear three sounds separated by silences.
-                {self.task_description()}
+                {self.task_description}
             </p>
             """
             ),
@@ -1959,7 +1960,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             assert self.n_stimuli_to_use > 0  # Must be an integer larger than 0
 
     @property
-    def instructions(self):
+    def introduction(self):
         return InfoPage(
             Markup(self._instructions),
             time_estimate=10,
