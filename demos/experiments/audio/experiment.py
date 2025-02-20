@@ -15,7 +15,11 @@ from psynet.modular_page import (
     VideoRecordControl,
 )
 from psynet.page import InfoPage, wait_while
-from psynet.prescreen import BeepHeadphoneTest
+from psynet.prescreen import (
+    AntiphaseHeadphoneTest,
+    BeepHeadphoneTest,
+    HugginsHeadphoneTest,
+)
 from psynet.timeline import (
     Event,
     MediaSpec,
@@ -443,6 +447,8 @@ class Exp(psynet.experiment.Experiment):
         MainConsent(),
         AudiovisualConsent(),
         BeepHeadphoneTest(),
+        HugginsHeadphoneTest(),
+        AntiphaseHeadphoneTest(),
         Module(
             "audio_demo",
             example_js_synth_1,
