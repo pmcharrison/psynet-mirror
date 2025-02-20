@@ -533,7 +533,7 @@ msgstr "Sinun on annettava numero!"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Kirjoita kuvan numero."
+msgstr "Kirjoita kuvassa oleva numero."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -547,7 +547,7 @@ msgstr "Suoritamme nyt nopean testin tarkistaaksemme kykysi havaita värejä."
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Jokaisessa kokeessa sinulle esitetään kuva, joka sisältää numeron."
+msgstr "Kussakin kokeessa sinulle esitetään kuva, joka sisältää numeron."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -560,6 +560,18 @@ msgstr "Tämä kuva katoaa {HIDE_AFTER} sekunnin kuluttua."
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Sinun on syötettävä näkemäsi numero tekstikenttään."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Mikä ääni on erilainen kuin kaksi muuta: 1, 2 vai 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr "Tehtäväsi on arvioida <strong>mikä ääni on erilainen</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

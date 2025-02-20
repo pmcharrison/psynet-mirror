@@ -535,14 +535,14 @@ msgstr "Musíte poskytnúť číslo!"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Zapíšte číslo na obrázku."
+msgstr "Napíšte číslo, ktoré vidíte na obrázku."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "Teraz vykonáme rýchly test na overenie vašej schopnosti vnímať farby."
+msgstr "Teraz vykonáme rýchly test na zistenie vašej schopnosti vnímať farby."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -561,7 +561,19 @@ msgstr "Tento obrázok zmizne po {HIDE_AFTER} sekundách."
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Musíte zadať číslo, ktoré vidíte, do textového poľa."
+msgstr "Musíte zadať číslo, ktoré vidíte do textového poľa."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Ktorý zvuk je iný od ostatných dvoch: 1, 2 alebo 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr "Vašou úlohou bude rozhodnúť, <strong>ktorý zvuk je odlišný</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

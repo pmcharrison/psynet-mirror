@@ -567,7 +567,21 @@ msgstr "Cette image disparaîtra après {HIDE_AFTER} secondes."
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Vous devez entrer le numéro que vous voyez dans la boîte de texte."
+msgstr "Vous devez entrer le numéro que vous voyez dans la zone de texte."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Quel son est différent des deux autres : 1, 2 ou 3 ?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Votre tâche sera de juger <strong>quel son est le plus différent des "
+"autres</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

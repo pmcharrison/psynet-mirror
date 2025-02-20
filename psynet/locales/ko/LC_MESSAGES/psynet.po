@@ -524,21 +524,21 @@ msgstr "숫자를 입력해야 합니다!"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "이미지에 있는 숫자를 적으세요."
+msgstr "이미지에 있는 숫자를 적어주세요."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "이제 색을 인식하는 능력을 확인하기 위한 빠른 테스트를 진행하겠습니다."
+msgstr "이제 색상을 인식하는 능력을 확인하는 빠른 테스트를 수행하겠습니다."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "각 시험에서, 숫자가 포함된 이미지를 보게 될 것입니다."
+msgstr "각 시험에서는 숫자가 포함된 이미지를 제시합니다."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -550,7 +550,19 @@ msgstr "이 이미지는 {HIDE_AFTER}초 후에 사라집니다."
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "보이는 숫자를 텍스트 상자에 입력해야 합니다."
+msgstr "텍스트 상자에 보이는 숫자를 입력해야 합니다."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "어느 소리가 나머지 두 소리와 다른지: 1, 2, 아니면 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr "당신의 임무는 <strong>어느 소리가 다른지 판단하는 것</strong>입니다."
 
 #: psynet/recruiters.py
 #, fuzzy

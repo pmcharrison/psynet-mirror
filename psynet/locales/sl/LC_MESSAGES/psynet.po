@@ -550,7 +550,7 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "V vsakem poskusu boste videli sliko, ki vsebuje številko."
+msgstr "V vsakem poskusu vam bomo predstavili sliko, ki vsebuje številko."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -563,6 +563,20 @@ msgstr "Ta slika bo izginila po {HIDE_AFTER} sekundah."
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "V besedilno polje morate vnesti številko, ki jo vidite."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Kateri zvok je drugačen od drugih dveh: 1, 2 ali 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Vaša naloga bo presoditi <strong>kateri zvok je drugačen od "
+"ostalih</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

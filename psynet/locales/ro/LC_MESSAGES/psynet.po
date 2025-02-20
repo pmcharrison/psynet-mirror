@@ -545,15 +545,16 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Vom efectua acum un test rapid pentru a verifica capacitatea ta de a percepe"
-" culorile."
+"Vom efectua acum un test rapid pentru a verifica abilitatea ta de a percepe "
+"culorile."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "În fiecare probă, ți se va prezenta o imagine care conține un număr."
+msgstr ""
+"În fiecare probă, îți va fi prezentată o imagine care conține un număr."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -566,6 +567,19 @@ msgstr "Această imagine va dispărea după {HIDE_AFTER} secunde."
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Trebuie să introduci numărul pe care îl vezi în caseta de text."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Care sunet este diferit de celelalte două: 1, 2 sau 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Sarcina ta este să judeci <strong>care sunet este cel diferit</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

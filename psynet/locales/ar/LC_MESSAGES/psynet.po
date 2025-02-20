@@ -533,7 +533,7 @@ msgstr "تحتاج إلى تقديم رقم!"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "اكتب الرقم في الصورة."
+msgstr "اكتب الرقم الموجود في الصورة."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -559,7 +559,19 @@ msgstr "ستختفي هذه الصورة بعد {HIDE_AFTER} ثوانٍ."
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "يجب عليك إدخال الرقم الذي تراه في مربع النص."
+msgstr "يجب أن تدخل الرقم الذي تراه في المربع النصي."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "أي صوت يختلف عن الصوتين الآخرين: 1، 2، أم 3؟"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr "مهمتك هي الحكم <strong>أي صوت هو المختلف</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

@@ -537,7 +537,7 @@ msgstr "Πρέπει να δώσετε έναν αριθμό!"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Γράψτε τον αριθμό στην εικόνα."
+msgstr "Γράψτε τον αριθμό που βλέπετε στην εικόνα."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -545,7 +545,7 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Θα πραγματοποιήσουμε τώρα μια γρήγορη δοκιμή για να ελέγξουμε την ικανότητά "
+"Τώρα θα πραγματοποιήσουμε ένα γρήγορο τεστ για να ελέγξουμε την ικανότητά "
 "σας να αντιλαμβάνεστε τα χρώματα."
 
 #: psynet/prescreen.py
@@ -567,6 +567,20 @@ msgstr "Αυτή η εικόνα θα εξαφανιστεί μετά από {HI
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Πρέπει να εισάγετε τον αριθμό που βλέπετε στο πλαίσιο κειμένου."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Ποιος ήχος είναι διαφορετικός από τους άλλους δύο: 1, 2, ή 3;"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Η εργασία σας θα είναι να κρίνετε <strong>ποιος ήχος είναι ο "
+"διαφορετικός</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

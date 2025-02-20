@@ -542,7 +542,7 @@ msgstr "Kirjutage pildil olev number üles."
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "Teeme nüüd kiire testi, et kontrollida teie värvitaju."
+msgstr "Nüüd teeme kiire testi, et kontrollida teie võimet värve tajuda."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -561,7 +561,20 @@ msgstr "See pilt kaob {HIDE_AFTER} sekundi pärast."
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Peate sisestama tekstikasti numbri, mida näete."
+msgstr "Te peate tekstikasti sisestama numbri, mida näete."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Milline heli erineb teistest kahest: 1, 2 või 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Teie ülesanne on hinnata <strong>milline heli on teistest erinev</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

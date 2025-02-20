@@ -539,7 +539,7 @@ msgstr "U moet een getal opgeven!"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Schrijf het nummer op dat in de afbeelding staat."
+msgstr "Schrijf het getal op dat in de afbeelding staat."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -547,15 +547,15 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"We zullen nu een snelle test uitvoeren om uw vermogen om kleuren waar te "
-"nemen te controleren."
+"We gaan nu een snelle test uitvoeren om uw vermogen om kleuren waar te nemen"
+" te controleren."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "In elke proef krijgt u een afbeelding te zien die een nummer bevat."
+msgstr "In elke proef wordt u een afbeelding getoond die een getal bevat."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -567,7 +567,20 @@ msgstr "Deze afbeelding verdwijnt na {HIDE_AFTER} seconden."
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "U moet het nummer dat u ziet in het tekstvak invoeren."
+msgstr "U moet het getal dat u ziet in het tekstvak invoeren."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Welk geluid is anders dan de andere twee: 1, 2 of 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Uw taak is om te beoordelen <strong>welk geluid het vreemde is</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

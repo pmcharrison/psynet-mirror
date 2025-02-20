@@ -544,8 +544,8 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Sekarang kita akan melakukan tes cepat untuk memeriksa kemampuan Anda dalam "
-"melihat warna."
+"Sekarang kami akan melakukan tes cepat untuk memeriksa kemampuan Anda dalam "
+"mengenali warna."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -566,6 +566,18 @@ msgstr "Gambar ini akan hilang setelah {HIDE_AFTER} detik."
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Anda harus memasukkan angka yang Anda lihat ke dalam kotak teks."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Suara mana yang berbeda dari dua lainnya: 1, 2, atau 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr "Tugas Anda adalah menilai <strong>suara mana yang berbeda</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

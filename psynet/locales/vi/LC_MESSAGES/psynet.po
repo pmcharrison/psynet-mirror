@@ -552,8 +552,7 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
-"Trong mỗi thử nghiệm, bạn sẽ được trình bày với một hình ảnh chứa một con "
-"số."
+"Trong mỗi thử nghiệm, bạn sẽ được trình bày một hình ảnh có chứa một số."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -566,6 +565,19 @@ msgstr "Hình ảnh này sẽ biến mất sau {HIDE_AFTER} giây."
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Bạn phải nhập số mà bạn thấy vào ô văn bản."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Âm thanh nào khác với hai âm thanh còn lại: 1, 2, hay 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Nhiệm vụ của bạn là phán đoán <strong>âm thanh nào là khác biệt</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

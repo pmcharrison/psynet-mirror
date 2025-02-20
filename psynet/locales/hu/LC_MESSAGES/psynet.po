@@ -533,21 +533,21 @@ msgstr "Számot kell megadnia!"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Írja le a képen látható számot."
+msgstr "Írd le a számot a képen."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "Most gyorsan teszteljük a színérzékelési képességét."
+msgstr "Most gyorsan teszteljük a színérzékelési képességedet."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Minden próbában egy képet fog látni, amely egy számot tartalmaz."
+msgstr "Minden próbában egy képet fogsz látni, amely egy számot tartalmaz."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -559,7 +559,21 @@ msgstr "Ez a kép {HIDE_AFTER} másodperc után eltűnik."
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Be kell írnia a látott számot a szövegdobozba."
+msgstr "Be kell írnod a számot, amit látsz a szövegdobozba."
+
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Melyik hang különbözik a másik kettőtől: 1, 2 vagy 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"A feladatod az, hogy <strong>megítéld, melyik hang tér el a "
+"többiektől</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy

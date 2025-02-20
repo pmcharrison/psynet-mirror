@@ -568,6 +568,19 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Devi inserire il numero che vedi nella casella di testo."
 
+#: psynet/prescreen.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Quale suono è diverso dagli altri due: 1, 2 o 3?"
+
+#: psynet/prescreen.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr ""
+"Il tuo compito sarà giudicare <strong>quale suono è quello diverso</strong>."
+
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
