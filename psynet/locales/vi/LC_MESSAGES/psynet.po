@@ -543,7 +543,7 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Chúng tôi sẽ thực hiện một bài kiểm tra nhanh để kiểm tra khả năng nhận thức"
+"Chúng tôi sẽ thực hiện một bài kiểm tra nhanh để kiểm tra khả năng nhận biết"
 " màu sắc của bạn."
 
 #: psynet/prescreen.py
@@ -552,8 +552,7 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
-"Trong mỗi lượt thử nghiệm, bạn sẽ được trình bày với một hình ảnh chứa một "
-"số."
+"Trong mỗi thử nghiệm, bạn sẽ được trình bày một hình ảnh có chứa một số."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -578,131 +577,7 @@ msgstr "Âm thanh nào khác với hai âm thanh còn lại: 1, 2, hay 3?"
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Nhiệm vụ của bạn là đánh giá <strong>âm thanh nào là âm thanh lạ</strong>."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Your score was"
-msgstr "Điểm của bạn là"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press the button to continue."
-msgstr "Nhấn nút để tiếp tục."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "We will perform a test to check your language abilities."
-msgstr ""
-"Chúng tôi sẽ thực hiện một bài kiểm tra để kiểm tra khả năng ngôn ngữ của "
-"bạn."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In each trial, you will see a string of characters."
-msgstr "Trong mỗi thử nghiệm, bạn sẽ thấy một chuỗi ký tự."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The string will automatically disappear."
-msgstr "Chuỗi này sẽ tự động biến mất."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
-"or not."
-msgstr ""
-"Nhiệm vụ của bạn là quyết định liệu đây có phải là một từ tồn tại trong "
-"{LANGUAGE_NAME} hay không."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"If you don’t know the exact meaning of the word, but you are certain that it"
-" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
-msgstr ""
-"Nếu bạn không biết ý nghĩa chính xác của từ, nhưng bạn chắc chắn rằng nó tồn"
-" tại trong {LANGUAGE_NAME}, bạn nên đánh dấu nó là một từ thực."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
-"mark it as a fake word."
-msgstr ""
-"Nếu bạn không chắc liệu từ này có tồn tại trong {LANGUAGE_NAME} hay không, "
-"bạn nên đánh dấu nó là một từ giả."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In this experiment, you might find a mix between spelling variants."
-msgstr ""
-"Trong thí nghiệm này, bạn có thể thấy sự pha trộn giữa các biến thể chính "
-"tả."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You should not pay attention to subtle spelling differences."
-msgstr "Bạn không nên chú ý đến những khác biệt chính tả nhỏ."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The words are presented in either only uppercase or lowercase letters."
-msgstr "Các từ được trình bày chỉ bằng chữ in hoa hoặc chữ thường."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You can ignore the case of the word."
-msgstr "Bạn có thể bỏ qua dạng chữ của từ."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "To do the task quickly, you should use the keys on your keyboard."
-msgstr ""
-"Để thực hiện nhiệm vụ nhanh chóng, bạn nên sử dụng các phím trên bàn phím "
-"của mình."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You can use the following keys:"
-msgstr "Bạn có thể sử dụng các phím sau:"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
-msgstr "Nhấn <kbd>A</kbd> nếu từ được trình bày là <strong>thực</strong>"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
-msgstr "Nhấn <kbd>L</kbd> nếu từ được trình bày là <strong>giả</strong>"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Familiarize yourself with the two keys on your keyboard."
-msgstr "Làm quen với hai phím trên bàn phím của bạn."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "If you press them, they will light up in the keyboard on the right."
-msgstr "Nếu bạn nhấn chúng, chúng sẽ sáng lên trên bàn phím bên phải."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid ""
-"You need to press both keys at least once to progress to the next page."
-msgstr "Bạn cần nhấn cả hai phím ít nhất một lần để tiến đến trang tiếp theo."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In case you forget the keys, they will be printed on every page."
-msgstr "Trong trường hợp bạn quên các phím, chúng sẽ được in trên mọi trang."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The test will start on the next page."
-msgstr "Bài kiểm tra sẽ bắt đầu ở trang tiếp theo."
+"Nhiệm vụ của bạn là phán đoán <strong>âm thanh nào là khác biệt</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -880,8 +755,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Để tiếp tục, nhấn nút bên dưới."
 
-#: psynet/templates/consent.html psynet/templates/keyboard.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Tiếp theo"
@@ -2315,16 +2189,6 @@ msgstr "Bằng cách thực hiện nhiệm vụ, bạn đang giúp đỡ khoa h�
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Nộp Khảo Sát Lucid"
-
-#: psynet/templates/keyboard.html
-#, fuzzy
-msgid "Select a keyboard layout:"
-msgstr "Chọn bố cục bàn phím:"
-
-#: psynet/templates/keyboard.html
-#, fuzzy
-msgid "You did not press all required keys."
-msgstr "Bạn chưa nhấn tất cả các phím yêu cầu."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -4604,1168 +4468,1138 @@ msgstr "Quần đảo Åland"
 #, fuzzy
 msgctxt "language_name"
 msgid "Abkhazian"
-msgstr "Tiếng Abkhazian"
+msgstr "Abkhazian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Afar"
-msgstr "Tiếng Afar"
+msgstr "Afar"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Afrikaans"
-msgstr "Tiếng Afrikaans"
+msgstr "Afrikaans"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Akan"
-msgstr "Tiếng Akan"
+msgstr "Akan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Albanian"
-msgstr "Tiếng Albania"
+msgstr "Albanian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Amharic"
-msgstr "Tiếng Amharic"
+msgstr "Amharic"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Arabic"
-msgstr "Tiếng Ả Rập"
+msgstr "Arabic"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Aragonese"
-msgstr "Tiếng Aragonese"
+msgstr "Aragonese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Armenian"
-msgstr "Tiếng Armenia"
+msgstr "Armenian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Assamese"
-msgstr "Tiếng Assamese"
+msgstr "Assamese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Avaric"
-msgstr "Tiếng Avaric"
+msgstr "Avaric"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Avestan"
-msgstr "Tiếng Avestan"
+msgstr "Avestan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Aymara"
-msgstr "Tiếng Aymara"
+msgstr "Aymara"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Azerbaijani"
-msgstr "Tiếng Azerbaijan"
+msgstr "Azerbaijani"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bambara"
-msgstr "Tiếng Bambara"
+msgstr "Bambara"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bashkir"
-msgstr "Tiếng Bashkir"
+msgstr "Bashkir"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Basque"
-msgstr "Tiếng Basque"
+msgstr "Basque"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Belarusian"
-msgstr "Tiếng Belarus"
+msgstr "Belarusian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bengali"
-msgstr "Tiếng Bengal"
+msgstr "Bengali"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bislama"
-msgstr "Tiếng Bislama"
+msgstr "Bislama"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bosnian"
-msgstr "Tiếng Bosnia"
+msgstr "Bosnian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Breton"
-msgstr "Tiếng Breton"
+msgstr "Breton"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bulgarian"
-msgstr "Tiếng Bulgaria"
+msgstr "Bulgarian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Burmese"
-msgstr "Tiếng Myanmar"
+msgstr "Burmese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Catalan"
-msgstr "Tiếng Catalan"
+msgstr "Catalan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Central Khmer"
-msgstr "Tiếng Khmer Trung tâm"
+msgstr "Central Khmer"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Chamorro"
-msgstr "Tiếng Chamorro"
+msgstr "Chamorro"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Chechen"
-msgstr "Tiếng Chechen"
+msgstr "Chechen"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Chinese"
-msgstr "Tiếng Trung Quốc"
+msgstr "Trung Quốc"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Church Slavic"
-msgstr "Tiếng Church Slavic"
+msgstr "Church Slavic"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Chuvash"
-msgstr "Tiếng Chuvash"
+msgstr "Chuvash"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Cornish"
-msgstr "Tiếng Cornish"
+msgstr "Cornish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Corsican"
-msgstr "Tiếng Corsican"
+msgstr "Corsican"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Cree"
-msgstr "Tiếng Cree"
+msgstr "Cree"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Croatian"
-msgstr "Tiếng Croatia"
+msgstr "Croatian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Cebuano"
-msgstr "Tiếng Cebuano"
+msgstr "Cebuano"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Czech"
-msgstr "Tiếng Séc"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Dogri"
-msgstr "Tiếng Dogri"
+msgstr "Czech"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Danish"
-msgstr "Tiếng Đan Mạch"
+msgstr "Danish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Dhivehi"
-msgstr "Tiếng Dhivehi"
+msgstr "Dhivehi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Dutch"
-msgstr "Tiếng Hà Lan"
+msgstr "Dutch"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Dzongkha"
-msgstr "Tiếng Dzongkha"
+msgstr "Dzongkha"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "English"
-msgstr "Tiếng Anh"
+msgstr "English"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Esperanto"
-msgstr "Tiếng Esperanto"
+msgstr "Esperanto"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Estonian"
-msgstr "Tiếng Estonia"
+msgstr "Estonian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ewe"
-msgstr "Tiếng Ewe"
+msgstr "Ewe"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Faroese"
-msgstr "Tiếng Faroese"
+msgstr "Faroese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Fijian"
-msgstr "Tiếng Fijian"
+msgstr "Fijian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Finnish"
-msgstr "Tiếng Phần Lan"
+msgstr "Finnish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "French"
-msgstr "Tiếng Pháp"
+msgstr "French"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Fulah"
-msgstr "Tiếng Fulah"
+msgstr "Fulah"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Galician"
-msgstr "Tiếng Galician"
+msgstr "Galician"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ganda"
-msgstr "Tiếng Ganda"
+msgstr "Ganda"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Georgian"
-msgstr "Tiếng Georgia"
+msgstr "Georgian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "German"
-msgstr "Tiếng Đức"
+msgstr "German"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Gothic"
-msgstr "Tiếng Gothic"
+msgstr "Gothic"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Guarani"
-msgstr "Tiếng Guarani"
+msgstr "Guarani"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Gujarati"
-msgstr "Tiếng Gujarati"
+msgstr "Gujarati"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Haitian"
-msgstr "Tiếng Haiti"
+msgstr "Haitian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hausa"
-msgstr "Tiếng Hausa"
+msgstr "Hausa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hawaiian"
-msgstr "Tiếng Hawaii"
+msgstr "Hawaiian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hebrew"
-msgstr "Tiếng Hebrew"
+msgstr "Hebrew"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Herero"
-msgstr "Tiếng Herero"
+msgstr "Herero"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hindi"
-msgstr "Tiếng Hindi"
+msgstr "Hindi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hiri Motu"
-msgstr "Tiếng Hiri Motu"
+msgstr "Hiri Motu"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hmong"
-msgstr "Tiếng Hmong"
+msgstr "Hmong"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hungarian"
-msgstr "Tiếng Hungary"
+msgstr "Hungarian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Icelandic"
-msgstr "Tiếng Iceland"
+msgstr "Icelandic"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ido"
-msgstr "Tiếng Ido"
+msgstr "Ido"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Igbo"
-msgstr "Tiếng Igbo"
+msgstr "Igbo"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Indonesian"
-msgstr "Tiếng Indonesia"
+msgstr "Indonesian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Interlingua"
-msgstr "Tiếng Interlingua"
+msgstr "Interlingua"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Interlingue"
-msgstr "Tiếng Interlingue"
+msgstr "Interlingue"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Inuktitut"
-msgstr "Tiếng Inuktitut"
+msgstr "Inuktitut"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Inupiaq"
-msgstr "Tiếng Inupiaq"
+msgstr "Inupiaq"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Irish"
-msgstr "Tiếng Ireland"
+msgstr "Irish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Italian"
-msgstr "Tiếng Ý"
+msgstr "Italian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Japanese"
-msgstr "Tiếng Nhật"
+msgstr "Japanese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Javanese"
-msgstr "Tiếng Java"
+msgstr "Javanese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kalaallisut"
-msgstr "Tiếng Kalaallisut"
+msgstr "Kalaallisut"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kannada"
-msgstr "Tiếng Kannada"
+msgstr "Kannada"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kanuri"
-msgstr "Tiếng Kanuri"
+msgstr "Kanuri"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kashmiri"
-msgstr "Tiếng Kashmiri"
+msgstr "Kashmiri"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kazakh"
-msgstr "Tiếng Kazakh"
+msgstr "Kazakh"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kikuyu"
-msgstr "Tiếng Kikuyu"
+msgstr "Kikuyu"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kinyarwanda"
-msgstr "Tiếng Kinyarwanda"
+msgstr "Kinyarwanda"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kirghiz"
-msgstr "Tiếng Kirghiz"
+msgstr "Kirghiz"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Komi"
-msgstr "Tiếng Komi"
+msgstr "Komi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kongo"
-msgstr "Tiếng Kongo"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Konkani"
-msgstr "Tiếng Konkani"
+msgstr "Kongo"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Korean"
-msgstr "Tiếng Hàn Quốc"
+msgstr "Korean"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kuanyama"
-msgstr "Tiếng Kuanyama"
+msgstr "Kuanyama"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kurdish"
-msgstr "Tiếng Kurd"
+msgstr "Kurdish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Lao"
-msgstr "Tiếng Lào"
+msgstr "Lao"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Latin"
-msgstr "Tiếng Latin"
+msgstr "Latin"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Latvian"
-msgstr "Tiếng Latvia"
+msgstr "Latvian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Limburgan"
-msgstr "Tiếng Limburgan"
+msgstr "Limburgan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Lingala"
-msgstr "Tiếng Lingala"
+msgstr "Lingala"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Lithuanian"
-msgstr "Tiếng Lithuania"
+msgstr "Lithuanian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Luba-Katanga"
-msgstr "Tiếng Luba-Katanga"
+msgstr "Luba-Katanga"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Luxembourgish"
-msgstr "Tiếng Luxembourgish"
+msgstr "Luxembourgish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Macedonian"
-msgstr "Tiếng Macedonia"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Maithili"
-msgstr "Tiếng Maithili"
+msgstr "Macedonian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Malagasy"
-msgstr "Tiếng Malagasy"
+msgstr "Malagasy"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Malay"
-msgstr "Tiếng Mã Lai"
+msgstr "Malay"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Malayalam"
-msgstr "Tiếng Malayalam"
+msgstr "Malayalam"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Maltese"
-msgstr "Tiếng Malta"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Manipuri"
-msgstr "Tiếng Manipuri"
+msgstr "Maltese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Manx"
-msgstr "Tiếng Manx"
+msgstr "Manx"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Maori"
-msgstr "Tiếng Maori"
+msgstr "Maori"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Marathi"
-msgstr "Tiếng Marathi"
+msgstr "Marathi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Marshallese"
-msgstr "Tiếng Marshallese"
+msgstr "Marshallese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Greek"
-msgstr "Tiếng Hy Lạp"
+msgstr "Greek"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Mongolian"
-msgstr "Tiếng Mông Cổ"
+msgstr "Mongolian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Nauru"
-msgstr "Tiếng Nauru"
+msgstr "Nauru"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Navajo"
-msgstr "Tiếng Navajo"
+msgstr "Navajo"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ndonga"
-msgstr "Tiếng Ndonga"
+msgstr "Ndonga"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Nepali"
-msgstr "Tiếng Nepal"
+msgstr "Nepali"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "North Ndebele"
-msgstr "Tiếng Bắc Ndebele"
+msgstr "North Ndebele"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Northern Sami"
-msgstr "Tiếng Bắc Sami"
+msgstr "Northern Sami"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian"
-msgstr "Tiếng Na Uy"
+msgstr "Norwegian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Bokmål"
-msgstr "Tiếng Na Uy Bokmål"
+msgstr "Norwegian Bokmål"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Nynorsk"
-msgstr "Tiếng Na Uy Nynorsk"
+msgstr "Norwegian Nynorsk"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Nyanja"
-msgstr "Tiếng Nyanja"
+msgstr "Nyanja"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Occitan"
-msgstr "Tiếng Occitan"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Odia"
-msgstr "Tiếng Odia"
+msgstr "Occitan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ojibwa"
-msgstr "Tiếng Ojibwa"
+msgstr "Ojibwa"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Oriya"
+msgstr "Oriya"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Oromo"
-msgstr "Tiếng Oromo"
+msgstr "Oromo"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ossetian"
-msgstr "Tiếng Ossetian"
+msgstr "Ossetian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Pali"
-msgstr "Tiếng Pali"
+msgstr "Pali"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Panjabi"
-msgstr "Tiếng Panjabi"
+msgstr "Panjabi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Persian"
-msgstr "Tiếng Ba Tư"
+msgstr "Persian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Polish"
-msgstr "Tiếng Ba Lan"
+msgstr "Polish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Portuguese"
-msgstr "Tiếng Bồ Đào Nha"
+msgstr "Portuguese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Pushto"
-msgstr "Tiếng Pushto"
+msgstr "Pushto"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Quechua"
-msgstr "Tiếng Quechua"
+msgstr "Quechua"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Romanian"
-msgstr "Tiếng Romania"
+msgstr "Romanian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Romansh"
-msgstr "Tiếng Romansh"
+msgstr "Romansh"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Rundi"
-msgstr "Tiếng Rundi"
+msgstr "Rundi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Russian"
-msgstr "Tiếng Nga"
+msgstr "Russian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Samoan"
-msgstr "Tiếng Samoa"
+msgstr "Samoan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sango"
-msgstr "Tiếng Sango"
+msgstr "Sango"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sanskrit"
-msgstr "Tiếng Phạn"
+msgstr "Sanskrit"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sardinian"
-msgstr "Tiếng Sardinian"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Santali"
-msgstr "Tiếng Santali"
+msgstr "Sardinian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Scottish Gaelic"
-msgstr "Tiếng Gael Scotland"
+msgstr "Scottish Gaelic"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Serbian"
-msgstr "Tiếng Serbia"
+msgstr "Serbian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Serbo-Croatian"
-msgstr "Tiếng Serbo-Croatia"
+msgstr "Serbo-Croatian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Shona"
-msgstr "Tiếng Shona"
+msgstr "Shona"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sichuan Yi"
-msgstr "Tiếng Sichuan Yi"
+msgstr "Sichuan Yi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sindhi"
-msgstr "Tiếng Sindhi"
+msgstr "Sindhi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sinhala"
-msgstr "Tiếng Sinhala"
+msgstr "Sinhala"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Slovak"
-msgstr "Tiếng Slovak"
+msgstr "Slovak"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Slovenian"
-msgstr "Tiếng Slovenia"
+msgstr "Slovenian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Somali"
-msgstr "Tiếng Somali"
+msgstr "Somali"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "South Ndebele"
-msgstr "Tiếng Nam Ndebele"
+msgstr "South Ndebele"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Southern Sotho"
-msgstr "Tiếng Sotho Nam"
+msgstr "Southern Sotho"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Spanish"
-msgstr "Tiếng Tây Ban Nha"
+msgstr "Spanish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Sundanese"
-msgstr "Tiếng Sunda"
+msgstr "Sundanese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Swahili"
-msgstr "Tiếng Swahili"
+msgstr "Swahili"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Swati"
-msgstr "Tiếng Swati"
+msgstr "Swati"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Swedish"
-msgstr "Tiếng Thụy Điển"
+msgstr "Swedish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Taiwanese"
-msgstr "Tiếng Đài Loan"
+msgstr "Taiwanese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tagalog"
-msgstr "Tiếng Tagalog"
+msgstr "Tagalog"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tahitian"
-msgstr "Tiếng Tahitian"
+msgstr "Tahitian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tajik"
-msgstr "Tiếng Tajik"
+msgstr "Tajik"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tamil"
-msgstr "Tiếng Tamil"
+msgstr "Tamil"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tatar"
-msgstr "Tiếng Tatar"
+msgstr "Tatar"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Telugu"
-msgstr "Tiếng Telugu"
+msgstr "Telugu"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Thai"
-msgstr "Tiếng Thái"
+msgstr "Thai"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tibetan"
-msgstr "Tiếng Tây Tạng"
+msgstr "Tibetan"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tigrinya"
-msgstr "Tiếng Tigrinya"
+msgstr "Tigrinya"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tonga"
-msgstr "Tiếng Tonga"
+msgstr "Tonga"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tsonga"
-msgstr "Tiếng Tsonga"
+msgstr "Tsonga"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tswana"
-msgstr "Tiếng Tswana"
+msgstr "Tswana"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Turkish"
-msgstr "Tiếng Thổ Nhĩ Kỳ"
+msgstr "Turkish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Turkmen"
-msgstr "Tiếng Turkmen"
+msgstr "Turkmen"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Twi"
-msgstr "Tiếng Twi"
+msgstr "Twi"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Uighur"
-msgstr "Tiếng Uighur"
+msgstr "Uighur"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ukrainian"
-msgstr "Tiếng Ukraina"
+msgstr "Ukrainian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Urdu"
-msgstr "Tiếng Urdu"
+msgstr "Urdu"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Uzbek"
-msgstr "Tiếng Uzbek"
+msgstr "Uzbek"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Venda"
-msgstr "Tiếng Venda"
+msgstr "Venda"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Vietnamese"
-msgstr "Tiếng Việt"
+msgstr "Vietnamese"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Volapük"
-msgstr "Tiếng Volapük"
+msgstr "Volapük"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Walloon"
-msgstr "Tiếng Walloon"
+msgstr "Walloon"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Welsh"
-msgstr "Tiếng Wales"
+msgstr "Welsh"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Western Armenian"
-msgstr "Tiếng Armenia Tây"
+msgstr "Western Armenian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Western Frisian"
-msgstr "Tiếng Frisian Tây"
+msgstr "Western Frisian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Wolof"
-msgstr "Tiếng Wolof"
+msgstr "Wolof"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Xhosa"
-msgstr "Tiếng Xhosa"
+msgstr "Xhosa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Yiddish"
-msgstr "Tiếng Yiddish"
+msgstr "Yiddish"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Yoruba"
-msgstr "Tiếng Yoruba"
+msgstr "Yoruba"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Zhuang"
-msgstr "Tiếng Zhuang"
+msgstr "Zhuang"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Zulu"
-msgstr "Tiếng Zulu"
+msgstr "Zulu"

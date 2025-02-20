@@ -547,13 +547,13 @@ msgstr "Suoritamme nyt nopean testin tarkistaaksemme kykysi havaita värejä."
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Jokaisessa kokeessa sinulle esitetään kuva, joka sisältää numeron."
+msgstr "Kussakin kokeessa sinulle esitetään kuva, joka sisältää numeron."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "Tämä kuva katoaa {HIDE_AFTER} sekunnin jälkeen."
+msgstr "Tämä kuva katoaa {HIDE_AFTER} sekunnin kuluttua."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -565,137 +565,13 @@ msgstr "Sinun on syötettävä näkemäsi numero tekstikenttään."
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Mikä ääni eroaa kahdesta muusta: 1, 2 vai 3?"
+msgstr "Mikä ääni on erilainen kuin kaksi muuta: 1, 2 vai 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr ""
-"Tehtäväsi on arvioida <strong>mikä ääni on erilainen kuin muut</strong>."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Your score was"
-msgstr "Pisteesi oli"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press the button to continue."
-msgstr "Paina nappia jatkaaksesi."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "We will perform a test to check your language abilities."
-msgstr "Suoritamme testin tarkistaaksemme kielitaitosi."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In each trial, you will see a string of characters."
-msgstr "Jokaisessa kokeessa näet merkkijonon."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The string will automatically disappear."
-msgstr "Merkkijono katoaa automaattisesti."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
-"or not."
-msgstr ""
-"Tehtäväsi on päättää, onko tämä olemassa oleva sana kielellä {LANGUAGE_NAME}"
-" vai ei."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"If you don’t know the exact meaning of the word, but you are certain that it"
-" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
-msgstr ""
-"Jos et tiedä sanan tarkkaa merkitystä, mutta olet varma, että se on olemassa"
-" kielellä {LANGUAGE_NAME}, sinun pitäisi merkitä se oikeaksi sanaksi."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
-"mark it as a fake word."
-msgstr ""
-"Jos et ole varma, onko sana olemassa kielellä {LANGUAGE_NAME}, sinun pitäisi"
-" merkitä se tekaistuksi sanaksi."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In this experiment, you might find a mix between spelling variants."
-msgstr ""
-"Tässä kokeessa saatat löytää sekoituksen oikeinkirjoitusvaihtoehdoista."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You should not pay attention to subtle spelling differences."
-msgstr ""
-"Sinun ei pitäisi kiinnittää huomiota hienoisiin oikeinkirjoituseroihin."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The words are presented in either only uppercase or lowercase letters."
-msgstr "Sanat esitetään joko vain isoilla tai pienillä kirjaimilla."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You can ignore the case of the word."
-msgstr "Voit jättää huomiotta sanan kirjasinkoon."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "To do the task quickly, you should use the keys on your keyboard."
-msgstr ""
-"Tehdäksesi tehtävän nopeasti, sinun pitäisi käyttää näppäimistösi näppäimiä."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You can use the following keys:"
-msgstr "Voit käyttää seuraavia näppäimiä:"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
-msgstr "Paina <kbd>A</kbd>, jos esitetty sana on <strong>oikea</strong>"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
-msgstr "Paina <kbd>L</kbd>, jos esitetty sana on <strong>tekaistu</strong>"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Familiarize yourself with the two keys on your keyboard."
-msgstr "Tutustu näppäimistösi kahteen näppäimeen."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "If you press them, they will light up in the keyboard on the right."
-msgstr "Jos painat niitä, ne syttyvät näppäimistössä oikealla."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid ""
-"You need to press both keys at least once to progress to the next page."
-msgstr ""
-"Sinun täytyy painaa molempia näppäimiä ainakin kerran edetäksesi seuraavalle"
-" sivulle."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In case you forget the keys, they will be printed on every page."
-msgstr "Jos unohdat näppäimet, ne tulostetaan jokaiselle sivulle."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The test will start on the next page."
-msgstr "Testi alkaa seuraavalla sivulla."
+msgstr "Tehtäväsi on arvioida <strong>mikä ääni on erilainen</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -873,8 +749,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Jatkaaksesi napsauta alla olevaa painiketta."
 
-#: psynet/templates/consent.html psynet/templates/keyboard.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Seuraava"
@@ -2286,16 +2161,6 @@ msgstr "Tekemällä tehtävän autat tiedettä, kiitos!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid-kyselyn lähettäminen"
-
-#: psynet/templates/keyboard.html
-#, fuzzy
-msgid "Select a keyboard layout:"
-msgstr "Valitse näppäimistön asettelu:"
-
-#: psynet/templates/keyboard.html
-#, fuzzy
-msgid "You did not press all required keys."
-msgstr "Et painanut kaikkia vaadittuja näppäimiä."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -4577,7 +4442,7 @@ msgstr "Abhaasi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Afar"
-msgstr "Afari"
+msgstr "Afar"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4631,13 +4496,13 @@ msgstr "Assami"
 #, fuzzy
 msgctxt "language_name"
 msgid "Avaric"
-msgstr "Avari"
+msgstr "Avar"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Avestan"
-msgstr "Avesta"
+msgstr "Avestan"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4792,12 +4657,6 @@ msgstr "Tšekki"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Dogri"
-msgstr "Dogri"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
 msgid "Danish"
 msgstr "Tanska"
 
@@ -4805,7 +4664,7 @@ msgstr "Tanska"
 #, fuzzy
 msgctxt "language_name"
 msgid "Dhivehi"
-msgstr "Dhivehi"
+msgstr "Divehi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4919,19 +4778,19 @@ msgstr "Gudžarati"
 #, fuzzy
 msgctxt "language_name"
 msgid "Haitian"
-msgstr "Haitin kieli"
+msgstr "Haitin kreoli"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hausa"
-msgstr "Hausan kieli"
+msgstr "Hausa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Hawaiian"
-msgstr "Havaijin kieli"
+msgstr "Havaiji"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5045,7 +4904,7 @@ msgstr "Jaava"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kalaallisut"
-msgstr "Grönlanti"
+msgstr "Kalaallisut"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5087,7 +4946,7 @@ msgstr "Kinyarwanda"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kirghiz"
-msgstr "Kirgisia"
+msgstr "Kirgiisi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5100,12 +4959,6 @@ msgstr "Komi"
 msgctxt "language_name"
 msgid "Kongo"
 msgstr "Kongo"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Konkani"
-msgstr "Konkani"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5147,7 +5000,7 @@ msgstr "Latvia"
 #, fuzzy
 msgctxt "language_name"
 msgid "Limburgan"
-msgstr "Limburg"
+msgstr "Limburgi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5171,19 +5024,13 @@ msgstr "Luba-Katanga"
 #, fuzzy
 msgctxt "language_name"
 msgid "Luxembourgish"
-msgstr "Luxemburgin kieli"
+msgstr "Luxemburg"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Macedonian"
 msgstr "Makedonia"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Maithili"
-msgstr "Maithili"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5212,14 +5059,8 @@ msgstr "Malta"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Manipuri"
-msgstr "Manipuri"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
 msgid "Manx"
-msgstr "Mansaari"
+msgstr "Manksi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5237,7 +5078,7 @@ msgstr "Marathi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Marshallese"
-msgstr "Marshallin kieli"
+msgstr "Marshallinsaaret"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5297,7 +5138,7 @@ msgstr "Norja"
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Bokmål"
-msgstr "Norjan Bokmål"
+msgstr "Norjan bokmål"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5320,14 +5161,14 @@ msgstr "Occitan"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Odia"
-msgstr "Odia"
+msgid "Ojibwa"
+msgstr "Ojibwa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Ojibwa"
-msgstr "Ojibwa"
+msgid "Oriya"
+msgstr "Oriya"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5375,7 +5216,7 @@ msgstr "Portugali"
 #, fuzzy
 msgctxt "language_name"
 msgid "Pushto"
-msgstr "Paštun kieli"
+msgstr "Pushto"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5429,13 +5270,7 @@ msgstr "Sanskrit"
 #, fuzzy
 msgctxt "language_name"
 msgid "Sardinian"
-msgstr "Sardinia"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Santali"
-msgstr "Santali"
+msgstr "Sardiinia"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5543,7 +5378,7 @@ msgstr "Ruotsi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Taiwanese"
-msgstr "Taiwanin kieli"
+msgstr "Taiwanilainen"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5561,7 +5396,7 @@ msgstr "Tahiti"
 #, fuzzy
 msgctxt "language_name"
 msgid "Tajik"
-msgstr "Tadžiki"
+msgstr "Tadžikki"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5591,7 +5426,7 @@ msgstr "Thai"
 #, fuzzy
 msgctxt "language_name"
 msgid "Tibetan"
-msgstr "Tiibet"
+msgstr "Tiibetin"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5681,7 +5516,7 @@ msgstr "Volapük"
 #, fuzzy
 msgctxt "language_name"
 msgid "Walloon"
-msgstr "Vallonia"
+msgstr "Valloni"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5723,7 +5558,7 @@ msgstr "Jiddiš"
 #, fuzzy
 msgctxt "language_name"
 msgid "Yoruba"
-msgstr "Yoruba"
+msgstr "Joruba"
 
 #: psynet/translation/languages.py
 #, fuzzy

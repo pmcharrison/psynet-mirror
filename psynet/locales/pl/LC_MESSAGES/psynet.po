@@ -535,7 +535,7 @@ msgstr "Musisz podać liczbę!"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Zapisz numer z obrazka."
+msgstr "Zapisz liczbę z obrazka."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -543,7 +543,7 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Teraz przeprowadzimy szybki test, aby sprawdzić Twoją zdolność do "
+"Teraz przeprowadzimy szybki test, aby sprawdzić twoją zdolność do "
 "postrzegania kolorów."
 
 #: psynet/prescreen.py
@@ -551,7 +551,7 @@ msgstr ""
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "W każdej próbie zostanie przedstawiony obraz zawierający numer."
+msgstr "W każdej próbie zostanie Ci przedstawiony obraz zawierający liczbę."
 
 #: psynet/prescreen.py
 #, fuzzy, python-brace-format
@@ -563,144 +563,19 @@ msgstr "Ten obraz zniknie po {HIDE_AFTER} sekundach."
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Musisz wpisać numer, który widzisz, do pola tekstowego."
+msgstr "Musisz wpisać liczbę, którą widzisz, w pole tekstowe."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Który dźwięk jest inny od pozostałych dwóch: 1, 2 czy 3?"
+msgstr "Który dźwięk różni się od pozostałych dwóch: 1, 2 czy 3?"
 
 #: psynet/prescreen.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr "Twoim zadaniem będzie ocenić <strong>który dźwięk jest inny</strong>."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Your score was"
-msgstr "Twój wynik to"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press the button to continue."
-msgstr "Naciśnij przycisk, aby kontynuować."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "We will perform a test to check your language abilities."
-msgstr "Przeprowadzimy test, aby sprawdzić twoje umiejętności językowe."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In each trial, you will see a string of characters."
-msgstr "W każdej próbie zobaczysz ciąg znaków."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The string will automatically disappear."
-msgstr "Ciąg automatycznie zniknie."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
-"or not."
-msgstr ""
-"Twoim zadaniem jest zdecydować, czy jest to istniejące słowo w języku "
-"{LANGUAGE_NAME}, czy nie."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"If you don’t know the exact meaning of the word, but you are certain that it"
-" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
-msgstr ""
-"Jeśli nie znasz dokładnego znaczenia słowa, ale jesteś pewien, że istnieje "
-"ono w języku {LANGUAGE_NAME}, powinieneś oznaczyć je jako prawdziwe słowo."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy, python-brace-format
-msgid ""
-"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
-"mark it as a fake word."
-msgstr ""
-"Jeśli nie jesteś pewien, czy słowo istnieje w języku {LANGUAGE_NAME}, "
-"powinieneś oznaczyć je jako fałszywe słowo."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In this experiment, you might find a mix between spelling variants."
-msgstr "W tym eksperymencie możesz znaleźć mieszankę wariantów pisowni."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You should not pay attention to subtle spelling differences."
-msgstr "Nie powinieneś zwracać uwagi na subtelne różnice w pisowni."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The words are presented in either only uppercase or lowercase letters."
-msgstr "Słowa są prezentowane albo tylko wielkimi, albo małymi literami."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You can ignore the case of the word."
-msgstr "Możesz zignorować wielkość liter w słowie."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "To do the task quickly, you should use the keys on your keyboard."
-msgstr ""
-"Aby szybko wykonać zadanie, powinieneś używać klawiszy na klawiaturze."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "You can use the following keys:"
-msgstr "Możesz używać następujących klawiszy:"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
-msgstr ""
-"Naciśnij <kbd>A</kbd>, jeśli prezentowane słowo jest "
-"<strong>prawdziwe</strong>"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
-msgstr ""
-"Naciśnij <kbd>L</kbd>, jeśli prezentowane słowo jest "
-"<strong>fałszywe</strong>"
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "Familiarize yourself with the two keys on your keyboard."
-msgstr "Zapoznaj się z dwoma klawiszami na swojej klawiaturze."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "If you press them, they will light up in the keyboard on the right."
-msgstr "Jeśli je naciśniesz, zaświecą się na klawiaturze po prawej."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid ""
-"You need to press both keys at least once to progress to the next page."
-msgstr ""
-"Musisz nacisnąć oba klawisze przynajmniej raz, aby przejść do następnej "
-"strony."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "In case you forget the keys, they will be printed on every page."
-msgstr "Jeśli zapomnisz klawiszy, będą one wydrukowane na każdej stronie."
-
-#: psynet/prescreen/vocabtest.py
-#, fuzzy
-msgid "The test will start on the next page."
-msgstr "Test rozpocznie się na następnej stronie."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -878,8 +753,7 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Aby kontynuować, kliknij przycisk poniżej."
 
-#: psynet/templates/consent.html psynet/templates/keyboard.html
-#: psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Dalej"
@@ -2300,16 +2174,6 @@ msgstr "Wykonując zadanie, pomagasz nauce, dziękujemy!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Złożenie ankiety Lucid"
-
-#: psynet/templates/keyboard.html
-#, fuzzy
-msgid "Select a keyboard layout:"
-msgstr "Wybierz układ klawiatury:"
-
-#: psynet/templates/keyboard.html
-#, fuzzy
-msgid "You did not press all required keys."
-msgstr "Nie nacisnąłeś wszystkich wymaganych klawiszy."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -4601,13 +4465,13 @@ msgstr "Abchaski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Afar"
-msgstr "Daleko"
+msgstr "Afar"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Afrikaans"
-msgstr "Afrykanerski"
+msgstr "Afrikaans"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4619,31 +4483,31 @@ msgstr "Akan"
 #, fuzzy
 msgctxt "language_name"
 msgid "Albanian"
-msgstr "albański"
+msgstr "Albański"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Amharic"
-msgstr "amharski"
+msgstr "Amharski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Arabic"
-msgstr "arabski"
+msgstr "Arabski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Aragonese"
-msgstr "aragoński"
+msgstr "Aragoński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Armenian"
-msgstr "ormiański"
+msgstr "Armeński"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4655,13 +4519,13 @@ msgstr "Asamski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Avaric"
-msgstr "Awaryczny"
+msgstr "Awar"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Avestan"
-msgstr "Awestyjski"
+msgstr "Awestański"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4673,7 +4537,7 @@ msgstr "Ajmara"
 #, fuzzy
 msgctxt "language_name"
 msgid "Azerbaijani"
-msgstr "azerbejdżański"
+msgstr "Azerbejdżański"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4691,7 +4555,7 @@ msgstr "Baszkirski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Basque"
-msgstr "baskijski"
+msgstr "Baskijski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4703,7 +4567,7 @@ msgstr "Białoruski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Bengali"
-msgstr "bengalski"
+msgstr "Bengalski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4715,25 +4579,25 @@ msgstr "Bislama"
 #, fuzzy
 msgctxt "language_name"
 msgid "Bosnian"
-msgstr "bośniacki"
+msgstr "Bośniacki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Breton"
-msgstr "bretoński"
+msgstr "Bretoński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Bulgarian"
-msgstr "bułgarski"
+msgstr "Bułgarski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Burmese"
-msgstr "Birmańczyk"
+msgstr "Birmański"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4751,7 +4615,7 @@ msgstr "Centralny Khmer"
 #, fuzzy
 msgctxt "language_name"
 msgid "Chamorro"
-msgstr "Czamorro"
+msgstr "Chamorro"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4763,13 +4627,13 @@ msgstr "Czeczeński"
 #, fuzzy
 msgctxt "language_name"
 msgid "Chinese"
-msgstr "chiński"
+msgstr "Chiński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Church Slavic"
-msgstr "cerkiewno-słowiański"
+msgstr "Cerkiewnosłowiański"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4781,7 +4645,7 @@ msgstr "Czuwaski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Cornish"
-msgstr "kornwalijski"
+msgstr "Kornijski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4799,37 +4663,31 @@ msgstr "Kri"
 #, fuzzy
 msgctxt "language_name"
 msgid "Croatian"
-msgstr "chorwacki"
+msgstr "Chorwacki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Cebuano"
-msgstr "Cebuański"
+msgstr "Cebuano"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Czech"
-msgstr "czeski"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Dogri"
-msgstr "Dogri"
+msgstr "Czeski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Danish"
-msgstr "duński"
+msgstr "Duński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Dhivehi"
-msgstr "Diwehi"
+msgstr "Divehi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4847,49 +4705,49 @@ msgstr "Dzongkha"
 #, fuzzy
 msgctxt "language_name"
 msgid "English"
-msgstr "angielski"
+msgstr "Angielski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Esperanto"
-msgstr "esperanto"
+msgstr "Esperanto"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Estonian"
-msgstr "estoński"
+msgstr "Estoński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ewe"
-msgstr "Owca"
+msgstr "Ewe"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Faroese"
-msgstr "farerski"
+msgstr "Farerski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Fijian"
-msgstr "Fidżijski"
+msgstr "Fidżyjski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Finnish"
-msgstr "fiński"
+msgstr "Fiński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "French"
-msgstr "francuski"
+msgstr "Francuski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4913,19 +4771,19 @@ msgstr "Ganda"
 #, fuzzy
 msgctxt "language_name"
 msgid "Georgian"
-msgstr "gruziński"
+msgstr "Gruziński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "German"
-msgstr "niemiecki"
+msgstr "Niemiecki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Gothic"
-msgstr "gotyk"
+msgstr "Gotycki"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4949,7 +4807,7 @@ msgstr "Haitański"
 #, fuzzy
 msgctxt "language_name"
 msgid "Hausa"
-msgstr "hausański"
+msgstr "Hausa"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4961,7 +4819,7 @@ msgstr "Hawajski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Hebrew"
-msgstr "hebrajski"
+msgstr "Hebrajski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4973,7 +4831,7 @@ msgstr "Herero"
 #, fuzzy
 msgctxt "language_name"
 msgid "Hindi"
-msgstr "hinduski"
+msgstr "Hindi"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4991,31 +4849,31 @@ msgstr "Hmong"
 #, fuzzy
 msgctxt "language_name"
 msgid "Hungarian"
-msgstr "węgierski"
+msgstr "Węgierski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Icelandic"
-msgstr "islandzki"
+msgstr "Islandzki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ido"
-msgstr "Ja robię"
+msgstr "Ido"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Igbo"
-msgstr "Ibo"
+msgstr "Igbo"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Indonesian"
-msgstr "indonezyjski"
+msgstr "Indonezyjski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5027,7 +4885,7 @@ msgstr "Interlingua"
 #, fuzzy
 msgctxt "language_name"
 msgid "Interlingue"
-msgstr "Interlingualny"
+msgstr "Interlingue"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5045,37 +4903,37 @@ msgstr "Inupiak"
 #, fuzzy
 msgctxt "language_name"
 msgid "Irish"
-msgstr "irlandzki"
+msgstr "Irlandzki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Italian"
-msgstr "włoski"
+msgstr "Włoski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Japanese"
-msgstr "japoński"
+msgstr "Japoński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Javanese"
-msgstr "jawajski"
+msgstr "Jawajski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kalaallisut"
-msgstr "Kalaalisut"
+msgstr "Kalaallisut"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kannada"
-msgstr "kannadajski"
+msgstr "Kannada"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5099,7 +4957,7 @@ msgstr "Kazachski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kikuyu"
-msgstr "Kikuju"
+msgstr "Kikuyu"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5111,7 +4969,7 @@ msgstr "Kinyarwanda"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kirghiz"
-msgstr "Kirgiz"
+msgstr "Kirgiski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5128,14 +4986,8 @@ msgstr "Kongo"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Konkani"
-msgstr "Konkani"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
 msgid "Korean"
-msgstr "koreański"
+msgstr "Koreański"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5147,31 +4999,31 @@ msgstr "Kuanyama"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kurdish"
-msgstr "kurdyjski"
+msgstr "Kurdyjski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Lao"
-msgstr "Laotański"
+msgstr "Lao"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Latin"
-msgstr "łacina"
+msgstr "Łaciński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Latvian"
-msgstr "łotewski"
+msgstr "Łotewski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Limburgan"
-msgstr "Limburgczyk"
+msgstr "Limburgijski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5183,7 +5035,7 @@ msgstr "Lingala"
 #, fuzzy
 msgctxt "language_name"
 msgid "Lithuanian"
-msgstr "litewski"
+msgstr "Litewski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5195,7 +5047,7 @@ msgstr "Luba-Katanga"
 #, fuzzy
 msgctxt "language_name"
 msgid "Luxembourgish"
-msgstr "luksemburski"
+msgstr "Luksemburski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5206,20 +5058,14 @@ msgstr "Macedoński"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Maithili"
-msgstr "Maithili"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
 msgid "Malagasy"
-msgstr "malgaski"
+msgstr "Malagaski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Malay"
-msgstr "malajski"
+msgstr "Malajski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5231,13 +5077,7 @@ msgstr "Malajalam"
 #, fuzzy
 msgctxt "language_name"
 msgid "Maltese"
-msgstr "maltański"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Manipuri"
-msgstr "Manipuri"
+msgstr "Maltański"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5261,31 +5101,31 @@ msgstr "Marathi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Marshallese"
-msgstr "marszalski"
+msgstr "Marszalski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Greek"
-msgstr "grecki"
+msgstr "Grecki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Mongolian"
-msgstr "mongolski"
+msgstr "Mongolski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Nauru"
-msgstr "Nauru"
+msgstr "Nauruański"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Navajo"
-msgstr "Nawaho"
+msgstr "Navajo"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5303,7 +5143,7 @@ msgstr "Nepalski"
 #, fuzzy
 msgctxt "language_name"
 msgid "North Ndebele"
-msgstr "Ndebele Północne"
+msgstr "Północny Ndebele"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5315,13 +5155,13 @@ msgstr "Północny Sami"
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian"
-msgstr "norweski"
+msgstr "Norweski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Norwegian Bokmål"
-msgstr "norweski Bokmål"
+msgstr "Norweski Bokmål"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5339,25 +5179,25 @@ msgstr "Nyanja"
 #, fuzzy
 msgctxt "language_name"
 msgid "Occitan"
-msgstr "oksytański"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
-msgid "Odia"
-msgstr "Odija"
+msgstr "Oksytański"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Ojibwa"
-msgstr "Odżibwejowie"
+msgstr "Ojibwa"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Oriya"
+msgstr "Orija"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Oromo"
-msgstr "Oromski"
+msgstr "Oromo"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5381,7 +5221,7 @@ msgstr "Pendżabski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Persian"
-msgstr "perski"
+msgstr "Perski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5393,7 +5233,7 @@ msgstr "Polski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Portuguese"
-msgstr "portugalski"
+msgstr "Portugalski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5405,19 +5245,19 @@ msgstr "Paszto"
 #, fuzzy
 msgctxt "language_name"
 msgid "Quechua"
-msgstr "keczua"
+msgstr "Keczua"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Romanian"
-msgstr "rumuński"
+msgstr "Rumuński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Romansh"
-msgstr "retoromański"
+msgstr "Romansz"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5429,7 +5269,7 @@ msgstr "Rundi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Russian"
-msgstr "rosyjski"
+msgstr "Rosyjski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5447,7 +5287,7 @@ msgstr "Sango"
 #, fuzzy
 msgctxt "language_name"
 msgid "Sanskrit"
-msgstr "sanskryt"
+msgstr "Sanskryt"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5458,20 +5298,14 @@ msgstr "Sardyński"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Santali"
-msgstr "Santali"
-
-#: psynet/translation/languages.py
-#, fuzzy
-msgctxt "language_name"
 msgid "Scottish Gaelic"
-msgstr "szkocki gaelicki"
+msgstr "Szkocki Gaelicki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Serbian"
-msgstr "serbski"
+msgstr "Serbski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5501,25 +5335,25 @@ msgstr "Sindhi"
 #, fuzzy
 msgctxt "language_name"
 msgid "Sinhala"
-msgstr "syngaleski"
+msgstr "Syngaleski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Slovak"
-msgstr "słowacki"
+msgstr "Słowacki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Slovenian"
-msgstr "słoweński"
+msgstr "Słoweński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Somali"
-msgstr "Somali"
+msgstr "Somalijski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5537,7 +5371,7 @@ msgstr "Południowy Sotho"
 #, fuzzy
 msgctxt "language_name"
 msgid "Spanish"
-msgstr "hiszpański"
+msgstr "Hiszpański"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5549,7 +5383,7 @@ msgstr "Sundajski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Swahili"
-msgstr "suahilijski"
+msgstr "Suahili"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5561,7 +5395,7 @@ msgstr "Swati"
 #, fuzzy
 msgctxt "language_name"
 msgid "Swedish"
-msgstr "szwedzki"
+msgstr "Szwedzki"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5573,43 +5407,43 @@ msgstr "Tajwański"
 #, fuzzy
 msgctxt "language_name"
 msgid "Tagalog"
-msgstr "tagalski"
+msgstr "Tagalog"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tahitian"
-msgstr "tahitański"
+msgstr "Tahitian"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tajik"
-msgstr "tadżycki"
+msgstr "Tadżycki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tamil"
-msgstr "Tamil"
+msgstr "Tamilski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Tatar"
-msgstr "Tatar"
+msgstr "Tatarski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Telugu"
-msgstr "teluguski"
+msgstr "Telugu"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Thai"
-msgstr "tajski"
+msgstr "Tajski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5645,7 +5479,7 @@ msgstr "Tswana"
 #, fuzzy
 msgctxt "language_name"
 msgid "Turkish"
-msgstr "turecki"
+msgstr "Turecki"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5669,7 +5503,7 @@ msgstr "Ujgurski"
 #, fuzzy
 msgctxt "language_name"
 msgid "Ukrainian"
-msgstr "ukraiński"
+msgstr "Ukraiński"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5681,25 +5515,25 @@ msgstr "Urdu"
 #, fuzzy
 msgctxt "language_name"
 msgid "Uzbek"
-msgstr "uzbecki"
+msgstr "Uzbecki"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Venda"
-msgstr "Sprzedać"
+msgstr "Venda"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Vietnamese"
-msgstr "wietnamski"
+msgstr "Wietnamski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Volapük"
-msgstr "Wolapuk"
+msgstr "Volapük"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5711,19 +5545,19 @@ msgstr "Waloński"
 #, fuzzy
 msgctxt "language_name"
 msgid "Welsh"
-msgstr "walijski"
+msgstr "Walijski"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Western Armenian"
-msgstr "Zachodnioormiański"
+msgstr "Zachodnioarmeński"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Western Frisian"
-msgstr "Fryzyjski zachodni"
+msgstr "Zachodniofryzyjski"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5735,13 +5569,13 @@ msgstr "Wolof"
 #, fuzzy
 msgctxt "language_name"
 msgid "Xhosa"
-msgstr "khosa"
+msgstr "Khosa"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Yiddish"
-msgstr "jidysz"
+msgstr "Jidysz"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5759,4 +5593,4 @@ msgstr "Zhuang"
 #, fuzzy
 msgctxt "language_name"
 msgid "Zulu"
-msgstr "Zulus"
+msgstr "Zulu"
