@@ -762,46 +762,55 @@ def get_translator(
         else:
             namespace = package_name
 
-    # We only load translations when we're in the deployment package. This is important for allowing us to
-    # import the experiment directory (to access config variables etc) when translations are not yet available.
+    def _get_translators(locales_dir, locale, namespace):
+        if locales_dir is None:
+            locales_dir = get_locales_dir(namespace)
+
+        compile_mo_file_if_necessary(locales_dir, locale, namespace)
+
+        translator = gettext.translation(namespace, locales_dir, [locale])
+
+        if namespace not in REGISTERED_TRANSLATIONS:
+            REGISTERED_TRANSLATIONS[namespace] = {}
+
+        if locale not in REGISTERED_TRANSLATIONS[namespace]:
+            po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")
+            po = load_po(po_path)
+            keys = []
+            for entry in po:
+                msgctxt = None if entry.msgctxt == "" else entry.msgctxt
+                keys.append((msgctxt, entry.msgid))
+            REGISTERED_TRANSLATIONS[namespace][locale] = keys
+
+        def _(message):
+            context = None
+            check_translation_is_available(message, context, locale, namespace)
+            return translator.gettext(message)
+
+        def _p(context, message):
+            check_translation_is_available(message, context, locale, namespace)
+            return translator.pgettext(context, message)
+
+        return _, _p
+
     if not in_deployment_package():
-        _, _p = null_translator, null_translator_with_context
+        if locale is None:
+            # We cannot load translations when we're not in the deployment package and the locale cannot be identified
+            # automatically. Because we cannot import the experiment directory yet (to access config variables etc).
+            # So in this case, we don't translate.
+            _, _p = null_translator, null_translator_with_context
+        else:
+            # Provide translation when locale is specified
+            _, _p = _get_translators(locales_dir, locale, namespace)
     else:
         if locale is None:
             locale = get_locale()
 
         if locale == "en":
+            # Skill translation if English
             _, _p = null_translator, null_translator_with_context
         else:
-            if locales_dir is None:
-                locales_dir = get_locales_dir(namespace)
-
-            compile_mo_file_if_necessary(locales_dir, locale, namespace)
-
-            translator = gettext.translation(namespace, locales_dir, [locale])
-
-            if namespace not in REGISTERED_TRANSLATIONS:
-                REGISTERED_TRANSLATIONS[namespace] = {}
-
-            if locale not in REGISTERED_TRANSLATIONS[namespace]:
-                po_path = join_path(
-                    locales_dir, locale, "LC_MESSAGES", f"{namespace}.po"
-                )
-                po = load_po(po_path)
-                keys = []
-                for entry in po:
-                    msgctxt = None if entry.msgctxt == "" else entry.msgctxt
-                    keys.append((msgctxt, entry.msgid))
-                REGISTERED_TRANSLATIONS[namespace][locale] = keys
-
-            def _(message):
-                context = None
-                check_translation_is_available(message, context, locale, namespace)
-                return translator.gettext(message)
-
-            def _p(context, message):
-                check_translation_is_available(message, context, locale, namespace)
-                return translator.pgettext(context, message)
+            _, _p = _get_translators(locales_dir, locale, namespace)
 
     _.namespace = namespace
     _p.namespace = namespace
