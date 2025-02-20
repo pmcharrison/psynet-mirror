@@ -1764,8 +1764,6 @@ class BeepHeadphoneTest(HeadphoneTest):
         performance_threshold: int = 4,
         n_trials: int = 6,
     ):
-        if media_url is None:
-            media_url = f"https://s3.amazonaws.com/headphone-check/{self.test_name}"
         self.setup(
             label, media_url, time_estimate_per_trial, performance_threshold, n_trials
         )
