@@ -1596,7 +1596,7 @@ class HeadphoneTest(StaticTrialMaker):
         raise NotImplementedError()
 
     @property
-    def instruction_page(self):
+    def instructions(self):
         return InfoPage(
             Markup(
                 f"""
