@@ -1538,6 +1538,30 @@ class HeadphoneTrial(StaticTrial):
 
 class HeadphoneTest(StaticTrialMaker):
     """
+        DISCONTINUED - use HugginsHeadphoneTest, AntiphaseHeadphoneTest, BeepHeadphoneTest instead;
+        HugginsHeadphoneTest is recommended.
+
+    The headphone test makes sure that the participant is wearing headphones.
+    """
+
+    def __init__(
+        self,
+        label="headphone_test",
+        media_url: Optional[str] = None,
+        time_estimate_per_trial: float = 7.5,
+        performance_threshold: int = 4,
+        n_trials: int = 6,
+    ):
+        raise NotImplementedError(
+            (
+                "DISCONTINUED - use HugginsHeadphoneTest, AntiphaseHeadphoneTest, BeepHeadphoneTest instead; "
+                "HugginsHeadphoneTest is recommended."
+            )
+        )
+
+
+class GeneralHeadphoneTest(StaticTrialMaker):
+    """
         DISCONTINUED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; HugginsHeadphoneTest is recommended.
 
     The headphone test makes sure that the participant is wearing headphones. In each trial,
@@ -1568,17 +1592,26 @@ class HeadphoneTest(StaticTrialMaker):
 
     def __init__(
         self,
-        label="headphone_test",
+        label,
         media_url: Optional[str] = None,
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
         n_trials: int = 6,
     ):
-        raise NotImplementedError(
-            (
-                "DISCONTINUED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; "
-                "HugginsHeadphoneTest is recommended."
-            )
+        if media_url is None:
+            assert self.test_name is not None
+            media_url = f"https://s3.amazonaws.com/headphone-check/{self.test_name}"
+        self.time_estimate_per_trial = time_estimate_per_trial
+        self.performance_threshold = performance_threshold
+
+        super().__init__(
+            id_=label,
+            trial_class=self.get_trial_class(),
+            nodes=self.get_nodes(media_url),
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False,
+            expected_trials_per_participant=n_trials,
+            max_trials_per_participant=n_trials,
         )
 
     performance_check_type = "score"
@@ -1610,26 +1643,6 @@ class HeadphoneTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def setup(
-        self, label, media_url, time_estimate_per_trial, performance_threshold, n_trials
-    ):
-        if media_url is None:
-            assert self.test_name is not None
-            media_url = f"https://s3.amazonaws.com/headphone-check/{self.test_name}"
-        self.time_estimate_per_trial = time_estimate_per_trial
-        self.performance_threshold = performance_threshold
-
-        StaticTrialMaker.__init__(
-            self,
-            id_=label,
-            trial_class=self.get_trial_class(),
-            nodes=self.get_nodes(media_url),
-            check_performance_at_end=True,
-            fail_trials_on_premature_exit=False,
-            expected_trials_per_participant=n_trials,
-            max_trials_per_participant=n_trials,
-        )
-
     def get_trial_class(self, node=None, participant=None, experiment=None):
         raise NotImplementedError()
 
@@ -1656,7 +1669,7 @@ class HugginsHeadphoneTrial(HeadphoneTrial):
     submit_early = True
 
 
-class HugginsHeadphoneTest(HeadphoneTest):
+class HugginsHeadphoneTest(GeneralHeadphoneTest):
     """
     Implements: Milne, A.E., Bianco, R., Poole, K.C. et al. An online headphone screening test based on dichotic pitch.
     Behav Res 53, 1551–1562 (2021). https://doi.org/10.3758/s13428-020-01514-0
@@ -1670,7 +1683,7 @@ class HugginsHeadphoneTest(HeadphoneTest):
         performance_threshold: int = 4,
         n_trials: int = 6,
     ):
-        self.setup(
+        super().__init__(
             label, media_url, time_estimate_per_trial, performance_threshold, n_trials
         )
 
@@ -1702,7 +1715,7 @@ class AntiphaseHeadphoneTrial(HeadphoneTrial):
     test_name = "antiphase"
 
 
-class AntiphaseHeadphoneTest(HeadphoneTest):
+class AntiphaseHeadphoneTest(GeneralHeadphoneTest):
     """
     Implements: Woods, K. J. P., Siegel, M. H., Traer, J., & McDermott, J. H. (2017). Headphone screening to facilitate
     web-based auditory experiments. Attention, perception & psychophysics, 79(7), 2064–2072.
@@ -1719,7 +1732,7 @@ class AntiphaseHeadphoneTest(HeadphoneTest):
         performance_threshold: int = 4,
         n_trials: int = 6,
     ):
-        self.setup(
+        super().__init__(
             label, media_url, time_estimate_per_trial, performance_threshold, n_trials
         )
 
@@ -1755,7 +1768,7 @@ class BeepHeadphoneTrial(HeadphoneTrial):
     submit_early = True
 
 
-class BeepHeadphoneTest(HeadphoneTest):
+class BeepHeadphoneTest(GeneralHeadphoneTest):
     def __init__(
         self,
         label="beep_headphone_test",
@@ -1764,7 +1777,7 @@ class BeepHeadphoneTest(HeadphoneTest):
         performance_threshold: int = 4,
         n_trials: int = 6,
     ):
-        self.setup(
+        super().__init__(
             label, media_url, time_estimate_per_trial, performance_threshold, n_trials
         )
 
