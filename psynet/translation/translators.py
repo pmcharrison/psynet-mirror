@@ -57,7 +57,10 @@ class Translator:
                     translated_texts = self._translate_texts(
                         texts, source_lang, target_lang, file_path
                     )
-                    break
+                    if len(translated_texts) != len(texts):
+                        raise InvalidTranslationError(
+                            "Number of translated texts does not match number of input texts"
+                        )
                 except Exception as e:
                     if i == n_retries - 1:
                         raise e
@@ -207,15 +210,19 @@ class Translator:
         return translation
 
 
-class CredentialsError(Exception):
+class TranslationError(Exception):
     pass
 
 
-class UnsupportedLanguageError(Exception):
+class CredentialsError(TranslationError):
     pass
 
 
-class InvalidTranslationError(Exception):
+class UnsupportedLanguageError(TranslationError):
+    pass
+
+
+class InvalidTranslationError(TranslationError):
     pass
 
 
@@ -346,6 +353,13 @@ class ChatGptTranslator(Translator):
         try:
             return json.loads(content)
         except json.JSONDecodeError as e:
+            split_content = content.split("\n")
+            if split_content[0] == "```json" and split_content[-1] == "```":
+                content = "\n".join(split_content[1:-1])
+                try:
+                    return json.loads(content)
+                except json.JSONDecodeError:
+                    pass
             msg = f"ChatGPT did not return a proper JSON string: {content}"
             if temperature == 0:
                 msg += (

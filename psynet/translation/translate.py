@@ -7,7 +7,7 @@ from typing import Iterable, List, Optional
 import polib
 from yaspin import yaspin
 
-from psynet.translation.translators import DefaultTranslator
+from psynet.translation.translators import DefaultTranslator, TranslationError
 
 from ..log import bold
 from ..utils import (
@@ -22,7 +22,12 @@ from .utils import create_pot, remove_line_numbers, sort_po
 
 
 @require_exp_directory
-def translate_experiment(locales: List[str], force: bool = False):
+def translate_experiment(
+    locales: List[str],
+    force: bool = False,
+    skip_pot: bool = False,
+    continue_on_error: bool = True,
+):
     namespace = "experiment"
     source_directory = os.getcwd()
     locales_directory = os.path.join(os.getcwd(), "locales")
@@ -32,10 +37,23 @@ def translate_experiment(locales: List[str], force: bool = False):
 
         locales = get_experiment().supported_locales
 
-    translate(namespace, source_directory, locales_directory, locales, force=force)
+    translate(
+        namespace,
+        source_directory,
+        locales_directory,
+        locales,
+        force=force,
+        skip_pot=skip_pot,
+        continue_on_error=continue_on_error,
+    )
 
 
-def translate_package(locales: List[str], force: bool = False):
+def translate_package(
+    locales: List[str],
+    force: bool = False,
+    skip_pot: bool = False,
+    continue_on_error: bool = True,
+):
     namespace = get_package_name()
     source_directory = get_package_source_directory()
     locales_directory = os.path.join(source_directory, "locales")
@@ -43,22 +61,46 @@ def translate_package(locales: List[str], force: bool = False):
     if len(locales) == 0:
         locales = psynet_supported_locales
 
-    translate(namespace, source_directory, locales_directory, locales, force=force)
+    translate(
+        namespace,
+        source_directory,
+        locales_directory,
+        locales,
+        force=force,
+        skip_pot=skip_pot,
+        continue_on_error=continue_on_error,
+    )
 
 
-def translate(namespace, source_dir, locales_dir, locales, force: bool = False):
+def translate(
+    namespace,
+    source_dir,
+    locales_dir,
+    locales,
+    force: bool = False,
+    skip_pot: bool = False,
+    continue_on_error: bool = True,
+):
     locales = [locale for locale in locales if locale != "en"]
 
     check_locales(locales)
 
-    pot_path = os.path.join(locales_dir, namespace + ".pot")
-    pot = create_pot(source_dir, pot_path)
+    pot_path = str(os.path.join(locales_dir, namespace + ".pot"))
+    if skip_pot:
+        pot = polib.pofile(pot_path)
+    else:
+        pot = create_pot(source_dir, pot_path)
 
     print(bold(f"Translating {pot_path} into {len(locales)} languages:"))
 
     n_valid_translations = 0
     for locale in locales:
-        translation_valid = translate_pot(pot_path, target_language=locale, force=force)
+        translation_valid = translate_pot(
+            pot_path,
+            target_language=locale,
+            force=force,
+            continue_on_error=continue_on_error,
+        )
         n_valid_translations += int(translation_valid)
 
     n_failed_translations = len(locales) - n_valid_translations
@@ -67,7 +109,6 @@ def translate(namespace, source_dir, locales_dir, locales, force: bool = False):
             bold("Some translations failed.")
             + " Please check the output above and fix the errors and run `psynet translate` again"
         )
-    pot = remove_line_numbers(pot)
     pot.save(pot_path)
 
 
@@ -76,6 +117,7 @@ def translate_pot(
     target_language,
     source_language="en",
     force: bool = False,
+    continue_on_error=True,
 ):
     if not os.path.isabs(pot_path):
         pot_path = os.path.abspath(pot_path)
@@ -98,6 +140,7 @@ def translate_pot(
         po_path,
         source_language,
         target_language,
+        continue_on_error,
     )
 
 
@@ -204,16 +247,22 @@ class TranslationUnit:
     def text_to_translate(self):
         return [entry.msgid for entry in self.entries]
 
-    def translate(self, source_lang, target_lang):
+    def translate(self, source_lang, target_lang, continue_on_error=False):
         input_texts = self.text_to_translate
 
-        translated_texts = self.translator.translate(
-            texts=input_texts,
-            source_lang=source_lang,
-            target_lang=target_lang,
-            file_path=self.file,
-        )
-
+        try:
+            translated_texts = self.translator.translate(
+                texts=input_texts,
+                source_lang=source_lang,
+                target_lang=target_lang,
+                file_path=self.file,
+            )
+        except TranslationError as e:
+            if continue_on_error:
+                translated_texts = [""] * len(input_texts)
+                print(f"Translation failed: {e}, skipping.")
+            else:
+                raise e
         assert len(translated_texts) == len(input_texts)
 
         for entry, translated_text in zip(self.entries, translated_texts):
@@ -221,7 +270,7 @@ class TranslationUnit:
             entry.fuzzy = True  # Signals that the translation needs to be reviewed
 
 
-def translate_po(pot_path, po_path, source_lang, target_lang):
+def translate_po(pot_path, po_path, source_lang, target_lang, continue_on_error):
     # Add yaspin spinner here
     language_dict = get_language_dict("en")
     assert (
@@ -263,7 +312,7 @@ def translate_po(pot_path, po_path, source_lang, target_lang):
             if not translation_unit.is_translated:
                 remaining_entries -= len(translation_unit)
                 spinner.text = f"{bold_language}: Translating file {1 + i}/{n_to_translate} ({translation_unit.file}, {len(translation_unit)} entries, {remaining_entries} remaining)."
-                translation_unit.translate(source_lang, target_lang)
+                translation_unit.translate(source_lang, target_lang, continue_on_error)
 
         # This function should try and preserve the ordering of the old_po file where possible
         # Strategy: po should be sorted by (a) file path and (b) line number

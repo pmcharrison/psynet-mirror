@@ -553,8 +553,8 @@ msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Gagawin natin ngayon ang isang mabilis na pagsusuri upang suriin ang iyong "
-"kakayahang makakita ng mga kulay."
+"Gagawin natin ngayon ang isang mabilis na pagsusulit upang suriin ang iyong "
+"kakayahan sa pag-alam ng mga kulay."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -569,13 +569,13 @@ msgstr ""
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "Mawawala ang larawang ito pagkatapos ng {HIDE_AFTER} segundo."
+msgstr "Ang larawang ito ay mawawala pagkatapos ng {HIDE_AFTER} segundo."
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Dapat mong ipasok ang numerong nakikita mo sa text box."
+msgstr "Dapat mong ilagay ang numerong nakikita mo sa kahon ng teksto."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -587,7 +587,9 @@ msgstr "Aling tunog ang naiiba sa dalawa: 1, 2, o 3?"
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "Ang iyong gawain ay hatulan kung aling tunog ang kakaiba."
+msgstr ""
+"Ang iyong gawain ay hatulan kung <strong>alin ang tunog ang naiiba sa "
+"iba</strong>."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -4766,6 +4768,12 @@ msgstr "Czech"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Dogri"
+msgstr "Dogri"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
 msgid "Danish"
 msgstr "Danish"
 
@@ -5072,6 +5080,12 @@ msgstr "Kongo"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Konkani"
+msgstr "Konkani"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
 msgid "Korean"
 msgstr "Korean"
 
@@ -5144,6 +5158,12 @@ msgstr "Macedonian"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Maithili"
+msgstr "Maithili"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
 msgid "Malagasy"
 msgstr "Malagasy"
 
@@ -5164,6 +5184,12 @@ msgstr "Malayalam"
 msgctxt "language_name"
 msgid "Maltese"
 msgstr "Maltese"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Manipuri"
+msgstr "Manipuri"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5270,14 +5296,14 @@ msgstr "Occitan"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Ojibwa"
-msgstr "Ojibwa"
+msgid "Odia"
+msgstr "Odia"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Oriya"
-msgstr "Oriya"
+msgid "Ojibwa"
+msgstr "Ojibwa"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5380,6 +5406,12 @@ msgstr "Sanskrit"
 msgctxt "language_name"
 msgid "Sardinian"
 msgstr "Sardinian"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Santali"
+msgstr "Santali"
 
 #: psynet/translation/languages.py
 #, fuzzy

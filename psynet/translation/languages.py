@@ -1,45 +1,81 @@
 psynet_supported_locales = [
-    "ar",
-    "be",
-    "bg",
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "et",
-    "fi",
-    "fr",
-    "he",
-    "hi",
-    "hr",
-    "hu",
-    "id",
-    "it",
-    "ja",
-    "ko",
-    "lt",
-    "ms",
-    "nb",
-    "nl",
-    "no",
-    "pl",
-    "pt",
-    "ro",
-    "ru",
-    "sk",
-    "sl",
-    "sr",
-    "sv",
-    "sw",
-    "th",
-    "tl",
-    "tr",
-    "uk",
-    "ur",
-    "vi",
-    "zh",
+    "af",  # Afrikaans
+    "am",  # Amharic; ChatGPT failed -> Google Translate
+    "ar",  # Arabic
+    "as",  # Assamese
+    "az",  # Azerbaijani
+    "be",  # Belarusian
+    "bg",  # Bulgarian
+    "bn",  # Bengali
+    # "cnr",  # Montenegrin; no vocabulary test available
+    "cs",  # Czech
+    "da",  # Danish
+    "de",  # German
+    "doi",  # Dogri
+    "el",  # Greek
+    "en",  # English
+    "es",  # Spanish
+    "et",  # Estonian
+    "fi",  # Finnish
+    "fr",  # French
+    "gu",  # Gujarati
+    "he",  # Hebrew
+    "hi",  # Hindi
+    "hr",  # Croatian
+    "hu",  # Hungarian
+    "id",  # Indonesian
+    "it",  # Italian
+    "is",  # Icelandic
+    "ja",  # Japanese
+    "kk",  # Kazakh
+    "km",  # Khmer
+    "kn",  # Kannada
+    "ko",  # Korean
+    "kok",  # Konkani; ChatGPT failed -> Google Translate
+    # "ks",  # Kashmiri; no vocabulary test available
+    "ku",  # Kurdish
+    "lb",  # Luxembourgish; no vocabulary test available
+    "lo",  # Laotian
+    "lt",  # Lithuanian
+    "lv",  # Latvian
+    "mai",  # Maithili
+    "mni",  # Manipuri
+    "mk",  # Macedonian
+    "mr",  # Marathi
+    "ms",  # Malay
+    "mt",  # Maltese
+    "my",  # Burmese
+    "ne",  # Nepali
+    "nl",  # Dutch
+    "no",  # Norwegian in general but defaults to (Bokmål)
+    "od",  # Odia
+    "pa",  # Punjabi
+    "pl",  # Polish
+    "pt",  # Portuguese
+    "ro",  # Romanian
+    "ru",  # Russian
+    "sa",  # Sanskrit
+    "sat",  # Santali; ChatGPT failed -> Google Translate
+    "si",  # Sinhala
+    "sk",  # Slovak
+    "sd",  # Sindhi
+    "sl",  # Slovenian
+    "sq",  # Albanian
+    "sr",  # Serbian
+    "st",  # Sotho/Sesotho
+    "sv",  # Swedish
+    "sw",  # Swahili
+    "ta",  # Tamil
+    "te",  # Telugu
+    "th",  # Thai
+    "tl",  # Filipino/Tagalog
+    "tr",  # Turkish
+    "uk",  # Ukrainian
+    "ur",  # Urdu
+    "uz",  # Uzbek
+    "vi",  # Vietnamese
+    "zu",  # Zulu
+    "zh",  # Chinese
 ]
 
 
@@ -98,6 +134,7 @@ def get_known_languages(locale=None):
         ("hr", _p("language_name", "Croatian")),
         ("ceb", _p("language_name", "Cebuano")),
         ("cs", _p("language_name", "Czech")),
+        ("doi", _p("language_name", "Dogri")),
         ("da", _p("language_name", "Danish")),
         ("dv", _p("language_name", "Dhivehi")),
         ("nl", _p("language_name", "Dutch")),
@@ -150,6 +187,7 @@ def get_known_languages(locale=None):
         ("ky", _p("language_name", "Kirghiz")),
         ("kv", _p("language_name", "Komi")),
         ("kg", _p("language_name", "Kongo")),
+        ("kok", _p("language_name", "Konkani")),
         ("ko", _p("language_name", "Korean")),
         ("kj", _p("language_name", "Kuanyama")),
         ("ku", _p("language_name", "Kurdish")),
@@ -162,10 +200,12 @@ def get_known_languages(locale=None):
         ("lu", _p("language_name", "Luba-Katanga")),
         ("lb", _p("language_name", "Luxembourgish")),
         ("mk", _p("language_name", "Macedonian")),
+        ("mai", _p("language_name", "Maithili")),
         ("mg", _p("language_name", "Malagasy")),
         ("ms", _p("language_name", "Malay")),
         ("ml", _p("language_name", "Malayalam")),
         ("mt", _p("language_name", "Maltese")),
+        ("mni", _p("language_name", "Manipuri")),
         ("gv", _p("language_name", "Manx")),
         ("mi", _p("language_name", "Maori")),
         ("mr", _p("language_name", "Marathi")),
@@ -183,8 +223,8 @@ def get_known_languages(locale=None):
         ("nn", _p("language_name", "Norwegian Nynorsk")),
         ("ny", _p("language_name", "Nyanja")),
         ("oc", _p("language_name", "Occitan")),
+        ("od", _p("language_name", "Odia")),
         ("oj", _p("language_name", "Ojibwa")),
-        ("or", _p("language_name", "Oriya")),
         ("om", _p("language_name", "Oromo")),
         ("os", _p("language_name", "Ossetian")),
         ("pi", _p("language_name", "Pali")),
@@ -202,6 +242,7 @@ def get_known_languages(locale=None):
         ("sg", _p("language_name", "Sango")),
         ("sa", _p("language_name", "Sanskrit")),
         ("sc", _p("language_name", "Sardinian")),
+        ("sat", _p("language_name", "Santali")),
         ("gd", _p("language_name", "Scottish Gaelic")),
         ("sr", _p("language_name", "Serbian")),
         ("sh", _p("language_name", "Serbo-Croatian")),
