@@ -523,7 +523,7 @@ msgstr "您需要提供一个数字！"
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "写下图中的数字。"
+msgstr "在图像中写下数字。"
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -543,25 +543,25 @@ msgstr "在每个试验中，您将看到一个包含数字的图像。"
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "该图像将在{HIDE_AFTER}秒后消失。"
+msgstr "此图像将在{HIDE_AFTER}秒后消失。"
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "您必须将看到的数字输入到文本框中。"
+msgstr "您必须将您看到的数字输入文本框中。"
 
 #: psynet/prescreen.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "哪个声音与其他两个不同：1、2、还是3？"
+msgstr "哪种声音与其他两种不同：1、2或3？"
 
 #: psynet/prescreen.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "您的任务是判断<strong>哪个声音是异类</strong>。"
+msgstr "您的任务是判断<strong>哪种声音是不同的</strong>。"
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -4343,6 +4343,12 @@ msgstr "捷克语"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Dogri"
+msgstr "多格拉语"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
 msgid "Danish"
 msgstr "丹麦语"
 
@@ -4428,7 +4434,7 @@ msgstr "加利西亚语"
 #, fuzzy
 msgctxt "language_name"
 msgid "Ganda"
-msgstr "干达语"
+msgstr "卢干达语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4536,7 +4542,7 @@ msgstr "伊博语"
 #, fuzzy
 msgctxt "language_name"
 msgid "Indonesian"
-msgstr "印度尼西亚语"
+msgstr "印尼语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4626,13 +4632,13 @@ msgstr "基库尤语"
 #, fuzzy
 msgctxt "language_name"
 msgid "Kinyarwanda"
-msgstr "基尼阿万达语"
+msgstr "卢旺达语"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
 msgid "Kirghiz"
-msgstr "柯尔克孜语"
+msgstr "吉尔吉斯语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4645,6 +4651,12 @@ msgstr "科米语"
 msgctxt "language_name"
 msgid "Kongo"
 msgstr "刚果语"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
+msgid "Konkani"
+msgstr "孔卡尼语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4721,6 +4733,12 @@ msgstr "马其顿语"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Maithili"
+msgstr "迈蒂利语"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
 msgid "Malagasy"
 msgstr "马尔加什语"
 
@@ -4745,8 +4763,14 @@ msgstr "马耳他语"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Manipuri"
+msgstr "曼尼普尔语"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
 msgid "Manx"
-msgstr "马恩语"
+msgstr "马恩岛语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4794,7 +4818,7 @@ msgstr "纳瓦霍语"
 #, fuzzy
 msgctxt "language_name"
 msgid "Ndonga"
-msgstr "恩东加语"
+msgstr "恩敦加语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4847,14 +4871,14 @@ msgstr "奥克语"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Ojibwa"
-msgstr "奥吉布瓦语"
+msgid "Odia"
+msgstr "奥里亚语"
 
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
-msgid "Oriya"
-msgstr "奥里亚语"
+msgid "Ojibwa"
+msgstr "奥吉布瓦语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -4961,6 +4985,12 @@ msgstr "撒丁语"
 #: psynet/translation/languages.py
 #, fuzzy
 msgctxt "language_name"
+msgid "Santali"
+msgstr "桑塔利语"
+
+#: psynet/translation/languages.py
+#, fuzzy
+msgctxt "language_name"
 msgid "Scottish Gaelic"
 msgstr "苏格兰盖尔语"
 
@@ -5028,7 +5058,7 @@ msgstr "南恩德贝勒语"
 #, fuzzy
 msgctxt "language_name"
 msgid "Southern Sotho"
-msgstr "南索托语"
+msgstr "绍托语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5118,7 +5148,7 @@ msgstr "藏语"
 #, fuzzy
 msgctxt "language_name"
 msgid "Tigrinya"
-msgstr "提格里尼亚语"
+msgstr "提格利尼亚语"
 
 #: psynet/translation/languages.py
 #, fuzzy
@@ -5220,7 +5250,7 @@ msgstr "西部亚美尼亚语"
 #, fuzzy
 msgctxt "language_name"
 msgid "Western Frisian"
-msgstr "西弗里斯语"
+msgstr "西弗里斯兰语"
 
 #: psynet/translation/languages.py
 #, fuzzy

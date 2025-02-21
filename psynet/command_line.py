@@ -2790,7 +2790,18 @@ class ListOfStrings(click.ParamType):
 @click.option(
     "--force", is_flag=True, help="Force retranslation of existing translations"
 )
-def translate(locales, force):
+@click.option(
+    "--skip-pot",
+    is_flag=True,
+    help="Skips the generation of the .pot file; useful for checking failed translations",
+)
+@click.option(
+    "--continue-on-error",
+    is_flag=True,
+    default=False,
+    help="Continue translating even if an error occurs",
+)
+def translate(locales, force, skip_pot, continue_on_error):
     """
     Inspects the code in the current directory and generates automatic translations for a given set of languages.
 
@@ -2806,6 +2817,9 @@ def translate(locales, force):
         The target languages, specified as space-separated language codes
     force : bool
         If True, force retranslation of existing translations
+    skip_pot : bool
+        If True, skip the generation of the translation template (.pot file); useful for checking failed translations
+        since recreating the template takes some time, but the translation did not change.
 
     Example
     -------
@@ -2824,11 +2838,15 @@ def translate(locales, force):
             bold(f"Found a package called '{get_package_name()}' to translate")
             + f" at {os.getcwd()}."
         )
-        translate_package(locales, force=force)
+        translate_package(
+            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+        )
 
     elif experiment_available():
         click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
-        translate_experiment(locales, force=force)
+        translate_experiment(
+            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+        )
 
     else:
         raise RuntimeError(
