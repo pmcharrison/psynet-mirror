@@ -1316,7 +1316,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             )
         elif chain_type == "across":
             if isinstance(start_nodes, list):
-                assert is_list_of(start_nodes, trial_class)
+                assert is_list_of(start_nodes, node_class)
             else:
                 assert start_nodes is None or callable(start_nodes)
             if allow_revisiting_networks_in_across_chains:
