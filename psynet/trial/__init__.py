@@ -1,21 +1,6 @@
 import os
 
 from psynet.asset import CachedAsset
-from psynet.trial.chain import ChainNode, ChainTrial
-
-
-class Trial(ChainTrial):
-    pass
-
-
-class Node(ChainNode):
-    pass
-
-    def summarize_trials(self, trials: list, experiment, participant):
-        return None
-
-    def create_definition_from_seed(self, seed, experiment, participant):
-        return None
 
 
 def compile_nodes_from_directory(
