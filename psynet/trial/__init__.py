@@ -2,6 +2,10 @@ import os
 
 from psynet.asset import CachedAsset
 
+# So people can write `from psynet.trial import Trial` instead of `from psynet.trial.main import Trial`
+from psynet.trial.main import Trial  # noqa
+from psynet.trial.main import TrialNode as Node  # noqa
+
 
 def compile_nodes_from_directory(
     input_dir: str,
