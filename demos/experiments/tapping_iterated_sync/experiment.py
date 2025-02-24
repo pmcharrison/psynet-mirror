@@ -16,15 +16,16 @@ from scipy.io import wavfile
 import psynet.experiment
 from psynet.asset import Asset, LocalStorage, S3Storage  # noqa
 from psynet.bot import Bot
+from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
-from psynet.page import InfoPage
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
     NumpySerializer,
     REPPMarkersTest,
     REPPTappingCalibration,
     REPPVolumeCalibrationMarkers,
 )
-from psynet.timeline import ProgressDisplay, ProgressStage, Timeline
+from psynet.timeline import ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.audio import (
     AudioImitationChainNode,
     AudioImitationChainTrial,
@@ -35,7 +36,13 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
+########################################################################################################################
 # Global parameters
+########################################################################################################################
+
+USE_REPP_PRESCREENS = False # if True, all tapping prescreens are presented before the main tapping tasks, including markers test and volumne calibration
+
+
 config = ConfigUpdater.create_config(
     sms_tapping,
     {
@@ -67,7 +74,9 @@ NUM_TRIALS_PARTICIPANT = 4
 TOTAL_NUM_PARTICIPANTS = 50
 
 
-# Experiment parts
+########################################################################################################################
+# Experiment
+########################################################################################################################
 def save_samples_to_file(samples, filename, fs):
     wavfile.write(filename, rate=fs, data=samples.astype(np.float32))
 
@@ -197,19 +206,10 @@ class CustomNode(AudioImitationChainNode):
         return random_seed
 
 
-class Exp(psynet.experiment.Experiment):
-    label = "Iterated tapping demo"
-    initial_recruitment_size = 1
-
-    # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
-
-    timeline = Timeline(
-        REPPVolumeCalibrationMarkers(),  # calibrate volume for markers
-        REPPTappingCalibration(),  # calibrate tapping
-        REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
-        InfoPage(
-            Markup(
-                f"""
+iterated_tapping = join(
+    InfoPage(
+        Markup(
+            f"""
             <h3>Tapping in rhythm - Instructions</h3>
             <hr>
             You will take {NUM_TRIALS_PARTICIPANT} tapping trials. In each trial, you will hear a metronome sound
@@ -217,7 +217,7 @@ class Exp(psynet.experiment.Experiment):
             <br><br>
             <b><b>Your goal is to tap in time to the metronome click</b></b>
             <br><br>
-            <b><b>ATTENTION: </b></b>
+            <b><b>Note:</b></b>
             <ul><li>Make sure to always tap in synchrony with the metronome.</li>
             <li>Start tapping as soon as the metronome starts and
             continue tapping in each metronome click.</li>
@@ -225,31 +225,58 @@ class Exp(psynet.experiment.Experiment):
                 <b>Do not tap during these beeps, as they signal the beginning and end of each rhythm.</b></li>
             </ul>
             <hr>
-            Click <b>next</b> to start tapping in rhythm!
             """
             ),
-            time_estimate=5,
+        time_estimate=5,
         ),
-        AudioImitationChainTrialMaker(
-            id_="trial_maker_iterated_tapping",
-            trial_class=CustomTrial,
-            node_class=CustomNode,
-            chain_type="within",
-            expected_trials_per_participant=NUM_TRIALS_PARTICIPANT,
-            max_trials_per_participant=NUM_TRIALS_PARTICIPANT,
-            max_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
-            chains_per_participant=CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
-            chains_per_experiment=None,  # set to None if chain_type="within"
-            trials_per_node=1,
-            balance_across_chains=False,
-            check_performance_at_end=False,
-            check_performance_every_trial=False,
-            propagate_failure=False,
-            recruit_mode="n_participants",
-            target_n_participants=TOTAL_NUM_PARTICIPANTS,
-            wait_for_networks=True,
-        ),
+    AudioImitationChainTrialMaker(
+        id_="trial_maker_iterated_tapping",
+        trial_class=CustomTrial,
+        node_class=CustomNode,
+        chain_type="within",
+        expected_trials_per_participant=NUM_TRIALS_PARTICIPANT,
+        max_trials_per_participant=NUM_TRIALS_PARTICIPANT,
+        max_nodes_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains
+        chains_per_participant=CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
+        chains_per_experiment=None,  # set to None if chain_type="within"
+        trials_per_node=1,
+        balance_across_chains=False,
+        check_performance_at_end=False,
+        check_performance_every_trial=False,
+        propagate_failure=False,
+        recruit_mode="n_participants",
+        target_n_participants=TOTAL_NUM_PARTICIPANTS,
+        wait_for_networks=True,
+        )
     )
+
+
+########################################################################################################################
+# Timeline
+########################################################################################################################
+
+class Exp(psynet.experiment.Experiment):
+    label = "Iterated tapping demo"
+    initial_recruitment_size = 1
+
+    asset_storage = LocalStorage()
+    # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
+
+    if USE_REPP_PRESCREENS:
+        timeline = Timeline(
+            NoConsent(),
+            REPPVolumeCalibrationMarkers(),  # calibrate volume for markers
+            REPPTappingCalibration(),  # calibrate tapping
+            REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
+            iterated_tapping,
+            SuccessfulEndPage(),
+            )
+    else:
+        timeline = Timeline(
+            NoConsent(),
+            iterated_tapping,
+            SuccessfulEndPage(),
+            )
 
     def test_check_bot(self, bot: Bot, **kwargs):
         trial_1_html = str(self.node_visualization_html("Info", 1))

@@ -10,7 +10,7 @@
 #   This simplifies the logic and ensures that experimenters can specify package versions precisely if they want.
 #   The small performance overhead is mostly eliminated by caching.
 
-FROM registry.gitlab.com/psynetdev/psynet:v11.9.0
+FROM registry.gitlab.com/psynetdev/psynet:master
 
 # This is used for debugging experiments using PyCharm
 RUN python3 -m pip install pydevd-pycharm~=221.6008.17
@@ -19,26 +19,13 @@ RUN mkdir /experiment
 WORKDIR /experiment
 
 COPY requirements.txt requirements.txt
-COPY *constraints.txt constraints.txt
-
-ENV SKIP_DEPENDENCY_CHECK=""
-ENV DALLINGER_NO_EGG_BUILD=1
-
-# If you see an error here, you probably need to run `bash docker/generate-constraints` and then try again.
-RUN psynet check-constraints
-
-# Uninstall PsyNet and Dallinger because otherwise we can run into edge cases where pip decides
-# that Dallinger/PsyNet doesn't need upgrading and then the editable version is left in place.
-RUN python3 -m pip uninstall -y psynet
-RUN python3 -m pip uninstall -y dallinger
-
-RUN python3 -m pip install -r constraints.txt
+RUN python3 -m pip install -r requirements.txt
 
 WORKDIR /
 
 ARG PSYNET_DEVELOPER_MODE
-RUN if [[ "$PSYNET_DEVELOPER_MODE" = 1 ]] ; then pip install --no-dependencies -e /PsyNet ; else rm -rf /PsyNet ; fi
-RUN if [[ "$PSYNET_DEVELOPER_MODE" = 1 ]] ; then pip install --no-dependencies -e /dallinger ; else rm -rf /dallinger ; fi
+RUN if [[ "$PSYNET_DEVELOPER_MODE" = 1 ]] ; then pip install --no-dependencies -e /PsyNet ; fi
+RUN if [[ "$PSYNET_DEVELOPER_MODE" = 1 ]] ; then pip install --no-dependencies -e /dallinger ; fi
 
 WORKDIR /experiment
 

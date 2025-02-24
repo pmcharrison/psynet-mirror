@@ -13,8 +13,9 @@ from scipy.io import wavfile
 
 import psynet.experiment
 from psynet.asset import LocalStorage, S3Storage  # noqa
+from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
-from psynet.page import InfoPage
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import NumpySerializer, REPPTappingCalibration
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.audio import (
@@ -209,24 +210,25 @@ class ExperimentNode(CustomNode):
 class Exp(psynet.experiment.Experiment):
     label = "Tapping memory demo"
 
+    asset_storage = LocalStorage()
     # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
 
     timeline = Timeline(
+        NoConsent(),
         REPPTappingCalibration(),  # calibrate tapping
         InfoPage(
             Markup(
                 f"""
-            <h3>Instructions</h3>
-            <hr>
-            You will take {NUM_TRIALS_PARTICIPANT} trials. In each trial, you will hear a metronome sound
-            playing a rhythm.
-            <br><br>
-            <b><b>Your goal is to reproduce back the rhythm by tapping on the surface of your laptop</b></b>
-            <br><br>
-            Please make sure to reproduce the rhythm as accurately as possible.</li>
-            <hr>
-            Click <b>next</b> to start tapping in rhythm!
-            """
+                <h3>Instructions</h3>
+                <hr>
+                You will take {NUM_TRIALS_PARTICIPANT} trials. In each trial, you will hear a metronome sound
+                playing a rhythm.
+                <br><br>
+                <b><b>Your goal is to reproduce back the rhythm by tapping on the surface of your laptop</b></b>
+                <br><br>
+                Please make sure to reproduce the rhythm as accurately as possible.</li>
+                <hr>
+                """
             ),
             time_estimate=5,
         ),
@@ -247,6 +249,7 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="n_participants",
             target_n_participants=TOTAL_NUM_PARTICIPANTS,
         ),
+        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):
