@@ -1,8 +1,8 @@
 .. _aws_server_setup:
 
-========================================
-Setting up an experiment server with AWS
-========================================
+========================
+Setting up an AWS server
+========================
 
 If you want to deploy your experiments online but don't want the cost of
 Heroku, another option is to set up a server on Amazon Web Services (AWS).
@@ -29,15 +29,15 @@ Here is a brief summary of the steps involved:
 
 7. Select 'Ubuntu' as the OS image.
 
-8. Choose an appropriate instance type. Different instance types have different costs 
+8. Choose an appropriate instance type. Different instance types have different costs
    and different performances. The appropriate instance type will depend on your use case.
-   You can explore options online at 
+   You can explore options online at
    https://aws.amazon.com/ec2/instance-types/
-   and 
+   and
    https://aws.amazon.com/ec2/pricing/on-demand/.
    Note that you need an instance with x86 rather than ARM architecture.
    For prototyping, something like `m7i.large` might work fine (2 vCPU, 8 GB RAM, c. $2.5/day);
-   for running an experiment with multiple simultaneous participants, it might 
+   for running an experiment with multiple simultaneous participants, it might
    be better to go with something larger like `m7i.xlarge` (4 vCPU, 16 GB RAM, c. $5/day).
    In order to avoid unnecessary costs, we recommend that you 'stop' or 'terminate' your instance
    when you're not using it. 'Stopping' pauses the instance, but you will still pay a small ongoing fee
@@ -50,8 +50,19 @@ Here is a brief summary of the steps involved:
    Change this file's permissions so that it can be used by the SSH client
    by running ``chmod 400 ~/Documents/test-psynet.pem``
    using your own file path as appropriate.
-   To save it within your SSH agent, run ``ssh-add ~/Documents/test-psynet.pem``,
-   using your own file path as appropriate.
+   To save it within your SSH agent, you will need to use the ``ssh-add`` command.
+   If you are using a Mac, you can do this by running the following command in your terminal:
+
+    ::
+
+        ssh-add --apple-use-keychain ~/Documents/test-psynet.pem
+
+    Note that, if you omit the ``--apple-use-keychain`` flag, you will need to rerun ``ssh-add``
+    every time your reboot your machine.
+
+    If you are using Linux, the ``--apple-use-keychain`` flag is not available,
+    but you can use another Linux tool like ``seahorse`` to add the key to your keychain.
+
 
 10. Click 'Create security group'. You have some decisions here about security.
     Tick all boxes (allow SSH, allow HTTPS, allow HTTP).
@@ -80,7 +91,7 @@ Here is a brief summary of the steps involved:
 replacing the example with your own IPv4 DNS as appropriate.
 You will probably see a warning message of the form 'The authenticity of host XXX can't be established';
 this is to be accepted. Type yes and press enter.
-If your login doesn't work (especially if it freezes with no output printed to the terminal), 
+If your login doesn't work (especially if it freezes with no output printed to the terminal),
 you may have to examine your security group/IP address combination.
 
 15. If your lab is doing this for the first time, you probably need to acquire a domain name for your
@@ -156,7 +167,7 @@ To test that this worked, try the following
     ssh ubuntu@my-app.bob.psych-experiments.org
 
 17. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
-    make sure you are on your PsyNet virtual environment on your local computer, 
+    make sure you are on your PsyNet virtual environment on your local computer,
     and run the following to register the server for PsyNet:
 
 ::
@@ -202,7 +213,7 @@ research/domain name combination.
 Setting up another machine to run with this server
 --------------------------------------------------
 
-If you have already set up the AWS server following the instructions above and now want to access it from 
+If you have already set up the AWS server following the instructions above and now want to access it from
 another computer, you can follow these instructions:
 
 1. Get the PEM file from the person who set up the server.
@@ -210,8 +221,10 @@ another computer, you can follow these instructions:
    Change this file's permissions so that it can be used by the SSH client
    by running ``chmod 400 ~/Documents/test-psynet.pem``
    using your own file path as appropriate.
-   To save it within your SSH agent, run ``ssh-add ~/Documents/test-psynet.pem``,
-   using your own file path as appropriate.
+   To save it within your SSH agent,
+   run ``ssh-add --apple-use-keychain ~/Documents/test-psynet.pem`` (on MacOS)
+   or just ``ssh-add ~/Documents/test-psynet.pem`` (on Linux, bearing in mind that you may
+   need to use a different tool like ``seahorse`` to add the key to your keychain).
 
 2. If the server was set up to only allow traffic from a fixed IP address,
    verify that your current computer has the same IP address.
@@ -227,7 +240,7 @@ another computer, you can follow these instructions:
     ssh ubuntu@my-app.bob.psych-experiments.org
 
 4. Now, switching back to your local computer terminal (i.e. not the SSH terminal you just opened),
-    make sure you are on your PsyNet virtual environment on your local computer, 
+    make sure you are on your PsyNet virtual environment on your local computer,
     and run the following to register the server for PsyNet:
 
 ::

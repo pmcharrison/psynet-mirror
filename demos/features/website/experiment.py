@@ -1,7 +1,6 @@
 from dominate import tags
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.timeline import CodeBlock, Timeline, join, switch, while_loop
 from psynet.utils import get_logger
@@ -42,7 +41,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         join(
-            NoConsent(),
             CodeBlock(
                 lambda participant: participant.var.set("current_page", "welcome")
             ),

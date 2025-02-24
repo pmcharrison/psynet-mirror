@@ -1,8 +1,7 @@
 import datetime
 
 import psynet.experiment
-from psynet.consent import NoConsent
-from psynet.page import SuccessfulEndPage, wait_while
+from psynet.page import wait_while
 from psynet.timeline import CodeBlock, Timeline
 from psynet.utils import get_logger
 
@@ -14,7 +13,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         CodeBlock(
             lambda participant: participant.var.set(
                 "start_time", datetime.datetime.now()
@@ -31,5 +29,4 @@ class Exp(psynet.experiment.Experiment):
         CodeBlock(
             lambda participant: participant.var.set("end_time", datetime.datetime.now())
         ),
-        SuccessfulEndPage(),
     )

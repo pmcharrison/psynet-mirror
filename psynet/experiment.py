@@ -12,7 +12,8 @@ import warnings
 from collections import OrderedDict
 from datetime import datetime
 from importlib import resources
-from os.path import exists
+from os.path import abspath, dirname, exists
+from os.path import join as join_path
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
@@ -29,7 +30,6 @@ import rpdb
 import sqlalchemy.orm.exc
 from click import Context
 from dallinger import db
-from dallinger.command_line import __version__ as dallinger_version
 from dallinger.compat import unicode
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
@@ -39,6 +39,7 @@ from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
 from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
 from dallinger.utils import get_base_url
+from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
@@ -49,7 +50,7 @@ from psynet import __version__
 from psynet.utils import get_config
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, NoStorage, OnDemandAsset
+from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
@@ -58,8 +59,7 @@ from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
-from .internationalization import check_translations, compile_mo, create_pot, load_po
-from .page import InfoPage, SuccessfulEndPage
+from .page import InfoPage
 from .participant import Participant
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
@@ -81,12 +81,14 @@ from .timeline import (
     Response,
     Timeline,
 )
+from .translation.check import check_translations
+from .translation.translate import create_pot
+from .translation.utils import compile_mo, load_po
 from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
 from .utils import (
-    LOCALES_DIR,
     NoArgumentProvided,
     cache,
     call_function,
@@ -94,12 +96,9 @@ from .utils import (
     classproperty,
     disable_logger,
     get_arg_from_dict,
-    get_available_locales,
-    get_language,
     get_logger,
     get_translator,
     log_time_taken,
-    make_parents,
     pretty_log_dict,
     render_template_with_translations,
     serialise,
@@ -234,7 +233,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     ::
 
         class Exp(psynet.experiment.Experiment):
-            asset_storage = LocalStorage()
 
     Another experiment attribute is `export_classes_to_skip`, which is a list of classes to be excluded
     when exporting the database objects to JSON-style dictionaries. The default is `["ExperimentStatus"]`.
@@ -382,10 +380,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         List of locales (i.e., ISO language codes) a user can pick from, e.g., ``'["en"]'``.
         Default: ``'[]'``.
 
-    allow_switching_locale : ``bool``
-        Allow the user to change the language of the experiment during the experiment.
-        Default: ``False``.
-
     force_google_chrome : ``bool``
         Forces the user to use the Google Chrome browser. If another browser is used, it will give detailed instructions
         on how to install Google Chrome.
@@ -421,11 +415,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     max_allowed_base_payment = 30
     max_exp_dir_size_in_mb = 256
 
-    timeline = Timeline(
-        InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
-    )
+    timeline = Timeline(InfoPage("Placeholder timeline", time_estimate=5))
 
-    asset_storage = NoStorage()
+    asset_storage = LocalStorage()
     css = []
     css_links = []
 
@@ -492,20 +484,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
-        locales_dir = os.path.abspath("locales")
-
         self.pre_deploy_routines = []
-        if self.translation_checks_needed(locales_dir):
+        if self.translation_checks_needed():
             self.pre_deploy_routines.append(
                 PreDeployRoutine(
                     "check_experiment_translations",
                     check_translations,
-                    {
-                        "module": "experiment",
-                        "locales_dir": locales_dir,
-                        "variable_placeholders": self.variable_placeholders,
-                        "create_translation_template_function": self._create_translation_template_from_experiment_folder,
-                    },
                 )
             )
 
@@ -515,7 +499,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.compile_translations_if_necessary,
                 {
                     "locales_dir": os.path.abspath("locales"),
-                    "module": "experiment",
+                    "namespace": "experiment",
                 },
             )
         )
@@ -534,16 +518,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def global_nodes(self):
         return self.experiment_config.global_nodes
 
-    def translation_checks_needed(self, locales_dir):
-        return (
-            os.path.exists(locales_dir) and len(get_available_locales(locales_dir)) > 0
-        )
+    @property
+    def supported_locales(self):
+        """
+        Returns the list of supported locales for the experiment.
+
+        This can be specified in the config.txt file, or inferred from the locales present in the locales directory.
+        """
+        config = get_config()
+        locale = config.get("locale", "en")
+        supported_locales = json.loads(config.get("supported_locales", "[]"))
+        supported_locales += [locale, "en"]
+        supported_locales = list(set(supported_locales))
+
+        return supported_locales
+
+    def translation_checks_needed(self):
+        non_en_locales = [locale for locale in self.supported_locales if locale != "en"]
+        return len(non_en_locales) > 0
 
     @classmethod
     def create_translation_template_from_experiment_folder(
         cls, input_directory, pot_path
     ):
-        create_pot(input_directory, ".", pot_path, start_with_fresh_file=True)
+        create_pot(input_directory, pot_path)
 
     @classmethod
     def _create_translation_template_from_experiment_folder(cls, locales_dir="locales"):
@@ -557,26 +555,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise FileNotFoundError(f"Could not find pot file at {pot_path}")
         return load_po(pot_path)
 
-    def compile_translations_if_necessary(self, locales_dir, module):
+    def compile_translations_if_necessary(self, locales_dir, namespace):
         """Compiles translations if necessary."""
-        supported_locales = self.config.get("supported_locales", [])
-        if self.translation_checks_needed(locales_dir):
-            locales = get_available_locales(locales_dir)
-            for locale in supported_locales:
+        if self.translation_checks_needed():
+            for locale in self.supported_locales:
                 if locale == "en":
                     continue
-                assert (
-                    locale in locales
-                ), f"Locale {locale} is not found in {locales_dir}"
                 po_path = os.path.join(
-                    locales_dir, locale, "LC_MESSAGES", module + ".po"
+                    locales_dir, locale, "LC_MESSAGES", namespace + ".po"
                 )
+                assert os.path.exists(po_path), f"Could not find po file at {po_path}"
                 compile_mo(po_path)
         else:
-            assert supported_locales == [], "No locales folder found"
+            assert self.supported_locales == [
+                "en"
+            ], "No translations are needed, so the supported locales should be ['en']"
 
     def compile_psynet_translations_if_necessary(self):
-        self.compile_translations_if_necessary(LOCALES_DIR, "psynet")
+        self.compile_translations_if_necessary(
+            join_path(abspath(dirname(__file__)), "locales"), "psynet"
+        )
 
     @with_transaction
     def on_launch(self):
@@ -586,7 +584,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
-        self.timeline.verify_consents(self)
         self.on_every_launch()
         logger.info("Experiment launch complete!")
         db.session.commit()
@@ -927,7 +924,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Render HTML for error page."""
         from flask import make_response, request
 
-        _, _p = get_translator(locale)
+        _p = get_translator(context=True)
         if error_text is None:
             error_text = _p(
                 "error-msg",
@@ -979,27 +976,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         worker_id,
         external_submit_url,
     ):
-        try:
-            from psynet.participant import Participant
-
-            participant = Participant.query.filter_by(worker_id=worker_id).one()
-            locale = participant.var.locale
-        except Exception:
-            locale = None
-        gettext, pgettext = get_translator(locale)
-        _, _p = gettext, pgettext
+        _ = get_translator()
+        _p = get_translator(context=True)
 
         if hasattr(self.recruiter, "error_page_content"):
             return self.recruiter.error_page_content(
-                gettext,
-                pgettext,
                 assignment_id=assignment_id,
                 external_submit_url=external_submit_url,
             )
 
         # TODO: Refactor this so that the error page content generation is deferred to the recruiter class.
         if isinstance(self.recruiter, ProlificRecruiter):
-            return self.error_page_content__prolific(gettext, pgettext)
+            return self.error_page_content__prolific()
         elif isinstance(self.recruiter, MTurkRecruiter):
             html = tags.div()
             with html:
@@ -1023,7 +1011,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return ""
 
-    def error_page_content__prolific(self, _, _p):
+    def error_page_content__prolific(self):
+        _p = get_translator(context=True)
+
         html = tags.div()
         with html:
             tags.p(
@@ -1270,35 +1260,40 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         config = {
             **super().config_defaults(),
-            "host": "0.0.0.0",
+            "allow_mobile_devices": False,
             "base_payment": 0.10,
             "big_base_payment": False,
+            "check_dallinger_version": True,
             "clock_on": True,
-            "duration": 100000000.0,
+            "color_mode": "light",
+            "currency": "$",
+            "default_translator": "chat_gpt",
+            "disable_browser_autotranslate": True,
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
-            "protected_routes": json.dumps(_protected_routes),
+            "duration": 100000000.0,
+            "force_google_chrome": True,
+            "force_incognito_mode": False,
+            "openai_default_model": "gpt-4o",
+            "openai_default_temperature": 0,
+            "host": "0.0.0.0",
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),
             "lock_table_when_creating_participant": False,
-            "min_browser_version": "80.0",
-            "wage_per_hour": 9.0,
-            "currency": "$",
+            "loglevel_worker": 1,
             "min_accumulated_reward_for_abort": 0.20,
+            "min_browser_version": "80.0",
+            "prolific_is_custom_screening": True,
+            "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
-            "show_reward": True,
             "show_footer": True,
             "show_progress_bar": True,
+            "show_reward": True,
             "check_participant_opened_devtools": False,
-            "window_width": 1024,
-            "window_height": 768,
             "supported_locales": "[]",
-            "allow_switching_locale": True,
-            "force_google_chrome": True,
-            "force_incognito_mode": False,
-            "allow_mobile_devices": False,
-            "color_mode": "light",
-            "loglevel_worker": 1,
+            "wage_per_hour": 9.0,
+            "window_height": 768,
+            "window_width": 1024,
             **cls.config,
         }
 
@@ -1325,7 +1320,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "python_version": python_version(),
             "hard_max_experiment_payment_email_sent": False,
             "soft_max_experiment_payment_email_sent": False,
-            "current_locale": get_language(),
             "hard_max_experiment_payment": 1100.0,
             "soft_max_experiment_payment": 1000.0,
             "max_participant_payment": 25.0,
@@ -1472,6 +1466,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.assets.prepare_for_deployment()
         self.create_database_snapshot()
+        self.create_source_code_zip_file()
+
+    @classmethod
+    def create_source_code_zip_file(cls):
+        from dallinger.command_line.utils import ExperimentFileSource
+        from yaspin import yaspin
+
+        # The config.txt file in the deployment package by default includes sensitive keys
+        # (e.g. AWS API keys), so we don't allow this method to be run there
+        assert not in_deployment_package()
+
+        # We also need to check that the user hasn't left any sensitive keys in the
+        # config.txt in their experiment directory.
+        assert_config_txt_does_not_contain_sensitive_values()
+
+        base_name = "source_code"
+        with yaspin(
+            text=f"Saving a snapshot of the experiment source code to {base_name}.zip ...",
+            color="green",
+        ) as spinner:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                cwd = os.getcwd()
+                ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
+                # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
+                # so we need to copy this manually.
+                shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
+                shutil.make_archive(base_name, "zip", temp_dir)
+            spinner.ok("✔")
 
     @classmethod
     def update_deployment_id(cls):
@@ -2058,6 +2080,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "prepare_docker_image.sh",
                 ),
                 (
+                    resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
+                    "DEPLOYMENT_PACKAGE",
+                ),
+                (
                     "config.txt",
                     ".config.backup",
                 ),
@@ -2066,8 +2092,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     ".deploy",
                 ),
                 (
-                    resources.files("psynet") / "resources/DEPLOYMENT_PACKAGE",
-                    "DEPLOYMENT_PACKAGE",
+                    "source_code.zip",
+                    "source_code.zip",
                 ),
             ]
         )
@@ -2087,37 +2113,49 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("cap_recruiter_auth_token", unicode, sensitive=True)
-        config.register("lucid_api_key", unicode, sensitive=True)
-        config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
-        config.register("lucid_recruitment_config", unicode)
-        config.register("enable_google_search_console", bool)
-        config.register("initial_recruitment_size", int)
-        config.register("label", unicode)
-        config.register("min_browser_version", unicode)
-        config.register("wage_per_hour", float)
+        config.register("check_dallinger_version", bool)
+        config.register("check_participant_opened_devtools", bool)
         config.register("currency", unicode)
+        config.register("default_translator", unicode)
+        config.register("enable_google_search_console", bool)
+        config.register("google_translate_json_path", unicode, sensitive=True)
+        config.register("google_translate_project_id", unicode, sensitive=True)
+        config.register("initial_recruitment_size", int)
+        config.register("openai_api_key", unicode, sensitive=True)
+        config.register("openai_default_model", unicode)
+        config.register("openai_default_temperature", unicode)
+        config.register("label", unicode)
+        config.register("locale", unicode)
+        config.register("lucid_api_key", unicode, sensitive=True)
+        config.register("lucid_recruitment_config", unicode)
+        config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
         config.register("min_accumulated_reward_for_abort", float)
+        config.register("min_browser_version", unicode)
         config.register("show_abort_button", bool)
-        config.register("show_reward", bool)
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
-        config.register("check_participant_opened_devtools", bool)
-        config.register("window_width", int)
+        config.register("show_reward", bool)
+        config.register("wage_per_hour", float)
         config.register("window_height", int)
+        config.register("window_width", int)
 
         def is_valid_locale(value):
-            available_psynet_locales = get_available_locales()
+            from .translation import psynet_supported_locales
+
+            locales = json.loads(value)
+            if len(locales) == 0 or locales == ["en"]:
+                return
+
             for locale in json.loads(value):
                 if locale == "en":
                     continue
                 assert (
-                    locale in available_psynet_locales
+                    locale in psynet_supported_locales
                 ), f"Locale {locale} not available in PsyNet."
 
         config.register(
             "supported_locales", unicode, validators=[is_valid_json, is_valid_locale]
         )
-        config.register("allow_switching_locale", bool)
         config.register("force_google_chrome", bool)
         config.register("force_incognito_mode", bool)
         config.register("allow_mobile_devices", bool)
@@ -2126,7 +2164,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             assert value in ["light", "dark", "auto"]
 
         config.register("color_mode", unicode, validators=[color_mode_validator])
-        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Export", after_route="database")
     @classmethod
@@ -2423,34 +2460,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not authenticate(request.authorization, config):
             return jsonify({"message": "Invalid credentials"}), 401
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            label = config.get("label")
-            temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
-            shutil.copytree(
-                os.path.join(os.getcwd()),
-                os.path.join(temp_exp_dir),
-                dirs_exist_ok=True,
-                ignore_dangling_symlinks=True,
-                ignore=shutil.ignore_patterns(
-                    ".git",
-                    "__pycache__",
-                    "develop",
-                    "static/assets",
-                    "config.txt",
-                    f"{label}-*",
-                ),
-            )
-            shutil.move(
-                os.path.join(temp_exp_dir, ".config.backup"),
-                os.path.join(temp_exp_dir, "config.txt"),
-            )
-            zip_filepath = shutil.make_archive(f"{label}-source", "zip", tempdir)
-            return send_file(zip_filepath, mimetype="zip")
+        filename = "source_code.zip"
+        logger.info(f"Downloading experiment source code from {os.getcwd()}/{filename}")
+        return send_file(filename, mimetype="zip")
 
     @experiment_route("/dashboard/export", methods=["GET"])
     @staticmethod
     @with_transaction
-    def export():
+    def export(self):
         from flask_login import current_user
 
         from .command_line import export__local
@@ -2725,28 +2742,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return request.environ["REMOTE_ADDR"]
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
-
-    @experiment_route("/set_locale_participant/<int:participant_id>", methods=["GET"])
-    @classmethod
-    @with_transaction
-    def route_set_locale_participant(cls, participant_id):
-        participant = cls.get_participant_from_participant_id(
-            participant_id, for_update=True
-        )
-        try:
-            old_locale = participant.var.locale
-        except KeyError:
-            old_locale = get_language()
-        GET = request.args.to_dict()
-        assert "locale" in GET, "locale not in GET"
-        new_locale = GET["locale"]
-        assert len(new_locale) == 2, "Locale must be a two-letter code"
-        new_locale = new_locale.lower()
-        participant.var.set("locale", new_locale)
-        logger.info(
-            f"Updated locale from {old_locale} to {new_locale} for participant {participant.id}'."
-        )
-        return success_response()
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
@@ -3117,6 +3112,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return stats
 
+    def check_consents(self):
+        if (
+            deployment_info.read("is_local_deployment")
+            and deployment_info.read("mode") == "debug"
+        ):
+            return
+        self.timeline.check_consents(self)
+
 
 Experiment.SuccessfulEndLogic = SuccessfulEndLogic
 Experiment.UnsuccessfulEndLogic = UnsuccessfulEndLogic
@@ -3201,6 +3204,18 @@ def get_experiment() -> Experiment:
 def get_trial_maker(trial_maker_id) -> TrialMaker:
     exp = get_experiment()
     return exp.timeline.get_trial_maker(trial_maker_id)
+
+
+def assert_config_txt_does_not_contain_sensitive_values():
+    config = get_config()
+    with open("config.txt", "r") as f:
+        for line in f.readlines():
+            for var in config.sensitive:
+                if var in line:
+                    raise ValueError(
+                        f"Sensitive key '{var}' found in config.txt. Please move all sensitive "
+                        "keys to `.dallingerconfig` and try again."
+                    )
 
 
 def in_deployment_package():

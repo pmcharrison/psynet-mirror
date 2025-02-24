@@ -1,11 +1,9 @@
 import random
 
 import psynet.experiment
-from psynet.asset import CachedFunctionAsset, LocalStorage, S3Storage  # noqa
+from psynet.asset import asset
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Module, Timeline, for_loop
 from psynet.trial import Node, Trial
 
@@ -24,9 +22,10 @@ NODES = [
             "frequencies": [start_frequency + i * frequency_gradient for i in range(5)],
         },
         assets={
-            "stimulus": CachedFunctionAsset(
-                function=synth_stimulus,
+            "stimulus": asset(
+                synth_stimulus,
                 extension=".wav",
+                cache=True,
             )
         },
     )
@@ -66,13 +65,9 @@ audio_ratings = Module(
 
 class Exp(psynet.experiment.Experiment):
     label = "Simple trial demo (2)"
-    asset_storage = LocalStorage()
-    # asset_storage = S3Storage("psynet-tests", "static-audio")
 
     timeline = Timeline(
-        NoConsent(),
         audio_ratings,
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):

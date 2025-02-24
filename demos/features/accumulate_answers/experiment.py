@@ -4,9 +4,8 @@ import logging
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, PageMaker, Timeline, for_loop, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
@@ -158,9 +157,7 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         part_1,
         part_2,
         part_3,
-        SuccessfulEndPage(),
     )

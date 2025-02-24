@@ -1,6 +1,5 @@
 import psynet.experiment
-from psynet.consent import NoConsent
-from psynet.page import CodeBlock, InfoPage, PageMaker, SuccessfulEndPage
+from psynet.page import CodeBlock, InfoPage, PageMaker
 from psynet.timeline import Timeline
 from psynet.utils import get_logger
 
@@ -11,7 +10,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Pickle page demo"
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage(
             "This demo illustrates page pickling.",
             time_estimate=5,
@@ -22,5 +20,4 @@ class Exp(psynet.experiment.Experiment):
             )
         ),
         PageMaker(lambda participant: participant.var.page, time_estimate=5),
-        SuccessfulEndPage(),
     )

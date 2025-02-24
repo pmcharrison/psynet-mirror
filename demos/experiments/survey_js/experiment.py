@@ -1,7 +1,6 @@
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, SurveyJSControl
-from psynet.page import DebugResponsePage, SuccessfulEndPage
+from psynet.page import DebugResponsePage
 from psynet.timeline import Timeline
 
 
@@ -10,7 +9,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "example_1",
             "Here's a simple SurveyJS example.",
@@ -91,5 +89,4 @@ class Exp(psynet.experiment.Experiment):
             },
         ),
         DebugResponsePage(),
-        SuccessfulEndPage(),
     )

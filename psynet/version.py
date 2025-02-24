@@ -2,19 +2,14 @@ import os
 import re
 import subprocess
 
+import click
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
-# Bump versions by changing these two lines.
-dallinger_minimum_version = "10.2.2"
-psynet_version = "11.8.0-dev0"
+psynet_version = "11.10.0-dev0"
 
-dallinger_minimum_version_parts = dallinger_minimum_version.split(".")
-dallinger_maximum_major_version = int(dallinger_minimum_version_parts[0]) + 1
-dallinger_maximum_version = f"{dallinger_maximum_major_version}.0.0"
-dallinger_version_requirement = (
-    f"dallinger>={dallinger_minimum_version}, <{dallinger_maximum_version}"
-)
+# Bump Dallinger version by changing the line below
+dallinger_recommended_version = "11.1.0"
 
 
 def check_versions():
@@ -182,19 +177,14 @@ def check_dallinger_version():
 
     current_dallinger_version = dallinger.version.__version__
 
-    environment_variable = "SKIP_CHECK_DALLINGER_VERSION"
-    if not os.environ.get(environment_variable, None):
-        if not (
-            version_is_greater(
-                current_dallinger_version, dallinger_minimum_version, strict=False
-            )
-            and version_is_greater(
-                dallinger_maximum_version, current_dallinger_version, strict=True
-            )
-        ):
-            raise ValueError(
-                f"The current installed version of Dallinger ({current_dallinger_version}) "
-                f"is incompatible with PsyNet's requirements ({dallinger_version_requirement}). "
-                "Please install an appropriate version of Dallinger, or (only if you know what you're doing!) "
-                f"disable this check by setting the environment variable {environment_variable} to a non-empty string."
-            )
+    if current_dallinger_version != dallinger_recommended_version:
+        message = (
+            f"The current installed version of Dallinger ({current_dallinger_version}) "
+            f"is not the one recommended for this version of PsyNet "
+            f"(PsyNet v{psynet_version} recommends Dallinger v{dallinger_recommended_version}). "
+            "You can fix this problem by updating your requirements.txt file "
+            f"to state dallinger=={dallinger_recommended_version}, "
+            "or, if you know what you're doing, type 'y' to continue anyway."
+        )
+        if not click.confirm(message, default=False):
+            raise click.Abort

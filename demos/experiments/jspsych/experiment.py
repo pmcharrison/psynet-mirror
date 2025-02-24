@@ -3,8 +3,7 @@ import json
 from dominate import tags
 
 import psynet.experiment
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, JsPsychPage, SuccessfulEndPage
+from psynet.page import InfoPage, JsPsychPage
 from psynet.timeline import PageMaker, Timeline
 
 
@@ -20,7 +19,6 @@ class Exp(psynet.experiment.Experiment):
     label = "jsPsych demo"
 
     timeline = Timeline(
-        NoConsent(),
         JsPsychPage(
             "reaction_time_task",
             timeline="templates/reaction-time-task.html",
@@ -41,5 +39,4 @@ class Exp(psynet.experiment.Experiment):
         PageMaker(
             lambda participant: display_answer(participant.answer), time_estimate=5
         ),
-        SuccessfulEndPage(),
     )

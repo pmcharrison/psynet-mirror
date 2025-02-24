@@ -14,7 +14,7 @@ from psynet.modular_page import (
     TextControl,
     TimedPushButtonControl,
 )
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import (
     CodeBlock,
     Module,
@@ -220,7 +220,6 @@ class Exp(psynet.experiment.Experiment):
                 fix_time_credit=False,
             ),
         ),
-        SuccessfulEndPage(),
     )
 
     def run_bot(self, bot):

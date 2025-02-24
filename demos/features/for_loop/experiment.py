@@ -1,6 +1,5 @@
 import psynet.experiment
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline, for_loop
 from psynet.utils import get_logger
 
@@ -12,7 +11,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         for_loop(
             label="Looping over letters A-C",
             iterate_over=lambda: ["A", "B", "C"],
@@ -30,7 +28,6 @@ class Exp(psynet.experiment.Experiment):
             logic=lambda letter: InfoPage(f"{letter}"),
             time_estimate_per_iteration=5,
         ),
-        SuccessfulEndPage(),
     )
 
     def test_run_bot(self, bot):

@@ -29,7 +29,7 @@ from .page import InfoPage, WaitPage, wait_while
 from .participant import Participant
 from .process import LocalAsyncProcess
 from .timeline import CodeBlock, PageMaker, Response, TimelineLogic, join
-from .utils import get_logger, render_template_with_translations
+from .utils import get_logger, get_translator, render_template_with_translations
 
 logger = get_logger()
 
@@ -55,6 +55,24 @@ class PsyNetRecruiterMixin:
             "dallinger.submitAssignment()",
             message="Communicating with the recruiter...",  # Todo - translate
         )
+
+    def check_consents(self, consents):
+        """
+        Check that the consent elements are suitable for the recruiter.
+        By default this check is skipped in ``psynet debug local``.
+
+        Parameters
+        ----------
+        consents : list
+            List of consent objects from the timeline
+        """
+        if len(consents) == 0:
+            raise RuntimeError(
+                "It looks like your experiment is missing a consent page. "
+                "Is that right? You can resolve this check by adding a pre-prepared consent page from psynet.consent "
+                "to your timeline, or a custom subclass of psynet.consent.Consent, "
+                "or psynet.consent.NoConsent to skip this check entirely."
+            )
 
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
@@ -703,7 +721,8 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         """Does a Lucid survey for the current experiment ID already exist?"""
         return self.current_survey_number() is not None
 
-    def verify_consents(self, consents):
+    def check_consents(self, consents):
+        super().check_consents(consents)
         error_msg = "Lucid recruitment requires consent 'LucidConsent' and optionally one of `AudiovisualConsent` or `OpenScienceConsent` (in this order)."
         if isinstance(consents[0], self.required_consent_page):
             if len(consents) == 1:
@@ -733,12 +752,13 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        from .utils import get_config, get_experiment
+        from .experiment import get_experiment
+        from .utils import get_config
 
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.in_progress:
             raise LucidRecruiterException(
-                "Tried to open_recruitment on already open recruiter."
+                "Tried to open recruitment on already open recruiter."
             )
 
         experiment = get_experiment()
@@ -755,7 +775,9 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             ),
         }
 
-        survey_info = self.lucidservice.create_survey(**create_survey_request_params)
+        survey_info = self.lucidservice.create_survey(
+            self.config.get("publish_experiment"), **create_survey_request_params
+        )
         self._record_current_survey_number(survey_info["SurveyNumber"])
         self._record_survey_sid(survey_info["SurveySID"])
 
@@ -911,7 +933,9 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             assignment_id = assignment_id
         return {"rid": assignment_id, "ris": ris}
 
-    def error_page_content(self, _, _p, assignment_id, external_submit_url):
+    def error_page_content(self, assignment_id, external_submit_url):
+        _p = get_translator(context=True)
+
         if external_submit_url is None:
             external_submit_url = self.external_submit_url(assignment_id=assignment_id)
 

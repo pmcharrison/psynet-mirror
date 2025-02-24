@@ -1,6 +1,5 @@
 import fileinput
 import json
-import logging
 import os
 import pathlib
 import re
@@ -22,11 +21,11 @@ import psycopg2
 from dallinger import db
 from dallinger.command_line.docker_ssh import (
     CONFIGURED_HOSTS,
+    option_server,
     remote_postgres,
-    server_option,
 )
 from dallinger.command_line.utils import verify_id
-from dallinger.config import get_config
+from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -35,19 +34,19 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-from psynet.version import check_versions
+from psynet.version import check_dallinger_version, check_versions
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
-from .internationalization import clean_po, load_po, po_to_dict
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
-    ISO_639_1_CODES,
     get_args,
+    get_package_name,
+    in_python_package,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
@@ -203,7 +202,7 @@ def _validate_location(ctx, param, value):
     default=None,
     help="Name of the experiment app (required for non-local deployments)",
 )
-@server_option
+@option_server
 def experiment_variables(location, app, server):
     with db_connection(location, app, server) as connection:
         return _experiment_variables(connection, echo=True)
@@ -690,6 +689,12 @@ def _pre_launch(
     experiment = get_experiment()
     experiment.update_deployment_id()
 
+    config = get_config()
+    deployment_info.write(locale=config.get("locale", "en"))
+
+    if config.get("check_dallinger_version"):
+        check_dallinger_version()
+
     if archive:
         from psynet.experiment import database_template_path
 
@@ -742,7 +747,12 @@ def deploy__heroku(ctx, app, archive, docker):
         from dallinger.command_line import deploy as dallinger_deploy
 
         _pre_launch(
-            ctx, mode="live", archive=archive, local_=False, heroku=True, app=app
+            ctx,
+            mode="live",
+            archive=archive,
+            local_=False,
+            heroku=True,
+            app=app,
         )
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
         result = ctx.invoke(dallinger_deploy, verbose=True, app=app, archive=None)
@@ -781,13 +791,13 @@ def _deploy__docker_heroku(ctx, app, archive):
 @deploy.command("ssh")
 @click.option("--app", callback=verify_id, required=True, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
-@server_option
+@option_server
 @click.option(
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
 )
 @click.pass_context
-def deploy__docker_ssh(ctx, app, archive, server, dns_host):
+def deploy__docker_ssh(ctx, app, archive, dns_host, server):
     try:
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
@@ -811,12 +821,10 @@ def deploy__docker_ssh(ctx, app, archive, server, dns_host):
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
             dallinger_docker_ssh_deploy,
-            mode="sandbox",  # TODO - but does this even matter?
             server=server,
             dns_host=dns_host,
             app_name=app,
             archive_path=None,
-            # config_options -- this could be useful
         )
 
         _post_deploy(result)
@@ -843,8 +851,6 @@ def export_launch_data(deployment_id, **kwargs):
     directory = Path("~/psynet-data/launch-data").expanduser() / deployment_id
     directory.mkdir(parents=True, exist_ok=True)
     _export_launch_info(directory, **kwargs)
-    if deployment_info.read("mode") == "live":
-        _export_code(directory)
 
 
 def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs):
@@ -859,15 +865,6 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
             f,
             indent=4,
         )
-
-
-def _export_code(directory):
-    file = directory.joinpath("code")
-    with yaspin(
-        text=f"Saving a snapshot of the code to {file}...", color="green"
-    ) as spinner:
-        shutil.make_archive(file, "zip", os.getcwd())
-        spinner.ok("✔")
 
 
 ########
@@ -929,6 +926,24 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     exp = get_experiment()
     exp.check_config()
     exp.check_size()
+    exp.check_consents()
+
+    # Make sure source_code.zip is in .gitignore
+    try:
+        with open(".gitignore", "r") as f:
+            source_code_zip_found = False
+            for line in f.readlines():
+                if "source_code.zip" in line:
+                    source_code_zip_found = True
+                    break
+            if not source_code_zip_found:
+                raise click.ClickException(
+                    "Please add source_code.zip to .gitignore and try again."
+                )
+    except FileNotFoundError:
+        raise click.ClickException(
+            f".gitignore is missing from your experiment directory ({os.getcwd()})."
+        )
 
     try:
         with open("requirements.txt", "r") as f:
@@ -1099,7 +1114,7 @@ def debug__docker_heroku(ctx, app, archive):
     "--app", callback=verify_id, required=True, help="Name of the experiment app."
 )
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
-@server_option
+@option_server
 @click.option(
     "--dns-host",
     help="DNS name to use. Must resolve all its subdomains to the IP address specified as ssh host",
@@ -1110,7 +1125,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
     Debug the experiment on a remote server via SSH.
     """
     try:
-        from dallinger.command_line.docker_ssh import deploy
+        from dallinger.command_line.docker_ssh import sandbox
 
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
@@ -1127,8 +1142,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
 
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
         result = ctx.invoke(
-            deploy,
-            mode="sandbox",
+            sandbox,
             server=server,
             dns_host=dns_host,
             app_name=app,
@@ -1471,7 +1485,7 @@ def verify_psynet_requirement():
         with open("requirements.txt", "r") as file:
             version_tag_or_commit_hash = [
                 "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-rc\\d+)?",
             ]
             file_content = file.read()
             for regex in version_tag_or_commit_hash:
@@ -1486,7 +1500,7 @@ def verify_psynet_requirement():
                     valid = True
                     break
                 match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+",
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(-rc\d+)?",
                     file_content,
                     re.MULTILINE,
                 )
@@ -1623,7 +1637,7 @@ def export__heroku(ctx, app, **kwargs):
     required=True,
     help="Name of the app to export",
 )
-@server_option
+@option_server
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
@@ -1830,7 +1844,11 @@ def _export_source_code(app, local, server, export_path, username, password):
     if local:
         url = "http://localhost:5000"
     else:
-        url = f"https://{app}.{server}"
+        if server:
+            url = f"https://{app}.{server}"
+        else:
+            url = HerokuApp(app).url
+
     url += "/download_source"
     source_code_zip_path = os.path.join(export_path, "source_code.zip")
 
@@ -2061,7 +2079,7 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version = r"\d+\.\d+\.\d+"
+            version = r"\d+\.\d+\.\d+(-rc\d+)*"
             for line in orig_file:
                 match = re.search(
                     r"^psynet(\s?)==(\s?)" + version + "$",
@@ -2131,7 +2149,9 @@ def pre_update_constraints_(dir):
         .strip()
     )
     with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)"
+        psynet_requirement = (
+            "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*(-rc\\d+)*)"
+        )
         for line in file:
             print(
                 re.sub(
@@ -2175,119 +2195,6 @@ def post_update_psynet_requirement_():
                 ),
                 end="",
             )
-
-
-@psynet.command()
-@click.argument(
-    "iso_code",
-    required=True,
-    type=click.Choice(ISO_639_1_CODES, case_sensitive=False),
-)
-@require_exp_directory
-def prepare_translation(iso_code):
-    """
-    To be run in an experiment directory; initializes scripts and help files to their
-    latest PsyNet versions.
-    """
-    _prepare_translation(iso_code.lower())
-
-
-def _prepare_translation(iso_code):
-    po_path = os.path.join("locales", iso_code, "LC_MESSAGES", "experiment.po")
-
-    # Surpress compilation warnings
-    logger = logging.getLogger()
-    logger.disabled = True
-    from .experiment import import_local_experiment
-
-    experiment_class = import_local_experiment().get("class")
-
-    try:
-        pot = experiment_class._create_translation_template_from_experiment_folder()
-    except FileNotFoundError as e:
-        print(
-            '''
-        No translation template was found. Are you sure you are in the experiment folder? Also, make sure you have
-        marked the strings you want to translate with the _() and _p() function. Here's an example:
-        ###################
-        import os
-        from markupsafe import Markup
-        from psynet.page import InfoPage
-        from psynet.utils import get_translator
-        locale = "nl"
-        _, _p = get_translator(
-            locale, module="experiment", locales_dir=os.path.abspath("locales")
-        )
-        my_info_page = InfoPage(
-            Markup(
-                f"""
-                <h1>{_("Instructions")}</h1>
-                <hr>
-                {_("In this experiment, you will listen to different music clips.")} <br>
-                {_("You have to select the music you like most.")}
-                """
-            ),
-            time_estimate=5
-        )
-        ###################
-        Here's the equivalent for a HTML file would be:
-        ###################
-        <h1>{{ gettext("Instructions") }}</h1>
-        <hr>
-        {{ gettext("In this experiment, you will listen to different music clips.") }} <br>
-        {{ gettext("You have to select the music you like most.") }}
-        ###################
-        In case you have stored your strings in a subfolder, you can also register the subfolder to be scanned, by
-        extending the create_translation_template_from_experiment_folder function in your experiment class. Here's an example:
-        ###################
-        @classmethod
-        def create_translation_template_from_experiment_folder(cls, input_directory, pot_path):
-            super(Exp, cls).create_translation_template_from_experiment_folder(input_directory, pot_path)
-            from psynet.internationalization import create_pot
-            create_pot(input_directory, "my_module/.", pot_path)
-        ###################
-        This will look for strings in the my_module subfolder.
-        '''
-        )
-        raise e
-    logger.disabled = False
-
-    if os.path.exists(po_path):
-        po = load_po(po_path)
-        po_entries = po_to_dict(po)
-        pot_entries = po_to_dict(pot)
-
-        if po_entries.keys() == pot_entries.keys():
-            print("No new translations found.")
-            return
-
-        n_unused_po_entries = sum([key not in pot_entries for key in po_entries.keys()])
-
-        po_entry_list = list(po_entries.values())
-        if n_unused_po_entries > 0:
-            remove_unused_entries = user_confirms(
-                f"Do you want to remove {n_unused_po_entries} unused translations?",
-                default=False,
-            )
-            if remove_unused_entries:
-                old_n = len(po_entries)
-                po_entry_list = [
-                    value for key, value in po_entries.items() if key in pot_entries
-                ]
-                print(f"Removed {old_n - len(po_entry_list)} unused translations.")
-        new_entries = [
-            value for key, value in pot_entries.items() if key not in po_entries
-        ]
-        if new_entries:
-            print(f"Added {len(new_entries)} new translations.")
-        po_entry_list += new_entries
-        po.clear()
-        po.extend(po_entry_list)
-        po = clean_po(po, "experiment")
-        po.save(po_path)
-    else:
-        os.makedirs(os.path.join("locales", iso_code, "LC_MESSAGES"), exist_ok=True)
-        pot.save(po_path)
 
 
 @psynet.group("destroy")
@@ -2383,7 +2290,7 @@ def _destroy(
 @destroy.command("ssh")
 @click.option("--app", default=None, help="Experiment id")
 @click.argument("apps", required=False, nargs=-1)
-@server_option
+@option_server
 @click.option(
     "--expire-hit",
     flag_value=True,
@@ -2499,7 +2406,7 @@ def apps():
 
 
 @apps.command("ssh")
-@server_option
+@option_server
 @click.pass_context
 def apps__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import apps
@@ -2515,7 +2422,7 @@ def stats():
 
 
 @stats.command("ssh")
-@server_option
+@option_server
 @click.pass_context
 def stats__docker_ssh(ctx, server):
     from dallinger.command_line.docker_ssh import stats
@@ -2622,7 +2529,7 @@ def test__local(
 
 @test.command("ssh")
 @click.option("--app", required=True, help="Name of the experiment app.")
-@server_option
+@option_server
 @_test_options["n_bots"]
 @_test_options["parallel"]
 @_test_options["serial"]
@@ -2867,3 +2774,81 @@ def lucid__list_submissions(ctx, survey_number, order):
     submissions.drop(columns=["last_date"], inplace=True)
     submissions = submissions.sort_values(by=order, ascending=False)
     print(submissions.to_markdown(index=False))
+
+
+class ListOfStrings(click.ParamType):
+    name = "list_of_strings"
+
+    def convert(self, value, param, ctx):
+        if value is None:
+            return []
+        return value.replace(",", " ").split()
+
+
+@psynet.command("translate")
+@click.argument("locales", nargs=-1)
+@click.option(
+    "--force", is_flag=True, help="Force retranslation of existing translations"
+)
+@click.option(
+    "--skip-pot",
+    is_flag=True,
+    help="Skips the generation of the .pot file; useful for checking failed translations",
+)
+@click.option(
+    "--continue-on-error",
+    is_flag=True,
+    default=False,
+    help="Continue translating even if an error occurs",
+)
+def translate(locales, force, skip_pot, continue_on_error):
+    """
+    Inspects the code in the current directory and generates automatic translations for a given set of languages.
+
+    This command should be run from the root of either an experiment or a package.
+    If run from an experiment, the translations will be saved in the experiment's "locales" directory.
+    If run from a package, the translations will be saved in "{package_src_directory}/locales".
+
+    Note: Currently only .py and .html files are translated.
+
+    Parameters
+    ----------
+    languages :
+        The target languages, specified as space-separated language codes
+    force : bool
+        If True, force retranslation of existing translations
+    skip_pot : bool
+        If True, skip the generation of the translation template (.pot file); useful for checking failed translations
+        since recreating the template takes some time, but the translation did not change.
+
+    Example
+    -------
+
+    psynet translate fr de
+        Generate translations for French and German.
+    """
+    import warnings
+
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+    from psynet.translation.translate import translate_experiment, translate_package
+
+    if in_python_package():
+        click.echo(
+            bold(f"Found a package called '{get_package_name()}' to translate")
+            + f" at {os.getcwd()}."
+        )
+        translate_package(
+            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+        )
+
+    elif experiment_available():
+        click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
+        translate_experiment(
+            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+        )
+
+    else:
+        raise RuntimeError(
+            f"The current directory {os.getcwd()} does not seem to be the root of an experiment or a package."
+        )

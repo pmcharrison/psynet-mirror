@@ -5,7 +5,6 @@ from typing import Union
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioPrompt,
     Control,
@@ -16,7 +15,7 @@ from psynet.modular_page import (
     TimedPushButtonControl,
     VideoSliderControl,
 )
-from psynet.page import DebugResponsePage, SuccessfulEndPage
+from psynet.page import DebugResponsePage
 from psynet.timeline import MediaSpec, Timeline
 from psynet.utils import NoArgumentProvided
 
@@ -68,7 +67,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Modular page demo"
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "text", prompt="This is an example of a simple text page.", time_estimate=5
         ),
@@ -203,5 +201,4 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         DebugResponsePage(),
-        SuccessfulEndPage(),
     )

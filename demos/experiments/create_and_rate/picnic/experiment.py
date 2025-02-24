@@ -7,9 +7,7 @@ import json
 from random import sample
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import Control, ModularPage, Prompt
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.create_and_rate import (
     CreateAndRateNode,
@@ -165,7 +163,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         instructions,
         CreateAndRateTrialMaker(
             n_creators=N_CREATORS,
@@ -195,5 +192,4 @@ class Exp(psynet.experiment.Experiment):
             max_nodes_per_chain=N_ITERATIONS,
         ),
         final_questionnaire,
-        SuccessfulEndPage(),
     )

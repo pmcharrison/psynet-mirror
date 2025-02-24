@@ -3,9 +3,8 @@ import json
 from markupsafe import Markup, escape
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import MediaSliderControl, ModularPage
-from psynet.page import DebugResponsePage, SuccessfulEndPage
+from psynet.page import DebugResponsePage
 from psynet.timeline import MediaSpec, Timeline, join
 
 N_AUDIO_LOCATIONS = 472
@@ -105,7 +104,6 @@ class CustomExp(psynet.experiment.Experiment):
     sound_locations = dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)]))
 
     timeline = Timeline(
-        NoConsent(),
         new_example(
             """
             Simple video example where no slider snapping is performed. There is one stimulus
@@ -271,5 +269,4 @@ class CustomExp(psynet.experiment.Experiment):
             minimal_interactions=0,
             time_estimate=5,
         ),
-        SuccessfulEndPage(),
     )

@@ -3,9 +3,7 @@
 import logging
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
@@ -60,7 +58,5 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         trial_maker,
-        SuccessfulEndPage(),
     )

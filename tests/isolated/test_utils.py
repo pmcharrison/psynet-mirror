@@ -11,6 +11,9 @@ from psynet.utils import (
     DuplicateKeyError,
     check_todos_before_deployment,
     corr,
+    get_folder_size_mb,
+    get_package_name,
+    get_package_source_directory,
     get_psynet_root,
     linspace,
     list_experiment_dirs,
@@ -217,3 +220,109 @@ def test_check_todos_before_deployment_no_raise():
                 check_todos_before_deployment()
             except AssertionError:
                 assert False
+
+
+def test_get_folder_size_mb():
+    with tempfile.TemporaryDirectory() as tempdir:
+        subdir = os.path.join(tempdir, "subdir")
+        os.mkdir(subdir)
+
+        file1_path = os.path.join(tempdir, "file1.txt")
+        file2_path = os.path.join(subdir, "file2.txt")
+
+        with open(file1_path, "w") as file1:
+            file1.write("a" * 1024 * 1024)  # 1 MB
+
+        with open(file2_path, "w") as file2:
+            file2.write("b" * 512 * 1024)  # 0.5 MB
+
+        assert get_folder_size_mb(tempdir) == pytest.approx(1.5, rel=1e-2)
+        assert get_folder_size_mb(subdir) == pytest.approx(0.5, rel=1e-2)
+
+
+@pytest.fixture
+def temp_package_dir():
+    with tempfile.TemporaryDirectory() as tempdir:
+        with working_directory(tempdir):
+            yield tempdir
+
+
+@pytest.fixture
+def pyproject_package(temp_package_dir):
+    with open("pyproject.toml", "w") as f:
+        f.write(
+            """
+[project]
+name = "test-package"
+"""
+        )
+    return "test-package"
+
+
+@pytest.fixture
+def setup_package(temp_package_dir):
+    with open("setup.py", "w") as f:
+        f.write(
+            """
+from setuptools import setup
+
+setup(
+    name="test-package",
+    version="0.1",
+)
+"""
+        )
+    return "test-package"
+
+
+def test_get_package_name_from_pyproject(pyproject_package):
+    assert get_package_name() == pyproject_package
+
+
+def test_get_package_name_from_setup(setup_package):
+    assert get_package_name() == setup_package
+
+
+def test_get_psynet_package_name():
+    psynet_root = get_psynet_root()
+    with working_directory(psynet_root):
+        assert get_package_name() == "psynet"
+
+
+def test_get_psynet_package_source_directory():
+    """
+    Test that get_package_source_directory works correctly for the psynet package.
+    """
+    psynet_root = get_psynet_root()
+    with working_directory(psynet_root):
+        source_dir = get_package_source_directory()
+        assert source_dir == "psynet"
+        assert os.path.isdir(source_dir)
+
+
+# def test_get_package_name(temp_package_dir):
+#     # Test with pyproject.toml
+#     with open("pyproject.toml", "w") as f:
+#         f.write("""
+# [project]
+# name = "test-package-1"
+# """)
+#     assert get_package_name() == "test-package-1"
+
+#     # Test with setup.py
+#     os.remove("pyproject.toml")
+#     with open("setup.py", "w") as f:
+#         f.write("""
+# from setuptools import setup
+
+# setup(
+#     name="test-package-2",
+#     version="0.1",
+# )
+# """)
+#     assert get_package_name() == "test-package-2"
+
+#     # Test with no config files
+#     os.remove("setup.py")
+#     with pytest.raises(FileNotFoundError, match="Could not find pyproject.toml or setup.py in current directory"):
+#         get_package_name()

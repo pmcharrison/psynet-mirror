@@ -15,12 +15,11 @@ from markupsafe import Markup
 
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.consent import NoConsent
 from psynet.db import with_transaction
 from psynet.error import ErrorRecord
 from psynet.experiment import scheduled_task
 from psynet.modular_page import Prompt, SliderControl
-from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import InfoPage, ModularPage
 from psynet.process import WorkerAsyncProcess
 from psynet.timeline import Timeline
 from psynet.trial.gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
@@ -212,9 +211,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Asynchronous pruning demo"
 
     timeline = Timeline(
-        NoConsent(),
         trial_maker,
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

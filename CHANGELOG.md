@@ -1,5 +1,80 @@
 # CHANGELOG
 
+# [11.9.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.9.0) Release 2025-01-16
+
+## Fixed
+- Fixed construction of download source URL in `_export_source_code` (author: Peter Harrison).
+- Removed `client_ip_address` from anonymous data export (author: Frank Höger, reviewer: Peter Harrison).
+
+## Added
+- The new `psynet translate` command generates translations for the current directory (e.g. an experiment or a package). 
+  By default these translations are generated using OpenAI's ChatGPT but Google Translate is also supported. API tokens are needed in both case.
+- Added support for depositing folder assets to SSH deployments/debugging (author: Frank Höger, reviewer: Peter Harrison).
+- Allow release candidate tags in requirements.txt files (author: Frank Höger, reviewer: Peter Harrison).
+- It is now possible to provide functions directly to the timeline and they will be interpreted as code blocks (author: Peter Harrison, reviewer: Frank Höger).
+- Added `--open-recruitment` flag for `psynet deploy ssh|heroku` deployments (author: Frank Höger, reviewer: Peter Harrison).
+
+## Changed
+- Improved deploy logic (author: Frank Höger, reviewer: Peter Harrison):
+  - Renamed config variable `activate_recruiter_on_start` to `open_recruitment`
+  - Allow config variable `open_recruitment=False` to be overridden by using the `--open-recruitment` flag. Specifically, following logic now applies with respect to recruiters:
+    - `psynet deploy ssh` (Prolific): creates a draft study but will wait for you to launch it manually from the Prolific web GUI
+    - `psynet deploy ssh` (MTurk): fails and tells you to add the `--open-recruitment` flag
+    - `psynet deploy ssh` (Lucid): creates a draft Lucid survey
+    - `psynet deploy ssh --open-recruitment` (Prolific): creates and publishes the Prolific study
+    - `psynet deploy ssh --open-recruitment` (MTurk): creates and publishes the MTurk HIT
+    - `psynet deploy ssh --open-recruitment` (Lucid): creates a live Lucid survey
+- Renamed `server_option` to `option_server` in _dallinger.command_line.docker_ssh_ for Dallinger 11 compatibility (author: Frank Höger, reviewer: Peter Harrison).
+- The `get_translator` interface has been simplified. It now returns a single translator, `gettext`, commonly abbreviated to `_`. Locale, and namespace (previously called 'module') are inferred automatically from the context. This means you can mark translations as simply as this:
+
+```py
+_ = get_translator()
+InfoPage(_("Welcome to the experiment!"), time_estimate=5)
+```
+
+- If you want to use a translator with context, you can write this instead:
+
+```py
+_p = get_translator(context=True)
+InfoPage(_("welcome page", "Welcome to the experiment!"), time_estimate=5)
+```
+
+- Changing locales during the experiment is no longer supported (support before was patchy anyway).
+- PsyNet will now throw an error if you try to debug an experiment with missing translations. You will need to generate these with `psynet translate`.
+- Various ModularPage, TrialMaker, etc classes no longer accept a `locale` argument or attribute.
+- Translation documentation has been simplified and extended.
+- The config variable 'language' has been renamed to 'locale'. 
+
+## Removed
+- Removed obsolete _deploy.sh_ files in demos/tests (author: Frank Höger, reviewer: Peter Harrison).
+
+## Updated
+- Updated Dallinger to version 11.0.1. Read about changes in Dallinger, e.g. the addition of new config variables `prolific_workspace` and `prolific_project` to support declaration of Prolific workspaces and project names: https://github.com/Dallinger/Dallinger/releases/tag/v11.0.1 (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Documentation changes
+- Added new section for setting up a physical server (author: Peter Harrison).
+
+# [11.8.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.8.0) Release 2024-11-05
+
+## Fixed
+- Add `PsyNetRecruiterMixin` to `GenericRecruiter` class definition (author: Frank Höger, reviewer: Peter Harrison).
+- Remove erroneous `Node.check_on_create` (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed importing of `get_experiment` in lucid.py (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug whereby `GibbsTrial` was causing an export error if no answer had been submitted (author: Eline Van Geert, reviewer: Peter Harrison)
+- Fixed rendering condition for markupsafe v3 (author: Frank Höger).
+- Fixed bug in `get_folder_size_mb` (it was ignoring subdirectories) (author: Peter Harrison, reviewer: Frank Höger).
+
+## Added
+- Added config variable `prolific_is_custom_screening` with a default of `True` (author: Frank Höger, reviewer: Peter Harrison).
+- Added `source_code.zip` as part of the exported data (both when exporting from the command line as from the dashboard). The ZIP-file includes a snapshot of the experiment of the moment it was deployed (author: Frank Höger, reviewer: Peter Harrison).
+
+## Updated
+- Updated Dallinger to version 10.3.0 (author: Frank Höger, reviewer: Peter Harrison).
+- Updated 'update demos' logic to work with release candidates (author: Frank Höger).
+
+#### Documentation changes
+- Added libpq to MacOS installation instructions (author: Peter Harrison).
+
 # [11.7.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.7.0) Release 2024-09-23
 
 ## Fixed

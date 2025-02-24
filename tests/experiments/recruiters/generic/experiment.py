@@ -3,9 +3,8 @@
 from dominate import tags
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, TextControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline
 
 
@@ -14,7 +13,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 5
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage("Welcome to the experiment!", time_estimate=5),
         ModularPage(
             "name",
@@ -23,7 +21,6 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
             save_answer="name",
         ),
-        SuccessfulEndPage(),
     )
 
     def render_exit_message(self, participant):

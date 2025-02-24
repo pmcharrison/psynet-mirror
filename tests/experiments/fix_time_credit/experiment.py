@@ -3,8 +3,7 @@
 import logging
 
 import psynet.experiment
-from psynet.consent import NoConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, Timeline, while_loop
 
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +31,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         CodeBlock(lambda participant: participant.var.set("counter", 0)),
         while_loop(
             "test_while_loop_0",
@@ -64,5 +62,4 @@ class Exp(psynet.experiment.Experiment):
         ),
         CodeBlock(assert_no_time_credit_fixes),
         CodeBlock(lambda participant: assert_time_credit(participant, 1.0 + 5.0)),
-        SuccessfulEndPage(),
     )

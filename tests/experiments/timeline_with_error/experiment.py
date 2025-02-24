@@ -5,7 +5,7 @@ from dallinger.experiment import experiment_route
 import psynet.experiment
 from psynet.consent import MainConsent
 from psynet.modular_page import ModularPage, TextControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Module, PageMaker, Timeline
 from psynet.utils import get_logger
 
@@ -50,7 +50,6 @@ class Exp(psynet.experiment.Experiment):
                 time_estimate=5,
             ),
         ),
-        SuccessfulEndPage(),
     )
 
     def test_experiment(self):

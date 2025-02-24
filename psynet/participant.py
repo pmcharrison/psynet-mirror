@@ -24,13 +24,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
-from .utils import (
-    call_function_with_context,
-    get_config,
-    get_logger,
-    get_translator,
-    organize_by_key,
-)
+from .utils import call_function_with_context, get_config, get_logger, organize_by_key
 
 logger = get_logger()
 
@@ -505,11 +499,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return [lambda: self.alive_trials]
 
     @property
-    def translator(self):
-        gettext, pgettext = get_translator(self.locale)
-        return gettext, pgettext
-
-    @property
     def gettext(self):
         return self.translator[0]
 
@@ -654,17 +643,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         combined = list(set(original + new))
         self.failure_tags = combined
         return self
-
-    def get_locale(self, experiment):
-        if self.var.has("locale"):
-            return self.var.locale
-        else:
-            locale = experiment.var.current_locale
-            self.var.set("locale", locale)
-            logger.warning(
-                f"Participant {self.id} locale was not set, setting to default locale of the experiment: {locale}"
-            )
-            return locale
 
     def abort_info(self):
         """

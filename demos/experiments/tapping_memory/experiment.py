@@ -13,9 +13,8 @@ from scipy.io import wavfile
 
 import psynet.experiment
 from psynet.asset import LocalStorage, S3Storage  # noqa
-from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.prescreen import NumpySerializer, REPPTappingCalibration
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.audio import (
@@ -210,11 +209,9 @@ class ExperimentNode(CustomNode):
 class Exp(psynet.experiment.Experiment):
     label = "Tapping memory demo"
 
-    asset_storage = LocalStorage()
     # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
 
     timeline = Timeline(
-        NoConsent(),
         REPPTappingCalibration(),  # calibrate tapping
         InfoPage(
             Markup(
@@ -250,7 +247,6 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="n_participants",
             target_n_participants=TOTAL_NUM_PARTICIPANTS,
         ),
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

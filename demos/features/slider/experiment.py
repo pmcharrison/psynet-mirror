@@ -3,9 +3,8 @@ import json
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, SliderControl
-from psynet.page import DebugResponsePage, SuccessfulEndPage
+from psynet.page import DebugResponsePage
 from psynet.timeline import Timeline, join
 
 
@@ -110,12 +109,10 @@ example_6 = {
 class CustomExp(psynet.experiment.Experiment):
     label = "Slider demo"
     timeline = Timeline(
-        NoConsent(),
         make_example(example_1),
         make_example(example_2),
         make_example(example_3),
         make_example(example_4),
         make_example(example_5),
         make_example(example_6),
-        SuccessfulEndPage(),
     )

@@ -12,10 +12,9 @@ from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import PushButtonControl, TextControl
-from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
+from psynet.page import InfoPage, ModularPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock, PageMaker, Timeline, join
 
@@ -150,11 +149,9 @@ class Exp(psynet.experiment.Experiment):
     label = "Custom table (complex) demo"
 
     timeline = Timeline(
-        NoConsent(),
         Pet.choose_pet(),
         InfoPage(
             "Have a look at the dashboard to see the pet that you chose.",
             time_estimate=5,
         ),
-        SuccessfulEndPage(),
     )

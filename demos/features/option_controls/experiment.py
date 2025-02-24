@@ -1,5 +1,4 @@
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import (
     CheckboxControl,
     DropdownControl,
@@ -7,7 +6,6 @@ from psynet.modular_page import (
     PushButtonControl,
     RadioButtonControl,
 )
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.utils import get_logger
 
@@ -18,7 +16,6 @@ class Exp(psynet.experiment.Experiment):
     label = "Option controls demo"
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "response",
             prompt="This is an example of a push button page with vertically arranged buttons.",
@@ -95,5 +92,4 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=5,
         ),
-        SuccessfulEndPage(),
     )

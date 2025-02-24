@@ -4,7 +4,7 @@ import random
 import psynet.experiment
 from psynet.asset import Asset, ExternalAsset
 from psynet.consent import MainConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Module, PageMaker, Timeline
 from psynet.utils import get_logger
 
@@ -36,7 +36,6 @@ class Exp(psynet.experiment.Experiment):
             },
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

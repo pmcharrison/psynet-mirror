@@ -73,6 +73,10 @@ General
 ``base_port`` *int* |dlgr-icon|
     The port to be used to access the web application. Normally there should not be the need to change this from the default. Default ``5000``.
 
+``check_dallinger_version`` *bool* |psynet-icon|
+    Set this to ``False`` if you want to bypass the check for the version of Dallinger that is recommended for the current PsyNet release. This allows for flexibility, e.g. when deploying `Dallinger` development branches.
+    Default: ``True``.
+
 ``check_participant_opened_devtools`` *bool* |psynet-icon|
     If ``True``, whenever a participant opens the developer tools in the web browser,
     this is logged as participant.var.opened_devtools = ``True``,
@@ -220,11 +224,6 @@ Recruitment
 General
 ~~~~~~~
 
-``activate_recruiter_on_start`` *bool* |dlgr-icon|
-    A boolean on whether recruitment should start automatically when the experiment launches.
-    If set to ``false`` the user has to manually initialize recruitment (e.g. via the Prolific panel).
-    Default: ``true``.
-
 ``auto_recruit`` *bool* |dlgr-icon|
     A boolean on whether recruitment should be automatic.
 
@@ -297,6 +296,13 @@ Allowed browsers and devices
 
 Recruiters
 ~~~~~~~~~~
+
+General
+-------
+
+``publish_experiment`` *bool* |dlgr-icon|
+    Whether the experiment should be published when deploying. It is currently used in Prolific and Lucid recruitment: In the case of Prolific recruitment, if ``False`` a draft study will be created which later can be published via the Prolific web UI; in the case of Lucid recruitment, if ``False`` an awarded survey will be created which later can be published (set 'live') via the Lucid web UI. Default is ``True``.
+    Default: ``True``.
 
 Amazon Mechanical Turk
 ----------------------
@@ -389,6 +395,10 @@ Prolific
 
 ``prolific_estimated_completion_minutes`` *int* |dlgr-icon|
     Estimated duration in minutes of the experiment or survey.
+
+``prolific_is_custom_screening`` *bool* |dlgr-icon|
+    Whether or not this study includes a custom screening. Default: `True`.
+    See https://docs.prolific.com/docs/api-docs/public/#tag/Studies/operation/CreateStudy for more information.
 
 ``prolific_recruitment_config`` *unicode - JSON formatted* |dlgr-icon|
     JSON data to add additional recruitment parameters.

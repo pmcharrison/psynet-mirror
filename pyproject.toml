@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "psynet"
-version = "11.8.0-dev0"
+version = "11.10.0-dev0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -33,19 +33,22 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=10.2.2,<11",
+    "dallinger[docker]>=11.1.0,<12",
     "dominate",
     "html2text",
     "joblib",
     "jsonpickle",
+    "mock",
     "pandas",
     "paramiko",
     "polib",
     "progress",
     "pytest",
+    "pytest-mock",
     "python-gettext",
     "rpdb",
     "tenacity",
+    "tomlkit",
     "tqdm",
     "yaspin",
 ]
@@ -54,10 +57,10 @@ dependencies = [
 dev = [
     "bump-my-version",
     "furo",
+    "google-cloud-translate",
     "isort",
-    "mock",
+    "openai",
     "pre-commit",
-    "pybabel",
     "sphinx",
     "sphinx-autodoc-typehints",
 ]

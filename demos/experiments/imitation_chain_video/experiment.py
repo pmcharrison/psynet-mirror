@@ -7,8 +7,7 @@ import random
 from dallinger import db
 
 import psynet.experiment
-from psynet.asset import Asset, CachedAsset, LocalStorage, S3Storage  # noqa
-from psynet.consent import NoConsent
+from psynet.asset import asset
 from psynet.modular_page import (
     AudioMeterControl,
     ModularPage,
@@ -16,7 +15,6 @@ from psynet.modular_page import (
     VideoPrompt,
     VideoRecordControl,
 )
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.video import (
     CameraImitationChainNode,
@@ -139,13 +137,9 @@ class CustomNode(CameraImitationChainNode):
 class Exp(psynet.experiment.Experiment):
     label = "Video imitation chain demo"
 
-    # asset_storage = S3Storage("psynet-tests", "video-imitation-chain")
-    asset_storage = LocalStorage()
-
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         ModularPage(
             "record_calibrate",
             """
@@ -173,8 +167,7 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=25,
             wait_for_networks=True,
             assets={
-                "5s_silence": CachedAsset(input_path="assets/5s_silence.wav"),
+                "5s_silence": asset("assets/5s_silence.wav", cache=True),
             },
         ),
-        SuccessfulEndPage(),
     )

@@ -6,9 +6,8 @@ import random
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial, StaticTrialMaker
 
@@ -128,9 +127,7 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 2
 
     timeline = Timeline(
-        NoConsent(),
         trial_maker,
-        SuccessfulEndPage(),
     )
 
     def test_check_bot(self, participant):

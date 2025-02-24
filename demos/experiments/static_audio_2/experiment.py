@@ -2,14 +2,13 @@ import random
 
 import psynet.experiment
 from psynet.asset import LocalStorage, OnDemandAsset, S3Storage  # noqa
-from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
     ModularPage,
 )
-from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
+from psynet.page import InfoPage, VolumeCalibration
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
@@ -84,11 +83,9 @@ class CustomTrial(StaticTrial):
 class Exp(psynet.experiment.Experiment):
     label = "Static audio demo (2)"
 
-    asset_storage = LocalStorage()
     # asset_storage = S3Storage("psynet-tests", "static-audio")
 
     timeline = Timeline(
-        NoConsent(),
         VolumeCalibration(),
         ModularPage(
             "record_calibrate",
@@ -115,5 +112,4 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=3,
             recruit_mode="n_participants",
         ),
-        SuccessfulEndPage(),
     )

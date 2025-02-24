@@ -6,9 +6,8 @@ from markupsafe import Markup
 
 import psynet.experiment
 from psynet.bot import Bot, advance_past_wait_pages
-from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, Prompt, SliderControl
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.sync import SimpleGrouper
 from psynet.timeline import Timeline, join
@@ -156,7 +155,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        NoConsent(),
         InfoPage("Welcome to the experiment!", time_estimate=5),
         SimpleGrouper(
             group_type="gibbs",
@@ -164,7 +162,6 @@ class Exp(psynet.experiment.Experiment):
             join_existing_groups=True,
         ),
         trial_maker,
-        SuccessfulEndPage(),
     )
 
     test_n_bots = 4

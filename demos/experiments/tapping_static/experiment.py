@@ -10,10 +10,9 @@ from repp.stimulus import REPPStimulus
 from repp.utils import save_json_to_file, save_samples_to_file
 
 import psynet.experiment
-from psynet.asset import CachedFunctionAsset, LocalStorage, S3Storage  # noqa
-from psynet.consent import NoConsent
+from psynet.asset import asset
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage
 from psynet.prescreen import (
     NumpySerializer,
     REPPMarkersTest,
@@ -75,9 +74,7 @@ nodes_iso = [
             "stim_name": name,
             "list_iois": iois,
         },
-        assets={
-            "stimulus": CachedFunctionAsset(generate_basic_stimulus, is_folder=True)
-        },
+        assets={"stimulus": asset(generate_basic_stimulus, cache=True, is_folder=True)},
     )
     for name, iois in zip(iso_stimulus_names, iso_stimulus_onsets)
 ]
@@ -108,7 +105,7 @@ nodes_music = [
             "onset_filename": os.path.join("music", onset_file),
         },
         assets={
-            "stimulus": CachedFunctionAsset(generate_music_stimulus, is_folder=True),
+            "stimulus": asset(generate_music_stimulus, cache=True, is_folder=True),
         },
     )
     for name, audio_file, onset_file in zip(
@@ -289,17 +286,13 @@ music_tapping = join(
 # Experiment
 class Exp(psynet.experiment.Experiment):
     label = "Tapping (static) demo"
-    asset_storage = LocalStorage()
-    # asset_storage = S3Storage("psynet-tests", "tapping-static")
 
     timeline = Timeline(
-        NoConsent(),
         REPPVolumeCalibrationMusic(),  # calibrate volume with music
         REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
         REPPTappingCalibration(),  # calibrate tapping
         ISO_tapping,
         music_tapping,
-        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

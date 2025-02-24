@@ -6,15 +6,12 @@ from dominate import tags
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import LocalStorage
-from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioPrompt,
     AudioRecordControl,
     ModularPage,
     PushButtonControl,
 )
-from psynet.page import SuccessfulEndPage
 from psynet.timeline import (
     CodeBlock,
     Event,
@@ -362,14 +359,11 @@ trial_maker = CreateAndRateTrialMaker(
 class Exp(psynet.experiment.Experiment):
     label = "Genetic Algorithm with People"
     initial_recruitment_size = 1
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
-        NoConsent(),
         CodeBlock(
             lambda participant: participant.var.set("is_rater", is_rater(participant))
         ),
         get_instructions(),
         trial_maker,
-        SuccessfulEndPage(),
     )

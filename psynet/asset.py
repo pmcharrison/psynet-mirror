@@ -9,7 +9,8 @@ import urllib.request
 import uuid
 import warnings
 from functools import cached_property
-from typing import Optional
+from pathlib import Path
+from typing import Callable, Optional, Union
 
 import boto3
 import paramiko
@@ -967,7 +968,7 @@ class ManagedAsset(Asset):
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         self.deposited = False
-        self.input_path = input_path
+        self.input_path = str(input_path)
         self.obfuscate = obfuscate
 
         if is_folder is None:
@@ -2650,11 +2651,6 @@ class LocalStorage(AssetStorage):
                 shutil.copyfile(asset.input_path, os.path.expanduser(file_system_path))
         else:
             if deployment_info.read("is_ssh_deployment"):
-                if asset.is_folder:
-                    raise NotImplementedError(
-                        "Haven't implemented depositing folder assets to SSH yet, use file assets instead"
-                    )
-
                 ssh_host = deployment_info.read("ssh_host")
                 ssh_user = deployment_info.read("ssh_user")
 
@@ -2662,14 +2658,20 @@ class LocalStorage(AssetStorage):
                     self.ssh_host_home_dir(ssh_host, ssh_user) + file_system_path
                 )
 
-                self._put_file(
-                    asset.input_path,
-                    docker_host_path,
-                    ssh_host,
-                    ssh_user,
-                    make_parents=True,
-                )
-
+                if asset.is_folder:
+                    self._put_folder(
+                        asset.input_path,
+                        docker_host_path,
+                        ssh_host,
+                        ssh_user,
+                    )
+                else:
+                    self._put_file(
+                        asset.input_path,
+                        docker_host_path,
+                        ssh_host,
+                        ssh_user,
+                    )
             else:
                 raise NotImplementedError
 
@@ -2679,7 +2681,7 @@ class LocalStorage(AssetStorage):
         #     url=os.path.abspath(file_system_path),
         # )
 
-    def _put_file(self, input_path, dest_path, ssh_host, ssh_user, make_parents=True):
+    def _put_file(self, input_path, dest_path, ssh_host, ssh_user):
         from io import BytesIO
 
         sftp = self.sftp_connection(ssh_host, ssh_user)
@@ -2687,6 +2689,31 @@ class LocalStorage(AssetStorage):
         self._mk_dir_tree(os.path.dirname(dest_path), ssh_host, ssh_user)
         with open(input_path, "rb") as file:
             sftp.putfo(BytesIO(file.read()), dest_path)
+
+    def _put_folder(self, input_path, dest_path, ssh_host, ssh_user):
+        from io import BytesIO
+
+        sftp = self.sftp_connection(ssh_host, ssh_user)
+
+        self._mk_dir_tree(dest_path, ssh_host, ssh_user)
+
+        # Traverse the local directory
+        for dirpath, dirnames, filenames in os.walk(input_path):
+            # For each directory in the local structure, create it remotely
+            for dirname in dirnames:
+                local_path = os.path.join(dirpath, dirname)
+                relative_path = os.path.relpath(local_path, input_path)
+                remote_path = os.path.join(dest_path, relative_path)
+                self._mk_dir_tree(remote_path, ssh_host, ssh_user)
+
+            # For each file, copy it to the remote directory
+            for filename in filenames:
+                local_path = os.path.join(dirpath, filename)
+                relative_path = os.path.relpath(local_path, input_path)
+                remote_path = os.path.join(dest_path, relative_path)
+
+                with open(local_path, "rb") as file:
+                    sftp.putfo(BytesIO(file.read()), remote_path)
 
     def _mk_dir_tree(self, dir, ssh_host, ssh_user):
         executor = self.ssh_executor(ssh_host, ssh_user)
@@ -2728,15 +2755,21 @@ class LocalStorage(AssetStorage):
         else:
             shutil.copyfile(from_, to_)
 
-    # def export_subfile(self, asset, subfile, path):
-    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
-    #     to_ = path
-    #     shutil.copyfile(from_, to_)
-    #
-    # def export_subfolder(self, asset, subfolder, path):
-    #     from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
-    #     to_ = path
-    #     shutil.copytree(from_, to_, dirs_exist_ok=True)
+    def export_subfile(self, asset, subfile, path):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
+            to_ = path
+            shutil.copyfile(from_, to_)
+        else:
+            super().export_subfile(asset, subfile, path)
+
+    def export_subfolder(self, asset, subfolder, path):
+        if self.on_deployed_server() or deployment_info.read("is_local_deployment"):
+            from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
+            to_ = path
+            shutil.copytree(from_, to_, dirs_exist_ok=True)
+        else:
+            super().export_subfolder(asset, subfolder, path)
 
     def get_file_system_path(self, host_path):
         if host_path:
@@ -3033,6 +3066,17 @@ class S3Storage(AssetStorage):
     S3 Storage system. This service is relatively inexpensive as long as your
     file collection does not number more than a few gigabytes. To use this
     service you will need to sign up for an Amazon Web Services account.
+
+    You can use this storage back-end by setting the ``asset_storage`` property
+    of your ``Experiment`` class in experiment.py, for example:
+
+    ::
+
+        import psynet.experiment
+        from psynet.asset import S3Storage
+
+        class Exp(psynet.experiment.Experiment):
+            asset_storage = S3Storage("psynet-tests", "repp-tests")
 
     Parameters
     ----------
@@ -3333,3 +3377,133 @@ class AssetRegistry:
 def threadsafe__prepare_asset_for_deployment(asset, registry):
     asset_2 = db.session.merge(asset)
     asset_2.prepare_for_deployment(registry=registry)
+
+
+def asset(  # noqa: F841
+    source: Union[str, Path, Callable],
+    *,
+    cache: bool = False,
+    on_demand: bool = False,
+    arguments: Optional[dict] = None,
+    local_key=None,
+    key_within_module=None,
+    key_within_experiment=None,
+    description=None,
+    is_folder=False,
+    data_type=None,
+    extension=None,
+    parent=None,
+    module_id=None,
+    personal=False,
+):
+    """
+    Create an asset.
+
+    Most users will find this the easiest way to create assets.
+    Advanced users can also create assets via the constructor functions for each asset type:
+    - :class:`ExternalAsset`
+    - :class:`ExperimentAsset`
+    - :class:`CachedFunctionAsset`
+    - :class:`OnDemandAsset`
+
+
+    Parameters
+    ----------
+    source : str, Path, or callable
+        The source of the asset. If a string or Path, it will be treated as a local file or URL.
+        If a callable, it will be treated as a function asset.
+
+    cache : bool, default=False
+        Cached assets are uploaded to a data-storage directory that is shared between experiment launches.
+        This is primarily useful when working with a stimulus set that is time-consuming to
+        generate and/or upload to the web server, because the generation and/or uploading only happens once.
+        Cache invalidation is done based on file hashing (for file assets) or argument hashing (for function assets).
+        See :meth:`FunctionAssetMixin.get_md5_instructions` for more information.
+
+    on_demand : bool, default=False
+        Whether to generate the asset on demand.
+
+    arguments : dict, optional
+        Arguments to pass to the function if source is a callable.
+
+    local_key : str
+        A string identifier for the asset, for example ``"stimulus"``. If provided, this string identifier
+        should together with ``parent`` and ``module_id`` uniquely identify that asset (i.e. no other asset
+        should share that combination of properties).
+
+    key_within_module : str
+        A string that uniquely identifies the asset within a given module. If left unspecified,
+        this will be automatically generated with reference to the ``parent`` and the ``local_key`` arguments.
+
+    key_within_experiment : str
+        A string that uniquely identifies the asset within a given experiment. If left unspecified,
+        this will be automatically generated with reference to the ``key_within_module`` and the ``module_id`` arguments.
+
+    description : str
+        An optional longer string that provides further documentation about the asset.
+
+    is_folder : bool
+        Whether the asset is a folder.
+
+    data_type : str
+        Experimental: the nature of the asset's data. Could be used to determine visualization methods etc.
+
+    extension : str
+        The file extension, if applicable.
+
+    parent : object
+        The object that 'owns' the asset, if applicable, for example a Participant or a Node.
+
+    module_id : str
+        The module within which the asset is located.
+
+    personal : bool
+        Whether the asset is 'personal' and hence omitted from anonymous database exports.
+
+    Returns
+    -------
+    Asset
+        The created asset. Depending on the input arguments, this could be:
+        - ExternalAsset: For assets hosted externally at a URL
+        - ExperimentAsset: For assets specific to the current experiment deployment
+        - CachedFunctionAsset: For assets generated by a function and cached between experiment launches
+        - OnDemandAsset: For assets generated by a function on demand
+    """
+    kwargs = locals()
+
+    if callable(source):
+        return _function_asset(**kwargs)
+    else:
+        if arguments is not None:
+            raise ValueError("Arguments can only be provided for function assets.")
+
+        for arg in ["arguments", "on_demand", "cache"]:
+            kwargs.pop(arg)
+
+        source = str(source)
+
+        if source.startswith("http"):
+            url = kwargs.pop("source")
+            return ExternalAsset(url, **kwargs)
+        else:
+            input_path = kwargs.pop("source")
+            return ExperimentAsset(input_path, **kwargs)
+
+
+def _function_asset(source, cache, on_demand, **kwargs):
+    function = source
+
+    if cache:
+        if on_demand:
+            raise ValueError(
+                "Sorry, currently function assets can't be both cached and on-demand."
+            )
+        return CachedFunctionAsset(function=function, **kwargs)
+    else:
+        if on_demand:
+            return OnDemandAsset(function=function, **kwargs)
+        else:
+            raise ValueError(
+                "Sorry, currently function assets must be marked as either cached or on-demand. "
+                "Select the former if you want to pre-generate your assets, or the latter otherwise."
+            )

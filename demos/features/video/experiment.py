@@ -1,15 +1,14 @@
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.asset import CachedAsset, LocalStorage
-from psynet.consent import NoConsent
+from psynet.asset import asset
 from psynet.modular_page import (
     AudioRecordControl,
     ModularPage,
     VideoPrompt,
     VideoRecordControl,
 )
-from psynet.page import SuccessfulEndPage, wait_while
+from psynet.page import wait_while
 from psynet.timeline import (
     Event,
     MediaSpec,
@@ -30,11 +29,11 @@ logger = get_logger()
 
 
 all_assets = {
-    "flower": CachedAsset("assets/flower.mp4"),
-    "birds": CachedAsset("assets/birds.mp4"),
-    "funk-game-loop": CachedAsset("assets/funk-game-loop.mp3"),
-    "sync-test-video": CachedAsset("assets/video-sync-test.mp4"),
-    "sync-test-audio": CachedAsset("assets/video-sync-test.wav"),
+    "flower": asset("local_only/flower.mp4", cache=True),
+    "birds": asset("local_only/birds.mp4", cache=True),
+    "funk-game-loop": asset("local_only/funk-game-loop.mp3", cache=True),
+    "sync-test-video": asset("local_only/video-sync-test.mp4", cache=True),
+    "sync-test-audio": asset("local_only/video-sync-test.wav", cache=True),
 }
 
 
@@ -253,14 +252,11 @@ video_pages = join(
 
 class Exp(psynet.experiment.Experiment):
     label = "Video demo"
-    asset_storage = LocalStorage()
 
     timeline = Timeline(
-        NoConsent(),
         Module(
             "video_demo",
             video_pages,
             assets=all_assets,
         ),
-        SuccessfulEndPage(),
     )
