@@ -1283,7 +1283,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "loglevel_worker": 1,
             "min_accumulated_reward_for_abort": 0.20,
             "min_browser_version": "80.0",
-            "prolific_is_custom_screening": True,
+            "prolific_is_custom_screening": False,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
