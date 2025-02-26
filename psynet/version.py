@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+from importlib import metadata
 
 import click
 from dallinger.version import __version__ as dallinger_version
@@ -120,22 +121,26 @@ def installed_version_for(package_name):
     raise ValueError(f"Unsupported package '{package_name}'")
 
 
-def get_pip_freeze_requirement(name):
-    pip_freeze_stdout = subprocess.run(
-        ["pip freeze"],
-        shell=True,
-        capture_output=True,
-    ).stdout
+def get_requirement(name):
+    try:
+        return f"{name}=={metadata.version(name)}"
+    except metadata.PackageNotFoundError:
+        # Fallback to pip freeze if package metadata not found
+        pip_freeze_stdout = subprocess.run(
+            ["pip freeze"],
+            shell=True,
+            capture_output=True,
+        ).stdout
 
-    return [
-        line.decode()
-        for line in pip_freeze_stdout.splitlines()
-        if f"{name}" in line.decode()
-    ][0]
+        return [
+            line.decode()
+            for line in pip_freeze_stdout.splitlines()
+            if f"{name}" in line.decode()
+        ][0]
 
 
 def commit_hash_or_version_from_pip_freeze(package_name):
-    line = get_pip_freeze_requirement(package_name)
+    line = get_requirement(package_name)
     match = re.search(f".*{package_name}(?:\\.git)?@([^#]*)", line, re.IGNORECASE)
     if match is not None:
         return match.group(1)

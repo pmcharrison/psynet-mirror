@@ -57,9 +57,9 @@ def test_check_versions_psynet_editable_version_tag_without_egg():
 
 
 @patch("psynet.__version__", "10.0.0")
-@patch("psynet.version.get_pip_freeze_requirement")
-def test_check_versions_psynet_editable_commit_hash(mock_get_pip_freeze_requirement):
-    mock_get_pip_freeze_requirement.return_value = "-e git+ssh://git@gitlab.com/PsyNetDev/PsyNet@COMMIT_HASH_FROM_PIP_FREEEZE#egg=psynet"
+@patch("psynet.version.get_requirement")
+def test_check_versions_psynet_editable_commit_hash(mock_get_requirement):
+    mock_get_requirement.return_value = "-e git+ssh://git@gitlab.com/PsyNetDev/PsyNet@COMMIT_HASH_FROM_PIP_FREEEZE#egg=psynet"
 
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
@@ -80,9 +80,9 @@ def test_check_versions_psynet_editable_commit_hash(mock_get_pip_freeze_requirem
 
 
 @patch("psynet.__version__", "10.0.0")
-@patch("psynet.version.get_pip_freeze_requirement")
-def test_check_versions_psynet_pip_install_requirement(mock_get_pip_freeze_requirement):
-    mock_get_pip_freeze_requirement.return_value = "psynet==10.0.0"
+@patch("psynet.version.get_requirement")
+def test_check_versions_psynet_pip_install_requirement(mock_get_requirement):
+    mock_get_requirement.return_value = "psynet==10.0.0"
 
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
@@ -100,10 +100,24 @@ def test_check_versions_psynet_pip_install_requirement(mock_get_pip_freeze_requi
                     check_versions()
 
 
+@patch("psynet.__version__", "10.0.0rc1")
+@patch("psynet.version.get_requirement")
+def test_check_versions_psynet_pip_install_requirement_rc(mock_get_requirement):
+    mock_get_requirement.return_value = "PsyNet==10.0.0rc1"
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            # Do not NOT raise an error if versions specified (psynet==X.Y.ZrcN) and installed are the same
+            with open("requirements.txt", "w") as file:
+                file.write("psynet==10.0.0rc1")
+                file.flush()
+            check_versions()
+
+
 @patch("psynet.__version__", "10.0.0")
-@patch("psynet.version.get_pip_freeze_requirement")
-def test_check_versions_psynet_pip_install_commit_hash(mock_get_pip_freeze_requirement):
-    mock_get_pip_freeze_requirement.return_value = "psynet==10.0.0"
+@patch("psynet.version.get_requirement")
+def test_check_versions_psynet_pip_install_commit_hash(mock_get_requirement):
+    mock_get_requirement.return_value = "psynet==10.0.0"
 
     for extension in ["", ".git"]:
         with tempfile.TemporaryDirectory() as dir:
@@ -188,11 +202,11 @@ def test_check_versions_dallinger_unspecified_requirement():
 
 
 @patch("psynet.__version__", "10.0.0")
-@patch("psynet.version.get_pip_freeze_requirement")
+@patch("psynet.version.get_requirement")
 def test_check_versions_dallinger_editable_commit_hash_with_egg(
-    mock_get_pip_freeze_requirement,
+    mock_get_requirement,
 ):
-    mock_get_pip_freeze_requirement.return_value = "-e git+https://github.com/Dallinger/Dallinger@COMMIT_HASH_FROM_PIP_FREEEZE#egg=dallinger"
+    mock_get_requirement.return_value = "-e git+https://github.com/Dallinger/Dallinger@COMMIT_HASH_FROM_PIP_FREEEZE#egg=dallinger"
 
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
@@ -214,11 +228,11 @@ def test_check_versions_dallinger_editable_commit_hash_with_egg(
 
 
 @patch("psynet.__version__", "10.0.0")
-@patch("psynet.version.get_pip_freeze_requirement")
+@patch("psynet.version.get_requirement")
 def test_check_versions_dallinger_editable_commit_hash_without_egg(
-    mock_get_pip_freeze_requirement,
+    mock_get_requirement,
 ):
-    mock_get_pip_freeze_requirement.return_value = (
+    mock_get_requirement.return_value = (
         "-e git+https://github.com/Dallinger/Dallinger@COMMIT_HASH_FROM_PIP_FREEEZE"
     )
 
