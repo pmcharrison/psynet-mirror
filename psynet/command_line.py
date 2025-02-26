@@ -2149,9 +2149,7 @@ def pre_update_constraints_(dir):
         .strip()
     )
     with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = (
-            "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*(rc\\d+)*)"
-        )
+        psynet_requirement = r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+)?)"
         for line in file:
             print(
                 re.sub(
