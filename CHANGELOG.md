@@ -1,14 +1,34 @@
 # CHANGELOG
 
-# [12.0.0rc1] Release candidate 2025-02-15
+# [12.0.0rc2] Release candidate 2 2025-02-27
 
 ## Fixed
-- Fixed bug that prevent the export command from being run (author: Frank Höger).
+- Previously, PsyNet would never translate anything if the experiment was not completely loaded (in order to access the config var `locale`). However, there is no need to wait for this if a user manually passes `locale` as an argument (authors: Pol van Rijn, Peter Harrison)
+- Fixed a bug where `check_versions` failed when a release candidate version, e.g. `psynet==12.0.0rc1`, was specified in requirements.txt (author: Frank Höger, reviewer: Peter Harrison)
+
+## Added
+- Added 'Beep headphone test' to check if people can listen to audio but you don't care that much about the quality of the playback device (authors: Pol van Rijn, Peter Harrison)
+- Added translations for 75 languages (authors: Pol van Rijn, Peter Harrison)
 
 ## Changed
-- Removed hyphen from release candidate and development versions (author: Frank Höger).
+- Consent verification (author: Peter Harrison, reviewer: Frank Höger):
+  - PsyNet now only forces experiments to contain consent pages during deploying, not during debugging.
+  - Demos no longer include `NoConsent` in their timelines.
+  - Demos no longer include `SuccessfulEndPage` at the end of the timeline, since this no longer needs to be added explicitly.
+- Changed default value of config variable `is_custom_screening` to `False` (author: Frank Höger, reviewer: Peter Harrison)
 
-# [12.0.0rc0] Release candidate 2025-02-12
+## Updated
+- Updated Dallinger to version 11.1.1. Read about changes in Dallinger: https://github.com/Dallinger/Dallinger/releases/tag/v11.1.1 (author: Frank Höger)
+
+# [12.0.0rc1] Release candidate 1 2025-02-15
+
+## Fixed
+- Fixed bug that prevent the export command from being run (author: Frank Höger)
+
+## Changed
+- Removed hyphen from release candidate and development versions (author: Frank Höger)
+
+# [12.0.0rc0] Release candidate 0 2025-02-12
 
 ## Added
 - The new `psynet translate` command generates translations for the current directory (e.g. an experiment or a package). By default these translations are generated using OpenAI's ChatGPT but Google Translate is also supported. API tokens are needed in both case (authors: Pol van Rijn, Peter Harrison)
