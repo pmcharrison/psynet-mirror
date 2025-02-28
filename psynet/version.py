@@ -107,7 +107,7 @@ def get_all_version_infos(file_content):
 def specified_using_version(specified):
     return (
         specified.startswith("v")
-        or re.search(r"^\d+\.\d+\.\d+$", specified) is not None
+        or re.search(r"^\d+\.\d+\.\d+(?:rc\d+)?$", specified) is not None
     )
 
 
