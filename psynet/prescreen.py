@@ -178,7 +178,7 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
 
     class AudioMeter(AudioMeterControl):
         decay = {"display": 0.1, "high": 0.1, "low": 0.1}
-        threshold = {"high": -12, "low": -22}
+        threshold = {"high": -20, "low": -40}
         grace = {"high": 0.0, "low": 1.5}
         warn_on_clip = True
         msg_duration = {"high": 0.25, "low": 0.25}
@@ -293,20 +293,22 @@ class REPPTappingCalibration(Module):
     def instructions_text(self, assets):
         return Markup(
             f"""
-            <h3>You will now practice how to tap on your laptop</h3>
-            <b>Please always tap on the surface of your laptop using your index finger (see picture)</b>
+            <h3>Practice how to tap on your laptop</h3>
+            <hr>
+            Please always tap on the surface of your laptop using your index finger (see picture)
             <ul>
                 <li>Practice tapping and check that the level of your tapping is <b style="color:green;">"just right"</b>.</li>
-                <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
+                <li>Do not tap on the keyboard or tracking pad, and do not tap using your nails or any other bject.</li>
                 <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
             </ul>
-            <img style="width:70%" src="{assets['tapping_instructions_image'].url}"  alt="image_rules">
+            <img style="width:60%" src="{assets['tapping_instructions_image'].url}"  alt="image_rules">
+            <hr>
             """
         )
 
     class AudioMeter(AudioMeterControl):
         decay = {"display": 0.1, "high": 0.1, "low": 0}
-        threshold = {"high": -12, "low": -20}
+        threshold = {"high": -18, "low": -28}
         grace = {"high": 0.2, "low": 1.5}
         warn_on_clip = False
         msg_duration = {"high": 0.25, "low": 0.25}
@@ -394,7 +396,7 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
             return InfoPage(
                 Markup(
                     f"""
-                    <h4>Your tapping was bad...</h4>
+                    <h4>Your performance should improve...</h4>
                     We detected {num_resp_onsets_detected} taps in the recording. This is not sufficient for this task.
                     Please try to do one or more of the following:
                     <ol><li>Tap a steady beat, providing at least 5-10 taps.</li>
@@ -402,7 +404,7 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
                         <li>Tap on the surface of your laptop using your index finger.</li>
                         <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
                     </ol>
-                    <b><b>If we cannot detect your tapping signal in the recording, the experiment will terminate.</b></b>
+                    <b><b>If we cannot detect your tapping signal in the recording, we won't be able to continue with the experiment.</b></b>
                     """
                 ),
                 time_estimate=5,
@@ -629,7 +631,8 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             return InfoPage(
                 Markup(
                     """
-                    <h4>The recording quality of your laptop is not good</h4>
+                    <h3>The recording quality of your laptop is not good</h3>
+                    <hr>
                     This may have many reasons. Please try to do one or more of the following:
                     <ol><li>Increase the volumne of your laptop.</li>
                         <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
@@ -637,6 +640,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                         <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
                     </ol>
                     We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
+                    <hr>
                     """
                 ),
                 time_estimate=5,
@@ -645,9 +649,11 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             return InfoPage(
                 Markup(
                     """
-                    <h4>The recording quality of your laptop is good</h4>
+                    <h3>The recording quality of your laptop is good</h3>
+                    <hr>
                     We will try some more trials.
-                    To complete the experiment and get the full reward, you will need to have a good recording quality in all trials.
+                    Please make sure to have a good recording quality in all trials.
+                    <hr>
                     """
                 ),
                 time_estimate=5,
