@@ -39,7 +39,9 @@ from .trial.static import StaticTrial, StaticTrialMaker
 from .utils import get_logger, get_translator
 
 logger = get_logger()
-DEFAULT_LOCALE = "en"
+
+_ = get_translator()
+_p = get_translator(context=True)
 
 
 class REPPVolumeCalibration(Module):
@@ -47,8 +49,8 @@ class REPPVolumeCalibration(Module):
         self,
         label,
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
-        min_time_on_calibration_page: float = 3.0,
-        time_estimate_for_calibration_page: float = 5.0,
+        min_time_on_calibration_page: float = 5.0,
+        time_estimate_for_calibration_page: float = 10.0,
     ):
         super().__init__(
             label,
@@ -77,11 +79,11 @@ class REPPVolumeCalibration(Module):
             lambda assets: InfoPage(
                 Markup(
                     f"""
-                      <h3>Requirements</h3>
+                      <h3>Attention</h3>
                       <hr>
                       <b>Throughout the experiment, it is very important to <b>ONLY</b> use the laptop speakers and be in a silent environment.
                       <br><br>
-                      <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now).</i>
+                      <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
                       <hr>
                       <img style="width:70%" src="{assets['rules_image'].url}" alt="rules_image">
                       """
@@ -176,7 +178,7 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
 
     class AudioMeter(AudioMeterControl):
         decay = {"display": 0.1, "high": 0.1, "low": 0.1}
-        threshold = {"high": -20, "low": -40}
+        threshold = {"high": -12, "low": -22}
         grace = {"high": 0.0, "low": 1.5}
         warn_on_clip = True
         msg_duration = {"high": 0.25, "low": 0.25}
@@ -291,22 +293,20 @@ class REPPTappingCalibration(Module):
     def instructions_text(self, assets):
         return Markup(
             f"""
-            <h3>Practice how to tap on your laptop</h3>
-            <hr>
-            Please always tap on the surface of your laptop using your index finger (see picture)
+            <h3>You will now practice how to tap on your laptop</h3>
+            <b>Please always tap on the surface of your laptop using your index finger (see picture)</b>
             <ul>
                 <li>Practice tapping and check that the level of your tapping is <b style="color:green;">"just right"</b>.</li>
-                <li>Do not tap on the keyboard or tracking pad, and do not tap using your nails or any other bject.</li>
+                <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
                 <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
             </ul>
-            <img style="width:60%" src="{assets['tapping_instructions_image'].url}"  alt="image_rules">
-            <hr>
+            <img style="width:70%" src="{assets['tapping_instructions_image'].url}"  alt="image_rules">
             """
         )
 
     class AudioMeter(AudioMeterControl):
         decay = {"display": 0.1, "high": 0.1, "low": 0}
-        threshold = {"high": -18, "low": -27}
+        threshold = {"high": -12, "low": -20}
         grace = {"high": 0.2, "low": 1.5}
         warn_on_clip = False
         msg_duration = {"high": 0.25, "low": 0.25}
@@ -597,7 +597,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                     """
                     <h3>Recording test</h3>
                     <hr>
-                    <h3>Please remain silent while we play a sound and record it</h3>
+                    <h4>Please remain silent while we play a sound and record it</h4>
                     """
                 ),
             ),
@@ -629,8 +629,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             return InfoPage(
                 Markup(
                     """
-                    <h3>The recording quality of your laptop is not good</h3>
-                    <hr>
+                    <h4>The recording quality of your laptop is not good</h4>
                     This may have many reasons. Please try to do one or more of the following:
                     <ol><li>Increase the volumne of your laptop.</li>
                         <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
@@ -638,7 +637,6 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                         <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
                     </ol>
                     We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
-                    <hr>
                     """
                 ),
                 time_estimate=5,
@@ -647,11 +645,9 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             return InfoPage(
                 Markup(
                     """
-                    <h3>The recording quality of your laptop is good</h3>
-                    <hr>
+                    <h4>The recording quality of your laptop is good</h4>
                     We will try some more trials.
                     To complete the experiment and get the full reward, you will need to have a good recording quality in all trials.
-                    <hr>
                     """
                 ),
                 time_estimate=5,
@@ -1234,7 +1230,6 @@ class AttentionTest(Module):
 
 class ColorBlindnessTrial(StaticTrial):
     def show_trial(self, experiment, participant):
-        _, _p = get_translator(self.trial_maker.locale)
         return ModularPage(
             "color_blindness_trial",
             ImagePrompt(
@@ -1296,12 +1291,10 @@ class ColorBlindnessTest(StaticTrialMaker):
         performance_threshold: int = 4,
         hide_after: Optional[float] = 3.0,
         trial_class=ColorBlindnessTrial,
-        locale=DEFAULT_LOCALE,
     ):
         self.hide_after = hide_after
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
-        self.locale = locale
 
         nodes = self.get_nodes(media_url)
 
@@ -1318,7 +1311,6 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     @property
     def introduction(self):
-        _, _p = get_translator(self.locale)
 
         instructions = [
             _p(
@@ -1530,8 +1522,8 @@ class HeadphoneTrial(StaticTrial):
             wrong_answers.remove(correct_answer)
             return random.choice(wrong_answers)
 
-    @staticmethod
-    def get_task_description(self):
+    @property
+    def task_description(self):
         raise NotImplementedError()
 
     @staticmethod
@@ -1546,6 +1538,30 @@ class HeadphoneTrial(StaticTrial):
 
 
 class HeadphoneTest(StaticTrialMaker):
+    """
+        DISCONTINUED - use HugginsHeadphoneTest, AntiphaseHeadphoneTest, BeepHeadphoneTest instead;
+        HugginsHeadphoneTest is recommended.
+
+    The headphone test makes sure that the participant is wearing headphones.
+    """
+
+    def __init__(
+        self,
+        label="headphone_test",
+        media_url: Optional[str] = None,
+        time_estimate_per_trial: float = 7.5,
+        performance_threshold: int = 4,
+        n_trials: int = 6,
+    ):
+        raise NotImplementedError(
+            (
+                "DISCONTINUED - use HugginsHeadphoneTest, AntiphaseHeadphoneTest, BeepHeadphoneTest instead; "
+                "HugginsHeadphoneTest is recommended."
+            )
+        )
+
+
+class GeneralHeadphoneTest(StaticTrialMaker):
     """
         DISCONTINUED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; HugginsHeadphoneTest is recommended.
 
@@ -1577,17 +1593,26 @@ class HeadphoneTest(StaticTrialMaker):
 
     def __init__(
         self,
-        label="headphone_test",
+        label,
         media_url: Optional[str] = None,
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
         n_trials: int = 6,
     ):
-        raise NotImplementedError(
-            (
-                "DISCONTINUED - use HugginsHeadphoneTest or AntiphaseHeadphoneTest instead; "
-                "HugginsHeadphoneTest is recommended."
-            )
+        if media_url is None:
+            assert self.test_name is not None
+            media_url = f"https://s3.amazonaws.com/headphone-check/{self.test_name}"
+        self.time_estimate_per_trial = time_estimate_per_trial
+        self.performance_threshold = performance_threshold
+
+        super().__init__(
+            id_=label,
+            trial_class=self.get_trial_class(),
+            nodes=self.get_nodes(media_url),
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False,
+            expected_trials_per_participant=n_trials,
+            max_trials_per_participant=n_trials,
         )
 
     performance_check_type = "score"
@@ -1605,38 +1630,18 @@ class HeadphoneTest(StaticTrialMaker):
         raise NotImplementedError()
 
     @property
-    def instruction_page(self):
+    def introduction(self):
         return InfoPage(
             Markup(
                 f"""
             <p>We will now perform a quick test to check that you are wearing headphones.</p>
             <p>
                 In each trial, you will hear three sounds separated by silences.
-                {self.task_description()}
+                {self.task_description}
             </p>
             """
             ),
             time_estimate=10,
-        )
-
-    def setup(
-        self, label, media_url, time_estimate_per_trial, performance_threshold, n_trials
-    ):
-        if media_url is None:
-            assert self.test_name is not None
-            media_url = f"https://s3.amazonaws.com/headphone-check/{self.test_name}"
-        self.time_estimate_per_trial = time_estimate_per_trial
-        self.performance_threshold = performance_threshold
-
-        StaticTrialMaker.__init__(
-            self,
-            id_=label,
-            trial_class=self.get_trial_class(),
-            nodes=self.get_nodes(media_url),
-            check_performance_at_end=True,
-            fail_trials_on_premature_exit=False,
-            expected_trials_per_participant=n_trials,
-            max_trials_per_participant=n_trials,
         )
 
     def get_trial_class(self, node=None, participant=None, experiment=None):
@@ -1665,7 +1670,7 @@ class HugginsHeadphoneTrial(HeadphoneTrial):
     submit_early = True
 
 
-class HugginsHeadphoneTest(HeadphoneTest):
+class HugginsHeadphoneTest(GeneralHeadphoneTest):
     """
     Implements: Milne, A.E., Bianco, R., Poole, K.C. et al. An online headphone screening test based on dichotic pitch.
     Behav Res 53, 1551–1562 (2021). https://doi.org/10.3758/s13428-020-01514-0
@@ -1679,7 +1684,7 @@ class HugginsHeadphoneTest(HeadphoneTest):
         performance_threshold: int = 4,
         n_trials: int = 6,
     ):
-        self.setup(
+        super().__init__(
             label, media_url, time_estimate_per_trial, performance_threshold, n_trials
         )
 
@@ -1711,7 +1716,7 @@ class AntiphaseHeadphoneTrial(HeadphoneTrial):
     test_name = "antiphase"
 
 
-class AntiphaseHeadphoneTest(HeadphoneTest):
+class AntiphaseHeadphoneTest(GeneralHeadphoneTest):
     """
     Implements: Woods, K. J. P., Siegel, M. H., Traer, J., & McDermott, J. H. (2017). Headphone screening to facilitate
     web-based auditory experiments. Attention, perception & psychophysics, 79(7), 2064–2072.
@@ -1728,7 +1733,7 @@ class AntiphaseHeadphoneTest(HeadphoneTest):
         performance_threshold: int = 4,
         n_trials: int = 6,
     ):
-        self.setup(
+        super().__init__(
             label, media_url, time_estimate_per_trial, performance_threshold, n_trials
         )
 
@@ -1753,6 +1758,53 @@ class AntiphaseHeadphoneTest(HeadphoneTest):
 
     def get_trial_class(self, node=None, participant=None, experiment=None):
         return AntiphaseHeadphoneTrial
+
+
+class BeepHeadphoneTrial(HeadphoneTrial):
+    prompt_text = _p(
+        "Beep-headphone-test",
+        "Which sound is different from the other two: 1, 2, or 3?",
+    )
+    test_name = "beep"
+    submit_early = True
+
+
+class BeepHeadphoneTest(GeneralHeadphoneTest):
+    def __init__(
+        self,
+        label="beep_headphone_test",
+        media_url: Optional[str] = None,
+        time_estimate_per_trial: float = 7.5,
+        performance_threshold: int = 4,
+        n_trials: int = 6,
+    ):
+        super().__init__(
+            label, media_url, time_estimate_per_trial, performance_threshold, n_trials
+        )
+
+    @property
+    def test_name(self):
+        return "beep_headphone_test"
+
+    @property
+    def test_definition(self):
+        return [
+            ("3444", "1"),
+            ("3445", "2"),
+            ("3446", "3"),
+            ("3444", "1"),
+            ("3445", "2"),
+            ("3446", "3"),
+        ]
+
+    @property
+    def task_description(self):
+        return _(
+            "Your task will be to judge <strong>which sound is the odd one out</strong>."
+        )
+
+    def get_trial_class(self, node=None, participant=None, experiment=None):
+        return BeepHeadphoneTrial
 
 
 class AudioForcedChoiceTrial(StaticTrial):
@@ -1908,7 +1960,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             assert self.n_stimuli_to_use > 0  # Must be an integer larger than 0
 
     @property
-    def instructions(self):
+    def introduction(self):
         return InfoPage(
             Markup(self._instructions),
             time_estimate=10,

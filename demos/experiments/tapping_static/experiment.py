@@ -30,7 +30,7 @@ from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 # Global parameters
 ########################################################################################################################
 
-USE_REPP_PRESCREENS = True # if True, all tapping prescreens are presented before the main tapping tasks, including markers test and volumne calibration
+USE_REPP_PRESCREENS = False # if True, all tapping prescreens are presented before the main tapping tasks, including markers test and volumne calibration
 
 
 NUM_PARTICIPANTS = 20
