@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: a1298cdb97ffbf971417b26d3446a7ca
+# Compiled from a requirement.txt file with md5sum: 2f8cac5e33720acad2854bfd92aa1a8a
 #
 apscheduler==3.11.0
     # via
@@ -76,7 +76,7 @@ cryptography==44.0.0
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   paramiko
     #   pyopenssl
-dallinger[docker]==11.0.0
+dallinger[docker]==11.0.1
     # via psynet
 decorator==5.1.1
     # via
@@ -182,7 +182,7 @@ jmespath==1.0.1
     #   botocore
 joblib==1.4.2
     # via psynet
-jsonpickle==4.0.1
+jsonpickle==4.0.2
     # via psynet
 localconfig==1.1.4
     # via
@@ -198,10 +198,12 @@ matplotlib-inline==0.1.7
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   ipython
+mock==5.2.0
+    # via psynet
 numpy==2.0.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
-    #   -r /tmp/tmpqm7adt4_/requirements.txt
+    #   -r /tmp/tmp6se6r2cz/requirements.txt
     #   dallinger
     #   pandas
     #   soundfile
@@ -259,7 +261,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==11.9.0
+psynet==11.9.1
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
@@ -298,6 +300,9 @@ pytest==8.3.4
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   psynet
+    #   pytest-mock
+pytest-mock==3.14.0
+    # via psynet
 python-dateutil==2.9.0.post0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
@@ -354,7 +359,7 @@ sortedcontainers==2.4.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   trio
-soundfile==0.13.0
+soundfile==0.13.1
     # via -r requirements.txt
 sqlalchemy==1.4.54
     # via
@@ -390,6 +395,8 @@ timeago==1.0.16
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   dallinger
+tomlkit==0.13.2
+    # via psynet
 tqdm==4.67.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt

@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 5c1ed83e1aa980c74b9f515de92b33dc
+# Compiled from a requirement.txt file with md5sum: 41b769a55d3eaf5d6981e24abcea72db
 #
 anyio==4.8.0
     # via
@@ -121,7 +121,7 @@ cryptography==44.0.0
     #   pyopenssl
 cycler==0.12.1
     # via matplotlib
-dallinger[docker]==11.0.0
+dallinger[docker]==11.0.1
     # via psynet
 debugpy==1.8.11
     # via
@@ -179,7 +179,7 @@ flask-wtf==1.2.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   dallinger
-fonttools==4.55.3
+fonttools==4.56.0
     # via matplotlib
 fqdn==1.5.1
     # via
@@ -284,7 +284,7 @@ json5==0.10.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   jupyterlab-server
-jsonpickle==4.0.1
+jsonpickle==4.0.2
     # via psynet
 jsonpointer==3.0.0
     # via
@@ -377,9 +377,9 @@ markupsafe==3.0.2
     #   nbconvert
     #   werkzeug
     #   wtforms
-matplotlib==3.10.0
+matplotlib==3.10.1
     # via
-    #   -r /tmp/tmpl0h0deix/requirements.txt
+    #   -r /tmp/tmpo2jr5vq5/requirements.txt
     #   repp
 matplotlib-inline==0.1.7
     # via
@@ -390,6 +390,8 @@ mistune==3.1.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   nbconvert
+mock==5.2.0
+    # via psynet
 nbclient==0.10.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
@@ -507,7 +509,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==11.9.0
+psynet==11.9.1
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
@@ -551,6 +553,9 @@ pytest==8.3.4
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   psynet
+    #   pytest-mock
+pytest-mock==3.14.0
+    # via psynet
 python-dateutil==2.9.0.post0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
@@ -627,7 +632,7 @@ s3transfer==0.10.4
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   boto3
-scipy==1.15.1
+scipy==1.15.2
     # via repp
 selenium==4.27.1
     # via
@@ -706,6 +711,8 @@ tinycss2==1.4.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
     #   bleach
+tomlkit==0.13.2
+    # via psynet
 tornado==6.4.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.0.1/dev-requirements.txt
