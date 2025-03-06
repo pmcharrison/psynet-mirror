@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# [11.9.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.9.1) Release 2025-03-07
+
+## Fixed
+- Fixed Dallinger version in the constraints.txt files of demo and test experiments (author: Frank Höger).
+- Moved mock package from optional-dependencies to dependencies in pyproject.toml (author: Frank Höger).
+
 # [11.9.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.9.0) Release 2025-01-16
 
 ## Fixed
