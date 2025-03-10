@@ -25,7 +25,7 @@ def load(self, strict=True):
                 raise
         self.extend(Experiment.config_defaults(), strict=strict)
 
-    old_load(self)
+    old_load(self, strict=strict)
 
 
 Configuration.load = load
