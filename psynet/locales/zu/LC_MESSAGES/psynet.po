@@ -534,53 +534,182 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Kufanele unikeze inombolo!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Bhala phansi inombolo esithombeni."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Manje sizokwenza isivivinyo esisheshayo sokuhlola ikhono lakho lokubona "
+"Sizokwenza manje ukuhlolwa okusheshayo ukubheka ikhono lakho lokubona "
 "imibala."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Kuvivinywa ngakunye, uzonikezwa isithombe esinombolo."
+msgstr ""
+"Kuzo zonke izivivinyo, uzonikezwa isithombe esinezincwadi ezivezwa "
+"ngenombolo."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Lesi sithombe sizonyamalala ngemva kwemizuzwana engu-{HIDE_AFTER}."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Kufanele ufake inombolo oyibonayo ebhokisini lombhalo."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Yimuphi umsindo ohlukile kulawa amabili: 1, 2, noma 3?"
+msgstr "Yiliphi izwi elihlukile kwezinye ezimbili: 1, 2, noma 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Umsebenzi wakho kuzoba ukuhlulela ukuthi <strong>umsindo oyedwa uphuma "
-"kanjani kwabanye</strong>."
+"Umsebenzi wakho kuzoba ukuhlola <strong>isiphi isandi esihlukile "
+"kwezinye</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Isilinganiso sakho sibe ngu"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Cindezela inkinobho ukuze uqhubeke."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Sizokwenza ukuhlolwa ukuze sihlole amakhono akho olimi."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Kuwo wonke umjikelezo, uzobona uchungechunge lwezinhlamvu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Uchungechunge luzonyamalala ngokwalo."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Umsebenzi wakho uwukuthatha isinqumo sokuthi leli yigama elikhona "
+"ku-{LANGUAGE_NAME} noma cha."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Uma ungazi incazelo enembile yegama, kodwa uqinisekile ukuthi likhona "
+"ku-{LANGUAGE_NAME}, kufanele ulibhale njengeligama langempela."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Uma ungaqiniseki ukuthi igama likhona ku-{LANGUAGE_NAME}, kufanele ulibhale "
+"njengeligama elingamanga."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"Kulokhu kuhlolwa, ungathola ukuhlanganiswa phakathi kwezinhlobonhlobo "
+"zokuphinyiswa."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Akufanele unake umehluko omncane wokuphinyiswa."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr ""
+"Amagama avele noma ngezinhlamvu ezinkulu kuphela noma ezincane kuphela."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Ungayinaki indlela amagama abhalwe ngayo."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Ukuze wenze umsebenzi ngokushesha, kufanele usebenzise izinkinobho "
+"kukhibhodi yakho."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Ungasebenzisa izinkinobho ezilandelayo:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Cindezela <kbd>A</kbd> uma igama elikhonjisiwe <strong>lingokoqobo</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Cindezela <kbd>L</kbd> uma igama elikhonjisiwe <strong>elingamanga</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Jwayela izinkinobho ezimbili kukhibhodi yakho."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Uma uzicindezela, zizokhanya kukhibhodi ngakwesokudla."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Kufanele ucindezele izinkinobho zombili okungenani kanye ukuze uqhubekele "
+"ekhasini elilandelayo."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Uma ukhohlwa izinkinobho, zizoprintwa kuwo wonke amakhasi."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Ukuhlolwa kuzoqala ekhasini elilandelayo."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -754,7 +883,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Ukuqhubeka, chofoza inkinobho engezansi."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Okulandelayo"
@@ -2185,6 +2315,16 @@ msgstr "Ngokwenza umsebenzi usiza isayensi, siyabonga!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Ukufakwa Kocwaningo lwe-Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Khetha ukuhlelwa kwekhibhodi:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Awucindezelanga zonke izinkinobho ezidingekayo."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
