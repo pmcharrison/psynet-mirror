@@ -2076,6 +2076,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 (
                     resources.files("psynet")
+                    / "resources/libraries/international-keyboards",
+                    "/static/international-keyboards",
+                ),
+                (
+                    resources.files("psynet")
                     / "resources/scripts/prepare_docker_image.sh",
                     "prepare_docker_image.sh",
                 ),

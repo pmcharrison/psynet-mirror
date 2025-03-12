@@ -51,6 +51,8 @@ dependencies = [
     "tomlkit",
     "tqdm",
     "yaspin",
+    "arabic-reshaper",  # Used by VocabTest
+    "pillow"  # Used by VocabTest
 ]
 
 [project.optional-dependencies]
