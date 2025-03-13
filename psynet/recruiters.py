@@ -66,6 +66,19 @@ class PsyNetRecruiterMixin:
                 "or psynet.consent.NoConsent to skip this check entirely."
             )
 
+    @property
+    def close_recruitment_message(self):
+        return "No more participants required. Recruitment stopped."
+
+    def close_recruitment(self):
+        """
+        Close recruitment for the current experiment.
+        """
+        from .experiment import get_experiment
+
+        exp = get_experiment()
+        exp.slack_notify(self.close_recruitment_message)
+
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
     pass
