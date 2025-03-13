@@ -576,6 +576,87 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             join_path(abspath(dirname(__file__)), "locales"), "psynet"
         )
 
+    @classproperty
+    def slack_channel(cls):
+        return get_config().get("slack_channel_name", None)
+
+    @classproperty
+    def slack_token(cls):
+        return get_config().get("slack_bot_token", None)
+
+    @classproperty
+    def slack_client(cls):
+        from slack_sdk import WebClient
+
+        return WebClient(token=cls.slack_token)  # noqa
+
+    @classmethod
+    def _slack_notify(cls, text, thread_ts=None):
+        from slack_sdk.errors import SlackApiError
+
+        if cls.slack_channel is None and cls.slack_token is None:
+            return None
+        try:
+            return cls.slack_client.chat_postMessage(
+                channel=cls.slack_channel,
+                text=text,
+                link_names=True,
+                thread_ts=thread_ts,
+            )
+        except SlackApiError as e:
+            logger.error(f"Error posting message: {e}")
+
+    @classmethod
+    def slack_set_username(cls):
+        experimenter_name = get_config().get("experimenter_name", None)
+        username = None
+        if experimenter_name is not None:
+            users = cls.slack_client.users_list()
+            for user in users["members"]:
+                if (
+                    user["real_name"] == experimenter_name
+                    or user["name"] == experimenter_name
+                ):
+                    username = user["name"]
+                    break
+        redis_vars.set("slack_username", username)
+        return username
+
+    @classmethod
+    def slack_register(cls):
+        deployment_information = deployment_info.read_all()
+        username = cls.slack_set_username()
+        if username is not None:
+            text = f"@{username} launched experiment "
+        else:
+            text = "Launched experiment "
+        text += f'"{cls.label}" (`{deployment_information["secret"]}`)'
+        if deployment_information["is_local_deployment"]:
+            text = f"{text} locally"
+        elif deployment_information["is_ssh_deployment"]:
+            text = f'{text} to {deployment_information["server"]} with app name `{deployment_information["app"]}`'
+        else:
+            text = f'{text} to Heroku with app name `{deployment_information["app"]}`'
+
+        response = cls._slack_notify(text)
+        if response is not None:
+            thread_ts = response["ts"]
+            redis_vars.set("thread_id", thread_ts)
+            text = f"You can access the dashboard here: {cls.dashboard_url}"
+            config = get_config()
+            username = config.get("dashboard_user", None)
+            if username:
+                text += f"\nUsername: `{username}`"
+            password = config.get("dashboard_password", None)
+            if password:
+                text += f"\nPassword: `{password}`"
+            cls.slack_notify(text)
+
+    @classmethod
+    def slack_notify(cls, text):
+        thread_ts = redis_vars.get("thread_id")
+        return cls._slack_notify(text, thread_ts)
+
     @with_transaction
     def on_launch(self):
         logger.info("Calling Exp.on_launch()...")
@@ -588,6 +669,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("Experiment launch complete!")
         db.session.commit()
         redis_vars.set("launch_finished", True)
+        self.slack_register()
 
     def on_first_launch(self):
         logger.info("Calling Exp.on_first_launch()...")
@@ -2164,6 +2246,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("force_google_chrome", bool)
         config.register("force_incognito_mode", bool)
         config.register("allow_mobile_devices", bool)
+        config.register("experimenter_name", unicode)
+        config.register("slack_channel_name", unicode)
+        config.register("slack_bot_token", unicode)
 
         def color_mode_validator(value):
             assert value in ["light", "dark", "auto"]
@@ -2887,6 +2972,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         token = cls.generate_error_token()
         cls.log_to_stdout(error, token, **kwargs)
         cls.log_to_db(error, token, **kwargs)
+        cls.log_to_slack(error, token, **kwargs)
 
     @classmethod
     def generate_error_token(cls):
@@ -2911,6 +2997,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         record = ErrorRecord(error=error, traceback=trace, token=token, **kwargs)
         db.session.add(record)
         db.session.commit()
+
+    @classmethod
+    def log_to_slack(cls, error, token, **kwargs):
+        text = f"An error ({token}) occurred:"
+        text += "\n```" + traceback.format_exc() + "```"
+        cls.slack_notify(text)
 
     @classmethod
     def serialize_error_context(

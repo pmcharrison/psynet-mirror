@@ -47,6 +47,7 @@ dependencies = [
     "pytest-mock",
     "python-gettext",
     "rpdb",
+    "slack_sdk",  # For Slack notifications
     "tenacity",
     "tomlkit",
     "tqdm",
