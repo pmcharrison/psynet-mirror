@@ -107,8 +107,10 @@ Within the virtual environment you just created, install PsyNet and Dallinger in
 
 .. code-block:: bash
 
-    pip3 install --editable '~/Dallinger[data]'
-    pip3 install --editable '~/PsyNet[dev]'
+    cd ~/Dallinger
+    pip3 install --editable ".[data]"
+    cd ~/Psynet
+    pip3 install --editable ".[dev]"
 
 Editable mode means that any changes you make to the
 Dallinger/PsyNet source code will be automatically reflected in your virtual environment.
