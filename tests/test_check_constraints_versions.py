@@ -20,7 +20,7 @@ def test_check_dallinger_version_in_demo_constraints(demo_directory):
 
     We could also implement a similar check for the psynet version, but this would be a bit
     complicated because often the local psynet version will have a development version number
-    (e.g. 11.10.0-dev0) and we don't want to insist that constraints.txt also have this.
+    (e.g. 11.10.0a0) and we don't want to insist that constraints.txt also have this.
     """
     constraints_path = Path(demo_directory) / "constraints.txt"
     assert constraints_path.exists()
