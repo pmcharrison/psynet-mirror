@@ -20,7 +20,10 @@ def test_verify_psynet_requirement_missing_version():
                 file.flush()
 
                 with pytest.raises(
-                    AssertionError, match="Incorrect specification for PsyNet"
+                    AssertionError,
+                    match="When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+                    "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
+                    "or a commit hash.",
                 ):
                     verify_psynet_requirement()
 
@@ -40,7 +43,10 @@ def test_verify_psynet_requirement_extension():
                     file.flush()
 
                     with pytest.raises(
-                        AssertionError, match="Incorrect specification for PsyNet"
+                        AssertionError,
+                        match="When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+                        "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
+                        "or a commit hash.",
                     ):
                         verify_psynet_requirement()
 
@@ -79,7 +85,7 @@ def test_verify_psynet_requirement_version_tag():
             for extension in ["", ".git"]:
                 for egg in ["", "#egg=psynet"]:
                     for space in ["", " "]:
-                        for rc in ["", "-rc0"]:
+                        for rc in ["", "rc0", "rc1"]:
                             with open("requirements.txt", "w") as file:
                                 file.write(
                                     f"psynet{space}@{space}git+https://gitlab.com/PsyNetDev/PsyNet{extension}@v10.1.0{rc}{egg}\n"
