@@ -18,7 +18,7 @@ from functools import lru_cache, reduce, wraps
 from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
-from typing import Type, Union
+from typing import List, Type, Union
 from urllib.parse import ParseResult, urlparse
 
 import click
@@ -1303,7 +1303,7 @@ def _check_todos(pattern, glob_dir):
     return todo_count
 
 
-def _aggregate_todos(pattern_dirs: [PatternDir]):
+def _aggregate_todos(pattern_dirs: List[PatternDir]):
     todo_count = {}
     for pattern_dir in pattern_dirs:
         todo_count.update(_check_todos(**pattern_dir.__dict__()))
