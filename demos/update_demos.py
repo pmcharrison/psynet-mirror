@@ -15,13 +15,15 @@ import re
 import shutil
 import subprocess
 import sys
+from hashlib import md5
 from importlib import resources
+from pathlib import Path
 
 from joblib import Parallel, delayed
 
 import psynet.command_line
 from psynet import __version__
-from psynet.utils import list_experiment_dirs, working_directory
+from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
 
 skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
 
@@ -47,22 +49,88 @@ def generate_constraints(dir):
 
 def pre_update_constraints(dir):
     with working_directory(dir):
-        return psynet.command_line.pre_update_constraints_(dir)
+        commit_hash = (
+            subprocess.check_output(
+                ["git", "log", "-n 1", "master", "--pretty=format:%H"], cwd=dir
+            )
+            .decode("utf-8")
+            .strip()
+        )
+        with fileinput.FileInput("requirements.txt", inplace=True) as file:
+            psynet_requirement = (
+                r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
+            )
+            replacement_requirement = f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
+            if current_git_branch() == "master":
+                replacement_requirement = (
+                    "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
+                )
+            for line in file:
+                print(
+                    re.sub(
+                        psynet_requirement,
+                        replacement_requirement,
+                        line,
+                    ),
+                    end="",
+                )
+        return commit_hash
 
 
 def post_update_constraints(dir, commit_hash_master):
     with working_directory(dir):
-        psynet.command_line.post_update_constraints_(commit_hash_master)
+        with fileinput.FileInput("constraints.txt", inplace=True) as file:
+            psynet_requirement = (
+                f"psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash_master}"
+            )
+            for line in file:
+                print(
+                    line.replace(psynet_requirement, f"psynet=={__version__}"), end=""
+                )
+
+        with fileinput.FileInput("requirements.txt", inplace=True) as file:
+            psynet_requirement = f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash_master}#egg=psynet"
+            for line in file:
+                print(
+                    line.replace(psynet_requirement, f"psynet=={__version__}"), end=""
+                )
 
 
 def update_psynet_requirement(dir):
     with working_directory(dir):
-        psynet.command_line.update_psynet_requirement_()
+        with open("requirements.txt", "r") as orig_file:
+            with open("updated_requirements.txt", "w") as updated_file:
+                version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
+                for line in orig_file:
+                    match = re.search(
+                        r"^psynet(\s?)==(\s?)" + version + "$",
+                        line,
+                    )
+                    if match is not None:
+                        updated_file.write(re.sub(version, f"{__version__}", line))
+                    else:
+                        updated_file.write(line)
+                updated_file.close()
+            orig_file.close()
+        shutil.move("updated_requirements.txt", "requirements.txt")
 
 
 def post_update_psynet_requirement(dir):
     with working_directory(dir):
-        psynet.command_line.post_update_psynet_requirement_()
+        with fileinput.FileInput("constraints.txt", inplace=True) as file:
+            md5sum_line = (
+                "# Compiled from a requirement\\.txt file with md5sum: [0-9a-f]{32}"
+            )
+            md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
+            for line in file:
+                print(
+                    re.sub(
+                        md5sum_line,
+                        f"# Compiled from a requirement.txt file with md5sum: {md5sum}",
+                        line,
+                    ),
+                    end="",
+                )
 
 
 def update_scripts(dir):
@@ -76,16 +144,6 @@ def update_scripts(dir):
                 path,
                 "config.txt",
             )
-
-
-def current_git_branch():
-    return (
-        subprocess.check_output(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.STDOUT
-        )
-        .strip()
-        .decode("utf-8")
-    )
 
 
 def update_image_tag(file):

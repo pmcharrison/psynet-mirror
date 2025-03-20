@@ -1,7 +1,5 @@
-import fileinput
 import json
 import os
-import pathlib
 import re
 import shutil
 import subprocess
@@ -1318,13 +1316,13 @@ def update(dallinger_version, psynet_version, verbose):
 def dallinger_dir():
     import dallinger as _
 
-    return pathlib.Path(_.__file__).parent.parent.resolve()
+    return Path(_.__file__).parent.parent.resolve()
 
 
 def psynet_dir():
     import psynet as _
 
-    return pathlib.Path(_.__file__).parent.parent.resolve()
+    return Path(_.__file__).parent.parent.resolve()
 
 
 def get_version(project_name):
@@ -1499,12 +1497,13 @@ def verify_psynet_requirement():
     ) as spinner:
         valid = False
         with open("requirements.txt", "r") as file:
-            version_tag_or_commit_hash = [
+            regexes = [
                 "[a-fA-F0-9]{8,40}",
                 "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
+                "master",
             ]
             file_content = file.read()
-            for regex in version_tag_or_commit_hash:
+            for regex in regexes:
                 match = re.search(
                     r"^psynet(\s?)@(\s?)git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
                     + regex
@@ -1515,6 +1514,7 @@ def verify_psynet_requirement():
                 if match is not None:
                     valid = True
                     break
+
                 match = re.search(
                     r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?$",
                     file_content,
@@ -1538,6 +1538,7 @@ def verify_psynet_requirement():
             "\nExamples:\n"
             "* psynet==10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet\n"  # Only master branch is allowed
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
             "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
@@ -2095,24 +2096,6 @@ def update_scripts():
     update_scripts_()
 
 
-def update_psynet_requirement_():
-    with open("requirements.txt", "r") as orig_file:
-        with open("updated_requirements.txt", "w") as updated_file:
-            version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
-            for line in orig_file:
-                match = re.search(
-                    r"^psynet(\s?)==(\s?)" + version + "$",
-                    line,
-                )
-                if match is not None:
-                    updated_file.write(re.sub(version, f"{__version__}", line))
-                else:
-                    updated_file.write(line)
-            updated_file.close()
-        orig_file.close()
-    shutil.move("updated_requirements.txt", "requirements.txt")
-
-
 def update_scripts_():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -2158,63 +2141,6 @@ def update_scripts_():
                 dirs_exist_ok=True,
             )
     os.system("chmod +x docker/*")
-
-
-def pre_update_constraints_(dir):
-    commit_hash = (
-        subprocess.check_output(
-            ["git", "log", "-n 1", "master", "--pretty=format:%H"], cwd=dir
-        )
-        .decode("utf-8")
-        .strip()
-    )
-    with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = (
-            r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
-        )
-        for line in file:
-            print(
-                re.sub(
-                    psynet_requirement,
-                    f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet",
-                    line,
-                ),
-                end="",
-            )
-    return commit_hash
-
-
-def post_update_constraints_(commit_hash):
-    with fileinput.FileInput("constraints.txt", inplace=True) as file:
-        psynet_requirement = (
-            f"psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}"
-        )
-        for line in file:
-            print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
-
-    with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = (
-            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
-        )
-        for line in file:
-            print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
-
-
-def post_update_psynet_requirement_():
-    with fileinput.FileInput("constraints.txt", inplace=True) as file:
-        md5sum_line = (
-            "# Compiled from a requirement\\.txt file with md5sum: [0-9a-f]{32}"
-        )
-        md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
-        for line in file:
-            print(
-                re.sub(
-                    md5sum_line,
-                    f"# Compiled from a requirement.txt file with md5sum: {md5sum}",
-                    line,
-                ),
-                end="",
-            )
 
 
 @psynet.group("destroy")

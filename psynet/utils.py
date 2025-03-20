@@ -1626,3 +1626,15 @@ def patch_yaspin_jupyter_detection():
 
     # Monkey patch the method
     Yaspin.is_jupyter = staticmethod(is_jupyter)
+
+
+def current_git_branch():
+    import subprocess
+
+    return (
+        subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.STDOUT
+        )
+        .strip()
+        .decode("utf-8")
+    )
