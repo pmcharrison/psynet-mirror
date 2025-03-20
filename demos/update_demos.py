@@ -77,15 +77,39 @@ def update_scripts(dir):
             )
 
 
+def current_git_branch():
+    return (
+        subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.STDOUT
+        )
+        .strip()
+        .decode("utf-8")
+    )
+
+
+def update_image_tag(file):
+    branch_tag = "psynet:master"
+    version_tag = r"psynet:v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(rc\d+|a\d+)*"
+
+    for line in file:
+        if current_git_branch() == "master":
+            print(re.sub(version_tag, "psynet:master", line), end="")
+        else:
+            if re.search(version_tag, line):
+                print(re.sub(version_tag, f"psynet:v{__version__}", line), end="")
+            elif re.search(branch_tag, line):
+                print(re.sub(branch_tag, f"psynet:v{__version__}", line), end="")
+            else:
+                print(line, end="")
+
+
 # Update PsyNet Docker image version
 for path in [
     "psynet/resources/experiment_scripts/Dockerfile",
     "psynet/resources/experiment_scripts/docker/generate-constraints",
 ]:
     with fileinput.FileInput(path, inplace=True) as file:
-        version_tag = "psynet:v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)*"
-        for line in file:
-            print(re.sub(version_tag, f"psynet:v{__version__}", line), end="")
+        update_image_tag(file)
 
 # Update demos
 n_jobs = 8

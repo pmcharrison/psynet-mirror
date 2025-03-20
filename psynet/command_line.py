@@ -1401,7 +1401,9 @@ def generate_constraints(ctx):
 
     log(header)
     try:
-        verify_psynet_requirement()
+        # We have removed verify_psynet_requirement here because it caused problems for Docker users.
+        # Instead, we just run this in the sandbox/deploy prechecks.
+        # verify_psynet_requirement()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
@@ -1500,7 +1502,7 @@ def verify_psynet_requirement():
                     valid = True
                     break
                 match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?",
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?$",
                     file_content,
                     re.MULTILINE,
                 )
@@ -1515,7 +1517,10 @@ def verify_psynet_requirement():
             spinner.fail("✗")
 
         assert valid, (
-            "Incorrect specification for PsyNet in 'requirements.txt'.\n"
+            "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+            "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
+            "or a commit hash.\n"
+            "\n"
             "\nExamples:\n"
             "* psynet==10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
@@ -2079,7 +2084,7 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version = r"\d+\.\d+\.\d+(rc\d+)*"
+            version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
             for line in orig_file:
                 match = re.search(
                     r"^psynet(\s?)==(\s?)" + version + "$",
@@ -2149,7 +2154,9 @@ def pre_update_constraints_(dir):
         .strip()
     )
     with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+)?)"
+        psynet_requirement = (
+            r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
+        )
         for line in file:
             print(
                 re.sub(
