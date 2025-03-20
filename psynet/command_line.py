@@ -1485,12 +1485,13 @@ def verify_psynet_requirement():
     ) as spinner:
         valid = False
         with open("requirements.txt", "r") as file:
-            version_tag_or_commit_hash = [
+            regexes = [
                 "[a-fA-F0-9]{8,40}",
                 "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
+                "master",
             ]
             file_content = file.read()
-            for regex in version_tag_or_commit_hash:
+            for regex in regexes:
                 match = re.search(
                     r"^psynet(\s?)@(\s?)git\+https:\/\/gitlab.com\/PsyNetDev\/PsyNet(\.git)?@"
                     + regex
@@ -1501,6 +1502,7 @@ def verify_psynet_requirement():
                 if match is not None:
                     valid = True
                     break
+
                 match = re.search(
                     r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?$",
                     file_content,
@@ -1524,6 +1526,7 @@ def verify_psynet_requirement():
             "\nExamples:\n"
             "* psynet==10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet\n"  # Only master branch is allowed
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
             "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
@@ -2145,7 +2148,17 @@ def update_scripts_():
     os.system("chmod +x docker/*")
 
 
-def pre_update_constraints_(dir):
+def current_git_branch():
+    return (
+        subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.STDOUT
+        )
+        .strip()
+        .decode("utf-8")
+    )
+
+
+def pre_update_requirements_(dir):
     commit_hash = (
         subprocess.check_output(
             ["git", "log", "-n 1", "master", "--pretty=format:%H"], cwd=dir
@@ -2157,11 +2170,18 @@ def pre_update_constraints_(dir):
         psynet_requirement = (
             r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
         )
+        replacement_requirement = (
+            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
+        )
+        if current_git_branch() == "master":
+            replacement_requirement = (
+                "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
+            )
         for line in file:
             print(
                 re.sub(
                     psynet_requirement,
-                    f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet",
+                    replacement_requirement,
                     line,
                 ),
                 end="",
