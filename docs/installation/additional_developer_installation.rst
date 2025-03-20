@@ -54,7 +54,7 @@ For Linux or Windows
     .. code-block:: bash
 
         wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/121.0.6167.85/linux64/chromedriver-linux64.zip --directory /tmp
-        sudo unzip /tmp/chromedriver-linux64.zip chromedriver -d /usr/local/bin/
+        sudo unzip -j /tmp/chromedriver-linux64.zip 'chromedriver-linux64/chromedriver' -d /usr/local/bin
 
 .. note::
 
@@ -107,8 +107,10 @@ Within the virtual environment you just created, install PsyNet and Dallinger in
 
 .. code-block:: bash
 
-    pip3 install --editable '~/Dallinger[data]'
-    pip3 install --editable '~/PsyNet[dev]'
+    cd ~/Dallinger
+    pip3 install --editable ".[data]"
+    cd ~/Psynet
+    pip3 install --editable ".[dev]"
 
 Editable mode means that any changes you make to the
 Dallinger/PsyNet source code will be automatically reflected in your virtual environment.

@@ -4,7 +4,7 @@ import random
 import shutil
 import tempfile
 import warnings
-from typing import Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 from dominate import tags
 from dominate.dom_tag import dom_tag
@@ -1075,6 +1075,63 @@ class PushButtonControl(OptionControl):
                 ).add(label)
                 tags.br()
         return html.render()
+
+
+def _validate_keycode(code):
+    valid_prefixes = ["Key", "Digit", "F"]
+    for prefix in valid_prefixes:
+        if code.startswith(prefix) and len(code) == len(prefix) + 1:
+            return True
+    return False
+
+
+class KeyboardPushButtonControl(PushButtonControl):
+    """
+    This extends the PushButtonControl to allow for keyboard input.
+
+    Parameters
+    ----------
+
+    choices:
+        The different options the participant has to choose from.
+
+    keys:
+        The keycodes corresponding to the choices. Need to be valid keycodes.
+
+    validate_keycode:
+        Validation function for the keycodes. Default: _validate_keycode, which allows letter, digit and F keys.
+
+    kwargs:
+        Other arguments to pass to :class:`~psynet.modular_page.PushButtonControl`.
+    """
+
+    macro = "keyboard_push_buttons"
+
+    def __init__(
+        self,
+        choices: List[str],
+        keys: List[str],
+        validate_keycode: Callable[[str], str] = _validate_keycode,
+        labels: Optional[List[str]] = None,
+        **kwargs,
+    ):
+        assert len(choices) == len(keys)
+        assert all([validate_keycode(key) for key in keys])
+        assert all([len(keys) == len(set(keys))])
+
+        super().__init__(
+            choices=choices,
+            labels=labels,
+            **kwargs,
+        )
+        self.keys = keys
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "keys": self.keys,
+        }
 
 
 class TimedPushButtonControl(PushButtonControl):

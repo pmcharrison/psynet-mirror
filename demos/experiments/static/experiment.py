@@ -6,7 +6,7 @@ import random
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.modular_page import ModularPage, PushButtonControl
+from psynet.modular_page import KeyboardPushButtonControl, ModularPage
 from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial, StaticTrialMaker
@@ -52,10 +52,18 @@ class AnimalTrial(StaticTrial):
                 f"""
                 {header}
                 <p id='question' style='color: {text_color}'>How much do you like {animal}?</p>
+                <small class="text-muted">
+                You can also use the keys <kbd>A</kbd>, <kbd>S</kbd>, and <kbd>D</kbd> on your keyboard.
+                </small>
                 """
             ),
-            PushButtonControl(
-                ["Not at all", "A little", "Very much"],
+            KeyboardPushButtonControl(
+                choices=[
+                    "Not at all <kbd>A</kbd>",
+                    "A little <kbd>S</kbd>",
+                    "Very much <kbd>D</kbd>",
+                ],
+                keys=["KeyA", "KeyS", "KeyD"],
                 bot_response="Very much",
             ),
             time_estimate=self.time_estimate,

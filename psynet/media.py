@@ -22,6 +22,20 @@ def make_batch_file(in_files, output_path):
                 output.write(i.read())
 
 
+def _sep_batch_file(input_path: str):
+    with open(input_path, "rb") as f:
+        bb = f.read()
+
+    separated_batch = []
+    offset = 0
+    while offset < len(bb):
+        size = struct.unpack("I", bb[offset : offset + 4])[0]
+        offset += 4
+        offset += size
+        separated_batch.append(bb[offset - size : offset])
+    return separated_batch
+
+
 def unpack_batch_file(input_path: str, output_paths: list[str]):
     """
     Converts a batch file into a list of files. It's the inverse of make_batch_file.
@@ -34,17 +48,7 @@ def unpack_batch_file(input_path: str, output_paths: list[str]):
     -------
 
     """
-    with open(input_path, "rb") as f:
-        bb = f.read()
-
-    separated_batch = []
-    offset = 0
-    while offset < len(bb):
-        size = struct.unpack("I", bb[offset : offset + 4])[0]
-        offset += 4
-        print(offset, size)
-        offset += size
-        separated_batch.append(bb[offset - size : offset])
+    separated_batch = _sep_batch_file(input_path)
 
     assert len(output_paths) == len(separated_batch)
 

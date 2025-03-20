@@ -527,49 +527,167 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "ທ່ານຈໍາເປັນຕ້ອງໃຫ້ຈໍານວນ!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "ຂຽນລົງເລກໃນຮູບ."
+msgstr "ຂຽນຈຳນວນໃນຮູບພາບ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "ພວກເຮົາຈະທຳການທົດສອບເພື່ອກວດເບິ່ງຄວາມສາມາດໃນການມອງເຫັນສີສັນຂອງທ່ານ."
+msgstr "ຂ້ອຍຈະປະຕິບັດການທົດສອບເພື່ອກວດຄຸນຄວາມສາມາດໃນການເຫັນສີສັນຂອງເຈົ້າ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "ໃນແຕ່ລະການທົດສອບ, ທ່ານຈະໄດ້ພົບຮູບພາບທີ່ມີໂຕເລກ."
+msgstr "ໃນແຕ່ລະແບບທົດສອບ, ເຈົ້າຈະໄດ້ເຫັນຮູບພາບທີ່ມີຈຳນວນຢູ່."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "ຮູບນີ້ຈະຫາຍໄປຫຼັງຈາກ {HIDE_AFTER} ວິນາທີ."
+msgstr "ຮູບພາບນີ້ຈະຫາຍໄປຫຼັງຈາກ {HIDE_AFTER} ວິນາທີ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "ທ່ານຕ້ອງໃສ່ໂຕເລກທີ່ທ່ານເຫັນໃສ່ຊ່ອງຂໍ້ຄວາມ."
+msgstr "ເຈົ້າຈະຕ້ອງປ້ອນຈຳນວນທີ່ເຈົ້າເຫັນໃສ່ໃນຊ່ອງ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "ສຽງໃດທີ່ແຕກຕ່າງຈາກອີກສອງ: 1, 2, ຫຼື 3?"
+msgstr "ສຽງໃດທີ່ແຕກຕ່າງຈາກອັນອື່ນສອງ: 1, 2, ຫຼື 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "ວຽກຂອງທ່ານແມ່ນຕັດສິນ <strong>ສຽງທີ່ແຕກຕ່າງ</strong>."
+msgstr ""
+"ຫນ້າທີ່ຂອງເຈົ້າຄືການຕັດສິນ <strong>ວ່າສຽງໃດທີ່ແຕກຕ່າງອອກຈາກອື່ນ</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "ຄະແນນຂອງທ່ານຄື"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "ກົດປຸ່ມເພື່ອສືບຕໍ່."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "ພວກເຮົາຈະດຳເນີນການທົດສອບເພື່ອກວດສອບຄວາມສາມາດດ້ານພາສາຂອງທ່ານ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "ໃນແຕ່ລະການທົດສອບ, ທ່ານຈະເຫັນສາຍຂອງຕົວອັກສອນ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "ສາຍຂອງຕົວອັກສອນນັ້ນຈະຫາຍໄປອັດຕະໂນມັດ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"ຫນ້າທີ່ຂອງທ່ານຄືຕັດສິນໃຈວ່ານີ້ແມ່ນຄຳທີ່ມີຢູ່ໃນ {LANGUAGE_NAME} ຫລືບໍ່."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"ຖ້າທ່ານບໍ່ຮູ້ຄວາມຫມາຍທີ່ແທ້ຈິງຂອງຄຳ, ແຕ່ທ່ານແນ່ໃຈວ່າມັນມີຢູ່ໃນ "
+"{LANGUAGE_NAME}, ທ່ານຄວນຖືກມັນເປັນຄຳທີ່ແທ້ຈິງ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"ຖ້າທ່ານບໍ່ແນ່ໃຈວ່າຄຳນີ້ມີຢູ່ໃນ {LANGUAGE_NAME} ຫລືບໍ່, "
+"ທ່ານຄວນຖືກມັນເປັນຄຳທີ່ບໍ່ແທ້ຈິງ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "ໃນການທົດສອບນີ້, ທ່ານອາດຈະເຫັນການປ່ຽນແປງຄວາມແຕກຕ່າງຂອງການສະກົດ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "ທ່ານບໍ່ຄວນໃຫ້ຄວາມສຳຄັນຕໍ່ຄວາມແຕກຕ່າງຂອງການສະກົດເລັກນ້ອຍ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "ຄຳຖືກສະແດງໃນຕົວອັກສອນຂະຫຍາຍຫລືຕົວອັກສອນຍ່ອຍເທົ່ານັ້ນ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "ທ່ານສາມາດເວັ້ນຄວາມແຕກຕ່າງຂອງຄຳໄດ້."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "ເພື່ອທຳໃຫ້ຫນ້າທີ່ນີ້ໄວ, ທ່ານຄວນໃຊ້ຄີບອດໃນຄົນຂອງທ່ານ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "ທ່ານສາມາດໃຊ້ຄີຕໍ່ໄປນີ້:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "ກົດ <kbd>A</kbd> ຖ້າຄຳທີ່ສະແດງແມ່ນ <strong>ຄຳທີ່ແທ້ຈິງ</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "ກົດ <kbd>L</kbd> ຖ້າຄຳທີ່ສະແດງແມ່ນ <strong>ຄຳທີ່ບໍ່ແທ້ຈິງ</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "ເຮັດຄວາມຄຸ້ນເຄີຍກັບຄີສອງອັນໃນຄົນຂອງທ່ານ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "ຖ້າທ່ານກົດມັນ, ພວກມັນຈະສ່ອງແສງຢູ່ໃນຄົນຂວາ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "ທ່ານຈະຕ້ອງກົດຄີທັງສອງຢ່າງນ້ອຍເທື່ອໜຶ່ງເພື່ອຂະບວນຕໍ່ໄປຫາຫນ້າຕໍ່ໄປ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "ໃນກໍລະນີທີ່ທ່ານລືມຄີທີ່ຈະໃຊ້, ພວກມັນຈະຖືກພິມຢູ່ທຸກຫນ້າ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "ການທົດສອບຈະເລີ່ມໃນຫນ້າຕໍ່ໄປ."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -742,7 +860,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "ເພື່ອດຳເນີນການຕໍ່ໄປ, ກົດປຸ່ມຂ້າງລຸ່ມນີ້."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "ຕໍ່ໄປ"
@@ -2125,6 +2244,16 @@ msgstr "ໂດຍການເຮັດຫນ້າທີ່ທ່ານກໍາ
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "ສົ່ງບົດສຳຫຼວດ Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "ເລືອກຮູບແບບແປ້ນພິມ:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "ທ່ານບໍ່ໄດ້ກົດປຸ່ມທີ່ຕ້ອງການທັງຫມົດ."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

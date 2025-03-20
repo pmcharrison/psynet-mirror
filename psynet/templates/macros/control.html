@@ -148,6 +148,27 @@
     </script>
 {% endmacro %}
 
+{% macro keyboard_push_buttons(params) %}
+    {{ push_buttons(params) }}
+    <script>
+        const keyCodeIdx = JSON.parse(`{{ params.keys | tojson }}`);
+        document.addEventListener("keydown", function(event) {
+            let keyCode = event.code;
+            // keyCode in keyCodeIdx
+            if (keyCodeIdx.includes(keyCode)) {
+                let buttonIdx = keyCodeIdx.indexOf(keyCode);
+                let buttons = document.getElementsByClassName("push-button");
+                let button = buttons[buttonIdx];
+                if (button.disabled) {
+                    psynet.alert("Cannot select the button because it is disabled.");
+                } else {
+                    clickedButton(button, button.id);
+                }
+            }
+        });
+    </script>
+{% endmacro %}
+
 {% macro checkbox(params) %}
     <label style="margin-left: 15px; cursor: pointer;">
         <input

@@ -531,51 +531,174 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Vnesti morate številko!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Zapišite številko na sliki."
+msgstr "Zapiši številko na sliki."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Zdaj bomo izvedli hiter test za preverjanje vaše sposobnosti zaznavanja "
-"barv."
+"Zdaj bomo izvedli hiter test, da preverimo vašo sposobnost zaznavanja barv."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "V vsakem poskusu vam bo predstavljena slika, ki vsebuje številko."
+msgstr ""
+"V vsaki poizkusni nalogi vam bo predstavljena slika, ki vsebuje številko."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Ta slika bo izginila po {HIDE_AFTER} sekundah."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "V besedilno polje morate vnesti številko, ki jo vidite."
+msgstr "V vnosno polje morate vnesti številko, ki jo vidite."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Kateri zvok je drugačen od drugih dveh: 1, 2 ali 3?"
+msgstr "Kateri zvok je drugačen od preostalih dveh: 1, 2 ali 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr "Vaša naloga je presoditi <strong>kateri zvok je drugačen</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Vaš rezultat je bil"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Pritisnite gumb za nadaljevanje."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Opravili bomo test, da preverimo vaše jezikovne sposobnosti."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "V vsakem poskusu boste videli niz znakov."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Niz bo samodejno izginil."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Vaša naloga je, da se odločite, ali je to obstoječa beseda v {LANGUAGE_NAME}"
+" ali ne."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Če ne poznate točnega pomena besede, vendar ste prepričani, da obstaja v "
+"{LANGUAGE_NAME}, jo morate označiti kot pravo besedo."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Če niste prepričani, ali beseda obstaja v {LANGUAGE_NAME}, jo morate "
+"označiti kot lažno besedo."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"V tem poskusu lahko najdete mešanico med različnimi črkovalnimi različicami."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Ne smete biti pozorni na subtilne razlike v črkovanju."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr ""
+"Besede so predstavljene bodisi samo z velikimi bodisi z malimi črkami."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Lahko ignorirate velikost črk besede."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "Da nalogo izvedete hitro, uporabite tipke na tipkovnici."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Uporabite lahko naslednje tipke:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Pritisnite <kbd>A</kbd>, če je predstavljena beseda <strong>prava</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Pritisnite <kbd>L</kbd>, če je predstavljena beseda <strong>lažna</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Spoznajte se z obema tipkama na vaši tipkovnici."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Če ju pritisnete, se bosta osvetlili na tipkovnici na desni."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Obe tipki morate pritisniti vsaj enkrat, da nadaljujete na naslednjo stran."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "V primeru, da pozabite tipke, bodo natisnjene na vsaki strani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Test se bo začel na naslednji strani."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -751,7 +874,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Za nadaljevanje kliknite spodnji gumb."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Naprej"
@@ -2155,6 +2279,16 @@ msgstr "Z opravljanjem naloge pomagate znanosti, hvala!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Oddaja ankete Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Izberite postavitev tipkovnice:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Niste pritisnili vseh zahtevanih tipk."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

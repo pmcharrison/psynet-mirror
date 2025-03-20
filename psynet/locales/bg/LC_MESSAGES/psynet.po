@@ -532,54 +532,179 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Трябва да предоставите число!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Запишете числото в изображението."
+msgstr "Запишете числото от изображението."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
 "Сега ще проведем бърз тест, за да проверим способността ви да възприемате "
-"цветове."
+"цветовете."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
-"Във всеки опит ще ви бъде представено изображение, което съдържа число."
+"Във всяко изпитание ще ви бъде представено изображение, което съдържа число."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Това изображение ще изчезне след {HIDE_AFTER} секунди."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Трябва да въведете числото, което виждате, в текстовото поле."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Кой звук е различен от останалите два: 1, 2 или 3?"
+msgstr "Кой звук е различен от другите два: 1, 2 или 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Вашата задача е да прецените <strong>кой звук е различен от "
+"Вашата задача ще бъде да прецените <strong>кой звук е различен от "
 "останалите</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Вашият резултат беше"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Натиснете бутона, за да продължите."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Ще проведем тест, за да проверим вашите езикови умения."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Във всяка проба ще видите низ от символи."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Низът автоматично ще изчезне."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Вашата задача е да решите дали това е съществуваща дума на {LANGUAGE_NAME} "
+"или не."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Ако не знаете точното значение на думата, но сте сигурни, че тя съществува "
+"на {LANGUAGE_NAME}, трябва да я маркирате като истинска дума."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Ако не сте сигурни дали думата съществува на {LANGUAGE_NAME}, трябва да я "
+"маркирате като фалшива дума."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "В този експеримент може да срещнете смесица от правописни варианти."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Не трябва да обръщате внимание на фини правописни разлики."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Думите са представени или само с големи, или само с малки букви."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Можете да игнорирате големината на буквите в думата."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"За да изпълните задачата бързо, трябва да използвате клавишите на "
+"клавиатурата си."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Можете да използвате следните клавиши:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Натиснете <kbd>A</kbd> ако представената дума е <strong>истинска</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Натиснете <kbd>L</kbd> ако представената дума е <strong>фалшива</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Запознайте се с двата клавиша на клавиатурата си."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Ако ги натиснете, те ще светнат на клавиатурата вдясно."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Трябва да натиснете и двата клавиша поне веднъж, за да преминете към "
+"следващата страница."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr ""
+"В случай че забравите клавишите, те ще бъдат отпечатани на всяка страница."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Тестът ще започне на следващата страница."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -759,7 +884,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "За да продължите, кликнете върху бутона по-долу."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Напред"
@@ -2193,6 +2319,16 @@ msgstr "С изпълнението на задачата вие помагат�
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Изпращане на проучване Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Изберете оформление на клавиатурата:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Не натиснахте всички необходими клавиши."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
