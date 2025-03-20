@@ -1836,3 +1836,15 @@ def check_for_login_errors(response):
     message = " - ".join(messages)
 
     raise RuntimeError(f"Dashboard login failed with message: '{message}'. ")
+
+
+def current_git_branch():
+    import subprocess
+
+    return (
+        subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.STDOUT
+        )
+        .strip()
+        .decode("utf-8")
+    )
