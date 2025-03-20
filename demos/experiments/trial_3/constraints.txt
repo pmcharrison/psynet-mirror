@@ -10,6 +10,8 @@ apscheduler==3.11.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.1.1/dev-requirements.txt
     #   dallinger
+arabic-reshaper==3.0.0
+    # via psynet
 asttokens==3.0.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.1.1/dev-requirements.txt
@@ -197,7 +199,7 @@ matplotlib-inline==0.1.7
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.1.1/dev-requirements.txt
     #   ipython
-mock==5.1.0
+mock==5.2.0
     # via psynet
 numpy==2.0.2
     # via
@@ -236,6 +238,8 @@ pexpect==4.9.0
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.1.1/dev-requirements.txt
     #   dallinger
     #   ipython
+pillow==11.1.0
+    # via psynet
 pip-tools==7.4.1
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.1.1/dev-requirements.txt
