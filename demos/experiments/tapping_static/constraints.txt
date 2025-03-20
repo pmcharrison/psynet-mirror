@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: cf5a2761811805257a59a8f93032cd5f
+# Compiled from a requirement.txt file with md5sum: 9ca8c70c142105595cd81cc3c327a3be
 #
 anyio==4.8.0
     # via
@@ -379,7 +379,7 @@ markupsafe==3.0.2
     #   wtforms
 matplotlib==3.10.1
     # via
-    #   -r /tmp/tmp6qjeitd5/requirements.txt
+    #   -r /tmp/tmpbawp74un/requirements.txt
     #   repp
 matplotlib-inline==0.1.7
     # via
@@ -513,7 +513,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.1.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master
+psynet==12.0.0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via

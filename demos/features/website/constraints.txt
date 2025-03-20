@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: ab87fef98bb073ba3aaa6680b3e27533
+# Compiled from a requirement.txt file with md5sum: 93edc5e879241bb4fb4dade8ac075c4b
 #
 apscheduler==3.11.0
     # via
@@ -89,7 +89,7 @@ docker==7.1.0
     #   dallinger
 dominate==2.9.1
     # via
-    #   -r /tmp/tmpu3mczhfz/requirements.txt
+    #   -r /tmp/tmpy72p_mb7/requirements.txt
     #   psynet
 executing==2.2.0
     # via
@@ -265,7 +265,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.1.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master
+psynet==12.0.0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
