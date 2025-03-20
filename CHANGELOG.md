@@ -1,6 +1,24 @@
 # CHANGELOG
 
-# [12.0.0rc2] Release candidate 2 2025-02-27
+# [12.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.0) Release - 2025-03-20
+
+## Fixed
+- Removed dash separator for release candidate and alpha versions (author: Frank Höger)
+- Added `supports_delayed_publishing = True` to `BaseLucidRecruiter` (authors: Pol van Rijn, Frank Höger)
+- Fixed `specified_using_version` for release candidates (author: Frank Höger)
+- Fixed regex for requirements.txt when updating constraints (author: Frank Höger)
+
+## Added
+- Added `KeyboardPushButtonControl` for keyboard responses on `PushButtonControl`s (authors: Pol van Rijn, Peter Harrison)
+- Added test to make sure that demos specify the correct version of Dallinger in constraints.txt (author: Peter Harrison, reviewer: Frank Höger)
+
+## Changed
+- Switched to alpha versions instead of development versions in the `master` branch (author: Frank Höger, reviewer: Peter Harrison)
+- Changed the `psynet` requirement to use PsyNet's `master` branch and the `master` Docker image in the `master` branch when being on an alpha version (author: Frank Höger, reviewer: Peter Harrison)
+- Updated logic for replacing the PsyNet Docker image tag when updating demo and test experiments (author: Frank Höger, reviewer: Peter Harrison)
+- Set `SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` before running `psynet check-constraints` in a local Docker environment (author: Frank Höger, reviewer: Peter Harrison)
+
+# [12.0.0rc2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.0rc2) Release candidate - 2025-02-27
 
 ## Fixed
 - Previously, PsyNet would never translate anything if the experiment was not completely loaded (in order to access the config var `locale`). However, there is no need to wait for this if a user manually passes `locale` as an argument (authors: Pol van Rijn, Peter Harrison)
@@ -20,7 +38,7 @@
 ## Updated
 - Updated Dallinger to version 11.1.1. Read about changes in Dallinger: https://github.com/Dallinger/Dallinger/releases/tag/v11.1.1 (author: Frank Höger)
 
-# [12.0.0rc1] Release candidate 1 2025-02-15
+# [12.0.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.0rc1) Release candidate - 2025-02-15
 
 ## Fixed
 - Fixed bug that prevent the export command from being run (author: Frank Höger)
@@ -28,7 +46,7 @@
 ## Changed
 - Removed hyphen from release candidate and development versions (author: Frank Höger)
 
-# [12.0.0rc0] Release candidate 0 2025-02-12
+# [12.0.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.0-rc0) Release candidate - 2025-02-12
 
 ## Added
 - The new `psynet translate` command generates translations for the current directory (e.g. an experiment or a package). By default these translations are generated using OpenAI's ChatGPT but Google Translate is also supported. API tokens are needed in both case (authors: Pol van Rijn, Peter Harrison)
@@ -81,7 +99,13 @@ InfoPage(_("Welcome to the experiment!"), time_estimate=5)
 - Improved asset documentation (author: Peter Harrison, reviewer: Frank Höger).
 - Updated demos to use the `asset` helper function (author: Peter Harrison, reviewer: Frank Höger).
 
-# [11.9.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.9.0) Release 2025-01-16
+# [11.9.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.9.1) Release - 2025-03-07
+
+## Fixed
+- Fixed Dallinger version in the constraints.txt files of demo and test experiments (author: Frank Höger).
+- Moved mock package from optional-dependencies to dependencies in pyproject.toml (author: Frank Höger).
+
+# [11.9.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v11.9.0) Release - 2025-01-16
 
 ## Fixed
 - Fixed construction of download source URL in `_export_source_code` (author: Peter Harrison).
