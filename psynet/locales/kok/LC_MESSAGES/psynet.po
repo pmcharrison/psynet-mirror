@@ -531,50 +531,171 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "तुमकां एक नंबर दिवपाची गरज आसा!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "चित्रामधील क्रमांक लिहा."
+msgstr "Chitrantlo ank bhurgim."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr ""
-"आवोखी ओळखचो तुमकोरची योग्यता तपासपाक आमी हवे एक तात्काळ परीक्षाक करुया."
+msgstr "Ami atam tumcho rang olokpaachi kshamata tapassun gheu."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "प्रत्येक फेरीत, तुका एक चित्र दाखवपाचें, जें एक क्रमांक धरतलें."
+msgstr "Pratek pravinant, tumka chitrant ek ank dishta."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "हे चित्र {HIDE_AFTER} सेकंदांनी अदृश्य होईल."
+msgstr "Hya chitram {HIDE_AFTER} sekandant sodanch vochun."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "तुमका दिसपी क्रमांक पाठोवपाचें बॉक्सांत टाका."
+msgstr "Tumka dista ank tumchi te pustakant lia."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "हांव आवाज दुसर्या दोनांतल्यो वेगळो असा: 1, 2, वा 3?"
+msgstr "Donnen dusre dogancho farak konno aslo: 1, 2, vo 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "तुजें काम अशें ठरवपाचें <strong>कोणतो आवाज वेगळो आसा</strong>."
+msgstr "Tumcho kaam asa <strong> konno farak aslo</strong> te nirnoy korta."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Tujem skor aslem"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Botan dabavpachi fudar"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Ami tuje bhasechi yatna korunk ek test korum."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Povitr prashna pratyek topikant tuvem ak aksharank bhogtale."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Te aksharapramane apovitr prashna apovitr prashna vortal."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Tujem kam aslem yer te bhogtalem akshar {LANGUAGE_NAME} mhojem aslem ki na."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Tujer te aksharachem ekdam arth asmik, pun tuvem nischit asat ki te "
+"{LANGUAGE_NAME} mhojem aslem, tori tuvem te kharem akshar mhojem mark korunk"
+" zai."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Tujer tuvem nischit na asat ki te akshar {LANGUAGE_NAME} mhojem aslem, tori "
+"tuvem te nakli akshar mhojem mark korunk zai."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "Hya eksperimentiant, tuvem spelling variantsant ek miks paulu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Tuvem subtle spelling differencesant laksh dhorunk zai na."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr ""
+"Akshar sompe aplem kedanv uppercase kedanv lowercase aksharanto soddunk."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Tuvem aksharachi case dhorunk zai na."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "Kam veg kadunk, tuvem tujem keyboardantle keys vaprun kam korunk zai."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Tuvem halle keys vapru:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"<kbd>A</kbd> dabav, vochpachem akshar <strong>kharach</strong> mhojem aslem"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"<kbd>L</kbd> dabav, vochpachem akshar <strong>nakli</strong> mhojem aslem"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Tujem keyboardantle don keys zpritham."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Tuvem tenna dabavlea, te tenna tenna keyboardant ujjel korunk."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "Tuvem don keys kompak ekak pavunk tuvem fuddar polle."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr ""
+"Tuvem keys visrun zatalear, te hem pratyek panneliant print kelam jatalem."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Test polle panneliant suru zalem."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -752,7 +873,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "फुडें वचपाक, सकयल दिल्ल्या बटणाचेर क्लिक करात."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "फुडें"
@@ -2157,6 +2279,16 @@ msgstr "तुमी विज्ञानाक आदार दितात �
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "लुसिड सर्वेक्षण सादरीकरण"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "कीबोर्ड मांडावळ निवडात:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "तुमी सगळ्यो गरजेच्यो कळयो दामल्यो नात."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

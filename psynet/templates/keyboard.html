@@ -1,0 +1,115 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+<link rel="stylesheet" href="/static/international-keyboards/international-keyboards.css"/>
+<script src="/static/international-keyboards/international-keyboards.js"></script>
+
+{% macro keyboard() %}
+    <div id="keyboard"></div>
+        {{ gettext("Select a keyboard layout:") }}
+        <select class="form-control" id="keyboardIDs"></select>
+{% endmacro %}
+
+
+<div class="row">
+    <div class="col-md-6">{{ prompt }}</div>
+    <div class="col-md-6">{{ keyboard() }}</div>
+</div>
+
+<script>
+    let pressedKeys = [];
+    $(document).on("keypress", function (e) {
+        let keyCode = e.originalEvent.code;
+        pressedKeys.push(keyCode);
+        keyboard.press(keyCode);
+    });
+
+    let keyboard,
+        keyboardIDs = $('#keyboardIDs');
+
+    async function createKeyboard(autoCorrectType = true) {
+        $('#keyboard').empty();
+        let keyboardID = keyboardIDs.val();
+        let fallbackType = 'ANSI';
+        let keyboardType = fallbackType;
+        let currentKeyboard = keyboardIDs.find(`[value="${keyboardID}"]`)[0];
+        let addLatinKeys = currentKeyboard.getAttribute('addLatinKeys') === 'true';
+
+        if (autoCorrectType) {
+            keyboardType = currentKeyboard?.getAttribute('type') || fallbackType;
+            $('#keyboardType').val(keyboardType);
+        }
+        keyboard = new InternationalKeyboard({
+            keyboardID,
+            containerID: 'keyboard',
+            addLatinKeys,
+            keyboardType,
+            cssStyle,
+            showKeys,
+            highlightedKeys: highlightKeys
+        });
+    }
+
+
+    $.getJSON('/static/international-keyboards/default-keyboard-layout.json').done(function (defaultLayouts) {
+        console.log(defaultLayouts)
+        Object.entries(defaultLayouts).forEach(([iso, config]) => {
+            let group = `<optgroup label="${config.label}">`;
+            config.variants.forEach(variant => {
+                group += `<option addLatinKeys="${config.addLatinKeys}" keyVariant="${config.keyVariant}" type="${variant.type}" value="${variant.name}">${variant.name}</option>`;
+            });
+            group += "</optgroup>";
+            keyboardIDs.append($(group));
+        });
+
+        $('select').on('change', createKeyboard);
+        createKeyboard(false);
+    });
+
+    const isSubset = (array1, array2) => array2.every(element => array1.includes(element));
+
+    function retrieveResponse() {
+        return { 'rawAnswer': keyboardIDs.val() };
+    }
+
+    function disableButton() {
+        $("#next-button").prop("disabled", true);
+        $("#next-button-spinner").show();
+        $("#next-button-text").hide();
+    }
+
+    function enableButton() {
+        $("#next-button").prop("disabled", false);
+        $("#next-button-spinner").hide();
+        $("#next-button-text").show();
+    }
+
+    function onNextButton() {
+        let button = $("#next-button");
+        button.width(button.width());
+        button.height(button.height());
+        disableButton();
+
+        function onRejection() {
+            enableButton();
+        }
+
+        psynet.submitResponse(onRejection);
+    }
+
+    psynet.trial.onEvent("trialStart", function () {
+        $('#next-button').on('click', function () {
+            if (isSubset(pressedKeys, pressKeys)) {
+                onNextButton();
+            } else {
+                psynet.alert(`{{gettext("You did not press all required keys.")}}`);
+            }
+        });
+    });
+</script>
+
+<button type="button" id="next-button" class="btn btn-primary btn-lg submit" disabled>
+    <span id="next-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
+    <span id="next-button-text">{{ gettext("Next") }}</span>
+</button>
+{% endblock %}

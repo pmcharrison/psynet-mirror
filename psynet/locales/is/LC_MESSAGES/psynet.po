@@ -532,52 +532,175 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Þú þarft að gefa upp tölu!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Skrifaðu niður töluna á myndinni."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Við munum nú framkvæma skjót próf til að athuga getu þína til að skynja "
-"liti."
+"Við munum nú framkvæma fljótlegt próf til að athuga hæfni þína til að skynja"
+" liti."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Í hverri lotu muntu sjá mynd sem inniheldur tölu."
+msgstr "Í hverju prófi, muntu sjá mynd sem inniheldur tölu."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Þessi mynd mun hverfa eftir {HIDE_AFTER} sekúndur."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Þú verður að slá inn töluna sem þú sérð í textareitinn."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Hvaða hljóð er öðruvísi en hin tvö: 1, 2, eða 3?"
+msgstr "Hvaða hljóð er öðruvísi en hin tvö: 1, 2 eða 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Verkefni þitt verður að dæma <strong>hvaða hljóð er ólíkt hinum</strong>."
+"Verkefnið þitt verður að dæma <strong>hvaða hljóð er öðruvísi en "
+"hin.</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Stig þín voru"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Ýttu á takkann til að halda áfram."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Við munum framkvæma próf til að athuga tungumálakunnáttu þína."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Í hverju prófi muntu sjá röð af bókstöfum."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Röðin hverfur sjálfkrafa."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Verkefnið þitt er að ákveða hvort þetta sé raunverulegt orð í "
+"{LANGUAGE_NAME} eða ekki."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Ef þú veist ekki nákvæma merkingu orðsins, en þú ert viss um að það sé til í"
+" {LANGUAGE_NAME}, ættir þú að merkja það sem raunverulegt orð."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Ef þú ert ekki viss um hvort orðið sé til í {LANGUAGE_NAME}, ættir þú að "
+"merkja það sem gerviorð."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "Í þessu tilraun geturðu fundið blöndu af mismunandi stafsetningu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Þú ættir ekki að taka eftir fínum stafsetningarmun."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Orðin eru sýnd annað hvort í hástöfum eða lágstöfum."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Þú getur hunsað stafsetningu orðsins."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Til að gera verkefnið hratt ættirðu að nota lyklana á lyklaborðinu þínu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Þú getur notað eftirfarandi lykla:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Ýttu á <kbd>A</kbd> ef orðið sem birtist er <strong>raunverulegt</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "Ýttu á <kbd>L</kbd> ef orðið sem birtist er <strong>gervi</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Kynntu þér þessa tvo lykla á lyklaborðinu þínu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Ef þú ýtir á þá, munu þeir lýsast upp á lyklaborðinu hægra megin."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Þú þarft að ýta á báða lyklana að minnsta kosti einu sinni til að halda "
+"áfram á næstu síðu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Ef þú gleymir lyklunum, verða þeir prentaðir á hverri síðu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Prófið mun byrja á næstu síðu."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -756,7 +879,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Til þess að halda áfram, smelltu á hnappinn hér að neðan."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Næst"
@@ -2181,6 +2305,16 @@ msgstr "Með því að gera verkefnið ertu að hjálpa vísindum, takk fyrir!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid könnunarskil"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Veldu lyklaborðsútlit:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Þú ýttir ekki á alla nauðsynlega lykla."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

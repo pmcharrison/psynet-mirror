@@ -534,53 +534,180 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Dir musst eng Nummer uginn!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Schreift d'Nummer aus dem Bild of."
+msgstr "Schreift d'Nummer aus dem Bild op."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Mir maachen elo en séieren Test fir Är Fäegkeet fir Faarwen ze erkennen ze "
-"préiwen."
+"Mir maachen elo en séieren Test fir Är Fäegkeet Faarwen ze erkennen ze "
+"kontrolléieren."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr "An all Test kritt Dir e Bild gewisen, dat eng Nummer enthält."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Dëst Bild verschwënnt no {HIDE_AFTER} Sekonnen."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Dir musst d'Nummer, déi Dir gesitt, an d'Textbox aginn."
+msgstr "Dir musst d'Nummer, déi Dir gesitt, an de Textfeld aginn."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Wéi eng Toun ass anescht wéi déi aner zwee: 1, 2, oder 3?"
+msgstr "Welchen Toun ass anescht wéi déi aner zwee: 1, 2 oder 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Är Aufgab ass et ze entscheeden, <strong>wéi eng Toun déi eenzegaarteg "
-"ass</strong>."
+"Är Aufgab ass ze entscheeden <strong>welchen Toun anescht ass wéi déi "
+"aner</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Äre Score war"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Dréckt de Knäppchen fir weiderzefueren."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Mir wäerten en Test maachen fir Är Sproochefäegkeeten ze testen."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "An all Test gëtt Dir eng Zeecheketten gesinn."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "D'Zeecheketten verschwënnt automatesch."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Är Aufgab ass ze entscheeden ob dëst e bestehend Wuert an {LANGUAGE_NAME} "
+"ass oder net."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Wann Dir d'exakt Bedeitung vum Wuert net kennt, awer sécher sidd datt et an "
+"{LANGUAGE_NAME} existéiert, sollt Dir et als e richtegt Wuert markéieren."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Wann Dir net sécher sidd ob d'Wuert an {LANGUAGE_NAME} existéiert, sollt Dir"
+" et als e gefälschtes Wuert markéieren."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"An dësem Experiment kënnt Dir eng Mëschung aus Schreifweisvarianten fannen."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Dir sollt net op subtile Schreifweisënnerscheeder oppassen."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr ""
+"D'Wierder ginn entweder nëmmen a grousse Buschtawen oder klenge Buschtawen "
+"presentéiert."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Dir kënnt de Fall vum Wuert ignoréieren."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "Fir d'Aufgab séier ze maachen, sollt Dir d'Tastatur benotzen."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Dir kënnt déi folgend Tasten benotzen:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Dréckt <kbd>A</kbd> wann dat presentéiert Wuert <strong>richteg</strong> ass"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Dréckt <kbd>L</kbd> wann dat presentéiert Wuert <strong>falsch</strong> ass"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Gewannt Iech un déi zwee Tasten op Ärer Tastatur."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr ""
+"Wann Dir se dréckt, wäerte se op der Tastatur op der rietser Säit "
+"opliichten."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Dir musst béid Tasten op d'mannst eemol drécken fir op déi nächst Säit "
+"weiderzegoen."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Falls Dir d'Tasten vergiess, ginn se op all Säit gedréckt."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Den Test fänkt op der nächster Säit un."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -763,7 +890,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Fir weiderzemaachen, klickt op de Knäppchen hei ënnen."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Nächst"
@@ -2218,6 +2346,16 @@ msgstr "Andeems Dir d&#39;Aufgab maacht, hëlleft Dir Wëssenschaft, Merci!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid Survey Soumissioun"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Wielt eng Tastatur Layout:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Dir hutt net all néideg Schlësselen gedréckt."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

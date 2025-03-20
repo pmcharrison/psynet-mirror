@@ -528,51 +528,174 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "پێویستە ژمارەکە بنووسیت!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "ژمارەی لە وێنەدا نووسە."
+msgstr "ژمارەی هەڵبژێردراو لە وێنە بنووسە."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"ئێستا ئازمۆنێکی خێرا ئەنجام دەینەوە بۆ پشکنینی تواناییت بۆ تێگەیشتنەوەی "
+"ئێستا ئامادەی تاقیکردنەوەیەکی خێرا دەکەین بۆ پشکنینی توانایەکەت بۆ بینینی "
 "ڕەنگەکان."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "لە هەر هەوڵێکدا، وێنەیەک پێشکەش دەکرێت کە ژمارەیەک تێدایە."
+msgstr "لە هەر تاقیکردنەوەیەکدا، وێنەیەک پێشکەش دەکرێت کە ژمارەیەک تێدایە."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "ئەم وێنەیە دوای {HIDE_AFTER} چرکە دەرکەوتەوە."
+msgstr "ئەم وێنەیە دواتر لە {HIDE_AFTER} چرکە دەشێت."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "پێویستە ژمارەیەک بنووسی کە دەبینیت لە سندوقەکە."
+msgstr "پێویستە ژمارەی کە دەبینیت لە بڵۆکەکە بنووسیت."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "کەمەکەی تر چییە: ١، ٢، یان ٣؟"
+msgstr "کەمواری جیاواز لە نێوان سێ دەنگەکەدا کەیە: ١، ٢، یان ٣؟"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "ئەرکەکەت ئەوەیە بەرز بەرز بکەیت <strong>کە کەمەکەی تر چییە</strong>."
+msgstr ""
+"ئەرکەکەت ئەمەیە کە بەرزەی بکەیت <strong>کەموارە جیاوازەکە چێوە.</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "خاڵەکەت بوو"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "دوگمەکە بکە بۆ بەردەوامبوون."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "ئێمە تاقیکردنەوەیەک ئەنجام دەدەین بۆ پشکنینی تواناکانی زمانت."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "لە هەر تاقیکردنەوەدا، تێکستی فۆنتەکان دەبینیت."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "تێکستی فۆنتەکان خۆکارانە دەبەسن."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"ئەرکی تۆ ئەوەیە کە بەرەوپێش ببەیت ئایا ئەمە وشەیەکی بەردەستە لە "
+"{LANGUAGE_NAME} یان نەخێر."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"ئەگەر تۆ نازانی واتای وشەکە بە دروستی، بەڵام دڵنیایت کە لە {LANGUAGE_NAME} "
+"هەیە، دەبێت بە وشەی ڕاست نیشانی بکەیت."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"ئەگەر دڵنیانی نیە ئایا وشەکە لە {LANGUAGE_NAME} هەیە، دەبێت بە وشەی درۆ "
+"نیشانی بکەیت."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"لە ئەم تاقیکردنەوەیەدا، دەتوانیت تێکەڵبوونێکی نێوان جۆرە جۆرەکان ببینیت."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "پێویست نیە بیر لە جیاوازی کەمەکان بکەیت."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "وشەکان تەنها بە پیتی گەورە یان بچووک نیشان دەدرێن."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "دەتوانیت پەیوەندیدانی پیتەکان شاردنەوە."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"بۆ ئەوەی کارەکە بە خێرا بکەیت، پێویستە پەیوەندیدانی پیتەکان لە سەر کلیلەکانی"
+" کلیلەسەرەکی بەکاربهێنیت."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "دەتوانیت کلیلەکانی ئەستەنگە بە شێوەی خوارەوە بەکاربهێنیت:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "کلیلەکە <kbd>A</kbd> بکە ئەگەر وشەی نیشانکراو <strong>ڕاستە</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "کلیلەکە <kbd>L</kbd> بکە ئەگەر وشەی نیشانکراو <strong>درۆیە</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "خۆشەویستی لەگەڵ دوو کلیلەکەت لە سەر کلیلەسەرەکی بکە."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "ئەگەر پەیوەندیان بکەیت، لە سەر کلیلەسەرەکی لە ڕاستەوە دەدرێژێن."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "پێویستە دوو کلیلەکان بە بڕوانی بکەیت بۆ پەیوەستن بە لاپەڕەی داهاتوو."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr ""
+"لە کاتی فرامۆشکردنی کلیلەکان، لە سەر هەر لاپەڕەیەک پەیوەندیدانیان دەکرێتەوە."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "ئەم تاقیکردنەوەیە لە لاپەڕەی داهاتوو دەستپێدەکات."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -748,7 +871,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "بۆ بەردەوامبوون، کرتە لە دوگمەی خوارەوە بکە."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "دواتر"
@@ -2155,6 +2279,16 @@ msgstr "بە ئەنجامدانی ئیشەکە بە زانست یارمەتی د
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "پیشکەشکردنی لێکۆڵینەوەی Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "دیاری بکە ڕووکاری کلیل بوردێک:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "تۆ هەموو کلیلی پێویستەکانت نەکەوتن."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

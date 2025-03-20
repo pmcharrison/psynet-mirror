@@ -532,49 +532,169 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "आपल्याला एक संख्या पुरवणे आवश्यक आहे!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "प्रतिमेतील संख्या लिहा."
+msgstr "प्रतिमेतील क्रमांक लिहा."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "आम्ही आता तुमच्या रंग ओळखण्याच्या क्षमतेची चाचणी घेणार आहोत."
+msgstr "आम्ही आता रंग ओळखण्याची तुमची क्षमता तपासण्यासाठी एक जलद चाचणी करू."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "प्रत्येक चाचणीमध्ये, तुम्हाला एका प्रतिमेत संख्या दर्शविली जाईल."
+msgstr ""
+"प्रत्येक चाचणीमध्ये, तुम्हाला एक प्रतिमा दिली जाईल ज्यामध्ये एक क्रमांक "
+"असेल."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "ही प्रतिमा {HIDE_AFTER} सेकंदांनंतर गायब होईल."
+msgstr "ही प्रतिमा {HIDE_AFTER} सेकंदांनी अदृश्य होईल."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "तुम्ही पाहिलेली संख्या मजकूर बॉक्समध्ये प्रविष्ट करा."
+msgstr "तुम्ही पाहिलेला क्रमांक तुम्हाला मजकुराच्या बॉक्समध्ये लिहावा लागेल."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "या तीनपैकी कोणता आवाज वेगळा आहे: 1, 2, किंवा 3?"
+msgstr "कोणता आवाज इतर दोन आवाजांपेक्षा वेगळा आहे: 1, 2, किंवा 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "तुमचे काम <strong>कोणता आवाज वेगळा आहे</strong> हे ओळखणे होय."
+msgstr "तुमचे कार्य <strong>जो आवाज वेगळा आहे तो ओळखा</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "तुमचा गुण होता"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "सुरू ठेवण्यासाठी बटण दाबा."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "आम्ही तुमच्या भाषेच्या क्षमतेची चाचणी घेणार आहोत."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "प्रत्येक चाचणीत, तुम्हाला अक्षरांची एक ओळ दिसेल."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "ओळ आपोआप गायब होईल."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"तुमचे काम आहे हे ठरवणे की हा {LANGUAGE_NAME} मधील विद्यमान शब्द आहे की नाही."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"जर तुम्हाला शब्दाचा अचूक अर्थ माहित नसेल, परंतु तुम्हाला खात्री आहे की तो "
+"{LANGUAGE_NAME} मध्ये अस्तित्वात आहे, तर तुम्ही त्याला खरा शब्द म्हणून "
+"चिन्हांकित केले पाहिजे."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"जर तुम्हाला खात्री नसेल की शब्द {LANGUAGE_NAME} मध्ये अस्तित्वात आहे की "
+"नाही, तर तुम्ही त्याला बनावट शब्द म्हणून चिन्हांकित केले पाहिजे."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "या प्रयोगात, तुम्हाला शब्दलेखनाच्या प्रकारांमध्ये मिश्रण सापडू शकते."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "तुम्ही सूक्ष्म शब्दलेखनाच्या फरकाकडे लक्ष दिले पाहिजे."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "शब्द फक्त मोठ्या किंवा लहान अक्षरात सादर केले जातात."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "तुम्ही शब्दाच्या प्रकरणाकडे दुर्लक्ष करू शकता."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "कार्य लवकर करण्यासाठी, तुम्ही तुमच्या कीबोर्डवरील कळा वापराव्यात."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "तुम्ही खालील कळा वापरू शकता:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "<kbd>A</kbd> दाबा जर सादर केलेला शब्द <strong>खरा</strong> असेल तर"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "<kbd>L</kbd> दाबा जर सादर केलेला शब्द <strong>बनावट</strong> असेल तर"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "तुमच्या कीबोर्डवरील दोन कळा परिचित करून घ्या."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "जर तुम्ही त्यांना दाबले तर, ते उजवीकडील कीबोर्डमध्ये उजळतील."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "प्रगती करण्यासाठी तुम्हाला दोन्ही कळा किमान एकदा दाबाव्या लागतात."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "जर तुम्हाला कळा विसरल्या तर, त्या प्रत्येक पृष्ठावर छापल्या जातील."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "चाचणी पुढील पृष्ठावर सुरू होईल."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -749,7 +869,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "पुढे जाण्यासाठी, खालील बटन क्लिक करा."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "पुढे"
@@ -2159,6 +2280,16 @@ msgstr "कार्य करून तुम्ही विज्ञाना
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "ल्युसिड सर्वेक्षण सबमिशन"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "कीबोर्ड लेआउट निवडा:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "तुम्ही सर्व आवश्यक कळा दाबल्या नाहीत."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

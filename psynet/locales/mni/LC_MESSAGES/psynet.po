@@ -536,51 +536,189 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Nahakna nattraga mathou amuk pangthoklaga piganu!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Image-da leiba number asi ikhibu."
+msgstr "Image-da number asi thadok-u."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Houjikti nahakna nungshitna color sing ngamba tourabasu hingatlakpani."
+"Eina houjik ngakthokpa ngamba adu tinnaba chatpa khongchat ama tougadabani."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Trial khudingda, nahakna number ama leiba image ama pibigani."
+msgstr ""
+"Trial khudingda, nangonda image ama utpa thokani adudi number ama lakkani."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "Image asi {HIDE_AFTER} second makha tana thadokpani."
+msgstr "Image asi {HIDE_AFTER} second makha taret haina thadoktuna chatkani."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Nahakna ikhibagumna number asi text box-da thadoktunasu."
+msgstr "Nangna uhiba number asi text box-da thadokpa ngamgani."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Eigi maru khuding asi karigumba einaidaba: 1, 2, amasung 3?"
+msgstr "Ahum amagi marakta hangi changba kanano: 1, 2, amasung 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Nahakna judgement tourabani <strong>karigumba sound asi einaidaba</strong>."
+"Nanggi thoujal adu <strong>hangi changba kanano</strong> haina judge toubagi"
+" oigani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Nakhoigi score asi"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Nongmai button asi damkhiduna chatlu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr ""
+"Eikhoina nakhoigi language khudongchaba tinnaba test ama piba ngamgani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr ""
+"Trial khudingda, nakhoina character sing amadi mathakta string ama uba "
+"ngamgani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "String asi mahut tinnaba awabaniduna thadokle."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Nakhoigi thoujannadi makhoina {LANGUAGE_NAME} da leiriba waheigi waheiba "
+"oirabadi masi neinaraga matam pumnamakta oiri haiyu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Nakhoina waheigi waheiba exact meaning asi khangdaba wangaidabani, adubu "
+"nakhoina mahak {LANGUAGE_NAME} da leiriba waheigi waheiba oirabani haina "
+"khangneirabadi, nakhoina mahak real waheigi waheiba oiri haiyu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Nakhoina mahak {LANGUAGE_NAME} da leiriba waheigi waheiba oirabadi khangdaba"
+" wangaidabani, nakhoina mahak fake waheigi waheiba oiri haiyu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"Experiment asi da, nakhoina spelling variants singgi mix ama thokchaba "
+"ngamgani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Nakhoina subtle spelling differences singda khudong sabada puthokle."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr ""
+"Waheising asi uppercase amadi lowercase letters khudingda leiriba oigani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Nakhoina waheigi case asibu khudong sabada puthokle."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Nakhoina thoujal asi khara khudong sabada, nakhoina keyboard asi thiyu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Nakhoina matam makhada nungaiba keys asi thiyu:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Nakhoina <kbd>A</kbd> damkhidabadi, present thiba waheigi waheiba "
+"<strong>real</strong> oiri haina khangba ngamgani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Nakhoina <kbd>L</kbd> damkhidabadi, present thiba waheigi waheiba "
+"<strong>fake</strong> oiri haina khangba ngamgani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Nakhoina keyboard asi mathakta nungaiba ani key asi thiyu."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr ""
+"Nakhoina makhoibu damkhidabadi, mahak makhoigi keyboard asi mathakta light "
+"up oigani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Nakhoina matam pumnamakta chatpa ngamgani haina khangnaba ani key asi "
+"damkhiduna chatpa ngamgani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr ""
+"Nakhoina keys asi khangba ngangdaba wangaidabadi, makhoina page pumnamakta "
+"print oigani."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Test asi matam asida hourakani."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -764,7 +902,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "ꯍꯟꯗꯨꯠꯕ ꯑꯃꯁꯤꯕ, ꯃꯊꯣꯗꯣ ꯍꯥꯡꯅꯕ ꯃꯇꯝ ꯆꯤꯡꯕꯤꯡ ꯍꯟꯅꯕꯤ."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "ꯅꯦꯛꯇꯁꯤ"
@@ -2217,6 +2356,16 @@ msgstr ""
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid Survey Submission"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Keyboard layout ama chois tou:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Nangna khangba keyboard key khuding makhoi ama toude."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

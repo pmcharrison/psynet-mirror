@@ -531,53 +531,178 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Bạn cần cung cấp một số!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Viết số trong hình."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Bây giờ chúng tôi sẽ thực hiện một bài kiểm tra nhanh để kiểm tra khả năng "
-"nhận biết màu sắc của bạn."
+"Chúng tôi sẽ thực hiện một bài kiểm tra nhanh để kiểm tra khả năng nhận thức"
+" màu sắc của bạn."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
-"Trong mỗi thử nghiệm, bạn sẽ được trình bày một hình ảnh chứa một con số."
+"Trong mỗi lượt thử nghiệm, bạn sẽ được trình bày với một hình ảnh chứa một "
+"số."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Hình ảnh này sẽ biến mất sau {HIDE_AFTER} giây."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Bạn phải nhập số mà bạn thấy vào hộp văn bản."
+msgstr "Bạn phải nhập số mà bạn thấy vào ô văn bản."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Âm thanh nào khác với hai âm thanh còn lại: 1, 2 hay 3?"
+msgstr "Âm thanh nào khác với hai âm thanh còn lại: 1, 2, hay 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Nhiệm vụ của bạn là đánh giá <strong>âm thanh nào là khác biệt</strong>."
+"Nhiệm vụ của bạn là đánh giá <strong>âm thanh nào là âm thanh lạ</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Điểm của bạn là"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Nhấn nút để tiếp tục."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr ""
+"Chúng tôi sẽ thực hiện một bài kiểm tra để kiểm tra khả năng ngôn ngữ của "
+"bạn."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Trong mỗi thử nghiệm, bạn sẽ thấy một chuỗi ký tự."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Chuỗi này sẽ tự động biến mất."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Nhiệm vụ của bạn là quyết định liệu đây có phải là một từ tồn tại trong "
+"{LANGUAGE_NAME} hay không."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Nếu bạn không biết ý nghĩa chính xác của từ, nhưng bạn chắc chắn rằng nó tồn"
+" tại trong {LANGUAGE_NAME}, bạn nên đánh dấu nó là một từ thực."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Nếu bạn không chắc liệu từ này có tồn tại trong {LANGUAGE_NAME} hay không, "
+"bạn nên đánh dấu nó là một từ giả."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"Trong thí nghiệm này, bạn có thể thấy sự pha trộn giữa các biến thể chính "
+"tả."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Bạn không nên chú ý đến những khác biệt chính tả nhỏ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Các từ được trình bày chỉ bằng chữ in hoa hoặc chữ thường."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Bạn có thể bỏ qua dạng chữ của từ."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Để thực hiện nhiệm vụ nhanh chóng, bạn nên sử dụng các phím trên bàn phím "
+"của mình."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Bạn có thể sử dụng các phím sau:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "Nhấn <kbd>A</kbd> nếu từ được trình bày là <strong>thực</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "Nhấn <kbd>L</kbd> nếu từ được trình bày là <strong>giả</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Làm quen với hai phím trên bàn phím của bạn."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Nếu bạn nhấn chúng, chúng sẽ sáng lên trên bàn phím bên phải."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "Bạn cần nhấn cả hai phím ít nhất một lần để tiến đến trang tiếp theo."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Trong trường hợp bạn quên các phím, chúng sẽ được in trên mọi trang."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Bài kiểm tra sẽ bắt đầu ở trang tiếp theo."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -755,7 +880,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Để tiếp tục, nhấn nút bên dưới."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Tiếp theo"
@@ -2189,6 +2315,16 @@ msgstr "Bằng cách thực hiện nhiệm vụ, bạn đang giúp đỡ khoa h�
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Nộp Khảo Sát Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Chọn bố cục bàn phím:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Bạn chưa nhấn tất cả các phím yêu cầu."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

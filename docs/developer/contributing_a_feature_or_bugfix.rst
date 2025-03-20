@@ -34,26 +34,11 @@ Let’s suppose that we want to address issue #288, ‘Add Node.participant and 
 Step 2: Creating a merge request
 +++++++++++++++++++++++++++++++++
 
-GitLab provides a useful button on the issue page for us to click: ‘Create merge request’. Don’t click the button straightaway, but click the arrow on its right instead.
+GitLab provides a useful button on the issue page for us to click: ‘Create merge request’.
+Go ahead and click it, it will initiate two processes:
 
-.. figure:: ../_static/images/developer/workflow/gitlab_create_merge_request-1.png
-  :width: 340
-  :align: center
-
-|br|
-Here we want to do two things. First, let’s customize the branch name, as the default name is rather long. Let’s write a shorter version, keeping the issue number at the beginning: ‘288-network-participant’. Second, let’s customize the source branch, replacing ‘master’ with ‘dev’.
-
-This should give us something like the following:
-
-.. figure:: ../_static/images/developer/workflow/gitlab_create_merge_request-2.png
-  :width: 280
-  :align: center
-
-|br|
-Let’s click ‘Create merge request’. This initiates two processes:
-
-#. Creating a **new branch** off the ‘`dev`’ branch called ‘`issue-288-network-participant`’;
-#. Creating a **new merge request** (what GitHub would call a pull request) for our new branch ‘`issue-288-network-participant`’ to ‘`dev`’.
+#. Creating a **new branch** off the ‘`master`’ branch with a name generated from the issue name;
+#. Creating a **new merge request** (what GitHub would call a pull request) for our new branch to master.
 
 .. note::
     If you accidentally click the button itself instead of the arrow, don’t worry, you can also customize those two options on the next page.
@@ -72,14 +57,18 @@ First, in the dropdown box labeled ‘Description’, you should select ‘defau
   :align: center
 
 |br|
-Before filling out the description template, scroll down and ensure that you are listed as the Assignee (the person who will do the implementation) and the Reviewer is left unassigned. The Reviewer will stay unassigned until you have finished your implementation. The ‘delete source branch’ option should be unticked; if we have good naming conventions for our branches there’s no problem in keeping them for posterity. The ‘squash commits’ option should also be ticked; this means that when the branch is ultimately merged its changes will be squashed into one commit, ensuring the readability and interpretability of PsyNet’s version history.
+Before filling out the description template, scroll down and ensure that you are listed as the Assignee (the person who will do the implementation) 
+and the Reviewer is left unassigned. The Reviewer will stay unassigned until you have finished your implementation. 
+The ‘delete source branch’ option should be unticked; if we have good naming conventions for our branches there’s no problem in keeping them for posterity. 
+The ‘squash commits’ option should also be ticked; this means that when the branch is ultimately merged its changes will be squashed into one commit, 
+ensuring the readability and interpretability of PsyNet’s version history.
 
 .. figure:: ../_static/images/developer/workflow/gitlab_edit_merge_request-3.png
   :width: 600
   :align: center
 
 |br|
-Having customized these options, you should now edit the merge request’s description  following the pre populated template.
+Having customized these options, you should now edit the merge request’s description following the pre populated template.
 
 First you should write a short proposal section outlining the changes you plan to make. In some cases you may be able to copy this straightforwardly from the issue definition; in other cases you may want to add some additional technical detail about the proposed method so that you can get early feedback from the reviewers.
 
@@ -132,12 +121,16 @@ The resulting merge-request description should look something like this:
   - Non-core reviewer: @m.anglada-tort
   - Core reviewer: @pmcharrison
 
-Tagging the reviewers in this way will send the reviewers an email notification alerting them to the merge request, and give them an opportunity to discuss it with you. You should not consider the reviewing arrangement confirmed until you have had agreement from both reviewers. In order to encourage the reviewers to prioritize your case, it is worth making sure that the merge request description is well-specified so that they can be quickly convinced of the merit of the investment. In the context of complex proposals, you may wish to consider arranging a Zoom call with your reviewers to discuss the best way forward.
+Tagging the reviewers in this way will send the reviewers an email notification alerting them to the merge request, 
+and give them an opportunity to discuss it with you. 
+You should not consider the reviewing arrangement confirmed until you have had agreement from both reviewers. In order to encourage the reviewers to prioritize your case, it is worth making sure that the merge request description is well-specified so that they can be quickly convinced of the merit of the investment. In the context of complex proposals, you may wish to consider arranging a Zoom call with your reviewers to discuss the best way forward.
 
 .. note::
     See e.g. the `Markdown Guide <https://www.markdownguide.org/>`_ for more information on writing markdown.
 
-We then need to get this branch into our local repository. GitLab provides a handy button for this labeled ‘Check out branch’, which will display the required commands automatically for us to copy and paste.
+We then need to get this branch into our local repository. 
+GitLab provides a handy button for this labeled ‘Check out branch’, 
+which will display the required commands automatically for us to copy and paste.
 
 .. figure:: ../_static/images/developer/workflow/gitlab_edit_merge_request-4.png
   :width: 400
@@ -146,11 +139,13 @@ We then need to get this branch into our local repository. GitLab provides a han
 |br|
 
 .. note::
-    Other version-control systems (e.g., GitHub) do not necessarily provide these helper buttons. In such cases we can instead create the branch and the merge request using the following code, and create the pull/merge request via the version-control system’s web interface:
+    Other version-control systems (e.g., GitHub) do not necessarily provide these helper buttons. 
+    In such cases we can instead create the branch and the merge request using the following code, 
+    and create the pull/merge request via the version-control system’s web interface:
 
     .. code-block:: console
 
-      git checkout dev
+      git checkout master
       git pull
       git checkout -b issue-288-network-participant
       git push -u origin issue-288-network-participant

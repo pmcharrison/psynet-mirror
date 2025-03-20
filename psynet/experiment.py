@@ -1283,7 +1283,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "loglevel_worker": 1,
             "min_accumulated_reward_for_abort": 0.20,
             "min_browser_version": "80.0",
-            "prolific_is_custom_screening": True,
+            "prolific_is_custom_screening": False,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
@@ -2076,6 +2076,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 (
                     resources.files("psynet")
+                    / "resources/libraries/international-keyboards",
+                    "/static/international-keyboards",
+                ),
+                (
+                    resources.files("psynet")
                     / "resources/scripts/prepare_docker_image.sh",
                     "prepare_docker_image.sh",
                 ),
@@ -2467,7 +2472,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/dashboard/export", methods=["GET"])
     @staticmethod
     @with_transaction
-    def export(self):
+    def export():
         from flask_login import current_user
 
         from .command_line import export__local

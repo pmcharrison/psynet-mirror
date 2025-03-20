@@ -532,22 +532,21 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Turite pateikti skaičių!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Užrašykite skaičių, esantį paveikslėlyje."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Dabar atliksime greitą testą, kad patikrintume jūsų gebėjimą suvokti "
-"spalvas."
+"Dabar atliksime greitą testą jūsų gebėjimui suvokti spalvas patikrinti."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
@@ -555,17 +554,151 @@ msgid ""
 msgstr ""
 "Kiekviename bandyme jums bus pateiktas paveikslėlis, kuriame yra skaičius."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Šis paveikslėlis išnyks po {HIDE_AFTER} sekundžių."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Turite įvesti skaičių, kurį matote, į teksto laukelį."
+msgstr "Turite įvesti skaičių, kurį matote į teksto laukelį."
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgctxt "Beep-headphone-test"
+msgid "Which sound is different from the other two: 1, 2, or 3?"
+msgstr "Kurio garsas skiriasi nuo kitų dviejų: 1, 2 ar 3?"
+
+#: psynet/prescreen/__init__.py
+#, fuzzy
+msgid ""
+"Your task will be to judge <strong>which sound is the odd one out</strong>."
+msgstr "Jūsų užduotis bus nuspręsti <strong>kuris garsas išsiskiria</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Jūsų rezultatas buvo"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Paspauskite mygtuką norėdami tęsti."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Mes atliksime testą, kad patikrintume jūsų kalbos gebėjimus."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Kiekviename bandyme pamatysite simbolių seką."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Sekos automatiškai išnyks."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Jūsų užduotis yra nuspręsti, ar tai yra esamas žodis {LANGUAGE_NAME} kalba, "
+"ar ne."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Jei nežinote tikslios žodžio reikšmės, bet esate tikri, kad jis egzistuoja "
+"{LANGUAGE_NAME} kalba, turėtumėte pažymėti jį kaip tikrą žodį."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Jei nesate tikri, ar žodis egzistuoja {LANGUAGE_NAME} kalba, turėtumėte "
+"pažymėti jį kaip netikrą žodį."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "Šiame eksperimente galite rasti rašybos variantų mišinį."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Neturėtumėte atkreipti dėmesio į subtilius rašybos skirtumus."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Žodžiai pateikiami arba tik didžiosiomis, arba mažosiomis raidėmis."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Galite ignoruoti žodžio raidžių dydį."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Norėdami užduotį atlikti greitai, turėtumėte naudoti klaviatūros klavišus."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Galite naudoti šiuos klavišus:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Paspauskite <kbd>A</kbd>, jei pateiktas žodis yra <strong>tikras</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Paspauskite <kbd>L</kbd>, jei pateiktas žodis yra <strong>netikras</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Susipažinkite su dviem klaviatūros klavišais."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Jei juos paspausite, jie apšvies klaviatūrą dešinėje."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Turite paspausti abu klavišus bent kartą, kad pereitumėte į kitą puslapį."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Jei pamiršite klavišus, jie bus atspausdinti kiekviename puslapyje."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Testas prasidės kitame puslapyje."
 
 #: psynet/prescreen.py
 #, fuzzy
@@ -759,7 +892,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Norėdami tęsti, spustelėkite mygtuką žemiau."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Kitas"
@@ -2177,6 +2311,16 @@ msgstr "Atlikdami užduotį jūs padedate mokslui, ačiū!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid apklausos pateikimas"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Pasirinkite klaviatūros išdėstymą:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Jūs nepaspaudėte visų reikiamų klavišų."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

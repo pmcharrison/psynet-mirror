@@ -1,0 +1,98 @@
+.icon {
+    width: 15px;
+
+}
+
+.keyLabel {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 70px;
+    font-weight: 500;
+    fill: #fff;
+}
+
+.keyLabel.small {
+    font-size: 50px;
+}
+
+.key {
+    stroke: #000;
+    stroke-width: 6px;
+    fill: #000;
+}
+
+/*   Default style black an white */
+.key.highlight {
+    stroke: #ffc600;
+    fill: #ffffff;
+}
+
+.keyLabel.highlight {
+    fill: #ffc600;
+}
+
+.key.press {
+    stroke: #000;
+    fill: #ffffff;
+}
+
+.keyLabel.press {
+    fill: #000;
+}
+
+
+/* Inverted style */
+.inverted.key {
+    stroke: #000;
+    fill: #fff;
+}
+
+.inverted.keyLabel {
+    fill: #000;
+}
+
+
+.inverted.key.highlight {
+    stroke: #000;
+    fill: #ffc600;
+}
+
+.inverted.key.press {
+    stroke: #000;
+    fill: #000;
+}
+
+.inverted.keyLabel.press {
+    fill: #fff;
+}
+
+
+/*!*   Apple style *!*/
+.apple.keyLabel {
+    fill: #576FA5
+}
+
+.apple.key {
+    stroke: #F0F3F7;
+    fill: #F0F3F7;
+
+}
+
+.apple.active-key {
+    stroke: #E4EAF2;
+    fill: #E4EAF2;
+}
+
+.apple.key.highlight {
+    stroke: #576FA5;
+    fill: #fff;
+    stroke-dasharray: 8 8;
+}
+
+.apple.key.press {
+    stroke: #576FA5;
+    fill: #576FA5;
+}
+
+.apple.keyLabel.press {
+    fill: #fff;
+}
