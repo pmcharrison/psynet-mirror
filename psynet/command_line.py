@@ -44,6 +44,7 @@ from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
+    current_git_branch,
     get_args,
     get_package_name,
     in_python_package,
@@ -2148,17 +2149,7 @@ def update_scripts_():
     os.system("chmod +x docker/*")
 
 
-def current_git_branch():
-    return (
-        subprocess.check_output(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.STDOUT
-        )
-        .strip()
-        .decode("utf-8")
-    )
-
-
-def pre_update_requirements_(dir):
+def pre_update_constraints_(dir):
     commit_hash = (
         subprocess.check_output(
             ["git", "log", "-n 1", "master", "--pretty=format:%H"], cwd=dir

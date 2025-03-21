@@ -1583,3 +1583,15 @@ def text_to_image(text, path, width, height, font_size, font_path):
 
     # Save image
     im.save(path)
+
+
+def current_git_branch():
+    import subprocess
+
+    return (
+        subprocess.check_output(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.STDOUT
+        )
+        .strip()
+        .decode("utf-8")
+    )
