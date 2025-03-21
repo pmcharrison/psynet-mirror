@@ -1,7 +1,5 @@
-import fileinput
 import json
 import os
-import pathlib
 import re
 import shutil
 import subprocess
@@ -44,7 +42,6 @@ from .recruiters import BaseLucidRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
-    current_git_branch,
     get_args,
     get_package_name,
     in_python_package,
@@ -1305,13 +1302,13 @@ def update(dallinger_version, psynet_version, verbose):
 def dallinger_dir():
     import dallinger as _
 
-    return pathlib.Path(_.__file__).parent.parent.resolve()
+    return Path(_.__file__).parent.parent.resolve()
 
 
 def psynet_dir():
     import psynet as _
 
-    return pathlib.Path(_.__file__).parent.parent.resolve()
+    return Path(_.__file__).parent.parent.resolve()
 
 
 def get_version(project_name):
@@ -2085,24 +2082,6 @@ def update_scripts():
     update_scripts_()
 
 
-def update_psynet_requirement_():
-    with open("requirements.txt", "r") as orig_file:
-        with open("updated_requirements.txt", "w") as updated_file:
-            version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
-            for line in orig_file:
-                match = re.search(
-                    r"^psynet(\s?)==(\s?)" + version + "$",
-                    line,
-                )
-                if match is not None:
-                    updated_file.write(re.sub(version, f"{__version__}", line))
-                else:
-                    updated_file.write(line)
-            updated_file.close()
-        orig_file.close()
-    shutil.move("updated_requirements.txt", "requirements.txt")
-
-
 def update_scripts_():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -2147,70 +2126,6 @@ def update_scripts_():
                 dirs_exist_ok=True,
             )
     os.system("chmod +x docker/*")
-
-
-def pre_update_constraints_(dir):
-    commit_hash = (
-        subprocess.check_output(
-            ["git", "log", "-n 1", "master", "--pretty=format:%H"], cwd=dir
-        )
-        .decode("utf-8")
-        .strip()
-    )
-    with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = (
-            r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
-        )
-        replacement_requirement = (
-            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
-        )
-        if current_git_branch() == "master":
-            replacement_requirement = (
-                "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
-            )
-        for line in file:
-            print(
-                re.sub(
-                    psynet_requirement,
-                    replacement_requirement,
-                    line,
-                ),
-                end="",
-            )
-    return commit_hash
-
-
-def post_update_constraints_(commit_hash):
-    with fileinput.FileInput("constraints.txt", inplace=True) as file:
-        psynet_requirement = (
-            f"psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}"
-        )
-        for line in file:
-            print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
-
-    with fileinput.FileInput("requirements.txt", inplace=True) as file:
-        psynet_requirement = (
-            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
-        )
-        for line in file:
-            print(line.replace(psynet_requirement, f"psynet=={__version__}"), end="")
-
-
-def post_update_psynet_requirement_():
-    with fileinput.FileInput("constraints.txt", inplace=True) as file:
-        md5sum_line = (
-            "# Compiled from a requirement\\.txt file with md5sum: [0-9a-f]{32}"
-        )
-        md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
-        for line in file:
-            print(
-                re.sub(
-                    md5sum_line,
-                    f"# Compiled from a requirement.txt file with md5sum: {md5sum}",
-                    line,
-                ),
-                end="",
-            )
 
 
 @psynet.group("destroy")
