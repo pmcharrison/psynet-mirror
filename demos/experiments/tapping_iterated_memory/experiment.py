@@ -1,3 +1,10 @@
+# This is a demo showing how to create an iterated tapping experiment from memory using psynet.
+# In this experiment, participants are asked to listen to a rhythm and then reproduce it by tapping.
+# Their tapping response is analyzed and sent to the new iteration as the input rhythm to reproduce.
+# The experiment is based on the study by Jacoby & McDermott (2017).
+# Jacoby, N., & McDermott, J. H. (2017). Integer ratio priors on musical rhythm revealed cross-culturally 
+# by iterated reproduction. Current Biology, 27(3), 359-370.
+
 # Iterated tapping from memory, adapted from Jacoby & McDermott (2017)
 import json
 from statistics import mean

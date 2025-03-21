@@ -1,4 +1,11 @@
-# Iterated tapping experiment, adapted from Jacoby & McDermott (2017)
+# This is a demo showing how to create an iterated tapping experiment using psynet.
+# In this experiment, participants are asked to tap in time with a metronome.
+# Their tapping response is analyzed and sent to the new iteration as the input rhythm to reproduce.
+# The experiment is based on the study by Jacoby & McDermott (2017).
+# Jacoby, N., & McDermott, J. H. (2017). Integer ratio priors on musical rhythm revealed cross-culturally 
+# by iterated reproduction. Current Biology, 27(3), 359-370.
+
+
 import json
 import re
 from statistics import mean
@@ -40,8 +47,8 @@ logger = get_logger()
 # Global parameters
 ########################################################################################################################
 
-USE_REPP_PRESCREENS = False # if True, all tapping prescreens are presented before the main tapping tasks, including markers test and volumne calibration
-
+# if True, all tapping prescreens are presented before the main tapping tasks, including markers test and volumne calibration
+USE_REPP_PRESCREENS = False 
 
 config = ConfigUpdater.create_config(
     sms_tapping,
@@ -269,13 +276,11 @@ class Exp(psynet.experiment.Experiment):
             REPPTappingCalibration(),  # calibrate tapping
             REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
             iterated_tapping,
-            SuccessfulEndPage(),
             )
     else:
         timeline = Timeline(
             NoConsent(),
             iterated_tapping,
-            SuccessfulEndPage(),
             )
 
     def test_check_bot(self, bot: Bot, **kwargs):

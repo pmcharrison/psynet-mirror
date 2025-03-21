@@ -1,9 +1,17 @@
+
+# This file contains supporting functions for singing experiments. 
+# This code is based on the study by Anglada-Tort et al. (2023).
+# Please see the methods section in the study for more deatils. 
+# Anglada-Tort, M., Harrison, P. M., Lee, H., & Jacoby, N. (2023). Large-scale iterated 
+# singing experiments reveal oral transmission mechanisms underlying music evolution. 
+# Current Biology, 33(8), 1472-1486.
+
+
 import random
 import math
 import numpy as np
 
 
-# supporting functions for singing experiments
 def sample_interval_sequence(
         n_int,
         max_interval_size,
@@ -327,7 +335,7 @@ def failing_criteria(
         max_melody_pitch_range,
         reference_mode,
         stats,
-        max_abs_interval_error_treshold,
+        max_abs_interval_error_threshold,
         max_pitch_range
 ):
     """ Perform basic failing criteria for singing production tasks
@@ -351,7 +359,7 @@ def failing_criteria(
         to the previous note in the melody. For example, a major triad would be expressed as ``[4, 3]``.
     stats: dict
         Output of compute_stats function in singing_extract
-    max_abs_interval_error_treshold : float
+    max_abs_interval_error_threshold : float
         maximum value allowed for max absolute interval error
 
     Returns
@@ -366,7 +374,7 @@ def failing_criteria(
     correct_num_notes = num_sung_pitches == num_target_pitches
 
     # check max interval error
-    max_interval_error_ok = stats["max_abs_interval_error"] < max_abs_interval_error_treshold
+    max_interval_error_ok = stats["max_abs_interval_error"] < max_abs_interval_error_threshold
 
     # check interval sequence
     if reference_mode == "pitch_mode":
@@ -441,11 +449,11 @@ def failing_criteria_unconstrained_notes(stats, max_num_diff_pitches):
     return is_failed
 
 
-def feedback_generator(stats, max_abs_interval_error_treshold):
+def feedback_generator(stats, max_abs_interval_error_threshold):
     """ Generate feedback based on performance
     stats: dict
         Output of compute_stats function in singing_extract
-    max_abs_interval_error_treshold : float
+    max_abs_interval_error_threshold : float
         maximum value allowed for max absolute interval error
 
     Returns
@@ -470,7 +478,7 @@ def feedback_generator(stats, max_abs_interval_error_treshold):
         status = "bad"
         index = failed_options.index(True)
         message = reasons[index]
-    elif  stats["max_abs_interval_error"] < max_abs_interval_error_treshold:
+    elif  stats["max_abs_interval_error"] < max_abs_interval_error_threshold:
         status = "perfect"
         message = "Your singing accuracy is Excellent."
     elif stats["direction_accuracy"] > 75:

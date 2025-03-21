@@ -1,4 +1,6 @@
-# non_adapting tapping demo with isochronus tapping and beat synchronization to music
+# This is a demo showing how to create an static tapping experiment using psynet.
+# The demo shows to types of tapping task: isochronus tapping and beat synchronization to music.
+
 import json
 import os
 import tempfile

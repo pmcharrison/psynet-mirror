@@ -1,3 +1,11 @@
+# This is a singing demo showing how to create a singing imitation experiment using psynet.
+# In this experiment, participants are asked to listen to a melody and sing it back as accurately as possible.
+# The experiment includes a series of singing prescreens to ensure we can record the participant's voice.
+# The experiment is based on the study by Anglada-Tort et al. (2023):
+# Anglada-Tort, M., Harrison, P. M., Lee, H., & Jacoby, N. (2023). Large-scale iterated 
+# singing experiments reveal oral transmission mechanisms underlying music evolution. 
+# Current Biology, 33(8), 1472-1486.
+
 from markupsafe import Markup
 import random
 
@@ -15,7 +23,7 @@ from psynet.trial.audio import AudioRecordTrial
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-# experiment
+# Importing prescreening tasks and singing-related modules
 from .pre_screens import (
     tonejs_volume_test,
     mic_test,
@@ -23,79 +31,76 @@ from .pre_screens import (
     singing_performance
 )
 
-# sing4me
 from sing4me import singing_extract as sing
-from . sing import melodies
-from . sing.params import singing_2intervals
+from .sing import melodies
+from .sing.params import singing_2intervals
 
 
 ########################################################################################################################
 # Global parameters
 ########################################################################################################################
 
-USE_SING_PRESCREENS = False # if True, all singing prescreens are presented before the main singing tasks, including volumne test and a singing perforamcne test
+# Decide whether you want to include singing prescreens (True) or not (False)
+USE_SING_PRESCREENS = False  
 
-TIME_ESTIMATE_TRIAL = 10
-NUM_PARTICIPANTS = 10
-NUM_MELODIES = 3  # this is the total number of stimuli/ nodes
-TRIALS_PER_PARTICIPANT = NUM_MELODIES  # in this experiment num nodes is the same as num trials per participant
+# Experiment configuration
+TIME_ESTIMATE_TRIAL = 10  # Estimated time per trial in seconds
+NUM_PARTICIPANTS = 10  # Number of participants to recruit
+NUM_MELODIES = 3  # Total number of melodies (stimuli/nodes)
+TRIALS_PER_PARTICIPANT = NUM_MELODIES  # Number of trials per participant (same as number of melodies)
 
-N_REPEAT_TRIALS = 0
-INITIAL_RECRUIT_SIZE = 20
-SAVE_PLOT = True
+N_REPEAT_TRIALS = 0  # Number of repeated trials per participant
+INITIAL_RECRUIT_SIZE = 20  # Initial recruitment size for participants
+SAVE_PLOT = True  # Whether to save analysis plots
 
-# singing
-roving_width = 2.5
+# Singing-related parameters
+roving_width = 2.5  # Range for randomizing reference pitch
 roving_mean = dict(
-    default=55,
-    low=49,
-    high=61
+    default=55,  # Default reference pitch
+    low=49,  # Low register reference pitch
+    high=61  # High register reference pitch
 )
 
-NUM_NOTES = 5
-NUM_INT = NUM_NOTES - 1
-SYLLABLE = "TA"
-TIME_AFTER_SINGING = 1
+NUM_NOTES = 5  # Number of notes in each melody
+NUM_INT = NUM_NOTES - 1  # Number of intervals in each melody
+SYLLABLE = "TA"  # Syllable to use while singing
+TIME_AFTER_SINGING = 1  # Time after singing before the trial ends
 
-REFERENCE_MODE = "pitch_mode"  # pitch_mode vs previous_note vs first_note
-MAX_ABS_INT_ERROR_ALLOWED = 5.5  # set to 999 if NUM_INT > 2
-MAX_INT_SIZE = 999
-MAX_MELODY_PITCH_RANGE = 999  # deactivated
-MAX_INTERVAL2REFERENCE = 10  # set to 7.5 if NUM_INT > 2
-NUM_CHAINS_EXPERIMENT = 200  # decrease if NUM_INT > 2
-NUM_TRIALS_PARTICIPANT = 40  # decrease if NUM_INT > 2
+# Melody constraints
+REFERENCE_MODE = "pitch_mode"  # Mode for calculating intervals (e.g., pitch_mode, previous_note, first_note)
+MAX_ABS_INT_ERROR_ALLOWED = 5.5  # Maximum allowed interval error (set to 999 if NUM_INT > 2)
+MAX_INT_SIZE = 999  # Maximum interval size (deactivated)
+MAX_MELODY_PITCH_RANGE = 999  # Maximum pitch range for melodies (deactivated)
+MAX_INTERVAL2REFERENCE = 10  # Maximum interval size relative to the reference pitch
+NUM_CHAINS_EXPERIMENT = 200  # Number of chains in the experiment (reduce if NUM_INT > 2)
+NUM_TRIALS_PARTICIPANT = 40  # Number of trials per participant (reduce if NUM_INT > 2)
 
-# timbre
-note_duration_tonejs = 0.8
-note_silence_tonejs = 0
+# Timbre configuration for synthesized melodies
+note_duration_tonejs = 0.8  # Duration of each note in seconds
+note_silence_tonejs = 0  # Silence between notes in seconds
 TIMBRE = dict(
     default=HarmonicTimbre(
         attack=0.01,  # Attack phase duration in seconds
         decay=0.05,  # Decay phase duration in seconds
-        sustain_amp=0.6,  # Amplitude fraction to decay to relative to max amplitude --> 0.4, 0.7
+        sustain_amp=0.6,  # Amplitude fraction to decay to relative to max amplitude
         release=0.55,  # Release phase duration in seconds
-        num_harmonics=10,  # Acd ctual number of partial harmonics to use
-        roll_off=14,  # Roll-off in units of dB/octave,
+        num_harmonics=10,  # Number of partial harmonics to use
+        roll_off=14,  # Roll-off in units of dB/octave
     )
 )
 pitch_duration = note_duration_tonejs + note_silence_tonejs
 
 
-# durations
-def estimate_time_per_trial(
-        # estimate time for trials: melody and singing duration
-        pitch_duration,
-        num_pitches,
-        time_after_singing
-):
-    melody_duration = pitch_duration * num_pitches
-    singing_duration = melody_duration + time_after_singing
+# Function to estimate the time required for each trial
+def estimate_time_per_trial(pitch_duration, num_pitches, time_after_singing):
+    melody_duration = pitch_duration * num_pitches  # Total duration of the melody
+    singing_duration = melody_duration + time_after_singing  # Total duration including singing
     return melody_duration, singing_duration
 
 
 melody_duration, singing_duration = estimate_time_per_trial(
     pitch_duration,
-    (NUM_NOTES + 1),
+    (NUM_NOTES + 1),  # Number of notes in the melody plus one
     TIME_AFTER_SINGING
 )
 
@@ -103,22 +108,23 @@ melody_duration, singing_duration = estimate_time_per_trial(
 ########################################################################################################################
 # Stimuli
 ########################################################################################################################
-# This is how we generate melodies based on a reference_pitch, max_interval2reference, and number of notes
+
+# Function to generate random melodies based on constraints
 def generate_random_melody(mel_id, roving_mean, roving_width, max_interval2reference, num_notes):
-    # sample reference pitch
+    # Sample a reference pitch
     reference_pitch = melodies.sample_reference_pitch(
         roving_mean,
         roving_width,
     )
-    # sample pitches
+    # Generate target pitches based on the reference pitch
     target_pitches = melodies.sample_absolute_pitches(
         reference_pitch=reference_pitch,
         max_interval2reference=max_interval2reference,
         num_pitches=num_notes
     )
-    # get intervals
+    # Convert target pitches to intervals
     target_intervals = melodies.convert_absolute_pitches_to_interval_sequence(target_pitches, "previous_note")
-    # get intervals from pitch to reference pitch
+    # Calculate intervals relative to the reference pitch
     target_intervals2reference = melodies.convert_absolute_pitches_to_intervals2reference(
         target_pitches, reference_pitch
     )
@@ -130,6 +136,7 @@ def generate_random_melody(mel_id, roving_mean, roving_width, max_interval2refer
         target_intervals2reference=target_intervals2reference
     )
 
+# Create nodes for each melody
 nodes = [
     StaticNode(
         definition={
@@ -141,20 +148,21 @@ nodes = [
 
 
 ########################################################################################################################
-# experiment parts
+# Experiment parts
 ########################################################################################################################
+
+# Define a custom trial class for singing tasks
 class SingingTrial(AudioRecordTrial, StaticTrial):
     time_estimate = TIME_ESTIMATE_TRIAL
 
     def show_trial(self, experiment, participant):
-
         melody = self.definition
 
-        # convert to right register
+        # Adjust melody register based on participant's assigned register
         if self.participant.var.register == "high":
             target_pitches = melody['melody']['target_pitches']
         else:
-            target_pitches = [(i - 12) for i in melody['melody']['target_pitches']]
+            target_pitches = [(i - 12) for i in melody['melody']['target_pitches']]  # Lower the pitch by an octave
 
         current_trial = self.position + 1
         show_current_trial = f'<i>Trial number {current_trial} out of {(TRIALS_PER_PARTICIPANT + N_REPEAT_TRIALS)} trials.</i>'
@@ -200,10 +208,9 @@ class SingingTrial(AudioRecordTrial, StaticTrial):
         )
 
     def analyze_recording(self, audio_file: str, output_plot: str):
-
         melody = self.definition
 
-        # convert to right register
+        # Adjust melody register based on participant's assigned register
         if self.participant.var.register == "high":
             target_pitches =  melody['melody']['target_pitches']
             reference_pitch =  melody['melody']['reference_pitch']
@@ -211,6 +218,7 @@ class SingingTrial(AudioRecordTrial, StaticTrial):
             target_pitches = [(i - 12) for i in melody['melody']['target_pitches']]
             reference_pitch = melody['melody']['reference_pitch'] - 12
 
+        # Analyze the participant's singing
         raw = sing.analyze(
             audio_file,
             singing_2intervals,
@@ -246,18 +254,18 @@ class SingingTrial(AudioRecordTrial, StaticTrial):
             sung_pitches,
             reference_pitch,
             NUM_INT,
-            MAX_INT_SIZE,  # only used in interval representation, currently deactivated
-            MAX_MELODY_PITCH_RANGE,  # only used in interval representation, currently deactivated
+            MAX_INT_SIZE,  # Only used in interval representation, currently deactivated
+            MAX_MELODY_PITCH_RANGE,  # Only used in interval representation, currently deactivated
             REFERENCE_MODE,
             stats,
-            MAX_ABS_INT_ERROR_ALLOWED,  # deactivated
-            (MAX_INTERVAL2REFERENCE * 2)  # only used in pitch mode
+            MAX_ABS_INT_ERROR_ALLOWED,  # Deactivated
+            (MAX_INTERVAL2REFERENCE * 2)  # Only used in pitch mode
         )
 
         failed = is_failed["failed"]
         reason = is_failed["reason"]
 
-        # convert back to high register
+        # Convert back to high register if needed
         if self.participant.var.register == "low":
             target_pitches = [(i + 12) for i in target_pitches]
             sung_pitches = [(i + 12) for i in sung_pitches]
@@ -281,13 +289,14 @@ class SingingTrial(AudioRecordTrial, StaticTrial):
         }
 
 
+# Define the main singing task
 singing_task = join(
     InfoPage(
         Markup(
             """
             <h3>Singing to Melodies</h3>
             <hr>
-            In each trial, you will listen to a melody and asked to sing it back as accurately as possible. 
+            In each trial, you will listen to a melody and be asked to sing it back as accurately as possible. 
             <br><br>
             <b><b>Remember</b></b>: Sing each note clearly to the syllable 'TA' and leave short gaps between notes.
             <hr>
@@ -315,20 +324,20 @@ singing_task = join(
 # Timeline
 ########################################################################################################################
 
+# Define the experiment timeline
 class Exp(psynet.experiment.Experiment):
     label = "Static singing experiment demo"
-    asset_storage = DebugStorage()
-
+    asset_storage = DebugStorage()  # Use DebugStorage for testing; switch to LocalStorage for real experiments
 
     if USE_SING_PRESCREENS:
         timeline = Timeline(
-            NoConsent(),  # add consent
-            mic_test(),
-            tonejs_volume_test(TIMBRE, note_duration_tonejs, note_silence_tonejs),
+            NoConsent(),  # Consent form
+            mic_test(),  # Microphone test
+            tonejs_volume_test(TIMBRE, note_duration_tonejs, note_silence_tonejs),  # Volume test
             InfoPage("Next, you will perform a series of singing exercises to make sure we can record your voice.", time_estimate=2),
-            recording_example(),
-            singing_performance(),
-            # we automatically assign register based on the predicted_register obtained from singing_performance
+            recording_example(),  # Example recording task
+            singing_performance(),  # Singing performance test
+            # Automatically assign register based on predicted register from singing performance
             conditional(
                 label="assign_register",
                 condition=lambda experiment, participant: participant.var.predicted_register == "undefined",
@@ -341,17 +350,12 @@ class Exp(psynet.experiment.Experiment):
                                          ),
                 fix_time_credit=False
             ),
-            # You can use the line below to set the register manually (useful to debug and avoid the singing_performance)
-            # CodeBlock(lambda participant: participant.var.set("register", "low")),
-            singing_task,
-            SuccessfulEndPage(),
+            singing_task,  # Main singing task
         )
     else:
         timeline = Timeline(
-            NoConsent(),  # add consent
+            NoConsent(),  # Consent form
             # Since we don't use singing_performance, we need to set the register manually (set either to "low" or "high")
             CodeBlock(lambda participant: participant.var.set("register", "low")),
-            singing_task,
-            SuccessfulEndPage(),
+            singing_task,  # Main singing task
         )
-
