@@ -51,6 +51,7 @@ tests:
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       -e CI_NODE_TOTAL -e CI_NODE_INDEX
+      -e CI_COMMIT_REF_NAME
       -v "$PWD/public:/public"
       $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
     # The docker containers are running in a different host, where the directory $PWD/public

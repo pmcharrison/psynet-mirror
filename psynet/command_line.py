@@ -2806,7 +2806,12 @@ class ListOfStrings(click.ParamType):
     default=False,
     help="Continue translating even if an error occurs",
 )
-def translate(locales, force, skip_pot, continue_on_error):
+@click.option(
+    "--translator",
+    default=None,
+    help="The translator to use for translation. If not specified, the default translator will be used.",
+)
+def translate(locales, force, skip_pot, continue_on_error, translator):
     """
     Inspects the code in the current directory and generates automatic translations for a given set of languages.
 
@@ -2837,6 +2842,9 @@ def translate(locales, force, skip_pot, continue_on_error):
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     from psynet.translation.translate import translate_experiment, translate_package
+    from psynet.translation.translators import get_translator_from_name
+
+    translator = get_translator_from_name(translator)
 
     if in_python_package():
         click.echo(
@@ -2844,13 +2852,21 @@ def translate(locales, force, skip_pot, continue_on_error):
             + f" at {os.getcwd()}."
         )
         translate_package(
-            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+            locales,
+            force=force,
+            skip_pot=skip_pot,
+            continue_on_error=continue_on_error,
+            translator=translator,
         )
 
     elif experiment_available():
         click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
         translate_experiment(
-            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+            locales,
+            force=force,
+            skip_pot=skip_pot,
+            continue_on_error=continue_on_error,
+            translator=translator,
         )
 
     else:
