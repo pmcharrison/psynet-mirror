@@ -156,3 +156,44 @@ def test_translate_experiment(mocker):
     po = polib.pofile(po_path)
     assert po[0].msgstr == "en -> fr 0"
     assert po[0].fuzzy
+
+
+@pytest.mark.usefixtures(
+    "in_experiment_directory", "cleanup_po_file", "backup_experiment_py"
+)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("translation")], indirect=True
+)
+def test_null_translator(mocker):
+    """Test that the NullTranslator just copies the original text without translating it."""
+    from click.testing import CliRunner
+
+    from psynet.command_line import translate
+
+    runner = CliRunner()
+    runner.invoke(translate, ["fr", "--translator", "null"])
+
+    # Verify PO file was created with original text as translations
+    assert os.path.exists(po_path)
+    po = polib.pofile(po_path)
+
+    # Expected message IDs (translations should be identical)
+    expected_entries = [
+        "Hello, welcome to my experiment!",
+        "What is your name?",
+        "Hello, {NAME}!",
+        "What is your favorite pet?",
+        "dog",
+        "cat",
+        "fish",
+        "hamster",
+        "bird",
+        "snake",
+        "Great, I like {PET} too!",
+    ]
+
+    # Check each entry has identical msgid and msgstr
+    for i, expected_msgid in enumerate(expected_entries):
+        assert po[i].msgid == expected_msgid
+        assert po[i].msgstr == expected_msgid
+        assert po[i].fuzzy
