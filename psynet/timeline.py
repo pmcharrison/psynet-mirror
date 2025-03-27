@@ -231,21 +231,18 @@ class CodeBlock(Elt):
             )
 
     def consume(self, experiment, participant):
-        if self.is_async:
-            launch_async_process_with_context(
-                self.function,
-                self=self,
-                label="CodeBlock",
-                experiment=experiment,
-                participant=participant,
-            )
-        else:
-            call_function_with_context(
-                self.function,
-                self=self,
-                experiment=experiment,
-                participant=participant,
-            )
+        context_functions = {
+            True: launch_async_process_with_context,
+            False: call_function_with_context,
+        }
+        context_function = context_functions[self.is_async]
+        context_function(
+            self.function,
+            self=self,
+            experiment=experiment,
+            participant=participant,
+            label="CodeBlock" if self.is_async else None,
+        )
 
 
 class StartFixElt(Elt):
