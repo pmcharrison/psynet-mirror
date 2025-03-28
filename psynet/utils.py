@@ -166,20 +166,6 @@ def call_function_with_context(function, *args, **kwargs):
     return call_function(function, *args, **new_kwargs)
 
 
-def launch_async_process_with_context(function, *args, **kwargs):
-    from psynet.process import WorkerAsyncProcess
-
-    new_kwargs = _prepare_context_kwargs(function, **kwargs)
-    new_kwargs["experiment"] = str(new_kwargs["experiment"])
-
-    WorkerAsyncProcess(
-        function,
-        label="CodeBlock",
-        participant=new_kwargs["participant"],
-        arguments=new_kwargs,
-    )
-
-
 def code_block_process_finished(participant):
     relevant_processes = [
         p for p in participant.async_processes if p.label == "CodeBlock"

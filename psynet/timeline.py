@@ -34,7 +34,6 @@ from .utils import (
     get_language_dict,
     get_locale,
     get_logger,
-    launch_async_process_with_context,
     log_time_taken,
     merge_dicts,
     pretty_format_seconds,
@@ -231,18 +230,21 @@ class CodeBlock(Elt):
             )
 
     def consume(self, experiment, participant):
-        context_functions = {
-            True: launch_async_process_with_context,
-            False: call_function_with_context,
-        }
-        context_function = context_functions[self.is_async]
-        context_function(
-            self.function,
-            self=self,
-            experiment=experiment,
-            participant=participant,
-            label="CodeBlock" if self.is_async else None,
-        )
+        from psynet.process import WorkerAsyncProcess
+
+        if self.is_async:
+            WorkerAsyncProcess(
+                call_function_with_context,
+                label="CodeBlock",
+                participant=participant,
+                arguments=dict(function=self.function, participant=participant),
+            )
+        else:
+            call_function_with_context(
+                self.function,
+                self=self,
+                participant=participant,
+            )
 
 
 class StartFixElt(Elt):
