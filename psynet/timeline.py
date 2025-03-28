@@ -234,10 +234,10 @@ class CodeBlock(Elt):
 
         if self.async_:
             WorkerAsyncProcess(
-                call_function_with_context,
+                self.function,
                 label="CodeBlock",
                 participant=participant,
-                arguments=dict(function=self.function, participant=participant),
+                arguments=dict(participant=participant),
             )
         else:
             call_function_with_context(
