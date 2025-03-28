@@ -214,17 +214,17 @@ class CodeBlock(Elt):
         A function with up to two arguments named ``participant`` and ``experiment``,
         that is executed once the participant reaches the corresponding part of the timeline.
 
-    is_async: bool, optional
+    async_: bool, optional
         If ``True``, indicates that the function should be executed asynchronously.
         Default is False.
     """
 
-    def __init__(self, function, is_async=False):
+    def __init__(self, function, async_=False):
         super().__init__()
         self.function = function
-        self.is_async = is_async
+        self.async_ = async_
 
-        if is_async and is_lambda_function(self.function):
+        if async_ and is_lambda_function(self.function):
             raise Exception(
                 "Asynchronous code blocks require named functions rather than lambda functions!"
             )
@@ -232,7 +232,7 @@ class CodeBlock(Elt):
     def consume(self, experiment, participant):
         from psynet.process import WorkerAsyncProcess
 
-        if self.is_async:
+        if self.async_:
             WorkerAsyncProcess(
                 call_function_with_context,
                 label="CodeBlock",

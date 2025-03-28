@@ -17,7 +17,7 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         CodeBlock(
             set_participant_var,
-            is_async=True,
+            async_=True,
         ),
         wait_while(
             condition=lambda participant: not code_block_process_finished(participant),
