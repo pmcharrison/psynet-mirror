@@ -217,12 +217,22 @@ class CodeBlock(Elt):
     async_: bool, optional
         If ``True``, indicates that the function should be executed asynchronously.
         Default is False.
+
+    label: str, optional
+        A label used for identifying the code block in ``WorkerAsyncProcess``es.
+        Default is ``None``.
+
+    Raises
+    ------
+    Exception
+        If ``async_=True`` and the function is a lambda function.
     """
 
-    def __init__(self, function, async_=False):
+    def __init__(self, function, async_: bool = False, label=None):
         super().__init__()
         self.function = function
         self.async_ = async_
+        self.label = label
 
         if async_ and is_lambda_function(self.function):
             raise Exception(
@@ -230,12 +240,28 @@ class CodeBlock(Elt):
             )
 
     def consume(self, experiment, participant):
+        """
+        Executes the code block's function either synchronously or asynchronously.
+
+        Parameters
+        ----------
+        experiment : Experiment
+            The current experiment instance.
+        participant : Participant
+            The current participant instance.
+
+        Notes
+        -----
+        For async execution, creates a WorkerAsyncProcess that runs the function
+        in a separate process. The process status can be checked using
+        code_block_process_finished(participant, label).
+        """
         from psynet.process import WorkerAsyncProcess
 
         if self.async_:
             WorkerAsyncProcess(
                 self.function,
-                label="CodeBlock",
+                label=f"CodeBlock-{self.label}",
                 participant=participant,
                 arguments=dict(participant=participant),
             )

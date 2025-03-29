@@ -11,20 +11,39 @@ class Exp(psynet.experiment.Experiment):
     label = "Demo demonstrating asynchronous CodeBlock execution"
     initial_recruitment_size = 1
 
-    def set_participant_var(participant):
-        participant.var.set("test_async", "SUCCESS")
+    def set_participant_var1(participant):
+        participant.var.set("async1", "ASYNC 1")
+
+    def set_participant_var2(participant):
+        participant.var.set("async2", "ASYNC 2")
 
     timeline = Timeline(
         CodeBlock(
-            set_participant_var,
+            set_participant_var1,
             async_=True,
+            label="async1",
+        ),
+        CodeBlock(
+            set_participant_var2,
+            async_=True,
+            label="async2",
         ),
         wait_while(
-            condition=lambda participant: not code_block_process_finished(participant),
+            condition=lambda participant: not code_block_process_finished(
+                participant, "async1"
+            ),
+            expected_wait=3,
+            check_interval=0.5,
+        ),
+        wait_while(
+            condition=lambda participant: not code_block_process_finished(
+                participant, "async2"
+            ),
             expected_wait=3,
             check_interval=0.5,
         ),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        assert bot.var.test_async == "SUCCESS"
+        assert bot.var.async1 == "ASYNC 1"
+        assert bot.var.async2 == "ASYNC 2"

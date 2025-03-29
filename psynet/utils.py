@@ -166,11 +166,14 @@ def call_function_with_context(function, *args, **kwargs):
     return call_function(function, *args, **new_kwargs)
 
 
-def code_block_process_finished(participant):
+def code_block_process_finished(participant, label):
     relevant_processes = [
-        p for p in participant.async_processes if p.label == "CodeBlock"
+        p for p in participant.async_processes if p.label == f"CodeBlock-{label}"
     ]
-    assert len(relevant_processes) == 1
+
+    assert len(relevant_processes) <= 1
+    if len(relevant_processes) == 0:
+        return False
     process = relevant_processes[0]
 
     assert not process.failed
