@@ -27,8 +27,15 @@ from .data import SQLBase, SQLMixin, register_table
 from .lucid import get_lucid_service
 from .page import InfoPage, WaitPage, wait_while
 from .participant import Participant
-from .process import LocalAsyncProcess
-from .timeline import CodeBlock, PageMaker, Response, TimelineLogic, join
+from .timeline import (
+    CodeBlock,
+    PageMaker,
+    Response,
+    TimelineLogic,
+    conditional,
+    join,
+    while_loop,
+)
 from .utils import get_logger, get_translator, render_template_with_translations
 
 logger = get_logger()
@@ -97,16 +104,56 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return PageMaker(self._reject_assignment, time_estimate=0.0)
 
     def _reject_assignment(self, participant) -> TimelineLogic:
-        _ = participant.gettext
+        _p = get_translator(context=True)
 
-        return join(
-            CodeBlock(self._request_async_partial_payment),
-            PageMaker(self._wait_for_partial_payment, time_estimate=0.0),
+        logic_screen_out_successful = InfoPage(
+            _p(
+                "screen_out_successful",
+                "Success! "
+                "You have been credited for the time spent on the experiment. "
+                "Because you could not progress to the main experiment "
+                "your submission will appear as 'screened out' in Prolific. "
+                "You can now close this browser window.",
+            ),
+            show_next_button=False,
+            time_estimate=0.0,
+        )
+
+        logic_screen_out_unsuccessful = join(
+            InfoPage(
+                _p(
+                    "screen_out_unsuccessful",
+                    "We are sorry that you could not proceed to the main experiment, "
+                    "but we will still pay you for your time spent so far. "
+                    "To receive this payment, we need you to return this assignment "
+                    "via the Prolific interface, then click the 'Next' button below.",
+                )
+            ),
+            while_loop(
+                # This function should check the participant's assignment status using the
+                # new functionality implemented by Jesse. Question to investigate:
+                # how up-to-date will that participant status be? Hopefully we don't need
+                # to manually trigger another refresh but maybe it's necessary.
+                # Whatever we do, we don't want to do an API call within check_for_returned_assignment,
+                # because it'll slow down the server.
+                "check_for_returned_assignment",
+                condition=self.check_for_returned_assignment,
+                logic=InfoPage(
+                    _(
+                        "Sorry, but it looks like your assignment hasn't been returned yet. ",
+                        "Can you wait a few seconds, try again, then press 'Next'? ",
+                        "If you keep seeing this message, even after pressing 'Next' ",
+                        "then please contact the experimenter via the Prolific website "
+                        "and ask them to check your submission manually.",
+                    ),
+                    time_estimate=0,
+                ),
+            ),
+            CodeBlock(...),  # Here we now call recruiter.bonus
             InfoPage(
                 _(
                     "Success! "
                     "You have been credited for the time spent on the experiment. "
-                    "Your submission will now appear as 'screened out' in Prolific. "
                     "You can now close this browser window."
                 ),
                 show_next_button=False,
@@ -114,21 +161,36 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             ),
         )
 
-    def _request_async_partial_payment(self, experiment, participant: Participant):
-        _ = participant.gettext
-
-        label = "Requesting partial payment"
-        LocalAsyncProcess(
-            label=label,
-            function=self._request_partial_payment,
-            arguments={
-                "participant": participant,
-                "payment": participant.calculate_reward(),
-                # "reason": _("Partial payment for incomplete participation"),
-            },
-            participant=participant,
-            unique=dict(participant_id=participant.id),
+        return join(
+            CodeBlock(self.try_paying_via_screen_out_route, async_=True),
+            conditional(
+                # This function should check whether the screen out attempt was successful.
+                label="screen_out_successful",
+                condition=self.check_screen_out_successful,
+                logic_if_true=logic_screen_out_successful,
+                logic_if_false=logic_screen_out_unsuccessful,
+            ),
         )
+
+    def try_paying_via_screen_out_route(self, experiment, participant):
+        response = experiment.recruiter.screen_out(participant)
+        success = False
+        if response.get("payment_per_participant", None) is not None:
+            success = True
+        participant.var.prolific_screen_out_successful = success
+        logger.info(response["message"])
+
+    def check_screen_out_successful(self, participant):
+        try:
+            return participant.var.prolific_screen_outcome_successful
+        except KeyError:
+            return False
+
+    def check_for_returned_assignment(self, participant):
+        # By default the recruiter check only runs once every 30 seconds,
+        # so this value is likely to be out of date. It would make sense
+        # to trigger the recruiter check directly within this function
+        return participant.status == "returned"  # TODO: Check if this is correct
 
     def _request_partial_payment(self, participant, payment: float):
         from psynet.experiment import get_experiment
@@ -489,7 +551,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         40: "Overquota: Quota Full",
         41: "Overquota: Supplier Allocation",
         42: "Overquota: Survey Closed for Entry",
-        50: "Financial Term: CPI Below Supplier’s Rate Card",
+        50: "Financial Term: CPI Below Supplier's Rate Card",
         98: "Exit: End of Router",
     }
 
