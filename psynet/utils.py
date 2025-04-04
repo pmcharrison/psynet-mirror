@@ -93,7 +93,7 @@ def call_function(function, *args, **kwargs):
     return function(*args, **kwargs)
 
 
-def call_function_with_context(function, **kwargs):
+def call_function_with_context(function, *args, **kwargs):
     from psynet.participant import Participant
     from psynet.trial.main import Trial
 
@@ -158,7 +158,7 @@ def call_function_with_context(function, **kwargs):
         "trial_maker": trial_maker,
         **kwargs,
     }
-    return call_function(function, **new_kwargs)
+    return call_function(function, *args, **new_kwargs)
 
 
 config_defaults = {}
