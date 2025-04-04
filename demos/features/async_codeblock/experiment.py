@@ -1,10 +1,10 @@
+import time
+
+from dallinger import db
+
 import psynet.experiment
 from psynet.bot import Bot
-from psynet.page import wait_while
-from psynet.timeline import CodeBlock, Timeline
-from psynet.utils import code_block_process_finished, get_logger
-
-logger = get_logger()
+from psynet.timeline import AsyncCodeBlock, CodeBlock, Timeline
 
 
 class Exp(psynet.experiment.Experiment):
@@ -12,38 +12,37 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     def set_participant_var1(participant):
+        time.sleep(1)
         participant.var.set("async1", "ASYNC 1")
 
     def set_participant_var2(participant):
+        time.sleep(1)
         participant.var.set("async2", "ASYNC 2")
 
     timeline = Timeline(
-        CodeBlock(
+        CodeBlock(lambda participant: participant.var.set("t1", time.time())),
+        AsyncCodeBlock(
             set_participant_var1,
-            async_=True,
-            label="async1",
+            wait=True,
+            expected_wait=1.0,
         ),
-        CodeBlock(
+        CodeBlock(lambda participant: participant.var.set("t2", time.time())),
+        AsyncCodeBlock(
             set_participant_var2,
-            async_=True,
-            label="async2",
+            wait=False,
         ),
-        wait_while(
-            condition=lambda participant: not code_block_process_finished(
-                participant, "async1"
-            ),
-            expected_wait=3,
-            check_interval=0.5,
-        ),
-        wait_while(
-            condition=lambda participant: not code_block_process_finished(
-                participant, "async2"
-            ),
-            expected_wait=3,
-            check_interval=0.5,
-        ),
+        CodeBlock(lambda participant: participant.var.set("t3", time.time())),
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
+        # Wait a little to ensure that the async code block is finished
+        time.sleep(2)
+
+        # Refresh the bot object so that it reflects the latest database state
+        db.session.commit()
+
         assert bot.var.async1 == "ASYNC 1"
         assert bot.var.async2 == "ASYNC 2"
+
+        assert bot.var.t2 - bot.var.t1 > 1.0
+        assert bot.var.t3 - bot.var.t2 < 0.25

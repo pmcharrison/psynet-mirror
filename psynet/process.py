@@ -25,7 +25,7 @@ from .data import SQLBase, SQLMixin, register_table
 from .db import with_transaction
 from .field import PythonDict, PythonObject
 from .serialize import prepare_function_for_serialization
-from .utils import call_function, classproperty, get_logger
+from .utils import classproperty, get_logger
 
 logger = get_logger()
 
@@ -47,7 +47,9 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
-        "psynet.participant.Participant", backref="async_processes"
+        "psynet.participant.Participant",
+        backref="async_processes",
+        foreign_keys=[participant_id],
     )
 
     trial_maker_id = Column(String, index=True)
@@ -247,7 +249,7 @@ class AsyncProcess(SQLBase, SQLMixin):
             process.time_started = datetime.datetime.now()
             db.session.commit()
 
-            call_function(function, **arguments)
+            function(**arguments)
 
             process.time_finished = datetime.datetime.now()
             process.time_taken = time.monotonic() - timer

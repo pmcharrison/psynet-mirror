@@ -201,6 +201,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     all_responses = relationship("psynet.timeline.Response")
 
+    awaited_async_code_block_process_id = Column(Integer, ForeignKey("process.id"))
+    awaited_async_code_block_process = relationship(
+        "AsyncProcess", foreign_keys=[awaited_async_code_block_process_id]
+    )
+
     # @property
     # def current_trial(self):
     #     if self.in_module and hasattr(self.module_state, "current_trial"):
