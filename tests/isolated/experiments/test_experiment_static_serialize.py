@@ -6,7 +6,12 @@ from dallinger import db
 import psynet.field  # noqa
 from psynet.experiment import import_local_experiment
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.serialize import PsyNetUnpickler, serialize, unserialize
+from psynet.serialize import (
+    PsyNetUnpickler,
+    prepare_function_for_serialization,
+    serialize,
+    unserialize,
+)
 from psynet.trial.static import StaticNode, StaticTrial
 
 
@@ -177,3 +182,27 @@ def test_unserialize():
         match="The unserializer failed to find the following object in the database",
     ):
         assert unpickler.load_sql_object(Trial, obj) is None
+
+
+class MyClass2:
+    x = 3
+
+    @classmethod
+    def add(cls, y):
+        return cls.x + y
+
+
+def test_serialize_class_method():
+    obj = MyClass2()
+    method = obj.add
+
+    function, arguments = prepare_function_for_serialization(method, {"y": 3})
+
+    method_serialized = serialize(function)
+    assert (
+        method_serialized
+        == '{"py/function": "test_experiment_static_serialize.MyClass2.add"}'
+    )
+    method_unserialized = unserialize(method_serialized)
+
+    assert method_unserialized(4) == 7

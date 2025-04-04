@@ -234,11 +234,41 @@ def prepare_function_for_serialization(function, arguments):
     if inspect.ismethod(function):
         method_name = function.__name__
         method_caller = function.__self__
-        function = getattr(method_caller.__class__, method_name)
-        arguments["self"] = method_caller
+        if isinstance(method_caller, type):
+            function, arguments = prepare_class_method_for_serialization(
+                function, arguments
+            )
+        else:
+            function, arguments = prepare_instance_method_for_serialization(
+                method_caller, method_name, arguments
+            )
 
     check_that_function_can_be_serialized(function)
 
+    return function, arguments
+
+
+def prepare_class_method_for_serialization(function, arguments):
+    """
+    Prepares a class method for serialization by jsonpickle.
+    This is necessary because jsonpickle can't serialize class methods directly.
+    Instead, we serialize the underlying function.
+    """
+    # Since we are converting the class method into an ordinary function, I had thought we would need to add `cls`
+    # to the arguments, but it turns out that when jsonpickle unserializes the function, it automatically turns
+    # it back into a classmethod, so we don't need to do this after all.
+    function = function.__func__
+    return function, arguments
+
+
+def prepare_instance_method_for_serialization(method_caller, method_name, arguments):
+    """
+    Prepares an instance method for serialization by jsonpickle.
+    This is necessary because jsonpickle can't serialize instance methods directly.
+    Instead, we turn it into an ordinary function where ``self`` is an argument.
+    """
+    function = getattr(method_caller.__class__, method_name)
+    arguments["self"] = method_caller
     return function, arguments
 
 
