@@ -93,8 +93,7 @@ def call_function(function, *args, **kwargs):
     return function(*args, **kwargs)
 
 
-def _prepare_context_kwargs(function, **kwargs):
-    """Helper function to prepare context kwargs for both sync and async function calls."""
+def call_function_with_context(function, **kwargs):
     from psynet.participant import Participant
     from psynet.trial.main import Trial
 
@@ -151,7 +150,7 @@ def _prepare_context_kwargs(function, **kwargs):
         ):
             trial_maker = participant.current_trial.trial_maker
 
-    return {
+    new_kwargs = {
         "experiment": experiment,
         "participant": participant,
         "assets": assets,
@@ -159,25 +158,7 @@ def _prepare_context_kwargs(function, **kwargs):
         "trial_maker": trial_maker,
         **kwargs,
     }
-
-
-def call_function_with_context(function, *args, **kwargs):
-    new_kwargs = _prepare_context_kwargs(function, **kwargs)
-    return call_function(function, *args, **new_kwargs)
-
-
-def code_block_process_finished(participant, label):
-    relevant_processes = [
-        p for p in participant.async_processes if p.label == f"CodeBlock-{label}"
-    ]
-
-    assert len(relevant_processes) <= 1
-    if len(relevant_processes) == 0:
-        return False
-    process = relevant_processes[0]
-
-    assert not process.failed
-    return process.finished
+    return call_function(function, **new_kwargs)
 
 
 config_defaults = {}
