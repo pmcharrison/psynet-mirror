@@ -246,7 +246,7 @@ class AsyncCodeBlock(EltCollection):
     ----------
 
     function:
-        A function with up to two arguments named ``participant`` and ``experiment``,
+        A function with up to two arguments named ``participant`` and ``experiment``.
 
     wait:
         If ``True``, then the participant will be held on a wait page until the function has finished.
