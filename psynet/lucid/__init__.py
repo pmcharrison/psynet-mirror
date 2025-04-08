@@ -5,10 +5,12 @@ from typing import List
 
 import pandas as pd
 import requests
+from cached_property import cached_property
 from dallinger.db import session
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet import deployment_info
+from psynet.log import bold, error, success, warning
 from psynet.participant import Participant
 from psynet.utils import get_logger
 
@@ -47,6 +49,10 @@ class LucidService(object):
     @property
     def request_base_url_v1(self):
         return "https://api.samplicio.us/Demand/v1"
+
+    @property
+    def request_base_url_v2_beta(self):
+        return "https://api.samplicio.us/demand/v2-beta"
 
     @classmethod
     def log(cls, text):
@@ -105,6 +111,13 @@ class LucidService(object):
         )
 
         return response_data["Survey"]
+
+    @cached_property
+    def currency(self):
+        return requests.get(
+            f"{self.request_base_url_v2_beta}/business-units",
+            headers=self.headers,
+        ).json()["result"][0]["currency_code"]
 
     def remove_default_qualifications_from_survey(self, survey_number):
         """Remove default qualifications from a survey."""
@@ -325,7 +338,7 @@ class LucidService(object):
 
     def get_submissions(self, survey_number, days_lookback=60):
         entry_date_after = self._lookback_timestamp(days_lookback)
-        url = f"https://api.samplicio.us/demand/v2-beta/sessions?survey_id={survey_number}&entry_date_after={entry_date_after}"
+        url = f"{self.request_base_url_v2_beta}/sessions?survey_id={survey_number}&entry_date_after={entry_date_after}"
         response = requests.get(url, headers=self.headers)
         assert response.ok
         return response.json()["sessions"]
@@ -348,7 +361,7 @@ class LucidService(object):
     def _get_question_field(self, question_id, field, locale=None):
         if locale is None:
             locale = self.default_locale
-        url = f"https://api.samplicio.us/demand/v2-beta/questions?id={question_id}&locale={locale}&fields={field}"
+        url = f"{self.request_base_url_v2_beta}/questions?id={question_id}&locale={locale}&fields={field}"
         response = requests.get(url, headers=self.headers)
         assert response.ok
         result = response.json()["result"]
@@ -380,7 +393,7 @@ class LucidService(object):
     def list_studies(
         self, allowed_statuses=None, n=200, fields=None, order_by="create_date"
     ):
-        url = "https://api.samplicio.us/demand/v2-beta/surveys"
+        url = f"{self.request_base_url_v2_beta}/surveys"
         if fields is None:
             fields = self.default_fields
         fields_str = ",".join(fields)
@@ -393,7 +406,7 @@ class LucidService(object):
 
     def _get_survey_fields(self, survey_number, fields):
         fields_str = ",".join(fields)
-        url = f"https://api.samplicio.us/demand/v2-beta/surveys?id={survey_number}&fields={fields_str}"
+        url = f"{self.request_base_url_v2_beta}/surveys?id={survey_number}&fields={fields_str}"
         response = requests.get(url, headers=self.headers)
         assert response.ok
         result = response.json()["result"]
@@ -405,7 +418,7 @@ class LucidService(object):
 
     def get_summary(self, survey_number, days_lookback=60):
         entry_date_after = self._lookback_timestamp(days_lookback)
-        url = f"https://api.samplicio.us/demand/v2-beta/sessions/statistics?survey_id={survey_number}&entry_date_after={entry_date_after}"
+        url = f"{self.request_base_url_v2_beta}/sessions/statistics?survey_id={survey_number}&entry_date_after={entry_date_after}"
         response = requests.get(url, headers=self.headers)
         assert response.ok
         stats = response.json()["statistics"]
@@ -460,7 +473,7 @@ class LucidService(object):
 
         assert new_status in BaseLucidRecruiter.survey_codes
 
-        url = f"https://api.samplicio.us/demand/v2-beta/surveys/{survey_number}"
+        url = f"{self.request_base_url_v2_beta}/surveys/{survey_number}"
         data = json.dumps({"status": new_status})
         headers = {
             **self.headers,
@@ -492,7 +505,7 @@ class LucidService(object):
             fields = ["name", "id"]
         fields = ",".join(fields)
         class_name = "standard" if standard else "custom"
-        url = f"https://api.samplicio.us/demand/v2-beta/questions?fields={fields}&class={class_name}"
+        url = f"{self.request_base_url_v2_beta}/questions?fields={fields}&class={class_name}"
         response = requests.get(url, headers=self.headers)
         assert response.ok
         return response.json()["result"]
@@ -524,6 +537,158 @@ class LucidService(object):
             "total_completes": total_completes,
             "cost_per_complete": cost_per_complete,
         }
+
+    def estimate(
+        self,
+        language_code,
+        country_code,
+        completes,
+        wage,
+        survey_length,
+        duration,
+        delay=2 * 7 * 24,
+        incidence_rate=0.6,
+        collects_pii=False,
+        qualifications=None,
+        print_results=True,
+    ):
+        """
+        Estimate the audience (if the number of participants is feasible and if the wage is reasonable) for a survey.
+        :param language_code: Lucid code for the language; NOTE this is not the same as the ISO 639-1 code.
+            See `psynet lucid locale` for a list of all available languages.
+        :param country_code: Lucid code for the country; NOTE this is not the same as the ISO 3166-1 alpha-2 code.
+            See `psynet lucid locale` for a list of all available countries.
+        :param completes: Number of participants needed for the survey.
+        :param wage: Wage per hour in the currency of the Lucid account
+        :param survey_length: Expected length of the survey in minutes.
+        :param duration: Over which time period is available on the marketplace.
+        :param delay: Delay in hours, by default expecting the data collection to start in 2 weeks.
+        :param incidence_rate: Expected incidence rate. Default is 0.6. Set to adequate value for your survey.
+        :param collects_pii: Whether the survey collects personally identifiable information. Default is False.
+        :param qualifications: Dictionary of qualifications. Default is None.
+        :param print_results: Whether to print the results. Default is True.
+        :return:
+        """
+        url = f"{self.request_base_url_v2_beta}/reach/v2/audience-estimate"
+        now = datetime.now()
+        start_date = now + timedelta(hours=delay)
+        end_date = start_date + timedelta(hours=duration)
+        start_date_str = start_date.astimezone().isoformat()
+        end_date_str = end_date.astimezone().isoformat()
+
+        price = wage * survey_length / 60
+
+        country_language_df = self.get_lucid_country_language_lookup()
+        if len(country_language_df.query(f"language_tag == '{language_code}'")) == 0:
+            raise ValueError(f"Language code {language_code} not found.")
+        elif len(country_language_df.query(f"country_tag == '{country_code}'")) == 0:
+            raise ValueError(f"Country code {country_code} not found.")
+        elif (
+            len(
+                country_language_df.query(
+                    f"language_tag == '{language_code}' and country_tag == '{country_code}'"
+                )
+            )
+            == 0
+        ):
+            raise ValueError(
+                f"Language {language_code} not spoken in country {country_code}."
+            )
+        if qualifications is None:
+            qualifications = [
+                {
+                    "Name": "MS_is_mobile",
+                    "QuestionID": 8214,
+                    "LogicalOperator": "NOT",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 1,
+                    "PreCodes": ["true"],
+                },
+                {
+                    "Name": "MS_browser_type_Non_Wurfl",
+                    "QuestionID": 1035,
+                    "LogicalOperator": "OR",
+                    "NumberOfRequiredConditions": 0,
+                    "IsActive": True,
+                    "Order": 2,
+                    "PreCodes": ["Chrome"],
+                },
+            ]
+
+        minified_qualifications = []
+        for qualification in qualifications:
+            for condition in qualification["PreCodes"]:
+                minified_qualifications.append(
+                    {"question_id": qualification["QuestionID"], "condition": condition}
+                )
+
+        data = json.dumps(
+            {
+                "collects_pii": collects_pii,
+                "completes": completes,
+                "start_date": start_date_str,
+                "end_date": end_date_str,
+                "incidence_rate": incidence_rate,
+                "length_of_interview": survey_length,
+                "locale": f"{language_code.lower()}_{country_code.lower()}",
+                "price": price,
+                "targets": [
+                    {"qualifications": minified_qualifications, "quota": completes}
+                ],
+            }
+        )
+
+        headers = {
+            "Content-type": "application/json",
+            "Accept": "text/plain",
+            **self.headers,
+        }
+        response = requests.post(url, data=data, headers=headers)
+
+        if not response.ok:
+            raise LucidServiceException(
+                f"Error estimating audience. Status returned: {response.status_code}, reason: {response.reason}, response: {response.text}"
+            )
+        result = response.json()["result"]
+
+        if result["completes_prediction"]["min"] >= completes:
+            realistic_completes = success(bold("reachable"))
+        elif result["completes_prediction"]["max"] < completes:
+            realistic_completes = error(bold("not reachable"))
+        else:
+            realistic_completes = warning(bold("difficult"))
+        target = result["targets"][0]
+        min_price, max_price = (
+            target["price_prediction"]["min"],
+            target["price_prediction"]["max"],
+        )
+        min_wage, max_wage = (
+            min_price * 60 / survey_length,
+            max_price * 60 / survey_length,
+        )
+        min_val, max_val = (
+            target["completes_prediction"]["min"],
+            target["completes_prediction"]["max"],
+        )
+
+        if wage < min_wage:
+            realistic_wage = f'{error(bold("underpaying"))}'
+        elif wage > max_wage:
+            realistic_wage = f'{warning(bold("overpaying"))}'
+        else:
+            realistic_wage = f'{success(bold("Wage is ok"))}'
+        if print_results:
+            print(f'{bold("Completes")} ({realistic_completes})')
+            print(f"    target: {bold(completes)}")
+            print(f"    estimated: [{min_val}, {max_val}]")
+            print(f'{bold("Price")} ({realistic_wage})')
+            print(f"    target: {bold(price)} {self.currency}")
+            print(f"    estimated: [{min_price:.2f}, {max_price:.2f}] {self.currency}")
+            print(f"{bold('Wage per hour')} ({realistic_wage})")
+            print(f"    target: {bold(wage)} {self.currency}/h")
+            print(f"    estimated: [{min_wage:.1f}, {max_wage:.1f}] {self.currency}/h")
+        return result
 
 
 def get_lucid_service(config=None, recruitment_config=None):
