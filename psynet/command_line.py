@@ -1401,7 +1401,9 @@ def generate_constraints(ctx):
 
     log(header)
     try:
-        verify_psynet_requirement()
+        # We have removed verify_psynet_requirement here because it caused problems for Docker users.
+        # Instead, we just run this in the sandbox/deploy prechecks.
+        # verify_psynet_requirement()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
@@ -1485,7 +1487,7 @@ def verify_psynet_requirement():
         with open("requirements.txt", "r") as file:
             version_tag_or_commit_hash = [
                 "[a-fA-F0-9]{8,40}",
-                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-rc\\d+)?",
+                "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
             ]
             file_content = file.read()
             for regex in version_tag_or_commit_hash:
@@ -1500,7 +1502,7 @@ def verify_psynet_requirement():
                     valid = True
                     break
                 match = re.search(
-                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(-rc\d+)?",
+                    r"^psynet(\s?)==(\s?)\d+\.\d+\.\d+(rc\d+)?$",
                     file_content,
                     re.MULTILINE,
                 )
@@ -1515,7 +1517,10 @@ def verify_psynet_requirement():
             spinner.fail("✗")
 
         assert valid, (
-            "Incorrect specification for PsyNet in 'requirements.txt'.\n"
+            "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+            "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
+            "or a commit hash.\n"
+            "\n"
             "\nExamples:\n"
             "* psynet==10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
@@ -2079,7 +2084,7 @@ def update_scripts():
 def update_psynet_requirement_():
     with open("requirements.txt", "r") as orig_file:
         with open("updated_requirements.txt", "w") as updated_file:
-            version = r"\d+\.\d+\.\d+(-rc\d+)*"
+            version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
             for line in orig_file:
                 match = re.search(
                     r"^psynet(\s?)==(\s?)" + version + "$",
@@ -2150,7 +2155,7 @@ def pre_update_constraints_(dir):
     )
     with fileinput.FileInput("requirements.txt", inplace=True) as file:
         psynet_requirement = (
-            "psynet==(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*(-rc\\d+)*)"
+            r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
         )
         for line in file:
             print(
@@ -2801,7 +2806,12 @@ class ListOfStrings(click.ParamType):
     default=False,
     help="Continue translating even if an error occurs",
 )
-def translate(locales, force, skip_pot, continue_on_error):
+@click.option(
+    "--translator",
+    default=None,
+    help="The translator to use for translation. If not specified, the default translator will be used.",
+)
+def translate(locales, force, skip_pot, continue_on_error, translator):
     """
     Inspects the code in the current directory and generates automatic translations for a given set of languages.
 
@@ -2832,6 +2842,9 @@ def translate(locales, force, skip_pot, continue_on_error):
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     from psynet.translation.translate import translate_experiment, translate_package
+    from psynet.translation.translators import get_translator_from_name
+
+    translator = get_translator_from_name(translator)
 
     if in_python_package():
         click.echo(
@@ -2839,13 +2852,21 @@ def translate(locales, force, skip_pot, continue_on_error):
             + f" at {os.getcwd()}."
         )
         translate_package(
-            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+            locales,
+            force=force,
+            skip_pot=skip_pot,
+            continue_on_error=continue_on_error,
+            translator=translator,
         )
 
     elif experiment_available():
         click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
         translate_experiment(
-            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+            locales,
+            force=force,
+            skip_pot=skip_pot,
+            continue_on_error=continue_on_error,
+            translator=translator,
         )
 
     else:

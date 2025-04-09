@@ -2076,6 +2076,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 (
                     resources.files("psynet")
+                    / "resources/libraries/international-keyboards",
+                    "/static/international-keyboards",
+                ),
+                (
+                    resources.files("psynet")
                     / "resources/scripts/prepare_docker_image.sh",
                     "prepare_docker_image.sh",
                 ),
@@ -2467,7 +2472,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @experiment_route("/dashboard/export", methods=["GET"])
     @staticmethod
     @with_transaction
-    def export(self):
+    def export():
         from flask_login import current_user
 
         from .command_line import export__local

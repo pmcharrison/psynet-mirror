@@ -23,6 +23,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject, VarStore
+from .serialize import is_lambda_function
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -214,17 +215,116 @@ class CodeBlock(Elt):
         that is executed once the participant reaches the corresponding part of the timeline.
     """
 
-    def __init__(self, function):
+    def __init__(self, function: Callable):
         super().__init__()
         self.function = function
 
     def consume(self, experiment, participant):
+        """
+        Executes the code block's function synchronously.
+
+        Parameters
+        ----------
+        experiment : ``Experiment``
+            The current experiment instance.
+        participant : ``Participant``
+            The current participant instance.
+        """
         call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
             participant=participant,
         )
+
+
+class AsyncCodeBlock(EltCollection):
+    """
+    A version of CodeBlock that executes its function asynchronously.
+
+    Parameters
+    ----------
+
+    function:
+        A function with up to two arguments named ``participant`` and ``experiment``.
+
+    wait:
+        If ``True``, then the participant will be held on a wait page until the function has finished.
+        If ``False``, the participant will proceed immediately, and the function will execute in the background.
+
+    expected_wait:
+        Only relevant if ``wait=True``; corresponds to the time we expect the participant to wait on the wait page.
+
+    check_interval:
+        Only relevant if ``wait=True``; corresponds to the time between checks we make to see if the function has finished.
+    """
+
+    def __init__(
+        self,
+        function: Callable,
+        wait: bool = True,
+        expected_wait: Optional[float] = None,
+        check_interval: float = 0.5,
+    ):
+        if is_lambda_function(function):
+            raise ValueError(
+                "Asynchronous code blocks require named functions rather than lambda functions."
+            )
+
+        if wait and expected_wait is None:
+            raise ValueError(
+                "Asynchronous code blocks must be specified with an expected wait time unless wait=False."
+            )
+
+        self.function = function
+        self.wait = wait
+        self.expected_wait = expected_wait
+        self.check_interval = check_interval
+
+    def resolve(self):
+        return join(
+            CodeBlock(self.initiate),
+            self.wait_logic() if self.wait else [],
+            CodeBlock(self.wrap_up),
+        )
+
+    def initiate(self, participant):
+        from psynet.process import WorkerAsyncProcess
+
+        if participant.awaited_async_code_block_process is not None:
+            raise RuntimeError(
+                "Participant already has an async code block process pending, this shouldn't happen."
+            )
+
+        participant.awaited_async_code_block_process = WorkerAsyncProcess(
+            call_function_with_context,
+            label="AsyncCodeBlock",
+            participant=participant,
+            arguments=dict(function=self.function, participant=participant),
+        )
+
+    def wait_logic(self):
+        from .page import wait_while
+
+        return join(
+            wait_while(
+                condition=lambda participant: not self.process_is_finished(participant),
+                expected_wait=self.expected_wait,
+                check_interval=self.check_interval,
+                log_message="Waiting for async code block to finish.",
+            ),
+            CodeBlock(lambda: logger.info("Finished waiting for async code block.")),
+        )
+
+    def process_is_finished(self, participant):
+        process = participant.awaited_async_code_block_process
+        if process.failed:
+            raise RuntimeError("The awaited async code block process failed.")
+        assert process.finished or process.pending
+        return process.finished
+
+    def wrap_up(self, participant):
+        participant.awaited_async_code_block_process = None
 
 
 class StartFixElt(Elt):

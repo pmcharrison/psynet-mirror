@@ -534,53 +534,176 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Jy moet 'n nommer gee!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Skryf die nommer in wat jy in die prent sien."
+msgstr "Skryf die nommer in die beeld neer."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Ons gaan nou 'n vinnige toets doen om jou vermoë om kleure waar te neem te "
+"Ons gaan nou 'n vinnige toets doen om jou vermoë om kleure waar te neem, te "
 "toets."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "In elke toets sal jy 'n prent sien wat 'n nommer bevat."
+msgstr "In elke proef sal jy 'n beeld sien wat 'n nommer bevat."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "Hierdie prent sal na {HIDE_AFTER} sekondes verdwyn."
+msgstr "Hierdie beeld sal na {HIDE_AFTER} sekondes verdwyn."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Jy moet die nommer wat jy sien in die tekskassie invoer."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Watter klank is anders as die ander twee: 1, 2, of 3?"
+msgstr "Watter klank verskil van die ander twee: 1, 2, of 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Jou taak is om te beoordeel <strong>watter klank die vreemde een "
+"Jou taak is om te oordeel <strong>watter klank die eienaardige een "
 "is</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Jou telling was"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Druk die knoppie om voort te gaan."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Ons sal 'n toets doen om jou taalvermoëns te toets."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "In elke proef sal jy 'n string karakters sien."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Die string sal outomaties verdwyn."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Jou taak is om te besluit of dit 'n bestaande woord in {LANGUAGE_NAME} is of"
+" nie."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"As jy nie die presiese betekenis van die woord ken nie, maar jy is seker dat"
+" dit in {LANGUAGE_NAME} bestaan, moet jy dit as 'n regte woord merk."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"As jy nie seker is of die woord in {LANGUAGE_NAME} bestaan nie, moet jy dit "
+"as 'n vals woord merk."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "In hierdie eksperiment kan jy 'n mengsel van spellingvariante vind."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Jy moet nie aandag gee aan subtiele spellingverskille nie."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Die woorde word in óf net hoofletters óf kleinletters aangebied."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Jy kan die kasus van die woord ignoreer."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Om die taak vinnig te doen, moet jy die sleutels op jou sleutelbord gebruik."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Jy kan die volgende sleutels gebruik:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "Druk <kbd>A</kbd> as die aangebied woord <strong>regtig</strong> is."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "Druk <kbd>L</kbd> as die aangebied woord <strong>vals</strong> is."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Maak jouself vertroud met die twee sleutels op jou sleutelbord."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr ""
+"As jy hulle druk, sal hulle op die sleutelbord aan die regterkant ophelder."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Jy moet albei sleutels ten minste een keer druk om na die volgende bladsy te"
+" vorder."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr ""
+"In geval jy die sleutels vergeet, sal hulle op elke bladsy gedruk word."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Die toets sal op die volgende bladsy begin."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -758,7 +881,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Om voort te gaan, klik die knoppie hieronder."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Volgende"
@@ -2186,6 +2310,16 @@ msgstr "Deur die taak te doen help jy die wetenskap, dankie!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid Opname Indiening"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Kies 'n sleutelborduitleg:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Jy het nie al die vereiste sleutels gedruk nie."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

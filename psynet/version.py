@@ -7,10 +7,10 @@ import click
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
-psynet_version = "11.10.0-dev0"
+psynet_version = "12.1.0a0"
 
 # Bump Dallinger version by changing the line below
-dallinger_recommended_version = "11.1.1"
+dallinger_recommended_version = "11.2.0"
 
 
 def check_versions():
@@ -107,7 +107,7 @@ def get_all_version_infos(file_content):
 def specified_using_version(specified):
     return (
         specified.startswith("v")
-        or re.search(r"^\d+\.\d+\.\d+$", specified) is not None
+        or re.search(r"^\d+\.\d+\.\d+(?:rc\d+)?$", specified) is not None
     )
 
 

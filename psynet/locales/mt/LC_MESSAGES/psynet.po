@@ -532,53 +532,179 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "Għandek bżonn tipprovdi numru!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr "Ikteb in-numru fl-immaġni."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Issa se nagħmlu test malajr biex niċċekkjaw il-ħila tiegħek li tara "
-"l-kuluri."
+"Issa se nagħmlu test malajr biex niċċekkjaw il-ħila tiegħek li tipperċepixxi"
+" l-kuluri."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "F'kull prova, se tiġi ppreżentata immaġni li fiha numru."
+msgstr "F'kull prova, inti ser tiġi ppreżentat b'immaġni li fiha numru."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "Din l-immaġni se tisparixxi wara {HIDE_AFTER} sekondi."
+msgstr "Din l-immaġni se tgħib wara {HIDE_AFTER} sekondi."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Għandek tidħol in-numru li tara fil-kaxxa tat-test."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Liema ħoss huwa differenti miż-żewġ oħrajn: 1, 2, jew 3?"
+msgstr "Liema ħoss huwa differenti mill-oħrajn tnejn: 1, 2, jew 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Il-kompitu tiegħek se jkun li tagħmel ġudizzju <strong>liema ħoss huwa "
-"differenti mill-oħrajn</strong>."
+"Il-kompitu tiegħek se jkun li tiġġudika <strong>liema ħoss huwa l-odd wieħed"
+" barra</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Il-punteġġ tiegħek kien"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Agħfas il-buttuna biex tkompli."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Se nagħmlu test biex niċċekkjaw il-ħiliet tal-lingwa tiegħek."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "F'kull prova, se tara stringa ta' karattri."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "L-istrina se tisparixxi awtomatikament."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Il-kompitu tiegħek huwa li tiddeċiedi jekk dan huwiex kelma eżistenti fi "
+"{LANGUAGE_NAME} jew le."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Jekk ma tafx it-tifsira eżatta tal-kelma, imma int ċert li teżisti fi "
+"{LANGUAGE_NAME}, għandek timmarkaha bħala kelma vera."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Jekk m'intix ċert jekk il-kelma teżistix fi {LANGUAGE_NAME}, għandek "
+"timmarkaha bħala kelma falza."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"F'dan l-esperiment, tista' ssib taħlita bejn varjanti ta' ortografija."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "M'għandekx tagħti kas ta' differenzi sottili fl-ortografija."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr ""
+"Il-kliem jiġi ppreżentat jew b'ittri kbar biss jew b'ittri żgħar biss."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Tista' tinjora l-każ tal-kelma."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Biex tagħmel il-kompitu malajr, għandek tuża ċ-ċwievet fuq it-tastiera "
+"tiegħek."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Tista' tuża ċ-ċwievet li ġejjin:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Agħfas <kbd>A</kbd> jekk il-kelma ppreżentata hija <strong>vera</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Agħfas <kbd>L</kbd> jekk il-kelma ppreżentata hija <strong>falza</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Familjarizza ruħek maż-żewġ ċwievet fuq it-tastiera tiegħek."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Jekk tagħfashom, se jixegħlu fit-tastiera fuq il-lemin."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"Għandek tagħfas iż-żewġ ċwievet mill-inqas darba biex timxi għall-paġna li "
+"jmiss."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "F'każ li tinsa ċ-ċwievet, se jkunu stampati fuq kull paġna."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "It-test se jibda fuq il-paġna li jmiss."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -758,7 +884,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Biex tkompli, ikklikkja l-buttuna hawn taħt."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "Li jmiss"
@@ -2209,6 +2336,16 @@ msgstr "Billi tagħmel il-kompitu inti qed tgħin lix-xjenza, grazzi!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Sottomissjoni tal-Istħarriġ Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Agħżel tqassim tal-keyboard:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Ma għafastx iċ-ċwievet kollha meħtieġa."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

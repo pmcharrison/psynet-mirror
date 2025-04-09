@@ -18,7 +18,7 @@ from functools import lru_cache, reduce, wraps
 from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
-from typing import Type, Union
+from typing import List, Type, Union
 from urllib.parse import ParseResult, urlparse
 
 import click
@@ -158,7 +158,6 @@ def call_function_with_context(function, *args, **kwargs):
         "trial_maker": trial_maker,
         **kwargs,
     }
-
     return call_function(function, *args, **new_kwargs)
 
 
@@ -1303,7 +1302,7 @@ def _check_todos(pattern, glob_dir):
     return todo_count
 
 
-def _aggregate_todos(pattern_dirs: [PatternDir]):
+def _aggregate_todos(pattern_dirs: List[PatternDir]):
     todo_count = {}
     for pattern_dir in pattern_dirs:
         todo_count.update(_check_todos(**pattern_dir.__dict__()))
@@ -1537,3 +1536,50 @@ def get_package_source_directory(path="."):
         f"Could not find package source directory for '{package_name}' "
         f"in configuration files or in default locations: {', '.join(possible_locations)}"
     )
+
+
+def get_fitting_font_size(
+    text, font_path, max_width, max_height, min_font_size, max_font_size
+):
+    """
+    Find the largest font size that allows the text to fit within the given width and height.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+
+    font_size = min_font_size  # Start with the smallest font size
+    draw = ImageDraw.Draw(Image.new("RGB", (max_width, max_height)))
+
+    # Increase font size until it exceeds the boundaries
+    while True:
+        font = ImageFont.truetype(font_path, font_size)
+        text_width, text_height = draw.textbbox((0, 0), text, font=font)[
+            2:
+        ]  # Get width & height
+        if text_width > max_width or text_height > max_height:
+            return font_size
+        if font_size >= max_font_size:
+            return max_font_size
+        font_size += 1
+
+
+def text_to_image(text, path, width, height, font_size, font_path):
+    from PIL import Image, ImageDraw, ImageFont
+
+    im = Image.new("RGB", (width, height), "white")
+    draw = ImageDraw.Draw(im)
+    font = ImageFont.truetype(font_path, font_size)
+
+    # Compute text position to center it
+    text_width, text_height = draw.textbbox((0, 0), text, font=font)[2:]
+    if not (text_width <= width and text_height <= height):
+        print(
+            f"Text does not fit within the image dimensions. Text: {text} Path: {path} Width: {width} Height: {height} Font size: {font_size}"
+        )
+    text_x = (width - text_width) // 2
+    text_y = (height - text_height) // 2
+
+    # Draw text
+    draw.text((text_x, text_y), text, fill="black", font=font)
+
+    # Save image
+    im.save(path)

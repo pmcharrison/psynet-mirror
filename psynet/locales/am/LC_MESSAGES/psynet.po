@@ -522,49 +522,162 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "ቁጥር ማቅረብ አለብህ!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "ምስሉ ውስጥ ያለውን ቁጥር ጻፍ።"
+msgstr "ከምስሉ ላይ ያለውን ቁጥር ያስቀምጡ።"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr "አሁን የቀለም መስማት ችሎታዎችን እንደመረምር እንገናኝ።"
+msgstr "አሁን ቀላል ሙከራ እንሰራለን ቀለሞችን ማየት እንደቻሉ መረጋገጥ።"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "በእያንዳንዱ ሙከራ ቁጥር ያለው ምስል ይቀርብዎታል።"
+msgstr "በእያንዳንዱ ሙከራ፣ ቁጥር ያለበት ምስል ይቀርብላችኋል።"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "ይህ ምስል በ{HIDE_AFTER} ሰከንዶች ቢሉ ይቀርብ ይቀርብ ነበር።"
+msgstr "ይህ ምስል ከ {HIDE_AFTER} ሰከንድ በኋላ ይተሰረዛል።"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "የምታዩትን ቁጥር በቦክሲ ውስጥ ማስገባት አለብዎት።"
+msgstr "ያዩትን ቁጥር ወደ ጽሑፍ ሳጥን መግባት አለቦታል።"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "ማነኩ ከሌላው ሁለቱ የተለያየ ድምፅ የትኛው ነው: 1, 2, ወይም 3?"
+msgstr "የተለየው ድምፅ የትኛው ነው: 1፣ 2፣ ወይም 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "እቅፍዎቹን <strong>የተለየውን ድምፅ የመሳለት ነው</strong> ይለያያሉ።"
+msgstr "እርስዎ ያለዎት ተግባር <strong>የተለየውን ድምፅ ለማወቅ ነው</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "እንቁላልዎ ነበር"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "ቁልፍ ለመቀጠል ይጫኑ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "ቋንቋ ክንውን ለማመንጠር ሙከራ እንደምናደርግ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "በእያንዳንዱ ሙከራ የቁምፊ ሰሌዳ እንደምታዩ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "ሰሌዳው ራሱን በራሱ ይቀዘቅዛል።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr "ይህ በ{LANGUAGE_NAME} እንደተጠቀሙ ነገር እንደሆነ ወይም እንደሆነ ማረጋገጥ ተግደልዎን ነው።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"የዚህ ቃል ትክክለኛነት ባልታውቁም ከሆነ፣ በ{LANGUAGE_NAME} መኖሩን በመነገር እንደእውነት ማረጋገጥ ይገባል።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr "በ{LANGUAGE_NAME} ቃል መኖሩን ተሞክሮ ባይሆንም ውሽ ተዝረክቶ እንደማይኖር መሰነዘር ይገባል።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "በዚህ ሙከራ የፊደል ዓይነት አይነታዊ ዝርዝር ልመላለሱ ይችላሉ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "አዝማሚ እንደማንኛውም ውሽ አስቱረክቱሮች መጠን ላይ አያስታውሙ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "ቃላት በእንዲህ ዓይነት የሚቀርቡት በሙሉ በአንደኛ ዓይነት ወይም በትንሽ ዓይነት ነው።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "የቃል ገጽታን መተው ይችላሉ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "ሥራውን በፍጥነት ለማከናወን በቁልፍ ሰሌዳዎ ላይ ያሉትን ቁልፎች ማጠቃለል ይችላሉ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "ይህን ቁልፎች መጠቀም ይችላሉ፦"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "<kbd>A</kbd> በተቀመጠች ቃል <strong>እውነት</strong> እንደሆነ ይጫኑ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "<kbd>L</kbd> በተቀመጠ ቃል <strong>ውሽ</strong> እንደሆነ ይጫኑ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "በቁልፍ ሰሌዳዎ ላይ ያሉትን ሁለት ቁልፎች በተመጣጣሽ ያማሩ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "እንደምታጫኑት በቀኝ ላይ በተቀመጠው ቁልፍ ሰሌዳ ይበራል።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "በሚቀጥለው ገጽ ላይ መያዝ ያስፈልጋል።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "ቁልፎቹ እንደምትረሱ በእያንዳንዱ ገጽ ላይ ይታተሉ።"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "ሙከራው በሚቀጥለው ገጽ ይጀምራል።"
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -735,7 +848,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "ለመቀጠል ከታች ያለውን ቁልፍ ይጫኑ።"
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "ቀጥሎ"
@@ -2043,6 +2157,16 @@ msgstr "ሳይንስን እየረዱት ያለውን ተግባር በመሥራ�
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "የሉሲድ ዳሰሳ ግቤት"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "የቁልፍ ሰሌዳ አቀማመጥ ይምረጡ፡-"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "ሁሉንም አስፈላጊ ቁልፎች አልተጫኑም።"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

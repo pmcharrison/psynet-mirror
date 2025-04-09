@@ -276,6 +276,7 @@ class LucidRecruiterException(Exception):
 
 
 class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
+    supports_delayed_publishing = True
     MARKETPLACE_CODE = "Marketplace codes"
     IN_SURVEY = "Currently in Client Survey or Drop"
     COMPLETED = "Returned as Complete"

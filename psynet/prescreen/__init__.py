@@ -8,11 +8,9 @@ from typing import List, Optional
 
 from markupsafe import Markup
 
-from psynet.trial import Node
-
-from .asset import ExternalAsset
-from .bot import Bot
-from .modular_page import (
+from psynet.asset import ExternalAsset
+from psynet.bot import Bot
+from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
@@ -23,8 +21,8 @@ from .modular_page import (
     RadioButtonControl,
     TextControl,
 )
-from .page import InfoPage, UnsuccessfulEndPage, wait_while
-from .timeline import (
+from psynet.page import InfoPage, UnsuccessfulEndPage, wait_while
+from psynet.timeline import (
     CodeBlock,
     Event,
     Module,
@@ -34,9 +32,12 @@ from .timeline import (
     conditional,
     join,
 )
-from .trial.audio import AudioRecordTrial
-from .trial.static import StaticTrial, StaticTrialMaker
-from .utils import get_logger, get_translator
+from psynet.trial import Node
+from psynet.trial.audio import AudioRecordTrial
+from psynet.trial.static import StaticTrial, StaticTrialMaker
+from psynet.utils import get_logger, get_translator
+
+from .vocabtest import BibleVocab, WikiVocab  # noqa: F401
 
 logger = get_logger()
 

@@ -537,53 +537,181 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "O hloka ho fana ka nomoro!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Ngola nomoro e setšoantšong."
+msgstr "Ngola palo e setšoantšong."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
-"Joale re tla etsa teko e potlakileng ho hlahloba bokhoni ba hau ba ho bona "
-"mebala."
+"Re tla etsa teko e potlakileng ho hlahloba bokhoni ba hau ba ho bona mebala."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Tekong ka 'ngoe, u tla hlahisoa ka setšoantšo se nang le nomoro."
+msgstr ""
+"Tekong e 'ngoe le e 'ngoe, u tla hlahisoa ka setšoantšo se nang le palo."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr "Setšoantšo sena se tla nyamela ka mor'a metsotsoana e {HIDE_AFTER}."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "U tlameha ho kenya nomoro eo u e bonang ka lebokoseng la mongolo."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Ke molumo ofe o fapaneng le e meng e 'meli: 1, 2, kapa 3?"
+msgstr "Ke molumo ofe o fapaneng le lialuma tse ling tse peli: 1, 2, kapa 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
-"Tšebetso ea hau e tla ba ho ahlola <strong>molumo ofe ke o "
-"fapaneng</strong>."
+"Tšebetso ea hau e tla ba ho ahlola <strong>ke molumo ofe o fapaneng le e "
+"meng.</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Score ea hau e ne e le"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Tobetsa konopo ho tsoela pele."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Re tla etsa tlhahlobo ho hlahloba bokhoni ba hau ba puo."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Ketsahalong e 'ngoe le e 'ngoe, u tla bona letoto la litlhaku."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Letoto la litlhaku le tla nyamela ka bo eona."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Mosebetsi oa hau ke ho etsa qeto ea hore na ee ke lentsoe le teng ka "
+"{LANGUAGE_NAME} kapa che."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Haeba u sa tsebe moelelo o nepahetseng oa lentsoe, empa u na le bonnete ba "
+"hore le teng ka {LANGUAGE_NAME}, u lokela ho le tšoaea e le lentsoe la "
+"nnete."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Haeba u sa tsebe hantle hore na lentsoe le teng ka {LANGUAGE_NAME}, u lokela"
+" ho le tšoaea e le lentsoe la bohata."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr ""
+"Tekong ena, u ka fumana motsoako pakeng tsa mefuta e fapaneng ea mopeleto."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Ha ua lokela ho ela hloko phapang e nyenyane ea mopeleto."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Mantsoe a hlahisoa ka litlhaku tse kholo feela kapa tse nyane feela."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "U ka hlokomoloha litlhaku tse kholo kapa tse nyane tsa lentsoe."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr ""
+"Ho etsa mosebetsi kapele, u lokela ho sebelisa likonopo tse ka har'a "
+"keyboard ea hau."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "U ka sebelisa likonopo tse latelang:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr ""
+"Tobetsa <kbd>A</kbd> haeba lentsoe le hlahisitsoeng le <strong>la "
+"nnete</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr ""
+"Tobetsa <kbd>L</kbd> haeba lentsoe le hlahisitsoeng le <strong>la "
+"bohata</strong>"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Tloaelana le likonopo tse peli ho keyboard ea hau."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Haeba u li tobetsa, li tla khanya ka har'a keyboard ka ho le letona."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr ""
+"U hloka ho tobetsa likonopo ka bobeli bonyane hanngoe ho tsoela pele "
+"leqepheng le latelang."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Haeba u lebala likonopo, li tla hatisoa leqepheng le leng le le leng."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Teko e tla qala leqepheng le latelang."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -763,7 +891,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Ho tsoela pele, tobetsa konopo e ka tlase."
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "E 'ngoe"
@@ -2206,6 +2335,16 @@ msgstr "Ka ho etsa mosebetsi u thusa mahlale, kea leboha!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Tlhahiso ea Patlisiso ea Lucid"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "Khetha sebopeho sa keyboard:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "Ha o a tobetsa linotlolo tsohle tse hlokahalang."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

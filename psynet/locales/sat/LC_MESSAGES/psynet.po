@@ -532,51 +532,166 @@ msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr "ᱟᱢ ᱢᱤᱫ ᱮᱞ ᱮᱢ ᱞᱟᱹᱠᱛᱤᱜ ᱠᱟᱱᱟ!"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
-msgstr "Dikhit chitra re angka likhya."
+msgstr "ᱟᱢ ᱡᱚᱞ ᱟᱨ ᱟᱢᱛᱮ ᱠᱚᱨ ᱠᱟᱭᱞᱟᱹ ᱠᱚᱯᱟᱲ ᱢᱟᱦᱟᱜ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
-msgstr ""
-"Etak'na apana re rang manhako bujh'na sakti ku pariksha kar'na ekta saral "
-"pariksha kor'bo."
+msgstr "ᱚᱨᱟᱜ ᱤᱧ ᱟᱢᱞᱚᱜ ᱪᱤᱠᱟ ᱞᱚᱜᱟᱹ ᱠᱚᱞᱨ ᱥᱟᱢᱮᱛᱮ ᱨᱚᱭᱦᱟᱹᱛ ᱛᱷᱟᱸᱜᱟ ᱵᱟᱞ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
-msgstr "Pratyek pariksha re, apana ekta chitra dekhya je'ma angka ache."
+msgstr "ᱚᱨᱟᱜ ᱤᱧ ᱟᱢᱞᱚᱜ ᱥᱟᱢᱮᱛᱮ, ᱞᱮᱭ ᱟᱢᱛᱮ ᱠᱚᱨ ᱟᱢᱛᱮ ᱞᱚᱜᱟᱹ ᱠᱚᱯᱟᱲ ᱢᱟᱦᱟᱜ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
-msgstr "E chitra {HIDE_AFTER} sekend' barit'oma gayab hoy jay'bo."
+msgstr "ᱟᱢ ᱠᱚᱨ ᱠᱟᱭᱞᱟᱹ {HIDE_AFTER} ᱥᱮᱠᱥᱷᱟᱹᱨ ᱞᱚᱜᱟᱹ ᱵᱚᱪᱟᱞᱟᱜ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
-msgstr "Apana dekhit angka ta text box re likhya laga."
+msgstr "ᱞᱚᱜᱟᱹ ᱠᱚᱯᱟᱲ ᱢᱟᱦᱟᱜ ᱟᱢ ᱛᱚᱲ ᱟᱢᱟᱢ ᱚᱨᱟᱜ ᱠᱚᱲᱟ ᱠᱷᱚᱱ ᱵᱟᱞ ᱟᱜᱤᱫᱟ ᱟᱦᱟᱢᱞᱟᱹᱲ."
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Kon awaj du'ta ar awaj re alag: 1, 2, ba 3?"
+msgstr "ᱛᱚᱲ ᱟᱢᱟᱢ ᱵᱚᱱᱚᱭ ᱫᱤᱦᱨᱟᱹ ᱨᱮᱠᱮ ᱟᱢᱛᱮ ᱠᱯᱮᱨ ᱢᱟᱦᱟᱜ: 1, 2, ᱟᱨ 3?"
 
-#: psynet/prescreen.py
+#: psynet/prescreen/__init__.py
 #, fuzzy
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "Apana kaam at'e, <strong>kon awaj vhinno</strong> jan'na."
+msgstr "ᱞᱮᱜᱮ ᱟᱢᱛᱮ ᱛᱚᱲ ᱟᱢᱟᱢ ᱵᱚᱱᱚᱭ ᱠᱚᱱ ᱚᱩᱱᱮ ᱵᱮᱨᱮᱱ <strong>ᱟᱹᱨᱮ ᱠᱚᱲᱟᱜ</strong>."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Your score was"
+msgstr "Apni kered score"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press the button to continue."
+msgstr "Button dabhena kile hena."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "We will perform a test to check your language abilities."
+msgstr "Apni kered kariye test kari kilen amge bhasa daka'ni."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In each trial, you will see a string of characters."
+msgstr "Sakhan trial re, apni ek char actar dekhate."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The string will automatically disappear."
+msgstr "Char actar apa'd automatically gujuyon."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
+"or not."
+msgstr ""
+"Apni kered kariye decide kari kilen e {LANGUAGE_NAME} re asra kini na."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you don’t know the exact meaning of the word, but you are certain that it"
+" exists in {LANGUAGE_NAME}, you should mark the it as a real word."
+msgstr ""
+"Yadi apni {LANGUAGE_NAME} re sabdo kered meaning nihi jani, kintu apni sure "
+"achi ki e asra, tahen real sabdo angela'd mark kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy, python-brace-format
+msgid ""
+"If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
+"mark it as a fake word."
+msgstr ""
+"Yadi apni sure nihi achi ki sabdo {LANGUAGE_NAME} re asra, tahen fake sabdo "
+"angela'd mark kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In this experiment, you might find a mix between spelling variants."
+msgstr "E experiment re, spelling variant mix dekhe kutam."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You should not pay attention to subtle spelling differences."
+msgstr "Apni subtle spelling difference nihi pay attention kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The words are presented in either only uppercase or lowercase letters."
+msgstr "Sabdo uppercase are lowercase letter re dekhate."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can ignore the case of the word."
+msgstr "Apni sabdo case ignore kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "To do the task quickly, you should use the keys on your keyboard."
+msgstr "Kered kariye task joldi kariya, apni keyboard re key use kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "You can use the following keys:"
+msgstr "Apni kered kariye key use kariya:"
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
+msgstr "Word real asra tahen, <kbd>A</kbd> dabhena."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
+msgstr "Word fake asra tahen, <kbd>L</kbd> dabhena."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "Familiarize yourself with the two keys on your keyboard."
+msgstr "Apni keyboard re duta key familiarize kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "If you press them, they will light up in the keyboard on the right."
+msgstr "Apni dabhena tahen, keyboard re light up kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid ""
+"You need to press both keys at least once to progress to the next page."
+msgstr "Apni duta key at least ekbar dabhena kilen next page re jaya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "In case you forget the keys, they will be printed on every page."
+msgstr "Apni key bhuli jaya tahen, pratyek page re print kariya."
+
+#: psynet/prescreen/vocabtest.py
+#, fuzzy
+msgid "The test will start on the next page."
+msgstr "Test next page re start kariya."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -750,7 +865,8 @@ msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "ᱞᱟᱦᱟ ᱥᱮᱱᱚᱜ ᱞᱟᱹᱜᱤᱫ, ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱵᱩᱛᱟᱢ ᱨᱮ ᱚᱛᱟᱭ ᱢᱮ ᱾"
 
-#: psynet/templates/consent.html psynet/templates/macros/control.html
+#: psynet/templates/consent.html psynet/templates/keyboard.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Next"
 msgstr "ᱛᱟᱭᱚᱢ"
@@ -2158,6 +2274,16 @@ msgstr "ᱠᱟᱹᱢᱤ ᱠᱚᱨᱟᱣ ᱠᱟᱛᱮ ᱟᱢ ᱥᱟᱬᱮᱥ ᱮ�
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "ᱞᱩᱥᱤᱰ ᱥᱟᱨᱵᱷᱮ ᱡᱚᱢᱟᱣ"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "Select a keyboard layout:"
+msgstr "ᱢᱤᱫ ᱠᱤᱵᱚᱨᱰ ᱞᱮᱭᱟᱣᱩᱴ ᱵᱟᱪᱷᱟᱣ ᱢᱮ:"
+
+#: psynet/templates/keyboard.html
+#, fuzzy
+msgid "You did not press all required keys."
+msgstr "ᱟᱢ ᱥᱟᱱᱟᱢ ᱞᱟᱹᱠᱛᱤᱭᱟᱱ ᱪᱟᱹᱵᱤ ᱠᱚ ᱵᱟᱢ ᱞᱤᱱ ᱟᱠᱟᱫᱟ ᱾"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy

@@ -1,6 +1,6 @@
 import json
 import os.path
-from typing import List
+from typing import List, Optional
 
 import tenacity
 
@@ -383,3 +383,24 @@ class DefaultTranslator(Translator):
         default_translator = config.get("default_translator")
         translator_class = get_descendent_class_by_name(Translator, default_translator)
         return translator_class().translate(texts, source_lang, target_lang, file_path)
+
+
+class NullTranslator(Translator):
+    nickname = "null"
+    use_codebook = False
+
+    def translate(
+        self,
+        texts: List[str],
+        source_lang: str,
+        target_lang: str,
+        file_path: str = None,
+    ):
+        return texts
+
+
+def get_translator_from_name(name: Optional[str] = None) -> Translator:
+    if name is None:
+        return DefaultTranslator()
+    translator_class = get_descendent_class_by_name(Translator, name)
+    return translator_class()
