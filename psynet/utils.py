@@ -158,7 +158,6 @@ def call_function_with_context(function, *args, **kwargs):
         "trial_maker": trial_maker,
         **kwargs,
     }
-
     return call_function(function, *args, **new_kwargs)
 
 

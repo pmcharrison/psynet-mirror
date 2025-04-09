@@ -37,7 +37,7 @@ from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
-from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
+from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter, RecruitmentStatus
 from dallinger.utils import get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
@@ -666,7 +666,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_recruiter_status(cls):
         exp = get_experiment()
-        return exp.recruiter.get_status()
+        status = exp.recruiter.get_status()
+        if isinstance(status, dict):
+            return status
+        elif isinstance(status, RecruitmentStatus):
+            return vars(status)
+        else:
+            raise ValueError(
+                f"Unknown status type: {type(status)}. Must be one of: dict, RecruitmentStatus"
+            )
 
     @classmethod
     def get_hardware_status(cls):
