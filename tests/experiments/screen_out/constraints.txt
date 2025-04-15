@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: c272fc4fe1f811bc6fda33e873dac973
+# Compiled from a requirement.txt file with md5sum: d2f77873c007eec899f8d8bbffe9b509
 #
 ansi2html==1.9.2
     # via
@@ -87,7 +87,7 @@ cryptography==44.0.2
     #   pyopenssl
 dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@d580151e546c39cd732568fef4a2faebba35faad
     # via
-    #   -r /tmp/tmp6_zf1n0r/requirements.txt
+    #   -r /tmp/tmpvx2cn9tt/requirements.txt
     #   psynet
 decorator==5.2.1
     # via
@@ -273,7 +273,7 @@ psycopg2==2.9.10
     #   -c /home/frank/.virtualenvs/psynet-3.12/lib/python3.12/site-packages/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@9c135790ca2e6abff611233b7e4b4c026c05f89f
+psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@ba6fbe971a5496feb80b939286b6ed15058b8f2a
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via

@@ -1,4 +1,4 @@
-psynet@git+https://gitlab.com/PsyNetDev/PsyNet@9c135790ca2e6abff611233b7e4b4c026c05f89f#egg=psynet
+psynet@git+https://gitlab.com/PsyNetDev/PsyNet@ba6fbe971a5496feb80b939286b6ed15058b8f2a#egg=psynet
 
 dallinger@git+https://github.com/Dallinger/Dallinger.git@d580151e546c39cd732568fef4a2faebba35faad#egg=dallinger
 
