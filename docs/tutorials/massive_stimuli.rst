@@ -1,0 +1,81 @@
+====================
+Massive Stimuli
+====================
+
+It is a quite common task to have a large number of stimuli (e.g., video, images, or here audio) you want to present to participants and receive responses for (e.g., ratings or validation).
+In this tutorial, we will show you how to handle this task in PsyNet using AWS S3.
+
+Getting started
+---------------
+
+1. The first step is to install the `AWS client <https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html>`_
+2. Now check it's installed properly by running ``aws --version`` in your terminal.
+3. Now open another terminal window and move to the audio directory you want to upload, e.g. ``cd ~/my-audio-files/``
+
+
+
+.. warning::
+    Make sure your filenames don't contain spaces or special characters which can break the URL. The best practice is to only use lower case latin characters (``a-z``), underscores (``_``) and hyphens (``-``).
+
+4. Now upload the files to a S3 bucket and key (subdirectory) of your choice, e.g. ``aws s3 cp . s3://my-bucket/my-key/`` which will upload all files in the current directory to the bucket ``my-bucket`` and key ``my-key``.
+5. This will take a while if you have a lot of files. Once this is done, you can list the files by running ``aws s3 ls s3://my-bucket/my-key/`` in your terminal.
+6. Now create a bucket policy to allow public access to the files. You can do this by running ``aws s3api put-bucket-policy --bucket my-bucket --policy file://my-policy.json`` in your terminal. The policy file should look like this:
+
+.. code-block:: json
+
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "PublicReadGetObject",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::my-bucket/my-key/*"
+            }
+        ]
+    }
+
+7. Now you can access the files by their URL, e.g. ``https://my-bucket.s3.amazonaws.com/my-key/my-file.wav``
+8. You can now make a text file which contains the filenames of the files, by running ``ls > stimuli.txt`` in your terminal.
+
+.. note::
+    It can be useful to filter by the file extension, e.g. ``ls *.wav > stimuli.txt``
+
+9. Now you can create nodes from the text file, e.g.:
+
+.. code-block:: python
+
+    from psynet.trial.static import StaticNode, StaticTrial
+    from psynet.modular_page import AudioPrompt, PushButtonControl, ModularPage
+
+    S3_BUCKET = "my-bucket"
+    S3_KEY = "my-key"
+
+    def get_s3_url(stimulus):
+        return f"https://{S3_BUCKET}.s3.amazonaws.com/{S3_KEY}/{stimulus}"
+
+    with open("stimuli.txt", "r") as f:
+        stimuli = f.read().splitlines()
+
+    nodes = [
+        StaticNode(
+            definition={"url": get_s3_url(stimulus)},
+        )
+        for stimulus in stimuli
+    ]
+
+    class AudioRatingTrial(StaticTrial):
+        time_estimate = 5
+
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "audio_rating",
+                AudioPrompt(
+                    self.node.definition["url"],
+                    "How much do you like this song?",
+                ),
+                PushButtonControl(
+                    ["Not at all", "A little", "Very much"],
+                ),
+            )
