@@ -14,10 +14,39 @@ class ScreenOutPage(ModularPage):
         prompt = Markup(
             (
                 """
-                Thank you, you've done all you need to do, we will verify your submission and pay you soon.
-                Your submission will be marked as 'screened out' but you will be paid as expected via bonus.
+                <div id="waiting-message">
+                    <p>Please wait!<br>You will be automatically forwarded to the final page.</p>
+                    <div id="countdown">10 seconds remaining...</div>
+                </div>
+
+                <div id="final-message" style="display:none;">
+                    <h3>Thank you!</h3>
+                    <p>You've done all you need to do, we will verify your submission and pay you soon.</p>
+                    <p>Your submission will be marked as 'screened out' but you will be paid as expected via bonus.</p>
+                    <p>You can now close the window.</p>
+                    <button type="button" id="close-button" class="btn btn-primary btn-lg" style="float: right; margin-top: 15px;" onclick="window.close();">
+                        Close window
+                    </button>
+                </div>
+
                 <script>
-                    $.get("/screen-out-pass/1");
+                    // Countdown timer
+                    let timeLeft = 10;
+                    const countdownElement = document.getElementById('countdown');
+
+                    const timer = setInterval(function() {
+                        timeLeft--;
+                        countdownElement.textContent = timeLeft + ' seconds remaining...';
+
+                        if (timeLeft <= 0) {
+                            clearInterval(timer);
+                            document.getElementById('waiting-message').style.display = 'none';
+                            document.getElementById('final-message').style.display = 'block';
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const assignmentId = urlParams.get('unique_id').split(':')[1];
+                            $.get("/screen-out/" + assignmentId);
+                        }
+                    }, 1000);
                 </script>
             """
             )
@@ -36,7 +65,7 @@ def get_prolific_settings():
 
     return {
         "recruiter": "prolific",
-        "base_payment": 0.50,
+        "base_payment": 1.0,
         "prolific_estimated_completion_minutes": 1,
         "prolific_recruitment_config": qualification,
         "auto_recruit": False,
@@ -46,14 +75,14 @@ def get_prolific_settings():
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "Audio game - play with sounds."
+    label = "Test experiment"
     asset_storage = LocalStorage()
     initial_recruitment_size = 1
     config = {
         **get_prolific_settings(),
         "initial_recruitment_size": 1,
         "force_incognito_mode": False,
-        "title": "Software Testing Session (Chrome browser, ~1 min)",
+        "title": "Test experiment (Chrome browser, ~1 min)",
         "description": "This is a short technical test of our experimental software. While this is not a real experiment, you will be compensated for your time at the regular rate. We appreciate your help in testing our system.",
         "contact_email_on_error": "computational.audition@gmail.com",
         "organization_name": "Max Planck Institute for Empirical Aesthetics",
