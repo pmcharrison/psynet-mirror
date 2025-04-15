@@ -66,6 +66,7 @@ def get_prolific_settings():
     return {
         "recruiter": "prolific",
         "base_payment": 1.0,
+        "prolific_is_custom_screening": True,
         "prolific_estimated_completion_minutes": 1,
         "prolific_recruitment_config": qualification,
         "auto_recruit": False,
