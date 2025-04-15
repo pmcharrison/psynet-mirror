@@ -79,9 +79,9 @@ class Exp(psynet.experiment.Experiment):
     label = "Test experiment"
     asset_storage = LocalStorage()
     initial_recruitment_size = 1
+
     config = {
         **get_prolific_settings(),
-        "initial_recruitment_size": 1,
         "force_incognito_mode": False,
         "title": "Test experiment (Chrome browser, ~1 min)",
         "description": "This is a short technical test of our experimental software. While this is not a real experiment, you will be compensated for your time at the regular rate. We appreciate your help in testing our system.",
