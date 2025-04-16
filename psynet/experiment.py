@@ -1325,6 +1325,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "max_participant_payment": 25.0,
         }
 
+    @experiment_route("/screen-out/<assignment_id>", methods=["GET"])
+    @staticmethod
+    @with_transaction
+    def screen_out(assignment_id):
+        exp = get_experiment()
+        return exp.recruiter.screen_out(assignment_id)
+
     @experiment_route("/api/<endpoint>", methods=["GET", "POST"])
     @staticmethod
     @with_transaction
