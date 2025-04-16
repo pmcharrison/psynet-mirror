@@ -1,9 +1,17 @@
-====================
-Massive Stimuli
-====================
+.. _large_stimulus_sets:
 
-It is a quite common task to have a large number of stimuli (e.g., video, images, or here audio) you want to present to participants and receive responses for (e.g., ratings or validation).
-In this tutorial, we will show you how to handle this task in PsyNet using AWS S3.
+==============================================
+Deploying experiments with large stimulus sets
+==============================================
+
+PsyNet users often want to run experiments that involve a large number of pregenerated
+multimedia files (e.g. images, audio, or video). It is possible to implement such experiments
+using PsyNet's asset management system, but this system currently has some performance overhead
+that can make such experiments slow to deploy.
+
+This tutorial explains an alternative approach that sidesteps these problems. Here the files 
+are instead hosted on Amazon Web Service's S3 Storage service, and linked into the experiment
+using custom code.
 
 Getting started
 ---------------
@@ -11,8 +19,6 @@ Getting started
 1. The first step is to install the `AWS client <https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html>`_
 2. Now check it's installed properly by running ``aws --version`` in your terminal.
 3. Now open another terminal window and move to the audio directory you want to upload, e.g. ``cd ~/my-audio-files/``
-
-
 
 .. warning::
     Make sure your filenames don't contain spaces or special characters which can break the URL. The best practice is to only use lower case latin characters (``a-z``), underscores (``_``) and hyphens (``-``).
