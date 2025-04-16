@@ -99,5 +99,7 @@ class Exp(psynet.experiment.Experiment):
         super().__init__(session)
         self.initial_recruitment_size = 1
 
-    def test_experiment(self):
-        super().test_experiment()
+    # Disabled as experiment requires Prolific recruiter
+    #
+    # def test_experiment(self):
+    #    super().test_experiment()
