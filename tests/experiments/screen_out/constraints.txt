@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: d2f77873c007eec899f8d8bbffe9b509
+# Compiled from a requirement.txt file with md5sum: 53151c11622dec98fdf765edbc3b1d0b
 #
 ansi2html==1.9.2
     # via
@@ -85,9 +85,9 @@ cryptography==44.0.2
     #   -c /home/frank/.virtualenvs/psynet-3.12/lib/python3.12/site-packages/dev-requirements.txt
     #   paramiko
     #   pyopenssl
-dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@d580151e546c39cd732568fef4a2faebba35faad
+dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@a303291ce449120b7b1170d5817ec5842c563703
     # via
-    #   -r /tmp/tmpvx2cn9tt/requirements.txt
+    #   -r /tmp/tmp1i6n5gdt/requirements.txt
     #   psynet
 decorator==5.2.1
     # via
