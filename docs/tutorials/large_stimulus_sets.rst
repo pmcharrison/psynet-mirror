@@ -9,7 +9,7 @@ multimedia files (e.g. images, audio, or video). It is possible to implement suc
 using PsyNet's asset management system, but this system currently has some performance overhead
 that can make such experiments slow to deploy.
 
-This tutorial explains an alternative approach that sidesteps these problems. Here the files 
+This tutorial explains an alternative approach that sidesteps these problems. Here the files
 are instead hosted on Amazon Web Service's S3 Storage service, and linked into the experiment
 using custom code.
 
@@ -25,7 +25,9 @@ Getting started
 
 4. Now upload the files to a S3 bucket and key (subdirectory) of your choice, e.g. ``aws s3 cp . s3://my-bucket/my-key/`` which will upload all files in the current directory to the bucket ``my-bucket`` and key ``my-key``.
 5. This will take a while if you have a lot of files. Once this is done, you can list the files by running ``aws s3 ls s3://my-bucket/my-key/`` in your terminal.
-6. Now create a bucket policy to allow public access to the files. You can do this by running ``aws s3api put-bucket-policy --bucket my-bucket --policy file://my-policy.json`` in your terminal. The policy file should look like this:
+6. Now create a bucket policy file, e.g. ``my-policy.json``, which allows public access to the files.
+   You can initialize the file by writing ``touch my-policy.json`` in your terminal.
+   Open this file in your text editor and paste the following policy:
 
 .. code-block:: json
 
@@ -42,11 +44,19 @@ Getting started
         ]
     }
 
-7. Now you can access the files by their URL, e.g. ``https://my-bucket.s3.amazonaws.com/my-key/my-file.wav``
-8. You can now make a text file which contains the filenames of the files, by running ``ls > stimuli.txt`` in your terminal.
+7. You now need to apply this policy to your bucket. Run the following command in your terminal:
+
+.. code-block:: bash
+
+    aws s3api put-bucket-policy --bucket my-bucket --policy file://my-policy.json
+
+8. Now you should be able to access the files by their URL, e.g. ``https://my-bucket.s3.amazonaws.com/my-key/my-file.wav``
+9. You can now make a text file which contains the filenames of the files by running ``ls > stimuli.txt`` in your terminal.
 
 .. note::
-    It can be useful to filter by the file extension, e.g. ``ls *.wav > stimuli.txt``
+    It can be useful to filter by the file extension, e.g. ``ls *.wav > stimuli.txt``.
+    This makes sure you don't include any files that are not audio files in the text file,
+    for example ``.DS_Store`` files which are created by macOS.
 
 9. Now you can create nodes from the text file, e.g.:
 
