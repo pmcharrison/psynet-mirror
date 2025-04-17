@@ -1,8 +1,8 @@
 .. _large_stimulus_sets:
 
-==============================================
-Deploying experiments with large stimulus sets
-==============================================
+===================
+Large stimulus sets
+===================
 
 PsyNet users often want to run experiments that involve a large number of pregenerated
 multimedia files (e.g. images, audio, or video). It is possible to implement such experiments
