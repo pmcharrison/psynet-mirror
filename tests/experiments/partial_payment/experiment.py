@@ -35,22 +35,13 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         if bot.id == 1:
-            print(bot.id)
-            print(bot.status)
-            print(bot.bonus)
             assert bot.status == "approved"
-            assert bot.performance_reward == BONUS  # Why is bonus not set?
+            assert self.bonus(bot) == BONUS
         elif bot.id == 2:
-            print(bot.id)
-            print(bot.status)
-            print(bot.bonus)
-            # assert bot.status == "screened_out"
-            # assert bot.bonus == 1 * 6 / 60  # £10/hour * 1 minute / 60 minutes/hour
+            assert bot.status == "screened_out"
+            assert self.bonus(bot) == 6 * 1 / 60  # £6/hour * 1 minute / 60 minutes/hour
         elif bot.id == 3:
-            print(bot.id)
-            print(bot.status)
-            print(bot.bonus)
-            # assert bot.status == "returned"
-            # assert bot.bonus == 1 * 6 / 60  # £10/hour * 1 minute / 60 minutes/hour
+            assert bot.status == "returned"
+            assert self.bonus(bot) == 6 * 1 / 60  # £6/hour * 1 minute / 60 minutes/hour
         else:
             raise ValueError(f"Unexpected bot id: {bot.id}")
