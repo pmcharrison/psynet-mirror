@@ -178,7 +178,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
 
         return join(
-            AsyncCodeBlock(self.screen_out_participant, wait=True, expected_wait=1.0),
+            AsyncCodeBlock(
+                self.screen_out_participant,
+                wait=True,
+                expected_wait=5.0,
+                check_interval=0.5,
+            ),
             conditional(
                 # This function should check whether the screen out attempt was successful.
                 label="screen_out_successful",
