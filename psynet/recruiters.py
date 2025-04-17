@@ -28,6 +28,7 @@ from .lucid import get_lucid_service
 from .page import InfoPage, WaitPage, wait_while
 from .participant import Participant
 from .timeline import (
+    AsyncCodeBlock,
     CodeBlock,
     PageMaker,
     Response,
@@ -119,6 +120,17 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.0,
         )
 
+        def pay_bonus(participant, experiment):
+            experiment.recruiter.bonus(
+                participant,
+                participant.bonus(),
+                "Partial payment for incomplete participation",
+            )
+
+        bonus_code_block = CodeBlock(pay_bonus)
+        bonus_code_block.time_estimate = 0.0
+        bonus_code_block.expected_repetitions = 1
+
         logic_screen_out_unsuccessful = join(
             InfoPage(
                 _p(
@@ -127,7 +139,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     "but we will still pay you for your time spent so far. "
                     "To receive this payment, we need you to return this assignment "
                     "via the Prolific interface, then click the 'Next' button below.",
-                )
+                ),
+                time_estimate=0.5,
             ),
             while_loop(
                 # This function should check the participant's assignment status using the
@@ -139,22 +152,25 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 "check_for_returned_assignment",
                 condition=self.check_for_returned_assignment,
                 logic=InfoPage(
-                    _(
-                        "Sorry, but it looks like your assignment hasn't been returned yet. ",
-                        "Can you wait a few seconds, try again, then press 'Next'? ",
-                        "If you keep seeing this message, even after pressing 'Next' ",
+                    _p(
+                        "screen_out_unsuccessful_message",
+                        "Sorry, but it looks like your assignment hasn't been returned yet. "
+                        "Can you wait a few seconds, try again, then press 'Next'? "
+                        "If you keep seeing this message, even after pressing 'Next' "
                         "then please contact the experimenter via the Prolific website "
                         "and ask them to check your submission manually.",
                     ),
-                    time_estimate=0,
+                    time_estimate=5.0,
                 ),
+                expected_repetitions=1,
             ),
-            CodeBlock(...),  # Here we now call recruiter.bonus
+            bonus_code_block,
             InfoPage(
-                _(
+                _p(
+                    "screen_out_successful_message",
                     "Success! "
                     "You have been credited for the time spent on the experiment. "
-                    "You can now close this browser window."
+                    "You can now close this browser window.",
                 ),
                 show_next_button=False,
                 time_estimate=0.0,
@@ -162,7 +178,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
 
         return join(
-            CodeBlock(self.try_paying_via_screen_out_route, async_=True),
+            AsyncCodeBlock(self.screen_out_participant, wait=True, expected_wait=1.0),
             conditional(
                 # This function should check whether the screen out attempt was successful.
                 label="screen_out_successful",
@@ -172,11 +188,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             ),
         )
 
-    def try_paying_via_screen_out_route(self, experiment, participant):
-        response = experiment.recruiter.screen_out(participant)
+    def screen_out_participant(participant, experiment):
+        recruiter = experiment.recruiter
+        response = recruiter.screen_out(participant)
         success = False
+
         if response.get("payment_per_participant", None) is not None:
             success = True
+
         participant.var.prolific_screen_out_successful = success
         logger.info(response["message"])
 
