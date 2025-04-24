@@ -11,7 +11,7 @@ WORKDIR /PsyNet
 COPY pyproject.toml pyproject.toml
 COPY LICENSE LICENSE
 
-RUN apt update && apt -f -y install curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip
+RUN apt update && apt -f -y install curl gettext git jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip
 RUN service redis-server start
 RUN curl https://cli-assets.heroku.com/install.sh | sh
 
