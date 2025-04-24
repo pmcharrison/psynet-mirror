@@ -42,6 +42,31 @@ from .utils import get_logger, get_translator, render_template_with_translations
 logger = get_logger()
 
 
+def _screen_out_participant(participant):
+    """
+    Standalone function for AsyncCodeBlock to use (can be serialized properly)
+    """
+    import logging
+
+    from psynet.experiment import get_experiment
+
+    logger = logging.getLogger(__name__)
+
+    experiment = get_experiment()
+    recruiter = experiment.recruiter
+
+    response = recruiter.screen_out(participant.assignment_id)
+    success = False
+
+    if response.get("payment_per_participant", None) is not None:
+        success = True
+
+    participant.var.prolific_screen_out_successful = success
+    logger.info(response["message"])
+
+    return success
+
+
 class PsyNetRecruiterMixin:
     show_termination_button = False
 
@@ -99,9 +124,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             # if they have not returned the assignment.
             # Don't pay base payment
             # Pay total reward as bonus
-            return self.reject_assignment()
+            return self.reject_assignment(participant)
 
-    def reject_assignment(self) -> TimelineLogic:
+    def reject_assignment(self, participant) -> TimelineLogic:
         return PageMaker(self._reject_assignment, time_estimate=0.0)
 
     def _reject_assignment(self, participant) -> TimelineLogic:
@@ -119,17 +144,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             show_next_button=False,
             time_estimate=0.0,
         )
-
-        def pay_bonus(participant, experiment):
-            experiment.recruiter.bonus(
-                participant,
-                participant.bonus(),
-                "Partial payment for incomplete participation",
-            )
-
-        bonus_code_block = CodeBlock(pay_bonus)
-        bonus_code_block.time_estimate = 0.0
-        bonus_code_block.expected_repetitions = 1
 
         logic_screen_out_unsuccessful = join(
             InfoPage(
@@ -164,7 +178,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 ),
                 expected_repetitions=1,
             ),
-            bonus_code_block,
+            CodeBlock(
+                lambda participant: self.reward_bonus(
+                    participant,
+                    participant.calculate_reward(),
+                    "Partial payment for incomplete participation",
+                )
+            ),
             InfoPage(
                 _p(
                     "screen_out_successful_message",
@@ -179,7 +199,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
         return join(
             AsyncCodeBlock(
-                self.screen_out_participant,
+                _screen_out_participant,
                 wait=True,
                 expected_wait=5.0,
                 check_interval=0.5,
@@ -192,17 +212,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 logic_if_false=logic_screen_out_unsuccessful,
             ),
         )
-
-    def screen_out_participant(participant, experiment):
-        recruiter = experiment.recruiter
-        response = recruiter.screen_out(participant)
-        success = False
-
-        if response.get("payment_per_participant", None) is not None:
-            success = True
-
-        participant.var.prolific_screen_out_successful = success
-        logger.info(response["message"])
 
     def check_screen_out_successful(self, participant):
         try:
