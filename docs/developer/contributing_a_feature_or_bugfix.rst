@@ -428,3 +428,16 @@ Congratulations! Your merge request has been successfully processed. It should b
 
 .. [#] Note: It is also possible to request code review at an earlier stage of the project if you feel you would benefit from it. Simply get in touch with the reviewer and ask if they'd be willing to look at the code early.
 .. [#] This phenomenon is related to the well-documented phenomenon that people prefer the smell of their own farts. For follow-up reading, see `Code Smells (via Wikipedia) <https://en.wikipedia.org/wiki/Code_smell>`_.
+
+Further considerations
+++++++++++++++++++++++
+
+Depending on a custom branch of Dallinger
+-----------------------------------------
+
+Sometimes you may need to use a custom branch of Dallinger in a feature you are contributing to PsyNet.
+In order to do this, you will need to update the Dallinger entry in ``pyproject.toml`` to point to your branch.
+You should write something like this: ``"dallinger @ git+https://gitlab.com/Dallinger/Dallinger.git@2350v82u38ud3unwoiunec8un3c"``
+where the string after ``.git@`` is the commit hash for the commit you want to use.
+
+You can find the commit hash by clicking the "Copy" button next to the commit hash on the GitLab page for the branch you want to use.
