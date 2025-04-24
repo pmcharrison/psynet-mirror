@@ -215,7 +215,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     def check_screen_out_successful(self, participant):
         try:
-            return participant.var.prolific_screen_outcome_successful
+            return participant.var.prolific_screen_out_successful
         except KeyError:
             return False
 
