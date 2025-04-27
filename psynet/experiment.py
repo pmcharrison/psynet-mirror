@@ -44,7 +44,7 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import joinedload, relationship, with_polymorphic
+from sqlalchemy.orm import joinedload, with_polymorphic
 
 from psynet import __version__
 from psynet.utils import get_config
@@ -509,14 +509,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classproperty
     def launched(cls):
         return is_experiment_launched()
-
-    @property
-    def global_assets(self):
-        return self.experiment_config.global_assets
-
-    @property
-    def global_nodes(self):
-        return self.experiment_config.global_nodes
 
     @property
     def supported_locales(self):
@@ -3154,9 +3146,6 @@ class ExperimentConfig(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
-
-    global_assets = relationship("Asset")
-    global_nodes = relationship("psynet.trial.main.TrialNode")
 
 
 def _patch_dallinger_models():
