@@ -1438,6 +1438,20 @@ class TextControl(Control):
         return "Hello, I am a bot!"
 
 
+class MonitorControl(Control):
+    """
+    Here the participant just has a single button that takes them to the next page with the monitor information.
+    """
+
+    macro = "monitor"
+
+    def __init__(self):
+        super().__init__(show_next_button=False)
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return None
+
+
 class BaseButton:
     def render(self):
         raise NotImplementedError

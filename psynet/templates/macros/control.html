@@ -12,7 +12,7 @@
     </button>
 {% endmacro %}
 
-{% macro next_button(params) %}
+{% macro _next_button(params) %}
     <script>
         disableButton = function() {
             $("#next-button").attr("disabled", true)
@@ -25,7 +25,17 @@
             $("#next-button-spinner").hide()
             $("#next-button-text").show();
         }
+    </script>
 
+    <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onclick="onNextButton();" disabled="true">
+        <span id="next-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
+        <span id="next-button-text">{{ gettext("Next") }}</span>
+    </button>
+{% endmacro %}
+
+{% macro next_button(params) %}
+    {{ _next_button(params) }}
+    <script>
         onNextButton = function() {
             let width = $("#next-button").width();
             let height = $("#next-button").height();
@@ -41,11 +51,6 @@
             psynet.submitResponse(onRejection);
         }
     </script>
-
-    <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onclick="onNextButton();" disabled="true">
-        <span id="next-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
-        <span id="next-button-text">{{ gettext("Next") }}</span>
-    </button>
 {% endmacro %}
 
 {% macro reset_button(params) %}
@@ -1753,4 +1758,46 @@
             }
         };
     </script>
+{% endmacro %}
+
+
+{% macro monitor(params) %}
+{{ _next_button(params) }}
+<script>
+    screenDetailedToDict = function (screenDetailed) {
+        const dict = {};
+        let keys = Object.keys(Object.getOwnPropertyDescriptors(Object.getPrototypeOf(screenDetailed)));
+        let extraKeys = [
+            'availHeight', 'availLeft', 'availTop', 'availWidth', 'colorDepth', 'height', 'width', 'left', 'top',
+            'isExtended', 'pixelDepth'
+        ]
+        keys.push(...extraKeys)
+        keys.map(function (key) {
+            try {
+                if (typeof screenDetailed[key] !== "function") {
+                    dict[key] = screenDetailed[key];
+                }
+            } catch (e) {
+                dict[key] = undefined;
+            }
+        });
+        return dict;
+    }
+    onNextButton = async function () {
+        disableButton();
+        const screenDetails = await window.getScreenDetails();
+        psynet.nextPage({
+            screenDetails: {
+                currentScreen: screenDetailedToDict(screenDetails.currentScreen),
+                screens: screenDetails.screens.map(screenDetailedToDict),
+                currentWindow: {
+                    'width': window.innerWidth,
+                    'height': window.innerHeight,
+                    'left': window.screenX,
+                    'top': window.screenY
+                }
+            }
+        })
+    }
+</script>
 {% endmacro %}
