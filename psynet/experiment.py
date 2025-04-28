@@ -150,10 +150,10 @@ class ExperimentMeta(type):
                 "any custom bot initialization code inside test_run_bot (before calling super().test_run_bot())."
             )
 
-        if hasattr(cls, "test_run_bots"):
+        if hasattr(cls, "test_run_bots") or hasattr(cls, "test_run_bot"):
             raise RuntimeError(
-                "Experiment.test_run_bots has been renamed to Experiment.test_serial_run_bots. "
-                "Please note that this test route is only used if the tests are run in serial mode."
+                "Experiment.test_run_bots/test_run_bot have been renamed to Experiment.test_serial_run_bots/test_serial_run_bot. "
+                "Please note that these test routes are only used if the tests are run in serial mode."
             )
 
 
