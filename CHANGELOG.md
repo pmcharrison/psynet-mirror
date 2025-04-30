@@ -1,5 +1,13 @@
 # CHANGELOG
 
+# [12.0.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.1) Release - 2025-04-30
+
+## Fixed
+- Fixed `Experiment.get_recruiter_status` for cases where `Experiment.recruiter.get_status()` returns a `RecruitmentStatus` instead of a `dict` (author: Frank Höger, reviewer: Peter Harrison)
+
+## Updated
+- Updated Dallinger to version 11.2.0. Read about changes in Dallinger: https://github.com/Dallinger/Dallinger/releases/tag/v11.2.0 (author: Frank Höger)
+
 # [12.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.0) Release - 2025-03-20
 
 ## Fixed
