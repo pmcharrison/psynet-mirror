@@ -3060,6 +3060,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return res
 
+    @experiment_route("/page_uuid", methods=["POST"])
+    @classmethod
+    @with_transaction
+    def page_uuid(cls):
+        json_data = request.get_json()
+        participant_id = get_arg_from_dict(json_data, "participant_id")
+        participant = cls.get_participant_from_participant_id(
+            int(participant_id), for_update=False
+        )
+        return participant.page_uuid
+
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
     @with_transaction
