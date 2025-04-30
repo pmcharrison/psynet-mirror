@@ -1410,7 +1410,10 @@
 
                     newPageUuid = await psynet.fetchPageUuid(psynet.participantId);
                     if (newPageUuid !== pageUuid) {
-                        psynet.alert("{{ pgettext("timeline_problem", "It seems you have opened the experiment in multiple tabs. Please close all but one tab and refresh the page.") }}");
+                        psynet.alert(
+                            "{{ pgettext("timeline_problem", "It seems you have opened the experiment in multiple tabs. Please close all but one tab and refresh the page.") }}",
+                            async function () {window.location.reload()}
+                        )
                         return false;
                     }
 
@@ -1442,17 +1445,20 @@
                     return passedValidation
                 };
 
-                psynet.alert = function (text) {
+
+                psynet.alertCallback = async function () {
+                    alertModal.css("display", "none");
+                    resolve();
+                }
+
+                psynet.alert = function (text, callback=psynet.alertCallback) {
                     return new Promise((resolve) => {
                         let alertModal = $("#alert-modal");
                         let alertButton = $("#alert-button");
                         let alertText = $("#alert-message");
                         alertText.text(text);
                         alertModal.css("display", "block");
-                        alertButton.click(async function () {
-                            alertModal.css("display", "none");
-                            resolve();
-                        });
+                        alertButton.click(callback);
                     });
                 };
 
