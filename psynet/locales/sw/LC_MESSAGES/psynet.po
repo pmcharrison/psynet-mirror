@@ -2993,7 +2993,7 @@ msgstr "Iwapo kuna tatizo, jaribu yafuatayo:"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Pakia upya ukurasa."
+msgstr "Pakua upya ukurasa."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3006,13 +3006,14 @@ msgstr "Hakikisha kuwa muunganisho wako wa intaneti unafanya kazi."
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr "Ikiwa hayo hayasaidii, tutumie barua pepe na maelezo yafuatayo:"
+msgstr ""
+"Iwapo yaliyotangulia hayasaidii, tutumie barua pepe na maelezo yafuatayo:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Kiungo cha ukurasa wa sasa wa wavuti;"
+msgstr "Kiungo cha ukurasa wa wavuti wa sasa;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3066,7 +3067,7 @@ msgstr "Msaada!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Maliza jaribio mapema"
+msgstr "Komesha jaribio mapema"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3079,6 +3080,16 @@ msgstr "Tafadhali subiri ukurasa upakie."
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Jaribu tena baada ya sekunde chache."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Inaonekana umefungua jaribio katika tabo nyingi. Tafadhali funga zote "
+"isipokuwa moja na upakie upya ukurasa."
 
 #: psynet/translation/countries.py
 #, fuzzy

@@ -3009,7 +3009,7 @@ msgstr "Пачатак эксперыменту..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "У выпадку праблемы паспрабуйце наступнае:"
+msgstr "У выпадку ўзнікнення праблемы паспрабуйце наступнае:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3021,7 +3021,7 @@ msgstr "Перазагрузіце старонку."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Праверце, ці працуе ваш інтэрнэт-злучэнне."
+msgstr "Праверце, ці працуе ваша падключэнне да Інтэрнэту."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3029,8 +3029,7 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Калі вышэйзгаданае не дапаможа, дашліце нам электронны ліст з наступнай "
-"інфармацыяй:"
+"Калі вышэйзгаданае не дапаможа, дашліце нам ліст з наступнай інфармацыяй:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3042,25 +3041,25 @@ msgstr "Спасылка на бягучую вэб-старонку;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Ваш Worker ID;"
+msgstr "Ваш ідэнтыфікатар работніка;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Праблема, з якой вы сутыкнуліся."
+msgstr "Праблема, з якой вы сутыкаецеся."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "ОК"
+msgstr "Добра"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Вы гатовыя?"
+msgstr "Ты гатовы?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3072,7 +3071,7 @@ msgstr "Націсніце кнопку, калі будзеце гатовыя 
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Працягнуць"
+msgstr "Рэзюмэ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3084,13 +3083,13 @@ msgstr "Узнагарода"
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "Дапамога!"
+msgstr "Дапамажыце!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Завяршыць эксперымент раней"
+msgstr "Спыніце эксперымент раней за тэрмін"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3102,7 +3101,17 @@ msgstr "Калі ласка, пачакайце, пакуль старонка �
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Паспрабуйце яшчэ раз праз некалькі секунд."
+msgstr "Паспрабуйце яшчэ раз праз пару секунд."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Здаецца, вы адкрылі эксперымент у некалькіх укладках. Зачыніце ўсе ўкладкі, "
+"акрамя адной, і абнавіце старонку."
 
 #: psynet/translation/countries.py
 #, fuzzy

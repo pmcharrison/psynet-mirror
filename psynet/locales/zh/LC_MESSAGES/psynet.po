@@ -551,18 +551,6 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "您必须将您看到的数字输入文本框中。"
 
-#: psynet/prescreen.py
-#, fuzzy
-msgctxt "Beep-headphone-test"
-msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "哪种声音与其他两种不同：1、2或3？"
-
-#: psynet/prescreen.py
-#, fuzzy
-msgid ""
-"Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "您的任务是判断<strong>哪种声音是不同的</strong>。"
-
 #: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
@@ -2672,7 +2660,7 @@ msgstr "实验开始..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "如果出现问题，请尝试以下操作："
+msgstr "如果遇到问题，请尝试以下操作："
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2691,7 +2679,7 @@ msgstr "检查您的互联网连接是否正常。"
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr "如果上述方法无效，请通过电子邮件发送以下信息："
+msgstr "如果以上方法无效，请发送电子邮件给我们，附上以下信息："
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2703,7 +2691,7 @@ msgstr "当前网页的链接；"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "您的工人ID；"
+msgstr "您的工作者 ID；"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2763,7 +2751,15 @@ msgstr "请等待页面加载。"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "几秒钟后再试一次。"
+msgstr "几秒钟后重试。"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr "您似乎在多个标签中打开了实验。请关闭除一个标签外的所有标签并刷新页面。"
 
 #: psynet/translation/countries.py
 #, fuzzy

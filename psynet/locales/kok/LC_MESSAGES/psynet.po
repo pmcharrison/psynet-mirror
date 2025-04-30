@@ -3068,6 +3068,16 @@ msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "एक दोन सेकंदां उपरांत परतून यत्न करात."
 
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"तुमी प्रयोग एका परस चड टॅबांनी उगडला अशें दिसता. उपकार करून एक टॅब सोडून हेर"
+" सगळे बंद करात आनी पान ताजें करात."
+
 #: psynet/translation/countries.py
 #, fuzzy
 msgctxt "country_name"

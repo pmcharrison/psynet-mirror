@@ -3087,7 +3087,7 @@ msgstr "Experiment wird gestartet..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Im Falle eines Problems versuchen Sie Folgendes:"
+msgstr "Versuchen Sie im Falle eines Problems Folgendes:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3107,7 +3107,7 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Wenn das oben Genannte nicht hilft, senden Sie uns eine E-Mail mit den "
+"Wenn das oben genannte nicht hilft, senden Sie uns eine E-Mail mit den "
 "folgenden Informationen:"
 
 #: psynet/templates/timeline-page.html
@@ -3120,7 +3120,7 @@ msgstr "Ein Link zur aktuellen Webseite;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Ihre Worker-ID;"
+msgstr "Ihre Mitarbeiter-ID;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3152,19 +3152,19 @@ msgstr ""
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Fortsetzen"
+msgstr "Wieder aufnehmen"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Belohnung"
+msgstr "Belohnen"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "Hilfe!"
+msgstr "Helfen!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3183,6 +3183,16 @@ msgstr "Bitte warten Sie, bis die Seite geladen ist."
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Versuchen Sie es in ein paar Sekunden erneut."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Sie haben das Experiment anscheinend in mehreren Tabs geöffnet. Schließen "
+"Sie bitte alle Tabs bis auf einen und aktualisieren Sie die Seite."
 
 #: psynet/translation/countries.py
 #, fuzzy

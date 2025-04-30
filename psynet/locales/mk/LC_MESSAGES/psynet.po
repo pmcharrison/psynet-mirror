@@ -3037,7 +3037,7 @@ msgstr "Започнување на експериментот..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Во случај на проблем, обидете се со следново:"
+msgstr "Доколку се појави проблем, пробајте го следново:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3049,7 +3049,7 @@ msgstr "Презаредете ја страницата."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Проверете дали вашата интернет конекција функционира."
+msgstr "Проверете дали вашата интернет врска функционира."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3063,39 +3063,37 @@ msgstr ""
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Врска до тековната веб-страница;"
+msgstr "Линк до тековната веб-страница;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Вашиот ID на Работник;"
+msgstr "Вашиот Worker ID;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Проблемот што го доживувате."
+msgstr "Проблемот што го имате."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "OK"
+msgstr "ОК"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Дали сте подготвени?"
+msgstr "Дали сте спремни?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr ""
-"Кликнете на копчето кога ќе бидете подготвени да продолжите со "
-"експериментот."
+msgstr "Кликнете на копчето кога сте спремни да продолжите со експериментот."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3119,19 +3117,29 @@ msgstr "Помош!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Прерано прекинете го експериментот"
+msgstr "Прерано завршете го експериментот"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Ве молиме почекајте страницата да се вчита."
+msgstr "Ве молиме, почекајте да се вчита страницата."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Обидете се повторно за неколку секунди."
+msgstr "Пробајте повторно за неколку секунди."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Изгледа дека го отворивте експериментот во повеќе јазичиња. Ве молиме "
+"затворете ги сите освен едно и освежете ја страницата."
 
 #: psynet/translation/countries.py
 #, fuzzy

@@ -2991,13 +2991,13 @@ msgstr "V prípade problému skúste nasledujúce:"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Obnovte stránku."
+msgstr "Obnoviť stránku."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Skontrolujte, či vaše internetové pripojenie funguje."
+msgstr "Skontrolujte, či funguje vaše internetové pripojenie."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3071,13 +3071,23 @@ msgstr "Predčasne ukončiť experiment"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Počkajte, prosím, kým sa stránka načíta."
+msgstr "Prosím, počkajte, kým sa stránka načíta."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Skúste to znova o pár sekúnd."
+msgstr "Skúste to znovu o pár sekúnd."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Zdá sa, že ste otvorili experiment vo viacerých kartách. Prosím, zatvorte "
+"všetky okrem jednej karty a obnovte stránku."
 
 #: psynet/translation/countries.py
 #, fuzzy

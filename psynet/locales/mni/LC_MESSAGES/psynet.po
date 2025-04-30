@@ -3069,20 +3069,19 @@ msgstr "ꯋꯥꯔꯤꯡ ꯏꯃꯦꯕꯔꯤꯕꯦꯝꯇ..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Khanghanbada khara houba matamda, mathouba asidagi chatlo:"
+msgstr "Khudol ama leitrabadi, mathang mashak tou:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Page asi reload tou."
+msgstr "Page asi phangduna pukninghanbiyu."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr ""
-"Nahakki internet connection asi thabak chatpa ngamkhre haibasi chingbiu."
+msgstr "Nahakki internet connection asi thoklaba phaoba cheksu."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3090,14 +3089,14 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Mathouba asina makhoigi mamangda matam thokpadi, ngamba ngamba masak asibu "
-"email-gi maramda send tou:"
+"Mathang khuding lakpa nattra loubadi, eikhoida email ama thiyu amasung matam"
+" asida khuding kharana thiyu:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Nongma chatchaba web page-gi link asi;"
+msgstr "Page asi amadi web link;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3109,7 +3108,7 @@ msgstr "Nahakki Worker ID;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Nahakki khanghanba adu."
+msgstr "Nahakki khudol asi leiduna khuding phangdaba."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3127,43 +3126,54 @@ msgstr "Nahak yaoribra?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Nahakki experiment asi chumsinbada yaoribana button asi click tou."
+msgstr ""
+"Experiment asi mathangda chingduna thoklaba matamda button asi thammi."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Pithoklaba"
+msgstr "Chingba"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Khutlai"
+msgstr "Phangbi"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "Nungaitaba!"
+msgstr "Ahongba!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Experiment asi eigi matamda phangminou"
+msgstr "Experiment asi mathangda phangduna chingba"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Page asi load toubagi matamda khudongchaba khangdouna leiro."
+msgstr "Page asi phangjaba phaoba kanbiyu."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Khara chahi nungaiba khongthoklaba matamda mathouba asidi chatlo."
+msgstr "Khudak khudak khanbiyu."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Experiment asi yaaibada matam leitraba tab kharadi khanglakpa phangbijani. "
+"Tab amallei phanglakpada chatnanaba amasung page asi refresh toubiyu."
 
 #: psynet/translation/countries.py
 #, fuzzy

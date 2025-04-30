@@ -3113,7 +3113,7 @@ msgstr "OK"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Ben je klaar?"
+msgstr "Ben je er klaar voor?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3150,13 +3150,23 @@ msgstr "Beëindig het experiment vroegtijdig"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Wacht alstublieft tot de pagina is geladen."
+msgstr "Wacht alstublieft tot de pagina geladen is."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Probeer het over een paar seconden opnieuw."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Het lijkt erop dat je het experiment in meerdere tabbladen hebt geopend. "
+"Sluit alle tabbladen behalve één en ververs de pagina."
 
 #: psynet/translation/countries.py
 #, fuzzy

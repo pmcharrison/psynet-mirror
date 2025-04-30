@@ -568,18 +568,6 @@ msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr "Debe ingresar el número que ve en el cuadro de texto."
 
-#: psynet/prescreen.py
-#, fuzzy
-msgctxt "Beep-headphone-test"
-msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "¿Qué sonido es diferente de los otros dos: 1, 2 o 3?"
-
-#: psynet/prescreen.py
-#, fuzzy
-msgid ""
-"Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr "Su tarea será juzgar <strong>cuál sonido es el diferente</strong>."
-
 #: psynet/prescreen/__init__.py
 #, fuzzy
 msgctxt "Beep-headphone-test"
@@ -3064,19 +3052,19 @@ msgstr "Iniciando experimento..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "En caso de un problema, intente lo siguiente:"
+msgstr "En caso de problema, intente lo siguiente:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Recargue la página."
+msgstr "Recargar la página."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Verifique que su conexión a internet esté funcionando."
+msgstr "Comprueba que tu conexión a Internet esté funcionando."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3097,19 +3085,19 @@ msgstr "Un enlace a la página web actual;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Su ID de trabajador;"
+msgstr "Su identificación de trabajador;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "El problema que está experimentando."
+msgstr "El problema que estás experimentando."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "OK"
+msgstr "DE ACUERDO"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3134,7 +3122,7 @@ msgstr "Reanudar"
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Recompensa"
+msgstr "Premio"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3146,19 +3134,29 @@ msgstr "¡Ayuda!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Terminar el experimento temprano"
+msgstr "Terminar el experimento antes de tiempo"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Por favor, espere a que la página se cargue."
+msgstr "Por favor espere a que se cargue la página."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Intente de nuevo en un par de segundos."
+msgstr "Inténtalo de nuevo en un par de segundos."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Parece que has abierto el experimento en varias pestañas. Ciérralas todas "
+"menos una y actualiza la página."
 
 #: psynet/translation/countries.py
 #, fuzzy
