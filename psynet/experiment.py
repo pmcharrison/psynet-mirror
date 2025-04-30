@@ -42,7 +42,7 @@ from dallinger.utils import get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
-from flask import jsonify, render_template, request, send_file
+from flask import jsonify, redirect, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
@@ -2400,6 +2400,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             else:
                 return render_template_with_translations("ad.html", **kw)
         except Exception as e:
+            if "already_did_exp_hit" in str(e):
+                worker_id = request.args.get("workerId")
+                assignment_id = request.args.get("assignmentId")
+                unique_id = f"{worker_id}:{assignment_id}"
+                logger.info(
+                    f"Redirecting existing participant {unique_id} to timeline."
+                )
+                return redirect(f"/timeline?unique_id={unique_id}")
             return Experiment.pre_timeline_error_page(e, request)
 
     @experiment_route("/consent")
