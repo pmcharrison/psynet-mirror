@@ -51,14 +51,36 @@ Getting started
     aws s3api put-bucket-policy --bucket my-bucket --policy file://my-policy.json
 
 8. Now you should be able to access the files by their URL, e.g. ``https://my-bucket.s3.amazonaws.com/my-key/my-file.wav``
-9. You can now make a text file which contains the filenames of the files by running ``ls > stimuli.txt`` in your terminal.
+
+9. You also need to set the bucket's CORS policy to allow cross-origin requests.
+   You can define this policy by creating a file called ``my-cors.json`` and pasting the following into it:
+
+.. code-block:: json
+
+    [
+        {
+            "AllowedHeaders": ["*"],
+            "AllowedMethods": ["GET"],
+            "AllowedOrigins": ["*"],
+            "ExposeHeaders": [],
+            "MaxAgeSeconds": 3000
+        }
+    ]
+
+10. You can apply this policy by running the following command in your terminal:
+
+.. code-block:: bash
+
+    aws s3api put-bucket-cors --bucket my-bucket --cors-configuration file://my-cors.json
+
+11. You can now make a text file which contains the filenames of the files by running ``ls > stimuli.txt`` in your terminal.
 
 .. note::
     It can be useful to filter by the file extension, e.g. ``ls *.wav > stimuli.txt``.
     This makes sure you don't include any files that are not audio files in the text file,
     for example ``.DS_Store`` files which are created by macOS.
 
-9. Now you can create nodes from the text file, e.g.:
+12. Now you can create nodes from the text file, e.g.:
 
 .. code-block:: python
 
