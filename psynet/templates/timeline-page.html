@@ -1384,10 +1384,10 @@
                     }
                 }
 
-                psynet.fetchPageUuid = async function (participantId) {
-                    const response = await fetch("/page_uuid", {
+                psynet.checkPageUuid = async function () {
+                    const response = await fetch("/page_uuid-is-valid", {
                         method: "POST",
-                        body: JSON.stringify({ participant_id: participantId }),
+                        body: JSON.stringify({ participant_id: psynet.participantId, page_uuid: pageUuid }),
                         headers: {
                             "Content-Type": "application/json",
                         },
@@ -1397,7 +1397,8 @@
                         throw new Error("Failed to fetch page UUID");
                     }
 
-                    return await response.text()
+                    const responseJson = await response.json();
+                    return responseJson["valid"]
                 };
 
                 psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
@@ -1408,8 +1409,7 @@
                         return false;
                     }
 
-                    newPageUuid = await psynet.fetchPageUuid(psynet.participantId);
-                    if (newPageUuid !== pageUuid) {
+                    if (!await psynet.checkPageUuid()) {
                         psynet.alert(
                             "{{ pgettext("timeline_problem", "It seems you have opened the experiment in multiple tabs. Please close all but one tab and refresh the page.") }}",
                             async function () {window.location.reload()}

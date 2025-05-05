@@ -3063,16 +3063,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return res
 
-    @experiment_route("/page_uuid", methods=["POST"])
+    @experiment_route("/page_uuid-is-valid", methods=["POST"])
     @classmethod
     @with_transaction
-    def page_uuid(cls):
+    def page_uuid_is_valid(cls):
         json_data = request.get_json()
+        page_uuid = get_arg_from_dict(json_data, "page_uuid")
         participant_id = get_arg_from_dict(json_data, "participant_id")
         participant = cls.get_participant_from_participant_id(
             int(participant_id), for_update=False
         )
-        return participant.page_uuid
+        return {"valid": participant.page_uuid == page_uuid}
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod
