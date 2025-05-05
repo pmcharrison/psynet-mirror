@@ -2401,8 +2401,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return render_template_with_translations("ad.html", **kw)
         except Exception as e:
             if "already_did_exp_hit" in str(e):
-                worker_id = request.args.get("workerId")
-                assignment_id = request.args.get("assignmentId")
+                entry_information = request.args.to_dict()
+                exp = get_experiment()
+                entry_data = exp.normalize_entry_information(entry_information)
+                worker_id = entry_data.get("workerId")
+                assignment_id = entry_data.get("assignmentId")
                 unique_id = f"{worker_id}:{assignment_id}"
                 logger.info(
                     f"Redirecting existing participant {unique_id} to timeline."
