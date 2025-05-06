@@ -1369,7 +1369,7 @@
 
                 psynet.submitResponse = async function (onRejection) {
                     if (psynet.stageResponse) {
-                        psynet.stageResponse();
+                        await psynet.stageResponse();
                     }
                     if (typeof retrieveResponse == "undefined") {
                         await psynet.nextPage();
