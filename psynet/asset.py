@@ -613,12 +613,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.trial_id = ancestors["trial"]
                 self.participant_id = ancestors["participant"]
 
-            if not self.participant_id:
-                from .experiment import get_experiment
-
-                exp = get_experiment()
-                exp.global_assets.append(self)
-
             # Note: performing the deposit cues post-deposit actions as well (e.g. async_post_trial),
             # which may rely on the asset being in its complete state. Any information that may be needed
             # by these post-deposit actions must be saved before this step.

@@ -33,6 +33,7 @@ from dallinger.recruiters import _descendent_classes
 from flask import url_for
 from flask.globals import current_app
 from flask.templating import Environment, _render
+from sqlalchemy import or_
 
 from psynet.translation.utils import load_po
 
@@ -111,36 +112,35 @@ def call_function_with_context(function, *args, **kwargs):
         experiment = get_experiment()
 
     if "assets" in requested and assets == NoArgumentProvided:
-        assets = {}
-        for asset in experiment.global_assets:
-            if asset.module_id is None:
-                assets[asset.local_key] = asset
-            elif participant != NoArgumentProvided:
-                assert isinstance(participant, Participant)
-                if (
-                    participant.module_state
-                    and asset.module_id == participant.module_state.module_id
-                ):
-                    assets[asset.local_key] = asset
+        from psynet.asset import Asset
+
+        # We initially query just assets that are not participant-specific.
+        # We will add participant-specific assets later, looking specifically at
+        # assets that are associated with the participant's module state.
+        assets = Asset.query.filter_by(participant_id=None)
 
         if participant != NoArgumentProvided:
             assert isinstance(participant, Participant)
+            participant_module_id = (
+                participant.module_state.module_id if participant.module_state else None
+            )
+            assets = assets.filter_by(module_id=participant_module_id)
 
-            if participant.module_state:
-                assets = {
-                    **assets,
-                    **participant.module_state.assets,
-                }
+        assets = {asset.local_key: asset for asset in assets.all()}
+
+        if participant != NoArgumentProvided and participant.module_state:
+            assets.update(participant.module_state.assets)
 
     if participant != NoArgumentProvided and participant.module_state:
         if "nodes" in requested and nodes == NoArgumentProvided:
-            nodes = []
-            for node in experiment.global_nodes:
-                if node.module_id is None:
-                    nodes.append(node)
-                elif node.module_id == participant.module_state.module_id:
-                    nodes.append(node)
-            nodes += participant.module_state.nodes
+            from psynet.trial.main import TrialNode
+
+            nodes = TrialNode.query.filter(
+                or_(
+                    TrialNode.module_id == participant.module_state.module_id,
+                    TrialNode.module_id.is_(None),
+                )
+            ).all()
 
     if "trial_maker" in requested and trial_maker == NoArgumentProvided:
         if (

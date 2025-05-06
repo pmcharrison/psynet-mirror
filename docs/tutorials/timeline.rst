@@ -135,7 +135,7 @@ For example, a simple page maker might look like the following:
     from psynet.timeline import PageMaker
 
     PageMaker(
-        lambda participant, experiment: InfoPage(f"You answered {participant.answer}.),
+        lambda participant, experiment: InfoPage(f"You answered {participant.answer}."),
         time_estimate=5
     )
 
@@ -149,7 +149,7 @@ but it doesn't have to accept all of these arguments. For example, the following
     from psynet.timeline import PageMaker
 
     PageMaker(
-        lambda participant: InfoPage(f"You answered {participant.answer}.),
+        lambda participant: InfoPage(f"You answered {participant.answer}."),
         time_estimate=5
     )
 
