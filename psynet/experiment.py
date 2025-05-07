@@ -1815,6 +1815,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         client_ip_address,
         answer=NoArgumentProvided,
     ):
+        _p = get_translator(context=True)
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
@@ -1823,12 +1824,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .populate_existing()
             .get(participant_id)
         )
-
-        if page_uuid != participant.page_uuid:
-            raise RuntimeError(
-                f"Participant {participant_id} tried to submit data with the wrong page_uuid"
-                + f"(submitted = {page_uuid}, required = {participant.page_uuid})."
-            )
 
         try:
             event = self.timeline.get_current_elt(self, participant)
@@ -1851,6 +1846,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             if isinstance(validation, str):
                 validation = FailedValidation(message=validation)
+
+            if page_uuid != participant.page_uuid:
+                validation = FailedValidation(
+                    message=_p(
+                        "timeline_problem",
+                        "It seems you have opened the experiment in multiple tabs. Please close all but one tab and refresh the page.",
+                    )
+                )
             response.successful_validation = not isinstance(
                 validation, FailedValidation
             )
@@ -3062,18 +3065,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         return res
-
-    @experiment_route("/page_uuid-is-valid", methods=["POST"])
-    @classmethod
-    @with_transaction
-    def page_uuid_is_valid(cls):
-        json_data = request.get_json()
-        page_uuid = get_arg_from_dict(json_data, "page_uuid")
-        participant_id = get_arg_from_dict(json_data, "participant_id")
-        participant = cls.get_participant_from_participant_id(
-            int(participant_id), for_update=False
-        )
-        return {"valid": participant.page_uuid == page_uuid}
 
     @experiment_route("/log/<level>/<unique_id>", methods=["POST"])
     @classmethod

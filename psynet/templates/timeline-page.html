@@ -1384,23 +1384,6 @@
                     }
                 }
 
-                psynet.checkPageUuid = async function () {
-                    const response = await fetch("/page_uuid-is-valid", {
-                        method: "POST",
-                        body: JSON.stringify({ participant_id: psynet.participantId, page_uuid: pageUuid }),
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    });
-
-                    if (!response.ok) {
-                        throw new Error("Failed to fetch page UUID");
-                    }
-
-                    const responseJson = await response.json();
-                    return responseJson["valid"]
-                };
-
                 psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
                     if (!psynet.pageLoaded) {
                         psynet.alert(
@@ -1408,15 +1391,6 @@
                         )
                         return false;
                     }
-
-                    if (!await psynet.checkPageUuid()) {
-                        psynet.alert(
-                            "{{ pgettext("timeline_problem", "It seems you have opened the experiment in multiple tabs. Please close all but one tab and refresh the page.") }}",
-                            async function () {window.location.reload()}
-                        )
-                        return false;
-                    }
-
                     if (psynet.nextPagePending) {
                         psynet.log.debug("Skipping nextPage request as nextPage is already pending.");
                         return false;
@@ -1445,19 +1419,17 @@
                     return passedValidation
                 };
 
-                psynet.alert = function (text, callback=async function(){}) {
+                psynet.alert = function (text) {
                     return new Promise((resolve) => {
                         let alertModal = $("#alert-modal");
                         let alertButton = $("#alert-button");
                         let alertText = $("#alert-message");
                         alertText.text(text);
                         alertModal.css("display", "block");
-                        let closeModal = async function () {
-                            await callback()
+                        alertButton.click(async function () {
                             alertModal.css("display", "none");
                             resolve();
-                        };
-                        alertButton.click(closeModal);
+                        });
                     });
                 };
 
