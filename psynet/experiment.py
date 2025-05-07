@@ -2404,8 +2404,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 entry_information = request.args.to_dict()
                 exp = get_experiment()
                 entry_data = exp.normalize_entry_information(entry_information)
-                worker_id = entry_data.get("workerId")
-                assignment_id = entry_data.get("assignmentId")
+                worker_id = entry_data.get("worker_id")
+                assignment_id = entry_data.get("assignment_id")
                 unique_id = f"{worker_id}:{assignment_id}"
                 logger.info(
                     f"Redirecting existing participant {unique_id} to timeline."
