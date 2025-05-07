@@ -1445,20 +1445,19 @@
                     return passedValidation
                 };
 
-
-                psynet.alertCallback = async function () {
-                    alertModal.css("display", "none");
-                    resolve();
-                }
-
-                psynet.alert = function (text, callback=psynet.alertCallback) {
+                psynet.alert = function (text, callback=async function(){}) {
                     return new Promise((resolve) => {
                         let alertModal = $("#alert-modal");
                         let alertButton = $("#alert-button");
                         let alertText = $("#alert-message");
                         alertText.text(text);
                         alertModal.css("display", "block");
-                        alertButton.click(callback);
+                        let closeModal = async function () {
+                            await callback()
+                            alertModal.css("display", "none");
+                            resolve();
+                        };
+                        alertButton.click(closeModal);
                     });
                 };
 
