@@ -271,7 +271,7 @@ class VocabPage(Page):
         from psynet.bot import BotResponse
 
         answer = [
-            {"hash": item, "answer": random.choice(["real", "fake"])}
+            {"hash": item["hash"], "answer": random.choice(["real", "fake"])}
             for item in self.items
         ]
         return BotResponse(
