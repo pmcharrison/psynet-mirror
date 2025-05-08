@@ -2,6 +2,7 @@ import os
 import random
 import re
 import tempfile
+import warnings
 from datetime import time
 from hashlib import sha256
 from importlib import resources
@@ -238,7 +239,7 @@ class VocabPage(Page):
 
     time_estimate : int
         The time estimate for the page in seconds.
-    items : list[str]
+    items : list[dict]
         The list of items to show. This includes n_items + n_repeat_items item. The order is randomized on the backend.
         The order on the frontend is fixed.
     test_config : dict
@@ -250,12 +251,10 @@ class VocabPage(Page):
     def __init__(
         self,
         time_estimate,
-        items: list[str],
+        items: list[dict],
         test_config: dict,
         media: Optional[MediaSpec] = None,
     ):
-        if media is None:
-            media = {}
         self.items = items
         super().__init__(
             label="vocabtest",
@@ -294,22 +293,36 @@ class VocabTrial(StaticTrial):
         return self.node.trial_maker
 
     def show_trial(self, experiment, participant):
+
+        test_config = {
+            "trueKeyButton": self.trial_maker.true_key_button,
+            "trueKeyLabel": self.trial_maker.true_key_label,
+            "falseKeyButton": self.trial_maker.false_key_button,
+            "falseKeyLabel": self.trial_maker.false_key_label,
+            "hideAfter": self.trial_maker.hide_after,
+            "lagBetweenItems": self.trial_maker.lag_between_items,
+            "useKeyboard": self.trial_maker.use_keyboard,
+            "showButtons": self.trial_maker.use_buttons,
+            "presentAsImage": self.trial_maker.present_as_image,
+        }
+        items = [{"hash": _hash} for _hash in self.definition["hashes"]]
+        if self.trial_maker.present_as_image:
+            test_config["imageWidth"] = self.trial_maker.image_width
+            test_config["imageHeight"] = self.trial_maker.image_height
+        else:
+            hash2stimulus = {item["hash"]: item["stimulus"] for item in self.node.seed}
+            items = [
+                {**item, "stimulus": hash2stimulus[item["hash"]]} for item in items
+            ]
         return VocabPage(
-            items=self.definition["hashes"],
-            test_config={
-                "trueKeyButton": self.trial_maker.true_key_button,
-                "trueKeyLabel": self.trial_maker.true_key_label,
-                "falseKeyButton": self.trial_maker.false_key_button,
-                "falseKeyLabel": self.trial_maker.false_key_label,
-                "hideAfter": self.trial_maker.hide_after,
-                "lagBetweenItems": self.trial_maker.lag_between_items,
-                "useKeyboard": self.trial_maker.use_keyboard,
-                "showButtons": self.trial_maker.use_buttons,
-                "imageWidth": self.trial_maker.image_width,
-                "imageHeight": self.trial_maker.image_height,
-            },
+            items=items,
+            test_config=test_config,
+            media=(
+                MediaSpec(image={**self.assets})
+                if self.trial_maker.present_as_image
+                else None
+            ),
             time_estimate=self.trial_maker.time_estimate_per_trial,
-            media=MediaSpec(image={**self.assets}),
         )
 
     def show_feedback(self, experiment, participant):
@@ -429,6 +442,7 @@ class VocabTest(StaticTrialMaker):
         false_key_button: str = "KeyL",
         false_key_label: str = "L",
         trial_class: Type[VocabTrial] = VocabTrial,
+        present_as_image: bool = True,
         **kwargs,
     ):
         self.locale = locale
@@ -466,36 +480,43 @@ class VocabTest(StaticTrialMaker):
                         "hash": date_hash(stimulus),
                     }
                 )
-        arabic_regex = r"[^0-9\u0600-\u06ff\u0750-\u077f\ufb50-\ufbc1\ufbd3-\ufd3f\ufd50-\ufd8f\ufd50-\ufd8f\ufe70-\ufefc\uFDF0-\uFDFD]+"
-        arabic_chars = re.sub(arabic_regex, "", concatenated_chars)
-        arabic_percentage = len(arabic_chars) / len(concatenated_chars)
-        self.use_arabic_script = arabic_percentage > 0.9
-        # Image settings
-        self.image_width = kwargs.get("image_width", default_test_config["image_width"])
-        self.image_height = kwargs.get(
-            "image_height", default_test_config["image_height"]
-        )
-        font_path = "static/fonts/GoNotoKurrent-Bold.ttf"
-        if not os.path.exists(font_path):
-            url = (
-                "https://psynet.s3.amazonaws.com/resources/fonts/GoNotoKurrent-Bold.ttf"
-            )
-            with yaspin(text="Downloading font...", color="yellow") as spinner:
-                response = requests.get(url)
-                spinner.ok("✔")
-            os.makedirs(os.path.dirname(font_path), exist_ok=True)
-            with open(font_path, "wb") as f:
-                f.write(response.content)
-        default_test_config["font_path"] = os.path.abspath(font_path)
 
-        self.font_size = get_fitting_font_size(
-            text=test_items[-1]["stimulus"],
-            font_path=default_test_config["font_path"],
-            max_width=int(self.image_width * 0.8),
-            max_height=int(self.image_height * 0.8),
-            min_font_size=10,
-            max_font_size=100,
-        )
+        self.present_as_image = present_as_image
+        if self.present_as_image:
+            arabic_regex = r"[^0-9\u0600-\u06ff\u0750-\u077f\ufb50-\ufbc1\ufbd3-\ufd3f\ufd50-\ufd8f\ufd50-\ufd8f\ufe70-\ufefc\uFDF0-\uFDFD]+"
+            arabic_chars = re.sub(arabic_regex, "", concatenated_chars)
+            arabic_percentage = len(arabic_chars) / len(concatenated_chars)
+            self.use_arabic_script = arabic_percentage > 0.9
+            # Image settings
+            self.image_width = kwargs.get(
+                "image_width", default_test_config["image_width"]
+            )
+            self.image_height = kwargs.get(
+                "image_height", default_test_config["image_height"]
+            )
+            font_path = "static/fonts/GoNotoKurrent-Bold.ttf"
+            if not os.path.exists(font_path):
+                url = "https://psynet.s3.amazonaws.com/resources/fonts/GoNotoKurrent-Bold.ttf"
+                with yaspin(text="Downloading font...", color="yellow") as spinner:
+                    response = requests.get(url)
+                    spinner.ok("✔")
+                os.makedirs(os.path.dirname(font_path), exist_ok=True)
+                with open(font_path, "wb") as f:
+                    f.write(response.content)
+            default_test_config["font_path"] = os.path.abspath(font_path)
+
+            self.font_size = get_fitting_font_size(
+                text=test_items[-1]["stimulus"],
+                font_path=default_test_config["font_path"],
+                max_width=int(self.image_width * 0.8),
+                max_height=int(self.image_height * 0.8),
+                min_font_size=10,
+                max_font_size=100,
+            )
+        else:
+            warnings.warn(
+                "The test is not presented as images. This will make it easier for LLMs to pass the test."
+            )
 
         self.n_trials = n_trials
         self.n_items = n_items
@@ -582,6 +603,8 @@ class VocabTest(StaticTrialMaker):
         return selected_hashes
 
     def get_assets(self, stimuli, selected_hashes):
+        if not self.present_as_image:
+            return {}
         assets = {
             asset.local_key: asset
             for asset in ExperimentAsset.query.filter(
