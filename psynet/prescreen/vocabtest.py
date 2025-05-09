@@ -292,9 +292,8 @@ class VocabTrial(StaticTrial):
     def trial_maker(self) -> "VocabTest":
         return self.node.trial_maker
 
-    def show_trial(self, experiment, participant):
-
-        test_config = {
+    def get_base_test_config(self):
+        return {
             "trueKeyButton": self.trial_maker.true_key_button,
             "trueKeyLabel": self.trial_maker.true_key_label,
             "falseKeyButton": self.trial_maker.false_key_button,
@@ -305,25 +304,39 @@ class VocabTrial(StaticTrial):
             "showButtons": self.trial_maker.use_buttons,
             "presentAsImage": self.trial_maker.present_as_image,
         }
-        items = [{"hash": _hash} for _hash in self.definition["hashes"]]
-        if self.trial_maker.present_as_image:
-            test_config["imageWidth"] = self.trial_maker.image_width
-            test_config["imageHeight"] = self.trial_maker.image_height
-        else:
-            hash2stimulus = {item["hash"]: item["stimulus"] for item in self.node.seed}
-            items = [
-                {**item, "stimulus": hash2stimulus[item["hash"]]} for item in items
-            ]
+
+    @property
+    def items(self) -> list[dict]:
+        return [{"hash": _hash} for _hash in self.definition["hashes"]]
+
+    def show_image_trial(self):
+        test_config = self.get_base_test_config()
+        test_config["imageWidth"] = self.trial_maker.image_width
+        test_config["imageHeight"] = self.trial_maker.image_height
         return VocabPage(
-            items=items,
+            items=self.items,
             test_config=test_config,
-            media=(
-                MediaSpec(image={**self.assets})
-                if self.trial_maker.present_as_image
-                else None
-            ),
+            media=(MediaSpec(image={**self.assets})),
             time_estimate=self.trial_maker.time_estimate_per_trial,
         )
+
+    def show_text_trial(self):
+        hash2stimulus = {item["hash"]: item["stimulus"] for item in self.node.seed}
+        items = [
+            {**item, "stimulus": hash2stimulus[item["hash"]]} for item in self.items
+        ]
+        return VocabPage(
+            items=items,
+            test_config=self.get_base_test_config(),
+            media=None,
+            time_estimate=self.trial_maker.time_estimate_per_trial,
+        )
+
+    def show_trial(self, experiment, participant):
+        if self.trial_maker.present_as_image:
+            return self.show_image_trial()
+        else:
+            return self.show_text_trial()
 
     def show_feedback(self, experiment, participant):
         if not self.show_feedback or self.score is None:
