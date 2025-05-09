@@ -474,12 +474,12 @@ class VocabTest(StaticTrialMaker):
                 n_repeat_items > 0
             ), "The number of repeated items must be greater than 0."
         concatenated_chars = ""
+        test_items = []
         with open(csv_path) as f:
             lines = [line.strip() for line in f.readlines()]
             headers = lines[0].split(",")
             assert headers == ["stimulus", "correct_answer"]
             lines = lines[1:]
-            test_items = []
             for line in lines:
                 stimulus, correct_answer = line.split(",")
                 concatenated_chars += stimulus.strip()
@@ -496,36 +496,7 @@ class VocabTest(StaticTrialMaker):
 
         self.present_as_image = present_as_image
         if self.present_as_image:
-            arabic_regex = r"[^0-9\u0600-\u06ff\u0750-\u077f\ufb50-\ufbc1\ufbd3-\ufd3f\ufd50-\ufd8f\ufd50-\ufd8f\ufe70-\ufefc\uFDF0-\uFDFD]+"
-            arabic_chars = re.sub(arabic_regex, "", concatenated_chars)
-            arabic_percentage = len(arabic_chars) / len(concatenated_chars)
-            self.use_arabic_script = arabic_percentage > 0.9
-            # Image settings
-            self.image_width = kwargs.get(
-                "image_width", default_test_config["image_width"]
-            )
-            self.image_height = kwargs.get(
-                "image_height", default_test_config["image_height"]
-            )
-            font_path = "static/fonts/GoNotoKurrent-Bold.ttf"
-            if not os.path.exists(font_path):
-                url = "https://psynet.s3.amazonaws.com/resources/fonts/GoNotoKurrent-Bold.ttf"
-                with yaspin(text="Downloading font...", color="yellow") as spinner:
-                    response = requests.get(url)
-                    spinner.ok("✔")
-                os.makedirs(os.path.dirname(font_path), exist_ok=True)
-                with open(font_path, "wb") as f:
-                    f.write(response.content)
-            default_test_config["font_path"] = os.path.abspath(font_path)
-
-            self.font_size = get_fitting_font_size(
-                text=test_items[-1]["stimulus"],
-                font_path=default_test_config["font_path"],
-                max_width=int(self.image_width * 0.8),
-                max_height=int(self.image_height * 0.8),
-                min_font_size=10,
-                max_font_size=100,
-            )
+            self.image_setup(concatenated_chars, test_items, **kwargs)
         else:
             warnings.warn(
                 "The test is not presented as images. This will make it easier for LLMs to pass the test."
@@ -562,6 +533,38 @@ class VocabTest(StaticTrialMaker):
             recruit_mode=None,
             target_trials_per_node=None,
             target_n_participants=None,
+        )
+
+    def image_setup(self, concatenated_chars, test_items, **kwargs):
+        arabic_regex = r"[^0-9\u0600-\u06ff\u0750-\u077f\ufb50-\ufbc1\ufbd3-\ufd3f\ufd50-\ufd8f\ufd50-\ufd8f\ufe70-\ufefc\uFDF0-\uFDFD]+"
+        arabic_chars = re.sub(arabic_regex, "", concatenated_chars)
+        arabic_percentage = len(arabic_chars) / len(concatenated_chars)
+        self.use_arabic_script = arabic_percentage > 0.9
+        # Image settings
+        self.image_width = kwargs.get("image_width", default_test_config["image_width"])
+        self.image_height = kwargs.get(
+            "image_height", default_test_config["image_height"]
+        )
+        font_path = "static/fonts/GoNotoKurrent-Bold.ttf"
+        if not os.path.exists(font_path):
+            url = (
+                "https://psynet.s3.amazonaws.com/resources/fonts/GoNotoKurrent-Bold.ttf"
+            )
+            with yaspin(text="Downloading font...", color="yellow") as spinner:
+                response = requests.get(url)
+                spinner.ok("✔")
+            os.makedirs(os.path.dirname(font_path), exist_ok=True)
+            with open(font_path, "wb") as f:
+                f.write(response.content)
+        default_test_config["font_path"] = os.path.abspath(font_path)
+
+        self.font_size = get_fitting_font_size(
+            text=test_items[-1]["stimulus"],
+            font_path=default_test_config["font_path"],
+            max_width=int(self.image_width * 0.8),
+            max_height=int(self.image_height * 0.8),
+            min_font_size=10,
+            max_font_size=100,
         )
 
     def select_hashes(self, stimuli, n):
