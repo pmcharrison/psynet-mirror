@@ -48,6 +48,12 @@ class TestExp(object):
             )
             next_page(driver, "consent")
 
+            # Set a fixed time credit to make the test deterministic
+            participant = get_participant(1)
+            participant.time_credit = (
+                108.0  # This will give us exactly $0.36 with wage_per_hour=12.0
+            )
+
             assert_text(driver, "main-body", "Welcome Welcome to the experiment! Next")
             next_page(driver, "next-button")
 
