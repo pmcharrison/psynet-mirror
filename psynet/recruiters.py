@@ -130,16 +130,21 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return PageMaker(self._reject_assignment, time_estimate=0.0)
 
     def _reject_assignment(self, participant) -> TimelineLogic:
+        from markupsafe import Markup
+
         _p = get_translator(context=True)
 
         logic_screen_out_successful = InfoPage(
-            _p(
-                "screen_out_successful",
-                "Success! "
-                "You have been credited for the time spent on the experiment. "
-                "Because you could not progress to the main experiment "
-                "your submission will appear as 'screened out' in Prolific. "
-                "You can now close this browser window.",
+            Markup(
+                _p(
+                    "screen_out_successful",
+                    "Success! "
+                    "You have been credited for the time spent on the experiment.<br>"
+                    "Because you could not progress to the main experiment "
+                    "your submission will appear as 'screened out' in Prolific. "
+                    "You can now close this browser window."
+                    '<br><br><p><button onclick="window.close()" class="btn btn-primary">Close</button></p>',
+                )
             ),
             show_next_button=False,
             time_estimate=0.0,
