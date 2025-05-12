@@ -55,7 +55,7 @@ def _screen_out_participant(participant):
     experiment = get_experiment()
     recruiter = experiment.recruiter
 
-    response = recruiter.screen_out(participant.assignment_id)
+    response = recruiter.screen_out(participant, participant.calculate_reward())
     success = False
 
     if response.get("payment_per_participant", None) is not None:

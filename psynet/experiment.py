@@ -1330,7 +1330,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def screen_out(assignment_id):
         exp = get_experiment()
-        return exp.recruiter.screen_out(assignment_id)
+        participant = Participant.query.filter_by(
+            assignment_id=assignment_id
+        ).one_or_none()
+        if participant is None:
+            raise ValueError(
+                f"No participant found for assignment ID '{assignment_id}' during screen-out."
+            )
+        return exp.recruiter.screen_out(participant, participant.calculate_reward())
 
     @experiment_route("/api/<endpoint>", methods=["GET", "POST"])
     @staticmethod
