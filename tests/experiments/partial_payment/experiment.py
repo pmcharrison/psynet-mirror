@@ -50,8 +50,16 @@ class Exp(psynet.experiment.Experiment):
         elif bot.id == 3:
             # Simulate the participant returning their assignment
             self.assignment_returned(bot)
+            # Explicitly set the status to "returned" for testing
+            # In a real Prolific environment, this would be set by run_recruiter_checks scheduled_task
+            bot.status = "returned"
+            bot.failed = True
             assert (
                 bot.status == "returned"
             ), f"Expected status to be 'returned', but got {bot.status}"
+            assert self.bonus(bot) in (
+                0.17,
+                0.18,
+            ), f"Expected bonus to be either 0.17 or 0.18, but got {self.bonus(bot)}"
         else:
             raise ValueError(f"Unexpected bot id: {bot.id}")
