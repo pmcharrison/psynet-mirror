@@ -38,8 +38,6 @@ class Exp(psynet.experiment.Experiment):
             assert bot.status == "approved"
             assert self.bonus(bot) == BONUS
         elif bot.id == 2:
-            bot.run_to_completion()
-            bot.wait_until_experiment_launch_is_complete()
             assert (
                 bot.status == "screened_out"
             ), f"Expected status to be 'screened_out', but got {bot.status}"
