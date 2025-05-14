@@ -248,7 +248,7 @@ class AudioPrompt(Prompt):
 
     def preprocess_controls(self, controls: Union[bool, Iterable]):
         _ = get_translator()
-        valid_controls = {
+        default_controls = {
             "Play from start": _("Play from start"),
             "Stop": _("Stop"),
             "Loop": _("Loop"),
@@ -256,7 +256,7 @@ class AudioPrompt(Prompt):
 
         if isinstance(controls, bool):
             if controls:
-                controls = valid_controls
+                controls = default_controls
             else:
                 controls = {}
 
@@ -267,7 +267,7 @@ class AudioPrompt(Prompt):
             raise ValueError(f"Invalid value for controls: {controls}")
 
         for key in controls.keys():
-            if key not in valid_controls:
+            if key not in default_controls:
                 raise ValueError(f"{key} is not a valid control")
 
         return controls
