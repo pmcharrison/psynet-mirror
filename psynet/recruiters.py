@@ -229,10 +229,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             return False
 
     def check_for_returned_assignment(self, participant):
-        # By default the recruiter check only runs once every 30 seconds,
-        # so this value is likely to be out of date. It would make sense
-        # to trigger the recruiter check directly within this function
-        # return participant.status == "returned"  # TODO: Check if this is correct
         from psynet.experiment import get_experiment
 
         experiment = get_experiment()
