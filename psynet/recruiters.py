@@ -270,7 +270,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
         endpoint = f"/studies/{study_id}/screen-out-submissions/"
 
-        # Todo: Update Dallinger DevProlificService so that `_req` deals appropriately with `screen-out-submissions`.
         if isinstance(experiment.recruiter, DevProlificRecruiter):
             logger.info(
                 f"Simulating API call to make partial payment to participant {participant.id} of {payment}. "
