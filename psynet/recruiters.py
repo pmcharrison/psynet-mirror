@@ -88,9 +88,14 @@ class PsyNetRecruiterMixin:
         # AND it also pays the participant a bonus, calculated from participant.bonus()
         from .page import ExecuteFrontEndJS
 
+        _p = get_translator(context=True)
+
         return ExecuteFrontEndJS(
             "dallinger.submitAssignment()",
-            message="Communicating with the recruiter...",  # Todo - translate
+            message=_p(
+                "recruiter_communication",
+                "Communicating with the recruiter...",
+            ),
         )
 
     def check_consents(self, consents):
