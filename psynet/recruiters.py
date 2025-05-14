@@ -58,11 +58,15 @@ def _screen_out_participant(participant):
     response = recruiter.screen_out(participant, participant.calculate_reward())
     success = False
 
-    if response.get("payment_per_participant", None) is not None:
+    response_message = response.get("message")
+
+    if response_message == "The request to bulk screen out has been made successfully.":
         success = True
+        logger.info(response_message)
+    else:
+        logger.warning(f"Screen out failed: {response}")
 
     participant.var.prolific_screen_out_successful = success
-    logger.info(response["message"])
 
     return success
 
