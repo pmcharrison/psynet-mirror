@@ -10,7 +10,7 @@ __version__ = psynet_version
 old_load = Configuration.load
 
 
-def load(self):
+def load(self, strict=True):
     if not experiment_available():
         # If we're not in an experiment directory, Dallinger won't have loaded our custom configurations.
         # We better do that now.
@@ -23,9 +23,9 @@ def load(self):
                 pass
             else:
                 raise
-        self.extend(Experiment.config_defaults(), strict=True)
+        self.extend(Experiment.config_defaults(), strict=strict)
 
-    old_load(self)
+    old_load(self, strict=strict)
 
 
 Configuration.load = load

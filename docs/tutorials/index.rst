@@ -16,6 +16,7 @@ Tutorials
    modular_page
    graphics
    demography
+   large_stimulus_sets
    prescreening_tasks
    create_and_rate
    pre_deploy_routines

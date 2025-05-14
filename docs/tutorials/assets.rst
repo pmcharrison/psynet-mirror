@@ -25,6 +25,11 @@ We recommend most users go for this option as it offers the best performance.
 However, other backends are possible, for example to store assets on Amazon S3.
 See the :class:`~psynet.asset.S3Storage` class for more details.
 
+.. warning::
+    PsyNet's asset management system currently has some performance overhead that can make it slow
+    to deploy large experiments (e.g. 1000s of files). For an alternative manual approach, see
+    :ref:`large_stimulus_sets`.
+
 Creating an asset
 -----------------
 

@@ -2931,14 +2931,10 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         self.async_on_deploy_failed = False
 
     def check_on_deploy(self):
-        from psynet.experiment import get_experiment, in_deployment_package
+        from psynet.experiment import in_deployment_package
 
         if (not in_deployment_package()) or self.on_deploy_complete:
             return
-
-        exp = get_experiment()
-        if self not in exp.global_nodes:
-            exp.global_nodes.append(self)
 
         if self.async_on_deploy_required and not (
             self.async_on_deploy_requested or self.async_on_deploy_complete

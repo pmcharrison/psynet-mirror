@@ -2676,6 +2676,59 @@ def lucid__locale(ctx):
     )
 
 
+@lucid.command("estimate")
+@click.option(
+    "--language-code",
+    help="Lucid language code; see `psynet lucid locale`",
+    required=True,
+)
+@click.option(
+    "--country-code",
+    help="Lucid country code; see `psynet lucid locale`",
+    required=True,
+)
+@click.option("--completes", help="Number of completes", type=int, required=True)
+@click.option("--wage", help="Wage per hour", type=float, required=True)
+@click.option(
+    "--survey-length",
+    help="Length of survey in minutes (i.e., the expected time of a user to complete the survey)",
+    type=int,
+    required=True,
+)
+@click.option(
+    "--duration",
+    help="Duration how long the survey is put on the marketplace",
+    type=int,
+    required=True,
+)
+@click.option(
+    "--delay", type=int, default=2 * 24 * 7, help="Delay in hours (default: 2 weeks)"
+)
+@click.option("--incidence-rate", type=float, default=0.6, help="Incidence rate")
+@click.option("--collects-pii", is_flag=True, help="Survey collects PII")
+@click.option("--qualifications", help="Path to qualifications JSON file", default=None)
+@click.pass_context
+def lucid__estimate(
+    ctx,
+    language_code,
+    country_code,
+    completes,
+    wage,
+    survey_length,
+    duration,
+    delay,
+    incidence_rate,
+    collects_pii,
+    qualifications,
+):
+    if qualifications is not None:
+        with open(qualifications, "r") as file:
+            qualifications = json.load(file)
+    params = locals()
+    params.pop("ctx")  # pop context
+    get_lucid_service().estimate(**params)
+
+
 @lucid.command("status")
 @click.argument("survey_number", required=True)
 @click.argument("status", required=True)
@@ -2806,7 +2859,12 @@ class ListOfStrings(click.ParamType):
     default=False,
     help="Continue translating even if an error occurs",
 )
-def translate(locales, force, skip_pot, continue_on_error):
+@click.option(
+    "--translator",
+    default=None,
+    help="The translator to use for translation. If not specified, the default translator will be used.",
+)
+def translate(locales, force, skip_pot, continue_on_error, translator):
     """
     Inspects the code in the current directory and generates automatic translations for a given set of languages.
 
@@ -2837,6 +2895,9 @@ def translate(locales, force, skip_pot, continue_on_error):
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     from psynet.translation.translate import translate_experiment, translate_package
+    from psynet.translation.translators import get_translator_from_name
+
+    translator = get_translator_from_name(translator)
 
     if in_python_package():
         click.echo(
@@ -2844,13 +2905,21 @@ def translate(locales, force, skip_pot, continue_on_error):
             + f" at {os.getcwd()}."
         )
         translate_package(
-            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+            locales,
+            force=force,
+            skip_pot=skip_pot,
+            continue_on_error=continue_on_error,
+            translator=translator,
         )
 
     elif experiment_available():
         click.echo(bold("Found an experiment to translate") + f" at {os.getcwd()}.")
         translate_experiment(
-            locales, force=force, skip_pot=skip_pot, continue_on_error=continue_on_error
+            locales,
+            force=force,
+            skip_pot=skip_pot,
+            continue_on_error=continue_on_error,
+            translator=translator,
         )
 
     else:

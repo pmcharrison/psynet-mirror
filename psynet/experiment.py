@@ -37,14 +37,14 @@ from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
-from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter
+from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter, RecruitmentStatus
 from dallinger.utils import get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import joinedload, relationship, with_polymorphic
+from sqlalchemy.orm import joinedload, with_polymorphic
 
 from psynet import __version__
 from psynet.utils import get_config
@@ -511,14 +511,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return is_experiment_launched()
 
     @property
-    def global_assets(self):
-        return self.experiment_config.global_assets
-
-    @property
-    def global_nodes(self):
-        return self.experiment_config.global_nodes
-
-    @property
     def supported_locales(self):
         """
         Returns the list of supported locales for the experiment.
@@ -666,7 +658,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def get_recruiter_status(cls):
         exp = get_experiment()
-        return exp.recruiter.get_status()
+        status = exp.recruiter.get_status()
+        if isinstance(status, dict):
+            return status
+        elif isinstance(status, RecruitmentStatus):
+            return vars(status)
+        else:
+            raise ValueError(
+                f"Unknown status type: {type(status)}. Must be one of: dict, RecruitmentStatus"
+            )
 
     @classmethod
     def get_hardware_status(cls):
@@ -3146,9 +3146,6 @@ class ExperimentConfig(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
-
-    global_assets = relationship("Asset")
-    global_nodes = relationship("psynet.trial.main.TrialNode")
 
 
 def _patch_dallinger_models():
