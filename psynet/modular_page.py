@@ -172,6 +172,8 @@ class AudioPrompt(Prompt):
         True results in all controls being displayed (Play from start, Stop, Loop).
         An iterable can be used to select specific controls to display. A list, set, or dictionary with
         empty values will use standard labels. Custom labels can be specified as the dictionary values.
+        A boolean, set, or list will result in automatically translated button labels if using translation.
+        A dictionary will not be automatically translated - use this to specify custom values for button labels.
 
     fade_in
         Fade-in duration for the audio (defaults to ``0.0``).
@@ -245,7 +247,12 @@ class AudioPrompt(Prompt):
         }
 
     def preprocess_controls(self, controls: Union[bool, Iterable]):
-        valid_controls = {"Play from start", "Stop", "Loop"}
+        _ = get_translator()
+        valid_controls = {
+            "Play from start": _("Play from start"),
+            "Stop": _("Stop"),
+            "Loop": _("Loop"),
+        }
 
         if isinstance(controls, bool):
             if controls:
@@ -254,7 +261,7 @@ class AudioPrompt(Prompt):
                 controls = {}
 
         if isinstance(controls, (set, list)):
-            controls = {x: x for x in controls}
+            controls = {x: _(x) for x in controls}
 
         if not isinstance(controls, dict):
             raise ValueError(f"Invalid value for controls: {controls}")
