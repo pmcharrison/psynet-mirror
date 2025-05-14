@@ -228,7 +228,15 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         # By default the recruiter check only runs once every 30 seconds,
         # so this value is likely to be out of date. It would make sense
         # to trigger the recruiter check directly within this function
-        return participant.status == "returned"  # TODO: Check if this is correct
+        # return participant.status == "returned"  # TODO: Check if this is correct
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
+        recruiter = experiment.recruiter
+        submission = recruiter.prolificservice.get_participant_submission(
+            participant.assignment_id
+        )
+        return submission and submission.get("status") == "RETURNED"
 
     def _request_partial_payment(self, participant, payment: float):
         from psynet.experiment import get_experiment
