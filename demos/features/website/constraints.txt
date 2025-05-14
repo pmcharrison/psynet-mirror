@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 7853ca87448735923b5a251a636059c7
+# Compiled from a requirement.txt file with md5sum: 5eac3375f76d58a50856602e6a84e4d9
 #
 ansi2html==1.9.2
     # via
@@ -97,7 +97,7 @@ docker==7.1.0
     #   dallinger
 dominate==2.9.1
     # via
-    #   -r /tmp/tmpgsu00yek/requirements.txt
+    #   -r /tmp/tmp9harz01y/requirements.txt
     #   psynet
 executing==2.2.0
     # via
@@ -191,7 +191,7 @@ jmespath==1.0.1
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.2.0/dev-requirements.txt
     #   boto3
     #   botocore
-joblib==1.4.2
+joblib==1.5.0
     # via psynet
 jsonpickle==4.0.5
     # via psynet
@@ -273,7 +273,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.2.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==12.0.1
+psynet==12.0.2
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via

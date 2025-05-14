@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: b9a37b818921a06f0df7049e77e71283
+# Compiled from a requirement.txt file with md5sum: 2e48fce6ba588047ce911551a326d168
 #
 ansi2html==1.9.2
     # via
@@ -141,7 +141,7 @@ flask-wtf==1.2.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.2.0/dev-requirements.txt
     #   dallinger
-fonttools==4.57.0
+fonttools==4.58.0
     # via matplotlib
 future==1.0.0
     # via
@@ -203,7 +203,7 @@ jmespath==1.0.1
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.2.0/dev-requirements.txt
     #   boto3
     #   botocore
-joblib==1.4.2
+joblib==1.5.0
     # via
     #   music21
     #   psynet
@@ -223,7 +223,7 @@ markupsafe==3.0.2
     #   jinja2
     #   werkzeug
     #   wtforms
-matplotlib==3.10.1
+matplotlib==3.10.3
     # via
     #   music21
     #   sing4me
@@ -310,7 +310,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.2.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet==12.0.1
+psynet==12.0.2
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
@@ -397,7 +397,7 @@ s3transfer==0.11.4
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.2.0/dev-requirements.txt
     #   boto3
-scipy==1.15.2
+scipy==1.15.3
     # via sing4me
 selenium==4.30.0
     # via
