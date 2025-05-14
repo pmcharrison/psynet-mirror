@@ -1771,13 +1771,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         :returns:
             The reward as a ``float``.
         """
-        if participant.status in [
-            "screened_out",
-            "returned",
-        ]:  # Is it correct to include returned?
-            reward = participant.calculate_reward()
-        else:
-            reward = participant.calculate_reward() - self.base_payment
+        reward = participant.calculate_reward()
         return self.check_bonus(reward, participant)  # TODO - check this
 
     def check_bonus(self, reward, participant):
