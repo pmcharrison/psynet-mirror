@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [12.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.2) Release - 2025-05-14
+
+## Fixed
+- Updated Configuration patching code to reflect recent change in Dallinger's `Configuration.load` signature (author: Pol van Rijn, reviewer: Peter Harrison)
+
 # [12.0.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.1) Release - 2025-04-30
 
 ## Fixed
