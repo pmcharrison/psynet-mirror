@@ -46,11 +46,7 @@ def _screen_out_participant(participant):
     """
     Standalone function for AsyncCodeBlock to use (can be serialized properly)
     """
-    import logging
-
     from psynet.experiment import get_experiment
-
-    logger = logging.getLogger(__name__)
 
     experiment = get_experiment()
     recruiter = experiment.recruiter
@@ -234,8 +230,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
         experiment = get_experiment()
         recruiter = experiment.recruiter
+        logger.info(
+            f"Checking Prolific submission status for assignment {participant.assignment_id}"
+        )
         submission = recruiter.prolificservice.get_participant_submission(
             participant.assignment_id
+        )
+        logger.info(
+            f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )
         return submission and submission.get("status") == "RETURNED"
 
