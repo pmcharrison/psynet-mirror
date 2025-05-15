@@ -1325,6 +1325,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "max_participant_payment": 25.0,
         }
 
+    # TODO Remove this route once we are done with screen-out implementation
+    # It is only used for testing in tests/experiments/screen_out which is going to be removed from this MR
     @experiment_route("/screen-out/<assignment_id>", methods=["GET"])
     @staticmethod
     @with_transaction
