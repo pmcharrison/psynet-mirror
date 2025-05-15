@@ -35,16 +35,20 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         if bot.id == 1:
-            assert bot.status == "approved"
-            assert self.bonus(bot) == BONUS
+            assert (
+                bot.status == "approved"
+            ), f"Expected status for bot ID {bot.id} to be 'approved', but got {bot.status}"
+            assert (
+                self.bonus(bot) == BONUS
+            ), f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)}"
         elif bot.id == 2:
             assert (
                 bot.status == "screened_out"
-            ), f"Expected status to be 'screened_out', but got {bot.status}"
+            ), f"Expected status for bot ID {bot.id} to be 'screened_out', but got {bot.status}"
             assert self.bonus(bot) in (
                 0.17,
                 0.18,
-            ), f"Expected bonus to be either 0.17 or 0.18, but got {self.bonus(bot)}"  # £10/hour * 1 minute / 60 minutes/hour = £0.1666... ≈ £0.17 but can also be £0.18 sometimes
+            ), f"Expected bonus for bot ID {bot.id} to be either 0.17 or 0.18, but got {self.bonus(bot)}"  # £10/hour * 1 minute / 60 minutes/hour = £0.1666... ≈ £0.17 but can also be £0.18 sometimes
         elif bot.id == 3:
             # Simulate the participant returning their assignment
             self.assignment_returned(bot)
@@ -54,10 +58,10 @@ class Exp(psynet.experiment.Experiment):
             bot.failed = True
             assert (
                 bot.status == "returned"
-            ), f"Expected status to be 'returned', but got {bot.status}"
+            ), f"Expected status for bot ID {bot.id} to be 'returned', but got {bot.status}"
             assert self.bonus(bot) in (
                 0.17,
                 0.18,
-            ), f"Expected bonus to be either 0.17 or 0.18, but got {self.bonus(bot)}"
+            ), f"Expected bonus for bot ID {bot.id} to be either 0.17 or 0.18, but got {self.bonus(bot)}"
         else:
             raise ValueError(f"Unexpected bot id: {bot.id}")

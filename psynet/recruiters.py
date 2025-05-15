@@ -51,24 +51,26 @@ def _screen_out_participant(participant):
     experiment = get_experiment()
     recruiter = experiment.recruiter
 
-    response = recruiter.screen_out(participant, participant.calculate_reward())
-    success = False
-
-    response_message = response.get("message")
-
-    if response_message == "The request to bulk screen out has been made successfully.":
-        success = True
-        logger.info(response_message)
-    else:
-        logger.warning(f"Screen out failed: {response}")
-
-    participant.var.prolific_screen_out_successful = success
-
-    return success
+    return recruiter.screen_out(participant, participant.calculate_reward())
 
 
 class PsyNetRecruiterMixin:
     show_termination_button = False
+
+    def screen_out(self, participant, bonus):
+        response = super().screen_out(participant, bonus)
+        message = response.get("message")
+        success = (
+            message == "The request to bulk screen out has been made successfully."
+        )
+        if success:
+            logger.info(message)
+        else:
+            logger.warning(f"Screen out failed: {response}")
+
+        participant.var.prolific_screen_out_successful = success
+
+        return success
 
     def terminate_participant(
         self, participant=None, assignment_id=None, reason=None, details=None
