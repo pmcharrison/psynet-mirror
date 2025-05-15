@@ -183,7 +183,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     _p(
                         "screen_out_unsuccessful_message",
                         "Sorry, but it looks like your assignment hasn't been returned yet. "
-                        "Can you wait a few seconds, try again, then press 'Next'? "
+                        "Can you wait a few seconds, double-check that you have correctly "
+                        "returned the experiment via the Prolific website, then press 'Next'? "
                         "If you keep seeing this message, even after pressing 'Next' "
                         "then please contact the experimenter via the Prolific website "
                         "and ask them to check your submission manually.",
