@@ -7,6 +7,8 @@ from psynet.demography.general import (
     HearingLoss,
     Income,
     Language,
+    LanguagesInOrderOfProficiency,
+    MotherTongues,
     SpeechDisorders,
 )
 from psynet.demography.gmsi import GMSI
@@ -20,6 +22,8 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         BasicDemography(),
         Language(),
+        MotherTongues(),
+        LanguagesInOrderOfProficiency(),
         BasicMusic(),
         HearingLoss(),
         Dance(),
