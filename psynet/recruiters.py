@@ -128,11 +128,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         if not participant.failed:
             return self.approve_assignment()
         else:
-            # Once Jazkarta has implemented better recruiter communication in Dallinger,
-            # we will add a check that prevents the participant from continuing
-            # if they have not returned the assignment.
-            # Don't pay base payment
-            # Pay total reward as bonus
             return self.reject_assignment(participant)
 
     def reject_assignment(self, participant) -> TimelineLogic:
