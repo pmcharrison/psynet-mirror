@@ -4,7 +4,7 @@ import random
 import shutil
 import tempfile
 import warnings
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, Iterable, List, Optional, Union
 
 from dominate import tags
 from dominate.dom_tag import dom_tag
@@ -166,7 +166,14 @@ class AudioPrompt(Prompt):
         The behaviour is undefined when the time window extends past the end of the audio file.
 
     controls
-        Whether to give the user playback controls (default = ``False``).
+        Whether to give the user playback controls, and which controls (default = ``False``).
+        Accepts either a boolean or an iterable (dictionary, set, list).
+        False results in no controls being displayed.
+        True results in all controls being displayed (Play from start, Stop, Loop).
+        An iterable can be used to select specific controls to display. A list, set, or dictionary with
+        empty values will use standard labels. Custom labels can be specified as the dictionary values.
+        A boolean, set, or list will result in automatically translated button labels if using translation.
+        A dictionary will not be automatically translated - use this to specify custom values for button labels.
 
     fade_in
         Fade-in duration for the audio (defaults to ``0.0``).
@@ -185,7 +192,7 @@ class AudioPrompt(Prompt):
         loop: bool = False,
         text_align="left",
         play_window: Optional[List] = None,
-        controls: bool = False,
+        controls: Union[bool, Iterable] = False,
         fade_in: float = 0.0,
         fade_out: float = 0.0,
         **kwargs,
@@ -220,7 +227,7 @@ class AudioPrompt(Prompt):
         self.url = url
         self.loop = loop
         self.play_window = play_window
-        self.controls = controls
+        self.controls = self.preprocess_controls(controls)
 
         self.js_play_options = dict(
             start=play_window[0],
@@ -239,6 +246,32 @@ class AudioPrompt(Prompt):
             "play_window": self.play_window,
         }
 
+    def preprocess_controls(self, controls: Union[bool, Iterable]):
+        _ = get_translator()
+        default_controls = {
+            "Play from start": _("Play from start"),
+            "Stop": _("Stop"),
+            "Loop": _("Loop"),
+        }
+
+        if isinstance(controls, bool):
+            if controls:
+                controls = default_controls
+            else:
+                controls = {}
+
+        if isinstance(controls, (set, list)):
+            controls = {x: _(x) for x in controls}
+
+        if not isinstance(controls, dict):
+            raise ValueError(f"Invalid value for controls: {controls}")
+
+        for key in controls.keys():
+            if key not in default_controls:
+                raise ValueError(f"{key} is not a valid control")
+
+        return controls
+
     @property
     def media(self):
         return MediaSpec(audio={"prompt": self.url})
@@ -251,7 +284,9 @@ class AudioPrompt(Prompt):
             super().visualize(trial)
             + "\n"
             + tags.audio(
-                tags.source(src=src), id="visualize-audio-prompt", controls=True
+                tags.source(src=src),
+                id="visualize-audio-prompt",
+                controls=self.controls,
             ).render()
         )
         return html
