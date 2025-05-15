@@ -291,6 +291,28 @@ example_audio_page_2 = PageMaker(
     time_estimate=5,
 )
 
+example_audio_page_2b = PageMaker(
+    lambda assets: ModularPage(
+        "audio_page",
+        AudioPrompt(
+            assets["bier"],
+            """
+        This page customizes the audio controls to only display
+        a 'Replay' button.
+        """,
+            # If the user provides a dictionary, then the keys should
+            # correspond to built-in controls, and the values (optional)
+            # should correspond to the desired names for those controls.
+            # Here the user has just selected one of the available controls
+            # and named it 'Replay'.
+            controls={"Play from start": "Replay"},
+            loop=False,
+        ),
+        start_trial_automatically=True,
+    ),
+    time_estimate=5,
+)
+
 example_audio_page_3 = PageMaker(
     lambda assets: ModularPage(
         "audio_page",
@@ -451,6 +473,7 @@ class Exp(psynet.experiment.Experiment):
             example_audio_page,
             example_audio_page_1,
             example_audio_page_2,
+            example_audio_page_2b,
             example_audio_page_3,
             example_audio_meter,
             example_record_page,

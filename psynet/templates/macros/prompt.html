@@ -45,20 +45,26 @@
             }
         </style>
 
-        <div id="audio-prompt-controls">
-            <button id="audio-prompt-play" type="button" class="btn audio-prompt-button btn-primary btn-sm" disabled>
-                {{ gettext("Play from start") }}
-            </button>
-            <button id="audio-prompt-stop" type="button" class="btn audio-prompt-button btn-secondary btn-sm" disabled>
-                {{ gettext("Stop") }}
-            </button>
-            <div id="audio-prompt-loop">
-              <input id="audio-prompt-loop-input" type="checkbox" value="" {% if params.loop %} checked {% endif %}>
-              <label id="audio-prompt-loop-label" for="audio-prompt-loop-input" style="cursor: pointer;">
-                {{ gettext("Loop") }}
-              </label>
-            </div>
-        </div>
+    <div id="audio-prompt-controls">
+    {% if "Play from start" in params.controls %}
+    <button id="audio-prompt-play" type="button" class="btn audio-prompt-button btn-primary btn-sm" disabled>
+        {{ params.controls["Play from start"] }}
+    </button>
+    {% endif %}
+    {% if "Stop" in params.controls %}
+    <button id="audio-prompt-stop" type="button" class="btn audio-prompt-button btn-secondary btn-sm" disabled>
+        {{ params.controls["Stop"] }}
+    </button>
+    {% endif %}
+    {% if "Loop" in params.controls %}
+    <div id="audio-prompt-loop">
+      <input id="audio-prompt-loop-input" type="checkbox" value="" {% if params.loop %} checked {% endif %}>
+      <label id="audio-prompt-loop-label" for="audio-prompt-loop-input" style="cursor: pointer;">
+        {{ params.controls["Loop"] }}
+      </label>
+    </div>
+    {% endif %}
+</div>
 
         <script>
         $(document).ready(function() {
