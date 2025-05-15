@@ -1,4 +1,7 @@
+from typing import Optional
+
 from psynet.modular_page import (
+    Control,
     DropdownControl,
     ModularPage,
     NumberControl,
@@ -354,33 +357,145 @@ class MoreThanOneLanguage(ModularPage):
         )
 
 
-class LanguagesInOrderOfProficiency(ModularPage):
+class LanguageList(ModularPage):
+    """
+    This is a superclass containing core functionality for free-text participant language input pages.
+
+    Parameters
+    ----------
+    label : str, optional
+        The label for the page. The label is specified with default values in subclasses.
+    prompt : str or callable, optional
+        Prompt to show the participant. The prompt is specified with default values in subclasses.
+    control : Control, optional
+        The type of control to show to the participant. The control is specified with default values in subclasses.
+    time_estimate : float, optional
+        The time estimate for the page.
+    save_answer : str, optional
+        The name under which to store participant answers. Defaults to label.
+
+    Attributes
+    ----------
+    default_label : str
+        A default label to use is none is specified. Defined in each subclass.
+    default_prompt : str or callable
+        A default prompt to use if none is specified. Defined in each subclass.
+    default_control : Control
+        A default control to use if none is specified. Defined in each subclass.
+
+    Methods
+    -------
+    validate(response, **kwargs)
+        Ensures the participant has given a non-empty response, and raises a message to them if not.
+    """
+
     def __init__(
         self,
-        label="languages_in_order_of_proficiency",
+        label: Optional[str] = None,
+        prompt: Optional[str] = None,
+        control: Optional[Control] = None,
+        time_estimate: float = 5,
+        save_answer: Optional[str] = None,
     ):
-        _p = get_translator(context=True)
-        self.label = label
-        self.prompt = _p(
-            "language-select",
-            "Please list the languages you speak in order of proficiency (first language first, second language second, ...)",
-        )
-        self.time_estimate = 5
+        if label is None:
+            label = self.default_label
+        if prompt is None:
+            prompt = self.default_prompt
+        if control is None:
+            control = self.default_control
+        if save_answer is None:
+            save_answer = label
         super().__init__(
-            self.label,
-            self.prompt,
-            control=TextControl(),
-            time_estimate=self.time_estimate,
-            save_answer=label,
+            label,
+            prompt,
+            control=control,
+            time_estimate=time_estimate,
+            save_answer=save_answer,
         )
+
+    @property
+    def default_label(self):
+        raise NotImplementedError("Subclasses must define default_label")
+
+    @property
+    def default_prompt(self):
+        raise NotImplementedError("Subclasses must define default_prompt")
+
+    @property
+    def default_control(self):
+        return TextControl()
 
     def validate(self, response, **kwargs):
         _p = get_translator(context=True)
-        if not response.answer != "":
+        if response.answer.strip() == "":
             return FailedValidation(
                 _p("language-select", "Please list at least one language!")
             )
         return None
+
+
+class LanguagesInOrderOfProficiency(LanguageList):
+    """
+    A free-text response page for participants to input multiple language in order of proficiency.
+
+    Inherits from
+    -------------
+    LanguageList
+
+    Attributes
+    ----------
+    default_label : str
+        The default label for this page.
+        May be overwritten with a label parameter when called.
+    default_prompt : str or callable
+        The default prompt instructing participants to list languages in order of proficiency.
+        May be overwritten with a prompt parameter when called.
+    default_control : Control
+        The default control used for user input (free-text).
+        May be overwritten with a Control parameter when called (unlikely to be needed).
+    """
+
+    default_label = "languages_in_order_of_proficiency"
+
+    @property
+    def default_prompt(self):
+        _p = get_translator(context=True)
+        return _p(
+            "language-select",
+            "Please list the languages you speak in order of proficiency (first language first, second language second, ...)",
+        )
+
+
+class MotherTongues(LanguageList):
+    """
+    A free-text response page for participants to input multiple languages they speak as mother tongues.
+
+    Inherits from
+    -------------
+    LanguageList
+
+    Attributes
+    ----------
+    default_label : str
+        The default label for this page.
+        May be overwritten with a label parameter when called.
+    default_prompt : str or callable
+        The default prompt instructing participants to list all languages they speak as mother tongues.
+        May be overwritten with a prompt parameter when called.
+    default_control : Control
+        The default control used for user input (free-text).
+        May be overwritten with a Control parameter when called (unlikely to be needed).
+    """
+
+    default_label = "mother_tongues"
+
+    @property
+    def default_prompt(self):
+        _p = get_translator(context=True)
+        return _p(
+            "language-select",
+            "Please list all languages you speak as mother tongues (i.e., which you grew up speaking since childhood).",
+        )
 
 
 # Basic music #
