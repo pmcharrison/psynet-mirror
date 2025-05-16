@@ -45,6 +45,8 @@ class Exp(psynet.experiment.Experiment):
     config = {
         "base_payment": 1.0,
         "wage_per_hour": 10.0,
+        "prolific_workspace": "test_workspace",
+        "prolific_project": "test_project",
     }
 
     test_n_bots = 3
