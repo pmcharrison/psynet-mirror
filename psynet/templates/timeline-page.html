@@ -703,6 +703,9 @@
                 // };
 
                 psynet.media.stopAllAudio = function () {
+                    if (typeof stop_all_tonejs_audio === "function") {
+                        stop_all_tonejs_audio();
+                    }
                     if (psynet.audio) {
                         Object.values(psynet.audio).forEach(function (x) {
                             x.stop();

@@ -49,6 +49,7 @@ example_js_synth_1 = ModularPage(
             Note(62, pan=1),
             Note(67, pan=1),
         ],
+        controls=True,
     ),
     time_estimate=5,
 )

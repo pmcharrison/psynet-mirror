@@ -13,7 +13,7 @@ class AdditiveComplexTone {
     if ("params" in specs) {
       console.assert(specs["max_num_harmonics"] - specs["params"]["amps"].length >= 0, "Length of custom timbre must not exceed %d!",specs["max_num_harmonics"])
       console.assert(specs["params"]["amps"].length == specs["params"]["freqs"].length, "Number of amplitudes must be equal to number of frequency partials!")
-      
+
       this.amps = util.post_pad(specs["params"]["amps"], specs["max_num_harmonics"], 0);
       this.freqs = util.post_pad(specs["params"]["freqs"], specs["max_num_harmonics"], 0);
       this.octave_definition = 2;
@@ -124,7 +124,7 @@ play_stimulus = function (stimulus) {
   var n = note_list.length;
   var onsets = new Array(n).fill(0);
   var note_events = []
-  
+
   Tone.Transport.cancel()
   Tone.Transport.stop()
 
@@ -154,7 +154,7 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
         specs[key] = DEFAULT_PARAMS[key]
       }
     }
-    
+
     console.assert(N <= specs["max_num_pitches"], "Number of pitches in a chord must not exceed max_num_pitches=%d!",specs["max_num_pitches"])
     console.assert(specs["num_octave_transpositions"] <= specs["max_num_octave_transpositions"], "Number of transpositions must not exceed max_num_octave_transpositions=%d!",specs["max_num_octave_transpositions"])
 
@@ -162,7 +162,7 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
     for (i=0;i<N;i++){
       freqs = freqs.concat([util.midi2freq(pitches[i])])
     }
-    
+
     if (specs["type"] in ADDITIVE_TYPES) {
       let synthesizer = new ADDITIVE_TYPES[specs["type"]](specs)
       freqs = util.post_pad(freqs, specs["max_num_pitches"], 0) // 0 frequency signifies no output
@@ -173,9 +173,9 @@ play_note = function (active_nodes, stimulus, note_dict, time) {
     } else {
       throw {name : "NotImplementedError", message : "Timbre type not implemented!"};
     }
-  
+
 }
-  
+
 util_freq2midi = function (freq) {
     return Math.log2( freq / 440 ) * 12 + 69
 }
@@ -190,7 +190,7 @@ util_complex = function (num_harmonics,roll_off) {
 
     for (i=1;i<=num_harmonics;i++){
         weight = - Math.log2(i) * roll_off
-        weight = Math.pow(10,weight/20) 
+        weight = Math.pow(10,weight/20)
         partials = partials.concat([weight])
         norm = norm + Math.pow(weight,2)
     }
@@ -244,11 +244,11 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time,duration,pan,
     } else {
       sweights = util.shepard(specs["num_octave_transpositions"], specs["max_num_octave_transpositions"], freq, synth.octave_definition) // generate shepard weight tower around freq of width num_octave_transpositions, and then zero-pad to width max_num_octave_transpositions
     }
-    
-    for (j = 0; j < 2 * specs["max_num_octave_transpositions"] + 1; j++){ 
-      curr_freq = freq * Math.pow(synth.octave_definition, j - specs["max_num_octave_transpositions"]); // generate Shepard octave compatible with stretching 
-      
-      for (k = 0; k < specs["max_num_harmonics"]; k++) { 
+
+    for (j = 0; j < 2 * specs["max_num_octave_transpositions"] + 1; j++){
+      curr_freq = freq * Math.pow(synth.octave_definition, j - specs["max_num_octave_transpositions"]); // generate Shepard octave compatible with stretching
+
+      for (k = 0; k < specs["max_num_harmonics"]; k++) {
         osc = tone_nodes[j][k][0];
         gain = tone_nodes[j][k][1];
 
@@ -338,4 +338,28 @@ util = {
   midi2freq: util_midi2freq,
   shepard: util_shepard,
   post_pad: util_post_pad
+}
+
+function stop_all_tonejs_audio() {
+    // Stop custom timbre notes (ACTIVE_NODES)
+    if (typeof ACTIVE_NODES !== "undefined") {
+        const active_nodes = ACTIVE_NODES;
+        if (active_nodes["envelope"] && typeof active_nodes["envelope"].triggerRelease === "function") {
+            active_nodes["envelope"].triggerRelease();
+        }
+        for (const key in active_nodes) {
+            if (!key.startsWith("complex_")) continue;
+            const tone_nodes = active_nodes[key];
+            for (const row of tone_nodes) {
+                for (const cell of row) {
+                    cell[0].stop();
+                }
+            }
+        }
+    }
+    // Stop ToneJS transport and scheduled events
+    if (typeof Tone !== 'undefined') {
+        Tone.Transport.cancel();
+        Tone.Transport.stop();
+    }
 }

@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from .modular_page import Prompt
+from .modular_page import BaseAudioPrompt
 from .timeline import Event
 
 
@@ -394,8 +394,8 @@ class Rest(Chord):
         super().__init__(pitches=[], duration=duration, silence=0.0)
 
 
-class JSSynth(Prompt):
-    """ "
+class JSSynth(BaseAudioPrompt):
+    """
     JS synthesizer.
     This uses a Javascript library ('js-synthesizer')written by Raja Marjieh,
     which itself depends heavily on the Tone.JS library.
@@ -436,6 +436,16 @@ class JSSynth(Prompt):
 
     text_align:
         CSS alignment of the text (default = ``"left"``).
+
+    controls:
+        Whether to give the user playback controls, and which controls (default = ``False``).
+        Accepts either a boolean or an iterable (dictionary, set, list).
+        False results in no controls being displayed.
+        True results in all controls being displayed (Play from start, Stop, Loop).
+        An iterable can be used to select specific controls to display. A list, set, or dictionary with
+        empty values will use standard labels. Custom labels can be specified as the dictionary values.
+        A boolean, set, or list will result in automatically translated button labels if using translation.
+        A dictionary will not be automatically translated - use this to specify custom values for button labels.
     """
 
     def __init__(
@@ -446,8 +456,9 @@ class JSSynth(Prompt):
         default_duration=0.75,
         default_silence=0.0,
         text_align="left",
+        controls=False,
     ):
-        super().__init__(text=text, text_align=text_align)
+        super().__init__(text=text, text_align=text_align, controls=controls)
 
         if timbre == "default":
             timbre = HarmonicTimbre()
