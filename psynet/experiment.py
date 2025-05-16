@@ -1781,7 +1781,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             reward = participant.calculate_reward()
         else:
             reward = participant.calculate_reward() - self.base_payment
-        return self.check_bonus(reward, participant)
+        return round(self.check_bonus(reward, participant), 2)
 
     def check_bonus(self, reward, participant):
         """
