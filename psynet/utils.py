@@ -1239,7 +1239,6 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
                         "recruiters" in dir_
                         # Skip the screen_out demo because it requires Prolific recruiter
                         or dir_.endswith("/screen_out")
-                        or dir_.endswith("/partial_payment")
                         # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
                         # in the CI environment
                         or dir_.endswith("/gibbs_video")
