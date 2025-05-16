@@ -37,14 +37,14 @@ class Exp(psynet.experiment.Experiment):
         if bot.id == 1:
             assert (
                 bot.status == "approved"
-            ), f"Expected status for bot ID {bot.id} to be 'approved', but got {bot.status}"
+            ), f"Expected status for bot ID {bot.id} to be 'approved', but got '{bot.status}'"
             assert (
                 self.bonus(bot) == BONUS
             ), f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)}"
         elif bot.id == 2:
             assert (
                 bot.status == "screened_out"
-            ), f"Expected status for bot ID {bot.id} to be 'screened_out', but got {bot.status}"
+            ), f"Expected status for bot ID {bot.id} to be 'screened_out', but got '{bot.status}'"
             assert self.bonus(bot) in (
                 0.17,
                 0.18,
@@ -58,7 +58,7 @@ class Exp(psynet.experiment.Experiment):
             bot.failed = True
             assert (
                 bot.status == "returned"
-            ), f"Expected status for bot ID {bot.id} to be 'returned', but got {bot.status}"
+            ), f"Expected status for bot ID {bot.id} to be 'returned', but got '{bot.status}'"
             assert self.bonus(bot) in (
                 0.17,
                 0.18,
