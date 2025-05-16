@@ -34,8 +34,7 @@ class EndLogic(EltCollection):
         from psynet.bot import Bot
 
         if isinstance(participant, Bot):
-            if not participant.failed:
-                participant.status = "approved"
+            participant.status = "approved"
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
         try:
