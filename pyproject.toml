@@ -33,7 +33,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger @ git+https://gitlab.com/Dallinger/Dallinger.git@8046a1a8ea01ee9bcc25018f6b9dcfa6a86fc984",
+    "dallinger @ git+https://github.com/Dallinger/Dallinger.git",
     "dominate",
     "html2text",
     "joblib",
