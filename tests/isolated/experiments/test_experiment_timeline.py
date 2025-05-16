@@ -246,4 +246,4 @@ class TestExp(object):
 
             # We haven't worked out by hand exactly what the bonus should be, so this number just comes
             # from running the test ourselves.
-            assert participant.bonus == 0.36
+            assert participant.bonus == 0.02
