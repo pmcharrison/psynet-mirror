@@ -516,10 +516,6 @@ def init_db(drop_all=False, bind=db.engine):
         old_init_db(drop_all, bind)
         spinner.ok("✔")
 
-    import time
-
-    time.sleep(1)  # Todo - remove this if it doesn't break the tests?
-
     return db.session
 
 
