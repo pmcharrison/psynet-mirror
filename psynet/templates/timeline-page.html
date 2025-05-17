@@ -535,6 +535,9 @@
                     };
 
                     trial.onEvent = function (id, handler, providedOptions) {
+                        if (typeof handler !== "function") {
+                            throw new Error("Handler must be a function in trial.onEvent");
+                        }
                         // Higher priority values are executed first
                         let options = {
                             priority: 0.0
