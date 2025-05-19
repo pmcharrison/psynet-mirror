@@ -59,6 +59,16 @@
         })
     })()
 </script>
+
+<!--Prefetching fonts here prevents the annoying text jumping effect that happens otherwise when you run-->
+<!--`psynet debug local` (as the browser opens in a no-cache mode, so the text files otherwise always have to load-->
+<!--fresh each time.-->
+<link rel="preload" href="{{ url_for('static', filename='css/fonts/inter.css') }}" as="style">
+<link rel="prefetch" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="prefetch" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Light.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="prefetch" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="prefetch" href="{{ url_for('static', filename='css/fonts/font-files/Inter-Medium.woff2') }}" as="font" type="font/woff2" crossorigin>
+
 <style>
     /* Color definitions */
     :root, [data-bs-theme=light] {
@@ -67,7 +77,6 @@
         --bs-body-bg: #fff !important;
         --bs-light: #f7f7f7 !important;
         --background-rgb: 255 255 255 !important;
-        --bs-body-font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif !important;
     }
 
     [data-bs-theme=dark] {
@@ -80,6 +89,8 @@
     }
 
     :root {
+        --bs-body-font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif !important;
+        --bs-font-sans-serif: var(--bs-body-font-family) !important;
         font-family: var(--bs-body-font-family);
     }
 

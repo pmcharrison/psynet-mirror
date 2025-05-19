@@ -65,6 +65,10 @@ class Prompt:
         An optional list of additional buttons to include on the page.
         Normally these will be created by calls to :class:`psynet.modular_page.Button`.
 
+    loop
+        Whether or not the prompt should loop back to the beginning after finishing.
+        Note: This is not yet implemented for all prompt types.
+
 
     Attributes
     ----------
@@ -92,9 +96,11 @@ class Prompt:
         text: Union[None, str, Markup] = None,
         text_align: str = "left",
         buttons: Optional[List] = None,
+        loop: bool = False,
     ):
         self.text = text
         self.text_align = text_align
+        self.loop = loop
 
         if isinstance(text, str) and not isinstance(text, Markup):
             self.text_html = tags.p(text)
@@ -134,7 +140,49 @@ class Prompt:
         pass
 
 
-class AudioPrompt(Prompt):
+class BaseAudioPrompt(Prompt):
+    """
+    A base class for miscellaneous audio prompts, including
+    AudioPrompt and JSSynth.
+    """
+
+    def __init__(
+        self,
+        *args,
+        controls: Union[bool, Iterable] = False,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.controls = self.preprocess_controls(controls)
+
+    def preprocess_controls(self, controls: Union[bool, Iterable]):
+        _ = get_translator()
+        default_controls = {
+            "Play from start": _("Play from start"),
+            "Stop": _("Stop"),
+            "Loop": _("Loop"),
+        }
+
+        if isinstance(controls, bool):
+            if controls:
+                controls = default_controls
+            else:
+                controls = {}
+
+        if isinstance(controls, (set, list)):
+            controls = {x: _(x) for x in controls}
+
+        if not isinstance(controls, dict):
+            raise ValueError(f"Invalid value for controls: {controls}")
+
+        for key in controls.keys():
+            if key not in default_controls:
+                raise ValueError(f"{key} is not a valid control")
+
+        return controls
+
+
+class AudioPrompt(BaseAudioPrompt):
     """
     Plays an audio file to the participant.
 
@@ -222,10 +270,9 @@ class AudioPrompt(Prompt):
         else:
             raise TypeError(f"Invalid type for audio argument: {type(audio)}")
 
-        super().__init__(text=text, text_align=text_align, **kwargs)
+        super().__init__(text=text, text_align=text_align, loop=loop, **kwargs)
 
         self.url = url
-        self.loop = loop
         self.play_window = play_window
         self.controls = self.preprocess_controls(controls)
 
@@ -245,32 +292,6 @@ class AudioPrompt(Prompt):
             "url": self.url,
             "play_window": self.play_window,
         }
-
-    def preprocess_controls(self, controls: Union[bool, Iterable]):
-        _ = get_translator()
-        default_controls = {
-            "Play from start": _("Play from start"),
-            "Stop": _("Stop"),
-            "Loop": _("Loop"),
-        }
-
-        if isinstance(controls, bool):
-            if controls:
-                controls = default_controls
-            else:
-                controls = {}
-
-        if isinstance(controls, (set, list)):
-            controls = {x: _(x) for x in controls}
-
-        if not isinstance(controls, dict):
-            raise ValueError(f"Invalid value for controls: {controls}")
-
-        for key in controls.keys():
-            if key not in default_controls:
-                raise ValueError(f"{key} is not a valid control")
-
-        return controls
 
     @property
     def media(self):

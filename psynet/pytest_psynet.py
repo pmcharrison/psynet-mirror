@@ -18,7 +18,11 @@ from dallinger.bots import BotBase
 from dallinger.config import get_config
 from dallinger.models import Node
 from dallinger.pytest_dallinger import flush_output
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import (
+    ElementClickInterceptedException,
+    NoSuchElementException,
+    TimeoutException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -97,12 +101,51 @@ def bot_class(headless=None):
             consent, and instruction pages.
             """
             try:
+                self.driver.set_window_size(1024, 768)
+
                 self.driver.get(self.URL)
                 logger.info("Loaded ad page.")
-                begin = WebDriverWait(self.driver, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button.btn-primary"))
+
+                # First ensure the page is fully loaded
+                WebDriverWait(self.driver, 10).until(
+                    lambda d: page_loaded(d), message="Page failed to load completely"
                 )
-                begin.click()
+                logger.info("Page fully loaded.")
+
+                # Then check for the button
+                begin = WebDriverWait(self.driver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button.btn-primary")),
+                    message="Begin experiment button not found or not clickable",
+                )
+
+                # Scroll button into view and wait until it's actually visible
+                self.driver.execute_script(
+                    "arguments[0].scrollIntoView({block: 'center'});", begin
+                )
+
+                # Wait until the button is actually in view
+                WebDriverWait(self.driver, 10).until(
+                    lambda d: d.execute_script(
+                        """
+                        const rect = arguments[0].getBoundingClientRect();
+                        return (
+                            rect.top >= 0 &&
+                            rect.left >= 0 &&
+                            rect.bottom <= window.innerHeight &&
+                            rect.right <= window.innerWidth
+                        );
+                    """,
+                        begin,
+                    ),
+                    message="Button failed to scroll into view",
+                )
+
+                try:
+                    begin.click()
+                except ElementClickInterceptedException:
+                    _debug_click_interception(self.driver, begin)
+                    raise
+
                 logger.info("Clicked begin experiment button.")
 
                 experiment = get_experiment()
@@ -150,7 +193,10 @@ def bot_class(headless=None):
             if headless:
                 chrome_options.add_argument("--headless")
 
-            return webdriver.Chrome(options=chrome_options)
+            driver = webdriver.Chrome(options=chrome_options)
+            driver.set_window_size(1024, 768)
+
+            return driver
 
     return PYTEST_BOT_CLASS
 
@@ -625,3 +671,95 @@ trial_maker_2 = StaticTrialMaker(
     recruit_mode="n_participants",
     n_repeat_trials=3,
 )
+
+
+def _debug_click_interception(driver, element):
+    """Debug what's intercepting a click on an element.
+
+    Parameters
+    ----------
+    driver : WebDriver
+        The Selenium WebDriver instance
+    element : WebElement
+        The element that failed to be clicked
+
+    Returns
+    -------
+    None
+        Logs debug information about what's intercepting the click
+    """
+    location = element.location
+    size = element.size
+    click_x = location["x"] + size["width"] // 2
+    click_y = location["y"] + size["height"] // 2
+
+    # Log viewport size and scroll position
+    viewport_size = driver.execute_script(
+        """
+        return {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            scrollX: window.scrollX,
+            scrollY: window.scrollY
+        };
+    """
+    )
+    logger.error(f"Viewport size and scroll: {viewport_size}")
+
+    # Check if element is in viewport
+    is_in_viewport = driver.execute_script(
+        """
+        const rect = arguments[0].getBoundingClientRect();
+        return {
+            isVisible: rect.width > 0 && rect.height > 0,
+            isInViewport: (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= window.innerHeight &&
+                rect.right <= window.innerWidth
+            ),
+            rect: {
+                top: rect.top,
+                left: rect.left,
+                bottom: rect.bottom,
+                right: rect.right
+            }
+        };
+    """,
+        element,
+    )
+    logger.error(f"Element viewport status: {is_in_viewport}")
+
+    # Get element at click coordinates
+    element_at_point = driver.execute_script(
+        """
+        return document.elementFromPoint(arguments[0], arguments[1]);
+        """,
+        click_x,
+        click_y,
+    )
+
+    # Get all elements that overlap with our button
+    overlapping_elements = driver.execute_script(
+        """
+        const button = arguments[0];
+        const buttonRect = button.getBoundingClientRect();
+        const elements = document.elementsFromPoint(
+            buttonRect.left + buttonRect.width/2,
+            buttonRect.top + buttonRect.height/2
+        );
+        return elements.map(el => ({
+            tag: el.tagName,
+            id: el.id,
+            class: el.className,
+            text: el.textContent?.trim()
+        }));
+        """,
+        element,
+    )
+
+    logger.error(f"Button location: {location}, size: {size}")
+    logger.error(
+        f"Element at click point: {element_at_point.get_attribute('outerHTML') if element_at_point else 'None'}"
+    )
+    logger.error(f"Overlapping elements: {overlapping_elements}")
