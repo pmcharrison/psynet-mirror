@@ -1,14 +1,25 @@
 # Iterated tapping from memory, adapted from Jacoby & McDermott (2017)
 import json
+import warnings
 from statistics import mean
 
 import numpy as np
 from markupsafe import Markup
 from repp.config import ConfigUpdater, sms_tapping
-from reppextension.iterated_tapping import (
-    REPPAnalysisItapMemory,
-    REPPStimulusItapMemory,
-)
+
+with warnings.catch_warnings():
+    # reppextension has a deprecation warning that we don't want to worry about.
+    warnings.filterwarnings(
+        "ignore",
+        message=r"Importing from numpy\.matlib is deprecated.*",
+        category=PendingDeprecationWarning,
+        module="reppextension",
+    )
+    from reppextension.iterated_tapping import (
+        REPPAnalysisItapMemory,
+        REPPStimulusItapMemory,
+    )
+
 from scipy.io import wavfile
 
 import psynet.experiment
