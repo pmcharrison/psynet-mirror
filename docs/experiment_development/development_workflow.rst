@@ -105,8 +105,8 @@ PyCharm breakpoints.
 To set up the PyCharm debugger for Psynet, click Run, then Edit Configurations. Click + (Add new configuration), then
 click Python debug server.
 
-**virtualenv users only**: enter 'Python debug server' as the configuration name, and ``localhost``
-as the IDE host name, and ``12345`` as the port. Install the pydevd_pycharm package by 
+**Virtual environment users only**: enter 'Python debug server' as the configuration name, and ``localhost``
+as the IDE host name, and ``12345`` as the port. Install the pydevd_pycharm package by
 following the provided instructions on the New Configuration panel (copy them and run them in your terminal).
 
 **Docker users only**: enter 'Dockerized Python debug server' as the configuration name, and ``host.docker.internal``
@@ -134,8 +134,8 @@ Copy and paste the two Python lines into the part of your code where you want to
 Now run your PsyNet debug command as usual:
 
 .. code:: bash
-    
-    psynet debug local  # virtualenv users
+
+    psynet debug local  # virtual environment users
     bash docker/psynet debug local  # Docker users
 
 Once PsyNet hits the breakpoint, your debug console should be activated. You should now be able to access the local
@@ -145,15 +145,15 @@ environment and execute arbitrary code.
 
     You may be aware that PyCharm provides an alternative breakpoint functionality
     where you simply click on the line number to create a breakpoint.
-    It would be great if this worked with PsyNet, but unfortunately due to a 
-    PyCharm bug it doesn't work for us. 
+    It would be great if this worked with PsyNet, but unfortunately due to a
+    PyCharm bug it doesn't work for us.
     See https://youtrack.jetbrains.com/issue/PY-60474 for more details.
 
 .. note::
 
     If you cannot use the PyCharm debug server then there are some other similar options available.
     One option is the rpdb package (https://pypi.org/project/rpdb/).
-    To use this with virtualenv, you need first to install it with ``pip install rpdb``.
+    To use this with a virtual environment, you need first to install it with ``pip install rpdb``.
     To insert a breakpoint, you put the following code in your Python script:
 
     .. code:: python
@@ -167,7 +167,7 @@ environment and execute arbitrary code.
         nc 127.0.0.1 4444
 
     As before, when the breakpoint is encountered, you will then be able to interact with the local
-    Python process via your debug server terminal. This allows you to, for example, view the state 
+    Python process via your debug server terminal. This allows you to, for example, view the state
     of local variables and execute custom code. Using rpdb requires more expertise because of the lack
     of a user interface; for instructions you can see the general instructions for pdb (the non-remote version)
     available here: https://docs.python.org/3/library/pdb.html#debugger-commands
@@ -241,7 +241,7 @@ To run the experiment's tests, you can enter the following into your bash termin
 
     bash docker/run psynet test local
 
-Or without docker:  
+Or without docker:
 
 .. code:: bash
 
@@ -254,14 +254,14 @@ It's a good habit to run this test as a final check before you deploy your exper
 
 .. note::
 
-    You can also run your experiment's tests via PyCharm. 
+    You can also run your experiment's tests via PyCharm.
     However, at the time of writing (June 2024) there is a bug in PyCharm's test result parser
-    that causes full tracebacks to be omitted from test results in some cases. 
+    that causes full tracebacks to be omitted from test results in some cases.
     To fix this problem we recommend editing your PyCharm's pytest run configurations to include
-    the additional argument ``--tb=short``. To do this, click Run > Edit Configurations > 
+    the additional argument ``--tb=short``. To do this, click Run > Edit Configurations >
     Edit configuration templates > Python tests > pytest, and then insert ``--tb=short``
     under Additional Arguments. Then press OK, then remove any existing pytest configurations for your
-    current project by pressing the minus symbol in the top left. Future tests should then run 
+    current project by pressing the minus symbol in the top left. Future tests should then run
     automatically using this option.
 
 

@@ -1,5 +1,5 @@
-Installing PsyNet via virtualenv (Windows)
-==============================================
+Installing PsyNet in a virtual environment (Windows)
+====================================================
 
 Installing PsyNet on a Windows machine depends on the “Windows Subsystem for Linux” (WSL).
 All code you run using your the installation needs to be run within the Linux subsystem.

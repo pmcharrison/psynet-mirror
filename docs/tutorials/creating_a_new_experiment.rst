@@ -19,7 +19,7 @@ If asked, click New Window.
 
 You should then see a dialog box titled ``Creating virtual environment``.
 The next step depends on whether you are using the Docker mode for running PsyNet,
-or whether you are using the Developer (i.e. ``virtualenv``) mode.
+or whether you are using the *virtual environment* mode.
 
 
 Docker mode
@@ -28,10 +28,10 @@ Docker mode
 If you are using the Docker mode, click ``Cancel`` and then follow the instructions in ``INSTALL.md``
 to set up your project. You can then follow the instructions in ``RUN.md`` to run the experiment.
 
-Developer mode
---------------
+Virtual environment mode
+------------------------
 
-If you are using the Developer mode, you will want to use this dialog box to create a virtual environment
+If you are using the *virtual environment* mode, you will want to use this dialog box to create a virtual environment
 for your project. The default name of this virtual environment will be the name of your folder,
 that normally works well. The dialog box will have selected a particular version of Python to use for this
 virtual environment (e.g. Python 3.11); have a look at this and make sure it's what you were expecting
