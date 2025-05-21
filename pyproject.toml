@@ -2,6 +2,9 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [project]
 name = "psynet"
 version = "12.1.0a0"
@@ -34,7 +37,9 @@ classifiers = [
 dependencies = [
     "babel",
     "dallinger[docker]>=11.2.0,<12",
-    "dominate",
+    # Using a specific commit from GitHub to fix Python 3.12 event loop warning
+    # TODO: Update to a new version > 2.9.1 once it's released
+    "dominate @ git+https://github.com/Knio/dominate.git@b268b8b",
     "html2text",
     "joblib",
     "jsonpickle",
@@ -44,6 +49,7 @@ dependencies = [
     "polib",
     "progress",
     "pytest",
+    "pytest-dependency",  # used for pytest.mark.dependency calls
     "pytest-mock",
     "python-gettext",
     "rpdb",

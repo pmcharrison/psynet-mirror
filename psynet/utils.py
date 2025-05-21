@@ -1583,3 +1583,24 @@ def text_to_image(text, path, width, height, font_size, font_path):
 
     # Save image
     im.save(path)
+
+
+def patch_yaspin_jupyter_detection():
+    """
+    Patch yaspin's is_jupyter detection to be more accurate.
+    The default implementation just checks if stdout is not a TTY,
+    which is not reliable as there are many cases where stdout might not be a TTY
+    that are not Jupyter.
+    """
+    from yaspin.core import Yaspin
+
+    def is_jupyter() -> bool:
+        try:
+            import IPython
+
+            return IPython.get_ipython() is not None
+        except ImportError:
+            return False
+
+    # Monkey patch the method
+    Yaspin.is_jupyter = staticmethod(is_jupyter)

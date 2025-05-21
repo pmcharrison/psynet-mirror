@@ -17,12 +17,14 @@ fi
 
 for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing experiment $file"
-  pytest --junitxml=/public/$(basename $file)_junit.xml $file/test.py -q -o log_cli=False --chrome || exit 1
+  # We use -Werror to ensure that we see all warnings as errors
+  pytest --junitxml=/public/$(basename $file)_junit.xml $file/test.py -Werror -q -o log_cli=False --chrome || exit 1
 done
 
 for file in $(psynet list-isolated-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing isolated test $file"
-  pytest $file -q -o log_cli=False --chrome || exit 1
+  # We use -Werror to ensure that we see all warnings as errors
+  pytest $file -Werror -q -o log_cli=False --chrome || exit 1
 done
 
 # At the moment we don't have any other tests to run, but here's some template code to do so
