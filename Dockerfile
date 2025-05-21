@@ -34,7 +34,7 @@ COPY . .
 RUN pip install --no-dependencies -e .
 
 # The following code can be used to reinstall Dallinger from a particular development branch or commit
-# RUN pip install "git+https://github.com/Dallinger/Dallinger.git@pmch-dev"
+RUN pip install "git+https://github.com/Dallinger/Dallinger.git@master"
 
 WORKDIR /PsyNet
 COPY ./ci/.dallingerconfig /root/.dallingerconfig
