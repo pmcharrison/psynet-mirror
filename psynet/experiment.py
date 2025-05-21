@@ -570,29 +570,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @with_transaction
     def on_launch(self):
-        logger.info("Calling Exp.on_launch()...")
         self.compile_psynet_translations_if_necessary()
         redis_vars.set("launch_started", True)
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
-        logger.info("Experiment launch complete!")
         db.session.commit()
         redis_vars.set("launch_finished", True)
 
+        # This log message is used by the testing logic to identify when the experiment has been launched
+        logger.info("Experiment launch complete!")
+
     def on_first_launch(self):
-        logger.info("Calling Exp.on_first_launch()...")
         for trialmaker in self.timeline.trial_makers.values():
             trialmaker.on_first_launch(self)
 
     def on_every_launch(self):
-        logger.info("Calling Exp.on_every_launch()...")
-
         # This check is helpful to stop the database from being ingested multiple times
         # if the launch fails the first time
         deployment_db_ingested = redis_vars.get("deployment_db_ingested", False)
-        print(f"deployment_db_ingested: {deployment_db_ingested}")
         if not deployment_db_ingested:
             ingest_zip(database_template_path, db.engine)
             redis_vars.set("deployment_db_ingested", True)
