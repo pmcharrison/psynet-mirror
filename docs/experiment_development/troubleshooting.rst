@@ -71,7 +71,7 @@ If you are on a Mac, you can check the status of your database by running this c
     brew services
 
 If you don't see a line with ``postgresql``, you have not installed PostgreSQL.
-Follow the virtualenv installation instructions to do so.
+Follow the virtual environment installation instructions to do so.
 
 If you do see a line with ``postgresql``, it probably has ``error`` written next to it.
 You need to get access to the logs to debug this error.
@@ -194,7 +194,7 @@ If the CLI is not responding or you're experiencing issues, you can try uninstal
 
     brew install heroku/brew/heroku
 
-After uninstalling and reinstalling the CLI, try running the Heroku command again. 
+After uninstalling and reinstalling the CLI, try running the Heroku command again.
 
 If the issue persists, open your terminal and set the following environment variables to enable debugging:
 
