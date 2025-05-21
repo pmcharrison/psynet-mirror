@@ -1761,26 +1761,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
         super().assignment_reassigned(participant)
 
-    def bonus(self, participant):
-        """
-        Calculates and returns the reward the given participant gets when
-        completing the experiment.
+    def bonus(self, participant: Participant) -> float:
+        """Calculate the reward the participant gets when completing the experiment.
 
-        :param participant:
-            The participant.
-        :type participant:
-            :attr:`~psynet.participant.Participant`
-        :returns:
-            The reward as a ``float``.
+        Parameters
+        ----------
+        participant : Participant
+            The participant to calculate reward for.
+
+        Returns
+        -------
+        float
+            The calculated reward, rounded to 2 decimal places.
         """
-        # Don't subtract base_payment for returned or screened out participants
-        if participant.status in [
-            "screened_out",
-            "returned",
-        ]:
-            reward = participant.calculate_reward()
-        else:
-            reward = participant.calculate_reward() - self.base_payment
+        reward = participant.calculate_reward()
+        if participant.status not in ["screened_out", "returned"]:
+            reward -= self.base_payment
         return round(self.check_bonus(reward, participant), 2)
 
     def check_bonus(self, reward, participant):
