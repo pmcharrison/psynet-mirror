@@ -1,8 +1,6 @@
 import time
 
 import pytest
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.select import Select
 
 from psynet.experiment import get_experiment
 from psynet.pytest_psynet import (
@@ -25,9 +23,6 @@ class TestExp(object):
         exp = get_experiment()
         assert set(exp.supported_locales) == set(["en", "de", "nl"])
 
-    @pytest.mark.skip(
-        reason="Skipping this test temporarily as it makes the CI fail for unknown reasons."
-    )
     def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
@@ -35,51 +30,41 @@ class TestExp(object):
             # Page 0
             time.sleep(1)
 
-            driver.execute_script(
-                "$('html').animate({ scrollTop: $(document).height() }, 0);"
-            )
-
             # Page 1
-            assert_text(
-                driver, "main-body", "Willkommen bei der Übersetzungsdemo! Weiter"
-            )
+            assert_text(driver, "main-body", "Willkommen zur Übersetzungsdemo! Weiter")
             next_page(driver, "next-button")
 
             # Page 2
             assert_text(
                 driver,
                 "main-body",
-                "You have chosen to translate this experiment from en to de Below you will see this text translated! Unten sehen Sie diesen Text übersetzt! Weiter",
+                "You have chosen to translate this experiment to de. Below you will see this text translated! Unten sehen Sie diesen Text übersetzt! Weiter",
             )
 
-            select = Select(
-                driver.find_element(By.ID, "iso-language")
-            )  # Switch to Dutch
-            select.select_by_visible_text("Niederländisch")
-            time.sleep(1)
-            assert_text(
-                driver,
-                "main-body",
-                "You have chosen to translate this experiment from en to nl Below you will see this text translated! Hieronder ziet u deze tekst vertaald! Volgende",
-            )
-
-            select = Select(
-                driver.find_element(By.ID, "iso-language")
-            )  # Switch back to German
-            select.select_by_visible_text("Duits")
-            time.sleep(1)
             next_page(driver, "next-button")
 
             # Page 3
+            assert_text(
+                driver,
+                "main-body",
+                "Here is an example of inline variable usage: Mein Name ist Alice. Mein Lieblingsessen ist pizza. Mein am wenigsten bevorzugtes Essen ist broccoli. Weiter",
+            )
+
             next_page(driver, "next-button")
 
             # Page 4
             assert_text(
                 driver,
                 "main-body",
-                "Sie können auch Text in Drucktasten oder auf jeder Art von Seite übersetzen! Klicken Sie auf Übersetzung",
+                "Sie können auch Text in Schaltflächen oder auf jeder Art von Seite übersetzen! Schokolade Vanille Erdbeere",
             )
-            next_page(driver, "Übersetzung")
+            next_page(driver, "Schokolade")
 
             # Page 5
+            assert_text(
+                driver,
+                "main-body",
+                'Das ist das Ende des Experiments! Sie erhalten eine Belohnung von $0.05 für die Zeit, die Sie mit dem Experiment verbracht haben. Sie haben auch eine Leistungsprämie von $0.00 erhalten! Vielen Dank für Ihre Teilnahme. Bitte klicken Sie auf "Fertig", um den HIT abzuschließen. Finish',
+            )
+
             click_finish_button(driver)
