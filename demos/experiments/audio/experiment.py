@@ -320,11 +320,12 @@ example_audio_page_3 = PageMaker(
         AudioPrompt(
             assets["train-1"],
             """
-        This page illustrates a 'play window' combined with fade-in, fade-out, and loop.
+        This page illustrates a 'play window' combined with fade-in and loop.
         """,
             play_window=[5, 9],
             fade_in=0.75,
-            fade_out=0.75,
+            # Note: fade_out is also supported in theory, but users are warned that
+            # the timing is unreliable when the audio device has high latency.
             loop=True,
             controls=True,
         ),

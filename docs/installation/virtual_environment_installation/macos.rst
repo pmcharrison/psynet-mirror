@@ -1,5 +1,5 @@
-Installing PsyNet via virtualenv (macOS)
-========================================
+Installing PsyNet in a virtual environment (macOS)
+==================================================
 
 One-time setup
 --------------
@@ -122,7 +122,7 @@ inserting your name and email address as appropriate.
    git config --global user.email "you@example.com"
    git config --global user.name "Your Name"
 
-.. include:: install_virtualenv.rst
+.. include:: note_about_virtual_environments.rst
 
 .. include:: ../download_psynet.rst
 
@@ -144,4 +144,4 @@ The following steps need to be performed each time you start a new project.
 
 .. include:: ../identifying_a_project.rst
 
-.. include:: opening_a_project_with_virtualenv.rst
+.. include:: opening_a_project_in_a_virtual_environment.rst

@@ -1,8 +1,17 @@
 import json
+import warnings
 
-from sing4me import (  # noqa - something weird about the sing4me package definition?
-    singing_extract,
-)
+with warnings.catch_warnings():
+    # sing4me has a deprecation warning that we don't want to worry about
+    warnings.filterwarnings(
+        "ignore",
+        message=r"Please import `maximum_filter1d` from the `scipy\.ndimage` namespace.*",
+        category=DeprecationWarning,
+        module="sing4me",
+    )
+    from sing4me import (  # noqa - something weird about the sing4me package definition?
+        singing_extract,
+    )
 
 SING4ME_CONFIG = dict(
     # Defaults taken from sing4me/sing_experiments/singing_2intervals;

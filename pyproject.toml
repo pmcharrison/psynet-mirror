@@ -36,8 +36,10 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger @ git+https://github.com/Dallinger/Dallinger.git@master",
-    "dominate",
+    "dallinger[docker]>=11.3.0,<12",
+    # Using a specific commit from GitHub to fix Python 3.12 event loop warning
+    # TODO: Update to a new version > 2.9.1 once it's released
+    "dominate @ git+https://github.com/Knio/dominate.git@b268b8b",
     "html2text",
     "joblib",
     "jsonpickle",
@@ -47,6 +49,7 @@ dependencies = [
     "polib",
     "progress",
     "pytest",
+    "pytest-dependency",
     "pytest-mock",
     "python-gettext",
     "rpdb",

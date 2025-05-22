@@ -11,17 +11,20 @@ and install all the required packages.
 
 .. note::
 
-    This workflow uses ``virtualenv`` to create an isolated virtual environment for each project.
+    This workflow creates an isolated virtual environment for each project.
     PyCharm remembers which virtual environment to use for each project, and will load it automatically
     when you open the project.
 
 .. note::
 
-    If you are not using PyCharm, you can install the required packages using the following command:
+    If you are not using PyCharm, you can create a virtual environment and install the required packages
+    by running the following command:
 
     .. code-block:: bash
 
-       pip install -r constraints.txt
+        python3 -m venv .venv
+        source .venv/bin/activate
+        pip install -r constraints.txt
 
 
 .. note::
@@ -67,36 +70,3 @@ with the following command:
 .. code-block:: bash
 
    psynet debug local
-
-
-.. note::
-
-    If you are not using PyCharm, you can create a virtual environment using the following command:
-
-    .. code-block:: bash
-
-       mkvirtualenv my-project --python $(which python3.12)
-
-    where in this case ``my-project`` is the name of the virtual environment.
-
-    You can activate your virtual environment by running the following command:
-
-    .. code-block:: bash
-
-       workon my-project
-
-    You can then delete your virtual environment by running the following command:
-
-    .. code-block:: bash
-
-       rmvirtualenv my-project
-
-
-.. note::
-
-    If you experience problems setting up the virtual environment:
-
-    - Check in which directory virtualenvwrapper.sh is installed. This might be a different directory
-      than '~/.local/bin/'. In that case, adapt the code above to source this file accordingly.
-    - Check whether the directory where virtualenvwrapper.sh was installed is added to PATH.
-      If not, add the directory to PATH.

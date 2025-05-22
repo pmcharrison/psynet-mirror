@@ -43,10 +43,6 @@ from .utils import clear_all_caches, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
-warnings.filterwarnings(
-    "ignore", "color, on_color and attrs are not supported when running in jupyter"
-)
-
 
 ci_only = pytest.mark.skipif(
     not os.environ.get("CI"), reason="This test only runs in CI environment"

@@ -97,7 +97,7 @@ Install heroku client
 
 .. include:: ../download_psynet.rst
 
-.. include:: install_virtualenv.rst
+.. include:: note_about_virtual_environments.rst
 
 If you are interested in contributing to PsyNet, you should also complete
 the :ref:`additional_developer_installation`.
@@ -110,4 +110,4 @@ The following steps need to be performed each time you start a new project.
 
 .. include:: ../identifying_a_project.rst
 
-.. include:: opening_a_project_with_virtualenv.rst
+.. include:: opening_a_project_in_a_virtual_environment.rst
