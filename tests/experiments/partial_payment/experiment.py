@@ -99,9 +99,14 @@ class Exp(psynet.experiment.Experiment):
             assert (
                 bot.status == "approved"
             ), f"Expected status for bot ID {bot.id} to be 'approved', but got '{bot.status}'"
+            # Ensure the status is committed and refresh the bot object to get the latest status
+            from psynet.experiment import db
+
+            db.session.commit()
+            db.session.refresh(bot)
             assert (
                 self.bonus(bot) == BONUS
-            ), f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)}"
+            ), f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)} (status: {bot.status})"
         elif bot.id == 2:
             assert (
                 route == "screened_out"
