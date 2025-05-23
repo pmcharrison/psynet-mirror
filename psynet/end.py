@@ -33,7 +33,7 @@ class EndLogic(EltCollection):
     def after_debrief(self, experiment, participant) -> None:
         from psynet.bot import Bot
 
-        if isinstance(participant, Bot):
+        if isinstance(participant, Bot) and not participant.failed:
             participant.status = "approved"
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
@@ -147,6 +147,12 @@ class UnsuccessfulEndLogic(EndLogic):
         super().before_debrief(experiment, participant)
         participant.append_failure_tags(*self.failure_tags)
         participant.fail()
+
+    def after_debrief(self, experiment, participant) -> None:
+        from psynet.bot import Bot
+
+        if isinstance(participant, Bot) and not participant.failed:
+            participant.status = "approved"
 
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
         _ = get_translator()
