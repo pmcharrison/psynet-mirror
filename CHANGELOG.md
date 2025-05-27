@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [12.0.3](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.3) Release - 2025-05-28
+
+## Updated
+- Updated Dallinger to version 11.3.1. This specific patch version (temporarily) disables `scheduled_job` `async_recruiter_status_check` as it is causing database deadlocks. Read about the changes in Dallinger at https://github.com/Dallinger/Dallinger/releases/tag/v11.3.0 and https://github.com/Dallinger/Dallinger/releases/tag/v11.3.1 (author: Frank Höger)
+
 # [12.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.2) Release - 2025-05-14
 
 ## Fixed
