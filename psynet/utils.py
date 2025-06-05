@@ -1585,6 +1585,28 @@ def text_to_image(text, path, width, height, font_size, font_path):
     im.save(path)
 
 
+def git_repository_available():
+    """
+    Check if the current directory is inside a git repository and git is installed.
+
+    Returns
+    -------
+    bool
+        True if inside a git repository and git is available, False otherwise.
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+
 def patch_yaspin_jupyter_detection():
     """
     Patch yaspin's is_jupyter detection to be more accurate.
