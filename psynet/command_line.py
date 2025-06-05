@@ -46,6 +46,7 @@ from .serialize import serialize, unserialize
 from .utils import (
     get_args,
     get_package_name,
+    git_repository_available,
     in_python_package,
     list_experiment_dirs,
     list_isolated_tests,
@@ -943,6 +944,12 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     except FileNotFoundError:
         raise click.ClickException(
             f".gitignore is missing from your experiment directory ({os.getcwd()})."
+        )
+
+    # We need an active git repository for Dallinger to recognize .gitignore properly
+    if not git_repository_available():
+        raise click.ClickException(
+            "This directory is not a git repository, or git is not installed. Please ensure git is installed and create a repository by running 'git init' if needed."
         )
 
     try:
@@ -2108,6 +2115,7 @@ def update_scripts_():
 
     files_to_copy = [
         ".gitignore",
+        ".dockerignore",
         "Dockerfile",
         "README.md",
         "__init__.py",
