@@ -22,9 +22,10 @@ license = {file = "LICENSE"}
 description = "PsyNet – complex psychological experiments made easy"  # A framework for running advanced psychological experiments
 keywords = ["psychology", "experiments", "online", "networks"]
 readme = "README.md"
-requires-python = ">=3.10"  # recommended Python version: 3.12
+requires-python = ">=3.10"  # recommended Python version: 3.13
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.10",
@@ -36,7 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=11.3.0,<12",
+    "dallinger[docker]>=11.3.1,<12",
     # Using a specific commit from GitHub to fix Python 3.12 event loop warning
     # TODO: Update to a new version > 2.9.1 once it's released
     "dominate @ git+https://github.com/Knio/dominate.git@b268b8b",
@@ -103,7 +104,7 @@ exclude = [
 
 [tool.black]
 line-length = 88
-target-version = ["py312"]
+target-version = ["py313"]
 include = '\.pyi?$'
 exclude = '''
 /(
