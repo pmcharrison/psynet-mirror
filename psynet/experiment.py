@@ -1277,6 +1277,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),
             "lock_table_when_creating_participant": False,
+            "loglevel": 1,
             "loglevel_worker": 1,
             "min_accumulated_reward_for_abort": 0.20,
             "min_browser_version": "80.0",
