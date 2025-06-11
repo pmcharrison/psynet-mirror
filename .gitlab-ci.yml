@@ -126,7 +126,7 @@ pg_badger:
     - head -n 5 public/postgresql.log
     - echo "=== Last few lines of the log file ==="
     - tail -n 5 public/postgresql.log
-    - curl -L https://github.com/darold/pgbadger/archive/refs/tags/v12.4.tar.gz | tar xzf - -C /usr/local
+    - curl -L https://github.com/darold/pgbadger/archive/refs/tags/v13.1.tar.gz | tar xzf - -C /usr/local
     - (cd /usr/local/pgbadger-*; perl Makefile.PL; make; make install; cpan JSON::XS)
     - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' -f stderr public/postgresql.log -o /tmp/pgbadger.html
     - cp /tmp/pgbadger.html "public/${TEST_NAME//\//_}.html"
@@ -134,7 +134,7 @@ pg_badger:
     - cat /tmp/pgbadger.txt
     - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' -f stderr public/postgresql.log -o /tmp/pgbadger.json
     - cp /tmp/pgbadger.html /tmp/pgbadger.json /tmp/pgbadger.txt public/
-    - python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
+    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
   artifacts:
     paths:
       - public
