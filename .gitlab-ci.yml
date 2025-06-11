@@ -105,7 +105,7 @@ pg_badger:
     - curl https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz | tar xzf - -C /usr/local
     - ln -s /usr/local/docker/docker /usr/local/bin/
     - echo "Starting postgresql server with aggressive logging enabled (via docker)"
-    - docker run --rm -d --name dallinger_postgres -p 5432:5432 -e POSTGRES_USER=dallinger -e POSTGRES_PASSWORD=dallinger -e POSTGRES_DB=dallinger -v dallinger_postgres:/var/lib/postgresql/data postgres:16.2-bookworm postgres -c log_min_duration_statement=0 -c log_checkpoints=on -c log_connections=on -c log_disconnections=on -c log_lock_waits=on -c log_temp_files=0 -c log_autovacuum_min_duration=0 -c log_error_verbosity=default -c log_line_prefix=%t\ [%p]:\ [%l-1]\ user=%u,db=%d,app=%a,client=%h
+    - docker run --rm -d --name dallinger_postgres -p 5432:5432 -e POSTGRES_USER=dallinger -e POSTGRES_PASSWORD=dallinger -e POSTGRES_DB=dallinger -v dallinger_postgres:/var/lib/postgresql/data postgres:16.2-bookworm postgres -c log_min_duration_statement=0 -c log_checkpoints=on -c log_connections=on -c log_disconnections=on -c log_lock_waits=on -c log_temp_files=0 -c log_autovacuum_min_duration=0 -c log_error_verbosity=default -c log_line_prefix=%t\ [%p]:\ [%l-1]\ user=%u,db=%d,app=%a,client=%h -c log_statement=all
     - echo Create a virtualenv and install psynet there
     - pip install --upgrade pip virtualenv
     - virtualenv venv -ppython3
@@ -134,7 +134,7 @@ pg_badger:
     - cat /tmp/pgbadger.txt
     - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' -f stderr public/postgresql.log -o /tmp/pgbadger.json
     - cp /tmp/pgbadger.html /tmp/pgbadger.json /tmp/pgbadger.txt public/
-    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
+    - python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
   artifacts:
     paths:
       - public
