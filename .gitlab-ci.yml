@@ -91,7 +91,7 @@ pages:
 
 
 pg_badger:
-  image: python:3.12.2
+  image: python:3.13
   services:
     - docker:25.0.2-dind
     - redis:latest
