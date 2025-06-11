@@ -134,7 +134,7 @@ pg_badger:
     - cat /tmp/pgbadger.txt
     - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' -f stderr public/postgresql.log -o /tmp/pgbadger.json
     - cp /tmp/pgbadger.html /tmp/pgbadger.json /tmp/pgbadger.txt public/
-    - venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
+    - . venv/bin/activate && python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml
   artifacts:
     paths:
       - public
