@@ -21,8 +21,8 @@ class TestCommandLine(object):
         return export
 
     def test_psynet_no_args(self):
-        output = subprocess.check_output(["psynet"])
-        assert b"Usage: psynet [OPTIONS] COMMAND [ARGS]" in output
+        result = subprocess.run(["psynet"], capture_output=True, text=True)
+        assert "Usage: psynet [OPTIONS] COMMAND [ARGS]" in result.stderr
 
     def test_psynet_help(self):
         output = subprocess.check_output(["psynet", "--help"])
