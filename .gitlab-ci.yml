@@ -91,7 +91,7 @@ pages:
 
 
 pg_badger:
-  image: python:3.12.2
+  image: python:3.13
   services:
     - docker:25.0.2-dind
     - redis:latest
@@ -122,7 +122,7 @@ pg_badger:
   after_script:
     - mkdir public
     - docker logs dallinger_postgres 2> public/postgresql.log > /dev/null
-    - curl -L https://github.com/darold/pgbadger/archive/refs/tags/v12.4.tar.gz | tar xzf - -C /usr/local
+    - curl -L https://github.com/darold/pgbadger/archive/refs/tags/v13.1.tar.gz | tar xzf - -C /usr/local
     - (cd /usr/local/pgbadger-*; perl Makefile.PL; make; make install; cpan JSON::XS)
     - pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.html
     - cp /tmp/pgbadger.html "public/${TEST_NAME//\//_}.html"
