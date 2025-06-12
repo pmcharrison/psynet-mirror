@@ -1184,6 +1184,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def label(cls):  # noqa
         return get_config().get("label")
 
+    @staticmethod
+    def export_path(deployment_id):
+        export_root = "~/psynet-data/export"
+
+        return os.path.join(
+            export_root,
+            deployment_id,
+            re.sub(
+                "__launch.*", "", deployment_id
+            )  # Strip the launch date from the path to keep things short
+            + "__export="
+            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
+        )
+
     @property
     def var(self):
         if self.experiment_config:
