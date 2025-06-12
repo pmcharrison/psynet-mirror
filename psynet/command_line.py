@@ -8,7 +8,6 @@ import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
-from datetime import datetime
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
@@ -298,6 +297,38 @@ def sandbox(*args, **kwargs):
     )
 
 
+def _local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
+    """
+    Debug the experiment locally (this should normally be your first choice).
+    """
+    if not ctx:
+        from click import Context
+
+        ctx = Context(context_group)
+
+    if legacy and docker:
+        raise click.UsageError(
+            "It is not possible to select both --legacy and --docker modes simultaneously."
+        )
+
+    _pre_launch(ctx, mode=mode, archive=archive, local_=True, docker=docker, app=None)
+    _cleanup_before_debug()
+
+    try:
+        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
+        if legacy:
+            # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
+            # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
+            # This problem manifests specifically when the experiment contains custom tables.
+            _debug_legacy(ctx, archive=None, no_browsers=no_browsers)
+        elif docker:
+            _debug_docker(ctx, archive=None, no_browsers=no_browsers)
+        else:
+            _debug_auto_reload(ctx, archive=None, no_browsers=no_browsers)
+    finally:
+        kill_psynet_worker_processes()
+
+
 @debug.command("local")
 # @click.option("--app", default=None, help="Name of the experiment app (required for non-local deployments)")
 # @click.option("--server", default=None, help="Name of the remote server (only relevant for ssh deployments)")
@@ -315,34 +346,7 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
-    if not ctx:
-        from click import Context
-
-        ctx = Context(debug)
-
-    if legacy and docker:
-        raise click.UsageError(
-            "It is not possible to select both --legacy and --docker modes simultaneously."
-        )
-
-    _pre_launch(
-        ctx, mode="debug", archive=archive, local_=True, docker=docker, app=None
-    )
-    _cleanup_before_debug()
-
-    try:
-        # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
-        if legacy:
-            # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
-            # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
-            # This problem manifests specifically when the experiment contains custom tables.
-            _debug_legacy(ctx, archive=None, no_browsers=no_browsers)
-        elif docker:
-            _debug_docker(ctx, archive=None, no_browsers=no_browsers)
-        else:
-            _debug_auto_reload(ctx, archive=None, no_browsers=no_browsers)
-    finally:
-        kill_psynet_worker_processes()
+    _local(ctx, docker, archive, legacy, no_browsers, mode="debug", context_group=debug)
 
 
 def run_prepare_in_subprocess():
@@ -733,6 +737,19 @@ def _forget_tables_defined_in_experiment_directory():
 @require_exp_directory
 def deploy():
     pass
+
+
+@deploy.command("local")
+@click.option("--docker", is_flag=True, help="Docker mode.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
+@click.option("--legacy", is_flag=True, help="Legacy mode.")
+@click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
+@click.pass_context
+def deploy__local(ctx, docker, archive, legacy, no_browsers):
+    """
+    Deploy the experiment locally (e.g., when collecting data on a computer in the lab or in the field).
+    """
+    _local(ctx, docker, archive, legacy, no_browsers, mode="live", context_group=deploy)
 
 
 @deploy.command("heroku")
@@ -1713,7 +1730,8 @@ def export_(
     assert len(deployment_id) > 0
 
     remote_exp_label = exp_variables["label"]
-    local_exp_label = import_local_experiment()["class"].label
+    experiment_class = import_local_experiment()["class"]
+    local_exp_label = experiment_class.label
 
     if not remote_exp_label == local_exp_label:
         if not user_confirms(
@@ -1729,17 +1747,7 @@ def export_(
         config.load()
 
     if path is None:
-        export_root = "~/psynet-data/export"
-
-        path = os.path.join(
-            export_root,
-            deployment_id,
-            re.sub(
-                "__launch.*", "", deployment_id
-            )  # Strip the launch date from the path to keep things short
-            + "__export="
-            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
-        )
+        path = experiment_class.export_path(deployment_id)
 
     path = os.path.expanduser(path)
 
