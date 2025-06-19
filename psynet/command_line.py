@@ -76,6 +76,12 @@ def clean_sys_modules():
         del sys.modules[key]
 
 
+def update_docker_tag():
+    with open("Dockertag", "w") as file:
+        file.write(os.path.basename(os.getcwd()))
+        file.write("\n")
+
+
 header = r"""
     ____             _   __     __
    / __ \_______  __/ | / /__  / /_
@@ -149,6 +155,7 @@ def _prepare():
         experiment_instance.pre_deploy()
         db.session.commit()
         clean_sys_modules()
+        update_docker_tag()
         return experiment_class
     finally:
         db.session.commit()
