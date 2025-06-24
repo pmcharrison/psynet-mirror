@@ -1668,7 +1668,6 @@ class GeneralHeadphoneTest(StaticTrialMaker):
 class HugginsHeadphoneTrial(HeadphoneTrial):
     prompt_text = "Which noise contains the hidden beep -- 1, 2, or 3?"
     test_name = "huggins"
-    submit_early = True
 
 
 class HugginsHeadphoneTest(GeneralHeadphoneTest):
@@ -1767,7 +1766,6 @@ class BeepHeadphoneTrial(HeadphoneTrial):
         "Which sound is different from the other two: 1, 2, or 3?",
     )
     test_name = "beep"
-    submit_early = True
 
 
 class BeepHeadphoneTest(GeneralHeadphoneTest):
