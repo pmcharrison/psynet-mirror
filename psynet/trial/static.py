@@ -90,6 +90,13 @@ class StaticTrialMaker(ChainTrialMaker):
         Only relevant if the trial maker uses nodes with non-default participant groups.
         In this case the experimenter is expected to supply a function that takes participant as an argument
         and returns the chosen participant group for that trial maker.
+        For example, to randomly assign participants to one of two groups called g1 and g2, one could write::
+
+            choose_participant_group=lambda(participant): random.choice(["g1", "g2"])
+
+        Similarly, to alternate participants between two groups, one could write::
+
+            choose_participant_group=lambda(participant): ["g1", "g2"][participant.id % 2]
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
       run once the sequence of trials is complete.
@@ -194,6 +201,13 @@ class StaticTrialMaker(ChainTrialMaker):
         Only relevant if the trial maker uses nodes with non-default participant groups.
         In this case the experimenter is expected to supply a function that takes participant as an argument
         and returns the chosen participant group for that trial maker.
+        For example, to randomly assign participants to one of two groups called g1 and g2, one could write::
+
+            choose_participant_group=lambda(participant): random.choice(["g1", "g2"])
+
+        Similarly, to alternate participants between two groups, one could write::
+
+            choose_participant_group=lambda(participant): ["g1", "g2"][participant.id % 2]
 
     sync_group_type
         Optional SyncGroup type to use for synchronizing participant allocation to nodes.
