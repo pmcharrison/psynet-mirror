@@ -3,16 +3,21 @@ from psynet.utils import get_translator
 
 
 class MonitorInformation(ModularPage):
+    """
+    This ModularPage records information about the participant's computer screen configuration. The participant just
+    needs to press 'Next', and respond positively to a permissions request, then the information will be recorded
+    automatically.
+    """
+
     def __init__(
         self,
         label="monitor_information",
     ):
         _ = get_translator()
-        self.label = label
         self.prompt = _(
-            "We are detecting your monitor information. Please give the permission to access your monitor information."
+            "On the next page you may see a permissions request; please grant it."
         )
-        self.time_estimate = 1
+        self.time_estimate = 5
 
         super().__init__(
             self.label,

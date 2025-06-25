@@ -1440,7 +1440,9 @@ class TextControl(Control):
 
 class MonitorControl(Control):
     """
-    Here the participant just has a single button that takes them to the next page with the monitor information.
+    This Control records information about the participant's computer screen configuration. The participant just needs
+    to press 'Next', and respond positively to a permissions request, then the information will be recorded
+    automatically.
     """
 
     macro = "monitor"
