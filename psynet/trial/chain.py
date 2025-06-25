@@ -1821,7 +1821,11 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         networks = self.prioritize_networks(networks, participant, experiment)
 
+        if len(networks) == 0:
+            return "exit"
+
         chosen = networks[0]
+
         if chosen.block != current_block:
             logger.info(
                 f"Advanced from block '{current_block}' to '{chosen.block}' "

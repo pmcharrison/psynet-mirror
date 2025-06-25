@@ -29,6 +29,16 @@ if [[ ${PSYNET_DEVELOPER_MODE:-} == "1" ]]; then
    echo "...local installations seem ready."
 fi
 
+# Check if .netrc exists and is a directory
+if [[ -d "${HOME}/.netrc" ]]; then
+    # Note: this command will fail if .netrc is not empty, which means we're not going to
+    # accidentally nuke any user data.
+    rmdir "${HOME}/.netrc"
+    echo "Unexpectedly found an empty directory at ${HOME}/.netrc. We will replace it with an empty file."
+fi
+
+# Create empty .netrc file if it doesn't exist
+touch "${HOME}/.netrc"
 
 docker run \
   --name dallinger \

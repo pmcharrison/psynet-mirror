@@ -570,29 +570,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @with_transaction
     def on_launch(self):
-        logger.info("Calling Exp.on_launch()...")
         self.compile_psynet_translations_if_necessary()
         redis_vars.set("launch_started", True)
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
-        logger.info("Experiment launch complete!")
         db.session.commit()
         redis_vars.set("launch_finished", True)
 
+        # This log message is used by the testing logic to identify when the experiment has been launched
+        logger.info("Experiment launch complete!")
+
     def on_first_launch(self):
-        logger.info("Calling Exp.on_first_launch()...")
         for trialmaker in self.timeline.trial_makers.values():
             trialmaker.on_first_launch(self)
 
     def on_every_launch(self):
-        logger.info("Calling Exp.on_every_launch()...")
-
         # This check is helpful to stop the database from being ingested multiple times
         # if the launch fails the first time
         deployment_db_ingested = redis_vars.get("deployment_db_ingested", False)
-        print(f"deployment_db_ingested: {deployment_db_ingested}")
         if not deployment_db_ingested:
             ingest_zip(database_template_path, db.engine)
             redis_vars.set("deployment_db_ingested", True)
@@ -682,7 +679,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **super().get_status(),
             **cls.get_request_statistics(lookback=lookback),
             **cls.get_hardware_status(),
-            **cls.get_recruiter_status(),
+            # As currently implemented, get_recruiter_status is problematic because it makes API calls
+            # (e.g. to Prolific) which can take a long time and cause the process to be blocked.
+            # This code needs to be updated to use a background task to fetch the recruiter status.
+            # **cls.get_recruiter_status(),
         }
 
     @scheduled_task("interval", seconds=10, max_instances=1)
@@ -1280,6 +1280,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),
             "lock_table_when_creating_participant": False,
+            "loglevel": 1,
             "loglevel_worker": 1,
             "min_accumulated_reward_for_abort": 0.20,
             "min_browser_version": "80.0",
@@ -2081,6 +2082,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     resources.files("psynet")
                     / "resources/libraries/international-keyboards",
                     "/static/international-keyboards",
+                ),
+                (
+                    resources.files("psynet") / "resources/css/fonts",
+                    "/static/css/fonts",
                 ),
                 (
                     resources.files("psynet")

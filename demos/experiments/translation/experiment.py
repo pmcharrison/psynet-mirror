@@ -31,13 +31,11 @@ class Exp(psynet.experiment.Experiment):
                 tags.h2(
                     f"You have chosen to translate this experiment to {config.get('locale')}."
                 ),
-                tags.hr(),
                 tags.p(
                     "Below you will see this text translated!",
                     tags.br(),
                     _("Below you will see this text translated!"),
                 ),
-                tags.hr(),
             ),
             time_estimate=5,
         ),
@@ -49,7 +47,6 @@ class Exp(psynet.experiment.Experiment):
                         "My name is {NAME}. My favorite food is {FAVFOOD}. My least favorite food is {HATEFOOD}."
                     ).format(NAME="Alice", FAVFOOD="pizza", HATEFOOD="broccoli")
                 ),
-                tags.hr(),
             ),
             time_estimate=5,
         ),

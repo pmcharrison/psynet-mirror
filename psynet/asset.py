@@ -47,6 +47,19 @@ from .utils import (
 logger = get_logger()
 
 
+def filter_botocore_deprecation_warnings():
+    boto3.compat.filter_python_deprecation_warnings()
+
+    # Filter out the datetime.utcnow() deprecation warning
+    # (see https://github.com/boto/botocore/issues/3088)
+    warnings.filterwarnings(
+        "ignore",
+        message=r"datetime\.datetime\.utcnow\(\) is deprecated.*",
+        category=DeprecationWarning,
+        module="botocore.*",
+    )
+
+
 class AssetSpecification(NullElt):
     """
     A base class for asset specifications.
@@ -2863,21 +2876,28 @@ class DebugStorage(LocalStorage):
 
 @cache
 def get_boto3_s3_session():
+    # It seems silly to filter deprecation warnings here, but there is something odd going on with
+    # the order of warning filters that causes the deprecation warnings to be shown unless we defer
+    # the filtering.
+    filter_botocore_deprecation_warnings()
     return boto3.Session(**get_aws_credentials())
 
 
 @cache
 def get_boto3_s3_client():
+    filter_botocore_deprecation_warnings()
     return boto3.client("s3", **get_aws_credentials())
 
 
 @cache
 def get_boto3_s3_resource():
+    filter_botocore_deprecation_warnings()
     return get_boto3_s3_session().resource("s3")
 
 
 @cache
 def get_boto3_s3_bucket(name):
+    filter_botocore_deprecation_warnings()
     return get_boto3_s3_resource().Bucket(name)
 
 
