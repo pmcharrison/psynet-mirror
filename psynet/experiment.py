@@ -679,7 +679,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **super().get_status(),
             **cls.get_request_statistics(lookback=lookback),
             **cls.get_hardware_status(),
-            **cls.get_recruiter_status(),
+            # As currently implemented, get_recruiter_status is problematic because it makes API calls
+            # (e.g. to Prolific) which can take a long time and cause the process to be blocked.
+            # This code needs to be updated to use a background task to fetch the recruiter status.
+            # **cls.get_recruiter_status(),
         }
 
     @scheduled_task("interval", seconds=10, max_instances=1)
