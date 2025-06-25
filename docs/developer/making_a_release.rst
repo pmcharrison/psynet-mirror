@@ -118,3 +118,16 @@ Commit the changes with
     python3 -m twine upload --repository pypi dist/psynet-X.Y.Z*
 
 The new PsyNet release should now be published on PyPi at https://pypi.org/project/psynet/.
+
+14. Next, still inside the master branch, bump PsyNet to a new minor alpha version with the `a0` suffix:
+
+.. code-block:: console
+
+    bump-my-version bump minor
+
+15. Commit and push the changes with
+
+.. code-block:: console
+
+    git commit -m "Bump to alpha version X.Y.Z-a0"
+    git push
