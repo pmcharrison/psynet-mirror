@@ -1852,7 +1852,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 validation = FailedValidation(
                     message=_p(
                         "timeline_problem",
-                        "It seems you have opened the experiment in multiple tabs. Please close all but one tab and refresh the page.",
+                        "Synchronization problem detected. "
+                        "Are you running the same experiment in multiple browser tabs? "
+                        "Please close all other tabs and press the button below to refresh the page.",
                     )
                 )
             response.successful_validation = not isinstance(
