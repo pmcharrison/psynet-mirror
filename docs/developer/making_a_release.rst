@@ -77,7 +77,7 @@ Commit the changes with
 
 .. code-block:: console
 
-    git commit -m "Update demos for version X.Y.Z"
+    git commit -m "Update demo and test experiments for version X.Y.Z"
 
 6. Push the changes to the release branch.
 7. Create a merge request using GitLab's interface to merge the release branch into ``master`` and name it 'Release version X.Y.Z'. You might want to inspect for a last time the code changes for the release using the 'Changes' tab of the merge request.
@@ -101,7 +101,7 @@ Commit the changes with
 
     git push --tags
 
-12. Create a new PsyNet release using GitLab's interface under *Deployments > Releases*.
+12. Create a new PsyNet release using GitLab's interface under *Deploy > Releases*.
 13. Publish the new release on PyPi
 
 .. note::
