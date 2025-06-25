@@ -437,7 +437,7 @@ Depending on a custom branch of Dallinger
 
 Sometimes you may need to use a custom branch of Dallinger in a feature you are contributing to PsyNet.
 In order to do this, you will need to update the Dallinger entry in ``pyproject.toml`` to point to your branch.
-You should write something like this: ``"dallinger @ git+https://gitlab.com/Dallinger/Dallinger.git@2350v82u38ud3unwoiunec8un3c"``
+You should write something like this: ``"dallinger @ git+https://github.com/Dallinger/Dallinger.git@2350v82u38ud3unwoiunec8un3c"``
 where the string after ``.git@`` is the commit hash for the commit you want to use.
 
 You can find the commit hash by clicking the "Copy" button next to the commit hash on the GitLab page for the branch you want to use.
