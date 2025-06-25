@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "psynet"
-version = "12.1.0a0"
+version = "12.1.0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -36,7 +36,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=11.3.0,<12",
+    "dallinger[docker]>=11.3.1,<12",
     # Using a specific commit from GitHub to fix Python 3.12 event loop warning
     # TODO: Update to a new version > 2.9.1 once it's released
     "dominate @ git+https://github.com/Knio/dominate.git@b268b8b",

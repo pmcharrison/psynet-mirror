@@ -484,16 +484,6 @@ General
 ``port`` *unicode* |dlgr-icon|
     Port of the host.
 
-``server_pem`` *unicode* |dlgr-icon|
-    Path to the PEM file for SSH authentication when deploying to a server using Docker SSH.
-    This file will be used to authenticate SSH connections to the server.
-    Can be set in either your experiment's `config.txt` or in `~/.dallingerconfig`:
-
-    .. code-block:: ini
-
-        [Parameters]
-        server_pem = /path/to/your/key.pem
-
 Heroku
 ~~~~~~
 
