@@ -1828,6 +1828,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         try:
             event = self.timeline.get_current_elt(self, participant)
+            if page_uuid != participant.page_uuid:
+                return self.response_rejected(
+                    message=_p(
+                        "timeline_problem",
+                        "Synchronization problem detected. "
+                        "Are you running the same experiment in multiple browser tabs? "
+                        "Please close all other tabs and refresh the page.",
+                    )
+                )
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
@@ -1848,15 +1857,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if isinstance(validation, str):
                 validation = FailedValidation(message=validation)
 
-            if page_uuid != participant.page_uuid:
-                validation = FailedValidation(
-                    message=_p(
-                        "timeline_problem",
-                        "Synchronization problem detected. "
-                        "Are you running the same experiment in multiple browser tabs? "
-                        "Please close all other tabs and press the button below to refresh the page.",
-                    )
-                )
             response.successful_validation = not isinstance(
                 validation, FailedValidation
             )
