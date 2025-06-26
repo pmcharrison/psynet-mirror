@@ -57,7 +57,7 @@ PsyNet's deployment system automates most installations. The following are the p
 
 Operating system
 """"""""""""""""
-* Ubuntu 20.04+ (recommended) or Windows 11 Pro
+* Ubuntu 22.04 LTS or Ubuntu 24.04 LTS (recommended) or Windows 11 Pro
 
 Dependencies
 """"""""""""
