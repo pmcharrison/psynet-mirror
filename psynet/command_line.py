@@ -1826,6 +1826,7 @@ def _export_(
             include_on_demand_assets,
             n_parallel,
             server,
+            local,
         )
 
     if export_source_code:
@@ -2008,6 +2009,7 @@ def export_assets(
     include_on_demand_assets,
     n_parallel,
     server,
+    local,
 ):
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
@@ -2026,6 +2028,7 @@ def export_assets(
         include_on_demand_assets,
         n_parallel,
         server,
+        local,
     )
 
 

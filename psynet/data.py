@@ -871,6 +871,7 @@ def export_assets(
     include_on_demand_assets: bool,
     n_parallel=None,
     server=None,
+    local=False,
 ):
     from joblib import Parallel, delayed
 
@@ -899,7 +900,7 @@ def export_assets(
         backend="threading",
         # backend="multiprocessing", # Slow compared to threading
     )(
-        delayed(export_asset)(asset_id, path, include_on_demand_assets, server)
+        delayed(export_asset)(asset_id, path, include_on_demand_assets, server, local)
         for asset_id in asset_ids
     )
     # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
@@ -908,7 +909,7 @@ def export_assets(
 # def close_parallel_db_sessions():
 
 
-def export_asset(asset_id, root, include_on_demand_assets, server):
+def export_asset(asset_id, root, include_on_demand_assets, server, local):
     from .asset import Asset, OnDemandAsset
     from .experiment import import_local_experiment
     from .utils import make_parents
@@ -932,7 +933,7 @@ def export_asset(asset_id, root, include_on_demand_assets, server):
     make_parents(path)
 
     try:
-        a.export(path, ssh_host=ssh_host, ssh_user=ssh_user)
+        a.export(path, ssh_host=ssh_host, ssh_user=ssh_user, local=local)
     except Exception:
         print(f"An error occurred when trying to export the asset with id: {asset_id}")
         raise
