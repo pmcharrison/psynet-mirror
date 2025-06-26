@@ -3069,7 +3069,7 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Se quanto sopra non ti è d&#39;aiuto, inviaci un&#39;e-mail con le seguenti "
+"Se quanto sopra non ti è d'aiuto, inviaci un'e-mail con le seguenti "
 "informazioni:"
 
 #: psynet/templates/timeline-page.html
@@ -3107,7 +3107,7 @@ msgstr "Siete pronti?"
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr ""
-"Quando sei pronto a continuare l&#39;esperimento, fai clic sul pulsante."
+"Quando sei pronto a continuare l'esperimento, fai clic sul pulsante."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3131,7 +3131,7 @@ msgstr "Aiuto!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Interrompere l&#39;esperimento in anticipo"
+msgstr "Interrompere l'esperimento in anticipo"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3152,7 +3152,7 @@ msgid ""
 "It seems you have opened the experiment in multiple tabs. Please close all "
 "but one tab and refresh the page."
 msgstr ""
-"Sembra che tu abbia aperto l&#39;esperimento in più schede. Chiudile tutte "
+"Sembra che tu abbia aperto l'esperimento in più schede. Chiudile tutte "
 "tranne una e aggiorna la pagina."
 
 #: psynet/translation/countries.py

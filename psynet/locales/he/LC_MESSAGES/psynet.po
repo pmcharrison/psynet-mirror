@@ -2878,7 +2878,7 @@ msgstr "ודא שחיבור האינטרנט שלך פועל."
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr "אם האמור לעיל לא עוזר, אנא שלחו לנו דוא&quot;ל עם המידע הבא:"
+msgstr "אם האמור לעיל לא עוזר, אנא שלחו לנו דוא\"ל עם המידע הבא:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

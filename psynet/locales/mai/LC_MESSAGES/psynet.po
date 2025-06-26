@@ -2983,7 +2983,7 @@ msgstr "पृष्ठ पुनः लोड करें।"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "जाँचू जे अहाँक इंटरनेट कनेक्शन काज क&#39; रहल अछि."
+msgstr "जाँचू जे अहाँक इंटरनेट कनेक्शन काज क' रहल अछि."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3010,7 +3010,7 @@ msgstr "अहाँक वर्कर आईडी;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "जे समस्या अहाँ अनुभव क&#39; रहल छी।"
+msgstr "जे समस्या अहाँ अनुभव क' रहल छी।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3029,7 +3029,7 @@ msgstr "अहाँ तैयार छी की?"
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr ""
-"जखन अहाँ प्रयोग जारी रखबाक लेल तैयार भ&#39; जायब तखन बटन पर क्लिक करू."
+"जखन अहाँ प्रयोग जारी रखबाक लेल तैयार भ' जायब तखन बटन पर क्लिक करू."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

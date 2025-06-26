@@ -444,7 +444,7 @@ msgstr "ᱦᱟᱯᱟᱴᱤᱧ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱟᱭᱢᱟ �
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "HIT ᱯᱩᱨᱟᱹᱣ ᱞᱟᱹᱜᱤᱫ ᱫᱟᱭᱟ ᱠᱟᱛᱮ &quot;ᱪᱟᱹᱵᱟ&quot; ᱨᱮ ᱚᱛᱟᱭ ᱢᱮ ᱾"
+msgstr "HIT ᱯᱩᱨᱟᱹᱣ ᱞᱟᱹᱜᱤᱫ ᱫᱟᱭᱟ ᱠᱟᱛᱮ \"ᱪᱟᱹᱵᱟ\" ᱨᱮ ᱚᱛᱟᱭ ᱢᱮ ᱾"
 
 #: psynet/end.py
 #, fuzzy
@@ -806,8 +806,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱠᱟᱹᱢᱤ ᱮᱦᱚᱵ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ ᱨᱮ ᱮᱢᱮᱡᱚᱱ ᱥᱟᱭᱤᱴ ᱨᱮ &quot;ᱦᱤᱴ ᱟᱝᱜᱚᱪ "
-"ᱢᱮ&quot; ᱵᱚᱛᱚᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ᱾"
+"ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱠᱟᱹᱢᱤ ᱮᱦᱚᱵ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ ᱨᱮ ᱮᱢᱮᱡᱚᱱ ᱥᱟᱭᱤᱴ ᱨᱮ \"ᱦᱤᱴ ᱟᱝᱜᱚᱪ "
+"ᱢᱮ\" ᱵᱚᱛᱚᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ᱾"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -1373,7 +1373,7 @@ msgid ""
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
 "ᱟᱢ ᱟᱢᱟᱜ ᱮᱠᱟᱣᱩᱱᱴ ᱰᱤᱞᱤᱴ ᱠᱟᱛᱮ ᱰᱟᱴᱟᱵᱮᱥ ᱠᱷᱚᱱ ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱰᱤᱞᱤᱴ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ (ᱢᱮᱱᱠᱷᱟᱱ,"
-" ᱠᱮᱯ-ᱨᱤᱠᱨᱩᱴᱟᱨ ᱞᱚᱜᱽ-ᱤᱱ ᱥᱟᱦᱴᱟ ᱨᱮ &#39;ᱰᱤᱞᱤᱴ ᱮᱠᱟᱣᱩᱱᱴ&#39; ᱞᱤᱱ ᱢᱮ)᱾"
+" ᱠᱮᱯ-ᱨᱤᱠᱨᱩᱴᱟᱨ ᱞᱚᱜᱽ-ᱤᱱ ᱥᱟᱦᱴᱟ ᱨᱮ 'ᱰᱤᱞᱤᱴ ᱮᱠᱟᱣᱩᱱᱴ' ᱞᱤᱱ ᱢᱮ)᱾"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -2840,7 +2840,7 @@ msgid ""
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
 "ᱯᱮᱭᱟ ᱰᱤᱠᱮ ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱢᱮᱱᱟᱜᱼᱟ: ᱢᱤᱫ ᱫᱚ ᱩᱫᱩᱜ ᱟᱠᱟᱱ ᱚᱰᱤᱭᱚ ᱢᱤᱴᱟᱨ ᱞᱟᱹᱜᱤᱫ, ᱢᱤᱫ ᱫᱚ "
-"&#39;ᱟᱹᱰᱤ ᱩᱥᱩᱞ&#39; ᱰᱤᱴᱮᱠᱴᱚᱨ ᱞᱟᱹᱜᱤᱫ, ᱟᱨ ᱢᱤᱫ ᱫᱚ &#39;ᱟᱹᱰᱤ ᱞᱟᱛᱟᱨ&#39; ᱰᱤᱴᱮᱠᱴᱚᱨ"
+"'ᱟᱹᱰᱤ ᱩᱥᱩᱞ' ᱰᱤᱴᱮᱠᱴᱚᱨ ᱞᱟᱹᱜᱤᱫ, ᱟᱨ ᱢᱤᱫ ᱫᱚ 'ᱟᱹᱰᱤ ᱞᱟᱛᱟᱨ' ᱰᱤᱴᱮᱠᱴᱚᱨ"
 " ᱞᱟᱹᱜᱤᱫ᱾"
 
 #: psynet/templates/macros/control.html
@@ -2851,7 +2851,7 @@ msgid ""
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
 "<strong>ᱛᱷᱨᱮᱥᱦᱚᱞᱰ</strong> ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱫᱚ ᱚᱱᱟ ᱯᱚᱭᱮᱱᱴ ᱴᱷᱟᱹᱣᱠᱟᱹᱭᱟ ᱡᱟᱦᱟᱸ ᱨᱮ "
-"ᱵᱷᱚᱞᱭᱩᱢ ᱫᱚ &#39;ᱟᱹᱰᱤ ᱪᱮᱛᱟᱱ&#39; ᱥᱮ &#39;ᱟᱹᱰᱤ ᱠᱚᱢ&#39; ᱢᱮᱱᱛᱮ ᱴᱷᱟᱹᱣᱠᱟᱹᱜᱼᱟ᱾"
+"ᱵᱷᱚᱞᱭᱩᱢ ᱫᱚ 'ᱟᱹᱰᱤ ᱪᱮᱛᱟᱱ' ᱥᱮ 'ᱟᱹᱰᱤ ᱠᱚᱢ' ᱢᱮᱱᱛᱮ ᱴᱷᱟᱹᱣᱠᱟᱹᱜᱼᱟ᱾"
 
 #: psynet/templates/macros/control.html
 #, fuzzy

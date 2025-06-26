@@ -1341,7 +1341,7 @@ msgstr "ເຈົ້າສາມາດຮ້ອງຂໍໃຫ້ລຶບຂໍ
 #, fuzzy
 msgctxt "consent-duration"
 msgid "To do so, send an e-mail with the subject “Delete” to:"
-msgstr "ເພື່ອເຮັດສິ່ງນີ້, ສົ່ງອີເມວທີ່ມີຫົວຂໍ້ &quot;ລຶບ&quot; ໄປ:"
+msgstr "ເພື່ອເຮັດສິ່ງນີ້, ສົ່ງອີເມວທີ່ມີຫົວຂໍ້ \"ລຶບ\" ໄປ:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1357,7 +1357,7 @@ msgid ""
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
 "ນອກນັ້ນທ່ານຍັງສາມາດລຶບຂໍ້ມູນຂອງທ່ານອອກຈາກຖານຂໍ້ມູນໂດຍການລຶບບັນຊີຂອງທ່ານ "
-"(ເຊັ່ນ, ກົດ &#39;ລຶບບັນຊີ&#39; ໃນຫນ້າ cap-recruiter log-in)."
+"(ເຊັ່ນ, ກົດ 'ລຶບບັນຊີ' ໃນຫນ້າ cap-recruiter log-in)."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -3395,7 +3395,7 @@ msgstr "ເຊັກໂກ"
 #, fuzzy
 msgctxt "country_name"
 msgid "Côte d'Ivoire"
-msgstr "Côte d&#39;Ivoire"
+msgstr "Côte d'Ivoire"
 
 #: psynet/translation/countries.py
 #, fuzzy

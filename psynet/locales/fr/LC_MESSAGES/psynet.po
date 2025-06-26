@@ -3122,7 +3122,7 @@ msgstr "Le problème que vous rencontrez."
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "D&#39;ACCORD"
+msgstr "D'ACCORD"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3135,7 +3135,7 @@ msgstr "Es-tu prêt?"
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr ""
-"Cliquez sur le bouton lorsque vous êtes prêt à continuer l&#39;expérience."
+"Cliquez sur le bouton lorsque vous êtes prêt à continuer l'expérience."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3159,7 +3159,7 @@ msgstr "Aide!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Mettre fin à l&#39;expérience prématurément"
+msgstr "Mettre fin à l'expérience prématurément"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3180,7 +3180,7 @@ msgid ""
 "It seems you have opened the experiment in multiple tabs. Please close all "
 "but one tab and refresh the page."
 msgstr ""
-"Il semble que vous ayez ouvert l&#39;expérience dans plusieurs onglets. "
+"Il semble que vous ayez ouvert l'expérience dans plusieurs onglets. "
 "Veuillez fermer tous les onglets sauf un et actualiser la page."
 
 #: psynet/translation/countries.py

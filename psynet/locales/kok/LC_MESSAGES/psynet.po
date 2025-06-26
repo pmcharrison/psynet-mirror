@@ -65,7 +65,7 @@ msgstr "तुमी तुमची पिराय 0 ते 120 मदलो �
 #, fuzzy, python-brace-format
 msgctxt "age"
 msgid "Your answer was: '{AGE}'"
-msgstr "तुमची जाप आशिल्ली: &#39;{AGE}&#39;."
+msgstr "तुमची जाप आशिल्ली: '{AGE}'."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -444,7 +444,7 @@ msgstr "वांटो घेतिल्ल्या खातीर तुम
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "उपकार करून HIT पुराय करपाक &quot;समाप्त&quot; क्लिक करात."
+msgstr "उपकार करून HIT पुराय करपाक \"समाप्त\" क्लिक करात."
 
 #: psynet/end.py
 #, fuzzy
@@ -814,8 +814,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"उपकार करून काम सुरू करपाक वयर दिल्ल्या Amazon साइटचेर &quot;HIT "
-"स्वीकारात&quot; बटण क्लिक करात."
+"उपकार करून काम सुरू करपाक वयर दिल्ल्या Amazon साइटचेर \"HIT "
+"स्वीकारात\" बटण क्लिक करात."
 
 #: psynet/templates/ad.html
 #, fuzzy

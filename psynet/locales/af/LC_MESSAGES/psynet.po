@@ -3019,7 +3019,7 @@ msgstr "Begin eksperiment..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "In geval van &#39;n probleem, probeer die volgende:"
+msgstr "In geval van 'n probleem, probeer die volgende:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3039,14 +3039,14 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Indien bogenoemde nie help nie, stuur vir ons &#39;n e-pos met die volgende "
+"Indien bogenoemde nie help nie, stuur vir ons 'n e-pos met die volgende "
 "inligting:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "&#39;n Skakel na die huidige webblad;"
+msgstr "'n Skakel na die huidige webblad;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3113,7 +3113,7 @@ msgstr "Wag asseblief vir die bladsy om te laai."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Probeer weer oor &#39;n paar sekondes."
+msgstr "Probeer weer oor 'n paar sekondes."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy

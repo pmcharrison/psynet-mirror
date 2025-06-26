@@ -1366,8 +1366,8 @@ msgid ""
 "You can also delete your data from the database by deleting your account "
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
-"भवान् स्वस्य खातं विलोप्य (अर्थात् cap-recruiter log-in पृष्ठे &#39;Delete "
-"account&#39; इति नुदतु) अपि दत्तांशकोशात् स्वदत्तांशं विलोपयितुं शक्नोति ।"
+"भवान् स्वस्य खातं विलोप्य (अर्थात् cap-recruiter log-in पृष्ठे 'Delete "
+"account' इति नुदतु) अपि दत्तांशकोशात् स्वदत्तांशं विलोपयितुं शक्नोति ।"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
