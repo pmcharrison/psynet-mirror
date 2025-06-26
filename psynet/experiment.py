@@ -2403,6 +2403,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def advertisement():
         from dallinger.experiment_server.experiment_server import prepare_advertisement
 
+        def get_unique_id_from_url_parameters(entry_information):
+            exp = get_experiment()
+            entry_data = exp.normalize_entry_information(entry_information)
+            worker_id = entry_data.get("worker_id")
+            assignment_id = entry_data.get("assignment_id")
+            return f"{worker_id}:{assignment_id}"
+
         try:
             is_redirect, kw = prepare_advertisement()
             if is_redirect:
@@ -2411,12 +2418,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return render_template_with_translations("ad.html", **kw)
         except Exception as e:
             if "already_did_exp_hit" in str(e):
-                entry_information = request.args.to_dict()
-                exp = get_experiment()
-                entry_data = exp.normalize_entry_information(entry_information)
-                worker_id = entry_data.get("worker_id")
-                assignment_id = entry_data.get("assignment_id")
-                unique_id = f"{worker_id}:{assignment_id}"
+                unique_id = get_unique_id_from_url_parameters(request.args.to_dict())
+
                 logger.info(
                     f"Redirecting existing participant {unique_id} to timeline."
                 )
