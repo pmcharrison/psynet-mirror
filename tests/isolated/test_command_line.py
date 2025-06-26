@@ -275,6 +275,87 @@ class TestExport:
         with patch("psynet.command_line.export_data") as mock_export_data:
             yield mock_export_data
 
+    def test_export_logs_success(self, tmp_path):
+        """Test successful log file export."""
+        from unittest.mock import Mock, patch
+
+        from psynet.command_line import export_logs
+
+        mock_executor = Mock()
+        mock_sftp = Mock()
+        mock_server_info = {"host": "test-host", "user": "test-user"}
+        mock_spinner = Mock()
+
+        with (
+            patch(
+                "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
+                {"test-server": mock_server_info},
+            ),
+            patch("dallinger.command_line.docker_ssh.get_sftp", return_value=mock_sftp),
+            patch(
+                "dallinger.command_line.docker_ssh.Executor", return_value=mock_executor
+            ),
+            patch("psynet.command_line.log") as mock_log,
+            patch("psynet.command_line.yaspin") as mock_yaspin,
+        ):
+
+            mock_yaspin.return_value.__enter__.return_value = mock_spinner
+            mock_executor.run.return_value.strip.return_value = "/home/testuser"
+
+            # Test log file export
+            export_logs("test-app", "test-server", str(tmp_path))
+
+            # Verify the call was made
+            assert mock_sftp.get.call_count == 1
+
+            # Verify correct path
+            mock_sftp.get.assert_called_with(
+                "/home/testuser/dallinger/test-app/logs.jsonl",
+                str(tmp_path / "logs.jsonl"),
+            )
+
+            # Verify log message
+            mock_log.assert_called_with(f"Exporting logs to {tmp_path}/logs.jsonl")
+
+            # Verify success spinner was shown (function ran to completion)
+            assert mock_yaspin.call_count == 1
+            mock_yaspin.assert_called_with(text="Logs exported.", color="green")
+            assert mock_spinner.ok.call_count == 1
+
+    def test_export_logs_error_handling(self, tmp_path):
+        """Test error handling in log file export."""
+        from unittest.mock import Mock, patch
+
+        from psynet.command_line import export_logs
+
+        mock_executor = Mock()
+        mock_sftp = Mock()
+        mock_server_info = {"host": "test-host", "user": "test-user"}
+
+        # Test SFTP failure
+        mock_sftp.get.side_effect = Exception("Permission denied")
+
+        with (
+            patch(
+                "dallinger.command_line.docker_ssh.CONFIGURED_HOSTS",
+                {"test-server": mock_server_info},
+            ),
+            patch("dallinger.command_line.docker_ssh.get_sftp", return_value=mock_sftp),
+            patch(
+                "dallinger.command_line.docker_ssh.Executor", return_value=mock_executor
+            ),
+            patch("psynet.command_line.log") as mock_log,
+        ):
+
+            mock_executor.run.return_value.strip.return_value = "/home/testuser"
+
+            export_logs("test-app", "test-server", str(tmp_path))
+
+            # Verify the error message includes the specific path
+            mock_log.assert_called_with(
+                "Warning: Failed to export logs from /home/testuser/dallinger/test-app/logs.jsonl: Permission denied"
+            )
+
 
 def test_check_constraints():
     with tempfile.TemporaryDirectory() as dir:
