@@ -1,4 +1,5 @@
 import fileinput
+import importlib
 import json
 import os
 import pathlib
@@ -45,6 +46,7 @@ from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
     get_args,
+    get_logger,
     get_package_name,
     git_repository_available,
     in_python_package,
@@ -58,7 +60,22 @@ from .utils import (
     working_directory,
 )
 
-dallinger.command_line.utils.header = ""
+logger = get_logger()
+
+
+def _suppress_dallinger_header():
+    """
+    Stops the Dallinger logo from being printed in the command line.
+    """
+    dallinger.command_line.header = ""
+    dallinger.command_line.utils.header = ""
+
+    # We need to use importlib here to avoid confusion with the command group of the same name
+    develop_module = importlib.import_module("dallinger.command_line.develop")
+    develop_module.header = ""
+
+
+_suppress_dallinger_header()
 
 
 def log(msg, chevrons=True, verbose=True, **kw):
@@ -80,21 +97,6 @@ def update_docker_tag():
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
-
-
-header = r"""
-    ____             _   __     __
-   / __ \_______  __/ | / /__  / /_
-  / /_/ / ___/ / / /  |/ / _ \/ __/
- / ____(__  ) /_/ / /|  /  __/ /_
-/_/   /____/\__, /_/ |_/\___/\__/
-           /____/
-                                 {:>8}
-
-        The online human behaviour lab of the future
-""".format(
-    f"v{__version__}"
-)
 
 
 @click.group()
@@ -471,6 +473,9 @@ def _debug_auto_reload(ctx, archive, no_browsers):
     DevelopmentDeployment.archive = archive
     patch_dallinger_develop()
 
+    develop_module = importlib.import_module("dallinger.command_line.develop")
+    develop_module.header = ""
+
     try:
         ctx.invoke(dallinger_debug, skip_flask=False)
     finally:
@@ -524,7 +529,7 @@ def kill_psynet_worker_processes():
 def kill_psynet_chrome_processes():
     processes = list_psynet_chrome_processes()
     if len(processes) > 0:
-        log(
+        logger.debug(
             f"Found {len(processes)} remaining PsyNet Chrome process(es), terminating them now."
         )
     for p in processes:
@@ -534,7 +539,9 @@ def kill_psynet_chrome_processes():
 def kill_chromedriver_processes():
     processes = list_chromedriver_processes()
     if len(processes) > 0:
-        log(f"Found {len(processes)} chromedriver processes, terminating them now.")
+        logger.debug(
+            f"Found {len(processes)} chromedriver processes, terminating them now."
+        )
     for p in processes:
         safely_kill_process(p)
 
@@ -662,8 +669,6 @@ def _pre_launch(
     server=None,
     app=None,
 ):
-    log("Preparing for launch...")
-
     from .experiment import get_experiment
 
     redis_vars.clear()
@@ -682,9 +687,7 @@ def _pre_launch(
 
         deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
-    log("Running pre-launch checks...")
     run_pre_checks(mode, local_, heroku, docker, app)
-    log(header)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
     os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
@@ -1244,7 +1247,6 @@ def update(dallinger_version, psynet_version, verbose):
 
         _git_checkout(version, cwd, capture_output)
 
-    log(header)
     capture_output = not verbose
 
     # Dallinger
@@ -1350,7 +1352,6 @@ def _estimate(mode):
     from .experiment import import_local_experiment
     from .utils import get_config
 
-    log(header)
     experiment_class = import_local_experiment()["class"]
     wage_per_hour = get_config().get("wage_per_hour")
 
@@ -1413,7 +1414,6 @@ def generate_constraints(ctx):
         generate_constraints as dallinger_generate_constraints,
     )
 
-    log(header)
     try:
         # We have removed verify_psynet_requirement here because it caused problems for Docker users.
         # Instead, we just run this in the sandbox/deploy prechecks.
@@ -1713,8 +1713,6 @@ def export_(
 
     """
     from .experiment import import_local_experiment
-
-    log(header)
 
     deployment_id = exp_variables["deployment_id"]
     assert len(deployment_id) > 0
