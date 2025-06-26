@@ -41,7 +41,6 @@ from sqlalchemy.schema import (
     Table,
 )
 from tqdm import tqdm
-from yaspin import yaspin
 
 from . import field
 from .field import PythonDict, is_basic_type
@@ -508,13 +507,7 @@ def init_db(drop_all=False, bind=db.engine):
     # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
     db.session.commit()
     close_all_sessions()
-
-    with yaspin(
-        text="Initializing the database...",
-        color="green",
-    ) as spinner:
-        old_init_db(drop_all, bind)
-        spinner.ok("✔")
+    old_init_db(drop_all, bind)
 
     return db.session
 
