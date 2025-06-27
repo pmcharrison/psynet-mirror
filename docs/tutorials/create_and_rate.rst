@@ -121,20 +121,95 @@ The TrialMaker class just needs to inherit from `CreateAndRateTrialMakerMixin` a
        pass
 
 It is also possible to customize the behaviour. For example, say we want to separate raters and creators into two
-different groups which is set in ``participant.var.is_creator``. We can then implement the following:
+different groups which is set in ``participant.var.is_rater``. We can then implement the following:
 
 ::
 
-   class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
-      def get_trial_class(self, node, participant, experiment):
-            proposed_role_class = self.get_trial_class(node, participant, experiment)
-            if participant.var.is_creator:
-                if proposed_role_class == self.creator_class:
-                    return self.creator_class
+    def get_trial_class(self, node, participant, experiment):
+        proposed_role_class = super().get_trial_class(node, participant, experiment)
+        if participant.var.is_rater:
+            if proposed_role_class == self.rater_class:
+                return self.rater_class
+        else:
+            if proposed_role_class == self.creator_class:
+                return self.creator_class
+        return None
+
+    def custom_network_filter(self, candidates, participant):
+        creation_networks = []
+        rating_networks = []
+        for network in candidates:
+            node = CreateAndRateNode.query.filter_by(
+                network_id=network.id, degree=network.degree
+            ).one()
+            n_creations = CreateTrial.query.filter_by(
+                network_id=network.id, node_id=node.id, failed=False, finalized=True
+            ).count()
+            if n_creations < N_CREATORS:
+                creation_networks.append(network)
             else:
-                if proposed_role_class == self.rater_class:
-                    return self.rater_class
-            return None
+                rating_networks.append(network)
+        if participant.var.is_rater:
+            return rating_networks
+        else:
+            return creation_networks
+
+
+
+Also, you can easily modify the number of trials for creators and raters, e.g.:
+
+::
+
+    MAX_CREATIONS_PER_PARTICIPANT = 2
+    MAX_RATINGS_PER_PARTICIPANT = 1
+
+    class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
+            @classmethod
+            def has_enough_trials(cls, participant):
+                if participant.var.is_rater:
+                    n_ratings = len(
+                        cls.rater_class.query.filter_by(participant=participant).all()
+                    )
+                    if n_ratings >= MAX_RATINGS_PER_PARTICIPANT:
+                        return True
+                else:
+                    n_creations = len(
+                        cls.creator_class.query.filter_by(participant=participant).all()
+                    )
+                    if n_creations >= MAX_CREATIONS_PER_PARTICIPANT:
+                        return True
+                return False
+
+            @staticmethod
+            def get_creation_and_rating_networks(candidates):
+                creation_networks = []
+                rating_networks = []
+                for network in candidates:
+                    node = CreateAndRateNode.query.filter_by(
+                        network_id=network.id, degree=network.degree
+                    ).one()
+                    n_creations = CreateTrial.query.filter_by(
+                        network_id=network.id, node_id=node.id, failed=False, finalized=True
+                    ).count()
+                    if n_creations < N_CREATORS:
+                        creation_networks.append(network)
+                    else:
+                        rating_networks.append(network)
+                return creation_networks, rating_networks
+
+            def custom_network_filter(self, candidates, participant):
+                if self.has_enough_trials(participant):
+                    return []
+                creation_networks, rating_networks = self.get_creation_and_rating_networks(
+                    candidates
+                )
+                if participant.var.is_rater:
+                    return rating_networks
+                else:
+                    return creation_networks
+
+
+See the GAP demo for the full example.
 
 Let’s now put all pieces together:
 
@@ -153,6 +228,10 @@ Let’s now put all pieces together:
        RateTrialMixin,
    )
    from psynet.trial.imitation_chain import ImitationChainTrial, ImitationChainTrialMaker
+
+    MAX_CREATIONS_PER_PARTICIPANT = 2
+    MAX_RATINGS_PER_PARTICIPANT = 1
+    EXPECTED_TRIALS_PER_PARTICIPANT = max(MAX_CREATIONS_PER_PARTICIPANT, MAX_RATINGS_PER_PARTICIPANT)
 
 
    def animal_prompt(text, img_url):
@@ -197,8 +276,8 @@ Let’s now put all pieces together:
            )
 
 
-   class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
-       pass
+    class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
+        pass
 
 
    start_nodes = [
@@ -225,8 +304,8 @@ Let’s now put all pieces together:
                # trial_maker params
                id_="create_and_rate_trial_maker",
                chain_type="across",
-               expected_trials_per_participant=len(start_nodes),
-               max_trials_per_participant=len(start_nodes),
+               expected_trials_per_participant=EXPECTED_TRIALS_PER_PARTICIPANT,
+               max_trials_per_participant=EXPECTED_TRIALS_PER_PARTICIPANT,
                start_nodes=start_nodes,
                chains_per_experiment=len(start_nodes),
                balance_across_chains=False,
@@ -241,4 +320,4 @@ Let’s now put all pieces together:
            SuccessfulEndPage(),
        )
 
-This gives you a simple Create and Rate experiment in just 120 lines 😉
+This gives you a simple Create and Rate experiment in just 104 lines 😉
