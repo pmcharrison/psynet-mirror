@@ -314,6 +314,47 @@ example_audio_page_2b = PageMaker(
     time_estimate=5,
 )
 
+example_audio_page_2c = PageMaker(
+    lambda assets: ModularPage(
+        "audio_page",
+        prompt=(
+            "This page shows how you can access audio stimuli outside of Audio Prompts. "
+            "This can be helpful for achieving more complex audio sequences."
+        ),
+        media=MediaSpec(
+            audio={
+                "stimulus_1": assets["bier"],
+                "stimulus_2": assets["train-1"],
+            }
+        ),
+        events={
+            "playStimulus1": Event(
+                is_triggered_by="trialStart",
+                js="psynet.audio.stimulus_1.play();",
+                message="Playing stimulus 1...",
+                message_color="blue",
+            ),
+            "playStimulus2": Event(
+                is_triggered_by="audioFinished: stimulus_1",
+                delay=0.5,
+                js="psynet.audio.stimulus_2.play();",
+                message="Playing stimulus 2...",
+                message_color="green",
+            ),
+            "responseEnable": Event(
+                is_triggered_by="playStimulus2",
+                delay=1.0,
+            ),
+            "submitEnable": Event(
+                is_triggered_by="responseEnable",
+                delay=0.0,
+            ),
+        },
+        progress_display=ProgressDisplay([], show_bar=False),
+    ),
+    time_estimate=5,
+)
+
 example_audio_page_3 = PageMaker(
     lambda assets: ModularPage(
         "audio_page",
@@ -476,6 +517,7 @@ class Exp(psynet.experiment.Experiment):
             example_audio_page_1,
             example_audio_page_2,
             example_audio_page_2b,
+            example_audio_page_2c,
             example_audio_page_3,
             example_audio_meter,
             example_record_page,
