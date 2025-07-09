@@ -12,17 +12,18 @@ class MonitorInformation(ModularPage):
     def __init__(
         self,
         label="monitor_information",
+        time_estimate=5,
     ):
-        _ = get_translator()
-        self.prompt = _(
-            "On the next page you may see a permissions request; please grant it."
-        )
-        self.time_estimate = 5
-
         super().__init__(
-            self.label,
-            self.prompt,
+            label,
+            prompt=self.get_prompt(),
             control=MonitorControl(),
-            time_estimate=self.time_estimate,
+            time_estimate=time_estimate,
             save_answer=label,
+        )
+
+    def get_prompt(self):
+        _ = get_translator()
+        return _(
+            "When continuing to the next page you may see a permissions request; please grant it."
         )
