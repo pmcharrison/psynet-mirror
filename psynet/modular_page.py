@@ -1504,7 +1504,71 @@ class MonitorControl(Control):
     macro = "monitor"
 
     def get_bot_response(self, experiment, bot, page, prompt):
-        return None
+        return json.loads(
+            """
+{
+    "currentScreen": {
+        "left": -959,
+        "top": -1440,
+        "isPrimary": false,
+        "isInternal": false,
+        "devicePixelRatio": 1,
+        "label": "VX3418-2KPC",
+        "availHeight": 1415,
+        "availLeft": -959,
+        "availTop": -1415,
+        "availWidth": 3440,
+        "colorDepth": 24,
+        "height": 1440,
+        "width": 3440,
+        "isExtended": true,
+        "pixelDepth": 24
+    },
+    "screens": [
+        {
+            "left": -959,
+            "top": -1440,
+            "isPrimary": false,
+            "isInternal": false,
+            "devicePixelRatio": 1,
+            "label": "VX3418-2KPC",
+            "availHeight": 1415,
+            "availLeft": -959,
+            "availTop": -1415,
+            "availWidth": 3440,
+            "colorDepth": 24,
+            "height": 1440,
+            "width": 3440,
+            "isExtended": true,
+            "pixelDepth": 24
+        },
+        {
+            "left": 0,
+            "top": 0,
+            "isPrimary": true,
+            "isInternal": true,
+            "devicePixelRatio": 2,
+            "label": "Built-in Retina Display",
+            "availHeight": 880,
+            "availLeft": 0,
+            "availTop": 38,
+            "availWidth": 1512,
+            "colorDepth": 30,
+            "height": 982,
+            "width": 1512,
+            "isExtended": true,
+            "pixelDepth": 30
+        }
+    ],
+    "currentWindow": {
+        "width": 1200,
+        "height": 1284,
+        "left": -937,
+        "top": -1393
+    }
+}
+"""
+        )
 
 
 class BaseButton:
