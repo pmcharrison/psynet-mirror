@@ -1503,9 +1503,6 @@ class MonitorControl(Control):
 
     macro = "monitor"
 
-    def __init__(self):
-        super().__init__(show_next_button=False)
-
     def get_bot_response(self, experiment, bot, page, prompt):
         return None
 
