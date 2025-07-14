@@ -1,5 +1,41 @@
 # CHANGELOG
 
+# [12.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.0) Release - 2025-06-25
+
+## Added
+- Added `AsyncCodeBlock`, a version of `CodeBlock` where the code is run asynchronously (authors: Peter Harrison and Frank Höger)
+- Expose Lucid reach estimation to command line (authors: Pol van Rijn, reviewer: Frank Höger)
+- Added new option to `AudioPrompt` controls, accepting either a boolean or an iterable, to support custom selection and naming of controls (author: joshfrank95, reviewer: Peter Harrison)
+- Added support for multiple native languages (author: joshfrank95, reviewer: Peter Harrison)
+- Added controls to `JSSynth` (author: Peter Harrison, reviewer: joshfrank95)
+- Added a CI test that flags warnings (author: Peter Harrison, reviewer: Frank Höger)
+
+## Changed
+- Set default logging level to 1 (`info`) rather than 0 (`debug`) (author: Peter Harrison, reviewer: Frank Höger)
+- Only build the PsyNet documentation in CI when tagging a new release (author: Frank Höger, reviewer: Peter Harrison)
+
+## Fixed
+- The CI now no longer fails when translations are missing, except when on a release branch (author: Peter Harrison, reviewer: Pol van Rijn)
+- Fixed garbage collection bug by removing `Exp.global_nodes` and `Exp.global_assets` (authors: Pol van Rijn and Peter Harrison)
+- Fixed bug with stop button in audio controls (author: joshfrank95, reviewer: Peter Harrison)
+- Removed dependency on Inter font which was loaded by CDN and therefore caused page layout jumping (author: Peter Harrison, reviewer: Pol van Rijn)
+- Fixed and re-enabled the translation demo test (author: Frank Höger)
+- Removed some unnecessary logging messages (author: Peter Harrison, reviewer: Frank Höger)
+- Removed unnecessary sleep from `init_db` (author: Peter Harrison, reviewer: Frank Höger)
+- Added `.venv` to the default experiment gitignore file to reflect common usage (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug when insufficient networks found after filtering blocks (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed some warnings messages in CI (author: Peter Harrison, reviewer: Frank Höger)
+- Minor improvements to Docker launch workflow to address problems where local virtual environments caused failures (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed failing pgBadger CI tests by upgrading Python image to 3.13; upgraded pgBadger to version 13.1 (author: Frank Höger, reviewer: Peter Harrison)
+- Automatically focus on `TextControl` and `NumberControl` (author: Frank Höger, reviewer: Peter Harrison)
+- Update Dockertag automatically when running `psynet prepare` (author: Frank Höger, reviewer: Peter Harrison)
+- Keep buttons disabled while still playing sounds in `BeepHeadphoneTest` and `HugginsHeadphoneTest` (author: Frank Höger, reviewer: Peter Harrison)
+
+## Documentation
+- Added tutorial for massive file uploads to Amazon S3 (authors: Pol van Rijn and Peter Harrison)
+- Update feature contribution (author: Peter Harrison)
+- Clarify that virtualenv and virtualenvwrapper are not required to use PsyNet (author: Peter Harrison, reviewer: Frank Höger)
+
 # [12.0.3](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.0.3) Release - 2025-05-28
 
 ## Updated

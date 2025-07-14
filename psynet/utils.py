@@ -1626,3 +1626,13 @@ def patch_yaspin_jupyter_detection():
 
     # Monkey patch the method
     Yaspin.is_jupyter = staticmethod(is_jupyter)
+
+
+@contextlib.contextmanager
+def suppress_stdout():
+    """
+    Context manager to suppress stdout within its context.
+    Useful for silencing noisy third-party library output.
+    """
+    with open(os.devnull, "w") as devnull, contextlib.redirect_stdout(devnull):
+        yield
