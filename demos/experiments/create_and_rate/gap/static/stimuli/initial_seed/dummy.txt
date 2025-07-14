@@ -1,0 +1,2 @@
+1|0|It's eight o'clock.|IEO1.wav
+11|0|Is it eleven o'clock?|IIE3.wav

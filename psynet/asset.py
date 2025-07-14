@@ -3358,10 +3358,11 @@ class AssetRegistry:
         # over multiple connections. The main limitation with the current situation though
         # is that we can no longer programmatically generate stimuli in parallel.
 
-        for a in tqdm(
-            self._staged_asset_specifications, desc="Generating/uploading assets..."
-        ):
-            a.prepare_for_deployment(registry=self)
+        if len(self._staged_asset_specifications) > 0:
+            for a in tqdm(
+                self._staged_asset_specifications, desc="Generating/uploading assets..."
+            ):
+                a.prepare_for_deployment(registry=self)
 
         # logger.info("Preparing assets for deployment...")
         # n_jobs = 1
