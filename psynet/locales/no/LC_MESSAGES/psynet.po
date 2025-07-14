@@ -3026,7 +3026,7 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Hvis det ovenstående ikke hjelper, send oss en e-post med følgende "
+"Hvis det ovennevnte ikke hjelper, send oss en e-post med følgende "
 "informasjon:"
 
 #: psynet/templates/timeline-page.html
@@ -3099,7 +3099,17 @@ msgstr "Vent til siden er lastet."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Prøv igjen om et par sekunder."
+msgstr "Prøv igjen om noen sekunder."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Det ser ut til at du har åpnet eksperimentet i flere faner. Vennligst lukk "
+"alle unntatt én fane og oppdater siden."
 
 #: psynet/translation/countries.py
 #, fuzzy

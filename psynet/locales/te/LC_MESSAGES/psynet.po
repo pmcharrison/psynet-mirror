@@ -2985,13 +2985,13 @@ msgstr "ప్రయోగం ప్రారంభం..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "సమస్య వచ్చినప్పుడు, క్రింది విధంగా ప్రయత్నించండి:"
+msgstr "సమస్య ఏర్పడిన పక్షంలో, ఈ క్రింది వాటిని ప్రయత్నించండి:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "పేజీని రీలోడ్ చేయండి."
+msgstr "పేజీని మళ్లీ లోడ్ చేయండి."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3004,7 +3004,7 @@ msgstr "మీ ఇంటర్నెట్ కనెక్షన్ పనిచ
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr "పైవి సహాయపడకపోతే, ఈ కింది సమాచారం సహా మాకు ఇమెయిల్ పంపండి:"
+msgstr "పైవి సహాయం చేయకపోతే, ఈ క్రింది సమాచారం కలిగి మాకు ఇమెయిల్ పంపండి:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3040,14 +3040,13 @@ msgstr "మీరు సిద్ధంగా ఉన్నారా?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr ""
-"పరీక్షను కొనసాగించడానికి మీరు సిద్ధంగా ఉన్నప్పుడు బటన్‌పై క్లిక్ చేయండి."
+msgstr "పరీక్షను కొనసాగించడానికి సిద్ధంగా ఉన్నప్పుడు బటన్‌ను క్లిక్ చేయండి."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "పునఃప్రారంభించండి"
+msgstr "పునఃప్రారంభించు"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3065,19 +3064,29 @@ msgstr "సహాయం!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "పరీక్షను ముందుగా ముగించండి"
+msgstr "పరీక్షను ముందుగానే ముగించు"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "దయచేసి పేజీ లోడ్ అవ్వడానికి వేచి ఉండండి."
+msgstr "దయచేసి పేజీ లోడ్ అయ్యే వరకు వేచి ఉండండి."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "కొన్ని సెకన్లలో మళ్లీ ప్రయత్నించండి."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"మీరు అనేక ట్యాబ్‌లలో పరీక్షను తెరిచినట్లు కనిపిస్తోంది. దయచేసి ఒకటి మినహా "
+"అన్ని ట్యాబ్‌లను మూసివేసి పేజీని రిఫ్రెష్ చేయండి."
 
 #: psynet/translation/countries.py
 #, fuzzy

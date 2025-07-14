@@ -2989,7 +2989,7 @@ msgstr "کسی مسئلے کی صورت میں، درج ذیل کوشش کریں
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "صفحہ کو دوبارہ لوڈ کریں."
+msgstr "صفحہ دوبارہ لوڈ کریں."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3003,26 +3003,26 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"اگر اوپر دی گئی تجاویز مددگار ثابت نہ ہوں، تو ہمیں درج ذیل معلومات کے ساتھ "
-"ای میل بھیجیں:"
+"اگر مذکورہ بالا مدد نہیں کرتا تو، ہمیں درج ذیل معلومات کے ساتھ ایک ای میل "
+"بھیجیں:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "موجودہ ویب صفحہ کا لنک;"
+msgstr "موجودہ ویب صفحے کا لنک;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "آپ کا ورکر آئی ڈی;"
+msgstr "آپ کا ورک آئی ڈی;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "آپ کو پیش آنے والا مسئلہ."
+msgstr "آپ کو درپیش مسئلہ."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3040,7 +3040,7 @@ msgstr "کیا آپ تیار ہیں؟"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "جب آپ تجربہ جاری رکھنے کے لئے تیار ہوں تو بٹن پر کلک کریں."
+msgstr "تجربہ جاری رکھنے کے لئے جب آپ تیار ہوں تو بٹن پر کلک کریں."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3070,13 +3070,23 @@ msgstr "تجربہ کو جلد ختم کریں"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "صفحہ کے لوڈ ہونے کا انتظار کریں."
+msgstr "صفحہ لوڈ ہونے کا انتظار کریں."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "چند سیکنڈ میں دوبارہ کوشش کریں."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"ایسا لگتا ہے کہ آپ نے تجربہ کو متعدد ٹیبز میں کھولا ہوا ہے. براہ کرم ایک سے "
+"زیادہ ٹیبز بند کریں اور صفحہ کو دوبارہ تازہ کریں."
 
 #: psynet/translation/countries.py
 #, fuzzy

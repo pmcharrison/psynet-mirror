@@ -2982,7 +2982,7 @@ msgstr "प्रयोग सुरू करत आहे..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "समस्येच्या बाबतीत, पुढील उपाय करा:"
+msgstr "समस्येच्या बाबतीत, खालील उपाय करून पहा:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3001,13 +3001,14 @@ msgstr "आपले इंटरनेट कनेक्शन कार्य
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr "वरील उपायांनी मदत झाली नाही, तर खालील माहिती सह आम्हाला ईमेल पाठवा:"
+msgstr ""
+"वरील उपायांनी मदत केली नाही तर, खालील माहिती सह आम्हाला एक ईमेल पाठवा:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "सध्याच्या वेब पृष्ठाचा दुवा;"
+msgstr "सद्याच्या वेब पृष्ठाची लिंक;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3037,13 +3038,13 @@ msgstr "आपण तयार आहात का?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "प्रयोग सुरू ठेवण्यासाठी तयार असाल तर बटणावर क्लिक करा."
+msgstr "प्रयोग सुरू ठेवण्यासाठी तयार झाल्यावर बटणावर क्लिक करा."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "पुन्हा सुरू करा"
+msgstr "पुनःप्रारंभ करा"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3074,6 +3075,16 @@ msgstr "कृपया पृष्ठ लोड होण्याची प�
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "काही सेकंदांनी पुन्हा प्रयत्न करा."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"असे दिसते की आपण प्रयोग अनेक टॅब्समध्ये उघडले आहेत. कृपया एक टॅब वगळता सर्व "
+"बंद करा आणि पृष्ठ ताजेतवाने करा."
 
 #: psynet/translation/countries.py
 #, fuzzy

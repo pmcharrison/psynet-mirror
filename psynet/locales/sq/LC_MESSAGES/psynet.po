@@ -3045,19 +3045,19 @@ msgstr "Duke filluar eksperimentin..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Në rast të një problemi, provoni sa vijon:"
+msgstr "Në rast problemi, provoni sa vijon:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Rifreskoni faqen."
+msgstr "Rimbushni faqen."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Kontrolloni që lidhja juaj e internetit po funksionon."
+msgstr "Kontrolloni nëse lidhja juaj e internetit po funksionon."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3096,7 +3096,7 @@ msgstr "OK"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Jeni gati?"
+msgstr "A jeni gati?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3126,7 +3126,7 @@ msgstr "Ndihmë!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Përfundoni eksperimentin herët"
+msgstr "Përfundoni eksperimentin më herët"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3139,6 +3139,16 @@ msgstr "Ju lutemi prisni që faqja të ngarkohet."
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Provoni përsëri pas disa sekondash."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Duket se keni hapur eksperimentin në disa skeda. Ju lutemi mbyllni të "
+"gjitha, përveç njërës, dhe rifreskoni faqen."
 
 #: psynet/translation/countries.py
 #, fuzzy

@@ -3083,7 +3083,7 @@ msgstr "Σε περίπτωση προβλήματος, δοκιμάστε τα 
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Ανανεώστε τη σελίδα."
+msgstr "Επαναφορτώστε τη σελίδα."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3097,20 +3097,20 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Αν τα παραπάνω δεν βοηθήσουν, στείλτε μας ένα email με τις ακόλουθες "
+"Αν τα παραπάνω δεν σας βοηθήσουν, στείλτε μας ένα email με τις ακόλουθες "
 "πληροφορίες:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Ένας σύνδεσμος προς την τρέχουσα ιστοσελίδα;"
+msgstr "Ένας σύνδεσμος προς την τρέχουσα ιστοσελίδα."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Το Worker ID σας;"
+msgstr "Το αναγνωριστικό εργαζομένου σας·"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3122,7 +3122,7 @@ msgstr "Το πρόβλημα που αντιμετωπίζετε."
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "Εντάξει"
+msgstr "ΕΝΤΑΞΕΙ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3134,19 +3134,19 @@ msgstr "Είστε έτοιμοι;"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Πατήστε το κουμπί όταν είστε έτοιμοι να συνεχίσετε το πείραμα."
+msgstr "Κάντε κλικ στο κουμπί όταν είστε έτοιμοι να συνεχίσετε το πείραμα."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Συνέχεια"
+msgstr "Περίληψη"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Αμοιβή"
+msgstr "Ανταμοιβή"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3158,7 +3158,7 @@ msgstr "Βοήθεια!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Τερματίστε το πείραμα νωρίς"
+msgstr "Τερματίστε το πείραμα πρόωρα"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3171,6 +3171,16 @@ msgstr "Παρακαλώ περιμένετε να φορτώσει η σελί�
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Δοκιμάστε ξανά σε λίγα δευτερόλεπτα."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Φαίνεται ότι έχετε ανοίξει το πείραμα σε πολλές καρτέλες. Κλείστε όλες τις "
+"καρτέλες εκτός από μία και ανανεώστε τη σελίδα."
 
 #: psynet/translation/countries.py
 #, fuzzy

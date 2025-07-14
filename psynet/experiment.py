@@ -42,7 +42,7 @@ from dallinger.utils import get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
-from flask import jsonify, render_template, request, send_file
+from flask import jsonify, redirect, render_template, request, send_file
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
@@ -1826,6 +1826,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         client_ip_address,
         answer=NoArgumentProvided,
     ):
+        _p = get_translator(context=True)
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
@@ -1835,14 +1836,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .get(participant_id)
         )
 
-        if page_uuid != participant.page_uuid:
-            raise RuntimeError(
-                f"Participant {participant_id} tried to submit data with the wrong page_uuid"
-                + f"(submitted = {page_uuid}, required = {participant.page_uuid})."
-            )
-
         try:
             event = self.timeline.get_current_elt(self, participant)
+            if page_uuid != participant.page_uuid:
+                return self.response_rejected(
+                    message=_p(
+                        "timeline_problem",
+                        "Synchronization problem detected. "
+                        "Are you running the same experiment in multiple browser tabs? "
+                        "Please close all other tabs and refresh the page.",
+                    )
+                )
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
@@ -1862,6 +1866,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             if isinstance(validation, str):
                 validation = FailedValidation(message=validation)
+
             response.successful_validation = not isinstance(
                 validation, FailedValidation
             )
@@ -2414,6 +2419,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def advertisement():
         from dallinger.experiment_server.experiment_server import prepare_advertisement
 
+        def get_unique_id_from_url_parameters(entry_information):
+            exp = get_experiment()
+            entry_data = exp.normalize_entry_information(entry_information)
+            worker_id = entry_data.get("worker_id")
+            assignment_id = entry_data.get("assignment_id")
+            return f"{worker_id}:{assignment_id}"
+
         try:
             is_redirect, kw = prepare_advertisement()
             if is_redirect:
@@ -2421,6 +2433,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             else:
                 return render_template_with_translations("ad.html", **kw)
         except Exception as e:
+            if "already_did_exp_hit" in str(e):
+                unique_id = get_unique_id_from_url_parameters(request.args.to_dict())
+
+                logger.info(
+                    f"Redirecting existing participant {unique_id} to timeline."
+                )
+                return redirect(f"/timeline?unique_id={unique_id}")
             return Experiment.pre_timeline_error_page(e, request)
 
     @experiment_route("/consent")

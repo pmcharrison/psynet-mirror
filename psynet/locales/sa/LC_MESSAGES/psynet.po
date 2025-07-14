@@ -1366,8 +1366,8 @@ msgid ""
 "You can also delete your data from the database by deleting your account "
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
-"भवान् स्वस्य खातं विलोप्य (अर्थात् cap-recruiter log-in पृष्ठे &#39;Delete "
-"account&#39; इति नुदतु) अपि दत्तांशकोशात् स्वदत्तांशं विलोपयितुं शक्नोति ।"
+"भवान् स्वस्य खातं विलोप्य (अर्थात् cap-recruiter log-in पृष्ठे 'Delete "
+"account' इति नुदतु) अपि दत्तांशकोशात् स्वदत्तांशं विलोपयितुं शक्नोति ।"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -2972,19 +2972,19 @@ msgstr "प्रयोगः आरभ्यते..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "यदि समस्या, निम्नलिखितं प्रयास्यताम्:"
+msgstr "यद्यपि समस्या अस्ति, निम्नलिखितं प्रयत्नं कर्तुं:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "पृष्ठं पुनः लोड् करोतु।"
+msgstr "पृष्ठं पुनः लोड कृत्वा।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "अपि ते जालसम्बन्धः कार्यं करोति इति परीक्ष्यताम्।"
+msgstr "यत् ते इण्टरनेट् सम्बन्धः कार्य्यं कुर्वति।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2992,49 +2992,49 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"यदि एतत् न सहायते, तर्हि निम्नलिखितं सूचनया सह अस्माकं कृपया पत्रं प्रेषयतु:"
+"यदि उपर्युक्तं न साहायति, तर्हि निम्नलिखितं सूचनां सह ई-मेलं प्रेषयतु:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "वर्तमानस्य जालपृष्ठस्य सम्पर्कः;"
+msgstr "वर्तमानजालपृष्ठस्य लिङ्कः;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "तेषां कर्मकरस्य ID;"
+msgstr "तव कर्मकर-आईडी;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "तेषां अनुभव्यमानं समस्या।"
+msgstr "यः समस्या त्वं अनुभवसि।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "सम्यक्"
+msgstr "अस्तु"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "भवान् सज्जः अस्ति?"
+msgstr "त्वं सिद्धः वा?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "यदा भवान् प्रयोगं पुनः आरब्धुं सज्जः भवति, तदा बटनम् अनुदब्धम्।"
+msgstr "यदा त्वं प्रयोगं पुनरारम्भं कर्तुं सिद्धः, तदा बटनं क्लिक् कर्तुं।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "पुनः आरभ्यताम्"
+msgstr "पुनः आरम्भं"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3046,25 +3046,35 @@ msgstr "पुरस्कारः"
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "साहाय्यम्!"
+msgstr "सहाय!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "प्रयोगं शीघ्रं समाप्तं करोतु"
+msgstr "प्रयोगं शीघ्रं समाप्तं कर्तुं"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "कृपया पृष्ठस्य लोड् भवति यावत् प्रतीक्षां करोतु।"
+msgstr "कृपया पृष्ठं लोड कर्तुं प्रतीक्षां कुर्वन्तु।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "किञ्चिद् क्षणं पुनः प्रयास्यताम्।"
+msgstr "किञ्चित् क्षणानन्तरं पुनः प्रयत्नं कर्तुं।"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"इव दृश्यते त्वं अनेकेषु टैब्स्वध्यक्षं प्रयोगं उद्घाटितवान्। कृपया सर्वान् "
+"विना एकं टैबं क्लोज् कृत्वा पृष्ठं पुनः लोड कर्तुं।"
 
 #: psynet/translation/countries.py
 #, fuzzy

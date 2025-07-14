@@ -2997,8 +2997,7 @@ msgstr "Эксперимент басталуда..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr ""
-"Егер қандай да бір мәселе туындаса, келесі әрекеттерді орындап көріңіз:"
+msgstr "Мәселе туындаған жағдайда келесі әрекеттерді орындап көріңіз:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3010,7 +3009,7 @@ msgstr "Бетті қайта жүктеңіз."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Интернет байланысыңыздың жұмыс істеп тұрғанын тексеріңіз."
+msgstr "Интернет байланысы жұмыс істеп тұрғанын тексеріңіз."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3018,8 +3017,8 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Егер жоғарыдағы амалдар көмектеспесе, келесі ақпараттармен бізге электрондық"
-" хат жіберіңіз:"
+"Жоғарыда айтылғандар көмектеспесе, бізге келесі ақпаратты электрондық пошта "
+"арқылы жіберіңіз:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3031,13 +3030,13 @@ msgstr "Ағымдағы веб-бетке сілтеме;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Сіздің Жұмысшы ID;"
+msgstr "Сіздің жұмысшы идентификаторыңыз;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Туындаған проблеманы сипаттаңыз."
+msgstr "Сіз бастан кешірген мәселе."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3049,19 +3048,19 @@ msgstr "Жарайды"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Сіз дайынсыз ба?"
+msgstr "Дайынсыз ба?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Экспериментті жалғастыруға дайын болғанда батырманы басыңыз."
+msgstr "Экспериментті жалғастыруға дайын болған кезде түймені басыңыз."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Жалғастыру"
+msgstr "Резюме"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3073,13 +3072,13 @@ msgstr "Сыйақы"
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "Көмектесіңіз!"
+msgstr "Көмектесіңіздер!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Экспериментті ерте аяқтау"
+msgstr "Экспериментті ертерек аяқтаңыз"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3091,7 +3090,17 @@ msgstr "Беттің жүктелуін күтіңіз."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Бірнеше секундтан кейін қайта көріңіз."
+msgstr "Бірнеше секундтан кейін әрекетті қайталаңыз."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Сіз экспериментті бірнеше қойындыда ашқан сияқтысыз. Бір қойындыдан "
+"басқасының барлығын жауып, бетті жаңартыңыз."
 
 #: psynet/translation/countries.py
 #, fuzzy

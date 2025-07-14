@@ -2905,26 +2905,26 @@ msgstr "เริ่มการทดลอง..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "ในกรณีที่มีปัญหา ลองทำตามขั้นตอนต่อไปนี้:"
+msgstr "ในกรณีที่เกิดปัญหา ลองทำตามขั้นตอนต่อไปนี้:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "รีโหลดหน้าเว็บ"
+msgstr "รีเฟรชหน้าเว็บ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "ตรวจสอบว่าอินเทอร์เน็ตของคุณทำงานอยู่"
+msgstr "ตรวจสอบว่าเชื่อมต่ออินเทอร์เน็ตอยู่"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr "หากวิธีข้างต้นไม่ช่วย ส่งอีเมลถึงเราพร้อมข้อมูลต่อไปนี้:"
+msgstr "หากคำแนะนำข้างต้นไม่ช่วย, กรุณาส่งอีเมลพร้อมข้อมูลต่อไปนี้:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2936,7 +2936,7 @@ msgstr "ลิงก์ไปยังหน้าเว็บปัจจุบ
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "รหัสพนักงานของคุณ;"
+msgstr "ID ของคนทำงานของคุณ;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2984,7 +2984,7 @@ msgstr "ช่วยเหลือ!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "ยุติการทดลองก่อนเวลา"
+msgstr "ยุติการทดลองก่อนกำหนด"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2997,6 +2997,16 @@ msgstr "กรุณารอให้หน้าเว็บโหลด"
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "ลองอีกครั้งในอีกไม่กี่วินาที"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"ดูเหมือนว่าคุณได้เปิดการทดลองในหลายแท็บ "
+"กรุณาปิดทุกแท็บยกเว้นแท็บเดียวและรีเฟรชหน้าเว็บ"
 
 #: psynet/translation/countries.py
 #, fuzzy

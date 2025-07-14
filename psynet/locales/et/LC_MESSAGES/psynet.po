@@ -2968,13 +2968,13 @@ msgstr "Katse alustamine..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Probleemi korral proovige järgmist:"
+msgstr "Probleemi korral proovige järgmist."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Laadige leht uuesti."
+msgstr "Laadi leht uuesti."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3005,61 +3005,71 @@ msgstr "Teie töötaja ID;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Probleem, mida kogete."
+msgstr "Probleem, millega te kokku puutute."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "OK"
+msgstr "Olgu"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Kas olete valmis?"
+msgstr "Kas oled valmis?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Klõpsake nuppu, kui olete valmis katsega jätkama."
+msgstr "Kui olete katse jätkamiseks valmis, klõpsake nuppu."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Jätka"
+msgstr "CV"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Tasu"
+msgstr "Auhind"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "Abi!"
+msgstr "Appi!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Lõpetage katse varakult"
+msgstr "Katse enneaegselt lõpetamine"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Palun oodake, kuni leht laaditakse."
+msgstr "Palun oodake, kuni leht laadib."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Proovige mõne sekundi pärast uuesti."
+msgstr "Proovi paari sekundi pärast uuesti."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Näib, et olete katse avanud mitmel vahelehel. Palun sulgege kõik vahelehed "
+"peale ühe ja värskendage lehte."
 
 #: psynet/translation/countries.py
 #, fuzzy

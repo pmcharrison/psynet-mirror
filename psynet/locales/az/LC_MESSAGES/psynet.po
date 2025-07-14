@@ -2999,7 +2999,7 @@ msgstr "Eksperiment başlayır..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Hər hansı bir problem yaranarsa, aşağıdakıları sınayın:"
+msgstr "Problem olarsa, aşağıdakıları sınayın:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3019,14 +3019,14 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Yuxarıda göstərilənlər kömək etmirsə, aşağıdakı məlumatlarla bizə email "
-"göndərin:"
+"Yuxarıda göstərilənlər kömək etmirsə, bizə aşağıdakı məlumatları ehtiva edən"
+" e-poçt göndərin:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Cari veb səhifəyə link;"
+msgstr "Cari veb səhifəyə keçid;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3038,31 +3038,31 @@ msgstr "İşçi ID-niz;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Yaşadığınız problemi."
+msgstr "Yaşadığınız problem."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "Oldu"
+msgstr "OK"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Hazırsınız?"
+msgstr "Hazırsan?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Eksperimentə davam etməyə hazır olduğunuzda düyməni basın."
+msgstr "Təcrübəni davam etdirməyə hazır olduğunuzda düyməni basın."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Davam et"
+msgstr "CV"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3074,25 +3074,35 @@ msgstr "Mükafat"
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "Kömək!"
+msgstr "Kömək edin!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Eksperimentə erkən son verin"
+msgstr "Təcrübəni erkən dayandırın"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Zəhmət olmasa səhifənin yüklənməsini gözləyin."
+msgstr "Səhifənin yüklənməsini gözləyin."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Bir neçə saniyə sonra yenidən cəhd edin."
+msgstr "Bir neçə saniyədən sonra yenidən cəhd edin."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Deyəsən, təcrübəni bir neçə tabda açmısınız. Lütfən, bir tabdan başqa "
+"hamısını bağlayın və səhifəni yeniləyin."
 
 #: psynet/translation/countries.py
 #, fuzzy
