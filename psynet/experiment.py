@@ -1288,7 +1288,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "duration": 100000000.0,
             "force_google_chrome": True,
-            "leave_comments_on_every_page": True,
+            "leave_comments_on_every_page": False,
             "force_incognito_mode": False,
             "openai_default_model": "gpt-4o",
             "openai_default_temperature": 0,
