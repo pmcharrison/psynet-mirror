@@ -66,6 +66,12 @@
                             </li>
                         </ul>
                     </div>
+                    {% if get_from_config("leave_comments_on_every_page") %}
+                    <h5>{{ pgettext("timeline_comment", "Leave a comment") }}</h5>
+                        <textarea id="comment-text" class="form-control" placeholder='{{ pgettext("timeline_comment", "Write a comment here") }}'></textarea>
+                        <button type="button" class="btn btn-primary mt-2"
+                                id="send-comment">{{ pgettext("timeline_comment", "Send comment") }}</button>
+                    {% endif %}
                 </div>
             </div>
         {% endblock %}
@@ -189,6 +195,7 @@
                         control: {}
                     },
                     utils: {},
+                    comments: [],
                     var: {{ js_vars | tojson }}
                 };
 
@@ -1291,10 +1298,10 @@
                     };
                 })
 
-                let initModal = function () {
-                    let modal = document.getElementById("help-modal");
-                    let helpBtn = document.getElementById("help-button");
-                    let span = document.getElementsByClassName("close")[0];
+                let initModal = function (modalId, buttonId, closeClass="close") {
+                    let modal = document.getElementById(modalId);
+                    let helpBtn = document.getElementById(buttonId);
+                    let span = document.getElementsByClassName(closeClass)[0];
 
                     if (modal !== null) {
                         helpBtn.onclick = function () {
@@ -1311,6 +1318,17 @@
                             }
                         }
                     }
+
+                    $('#send-comment').click(function () {
+                        var text = $("#comment-text");
+                        var textValue = text.val();
+
+                        if (textValue !== "") {
+                            psynet.comments.push(textValue);
+                            text.val("");
+                            psynet.alert('{{ pgettext("timeline_problem", "Comment stored.") }}');
+                        }
+                    });
                 };
 
                 psynet.estimateDownloadSpeed = function () {
@@ -1341,7 +1359,7 @@
                     console.log("Initialising page...");
 
                     psynet.registerErrorHandler();
-                    initModal();
+                    initModal(modalId="help-modal", buttonId="help-button");
 
                     psynet.response.disable();
                     psynet.submit.disable();
@@ -1412,6 +1430,7 @@
                     if (metadata === undefined) {
                         metadata = psynet.response.staged.metadata;
                     }
+                    metadata.comments = psynet.comments
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }

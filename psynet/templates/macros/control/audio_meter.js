@@ -37,6 +37,7 @@ audioMeterControl.init = function(json) {
     this.audioContext = null;
     this.audioMeter = null;
     this.audioMeterText = document.getElementById("audio-meter-text");
+    this.audioMeterDeviceName = document.getElementById("audio-meter-device-name");
     this.canvasContext = null;
     this.audioMeterMaxWidth=300;
     this.audioMeterMaxHeight=50;
@@ -89,8 +90,23 @@ audioMeterControl.checkMicrophone = function(stream) {
     return microphoneMetadata;
 }
 
-audioMeterControl.onMicrophoneGranted = function(stream) {
+audioMeterControl.onMicrophoneGranted = async function(stream) {
     this.showMessage("Starting audio meter...", "blue");
+
+    // Show device name
+    if (this.audioMeterDeviceName) {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInput = devices.find(device => device.kind === 'audioinput' && device.deviceId === stream.getAudioTracks()[0].getSettings().deviceId);
+            if (audioInput && audioInput.label) {
+                this.audioMeterDeviceName.textContent = `Microphone: ${audioInput.label}`;
+            } else {
+                this.audioMeterDeviceName.textContent = "Microphone: (device name unavailable)";
+            }
+        } catch (e) {
+            this.audioMeterDeviceName.textContent = "Microphone: (error retrieving device name)";
+        }
+    }
 
     let microphoneMetadata = this.checkMicrophone(stream);
     Object.assign(psynet.response.staged.metadata, microphoneMetadata);

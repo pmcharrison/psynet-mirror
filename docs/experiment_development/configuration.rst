@@ -284,6 +284,12 @@ Allowed browsers and devices
 
         PsyNet only officially supports Google Chrome.
 
+
+``leave_comments_on_every_page`` *bool* |psynet-icon|
+    Adds a comment box for the experimenter, which is shown on the "Help" modal. This feature is particularly useful for lab or field experiments, where the experimenter can leave comments on every page of the experiment. This is an opt-in feature, and is not enabled by default.
+    Default: ``False``.
+
+
 ``force_incognito_mode`` *bool* |psynet-icon|
     Forces the user to open the experiment in a private browsing (i.e. incognito mode). This is helpful as incognito
     mode prevents the user from accessing their browsing history, which could be used to influence the experiment.

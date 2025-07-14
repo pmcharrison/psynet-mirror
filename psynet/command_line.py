@@ -9,7 +9,6 @@ import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
-from datetime import datetime
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
@@ -307,36 +306,21 @@ def sandbox(*args, **kwargs):
     )
 
 
-@debug.command("local")
-# @click.option("--app", default=None, help="Name of the experiment app (required for non-local deployments)")
-# @click.option("--server", default=None, help="Name of the remote server (only relevant for ssh deployments)")
-@click.option("--docker", is_flag=True, help="Docker mode.")
-@click.option("--archive", default=None, help="Optional path to an experiment archive.")
-@click.option("--legacy", is_flag=True, help="Legacy mode.")
-@click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
-# @click.option(
-#     "--skip-flask",
-#     is_flag=True,
-#     help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
-# )
-@click.pass_context
-def debug__local(ctx, docker, archive, legacy, no_browsers):
+def _local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
     if not ctx:
         from click import Context
 
-        ctx = Context(debug)
+        ctx = Context(context_group)
 
     if legacy and docker:
         raise click.UsageError(
             "It is not possible to select both --legacy and --docker modes simultaneously."
         )
 
-    _pre_launch(
-        ctx, mode="debug", archive=archive, local_=True, docker=docker, app=None
-    )
+    _pre_launch(ctx, mode=mode, archive=archive, local_=True, docker=docker, app=None)
     _cleanup_before_debug()
 
     try:
@@ -352,6 +336,19 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
             _debug_auto_reload(ctx, archive=None, no_browsers=no_browsers)
     finally:
         kill_psynet_worker_processes()
+
+
+@debug.command("local")
+@click.option("--docker", is_flag=True, help="Docker mode.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
+@click.option("--legacy", is_flag=True, help="Legacy mode.")
+@click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
+@click.pass_context
+def debug__local(ctx, docker, archive, legacy, no_browsers):
+    """
+    Debug the experiment locally (this should normally be your first choice).
+    """
+    _local(ctx, docker, archive, legacy, no_browsers, mode="debug", context_group=debug)
 
 
 def run_prepare_in_subprocess():
@@ -743,6 +740,19 @@ def _forget_tables_defined_in_experiment_directory():
 @require_exp_directory
 def deploy():
     pass
+
+
+@deploy.command("local")
+@click.option("--docker", is_flag=True, help="Docker mode.")
+@click.option("--archive", default=None, help="Optional path to an experiment archive.")
+@click.option("--legacy", is_flag=True, help="Legacy mode.")
+@click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
+@click.pass_context
+def deploy__local(ctx, docker, archive, legacy, no_browsers):
+    """
+    Deploy the experiment locally (e.g., when collecting data on a computer in the lab or in the field).
+    """
+    _local(ctx, docker, archive, legacy, no_browsers, mode="live", context_group=deploy)
 
 
 @deploy.command("heroku")
@@ -1599,30 +1609,6 @@ def export_arguments(func):
     return func
 
 
-# @psynet.command()
-# @click.option(
-#     "--app",
-#     default=None,
-#     required=False,
-#     help="App id",
-# )
-# @click.option("--local", is_flag=True, help="Export local data")
-# @click.option("--path", default=None, help="Path to export directory")
-# @click.option(
-#     "--assets",
-#     default="experiment",
-#     help="Which assets to export; valid values are none, experiment, and all",
-# )
-# @click.option(
-#     "--anonymize",
-#     default="both",
-#     help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
-# )
-# @click.option(
-#     "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
-# )
-
-
 @psynet.group("export")
 @require_exp_directory
 def export():
@@ -1730,7 +1716,8 @@ def export_(
     assert len(deployment_id) > 0
 
     remote_exp_label = exp_variables["label"]
-    local_exp_label = import_local_experiment()["class"].label
+    experiment_class = import_local_experiment()["class"]
+    local_exp_label = experiment_class.label
 
     if not remote_exp_label == local_exp_label:
         if not user_confirms(
@@ -1746,17 +1733,7 @@ def export_(
         config.load()
 
     if path is None:
-        export_root = "~/psynet-data/export"
-
-        path = os.path.join(
-            export_root,
-            deployment_id,
-            re.sub(
-                "__launch.*", "", deployment_id
-            )  # Strip the launch date from the path to keep things short
-            + "__export="
-            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
-        )
+        path = experiment_class.export_path(deployment_id)
 
     path = os.path.expanduser(path)
 
@@ -1835,6 +1812,7 @@ def _export_(
             include_on_demand_assets,
             n_parallel,
             server,
+            local,
         )
 
     if export_source_code:
@@ -2049,6 +2027,7 @@ def export_assets(
     include_on_demand_assets,
     n_parallel,
     server,
+    local,
 ):
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
@@ -2067,6 +2046,7 @@ def export_assets(
         include_on_demand_assets,
         n_parallel,
         server,
+        local,
     )
 
 
@@ -2392,74 +2372,6 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
                     server=server,
                     ask_for_confirmation=False,
                 )
-
-
-# @local.command("experiment-mode")
-# @click.option("--app", required=True, help="Name of the experiment app")
-# @click.pass_context
-# def experiment_mode__local(ctx, app):
-#     try:
-#         mode = ctx.invoke(experiment_variables__local, app=app,)[
-#             "deployment_config"
-#         ]["mode"]
-#     except Exception:
-#         click.echo(
-#             "Failed to communicate with the running experiment to determine the deployment mode. "
-#         )
-#         raise
-#     click.echo(f"Experiment mode: {mode}")
-#     return mode
-#
-#
-# @heroku.command("experiment-mode")
-# @click.option("--app", required=True, help="Name of the experiment app")
-# @click.pass_context
-# def experiment_mode__heroku(ctx, app):
-#     try:
-#         mode = ctx.invoke(experiment_variables__heroku, app=app,)[
-#             "deployment_config"
-#         ]["mode"]
-#     except Exception:
-#         click.echo(
-#             "Failed to communicate with the running experiment to determine the deployment mode. "
-#         )
-#         raise
-#     click.echo(f"Experiment mode: {mode}")
-#     return mode
-#
-#
-# @docker_heroku.command("experiment-mode")
-# @click.option("--app", required=True, help="Name of the experiment app")
-# @click.pass_context
-# def experiment_mode__docker_heroku(ctx, app):
-#     try:
-#         mode = ctx.invoke(experiment_variables__docker_heroku, app=app,)[
-#             "deployment_config"
-#         ]["mode"]
-#     except Exception:
-#         click.echo(
-#             "Failed to communicate with the running experiment to determine the deployment mode. "
-#         )
-#         raise
-#     click.echo(f"Experiment mode: {mode}")
-#     return mode
-#
-#
-# @heroku.command("experiment-mode")
-# @click.option("--app", required=True, help="Name of the experiment app")
-# @click.pass_context
-# def experiment_mode__docker_ssh(ctx, app):
-#     try:
-#         mode = ctx.invoke(experiment_variables__docker_ssh, app=app,)[
-#             "deployment_config"
-#         ]["mode"]
-#     except Exception:
-#         click.echo(
-#             "Failed to communicate with the running experiment to determine the deployment mode. "
-#         )
-#         raise
-#     click.echo(f"Experiment mode: {mode}")
-#     return mode
 
 
 @psynet.group("apps")
