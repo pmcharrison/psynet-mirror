@@ -431,6 +431,11 @@ class VocabTest(StaticTrialMaker):
         The label for the incorrect answer. By default, the label is "L" (corresponding to the key code "KeyL").
     trial_class : ChainTrial
         The class of the trial. By default, the trial class is VocabTrial.
+    present_as_image: bool
+        Whether to present the items as images or as text. If set to True, the items are presented as images. If set
+        to False, the items are presented as text. By default, the items are presented as images.
+    font_url: Optional[str]
+        The URL to the font to use for rendering the items as images. If set to None, the default font is used.
 
     """
 
