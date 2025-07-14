@@ -456,6 +456,9 @@ class VocabTest(StaticTrialMaker):
         false_key_label: str = "L",
         trial_class: Type[VocabTrial] = VocabTrial,
         present_as_image: bool = True,
+        font_url: Optional[
+            str
+        ] = "https://psynet.s3.amazonaws.com/resources/fonts/GoNotoKurrent-Bold.ttf",
         **kwargs,
     ):
         self.locale = locale
@@ -496,7 +499,12 @@ class VocabTest(StaticTrialMaker):
 
         self.present_as_image = present_as_image
         if self.present_as_image:
-            self.image_setup(concatenated_chars, test_items, **kwargs)
+            (
+                self.use_arabic_script,
+                self.image_width,
+                self.image_height,
+                self.font_size,
+            ) = self.image_setup(concatenated_chars, test_items, font_url, **kwargs)
         else:
             warnings.warn(
                 "The test is not presented as images. This will make it easier for LLMs to pass the test."
@@ -535,37 +543,38 @@ class VocabTest(StaticTrialMaker):
             target_n_participants=None,
         )
 
-    def image_setup(self, concatenated_chars, test_items, **kwargs):
-        arabic_regex = r"[^0-9\u0600-\u06ff\u0750-\u077f\ufb50-\ufbc1\ufbd3-\ufd3f\ufd50-\ufd8f\ufd50-\ufd8f\ufe70-\ufefc\uFDF0-\uFDFD]+"
-        arabic_chars = re.sub(arabic_regex, "", concatenated_chars)
-        arabic_percentage = len(arabic_chars) / len(concatenated_chars)
-        self.use_arabic_script = arabic_percentage > 0.9
-        # Image settings
-        self.image_width = kwargs.get("image_width", default_test_config["image_width"])
-        self.image_height = kwargs.get(
-            "image_height", default_test_config["image_height"]
-        )
-        font_path = "static/fonts/GoNotoKurrent-Bold.ttf"
+    def get_font_path(self, font_url):
+        font_name = os.path.basename(font_url)
+        font_path = f"static/fonts/{font_name}"
         if not os.path.exists(font_path):
-            url = (
-                "https://psynet.s3.amazonaws.com/resources/fonts/GoNotoKurrent-Bold.ttf"
-            )
             with yaspin(text="Downloading font...", color="yellow") as spinner:
-                response = requests.get(url)
+                response = requests.get(font_url)
                 spinner.ok("✔")
             os.makedirs(os.path.dirname(font_path), exist_ok=True)
             with open(font_path, "wb") as f:
                 f.write(response.content)
-        default_test_config["font_path"] = os.path.abspath(font_path)
+        return os.path.abspath(font_path)
 
-        self.font_size = get_fitting_font_size(
+    def image_setup(self, concatenated_chars, test_items, font_url, **kwargs):
+        arabic_regex = r"[^0-9\u0600-\u06ff\u0750-\u077f\ufb50-\ufbc1\ufbd3-\ufd3f\ufd50-\ufd8f\ufd50-\ufd8f\ufe70-\ufefc\uFDF0-\uFDFD]+"
+        arabic_chars = re.sub(arabic_regex, "", concatenated_chars)
+        arabic_percentage = len(arabic_chars) / len(concatenated_chars)
+        use_arabic_script = arabic_percentage > 0.9
+        # Image settings
+        image_width = kwargs.get("image_width", default_test_config["image_width"])
+        image_height = kwargs.get("image_height", default_test_config["image_height"])
+
+        default_test_config["font_path"] = self.get_font_path(font_url)
+
+        font_size = get_fitting_font_size(
             text=test_items[-1]["stimulus"],
             font_path=default_test_config["font_path"],
-            max_width=int(self.image_width * 0.8),
-            max_height=int(self.image_height * 0.8),
+            max_width=int(image_width * 0.8),
+            max_height=int(image_height * 0.8),
             min_font_size=10,
             max_font_size=100,
         )
+        return use_arabic_script, image_width, image_height, font_size
 
     def select_hashes(self, stimuli, n):
         selected_hashes = []
