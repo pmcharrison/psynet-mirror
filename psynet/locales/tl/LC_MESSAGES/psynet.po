@@ -3103,7 +3103,7 @@ msgstr "Nagsisimula ang eksperimento..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Kung sakaling magkaroon ng problema, subukan ang mga sumusunod:"
+msgstr "Kung sakaling may problema, subukan ang mga sumusunod:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3124,7 +3124,7 @@ msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
 "Kung hindi nakatulong ang nasa itaas, magpadala sa amin ng email na may "
-"kasamang sumusunod na impormasyon:"
+"sumusunod na impormasyon:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3142,7 +3142,7 @@ msgstr "Ang iyong Worker ID;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Ang problemang nararanasan mo."
+msgstr "Ang problema na iyong nararanasan."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3160,13 +3160,14 @@ msgstr "Handa ka na ba?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "I-click ang button kapag handa ka nang ipagpatuloy ang eksperimento."
+msgstr ""
+"I-click ang pindutan kapag handa ka nang ipagpatuloy ang eksperimento."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Ipagpatuloy"
+msgstr "Ipatuloy"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3184,19 +3185,29 @@ msgstr "Tulong!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Tapusin nang maaga ang eksperimento"
+msgstr "Itigil nang maaga ang eksperimento"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Mangyaring maghintay para sa pag-load ng pahina."
+msgstr "Pakiusap maghintay para sa pag-load ng pahina."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Subukang muli sa loob ng ilang segundo."
+msgstr "Subukang muli sa ilang segundo."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Mukhang binuksan mo ang eksperimento sa maraming tabs. Pakisara ang lahat "
+"maliban sa isang tab at i-refresh ang pahina."
 
 #: psynet/translation/countries.py
 #, fuzzy

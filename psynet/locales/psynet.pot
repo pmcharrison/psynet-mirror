@@ -440,149 +440,149 @@ msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr ""
 
-#: psynet/modular_page.py:996 psynet/modular_page.py:1269
+#: psynet/modular_page.py:996 psynet/modular_page.py:1326
 msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr ""
 
-#: psynet/modular_page.py:1319
+#: psynet/modular_page.py:1376
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1236
+#: psynet/prescreen/__init__.py:1238
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1317
+#: psynet/prescreen/__init__.py:1319
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1321
+#: psynet/prescreen/__init__.py:1323
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1329
+#: psynet/prescreen/__init__.py:1331
 #, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1335
+#: psynet/prescreen/__init__.py:1337
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1753
+#: psynet/prescreen/__init__.py:1767
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1791
+#: psynet/prescreen/__init__.py:1804
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:93
+#: psynet/prescreen/vocabtest.py:318
 msgid "Your score was"
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:94
+#: psynet/prescreen/vocabtest.py:319
 msgid "Press the button to continue."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:342
+#: psynet/prescreen/vocabtest.py:709
 msgid "We will perform a test to check your language abilities."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:343
+#: psynet/prescreen/vocabtest.py:710
 msgid "In each trial, you will see a string of characters."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:344
+#: psynet/prescreen/vocabtest.py:711
 msgid "The string will automatically disappear."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:346
+#: psynet/prescreen/vocabtest.py:713
 #, python-brace-format
 msgid ""
 "Your task is to decide whether this is an existing word in {LANGUAGE_NAME} "
 "or not."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:363
+#: psynet/prescreen/vocabtest.py:730
 #, python-brace-format
 msgid ""
 "If you don’t know the exact meaning of the word, but you are certain that it"
 " exists in {LANGUAGE_NAME}, you should mark the it as a real word."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:366
+#: psynet/prescreen/vocabtest.py:733
 #, python-brace-format
 msgid ""
 "If you are not sure whether the word exists in {LANGUAGE_NAME}, you should "
 "mark it as a fake word."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:370
+#: psynet/prescreen/vocabtest.py:737
 msgid "In this experiment, you might find a mix between spelling variants."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:373
+#: psynet/prescreen/vocabtest.py:740
 msgid "You should not pay attention to subtle spelling differences."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:376
+#: psynet/prescreen/vocabtest.py:743
 msgid "The words are presented in either only uppercase or lowercase letters."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:378
+#: psynet/prescreen/vocabtest.py:745
 msgid "You can ignore the case of the word."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:389
+#: psynet/prescreen/vocabtest.py:756
 msgid "To do the task quickly, you should use the keys on your keyboard."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:390
+#: psynet/prescreen/vocabtest.py:758
 msgid "You can use the following keys:"
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:393
+#: psynet/prescreen/vocabtest.py:761
 msgid "Press <kbd>A</kbd> if the presented word is <strong>real</strong>"
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:396
+#: psynet/prescreen/vocabtest.py:764
 msgid "Press <kbd>L</kbd> if the presented word is <strong>fake</strong>"
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:400
+#: psynet/prescreen/vocabtest.py:768
 msgid "Familiarize yourself with the two keys on your keyboard."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:402
+#: psynet/prescreen/vocabtest.py:770
 msgid "If you press them, they will light up in the keyboard on the right."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:407
+#: psynet/prescreen/vocabtest.py:775
 msgid ""
 "You need to press both keys at least once to progress to the next page."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:412
+#: psynet/prescreen/vocabtest.py:780
 msgid "In case you forget the keys, they will be printed on every page."
 msgstr ""
 
-#: psynet/prescreen/vocabtest.py:423
+#: psynet/prescreen/vocabtest.py:791
 msgid "The test will start on the next page."
 msgstr ""
 
-#: psynet/recruiters.py:813
+#: psynet/recruiters.py:814
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr ""
@@ -2182,80 +2182,80 @@ msgstr ""
 msgid "Reset"
 msgstr ""
 
-#: psynet/templates/macros/control.html:1007
+#: psynet/templates/macros/control.html:1028
 msgctxt "audio_meter_calibrate"
 msgid "Sliders"
 msgstr ""
 
-#: psynet/templates/macros/control.html:1010
+#: psynet/templates/macros/control.html:1031
 msgctxt "audio_meter_calibrate"
 msgid "Documentation"
 msgstr ""
 
-#: psynet/templates/macros/control.html:1021
+#: psynet/templates/macros/control.html:1042
 msgctxt "audio_meter_calibrate"
 msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
 
-#: psynet/templates/macros/control.html:1022
+#: psynet/templates/macros/control.html:1043
 msgctxt "audio_meter_calibrate"
 msgid ""
 "A high decay parameter means that the signal takes a long time to decay "
 "(i.e. high smoothing)."
 msgstr ""
 
-#: psynet/templates/macros/control.html:1023
+#: psynet/templates/macros/control.html:1044
 msgctxt "audio_meter_calibrate"
 msgid ""
 "There are three decay parameters: one for the displayed audio meter, one for"
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
 
-#: psynet/templates/macros/control.html:1027
+#: psynet/templates/macros/control.html:1048
 msgctxt "audio_meter_calibrate"
 msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
 
-#: psynet/templates/macros/control.html:1031
+#: psynet/templates/macros/control.html:1052
 msgctxt "audio_meter_calibrate"
 msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
 
-#: psynet/templates/macros/control.html:1035
+#: psynet/templates/macros/control.html:1056
 msgctxt "audio_meter_calibrate"
 msgid ""
 "The <strong>message duration</strong> parameters determine how long warning "
 "messages are displayed for."
 msgstr ""
 
-#: psynet/templates/macros/control.html:1072
+#: psynet/templates/macros/control.html:1093
 msgid "Record from start"
 msgstr ""
 
-#: psynet/templates/macros/control.html:1075
+#: psynet/templates/macros/control.html:1096
 msgid "Play all"
 msgstr ""
 
-#: psynet/templates/macros/control.html:1078
+#: psynet/templates/macros/control.html:1099
 msgid "Play prompt"
 msgstr ""
 
-#: psynet/templates/macros/control.html:1081
+#: psynet/templates/macros/control.html:1102
 msgid "Play recording"
 msgstr ""
 
-#: psynet/templates/macros/control.html:1084
+#: psynet/templates/macros/control.html:1105
 #: psynet/templates/macros/prompt.html:53
 msgid "Stop"
 msgstr ""
 
-#: psynet/templates/macros/control.html:1093
+#: psynet/templates/macros/control.html:1114
 #: psynet/templates/macros/prompt.html:58
 msgid "Loop"
 msgstr ""
@@ -2382,14 +2382,21 @@ msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
 msgstr ""
 
-#: psynet/templates/timeline-page.html:1390
+#: psynet/templates/timeline-page.html:1406
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
 msgstr ""
 
-#: psynet/templates/timeline-page.html:1390
+#: psynet/templates/timeline-page.html:1406
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
+msgstr ""
+
+#: psynet/templates/timeline-page.html:1413
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
 msgstr ""
 
 #: psynet/translation/countries.py:14

@@ -2859,7 +2859,7 @@ msgstr "מתחילים את הניסוי..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "במקרה של בעיה, נסה את הפעולות הבאות:"
+msgstr "במקרה של בעיה, נסה את הדברים הבאים:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2871,14 +2871,14 @@ msgstr "טען מחדש את הדף."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "בדוק שהחיבור לאינטרנט שלך פועל."
+msgstr "ודא שחיבור האינטרנט שלך פועל."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr "אם האמור לעיל לא עוזר, שלח לנו דוא\"ל עם המידע הבא:"
+msgstr "אם האמור לעיל לא עוזר, אנא שלחו לנו דוא\"ל עם המידע הבא:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2890,7 +2890,7 @@ msgstr "קישור לדף האינטרנט הנוכחי;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "מזהה העובד שלך;"
+msgstr "מספר העובד שלך;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2902,7 +2902,7 @@ msgstr "הבעיה שאתה חווה."
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "אישור"
+msgstr "בְּסֵדֶר"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2914,31 +2914,31 @@ msgstr "האם אתה מוכן?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "לחץ על הכפתור כשאתה מוכן להמשיך בניסוי."
+msgstr "לחץ על הכפתור כשתהיה מוכן להמשיך בניסוי."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "המשך"
+msgstr "קוֹרוֹת חַיִים"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "תגמול"
+msgstr "גְמוּל"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "עזרה!"
+msgstr "עֶזרָה!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "סיים את הניסוי מוקדם"
+msgstr "לסיים את הניסוי מוקדם מהצפוי"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2951,6 +2951,16 @@ msgstr "אנא המתן לטעינת הדף."
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "נסה שוב בעוד כמה שניות."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"נראה שפתחת את הניסוי במספר כרטיסיות. אנא סגור את כל הכרטיסיות מלבד אחת ורענן"
+" את הדף."
 
 #: psynet/translation/countries.py
 #, fuzzy

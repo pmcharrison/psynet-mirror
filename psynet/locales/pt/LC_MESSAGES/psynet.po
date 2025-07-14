@@ -3126,6 +3126,16 @@ msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Tente novamente em alguns segundos."
 
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Parece que você abriu o experimento em várias abas. Por favor, feche todas, "
+"exceto uma, e atualize a página."
+
 #: psynet/translation/countries.py
 #, fuzzy
 msgctxt "country_name"

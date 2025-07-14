@@ -3022,14 +3022,14 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Ako gore navedeno ne pomogne, pošaljite nam e-mail sa sljedećim "
+"Ako gore navedeno ne pomogne, pošaljite nam e-poruku sa sljedećim "
 "informacijama:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Poveznica na trenutnu web stranicu;"
+msgstr "Veza na trenutnu web stranicu;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3041,19 +3041,19 @@ msgstr "Vaš ID radnika;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Problem s kojim se suočavate."
+msgstr "Problem koji doživljavate."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "U redu"
+msgstr "U REDU"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Jeste li spremni?"
+msgstr "Jesi li spreman/spremna?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3065,7 +3065,7 @@ msgstr "Kliknite gumb kada budete spremni nastaviti eksperiment."
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Nastavi"
+msgstr "Životopis"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3083,19 +3083,29 @@ msgstr "Pomoć!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Prekinite eksperiment prijevremeno"
+msgstr "Prekinite eksperiment ranije"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Molimo pričekajte da se stranica učita."
+msgstr "Molimo pričekajte da se stranica učitava."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Pokušajte ponovno za nekoliko sekundi."
+msgstr "Pokušajte ponovno za par sekundi."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Čini se da ste eksperiment otvorili u više kartica. Zatvorite sve osim jedne"
+" kartice i osvježite stranicu."
 
 #: psynet/translation/countries.py
 #, fuzzy

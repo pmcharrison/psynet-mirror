@@ -3045,8 +3045,8 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Если вышеуказанное не помогает, отправьте нам электронное письмо со "
-"следующей информацией:"
+"Если вышеуказанное не помогло, отправьте нам электронное письмо с следующей "
+"информацией:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3118,7 +3118,17 @@ msgstr "Пожалуйста, подождите, пока страница за
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Попробуйте снова через пару секунд."
+msgstr "Попробуйте еще раз через пару секунд."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Похоже, вы открыли эксперимент в нескольких вкладках. Пожалуйста, закройте "
+"все вкладки, кроме одной, и обновите страницу."
 
 #: psynet/translation/countries.py
 #, fuzzy

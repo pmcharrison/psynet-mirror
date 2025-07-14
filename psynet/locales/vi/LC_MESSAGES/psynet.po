@@ -3017,7 +3017,7 @@ msgstr "Bắt đầu thí nghiệm..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Trong trường hợp có vấn đề, hãy thử các cách sau:"
+msgstr "Trong trường hợp gặp vấn đề, hãy thử các cách sau:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3029,7 +3029,7 @@ msgstr "Tải lại trang."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Kiểm tra kết nối internet của bạn có hoạt động không."
+msgstr "Kiểm tra xem kết nối internet của bạn có hoạt động không."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3037,8 +3037,8 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Nếu các cách trên không giúp được, hãy gửi email cho chúng tôi với thông tin"
-" sau:"
+"Nếu các cách trên không giúp ích, hãy gửi email cho chúng tôi với thông tin "
+"sau:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3074,7 +3074,7 @@ msgstr "Bạn đã sẵn sàng chưa?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Nhấn nút khi bạn đã sẵn sàng tiếp tục thí nghiệm."
+msgstr "Nhấn nút khi bạn sẵn sàng tiếp tục thí nghiệm."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3086,7 +3086,7 @@ msgstr "Tiếp tục"
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Phần thưởng"
+msgstr "Thưởng"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3104,13 +3104,23 @@ msgstr "Kết thúc thí nghiệm sớm"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Vui lòng đợi trang tải."
+msgstr "Vui lòng chờ trang tải."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Thử lại sau vài giây."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Có vẻ như bạn đã mở thí nghiệm trong nhiều tab. Vui lòng đóng tất cả các tab"
+" trừ một tab và làm mới trang."
 
 #: psynet/translation/countries.py
 #, fuzzy

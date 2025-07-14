@@ -707,20 +707,6 @@ msgstr "Om du glömmer tangenterna kommer de att stå på varje sida."
 msgid "The test will start on the next page."
 msgstr "Testet börjar på nästa sida."
 
-#: psynet/prescreen.py
-#, fuzzy
-msgctxt "Beep-headphone-test"
-msgid "Which sound is different from the other two: 1, 2, or 3?"
-msgstr "Vilket ljud är annorlunda än de andra två: 1, 2, eller 3?"
-
-#: psynet/prescreen.py
-#, fuzzy
-msgid ""
-"Your task will be to judge <strong>which sound is the odd one out</strong>."
-msgstr ""
-"Din uppgift kommer att vara att bedöma <strong>vilket ljud som är det "
-"udda</strong>."
-
 #: psynet/recruiters.py
 #, fuzzy
 msgctxt "lucid_error"
@@ -3028,7 +3014,7 @@ msgstr "Startar experiment..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Vid problem, försök följande:"
+msgstr "Om det uppstår ett problem, försök följande:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3048,7 +3034,7 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Om ovanstående inte hjälper, skicka ett e-postmeddelande med följande "
+"Om ovanstående inte hjälper, skicka oss ett e-postmeddelande med följande "
 "information:"
 
 #: psynet/templates/timeline-page.html
@@ -3061,13 +3047,13 @@ msgstr "En länk till den aktuella webbsidan;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Ditt Worker ID;"
+msgstr "Ditt Worker-ID;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Problemet du upplever."
+msgstr "Det problem du upplever."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3115,13 +3101,23 @@ msgstr "Avsluta experimentet i förtid"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Vänligen vänta medan sidan laddas."
+msgstr "Vänligen vänta medan sidan laddar."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Försök igen om ett par sekunder."
+msgstr "Försök igen om några sekunder."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Det verkar som att du har öppnat experimentet i flera flikar. Stäng alla "
+"utom en flik och uppdatera sidan."
 
 #: psynet/translation/countries.py
 #, fuzzy
