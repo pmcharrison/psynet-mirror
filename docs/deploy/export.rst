@@ -35,7 +35,7 @@ This can slow down data export if you have many files. You can disable this beha
 
     psynet export ssh --app my-app-name --assets none
 
-By default the export command will also try to export the experiment's source code. 
+By default the export command will also try to export the experiment's source code.
 This feature was causing some problems in PsyNet v11.7; if you experience an error
 during source code exporting, we recommend using the ``--no-source`` argument:
 
@@ -50,8 +50,9 @@ as personal, for example audio recordings. This is good for producing datasets
 that you want to upload to open-access repositories.
 
 **Logs**.
-When exporting from an ``ssh`` server the server logs will also be exported as a ``.log`` file.
-You can open this with a text editor to investigate what happened in a given experiment.
+When exporting from an ``ssh`` server, the server logs will be exported as a ``logs.jsonl`` file.
+This file contains structured JSON log entries with timestamps, log levels, and messages that can be easily parsed and analyzed.
+You can open this file with a text editor to investigate what happened during the experiment.
 It's normally best to keep these logs private though, as it's easy to imagine confidential information
 accidentally being leaked via such logs.
 

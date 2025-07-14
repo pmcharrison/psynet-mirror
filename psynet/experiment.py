@@ -99,9 +99,9 @@ from .utils import (
     get_logger,
     get_translator,
     log_time_taken,
-    pretty_log_dict,
     render_template_with_translations,
     serialise,
+    suppress_stdout,
     working_directory,
 )
 
@@ -570,29 +570,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @with_transaction
     def on_launch(self):
-        logger.info("Calling Exp.on_launch()...")
         self.compile_psynet_translations_if_necessary()
         redis_vars.set("launch_started", True)
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
-        logger.info("Experiment launch complete!")
         db.session.commit()
         redis_vars.set("launch_finished", True)
 
+        # This log message is used by the testing logic to identify when the experiment has been launched
+        logger.info("Experiment launch complete!")
+
     def on_first_launch(self):
-        logger.info("Calling Exp.on_first_launch()...")
         for trialmaker in self.timeline.trial_makers.values():
             trialmaker.on_first_launch(self)
 
     def on_every_launch(self):
-        logger.info("Calling Exp.on_every_launch()...")
-
         # This check is helpful to stop the database from being ingested multiple times
         # if the launch fails the first time
         deployment_db_ingested = redis_vars.get("deployment_db_ingested", False)
-        print(f"deployment_db_ingested: {deployment_db_ingested}")
         if not deployment_db_ingested:
             ingest_zip(database_template_path, db.engine)
             redis_vars.set("deployment_db_ingested", True)
@@ -682,7 +679,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **super().get_status(),
             **cls.get_request_statistics(lookback=lookback),
             **cls.get_hardware_status(),
-            **cls.get_recruiter_status(),
+            # As currently implemented, get_recruiter_status is problematic because it makes API calls
+            # (e.g. to Prolific) which can take a long time and cause the process to be blocked.
+            # This code needs to be updated to use a background task to fetch the recruiter status.
+            # **cls.get_recruiter_status(),
         }
 
     @scheduled_task("interval", seconds=10, max_instances=1)
@@ -1280,6 +1280,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
             "label": cls.get_experiment_folder_name(),
             "lock_table_when_creating_participant": False,
+            "loglevel": 1,
             "loglevel_worker": 1,
             "min_accumulated_reward_for_abort": 0.20,
             "min_browser_version": "80.0",
@@ -1419,11 +1420,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
-        log(
-            "Initializing experiment with variables \n"
-            + pretty_log_dict(self.variables_initial_values, 4)
-        )
-
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
@@ -1466,12 +1462,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.assets.prepare_for_deployment()
         self.create_database_snapshot()
+
         self.create_source_code_zip_file()
 
     @classmethod
     def create_source_code_zip_file(cls):
         from dallinger.command_line.utils import ExperimentFileSource
-        from yaspin import yaspin
 
         # The config.txt file in the deployment package by default includes sensitive keys
         # (e.g. AWS API keys), so we don't allow this method to be run there
@@ -1482,18 +1478,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assert_config_txt_does_not_contain_sensitive_values()
 
         base_name = "source_code"
-        with yaspin(
-            text=f"Saving a snapshot of the experiment source code to {base_name}.zip ...",
-            color="green",
-        ) as spinner:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                cwd = os.getcwd()
-                ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
-                # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
-                # so we need to copy this manually.
-                shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
-                shutil.make_archive(base_name, "zip", temp_dir)
-            spinner.ok("✔")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cwd = os.getcwd()
+            ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
+            # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
+            # so we need to copy this manually.
+            shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
+            shutil.make_archive(base_name, "zip", temp_dir)
 
     @classmethod
     def update_deployment_id(cls):
@@ -1526,7 +1517,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             pass
         with tempfile.TemporaryDirectory() as temp_dir:
             with working_directory(temp_dir):
-                dallinger.data.export("app", local=True, scrub_pii=False)
+                with suppress_stdout():
+                    dallinger.data.export("app", local=True, scrub_pii=False)
             shutil.copyfile(
                 os.path.join(temp_dir, "data", "app-data.zip"),
                 database_template_path,
@@ -2083,6 +2075,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     resources.files("psynet")
                     / "resources/libraries/international-keyboards",
                     "/static/international-keyboards",
+                ),
+                (
+                    resources.files("psynet") / "resources/css/fonts",
+                    "/static/css/fonts",
                 ),
                 (
                     resources.files("psynet")

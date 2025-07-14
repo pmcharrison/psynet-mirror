@@ -49,6 +49,7 @@ example_js_synth_1 = ModularPage(
             Note(62, pan=1),
             Note(67, pan=1),
         ],
+        controls=True,
     ),
     time_estimate=5,
 )
@@ -291,17 +292,81 @@ example_audio_page_2 = PageMaker(
     time_estimate=5,
 )
 
+example_audio_page_2b = PageMaker(
+    lambda assets: ModularPage(
+        "audio_page",
+        AudioPrompt(
+            assets["bier"],
+            """
+        This page customizes the audio controls to only display
+        a 'Replay' button.
+        """,
+            # If the user provides a dictionary, then the keys should
+            # correspond to built-in controls, and the values (optional)
+            # should correspond to the desired names for those controls.
+            # Here the user has just selected one of the available controls
+            # and named it 'Replay'.
+            controls={"Play from start": "Replay"},
+            loop=False,
+        ),
+        start_trial_automatically=True,
+    ),
+    time_estimate=5,
+)
+
+example_audio_page_2c = PageMaker(
+    lambda assets: ModularPage(
+        "audio_page",
+        prompt=(
+            "This page shows how you can access audio stimuli outside of Audio Prompts. "
+            "This can be helpful for achieving more complex audio sequences."
+        ),
+        media=MediaSpec(
+            audio={
+                "stimulus_1": assets["bier"],
+                "stimulus_2": assets["train-1"],
+            }
+        ),
+        events={
+            "playStimulus1": Event(
+                is_triggered_by="trialStart",
+                js="psynet.audio.stimulus_1.play();",
+                message="Playing stimulus 1...",
+                message_color="blue",
+            ),
+            "playStimulus2": Event(
+                is_triggered_by="audioFinished: stimulus_1",
+                delay=0.5,
+                js="psynet.audio.stimulus_2.play();",
+                message="Playing stimulus 2...",
+                message_color="green",
+            ),
+            "responseEnable": Event(
+                is_triggered_by="playStimulus2",
+                delay=1.0,
+            ),
+            "submitEnable": Event(
+                is_triggered_by="responseEnable",
+                delay=0.0,
+            ),
+        },
+        progress_display=ProgressDisplay([], show_bar=False),
+    ),
+    time_estimate=5,
+)
+
 example_audio_page_3 = PageMaker(
     lambda assets: ModularPage(
         "audio_page",
         AudioPrompt(
             assets["train-1"],
             """
-        This page illustrates a 'play window' combined with fade-in, fade-out, and loop.
+        This page illustrates a 'play window' combined with fade-in and loop.
         """,
             play_window=[5, 9],
             fade_in=0.75,
-            fade_out=0.75,
+            # Note: fade_out is also supported in theory, but users are warned that
+            # the timing is unreliable when the audio device has high latency.
             loop=True,
             controls=True,
         ),
@@ -451,6 +516,8 @@ class Exp(psynet.experiment.Experiment):
             example_audio_page,
             example_audio_page_1,
             example_audio_page_2,
+            example_audio_page_2b,
+            example_audio_page_2c,
             example_audio_page_3,
             example_audio_meter,
             example_record_page,

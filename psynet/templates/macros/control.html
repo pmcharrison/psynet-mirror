@@ -1526,6 +1526,10 @@
                 rawAnswer: $("#text-input").get(0).value
             }
         }
+
+        psynet.trial.onEvent("responseEnable", function() {
+            document.getElementById('text-input').focus();
+        });
     </script>
 
 {% endmacro %}
@@ -1555,6 +1559,10 @@
                 rawAnswer: $("#number-input").get(0).value
             }
         }
+
+        psynet.trial.onEvent("responseEnable", function() {
+            document.getElementById('number-input').focus();
+        });
     </script>
 {% endmacro %}
 
@@ -1753,4 +1761,48 @@
             }
         };
     </script>
+{% endmacro %}
+
+
+{% macro monitor(params) %}
+<script>
+    summarizeScreen = function (screenDetailed) {
+        const dict = {};
+        let keys = Object.keys(Object.getOwnPropertyDescriptors(Object.getPrototypeOf(screenDetailed)));
+        let extraKeys = [
+            'availHeight', 'availLeft', 'availTop', 'availWidth', 'colorDepth', 'height', 'width', 'left', 'top',
+            'isExtended', 'pixelDepth'
+        ]
+        keys.push(...extraKeys)
+        keys.map(function (key) {
+            try {
+                if (typeof screenDetailed[key] !== "function") {
+                    dict[key] = screenDetailed[key];
+                }
+            } catch (e) {
+                dict[key] = undefined;
+            }
+        });
+        return dict;
+    }
+
+    async function getMonitorInformation () {
+        let info = await window.getScreenDetails();
+        return {
+            currentScreen: summarizeScreen(info.currentScreen),
+            screens: info.screens.map(summarizeScreen),
+            currentWindow: {
+                'width': window.innerWidth,
+                'height': window.innerHeight,
+                'left': window.screenX,
+                'top': window.screenY
+            }
+        }
+    }
+
+
+    psynet.stageResponse = async function (){
+        psynet.response.staged.rawAnswer = await getMonitorInformation()
+    }
+</script>
 {% endmacro %}

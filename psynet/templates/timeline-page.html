@@ -535,6 +535,9 @@
                     };
 
                     trial.onEvent = function (id, handler, providedOptions) {
+                        if (typeof handler !== "function") {
+                            throw new Error("Handler must be a function in trial.onEvent");
+                        }
                         // Higher priority values are executed first
                         let options = {
                             priority: 0.0
@@ -703,6 +706,9 @@
                 // };
 
                 psynet.media.stopAllAudio = function () {
+                    if (typeof stop_all_tonejs_audio === "function") {
+                        stop_all_tonejs_audio();
+                    }
                     if (psynet.audio) {
                         Object.values(psynet.audio).forEach(function (x) {
                             x.stop();
@@ -1369,7 +1375,7 @@
 
                 psynet.submitResponse = async function (onRejection) {
                     if (psynet.stageResponse) {
-                        psynet.stageResponse();
+                        await psynet.stageResponse();
                     }
                     if (typeof retrieveResponse == "undefined") {
                         await psynet.nextPage();

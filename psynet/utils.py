@@ -1583,3 +1583,56 @@ def text_to_image(text, path, width, height, font_size, font_path):
 
     # Save image
     im.save(path)
+
+
+def git_repository_available():
+    """
+    Check if the current directory is inside a git repository and git is installed.
+
+    Returns
+    -------
+    bool
+        True if inside a git repository and git is available, False otherwise.
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+
+def patch_yaspin_jupyter_detection():
+    """
+    Patch yaspin's is_jupyter detection to be more accurate.
+    The default implementation just checks if stdout is not a TTY,
+    which is not reliable as there are many cases where stdout might not be a TTY
+    that are not Jupyter.
+    """
+    from yaspin.core import Yaspin
+
+    def is_jupyter() -> bool:
+        try:
+            import IPython
+
+            return IPython.get_ipython() is not None
+        except ImportError:
+            return False
+
+    # Monkey patch the method
+    Yaspin.is_jupyter = staticmethod(is_jupyter)
+
+
+@contextlib.contextmanager
+def suppress_stdout():
+    """
+    Context manager to suppress stdout within its context.
+    Useful for silencing noisy third-party library output.
+    """
+    with open(os.devnull, "w") as devnull, contextlib.redirect_stdout(devnull):
+        yield

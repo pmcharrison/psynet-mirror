@@ -9,6 +9,10 @@ from psynet.process import LocalAsyncProcess
 from psynet.pytest_psynet import path_to_test_experiment
 
 
+def do_nothing():
+    pass
+
+
 def sleep_for_1s():
     time.sleep(1)
 
@@ -35,9 +39,16 @@ class TestProcesses:
 
     def test_async_process_participant(self, participant):
         assert len(participant.async_processes) == 0
-        LocalAsyncProcess(sleep_for_1s, participant=participant)
-        db.session.refresh(participant)
+        process = LocalAsyncProcess(do_nothing, participant=participant)
+        db.session.commit()
         assert len(participant.async_processes) == 1
+
+        # Give the process time to finish before we shut down the experiment.
+        # If we don't, then we are likely to see a PytestUnhandledThreadExceptionWarning
+        # from when the process tries to run but the app has already been shut down.
+        time.sleep(0.5)
+        db.session.commit()
+        assert process.finished
 
 
 @pytest.mark.parametrize(

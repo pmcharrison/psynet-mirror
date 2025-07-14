@@ -4,7 +4,7 @@ import random
 import shutil
 import tempfile
 import warnings
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, Iterable, List, Optional, Union
 
 from dominate import tags
 from dominate.dom_tag import dom_tag
@@ -65,6 +65,10 @@ class Prompt:
         An optional list of additional buttons to include on the page.
         Normally these will be created by calls to :class:`psynet.modular_page.Button`.
 
+    loop
+        Whether or not the prompt should loop back to the beginning after finishing.
+        Note: This is not yet implemented for all prompt types.
+
 
     Attributes
     ----------
@@ -92,9 +96,11 @@ class Prompt:
         text: Union[None, str, Markup] = None,
         text_align: str = "left",
         buttons: Optional[List] = None,
+        loop: bool = False,
     ):
         self.text = text
         self.text_align = text_align
+        self.loop = loop
 
         if isinstance(text, str) and not isinstance(text, Markup):
             self.text_html = tags.p(text)
@@ -134,7 +140,49 @@ class Prompt:
         pass
 
 
-class AudioPrompt(Prompt):
+class BaseAudioPrompt(Prompt):
+    """
+    A base class for miscellaneous audio prompts, including
+    AudioPrompt and JSSynth.
+    """
+
+    def __init__(
+        self,
+        *args,
+        controls: Union[bool, Iterable] = False,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.controls = self.preprocess_controls(controls)
+
+    def preprocess_controls(self, controls: Union[bool, Iterable]):
+        _ = get_translator()
+        default_controls = {
+            "Play from start": _("Play from start"),
+            "Stop": _("Stop"),
+            "Loop": _("Loop"),
+        }
+
+        if isinstance(controls, bool):
+            if controls:
+                controls = default_controls
+            else:
+                controls = {}
+
+        if isinstance(controls, (set, list)):
+            controls = {x: _(x) for x in controls}
+
+        if not isinstance(controls, dict):
+            raise ValueError(f"Invalid value for controls: {controls}")
+
+        for key in controls.keys():
+            if key not in default_controls:
+                raise ValueError(f"{key} is not a valid control")
+
+        return controls
+
+
+class AudioPrompt(BaseAudioPrompt):
     """
     Plays an audio file to the participant.
 
@@ -166,7 +214,14 @@ class AudioPrompt(Prompt):
         The behaviour is undefined when the time window extends past the end of the audio file.
 
     controls
-        Whether to give the user playback controls (default = ``False``).
+        Whether to give the user playback controls, and which controls (default = ``False``).
+        Accepts either a boolean or an iterable (dictionary, set, list).
+        False results in no controls being displayed.
+        True results in all controls being displayed (Play from start, Stop, Loop).
+        An iterable can be used to select specific controls to display. A list, set, or dictionary with
+        empty values will use standard labels. Custom labels can be specified as the dictionary values.
+        A boolean, set, or list will result in automatically translated button labels if using translation.
+        A dictionary will not be automatically translated - use this to specify custom values for button labels.
 
     fade_in
         Fade-in duration for the audio (defaults to ``0.0``).
@@ -185,7 +240,7 @@ class AudioPrompt(Prompt):
         loop: bool = False,
         text_align="left",
         play_window: Optional[List] = None,
-        controls: bool = False,
+        controls: Union[bool, Iterable] = False,
         fade_in: float = 0.0,
         fade_out: float = 0.0,
         **kwargs,
@@ -215,12 +270,11 @@ class AudioPrompt(Prompt):
         else:
             raise TypeError(f"Invalid type for audio argument: {type(audio)}")
 
-        super().__init__(text=text, text_align=text_align, **kwargs)
+        super().__init__(text=text, text_align=text_align, loop=loop, **kwargs)
 
         self.url = url
-        self.loop = loop
         self.play_window = play_window
-        self.controls = controls
+        self.controls = self.preprocess_controls(controls)
 
         self.js_play_options = dict(
             start=play_window[0],
@@ -251,7 +305,9 @@ class AudioPrompt(Prompt):
             super().visualize(trial)
             + "\n"
             + tags.audio(
-                tags.source(src=src), id="visualize-audio-prompt", controls=True
+                tags.source(src=src),
+                id="visualize-audio-prompt",
+                controls=self.controls,
             ).render()
         )
         return html
@@ -1436,6 +1492,83 @@ class TextControl(Control):
 
     def get_bot_response(self, experiment, bot, page, prompt):
         return "Hello, I am a bot!"
+
+
+class MonitorControl(Control):
+    """
+    This Control records information about the participant's computer screen configuration. The participant just needs
+    to press 'Next', and respond positively to a permissions request, then the information will be recorded
+    automatically.
+    """
+
+    macro = "monitor"
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return json.loads(
+            """
+{
+    "currentScreen": {
+        "left": -959,
+        "top": -1440,
+        "isPrimary": false,
+        "isInternal": false,
+        "devicePixelRatio": 1,
+        "label": "VX3418-2KPC",
+        "availHeight": 1415,
+        "availLeft": -959,
+        "availTop": -1415,
+        "availWidth": 3440,
+        "colorDepth": 24,
+        "height": 1440,
+        "width": 3440,
+        "isExtended": true,
+        "pixelDepth": 24
+    },
+    "screens": [
+        {
+            "left": -959,
+            "top": -1440,
+            "isPrimary": false,
+            "isInternal": false,
+            "devicePixelRatio": 1,
+            "label": "VX3418-2KPC",
+            "availHeight": 1415,
+            "availLeft": -959,
+            "availTop": -1415,
+            "availWidth": 3440,
+            "colorDepth": 24,
+            "height": 1440,
+            "width": 3440,
+            "isExtended": true,
+            "pixelDepth": 24
+        },
+        {
+            "left": 0,
+            "top": 0,
+            "isPrimary": true,
+            "isInternal": true,
+            "devicePixelRatio": 2,
+            "label": "Built-in Retina Display",
+            "availHeight": 880,
+            "availLeft": 0,
+            "availTop": 38,
+            "availWidth": 1512,
+            "colorDepth": 30,
+            "height": 982,
+            "width": 1512,
+            "isExtended": true,
+            "pixelDepth": 30
+        }
+    ],
+    "currentWindow": {
+        "width": 1200,
+        "height": 1284,
+        "left": -937,
+        "top": -1393
+    }
+}
+"""
+        )
 
 
 class BaseButton:

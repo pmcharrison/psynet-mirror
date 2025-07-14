@@ -1,4 +1,5 @@
 import os
+import subprocess
 import tempfile
 from datetime import datetime
 from math import isnan
@@ -15,6 +16,7 @@ from psynet.utils import (
     get_package_name,
     get_package_source_directory,
     get_psynet_root,
+    git_repository_available,
     linspace,
     list_experiment_dirs,
     list_isolated_tests,
@@ -326,3 +328,16 @@ def test_get_psynet_package_source_directory():
 #     os.remove("setup.py")
 #     with pytest.raises(FileNotFoundError, match="Could not find pyproject.toml or setup.py in current directory"):
 #         get_package_name()
+
+
+def test_git_repository_available_true(tmp_path):
+    # Create a temporary directory and initialize a git repo
+    with working_directory(tmp_path):
+        subprocess.run(["git", "init"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        assert git_repository_available() is True
+
+
+def test_git_repository_available_false(tmp_path):
+    # Use a fresh temporary directory with no git repo
+    with working_directory(tmp_path):
+        assert git_repository_available() is False
