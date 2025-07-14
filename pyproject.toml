@@ -37,9 +37,10 @@ classifiers = [
 dependencies = [
     "babel",
     "dallinger[docker]>=11.3.1,<12",
-    # Using a specific commit from GitHub to fix Python 3.12 event loop warning
-    # TODO: Update to a new version > 2.9.1 once it's released
-    "dominate @ git+https://github.com/Knio/dominate.git@b268b8b",
+    # Unpin dominate once a new version is released which includes the following
+    # fix for the Python 3.12 event loop warning:
+    # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf
+    "dominate==2.9.1",
     "html2text",
     "joblib",
     "jsonpickle",

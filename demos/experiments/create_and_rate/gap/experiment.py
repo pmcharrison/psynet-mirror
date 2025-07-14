@@ -2,6 +2,10 @@
 ##########################################################################################
 # Imports
 ##########################################################################################
+import random
+import time
+
+from dallinger import db
 from dominate import tags
 from markupsafe import Markup
 
@@ -12,6 +16,7 @@ from psynet.modular_page import (
     ModularPage,
     PushButtonControl,
 )
+from psynet.participant import Participant
 from psynet.timeline import (
     CodeBlock,
     Event,
@@ -44,13 +49,17 @@ N_RATERS = 3
 MAX_RECORDING_DURATION = 5
 
 STIMULUS_DIR = "static/stimuli/initial_seed"
-STIMULI_FILE = STIMULUS_DIR + "/stimuli.txt"
+STIMULI_FILE = STIMULUS_DIR + "/dummy.txt"
 
 with open(STIMULI_FILE) as f:
     STIMULUS_LINES = [line.replace("\n", "") for line in f.readlines()]
 name_stimuli = [line.split("|")[3] for line in STIMULUS_LINES]
 
-NUM_TRIALS_PER_PARTICIPANT = 1
+MAX_CREATIONS_PER_PARTICIPANT = 2
+MAX_RATINGS_PER_PARTICIPANT = 1
+NUM_TRIALS_PER_PARTICIPANT = max(
+    MAX_CREATIONS_PER_PARTICIPANT, MAX_RATINGS_PER_PARTICIPANT
+)
 
 NUM_ITERATIONS_PER_CHAIN = 20
 
@@ -60,16 +69,16 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
     accumulate_answers = True
 
     def analyze_recording(self, audio_file: str, output_plot: str):
-        logger.info("Analyze recording: {}".format(self.answer))
-
         # You can add ASR here if you like
-        if self.answer is None:
-            return {"failed": True, "reason": "No answer"}
-        if self.answer["decision_page"] == "My own recording is bad":
+        return {"failed": False, "reason": "Recording looks good"}
+
+    def format_answer(self, raw_answer, **kwargs):
+        answer = super().format_answer(raw_answer, **kwargs)
+        if answer["decision_page"] == "My own recording is bad":
             # Fail current recording
-            return {"failed": True, "reason": "My own recording is bad"}
-        else:
-            return {"failed": False, "reason": "My own recording is correct"}
+            self.fail(reason="My own recording is bad")
+            db.session.commit()
+        return answer
 
     def get_listen_page(self):
         return ModularPage(
@@ -160,7 +169,7 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
                 show_meter=True,
                 controls=False,
                 auto_advance=False,
-                bot_response="static/stimuli/initial_seed/HTW4.wav",
+                bot_response_media="static/silence.wav",
             ),
             events=self.get_recording_events(),
             progress_display=self.get_recording_progress_display(),
@@ -181,7 +190,8 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
             "decision_page",
             prompt=Markup("""Please select one from the options"""),
             control=PushButtonControl(
-                ["My own recording is bad", "My own recording is correct"]
+                ["My own recording is bad", "My own recording is correct"],
+                bot_response="My own recording is correct",
             ),
             events=events,
             time_estimate=3,
@@ -253,7 +263,11 @@ class SelectTrial(SelectTrialMixin, ImitationChainTrial):
         return ModularPage(
             "serial-prosody-rating",
             prompt=f"You will listen to {N_CREATORS + 1} recordings. Pick the recording which you find most emotional. Make your choice after listening to all samples.",
-            control=PushButtonControl(choices=choices, labels=labels),
+            control=PushButtonControl(
+                choices=choices,
+                labels=labels,
+                bot_response=lambda: random.choice(choices),
+            ),
             time_estimate=time_estimate,
             events=events,
             media=MediaSpec(audio=audio_pairs),
@@ -279,7 +293,58 @@ class CreateAndRateNode(CreateAndRateNodeMixin, AudioImitationChainNode):
 
 
 class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
-    pass
+    def has_enough_trials(self, participant):
+        if participant.var.is_rater:
+            n_ratings = len(
+                self.rater_class.query.filter_by(participant=participant).all()
+            )
+            if n_ratings >= MAX_RATINGS_PER_PARTICIPANT:
+                return True
+        else:
+            n_creations = len(
+                self.creator_class.query.filter_by(participant=participant).all()
+            )
+            if n_creations >= MAX_CREATIONS_PER_PARTICIPANT:
+                return True
+        return False
+
+    @staticmethod
+    def get_creation_and_rating_networks(candidates):
+        creation_networks = []
+        rating_networks = []
+        for network in candidates:
+            node = CreateAndRateNode.query.filter_by(
+                network_id=network.id, degree=network.degree
+            ).one()
+            n_creations = CreateTrial.query.filter_by(
+                network_id=network.id, node_id=node.id, failed=False, finalized=True
+            ).count()
+            if n_creations < N_CREATORS:
+                creation_networks.append(network)
+            else:
+                rating_networks.append(network)
+        return creation_networks, rating_networks
+
+    def custom_network_filter(self, candidates, participant):
+        if self.has_enough_trials(participant):
+            return []
+        creation_networks, rating_networks = self.get_creation_and_rating_networks(
+            candidates
+        )
+        if participant.var.is_rater:
+            return rating_networks
+        else:
+            return creation_networks
+
+    def get_trial_class(self, node, participant, experiment):
+        proposed_role_class = super().get_trial_class(node, participant, experiment)
+        if participant.var.is_rater:
+            if proposed_role_class == self.rater_class:
+                return self.rater_class
+        else:
+            if proposed_role_class == self.creator_class:
+                return self.creator_class
+        return None
 
 
 def is_rater(participant):
@@ -295,7 +360,7 @@ def is_rater(participant):
             counts["create"] += 1
         else:
             counts["rate"] += 1
-    is_rater = counts["rate"] > counts["create"]
+    is_rater = counts["rate"] >= counts["create"]
     if is_rater:
         logger.info(
             f"Participant {participant.id} is a rater (create: {counts['create']}, rate: {counts['rate']})"
@@ -367,3 +432,31 @@ class Exp(psynet.experiment.Experiment):
         get_instructions(),
         trial_maker,
     )
+
+    test_n_bots = N_RATERS * 2 + N_CREATORS
+    test_mode = "serial"
+
+    def test_experiment(self):
+        super().test_experiment()
+        time.sleep(
+            3
+        )  # Wait for any async processes to complete (e.g., summarize_trials)
+        n_expected_nodes = len(start_nodes) * 2  # Seed nodes + iteration 1
+        participants = Participant.query.all()
+        assert len(participants) == self.test_n_bots
+        participants = sorted(participants, key=lambda p: p.id)
+        assert [p.var.is_rater for p in participants] == [False] * N_CREATORS + [
+            True
+        ] * N_RATERS * 2
+        creations = CreateTrial.query.all()
+        assert len(creations) == 4
+        assert len(set([t.participant_id for t in creations])) == 2
+        ratings = SelectTrial.query.all()
+        assert len(ratings) == 6
+        assert len(set([t.participant_id for t in ratings])) == 6
+
+        all_trials = creations + ratings
+        assert all([t.finalized for t in all_trials])
+        assert all([t.complete for t in all_trials])
+        assert all([t.answer is not None for t in all_trials])
+        assert CreateAndRateNode.query.count() == n_expected_nodes

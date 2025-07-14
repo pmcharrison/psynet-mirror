@@ -99,9 +99,9 @@ from .utils import (
     get_logger,
     get_translator,
     log_time_taken,
-    pretty_log_dict,
     render_template_with_translations,
     serialise,
+    suppress_stdout,
     working_directory,
 )
 
@@ -1420,11 +1420,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
-        log(
-            "Initializing experiment with variables \n"
-            + pretty_log_dict(self.variables_initial_values, 4)
-        )
-
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
@@ -1467,12 +1462,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.assets.prepare_for_deployment()
         self.create_database_snapshot()
+
         self.create_source_code_zip_file()
 
     @classmethod
     def create_source_code_zip_file(cls):
         from dallinger.command_line.utils import ExperimentFileSource
-        from yaspin import yaspin
 
         # The config.txt file in the deployment package by default includes sensitive keys
         # (e.g. AWS API keys), so we don't allow this method to be run there
@@ -1483,18 +1478,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assert_config_txt_does_not_contain_sensitive_values()
 
         base_name = "source_code"
-        with yaspin(
-            text=f"Saving a snapshot of the experiment source code to {base_name}.zip ...",
-            color="green",
-        ) as spinner:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                cwd = os.getcwd()
-                ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
-                # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
-                # so we need to copy this manually.
-                shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
-                shutil.make_archive(base_name, "zip", temp_dir)
-            spinner.ok("✔")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cwd = os.getcwd()
+            ExperimentFileSource(cwd).apply_to(temp_dir, copy_func=shutil.copyfile)
+            # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
+            # so we need to copy this manually.
+            shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
+            shutil.make_archive(base_name, "zip", temp_dir)
 
     @classmethod
     def update_deployment_id(cls):
@@ -1527,7 +1517,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             pass
         with tempfile.TemporaryDirectory() as temp_dir:
             with working_directory(temp_dir):
-                dallinger.data.export("app", local=True, scrub_pii=False)
+                with suppress_stdout():
+                    dallinger.data.export("app", local=True, scrub_pii=False)
             shutil.copyfile(
                 os.path.join(temp_dir, "data", "app-data.zip"),
                 database_template_path,

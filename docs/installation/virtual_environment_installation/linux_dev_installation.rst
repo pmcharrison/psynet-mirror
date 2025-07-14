@@ -1,26 +1,37 @@
-The following installation instructions are tested with **Ubuntu 22.04 LTS (Jammy Jellyfish)**.
+The following installation instructions are tested with **Ubuntu 22.04 LTS** and **Ubuntu 24.04 LTS**.
 They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
 One-time setup
 --------------
 
-The following steps need to performed each time you setup a new computer
+The following steps need to be performed each time you setup a new computer
 to run PsyNet experiments.
 
 Check Linux version
 ~~~~~~~~~~~~~~~~~~~
 
-The following installation instructions are tested with **Ubuntu 20.04 LTS (Focal Fossa)**.
 You may wish to check that you have an up-to-date version of Linux before proceeding.
 
 Update and install required system packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ubuntu 22.04 LTS
+################
 
 .. code-block:: bash
 
    sudo apt update
    sudo apt upgrade
    sudo apt install vim python3.11-dev python3.11-venv python3-pip redis-server git libenchant-2-2 postgresql postgresql-contrib libpq-dev unzip
+
+Ubuntu 24.04 LTS
+################
+
+.. code-block:: bash
+
+   sudo apt update
+   sudo apt upgrade
+   sudo apt install vim python3.12-dev python3.12-venv python3-pip redis-server git libenchant-2-2 postgresql postgresql-contrib libpq-dev unzip
 
 Install Python
 ~~~~~~~~~~~~~~
