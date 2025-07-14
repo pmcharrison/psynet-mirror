@@ -1321,7 +1321,7 @@
 
                     $('#send-comment').click(function () {
                         var text = $("#comment-text");
-                        var textValue = $("#comment-text").val();
+                        var textValue = text.val();
 
                         if (textValue !== "") {
                             psynet.comments.push(textValue);
