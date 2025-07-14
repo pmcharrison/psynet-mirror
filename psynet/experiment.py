@@ -2030,6 +2030,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 (
                     resources.files("psynet")
+                    / "resources/libraries/fitty-2.2.6/fitty.min.js",
+                    "/static/scripts/fitty.min.js",
+                ),
+                (
+                    resources.files("psynet")
                     / "resources/libraries/detectIncognito-1.3.0/detectIncognito.min.js",
                     "/static/scripts/detectIncognito.min.js",
                 ),
