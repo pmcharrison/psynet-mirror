@@ -98,7 +98,6 @@ audioMeterControl.onMicrophoneGranted = async function(stream) {
         try {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const audioInput = devices.find(device => device.kind === 'audioinput' && device.deviceId === stream.getAudioTracks()[0].getSettings().deviceId);
-            console.log("yolo", audioInput)
             if (audioInput && audioInput.label) {
                 this.audioMeterDeviceName.textContent = `Microphone: ${audioInput.label}`;
             } else {
