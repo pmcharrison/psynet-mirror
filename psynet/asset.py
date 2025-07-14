@@ -666,9 +666,11 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def generate_host_path(self):
         raise NotImplementedError
 
-    def export(self, path, ssh_host=None, ssh_user=None):
+    def export(self, path, ssh_host=None, ssh_user=None, local=False):
         try:
-            self.storage.export(self, path, ssh_host=ssh_host, ssh_user=ssh_user)
+            self.storage.export(
+                self, path, ssh_host=ssh_host, ssh_user=ssh_user, local=local
+            )
         except Exception:
             from .command_line import log
 
@@ -2731,8 +2733,8 @@ class LocalStorage(AssetStorage):
 
         return in_deployment_package()
 
-    def export(self, asset, path, ssh_host=None, ssh_user=None):
-        if self.on_deployed_server():
+    def export(self, asset, path, ssh_host=None, ssh_user=None, local=False):
+        if self.on_deployed_server() or local:
             self._export_via_copying(asset, path)
         elif ssh_host is not None:
             self._export_via_ssh(asset, path, ssh_host, ssh_user)

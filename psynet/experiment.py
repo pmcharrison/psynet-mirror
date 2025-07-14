@@ -385,6 +385,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         on how to install Google Chrome.
         Default: ``True``.
 
+    leave_comments_on_every_page : ``bool``
+        Allows the user to leave comments on every page.
+        Default: ``False``.
+
     force_incognito_mode : ``bool``
         Forces the user to open the experiment in a private browsing (i.e. incognito mode). This is helpful as incognito
         mode prevents the user from accessing their browsing history, which could be used to influence the experiment.
@@ -1187,6 +1191,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def label(cls):  # noqa
         return get_config().get("label")
 
+    @staticmethod
+    def export_path(deployment_id):
+        export_root = "~/psynet-data/export"
+
+        return os.path.join(
+            export_root,
+            deployment_id,
+            re.sub(
+                "__launch.*", "", deployment_id
+            )  # Strip the launch date from the path to keep things short
+            + "__export="
+            + datetime.now().strftime("%Y-%m-%d--%H-%M-%S"),
+        )
+
     @property
     def var(self):
         if self.experiment_config:
@@ -1273,6 +1291,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "duration": 100000000.0,
             "force_google_chrome": True,
+            "leave_comments_on_every_page": False,
             "force_incognito_mode": False,
             "openai_default_model": "gpt-4o",
             "openai_default_temperature": 0,
@@ -2158,6 +2177,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "supported_locales", unicode, validators=[is_valid_json, is_valid_locale]
         )
         config.register("force_google_chrome", bool)
+        config.register("leave_comments_on_every_page", bool)
         config.register("force_incognito_mode", bool)
         config.register("allow_mobile_devices", bool)
 
