@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from importlib import resources
 
 from joblib import Parallel, delayed
@@ -112,7 +113,7 @@ for path in [
         update_image_tag(file)
 
 # Update demos
-n_jobs = 8
+n_jobs = int(sys.argv[1]) if len(sys.argv) > 1 else 8
 Parallel(verbose=10, n_jobs=n_jobs)(
     delayed(update_demo)(_dir) for _dir in list_experiment_dirs()
 )
