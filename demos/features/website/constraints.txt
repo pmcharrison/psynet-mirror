@@ -95,9 +95,9 @@ docker==7.1.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.3.1/dev-requirements.txt
     #   dallinger
-dominate @ git+https://github.com/Knio/dominate.git@b268b8b
+dominate==2.9.1
     # via
-    #   -r /tmp/tmpr47uko_x/requirements.txt
+    #   -r /tmp/tmptwe70jv1/requirements.txt
     #   psynet
 executing==2.2.0
     # via
@@ -247,7 +247,7 @@ pexpect==4.9.0
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.3.1/dev-requirements.txt
     #   dallinger
     #   ipython
-pillow==11.2.1
+pillow==11.3.0
     # via psynet
 pip-tools==7.4.1
     # via
@@ -259,7 +259,7 @@ pluggy==1.6.0
     #   pytest
 polib==1.2.0
     # via psynet
-progress==1.6
+progress==1.6.1
     # via psynet
 prompt-toolkit==3.0.51
     # via
@@ -274,7 +274,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.3.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master
+psynet==12.1.1
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via

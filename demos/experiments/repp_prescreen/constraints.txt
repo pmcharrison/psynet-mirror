@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 2ae963cfd71681812f451c22a8a196a5
+# Compiled from a requirement.txt file with md5sum: ea176a55ae7b05a81527892b4d133b91
 #
 ansi2html==1.9.2
     # via
@@ -103,7 +103,7 @@ docker==7.1.0
     #   dallinger
 docopt==0.6.2
     # via -r requirements.txt
-dominate @ git+https://github.com/Knio/dominate.git@b268b8b
+dominate==2.9.1
     # via psynet
 executing==2.2.0
     # via
@@ -137,7 +137,7 @@ flask-wtf==1.2.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.3.1/dev-requirements.txt
     #   dallinger
-fonttools==4.58.4
+fonttools==4.58.5
     # via matplotlib
 future==1.0.0
     # via
@@ -218,7 +218,7 @@ markupsafe==3.0.2
     #   wtforms
 matplotlib==3.10.3
     # via
-    #   -r /tmp/tmpk14n_6on/requirements.txt
+    #   -r /tmp/tmph9g_xh93/requirements.txt
     #   repp
 matplotlib-inline==0.1.7
     # via
@@ -266,7 +266,7 @@ pexpect==4.9.0
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.3.1/dev-requirements.txt
     #   dallinger
     #   ipython
-pillow==11.2.1
+pillow==11.3.0
     # via
     #   matplotlib
     #   psynet
@@ -280,7 +280,7 @@ pluggy==1.6.0
     #   pytest
 polib==1.2.0
     # via psynet
-progress==1.6
+progress==1.6.1
     # via psynet
 prompt-toolkit==3.0.51
     # via
@@ -295,7 +295,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.3.1/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master
+psynet==12.1.1
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
