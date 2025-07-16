@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
+
+## Fixed
+- Fixed demos' constraints.txt files to reference the latest release version instead of the master branch (author: Frank Höger)
+
 # [12.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.0) Release - 2025-06-25
 
 ## Added
