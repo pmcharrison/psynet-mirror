@@ -188,8 +188,12 @@ def check_dallinger_version():
             f"is not the one recommended for this version of PsyNet "
             f"(PsyNet v{psynet_version} recommends Dallinger v{dallinger_recommended_version}). "
             "You can fix this problem by updating your requirements.txt file "
-            f"to state dallinger=={dallinger_recommended_version}, "
-            "or, if you know what you're doing, type 'y' to continue anyway."
+            f"to state dallinger=={dallinger_recommended_version}. "
         )
-        if not click.confirm(message, default=False):
+        if os.environ.get("PYTEST_CURRENT_TEST"):
+            raise RuntimeError(message)
+        message += "If you want to continue anyway, type 'y' and press enter."
+        if click.confirm(message, default=False):
+            return
+        else:
             raise click.Abort
