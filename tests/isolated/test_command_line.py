@@ -2,11 +2,11 @@ import hashlib
 import subprocess
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import click
 import pytest
 from click.testing import CliRunner
-from mock import patch
 
 from psynet.command_line import _check_constraints
 from psynet.pytest_psynet import path_to_test_experiment

@@ -45,7 +45,6 @@ dependencies = [
     "html2text",
     "joblib",
     "jsonpickle",
-    "mock",
     "pandas",
     "paramiko",
     "polib",

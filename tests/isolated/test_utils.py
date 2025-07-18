@@ -4,9 +4,9 @@ import subprocess
 import tempfile
 from datetime import datetime
 from math import isnan
+from unittest.mock import patch
 
 import pytest
-from mock import patch
 
 from psynet.timeline import Module
 from psynet.utils import (
