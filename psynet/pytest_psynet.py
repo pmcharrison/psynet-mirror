@@ -33,7 +33,7 @@ from .command_line import (
     kill_psynet_chrome_processes,
     working_directory,
 )
-from .data import init_db
+from .data import drop_all_db_tables
 from .experiment import get_experiment, import_local_experiment
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
@@ -362,7 +362,6 @@ def debug_experiment(
     env,
     clear_workers,
     in_experiment_directory,
-    db_session,
     skip_constraints_check,
 ):
     """
@@ -370,22 +369,12 @@ def debug_experiment(
     use PsyNet debug instead. Note that we use legacy mode for now.
     """
     print(f"Launching experiment in directory '{in_experiment_directory}'...")
-    init_db(drop_all=True)
+    drop_all_db_tables()
     time.sleep(0.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
 
-    # timeout = request.config.getvalue("recruiter_timeout", 120)
     timeout = 60
-
-    get_experiment()
-
-    config = get_config()
-    if not config.ready:
-        config.load()
-
-    config.set("dashboard_user", "test_admin")
-    config.set("dashboard_password", "test_password")
 
     p = pexpect.spawn(
         "psynet",
@@ -398,18 +387,23 @@ def debug_experiment(
         encoding="utf-8",
     )
     patch_pexpect_error_reporter(p)
-    # p.str_last_chars = 2000
     p.logfile = sys.stdout
     p.timeout = timeout
 
     try:
-        # assert_logs_contain(
-        #     "Experiment launch complete!",
-        #     process=p,
-        #     timeout=timeout,
-        # )
         p.expect_exact("Experiment launch complete!", timeout=timeout)
-        yield p
+        server_working_directory = redis_vars.get("server_working_directory")
+        with working_directory(server_working_directory):
+            # We want to simulate the real experiment server as well as possible,
+            # so we change the working directory to the actual server working directory,
+            # and reload the config so that we get the full set of config variables
+            # from the deployment package.
+            config = get_config()
+            config.load()
+            # We set dashboard_user and dashboard_password to match the values we set above.
+            config.set("dashboard_user", "test_admin")
+            config.set("dashboard_password", "test_password")
+            yield p
     finally:
         try:
             flush_output(p, timeout=0.1)

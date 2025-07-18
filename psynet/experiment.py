@@ -598,7 +598,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._nodes_on_deploy()
 
         config = dallinger_get_config()
-        self.var.server_working_directory = os.getcwd()
+        redis_vars.set("server_working_directory", os.getcwd())
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
         if deployment_info.read("is_local_deployment"):
