@@ -42,7 +42,7 @@ pre_commit:
     - pre-commit run --all-files
 
 tests:
-  parallel: 10
+  # parallel: 10 # Temporarily disabled
   stage: test
   script:
     - docker run
