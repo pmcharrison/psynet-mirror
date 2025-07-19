@@ -29,4 +29,5 @@ Tutorials
    deploy_tokens
    introduction_to_sql_alchemy
    version_control_with_git
+   setting_up_slack
    upgrading_to_psynet_10

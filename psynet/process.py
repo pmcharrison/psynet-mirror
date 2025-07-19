@@ -5,6 +5,7 @@ import time
 import dallinger.db
 from dallinger import db
 from dallinger.db import redis_conn
+from dallinger.utils import classproperty
 from rq import Queue
 from rq.job import Job
 from sqlalchemy import (
@@ -25,7 +26,7 @@ from .data import SQLBase, SQLMixin, register_table
 from .db import with_transaction
 from .field import PythonDict, PythonObject
 from .serialize import prepare_function_for_serialization
-from .utils import classproperty, get_logger
+from .utils import get_logger
 
 logger = get_logger()
 

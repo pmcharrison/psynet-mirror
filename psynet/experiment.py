@@ -3,27 +3,27 @@ import json
 import os
 import re
 import shutil
+import signal
 import sys
 import tempfile
 import time
 import traceback
 import uuid
 import warnings
-from collections import OrderedDict
-from datetime import datetime
+from collections import Counter, OrderedDict
+from datetime import datetime, timedelta
 from importlib import resources
 from os.path import abspath, dirname, exists
 from os.path import join as join_path
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
-from statistics import mean
-from typing import List
+from statistics import mean, median
+from typing import List, Type, Union
 
 import dallinger.experiment
 import dallinger.models
 import flask
-import pandas as pd
 import pexpect
 import psutil
 import rpdb
@@ -34,11 +34,23 @@ from dallinger.compat import unicode
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
-from dallinger.experiment_server.dashboard import dashboard_tab
+from dallinger.experiment_server.dashboard import (
+    DashboardTab,
+    dashboard,
+    dashboard_tab,
+    find_log_line_number,
+)
 from dallinger.experiment_server.utils import nocache, success_response
 from dallinger.notifications import admin_notifier
-from dallinger.recruiters import MTurkRecruiter, ProlificRecruiter, RecruitmentStatus
-from dallinger.utils import get_base_url
+from dallinger.recruiters import (
+    MockRecruiter,
+    MTurkRecruiter,
+    ProlificRecruiter,
+    Recruiter,
+    RecruitmentStatus,
+)
+from dallinger.utils import classproperty
+from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
@@ -47,10 +59,16 @@ from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
 from psynet import __version__
-from psynet.utils import get_config
+from psynet.artifact import LocalArtifactStorage
+from psynet.utils import (
+    format_bytes,
+    get_config,
+    get_descendent_class_by_name,
+    get_experiment_url,
+)
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset
+from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
@@ -59,12 +77,12 @@ from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
+from .notifier import Notifier
 from .page import InfoPage
 from .participant import Participant
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
     CapRecruiter,
-    DevCapRecruiter,
     DevLucidRecruiter,
     LucidRecruiter,
     StagingCapRecruiter,
@@ -93,13 +111,13 @@ from .utils import (
     cache,
     call_function,
     call_function_with_context,
-    classproperty,
     disable_logger,
     get_arg_from_dict,
     get_logger,
     get_translator,
     log_time_taken,
     render_template_with_translations,
+    safe,
     serialise,
     suppress_stdout,
     working_directory,
@@ -193,7 +211,7 @@ class ExperimentStatus(SQLBase, SQLMixin):
     id = Column(Integer, primary_key=True)
     cpu_usage_pct = Column(Float)
     ram_usage_pct = Column(Float)
-    free_disk_space_gb = Column(Float)
+    disk_usage_pct = Column(Float)
     median_response_time = Column(Float)
     requests_per_minute = Column(Integer)
     n_working_participants = Column(Integer)
@@ -214,7 +232,7 @@ class ExperimentStatus(SQLBase, SQLMixin):
             "timestamp": self.creation_time,
             "cpu_usage_pct": self.cpu_usage_pct,
             "ram_usage_pct": self.ram_usage_pct,
-            "free_disk_space_gb": self.free_disk_space_gb,
+            "disk_usage_pct": self.disk_usage_pct,
             "median_response_time": self.median_response_time,
             "requests_per_minute": self.requests_per_minute,
             "n_working_participants": self.n_working_participants,
@@ -402,6 +420,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         Default: ``False``.
 
 
+    needs_internet_access: ``bool``
+        Indicates whether the experiment needs internet access. Can be set to ``False`` for lab or field studies.
+        Default: ``True``.
+
+
 
     Parameters
     ----------
@@ -422,6 +445,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     timeline = Timeline(InfoPage("Placeholder timeline", time_estimate=5))
 
     asset_storage = LocalStorage()
+    artifact_storage = LocalArtifactStorage()
     css = []
     css_links = []
 
@@ -511,6 +535,108 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.process_timeline()
 
     @classproperty
+    def hidden_dashboards(cls):
+        is_local_deployment = deployment_info.read("is_local_deployment")
+        is_ssh_deployment = deployment_info.read("is_ssh_deployment")
+        optional_tabs = [
+            "dashboard.dashboard_heroku",
+            "dashboard.dashboard_mturk",
+            "dashboard.dashboard_lucid",
+            "dashboard.dashboard_lifecycle",
+        ]
+        if not (is_local_deployment or is_ssh_deployment):
+            optional_tabs.remove(
+                "dashboard.dashboard_heroku"
+            )  # if it's not local, nor ssh, then it's heroku
+        config = get_config()
+
+        try:
+            recruiter_name = config.get("recruiter")
+
+            if "mturk" in recruiter_name.lower():
+                optional_tabs.remove("dashboard.dashboard_mturk")
+
+            elif "lucid" in recruiter_name.lower():
+                optional_tabs.remove("dashboard.dashboard_lucid")
+        except KeyError:
+            # This might happen if the config hasn't fully loaded yet
+            pass
+
+        return optional_tabs
+
+    @classmethod
+    def rename_dashboard_tabs(cls, tabs):
+        route_names = [tab.route_name for tab in tabs]
+
+        def _rename(key, title):
+            if key in route_names:
+                tabs[route_names.index(key)].title = title
+
+        _rename("monitoring", "Networks")
+        return tabs
+
+    @classmethod
+    def organize_dashboard_tabs(cls, tabs):
+        tab_list = tabs.tabs
+        tab_list = cls.rename_dashboard_tabs(tab_list)
+        route2tab = {tab.route_name: tab for tab in tab_list}
+
+        server_children = [
+            "dashboard.dashboard_heroku",
+            "dashboard.dashboard_ec2",
+        ]
+
+        recruiter_children = [
+            "dashboard.dashboard_mturk",
+            "dashboard.dashboard_lucid",
+            "dashboard.dashboard_prolific",
+        ]
+
+        monitor_children = [
+            "dashboard.dashboard_monitoring",
+            "dashboard.dashboard_timeline",
+            "dashboard.dashboard_resources",
+            "dashboard.dashboard_participants",
+            "dashboard.dashboard_logger",
+            "dashboard.dashboard_errors",
+        ]
+
+        def insert_group(tab_list, title, route_names):
+            route_names = [
+                route_name for route_name in route_names if route_name in route2tab
+            ]
+            if len(route_names) == 0:
+                return tab_list
+            group = DashboardTab(
+                title=title,
+                route_name=route_names[0],
+                children_function=lambda: [
+                    route2tab[route_name] for route_name in route_names
+                ],
+            )
+            return tab_list + [group]
+
+        new_tab_list = [route2tab["dashboard.dashboard_index"]]
+        new_tab_list += [route2tab["dashboard.dashboard_deployments"]]
+        new_tab_list = insert_group(new_tab_list, "Server", server_children)
+        new_tab_list = insert_group(new_tab_list, "Recruiter", recruiter_children)
+        new_tab_list = insert_group(new_tab_list, "Monitor", monitor_children)
+        new_tab_list += [route2tab["dashboard.dashboard_data"]]
+        new_tab_list += [route2tab["dashboard.dashboard_export"]]
+        new_tab_list += [route2tab["dashboard.dashboard_database"]]
+        new_tab_list += [route2tab["dashboard.dashboard_develop"]]
+        inserted_routes = (
+            [tab.route_name for tab in new_tab_list]
+            + server_children
+            + recruiter_children
+            + monitor_children
+        )
+        missing_routes = [
+            tab for tab in tab_list if tab.route_name not in inserted_routes
+        ]
+        return new_tab_list + missing_routes
+
+    @classproperty
     def launched(cls):
         return is_experiment_launched()
 
@@ -572,19 +698,60 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             join_path(abspath(dirname(__file__)), "locales"), "psynet"
         )
 
+    @classproperty
+    def is_deployed_experiment(cls):
+        return deployment_info.read("mode") == "live"
+
+    @classproperty
+    def needs_internet_access(cls):
+        return get_config().get("needs_internet_access")
+
+    @classproperty
+    def artifact_storage_available(cls):
+        if cls.artifact_storage is None:
+            return False
+        if not cls.needs_internet_access and isinstance(
+            cls.artifact_storage, S3Storage
+        ):
+            # S3 not available when offline
+            return False
+        return True
+
+    @classproperty
+    def automatic_backups(cls):
+        return cls.is_deployed_experiment and cls.artifact_storage_available
+
+    @classproperty
+    def notifier(cls) -> Notifier:
+        notifier_name = get_config().get("notifier")
+        notifier_class = get_descendent_class_by_name(Notifier, notifier_name)
+        return notifier_class()
+
     @with_transaction
     def on_launch(self):
         self.compile_psynet_translations_if_necessary()
+        redis_vars.set("creation_time", datetime.now())
         redis_vars.set("launch_started", True)
+
+        # Dallinger's `get_base_url` only returns an accurate value when called within the context
+        # of an HTTP request. We know that `on_launch` is called within the context of an HTTP request,
+        # so we take this opportunity to save the base URL to Redis.
+        redis_vars.set("base_url", dallinger_get_base_url())
+
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
         db.session.commit()
         redis_vars.set("launch_finished", True)
+        self.notifier.on_launch()
 
         # This log message is used by the testing logic to identify when the experiment has been launched
         logger.info("Experiment launch complete!")
+
+    @classproperty
+    def creation_time(cls):  # noqa
+        return redis_vars.get("creation_time")
 
     def on_first_launch(self):
         for trialmaker in self.timeline.trial_makers.values():
@@ -615,6 +782,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
+        self.record_experiment_status()
 
     @staticmethod
     def before_request():
@@ -644,59 +812,407 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.commit()
         return response
 
-    @classmethod
-    def get_request_statistics(cls, lookback):
-        now = datetime.now()
-        lookback = now - pd.Timedelta(lookback)
-        all_requests = Request.query.filter(Request.creation_time > lookback).all()
-        requests_df = pd.DataFrame([request.to_dict() for request in all_requests])
-        summary = {}
-        if len(requests_df) > 0:
-            summary["median_response_time"] = float(requests_df["duration"].median())
-            summary["requests_per_minute"] = len(requests_df)
-        return summary
+    @staticmethod
+    @with_transaction
+    def gunicorn_on_exit(server):
+        exp = get_experiment()
+        exp.record_experiment_status(online=False)
+
+    @staticmethod
+    def gunicorn_worker_exit(server, worker):
+        exp = get_experiment()
+        # This function is not called on SIGKILL, however we can still log most such occurrences via
+        # `gunicorn_post_worker_init`.
+        if worker.exitcode == 0:
+            # Occurs when max-requests is reached or when server is reloaded
+            return None
+
+        exp.notifier.notify(
+            f"A worker (pid: {worker.pid}) was stopped with exit code {worker.exitcode} 🛑"
+        )
+
+    @staticmethod
+    def gunicorn_post_worker_init(worker):
+        exp = get_experiment()
+        exp.notifier.notify(
+            f"A worker restarted (new pid: {worker.pid}). "
+            "Please check the logs to find out why ⚠️"
+        )
 
     @classmethod
-    def get_recruiter_status(cls):
-        exp = get_experiment()
-        status = exp.recruiter.get_status()
+    def get_request_statistics(cls, lookback_s):
+        now = datetime.now()
+        lookback = now - timedelta(seconds=lookback_s)
+        all_requests = Request.query.filter(Request.creation_time > lookback).all()
+        durations = [req.duration for req in all_requests]
+        return {
+            "median_response_time": (
+                float(median(durations)) if len(durations) > 0 else 0
+            ),
+            "requests_per_minute": len(durations),
+        }
+
+    @staticmethod
+    def notify_recruiter_status_change(current_recruitment_status):
+        if current_recruitment_status is not None:
+            old_recruitment_status = redis_vars.get("recruitment_study_status", None)
+            if old_recruitment_status != current_recruitment_status:
+                redis_vars.set("recruitment_study_status", current_recruitment_status)
+                exp = get_experiment()
+                if old_recruitment_status is None:
+                    exp.notifier.notify(
+                        f"Recruitment status: `{current_recruitment_status}`"
+                    )
+                else:
+                    exp.notifier.notify(
+                        f"Recruitment status changed from `{old_recruitment_status}` to `{current_recruitment_status}`"
+                    )
+
+    @classmethod
+    def format_recruiter_status(cls, status: Union[dict, RecruitmentStatus]) -> dict:
+        recruiter_name = None
         if isinstance(status, dict):
-            return status
+            if "recruiter_name" in status:
+                recruiter_name = status["recruiter_name"]
         elif isinstance(status, RecruitmentStatus):
-            return vars(status)
+            recruiter_name = status.recruiter_name
+            status = status.__dict__
         else:
             raise ValueError(
                 f"Unknown status type: {type(status)}. Must be one of: dict, RecruitmentStatus"
             )
+        status = {
+            f"recruitment_{k}": v for k, v in status.items() if k != "recruiter_name"
+        }
+
+        exp = get_experiment()
+
+        return {
+            **status,
+            "recruiter": recruiter_name,
+            "need_more_participants": exp.need_more_participants,
+        }
+
+    @scheduled_task("interval", seconds=60, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def get_recruiter_status():
+        exp = get_experiment()
+        status = exp.recruiter.get_status()
+        status = exp.format_recruiter_status(status)
+
+        exp.notify_recruiter_status_change(status.get("recruitment_study_status", None))
+        exp.artifact_storage.write_recruitment_status(status, exp.deployment_id)
 
     @classmethod
     def get_hardware_status(cls):
+        ghz_cpus = psutil.cpu_freq().max / 1000
+        n_cpus = psutil.cpu_count(logical=False)
+        cpu_specs = f"{n_cpus}x @ {ghz_cpus:.1f}GHz"
+        ram_specs = format_bytes(psutil.virtual_memory().total)
+        disk_specs = format_bytes(psutil.disk_usage("/").total)
+
+        config = get_config()
+        mute_same_warning_for_n_hours = config.get("mute_same_warning_for_n_hours")
+        resource_warning_pct = config.get("resource_warning_pct") * 100
+        resource_danger_pct = config.get("resource_danger_pct") * 100
+
+        ram_usage_pct = psutil.virtual_memory().percent
+        cpu_usage_pct = psutil.cpu_percent()
+
+        resources = {
+            "ram": ram_usage_pct,
+            "cpu": cpu_usage_pct,
+        }
+        for resource_type, pct in resources.items():
+            if pct > resource_danger_pct:
+                cls.notifier.resource_usage_notification(
+                    resource_type, mute_same_warning_for_n_hours, level="danger"
+                )
+            elif pct > resource_warning_pct:
+                cls.notifier.resource_usage_notification(
+                    resource_type, mute_same_warning_for_n_hours, level="warning"
+                )
+
+        minimal_disk_space_warning_gb = config.get("minimal_disk_space_warning_gb")
+        minimal_disk_space_danger_gb = config.get("minimal_disk_space_danger_gb")
+
+        free_disk_usage_gb = psutil.disk_usage("/").free / (1024**3)
+        if free_disk_usage_gb < minimal_disk_space_danger_gb:
+            cls.notifier.resource_usage_notification(
+                "disk", mute_same_warning_for_n_hours, level="danger"
+            )
+        elif free_disk_usage_gb < minimal_disk_space_warning_gb:
+            cls.notifier.resource_usage_notification(
+                "disk", mute_same_warning_for_n_hours, level="warning"
+            )
+
         return {
-            "cpu_usage_pct": psutil.cpu_percent(),
-            "ram_usage_pct": psutil.virtual_memory().percent,
-            "free_disk_space_gb": psutil.disk_usage("/").free / (2**30),
+            "cpu_specs": cpu_specs,
+            "cpu_usage_pct": cpu_usage_pct,
+            "ram_specs": ram_specs,
+            "ram_usage_pct": ram_usage_pct,
+            "disk_specs": disk_specs,
+            "disk_usage_pct": 100 - psutil.disk_usage("/").percent,
         }
 
     @classmethod
-    def get_status(cls, lookback="10s"):
+    def get_artifact_url(cls, deployment_id, filename):
+        return f"{get_experiment_url()}/dashboard/artifact/{deployment_id}/{filename}"
+
+    @classproperty
+    def deployment_id(cls):
+        return deployment_info.read("deployment_id")
+
+    @classproperty
+    def basic_data_url(cls, config=None):
+        """
+        While it is not considered best practice in general to put authentication parameters in the  URL itself, we
+        consider it to be worth it here, because it allows very easy access to the `/basic_data` route from e.g. the web
+        browser, R, or Python.
+
+        Note that the /basic_data route should not provide sensitive information anyway so it shouldn't really matter if
+        someone accesses it.
+        """
+        if config is None:
+            config = get_config()
+        data_params = []
+        for keys in ["dashboard_user", "dashboard_password"]:
+            data_params.append(f"{keys}={config.get(keys)}")
+        data_params = "&".join(data_params)
+        return get_experiment_url() + "/basic_data?" + data_params
+
+    @classproperty
+    def dashboard_url(self):
+        return get_experiment_url() + "/dashboard"
+
+    @staticmethod
+    def get_last_n_from_class(
+        klass: Type[Union[SQLMixin, SQLBase]], limit: int = 1000
+    ) -> List[object]:
+        """
+        Returns the last n objects from the given class.
+        """
+        query = klass.query.order_by(klass.id.desc())
+        if limit:
+            query = query.limit(limit)
+        return query.all()
+
+    @classmethod
+    def get_all_error_records(cls, limit=1000):
+        return cls.get_last_n_from_class(ErrorRecord, limit=limit)
+
+    @classmethod
+    def get_experiment_information(cls):
+        config = get_config()
+
+        deployment_information = deployment_info.read_all()
+        deployment_information["secret"] = str(deployment_information["secret"])
+        is_ssh_deployment = deployment_information.get("is_ssh_deployment", False)
+
+        logs_url = None
+        if is_ssh_deployment:
+            logs_url = "https://logs." + deployment_information.get("server")
+
+        def unpack_export(export_type, deployment_id):
+            assert export_type in ["psynet", "database"]
+            exp = get_experiment()
+            storage = exp.artifact_storage
+            filename = f"{export_type}.zip"
+            path = storage.prepare_path(deployment_id, filename)
+            try:
+                timestamp = (
+                    storage.get_modification_date(path)
+                    .astimezone()
+                    .isoformat(timespec="minutes")
+                )
+                return {
+                    "url": exp.get_artifact_url(deployment_id, filename),
+                    "timestamp": timestamp,
+                }
+            except FileNotFoundError:
+                return {
+                    "url": None,
+                    "timestamp": None,
+                }
+
+        deployment_id = deployment_information["deployment_id"]
+        psynet_export = unpack_export("psynet", deployment_id)
+        database_export = unpack_export("database", deployment_id)
+
+        error_msgs = [
+            f"{error.kind}:{error.message}" for error in cls.get_all_error_records()
+        ]
+        error_hist = dict(Counter(error_msgs))
+
         return {
-            **super().get_status(),
-            **cls.get_request_statistics(lookback=lookback),
-            **cls.get_hardware_status(),
-            # As currently implemented, get_recruiter_status is problematic because it makes API calls
-            # (e.g. to Prolific) which can take a long time and cause the process to be blocked.
-            # This code needs to be updated to use a background task to fetch the recruiter status.
-            # **cls.get_recruiter_status(),
+            **deployment_information,
+            "asset_storage": cls.asset_storage.__class__.__name__,
+            "n_errors": len(error_msgs),
+            "error_hist": error_hist,
+            "title": config.get("title", None),
+            "description": config.get("description", None),
+            "label": cls.label,
+            "initial_recruitment_size": cls.initial_recruitment_size,
+            "auto_recruit": config.get("auto_recruit", None),
+            "creation_time": cls.creation_time.astimezone().isoformat(
+                timespec="minutes"
+            ),
+            "now": datetime.now().astimezone().isoformat(timespec="minutes"),
+            "experimenter_name": config.get("experimenter_name", None),
+            "currency": config.get("currency", None),
+            "dashboard_url": cls.dashboard_url,
+            "logs_url": logs_url,
+            "basic_data_url": cls.basic_data_url,
+            "psynet_export_url": psynet_export["url"],
+            "psynet_export_timestamp": psynet_export["timestamp"],
+            "database_export_url": database_export["url"],
+            "database_export_timestamp": database_export["timestamp"],
         }
 
-    @scheduled_task("interval", seconds=10, max_instances=1)
-    @staticmethod
-    def check_experiment_status():
-        exp = get_experiment()
-        status_dict = exp.get_status(lookback="10s")  # since we poll every minute
-        status_obj = ExperimentStatus(**status_dict)
+    @classmethod
+    def get_participant_status(cls):
+        participants = Participant.query.all()
+        complete_participants = [
+            participant for participant in participants if participant.complete
+        ]
+        time_taken = []
+        for participant in complete_participants:
+            try:
+                time_taken.append(
+                    (participant.end_time - participant.creation_time).total_seconds()
+                )
+            except TypeError:
+                # If the participant has no end time, just to be sure
+                pass
+        median_time_taken = median(time_taken) if len(time_taken) > 0 else 0
+        estimated_duration = cls.estimated_completion_time(
+            None
+        )  # wage_per_hour is not used
+        total_rewards = [
+            participant.calculate_reward() for participant in complete_participants
+        ]
+        total_cost = sum(total_rewards)
+        participant_status_summary = dict(
+            Counter([participant.status for participant in participants])
+        )
+        return {
+            "total_cost": total_cost,
+            "participant_statuses": participant_status_summary,
+            "median_time_taken": median_time_taken,
+            "estimated_duration": estimated_duration,
+        }
+
+    @classmethod
+    def get_status(cls, lookback_s=60):
+        return {
+            **super().get_status(),
+            **cls.get_request_statistics(lookback_s=lookback_s),
+            **cls.get_hardware_status(),
+            **cls.get_participant_status(),
+            **cls.get_experiment_information(),
+        }
+
+    @classmethod
+    def record_experiment_status(cls, online: bool = True):
+        status = cls.get_status(lookback_s=60)  # since we poll every minute
+        status["isOffline"] = not online
+        status_obj = ExperimentStatus(**status)
         db.session.add(status_obj)
-        db.session.commit()
+        if cls.automatic_backups:
+            cls.artifact_storage.write_experiment_status(status, cls.deployment_id)
+
+    @scheduled_task("interval", seconds=60, max_instances=1)
+    @log_time_taken
+    @staticmethod
+    @with_transaction
+    def status_and_backups():
+        # TODO: consider placing these in separate scheduled tasks
+        exp = get_experiment()
+        safe(exp.record_experiment_status)()
+        if exp.automatic_backups:
+            safe(exp.backup_basic_data)()
+            safe(exp.backup_database)()
+
+    @classmethod
+    def backup_database(cls):
+        with tempfile.TemporaryDirectory() as tempdir:
+            # TODO: rewrite to avoid this psynet_export argument
+            input_path = cls._export(tempdir, psynet_export=False)
+            cls.artifact_storage.upload_export(
+                input_path, deployment_id=cls.deployment_id
+            )
+
+    @classmethod
+    def get_basic_data(
+        cls,
+        context=None,
+        **kwargs,
+    ):
+        """
+        Parameters
+        ----------
+
+        context: str
+             Will receive a string that describes the context in which the function has been called.
+             Possibles include:
+             - "dashboard": The function is producing data to be displayed in the dashboard
+             - "export": The function is being called within psynet export
+             - "backup": The function is being called within PsyNet autobackups
+             The default implementation of get_basic_data ignores this context parameter and just returns the same data in all
+             contexts, but experimenters can optionally make their logical conditional on this variable.
+
+        ** kwargs:
+            Dictionary of arbitrary URL GET parameters that can optionally be used by the get_basic_data implementation to
+            further customiser what data is provided.
+
+        Returns
+        -------
+        dict
+            A dictionary of data to be returned to the client. The keys of the dictionary should be strings, and the
+            values can be any JSON-serializable object.
+
+        Raises
+        ------
+        DataError
+            A custom exception that can be raised if the data cannot be retrieved for some reason.
+
+        See `artifact_storage` for an example.
+        """
+        return []
+
+    @classmethod
+    def backup_basic_data(cls):
+        data = cls.get_basic_data(context="backup")
+        if len(data) > 0:
+            cls.artifact_storage.write_basic_data(data)
+
+    @staticmethod
+    def request_contains_valid_dashboard_credentials(request):
+        params = dict(request.args)
+        username = params.get("dashboard_user", None)
+        password = params.get("dashboard_password", None)
+        config = get_config()
+        return (
+            config.get("dashboard_user") == username
+            and config.get("dashboard_password") == password
+        )
+
+    @experiment_route("/basic_data", methods=["GET"])
+    @nocache
+    @staticmethod
+    def basic_data():
+        try:
+            exp = get_experiment()
+            if not exp.request_contains_valid_dashboard_credentials(request):
+                return error_response(error_text="Invalid credentials", simple=True)
+
+            data = exp.get_basic_data(context="route", **request.args)
+
+            return data
+        except ValueError as e:
+            return error_response(error_text=e.__str__(), simple=True)
 
     def load_deployment_config(self):
         config = dallinger_get_config()
@@ -1270,6 +1786,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return os.path.basename(os.getcwd())
 
     @classmethod
+    def get_username(cls):
+        try:
+            return os.getlogin()
+        except OSError:
+            return "unknown"
+
+    @classmethod
     def config_defaults(cls):
         """
         Override this classmethod to register new default values for config variables.
@@ -1290,7 +1813,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "disable_when_duration_exceeded": False,
             "docker_volumes": "${HOME}/psynet-data/assets:/psynet-data/assets",
             "duration": 100000000.0,
+            "experimenter_name": cls.get_username(),
             "force_google_chrome": True,
+            "notifier": "logger",
             "leave_comments_on_every_page": False,
             "force_incognito_mode": False,
             "openai_default_model": "gpt-4o",
@@ -1309,11 +1834,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
+            "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
             "wage_per_hour": 9.0,
             "window_height": 768,
             "window_width": 1024,
+            "mute_same_warning_for_n_hours": 1,
+            "resource_warning_pct": 0.9,
+            "resource_danger_pct": 0.95,
+            "minimal_disk_space_warning_gb": 5,
+            "minimal_disk_space_danger_gb": 2,
             **cls.config,
         }
 
@@ -1522,10 +2053,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
         )
         return id_
-
-    @property
-    def deployment_id(self):
-        return deployment_info.read("deployment_id")
 
     @classmethod
     def create_database_snapshot(cls):
@@ -2034,6 +2561,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/platform.min.js",
                 ),
                 (
+                    resources.files("psynet") / "resources/libraries/PrismJS-1.30.0",
+                    "/static/scripts/prism",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/libraries/fitty-2.2.6/fitty.min.js",
+                    "/static/scripts/fitty.min.js",
+                ),
+                (
                     resources.files("psynet")
                     / "resources/libraries/fitty-2.2.6/fitty.min.js",
                     "/static/scripts/fitty.min.js",
@@ -2190,21 +2726,233 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("leave_comments_on_every_page", bool)
         config.register("force_incognito_mode", bool)
         config.register("allow_mobile_devices", bool)
+        config.register("notifier", unicode)
+        config.register("experimenter_name", unicode)
+        config.register("slack_channel_name", unicode)
+        config.register("slack_bot_token", unicode)
+        config.register("needs_internet_access", bool)
+
+        def is_positive_float(value):
+            assert float(value) > 0
+
+        def is_between_0_and_1(value):
+            assert 0 <= float(value) <= 1
+
+        config.register(
+            "mute_same_warning_for_n_hours", float, validators=[is_positive_float]
+        )
+        config.register(
+            "resource_warning_pct",
+            float,
+            validators=[is_positive_float, is_between_0_and_1],
+        )
+        config.register(
+            "resource_danger_pct",
+            float,
+            validators=[is_positive_float, is_between_0_and_1],
+        )
+        config.register(
+            "minimal_disk_space_warning_gb", float, validators=[is_positive_float]
+        )
+        config.register(
+            "minimal_disk_space_danger_gb", float, validators=[is_positive_float]
+        )
 
         def color_mode_validator(value):
             assert value in ["light", "dark", "auto"]
 
         config.register("color_mode", unicode, validators=[color_mode_validator])
 
-    @dashboard_tab("Export", after_route="database")
+    @dashboard_tab("Export")
     @classmethod
     def dashboard_export(cls):
         return render_template(
             "dashboard_export.html",
             title="Database export",
+            automatic_backups=cls.automatic_backups,
         )
 
-    @dashboard_tab("Timeline", after_route="monitoring")
+    @dashboard_tab("Basic data")
+    @classmethod
+    def dashboard_data(cls):
+        data = cls.get_basic_data(context="monitor", **request.args)
+        data = json.dumps(data, indent=4)
+
+        return render_template(
+            "dashboard_data.html",
+            title="Basic data",
+            data=data,
+            url=cls.basic_data_url,
+        )
+
+    @staticmethod
+    def _parse_status(params):
+        exp = get_experiment()
+        deployment_id = params.get("deployment_id", None)
+        if deployment_id is None:
+            return error_response("No deployment_id specified.")
+        status_type = params.get("type", None)
+
+        try:
+            archived = params.get("archived", "false") == "true"
+            if status_type == "recruitment":
+                return exp.artifact_storage.read_recruitment_status(
+                    archived, deployment_id
+                )
+            elif status_type == "experiment":
+                return exp.artifact_storage.read_experiment_status(
+                    archived, deployment_id
+                )
+            else:
+                return error_response(
+                    "Invalid status type specified. Use 'recruitment' or 'experiment'."
+                )
+        except json.JSONDecodeError:
+            logger.exception(f"Failed to decode JSON file: {deployment_id}")
+            return error_response("Failed to decode JSON file.")
+
+    @dashboard.route("/status/get")
+    # Avoid overriding Experiment.get_status
+    def get_experiment_status():  # noqa F811
+        exp = get_experiment()
+        return exp._parse_status(request.args)
+
+    @dashboard.route("/archive/deployment")
+    def archive_deployment():  # noqa F811
+        try:
+            exp = get_experiment()
+            if "id" not in request.args:
+                return error_response("No id specified.")
+            exp.artifact_storage.archive(deployment_id=request.args["id"])
+
+            return success_response()
+        except Exception as e:
+            return error_response(f"Failed to archive deployment: {str(e)}")
+
+    @dashboard.route("/restore/deployment")
+    def restore_deployment():  # noqa F811
+        try:
+            exp = get_experiment()
+            if "id" not in request.args:
+                return error_response("No id specified.")
+            exp.artifact_storage.restore(deployment_id=request.args["id"])
+
+            return success_response()
+        except Exception as e:
+            return error_response(f"Failed to restore deployment: {str(e)}")
+
+    @dashboard.route("/update/recruitment")
+    def update_recruitment():  # noqa F811
+        try:
+            exp = get_experiment()
+            params = dict(request.args)
+            deployment_id = params["deployment_id"]
+            params["type"] = "recruitment"
+            status = exp._parse_status(params)
+            recruiter_name = status.get("recruiter_name", None)
+            if recruiter_name is None:
+                recruiter_name = status.get("recruiter", None)
+            if recruiter_name is None:
+                return error_response("No recruiter name specified.")
+            status = {k.replace("recruitment_", ""): v for k, v in status.items()}
+
+            recruiter_class = get_descendent_class_by_name(Recruiter, recruiter_name)
+
+            if issubclass(recruiter_class, MockRecruiter):
+                mock_recruiter_class = recruiter_class
+            else:
+                # Look for subclasses which also inherit from MockRecruiter
+                mock_recruiter_subclasses = [
+                    cls
+                    for cls in MockRecruiter.__subclasses__()
+                    if recruiter_class.nickname in cls.nickname.lower()
+                ]
+
+                if len(mock_recruiter_subclasses) != 1:
+                    return error_response("Recruiter could not be instantiated.")
+                mock_recruiter_class = mock_recruiter_subclasses[0]
+
+            mock_recruiter = mock_recruiter_class(**status)
+
+            mock_recruiter.register_study(**status)
+
+            recruiter_status = mock_recruiter.get_status()
+            recruiter_status = exp.format_recruiter_status(recruiter_status)
+
+            exp.artifact_storage.write_recruitment_status(
+                recruiter_status, deployment_id
+            )
+
+            return success_response()
+        except Exception as e:
+            return error_response(
+                f"Failed to fetch information from recruiter: {str(e)}"
+            )
+
+    @dashboard.route("/comment/set/<deployment_id>", methods=["POST"])
+    @with_transaction
+    def set_comment(deployment_id):  # noqa F811
+        params = request.form
+        if "txt" not in params:
+            return error_response("No comment specified.")
+
+        txt = params["txt"]
+        get_experiment().artifact_storage.write_comment(
+            text=txt, deployment_id=deployment_id
+        )
+
+        return success_response()
+
+    @dashboard.route("/comment/get/<deployment_id>", methods=["GET"])
+    def get_comment(deployment_id):  # noqa F811
+        return get_experiment().artifact_storage.read_comment(deployment_id)
+
+    @dashboard_tab("Deployments")
+    @classmethod
+    def dashboard_deployments(cls):
+        title = "Deployment monitor"
+        if cls.artifact_storage is None:
+            return render_template(
+                "dashboard_custom.html",
+                title=title,
+                html="You have not specified a artifact storage in your experiment class, so you cannot view the deployment monitor.",
+            )
+        return render_template(
+            "dashboard_deployments.html",
+            title=title,
+            deployments=cls.artifact_storage.list_subfolders("deployments"),
+            archived=cls.artifact_storage.list_subfolders("archive"),
+            current_deployment_id=cls.deployment_id,
+            secret=str(deployment_info.read("secret")).replace("-", ""),
+            exp_config=get_config().as_dict(include_sensitive=False),
+        )
+
+    @dashboard_tab("Errors")
+    @classmethod
+    def dashboard_errors(cls):
+        error_summary = {}
+        for error in cls.get_all_error_records():
+            _error = {
+                "token": error.token,
+                "creation_time": error.creation_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "traceback": error.traceback,
+                "log_line_number": error.log_line_number,
+                "ids": error.ids,
+            }
+
+            kind, msg = error.kind, error.message
+            if kind not in error_summary:
+                error_summary[kind] = {}
+            if msg not in error_summary[kind]:
+                error_summary[kind][msg] = []
+            error_summary[kind][msg].append(_error)
+        return render_template(
+            "dashboard_errors.html",
+            title="Errors",
+            error_summary=error_summary,
+        )
+
+    @dashboard_tab("Timeline")
     @classmethod
     def dashboard_timeline(cls):
         exp = get_experiment()
@@ -2222,23 +2970,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             currency=get_config().currency,
         )
 
-    @dashboard_tab("Resources", after_route="monitoring")
+    @dashboard_tab("Resources")
     @classmethod
-    def resources(cls):
+    def dashboard_resources(cls):
         from .dashboard.resources import report_resource_use
 
         return report_resource_use()
 
-    @dashboard_tab("Lucid", after_route="monitoring")
+    @dashboard_tab("Lucid")
     @classmethod
-    def lucid(cls):
+    def dashboard_lucid(cls):
         from .dashboard.lucid import report_lucid
 
         return report_lucid()
 
-    @dashboard_tab("Participant", after_route="monitoring")
+    @dashboard_tab("Participants")
     @classmethod
-    def participant(cls):
+    def dashboard_participants(cls):
         message = ""
         participant = None
 
@@ -2269,11 +3017,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             message = "Found multiple participants matching those specifications."
 
         return render_template(
-            "participant.html",
+            "dashboard_participant.html",
             title="Participant",
             participant=participant,
             message=message,
-            app_base_url=get_base_url(),
+            app_base_url=get_experiment_url(),
         )
 
     @classmethod
@@ -2491,12 +3239,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             recruiter=recruiter, external_submit_url=external_submit_url
         )
 
-    @experiment_route("/app_deployment_id", methods=["GET"])
-    @staticmethod
-    def app_deployment_id():
-        exp = get_experiment()
-        return exp.deployment_id
-
     @experiment_route("/download_source", methods=["GET"])
     @classmethod
     def download_source(cls):
@@ -2509,33 +3251,141 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(f"Downloading experiment source code from {os.getcwd()}/{filename}")
         return send_file(filename, mimetype="zip")
 
-    @experiment_route("/dashboard/export", methods=["GET"])
+    @classmethod
+    def _export(
+        cls,
+        export_dir,
+        config=None,
+        n_parallel=None,
+        psynet_export: bool = True,
+        anonymize: str = "no",
+        **kwargs,
+    ):
+        if config is None:
+            config = get_config()
+        if psynet_export:
+            from .command_line import export__local
+
+            ctx = Context(export__local)
+            ctx.invoke(
+                export__local,
+                path=export_dir,
+                n_parallel=n_parallel,
+                username=config.get("dashboard_user"),
+                password=config.get("dashboard_password"),
+                assets=kwargs.get("assets"),
+                anonymize=anonymize,
+                legacy=True,
+            )
+        else:
+            if anonymize == "both":
+                scrub_pii = [True, False]
+            elif anonymize == "yes":
+                scrub_pii = [True]
+            elif anonymize == "no":
+                scrub_pii = [False]
+            else:
+                raise ValueError("anonymize must be 'yes' or 'no' or 'both'")
+            for scrub in scrub_pii:
+                folder_name = "anonymized" if scrub else "regular"
+                sub_dir = os.path.join(export_dir, folder_name)
+                os.makedirs(sub_dir, exist_ok=True)
+                with working_directory(sub_dir):
+                    dallinger.data.export("app", local=True, scrub_pii=scrub)
+        zip_filename = "psynet" if psynet_export else "database"
+        zip_name = shutil.make_archive(zip_filename, "zip", export_dir)
+        exp = get_experiment()
+        storage = exp.artifact_storage
+        try:
+            storage.upload_export(zip_name, exp.deployment_id)
+            if psynet_export:
+                url = exp.get_artifact_url(exp.deployment_id, "psynet.zip")
+                cls.notifier.notify(
+                    f"A fresh data export has been created, it can be accessed {cls.notifier.url('here', url)}."
+                )
+        except Exception as e:
+            logger.error(f"Failed to save backup: {e}")
+        return zip_name
+
+    @staticmethod
+    def _download_export(
+        anonymize: str,
+        export_type: str,  # can be "database" or "psynet"
+        **kwargs,
+    ):
+        assert export_type in ("psynet", "database")
+        exp = get_experiment()
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            config = get_config()
+            psynet_export = export_type == "psynet"
+            zip_filepath = exp._export(
+                tempdir,
+                config=config,
+                anonymize=anonymize,
+                psynet_export=psynet_export,
+                **kwargs,
+            )
+            return send_file(zip_filepath, mimetype="zip")
+
+    @dashboard.route("/artifact/<deployment_id>/<filename>", methods=["GET"])
     @staticmethod
     @with_transaction
-    def export():
+    def download_artifact(deployment_id, filename):
         from flask_login import current_user
 
-        from .command_line import export__local
+        if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
+            return error_response(error_text="Invalid credentials", simple=True)
+        exp = get_experiment()
+        with tempfile.TemporaryDirectory() as tempdir:
+            storage = exp.artifact_storage
+            path = storage.prepare_path(deployment_id, filename)
+            destination = os.path.join(tempdir, os.path.basename(path))
+            storage.download(path, destination)
+            if not os.path.exists(destination):
+                return error_response(
+                    error_text=f"Artifact {deployment_id}/{filename} not found."
+                )
+            return send_file(destination, mimetype="application/octet-stream")
 
-        config = get_config()
+    @dashboard.route("/export/download", methods=["GET"])
+    @staticmethod
+    @with_transaction
+    def download_export():
+        from flask_login import current_user
 
         if not current_user.is_authenticated and request.remote_addr != "127.0.0.1":
             return error_response(error_text="Invalid credentials", simple=True)
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            ctx = Context(export__local)
-            ctx.invoke(
-                export__local,
-                path=tempdir,
-                n_parallel=None,
-                username=config.get("dashboard_user"),
-                password=config.get("dashboard_password"),
-            )
+        kwargs = dict(request.args)
+        anonymize = kwargs.pop("anonymize", "no")
+        export_type = kwargs.pop("type", "database")
 
-            zip_filepath = shutil.make_archive(
-                f'{config.get("label")}-data', "zip", tempdir
-            )
-            return send_file(zip_filepath, mimetype="zip")
+        exp = get_experiment()
+        return exp._download_export(anonymize, export_type, **kwargs)
+
+    @dashboard.route("/export/trigger", methods=["GET"])
+    @staticmethod
+    @with_transaction
+    def trigger_export():
+        kwargs = dict(request.args)
+        anonymize = kwargs.pop("anonymize", "no")
+        export_type = kwargs.pop("type", "database")
+        assets = kwargs.get("assets", "none")
+
+        # We just call _download_export for the side effect of uploading the export to the storage service.
+        exp = get_experiment()
+        exp._download_export(
+            anonymize=anonymize,
+            export_type=export_type,
+            assets=assets,
+        )
+
+        return success_response(
+            anonymize=anonymize,
+            export_type=export_type,
+            assets=assets,
+        )
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
@@ -2926,7 +3776,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     ):
         token = cls.generate_error_token()
         cls.log_to_stdout(error, token, **kwargs)
-        cls.log_to_db(error, token, **kwargs)
+        record = cls.log_to_db(error, token, **kwargs)
+        cls.log_to_notifier(record, token, **kwargs)
 
     @classmethod
     def generate_error_token(cls):
@@ -2946,11 +3797,37 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         print("\n")
 
     @classmethod
+    @with_transaction
     def log_to_db(cls, error, token, **kwargs):
         trace = traceback.format_exc()
-        record = ErrorRecord(error=error, traceback=trace, token=token, **kwargs)
+        try:
+            log_line_number = find_log_line_number(token)
+        except FileNotFoundError:
+            log_line_number = 0
+        record = ErrorRecord(
+            error=error,
+            traceback=trace,
+            token=token,
+            log_line_number=log_line_number,
+            **kwargs,
+        )
         db.session.add(record)
-        db.session.commit()
+        return record
+
+    @classmethod
+    def log_to_notifier(cls, record, token, **kwargs):
+        line_number = record.log_line_number
+        start = max(0, line_number - 10)
+        end = line_number + 10
+
+        url = (
+            cls.dashboard_url
+            + f"/logger?highlight={line_number}&start={start}&end={end}"
+        )
+        error_txt = f"error (`{token}`)"
+        text = f"An {cls.notifier.url(error_txt, url)} occurred:"
+        text += "\n```" + traceback.format_exc() + "```"
+        cls.notifier.notify(text)
 
     @classmethod
     def serialize_error_context(
@@ -3165,10 +4042,40 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return
         self.timeline.check_consents(self)
 
+    def check_python_dependencies(self):
+        extra_deps = self.notifier.python_dependencies
+        with open("constraints.txt", "r") as f:
+            constraints = f.readlines()
+        for dep in extra_deps:
+            self.check_python_dependency(dep, constraints)
+
+    def check_python_dependency(self, dep, constraints):
+        for constraint in constraints:
+            if constraint.startswith(f"{dep}=="):
+                return
+        raise ValueError(
+            f"Missing Python dependency: {dep}. "
+            f"Please make sure it's installed locally (``pip install {dep}``), "
+            f"then add ``{dep}`` to requirements.txt, "
+            "then regenerate constraints.txt (``psynet generate-constraints``)."
+        )
+
 
 Experiment.SuccessfulEndLogic = SuccessfulEndLogic
 Experiment.UnsuccessfulEndLogic = UnsuccessfulEndLogic
 Experiment.RejectedConsentLogic = RejectedConsentLogic
+
+
+def handle_shutdown_signal(*args, **kwargs):
+    process_name = os.path.basename(sys.argv[0])
+    if process_name.endswith("clock"):
+        Experiment.record_experiment_status(online=False)
+        Experiment.notifier.notify("Experiment was taken down ⛔️")
+    sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, handle_shutdown_signal)
+signal.signal(signal.SIGINT, handle_shutdown_signal)
 
 
 @register_table

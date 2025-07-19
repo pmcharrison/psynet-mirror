@@ -141,9 +141,8 @@ class Exp(psynet.experiment.Experiment):
         assert all(
             [request.duration < 1 for request in all_requests]
         ), "Some pages took more than 1 second to load."
-
-        # The status reports only get logged every 10 seconds, so we need to wait a bit.
-        time.sleep(12.5)
+        # The status reports only get logged every 70 seconds, so we need to wait a bit.
+        time.sleep(62.5)
 
         all_status = ExperimentStatus.query.all()
         assert len(all_status) > 0
@@ -151,7 +150,7 @@ class Exp(psynet.experiment.Experiment):
         status = all_status[-1]
         assert status.cpu_usage_pct is not None
         assert status.ram_usage_pct > 0
-        assert status.free_disk_space_gb > 0
+        assert status.disk_usage_pct > 0
 
         # The below test is flakey, because summarize_resource_use skips variables that do not change
         # during the testing period.

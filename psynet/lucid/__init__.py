@@ -6,13 +6,17 @@ from typing import List
 import pandas as pd
 import requests
 from cached_property import cached_property
+from dallinger import db
 from dallinger.db import session
+from sqlalchemy import Column, DateTime, func
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet import deployment_info
+from psynet.data import SQLBase, SQLMixin, register_table
+from psynet.field import PythonObject
 from psynet.log import bold, error, success, warning
 from psynet.participant import Participant
-from psynet.utils import get_logger
+from psynet.utils import get_config, get_logger
 
 __module__ = "psynet.lucid"
 logger = get_logger()
@@ -22,8 +26,29 @@ class LucidServiceException(Exception):
     """Custom exception type"""
 
 
+# Lucid Recruiter
+@register_table
+class LucidSubmissions(SQLBase, SQLMixin):
+    __tablename__ = "lucid_submissions"
+
+    # These fields are removed from the database table as they are not needed.
+    failed = None
+    failed_reason = None
+    time_of_death = None
+    vars = None
+
+    response = Column(PythonObject)
+    timestamp = Column(DateTime, server_default=func.now())
+
+    # to dict
+    def get(self):
+        return self.response
+
+
 class LucidService(object):
     """Facade for Lucid Marketplace services provided via its HTTP API."""
+
+    RATE_LIMIT_KEY = "last_rate_limit"
 
     def __init__(
         self,
@@ -70,6 +95,8 @@ class LucidService(object):
         """
         Create a survey and return a dict with its properties.
         """
+        from dallinger.recruiters import handle_and_raise_recruitment_error
+
         params = {
             "BidLengthOfInterview": bid_length_of_interview,
             "ClientSurveyLiveURL": live_url,
@@ -95,16 +122,20 @@ class LucidService(object):
         response_data = response.json()
 
         if "Survey" not in response_data:
-            raise LucidServiceException(
-                f"LUCID: Survey was missing in response data from request to create survey. Full response data: {response_data}"
+            handle_and_raise_recruitment_error(
+                LucidServiceException(
+                    f"LUCID: Survey was missing in response data from request to create survey. Full response data: {response_data}"
+                )
             )
 
         if (
             "SurveySID" not in response_data["Survey"]
             or "SurveyNumber" not in response_data["Survey"]
         ):
-            raise LucidServiceException(
-                f"LUCID: SurveySID/SurveyNumber was missing in response data from request to create survey. Full response data: {response_data}"
+            handle_and_raise_recruitment_error(
+                LucidServiceException(
+                    f"LUCID: SurveySID/SurveyNumber was missing in response data from request to create survey. Full response data: {response_data}"
+                )
             )
         self.log(
             f'Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
@@ -121,6 +152,8 @@ class LucidService(object):
 
     def remove_default_qualifications_from_survey(self, survey_number):
         """Remove default qualifications from a survey."""
+        from dallinger.recruiters import handle_and_raise_recruitment_error
+
         qualifications = [
             {
                 "Name": "ZIP",
@@ -178,14 +211,18 @@ class LucidService(object):
             )
 
             if not response.ok:
-                raise LucidServiceException(
-                    "LUCID: Error removing default qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                handle_and_raise_recruitment_error(
+                    LucidServiceException(
+                        "LUCID: Error removing default qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                    )
                 )
 
         self.log("Removed default qualifications from survey.")
 
     def add_qualifications_to_survey(self, survey_number):
         """Add platform and browser specific qualifications to a survey."""
+        from dallinger.recruiters import handle_and_raise_recruitment_error
+
         qualifications = self.recruitment_config.get("qualifications")
         if qualifications is None:
             self.log("No qualifications added to survey.")
@@ -200,8 +237,10 @@ class LucidService(object):
             )
 
             if not response.ok:
-                raise LucidServiceException(
-                    f"LUCID: Error adding qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                handle_and_raise_recruitment_error(
+                    LucidServiceException(
+                        f"LUCID: Error adding qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                    )
                 )
 
         if qualifications:
@@ -336,12 +375,59 @@ class LucidService(object):
         now = datetime.now()
         return (now - timedelta(days=days_lookback)).strftime(timestamp_format)
 
-    def get_submissions(self, survey_number, days_lookback=60):
+    def get_submissions(self, survey_number, days_lookback=90):
+        assert days_lookback <= 90
+        from datetime import datetime, timedelta
+
+        from dallinger.db import redis_conn
+
+        from psynet.experiment import get_experiment
+
+        # Check if there are submissions in the last 5 minutes
+        n_minutes = 5
+        n_minutes_ago = datetime.now() - timedelta(minutes=n_minutes)
+        recent_submissions = (
+            session.query(LucidSubmissions)
+            .filter(LucidSubmissions.timestamp >= n_minutes_ago)
+            .order_by(LucidSubmissions.timestamp.desc())
+            .all()
+        )
+
+        if recent_submissions:
+            last_submission = recent_submissions[0]
+            return last_submission.get()
+
+        # Perform API call if no recent submissions
+        exp = get_experiment()
+        cached_submissions = exp.get_last_n_from_class(LucidSubmissions, limit=1)
+
+        last_rate_limit = redis_conn.get(self.RATE_LIMIT_KEY)
+        if len(cached_submissions) > 0 and last_rate_limit is not None:
+            last_rate_limit = datetime.fromisoformat(last_rate_limit.decode("utf-8"))
+            if (datetime.now() - last_rate_limit).seconds > n_minutes * 60:
+                self.log("Using cached submissions")
+                return cached_submissions[0].get()
+
         entry_date_after = self._lookback_timestamp(days_lookback)
         url = f"{self.request_base_url_v2_beta}/sessions?survey_id={survey_number}&entry_date_after={entry_date_after}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
-        return response.json()["sessions"]
+        if response.ok:
+            submissions = LucidSubmissions(response=response.json()["sessions"])
+            db.session.add(submissions)
+            db.session.commit()
+            return submissions.get()
+        if response.status_code == 429:
+            if last_rate_limit is None:
+                exp.notifier.notify(
+                    f"""
+                    API rate limit reached on url: {url}. Status code: {response.status_code}.
+                    This might indicate too many Lucid experiments are running in parallel.
+                    The rate limit may lead to slower termination times.
+                    This warning will no longer be shown.
+                    """
+                )
+            redis_conn.set(self.RATE_LIMIT_KEY, datetime.now().isoformat())
+        return None
 
     def get_lucid_country_language_lookup(self):
         url = "https://api.samplicio.us/Lookup/v1/BasicLookups/BundledLookups/CountryLanguages"
@@ -448,6 +534,7 @@ class LucidService(object):
             "total_entrants": stats["total_entrants"],
             "total_screens": total_screens,
             "total_completes": total_completes,
+            "recruitment_config": self.recruitment_config,
         }
 
     def change_status(self, survey_number, new_status):
@@ -569,6 +656,8 @@ class LucidService(object):
         :param print_results: Whether to print the results. Default is True.
         :return:
         """
+        from dallinger.recruiters import handle_and_raise_recruitment_error
+
         url = f"{self.request_base_url_v2_beta}/reach/v2/audience-estimate"
         now = datetime.now()
         start_date = now + timedelta(hours=delay)
@@ -647,8 +736,10 @@ class LucidService(object):
         response = requests.post(url, data=data, headers=headers)
 
         if not response.ok:
-            raise LucidServiceException(
-                f"Error estimating audience. Status returned: {response.status_code}, reason: {response.reason}, response: {response.text}"
+            handle_and_raise_recruitment_error(
+                LucidServiceException(
+                    f"Error estimating audience. Status returned: {response.status_code}, reason: {response.reason}, response: {response.text}"
+                )
             )
         result = response.json()["result"]
 
@@ -694,8 +785,6 @@ class LucidService(object):
 def get_lucid_service(config=None, recruitment_config=None):
     if os.path.exists("config.txt"):
         if config is None:
-            from psynet.utils import get_config
-
             config = get_config()
         config_entries = config
     else:

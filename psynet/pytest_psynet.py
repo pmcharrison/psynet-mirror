@@ -1,12 +1,15 @@
+import datetime
 import logging
 import os
 import re
 import subprocess
 import sys
 import time
+import uuid
 import warnings
 from pathlib import Path
 
+import boto3
 import dallinger.pytest_dallinger
 import pexpect
 import pexpect.exceptions
@@ -26,6 +29,9 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
+from psynet.asset import filter_botocore_deprecation_warnings
 
 from .command_line import (
     clean_sys_modules,
@@ -266,6 +272,8 @@ def deployment_info():
         mode="debug",
         is_local_deployment=True,
         is_ssh_deployment=False,
+        server="local",
+        app="local",
     )
     deployment_info.write(deployment_id="Test deployment")
     yield
@@ -759,3 +767,31 @@ def _debug_click_interception(driver, element):
         f"Element at click point: {element_at_point.get_attribute('outerHTML') if element_at_point else 'None'}"
     )
     logger.error(f"Overlapping elements: {overlapping_elements}")
+
+
+@pytest.fixture(params=["local", "s3"])
+def artifact_storage(request, tmp_path):
+    if request.param == "local":
+        yield LocalArtifactStorage(str(tmp_path))
+    elif request.param == "s3":
+        bucket_name = "psynet-tests"
+
+        # We use a unique UUID for the root of the artifact storage to avoid conflicts with other tests.
+        id_ = str(uuid.uuid4())
+        root = f"artifacts/{id_}"
+        filter_botocore_deprecation_warnings()
+        storage = S3ArtifactStorage(root, bucket_name)
+        yield storage
+
+        # Clean-up:
+        # Delete files in the root folder that are older than 4 hours.
+        # We apply this 4-hour criterion to avoid conflicting with other tests
+        # being run in parallel.
+        s3 = boto3.resource("s3")
+        bucket = s3.Bucket(bucket_name)
+        prefix = root + "/"
+        now = datetime.datetime.now(datetime.timezone.utc)
+        four_hours_ago = now - datetime.timedelta(hours=4)
+        for obj in bucket.objects.filter(Prefix=prefix):
+            if obj.last_modified < four_hours_ago:
+                obj.delete()

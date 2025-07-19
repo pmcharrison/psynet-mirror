@@ -379,7 +379,10 @@ class VarStore(BaseVarStore):
                 return data[name]
 
     def items(self):
-        return self.__dict__["_owner"].vars.items()
+        variables = self.__dict__["_owner"].vars
+        if variables is None:
+            return {}
+        return variables.items()
 
     def __setattr__(self, name, value):
         if name == "_owner":

@@ -152,3 +152,9 @@ demos/**/snapshots
 tmp/*
 typescript
 deployment-info_*
+
+# Files that should be ignored within experiment directories,
+# but might become visible when switching branches.
+source_code.zip
+.deploy
+**/static/assets

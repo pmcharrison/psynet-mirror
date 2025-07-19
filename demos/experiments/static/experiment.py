@@ -1,6 +1,5 @@
 # pylint: disable=unused-import,abstract-method
 
-import logging
 import random
 
 from markupsafe import Markup
@@ -10,9 +9,9 @@ from psynet.modular_page import KeyboardPushButtonControl, ModularPage
 from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial, StaticTrialMaker
+from psynet.utils import get_logger
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = get_logger("experiment")
 
 nodes = [
     StaticNode(

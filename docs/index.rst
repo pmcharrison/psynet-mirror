@@ -111,7 +111,9 @@ Here is the citation entry::
    deploy/heroku_server
    deploy/prolific
    deploy/deploy_from_archive
-   deploy/export
+   deploy/data
+   deploy/deployment_monitor
+   deploy/errors
    deploy/troubleshooting
 
 .. toctree::
