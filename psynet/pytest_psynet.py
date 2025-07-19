@@ -376,6 +376,12 @@ def debug_experiment(
 
     timeout = 60
 
+    get_experiment()
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
     p = pexpect.spawn(
         "psynet",
         ["debug", "local", "--legacy", "--no-browsers"],
@@ -392,18 +398,13 @@ def debug_experiment(
 
     try:
         p.expect_exact("Experiment launch complete!", timeout=timeout)
+
+        # The config file in server_working_directory has a few extra parameters
+        # that we need to set in order to simulate the real experiment server as well as possible.
         server_working_directory = redis_vars.get("server_working_directory")
-        with working_directory(server_working_directory):
-            # We want to simulate the real experiment server as well as possible,
-            # so we change the working directory to the actual server working directory,
-            # and reload the config so that we get the full set of config variables
-            # from the deployment package.
-            config = get_config()
-            config.load()
-            # We set dashboard_user and dashboard_password to match the values we set above.
-            config.set("dashboard_user", "test_admin")
-            config.set("dashboard_password", "test_password")
-            yield p
+        config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+
+        yield p
     finally:
         try:
             flush_output(p, timeout=0.1)
