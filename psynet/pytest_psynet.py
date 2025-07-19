@@ -33,7 +33,7 @@ from .command_line import (
     kill_psynet_chrome_processes,
     working_directory,
 )
-from .data import drop_all_db_tables
+from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
@@ -369,7 +369,7 @@ def debug_experiment(
     use PsyNet debug instead. Note that we use legacy mode for now.
     """
     print(f"Launching experiment in directory '{in_experiment_directory}'...")
-    drop_all_db_tables()
+    init_db(drop_all=True)
     time.sleep(0.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
