@@ -106,7 +106,7 @@ class Exp(psynet.experiment.Experiment):
             db.session.refresh(bot)
             assert (
                 self.bonus(bot) == BONUS
-            ), f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)} (status: {bot.status})"
+            ), f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)} (status: {bot.status}, time_reward: {bot.time_reward}, performance_reward: {bot.performance_reward}, bot.bonus: {bot.bonus})"
         elif bot.id == 2:
             assert (
                 route == "screened_out"
