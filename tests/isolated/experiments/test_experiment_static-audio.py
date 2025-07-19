@@ -21,6 +21,8 @@ def test_s3_asset_preparation(in_experiment_directory):
         mode="debug",
         is_local_deployment=True,
         is_ssh_deployment=False,
+        server="",
+        app="",
     )  # Prepare requires deployment_info to be initialized
     run_prepare_in_subprocess()
     for asset in Asset.query.all():

@@ -1,0 +1,1169 @@
+{% extends "psynet_dashboard.html" %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+{% block stylesheets %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+
+<h1>{{ title }}</h1>
+
+{% if archived | length > 0 %}
+    <!-- Archived Deployments Modal -->
+<div class="modal fade" id="archivedModal" tabindex="-1" aria-labelledby="archivedModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="archivedModalLabel">Archived Experiments</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped" id="archived-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Experimenter</th>
+                            <th>Runtime</th>
+                            <th>Cost</th>
+                            <th>Participants</th>
+                            <th>Restore</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<button class="btn btn-warning mb-3" id="show-archived" type="button">Show Archived Experiments</button>
+{% endif %}
+
+{% if experiment.artifact_storage %}
+<div class="my-3">
+    {{ experiment.artifact_storage.info_html | safe }}
+</div>
+{% endif %}
+
+{% if deployments | length == 0 %}
+    No experiments were found to display.
+{% else %}
+    <p>
+        The table lists all experiments found in the repository (currently displaying <span id="shown-experiments">?</span>/{{deployments | length}}).
+        You can filter these experiments using the below controls.
+        <button class="btn btn-primary" id="load-more" onclick="fetchExperiments()"></button>
+    </p>
+    <div id="filter"></div>
+    <div id="fetching-container">
+        <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0"
+            aria-valuemax="100">
+            <div class="progress-bar" style="width: 0%"></div>
+        </div>
+    </div>
+    <div id="dashboard-participant">
+    </div>
+
+    <div class="modal" id="commentModal" aria-hidden="false" aria-modal="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-body">
+                    <div class="form-floating">
+                        <textarea class="form-control" placeholder="Leave a comment here" id="commentContent"
+                            style="height: 100px"></textarea>
+                        <label for="commentContent">Comments</label>
+                    </div>
+                    <input type="hidden" id="commentExperimentId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="dismiss-comment" class="btn btn-danger" data-bs-dismiss="modal">Dismiss
+                    </button>
+                    <button type="button" id="save-comment" class="btn btn-success">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        var nExperimentsPerLoad = parseInt(new URLSearchParams(window.location.search).get('n'));
+        if (isNaN(nExperimentsPerLoad)) {
+            nExperimentsPerLoad = 10;
+            window.location.href = window.location.href + '?n=' + nExperimentsPerLoad;
+        }
+
+        var page = 0;
+        var deploymentsIds = JSON.parse('{{deployments | tojson}}')
+        var archivedIds = JSON.parse('{{archived | tojson}}')
+        var secret = `{{secret}}`
+        var experiments = {};
+        let archivedExperiments = [];
+        var nLoaded = 0;
+        var currentDeploymentId = `{{current_deployment_id}}`
+        var myModal;
+        let totalCost;
+        const loadMoreButton = document.getElementById('load-more');
+        loadMoreButton.innerText = `Load ${nExperimentsPerLoad} more`;
+
+
+        // Add configuration variables
+        const resourceWarningPct = parseFloat('{{exp_config.resource_warning_pct}}') * 100;
+        const resourceDangerPct = parseFloat('{{exp_config.resource_danger_pct }}') * 100;
+
+
+        function printResetButton() {
+            let oldButton = $("#reset-button");
+            let dropDowns = $('#filter select');
+            let nSelected = 0;
+            dropDowns.each(function () {
+                if ($(this).val() !== "all") {
+                    nSelected++;
+                }
+            })
+            if (nSelected === 0) {
+                oldButton.remove();
+            } else {
+                if (oldButton.length === 0) {
+                    let out = `<button id="reset-button" class="btn btn-primary mt-3" onclick="resetFilters()">Reset filters <i class='bi bi-funnel-fill'></i></button>`
+                    $("#filter").append(out)
+                }
+            }
+            printExperiments()
+        }
+
+        function resetFilters() {
+            let dropDowns = $('#filter select');
+            dropDowns.each(function () {
+                $(this).val('all');
+            })
+            printResetButton()
+        }
+
+        const completeCodes = [
+            "APPROVED",
+            "RETURNED AS COMPLETE",
+            "COMPLETED",
+        ]
+
+        function updateProgress() {
+            nLoaded++;
+            let nToLoad = deploymentsIds.length - page * nExperimentsPerLoad;
+            let progress = Math.round(nLoaded / nToLoad * 100);
+            $(".progress-bar").css("width", progress + "%");
+        }
+
+        function updateExperiments(deploymentId, experiment, recruitment, archived = false) {
+            console.log(experiment, recruitment)
+            let recruiter = recruitment.recruiter || "None";
+            experiment.recruiter = recruiter;
+            if (recruiter.startsWith("mock")) {
+                recruiter = recruiter.replace("mock", "");
+            }
+            if (!experiments[recruiter]) {
+                experiments[recruiter] = [];
+            }
+            experiment.path = deploymentId;
+            experiment.secret = experiment.secret.replaceAll("-", "");
+
+            experiment.isCurrentExperiment = secret === experiment.secret
+            experiment.creation_time = new Date(experiment.creation_time);
+            experiment.now = new Date(experiment.now);
+            experiment.sinceUpdate = new Date().getTime() - experiment.now;
+            if (!experiment.isOffline) {
+                // If not set, assume experiments are offline if they haven't been updated in 10 minutes
+                experiment.isOffline = experiment.sinceUpdate > 10 * 60 * 1000
+            }
+
+            // Extend experiment dict with recruitment key value data
+            for (let key in recruitment) {
+                if (key in experiment) {
+                    // If the key already exists, append the recruitment data
+                    experiment[key + '_recruitment'] = recruitment[key];
+                } else {
+                    // Otherwise, just add the recruitment data
+                    experiment[key] = recruitment[key];
+                }
+            }
+
+
+            let recruitmentStatusCount = {}
+            if (!experiment.recruitment_participant_status_counts) {
+                experiment.recruitment_participant_status_counts = {}
+            }
+            for (let [status, count] of Object.entries(experiment.recruitment_participant_status_counts)) {
+                recruitmentStatusCount[status.toUpperCase()] = count
+            }
+            experiment.recruitment_participant_status_counts = recruitmentStatusCount
+            if (archived) {
+                archivedExperiments.push(experiment)
+            } else {
+                experiments[recruiter].push(experiment);
+            }
+        }
+
+        async function fetchExperimentStatus(deploymentId, archived = false) {
+            return new Promise((resolve, reject) => {
+                let archivedOption = archived ? "archived=true" : "";
+                $.get("/dashboard/status/get?deployment_id=" + deploymentId + "&type=experiment&" + archivedOption, function (experiment) {
+                    $.get("/dashboard/status/get?deployment_id=" + deploymentId + "&type=recruitment&" + archivedOption, function (recruitment) {
+
+                        if (experiment && Object.keys(experiment).length > 0) {
+                            updateExperiments(deploymentId, experiment, recruitment, archived);
+                        }
+                        updateProgress();
+                        resolve(); // Ensures the Promise resolves after fetching
+                    }).fail(reject); // Handles potential errors
+                });
+            });
+        }
+
+
+        function setupFilters() {
+            let recruitmentStatuses = new Set()
+            let experimenters = new Set()
+            let labels = new Set()
+            let locales = new Set()
+            let networkStatuses = new Set()
+            for (let recruiter in experiments) {
+                for (let experiment of experiments[recruiter]) {
+                    recruitmentStatuses.add(experiment.recruitment_study_status)
+                    experimenters.add(experiment.experimenter_name)
+                    labels.add(experiment.label)
+                    locales.add(experiment.locale)
+                    networkStatuses.add(experiment.isOffline)
+                }
+            }
+
+            let filter = `<div class="row">`
+
+            function addFilter(label, title, firstOption, options, option_to_label = toSentenceCase) {
+                if (options.size < 2) {
+                    return
+                }
+                filter += `<div class="col">`
+                filter += `<label for="${label}-filter" class="form-label">${title}</label>`
+                filter += `<select class="form-select" id="${label}-filter">`
+                filter += `<option value="all" selected>${firstOption}</option>`
+                let i = 0;
+                for (let option of options) {
+                    let label = option_to_label ? option_to_label(option) : option
+                    filter += `<option value="${option}">${label}</option>`
+                }
+                filter += `</select>`
+                filter += `</div>`
+            }
+
+
+            let recruiters = new Set()
+            for (let recruiter in experiments) {
+                recruiters.add(recruiter)
+            }
+            addFilter("recruiter", "Recruiter", "All", recruiters)
+
+            addFilter("recruitment-status", "Recruitment status", "All", recruitmentStatuses)
+            addFilter("experimenter", "Experimenter", "All", experimenters)
+            addFilter("label", "Label", "All", labels)
+            addFilter("locale", "Locale", "All", locales)
+            addFilter("network-status", "Network status", "All", networkStatuses, (option) => option ? "Offline" : "Online")
+
+            filter += `</div>`
+            var filterContainer = $("#filter");
+            filterContainer.empty();
+            filterContainer.append(filter)
+
+            // Add event listeners
+            $("#filter select").change(function () {
+                printResetButton();
+                printExperiments()
+            });
+
+        }
+
+        async function fetchExperiments() {
+            loadMoreButton.style.display = "none";
+            let selectedDeploymentIds = deploymentsIds.slice(page * nExperimentsPerLoad, (page + 1) * nExperimentsPerLoad);
+            await Promise.all(selectedDeploymentIds.map(
+                 (deploymentId) => fetchExperimentStatus(deploymentId, false)
+            ));
+            let totalExperiments = Object.values(experiments).reduce((acc, curr) => acc + curr.length, 0);
+            if (deploymentsIds.length === totalExperiments) {
+                loadMoreButton.remove();
+            }
+            $("#shown-experiments").text(totalExperiments);
+            page += 1;
+            let container = $("#fetching-container");
+            container.empty();
+            setupFilters();
+            setupModal();
+            printExperiments();
+            loadMoreButton.style.display = "block";
+        }
+
+        async function fetchArchived() {
+            let selectedArchivedIds = archivedIds.slice(0, nExperimentsPerLoad);
+            await Promise.all(selectedArchivedIds.map(
+                (deploymentId) => fetchExperimentStatus(deploymentId, true)
+            ));
+            printArchivedExperiments();
+        }
+
+        function formatDuration(duration) {
+            let seconds = Math.floor((duration / 1000) % 60);
+            let minutes = Math.floor((duration / (1000 * 60)) % 60);
+            let hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+            let days = Math.floor((duration / (1000 * 60 * 60 * 24)));
+            let months = Math.floor((duration / (1000 * 60 * 60 * 24 * 30)));
+            let years = Math.floor((duration / (1000 * 60 * 60 * 24 * 365)));
+            if (years > 0) {
+                return `${years}y`
+            } else if (months > 0) {
+                return `${months}m`
+            } else if (days > 0) {
+                return `${days}d`
+            } else if (hours > 0) {
+                return `${hours}h`
+            } else if (minutes > 0) {
+                return `${minutes}m`
+            } else {
+                return `${seconds}s`
+            }
+        }
+
+        function toSentenceCase(str) {
+            if (!str) return str;
+            // return if not a string
+            if (typeof str !== 'string') return str
+            return str[0].toUpperCase() + str.slice(1).toLowerCase();
+        }
+
+        function formatPill(text) {
+            text = toSentenceCase(text)
+
+            let green = [
+                "Live", // Lucid running
+                "Recruiting", // Hotair participants needed
+                "Active" // Prolific running
+            ]
+
+            let blue = [
+                "Paused"  // Data collection paused
+            ]
+
+            let black = [
+                "Completed",  // Completed on Prolific
+                "Complete",  // Complete on Lucid
+                "Not recruiting" // No participants needed on Hotair
+            ]
+
+            let gray = [
+                "Unpublished",  // Draft survey Prolific
+                "Archived"  // Unlauched surveys on Lucid
+            ]
+
+            let orange = [
+                "Scheduled",  // Will be launched after schedule on Prolific
+                "Awarded"  // On Lucid the surveys will go here before they go to Live
+            ]
+
+            let red = [
+                "Awaiting review",  // Awaiting review on Prolific
+            ]
+
+            let background = "black";
+            if (green.includes(text)) {
+                background = "green"
+            } else if (blue.includes(text)) {
+                background = "blue"
+            } else if (black.includes(text)) {
+                background = "black"
+            } else if (gray.includes(text)) {
+                background = "gray"
+            } else if (orange.includes(text)) {
+                background = "orange"
+            } else if (red.includes(text)) {
+                background = "red"
+            }
+            return colorPill(text, background);
+        }
+
+        function colorPill(text, background) {
+            return `<span style="background: ${background}" class="badge rounded-pill">${text}</span>`;
+        }
+
+        function classPill(text, cls) {
+            return `<span class="badge rounded-pill ${cls}">${text}</span>`;
+        }
+
+        function formatInformation(important, lessImportant, lessImportantStyle = '', importantStyle = "") {
+            return `<span class="display-6" style="${importantStyle} font-size: 1.2rem">${important}</span><br><small style="${lessImportantStyle}" class="text-muted">${lessImportant}</small>`
+        }
+
+        function escapeHTML(unsafe) {
+            return unsafe.replace(/[&<"']/g, function (m) {
+                switch (m) {
+                    case '&':
+                        return '&amp;';
+                    case '<':
+                        return '&lt;';
+                    case '"':
+                        return '&quot;';
+                    default:
+                        return '&#039;';
+                }
+            });
+        }
+
+        function stylePct(percentage) {
+            if (percentage > resourceDangerPct) {
+                return 'danger'
+            } else if (percentage > resourceWarningPct) {
+                return 'warning'
+            } else {
+                return 'success'
+            }
+        }
+
+        function formatPctLabel(label, percentage) {
+            let style = stylePct(percentage)
+            return `<span>${label} (<strong class="text-${style}">${percentage}%</strong>)</span>`
+        }
+
+        function makePopOverContents(contents) {
+            let popOver = ''
+            for (const [key, value] of Object.entries(contents)) {
+                if (value !== undefined && value !== null) {
+                    popOver += `<strong>${key}</strong> ${value}<br>`
+                }
+            }
+            return escapeHTML(popOver)
+        }
+
+        function makePopOverTd(cls, rowContent, popOverTitle, popOverContent) {
+            return `<td tabindex="0" class="${cls} clickable popover-link" data-bs-container="body"  data-bs-toggle="popover" title="${popOverTitle}" data-bs-content="${popOverContent}">${rowContent}</td>`;
+        }
+
+        function makeIcon(iconName, href, tooltip) {
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer"  class="bi bi-${iconName}" data-bs-toggle="tooltip" title="${tooltip}"></a>`
+        }
+
+        function dangerIcon() {
+            return "<i class='bi bi-x-circle-fill text-danger'></i>"
+        }
+
+        function warningIcon() {
+            return "<i class='bi bi-exclamation-triangle-fill text-warning'></i>"
+        }
+
+        function isX(data, x) {
+            return data.indexOf(x) !== -1
+        }
+
+        function isProlific(recruiter) {
+            return isX(recruiter, 'prolific')
+        }
+
+        function isLucid(recruiter) {
+            return isX(recruiter, 'lucid')
+        }
+
+        function generateStudyColumn(experiment) {
+            let labelPopOverTitle = 'Study information'
+            let origin = undefined;
+            if (experiment.origin) {
+                origin = `<a href="${experiment.origin}">${experiment.origin}</a>` + makeCopyIcon(experiment.origin);
+            }
+            let labelPopOverContents = {
+                'Last updated': formatDuration(experiment.sinceUpdate) + " (" + (experiment.isOffline ? "offline" : "online") + ")",
+                'Title': experiment.title,
+                'Description': experiment.description,
+                'Deployment ID': '<code>' + experiment.deployment_id + '</code>' + makeCopyIcon(experiment.deployment_id),
+                'Folder name': '<code>' + experiment.folder_name + '</code>',
+                'Asset storage': experiment.asset_storage,
+                'Git remote': origin,
+            }
+            let label = `<span><span class="${experiment.isOffline ? 'text-danger' : 'text-success'}">⬤</span> ${experiment.label}</span>`
+            if (experiment.locale !== "en") {
+                label += ' ' + colorPill(experiment.locale, 'black')
+            }
+            if (experiment.redeploying_from_archive) {
+                label += ' ' + colorPill('archive', 'orange')
+            }
+            return makePopOverTd('study', label, labelPopOverTitle, makePopOverContents(labelPopOverContents))
+        }
+
+        function convertCurrencyToSymbol(currency) {
+            const currencyMap = {
+                'EUR': '€',
+                'Euro': '€',
+                'GBP': '£',
+                'Pound': '£',
+                'USD': '$',
+                'Dollar': '$'
+            };
+            return currencyMap[currency] || currency;
+        }
+
+        function generateRecruitmentColumn(experiment) {
+            if (experiment.recruitment_study_status === undefined || experiment.recruitment_study_status === null) {
+                return `<td class="recruitment">${colorPill('No recruitment data', 'rgb(var(--bs-danger-rgb))')}</td>`;
+            }
+            let recruiterLabel = formatPill(experiment.recruitment_study_status)
+            if (experiment.auto_recruit) {
+                recruiterLabel += ' ' + colorPill('auto_recruit', 'rgb(var(--bs-success-rgb))')
+            }
+            let currencyToUse = experiment.recruitment_currency || experiment.currency;
+            let currencySymbol = convertCurrencyToSymbol(currencyToUse);
+            let recruiterCost = currencySymbol + experiment.recruitment_study_cost
+            if (totalCost[currencySymbol]) {
+                totalCost[currencySymbol] += experiment.recruitment_study_cost
+            } else {
+                totalCost[currencySymbol] = experiment.recruitment_study_cost
+            }
+            let recruiterPopOverContent = `
+                  <strong>ID</strong> ${experiment.recruitment_study_id}<br>
+                  <strong>Status</strong> ${experiment.recruitment_study_status}<br>
+                  <strong>Cost</strong> ${recruiterCost}<br>
+                  <strong>Recruiter submission codes:</strong><br>` +
+                makePopOverContents(experiment.recruitment_participant_status_counts)
+            return makePopOverTd('recruitment', recruiterLabel, "Recruitment information", recruiterPopOverContent)
+        }
+
+        function generateRuntimeColumn(experiment, now) {
+            let runningSince = now - experiment.creation_time;
+            let createdSince = formatDuration(runningSince) + " ago";
+            let runtime = formatDuration(experiment.now - experiment.creation_time);
+            let runtimeStr = formatInformation(runtime, 'created ' + createdSince)
+            let runtimePopOverContents = {
+                'Status': experiment.isOffline ? classPill('Offline', 'text-bg-danger') : classPill('Online', 'text-bg-success'),
+                'Created': createdSince,
+                'Runtime': runtime,
+                'Last update': formatDuration(experiment.sinceUpdate) + " ago",
+                'Creation time': experiment.creation_time,
+            }
+            return makePopOverTd('runtime', runtimeStr, 'Runtime information', makePopOverContents(runtimePopOverContents))
+        }
+
+        function generateCostColumn(experiment) {
+            if (experiment.recruitment_study_cost === undefined || experiment.recruitment_study_cost === null) {
+                return `<td class="cost">${colorPill('No recruitment data', 'rgb(var(--bs-danger-rgb))')}</td>`;
+            }
+            let currencyToUse = experiment.recruitment_currency || experiment.currency;
+            let currencySymbol = convertCurrencyToSymbol(currencyToUse);
+            let recruiterCost = currencySymbol + experiment.recruitment_study_cost
+            let experiment_cost = currencySymbol + experiment.total_cost
+            let costPerComplete = ''
+            let completeParticipants = getRecruiterCompletes(experiment);
+            if (completeParticipants > 0) {
+                costPerComplete = experiment.recruitment_study_cost / completeParticipants
+                costPerComplete = currencySymbol + costPerComplete.toFixed(2) + " per complete"
+            }
+            let costStr = formatInformation(recruiterCost, costPerComplete)
+            let costPopOverContents = {
+                'Recruiter cost': recruiterCost,
+                'Experiment cost': experiment_cost,
+                'Cost per complete': costPerComplete === '' ? 'No completes' : costPerComplete,
+            }
+            if (recruiterCost !== experiment_cost) {
+                costStr += " " + warningIcon()
+                costPopOverContents['WARNING'] = `<span class="fw-bold text-danger">Recruiter cost does not match experiment cost</span>`
+            }
+            return makePopOverTd('cost', costStr, 'Cost', makePopOverContents(costPopOverContents))
+        }
+
+        function generateDurationColumn(experiment) {
+            let expMedianTime = Math.floor(experiment.median_time_taken / 60)
+            let estimatedDuration = Math.floor(experiment.estimated_duration / 60)
+            let pctDiff = .30
+            let badTime = expMedianTime > estimatedDuration * (1 + pctDiff) || expMedianTime < estimatedDuration * (1 - pctDiff)
+            let median_time_taken = formatInformation(expMedianTime + "m", estimatedDuration + "m", "", badTime ? 'color: red; font-weight:bold;' : '')
+            return `<td class="duration">${median_time_taken}</td>`
+        }
+
+        function generateServerColumn(experiment) {
+            let serverSpan;
+            if (experiment.is_local_deployment) {
+                serverSpan = colorPill("Local", "black")
+            } else {
+                serverSpan = experiment.is_ssh_deployment ? colorPill("SSH", "black") : colorPill("Heroku", "#410394")
+            }
+            let maxPct = Math.max(experiment.cpu_usage_pct, experiment.ram_usage_pct, experiment.disk_usage_pct)
+            let serverStatus = stylePct(maxPct)
+            if (serverStatus === 'danger') {
+                serverSpan += " " + dangerIcon()
+            } else if (serverStatus === 'warning') {
+                serverSpan += " " + warningIcon()
+            }
+
+            let serverPopOverTitle = 'Server information (' + formatDuration(experiment.sinceUpdate) + ")"
+            let serverPopOverContents = {
+                'CPU': formatPctLabel('CPU', experiment.cpu_usage_pct),
+                'RAM': formatPctLabel('RAM', experiment.ram_usage_pct),
+                'Disk': formatPctLabel('Disk', experiment.disk_usage_pct),
+                'Median response time': experiment.median_response_time + "s",
+                'Requests per minute': experiment.median_response_time,
+                'Server': experiment.server,
+                'App': experiment.app,
+            }
+            if (serverStatus !== "success") {
+                serverPopOverContents['WARNING'] = `<span class="fw-bold text-danger">Check the server load!</span>`
+            }
+            return makePopOverTd('server', serverSpan, serverPopOverTitle, makePopOverContents(serverPopOverContents))
+        }
+
+        function generateErrorsColumn(experiment) {
+            let nErrors = experiment.n_errors || 0
+            let errorHist = experiment.error_hist || {}
+
+            if (nErrors > 0) {
+                let nDifferentErrors = Object.keys(errorHist).length
+                let errorTitle = formatInformation(nErrors + " " + dangerIcon(), nDifferentErrors + ' unique errors')
+                errorHist['ERROR'] = `<span class="fw-bold text-danger">Check the logs!</span>`
+                return makePopOverTd('error', errorTitle, 'Errors', makePopOverContents(errorHist))
+            } else {
+                return `<td class="error">${nErrors}</td>`
+            }
+        }
+
+        function getRecruiterCompletes(experiment) {
+            let nRecruiterCompletes = 0
+            for (let [status, count] of Object.entries(experiment.recruitment_participant_status_counts)) {
+                if (completeCodes.includes(status)) {
+                    nRecruiterCompletes += count
+                }
+            }
+            return nRecruiterCompletes
+        }
+
+        function generateParticipantsColumn(experiment) {
+            let completeParticipants = experiment.participant_statuses.approved || 0
+            let totalParticipants = experiment.participant_statuses.working || 0
+            totalParticipants += +completeParticipants
+            let initial_recruitment_size = experiment.initial_recruitment_size || 0
+            if (initial_recruitment_size > totalParticipants) {
+                totalParticipants = initial_recruitment_size
+            }
+            let progressStr = completeParticipants + "/" + totalParticipants
+            let participantPopOverContents = experiment.participant_statuses
+            if (!experiment.need_more_participants) {
+                progressStr += ' <i class="bi bi-check-circle-fill text-success"></i>'
+                participantPopOverContents['Status'] = 'Recruitment complete'
+            } else {
+                participantPopOverContents['Status'] = 'Recruitment ongoing'
+            }
+            progressStr = `<span class="display-6" style=" font-size: 1.2rem">${progressStr}</span>`
+            let nRecruiterCompletes = getRecruiterCompletes(experiment);
+
+            if (nRecruiterCompletes !== completeParticipants) {
+                progressStr += "<br>" + warningIcon()
+                participantPopOverContents['Recruiter completes'] = nRecruiterCompletes
+                participantPopOverContents['Experiment completes'] = completeParticipants
+                participantPopOverContents['WARNING'] = `<span class="fw-bold text-danger">Recruiter completes do not match experiment completes</span>`
+            }
+            return makePopOverTd('participants', progressStr, 'Participants', makePopOverContents(participantPopOverContents))
+        }
+
+        function generateShortcutsColumn(experiment, now) {
+            let shortcuts = ''
+            if (!experiment.isOffline) {
+                shortcuts += makeIcon("speedometer", experiment.dashboard_url, "URL to dashboard")
+                shortcuts += makeIcon("file-earmark-bar-graph-fill", experiment.basic_data_url, "URL to data endpoint")
+            }
+
+            function lastExport(timestamp) {
+                let date = new Date(timestamp);
+                let diff = now - date;
+                return formatDuration(diff) + " ago"
+            }
+
+            if (experiment.psynet_export_url) {
+                shortcuts += makeIcon("database-fill-down", experiment.psynet_export_url, "PsyNet export (" + lastExport(experiment.psynet_export_timestamp) + ")")
+            }
+            if (experiment.database_export_url) {
+                shortcuts += makeIcon("database-down", experiment.database_export_url, "Database export (" + lastExport(experiment.database_export_timestamp) + ")")
+            }
+
+            if (experiment.is_ssh_deployment) {
+                shortcuts += makeIcon("terminal-fill", experiment.logs_url, "URL to logs")
+            }
+            let commentId = `comment-${experiment.secret}`
+            shortcuts += `<span id="${commentId}" deployment-id="${experiment.deployment_id}" class="bi bi-chat-text-fill" data-bs-toggle="tooltip" title="Click to view or add notes"></span>`
+
+            // Add archive icon
+            let archiveId = `archive-${experiment.secret}`
+            if (experiment.isOffline) {
+                shortcuts += `<span id="${archiveId}" deployment-id="${experiment.deployment_id}" class="bi bi-archive-fill" data-bs-toggle="tooltip" title="Archive this study"></span>`
+            }
+
+            // Add refresh icon
+            let refreshId = `refresh-${experiment.secret}`
+            if (experiment.recruiter !== "None" && experiment.isOffline) {
+                shortcuts += `<span id="${refreshId}" deployment-id="${experiment.deployment_id}" class="bi bi-arrow-clockwise" data-bs-toggle="tooltip" title="Fetch status from recruiter"></span>`
+            }
+
+            return {
+                html: `<td>${shortcuts}</td>`,
+                commentId: commentId,
+                archiveId: archiveId,
+                refreshId: refreshId,
+            }
+        }
+
+        function generateProlificColumns(experiment) {
+            let columns = [];
+
+            // Duration column
+            let recruiterDuration = Math.round(experiment.recruitment_median_session_duration_minutes * 100) / 100;
+            let recruiterDurationStr = ""
+            if (recruiterDuration) {
+                let estimatedDuration = Math.floor(experiment.estimated_duration / 60)
+                let pctDiff = .30
+                let badTime = recruiterDuration > estimatedDuration * (1 + pctDiff) || recruiterDuration < estimatedDuration * (1 - pctDiff)
+                recruiterDurationStr = formatInformation(recruiterDuration + "m", "estimate: " + estimatedDuration + "m", "", badTime ? 'color: red; font-weight:bold;' : '')
+            }
+            columns.push(`<td>${recruiterDurationStr}</td>`);
+
+            // Wage per hour column
+            let wagePerHour = Math.round(experiment.recruitment_real_wage_per_hour_excluding_bonuses * 100) / 100
+            let wagePerHourStr = ""
+            if (wagePerHour) {
+                wagePerHourStr = wagePerHour + "£/h"
+                if (wagePerHour < 6) {
+                    wagePerHourStr = formatInformation(wagePerHourStr, "too low", '', 'color: red; font-weight:bold;')
+                } else if (wagePerHour < 9) {
+                    wagePerHourStr = formatInformation(wagePerHourStr, "low", '', 'color: orange; font-weight:bold;')
+                } else if (wagePerHour > 12) {
+                    wagePerHourStr = formatInformation(wagePerHourStr, "high", '', 'color: green; font-weight:bold;')
+                } else {
+                    wagePerHourStr = formatInformation(wagePerHourStr, "good")
+                }
+                columns.push(`<td>${wagePerHourStr}</td>`);
+            }
+
+            return columns.join('');
+        }
+
+        function generateLucidColumns(experiment) {
+            let columns = [];
+
+            // CPI column
+            let currencySymbol = convertCurrencyToSymbol(experiment.recruitment_currency);
+            let cpi = currencySymbol + Math.round(experiment.recruitment_cost_per_survey, 2);
+            columns.push(`<td>${cpi}</td>`);
+
+            // Conversion rate column
+            let conv = parseInt(experiment.recruitment_conversion_rate * 100)
+            if (conv < 10) {
+                conv = formatInformation(conv + "%", "low", '', 'color: red; font-weight:bold;')
+            } else {
+                conv = formatInformation(conv + "%", "good")
+            }
+            columns.push(`<td>${conv}</td>`);
+
+            // Incidence rate column
+            let ir = parseInt(experiment.recruitment_incidence_rate * 100)
+            let bidIncidence = experiment.recruitment_config.survey.BidIncidence
+            if (ir < bidIncidence) {
+                ir = formatInformation(ir + "%", "low", '', 'color: red; font-weight:bold;')
+            } else {
+                ir = formatInformation(ir + "%", "good")
+            }
+            columns.push(`<td>${ir}</td>`);
+
+            // LOI column
+            let completionLOI = experiment.recruitment_completion_loi;
+            let terminationLOI = experiment.recruitment_termination_loi;
+            if (terminationLOI > 1) {
+                terminationLOI = `Termination: <span style="color: red !important;">${terminationLOI}m</span>`
+            } else {
+                terminationLOI = `Termination: ${terminationLOI}m`
+            }
+            let loi = formatInformation(completionLOI + "m", terminationLOI)
+            columns.push(`<td>${loi}</td>`);
+
+            // Drop-off rate column
+            let dropOff = parseInt(experiment.recruitment_drop_off_rate * 100)
+            if (dropOff > 20) {
+                dropOff = formatInformation(dropOff + "%", "high", '', 'color: red; font-weight:bold;')
+            } else {
+                dropOff = formatInformation(dropOff + "%", "good")
+            }
+            columns.push(`<td>${dropOff}</td>`);
+
+            // EPC column
+            let epc = experiment.recruitment_earnings_per_click
+            columns.push(`<td>${epc}</td>`);
+
+            return columns.join('');
+        }
+
+        function setupCommentClickHandler(commentId) {
+            $(`#${commentId}`).click(function () {
+                let experimentId = $(this).attr('deployment-id')
+                let url = `/dashboard/comment/get/${experimentId}`
+                $.get(url, function (txt) {
+                    $('#commentContent').val(txt)
+                    $('#commentExperimentId').val(experimentId)
+                    myModal.show()
+                })
+            })
+        }
+
+        function setupArchiveClickHandler(archiveId, experiment) {
+            $(`#${archiveId}`).click(function () {
+                if (confirm('Are you sure you want to archive this study?')) {
+                    $.get('/dashboard/archive/deployment?id=' + experiment.deployment_id, function() {
+                        // Reload the page to reflect changes
+                        location.reload();
+                    }).fail(function() {
+                        alert('Failed to archive recruitment. Please try again.');
+                    });
+                }
+            });
+        }
+
+        function setupRefreshClickHandler(refreshId, experiment) {
+            $(`#${refreshId}`).click(function () {
+                if (confirm('Are you sure you want to refresh the recruitment metrics? This action cannot be undone.')) {
+                    $.get('/dashboard/update/recruitment?deployment_id=' + experiment.deployment_id, function() {
+                        // Reload the page to reflect changes
+                        location.reload();
+                    }).fail(function() {
+                        alert('Failed to refresh recruitment. Please try again.');
+                    });
+                }
+            });
+        }
+
+        function printExperimentRow(experiment, recruiter) {
+            let now = new Date().getTime();
+            let row = `<tr class="${experiment.isCurrentExperiment ? "table-secondary" : ""}">`;
+
+            row += generateStudyColumn(experiment);
+            row += generateRecruitmentColumn(experiment);
+            row += `<td class="experimenter">${experiment.experimenter_name}</td>`;
+            row += generateRuntimeColumn(experiment, now);
+            row += generateCostColumn(experiment);
+            row += generateDurationColumn(experiment);
+            row += generateServerColumn(experiment);
+            row += generateErrorsColumn(experiment);
+            row += generateParticipantsColumn(experiment);
+            let shortcutsResult = generateShortcutsColumn(experiment, now);
+            row += shortcutsResult.html;
+
+            if (isProlific(recruiter)) {
+                row += generateProlificColumns(experiment);
+            } else if (isLucid(recruiter)) {
+                row += generateLucidColumns(experiment);
+            }
+
+            row += `</tr>`
+            $(`#recruiter-${recruiter} tbody`).append(row);
+
+            setupCommentClickHandler(shortcutsResult.commentId);
+            setupArchiveClickHandler(shortcutsResult.archiveId, experiment);
+            setupRefreshClickHandler(shortcutsResult.refreshId, experiment);
+        }
+
+        function printRecruiterTable(recruiter) {
+            let divID = "recruiter-" + recruiter;
+            // check if ID exists
+            if ($("#" + divID).length) {
+                return;
+            }
+            let out = `<div id="${divID}">`;
+            out += `<table class="table">`;
+            out += `<thead>`;
+
+            let columnMeta = [
+                { name: "Study", help: "Click on the study for additional information." },
+                { name: "Recruitment", help: "Click on the recruiter status for additional information." },
+                { name: "Experimenter", help: "Name of the experimenter." },
+                { name: "Runtime", help: "Time since the experiment was launched. Click for more information." },
+                { name: "Cost", help: "Total cost of the experiment. Click for more information." },
+                {
+                    name: "Duration",
+                    help: "Median time taken for the experiment and expected time (<code>psynet estimate</code>)."
+                },
+                { name: "Server", help: "Server stats. Click for more information." },
+                { name: "Errors", help: "Number of errors. Click on the error icon for more information." },
+                { name: "Participants", help: "Number of working, terminated, abandoned participants" },
+                { name: "Actions", help: "Hover over the icons for more information" }
+            ]
+            let recruiterMeta = []
+            let recruiterTitle = toSentenceCase(recruiter)
+            if (isLucid(recruiter)) {
+                // Extend by the following columns:
+                recruiterMeta.push({
+                    name: "CPI",
+                    help: recruiterTitle + ": Payment per complete"
+                })
+                recruiterMeta.push({
+                    name: "Conv",
+                    help: (
+                        recruiterTitle + ": <strong>Conversion rate</strong> " +
+                        "Percentage of completes of total people who passed the qualifications. " +
+                        "Should be more than 10%."
+                    )
+                })
+                recruiterMeta.push({
+                    name: "IR",
+                    help: (
+                        recruiterTitle + ": <strong>Incidence rate</strong> " +
+                        "Percentage of screened out based on (custom) qualifications divided by total completes + screened out participants. " +
+                        "Should be higher than the <code>bid_incidence</code>"
+                    )
+                })
+                recruiterMeta.push({
+                    name: "LOI",
+                    help: recruiterTitle + ": <strong>Length of interview</strong> Average time spent on the survey"
+                })
+                recruiterMeta.push({
+                    name: "Drop-off",
+                    help: (
+                        recruiterTitle + ": <strong>Drop-off rate</strong> " +
+                        "Percentage of participants not returned to the market place who passed the qualifications. " +
+                        "Should be less than 20%."
+                    )
+                })
+                recruiterMeta.push({
+                    name: "EPC",
+                    help: recruiterTitle + ": <strong>Earnings per click</strong> <code>(CPI * completes) / system_entrants</code>. Make sure the value is high enough."
+                })
+            }
+
+
+            if (isProlific(recruiter)) {
+                recruiterMeta.push({
+                    name: "Time",
+                    help: recruiterTitle + ": Median duration of approved participants"
+                })
+                recruiterMeta.push({
+                    name: "Wage/h",
+                    help: recruiterTitle + ": Real wage per hour. Median duration/mean wage"
+                })
+            }
+            out += `<tr>`;
+            let mainColLen, recruiterColLen;
+            if (recruiterMeta.length > 0) {
+                mainColLen = columnMeta.length
+                recruiterColLen = recruiterMeta.length
+            } else {
+                mainColLen = columnMeta.length - 1
+                recruiterColLen = 1
+            }
+            out += `<th class="main-columns" colspan="${mainColLen}"></th>`;
+            let recruiterName = toSentenceCase(recruiter)
+            out += `<th class="recruiter-columns table-warning" style="text-align: center;" colspan="${recruiterColLen}">${recruiterName}</th>`;
+            out += `</tr>`;
+
+            out += `<tr>`;
+            let allCols = columnMeta.concat(recruiterMeta)
+            for (let meta of allCols) {
+                out += `<th data-bs-toggle="tooltip" title="${meta.help}">${meta.name}</th>`;
+            }
+            out += `</tr>`;
+            out += `</thead>`;
+            out += `<tbody>`;
+            out += `</tbody>`;
+            out += `</table>`;
+            out += `</div>`;
+
+            $("#dashboard-participant").append(out);
+        }
+
+
+        function activateTooltipsAndPopOvers() {
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(
+                tooltipTriggerEl,
+                {
+                    sanitize: true,
+                    html: true,
+                }
+            ))
+            const popoverTriggerList = document.querySelectorAll('.popover-link')
+            const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(
+                popoverTriggerEl,
+                {
+                    container: 'body',
+                    sanitize: true,
+                    html: true,
+                    content: $(popoverTriggerEl).attr('data-bs-content'),  // For some reason this is needed…
+                    trigger: 'focus',
+                }
+            ))
+        }
+
+        function printSummary(recruiter) {
+            let totalCostStr = ''
+            for (let [currency, cost] of Object.entries(totalCost)) {
+                totalCostStr += `${currency}: ${cost.toFixed(2)}<br>`
+            }
+            let summary = `<div class="alert alert-primary" role="alert">`
+            summary += `<h4>Total cost</h4>`
+            summary += totalCostStr
+            summary += `</div>`
+            $("#recruiter-" + recruiter).append(summary)
+        }
+
+        function setupModal() {
+            myModal = new bootstrap.Modal(document.getElementById('commentModal'), {
+                keyboard: false,
+                backdrop: 'static', // don't close the modal when clicking outside
+
+            })
+            document.getElementById('dismiss-comment').onclick = function () {
+                myModal.hide()
+            }
+            document.getElementById('save-comment').onclick = function () {
+                let experimentId = $('#commentExperimentId').val()
+                $.post(`/dashboard/comment/set/${experimentId}`, {
+                    'txt': $('#commentContent').val(),
+                }).done(function () {
+                    myModal.hide()
+                })
+            }
+        }
+
+        function filterExperiment(experiment) {
+            let filterDict = {
+                "recruitment-status": experiment.recruitment_study_status,
+                "experimenter": experiment.experimenter_name,
+                "label": experiment.label,
+                "locale": experiment.locale,
+                "network-status": experiment.isOffline.toString()
+            }
+            let filterKeys = Object.keys(filterDict)
+            let filterValues = Object.values(filterDict)
+            let filterMatch = true
+
+
+            for (let i = 0; i < filterKeys.length; i++) {
+                let key = filterKeys[i]
+                let value = filterValues[i]
+                let selectedValue = $(`#${key}-filter`).val()
+                if (selectedValue && selectedValue !== "all" && selectedValue !== value) {
+                    filterMatch = false
+                    break
+                }
+            }
+            return filterMatch
+        }
+
+        function printExperiments() {
+            $("#dashboard-participant").empty();
+            let selectedRecruiter = $("#recruiter-filter").val();
+            let _experiments = experiments;
+            if (selectedRecruiter && selectedRecruiter !== "all") {
+                _experiments = {};
+                _experiments[selectedRecruiter] = experiments[selectedRecruiter];
+            }
+            for (let recruiter in _experiments) {
+                let experimentList = _experiments[recruiter];
+                experimentList = experimentList.filter(filterExperiment);
+
+                if (experimentList.length === 0) {
+                    continue;
+                }
+
+                experimentList.sort((a, b) => b.creation_time - a.creation_time);
+
+                printRecruiterTable(recruiter);
+
+                totalCost = {};
+                let printedExperiments = 0;
+                for (let experiment of experimentList) {
+                    printExperimentRow(experiment, recruiter);
+                }
+                printSummary(recruiter);
+            }
+
+
+            activateTooltipsAndPopOvers();
+        }
+
+        function printArchivedExperiments() {
+            const tableBody = document.querySelector('#archived-table tbody');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            archivedExperiments.forEach(experiment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHTML(experiment.title || '')}</td>
+                    <td>${formatPill(experiment.recruitment_study_status || 'Unknown')}</td>
+                    <td>${escapeHTML(experiment.experimenter_name || '')}</td>
+                    <td>${formatDuration(experiment.now - experiment.creation_time)}</td>
+                    <td>${convertCurrencyToSymbol(experiment.recruitment_currency || experiment.currency || '')}${experiment.recruitment_study_cost || ''}</td>
+                    <td>${(experiment.participant_statuses && experiment.participant_statuses.approved) || 0}</td>
+                    <td>
+                        <button class="btn btn-success btn-sm restore-archived" data-deployment-id="${experiment.deployment_id}">Restore</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Restore button handler
+            document.querySelectorAll('.restore-archived').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const deploymentId = this.getAttribute('data-deployment-id');
+                    if (confirm('Are you sure you want to restore this experiment?')) {
+                        $.get('/dashboard/restore/deployment?id=' + deploymentId, function() {
+                            location.reload();
+                        }).fail(function() {
+                            alert('Failed to restore experiment. Please try again.');
+                        });
+                    }
+                });
+            });
+
+            // Activate modal on button click
+            const showArchivedBtn = document.getElementById('show-archived');
+            if (showArchivedBtn) {
+                showArchivedBtn.onclick = function () {
+                    const modal = new bootstrap.Modal(document.getElementById('archivedModal'));
+                    modal.show();
+                };
+            }
+        }
+
+        window.onload = function () {
+            if (nExperimentsPerLoad >= deploymentsIds.length) {
+                document.getElementById('load-more').remove()
+            }
+            fetchExperiments();
+            fetchArchived();
+        };
+
+    </script>
+
+
+    <style>
+        @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+
+        .clickable {
+            cursor: pointer
+        }
+
+        .bi {
+            font-size: 1.3rem;
+            color: inherit;
+        }
+
+        .main-columns {
+            width: 100%;
+        }
+        .popover {
+            max-width: 700px;
+            width: 700px;
+        }
+    </style>
+{% endif %}
+
+{% endblock %}
+{% block libs %}
+{{ super() }}
+
+{% endblock %}

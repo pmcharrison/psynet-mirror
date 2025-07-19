@@ -1,6 +1,9 @@
+import hashlib
 import json
 import os
 import re
+from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from math import ceil
 
@@ -14,7 +17,12 @@ from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
-from dallinger.recruiters import RedisStore
+from dallinger.recruiters import (
+    DevRecruiter,
+    MockRecruiter,
+    RecruitmentStatus,
+    RedisStore,
+)
 from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
@@ -24,7 +32,7 @@ from sqlalchemy.sql import func
 
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
-from .lucid import get_lucid_service
+from .lucid import LucidService, get_lucid_service
 from .participant import Participant
 from .timeline import Response, TimelineLogic
 from .utils import get_logger, get_translator, render_template_with_translations
@@ -68,15 +76,77 @@ class PsyNetRecruiterMixin:
 
 
 class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter):
-    pass
+    def get_status(self) -> RecruitmentStatus:
+        from .experiment import get_experiment
+
+        status = super().get_status()
+        exp = get_experiment()
+        status.study_status = (
+            "Recruiting" if exp.need_more_participants else "Not recruiting"
+        )
+        return status
 
 
 class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecruiter):
-    pass
+    def open_recruitment(self, n: int = 1) -> dict:
+        response = super().open_recruitment(n)
+
+        from .experiment import get_experiment
+
+        exp = get_experiment()
+        study_details = exp.notifier.url(
+            exp.notifier.bold("Study details"),
+            f"https://app.prolific.com/researcher/workspaces/studies/{self.current_study_id}",
+        )
+        submissions = exp.notifier.url(
+            exp.notifier.bold("Submissions"),
+            f"https://app.prolific.com/researcher/workspaces/studies/{self.current_study_id}/submissions",
+        )
+        msg = f"Prolific:\n- {study_details}\n- {submissions}"
+        exp.notifier.notify(msg)
+        return response
+
+    def run_checks(self):
+        logger.info("Polling Prolific API to check for unread messages")
+        unread_messages = self.prolificservice.get_unread_messages()
+        relevant_messages = []
+        for message in unread_messages:
+            study_id = message["data"].get("study_id")
+            if study_id and study_id == self.current_study_id:
+                message_concat = " ".join(
+                    [message[key] for key in ["sender_id", "body", "sent_at"]]
+                )
+                message_hash = hashlib.md5(message_concat.encode()).hexdigest()
+                from psynet.redis import redis_vars
+
+                if redis_vars.get(message_hash, None) is None:
+                    redis_vars.set(message_hash, "seen")
+                    relevant_messages.append(message)
+
+        if len(relevant_messages) > 0:
+            from .experiment import get_experiment
+
+            exp = get_experiment()
+            messages = [f"Found {len(relevant_messages)} unread messages"]
+            for message in relevant_messages:
+                sender_id = message.get("sender_id")
+                body = message.get("body")
+                sent_at = message.get("sent_at")
+                msg = exp.notifier.bold("Message from Prolific") + ":\n"
+                msg += f"Sender: `{sender_id}` at {sent_at}\n"
+                msg += f"> {body}"
+                messages.append(msg)
+            exp.notifier.notify(exp.notifier.combine(messages))
 
 
 class DevProlificRecruiter(
     PsyNetRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
+):
+    pass
+
+
+class MockProlificRecruiter(
+    PsyNetRecruiterMixin, dallinger.recruiters.MockProlificRecruiter
 ):
     pass
 
@@ -86,6 +156,11 @@ class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
 
 
 # CAP Recruiter
+@dataclass
+class CapRecruitmentStatus(RecruitmentStatus):
+    pass
+
+
 class BaseCapRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     """
     The CapRecruiter base class
@@ -134,6 +209,34 @@ class BaseCapRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
             verify=False,  # Temporary fix because of SSLCertVerificationError
         )
 
+    def get_status(self) -> CapRecruitmentStatus:
+        """Return the status of the recruiter as a RecruitmentStatus."""
+        from psynet.experiment import get_experiment
+
+        all_participants = Participant.query.all()
+        statuses = []
+        for participant in all_participants:
+            if participant.failed:
+                statuses.append("FAILED")
+            else:
+                if participant.status == "working":
+                    statuses.append("WORKING")
+                else:
+                    statuses.append("COMPLETED")
+        status = super().get_status()
+        status_counts = dict(Counter(statuses))
+        exp = get_experiment()
+        study_status = "Recruiting" if exp.need_more_participants else "Not recruiting"
+
+        return CapRecruitmentStatus(
+            recruiter_name=self.nickname,
+            participant_status_counts=status_counts,
+            study_id=status.study_id,
+            study_status=study_status,
+            study_cost=status.study_cost,
+            currency="€",  # Default currency
+        )
+
 
 class CapRecruiter(BaseCapRecruiter):
     """
@@ -155,7 +258,7 @@ class StagingCapRecruiter(BaseCapRecruiter):
     external_submission_url = "https://staging-cap-recruiter.ae.mpg.de/tasks"
 
 
-class DevCapRecruiter(BaseCapRecruiter):
+class DevCapRecruiter(DevRecruiter, BaseCapRecruiter):
     """
     The development cap-recruiter.
 
@@ -275,6 +378,27 @@ class LucidRecruiterException(Exception):
     """Custom exception for LucidRecruiter"""
 
 
+@dataclass
+class LucidRecruitmentStatus(RecruitmentStatus):
+    survey_sid: str
+    survey_number: int
+    total_completes: int
+    total_entrants: int
+    total_screens: int
+    completion_loi: int
+    drop_off_rate: float
+    conversion_rate: float
+    incidence_rate: float
+    payment_per_hour: float
+    exchange_rate: float
+    cost_per_survey: float
+    earnings_per_click: float
+    system_conversion: int
+    termination_loi: int
+    last_complete_date: datetime
+    config: dict
+
+
 class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     supports_delayed_publishing = True
     MARKETPLACE_CODE = "Marketplace codes"
@@ -387,6 +511,98 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         """Incremental recruitment isn't implemented for now, so we return an empty list."""
         return []
 
+    def get_status(self, submissions=None) -> LucidRecruitmentStatus:
+        recruitment_config = json.loads(self.config.get("lucid_recruitment_config"))
+        survey_number = self.current_survey_number()
+        summary = self.lucidservice.get_summary(survey_number)
+        cost = summary["cost"]
+        total_completes = summary["total_completes"]
+        completion_loi = summary["completion_loi"]
+
+        drop_off_rate = 0
+        conversion_rate = 0
+        incidence_rate = 0
+        submission_status_counts = {}
+
+        if submissions is None:
+            submissions = self.lucidservice.get_submissions(survey_number)
+        if submissions is not None:
+            respondents = pd.DataFrame(submissions)
+            respondents["status"] = respondents.client_status.apply(
+                lambda x: self.client_codes.get(x, "Unknown")
+            )
+
+            submission_status_counts = respondents["status"].value_counts().to_dict()
+            if len(respondents) > 0:
+                respondents["status"] = respondents.client_status.apply(
+                    lambda x: self.client_codes.get(x, "Unknown")
+                )
+                respondents["market_place_code"] = respondents.fulcrum_status.apply(
+                    lambda x: self.market_place_codes.get(x, "Unknown")
+                )
+
+                MARKETPLACE_CODE = self.MARKETPLACE_CODE  # noqa: F841
+                COMPLETED_CODE = self.COMPLETED  # noqa: F841
+                IN_SURVEY_CODE = self.IN_SURVEY  # noqa: F841
+                after_screener = respondents.query("status != @MARKETPLACE_CODE")
+                completes = respondents.query("status == @COMPLETED_CODE")
+                in_survey = respondents.query("status == @IN_SURVEY_CODE")
+                drop_off_rate = (
+                    len(in_survey) / len(after_screener)
+                    if len(after_screener) > 0
+                    else 0
+                )
+                conversion_rate = (
+                    len(completes) / len(after_screener)
+                    if len(after_screener) > 0
+                    else 0
+                )
+
+                pattern = "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification|Standard Qualification"
+                n_returned_because_of_qualifications = (
+                    respondents.market_place_code.str.contains(
+                        pattern, regex=True
+                    ).sum()
+                )
+
+                n_potential_completes = (
+                    len(completes) + n_returned_because_of_qualifications
+                )
+                incidence_rate = float(
+                    len(completes) / n_potential_completes
+                    if n_potential_completes > 0
+                    else 0.0
+                )
+
+        cost_per_survey = (cost / total_completes) if total_completes > 0 else 0
+        payment_per_hour = completion_loi / 60 * cost_per_survey
+
+        return LucidRecruitmentStatus(
+            recruiter_name=self.nickname,
+            participant_status_counts=submission_status_counts,
+            study_id=self.current_survey_number(),
+            study_status=summary["status"],
+            study_cost=summary["cost"],
+            survey_sid=self.current_survey_sid(),
+            survey_number=self.current_survey_number(),
+            total_completes=summary["total_completes"],
+            total_entrants=summary["total_entrants"],
+            total_screens=summary["total_screens"],
+            currency=summary["currency"],
+            completion_loi=summary["completion_loi"],
+            drop_off_rate=drop_off_rate,
+            conversion_rate=conversion_rate,
+            incidence_rate=incidence_rate,
+            cost_per_survey=cost_per_survey,
+            payment_per_hour=payment_per_hour,
+            earnings_per_click=summary["epc"],
+            system_conversion=summary["system_conversion"],
+            termination_loi=summary["termination_loi"],
+            last_complete_date=summary["last_complete_date"],
+            exchange_rate=summary["exchange_rate"],
+            config=recruitment_config,
+        )
+
     def notify_duration_exceeded(self, participants, reference_time):
         """
         The participant has been working longer than the time defined in
@@ -399,22 +615,13 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def run_checks(self):
         logger.info("Polling Lucid API to count entry_df")
-        survey_number = self.current_survey_number()
-        respondents = pd.DataFrame(self.lucidservice.get_submissions(survey_number))
-        summary = self.lucidservice.get_summary(survey_number)
-        total_completes = summary["total_completes"]
-        logger.info(
-            f"Found {summary['total_entrants']} entrants, {summary['total_screens']} after_screener, {total_completes} completes"
-        )
 
-        cost = summary["cost"]
-        currency = summary["currency"]
-        completion_loi = summary["completion_loi"]
-        cost_per_survey = (cost / total_completes) if total_completes > 0 else 0
-        payment_per_hour = completion_loi / 60 * cost_per_survey
-        drop_off_rate = 0
-        conversion_rate = 0
-        incidence_rate = 0
+        survey_number = self.current_survey_number()
+        submissions = self.lucidservice.get_submissions(survey_number)
+        if submissions is None or len(submissions) == 0:
+            return
+        respondents = pd.DataFrame(submissions)
+        status = self.get_status(submissions)
 
         if len(respondents) > 0:
             respondents["status"] = respondents.client_status.apply(
@@ -462,59 +669,31 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                     db.session.add(entrant)
                 lucid_entrants.append(entrant)
 
-            entry_df = pd.DataFrame([entrant.to_dict() for entrant in lucid_entrants])
-            MARKETPLACE_CODE = self.MARKETPLACE_CODE  # noqa: F841
-            COMPLETED_CODE = self.COMPLETED  # noqa: F841
-            IN_SURVEY_CODE = self.IN_SURVEY  # noqa: F841
-            after_screener = entry_df.query("lucid_status != @MARKETPLACE_CODE")
-            completes = entry_df.query("lucid_status == @COMPLETED_CODE")
-            in_survey = entry_df.query("lucid_status == @IN_SURVEY_CODE")
-            drop_off_rate = (
-                len(in_survey) / len(after_screener) if len(after_screener) > 0 else 0
-            )
-            conversion_rate = (
-                len(completes) / len(after_screener) if len(after_screener) > 0 else 0
-            )
-
-            pattern = "Privacy Term|Quality Term|Financial Term|OFAC Term|Custom Qualification|Standard Qualification"
-            n_returned_because_of_qualifications = (
-                entry_df.lucid_market_place_code.str.contains(pattern, regex=True).sum()
-            )
-
-            n_potential_completes = (
-                len(completes) + n_returned_because_of_qualifications
-            )
-            incidence_rate = float(
-                len(completes) / n_potential_completes
-                if n_potential_completes > 0
-                else 0.0
-            )
-
-        logger.info(f"Payment per hour: {payment_per_hour:.2f} {currency}")
-        logger.info(f"Drop off rate: {drop_off_rate:.2%}")
-        logger.info(f"Conversion rate: {conversion_rate:.2%}")
-        logger.info(f"Incidence rate: {conversion_rate:.2%}")
-
+        logger.info(
+            f"Payment per hour: {status.payment_per_hour:.2f} {status.currency}"
+        )
+        logger.info(f"Drop off rate: {status.drop_off_rate:.2%}")
+        logger.info(f"Conversion rate: {status.conversion_rate:.2%}")
+        logger.info(f"Incidence rate: {status.incidence_rate:.2%}")
+        blocked_fields = [
+            "recruiter_name",
+            "participant_status_counts",
+            "study_id",
+            "study_status",
+            "study_cost",
+            "survey_sid",
+            "survey_number",
+            "config",
+        ]
         status_entry = LucidStatus(
             # From the summary
-            status=summary["status"],
-            cost=cost,
-            currency=currency,
-            exchange_rate=summary["exchange_rate"],
-            cost_per_survey=cost_per_survey,
-            payment_per_hour=payment_per_hour,
-            earnings_per_click=summary["epc"],
-            system_conversion=summary["system_conversion"],
-            completion_loi=completion_loi,
-            termination_loi=summary["termination_loi"],
-            last_complete_date=summary["last_complete_date"],
-            # From the metrics
-            total_entrants=summary["total_entrants"],
-            total_completes=summary["total_completes"],
-            total_screens=summary["total_screens"],
-            drop_off_rate=drop_off_rate,
-            conversion_rate=conversion_rate,
-            incidence_rate=incidence_rate,
+            status=status.study_status,
+            cost=status.study_cost,
+            **{
+                k: v
+                for k, v in status.__dict__.items()
+                if not k in blocked_fields  # noqa: E713
+            },
         )
         db.session.add(status_entry)
         db.session.commit()
@@ -924,16 +1103,6 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
     def initial_response_within_s(self):
         return self.get_config_entry("initial_response_within_s")
 
-    def get_status(self):
-        query = LucidStatus.query.order_by(LucidStatus.id.desc())
-        recruiter_info = super().get_status()
-        if query.count() > 0:
-            recruiter_info = {**recruiter_info, **query.first().to_dict()}
-            recruiter_info["total_working"] = LucidRID.query.filter_by(
-                terminated_at=None, completed_at=None
-            ).count()
-        return recruiter_info
-
     def change_lucid_status(self, status):
         survey_number = self.current_survey_number()
         service = get_lucid_service()
@@ -942,7 +1111,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         db.session.commit()
 
 
-class DevLucidRecruiter(BaseLucidRecruiter):
+class DevLucidRecruiter(DevRecruiter, BaseLucidRecruiter):
     """
     Development recruiter for the Lucid Marketplace.
     """
@@ -954,6 +1123,70 @@ class DevLucidRecruiter(BaseLucidRecruiter):
         self.ad_url = (
             f"http://localhost.cap:5000/ad?recruiter={self.nickname}&RID=[%RID%]"
         )
+
+    def get_status(self, submissions=None) -> LucidRecruitmentStatus:
+        survey_number = 123456789
+        return LucidRecruitmentStatus(
+            recruiter_name=self.nickname,
+            participant_status_counts={},
+            study_id=survey_number,
+            study_status="DEV-LUCID",
+            study_cost=0,
+            survey_sid="DEV-LUCID-SID",
+            survey_number=survey_number,
+            total_completes=0,
+            total_entrants=0,
+            total_screens=0,
+            currency="€",
+            completion_loi=0,
+            drop_off_rate=0,
+            conversion_rate=0,
+            incidence_rate=0,
+            cost_per_survey=0,
+            payment_per_hour=0,
+            earnings_per_click=0,
+            system_conversion=0,
+            termination_loi=0,
+            last_complete_date=datetime.now(),
+            exchange_rate=0,
+            config={},
+        )
+
+
+class MockLucidRecruiter(MockRecruiter, BaseLucidRecruiter):
+    nickname = "mocklucid"
+
+    def __init__(self, *args, **kwargs):
+        if len(kwargs) == 0:
+            recruitment_config = json.loads(
+                get_config().get("lucid_recruitment_config")
+            )
+        else:
+            recruitment_config = kwargs.get("config")
+        self.survey_number = recruitment_config.get("survey_number")
+        self.survey_sid = recruitment_config.get("survey_sid")
+
+        if len(kwargs) == 0:
+            BaseLucidRecruiter.__init__(self, *args, **kwargs)
+        else:
+            if "id" not in recruitment_config:
+                recruitment_config["id"] = f"{self.survey_sid}-{self.survey_number}"
+            self.config = {
+                "lucid_recruitment_config": json.dumps(recruitment_config),
+            }
+            config = get_config()
+
+            self.lucidservice = LucidService(
+                api_key=config.get("lucid_api_key"),
+                sha1_hashing_key=config.get("lucid_sha1_hashing_key"),
+                exp_config=config,
+                recruitment_config=recruitment_config,
+            )
+            self.store = RedisStore()
+
+    def register_study(self, **kwargs):
+        self._record_current_survey_number(self.survey_number)
+        self._record_survey_sid(self.survey_sid)
 
 
 class LucidRecruiter(BaseLucidRecruiter):

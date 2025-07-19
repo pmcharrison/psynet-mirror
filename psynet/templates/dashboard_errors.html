@@ -1,0 +1,62 @@
+{% extends "psynet_dashboard.html" %}
+{% block scripts %}
+
+{% endblock %}
+{% block stylesheets %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+
+{% macro print_errors(errors) %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Token</th>
+                <th>Time</th>
+                <th>Traceback</th>
+                <th>Additional information</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for error in errors %}
+                <tr>
+                    <td>
+                        <code>{{ error.token }}</code>
+                        <a class="btn btn-primary mt-3" href="{{ url_for('dashboard.dashboard_logger', start=error.log_line_number - 10, end=error.log_line_number + 10, highlight=error.log_line_number) }}">
+                            View in logs
+                        </a>
+                    </td>
+                    <td>{{ error.creation_time }}</td>
+                    <td><pre>{{ error.traceback }}</pre></td>
+                    <td>
+                        <div style="overflow-y: scroll; height: 100%">
+                            <code>{{ error.ids }}</code>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+
+<h1>{{ title }}</h1>
+{% if error_summary | length == 0 %}
+    <p>No errors found</p>
+{% else %}
+    {% for error_kind, error_msg_summary in error_summary.items() %}
+        <h4>{{ error_kind }}</h4>
+        {% for error_msg, errors in error_msg_summary.items() %}
+            <h5>{{ error_msg }}</h5>
+            <span class="text-muted">{{errors | length}} error(s)</span>
+            {{print_errors(errors)}}
+        {% endfor %}
+    {% endfor %}
+{% endif %}
+
+
+{% endblock %}
+{% block libs %}
+{{ super() }}
+
+{% endblock %}

@@ -28,6 +28,7 @@ from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
+from dallinger.utils import classproperty
 from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
@@ -44,7 +45,7 @@ from tqdm import tqdm
 
 from . import field
 from .field import PythonDict, is_basic_type
-from .utils import classproperty, json_to_data_frame, organize_by_key
+from .utils import json_to_data_frame, organize_by_key
 
 
 def get_db_tables():

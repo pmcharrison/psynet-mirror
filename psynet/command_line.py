@@ -8,16 +8,19 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
 from shutil import rmtree, which
+from urllib.parse import urlencode
 
 import click
 import dallinger.command_line.utils
 import psutil
 import psycopg2
+import requests
 from dallinger import db
 from dallinger.command_line.docker_ssh import (
     CONFIGURED_HOSTS,
@@ -40,11 +43,12 @@ from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .log import bold
 from .lucid import get_lucid_service
-from .recruiters import BaseLucidRecruiter
+from .recruiters import BaseLucidRecruiter, HotAirRecruiter
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .utils import (
     get_args,
+    get_experiment_url,
     get_logger,
     get_package_name,
     git_repository_available,
@@ -631,7 +635,7 @@ def run_bot(ctx, real_time=False):
 ##############
 # pre deploy #
 ##############
-def run_pre_checks_deploy(exp, config, is_mturk):
+def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
     verify_psynet_requirement()
     check_versions()
     initial_recruitment_size = exp.initial_recruitment_size
@@ -647,6 +651,13 @@ def run_pre_checks_deploy(exp, config, is_mturk):
         )
     ):
         raise click.Abort
+
+    if local_ and not isinstance(recruiter, HotAirRecruiter):
+        raise click.UsageError(
+            "``psynet deploy local`` currently only supports the 'generic' recruiter. "
+            "Set recruiter = generic in your experiment config, or deploy to a remote server instead "
+            "(e.g. ``psynet deploy ssh``)."
+        )
 
 
 ##########
@@ -674,6 +685,8 @@ def _pre_launch(
         mode=mode,
         is_local_deployment=local_,
         is_ssh_deployment=ssh,
+        server=server,
+        app=app,
     )
 
     if ssh:
@@ -948,6 +961,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     exp.check_config()
     exp.check_size()
     exp.check_consents()
+    exp.check_python_dependencies()
 
     # Make sure source_code.zip is in .gitignore
     try:
@@ -1068,7 +1082,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
         elif mode == "live":
-            run_pre_checks_deploy(exp, config, is_mturk)
+            run_pre_checks_deploy(exp, config, is_mturk, _local, recruiter)
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
@@ -1572,6 +1586,7 @@ def app_argument(func):
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
+        click.option("--legacy", is_flag=True, help="Process the export locally"),
         click.option(
             "--assets",
             default="experiment",
@@ -1666,6 +1681,7 @@ def export_(
     app=None,
     local=False,
     path=None,
+    legacy=False,
     assets="experiment",
     anonymize="both",
     n_parallel=None,
@@ -1757,26 +1773,65 @@ def export_(
         anonymize_modes = ["yes", "no"]
 
     source_code_exported = False
-    for anonymize_mode in anonymize_modes:
-        _anonymize = anonymize_mode == "yes"
-        _export_source_code = not (source_code_exported or no_source)
-        _export_(
-            ctx,
-            app,
-            local,
-            path,
-            assets,
-            _anonymize,
-            _export_source_code,
-            n_parallel,
-            docker_ssh,
-            server,
-            dns_host,
-            username,
-            password,
+    if not legacy:
+        experiment_url = get_experiment_url(app, server)
+        params = {
+            "type": "psynet",
+            "anonymize": anonymize,
+            "assets": assets,
+        }
+        export_endpoint = f"{experiment_url}/dashboard/export/download?" + urlencode(
+            params
         )
-        if _export_source_code:
-            source_code_exported = True
+        with yaspin(text="Requesting export from dashboard", color="green") as spinner:
+            response = requests.get(
+                export_endpoint,
+                auth=(config.get("dashboard_user"), config.get("dashboard_password")),
+            )
+            spinner.ok("✔")
+        os.makedirs(path, exist_ok=True)
+        zip_path = os.path.join(path, "data.zip")
+        if response.status_code == 200:
+            with open(zip_path, "wb") as f:
+                f.write(response.content)
+            # unzip the file
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                zip_ref.extractall(path)
+            log(f"Export complete. You can find your results at: {path}")
+        else:
+            log(
+                f"Failed to export data. Response: {response.reason} ({response.status_code})"
+            )
+            try:
+                message = response.json().get("message")
+                log(f"Reason: {message}.")
+            except json.JSONDecodeError as e:
+                log(
+                    f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
+                    f"\nResponse content: {response.content}"
+                )
+            log("You can add the --legacy flag to retry the export locally.")
+    else:
+        for anonymize_mode in anonymize_modes:
+            _anonymize = anonymize_mode == "yes"
+            _export_source_code = not (source_code_exported or no_source)
+            _export_(
+                ctx,
+                app,
+                local,
+                path,
+                assets,
+                _anonymize,
+                _export_source_code,
+                n_parallel,
+                docker_ssh,
+                server,
+                dns_host,
+                username,
+                password,
+            )
+            if _export_source_code:
+                source_code_exported = True
 
 
 def _export_(

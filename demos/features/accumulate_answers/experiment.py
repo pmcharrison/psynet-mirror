@@ -1,16 +1,13 @@
 # pylint: disable=unused-import,abstract-method
-
-import logging
-
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, PageMaker, Timeline, for_loop, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
+from psynet.utils import get_logger
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = get_logger("experiment")
 
 
 def animal_page(animal, time_estimate, bot_response):

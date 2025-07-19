@@ -472,6 +472,29 @@ Prolific
     to the participant's currency.
 
 
+Monitoring
+~~~~~~~~~~
+``mute_same_warning_for_n_hours`` *float* |psynet-icon|
+    To avoid resending the same error all the time, the same warning is muted for the next n hours. Default: ``1`` h.
+
+``resource_warning_pct`` *float* |psynet-icon|
+    If the percentage of the resource is above this value, the value is marked as a warning in the experiment dashboard
+    and a warning is sent. Default: ``0.9``.
+
+``resource_danger_pct`` *float* |psynet-icon|
+    If the percentage of the resource is above this value, the value is marked as dangerous in the experiment dashboard
+    (in red and an error icon) and the experimenter is informed via Slack. Default: ``0.95``.
+
+``minimal_disk_space_warning_gb`` *float* |psynet-icon|
+    While relative values are quite useful for memory and CPU, for disk space things become quite critical if values
+    are too low. Therefore, we use absolute values for disk space. If the disk space is below this value, the value is
+    marked as a warning in the experiment dashboard and a warning is sent. Default: ``5`` GB.
+
+``minimal_disk_space_danger_gb`` *float* |psynet-icon|
+    If the absolute disk space is below this value (see ``minimal_disk_space_warning_gb`` for a motivation), the value
+    is marked as dangerous in the experiment dashboard (in red and an error icon) and the experimenter is informed via
+    Slack. Default: ``2`` GB.
+
 Deployment
 ++++++++++
 

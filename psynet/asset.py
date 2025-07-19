@@ -1,4 +1,4 @@
-import os
+import os.path
 import shutil
 import subprocess
 import tempfile
@@ -9,6 +9,7 @@ import urllib.request
 import uuid
 import warnings
 from functools import cached_property
+from os import environ, makedirs, remove, symlink, unlink, walk
 from pathlib import Path
 from typing import Callable, Optional, Union
 
@@ -16,6 +17,7 @@ import boto3
 import paramiko
 import requests
 from dallinger import db
+from dallinger.utils import classproperty
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
@@ -32,7 +34,6 @@ from .process import LocalAsyncProcess
 from .serialize import prepare_function_for_serialization
 from .utils import (
     cache,
-    classproperty,
     get_args,
     get_extension,
     get_file_size_mb,
@@ -1062,7 +1063,7 @@ class ManagedAsset(Asset):
         if self.is_folder:
             shutil.rmtree(self.input_path)
         else:
-            os.remove(self.input_path)
+            remove(self.input_path)
 
     def get_size_mb(self):
         if self.is_folder:
@@ -1246,11 +1247,16 @@ class ExperimentAsset(ManagedAsset):
         participant.assets["stimulus"] = my_asset
     """
 
-    def generate_host_path(self):
+    folder = "experiments"
+
+    def generate_path(self):
         path = self.obfuscate_key(self.key_within_experiment)
         if self.extension:
             path += self.extension
-        return os.path.join("experiments", self.deployment_id, path)
+        return path
+
+    def generate_host_path(self):
+        return os.path.join(self.folder, self.deployment_id, self.generate_path())
 
     def obfuscate_key(self, key):
         random = self.generate_uuid()
@@ -2607,7 +2613,7 @@ class LocalStorage(AssetStorage):
 
     def _create_symlink(self):
         try:
-            os.unlink(self.local_path)
+            unlink(self.local_path)
         except (FileNotFoundError, IsADirectoryError, PermissionError):
             # Path(self.local_path).rmdir()
             try:
@@ -2615,10 +2621,10 @@ class LocalStorage(AssetStorage):
             except (FileNotFoundError, NotADirectoryError, PermissionError, OSError):
                 pass
 
-        os.makedirs("static", exist_ok=True)
+        makedirs("static", exist_ok=True)
 
         try:
-            os.symlink(self.root, self.local_path)
+            symlink(self.root, self.local_path)
         except FileExistsError:
             pass
 
@@ -2648,7 +2654,7 @@ class LocalStorage(AssetStorage):
             # We are depositing an asset that sits on the present server already,
             # so we can just copy it.
 
-            os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
+            makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
             if asset.is_folder:
                 shutil.copytree(
@@ -2707,7 +2713,7 @@ class LocalStorage(AssetStorage):
         self._mk_dir_tree(dest_path, ssh_host, ssh_user)
 
         # Traverse the local directory
-        for dirpath, dirnames, filenames in os.walk(input_path):
+        for dirpath, dirnames, filenames in walk(input_path):
             # For each directory in the local structure, create it remotely
             for dirname in dirnames:
                 local_path = os.path.join(dirpath, dirname)
@@ -2906,6 +2912,9 @@ def get_boto3_s3_bucket(name):
 def list_files_in_s3_bucket(
     bucket_name: str,
     prefix: str = "",
+    recursive: bool = True,
+    sort_by_date: bool = False,
+    params: Optional[dict] = None,
 ):
     """
     Lists files in an S3 bucket.
@@ -2918,6 +2927,15 @@ def list_files_in_s3_bucket(
     prefix :
         Only lists files whose keys begin with this string.
 
+    recursive :
+        Whether to list files recursively.
+
+    sort_by_date :
+        Whether to sort files by modification date.
+
+    params :
+        Additional parameters to pass to the S3 client.
+
     Returns
     -------
 
@@ -2927,15 +2945,27 @@ def list_files_in_s3_bucket(
     logger.info(
         "Listing files in S3 bucket %s with prefix '%s'...", bucket_name, prefix
     )
-    paginator = get_boto3_s3_client().get_paginator("list_objects_v2")
+    if params is None:
+        params = {}
 
-    return list(
-        [
-            content["Key"]
-            for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix)
-            for content in page.get("Contents", ())
-        ]
-    )
+    if not recursive:
+        params["Delimiter"] = "/"
+
+    paginator = get_boto3_s3_client().get_paginator("list_objects")
+
+    contents = [
+        content
+        for page in paginator.paginate(
+            Bucket=bucket_name,
+            Prefix=prefix,
+            **params,
+        )
+        for content in page.get("Contents", ())
+    ]
+    if sort_by_date:
+        contents.sort(key=lambda x: x["LastModified"])
+
+    return [content["Key"] for content in contents]
 
 
 @cache
@@ -2974,7 +3004,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
         if os.path.isfile(path):
             client.upload_file(path, self.s3_bucket, s3_key)
         else:
-            for _dir_path, _dir_names, _file_names in os.walk(path):
+            for _dir_path, _dir_names, _file_names in walk(path):
                 _rel_dir_path = os.path.relpath(_dir_path, path)
                 for _file_name in _file_names:
                     _local_path = os.path.join(_dir_path, _file_name)
@@ -2990,7 +3020,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
         try:
             client.download_file(self.s3_bucket, s3_key, target_path)
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
+            if e.response["Error"]["Code"] in ("NoSuchKey", "404", "NotFound"):
                 raise FileNotFoundError
             raise
         return True
@@ -3004,7 +3034,7 @@ class S3Boto3TransferBackend(S3TransferBackend):
                 relative_path = server_path.replace(s3_key + "/", "")
                 _target_path = os.path.join(target_path, relative_path)
                 target_dir = os.path.dirname(_target_path)
-                os.makedirs(target_dir, exist_ok=True)
+                makedirs(target_dir, exist_ok=True)
                 self._download(client, server_path, _target_path)
         else:
             return self._download(client, s3_key, target_path)
@@ -3015,6 +3045,31 @@ class S3Boto3TransferBackend(S3TransferBackend):
             bucket.objects.filter(Prefix=s3_key + "/").delete()
         else:
             bucket.Object(s3_key).delete()
+
+    def move_file(self, source_s3_key, target_s3_key):
+        import botocore
+
+        client = get_boto3_s3_client()
+        copy_source = {
+            "Bucket": self.s3_bucket,
+            "Key": source_s3_key,
+        }
+        try:
+            client.copy(copy_source, self.s3_bucket, target_s3_key)
+        except botocore.exceptions.ClientError as e:
+            if e.response["Error"]["Code"] in ("NoSuchKey", "404", "NotFound"):
+                raise FileNotFoundError
+            raise
+
+        client.delete_object(Bucket=self.s3_bucket, Key=source_s3_key)
+
+    def move_folder(self, source_s3_key, target_s3_key):
+        bucket = get_boto3_s3_bucket(self.s3_bucket)
+        for obj in bucket.objects.filter(Prefix=source_s3_key + "/"):
+            source_key = obj.key
+            relative_key = source_key.replace(source_s3_key + "/", "")
+            target_key = os.path.join(target_s3_key, relative_key)
+            self.move_file(source_key, target_key)
 
 
 class S3AwscliTransferBackend(S3TransferBackend):
@@ -3067,7 +3122,7 @@ class S3AwscliTransferBackend(S3TransferBackend):
                 check=True,
                 capture_output=True,
                 env={
-                    **os.environ,
+                    **environ,
                     **get_aws_credentials(capitalize=True),
                 },
             )
@@ -3270,11 +3325,47 @@ class S3Storage(AssetStorage):
     def delete_file(self, s3_key):
         self.backend.delete(s3_key, recursive=False)
 
+    def move_file(self, s3_key: str, new_s3_key: str):
+        """
+        Move a file from one location to another within the S3 bucket.
+
+        :param s3_key: The current path of the file in the S3 bucket.
+        :param new_s3_key: The new path where the file should be moved.
+        """
+        copy_source = {"Bucket": self.s3_bucket, "Key": s3_key}
+        client = get_boto3_s3_client()
+        client.copy(copy_source, self.s3_bucket, new_s3_key)
+        self.delete_file(s3_key)
+
     def delete_folder(self, s3_key):
         self.backend.delete(s3_key, recursive=True)
 
     def delete_all(self):
         self.delete_folder(self.root)
+
+    def list(
+        self,
+        folder_path: str,
+        sort_by_date: bool = False,
+        top: int = None,
+        extension: str = None,
+    ):
+        return list_files_in_s3_bucket(
+            self.s3_bucket,
+            prefix=os.path.join(self.root, folder_path) + "/",
+            sort_by_date=sort_by_date,
+        )
+
+    def read_file(self, file_path: str) -> str:
+        client = get_boto3_s3_client()
+        obj = client.get_object(Bucket=self.s3_bucket, Key=file_path)
+        return obj["Body"].read().decode("utf-8")
+
+    def write_file(self, file_path: str, content: str):
+        client = get_boto3_s3_client()
+        client.put_object(
+            Bucket=self.s3_bucket, Key=file_path, Body=content.encode("utf-8")
+        )
 
 
 class AssetRegistry:

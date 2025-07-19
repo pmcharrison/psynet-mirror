@@ -1,5 +1,6 @@
 import base64
 import contextlib
+import functools
 import gettext
 import glob
 import hashlib
@@ -29,6 +30,7 @@ import tomlkit
 from _hashlib import HASH as Hash
 from babel.support import Translations
 from dallinger.config import experiment_available
+from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import _descendent_classes
 from flask import url_for
 from flask.globals import current_app
@@ -40,8 +42,8 @@ from psynet.translation.utils import load_po
 package_root = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_logger():
-    return logging.getLogger()
+def get_logger(name="psynet"):
+    return logging.getLogger(name)
 
 
 logger = get_logger()
@@ -92,6 +94,23 @@ def call_function(function, *args, **kwargs):
     """
     kwargs = {key: value for key, value in kwargs.items() if key in get_args(function)}
     return function(*args, **kwargs)
+
+
+def find_git_repo():
+    """
+    Finds the origin of the git repository of the current directory.
+    """
+    import subprocess
+
+    try:
+        origin = (
+            subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
+            .strip()
+            .decode("utf-8")
+        )
+        return origin
+    except subprocess.CalledProcessError:
+        return None
 
 
 def call_function_with_context(function, *args, **kwargs):
@@ -439,6 +458,38 @@ def serialise(obj):
 
 def format_datetime(datetime):
     return datetime.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def format_bytes(num: float) -> str:
+    """
+    Formats bytes into a human-readable string.
+
+    Parameters
+    ----------
+    num : float
+        The number of bytes to format.
+
+
+    Returns
+    -------
+    str
+        The formatted string.
+
+
+    Examples
+    --------
+    >>> format_bytes(1024)
+    '1.0KB'
+    >>> format_bytes(1048576)
+    '1.0MB'
+    >>> format_bytes(1073741824)
+    '1.0GB'
+    """
+    for x in ["bytes", "KB", "MB", "GB", "TB"]:
+        if num < 1024.0:
+            return "%3.1f%s" % (num, x)
+        num /= 1024.0
+    return "%3.1f%s" % (num, "PB")
 
 
 def model_name_to_snake_case(model_name):
@@ -905,40 +956,6 @@ def sample_from_surface_of_unit_sphere(n_dimensions):
     res = np.random.randn(n_dimensions, 1)
     res /= np.linalg.norm(res, axis=0)
     return res[:, 0].tolist()
-
-
-class ClassPropertyDescriptor(object):
-    def __init__(self, fget, fset=None):
-        self.fget = fget
-        self.fset = fset
-
-    def __get__(self, obj, cls=None):
-        if cls is None:
-            cls = type(obj)
-        return self.fget.__get__(obj, cls)()
-
-    def __set__(self, obj, value):
-        if not self.fset:
-            raise AttributeError("can't set attribute")
-        type_ = type(obj)
-        return self.fset.__get__(obj, type_)(value)
-
-    def setter(self, func):
-        if not isinstance(func, (classmethod, staticmethod)):
-            func = classmethod(func)
-        self.fset = func
-        return self
-
-
-def classproperty(func):
-    """
-    Defines an analogous version of @property but for classes,
-    after https://stackoverflow.com/questions/5189699/how-to-make-a-class-property.
-    """
-    if not isinstance(func, (classmethod, staticmethod)):
-        func = classmethod(func)
-
-    return ClassPropertyDescriptor(func)
 
 
 def run_subprocess_with_live_output(command, timeout=None, cwd=None):
@@ -1585,6 +1602,51 @@ def text_to_image(text, path, width, height, font_size, font_path):
     im.save(path)
 
 
+def format_timedelta(timedelta_obj):
+    """
+    Formats a timedelta object as a human-readable string.
+    Source: https://stackoverflow.com/questions/538666/format-timedelta-to-string
+    """
+    seconds = int(timedelta_obj.total_seconds())
+    periods = [
+        ("year", 60 * 60 * 24 * 365),
+        ("month", 60 * 60 * 24 * 30),
+        ("day", 60 * 60 * 24),
+        ("hour", 60 * 60),
+        ("minute", 60),
+        ("second", 1),
+    ]
+
+    strings = []
+    for period_name, period_seconds in periods:
+        if seconds > period_seconds:
+            period_value, seconds = divmod(seconds, period_seconds)
+            has_s = "s" if period_value > 1 else ""
+            strings.append("%s %s%s" % (period_value, period_name, has_s))
+
+    return ", ".join(strings)
+
+
+def get_experiment_url(app=None, server=None):
+    if server:
+        if app:
+            return f"https://{app}.{server}"
+        else:
+            raise ValueError("You must provide an app name if you provide a server.")
+    else:
+        if app:
+            return HerokuApp(app).url
+        else:
+            from .redis import redis_vars
+
+            return redis_vars.get("base_url")
+
+
+def generate_text_file(path, text="Lorem ipsum"):
+    with open(path, "w") as file:
+        file.write("Lorem ipsum")
+
+
 def git_repository_available():
     """
     Check if the current directory is inside a git repository and git is installed.
@@ -1636,3 +1698,28 @@ def suppress_stdout():
     """
     with open(os.devnull, "w") as devnull, contextlib.redirect_stdout(devnull):
         yield
+
+
+def safe(func):
+    """
+    Decorator to catch exceptions, log them, and continue execution.
+
+    Parameters
+    ----------
+    func : Callable
+        The function to wrap.
+
+    Returns
+    -------
+    callable
+        The wrapped function.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error in {func.__name__}: {e}", exc_info=True)
+
+    return wrapper
