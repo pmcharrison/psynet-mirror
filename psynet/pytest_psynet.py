@@ -362,6 +362,7 @@ def debug_experiment(
     env,
     clear_workers,
     in_experiment_directory,
+    db_session,
     skip_constraints_check,
 ):
     """
