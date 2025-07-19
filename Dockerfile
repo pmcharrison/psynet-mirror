@@ -38,7 +38,6 @@ RUN pip install --no-dependencies -e .
 RUN pip install "git+https://github.com/Dallinger/Dallinger.git@master"
 
 WORKDIR /PsyNet
-COPY ./ci/.dallingerconfig /root/.dallingerconfig
 COPY ./README.md README.md
 
 RUN mkdir /psynet-data
