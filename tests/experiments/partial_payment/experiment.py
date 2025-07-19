@@ -104,6 +104,9 @@ class Exp(psynet.experiment.Experiment):
 
             db.session.commit()
             db.session.refresh(bot)
+
+            assert self.base_payment == 1.0
+
             assert (
                 self.bonus(bot) == BONUS
             ), f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)} (status: {bot.status}, time_reward: {bot.time_reward}, performance_reward: {bot.performance_reward}, bot.bonus: {bot.bonus})"

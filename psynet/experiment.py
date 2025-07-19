@@ -1772,8 +1772,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             The calculated reward, rounded to 2 decimal places.
         """
         reward = participant.calculate_reward()
+        print(f"Initially computed reward: {reward}")
+        print(f"Participant status: {participant.status}")
         if participant.status not in ["screened_out", "returned"]:
+            print(f"Subtracting base payment: {self.base_payment}")
             reward -= self.base_payment
+        print(f"After base payment subtraction: {reward}")
         return round(self.check_bonus(reward, participant), 2)
 
     def check_bonus(self, reward, participant):
