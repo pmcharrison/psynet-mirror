@@ -35,7 +35,8 @@ from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService, get_lucid_service
 from .page import InfoPage, WaitPage, wait_while
 from .participant import Participant
-from .timeline import (  # AsyncCodeBlock,
+from .timeline import (
+    AsyncCodeBlock,
     CodeBlock,
     PageMaker,
     Response,
@@ -224,14 +225,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
 
         return join(
-            # AsyncCodeBlock(
-            #     _screen_out_participant,
-            #     wait=True,
-            #     expected_wait=5.0,
-            #     check_interval=0.5,
-            # ),
-            # Temporary test to see if the AsyncCodeBlock is causing the race condition
-            CodeBlock(_screen_out_participant),
+            AsyncCodeBlock(
+                _screen_out_participant,
+                wait=True,
+                expected_wait=5.0,
+                check_interval=0.5,
+            ),
             conditional(
                 # This function should check whether the screen out attempt was successful.
                 label="screen_out_successful",
