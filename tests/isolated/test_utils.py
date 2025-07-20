@@ -1,4 +1,6 @@
+import logging
 import os
+import subprocess
 import tempfile
 from datetime import datetime
 from math import isnan
@@ -15,12 +17,15 @@ from psynet.utils import (
     get_package_name,
     get_package_source_directory,
     get_psynet_root,
+    git_repository_available,
     linspace,
     list_experiment_dirs,
     list_isolated_tests,
+    logger,
     make_parents,
     merge_dicts,
     organize_by_key,
+    safe,
     working_directory,
 )
 
@@ -326,3 +331,68 @@ def test_get_psynet_package_source_directory():
 #     os.remove("setup.py")
 #     with pytest.raises(FileNotFoundError, match="Could not find pyproject.toml or setup.py in current directory"):
 #         get_package_name()
+
+
+def test_git_repository_available_true(tmp_path):
+    # Create a temporary directory and initialize a git repo
+    with working_directory(tmp_path):
+        subprocess.run(["git", "init"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        assert git_repository_available() is True
+
+
+def test_git_repository_available_false(tmp_path):
+    # Use a fresh temporary directory with no git repo
+    with working_directory(tmp_path):
+        assert git_repository_available() is False
+
+
+def test_safe_decorator(caplog):
+    @safe
+    def no_error(x):
+        return x * 2
+
+    @safe
+    def with_error(x):
+        raise ValueError(f"bad value: {x}")
+
+    # Normal case: should return correct value
+    assert no_error(3) == 6
+
+    # Exception case: should return None and log error
+    with caplog.at_level(logging.ERROR, logger.name):
+        result = with_error(5)
+    assert result is None
+    assert any(
+        "Error in with_error: bad value: 5" in record.message
+        and record.levelname == "ERROR"
+        for record in caplog.records
+    )
+    # Should also include traceback
+    assert any(
+        "Traceback" in record.getMessage() or record.exc_info
+        for record in caplog.records
+    )
+
+
+def test_safe_as_function_wrapper(caplog):
+    def no_error(x):
+        return x + 10
+
+    def with_error(x):
+        raise RuntimeError(f"fail: {x}")
+
+    # Normal case
+    assert safe(no_error)(5) == 15
+
+    # Exception case
+    with caplog.at_level(logging.ERROR, logger.name):
+        result = safe(with_error)(7)
+    assert result is None
+    assert any(
+        "Error in with_error: fail: 7" in record.message and record.levelname == "ERROR"
+        for record in caplog.records
+    )
+    assert any(
+        "Traceback" in record.getMessage() or record.exc_info
+        for record in caplog.records
+    )

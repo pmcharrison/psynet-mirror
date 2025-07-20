@@ -3050,13 +3050,13 @@ msgstr "Ако горното не помогне, изпратете ни им�
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Линк към текущата уеб страница;"
+msgstr "Връзка към текущата уеб страница;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Вашият Worker ID;"
+msgstr "Вашият служебен идентификационен номер;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3068,25 +3068,25 @@ msgstr "Проблемът, който изпитвате."
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "ОК"
+msgstr "Добре"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Готови ли сте?"
+msgstr "Готов ли си?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Натиснете бутона, когато сте готови да продължите експеримента."
+msgstr "Кликнете върху бутона, когато сте готови да продължите експеримента."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Продължи"
+msgstr "Автобиография"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3104,7 +3104,7 @@ msgstr "Помощ!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Прекратете експеримента по-рано"
+msgstr "Прекратете експеримента преждевременно"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3117,6 +3117,16 @@ msgstr "Моля, изчакайте страницата да се зареди
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Опитайте отново след няколко секунди."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Изглежда сте отворили експеримента в няколко раздела. Моля, затворете всички"
+" раздели освен един и обновете страницата."
 
 #: psynet/translation/countries.py
 #, fuzzy

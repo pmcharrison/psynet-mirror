@@ -1,4 +1,4 @@
-{% extends "base/dashboard.html" %}
+{% extends "psynet_dashboard.html" %}
 
 {% block stylesheets %}
     <style>
@@ -28,17 +28,17 @@
 
         function selectParticipantByParticipantId() {
             let participantId = $("#input-participant-id").get(0).value;
-            window.location.href = "/dashboard/participant?participant_id=" + participantId;
+            window.location.href = window.location.pathname + "?participant_id=" + participantId;
         }
 
         function selectParticipantByAssignmentId() {
             let assignmentId = $("#input-assignment-id").get(0).value;
-            window.location.href = "/dashboard/participant?assignment_id=" + assignmentId;
+            window.location.href = window.location.pathname + "?assignment_id=" + assignmentId;
         }
 
          function selectParticipantByWorkerId() {
             let workerId = $("#input-worker-id").get(0).value;
-            window.location.href = "/dashboard/participant?worker_id=" + workerId;
+            window.location.href = window.location.pathname + "?worker_id=" + workerId;
         }
 
         {% if participant is not none %}
@@ -53,6 +53,8 @@
 {% endblock %}
 
 {% block body %}
+    <h1>{{ title }}</h1>
+    <p>This page allows you to retrieve information about a participant in the experiment, including the current status, the accumulated reward, and the link to resume the session.</p>
     <div class="row" id="dashboard-participant">
         <div class="col-5">
             <table class="table" id="resume-table">
@@ -132,4 +134,4 @@
     </table>
 {% endmacro %}
 
-{% macro get_timeline_url(participant) %}{{ app_base_url }}/timeline?unique_id={{ participant.unique_id }}{% endmacro %}
+{% macro get_timeline_url(participants) %}{{ app_base_url }}/timeline?unique_id={{ participant.unique_id }}{% endmacro %}

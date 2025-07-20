@@ -1,13 +1,10 @@
 # pylint: disable=unused-import,abstract-method
-
-import logging
-
 import psynet.experiment
 from psynet.modular_page import ModularPage, MusicNotationPrompt
 from psynet.timeline import Timeline
+from psynet.utils import get_logger
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = get_logger("experiment")
 
 
 class Exp(psynet.experiment.Experiment):

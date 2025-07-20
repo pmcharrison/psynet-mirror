@@ -2971,19 +2971,19 @@ msgstr "प्रयोग आरम्भ भ' रहल अछि..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "समस्या भएमा, निम्नलिखित प्रयास करू:"
+msgstr "कोनो समस्याक स्थिति मे निम्नलिखित प्रयास करू:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "पृष्ठ पुनः लोड करू।"
+msgstr "पृष्ठ पुनः लोड करें।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "चेक करू कि अहाँक इंटरनेट कनेक्शन चलि रहल अछि।"
+msgstr "जाँचू जे अहाँक इंटरनेट कनेक्शन काज क' रहल अछि."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2991,8 +2991,8 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"यदि उपरोक्त सँ सहायता नहि भेटैत अछि, तँ निम्नलिखित जानकारी संग हमरा एकटा "
-"ईमेल पठाऊ:"
+"यदि उपरोक्त बात कोनो मदद नहि करैत अछि त हमरा सब के निम्नलिखित जानकारी के संग"
+" ईमेल करू:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3010,43 +3010,44 @@ msgstr "अहाँक वर्कर आईडी;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "अहाँक अनुभव कएल समस्या।"
+msgstr "जे समस्या अहाँ अनुभव क' रहल छी।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "ओके"
+msgstr "ठीक छैै"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "अहाँ तैयार छी?"
+msgstr "अहाँ तैयार छी की?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "जब अहाँ प्रयोग जारी राखबाक लेल तैयार होय, बटन पर क्लिक करू।"
+msgstr ""
+"जखन अहाँ प्रयोग जारी रखबाक लेल तैयार भ' जायब तखन बटन पर क्लिक करू."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "पुनः आरंभ करू"
+msgstr "फेर सं शुरू करनाइ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "पुरस्कार"
+msgstr "सम्मान"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "मदद!"
+msgstr "सहायता!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3058,13 +3059,23 @@ msgstr "प्रयोग जल्दी समाप्त करू"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "कृपया पृष्ठ लोड होयबाक प्रतीक्षा करू।"
+msgstr "कृपया पेज लोड होबय के इंतजार करू।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "कृपया किछु क्षण में पुनः प्रयास करू।"
+msgstr "एक दू सेकेंड मे फेर कोशिश करू।"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"लगैत अछि जे अहाँ प्रयोगकेँ एकसँ बेसी टैबमे खोलने छी । कृपया एकटा टैब छोड़ि "
+"सभटा बंद करू आ पन्नाकेँ ताजा करू।"
 
 #: psynet/translation/countries.py
 #, fuzzy

@@ -3022,7 +3022,7 @@ msgstr "Ukuqala ukuhlola..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Uma kunezinkinga, zama okulandelayo:"
+msgstr "Uma kuba nenkinga, zama okulandelayo:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3034,7 +3034,7 @@ msgstr "Layisha kabusha ikhasi."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Qinisekisa ukuthi uxhumano lwe-inthanethi luyasebenza."
+msgstr "Qiniseka ukuthi ukuxhumeka kwe-inthanethi yakho kuyasebenza."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3049,19 +3049,19 @@ msgstr ""
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Isixhumanisi sekhasi lewebhu elikhona;"
+msgstr "Isixhumanisi sekhasi lewebhu lamanje;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "I-Worker ID yakho;"
+msgstr "I-ID yakho yomsizi;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Inkinga oyitholayo."
+msgstr "Inkinga oyibhekene nayo."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3073,13 +3073,13 @@ msgstr "KULUNGILE"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Usukulungele?"
+msgstr "Ukulungele?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Chofoza inkinobho uma usukulungele ukuqhubeka nokuhlola."
+msgstr "Chofoza inkinobho uma usukulungele ukuqhubeka nokuhlolwa."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3103,7 +3103,7 @@ msgstr "Siza!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Qeda ukuhlolwa kusenesikhathi"
+msgstr "Qeda ukuhlola kusenesikhathi"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3116,6 +3116,16 @@ msgstr "Sicela ulinde ikhasi lilayishe."
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Zama futhi ngemizuzwana embalwa."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Kubukeka sengathi uvule ukuhlola kumathebhu amaningi. Sicela uvale wonke "
+"ngaphandle kweyodwa futhi uvuselele ikhasi."
 
 #: psynet/translation/countries.py
 #, fuzzy

@@ -28,6 +28,7 @@ from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
+from dallinger.utils import classproperty
 from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
@@ -41,11 +42,10 @@ from sqlalchemy.schema import (
     Table,
 )
 from tqdm import tqdm
-from yaspin import yaspin
 
 from . import field
 from .field import PythonDict, is_basic_type
-from .utils import classproperty, json_to_data_frame, organize_by_key
+from .utils import json_to_data_frame, organize_by_key
 
 
 def get_db_tables():
@@ -508,13 +508,7 @@ def init_db(drop_all=False, bind=db.engine):
     # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
     db.session.commit()
     close_all_sessions()
-
-    with yaspin(
-        text="Initializing the database...",
-        color="green",
-    ) as spinner:
-        old_init_db(drop_all, bind)
-        spinner.ok("✔")
+    old_init_db(drop_all, bind)
 
     return db.session
 
@@ -871,6 +865,7 @@ def export_assets(
     include_on_demand_assets: bool,
     n_parallel=None,
     server=None,
+    local=False,
 ):
     from joblib import Parallel, delayed
 
@@ -899,7 +894,7 @@ def export_assets(
         backend="threading",
         # backend="multiprocessing", # Slow compared to threading
     )(
-        delayed(export_asset)(asset_id, path, include_on_demand_assets, server)
+        delayed(export_asset)(asset_id, path, include_on_demand_assets, server, local)
         for asset_id in asset_ids
     )
     # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
@@ -908,7 +903,7 @@ def export_assets(
 # def close_parallel_db_sessions():
 
 
-def export_asset(asset_id, root, include_on_demand_assets, server):
+def export_asset(asset_id, root, include_on_demand_assets, server, local):
     from .asset import Asset, OnDemandAsset
     from .experiment import import_local_experiment
     from .utils import make_parents
@@ -932,7 +927,7 @@ def export_asset(asset_id, root, include_on_demand_assets, server):
     make_parents(path)
 
     try:
-        a.export(path, ssh_host=ssh_host, ssh_user=ssh_user)
+        a.export(path, ssh_host=ssh_host, ssh_user=ssh_user, local=local)
     except Exception:
         print(f"An error occurred when trying to export the asset with id: {asset_id}")
         raise

@@ -3037,46 +3037,44 @@ msgstr "စမ်းသပ်မှုကို စတင်နေသည်..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "ပြဿနာတစ်ခု ဖြစ်ပါက အောက်ပါ အကြံပြုချက်များကို ကြိုးစားပါ။"
+msgstr "ပြဿနာတစ်ခုရှိပါက အောက်ပါအတိုင်း ကြိုးစားကြည့်ပါ:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "စာမျက်နှာကို တင်ပေးပါ။"
+msgstr "စာမျက်နှာကို ပြန်လည်တင်ပါ။"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "သင်၏ အင်တာနက်ဆက်သွယ်မှု အလုပ်လုပ်နေသည်ကို စစ်ဆေးပါ။"
+msgstr "သင့်အင်တာနက် ချိတ်ဆက်မှု အလုပ်လုပ်နေသည်ကို စစ်ဆေးပါ။"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"အထက်ပါအကြံပြုချက်များ အလုပ်မဖြစ်ပါက အောက်ပါ အချက်အလက်များဖြင့် "
-"ကျွန်ုပ်တို့ထံ အီးမေးလ်ပို့ပါ။"
+msgstr "အထက်ပါကူညီမှု မရလျှင် အောက်ပါ အချက်အလက်များနှင့် အီးမေးလ်ပို့ပါ:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "လက်ရှိဝက်ဘ်စာမျက်နှာနှင့် ချိတ်ဆက်ထားသော လင့်ခ်;"
+msgstr "လက်ရှိ ဝဘ်စာမျက်နှာသို့ ချိတ်ဆက်သောလင့်ခ်;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "သင်၏ Worker ID;"
+msgstr "သင့် Worker ID;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "သင်ကြုံတွေ့နေရသော ပြဿနာ။"
+msgstr "သင်ကြုံတွေ့နေရသည့် ပြဿနာ။"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3088,49 +3086,59 @@ msgstr "အိုကေ"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "သင်အဆင်သင့်လား?"
+msgstr "သင်ပြင်ဆင်ပြီးပြီလား?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "စမ်းသပ်မှုကို ဆက်လက်လုပ်ဆောင်ရန် အဆင်သင့်ဖြစ်သောအခါ ခလုတ်ကို နှိပ်ပါ။"
+msgstr "စမ်းသပ်မှုကို ဆက်လက်လုပ်ဆောင်ရန် အဆင်သင့်ဖြစ်ရင် ခလုတ်ကို နှိပ်ပါ။"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "ဆက်လက်လုပ်ဆောင်ပါ။"
+msgstr "ပြန်လည်စတင်ပါ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "ဆု"
+msgstr "ဆုကြေးငွေ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "အကူအညီ!"
+msgstr "ကူညီပါ!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "စမ်းသပ်မှုကို စောစီးစွာ ရပ်လှည့်ပါ။"
+msgstr "စမ်းသပ်မှုကို စောင့်မျှော်စွာ ထောင်ထားပါ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "စာမျက်နှာတင်ရန်ခဏစောင့်ပါ။"
+msgstr "စာမျက်နှာ တင်ရန် စောင့်ပါ။"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "စက္ကန့်အနည်းငယ်အတွင်း ထပ်ကြိုးစားပါ။"
+msgstr "စက္ကန့်အနည်းငယ်အတွင်း ထပ်မံ ကြိုးစားပါ။"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"သင် စမ်းသပ်မှုကို တစ်ချိန်တည်းတွင် တစ်ခုထက်ပို၍ ဖွင့်ထားသည်ဟု "
+"ခန့်မှန်းရပါသည်။ တစ်ခုမှမဟုတ်မှန်ကန်သောစာမျက်နှာကိုပိတ်ပြီး ပြန်လည်တင်ပါ။"
 
 #: psynet/translation/countries.py
 #, fuzzy

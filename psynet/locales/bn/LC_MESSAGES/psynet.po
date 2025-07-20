@@ -2984,7 +2984,7 @@ msgstr "সমস্যার ক্ষেত্রে, নিম্নলিখ
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "পৃষ্ঠাটি রিলোড করুন।"
+msgstr "পৃষ্ঠাটি পুনরায় লোড করুন।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2998,8 +2998,7 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"উপরে দেওয়া সমাধান কাজ না করলে, নিম্নলিখিত তথ্য দিয়ে আমাদের একটি ইমেল "
-"পাঠান:"
+"যদি উপরেরটি সাহায্য না করে, তাহলে নিম্নলিখিত তথ্য সহ আমাদের একটি ইমেল পাঠান:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3017,7 +3016,7 @@ msgstr "আপনার কর্মী আইডি;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "আপনি যে সমস্যার সম্মুখীন হচ্ছেন।"
+msgstr "তুমি যে সমস্যার সম্মুখীন হচ্ছো।"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3029,7 +3028,7 @@ msgstr "ঠিক আছে"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "আপনি কি প্রস্তুত?"
+msgstr "তুমি কী প্রস্তুত?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3041,13 +3040,13 @@ msgstr "পরীক্ষা চালিয়ে যাওয়ার জন
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "পুনরায় শুরু করুন"
+msgstr "জীবনবৃত্তান্ত"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "পুরস্কার"
+msgstr "পুরষ্কার"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3059,7 +3058,7 @@ msgstr "সাহায্য!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "পরীক্ষাটি আগেভাগে শেষ করুন"
+msgstr "পরীক্ষাটি তাড়াতাড়ি বন্ধ করুন"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3072,6 +3071,16 @@ msgstr "পৃষ্ঠাটি লোড হওয়ার জন্য অ�
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "কয়েক সেকেন্ড পরে আবার চেষ্টা করুন।"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"মনে হচ্ছে আপনি একাধিক ট্যাবে পরীক্ষাটি খুলেছেন। অনুগ্রহ করে একটি ট্যাব ছাড়া"
+" বাকি সবগুলো বন্ধ করুন এবং পৃষ্ঠাটি রিফ্রেশ করুন।"
 
 #: psynet/translation/countries.py
 #, fuzzy

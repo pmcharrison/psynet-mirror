@@ -11,6 +11,7 @@ from psynet.asset import Asset, ExperimentAsset, ExternalAsset, OnDemandAsset
 from psynet.bot import Bot
 from psynet.command_line import export__local
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.utils import generate_text_file
 
 app = "demo-app"
 
@@ -35,11 +36,6 @@ def data_zip_file(data_root_dir):
 @pytest.fixture
 def coin_class(experiment_module):
     return experiment_module.Coin
-
-
-def generate_text_file(path):
-    with open(path, "w") as file:
-        file.write("Lorem ipsum")
 
 
 def test_export_path__external_asset():
@@ -149,61 +145,72 @@ class TestAssetExport:
             self.assert_anonymous_data(os.path.join(tempdir, "anonymous", "data"))
 
     def _test_asset_export_modes(self, ctx):
-        with tempfile.TemporaryDirectory() as tempdir:
-            ctx.invoke(export__local, path=tempdir, assets="none")
+        for legacy in [True, False]:
+            with tempfile.TemporaryDirectory() as tempdir:
+                ctx.invoke(export__local, path=tempdir, assets="none", legacy=legacy)
 
-            path_1 = os.path.join(tempdir, "regular", "data")
-            assert os.path.exists(path_1) and os.path.isdir(path_1)
+                path_1 = os.path.join(tempdir, "regular", "data")
+                assert os.path.exists(path_1) and os.path.isdir(path_1)
 
-            #  assets="none" so no assets should be exported
-            path_1 = os.path.join(tempdir, "regular", "assets")
-            assert not os.path.exists(path_1)
+                #  assets="none" so no assets should be exported
+                path_1 = os.path.join(tempdir, "regular", "assets")
+                assert not os.path.exists(path_1)
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            ctx.invoke(export__local, path=tempdir, assets="experiment")
+            with tempfile.TemporaryDirectory() as tempdir:
+                ctx.invoke(
+                    export__local, path=tempdir, assets="experiment", legacy=legacy
+                )
 
-            path = os.path.join(tempdir, "regular", "assets")
-            assert os.path.exists(path) and os.path.isdir(path)
+                path = os.path.join(tempdir, "regular", "assets")
+                assert os.path.exists(path) and os.path.isdir(path)
 
-            assert os.path.exists(
-                os.path.join(
-                    tempdir, "regular", "assets", "common", "test_personal_asset"
+                assert os.path.exists(
+                    os.path.join(
+                        tempdir, "regular", "assets", "common", "test_personal_asset"
+                    )
                 )
-            )
-            assert not os.path.exists(
-                os.path.join(
-                    tempdir, "anonymous", "assets", "common", "test_personal_asset"
+                assert not os.path.exists(
+                    os.path.join(
+                        tempdir, "anonymous", "assets", "common", "test_personal_asset"
+                    )
                 )
-            )
-            assert not os.path.exists(
-                os.path.join(
-                    tempdir, "regular", "assets", "common", "test_external_asset.wav"
+                assert not os.path.exists(
+                    os.path.join(
+                        tempdir,
+                        "regular",
+                        "assets",
+                        "common",
+                        "test_external_asset.wav",
+                    )
                 )
-            )
-            assert not os.path.exists(
-                os.path.join(
-                    tempdir, "regular", "assets", "common", "test_on_demand_asset"
+                assert not os.path.exists(
+                    os.path.join(
+                        tempdir, "regular", "assets", "common", "test_on_demand_asset"
+                    )
                 )
-            )
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            ctx.invoke(export__local, path=tempdir, assets="all")
-
-            assert os.path.exists(
-                os.path.join(
-                    tempdir, "regular", "assets", "common", "test_personal_asset"
+            with tempfile.TemporaryDirectory() as tempdir:
+                # We use legacy here, because it's an isolated test
+                ctx.invoke(export__local, path=tempdir, assets="all", legacy=legacy)
+                assert os.path.exists(
+                    os.path.join(
+                        tempdir, "regular", "assets", "common", "test_personal_asset"
+                    )
                 )
-            )
-            assert os.path.exists(
-                os.path.join(
-                    tempdir, "regular", "assets", "common", "test_external_asset.wav"
-                )
-            )  # now we have this
-            assert os.path.exists(
-                os.path.join(
-                    tempdir, "regular", "assets", "common", "test_on_demand_asset"
-                )
-            )  # and this
+                assert os.path.exists(
+                    os.path.join(
+                        tempdir,
+                        "regular",
+                        "assets",
+                        "common",
+                        "test_external_asset.wav",
+                    )
+                )  # now we have this
+                assert os.path.exists(
+                    os.path.join(
+                        tempdir, "regular", "assets", "common", "test_on_demand_asset"
+                    )
+                )  # and this
 
     def assert_regular_database_zip(self, path):
         import pandas as pd

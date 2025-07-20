@@ -3044,19 +3044,19 @@ msgstr "Ho qala teko..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Haeba ho na le bothata, leka tse latelang:"
+msgstr "Haeba ho e-na le bothata, leka tse latelang:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Qala leqephe hape."
+msgstr "Khutlisa leqephe."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Lekola hore na khokahano ea hau ea inthanete e sebetsa."
+msgstr "Netefatsa hore khokahano ea hau ea inthanete e sebetsa."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3064,13 +3064,14 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Haeba tse kaholimo li sa thuse, re romelle lengolo-tsoibila le tse latelang:"
+"Haeba tse kaholimo li sa thuse, re romelle lengolo-tsoibila ka "
+"tlhahisoleseling e latelang:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Sehokelo sa leqephe la webo la hajoale;"
+msgstr "Sehokelo sa leqephe la webo la hona joale;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3082,7 +3083,7 @@ msgstr "ID ea hau ea Mosebetsi;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Bothata boo u tobaneng le bona."
+msgstr "Bothata boo u kopanang le bona."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3100,7 +3101,7 @@ msgstr "Na u se u itokiselitse?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Tobetsa konopo ha u se u itokiselitse ho tsoela pele ka teko."
+msgstr "Tobetsa konopo ha u se u itokiselitse ho tsoela pele le teko."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3124,19 +3125,29 @@ msgstr "Thusa!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Qetella teko pele ho nako"
+msgstr "Fela teko pele"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Ka kopo ema hore leqephe le jarwe."
+msgstr "Ka kopo emela hore leqephe le jaroe."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Leka hape ka mor'a metsotsoana e seng mekae."
+msgstr "Leka hape ka metsotsoana e seng mekae."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Ho bonahala eka u butse teko ka lifensetere tse ngata. Ka kopo koala tsohle "
+"ntle le e le 'ngoe ebe u nchafatsa leqephe."
 
 #: psynet/translation/countries.py
 #, fuzzy

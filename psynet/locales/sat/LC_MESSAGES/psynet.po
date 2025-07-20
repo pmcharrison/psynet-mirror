@@ -444,7 +444,7 @@ msgstr "ᱦᱟᱯᱟᱴᱤᱧ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱟᱭᱢᱟ �
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "HIT ᱯᱩᱨᱟᱹᱣ ᱞᱟᱹᱜᱤᱫ ᱫᱟᱭᱟ ᱠᱟᱛᱮ &quot;ᱪᱟᱹᱵᱟ&quot; ᱨᱮ ᱚᱛᱟᱭ ᱢᱮ ᱾"
+msgstr "HIT ᱯᱩᱨᱟᱹᱣ ᱞᱟᱹᱜᱤᱫ ᱫᱟᱭᱟ ᱠᱟᱛᱮ \"ᱪᱟᱹᱵᱟ\" ᱨᱮ ᱚᱛᱟᱭ ᱢᱮ ᱾"
 
 #: psynet/end.py
 #, fuzzy
@@ -806,8 +806,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱠᱟᱹᱢᱤ ᱮᱦᱚᱵ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ ᱨᱮ ᱮᱢᱮᱡᱚᱱ ᱥᱟᱭᱤᱴ ᱨᱮ &quot;ᱦᱤᱴ ᱟᱝᱜᱚᱪ "
-"ᱢᱮ&quot; ᱵᱚᱛᱚᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ᱾"
+"ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱠᱟᱹᱢᱤ ᱮᱦᱚᱵ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ ᱨᱮ ᱮᱢᱮᱡᱚᱱ ᱥᱟᱭᱤᱴ ᱨᱮ \"ᱦᱤᱴ ᱟᱝᱜᱚᱪ "
+"ᱢᱮ\" ᱵᱚᱛᱚᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ᱾"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -1373,7 +1373,7 @@ msgid ""
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
 "ᱟᱢ ᱟᱢᱟᱜ ᱮᱠᱟᱣᱩᱱᱴ ᱰᱤᱞᱤᱴ ᱠᱟᱛᱮ ᱰᱟᱴᱟᱵᱮᱥ ᱠᱷᱚᱱ ᱟᱢᱟᱜ ᱰᱟᱴᱟ ᱰᱤᱞᱤᱴ ᱫᱟᱲᱮᱭᱟᱜᱼᱟᱢ (ᱢᱮᱱᱠᱷᱟᱱ,"
-" ᱠᱮᱯ-ᱨᱤᱠᱨᱩᱴᱟᱨ ᱞᱚᱜᱽ-ᱤᱱ ᱥᱟᱦᱴᱟ ᱨᱮ &#39;ᱰᱤᱞᱤᱴ ᱮᱠᱟᱣᱩᱱᱴ&#39; ᱞᱤᱱ ᱢᱮ)᱾"
+" ᱠᱮᱯ-ᱨᱤᱠᱨᱩᱴᱟᱨ ᱞᱚᱜᱽ-ᱤᱱ ᱥᱟᱦᱴᱟ ᱨᱮ 'ᱰᱤᱞᱤᱴ ᱮᱠᱟᱣᱩᱱᱴ' ᱞᱤᱱ ᱢᱮ)᱾"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -2840,7 +2840,7 @@ msgid ""
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
 "ᱯᱮᱭᱟ ᱰᱤᱠᱮ ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱢᱮᱱᱟᱜᱼᱟ: ᱢᱤᱫ ᱫᱚ ᱩᱫᱩᱜ ᱟᱠᱟᱱ ᱚᱰᱤᱭᱚ ᱢᱤᱴᱟᱨ ᱞᱟᱹᱜᱤᱫ, ᱢᱤᱫ ᱫᱚ "
-"&#39;ᱟᱹᱰᱤ ᱩᱥᱩᱞ&#39; ᱰᱤᱴᱮᱠᱴᱚᱨ ᱞᱟᱹᱜᱤᱫ, ᱟᱨ ᱢᱤᱫ ᱫᱚ &#39;ᱟᱹᱰᱤ ᱞᱟᱛᱟᱨ&#39; ᱰᱤᱴᱮᱠᱴᱚᱨ"
+"'ᱟᱹᱰᱤ ᱩᱥᱩᱞ' ᱰᱤᱴᱮᱠᱴᱚᱨ ᱞᱟᱹᱜᱤᱫ, ᱟᱨ ᱢᱤᱫ ᱫᱚ 'ᱟᱹᱰᱤ ᱞᱟᱛᱟᱨ' ᱰᱤᱴᱮᱠᱴᱚᱨ"
 " ᱞᱟᱹᱜᱤᱫ᱾"
 
 #: psynet/templates/macros/control.html
@@ -2851,7 +2851,7 @@ msgid ""
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
 "<strong>ᱛᱷᱨᱮᱥᱦᱚᱞᱰ</strong> ᱯᱮᱨᱟᱢᱤᱴᱟᱨ ᱫᱚ ᱚᱱᱟ ᱯᱚᱭᱮᱱᱴ ᱴᱷᱟᱹᱣᱠᱟᱹᱭᱟ ᱡᱟᱦᱟᱸ ᱨᱮ "
-"ᱵᱷᱚᱞᱭᱩᱢ ᱫᱚ &#39;ᱟᱹᱰᱤ ᱪᱮᱛᱟᱱ&#39; ᱥᱮ &#39;ᱟᱹᱰᱤ ᱠᱚᱢ&#39; ᱢᱮᱱᱛᱮ ᱴᱷᱟᱹᱣᱠᱟᱹᱜᱼᱟ᱾"
+"ᱵᱷᱚᱞᱭᱩᱢ ᱫᱚ 'ᱟᱹᱰᱤ ᱪᱮᱛᱟᱱ' ᱥᱮ 'ᱟᱹᱰᱤ ᱠᱚᱢ' ᱢᱮᱱᱛᱮ ᱴᱷᱟᱹᱣᱠᱟᱹᱜᱼᱟ᱾"
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2974,19 +2974,19 @@ msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱮᱦᱚᱵᱚᱜ ᱠᱟᱱᱟ..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "ᱮᱴᱠᱮᱴᱚᱬᱮ ᱨᱮ, ᱱᱚᱶᱟ ᱠᱚ ᱪᱮᱥᱴᱟᱭ ᱢᱮ:"
+msgstr "Buruḍ re asar ekka samasya heṭṭe, nikaṛena:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "ᱥᱟᱦᱴᱟ ᱫᱚᱦᱲᱟ ᱞᱳᱰ ᱢᱮ᱾"
+msgstr "Ḍom ḍoḍkaw."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "ᱧᱮᱞ ᱢᱮ ᱟᱢᱟᱜ ᱤᱱᱴᱟᱨᱱᱮᱴ ᱠᱚᱱᱮᱠᱥᱚᱱ ᱠᱟᱹᱢᱤ ᱠᱟᱱᱟ ᱥᱮ ᱵᱟᱝᱟ ᱾"
+msgstr "Apnara internet saṅjog kaj korche ki na dekhi."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2994,80 +2994,92 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"ᱡᱩᱫᱤ ᱪᱮᱛᱟᱱ ᱨᱮ ᱞᱟᱹᱭ ᱟᱠᱟᱱ ᱠᱟᱛᱷᱟ ᱵᱟᱭ ᱜᱚᱲᱚ ᱞᱮᱭᱟ, ᱮᱱᱠᱷᱟᱱ ᱞᱟᱛᱟᱨ ᱨᱮ ᱮᱢ ᱟᱠᱟᱱ ᱵᱟᱯᱟᱰᱟᱭ"
-" ᱥᱟᱶ ᱤᱢᱮᱞ ᱵᱷᱮᱡᱟᱭ ᱢᱮ:"
+"Jodi e sab kichu sahayak na hoy, tale amader keche email pathan e nirdeshana"
+" sahite:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "ᱱᱤᱛᱚᱜ ᱣᱮᱵᱽ ᱥᱟᱦᱴᱟ ᱨᱮᱭᱟᱜ ᱢᱤᱫ ᱞᱤᱝᱠ;"
+msgstr "Vartaman web page-er ekta link;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "ᱟᱢᱤᱡ ᱠᱟᱹᱢᱤᱭᱟᱹ ᱟᱭᱰᱤ;"
+msgstr "Apnara Worker ID;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "ᱟᱢ ᱡᱟᱦᱟᱸ ᱮᱴᱠᱮᱴᱚᱬᱮᱢ ᱟᱴᱠᱟᱨ ᱮᱫᱟ᱾"
+msgstr "Apnara samasya ki heṭṭe."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "ᱴᱷᱤᱠ ᱜᱮᱭᱟ"
+msgstr "Haan"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "ᱟᱢ ᱥᱟᱯᱲᱟᱣ ᱜᱮᱭᱟᱢ ᱥᱮ?"
+msgstr "Apnara ki prastut?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱞᱟᱦᱟᱜ ᱞᱟᱹᱜᱤᱫ ᱥᱟᱯᱲᱟᱣ ᱛᱟᱦᱮᱱ ᱠᱷᱟᱱ ᱵᱩᱛᱟᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ ᱾"
+msgstr ""
+"Jakhon prastut thakben, tokhon button te click koron abhidyantir ke barta "
+"den."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "ᱫᱚᱦᱲᱟ ᱪᱟᱹᱞᱩᱭ ᱢᱮ"
+msgstr "Punaḥ ārambha"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "ᱥᱤᱨᱯᱟᱹ"
+msgstr "Puraskār"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Help!"
-msgstr "ᱜᱚᱲᱚ!"
+msgstr "Sahayyak!"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱞᱚᱜᱚᱱ ᱪᱟᱵᱟᱭ ᱢᱮ"
+msgstr "Abhidyantir age samāpta koron"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱥᱟᱦᱴᱟ ᱞᱳᱰ ᱞᱟᱹᱜᱤᱫ ᱛᱟᱺᱜᱤ ᱢᱮ᱾"
+msgstr "Daya kori pageṭi load karar jonno apekha korun."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "ᱢᱤᱫ ᱵᱟᱨ ᱴᱤᱯᱤᱡ ᱛᱟᱭᱚᱢ ᱫᱚᱦᱲᱟ ᱪᱮᱥᱴᱟᱭ ᱢᱮ᱾"
+msgstr "Kichu sekanda pore abar chesta korun."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Mane hocche, apni anek tab e abhidyantir khulechen. Dayakari ek chara baki "
+"sab tab bondho korun abong pageṭi punorabesh korun."
 
 #: psynet/translation/countries.py
 #, fuzzy

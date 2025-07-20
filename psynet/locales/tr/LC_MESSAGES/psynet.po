@@ -2999,14 +2999,14 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Yukarıdakiler yardımcı olmazsa, aşağıdaki bilgilerle bize bir e-posta "
+"Yukarıdakiler yardımcı olmazsa, bize aşağıdaki bilgilerle bir e-posta "
 "gönderin:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "Mevcut web sayfasının bağlantısı;"
+msgstr "Mevcut web sayfasının bir bağlantısı;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3036,13 +3036,13 @@ msgstr "Hazır mısınız?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Deneye devam etmeye hazır olduğunuzda butona tıklayın."
+msgstr "Deneye devam etmeye hazır olduğunuzda düğmeye tıklayın."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Devam et"
+msgstr "Devam Et"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3073,6 +3073,16 @@ msgstr "Lütfen sayfanın yüklenmesini bekleyin."
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Birkaç saniye sonra tekrar deneyin."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Deneyi birden fazla sekmede açmış gibi görünüyorsunuz. Lütfen bir sekme "
+"dışında hepsini kapatın ve sayfayı yenileyin."
 
 #: psynet/translation/countries.py
 #, fuzzy

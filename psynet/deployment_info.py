@@ -3,6 +3,9 @@ import uuid
 from pathlib import Path
 
 import jsonpickle
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+from .utils import find_git_repo
 
 path = ".deploy/deployment_info.json"
 
@@ -12,9 +15,12 @@ def init(
     mode: bool,
     is_local_deployment: bool,
     is_ssh_deployment: bool,
+    server: str,
+    app: str,
     folder_name: str = os.path.basename(os.getcwd()),
 ):
     secret = uuid.uuid4()
+    origin = find_git_repo()
     write_all(locals())
 
 
@@ -42,6 +48,7 @@ def write(**kwargs):
     write_all(content)
 
 
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def read_all():
     with open(path, "r") as file:
         txt = file.read()

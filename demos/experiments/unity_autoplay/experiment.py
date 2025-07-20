@@ -1,4 +1,3 @@
-import logging
 import random
 from typing import Optional
 
@@ -8,9 +7,9 @@ from psynet.page import InfoPage, UnityPage
 from psynet.participant import Participant
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
+from psynet.utils import get_logger
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
+logger = get_logger("experiment")
 
 # Stimuli
 Debug = False

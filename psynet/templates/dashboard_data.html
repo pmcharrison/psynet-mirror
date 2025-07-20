@@ -1,0 +1,190 @@
+{% extends "psynet_dashboard.html" %}
+{% block scripts %}
+{{ super() }}
+{% endblock %}
+{% block stylesheets %}
+{{ super() }}
+{% endblock %}
+{% block body %}
+<style>
+
+</style>
+<h1>{{ title }}</h1>
+<script src="/static/scripts/prism/script.js"></script>
+<link rel="stylesheet" href="/static/scripts/prism/style.css">
+
+<div class="accordion">
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panel-howto" aria-expanded="true" aria-controls="panel-howto">
+        Implement the experiment method
+      </button>
+    </h2>
+    <div id="panel-howto" class="accordion-collapse collapse">
+      <div class="accordion-body">
+          To use the <code>/basic_data</code> endpoint in your experiment, you need to implement the <code>get_basic_data</code> method in your experiment class.
+            The method should return a list of dictionaries with the data you want to expose.
+          You can make this method as complex as you need. For example, you can add GET parameters to the endpoint, e.g. <code>/basic_data?sheet=participant</code> which allows to switch between different data sheets.
+          <div><pre class="with-copy-button"><code class="language-python">
+class Exp(psynet.experiment.Experiment):
+    …
+
+    @classmethod
+    def get_basic_data(cls, context=None, **kwargs, ):
+        data = {
+            "trial":
+                [
+                # List all trials with their answers
+                    {
+                        "id": trial.id,
+                        "answer": str(trial.answer),
+                    }
+                    for trial in Trial.query.filter_by(failed=False, finalized=True).all()
+                ],
+            "participant": [
+                # List all participants with their last answer
+                {
+                    "id": participant.id,
+                    "answer": str(participant.answer),
+                }
+                for participant in Participant.query.filter_by().all()
+            ],
+        }
+        sheet = kwargs.get("sheet", "participant")
+        if sheet not in data:
+            raise DataError("Invalid sheet parameter")
+        return data[sheet]
+
+</code></pre></div>
+
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panel-data-loading" aria-expanded="false" aria-controls="panel-data-loading">
+        Load the data
+      </button>
+    </h2>
+    <div id="panel-data-loading" class="accordion-collapse collapse">
+      <div class="accordion-body">
+        <p>
+    Here are some examples of how to load the data in R and Python.
+</p>
+
+<div class="row mt-4">
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">R example</h5>
+                <div class="overflow-container">
+                        <div><pre class="with-copy-button"><code class="language-R">
+library(jsonlite)
+url <- "{{ url }}"
+df <- fromJSON(url)
+                        </code></pre></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Python example</h5>
+                <div class="overflow-container">
+                                                <div><pre class="with-copy-button"><code class="language-python">
+import pandas as pd
+url = "{{ url }}"
+df = pd.read_json(url)
+                                                </code></pre></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#panel-data-preview" aria-expanded="false" aria-controls="panel-data-preview">
+        Data preview
+      </button>
+    </h2>
+    <div id="panel-data-preview" class="accordion-collapse collapse show">
+      <div class="accordion-body">
+          Showing data from <code>/data</code> endpoint.<br>
+          <button class="btn btn-primary btn-sm btn-copy mb-2" onclick="copyToClipboard('{{ url }}')">Copy data URL</button><br>
+        <pre>
+{{ data | safe }}
+</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+    pre {
+        background: #eee;
+        padding: 5px;
+        margin: 0;
+        overflow: scroll;
+        border-radius: 5px;
+
+    }
+
+    .overflow-container {
+        max-height: 200px;
+        overflow: auto;
+        width: 100%;
+    }
+</style>
+    <script src="/static/scripts/bootstrap.bundle.min.js"></script>
+
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function () {});
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        var copyButtons = document.querySelectorAll('.with-copy-button')
+        copyButtons.forEach(function (copyButton) {
+
+            var button = document.createElement('a');
+            button.classList.add('btn', 'btn-copy', 'btn-primary', 'btn-sm');
+            button.textContent = 'Copy snippet';
+            button.style.position = 'absolute';
+            button.style.top = '5px';
+            button.style.right = '5px';
+            button.addEventListener('click', function () {
+                copyToClipboard(copyButton.textContent)
+            });
+            copyButton.parentNode.style.position = 'relative';
+            copyButton.parentNode.insertBefore(button, copyButton.nextSibling);
+        });
+
+        // .btn-copy add tooltip: "Copied!"
+        var copyButtons = document.querySelectorAll('.btn-copy')
+        copyButtons.forEach(function (copyButton) {
+            copyButton.addEventListener('click', function () {
+                copyButton.textContent = 'Copied!';
+                setTimeout(function () {
+                    copyButton.textContent = 'Copy to clipboard';
+                }, 1000);
+            });
+        });
+
+        // Activate the accordion
+        const collapseElementList = document.querySelectorAll('.collapse')
+        const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl, { toggle: false }));
+    });
+
+
+
+</script>
+
+{% endblock %}
+{% block libs %}
+{{ super() }}
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base/dashboard.html" %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+/**
+ * Generate a copy-to-clipboard icon for use in popovers or tables.
+ *
+ * Parameters
+ * ----------
+ * value : string
+ *     The value to be copied to the clipboard when the icon is clicked.
+ *
+ * Returns
+ * -------
+ * string
+ *     HTML string for the copy-to-clipboard icon with tooltip and unique id.
+ */
+function makeCopyIcon(value) {
+    return `
+        <span class="copy-icon"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Copy to clipboard"
+              id="${value}"
+              style="cursor:pointer; margin-left:4px;">
+            <i class="bi bi-clipboard"></i>
+        </span>
+    `;
+}
+
+// Global handler for copy-to-clipboard icons (Bootstrap 4 compatible)
+$(document).on('click', '.copy-icon', function () {
+    const $icon = $(this);
+    const value = $icon.attr('id');
+    const $i = $icon.find('i');
+    navigator.clipboard.writeText(value).then(() => {
+        // Change icon to checkmark
+        $i.removeClass('bi-clipboard').addClass('bi-clipboard-check');
+        // Update tooltip to "Copied!" and show
+        $icon.tooltip('dispose');
+        $icon.attr('title', 'Copied!');
+        $icon.tooltip({trigger: 'manual'}).tooltip('show');
+        setTimeout(() => {
+            // Revert icon and tooltip
+            $i.removeClass('bi-clipboard-check').addClass('bi-clipboard');
+            $icon.tooltip('dispose');
+            $icon.attr('title', 'Copy to clipboard');
+            $icon.tooltip({trigger: 'manual'});
+        }, 1000);
+    });
+});
+</script>
+{% endblock %}

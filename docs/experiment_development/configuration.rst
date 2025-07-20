@@ -284,6 +284,12 @@ Allowed browsers and devices
 
         PsyNet only officially supports Google Chrome.
 
+
+``leave_comments_on_every_page`` *bool* |psynet-icon|
+    Adds a comment box for the experimenter, which is shown on the "Help" modal. This feature is particularly useful for lab or field experiments, where the experimenter can leave comments on every page of the experiment. This is an opt-in feature, and is not enabled by default.
+    Default: ``False``.
+
+
 ``force_incognito_mode`` *bool* |psynet-icon|
     Forces the user to open the experiment in a private browsing (i.e. incognito mode). This is helpful as incognito
     mode prevents the user from accessing their browsing history, which could be used to influence the experiment.
@@ -466,6 +472,29 @@ Prolific
     to the participant's currency.
 
 
+Monitoring
+~~~~~~~~~~
+``mute_same_warning_for_n_hours`` *float* |psynet-icon|
+    To avoid resending the same error all the time, the same warning is muted for the next n hours. Default: ``1`` h.
+
+``resource_warning_pct`` *float* |psynet-icon|
+    If the percentage of the resource is above this value, the value is marked as a warning in the experiment dashboard
+    and a warning is sent. Default: ``0.9``.
+
+``resource_danger_pct`` *float* |psynet-icon|
+    If the percentage of the resource is above this value, the value is marked as dangerous in the experiment dashboard
+    (in red and an error icon) and the experimenter is informed via Slack. Default: ``0.95``.
+
+``minimal_disk_space_warning_gb`` *float* |psynet-icon|
+    While relative values are quite useful for memory and CPU, for disk space things become quite critical if values
+    are too low. Therefore, we use absolute values for disk space. If the disk space is below this value, the value is
+    marked as a warning in the experiment dashboard and a warning is sent. Default: ``5`` GB.
+
+``minimal_disk_space_danger_gb`` *float* |psynet-icon|
+    If the absolute disk space is below this value (see ``minimal_disk_space_warning_gb`` for a motivation), the value
+    is marked as dangerous in the experiment dashboard (in red and an error icon) and the experimenter is informed via
+    Slack. Default: ``2`` GB.
+
 Deployment
 ++++++++++
 
@@ -483,6 +512,16 @@ General
 
 ``port`` *unicode* |dlgr-icon|
     Port of the host.
+
+``server_pem`` *unicode* |dlgr-icon|
+    Path to the PEM file for SSH authentication when deploying to a server using Docker SSH.
+    This file will be used to authenticate SSH connections to the server.
+    Can be set in either your experiment's `config.txt` or in `~/.dallingerconfig`:
+
+    .. code-block:: ini
+
+        [Parameters]
+        server_pem = /path/to/your/key.pem
 
 Heroku
 ~~~~~~

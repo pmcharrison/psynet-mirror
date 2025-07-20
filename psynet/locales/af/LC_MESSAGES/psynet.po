@@ -3025,13 +3025,13 @@ msgstr "In geval van 'n probleem, probeer die volgende:"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Laai die bladsy weer."
+msgstr "Herlaai die bladsy."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Kyk of jou internetverbinding werk."
+msgstr "Maak seker dat jou internetverbinding werk."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3039,32 +3039,32 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"As die bogenoemde nie help nie, stuur vir ons 'n e-pos met die volgende "
+"Indien bogenoemde nie help nie, stuur vir ons 'n e-pos met die volgende "
 "inligting:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "A link to the current web page;"
-msgstr "‘n Skakel na die huidige webblad;"
+msgstr "'n Skakel na die huidige webblad;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Jou Werker ID;"
+msgstr "Jou Werker-ID;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "Die probleem wat jy ondervind."
+msgstr "Die probleem wat jy ervaar."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "OK"
+msgstr "Goed"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3077,13 +3077,13 @@ msgstr "Is jy gereed?"
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr ""
-"Klik die knoppie wanneer jy gereed is om met die eksperiment voort te gaan."
+"Klik die knoppie wanneer jy gereed is om die eksperiment voort te sit."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Hervat"
+msgstr "CV"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3101,19 +3101,29 @@ msgstr "Hulp!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Beëindig die eksperiment vroeg"
+msgstr "Beëindig die eksperiment vroegtydig"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Wag asseblief dat die bladsy laai."
+msgstr "Wag asseblief vir die bladsy om te laai."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Probeer weer oor 'n paar sekondes."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Dit lyk asof jy die eksperiment in verskeie oortjies oopgemaak het. Maak "
+"asseblief almal behalwe een oortjie toe en verfris die bladsy."
 
 #: psynet/translation/countries.py
 #, fuzzy

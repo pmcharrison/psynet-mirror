@@ -458,7 +458,7 @@ def report_lucid():
                 "data": data,
             }
 
-        if len(terminated_df) > 0:
+        if len(terminated_df) > 0 and len(psynet_terminated_df) > 0:
             psynet_termination_loi = int(
                 psynet_terminated_df.psynet_duration.median().round()
             )

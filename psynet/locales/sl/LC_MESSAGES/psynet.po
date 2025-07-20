@@ -3007,8 +3007,7 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Če zgoraj navedeno ne pomaga, nam pošljite e-pošto z naslednjimi "
-"informacijami:"
+"Če zgoraj navedeno ne pomaga, nam pošljite e-pošto z naslednjimi podatki:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3020,7 +3019,7 @@ msgstr "Povezava do trenutne spletne strani;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Vaš ID delavca;"
+msgstr "Vaša ID delavca;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3032,19 +3031,19 @@ msgstr "Težava, s katero se soočate."
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "V redu"
+msgstr "V REDU"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Ste pripravljeni?"
+msgstr "Ali ste pripravljeni?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Kliknite gumb, ko ste pripravljeni nadaljevati poskus."
+msgstr "Kliknite gumb, ko ste pripravljeni nadaljevati s poskusom."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3068,19 +3067,29 @@ msgstr "Pomoč!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Predčasno končajte poskus"
+msgstr "Prekinite poskus predčasno"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Prosimo, počakajte, da se stran naloži."
+msgstr "Počakajte, da se stran naloži."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Poskusite znova čez nekaj sekund."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Zdi se, da ste odprli poskus v več zavihkih. Zaprite vse razen enega zavihka"
+" in osvežite stran."
 
 #: psynet/translation/countries.py
 #, fuzzy

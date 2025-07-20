@@ -65,7 +65,7 @@ msgstr "Dir musst Ären Alter als Ganzt tëscht 0 an 120 uginn!"
 #, fuzzy, python-brace-format
 msgctxt "age"
 msgid "Your answer was: '{AGE}'"
-msgstr "Är Äntwert war: &#39;{AGE}&#39;"
+msgstr "Är Äntwert war: '{AGE}'"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -140,7 +140,7 @@ msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
 "speaking from early childhood?"
 msgstr ""
-"Wat ass Är Mammesprooch - also d&#39;Sprooch, déi Dir vu fréie Kandheet u "
+"Wat ass Är Mammesprooch - also d'Sprooch, déi Dir vu fréie Kandheet u "
 "geschwat hutt?"
 
 #: psynet/demography/general.py
@@ -178,14 +178,14 @@ msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
 msgstr ""
-"Lëscht w.e.g. d&#39;Sproochen déi Dir schwätzt an der Reiefolleg vun der "
+"Lëscht w.e.g. d'Sproochen déi Dir schwätzt an der Reiefolleg vun der "
 "Kompetenz (Éischt Sprooch éischt, zweet Sprooch zweet, ...)"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
 msgid "Please list at least one language!"
-msgstr "Gitt w.e.g. op d&#39;mannst eng Sprooch op!"
+msgstr "Gitt w.e.g. op d'mannst eng Sprooch op!"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -398,13 +398,13 @@ msgstr "150.000 {CURRENCY} oder méi"
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you like the experiment?"
-msgstr "Hutt Dir d&#39;Experiment gär?"
+msgstr "Hutt Dir d'Experiment gär?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you find the experiment difficult?"
-msgstr "Hutt Dir d&#39;Experiment schwéier fonnt?"
+msgstr "Hutt Dir d'Experiment schwéier fonnt?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -435,7 +435,7 @@ msgstr ""
 #, fuzzy
 msgctxt "final_page_successful"
 msgid "That's the end of the experiment!"
-msgstr "Dat ass d&#39;Enn vum Experiment!"
+msgstr "Dat ass d'Enn vum Experiment!"
 
 #: psynet/end.py
 #, fuzzy
@@ -445,13 +445,13 @@ msgstr "Merci fir matzemaachen."
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "Klickt w.e.g. &quot;Finish&quot; fir den HIT ofzeschléissen."
+msgstr "Klickt w.e.g. \"Finish\" fir den HIT ofzeschléissen."
 
 #: psynet/end.py
 #, fuzzy
 msgctxt "final_page_unsuccessful"
 msgid "Unfortunately the experiment must end early."
-msgstr "Leider muss d&#39;Experiment fréi ophalen."
+msgstr "Leider muss d'Experiment fréi ophalen."
 
 #: psynet/end.py
 #, fuzzy
@@ -491,7 +491,7 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"Fir d&#39;Entschiedegung ze froen, kontaktéiert w.e.g. de Fuerscher um "
+"Fir d'Entschiedegung ze froen, kontaktéiert w.e.g. de Fuerscher um "
 "{EMAIL} a beschreift wat zu dësem Feeler gefouert huet."
 
 #: psynet/experiment.py
@@ -514,13 +514,13 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr ""
 "Fir iwwer Entschiedegung ze froen, schéckt w.e.g. dem Fuerscher e Message "
-"iwwer d&#39;Prolific Websäit a beschreiwt wat zu Ärem Feeler gefouert huet."
+"iwwer d'Prolific Websäit a beschreiwt wat zu Ärem Feeler gefouert huet."
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Dir musst op d&#39;mannst eng Äntwert kontrolléieren!"
+msgstr "Dir musst op d'mannst eng Äntwert kontrolléieren!"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -738,7 +738,7 @@ msgid ""
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
 "able to be compensated."
 msgstr ""
-"Dir musst <strong>op d&#39;mannst "
+"Dir musst <strong>op d'mannst "
 "%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> Belounung sammelen"
 " fir kompenséiert ze ginn."
 
@@ -777,7 +777,7 @@ msgstr "Fënster zoumaachen"
 #, fuzzy
 msgctxt "abort_possible"
 msgid "Are you sure you want to abort the experiment?"
-msgstr "Sidd Dir sécher datt Dir d&#39;Experiment ofbriechen wëllt?"
+msgstr "Sidd Dir sécher datt Dir d'Experiment ofbriechen wëllt?"
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -786,8 +786,8 @@ msgid ""
 "If you click the Abort button, the experiment will end early, and you will "
 "be automatically paid the compensation you have earned so far."
 msgstr ""
-"Wann Dir op de Knäppchen Ofbriechen klickt, wäert d&#39;Experiment fréi "
-"ophalen, an Dir kritt automatesch d&#39;Entschiedegung bezuelt, déi Dir bis "
+"Wann Dir op de Knäppchen Ofbriechen klickt, wäert d'Experiment fréi "
+"ophalen, an Dir kritt automatesch d'Entschiedegung bezuelt, déi Dir bis "
 "elo verdéngt hutt."
 
 #: psynet/templates/abort_possible.html
@@ -803,7 +803,7 @@ msgstr ""
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr ""
-"Kuckt d&#39;Informatioun hei ënnen fir Detailer iwwer Är Entschiedegung."
+"Kuckt d'Informatioun hei ënnen fir Detailer iwwer Är Entschiedegung."
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -820,7 +820,7 @@ msgstr "Call fir Participanten"
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "D&#39;Ufuerderunge fir matzemaachen sinn wéi follegt"
+msgstr "D'Ufuerderunge fir matzemaachen sinn wéi follegt"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -829,8 +829,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Klickt w.e.g. op de &quot;HIT akzeptéieren&quot; Knäppchen op der Amazon "
-"Site uewendriwwer fir d&#39;Aufgab unzefänken."
+"Klickt w.e.g. op de \"HIT akzeptéieren\" Knäppchen op der Amazon "
+"Site uewendriwwer fir d'Aufgab unzefänken."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -851,7 +851,7 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Andeems Dir op de folgende URL Link klickt, gitt Dir an d&#39;Experiment "
+"Andeems Dir op de folgende URL Link klickt, gitt Dir an d'Experiment "
 "geholl, komplett Instruktiounen an en informéiert Zoustëmmungsaccord."
 
 #: psynet/templates/ad.html
@@ -935,7 +935,7 @@ msgid ""
 "I have received oral and written information about the fact that "
 "<i>audiovisual</i> recordings will be made in this study."
 msgstr ""
-"Ech hunn mëndlech a schrëftlech Informatioun iwwer d&#39;Tatsaach kritt datt"
+"Ech hunn mëndlech a schrëftlech Informatioun iwwer d'Tatsaach kritt datt"
 " <i>audiovisuell</i> Opzeechnunge bei dëser Etude gemaach ginn."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -945,7 +945,7 @@ msgid ""
 "The recording serves the purpose of understanding how humans perceive and "
 "process information from sound and visual."
 msgstr ""
-"D&#39;Opnahm déngt den Zweck fir ze verstoen wéi d&#39;Mënschen Informatioun"
+"D'Opnahm déngt den Zweck fir ze verstoen wéi d'Mënschen Informatioun"
 " aus Toun a visuell veraarbecht."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -965,8 +965,8 @@ msgid ""
 "By making recording people while moving, singing, tapping to rhythms, or "
 "speaking, we can infer the mechanisms of the auditory and visual systems."
 msgstr ""
-"Andeems mir d&#39;Leit ophuelen wärend mir bewegen, sangen, op Rhythmen "
-"tippen oder schwätzen, kënne mir d&#39;Mechanismen vun den auditive a "
+"Andeems mir d'Leit ophuelen wärend mir bewegen, sangen, op Rhythmen "
+"tippen oder schwätzen, kënne mir d'Mechanismen vun den auditive a "
 "visuelle Systemer ofginn."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -978,10 +978,10 @@ msgid ""
 "i.e., using a number and without containing my name, and that there is a "
 "coding list that links my name to the number."
 msgstr ""
-"Ech sinn informéiert ginn, datt d&#39;Späichere an d&#39;Veraarbechtung vun "
+"Ech sinn informéiert ginn, datt d'Späichere an d'Veraarbechtung vun "
 "der <i>audiovisueller</i> Opnam a pseudonymiséierter Form duerchgefouert "
 "gëtt, also mat enger Nummer an ouni mäi Numm ze enthalen, an datt et eng "
-"Kodéierungslëscht gëtt, déi mäi Numm un d&#39;Nummer verbënnt."
+"Kodéierungslëscht gëtt, déi mäi Numm un d'Nummer verbënnt."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -990,7 +990,7 @@ msgid ""
 "The investigators are the only persons who have access to this coding list, "
 "which will be destroyed after completion of the research project."
 msgstr ""
-"D&#39;Enquêteuren sinn déi eenzeg Persounen, déi Zougang zu dëser "
+"D'Enquêteuren sinn déi eenzeg Persounen, déi Zougang zu dëser "
 "Kodéierungslëscht hunn, déi nom Ofschloss vum Fuerschungsprojet zerstéiert "
 "ginn."
 
@@ -1014,8 +1014,8 @@ msgid ""
 "I understand that I am free to withdraw my consent to the collection and "
 "storage of my personal data without negative consequences."
 msgstr ""
-"Ech verstinn datt ech fräi sinn meng Zoustëmmung fir d&#39;Sammlung an "
-"d&#39;Späichere vu menge perséinlechen Donnéeën ouni negativ Konsequenzen "
+"Ech verstinn datt ech fräi sinn meng Zoustëmmung fir d'Sammlung an "
+"d'Späichere vu menge perséinlechen Donnéeën ouni negativ Konsequenzen "
 "zréckzezéien."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -1067,7 +1067,7 @@ msgctxt "consent-audiovisual"
 msgid ""
 "The declaration of consent for <i>audiovisual</i> recordings is voluntary."
 msgstr ""
-"D&#39;Zoustëmmungserklärung fir <i>audiovisuell</i> Opzeechnunge ass "
+"D'Zoustëmmungserklärung fir <i>audiovisuell</i> Opzeechnunge ass "
 "fräiwëlleg."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -1130,7 +1130,7 @@ msgid ""
 "I have received written information about the study and the procedure of the"
 " study."
 msgstr ""
-"Ech hunn schrëftlech Informatioun iwwer d&#39;Etude an d&#39;Prozedur vun "
+"Ech hunn schrëftlech Informatioun iwwer d'Etude an d'Prozedur vun "
 "der Studie kritt."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1166,7 +1166,7 @@ msgid ""
 "The recording and processing of these data are carried out in pseudonymized "
 "form by means of a code and do not contain my name."
 msgstr ""
-"D&#39;Opnam an d&#39;Veraarbechtung vun dësen Donnéeën ginn a "
+"D'Opnam an d'Veraarbechtung vun dësen Donnéeën ginn a "
 "pseudonymiséierter Form duerch e Code duerchgefouert an enthalen net mäi "
 "Numm."
 
@@ -1185,7 +1185,7 @@ msgid ""
 "The investigators are the only persons who have access to this coding list "
 "and who are thus able to link the collected data to my name."
 msgstr ""
-"D&#39;Enquêteuren sinn déi eenzeg Persounen, déi Zougang zu dëser "
+"D'Enquêteuren sinn déi eenzeg Persounen, déi Zougang zu dëser "
 "Kodéierungslëscht hunn an déi gesammelten Donnéeën also mat mengem Numm "
 "verbannen."
 
@@ -1195,7 +1195,7 @@ msgctxt "consent-cap"
 msgid ""
 "After completion of the research project, the coding list will be destroyed."
 msgstr ""
-"Nom Ofschloss vum Fuerschungsprojet gëtt d&#39;Kodéierungslëscht zerstéiert."
+"Nom Ofschloss vum Fuerschungsprojet gëtt d'Kodéierungslëscht zerstéiert."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1213,7 +1213,7 @@ msgctxt "consent-cap"
 msgid ""
 "I have been informed that I may request deletion of all my data at any time."
 msgstr ""
-"Ech sinn informéiert ginn, datt ech zu all Moment d&#39;Läschung vun all "
+"Ech sinn informéiert ginn, datt ech zu all Moment d'Läschung vun all "
 "meng Donnéeën ufroe kann."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1223,7 +1223,7 @@ msgid ""
 "However, if the coding list has already been destroyed, it will no longer be"
 " possible to identify and thus to delete my data set."
 msgstr ""
-"Wann d&#39;Kodéierungslëscht awer scho zerstéiert ass, ass et net méi "
+"Wann d'Kodéierungslëscht awer scho zerstéiert ass, ass et net méi "
 "méiglech ze identifizéieren an domat meng Dateset ze läschen."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1233,7 +1233,7 @@ msgid ""
 "The participant information sheet about the examination is part of this "
 "consent form."
 msgstr ""
-"De Participant Informatiounsblat iwwer d&#39;Examen ass Deel vun dësem "
+"De Participant Informatiounsblat iwwer d'Examen ass Deel vun dësem "
 "Zoustëmmungsform."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1264,7 +1264,7 @@ msgid ""
 "data we collect when you register for our participant pool and for what "
 "purposes we process this data."
 msgstr ""
-"Mat dëser Dateschutzpolitik wëlle mir Iech iwwer d&#39;perséinlech Donnéeën "
+"Mat dëser Dateschutzpolitik wëlle mir Iech iwwer d'perséinlech Donnéeën "
 "informéieren, déi mir sammelen wann Dir Iech fir eise Participant-Pool "
 "registréiert a fir wéi eng Zwecker mir dës Donnéeën veraarbecht."
 
@@ -1276,7 +1276,7 @@ msgid ""
 "the processing of personal data."
 msgstr ""
 "Ausserdeem wëlle mir Iech iwwer Är Rechter mat Bezuch op "
-"d&#39;Veraarbechtung vu perséinlechen Donnéeën informéieren."
+"d'Veraarbechtung vu perséinlechen Donnéeën informéieren."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1318,7 +1318,7 @@ msgid ""
 msgstr ""
 "Zousätzlech zu Äre Kontaktdetailer (dh Numm an E-Mail) an déi demographesch "
 "Donnéeën, déi am Log-in gefrot ginn (dh Alter, Geschlecht an Nationalitéit),"
-" späichere mir och den Datum an d&#39;Zäit wou Dir d&#39;Entrée gemaach "
+" späichere mir och den Datum an d'Zäit wou Dir d'Entrée gemaach "
 "hutt."
 
 #: psynet/templates/consents/database_consent.html
@@ -1327,7 +1327,7 @@ msgctxt "consent-data"
 msgid ""
 "In addition, we save the date and time when you verified your email address."
 msgstr ""
-"Zousätzlech späichere mir den Datum an d&#39;Zäit wou Dir Är E-Mailadress "
+"Zousätzlech späichere mir den Datum an d'Zäit wou Dir Är E-Mailadress "
 "verifizéiert hutt."
 
 #: psynet/templates/consents/database_consent.html
@@ -1338,7 +1338,7 @@ msgid ""
 "of this communication."
 msgstr ""
 "Wa mir Iech invitéieren un enger Etude deelzehuelen, späichere mir den Datum"
-" an d&#39;Zäit vun dëser Kommunikatioun."
+" an d'Zäit vun dëser Kommunikatioun."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1349,8 +1349,8 @@ msgid ""
 "successfully or not."
 msgstr ""
 "Wann Dir averstane sidd matzemaachen, späichere mir och den Datum an "
-"d&#39;Zäit vun Ärer Kommunikatioun vun dëser Wiel, an ob Dir "
-"d&#39;Experiment erfollegräich ofgeschloss hutt oder net."
+"d'Zäit vun Ärer Kommunikatioun vun dëser Wiel, an ob Dir "
+"d'Experiment erfollegräich ofgeschloss hutt oder net."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1361,7 +1361,7 @@ msgid ""
 "study."
 msgstr ""
 "Natierlech, ier Dir un enger Studie deelhëllt, gitt Dir am Detail iwwer "
-"d&#39;Prozedur vun der Studie an d&#39;Sammlung vun Daten während der Studie"
+"d'Prozedur vun der Studie an d'Sammlung vun Daten während der Studie"
 " informéiert."
 
 #: psynet/templates/consents/database_consent.html
@@ -1389,21 +1389,21 @@ msgid ""
 "remains in effect."
 msgstr ""
 "Är Donnéeë ginn an der Kontaktdatenbank gespäichert soulaang wéi den Zweck "
-"vun esou Späicheren, dh Iech ze kontaktéieren iwwer d&#39;Participatioun un "
+"vun esou Späicheren, dh Iech ze kontaktéieren iwwer d'Participatioun un "
 "enger Studie, a Kraaft bleift."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
 msgctxt "consent-duration"
 msgid "You may request the deletion of your data at any time."
-msgstr "Dir kënnt zu all Moment d&#39;Läsche vun Ären Donnéeën ufroen."
+msgstr "Dir kënnt zu all Moment d'Läsche vun Ären Donnéeën ufroen."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
 msgctxt "consent-duration"
 msgid "To do so, send an e-mail with the subject “Delete” to:"
 msgstr ""
-"Fir dëst ze maachen, schéckt eng E-Mail mam Thema &quot;Läschen&quot; un:"
+"Fir dëst ze maachen, schéckt eng E-Mail mam Thema \"Läschen\" un:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1419,7 +1419,7 @@ msgid ""
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
 "Dir kënnt och Är Donnéeën aus der Datebank läschen andeems Dir Äre Kont "
-"läscht (dh dréckt &#39;Kont läschen&#39; op der Cap-Recruiter Login Säit)."
+"läscht (dh dréckt 'Kont läschen' op der Cap-Recruiter Login Säit)."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1428,8 +1428,8 @@ msgid ""
 "Note that all information, including the experiment and payment history will"
 " be removed from our database."
 msgstr ""
-"Notéiert datt all Informatioun, och d&#39;Experimenter an "
-"d&#39;Bezuelungsgeschicht aus eiser Datebank geläscht ginn."
+"Notéiert datt all Informatioun, och d'Experimenter an "
+"d'Bezuelungsgeschicht aus eiser Datebank geläscht ginn."
 
 #: psynet/templates/consents/database_consent.html
 #: psynet/templates/consents/main_consent.html
@@ -1447,7 +1447,7 @@ msgid ""
 "The data entered in the form you fill out are transferred in encrypted form "
 "to an internal server."
 msgstr ""
-"D&#39;Donnéeën, déi am Formulaire aginn, deen Dir ausfëllt, ginn a "
+"D'Donnéeën, déi am Formulaire aginn, deen Dir ausfëllt, ginn a "
 "verschlësselte Form op en internen Server transferéiert."
 
 #: psynet/templates/consents/database_consent.html
@@ -1458,7 +1458,7 @@ msgid ""
 "e-mail address."
 msgstr ""
 "Mir schécken Iech dann eng E-Mail mat engem Bestätegungslink fir Är "
-"E-Mailadress z&#39;iwwerpréiwen."
+"E-Mailadress z'iwwerpréiwen."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1503,8 +1503,8 @@ msgid ""
 "provides information about the rights of data subjects."
 msgstr ""
 "Fir Transparenz bei der Veraarbechtung vu perséinlechen Donnéeën ze "
-"garantéieren, liwwert d&#39;Allgemeng Dateschutzreglement (GDPR) vun der "
-"Europäescher Unioun Informatiounen iwwer d&#39;Rechter vun den Datesujeten."
+"garantéieren, liwwert d'Allgemeng Dateschutzreglement (GDPR) vun der "
+"Europäescher Unioun Informatiounen iwwer d'Rechter vun den Datesujeten."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1570,7 +1570,7 @@ msgid ""
 "For the Max Planck Society, this is the Data Protection Authority of "
 "Bavaria, Postfach 1349, 91504 Ansbach, Germany."
 msgstr ""
-"Fir d&#39;Max Planck Gesellschaft ass dat d&#39;Dateschutzautoritéit vu "
+"Fir d'Max Planck Gesellschaft ass dat d'Dateschutzautoritéit vu "
 "Bayern, Postfach 1349, 91504 Ansbach, Däitschland."
 
 #: psynet/templates/consents/database_consent.html
@@ -1619,7 +1619,7 @@ msgid ""
 "the database."
 msgstr ""
 "Dës Informatioun ass verfügbar fir Iech ze iwwerpréiwen wann Dir Iech an "
-"d&#39;Datebank aloggen."
+"d'Datebank aloggen."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1628,7 +1628,7 @@ msgid ""
 "Based on this information we allow you to receive payment via an external "
 "system such as PayPAL/WISE."
 msgstr ""
-"Baséierend op dës Informatioun erlaben mir Iech d&#39;Bezuelung iwwer en "
+"Baséierend op dës Informatioun erlaben mir Iech d'Bezuelung iwwer en "
 "externe System wéi PayPAL / WISE ze kréien."
 
 #: psynet/templates/consents/database_consent.html
@@ -1649,8 +1649,8 @@ msgid ""
 "please search your bank in their website to ensure that you will be able to "
 "receive payment prior to taking part in our experiments."
 msgstr ""
-"Dëse System ënnerstëtzt d&#39;Iwwerweisung vu Suen op déi meescht Banken "
-"ronderëm d&#39;Welt, sicht w.e.g. Är Bank op hirer Websäit fir "
+"Dëse System ënnerstëtzt d'Iwwerweisung vu Suen op déi meescht Banken "
+"ronderëm d'Welt, sicht w.e.g. Är Bank op hirer Websäit fir "
 "sécherzestellen datt Dir fäeg sidd Bezuelung ze kréien ier Dir un eisen "
 "Experimenter deelhëllt."
 
@@ -1661,9 +1661,9 @@ msgid ""
 "We also recommend checking the term of service and it’s privacy statement "
 "and see if you consent to use their system for payment."
 msgstr ""
-"Mir recommandéieren och de Begrëff vum Service z&#39;iwwerpréiwen an seng "
+"Mir recommandéieren och de Begrëff vum Service z'iwwerpréiwen an seng "
 "Dateschutzerklärung a kuckt ob Dir averstane sidd fir hire System fir "
-"d&#39;Bezuelung ze benotzen."
+"d'Bezuelung ze benotzen."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1691,7 +1691,7 @@ msgid ""
 "Regulation in the context of personal data being processed in our studies, "
 "please contact the Data Protection Officer of the Max Planck Society:"
 msgstr ""
-"Wann Dir weider Froen iwwer d&#39;Allgemeng Dateschutzreglement am Kontext "
+"Wann Dir weider Froen iwwer d'Allgemeng Dateschutzreglement am Kontext "
 "vu perséinlechen Donnéeën, déi an eise Studien veraarbecht ginn, hutt, da "
 "kontaktéiert w.e.g. den Dateschutzoffizéier vun der Max Planck Society:"
 
@@ -1801,7 +1801,7 @@ msgid ""
 "prevent biasing the participants before taking the experiment."
 msgstr ""
 "Mëll Täuschung gëtt nëmmen an e puer Experimenter benotzt, wou mir mussen "
-"verhënneren, datt d&#39;Participanten biaséieren ier se d&#39;Experiment "
+"verhënneren, datt d'Participanten biaséieren ier se d'Experiment "
 "huelen."
 
 #: psynet/templates/consents/main_consent.html
@@ -1826,7 +1826,7 @@ msgid ""
 "If the experiment will contain these elements we will ask for an additional "
 "consent."
 msgstr ""
-"Wann d&#39;Experiment dës Elementer enthält, froe mir eng zousätzlech "
+"Wann d'Experiment dës Elementer enthält, froe mir eng zousätzlech "
 "Zoustëmmung."
 
 #: psynet/templates/consents/main_consent.html
@@ -1862,7 +1862,7 @@ msgid ""
 "You are free to discontinue participation in this study at any time without "
 "penalty."
 msgstr ""
-"Dir sidd fräi d&#39;Participatioun un dëser Etude zu all Moment ouni Strof "
+"Dir sidd fräi d'Participatioun un dëser Etude zu all Moment ouni Strof "
 "ze stoppen."
 
 #: psynet/templates/consents/main_consent.html
@@ -1970,7 +1970,7 @@ msgid ""
 "experiments."
 msgstr ""
 "Mir späicheren nëmmen Ären anonymiséierten alpha numeresche Code an eisem "
-"System, fir d&#39;Participanten z&#39;ënnerscheeden déi schonn un dësem oder"
+"System, fir d'Participanten z'ënnerscheeden déi schonn un dësem oder"
 " aneren Experimenter deelgeholl hunn."
 
 #: psynet/templates/consents/main_consent.html
@@ -1981,7 +1981,7 @@ msgid ""
 "This code will not be used to derive your real identity, will not be shared "
 "with anyone outside of the research team and will be deleted after use."
 msgstr ""
-"Dëse Code gëtt net benotzt fir Är richteg Identitéit z&#39;erreechen, gëtt "
+"Dëse Code gëtt net benotzt fir Är richteg Identitéit z'erreechen, gëtt "
 "net mat jidderengem ausserhalb vum Fuerschungsteam gedeelt a gëtt nom "
 "Gebrauch geläscht."
 
@@ -1994,7 +1994,7 @@ msgid ""
 "real identity, this record could be linked in some cases to your public "
 "profile page if a data breach takes place."
 msgstr ""
-"Och wann d&#39;Fuerscher Ären alpha numeresche Code net benotze fir Är "
+"Och wann d'Fuerscher Ären alpha numeresche Code net benotze fir Är "
 "richteg Identitéit ofzeleeën, kann dëse Rekord an e puer Fäll mat Ärer "
 "ëffentlecher Profilsäit verbonne sinn wann eng Dateverletzung stattfënnt."
 
@@ -2025,7 +2025,7 @@ msgid ""
 " may share the data with research collaborators."
 msgstr ""
 "Fir den Zweck fir wëssenschaftleche Fortschrëtter a Replikatioun ze "
-"hëllefen, kënne mir heiansdo d&#39;Donnéeën mat Fuerschungskollegen deelen."
+"hëllefen, kënne mir heiansdo d'Donnéeën mat Fuerschungskollegen deelen."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2047,7 +2047,7 @@ msgid ""
 "Data will be stored temporarily on external servers and desktops/laptops "
 "that are password protected."
 msgstr ""
-"D&#39;Donnéeë ginn temporär op externe Serveren an Desktops / Laptops "
+"D'Donnéeë ginn temporär op externe Serveren an Desktops / Laptops "
 "gespäichert déi mat Passwuert geschützt sinn."
 
 #: psynet/templates/consents/main_consent.html
@@ -2058,7 +2058,7 @@ msgid ""
 "The data will be then stored permanently in the institute servers with hard "
 "disks encrypted using industry-standard encryption software."
 msgstr ""
-"D&#39;Donnéeë ginn dann permanent am Institut Server mat Festplacke "
+"D'Donnéeë ginn dann permanent am Institut Server mat Festplacke "
 "verschlësselte mat Industrie-Standard Verschlësselung Software gespäichert."
 
 #: psynet/templates/consents/main_consent.html
@@ -2105,10 +2105,10 @@ msgid ""
 "improve perceptual abilities in people whose hearing or sight is impaired."
 msgstr ""
 "Och wann et Iech net direkt profitéiere kann, kann dës Etude "
-"d&#39;Gesellschaft profitéieren andeems mir eis hëllefen ze verstoen wéi "
-"d&#39;Mënschen Informatioun aus Toun a Visioun ofleeden, a potenziell "
+"d'Gesellschaft profitéieren andeems mir eis hëllefen ze verstoen wéi "
+"d'Mënschen Informatioun aus Toun a Visioun ofleeden, a potenziell "
 "Maschinnen ze hëllefen déi eis Fäegkeeten replizéiere kënnen (zB an der "
-"Tounerkennung a Computervisioun) an fir ze hëllefen d&#39;perceptuell "
+"Tounerkennung a Computervisioun) an fir ze hëllefen d'perceptuell "
 "Fäegkeeten bei Leit ze verbesseren, deenen hir Héieren oder Siicht behënnert"
 " sinn."
 
@@ -2127,7 +2127,7 @@ msgid ""
 "If you satisfactorily complete the study, we compensate you for your "
 "participation:"
 msgstr ""
-"Wann Dir d&#39;Etude zefriddestellend ofgeschloss hutt, kompenséiere mir "
+"Wann Dir d'Etude zefriddestellend ofgeschloss hutt, kompenséiere mir "
 "Iech fir Är Participatioun:"
 
 #: psynet/templates/consents/main_consent.html
@@ -2168,10 +2168,10 @@ msgid ""
 "and the right to demand the deletion of data in cases of inadmissible data "
 "storage and the right to data portability."
 msgstr ""
-"Dir hutt d&#39;Recht op Informatioun iwwer d&#39;Daten, déi op Iech bezéien,"
-" déi am Max-Planck-Institut gespäichert sinn, d&#39;Recht op ongenau "
-"Donnéeën ze korrigéieren, an d&#39;Recht d&#39;Läschung vun den Donnéeën ze "
-"verlaangen am Fall vun onzougänglechen Datelagerung an d&#39;Recht op "
+"Dir hutt d'Recht op Informatioun iwwer d'Daten, déi op Iech bezéien,"
+" déi am Max-Planck-Institut gespäichert sinn, d'Recht op ongenau "
+"Donnéeën ze korrigéieren, an d'Recht d'Läschung vun den Donnéeën ze "
+"verlaangen am Fall vun onzougänglechen Datelagerung an d'Recht op "
 "Dateportabilitéit."
 
 #: psynet/templates/consents/main_consent.html
@@ -2183,7 +2183,7 @@ msgid ""
 "we will ask you specifically to consent to this procedure in a separate "
 "consent form."
 msgstr ""
-"Notéiert datt an e puer Studien d&#39;Läschen vun Donnéeën net méiglech ass,"
+"Notéiert datt an e puer Studien d'Läschen vun Donnéeën net méiglech ass,"
 " an dësem Fall froe mir Iech speziell fir dës Prozedur an enger separater "
 "Zoustëmmungsform zoustëmmen."
 
@@ -2194,14 +2194,14 @@ msgctxt "consent-rights"
 msgid ""
 "You also have the right to submit an objection to the supervisory authority."
 msgstr ""
-"Dir hutt och d&#39;Recht fir d&#39;Opsiichtsautoritéit ze protestéieren."
+"Dir hutt och d'Recht fir d'Opsiichtsautoritéit ze protestéieren."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
 #, fuzzy
 msgctxt "consent-rights"
 msgid "For the Max-Planck-Society, this is:"
-msgstr "Fir d&#39;Max-Planck-Gesellschaft ass dëst:"
+msgstr "Fir d'Max-Planck-Gesellschaft ass dëst:"
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2211,10 +2211,10 @@ msgid ""
 "replicability, we may want to publish the dataset collected in this "
 "experiment as soon as the study is finished."
 msgstr ""
-"No oppene Wëssenschaftspraktiken fir d&#39;wëssenschaftlech "
+"No oppene Wëssenschaftspraktiken fir d'wëssenschaftlech "
 "Wiederverwendbarkeet a Replikabilitéit ze verbesseren, wëlle mir vläicht "
-"d&#39;Datebank publizéieren, déi an dësem Experiment gesammelt gëtt, soubal "
-"d&#39;Etude fäerdeg ass."
+"d'Datebank publizéieren, déi an dësem Experiment gesammelt gëtt, soubal "
+"d'Etude fäerdeg ass."
 
 #: psynet/templates/consents/open_science_consent.html
 #, fuzzy
@@ -2248,7 +2248,7 @@ msgid ""
 "this experiment."
 msgstr ""
 "Well déi audiovisuell Opzeechnunge gesammelt an dësem Experiment ëffentlech "
-"gemaach kënne ginn, kënne mir d&#39;Anonymitéit vun Ären Donnéeën net "
+"gemaach kënne ginn, kënne mir d'Anonymitéit vun Ären Donnéeën net "
 "garantéieren wann Dir un dësem Experiment deelhëllt."
 
 #: psynet/templates/consents/open_science_consent.html
@@ -2270,7 +2270,7 @@ msgid ""
 "Data will be published on open science frameworks/websites such as OSF "
 "(https://osf.io/) and will be available to everybody with internet access."
 msgstr ""
-"D&#39;Date ginn op oppe Wëssenschaftskader/Websäite wéi OSF "
+"D'Date ginn op oppe Wëssenschaftskader/Websäite wéi OSF "
 "(https://osf.io/) publizéiert a si fir jiddereen mat Internetzougang "
 "verfügbar."
 
@@ -2339,7 +2339,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-compensation"
 msgid "By doing the task you are helping science, thank you!"
-msgstr "Andeems Dir d&#39;Aufgab maacht, hëlleft Dir Wëssenschaft, Merci!"
+msgstr "Andeems Dir d'Aufgab maacht, hëlleft Dir Wëssenschaft, Merci!"
 
 #: psynet/templates/exit_recruiter_lucid.html
 #, fuzzy
@@ -2373,7 +2373,7 @@ msgstr "Dir benotzt"
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please follow the instructions below to continue."
-msgstr "Follegt w.e.g. d&#39;Instruktioune hei ënnen fir weiderzemaachen."
+msgstr "Follegt w.e.g. d'Instruktioune hei ënnen fir weiderzemaachen."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2458,7 +2458,7 @@ msgctxt "browser_compatibility"
 msgid "A new window appears. In the top corner, check for the Incognito icon"
 msgstr ""
 "Eng nei Fënster erschéngt. An der ieweschter Ecke kontrolléiert "
-"d&#39;Incognito Ikon"
+"d'Incognito Ikon"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2485,13 +2485,13 @@ msgstr "Öffnen eng nei Inkognitofenster"
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to continue the experiment"
 msgstr ""
-"Paste de Link an d&#39;Inkognito-Fënster fir den Experiment weiderzemaachen"
+"Paste de Link an d'Inkognito-Fënster fir den Experiment weiderzemaachen"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Paste the link into the incognito window to start the experiment"
-msgstr "Paste de Link an d&#39;Inkognitofenster fir den Experiment unzefänken"
+msgstr "Paste de Link an d'Inkognitofenster fir den Experiment unzefänken"
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2515,7 +2515,7 @@ msgstr "Dir kënnt net um Experiment vun engem mobilen Apparat deelhuelen."
 #, fuzzy
 msgctxt "browser_compatibility"
 msgid "Please open the survey on your computer."
-msgstr "Maacht w.e.g. d&#39;Ëmfro op Ärem Computer op."
+msgstr "Maacht w.e.g. d'Ëmfro op Ärem Computer op."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2534,7 +2534,7 @@ msgstr "Aktivéiert w.e.g. JavaScript an Ärem Browser."
 msgctxt "browser_compatibility"
 msgid "Follow the steps below to make sure the experiment works."
 msgstr ""
-"Follegt d&#39;Schrëtt hei ënnen fir sécherzestellen datt d&#39;Experiment "
+"Follegt d'Schrëtt hei ënnen fir sécherzestellen datt d'Experiment "
 "funktionnéiert."
 
 #: psynet/templates/macros/browser-detect.html
@@ -2640,7 +2640,7 @@ msgid ""
 "The purpose of this project is to study the role of experience and exposure "
 "in creating and affecting our perception, decisions and actions."
 msgstr ""
-"Den Zweck vun dësem Projet ass d&#39;Roll vun der Erfahrung an der "
+"Den Zweck vun dësem Projet ass d'Roll vun der Erfahrung an der "
 "Belaaschtung ze studéieren fir eis Perceptioun, Entscheedungen an Handlungen"
 " ze kreéieren an ze beaflossen."
 
@@ -2654,7 +2654,7 @@ msgid ""
 "and visual (e.g., faces, color) domains."
 msgstr ""
 "Speziell ziele mir eng breet Palette vu Verhalensmethodologien ze "
-"kombinéieren fir d&#39;Weeër ze charakteriséieren wéi d&#39;Leit aus "
+"kombinéieren fir d'Weeër ze charakteriséieren wéi d'Leit aus "
 "verschiddenen Hannergrënn extern Konditiounen internaliséieren a "
 "veraarbecht, souwuel am auditive (zB Ried, Musek) wéi och visuell (zB "
 "Gesiichter, Faarf) Domainen."
@@ -2666,8 +2666,8 @@ msgid ""
 "We are also interested in the way that these internal representations affect"
 " human decision making and behaviour."
 msgstr ""
-"Mir sinn och interesséiert fir d&#39;Art a Weis wéi dës intern "
-"Representatioune beaflossen d&#39;mënschlech Entscheedung an d&#39;Verhalen."
+"Mir sinn och interesséiert fir d'Art a Weis wéi dës intern "
+"Representatioune beaflossen d'mënschlech Entscheedung an d'Verhalen."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2677,7 +2677,7 @@ msgid ""
 " and nobody outside the group of researchers will be able to share or store "
 "them."
 msgstr ""
-"All d&#39;Opzeechnunge, déi mir während dëser Fuerschung kréien, wäerte "
+"All d'Opzeechnunge, déi mir während dëser Fuerschung kréien, wäerte "
 "vertraulech gehale ginn, a keen ausserhalb vun der Grupp vu Fuerscher kann "
 "se deelen oder späicheren."
 
@@ -2734,8 +2734,8 @@ msgid ""
 "identity, personal information could be leaked if you are not in an isolated"
 " environment."
 msgstr ""
-"Och wann d&#39;Fuerscher Är Opzeechnunge net benotze fir Är richteg "
-"Identitéit z&#39;erreechen, kënnen perséinlech Informatioune geläscht ginn "
+"Och wann d'Fuerscher Är Opzeechnunge net benotze fir Är richteg "
+"Identitéit z'erreechen, kënnen perséinlech Informatioune geläscht ginn "
 "wann Dir net an engem isoléierten Ëmfeld sidd."
 
 #: psynet/templates/macros/consent.html
@@ -2750,8 +2750,8 @@ msgid ""
 msgstr ""
 "Dir wëllt vläicht suergen, datt keng Kläng/visuellt Material an Ärem Ëmfeld "
 "mat Äre perséinlechen Informatioune verbonne ka ginn. Zousätzlech, wärend "
-"Dir eng Opnam mécht, kann de Mikrofon oder d&#39;Kamera onbedéngt Audio oder"
-" Video erfaassen, zum Beispill d&#39;Kamera kann en anere Familljemember "
+"Dir eng Opnam mécht, kann de Mikrofon oder d'Kamera onbedéngt Audio oder"
+" Video erfaassen, zum Beispill d'Kamera kann en anere Familljemember "
 "erfaassen, oder de Mikro kann eppes erfaassen wat Dir zu enger anerer "
 "Persoun seet."
 
@@ -2839,7 +2839,7 @@ msgid ""
 msgstr ""
 "Audiovisuellt Material gëtt net mat perséinlechen Informatioun indexéiert, "
 "awer mat perséinlechen Informatioune mat engem Schlëssel (wéi "
-"&quot;afasd12314asdasd&quot;) verlinkt."
+"\"afasd12314asdasd\") verlinkt."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2873,7 +2873,7 @@ msgid ""
 "older, have read this consent form, agree to its contents, and agree to take"
 " part in this research."
 msgstr ""
-"Andeems Dir d&#39;Zoustëmmung fir matzemaachen, erkennt Dir datt Dir 18 Joer"
+"Andeems Dir d'Zoustëmmung fir matzemaachen, erkennt Dir datt Dir 18 Joer"
 " oder méi al sidd, dës Zoustëmmungsform gelies hutt, averstanen mat hiren "
 "Inhalter, an averstanen un dëser Fuerschung deelzehuelen."
 
@@ -2907,7 +2907,7 @@ msgid ""
 "The <strong>decay</strong> parameters determine the amount of smoothing that"
 " happens to the signal, and have units of seconds."
 msgstr ""
-"D&#39;Parameter <strong>Zerfall</strong> bestëmmen d&#39;Quantitéit vun der "
+"D'Parameter <strong>Zerfall</strong> bestëmmen d'Quantitéit vun der "
 "Glättung, déi mam Signal geschitt, an hunn Unitéiten vu Sekonnen."
 
 #: psynet/templates/macros/control.html
@@ -2917,7 +2917,7 @@ msgid ""
 "A high decay parameter means that the signal takes a long time to decay "
 "(i.e. high smoothing)."
 msgstr ""
-"A héich Zerfall Parameter heescht, datt d&#39;Signal eng laang Zäit hëlt ze "
+"A héich Zerfall Parameter heescht, datt d'Signal eng laang Zäit hëlt ze "
 "Zerfall (dh héich smoothing)."
 
 #: psynet/templates/macros/control.html
@@ -2928,7 +2928,7 @@ msgid ""
 " the 'too-high' detector, and one for the 'too-low' detector."
 msgstr ""
 "Et ginn dräi Zerfallparameter: ee fir den ugewisenen Audiometer, ee fir den "
-"&#39;ze héich&#39; Detektor, an een fir den &#39;ze-niddereg&#39; Detektor."
+"'ze héich' Detektor, an een fir den 'ze-niddereg' Detektor."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2937,8 +2937,8 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"D&#39;Parameter <strong>Schwell</strong> bestëmmen de Punkt op deem de "
-"Volume als &#39;ze héich&#39; oder &#39;ze niddreg&#39; bestëmmt gëtt."
+"D'Parameter <strong>Schwell</strong> bestëmmen de Punkt op deem de "
+"Volume als 'ze héich' oder 'ze niddreg' bestëmmt gëtt."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -2947,7 +2947,7 @@ msgid ""
 "The <strong>grace</strong> parameters determine how long the volume must be "
 "outside the respective threshold for a warning message to be triggered."
 msgstr ""
-"D&#39;parameter <strong>grace</strong> bestëmmen wéi laang de Volume "
+"D'parameter <strong>grace</strong> bestëmmen wéi laang de Volume "
 "ausserhalb vun der jeweileger Schwell muss sinn, fir datt eng Warnmeldung "
 "ausgeléist gëtt."
 
@@ -3019,7 +3019,7 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Dir kënnt vläicht d&#39;Experiment ofbriechen andeems Dir den "
+"Dir kënnt vläicht d'Experiment ofbriechen andeems Dir den "
 "<strong>Experiment ofbriechen</strong> Knäppchen <strong>op der MTurk "
 "Annonce Säit</strong> benotzt."
 
@@ -3031,7 +3031,7 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Eemol ofgebrach ass et net néideg eis ze kontaktéieren fir "
-"d&#39;Entschiedegung ze kréien; dëst soll Iech automatesch via MTurk e puer "
+"d'Entschiedegung ze kréien; dëst soll Iech automatesch via MTurk e puer "
 "Minutten ausgezeechent ginn no."
 
 #: psynet/templates/psynet_error.html
@@ -3063,19 +3063,19 @@ msgstr "Experiment starten ..."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "In case of a problem, try the following:"
-msgstr "Am Fall vun engem Problem, probéiert déi folgend:"
+msgstr "Am Fall vun engem Problem, probéiert folgend:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Reload the page."
-msgstr "Lued d&#39;Säit nei."
+msgstr "Säit nei lueden."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Check that your internet connection is working."
-msgstr "Kontrolléiert datt Är Internetverbindung funktionnéiert."
+msgstr "Kontrolléiert ob Är Internetverbindung funktionéiert."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3083,7 +3083,8 @@ msgctxt "timeline_problem"
 msgid ""
 "If the above doesn't help, send us an email with the following information:"
 msgstr ""
-"Wann dat hei net hëlleft, schéckt eis eng E-Mail mat folgenden Informatioun:"
+"Wann dat Uewendriwwer net hëlleft, schéckt eis eng E-Mail mat de folgenden "
+"Informatiounen:"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3095,19 +3096,19 @@ msgstr "E Link op déi aktuell Websäit;"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Your Worker ID;"
-msgstr "Är Aarbechter ID;"
+msgstr "Är Aarbechter-ID;"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "The problem you're experiencing."
-msgstr "De Problem deen Dir erliewt."
+msgstr "De Problem, deen Dir erlieft."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "OK"
+msgstr "Okay"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3121,13 +3122,13 @@ msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
 msgstr ""
 "Klickt op de Knäppchen wann Dir prett sidd fir den Experiment "
-"weiderzemaachen."
+"weiderzeféieren."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Resumé"
+msgstr "CV"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3145,19 +3146,29 @@ msgstr "Hëllef!"
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Ofschléissen d&#39;Experiment fréi"
+msgstr "Experiment fréizäiteg ofbriechen"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Waart w.e.g. bis d&#39;Säit lued."
+msgstr "Waart w.e.g. bis d'Säit gelueden ass."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Probéiert nach eng Kéier an e puer Sekonnen."
+msgstr "Probéiert et an e puer Sekonnen nach eng Kéier."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"Et schéngt, datt Dir den Experiment a verschiddene Tabs opgemaach hutt. "
+"Maacht w.e.g. all Tabs ausser engem zou a luet d'Säit nei op."
 
 #: psynet/translation/countries.py
 #, fuzzy
@@ -4297,7 +4308,7 @@ msgstr "Saint Pierre a Miquelon"
 #, fuzzy
 msgctxt "country_name"
 msgid "Saint Vincent and the Grenadines"
-msgstr "Saint Vincent an d&#39;Grenadinnen"
+msgstr "Saint Vincent an d'Grenadinnen"
 
 #: psynet/translation/countries.py
 #, fuzzy

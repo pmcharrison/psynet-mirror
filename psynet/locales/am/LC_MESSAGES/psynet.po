@@ -65,7 +65,7 @@ msgstr "ዕድሜዎን በ 0 እና 120 መካከል እንደ ኢንቲጀር 
 #, fuzzy, python-brace-format
 msgctxt "age"
 msgid "Your answer was: '{AGE}'"
-msgstr "መልስህ፡ &#39;{AGE}&#39; የሚል ነበር።"
+msgstr "መልስህ፡ '{AGE}' የሚል ነበር።"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -437,7 +437,7 @@ msgstr "ስለተሳተፉ እናመሰግናለን።"
 #: psynet/end.py
 #, fuzzy
 msgid "Please click \"Finish\" to complete the HIT."
-msgstr "HIT ን ለማጠናቀቅ እባክህ &quot;ጨርስ&quot; ን ተጫን።"
+msgstr "HIT ን ለማጠናቀቅ እባክህ \"ጨርስ\" ን ተጫን።"
 
 #: psynet/end.py
 #, fuzzy
@@ -790,7 +790,7 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"እባክህ ስራውን ለመጀመር ከላይ ባለው የአማዞን ገፅ ላይ ያለውን &quot;HIT ተቀበል&quot; የሚለውን ቁልፍ ተጫን።"
+"እባክህ ስራውን ለመጀመር ከላይ ባለው የአማዞን ገፅ ላይ ያለውን \"HIT ተቀበል\" የሚለውን ቁልፍ ተጫን።"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -1321,7 +1321,7 @@ msgid ""
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
 "እንዲሁም መለያዎን በመሰረዝ ውሂብዎን ከመረጃ ቋቱ ውስጥ ማጥፋት ይችላሉ (ማለትም በ cap-recruiter log-in "
-"ገጽ ላይ &#39;Delete Account&#39; የሚለውን ይጫኑ)።"
+"ገጽ ላይ 'Delete Account' የሚለውን ይጫኑ)።"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -2701,7 +2701,7 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"የ <strong> ገደብ</strong> መለኪያዎች ድምጹ &#39;በጣም ከፍተኛ&#39; ወይም &#39;በጣም ዝቅተኛ&#39;"
+"የ <strong> ገደብ</strong> መለኪያዎች ድምጹ 'በጣም ከፍተኛ' ወይም 'በጣም ዝቅተኛ'"
 " ተብሎ የሚወሰንበትን ነጥብ ይወስናሉ።"
 
 #: psynet/templates/macros/control.html
@@ -2914,6 +2914,15 @@ msgstr "እባክዎ ገጹ እስኪጫን ይጠብቁ።"
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "ከጥቂት ሰከንዶች በኋላ እንደገና ይሞክሩ።"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"It seems you have opened the experiment in multiple tabs. Please close all "
+"but one tab and refresh the page."
+msgstr ""
+"ሙከራውን በበርካታ ትሮች ውስጥ የከፈቱት ይመስላል። እባክዎ ከአንድ ትር በስተቀር ሁሉንም ዝጋ እና ገጹን ያድሱ።"
 
 #: psynet/translation/countries.py
 #, fuzzy
