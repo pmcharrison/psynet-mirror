@@ -8,6 +8,14 @@ from psynet.utils import working_directory
 from psynet.version import check_versions
 
 
+# Just for this PR, checking that the right version of Dallinger is installed
+def test_check_dallinger_version_7786():
+    import importlib
+
+    module = importlib.import_module("dallinger.experiment_server.worker_events")
+    assert hasattr(module, "record_tracking_event")
+
+
 # PsyNet tests
 def test_skip_version_check_key_error():
     with pytest.raises(KeyError, match="'SKIP_VERSION_CHECK'"):
