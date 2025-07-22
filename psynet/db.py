@@ -6,7 +6,7 @@ import dallinger.db
 
 @contextmanager
 def transaction():
-    with dallinger.db.sessions_scope():
+    with dallinger.db.sessions_scope(dallinger.db.session):
         yield
         dallinger.db.session.commit()
 
