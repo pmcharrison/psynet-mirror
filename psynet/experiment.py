@@ -3732,6 +3732,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def handle_error(cls, error, **kwargs):
+        # We rollback to remove any pending changes to the database.
+        db.session.rollback()
         parents = cls._compile_error_parents(**kwargs)
         cls.report_error(error, **parents)
         return cls.HandledError(**parents)
@@ -3803,8 +3805,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         print("\n")
 
     @classmethod
-    @with_transaction
     def log_to_db(cls, error, token, log_line_number, **kwargs):
+        # We considered running this function within its own database session,
+        # but this proved incompatible with passing pre-existing SQLAlchemy objects
+        # to the ErrorRecord constructor.
         trace = traceback.format_exc()
         record = ErrorRecord(
             error=error,
@@ -3814,6 +3818,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **kwargs,
         )
         db.session.add(record)
+        # We don't normally write session.commit() within inner code,
+        # but we do here, because we really want to make sure error reporting works.
+        db.session.commit()
 
     @classmethod
     def log_to_notifier(cls, token, line_number, **kwargs):
