@@ -712,7 +712,9 @@ class Trial(SQLMixinDallinger, Info):
         try:
             self.async_post_trial()
         except Exception:
+            db.session.rollback()
             self.async_post_trial_failed = True
+            db.session.commit()
             raise
         self.async_post_trial_complete = True
         self.check_if_can_mark_as_finalized()
