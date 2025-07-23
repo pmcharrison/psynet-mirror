@@ -6,6 +6,19 @@ import dallinger.db
 
 @contextmanager
 def transaction():
+    """
+    Context manager to handle database transactions.
+
+    The crucial behaviour here is that ``session.remove()`` is called internally
+    once the context is exited, which ensures that the database session is closed.
+    This ensures that we don't get problems with unintended long-lived database sessions
+    that can lead to performance issues including deadlocks.
+
+    As opposed to ``dallinger.db.session_scope``, we additionally commit the transaction
+    at the end of the context. In general we want to discourage users from calling ``session.commit()``
+    themselves, and just use this context manager to handle transactions automatically.
+    This should be best for atomicity and performance.
+    """
     with dallinger.db.sessions_scope(dallinger.db.session):
         yield
         dallinger.db.session.commit()
