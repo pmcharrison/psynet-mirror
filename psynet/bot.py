@@ -179,6 +179,13 @@ class Bot(Participant):
             assert req.status_code == 200
             db.session.commit()  # Make sure any server-side changes are visible to us
 
+        # We used to wrap the following passage in a big ``with transaction()` block.
+        # However this only worked because our original ``with transaction()`` code
+        # did not actually create a proper transaction, it just wrapped the code with commits.
+        # When we updated the ``with transaction()`` code to actually create a transaction,
+        # we experienced problems with nested transactions. For now we have removed this context handler,
+        # therefore, but soon we will rewrite this testing code completely to make it more principled.
+
         # Locks the present participant row
         self = (
             self.__class__.query.with_for_update(of=self.__class__)
