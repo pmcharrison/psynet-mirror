@@ -79,22 +79,11 @@ class Bot(Participant):
         return self.experiment.get_current_page(self.experiment, self)
 
     @log_time_taken
-    def take_experiment(self, time_factor=0, render_pages: bool = False):
-        """
-        Parameters
-        ----------
-
-        time_factor :
-            Determines how long the bot spends on each page.
-            If 0, the bot spends no time on each page.
-            If 1, the bot spends ``time_estimate`` time on each page.
-
-        render_page :
-            Whether to run page rendering code (default: False).
-            This is generally only useful for testing.
-        """
-        logger.info(f"Bot {self.id} is starting the experiment.")
-        self.run_to_completion(time_factor, render_pages)
+    def take_experiment(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Bot.take_experiment has now been removed. "
+            "Please use Experiment.run_bot instead."
+        )
 
     def run_to_completion(self, time_factor=0, render_pages: bool = False):
         # We tried the following code to simulate the Flask server and thereby
@@ -163,90 +152,11 @@ class Bot(Participant):
 
         return stats
 
-    # In a real launched experiment, taking a page involves a single HTTP request that is wrapped in a transaction.
-    # We therefore do the same here, to ensure that the bot's behavior is as close as possible to that of a real
-    # participant.
-    def take_page(
-        self, page=None, time_factor=0, response=NoArgumentProvided, render_page=False
-    ):
-        from .page import WaitPage
-
-        if render_page:
-            db.session.commit()  # Make sure that any local changes to the participant are visible to the server
-            req = requests.get(
-                f"http://localhost:5000/timeline?unique_id={self.unique_id}"
-            )
-            assert req.status_code == 200
-            db.session.commit()  # Make sure any server-side changes are visible to us
-
-        # We used to wrap the following passage in a big ``with transaction()` block.
-        # However this only worked because our original ``with transaction()`` code
-        # did not actually create a proper transaction, it just wrapped the code with commits.
-        # When we updated the ``with transaction()`` code to actually create a transaction,
-        # we experienced problems with nested transactions. For now we have removed this context handler,
-        # therefore, but soon we will rewrite this testing code completely to make it more principled.
-
-        # Locks the present participant row
-        self = (
-            self.__class__.query.with_for_update(of=self.__class__)
-            .populate_existing()
-            .get(self.id)
+    def take_page(self, *args, **kwargs):
+        raise NotImplementedError(
+            "Bot.take_page has now been removed. "
+            "Please use Experiment.take_page instead."
         )
-
-        start_time = time.monotonic()
-
-        if page is None:
-            page = self.get_current_page()
-
-        bot = self
-        experiment = self.experiment
-        assert isinstance(page, Page)
-
-        sleep_time = page.time_estimate * time_factor
-
-        if sleep_time == 0 and isinstance(page, WaitPage):
-            sleep_time = 0.5
-
-        if sleep_time > 0:
-            time.sleep(sleep_time)
-
-        response = page.call__bot_response(experiment, bot, response)
-
-        if "time_taken" not in response.metadata:
-            response.metadata["time_taken"] = sleep_time
-
-        try:
-            experiment.process_response(
-                participant_id=self.id,
-                raw_answer=response.raw_answer,
-                blobs=response.blobs,
-                metadata=response.metadata,
-                page_uuid=self.page_uuid,
-                client_ip_address=response.client_ip_address,
-                answer=response.answer,
-            )
-        except RuntimeError as err:
-            if "Working outside of request context" in str(err):
-                err.args = (
-                    err.args[0]
-                    + "\n\nNote: The 'working outside of request context' error can usually be ignored "
-                    "during testing as it typically comes from Flask trying to construct an "
-                    "error page without a valid request context. The real error probably "
-                    "happened earlier though.",
-                )
-            raise
-
-        self.page_count += 1
-
-        db.session.commit()
-
-        end_time = time.monotonic()
-        processing_time = end_time - start_time - sleep_time
-
-        return {
-            "sleep_time": sleep_time,
-            "processing_time": processing_time,
-        }
 
     def submit_response(self, response=NoArgumentProvided):
         page = self.get_current_page()

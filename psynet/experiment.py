@@ -26,6 +26,7 @@ import dallinger.models
 import flask
 import pexpect
 import psutil
+import requests
 import rpdb
 import sqlalchemy.orm.exc
 from click import Context
@@ -72,7 +73,7 @@ from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
 from .bot import Bot
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
-from .db import with_transaction
+from .db import transaction, with_transaction
 from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
@@ -1404,23 +1405,127 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def _test_experiment_serial(self):
         logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
-        bots = [Bot() for _ in range(self.test_n_bots)]
-        self.test_serial_run_bots(bots)
+
         self.test_check_bots(bots)
 
-    def test_serial_run_bots(self, bots):
-        for bot in bots:
-            db.session.add(bot)  # Protects against DetachedInstanceErrors
-            self.run_bot(bot)
+    def _create_bots(self):
+        with transaction():
+            for _ in range(self.test_n_bots):
+                bot = Bot()
+                db.session.add(bot)
 
-    def run_bot(self, bot):
-        time_factor = float(self.test_real_time)
-        if time_factor > 0:
-            warnings.warn(
-                "Real-time mode doesn't seem to work well at present; take results with a pinch of salt.",
-                DeprecationWarning,
+    def test_serial_run_bots(self, bots):
+        for i in range(self.test_n_bots):
+            bot_id = i + 1
+            self.run_bot(bot_id)
+
+    def run_bot(
+            self,
+            bot_id: int,
+            render_pages: bool = True,
+            time_factor: float = 0.0,
+    ):
+        # We intend that this function can be used to test either a local or a remote server.
+        # We therefore use HTTP requests to interact with the server, rather than calling functions directly.
+        if isinstance(bot_id, Bot):
+            raise NotImplementedError(
+                "Experiment.run_bot now takes a bot_id, not a bot object. "
+                "Please update your code accordingly, and consider double-checking whether "
+                "there are other updates you need to make to your testing code to reflect the "
+                "current PsyNet version."
             )
-        bot.take_experiment(render_pages=True, time_factor=time_factor)
+
+        # TODO - where does self.test_real_time get used?
+        # time_factor = float(self.test_real_time)
+
+        # We use these to track processing statistics throughout the experiment.
+        n_pages = 0
+        page_processing_times = []
+        page_total_times = []
+
+        url = get_experiment_url()
+        config = get_config()
+        dashboard_user = config.get("dashboard_user")
+        dashboard_password = config.get("dashboard_password")
+
+        with transaction(commit=False):
+            bot_unique_id = Bot.query.filter_by(id=bot_id).with_entities(Bot.unique_id).scalar()
+
+        while True:
+            page_time_started = time.monotonic()
+
+            # The /bot route gives general information about the bot's stage and the current page
+            bot_status = requests.get(f"{url}/bot/{bot_id}", auth=(dashboard_user, dashboard_password))
+            bot_status.raise_for_status()
+            bot_status = bot_status.json()
+
+            if render_pages:
+                # Make an HTTP request to the server's /timeline route to get the current page.
+                # -- Actually, does this really need to be an HTTP request?
+                # -- should it just be a function call?
+                # -- The good thing about an HTTP request is that we can use it to test remote servers
+                # -- too, which is pretty useful.
+                # well, maybe it's good for the testing to be as life-like as possible.
+                # We don't actually need this to progress the run_bot logic, but in a testing context
+                # it's good to verify that the code works without throwing errors.
+
+                # The /timeline route generates the page's HTML.
+                requests.get(f"{url}/timeline", params={"unique_id": bot_unique_id}).raise_for_status()
+
+            if bot_status["page"]["has_bot_response_media"]:
+                # Download the bot_response_media from /bot/bot_id/bot_response_media
+                raise NotImplementedError("TODO")
+
+            sleep_duration = bot_status["page"]["time_estimate"] * time_factor
+
+            # This logic means that the total duration spent on the page should correspond accurately to
+            # time_estimate, even if downloading the bot_response_media takes a while.
+            wake_time = page_time_started + sleep_duration
+            remaining_sleep_duration = wake_time - time.monotonic()
+
+            time.sleep(remaining_sleep_duration)
+
+            # Make another HTTP request to submit the bot's response to the server.
+            raise NotImplementedError("TODO")
+
+            page_time_finished = time.monotonic()
+            page_total_time = page_time_finished - page_time_started
+            page_total_times.append(page_total_time)
+
+        self._report_run_bot_stats(bot_id, n_pages, page_processing_times, page_total_times)
+
+
+    def _report_run_bot_stats(self, bot_id: int, n_pages: int, page_processing_times: List[float], page_total_times: List[float]):
+        with transaction(commit=False):
+            bot_creation_time, page_count, progress, total_wait_page_time = (
+                db.session.query(Bot)
+                .filter_by(id=bot_id)
+                .with_entities(Bot.creation_time, Bot.page_count, Bot.progress, Bot.total_wait_page_time)
+                .one()
+            )
+
+        total_experiment_time = (datetime.now() - bot_creation_time).total_seconds()
+
+        if len(page_processing_times) > 0:
+            mean_page_processing_time = mean(page_processing_times)
+        else:
+            mean_page_processing_time = None
+
+        stats = {
+            "page_count": self.page_count,
+            "progress": self.progress,
+            "mean_page_processing_time": mean_page_processing_time,
+            "total_wait_page_time": self.total_wait_page_time,
+            "total_experiment_time": total_experiment_time,
+        }
+
+        logger.info(
+            f"Bot {self.id} has finished the experiment (took {stats['page_count']} page(s), "
+            f"progress = {100 * stats['progress']:.0f}%, "
+            f"mean processing time per page = {stats['mean_page_processing_time']:.3f} seconds, "
+            f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
+            f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
+        )
 
     def test_check_bots(self, bots: List[Bot]):
         for b in bots:
