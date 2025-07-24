@@ -153,16 +153,17 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         from markupsafe import Markup
 
         _p = get_translator(context=True)
+        enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
+        enable_screen_out = get_config().get("prolific_enable_screen_out")
 
         logic_screen_out_successful = InfoPage(
             Markup(
                 _p(
                     "screen_out_successful",
-                    "Success! "
                     "You have been credited for the time spent on the experiment.<br>"
                     "Because you could not progress to the main experiment "
                     "your submission will appear as 'screened out' in Prolific. "
-                    "You can now close this browser window."
+                    "<br><br>You can now close this browser window."
                     '<br><br><p><button onclick="window.close()" class="btn btn-primary">Close</button></p>',
                 )
             ),
@@ -212,17 +213,44 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 )
             ),
             InfoPage(
-                _p(
-                    "screen_out_successful_message",
-                    "Success! "
-                    "You have been credited for the time spent on the experiment. "
-                    "You can now close this browser window.",
+                Markup(
+                    _p(
+                        "screen_out_successful_message",
+                        "You have been credited for the time spent on the experiment. "
+                        "<br><br>You can now close this browser window."
+                        '<br><br><p><button onclick="window.close()" class="btn btn-primary">Close</button></p>',
+                    )
                 ),
                 show_next_button=False,
                 time_estimate=0.0,
             ),
         )
 
+        logic_return_and_message_experimenter = InfoPage(
+            Markup(
+                _p(
+                    "screen_out_return_and_message_experimenter",
+                    "We are sorry that you could not proceed to the main experiment. "
+                    "To receive this payment for your time, please return your submission in Prolific "
+                    "and send a message to the experimenter via the Prolific messaging system. "
+                    "The experimenter will review your case and arrange payment if appropriate. "
+                    "Thank you for your understanding."
+                    "<br><br>You can now close this browser window."
+                    '<br><br><p><button onclick="window.close()" class="btn btn-primary">Close</button></p>',
+                )
+            ),
+            show_next_button=False,
+            time_estimate=0.5,
+        )
+
+        # If screen out is disabled, skip the screen out attempt
+        if not enable_screen_out:
+            if enable_return_for_bonus:
+                return logic_screen_out_unsuccessful
+            else:
+                return logic_return_and_message_experimenter
+
+        # If screen out is enabled, proceed with the original logic
         return join(
             AsyncCodeBlock(
                 _screen_out_participant,

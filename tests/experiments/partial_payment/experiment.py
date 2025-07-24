@@ -47,6 +47,7 @@ class Exp(psynet.experiment.Experiment):
         "wage_per_hour": 10.0,
         "prolific_workspace": "test_workspace",
         "prolific_project": "test_project",
+        "prolific_enable_screen_out": True,
     }
 
     test_n_bots = 3

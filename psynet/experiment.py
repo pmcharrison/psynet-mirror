@@ -1829,6 +1829,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_accumulated_reward_for_abort": 0.20,
             "min_browser_version": "80.0",
             "prolific_is_custom_screening": False,
+            "prolific_enable_return_for_bonus": True,
+            "prolific_enable_screen_out": False,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
@@ -2785,6 +2787,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             assert value in ["light", "dark", "auto"]
 
         config.register("color_mode", unicode, validators=[color_mode_validator])
+
+        config.register("prolific_enable_return_for_bonus", bool)
+        config.register("prolific_enable_screen_out", bool)
 
     @dashboard_tab("Export")
     @classmethod

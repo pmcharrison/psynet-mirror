@@ -407,6 +407,14 @@ Prolific
 
     The default (``v1``) is defined in *global_config_defaults.txt*.
 
+``prolific_enable_screen_out`` *bool* |psynet-icon|
+    If ``True``, participants who fail prescreening will be marked as 'screened_out' in Prolific. Default: ``False``.
+
+``prolific_enable_return_for_bonus`` *bool* |psynet-icon|
+    If ``True``, participants are eligible for a bonus and are asked to return their submission for bonus payment.
+    If ``False``, they are asked to return the submission and message the experimenter for their payment.
+    Default: ``True``.
+
 ``prolific_estimated_completion_minutes`` *int* |dlgr-icon|
     Estimated duration in minutes of the experiment or survey.
 
