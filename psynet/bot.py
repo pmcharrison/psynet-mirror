@@ -9,7 +9,6 @@ from cached_property import cached_property
 from dallinger import db
 from sqlalchemy import Column, Integer
 
-from .db import transaction
 from .participant import Participant
 from .timeline import Page
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
@@ -180,58 +179,66 @@ class Bot(Participant):
             assert req.status_code == 200
             db.session.commit()  # Make sure any server-side changes are visible to us
 
-        with transaction():
-            # Locks the present participant row
-            self = (
-                self.__class__.query.with_for_update(of=self.__class__)
-                .populate_existing()
-                .get(self.id)
+        # We used to wrap the following passage in a big ``with transaction()` block.
+        # However this only worked because our original ``with transaction()`` code
+        # did not actually create a proper transaction, it just wrapped the code with commits.
+        # When we updated the ``with transaction()`` code to actually create a transaction,
+        # we experienced problems with nested transactions. For now we have removed this context handler,
+        # therefore, but soon we will rewrite this testing code completely to make it more principled.
+
+        # Locks the present participant row
+        self = (
+            self.__class__.query.with_for_update(of=self.__class__)
+            .populate_existing()
+            .get(self.id)
+        )
+
+        start_time = time.monotonic()
+
+        if page is None:
+            page = self.get_current_page()
+
+        bot = self
+        experiment = self.experiment
+        assert isinstance(page, Page)
+
+        sleep_time = page.time_estimate * time_factor
+
+        if sleep_time == 0 and isinstance(page, WaitPage):
+            sleep_time = 0.5
+
+        if sleep_time > 0:
+            time.sleep(sleep_time)
+
+        response = page.call__bot_response(experiment, bot, response)
+
+        if "time_taken" not in response.metadata:
+            response.metadata["time_taken"] = sleep_time
+
+        try:
+            experiment.process_response(
+                participant_id=self.id,
+                raw_answer=response.raw_answer,
+                blobs=response.blobs,
+                metadata=response.metadata,
+                page_uuid=self.page_uuid,
+                client_ip_address=response.client_ip_address,
+                answer=response.answer,
             )
-
-            start_time = time.monotonic()
-
-            if page is None:
-                page = self.get_current_page()
-
-            bot = self
-            experiment = self.experiment
-            assert isinstance(page, Page)
-
-            sleep_time = page.time_estimate * time_factor
-
-            if sleep_time == 0 and isinstance(page, WaitPage):
-                sleep_time = 0.5
-
-            if sleep_time > 0:
-                time.sleep(sleep_time)
-
-            response = page.call__bot_response(experiment, bot, response)
-
-            if "time_taken" not in response.metadata:
-                response.metadata["time_taken"] = sleep_time
-
-            try:
-                experiment.process_response(
-                    participant_id=self.id,
-                    raw_answer=response.raw_answer,
-                    blobs=response.blobs,
-                    metadata=response.metadata,
-                    page_uuid=self.page_uuid,
-                    client_ip_address=response.client_ip_address,
-                    answer=response.answer,
+        except RuntimeError as err:
+            if "Working outside of request context" in str(err):
+                err.args = (
+                    err.args[0]
+                    + "\n\nNote: The 'working outside of request context' error can usually be ignored "
+                    "during testing as it typically comes from Flask trying to construct an "
+                    "error page without a valid request context. The real error probably "
+                    "happened earlier though.",
                 )
-            except RuntimeError as err:
-                if "Working outside of request context" in str(err):
-                    err.args = (
-                        err.args[0]
-                        + "\n\nNote: The 'working outside of request context' error can usually be ignored "
-                        "during testing as it typically comes from Flask trying to construct an "
-                        "error page without a valid request context. The real error probably "
-                        "happened earlier though.",
-                    )
-                raise
+            raise
 
         self.page_count += 1
+
+        db.session.commit()
 
         end_time = time.monotonic()
         processing_time = end_time - start_time - sleep_time
