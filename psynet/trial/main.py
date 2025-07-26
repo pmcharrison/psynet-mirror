@@ -712,7 +712,13 @@ class Trial(SQLMixinDallinger, Info):
         try:
             self.async_post_trial()
         except Exception:
+            # A failed async_post_trial method might introduce inconsistencies into the database
+            # that we don't want to persist. We roll these back so that we revert to the state
+            # before the method was called. However, we do need to record that the method failed,
+            # so we set the async_post_trial_failed flag to True.
+            db.session.rollback()
             self.async_post_trial_failed = True
+            db.session.commit()
             raise
         self.async_post_trial_complete = True
         self.check_if_can_mark_as_finalized()
