@@ -25,12 +25,16 @@ class Exp(psynet.experiment.Experiment):
             "name",
             "Please speak your name into the microphone.",
             AudioRecordControl(
-                bot_response_media=lambda bot: generate_text_file(f"I am bot {bot.id}!")
+                duration=5.0,
+                bot_response_media=lambda bot: generate_text_file(
+                    f"I am bot {bot.id}!"
+                ),
             ),
             time_estimate=5,
         ),
         ModularPage(
             "screen_recording",
+            "We'll now make a recording of your screen and camera.",
             VideoRecordControl(
                 duration=5.0,
                 recording_source="both",
@@ -45,6 +49,7 @@ class Exp(psynet.experiment.Experiment):
                     ),
                 },
             ),
+            time_estimate=5,
         ),
     )
 
