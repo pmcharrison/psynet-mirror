@@ -3732,6 +3732,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def handle_error(cls, error, **kwargs):
+        # We rollback to remove any pending changes to the database.
+        db.session.rollback()
         parents = cls._compile_error_parents(**kwargs)
         cls.report_error(error, **parents)
         return cls.HandledError(**parents)
@@ -3775,9 +3777,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         **kwargs,
     ):
         token = cls.generate_error_token()
+
+        try:
+            log_line_number = find_log_line_number(token)
+        except FileNotFoundError:
+            log_line_number = None
+
         cls.log_to_stdout(error, token, **kwargs)
-        record = cls.log_to_db(error, token, **kwargs)
-        cls.log_to_notifier(record, token, **kwargs)
+        cls.log_to_db(error, token, log_line_number, **kwargs)
+        cls.log_to_notifier(token, log_line_number, **kwargs)
 
     @classmethod
     def generate_error_token(cls):
@@ -3797,13 +3805,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         print("\n")
 
     @classmethod
-    @with_transaction
-    def log_to_db(cls, error, token, **kwargs):
+    def log_to_db(cls, error, token, log_line_number, **kwargs):
+        # We considered running this function within its own database session,
+        # but this proved incompatible with passing pre-existing SQLAlchemy objects
+        # to the ErrorRecord constructor.
         trace = traceback.format_exc()
-        try:
-            log_line_number = find_log_line_number(token)
-        except FileNotFoundError:
-            log_line_number = 0
         record = ErrorRecord(
             error=error,
             traceback=trace,
@@ -3812,18 +3818,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             **kwargs,
         )
         db.session.add(record)
-        return record
+        # We don't normally write session.commit() within inner code,
+        # but we do here, because we really want to make sure error reporting works.
+        db.session.commit()
 
     @classmethod
-    def log_to_notifier(cls, record, token, **kwargs):
-        line_number = record.log_line_number
-        start = max(0, line_number - 10)
-        end = line_number + 10
+    def log_to_notifier(cls, token, line_number, **kwargs):
+        url = cls.dashboard_url + "/logger"
 
-        url = (
-            cls.dashboard_url
-            + f"/logger?highlight={line_number}&start={start}&end={end}"
-        )
+        if line_number is not None:
+            start = max(0, line_number - 10)
+            end = line_number + 10
+
+            url += f"?highlight={line_number}&start={start}&end={end}"
+
         error_txt = f"error (`{token}`)"
         text = f"An {cls.notifier.url(error_txt, url)} occurred:"
         text += "\n```" + traceback.format_exc() + "```"
