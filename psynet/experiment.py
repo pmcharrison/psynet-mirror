@@ -12,6 +12,7 @@ import traceback
 import uuid
 import zipfile
 from collections import Counter, OrderedDict
+from contextlib import ExitStack
 from datetime import datetime, timedelta
 from importlib import resources
 from os.path import abspath, dirname, exists
@@ -1440,7 +1441,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # We use these to track processing statistics throughout the experiment.
         n_pages = 0
         page_processing_times = []
-        page_total_times = []
 
         url = get_experiment_url()
         config = get_config()
@@ -1455,123 +1455,162 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         while True:
             page_time_started = time.monotonic()
 
-            # The /bot_status route returns a zip file that contains the following:
-            # - bot_status.json
-            # - bot_response_files/... (optional)
-            # The bot_response_files correspond to files that the participant would upload as a response to the page.
-            #
-            # Originally we considered having a separate route for bot_response_files,
-            # but this would be problematic if the get_bot_response function is stochastic,
-            # as we'd lose the dependency between bot_response.json and bot_response_files.
-            response = requests.get(
-                f"{url}/bot/{bot_id}", auth=(dashboard_user, dashboard_password)
-            )
-            response.raise_for_status()
-
-            bot_response_files = {}
-
             with tempfile.TemporaryDirectory() as bot_tempdir:
-                with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
-                    with zf.open("bot_status.json") as f:
-                        bot_status = json.load(f)
-
-                    for name in zf.namelist():
-                        if name.startswith("bot_response_files/") and not name.endswith(
-                            "/"
-                        ):
-                            zf.extract(name, bot_tempdir)
-                            bot_response_files[name] = os.path.join(bot_tempdir, name)
-
-            if not bot_status["status"] == "working":
-                break
-
-            if render_pages:
-
-                # The /timeline route generates the page's HTML.
-                requests.get(
-                    f"{url}/timeline", params={"unique_id": bot_unique_id}
-                ).raise_for_status()
-
-            sleep_duration = bot_status["page"]["time_estimate"] * time_factor
-
-            # This logic means that the total duration spent on the page should correspond accurately to
-            # time_estimate, even if downloading the bot_response_media takes a while.
-            wake_time = page_time_started + sleep_duration
-            remaining_sleep_duration = wake_time - time.monotonic()
-
-            time.sleep(remaining_sleep_duration)
-
-            # Make another HTTP request to submit the bot's response to the server.
-            submission_data = {
-                "participant_id": bot_id,
-                "page_uuid": bot_status["page_uuid"],
-                "raw_answer": json.dumps(
-                    bot_status["page"]["bot_response"]["raw_answer"]
-                ),
-                "metadata": json.dumps(bot_status["page"]["bot_response"]["metadata"]),
-            }
-            from contextlib import ExitStack
-
-            with ExitStack() as stack:
-                files = {}
-                for key, path in bot_response_files.items():
-                    file_obj = stack.enter_context(open(path, "rb"))
-                    files[key] = (os.path.basename(path), file_obj)
-                requests.post(
-                    f"{url}/response",
-                    data=submission_data,
-                    files=files,
+                bot_status, bot_response_files = self._fetch_bot_status_and_files(
+                    bot_id, url, dashboard_user, dashboard_password, bot_tempdir
                 )
+                if not bot_status["status"] == "working":
+                    break
+                time_estimate = bot_status["page"]["time_estimate"]
 
-            page_time_finished = time.monotonic()
-            page_total_time = page_time_finished - page_time_started
-            page_total_times.append(page_total_time)
+                self._render_page_if_needed(url, bot_unique_id, render_pages)
+                self._simulate_page_time(page_time_started, time_estimate, time_factor)
+                self._submit_bot_response(url, bot_id, bot_status, bot_response_files)
 
         self._report_run_bot_stats(
-            bot_id, n_pages, page_processing_times, page_total_times
+            bot_id,
+            n_pages,
+            page_processing_times,
         )
+
+    def _fetch_bot_status_and_files(
+        self, bot_id, url, dashboard_user, dashboard_password, tempdir
+    ):
+        """Fetches the bot status and any associated response files, extracting them to tempdir.
+
+        Parameters
+        ----------
+        bot_id : int
+            The ID of the bot.
+        url : str
+            The base URL of the experiment server.
+        dashboard_user : str
+            Dashboard username for authentication.
+        dashboard_password : str
+            Dashboard password for authentication.
+        tempdir : str
+            Path to a temporary directory for extracting files.
+
+        Returns
+        -------
+        tuple
+            (bot_status, bot_response_files)
+            bot_status: dict parsed from bot_status.json
+            bot_response_files: dict mapping file keys to file paths
+        """
+        response = requests.get(
+            f"{url}/bot/{bot_id}", auth=(dashboard_user, dashboard_password)
+        )
+        response.raise_for_status()
+
+        bot_response_files = {}
+
+        with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+            with zf.open("bot_status.json") as f:
+                bot_status = json.load(f)
+
+            for name in zf.namelist():
+                if name.startswith("bot_response_files/") and not name.endswith("/"):
+                    zf.extract(name, tempdir)
+                    bot_response_files[name] = os.path.join(tempdir, name)
+
+        return bot_status, bot_response_files
+
+    def _render_page_if_needed(self, url, bot_unique_id, render_pages):
+        """Render the current page for the bot if render_pages is True.
+
+        Parameters
+        ----------
+        url : str
+            The base URL of the experiment server.
+        bot_unique_id : str
+            The unique_id of the bot.
+        render_pages : bool
+            Whether to render the page.
+        """
+        if render_pages:
+            requests.get(
+                f"{url}/timeline", params={"unique_id": bot_unique_id}
+            ).raise_for_status()
+
+    def _simulate_page_time(self, page_time_started, time_estimate, time_factor):
+        """Sleep so that the total time spent on the page matches the simulated duration.
+
+        Parameters
+        ----------
+        page_time_started : float
+            The time the page started (from time.monotonic()).
+        time_estimate : float
+            The estimated time for the page.
+        time_factor : float
+            The factor to multiply the time_estimate by for simulation.
+        """
+        sleep_duration = time_estimate * time_factor
+        wake_time = page_time_started + sleep_duration
+        remaining_sleep_duration = wake_time - time.monotonic()
+        time.sleep(remaining_sleep_duration)
+
+    def _submit_bot_response(self, url, bot_id, bot_status, bot_response_files):
+        """Submit the bot's response to the server.
+
+        Parameters
+        ----------
+        url : str
+            The base URL of the experiment server.
+        bot_id : int
+            The ID of the bot.
+        bot_status : dict
+            The status dictionary for the bot.
+        bot_response_files : dict
+            Mapping of file keys to file paths.
+        """
+        submission_data = {
+            "participant_id": bot_id,
+            "page_uuid": bot_status["page_uuid"],
+            "raw_answer": json.dumps(bot_status["page"]["bot_response"]["raw_answer"]),
+            "metadata": json.dumps(bot_status["page"]["bot_response"]["metadata"]),
+        }
+        # Use ExitStack to manage the context of multiple opened files for upload.
+        with ExitStack() as stack:
+            files = {}
+            for key, path in bot_response_files.items():
+                file_obj = stack.enter_context(open(path, "rb"))
+                files[key] = (os.path.basename(path), file_obj)
+            requests.post(
+                f"{url}/response",
+                data=submission_data,
+                files=files,
+            )
 
     def _report_run_bot_stats(
         self,
         bot_id: int,
-        n_pages: int,
-        page_processing_times: List[float],
-        page_total_times: List[float],
     ):
         with transaction(commit=False):
-            bot_creation_time, page_count, progress, total_wait_page_time = (
+            page_count, progress, total_wait_page_time, total_experiment_time = (
                 db.session.query(Bot)
                 .filter_by(id=bot_id)
                 .with_entities(
-                    Bot.creation_time,
                     Bot.page_count,
                     Bot.progress,
                     Bot.total_wait_page_time,
+                    (func.now() - Bot.creation_time).label("total_experiment_time"),
                 )
                 .one()
             )
 
-        total_experiment_time = (datetime.now() - bot_creation_time).total_seconds()
-
-        if len(page_processing_times) > 0:
-            mean_page_processing_time = mean(page_processing_times)
-        else:
-            mean_page_processing_time = None
-
         stats = {
-            "page_count": self.page_count,
-            "progress": self.progress,
-            "mean_page_processing_time": mean_page_processing_time,
-            "total_wait_page_time": self.total_wait_page_time,
+            "page_count": page_count,
+            "progress": progress,
+            "total_wait_page_time": total_wait_page_time,
             "total_experiment_time": total_experiment_time,
         }
 
         logger.info(
             f"Bot {self.id} has finished the experiment (took {stats['page_count']} page(s), "
             f"progress = {100 * stats['progress']:.0f}%, "
-            f"mean processing time per page = {stats['mean_page_processing_time']:.3f} seconds, "
             f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
-            f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
+            f"total experiment time = {stats['total_experiment_time'].total_seconds():.3f} seconds)."
         )
 
     def test_check_bots(self, bots: List[Bot]):
