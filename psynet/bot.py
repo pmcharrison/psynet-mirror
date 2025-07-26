@@ -1,16 +1,15 @@
+import json
 import time
 import uuid
 from datetime import datetime
 from statistics import mean
 from typing import List
 
-import requests
 from cached_property import cached_property
 from dallinger import db
 from sqlalchemy import Column, Integer
 
 from .participant import Participant
-from .timeline import Page
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
 
 logger = get_logger()
@@ -227,6 +226,17 @@ class BotResponse:
         self.metadata = metadata
         self.blobs = blobs
         self.client_ip_address = client_ip_address
+
+    def __json__(self):
+        return {
+            "raw_answer": self.raw_answer,
+            "answer": self.answer,
+            "metadata": self.metadata,
+            "blobs": {key: value.__json__() for key, value in self.blobs.items()},
+        }
+
+    def to_json(self):
+        return json.dumps(self.__json__())
 
 
 def advance_past_wait_pages(bots: List[Bot], max_iterations=10):

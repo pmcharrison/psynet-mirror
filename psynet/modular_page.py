@@ -39,6 +39,9 @@ class Blob:
     def save(self, dest):
         shutil.copyfile(self.file, dest)
 
+    def __json__(self):
+        return self.file
+
 
 class Prompt:
     """

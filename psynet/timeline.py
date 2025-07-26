@@ -993,7 +993,7 @@ class Page(Elt):
             res = self._bot_response
 
         if not isinstance(res, BotResponse):
-            res = BotResponse(answer=res)
+            res = BotResponse(raw_answer=res)
 
         return res
 

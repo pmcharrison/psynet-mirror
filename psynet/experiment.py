@@ -1,4 +1,5 @@
 import configparser
+import io
 import json
 import os
 import re
@@ -9,7 +10,7 @@ import tempfile
 import time
 import traceback
 import uuid
-import warnings
+import zipfile
 from collections import Counter, OrderedDict
 from datetime import datetime, timedelta
 from importlib import resources
@@ -56,6 +57,7 @@ from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file
+from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
@@ -1406,7 +1408,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _test_experiment_serial(self):
         logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
 
-        self.test_check_bots(bots)
+        self.test_check_bots()
 
     def _create_bots(self):
         with transaction():
@@ -1420,10 +1422,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.run_bot(bot_id)
 
     def run_bot(
-            self,
-            bot_id: int,
-            render_pages: bool = True,
-            time_factor: float = 0.0,
+        self,
+        bot_id: int,
+        render_pages: bool = True,
+        time_factor: float = 0.0,
     ):
         # We intend that this function can be used to test either a local or a remote server.
         # We therefore use HTTP requests to interact with the server, rather than calling functions directly.
@@ -1434,9 +1436,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "there are other updates you need to make to your testing code to reflect the "
                 "current PsyNet version."
             )
-
-        # TODO - where does self.test_real_time get used?
-        # time_factor = float(self.test_real_time)
 
         # We use these to track processing statistics throughout the experiment.
         n_pages = 0
@@ -1449,58 +1448,106 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         dashboard_password = config.get("dashboard_password")
 
         with transaction(commit=False):
-            bot_unique_id = Bot.query.filter_by(id=bot_id).with_entities(Bot.unique_id).scalar()
+            bot_unique_id = (
+                Bot.query.filter_by(id=bot_id).with_entities(Bot.unique_id).scalar()
+            )
 
         while True:
             page_time_started = time.monotonic()
 
-            # The /bot route gives general information about the bot's stage and the current page
-            bot_status = requests.get(f"{url}/bot/{bot_id}", auth=(dashboard_user, dashboard_password))
-            bot_status.raise_for_status()
-            bot_status = bot_status.json()
+            # The /bot_status route returns a zip file that contains the following:
+            # - bot_status.json
+            # - bot_response_files/... (optional)
+            # The bot_response_files correspond to files that the participant would upload as a response to the page.
+            #
+            # Originally we considered having a separate route for bot_response_files,
+            # but this would be problematic if the get_bot_response function is stochastic,
+            # as we'd lose the dependency between bot_response.json and bot_response_files.
+            response = requests.get(
+                f"{url}/bot/{bot_id}", auth=(dashboard_user, dashboard_password)
+            )
+            response.raise_for_status()
+
+            bot_response_files = {}
+
+            with tempfile.TemporaryDirectory() as bot_tempdir:
+                with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+                    with zf.open("bot_status.json") as f:
+                        bot_status = json.load(f)
+
+                    for name in zf.namelist():
+                        if name.startswith("bot_response_files/") and not name.endswith(
+                            "/"
+                        ):
+                            zf.extract(name, bot_tempdir)
+                            bot_response_files[name] = os.path.join(bot_tempdir, name)
+
+            if not bot_status["status"] == "working":
+                break
 
             if render_pages:
-                # Make an HTTP request to the server's /timeline route to get the current page.
-                # -- Actually, does this really need to be an HTTP request?
-                # -- should it just be a function call?
-                # -- The good thing about an HTTP request is that we can use it to test remote servers
-                # -- too, which is pretty useful.
-                # well, maybe it's good for the testing to be as life-like as possible.
-                # We don't actually need this to progress the run_bot logic, but in a testing context
-                # it's good to verify that the code works without throwing errors.
 
-                # The /timeline route generates the page's HTML.
-                requests.get(f"{url}/timeline", params={"unique_id": bot_unique_id}).raise_for_status()
-
-            if bot_status["page"]["has_bot_response_media"]:
-                # Download the bot_response_media from /bot/bot_id/bot_response_media
-                raise NotImplementedError("TODO")
+                # The /timeline route generates the page's HTML.
+                requests.get(
+                    f"{url}/timeline", params={"unique_id": bot_unique_id}
+                ).raise_for_status()
 
             sleep_duration = bot_status["page"]["time_estimate"] * time_factor
 
             # This logic means that the total duration spent on the page should correspond accurately to
-            # time_estimate, even if downloading the bot_response_media takes a while.
+            # time_estimate, even if downloading the bot_response_media takes a while.
             wake_time = page_time_started + sleep_duration
             remaining_sleep_duration = wake_time - time.monotonic()
 
             time.sleep(remaining_sleep_duration)
 
             # Make another HTTP request to submit the bot's response to the server.
-            raise NotImplementedError("TODO")
+            submission_data = {
+                "participant_id": bot_id,
+                "page_uuid": bot_status["page_uuid"],
+                "raw_answer": json.dumps(
+                    bot_status["page"]["bot_response"]["raw_answer"]
+                ),
+                "metadata": json.dumps(bot_status["page"]["bot_response"]["metadata"]),
+            }
+            from contextlib import ExitStack
+
+            with ExitStack() as stack:
+                files = {}
+                for key, path in bot_response_files.items():
+                    file_obj = stack.enter_context(open(path, "rb"))
+                    files[key] = (os.path.basename(path), file_obj)
+                requests.post(
+                    f"{url}/response",
+                    data=submission_data,
+                    files=files,
+                )
 
             page_time_finished = time.monotonic()
             page_total_time = page_time_finished - page_time_started
             page_total_times.append(page_total_time)
 
-        self._report_run_bot_stats(bot_id, n_pages, page_processing_times, page_total_times)
+        self._report_run_bot_stats(
+            bot_id, n_pages, page_processing_times, page_total_times
+        )
 
-
-    def _report_run_bot_stats(self, bot_id: int, n_pages: int, page_processing_times: List[float], page_total_times: List[float]):
+    def _report_run_bot_stats(
+        self,
+        bot_id: int,
+        n_pages: int,
+        page_processing_times: List[float],
+        page_total_times: List[float],
+    ):
         with transaction(commit=False):
             bot_creation_time, page_count, progress, total_wait_page_time = (
                 db.session.query(Bot)
                 .filter_by(id=bot_id)
-                .with_entities(Bot.creation_time, Bot.page_count, Bot.progress, Bot.total_wait_page_time)
+                .with_entities(
+                    Bot.creation_time,
+                    Bot.page_count,
+                    Bot.progress,
+                    Bot.total_wait_page_time,
+                )
                 .one()
             )
 
@@ -3796,6 +3843,53 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         experiment = get_experiment()
 
         return cls._route_timeline(experiment, participant, mode)
+
+    @experiment_route("/bot/<bot_id>", methods=["GET"])
+    @classmethod
+    @login_required
+    @with_transaction
+    def route_bot(cls, bot_id):
+        bot = Bot.query.get(bot_id)
+        experiment = get_experiment()
+
+        status = {"status": bot.status}
+
+        if bot.status == "working":
+            current_page = bot.get_current_page()
+            bot_response = current_page.get_bot_response(experiment, bot)
+            status["page"] = {
+                "time_estimate": current_page.time_estimate,
+                "bot_response": bot_response.__json__(),
+            }
+        else:
+            bot_response = None
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            # bot_status.json (a JSON file summarising the bot's status)
+            status_path = os.path.join(tempdir, "bot_status.json")
+            with open(status_path, "w") as f:
+                json.dump(status, f)
+
+            # bot_response_files/... (the files that the participant would upload as a response to the page)
+            files_dir = os.path.join(tempdir, "bot_response_files")
+            os.makedirs(files_dir, exist_ok=True)
+            for key, src_path in bot_response.blobs.items():
+                dst_path = os.path.join(files_dir, key)
+                shutil.copyfile(src_path, dst_path)
+
+            # bot_status.zip (a zip file containing the bot_status.json and the bot_response_files)
+            zip_path = os.path.join(tempdir, "bot_status.zip")
+            with zipfile.ZipFile(zip_path, "w") as zf:
+                zf.write(status_path, "bot_status.json")
+
+                if bot_response:
+                    for filename in bot_response.blobs:
+                        zf.write(
+                            os.path.join(files_dir, filename),
+                            os.path.join("bot_response_files", filename),
+                        )
+
+            return send_file(zip_path, mimetype="application/zip")
 
     @classmethod
     def fail_participant_on_error(cls, participant, error):
