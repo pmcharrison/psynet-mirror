@@ -14,6 +14,7 @@ import zipfile
 from collections import Counter, OrderedDict
 from contextlib import ExitStack
 from datetime import datetime, timedelta
+from functools import cached_property
 from importlib import resources
 from os.path import abspath, dirname, exists
 from os.path import join as join_path
@@ -117,6 +118,7 @@ from .utils import (
     call_function_with_context,
     disable_logger,
     get_arg_from_dict,
+    get_authenticated_session,
     get_logger,
     get_translator,
     log_time_taken,
@@ -537,6 +539,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         self.process_timeline()
+
+    @cached_property
+    def authenticated_session(self):
+        return get_authenticated_session(self.base_url)
 
     @classproperty
     def hidden_dashboards(cls):
@@ -1465,10 +1471,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
                 if not bot_status["status"] == "working":
                     break
-                time_estimate = bot_status["page"]["time_estimate"]
 
-                self._render_page_if_needed(url, bot_unique_id, render_pages)
-                self._simulate_page_time(page_time_started, time_estimate, time_factor)
+                if render_pages:
+                    self._render_page(url, bot_unique_id)
+
+                self._simulate_page_time(page_time_started, bot_status, time_factor)
                 self._submit_bot_response(url, bot_id, bot_status, bot_response_files)
 
         self._report_run_bot_stats(
@@ -1502,9 +1509,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             bot_status: dict parsed from bot_status.json
             bot_response_files: dict mapping file keys to file paths
         """
-        response = requests.get(
-            f"{url}/bot/{bot_id}", auth=(dashboard_user, dashboard_password)
-        )
+        response = self.authenticated_session.get(f"{url}/bot/{bot_id}")
         response.raise_for_status()
 
         bot_response_files = {}
@@ -1520,8 +1525,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return bot_status, bot_response_files
 
-    def _render_page_if_needed(self, url, bot_unique_id, render_pages):
-        """Render the current page for the bot if render_pages is True.
+    def _render_page(self, url, bot_unique_id):
+        """Render the current page for the bot.
 
         Parameters
         ----------
@@ -1529,26 +1534,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             The base URL of the experiment server.
         bot_unique_id : str
             The unique_id of the bot.
-        render_pages : bool
-            Whether to render the page.
         """
-        if render_pages:
-            requests.get(
-                f"{url}/timeline", params={"unique_id": bot_unique_id}
-            ).raise_for_status()
+        requests.get(
+            f"{url}/timeline", params={"unique_id": bot_unique_id}
+        ).raise_for_status()
 
-    def _simulate_page_time(self, page_time_started, time_estimate, time_factor):
+    def _simulate_page_time(self, page_time_started, bot_status, time_factor):
         """Sleep so that the total time spent on the page matches the simulated duration.
 
         Parameters
         ----------
         page_time_started : float
             The time the page started (from time.monotonic()).
-        time_estimate : float
-            The estimated time for the page.
+        bot_status : dict
+            The status dictionary for the bot.
         time_factor : float
             The factor to multiply the time_estimate by for simulation.
         """
+        time_estimate = bot_status["page"]["time_estimate"]
         sleep_duration = time_estimate * time_factor
         wake_time = page_time_started + sleep_duration
         remaining_sleep_duration = wake_time - time.monotonic()
@@ -1568,22 +1571,33 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         bot_response_files : dict
             Mapping of file keys to file paths.
         """
+        bot_response = bot_status["page"]["bot_response"]
         submission_data = {
             "participant_id": bot_id,
             "page_uuid": bot_status["page_uuid"],
-            "raw_answer": json.dumps(bot_status["page"]["bot_response"]["raw_answer"]),
-            "metadata": json.dumps(bot_status["page"]["bot_response"]["metadata"]),
         }
+        if "raw_answer" in bot_response:
+            submission_data["raw_answer"] = bot_response["raw_answer"]
+        if "metadata" in bot_response:
+            submission_data["metadata"] = bot_response["metadata"]
+
         # Use ExitStack to manage the context of multiple opened files for upload.
         with ExitStack() as stack:
             files = {}
             for key, path in bot_response_files.items():
                 file_obj = stack.enter_context(open(path, "rb"))
                 files[key] = (os.path.basename(path), file_obj)
-            requests.post(
+            request = requests.post(
                 f"{url}/response",
-                data=submission_data,
+                data={"json": json.dumps(submission_data)},
                 files=files,
+            )
+        request.raise_for_status()
+
+        response = request.json()
+        if response["submission"] != "approved":
+            raise RuntimeError(
+                f"The bot's response was rejected: {response['message']}"
             )
 
     def _report_run_bot_stats(
@@ -2561,6 +2575,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
+                import pydevd_pycharm
+
+                pydevd_pycharm.settrace(
+                    "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+                )
+
                 return self.response_rejected(
                     message=_p(
                         "timeline_problem",
@@ -3895,12 +3915,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         bot = Bot.query.get(bot_id)
         experiment = get_experiment()
 
-        status = {"status": bot.status}
+        status = {
+            "status": bot.status,
+            "page_uuid": bot.page_uuid,
+        }
 
         if bot.status == "working":
             current_page = bot.get_current_page()
             bot_response = current_page.get_bot_response(experiment, bot)
             status["page"] = {
+                "id": current_page.id,
+                "label": current_page.label,
                 "time_estimate": current_page.time_estimate,
                 "bot_response": bot_response.__json__(),
             }

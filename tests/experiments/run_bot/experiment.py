@@ -17,7 +17,8 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         ModularPage(
-            "favourite_colour" "What's your favourite colour?",
+            "favourite_colour",
+            "What's your favourite colour?",
             TextControl(bot_response="red"),
             time_estimate=5,
         ),

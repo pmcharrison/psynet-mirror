@@ -228,12 +228,21 @@ class BotResponse:
         self.client_ip_address = client_ip_address
 
     def __json__(self):
-        return {
-            "raw_answer": self.raw_answer,
-            "answer": self.answer,
-            "metadata": self.metadata,
-            "blobs": {key: value.__json__() for key, value in self.blobs.items()},
-        }
+        data = {}
+
+        if self.raw_answer != NoArgumentProvided:
+            data["raw_answer"] = self.raw_answer
+
+        if self.answer != NoArgumentProvided:
+            data["answer"] = self.answer
+
+        if self.metadata != NoArgumentProvided:
+            data["metadata"] = self.metadata
+
+        if self.blobs != NoArgumentProvided:
+            data["blobs"] = {key: value.__json__() for key, value in self.blobs.items()}
+
+        return data
 
     def to_json(self):
         return json.dumps(self.__json__())

@@ -1790,6 +1790,7 @@ def get_authenticated_session(base_url, username=None, password=None):
     # Step 3: Try to access a protected route to confirm login
     protected_url = f"{base_url}/dashboard/index"
     check = session.get(protected_url)
+
     if check.status_code != 200 or (
         "csrf_token" in check.text and "username" in check.text
     ):
