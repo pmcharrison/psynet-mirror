@@ -48,6 +48,9 @@ class TestRunBot:
             assert Response.query.count() == 1
 
         with tempfile.TemporaryDirectory() as bot_tempdir:
+            # The second page is an audio recording page,
+            # so the bot response involves uploading a file.
+
             # Check the _render_page function
             assert Request.query.filter_by(endpoint="/timeline").count() == 1
             exp._render_page(bot_unique_id)
