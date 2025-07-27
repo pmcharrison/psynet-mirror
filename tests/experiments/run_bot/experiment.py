@@ -23,18 +23,18 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         ModularPage(
-            "name",
+            "record_audio",
             "Please speak your name into the microphone.",
             AudioRecordControl(
                 duration=5.0,
                 bot_response_media=lambda bot: generate_text_file(
-                    f"I am bot {bot.id}!"
+                    f"This is a recording from {bot.id}!"
                 ),
             ),
             time_estimate=5,
         ),
         ModularPage(
-            "screen_recording",
+            "record_video",
             "We'll now make a recording of your screen and camera.",
             VideoRecordControl(
                 duration=5.0,

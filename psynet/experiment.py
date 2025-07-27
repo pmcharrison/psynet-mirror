@@ -1452,11 +1452,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         n_pages = 0
         page_processing_times = []
 
-        url = get_experiment_url()
-        config = get_config()
-        dashboard_user = config.get("dashboard_user")
-        dashboard_password = config.get("dashboard_password")
-
         with transaction(commit=False):
             bot_unique_id = (
                 Bot.query.filter_by(id=bot_id).with_entities(Bot.unique_id).scalar()
@@ -1467,16 +1462,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             with tempfile.TemporaryDirectory() as bot_tempdir:
                 bot_status, bot_response_files = self._fetch_bot_status_and_files(
-                    bot_id, url, dashboard_user, dashboard_password, bot_tempdir
+                    bot_id, bot_tempdir
                 )
                 if not bot_status["status"] == "working":
                     break
 
                 if render_pages:
-                    self._render_page(url, bot_unique_id)
+                    self._render_page(bot_unique_id)
 
                 self._simulate_page_time(page_time_started, bot_status, time_factor)
-                self._submit_bot_response(url, bot_id, bot_status, bot_response_files)
+                self._submit_bot_response(bot_id, bot_status, bot_response_files)
 
         self._report_run_bot_stats(
             bot_id,
@@ -1484,23 +1479,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_processing_times,
         )
 
-    def _fetch_bot_status_and_files(
-        self, bot_id, url, dashboard_user, dashboard_password, tempdir
-    ):
+    def _fetch_bot_status_and_files(self, bot_id, directory):
         """Fetches the bot status and any associated response files, extracting them to tempdir.
 
         Parameters
         ----------
         bot_id : int
             The ID of the bot.
-        url : str
-            The base URL of the experiment server.
-        dashboard_user : str
-            Dashboard username for authentication.
-        dashboard_password : str
-            Dashboard password for authentication.
-        tempdir : str
-            Path to a temporary directory for extracting files.
+        directory : str
+            Path to a directory for extracting files.
 
         Returns
         -------
@@ -1509,7 +1496,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             bot_status: dict parsed from bot_status.json
             bot_response_files: dict mapping file keys to file paths
         """
-        response = self.authenticated_session.get(f"{url}/bot/{bot_id}")
+        response = self.authenticated_session.get(f"{self.base_url}/bot/{bot_id}")
         response.raise_for_status()
 
         bot_response_files = {}
@@ -1520,23 +1507,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             for name in zf.namelist():
                 if name.startswith("bot_response_files/") and not name.endswith("/"):
-                    zf.extract(name, tempdir)
-                    bot_response_files[name] = os.path.join(tempdir, name)
+                    zf.extract(name, directory)
+                    key = name.replace("bot_response_files/", "", 1)
+                    bot_response_files[key] = os.path.join(directory, name)
 
         return bot_status, bot_response_files
 
-    def _render_page(self, url, bot_unique_id):
+    def _render_page(self, bot_unique_id):
         """Render the current page for the bot.
 
         Parameters
         ----------
-        url : str
-            The base URL of the experiment server.
         bot_unique_id : str
             The unique_id of the bot.
         """
         requests.get(
-            f"{url}/timeline", params={"unique_id": bot_unique_id}
+            f"{self.base_url}/timeline", params={"unique_id": bot_unique_id}
         ).raise_for_status()
 
     def _simulate_page_time(self, page_time_started, bot_status, time_factor):
@@ -1557,13 +1543,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         remaining_sleep_duration = wake_time - time.monotonic()
         time.sleep(remaining_sleep_duration)
 
-    def _submit_bot_response(self, url, bot_id, bot_status, bot_response_files):
+    def _submit_bot_response(self, bot_id, bot_status, bot_response_files):
         """Submit the bot's response to the server.
 
         Parameters
         ----------
-        url : str
-            The base URL of the experiment server.
         bot_id : int
             The ID of the bot.
         bot_status : dict
@@ -1588,7 +1572,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 file_obj = stack.enter_context(open(path, "rb"))
                 files[key] = (os.path.basename(path), file_obj)
             request = requests.post(
-                f"{url}/response",
+                f"{self.base_url}/response",
                 data={"json": json.dumps(submission_data)},
                 files=files,
             )
@@ -3941,7 +3925,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # bot_response_files/... (the files that the participant would upload as a response to the page)
             files_dir = os.path.join(tempdir, "bot_response_files")
             os.makedirs(files_dir, exist_ok=True)
-            for key, src_path in bot_response.blobs.items():
+            for key, blob in bot_response.blobs.items():
+                src_path = blob.file
                 dst_path = os.path.join(files_dir, key)
                 shutil.copyfile(src_path, dst_path)
 
