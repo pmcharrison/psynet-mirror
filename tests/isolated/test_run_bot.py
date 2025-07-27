@@ -30,6 +30,13 @@ class TestRunBot:
         with tempfile.TemporaryDirectory() as bot_tempdir:
             # The first page is a simple multiple choice question,
             # and does not have any files to upload.
+
+            # Check the _render_page function
+            assert Request.query.count() == 0
+            exp._render_page(url, bot_unique_id)
+            assert Request.query.count() == 1
+
+            # Check the _fetch_bot_status_and_files function
             bot_status, bot_response_files = exp._fetch_bot_status_and_files(
                 bot_id, url, dashboard_user, dashboard_password, bot_tempdir
             )
@@ -40,8 +47,5 @@ class TestRunBot:
             assert bot_status["page"]["bot_response"]["answer"] == "red"
             assert len(bot_response_files) == 0
 
-            assert Request.query.count() == 0
-            exp._render_page(url, bot_unique_id)
-            assert Request.query.count() == 1
-
+            # Check the _submit_bot_response function
             exp._submit_bot_response(url, bot_id, bot_status, bot_response_files)

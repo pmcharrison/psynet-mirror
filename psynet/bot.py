@@ -46,8 +46,14 @@ class Bot(Participant):
             mode=mode,
         )
 
+        self._advance_to_first_page()
+
         db.session.add(self)
         db.session.commit()
+
+    def _advance_to_first_page(self):
+        assert self.elt_id == [-1]
+        self.experiment.timeline.advance_page(self.experiment, self)
 
     def initialize(self, experiment):
         self.experiment.initialize_bot(bot=self)
