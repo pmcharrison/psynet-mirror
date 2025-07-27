@@ -26,9 +26,11 @@ import click
 import html2text
 import jsonpickle
 import pexpect
+import requests
 import tomlkit
 from _hashlib import HASH as Hash
 from babel.support import Translations
+from bs4 import BeautifulSoup
 from dallinger.config import experiment_available
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import _descendent_classes
@@ -1723,3 +1725,76 @@ def safe(func):
             logger.error(f"Error in {func.__name__}: {e}", exc_info=True)
 
     return wrapper
+
+
+def get_authenticated_session(base_url, username=None, password=None):
+    """
+    Returns a requests.Session authenticated with the dashboard login.
+
+    Handles CSRF tokens automatically by fetching the login page first.
+
+    Parameters
+    ----------
+    base_url : str
+        The root URL of the server (e.g., 'http://localhost:5000').
+    username : str, optional
+        Dashboard username. If None, will use config.
+    password : str, optional
+        Dashboard password. If None, will use config.
+
+    Returns
+    -------
+    session : requests.Session
+        Authenticated session for making further requests.
+
+    Raises
+    ------
+    RuntimeError
+        If login fails due to invalid credentials.
+
+    Examples
+    --------
+    >>> from psynet.utils import get_authenticated_session
+    >>> session = get_authenticated_session('http://localhost:5000', 'admin', 'secret')
+    >>> response = session.get('http://localhost:5000/bot/1')
+    >>> response.raise_for_status()
+    """
+    config = get_config()
+    if username is None:
+        username = config.get("dashboard_user")
+    if password is None:
+        password = config.get("dashboard_password")
+
+    session = requests.Session()
+    login_url = f"{base_url}/dashboard/login"
+
+    # Step 1: GET login page to fetch CSRF token
+    resp = session.get(login_url)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+    csrf_input = soup.find("input", {"name": "csrf_token"})
+    if not csrf_input or not csrf_input.get("value"):
+        raise RuntimeError("Could not find CSRF token in login form.")
+    csrf_token = csrf_input["value"]
+
+    # Step 2: POST login form with CSRF token
+    login_data = {
+        "username": username,
+        "password": password,
+        "remember_me": "y",
+        "csrf_token": csrf_token,
+    }
+    resp = session.post(login_url, data=login_data)
+    resp.raise_for_status()
+
+    # Step 3: Try to access a protected route to confirm login
+    protected_url = f"{base_url}/dashboard/index"
+    check = session.get(protected_url)
+    if check.status_code != 200 or (
+        "csrf_token" in check.text and "username" in check.text
+    ):
+        raise RuntimeError(
+            "Dashboard login failed: could not access protected route after login."
+        )
+
+    return session

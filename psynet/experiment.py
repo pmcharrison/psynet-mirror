@@ -961,9 +961,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "disk_usage_pct": 100 - psutil.disk_usage("/").percent,
         }
 
+    @classproperty
+    def base_url(cls):
+        return get_experiment_url()
+
     @classmethod
     def get_artifact_url(cls, deployment_id, filename):
-        return f"{get_experiment_url()}/dashboard/artifact/{deployment_id}/{filename}"
+        return f"{cls.base_url}/dashboard/artifact/{deployment_id}/{filename}"
 
     @classproperty
     def deployment_id(cls):
@@ -985,11 +989,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for keys in ["dashboard_user", "dashboard_password"]:
             data_params.append(f"{keys}={config.get(keys)}")
         data_params = "&".join(data_params)
-        return get_experiment_url() + "/basic_data?" + data_params
+        return cls.base_url + "/basic_data?" + data_params
 
     @classproperty
-    def dashboard_url(self):
-        return get_experiment_url() + "/dashboard"
+    def dashboard_url(cls):
+        return cls.base_url + "/dashboard"
 
     @staticmethod
     def get_last_n_from_class(
