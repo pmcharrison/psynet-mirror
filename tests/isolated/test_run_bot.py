@@ -64,3 +64,32 @@ class TestRunBot:
             bot._submit_response(status, response_files)
             assert Response.query.count() == 2
             assert Asset.query.count() == 1
+
+        # Third page: video recording (camera and screen)
+        with tempfile.TemporaryDirectory() as bot_tempdir:
+            assert Request.query.filter_by(endpoint="/timeline").count() == 2
+            bot._render_page()
+            assert Request.query.filter_by(endpoint="/timeline").count() == 3
+
+            status, response_files = bot._fetch_status(bot_tempdir)
+            assert status["page"]["id"] == [2]
+            assert status["page"]["label"] == "record_video"
+            assert status["page"]["time_estimate"] == 5
+
+            assert set(response_files.keys()) == {"cameraRecording", "screenRecording"}
+            with open(response_files["cameraRecording"], "r") as f:
+                assert (
+                    f.read()
+                    == f"This is a camera recording from bot {bot.participant_id}."
+                )
+            with open(response_files["screenRecording"], "r") as f:
+                assert (
+                    f.read()
+                    == f"This is a screen recording from bot {bot.participant_id}."
+                )
+
+            prev_response_count = Response.query.count()
+            prev_asset_count = Asset.query.count()
+            bot._submit_response(status, response_files)
+            assert Response.query.count() == prev_response_count + 1
+            assert Asset.query.count() == prev_asset_count + 2
