@@ -1,10 +1,17 @@
 # pylint: disable=attribute-defined-outside-init
 
+import io
 import json
+import os
+import tempfile
+import time
+import zipfile
+from contextlib import ExitStack
 from smtplib import SMTPAuthenticationError
 from typing import TYPE_CHECKING, Dict
 
 import dallinger.models
+import requests
 from dallinger import db
 from dallinger.notifications import admin_notifier
 from sqlalchemy import (
@@ -16,10 +23,13 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     desc,
+    func,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
+
+from psynet.db import transaction
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
@@ -731,3 +741,216 @@ def get_participant(participant_id: int, for_update: bool = False) -> Participan
     if for_update:
         query = query.with_for_update(of=Participant).populate_existing()
     return query.one()
+
+
+class ParticipantProxy:
+    """
+    Proxy class for automating participant actions in an experiment.
+
+    This class encapsulates the logic for progressing a participant (e.g., a bot)
+    through the experiment, handling page navigation, response submission, and timing.
+
+    Parameters
+    ----------
+    participant_id : int
+        The ID of the participant to automate.
+    experiment : Experiment
+        The experiment instance.
+    render_pages : bool, optional
+        Whether to render pages during automation (default is True).
+    time_factor : float, optional
+        Factor to multiply the simulated page time by (default is 0.0).
+    """
+
+    def __init__(self, participant_id, render_pages=True, time_factor=0.0):
+        from .experiment import get_experiment
+
+        self.participant_id = participant_id
+        self.render_pages = render_pages
+        self.time_factor = time_factor
+
+        self.experiment = get_experiment()
+
+        with transaction(commit=False):
+            self.participant_unique_id = Participant.query.get(participant_id).unique_id
+
+    def take_experiment(self):
+        """
+        Run the participant through the entire experiment.
+        """
+        while self.take_page():
+            pass
+        self._report_stats()
+
+    def take_page(self):
+        """
+        Advance the participant by one page. Returns False if finished.
+
+        Returns
+        -------
+        bool
+            True if the participant should continue, False if finished.
+        """
+        page_time_started = time.monotonic()
+        with tempfile.TemporaryDirectory() as tempdir:
+            status, response_files = self._fetch_status(tempdir)
+            if status.get("status") != "working":
+                return False
+            if self.render_pages:
+                self._render_page()
+            self._simulate_page_time(page_time_started, status)
+            self._submit_response(status, response_files)
+        return True
+
+    def _fetch_status(self, directory):
+        """
+        Fetch the participant's status and any associated response files.
+
+        Parameters
+        ----------
+        directory : str
+            Path to a directory for extracting files.
+
+        Returns
+        -------
+        tuple
+            (status, response_files)
+        """
+        response = self.experiment.authenticated_session.get(
+            f"{self.experiment.base_url}/participant_status/{self.participant_id}"
+        )
+        response.raise_for_status()
+
+        response_files = {}
+
+        with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+            with zf.open("status.json") as f:
+                status = json.load(f)
+
+            for name in zf.namelist():
+                if name.startswith("bot_response_files/") and not name.endswith("/"):
+                    zf.extract(name, directory)
+                    key = name.replace("bot_response_files/", "", 1)
+                    response_files[key] = os.path.join(directory, name)
+
+        return status, response_files
+
+    def _render_page(self):
+        """
+        Render the current page for the participant.
+        """
+        response = requests.get(
+            f"{self.experiment.base_url}/timeline",
+            params={"unique_id": self.participant_unique_id},
+        )
+        response.raise_for_status()
+
+    def _simulate_page_time(self, page_time_started, status):
+        """
+        Sleep so that the total time spent on the page matches the simulated duration.
+
+        Parameters
+        ----------
+        page_time_started : float
+            The time the page started (from time.monotonic()).
+        status : dict
+            The status dictionary for the participant.
+        """
+        time_estimate = status["page"]["time_estimate"]
+        sleep_duration = time_estimate * self.time_factor
+        wake_time = page_time_started + sleep_duration
+        remaining_sleep_duration = wake_time - time.monotonic()
+        if remaining_sleep_duration > 0:
+            time.sleep(remaining_sleep_duration)
+
+    def _submit_response(self, status, response_files):
+        """
+        Submit the participant's response to the server.
+
+        Parameters
+        ----------
+        status : dict
+            The status dictionary for the participant.
+        response_files : dict
+            Mapping of file keys to file paths.
+        """
+        bot_response = status["page"]["bot_response"]
+        submission_data = {
+            "participant_id": self.participant_id,
+            "page_uuid": status["page_uuid"],
+        }
+        if "raw_answer" in bot_response:
+            submission_data["raw_answer"] = bot_response["raw_answer"]
+        if "metadata" in bot_response:
+            submission_data["metadata"] = bot_response["metadata"]
+
+        with ExitStack() as stack:
+            files = {}
+            for key, path in response_files.items():
+                file_obj = stack.enter_context(open(path, "rb"))
+                files[key] = (os.path.basename(path), file_obj)
+            response = requests.post(
+                f"{self.experiment.base_url}/response",
+                data={"json": json.dumps(submission_data)},
+                files=files,
+            )
+        response.raise_for_status()
+        resp_json = response.json()
+        if resp_json.get("submission") != "approved":
+            raise RuntimeError(
+                f"The participant's response was rejected: {resp_json.get('message')}"
+            )
+
+    def _report_stats(self):
+        """
+        Report statistics for the participant's run through the experiment.
+        """
+        with transaction(commit=False):
+            page_count, progress, total_wait_page_time, total_experiment_time = (
+                db.session.query(Participant)
+                .filter_by(id=self.participant_id)
+                .with_entities(
+                    Participant.page_count,
+                    Participant.progress,
+                    Participant.total_wait_page_time,
+                    (func.now() - Participant.creation_time).label(
+                        "total_experiment_time"
+                    ),
+                )
+                .one()
+            )
+
+        stats = {
+            "page_count": page_count,
+            "progress": progress,
+            "total_wait_page_time": total_wait_page_time,
+            "total_experiment_time": total_experiment_time,
+        }
+
+        self.experiment.logger.info(
+            f"ParticipantProxy {self.participant_id} has finished the experiment (took {stats['page_count']} page(s), "
+            f"progress = {100 * stats['progress']:.0f}%, "
+            f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
+            f"total experiment time = {stats['total_experiment_time'].total_seconds():.3f} seconds)."
+        )
+
+
+class BotProxy(ParticipantProxy):
+    """
+    Proxy class for automating bot participants in an experiment.
+
+    If no participant_id is specified, a new Bot instance is created automatically.
+    Otherwise, behaves like ParticipantProxy.
+    """
+
+    def __init__(self, participant_id=None, render_pages=True, time_factor=0.0):
+        from psynet.bot import Bot
+
+        if participant_id is None:
+            with transaction():
+                bot = Bot()
+                db.session.add(bot)
+                db.session.flush()
+                participant_id = bot.id
+
+        super().__init__(participant_id, render_pages, time_factor)

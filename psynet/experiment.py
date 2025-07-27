@@ -1,5 +1,4 @@
 import configparser
-import io
 import json
 import os
 import re
@@ -12,7 +11,6 @@ import traceback
 import uuid
 import zipfile
 from collections import Counter, OrderedDict
-from contextlib import ExitStack
 from datetime import datetime, timedelta
 from functools import cached_property
 from importlib import resources
@@ -29,7 +27,6 @@ import dallinger.models
 import flask
 import pexpect
 import psutil
-import requests
 import rpdb
 import sqlalchemy.orm.exc
 from click import Context
@@ -1438,182 +1435,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         render_pages: bool = True,
         time_factor: float = 0.0,
     ):
-        # We intend that this function can be used to test either a local or a remote server.
-        # We therefore use HTTP requests to interact with the server, rather than calling functions directly.
-        if isinstance(bot_id, Bot):
-            raise NotImplementedError(
-                "Experiment.run_bot now takes a bot_id, not a bot object. "
-                "Please update your code accordingly, and consider double-checking whether "
-                "there are other updates you need to make to your testing code to reflect the "
-                "current PsyNet version."
-            )
+        from psynet.participant import BotProxy
 
-        # We use these to track processing statistics throughout the experiment.
-        n_pages = 0
-        page_processing_times = []
-
-        with transaction(commit=False):
-            bot_unique_id = (
-                Bot.query.filter_by(id=bot_id).with_entities(Bot.unique_id).scalar()
-            )
-
-        while True:
-            page_time_started = time.monotonic()
-
-            with tempfile.TemporaryDirectory() as bot_tempdir:
-                bot_status, bot_response_files = self._fetch_bot_status_and_files(
-                    bot_id, bot_tempdir
-                )
-                if not bot_status["status"] == "working":
-                    break
-
-                if render_pages:
-                    self._render_page(bot_unique_id)
-
-                self._simulate_page_time(page_time_started, bot_status, time_factor)
-                self._submit_bot_response(bot_id, bot_status, bot_response_files)
-
-        self._report_run_bot_stats(
-            bot_id,
-            n_pages,
-            page_processing_times,
+        bot = BotProxy(
+            participant_id=bot_id,
+            render_pages=render_pages,
+            time_factor=time_factor,
         )
-
-    def _fetch_bot_status_and_files(self, bot_id, directory):
-        """Fetches the bot status and any associated response files, extracting them to tempdir.
-
-        Parameters
-        ----------
-        bot_id : int
-            The ID of the bot.
-        directory : str
-            Path to a directory for extracting files.
-
-        Returns
-        -------
-        tuple
-            (bot_status, bot_response_files)
-            bot_status: dict parsed from bot_status.json
-            bot_response_files: dict mapping file keys to file paths
-        """
-        response = self.authenticated_session.get(f"{self.base_url}/bot/{bot_id}")
-        response.raise_for_status()
-
-        bot_response_files = {}
-
-        with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
-            with zf.open("bot_status.json") as f:
-                bot_status = json.load(f)
-
-            for name in zf.namelist():
-                if name.startswith("bot_response_files/") and not name.endswith("/"):
-                    zf.extract(name, directory)
-                    key = name.replace("bot_response_files/", "", 1)
-                    bot_response_files[key] = os.path.join(directory, name)
-
-        return bot_status, bot_response_files
-
-    def _render_page(self, bot_unique_id):
-        """Render the current page for the bot.
-
-        Parameters
-        ----------
-        bot_unique_id : str
-            The unique_id of the bot.
-        """
-        requests.get(
-            f"{self.base_url}/timeline", params={"unique_id": bot_unique_id}
-        ).raise_for_status()
-
-    def _simulate_page_time(self, page_time_started, bot_status, time_factor):
-        """Sleep so that the total time spent on the page matches the simulated duration.
-
-        Parameters
-        ----------
-        page_time_started : float
-            The time the page started (from time.monotonic()).
-        bot_status : dict
-            The status dictionary for the bot.
-        time_factor : float
-            The factor to multiply the time_estimate by for simulation.
-        """
-        time_estimate = bot_status["page"]["time_estimate"]
-        sleep_duration = time_estimate * time_factor
-        wake_time = page_time_started + sleep_duration
-        remaining_sleep_duration = wake_time - time.monotonic()
-        time.sleep(remaining_sleep_duration)
-
-    def _submit_bot_response(self, bot_id, bot_status, bot_response_files):
-        """Submit the bot's response to the server.
-
-        Parameters
-        ----------
-        bot_id : int
-            The ID of the bot.
-        bot_status : dict
-            The status dictionary for the bot.
-        bot_response_files : dict
-            Mapping of file keys to file paths.
-        """
-        bot_response = bot_status["page"]["bot_response"]
-        submission_data = {
-            "participant_id": bot_id,
-            "page_uuid": bot_status["page_uuid"],
-        }
-        if "raw_answer" in bot_response:
-            submission_data["raw_answer"] = bot_response["raw_answer"]
-        if "metadata" in bot_response:
-            submission_data["metadata"] = bot_response["metadata"]
-
-        # Use ExitStack to manage the context of multiple opened files for upload.
-        with ExitStack() as stack:
-            files = {}
-            for key, path in bot_response_files.items():
-                file_obj = stack.enter_context(open(path, "rb"))
-                files[key] = (os.path.basename(path), file_obj)
-            request = requests.post(
-                f"{self.base_url}/response",
-                data={"json": json.dumps(submission_data)},
-                files=files,
-            )
-        request.raise_for_status()
-
-        response = request.json()
-        if response["submission"] != "approved":
-            raise RuntimeError(
-                f"The bot's response was rejected: {response['message']}"
-            )
-
-    def _report_run_bot_stats(
-        self,
-        bot_id: int,
-    ):
-        with transaction(commit=False):
-            page_count, progress, total_wait_page_time, total_experiment_time = (
-                db.session.query(Bot)
-                .filter_by(id=bot_id)
-                .with_entities(
-                    Bot.page_count,
-                    Bot.progress,
-                    Bot.total_wait_page_time,
-                    (func.now() - Bot.creation_time).label("total_experiment_time"),
-                )
-                .one()
-            )
-
-        stats = {
-            "page_count": page_count,
-            "progress": progress,
-            "total_wait_page_time": total_wait_page_time,
-            "total_experiment_time": total_experiment_time,
-        }
-
-        logger.info(
-            f"Bot {self.id} has finished the experiment (took {stats['page_count']} page(s), "
-            f"progress = {100 * stats['progress']:.0f}%, "
-            f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
-            f"total experiment time = {stats['total_experiment_time'].total_seconds():.3f} seconds)."
-        )
+        bot.take_experiment()
 
     def test_check_bots(self, bots: List[Bot]):
         for b in bots:
@@ -3891,22 +3720,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return cls._route_timeline(experiment, participant, mode)
 
-    @experiment_route("/bot/<bot_id>", methods=["GET"])
+    @experiment_route("/participant_status/<participant_id>", methods=["GET"])
     @classmethod
     @login_required
     @with_transaction
-    def route_bot(cls, bot_id):
-        bot = Bot.query.get(bot_id)
+    def route_participant_status(cls, participant_id):
+        participant = Bot.query.get(participant_id)
         experiment = get_experiment()
 
         status = {
-            "status": bot.status,
-            "page_uuid": bot.page_uuid,
+            "status": participant.status,
+            "page_uuid": participant.page_uuid,
         }
 
-        if bot.status == "working":
-            current_page = bot.get_current_page()
-            bot_response = current_page.get_bot_response(experiment, bot)
+        if participant.status == "working":
+            current_page = participant.get_current_page()
+            bot_response = current_page.get_bot_response(experiment, participant)
             status["page"] = {
                 "id": current_page.id,
                 "label": current_page.label,
@@ -3917,23 +3746,24 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             bot_response = None
 
         with tempfile.TemporaryDirectory() as tempdir:
-            # bot_status.json (a JSON file summarising the bot's status)
-            status_path = os.path.join(tempdir, "bot_status.json")
+            # status.json (a JSON file summarising the participant's status)
+            status_path = os.path.join(tempdir, "status.json")
             with open(status_path, "w") as f:
                 json.dump(status, f)
 
             # bot_response_files/... (the files that the participant would upload as a response to the page)
             files_dir = os.path.join(tempdir, "bot_response_files")
             os.makedirs(files_dir, exist_ok=True)
-            for key, blob in bot_response.blobs.items():
-                src_path = blob.file
-                dst_path = os.path.join(files_dir, key)
-                shutil.copyfile(src_path, dst_path)
+            if bot_response:
+                for key, blob in bot_response.blobs.items():
+                    src_path = blob.file
+                    dst_path = os.path.join(files_dir, key)
+                    shutil.copyfile(src_path, dst_path)
 
-            # bot_status.zip (a zip file containing the bot_status.json and the bot_response_files)
-            zip_path = os.path.join(tempdir, "bot_status.zip")
+            # status.zip (a zip file containing the status.json and the bot_response_files)
+            zip_path = os.path.join(tempdir, "status.zip")
             with zipfile.ZipFile(zip_path, "w") as zf:
-                zf.write(status_path, "bot_status.json")
+                zf.write(status_path, "status.json")
 
                 if bot_response:
                     for filename in bot_response.blobs:
