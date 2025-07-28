@@ -267,6 +267,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self._current_trial = value
 
     @property
+    def current_node(self):
+        if self.current_trial is None:
+            return None
+        return self.current_trial.node
+
+    @property
     def last_response(self):
         return self.response
 
@@ -996,6 +1002,9 @@ class ParticipantDriver:
             raise RuntimeError(
                 f"The participant's response was rejected: {resp_json.get('message')}"
             )
+        # We've made some changes to the database, so we need to expire all objects
+        # to ensure that the changes are reflected in our local session.
+        db.session.expire_all()
 
     def _report_stats(self, total_experiment_time: float):
         """
@@ -1027,7 +1036,39 @@ class ParticipantDriver:
             f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
         )
 
+    # The following methods cheat and use the database directly.
+    # The intention is that these provide utilities for testing,
+    # rather than being intended to simulate particular participant actions.
+    # We deem these methods low-risk because they only use
+    # short-term transactions and hence should not cause deadlocks.
+    # Feel free to add more convenience methods here as and when they prove useful.
+    ###############################################################################
+
     def get_current_page(self) -> Page:
         with transaction():
             participant = Participant.query.get(self.id)
             return participant.get_current_page()
+
+    def fail(self, reason=None):
+        with transaction(commit=True):
+            participant = Participant.query.get(self.id)
+            participant.fail(reason)
+
+    def from_db(self, attr: str):
+        with transaction(commit=False):
+            participant = Participant.query.get(self.id)
+            return getattr(participant, attr)
+
+    @property
+    def active_barriers(self):
+        return self.from_db("active_barriers")
+
+    @property
+    def current_trial(self):
+        return self.from_db("current_trial")
+
+    @property
+    def current_node(self):
+        return self.from_db("current_node")
+
+    ###############################################################################

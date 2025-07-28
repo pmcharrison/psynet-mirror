@@ -9,7 +9,7 @@ from psynet.bot import Bot, BotDriver, advance_past_wait_pages
 from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage
 from psynet.participant import Participant
-from psynet.sync import SimpleGrouper
+from psynet.sync import SimpleGrouper, SyncGroup
 from psynet.timeline import Timeline, join
 from psynet.trial.gibbs import GibbsNode, GibbsTrial, GibbsTrialMaker
 from psynet.utils import as_plain_text, get_logger
@@ -195,10 +195,9 @@ class Exp(psynet.experiment.Experiment):
         info_message = "You chose: 100 Other participants chose: * 110 * 120 The summarized response was 110."
         assert as_plain_text(page.prompt.text) == info_message
 
-        group = bots[0].sync_group
-
         # Now we make one of the bots fail during a trial
         bots[0].fail(reason="simulated_failure")
+        group = SyncGroup.query.one()
         assert group.n_active_participants < group.min_group_size
 
         # Bring in a new bot to replace the failed one
@@ -207,7 +206,10 @@ class Exp(psynet.experiment.Experiment):
 
         # If we send the new bot into the trial maker, it should be able to join the group
         new_bot.take_page()
-        assert new_bot in group.participants
+
+        # Need to refresh the group to get the latest state
+        group = SyncGroup.query.one()
+        assert Bot.query.get(new_bot.id) in group.participants
 
         # Now the participant should be waiting at the prepare_trial barrier.
         # The other two bots need to finish the previous trial before this new trial can begin
@@ -239,7 +241,7 @@ class Exp(psynet.experiment.Experiment):
             assert isinstance(bot.get_current_page(), InfoPage)
 
         # They should all be assigned to the same node
-        assert len(set([bot.current_trial.node for bot in bots])) == 1
+        assert len(set([bot.current_node.id for bot in bots])) == 1
 
         # Great, the new bot has successfully joined the team! They can go ahead and finish the experiment now.
         # There should be two more trials to complete, including this one, because max_nodes_per_chain == 4.

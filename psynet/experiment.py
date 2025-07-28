@@ -1426,6 +1426,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.test_check_bots(bots)
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
+        """
+        Defines the logic for testing the experiment in a serial process
+        (i.e. not running bots in parallel processes).
+        This is useful for testing specific experiment logic,
+        but less useful for load-testing.
+
+        By default, this method is very simple: it just iterates over each
+        bot in turn, and runs that bot from the beginning to the end
+        of the experiment.
+
+        Experiments can override this method to implement more complex logic.
+        When doing so, it's worth familiarizing yourself a little with how
+        the BotDriver class works. Unlike many other classes in PsyNet,
+        it's not a SQLAlchemy model, but rather a utility class that
+        wraps an underlying SQLAlchemy model (the Bot class).
+        See the class's documentation for more details.
+        """
         for bot in bots:
             self.run_bot(bot)
 
