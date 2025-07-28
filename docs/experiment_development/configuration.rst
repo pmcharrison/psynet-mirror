@@ -94,19 +94,19 @@ General
         before relying on it. We'd be grateful for any contributions of updated
         developer tools checks.
 
-``color_mode`` *unicode* |psynet-icon|
+``color_mode`` *str* |psynet-icon|
     The color mode to be used. Must be one of ``light``, ``dark``, or ``auto``. Default: ``light``.
 
-``dallinger_develop_directory`` *unicode* |dlgr-icon|
+``dallinger_develop_directory`` *str* |dlgr-icon|
     The directory on your computer to be used to hold files and symlinks
     when running ``dallinger develop``. Defaults to ``~/dallinger_develop``
     (a folder named ``dallinger_develop`` inside your home directory).
 
-``dashboard_password`` *unicode* |dlgr-icon| |sensitive-icon|
+``dashboard_password`` *str* |dlgr-icon| |sensitive-icon|
     An optional password for accessing the Dallinger Dashboard interface. If not
     specified, a random password will be generated.
 
-``dashboard_user`` *unicode* |dlgr-icon| |sensitive-icon|
+``dashboard_user`` *str* |dlgr-icon| |sensitive-icon|
     An optional login name for accessing the Dallinger Dashboard interface. If not
     specified ``admin`` will be used.
 
@@ -119,7 +119,7 @@ General
 
         This concerns a Dallinger feature not currently used by PsyNet.
 
-``label`` *unicode* |psynet-icon|
+``label`` *str* |psynet-icon|
     This variable is used internally for data export.
 
     .. note::
@@ -133,21 +133,25 @@ General
     some deadlocking problems associated with this locking, so we have made
     it an opt-out behavior. Default: ``True``.
 
-``logfile`` *unicode* |dlgr-icon|
+``logfile`` *str* |dlgr-icon|
     Where to write logs.
 
-``loglevel`` *unicode* |dlgr-icon|
+``loglevel`` *int* |dlgr-icon|
     A number between 0 and 4 that controls the verbosity of logs and maps to
     one of ``debug`` (0), ``info`` (1), ``warning`` (2), ``error`` (3), or
     ``critical`` (4). Note that ``psynet debug`` ignores this setting and
     always runs at 0 (``debug``). Default: ``0``.
 
-``loglevel_worker`` *unicode* |dlgr-icon|
+``loglevel_worker`` *int* |dlgr-icon|
     A number between 0 and 4 that controls the verbosity of worker logs and maps to
     one of ``debug`` (0), ``info`` (1), ``warning`` (2), ``error`` (3), or
     ``critical`` (4). Default: ``1``.
 
-``protected_routes`` *unicode - JSON formatted* |dlgr-icon|
+``needs_internet_access`` *bool* |psynet-icon|
+    Indicates whether the experiment needs internet access. Can be set to ``False`` for lab or field studies.
+    Default: ``True``.
+
+``protected_routes`` *str* |dlgr-icon|
     An optional JSON array of Flask route rule names which should be made inaccessible.
     Example::
 
@@ -196,7 +200,11 @@ Payment
     Base payment in the currency set via the ``currency`` config variable.
     All workers who accept the HIT are guaranteed this much compensation.
 
-``currency`` *unicode* |psynet-icon|
+``big_base_payment`` *bool* |psynet-icon|
+    Set this to ``True`` if you REALLY want to set ``base_payment`` to a value > 20.
+    Default: ``False``.
+
+``currency`` *str* |psynet-icon|
     The currency in which the participant gets paid. Default: ``$``.
 
 ``hard_max_experiment_payment`` *float* |psynet-icon|
@@ -227,7 +235,7 @@ General
 ``auto_recruit`` *bool* |dlgr-icon|
     A boolean on whether recruitment should be automatic.
 
-``description`` *unicode* |dlgr-icon|
+``description`` *str* |dlgr-icon|
     Depending on the recruiter being used, either
 
     * The description of the HIT (Amazon Mechanical Turk), or
@@ -237,7 +245,7 @@ General
     The number of participants initially to be recruited. This value is used during the
     experiment's launch phase to start the recruitment process. Default: ``1``.
 
-``recruiter`` *unicode* |dlgr-icon|
+``recruiter`` *str* |dlgr-icon|
     The recruiter class to use during the experiment run. While this can be a
     full class name, it is more common to use the class's ``nickname`` property
     for this value; for example ``mturk``, ``prolific``, ``cli``, ``bots``,
@@ -249,7 +257,7 @@ General
         always be used. The exception is if the ``--bots`` option is passed to
         ``psynet debug``, in which case the BotRecruiter will be used instead.
 
-``recruiters`` *unicode - custom format* |dlgr-icon|
+``recruiters`` *str* |dlgr-icon|
     When using multiple recruiters in a single experiment run via the ``multi``
     setting for the ``recruiter`` config key, ``recruiters`` allows you to
     specify which recruiters you'd like to use, and how many participants to
@@ -262,7 +270,7 @@ General
 
     ``recruiters = mturk: 5, bots: 5``
 
-``title`` *unicode* |dlgr-icon|
+``title`` *str* |dlgr-icon|
     Depending on the recruiter being used, either
 
     * The title of the HIT (Amazon Mechanical Turk), or
@@ -297,7 +305,7 @@ Allowed browsers and devices
     incognito mode, it will give detailed instructions on how to open the experiment in incognito mode.
     Default: ``False``.
 
-``min_browser_version`` *unicode* |psynet-icon|
+``min_browser_version`` *str* |psynet-icon|
     The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: ``80.0``.
 
 Recruiters
@@ -313,7 +321,7 @@ General
 Amazon Mechanical Turk
 ----------------------
 
-``approve_requirement`` *integer* |dlgr-icon|
+``approve_requirement`` *int* |dlgr-icon|
     The percentage of past MTurk HITs that must have been approved for a worker
     to qualify to participate in your experiment. 1-100.
 
@@ -324,16 +332,16 @@ Amazon Mechanical Turk
     This feature assumes a recruiter which supports qualifications,
     like the ``MTurkRecruiter``.
 
-``aws_access_key_id`` *unicode* |dlgr-icon| |sensitive-icon|
+``aws_access_key_id`` *str* |dlgr-icon| |sensitive-icon|
     AWS access key ID.
 
-``aws_region`` *unicode* |dlgr-icon|
+``aws_region`` *str* |dlgr-icon|
     AWS region to use. Default: ``us-east-1``.
 
-``aws_secret_access_key`` *unicode* |dlgr-icon| |sensitive-icon|
+``aws_secret_access_key`` *str* |dlgr-icon| |sensitive-icon|
     AWS access key secret.
 
-``browser_exclude_rule`` *unicode - comma separated* |dlgr-icon|
+``browser_exclude_rule`` *str* |dlgr-icon|
     A set of rules you can apply to prevent participants with unsupported web
     browsers from participating in your experiment. Valid exclusion values are:
 
@@ -350,20 +358,20 @@ Amazon Mechanical Turk
 ``duration`` *float* |dlgr-icon|
     How long in hours participants have until the HIT will time out.
 
-``group_name`` *unicode* |dlgr-icon|
+``group_name`` *str* |dlgr-icon|
     Assign a named qualification to workers who complete a HIT.
 
-``keywords`` *unicode* |dlgr-icon|
+``keywords`` *str* |dlgr-icon|
     A comma-separated list of keywords to use on Amazon Mechanical Turk.
 
-``lifetime`` *integer* |dlgr-icon|
+``lifetime`` *int* |dlgr-icon|
     How long in hours that your HIT remains visible to workers.
 
-``mturk_qualification_blocklist`` *unicode - comma seperated* |dlgr-icon|
+``mturk_qualification_blocklist`` *str* |dlgr-icon|
     Comma-separated list of qualification names. Workers with qualifications in
     this list will be prevented from viewing and accepting the HIT.
 
-``mturk_qualification_requirements`` *unicode – JSON formatted* |dlgr-icon|
+``mturk_qualification_requirements`` *str* |dlgr-icon|
     A JSON list of qualification documents to pass to Amazon Mechanical Turk.
 
 ``us_only`` *bool* |dlgr-icon|
@@ -372,16 +380,16 @@ Amazon Mechanical Turk
 CAP
 ---
 
-``cap_recruiter_auth_token`` *unicode* |psynet-icon| |sensitive-icon|
+``cap_recruiter_auth_token`` *str* |psynet-icon| |sensitive-icon|
     Authentication token for communication with the API of the CAP-Recruiter web application.
 
 Lucid
 -----
 
-``lucid_api_key`` *unicode* |psynet-icon| |sensitive-icon|
+``lucid_api_key`` *str* |psynet-icon| |sensitive-icon|
     The key used to access the Lucid/Cint API.
 
-``lucid_sha1_hashing_key`` *unicode* |psynet-icon| |sensitive-icon|
+``lucid_sha1_hashing_key`` *str* |psynet-icon| |sensitive-icon|
     The key used to create the HMAC used in the SHA1 hash function that generates the hash
     used when sending requests to the Lucid/Cint API.
 
@@ -390,11 +398,11 @@ Lucid
 Prolific
 --------
 
-``prolific_api_token`` *unicode* |dlgr-icon| |sensitive-icon|
+``prolific_api_token`` *str* |dlgr-icon| |sensitive-icon|
     A Prolific API token is requested from Prolific via email or some other non-programmatic
     channel, and should be stored in your ``~/.dallingerconfig`` file.
 
-``prolific_api_version`` *unicode* |dlgr-icon|
+``prolific_api_version`` *str* |dlgr-icon|
     The version of the Prolific API you'd like to use
 
     The default (``v1``) is defined in *global_config_defaults.txt*.
@@ -406,7 +414,10 @@ Prolific
     Whether or not this study includes a custom screening. Default: `True`.
     See https://docs.prolific.com/docs/api-docs/public/#tag/Studies/operation/CreateStudy for more information.
 
-``prolific_recruitment_config`` *unicode - JSON formatted* |dlgr-icon|
+``prolific_project`` *str* |dlgr-icon|
+    The Prolific project identifier.
+
+``prolific_recruitment_config`` *str* |dlgr-icon|
     JSON data to add additional recruitment parameters.
     Since some recruitment parameters are complex and are defined with relatively complex
     syntax, Dallinger allows you to define this configuration in raw JSON. The parameters
@@ -466,6 +477,9 @@ Prolific
         ``key = value`` format of ``config.txt`` whenever possible, and leave ``prolific_recruitment_config``
         for complex requirements which can't be configured in this simpler way.
 
+``prolific_workspace`` *str* |dlgr-icon|
+    The Prolific workspace identifier.
+
 .. note::
 
     Prolific will use the currency of your researcher account and convert automatically
@@ -507,13 +521,13 @@ General
     series of checks that ensure the integrity of the database. The configuration
     option ``disable_when_duration_exceeded`` configures the behavior of that task.
 
-``host`` *unicode* |dlgr-icon|
+``host`` *str* |dlgr-icon|
     IP address of the host.
 
-``port`` *unicode* |dlgr-icon|
+``port`` *int* |dlgr-icon|
     Port of the host.
 
-``server_pem`` *unicode* |dlgr-icon|
+``server_pem`` *str* |dlgr-icon|
     Path to the PEM file for SSH authentication when deploying to a server using Docker SSH.
     This file will be used to authenticate SSH connections to the server.
     Can be set in either your experiment's `config.txt` or in `~/.dallingerconfig`:
@@ -523,54 +537,66 @@ General
         [Parameters]
         server_pem = /path/to/your/key.pem
 
+EC2
+~~~
+
+``ec2_default_pem`` *str* |dlgr-icon|
+    Default PEM file for EC2 instances. Default: ``dallinger``.
+
+``ec2_default_security_group`` *str* |dlgr-icon|
+    Default security group for EC2 instances. Default: ``dallinger``.
+
 Heroku
 ~~~~~~
 
-``database_size`` *unicode* |dlgr-icon|
+``database_size`` *str* |dlgr-icon|
     Size of the database on Heroku. See `Heroku Postgres plans <https://devcenter.heroku.com/articles/heroku-postgres-plans>`__.
 
-``database_url`` *unicode* |dlgr-icon| |sensitive-icon|
+``database_url`` *str* |dlgr-icon| |sensitive-icon|
     URI of the Postgres database.
 
-``dyno_type`` *unicode* |dlgr-icon|
+``dyno_type`` *str* |dlgr-icon|
     Heroku dyno type to use. See `Heroku dynos types <https://devcenter.heroku.com/articles/dyno-types>`__.
 
-``dyno_type_web`` *unicode* |dlgr-icon|
+``dyno_type_web`` *str* |dlgr-icon|
     This determines how powerful the heroku web dynos are. It applies only to web dynos
     and will override the default set in ``dyno_type``. See ``dyno_type`` above for details
     on specific values.
 
-``dyno_type_worker`` *unicode* |dlgr-icon|
+``dyno_type_worker`` *str* |dlgr-icon|
     This determines how powerful the heroku worker dynos are. It applies only to worker
     dynos and will override the default set in ``dyno_type``.. See ``dyno_type`` above for
     details on specific values.
 
-``heroku_python_version`` *unicode* |dlgr-icon|
+``heroku_python_version`` *str* |dlgr-icon|
     The python version to be used on Heroku deployments. The version specification will
     be deployed to Heroku in a `runtime.txt` file in accordance with Heroku's deployment
     API. Note that only the version number should be provided (eg: ``3.11.5``) and not the
     ``python-`` prefix included in the final `runtime.txt` format.
     See `Heroku supported runtimes <https://devcenter.heroku.com/articles/python-support#supported-runtimes>`__.
 
-``heroku_team`` *unicode* |dlgr-icon|
+``heroku_region`` *str* |dlgr-icon|
+    The Heroku region for deployment. Default: ``None``.
+
+``heroku_team`` *str* |dlgr-icon|
     The name of the Heroku team to which all applications will be assigned.
     This is useful for centralized billing. Note, however, that it will prevent
     you from using free-tier dynos.
 
-``num_dynos_web`` *integer* |dlgr-icon|
+``num_dynos_web`` *int* |dlgr-icon|
     Number of Heroku dynos to use for processing incoming HTTP requests. It is
     recommended that you use at least two.
 
-``num_dynos_worker`` *integer* |dlgr-icon|
+``num_dynos_worker`` *int* |dlgr-icon|
     Number of Heroku dynos to use for performing other computations.
 
-``redis_size`` *unicode* |dlgr-icon|
+``redis_size`` *str* |dlgr-icon|
     Size of the redis server on Heroku. See `Heroku Redis <https://elements.heroku.com/addons/heroku-redis>`__.
 
 ``sentry`` *bool* |dlgr-icon|
     When set to ``True`` enables the `Sentry` (https://sentry.io/) Heroku addon for performance monitoring of experiments. Default: ``False``.
 
-``threads`` *unicode* |dlgr-icon|
+``threads`` *str* |dlgr-icon|
     The number of gunicorn web worker processes started per Heroku CPU count.
     When given the default value of ``auto`` the number of worker processes will be calculated
     using the formula ``round(multiprocessing.cpu_count() * worker_multiplier)) + 1`` by making use
@@ -586,7 +612,7 @@ For help on choosing appropriate configuration variables, also see this Dallinge
 Docker
 ~~~~~~
 
-``docker_image_base_name`` *unicode* |dlgr-icon|
+``docker_image_base_name`` *str* |dlgr-icon|
     A string that will be used to name the docker image generated by this experiment.
     Defaults to the experiment directory name (``bartlett1932``, ``chatroom`` etc).
     To enable repeatability a generated docker image can be pushed to a registry.
@@ -596,18 +622,21 @@ Docker
     * ``ghcr.io/<GITHUB_USERNAME>/<GITHUB_REPOSITORY>/<EXPERIMENT_NAME>``
     * ``docker.io/<DOCKERHUB_USERNAME>/<EXPERIMENT_NAME>``
 
-``docker_image_name`` *unicode* |dlgr-icon|
+``docker_image_name`` *str* |dlgr-icon|
     The docker image name to use for this experiment.
     If present, the code in the current directory will not be used when deploying.
     The specified image will be used instead. Example:
 
     * ``ghcr.io/dallinger/dallinger/bartlett1932@sha256:ad3c7b376e23798438c18aae6e0136eb97f5627ddde6baafe1958d40274fa478``
 
-``docker_volumes`` *unicode* |dlgr-icon|
+``docker_volumes`` *str* |dlgr-icon|
     Additional list of volumes to mount when deploying using docker.
     Example:
 
     * ``/host/path:/container_path,/another-path:/another-container-path``
+
+``docker_worker_cpu_shares`` *int* |dlgr-icon|
+    CPU shares for Docker worker containers. Default: ``1024``
 
 
 Internationalization
@@ -621,8 +650,29 @@ Internationalization
 
         This feature is still experimental.
 
-``language`` *unicode* |dlgr-icon|
+``default_translator`` *str* |psynet-icon|
+    The default translator to use for translations. Default: ``chat_gpt``.
+
+``disable_browser_autotranslate`` *bool* |dlgr-icon|
+    Disable browser autotranslate feature. Default: ``True``.
+
+``google_translate_json_path`` *str* |psynet-icon| |sensitive-icon|
+    Path to the Google Translate JSON credentials file. Default: ``None``.
+
+``language`` *str* |dlgr-icon|
     A ``gettext`` language code to be used for the experiment.
+
+``locale`` *str* |psynet-icon|
+    The default locale for the experiment. Default: ``en``.
+
+``openai_api_key`` *str* |psynet-icon| |sensitive-icon|
+    The OpenAI API key for machine translation. Default: ``None``.
+
+``openai_default_model`` *str* |psynet-icon|
+    The default OpenAI model to use for translations. Default: ``gpt-4o``.
+
+``openai_default_temperature`` *str* |psynet-icon|
+    The default temperature setting for OpenAI translations. Default: ``0``.
 
 ``supported_locales`` *list* |psynet-icon|
     List of locales (i.e., ISO language codes) a user can pick from, e.g., ``["en"]``.
@@ -632,22 +682,39 @@ Internationalization
 Email Notifications
 +++++++++++++++++++
 
-``contact_email_on_error`` *unicode* |dlgr-icon|
+``contact_email_on_error`` *str* |dlgr-icon|
     The email address used as the recipient for error report emails, and the email displayed to workers when there is an error.
 
-``dallinger_email_address`` *unicode* |dlgr-icon|
+``dallinger_email_address`` *str* |dlgr-icon|
     An email address for use by Dallinger to send status emails.
 
-``smtp_host`` *unicode* |dlgr-icon|
+``smtp_host`` *str* |dlgr-icon|
     Hostname and port of a mail server for outgoing mail. Default: ``smtp.gmail.com:587``
 
-``smtp_username`` *unicode* |dlgr-icon|
+``smtp_username`` *str* |dlgr-icon|
     Username for outgoing mail host.
 
-``smtp_password`` *unicode* |dlgr-icon| |sensitive-icon|
+``smtp_password`` *str* |dlgr-icon| |sensitive-icon|
     Password for the outgoing mail host.
 
 See `Email Notification Setup <https://dallinger.readthedocs.io/en/latest/email_setup.html>`__ in the Dallinger documentation for a much more detailed explanation of above config variables and their use.
+
+
+Notifications
++++++++++++++
+
+``notifier`` *str* |psynet-icon|
+    The notifier class to use for experiment notifications. Set to ``slack`` to use Slack for notifications.
+    Default: ``logger``.
+
+``experimenter_name`` *str* |psynet-icon|
+    The name of the experimenter for notifications and contact information. Default: ``None``.
+
+``slack_bot_token`` *str* |psynet-icon| |sensitive-icon|
+    The Slack bot token for notifications. Default: ``None``.
+
+``slack_channel_name`` *str* |psynet-icon|
+    The Slack channel name for notifications. Default: ``None``.
 
 
 Experiment debugging
@@ -664,36 +731,36 @@ Experiment debugging
 Misc (internal) variables
 +++++++++++++++++++++++++
 
-``chrome-path`` *unicode* |dlgr-icon|
+``chrome-path`` *str* |dlgr-icon|
     Used for darwin (macOS) only.
 
-``EXPERIMENT_CLASS_NAME`` *unicode* |dlgr-icon|
+``EXPERIMENT_CLASS_NAME`` *str* |dlgr-icon|
     Config variable to manually set an experiment class name.
 
-``heroku_app_id_root`` *unicode* |dlgr-icon|
+``heroku_app_id_root`` *str* |dlgr-icon|
     Internally used only.
 
-``heroku_auth_token`` *unicode* |dlgr-icon|
+``heroku_auth_token`` *str* |dlgr-icon|
     The Heroku authentication token. Internally used only and set automatically.
 
-``id`` *unicode* |dlgr-icon|
+``id`` *str* |dlgr-icon|
     Internally used only.
 
-``infrastructure_debug_details`` *unicode* |dlgr-icon|
+``infrastructure_debug_details`` *str* |dlgr-icon|
     Redis debug info details.
 
-``question_max_length`` *unicode* |dlgr-icon|
+``question_max_length`` *int* |dlgr-icon|
     Dallinger-only variable when using questionnaires. Default: ``1000``.
 
 ``replay`` *bool* |dlgr-icon|
     Support for replaying experiments from exported data. Set internally when using the optional ``--replay`` flag to start the experiment locally in replay mode. Default: ``False``.
 
-``webdriver_type`` *unicode* |dlgr-icon|
+``webdriver_type`` *str* |dlgr-icon|
     The webdriver type to use when using bots (e.g. when writing tests).
     Possible values are ``chrome``, ``chrome_headless``, and ``firefox``. Default: ``chrome_headless``.
     Also see Dallinger's documentation on writing bots at https://dallinger.readthedocs.io/en/latest/writing_bots.html#selenium-bots.
 
-``webdriver_url`` *unicode* |dlgr-icon|
+``webdriver_url`` *str* |dlgr-icon|
     Used to provide a URL to a Selenium WebDriver instance.
     Also see Dallinger's documentation on scaling Selenium bots at https://dallinger.readthedocs.io/en/latest/writing_bots.html#scaling-selenium-bots.
 
@@ -713,7 +780,7 @@ Config variables not to be set manually
     had been reached. Default: ``False``. Once this is ``True``, no more emails will be sent about
     this payment limit being reached.
 
-``mode`` *unicode* |dlgr-icon|
+``mode`` *str* |dlgr-icon|
     The value for ``mode`` is determined by the invoking command-line command and will either be set to ``debug``
     (local debugging) ``sandbox`` (MTurk sandbox), or ``live`` (MTurk).
 
