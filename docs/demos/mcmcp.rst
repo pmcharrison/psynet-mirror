@@ -13,5 +13,5 @@ random jump in the stimulus space.
 
 Source: ``demos/mcmcp``
 
-.. literalinclude:: ../../demos/mcmcp/experiment.py
+.. literalinclude:: ../../demos/experiments/mcmcp/experiment.py
    :language: python
