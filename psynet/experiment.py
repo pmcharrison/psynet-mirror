@@ -2381,12 +2381,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
-                import pydevd_pycharm
-
-                pydevd_pycharm.settrace(
-                    "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-                )
-
                 return self.response_rejected(
                     message=_p(
                         "timeline_problem",
