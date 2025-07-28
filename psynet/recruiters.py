@@ -142,10 +142,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
-        if not participant.failed:
-            return self.approve_assignment()
-        else:
+        if participant.failed:
             return self.reject_assignment(participant)
+        return self.approve_assignment()
 
     def reject_assignment(self, participant) -> TimelineLogic:
         return PageMaker(self._reject_assignment, time_estimate=0.0)
