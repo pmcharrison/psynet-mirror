@@ -256,7 +256,7 @@ class BotResponse:
         return json.dumps(self.__json__())
 
 
-def advance_past_wait_pages(bots: List[Bot], max_iterations=10):
+def advance_past_wait_pages(bots: List["BotDriver"], max_iterations=10):
     from .page import WaitPage
 
     iteration = 0
@@ -267,7 +267,7 @@ def advance_past_wait_pages(bots: List[Bot], max_iterations=10):
             current_page = bot.get_current_page()
             if isinstance(current_page, WaitPage):
                 any_waiting = True
-                bot.take_page(current_page)
+                bot.take_page()
         if not any_waiting:
             break
         if iteration >= max_iterations:

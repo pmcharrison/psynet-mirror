@@ -819,6 +819,11 @@ class ParticipantDriver:
         bool
             True if the participant should continue, False if finished.
         """
+        if isinstance(render_pages, Page):
+            raise ValueError(
+                "The signature of take_page has changed; it no longer acceptes a page argument."
+            )
+
         page_time_started = time.monotonic()
         with tempfile.TemporaryDirectory() as tempdir:
             status, response_files = self._fetch_status(tempdir)
@@ -828,6 +833,7 @@ class ParticipantDriver:
                 self._render_page()
             self._simulate_page_time(page_time_started, status, time_factor)
             self._submit_response(status, response_files)
+
         return True
 
     def _fetch_status(self, directory):
