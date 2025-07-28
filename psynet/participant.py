@@ -27,6 +27,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
+from tenacity import Retrying, stop_after_attempt, wait_exponential
 
 from psynet.db import transaction
 from psynet.timeline import Page
@@ -215,7 +216,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="selectin"
     )
     current_trial_id = Column(Integer, ForeignKey("info.id"))
-    current_trial = relationship(
+    _current_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[current_trial_id], lazy="joined"
     )
     trial_status = Column(String)
@@ -227,14 +228,43 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "AsyncProcess", foreign_keys=[awaited_async_code_block_process_id]
     )
 
-    # @property
-    # def current_trial(self):
-    #     if self.in_module and hasattr(self.module_state, "current_trial"):
-    #         return self.module_state.current_trial
-    #
-    # @current_trial.setter
-    # def current_trial(self, value):
-    #     self.module_state.current_trial = value
+    @property
+    def current_trial(self):
+        """
+        This property is used to deal with some flakiness we've seen in the
+        underlying SQLAlchemy relationship. For some unclear reason, we sometimes
+        end up in a situation where the foreign key current_trial_id is not None,
+        but the _current_trial attribute is (incorrectly) None. The following code
+        detects this situation and retries loading the attribute a few times.
+        """
+        if self.current_trial_id is None:
+            return None
+        if self._current_trial is not None:
+            return self._current_trial
+
+        retrying = Retrying(
+            stop=stop_after_attempt(4),
+            wait=wait_exponential(multiplier=0.1, min=0.1, max=0.5),
+            reraise=True,
+        )
+        for attempt in retrying:
+            with attempt:
+                logger.warning(
+                    f"Failed to load participant [{self.id}]'s current_trial attribute, will wait a moment and retry..."
+                )
+                db.session.expire(self, ["_current_trial"])
+                if self._current_trial is None:
+                    raise RuntimeError(
+                        "The _current_trial attribute is None even though current_trial_id is not None"
+                    )
+        logger.warning(
+            f"Successfully loaded participant [{self.id}]'s current_trial attribute."
+        )
+        return self._current_trial
+
+    @current_trial.setter
+    def current_trial(self, value):
+        self._current_trial = value
 
     @property
     def last_response(self):
