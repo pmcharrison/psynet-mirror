@@ -2,7 +2,7 @@ import random
 from typing import List
 
 import psynet.experiment
-from psynet.bot import Bot, advance_past_wait_pages
+from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.modular_page import ModularPage, PushButtonControl, TextControl
 from psynet.page import InfoPage
 from psynet.participant import Participant
@@ -130,12 +130,7 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 3
     test_mode = "serial"
 
-    def test_experiment(self):
-        bots = [Bot() for _ in range(self.test_n_bots)]
-        self.test_serial_run_bots(bots)
-        self.test_check_bots(bots)
-
-    def test_serial_run_bots(self, bots: List[Bot]):
+    def test_serial_run_bots(self, bots: List[BotDriver]):
         from psynet.page import WaitPage
 
         advance_past_wait_pages(bots)

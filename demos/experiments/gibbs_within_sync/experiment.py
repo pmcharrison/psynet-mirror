@@ -5,7 +5,7 @@ from dominate import tags
 from markupsafe import Markup
 
 import psynet.experiment
-from psynet.bot import Bot, advance_past_wait_pages
+from psynet.bot import Bot, BotDriver, advance_past_wait_pages
 from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage
 from psynet.participant import Participant
@@ -166,7 +166,7 @@ class Exp(psynet.experiment.Experiment):
 
     test_n_bots = 4
 
-    def test_serial_run_bots(self, bots: List[Bot]):
+    def test_serial_run_bots(self, bots: List[BotDriver]):
         from psynet.page import WaitPage
 
         original_bots = bots[:3]
