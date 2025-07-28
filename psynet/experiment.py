@@ -3728,7 +3728,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if participant.status == "working":
             current_page = participant.get_current_page()
-            bot_response = current_page.get_bot_response(experiment, participant)
+            bot_response = current_page.call__get_bot_response(experiment, participant)
 
             if not isinstance(bot_response, BotResponse):
                 bot_response = BotResponse(raw_answer=bot_response)
