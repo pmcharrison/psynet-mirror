@@ -1075,6 +1075,7 @@ class Page(Elt):
 
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
+        participant.page_count += 1
 
     def on_complete(self, experiment, participant):
         pass

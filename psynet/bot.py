@@ -7,7 +7,6 @@ from typing import List, Optional
 
 from cached_property import cached_property
 from dallinger import db
-from sqlalchemy import Column, Integer
 
 from psynet.db import transaction
 
@@ -18,8 +17,6 @@ logger = get_logger()
 
 
 class Bot(Participant):
-    page_count = Column(Integer, default=1)
-
     def __init__(
         self,
         recruiter_id="bot_recruiter",

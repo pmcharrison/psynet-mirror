@@ -104,6 +104,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         data transmission from front-end to back-end.
         Should not be modified directly.
 
+    page_count : int
+        The number of pages that the participant has advanced through.
+        Should not be modified directly.
+
     complete : bool
         Whether the participant has successfully completed the experiment.
         A participant is considered to have successfully completed the experiment
@@ -184,6 +188,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     progress_fixes = Column(PythonList)
 
     page_uuid = Column(String)
+    page_count = Column(Integer)
     aborted = Column(Boolean, default=False)
     complete = Column(Boolean, default=False)
     answer = Column(PythonObject)
@@ -477,6 +482,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.page_count = 0
         self.vars = {}
         self.time_credit = 0.0
         self.estimated_max_time_credit = (
@@ -963,7 +969,7 @@ class ParticipantDriver:
             "total_experiment_time": total_experiment_time,
         }
 
-        self.experiment.logger.info(
+        logger.info(
             f"ParticipantDriver {self.id} has finished the experiment (took {stats['page_count']} page(s), "
             f"progress = {100 * stats['progress']:.0f}%, "
             f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
