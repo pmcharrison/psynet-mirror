@@ -3,13 +3,15 @@ import time
 import uuid
 from datetime import datetime
 from statistics import mean
-from typing import List
+from typing import List, Optional
 
 from cached_property import cached_property
 from dallinger import db
 from sqlalchemy import Column, Integer
 
-from .participant import Participant
+from psynet.db import transaction
+
+from .participant import Participant, ParticipantDriver
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
 
 logger = get_logger()
@@ -270,3 +272,45 @@ def advance_past_wait_pages(bots: List[Bot], max_iterations=10):
             break
         if iteration >= max_iterations:
             raise RuntimeError("Not all bots finished waiting in time.")
+
+
+class BotDriver(ParticipantDriver):
+    """
+    Driver class for automating bot participants in an experiment.
+
+    The :class:`~psynet.participant.BotDriver` class is a convenience subclass of :class:`~psynet.participant.ParticipantDriver`
+    specifically focused on creating and controlling bot participants.
+
+    If no ``id_`` is specified, a new :class:`~psynet.bot.Bot` instance is created automatically.
+    Otherwise, behaves like :class:`~psynet.participant.ParticipantDriver`.
+
+    This class is primarily used for automated testing, simulation studies, and experiments where human participants
+    interact with virtual (bot) participants. Like its parent, it interacts with the experiment server via HTTP requests,
+    ensuring that the simulation closely matches real participant behavior.
+
+    Parameters
+    ----------
+    id_ : int, optional
+        The ID of the participant to automate
+        (i.e. corresponding to the ``id`` column in the Participant table).
+        If not provided, a new bot participant is created.
+    render_pages : bool, optional
+        Whether to render pages during automation (default is True).
+    time_factor : float, optional
+        Factor to multiply the simulated page time by (default is 0.0).
+    """
+
+    def __init__(
+        self,
+        id_: Optional[int] = None,
+    ):
+        from psynet.bot import Bot
+
+        if id_ is None:
+            with transaction():
+                bot = Bot()
+                db.session.add(bot)
+                db.session.flush()
+                id_ = bot.id
+
+        super().__init__(id_)

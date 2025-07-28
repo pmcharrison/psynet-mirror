@@ -37,6 +37,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.db import transaction
 from psynet.version import check_dallinger_version, check_versions
 
 from . import deployment_info
@@ -605,13 +606,17 @@ def _run_bot(real_time=False):
     from .bot import Bot
     from .experiment import get_experiment
 
-    exp = get_experiment()
-    exp.test_real_time = real_time
-
     os.environ["PASSTHROUGH_ERRORS"] = "True"
     os.environ["DEPLOYMENT_PACKAGE"] = "True"
-    bot = Bot()
-    exp.run_bot(bot)
+
+    with transaction():
+        bot = Bot()
+        bot_driver = bot.get_driver()
+
+    time_factor = 1.0 if real_time else 0.0
+
+    exp = get_experiment()
+    exp.run_bot(bot_driver, time_factor=time_factor)
 
 
 @psynet.command()

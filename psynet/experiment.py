@@ -71,7 +71,7 @@ from psynet.utils import (
 
 from . import deployment_info
 from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
-from .bot import Bot
+from .bot import Bot, BotDriver
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import transaction, with_transaction
@@ -1416,33 +1416,26 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _test_experiment_serial(self):
         logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
 
-        self.test_check_bots()
+        bots = [BotDriver() for _ in range(self.test_n_bots)]
+        self.test_serial_run_bots(bots)
 
-    def _create_bots(self):
+        # At the checking stage, it's most convenient to test the actual Bot instances
+        # rather than the BotDriver instances.
         with transaction():
-            for _ in range(self.test_n_bots):
-                bot = Bot()
-                db.session.add(bot)
+            bots = Bot.query.all()
+            self.test_check_bots(bots)
 
-    def test_serial_run_bots(self, bots):
-        for i in range(self.test_n_bots):
-            bot_id = i + 1
-            self.run_bot(bot_id)
+    def test_serial_run_bots(self, bots: List[BotDriver]):
+        for bot in bots:
+            self.run_bot(bot)
 
     def run_bot(
         self,
-        bot_id: int,
+        bot: BotDriver,
         render_pages: bool = True,
         time_factor: float = 0.0,
     ):
-        from psynet.participant import BotDriver
-
-        bot = BotDriver(
-            participant_id=bot_id,
-            render_pages=render_pages,
-            time_factor=time_factor,
-        )
-        bot.take_experiment()
+        bot.take_experiment(render_pages, time_factor)
 
     def test_check_bots(self, bots: List[Bot]):
         for b in bots:

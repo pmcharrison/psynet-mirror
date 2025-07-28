@@ -3,8 +3,9 @@ import tempfile
 import pytest
 
 from psynet.asset import Asset
+from psynet.bot import BotDriver
 from psynet.experiment import Request
-from psynet.participant import BotDriver
+from psynet.modular_page import ModularPage
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.timeline import Response
 
@@ -14,7 +15,7 @@ from psynet.timeline import Response
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestRunBot:
-    def test_run_bot(self, launched_experiment):
+    def test_run_bot(self):
         bot = BotDriver()
 
         with tempfile.TemporaryDirectory() as bot_tempdir:
@@ -93,3 +94,12 @@ class TestRunBot:
             bot._submit_response(status, response_files)
             assert Response.query.count() == prev_response_count + 1
             assert Asset.query.count() == prev_asset_count + 2
+
+    def test_get_current_page(self):
+        bot = BotDriver()
+
+        # We'll just check the first page for now, should be enough
+        # to ensure that the method is working.
+        page = bot.get_current_page()
+        assert isinstance(page, ModularPage)
+        assert page.label == "favourite_colour"

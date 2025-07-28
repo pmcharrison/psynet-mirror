@@ -30,6 +30,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from psynet.db import transaction
+from psynet.timeline import Page
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
@@ -756,13 +757,15 @@ class ParticipantDriver:
     used for simulation studies as well as for studies where human participants interact
     with virtual participants.
 
-    Rather than directly interact with the database itself, the :class:`~psynet.participant.ParticipantDriver`
-    interacts with the experiment server via HTTP requests. This helps us to ensure
-    that the simulation is as close as possible to the real thing,
-    and it also helps us to avoid the kinds of database performance issues that can
-    occur when allowing database object proxies to have long lifetimes.
+    From an implementation perspective, the primary reason why we have this driver class
+    in addition to the :class:`~psynet.participant.Participant` class
+    is to avoid having long-lived database object proxies.
+    Such long-lived proxies can cause hard-to-debug issues such as database deadlocks.
+    Where possible, the class uses HTTP requests to interact with the experiment server
+    rather than directly interacting with the database; this helps us to ensure
+    that the simulation is as close as possible to the real thing.
 
-    In most cases, we anticipate users will want to use the convenience subclass :class:`~psynet.participant.BotDriver`,
+    In most cases, we anticipate users will want to use the convenience subclass :class:`~psynet.bot.BotDriver`,
     which is a subclass of :class:`~psynet.participant.ParticipantDriver` that is specifically focused on creating
     and controlling bot participants. However, the :class:`~psynet.participant.ParticipantDriver` class can be used
     in the rare case where we want to occasionally control individual actions of a
@@ -770,37 +773,46 @@ class ParticipantDriver:
 
     Parameters
     ----------
-    participant_id : int
-        The ID of the participant to automate.
+    id_ : int, optional
+        The ID of the participant to automate
+        (i.e. corresponding to the ``id`` column in the Participant table).
+        If not provided, a new bot participant is created.
     render_pages : bool, optional
         Whether to render pages during automation (default is True).
     time_factor : float, optional
         Factor to multiply the simulated page time by (default is 0.0).
     """
 
-    def __init__(self, participant_id, render_pages=True, time_factor=0.0):
+    def __init__(
+        self,
+        id_: int,
+    ):
         from .experiment import get_experiment
 
-        self.participant_id = participant_id
-        self.render_pages = render_pages
-        self.time_factor = time_factor
-
+        self.id = id_
         self.experiment = get_experiment()
 
         with transaction(commit=False):
-            self.participant_unique_id = Participant.query.get(participant_id).unique_id
+            self.participant_unique_id = Participant.query.get(id_).unique_id
 
-    def take_experiment(self):
+    def take_experiment(self, render_pages: bool = True, time_factor: float = 0.0):
         """
         Run the participant through the entire experiment.
         """
-        while self.take_page():
+        while self.take_page(render_pages=render_pages, time_factor=time_factor):
             pass
         self._report_stats()
 
-    def take_page(self):
+    def take_page(self, render_pages: bool = True, time_factor: float = 0.0):
         """
         Advance the participant by one page. Returns False if finished.
+
+        Parameters
+        ----------
+        render_pages : bool, optional
+            Whether to render pages during automation (default is True).
+        time_factor : float, optional
+            Factor to multiply the simulated page time by (default is 0.0).
 
         Returns
         -------
@@ -812,9 +824,9 @@ class ParticipantDriver:
             status, response_files = self._fetch_status(tempdir)
             if status.get("status") != "working":
                 return False
-            if self.render_pages:
+            if render_pages:
                 self._render_page()
-            self._simulate_page_time(page_time_started, status)
+            self._simulate_page_time(page_time_started, status, time_factor)
             self._submit_response(status, response_files)
         return True
 
@@ -833,7 +845,7 @@ class ParticipantDriver:
             (status, response_files)
         """
         response = self.experiment.authenticated_session.get(
-            f"{self.experiment.base_url}/participant_status/{self.participant_id}"
+            f"{self.experiment.base_url}/participant_status/{self.id}"
         )
         response.raise_for_status()
 
@@ -861,7 +873,7 @@ class ParticipantDriver:
         )
         response.raise_for_status()
 
-    def _simulate_page_time(self, page_time_started, status):
+    def _simulate_page_time(self, page_time_started, status, time_factor):
         """
         Sleep so that the total time spent on the page matches the simulated duration.
 
@@ -871,9 +883,11 @@ class ParticipantDriver:
             The time the page started (from time.monotonic()).
         status : dict
             The status dictionary for the participant.
+        time_factor : float
+            Factor to multiply the simulated page time by.
         """
         time_estimate = status["page"]["time_estimate"]
-        sleep_duration = time_estimate * self.time_factor
+        sleep_duration = time_estimate * time_factor
         wake_time = page_time_started + sleep_duration
         remaining_sleep_duration = wake_time - time.monotonic()
         if remaining_sleep_duration > 0:
@@ -892,7 +906,7 @@ class ParticipantDriver:
         """
         bot_response = status["page"]["bot_response"]
         submission_data = {
-            "participant_id": self.participant_id,
+            "participant_id": self.id,
             "page_uuid": status["page_uuid"],
         }
         if "raw_answer" in bot_response:
@@ -924,7 +938,7 @@ class ParticipantDriver:
         with transaction(commit=False):
             page_count, progress, total_wait_page_time, total_experiment_time = (
                 db.session.query(Participant)
-                .filter_by(id=self.participant_id)
+                .filter_by(id=self.id)
                 .with_entities(
                     Participant.page_count,
                     Participant.progress,
@@ -944,45 +958,13 @@ class ParticipantDriver:
         }
 
         self.experiment.logger.info(
-            f"ParticipantDriver {self.participant_id} has finished the experiment (took {stats['page_count']} page(s), "
+            f"ParticipantDriver {self.id} has finished the experiment (took {stats['page_count']} page(s), "
             f"progress = {100 * stats['progress']:.0f}%, "
             f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
             f"total experiment time = {stats['total_experiment_time'].total_seconds():.3f} seconds)."
         )
 
-
-class BotDriver(ParticipantDriver):
-    """
-    Driver class for automating bot participants in an experiment.
-
-    The :class:`~psynet.participant.BotDriver` class is a convenience subclass of :class:`~psynet.participant.ParticipantDriver`
-    specifically focused on creating and controlling bot participants.
-
-    If no ``participant_id`` is specified, a new :class:`~psynet.bot.Bot` instance is created automatically.
-    Otherwise, behaves like :class:`~psynet.participant.ParticipantDriver`.
-
-    This class is primarily used for automated testing, simulation studies, and experiments where human participants
-    interact with virtual (bot) participants. Like its parent, it interacts with the experiment server via HTTP requests,
-    ensuring that the simulation closely matches real participant behavior.
-
-    Parameters
-    ----------
-    participant_id : int, optional
-        The ID of the participant to automate. If not provided, a new bot participant is created.
-    render_pages : bool, optional
-        Whether to render pages during automation (default is True).
-    time_factor : float, optional
-        Factor to multiply the simulated page time by (default is 0.0).
-    """
-
-    def __init__(self, participant_id=None, render_pages=True, time_factor=0.0):
-        from psynet.bot import Bot
-
-        if participant_id is None:
-            with transaction():
-                bot = Bot()
-                db.session.add(bot)
-                db.session.flush()
-                participant_id = bot.id
-
-        super().__init__(participant_id, render_pages, time_factor)
+    def get_current_page(self) -> Page:
+        with transaction():
+            participant = Participant.query.get(self.id)
+            return participant.get_current_page()
