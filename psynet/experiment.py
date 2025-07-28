@@ -71,7 +71,7 @@ from psynet.utils import (
 
 from . import deployment_info
 from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
-from .bot import Bot, BotDriver
+from .bot import Bot, BotDriver, BotResponse
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .db import transaction, with_transaction
@@ -3729,6 +3729,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if participant.status == "working":
             current_page = participant.get_current_page()
             bot_response = current_page.get_bot_response(experiment, participant)
+
+            if not isinstance(bot_response, BotResponse):
+                bot_response = BotResponse(raw_answer=bot_response)
+
             status["page"] = {
                 "id": current_page.id,
                 "label": current_page.label,

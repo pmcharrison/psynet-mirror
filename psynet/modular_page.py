@@ -806,7 +806,7 @@ class Control:
             res = self._bot_response
 
         if not isinstance(res, BotResponse):
-            res = BotResponse(answer=res)
+            res = BotResponse(raw_answer=res)
 
         return res
 
@@ -881,7 +881,7 @@ class OptionControl(Control):
 
     def get_bot_response(self, experiment, bot, page, prompt):
         return BotResponse(
-            answer=random.choice(self.choices),
+            raw_answer=random.choice(self.choices),
             metadata=self.metadata,
         )
 

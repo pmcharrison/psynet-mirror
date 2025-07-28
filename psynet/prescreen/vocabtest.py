@@ -275,7 +275,7 @@ class VocabPage(Page):
             for item in self.items
         ]
         return BotResponse(
-            answer=answer,
+            raw_answer=answer,
             metadata=self.metadata(),
         )
 

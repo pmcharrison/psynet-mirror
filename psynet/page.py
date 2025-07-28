@@ -64,7 +64,7 @@ class InfoPage(ModularPage):
         from .bot import BotResponse
 
         return BotResponse(
-            answer=None,
+            raw_answer=None,
             metadata=self.metadata(),
         )
 

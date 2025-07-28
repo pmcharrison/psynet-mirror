@@ -916,6 +916,7 @@ class ParticipantDriver:
         response_files : dict
             Mapping of file keys to file paths.
         """
+        time_estimate = status["page"]["time_estimate"]
         bot_response = status["page"]["bot_response"]
         submission_data = {
             "participant_id": self.id,
@@ -923,8 +924,15 @@ class ParticipantDriver:
         }
         if "raw_answer" in bot_response:
             submission_data["raw_answer"] = bot_response["raw_answer"]
-        if "metadata" in bot_response:
-            submission_data["metadata"] = bot_response["metadata"]
+
+        metadata = bot_response.get("metadata", {})
+
+        # By default, we set the time_taken attribute to the time_estimate
+        # that the experimenter specified for the page.
+        if "time_taken" not in metadata:
+            metadata["time_taken"] = time_estimate
+
+        submission_data["metadata"] = metadata
 
         with ExitStack() as stack:
             files = {}

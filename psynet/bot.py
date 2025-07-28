@@ -187,9 +187,6 @@ class BotResponse:
         raw_answer :
             The raw_answer returned from the page.
 
-        answer :
-            The (formatted) answer, as would ordinarily be computed by ``format_answer``.
-
         metadata :
             A dictionary of metadata.
 
@@ -216,6 +213,12 @@ class BotResponse:
 
         if raw_answer == NoArgumentProvided and answer == NoArgumentProvided:
             raise ValueError("At least one of raw_answer and answer must be provided.")
+
+        if answer != NoArgumentProvided:
+            raise ValueError(
+                "BotResponse no longer supports the answer parameter. Please use the raw_answer parameter instead, "
+                "and note that it will be passed through .format_answer."
+            )
 
         if blobs == NoArgumentProvided:
             blobs = {}
