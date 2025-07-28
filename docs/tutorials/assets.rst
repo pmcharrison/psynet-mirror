@@ -61,7 +61,7 @@ the storage back-end. However, to get PsyNet to recognize the asset, we first ne
 We can do this either by linking the asset to a particular Module or to a particular Trial Node.
 
 Linking assets to Modules
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Linking to a Module makes sense for assets such as volume calibration files which are not linked to particular trials.
 For example:
@@ -106,7 +106,7 @@ in the lambda function. This ``assets`` argument is populated with a dictionary
 of assets from the current module.
 
 Linking assets to Trial Nodes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Linking to a Trial Node makes sense for assets that correspond to particular trials.
 We follow the standard procedure for creating a trial maker with a list of Trial Nodes,

@@ -48,7 +48,7 @@ available hardware will improve and the best options may change.
 Choosing an AM5 system (if using AMD processors) is recommended but ultimately, the exact specs can vary. Focus on a reliable CPU, ample RAM, and fast storage.
 
 Software requirements
---------------------
+---------------------
 
 What to install on the server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

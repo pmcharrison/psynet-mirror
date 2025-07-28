@@ -28,7 +28,8 @@ Here is an example implementation:
 .. code:: python
 
     class Exp(psynet.experiment.Experiment):
-        …
+        # Your experiment configuration here
+        # ...
 
         @classmethod
         def get_basic_data(cls, context=None, **kwargs, ):
