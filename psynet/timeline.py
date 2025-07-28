@@ -974,7 +974,16 @@ class Page(Elt):
         self._bot_response = bot_response
         self._validate_function = validate
 
-    def call__bot_response(self, experiment, bot, response=NoArgumentProvided):
+    def call__get_bot_response(self, experiment, bot, response=NoArgumentProvided):
+        """
+        Constructs the appropriate bot_response for the page.
+
+        The bot_response can be specified in two main ways:
+        - By passing an argument to the __init__ method
+        - By overriding the :meth:`~psynet.timeline.Page.get_bot_response` method
+
+        The former takes priority.
+        """
         from .bot import BotResponse
 
         if response != NoArgumentProvided:
