@@ -183,7 +183,7 @@ class Exp(psynet.experiment.Experiment):
         for bot, response in zip(original_bots, [100, 110, 120]):
             page = bot.get_current_page()
             assert page.label == "color_trial"
-            bot.take_page(page, response=response)
+            bot.take_page(response=response)
             assert isinstance(bot.get_current_page(), WaitPage)
 
         # Going now to the next trial;
@@ -218,11 +218,11 @@ class Exp(psynet.experiment.Experiment):
         for bot in [bots[1], bots[2]]:
             page = bot.get_current_page()
             assert isinstance(page, InfoPage)
-            bot.take_page(page)
+            bot.take_page()
 
             page = bot.get_current_page()
             assert page.label == "color_trial"
-            bot.take_page(page)
+            bot.take_page()
 
         # Now all three remaining bots should be at the prepare_trial barrier
         # Trial 3 (degree = 2)
@@ -252,11 +252,11 @@ class Exp(psynet.experiment.Experiment):
                 assert isinstance(
                     page, InfoPage
                 ), f"Bot {bot.id} unexpectedly saw {page} instead of an InfoPage, on remaining_nodes = {remaining_nodes}."
-                bot.take_page(page)
+                bot.take_page()
 
                 page = bot.get_current_page()
                 assert page.label == "color_trial"
-                bot.take_page(page)
+                bot.take_page()
             advance_past_wait_pages(bots)
 
         for bot in bots:
