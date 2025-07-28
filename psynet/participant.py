@@ -34,7 +34,13 @@ from psynet.timeline import Page
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
-from .utils import call_function_with_context, get_config, get_logger, organize_by_key
+from .utils import (
+    NoArgumentProvided,
+    call_function_with_context,
+    get_config,
+    get_logger,
+    organize_by_key,
+)
 
 logger = get_logger()
 
@@ -810,7 +816,12 @@ class ParticipantDriver:
         total_experiment_time = time.monotonic() - start_time
         self._report_stats(total_experiment_time)
 
-    def take_page(self, render_pages: bool = True, time_factor: float = 0.0):
+    def take_page(
+        self,
+        render_pages: bool = True,
+        time_factor: float = 0.0,
+        response=NoArgumentProvided,
+    ):
         """
         Advance the participant by one page. Returns False if finished.
 
@@ -820,6 +831,8 @@ class ParticipantDriver:
             Whether to render pages during automation (default is True).
         time_factor : float, optional
             Factor to multiply the simulated page time by (default is 0.0).
+        response : optional
+            If provided, the participant's raw_answer will be set to this value.
 
         Returns
         -------
@@ -839,7 +852,7 @@ class ParticipantDriver:
             if render_pages:
                 self._render_page()
             self._simulate_page_time(page_time_started, status, time_factor)
-            self._submit_response(status, response_files)
+            self._submit_response(status, response_files, response)
 
         return True
 
@@ -906,7 +919,7 @@ class ParticipantDriver:
         if remaining_sleep_duration > 0:
             time.sleep(remaining_sleep_duration)
 
-    def _submit_response(self, status, response_files):
+    def _submit_response(self, status, response_files, response=NoArgumentProvided):
         """
         Submit the participant's response to the server.
 
@@ -923,7 +936,9 @@ class ParticipantDriver:
             "participant_id": self.id,
             "page_uuid": status["page_uuid"],
         }
-        if "raw_answer" in bot_response:
+        if response != NoArgumentProvided:
+            submission_data["raw_answer"] = response
+        elif "raw_answer" in bot_response:
             submission_data["raw_answer"] = bot_response["raw_answer"]
 
         metadata = bot_response.get("metadata", {})
