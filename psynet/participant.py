@@ -23,7 +23,6 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     desc,
-    func,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
@@ -805,9 +804,11 @@ class ParticipantDriver:
         """
         Run the participant through the entire experiment.
         """
+        start_time = time.monotonic()
         while self.take_page(render_pages=render_pages, time_factor=time_factor):
             pass
-        self._report_stats()
+        total_experiment_time = time.monotonic() - start_time
+        self._report_stats(total_experiment_time)
 
     def take_page(self, render_pages: bool = True, time_factor: float = 0.0):
         """
@@ -951,21 +952,18 @@ class ParticipantDriver:
                 f"The participant's response was rejected: {resp_json.get('message')}"
             )
 
-    def _report_stats(self):
+    def _report_stats(self, total_experiment_time: float):
         """
         Report statistics for the participant's run through the experiment.
         """
         with transaction(commit=False):
-            page_count, progress, total_wait_page_time, total_experiment_time = (
+            page_count, progress, total_wait_page_time = (
                 db.session.query(Participant)
                 .filter_by(id=self.id)
                 .with_entities(
                     Participant.page_count,
                     Participant.progress,
                     Participant.total_wait_page_time,
-                    (func.now() - Participant.creation_time).label(
-                        "total_experiment_time"
-                    ),
                 )
                 .one()
             )
@@ -981,7 +979,7 @@ class ParticipantDriver:
             f"ParticipantDriver {self.id} has finished the experiment (took {stats['page_count']} page(s), "
             f"progress = {100 * stats['progress']:.0f}%, "
             f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
-            f"total experiment time = {stats['total_experiment_time'].total_seconds():.3f} seconds)."
+            f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
         )
 
     def get_current_page(self) -> Page:
