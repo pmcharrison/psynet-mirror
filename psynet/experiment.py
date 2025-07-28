@@ -1435,9 +1435,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         render_pages: bool = True,
         time_factor: float = 0.0,
     ):
-        from psynet.participant import BotProxy
+        from psynet.participant import BotDriver
 
-        bot = BotProxy(
+        bot = BotDriver(
             participant_id=bot_id,
             render_pages=render_pages,
             time_factor=time_factor,

@@ -4,7 +4,7 @@ import pytest
 
 from psynet.asset import Asset
 from psynet.experiment import Request
-from psynet.participant import BotProxy
+from psynet.participant import BotDriver
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.timeline import Response
 
@@ -15,7 +15,7 @@ from psynet.timeline import Response
 @pytest.mark.usefixtures("launched_experiment")
 class TestRunBot:
     def test_run_bot(self, launched_experiment):
-        bot = BotProxy()
+        bot = BotDriver()
 
         with tempfile.TemporaryDirectory() as bot_tempdir:
             # The first page is a simple multiple choice question,

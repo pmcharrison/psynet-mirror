@@ -743,19 +743,35 @@ def get_participant(participant_id: int, for_update: bool = False) -> Participan
     return query.one()
 
 
-class ParticipantProxy:
+class ParticipantDriver:
     """
-    Proxy class for automating participant actions in an experiment.
+    Driver class for automating participant actions in an experiment.
 
-    This class encapsulates the logic for progressing a participant (e.g., a bot)
-    through the experiment, handling page navigation, response submission, and timing.
+    The :class:`~psynet.participant.ParticipantDriver` class contrasts with the :class:`~psynet.participant.Participant` class.
+    :class:`~psynet.participant.Participant` instances correspond to rows in the Participant table in the database.
+    These :class:`~psynet.participant.Participant` instances are used in the primary experiment logic.
+    The :class:`~psynet.participant.ParticipantDriver` class is meanwhile used to simulate how a human actually
+    interacts with the user interface.
+    This simulation is primarily useful for automated testing, but it is also
+    used for simulation studies as well as for studies where human participants interact
+    with virtual participants.
+
+    Rather than directly interact with the database itself, the :class:`~psynet.participant.ParticipantDriver`
+    interacts with the experiment server via HTTP requests. This helps us to ensure
+    that the simulation is as close as possible to the real thing,
+    and it also helps us to avoid the kinds of database performance issues that can
+    occur when allowing database object proxies to have long lifetimes.
+
+    In most cases, we anticipate users will want to use the convenience subclass :class:`~psynet.participant.BotDriver`,
+    which is a subclass of :class:`~psynet.participant.ParticipantDriver` that is specifically focused on creating
+    and controlling bot participants. However, the :class:`~psynet.participant.ParticipantDriver` class can be used
+    in the rare case where we want to occasionally control individual actions of a
+    human participant.
 
     Parameters
     ----------
     participant_id : int
         The ID of the participant to automate.
-    experiment : Experiment
-        The experiment instance.
     render_pages : bool, optional
         Whether to render pages during automation (default is True).
     time_factor : float, optional
@@ -928,19 +944,35 @@ class ParticipantProxy:
         }
 
         self.experiment.logger.info(
-            f"ParticipantProxy {self.participant_id} has finished the experiment (took {stats['page_count']} page(s), "
+            f"ParticipantDriver {self.participant_id} has finished the experiment (took {stats['page_count']} page(s), "
             f"progress = {100 * stats['progress']:.0f}%, "
             f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
             f"total experiment time = {stats['total_experiment_time'].total_seconds():.3f} seconds)."
         )
 
 
-class BotProxy(ParticipantProxy):
+class BotDriver(ParticipantDriver):
     """
-    Proxy class for automating bot participants in an experiment.
+    Driver class for automating bot participants in an experiment.
 
-    If no participant_id is specified, a new Bot instance is created automatically.
-    Otherwise, behaves like ParticipantProxy.
+    The :class:`~psynet.participant.BotDriver` class is a convenience subclass of :class:`~psynet.participant.ParticipantDriver`
+    specifically focused on creating and controlling bot participants.
+
+    If no ``participant_id`` is specified, a new :class:`~psynet.bot.Bot` instance is created automatically.
+    Otherwise, behaves like :class:`~psynet.participant.ParticipantDriver`.
+
+    This class is primarily used for automated testing, simulation studies, and experiments where human participants
+    interact with virtual (bot) participants. Like its parent, it interacts with the experiment server via HTTP requests,
+    ensuring that the simulation closely matches real participant behavior.
+
+    Parameters
+    ----------
+    participant_id : int, optional
+        The ID of the participant to automate. If not provided, a new bot participant is created.
+    render_pages : bool, optional
+        Whether to render pages during automation (default is True).
+    time_factor : float, optional
+        Factor to multiply the simulated page time by (default is 0.0).
     """
 
     def __init__(self, participant_id=None, render_pages=True, time_factor=0.0):
