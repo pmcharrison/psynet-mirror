@@ -1,5 +1,6 @@
 from typing import Optional
 
+from psynet.bot import BotResponse
 from psynet.timeline import CodeBlock
 
 from .page import RejectedConsentPage
@@ -166,10 +167,17 @@ class CAPRecruiterAudiovisualConsent(Module):
             }
 
         def get_bot_response(self, experiment, bot):
-            return {
-                "cap-recruiter_audiovisual_consent": True,
-                "demonstration_purposes_consent": True,
-            }
+            cap_recruiter_audiovisual_consent = True
+            demonstration_purposes_consent = True
+
+            # This weird format comes from the somewhat weird construction of
+            # the CAP-Recruiter consent HTML template.
+            return BotResponse(
+                raw_answer=cap_recruiter_audiovisual_consent,
+                metadata={
+                    "demonstration_purposes_consent": demonstration_purposes_consent,
+                },
+            )
 
 
 #########
