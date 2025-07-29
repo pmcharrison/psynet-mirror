@@ -847,7 +847,8 @@ class ParticipantDriver:
 
         self.id = id_
         self.experiment = get_experiment()
-        self.directory = tempfile.TemporaryDirectory()
+        self._directory = tempfile.TemporaryDirectory()
+        self.directory = self._directory.name
         self.status = None
         self.status_time_fetched = None
         self.response_files = None
