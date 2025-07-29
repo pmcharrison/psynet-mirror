@@ -859,6 +859,9 @@ class ParticipantDriver:
         self._render_page()
         self._fetch_status()
 
+    def __del__(self):
+        self._directory.cleanup()
+
     @property
     def is_working(self):
         return self.status["status"] == "working"
