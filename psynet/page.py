@@ -460,6 +460,8 @@ class JsPsychPage(Page):
         )
 
     def format_answer(self, raw_answer, **kwargs):
+        if raw_answer is None:
+            return None
         return json.loads(raw_answer)
 
 
