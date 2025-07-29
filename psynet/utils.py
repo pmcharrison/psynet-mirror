@@ -124,6 +124,7 @@ def call_function_with_context(function, *args, **kwargs):
     assets = kwargs.get("assets", NoArgumentProvided)
     nodes = kwargs.get("nodes", NoArgumentProvided)
     trial_maker = kwargs.get("trial_maker", NoArgumentProvided)
+    trial = kwargs.get("trial", NoArgumentProvided)
 
     requested = get_args(function)
 
@@ -163,6 +164,12 @@ def call_function_with_context(function, *args, **kwargs):
                 )
             ).all()
 
+    if "trial" in requested and trial == NoArgumentProvided:
+        if participant != NoArgumentProvided and isinstance(
+            participant.current_trial, Trial
+        ):
+            trial = participant.current_trial
+
     if "trial_maker" in requested and trial_maker == NoArgumentProvided:
         if (
             participant != NoArgumentProvided
@@ -177,6 +184,7 @@ def call_function_with_context(function, *args, **kwargs):
         "assets": assets,
         "nodes": nodes,
         "trial_maker": trial_maker,
+        "trial": trial,
         **kwargs,
     }
     return call_function(function, *args, **new_kwargs)
