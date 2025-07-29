@@ -196,6 +196,7 @@ class WaitPage(Page):
         if content is not None:
             self.content = content
         super().__init__(
+            label="wait",
             time_estimate=wait_time,
             template_str=get_template("wait-page.html"),
             template_arg={"content": self.content, "wait_time": self.wait_time},
