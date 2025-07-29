@@ -3,6 +3,7 @@
 import io
 import json
 import os
+import shutil
 import tempfile
 import time
 import zipfile
@@ -954,9 +955,17 @@ class ParticipantDriver:
         self.response_files = {}
 
         with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+            # Load the status.
             with zf.open("status.json") as f:
                 self.status = json.load(f)
 
+            # Clean up any old response files.
+            try:
+                shutil.rmtree(os.path.join(self.directory, "bot_response_files"))
+            except FileNotFoundError:
+                pass
+
+            # Extract the new response files.
             for name in zf.namelist():
                 if name.startswith("bot_response_files/") and not name.endswith("/"):
                     zf.extract(name, self.directory)
