@@ -55,9 +55,25 @@ tests:
       -v "$PWD/public:/public"
       $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
     # The docker containers are running in a different host, where the directory $PWD/public
-    # now contains junit.xml files we need access to. We merge them into a single file and cat the result to take it out of its container.
-    - docker run -v "$PWD/public:/public" $DOCKER_LOCAL_TAG bash -c 'pip install -q junitparser && junitparser merge /public/*junit.xml /public/junit.xml && cat /public/junit.xml' > junit.xml
-    - '[ -f junit.xml ] || echo "<testsuite></testsuite>" > junit.xml'
+    # now contains junit.xml files we need access to. We merge them into a single file and cat the result.
+    - docker run -v "$PWD/public:/public" $DOCKER_LOCAL_TAG bash -c '
+        # Exit immediately if any command fails
+        set -e
+        # Make globs expand to empty list if no matches found
+        shopt -s nullglob
+        # Collect all junit.xml files into an array
+        files=(/public/*junit.xml)
+        # If we found any test reports, merge them
+        if [ ${#files[@]} -gt 0 ]; then
+            pip install -q junitparser
+            junitparser merge "${files[@]}" /public/junit.xml
+        else
+            # Create an empty test report if no files found
+            echo "<testsuite></testsuite>" > /public/junit.xml
+        fi
+        # Output the final result
+        cat /public/junit.xml
+    ' > junit.xml
   artifacts:
     reports:
       junit: junit.xml
