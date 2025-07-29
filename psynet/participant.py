@@ -848,8 +848,9 @@ class ParticipantDriver:
 
         self.id = id_
         self.experiment = get_experiment()
-        self._directory = tempfile.TemporaryDirectory()
-        self.directory = self._directory.name
+        # self._directory = tempfile.TemporaryDirectory()
+        # self.directory = self._directory.name
+        self.directory = tempfile.mkdtemp()
         self.status = None
         self.status_time_fetched = None
         self.response_files = None
@@ -861,7 +862,8 @@ class ParticipantDriver:
         self._fetch_status()
 
     def __del__(self):
-        self._directory.cleanup()
+        shutil.rmtree(self.directory)
+        # self._directory.cleanup()
 
     @property
     def is_working(self):
