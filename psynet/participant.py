@@ -195,14 +195,14 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     page_uuid = Column(String)
     page_count = Column(Integer)
-    aborted = Column(Boolean, default=False)
-    complete = Column(Boolean, default=False)
+    aborted = Column(Boolean)
+    complete = Column(Boolean)
     answer = Column(PythonObject)
     answer_accumulators = Column(PythonList)
     sequences = Column(PythonList)
     branch_log = Column(PythonObject)
-    for_loops = Column(PythonObject, default=lambda: {})
-    failure_tags = Column(PythonList, default=lambda: [])
+    for_loops = Column(PythonObject)
+    failure_tags = Column(PythonList)
 
     base_payment = Column(Float)
     performance_reward = Column(Float)
@@ -529,6 +529,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.page_count = 0
+        self.aborted = False
+        self.complete = False
         self.vars = {}
         self.time_credit = 0.0
         self.estimated_max_time_credit = (
@@ -540,6 +542,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.elt_id = [-1]
         self.elt_id_max = [len(experiment.timeline) - 1]
         self.answer_accumulators = []
+        self.for_loops = {}
+        self.failure_tags = []
         self.sequences = []
         self.complete = False
         self.performance_reward = 0.0
