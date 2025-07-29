@@ -56,7 +56,8 @@ tests:
       $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
     # The docker containers are running in a different host, where the directory $PWD/public
     # now contains junit.xml files we need access to. We merge them into a single file and cat the result.
-    - docker run -v "$PWD/public:/public" $DOCKER_LOCAL_TAG bash -c '
+    - |
+      docker run -v "$PWD/public:/public" $DOCKER_LOCAL_TAG bash -c '
         # Exit immediately if any command fails
         set -e
         # Make globs expand to empty list if no matches found
@@ -73,7 +74,7 @@ tests:
         fi
         # Output the final result
         cat /public/junit.xml
-    ' > junit.xml
+      ' > junit.xml
   artifacts:
     reports:
       junit: junit.xml
