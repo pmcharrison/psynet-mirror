@@ -265,6 +265,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @current_trial.setter
     def current_trial(self, value):
         self._current_trial = value
+        if value is None:
+            self.current_trial_id = None
+        else:
+            self.current_trial_id = value.id
 
     @property
     def current_node(self):
