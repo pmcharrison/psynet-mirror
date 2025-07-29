@@ -16,6 +16,7 @@ from .bot import BotResponse
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
     NoArgumentProvided,
+    as_plain_text,
     call_function,
     call_function_with_context,
     get_logger,
@@ -141,6 +142,10 @@ class Prompt:
 
     def update_events(self, events):
         pass
+
+    @property
+    def plain_text(self):
+        return as_plain_text(self.text_html)
 
 
 class BaseAudioPrompt(Prompt):
@@ -824,6 +829,10 @@ class Control:
             "You will want to implement it yourself, or otherwise pass a bot_response argument to your page's constructor."
         )
 
+    @property
+    def plain_text(self) -> Optional[str]:
+        return None
+
 
 class NullControl(Control):
     """
@@ -884,6 +893,23 @@ class OptionControl(Control):
             raw_answer=random.choice(self.choices),
             metadata=self.metadata,
         )
+
+    @property
+    def plain_text(self) -> Optional[str]:
+        bullet_points = []
+
+        for label in self.labels:
+            if _is_html_markup(label):
+                text = as_plain_text(label)
+            else:
+                text = label
+            bullet_points.append(f"- {text}")
+
+        return "\n".join(bullet_points)
+
+
+def _is_html_markup(x):
+    return isinstance(x, Markup) or isinstance(x, tags.html_tag)
 
 
 class CheckboxControl(OptionControl):
@@ -1260,6 +1286,56 @@ class TimedPushButtonControl(PushButtonControl):
                 ).add(label)
                 tags.br()
         return html.render()
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        event_log = [
+            {
+                "eventType": "trialConstruct",
+                "localTime": "2025-07-29T14:50:04.301Z",
+                "info": None,
+            },
+            {
+                "eventType": "trialPrepare",
+                "localTime": "2025-07-29T14:50:04.304Z",
+                "info": None,
+            },
+            {
+                "eventType": "trialStart",
+                "localTime": "2025-07-29T14:50:04.304Z",
+                "info": None,
+            },
+            {
+                "eventType": "responseEnable",
+                "localTime": "2025-07-29T14:50:04.309Z",
+                "info": None,
+            },
+            {
+                "eventType": "submitEnable",
+                "localTime": "2025-07-29T14:50:04.309Z",
+                "info": None,
+            },
+            {
+                "eventType": "pushButtonClicked",
+                "localTime": "2025-07-29T14:50:05.367Z",
+                "info": {"buttonId": "A"},
+            },
+            {
+                "eventType": "pushButtonClicked",
+                "localTime": "2025-07-29T14:50:05.897Z",
+                "info": {"buttonId": "B"},
+            },
+            {
+                "eventType": "pushButtonClicked",
+                "localTime": "2025-07-29T14:50:06.432Z",
+                "info": {"buttonId": "C"},
+            },
+            {
+                "eventType": "pushButtonClicked",
+                "localTime": "2025-07-29T14:50:06.781Z",
+                "info": {"buttonId": "B"},
+            },
+        ]
+        return BotResponse(raw_answer=None, metadata={"event_log": event_log})
 
 
 class PushButton:
@@ -1977,6 +2053,17 @@ class ModularPage(Page):
         page = self
         prompt = self.prompt
         return self.control.call__get_bot_response(experiment, bot, page, prompt)
+
+    @property
+    def plain_text(self) -> Optional[str]:
+        prompt = self.prompt.plain_text
+        control = self.control.plain_text
+        text = []
+        if prompt is not None:
+            text.append(prompt)
+        if control is not None:
+            text.append(control)
+        return "\n".join(text)
 
 
 class AudioMeterControl(Control):

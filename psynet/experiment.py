@@ -3747,6 +3747,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             status["page"] = {
                 "id": current_page.id,
                 "label": current_page.label,
+                "text": current_page.plain_text,
                 "time_estimate": current_page.time_estimate,
                 "bot_response": bot_response.__json__(),
             }

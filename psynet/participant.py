@@ -847,17 +847,51 @@ class ParticipantDriver:
 
         self.id = id_
         self.experiment = get_experiment()
+        self.directory = tempfile.TemporaryDirectory()
+        self.status = None
+        self.status_time_fetched = None
+        self.response_files = None
 
         with transaction(commit=False):
             self.participant_unique_id = Participant.query.get(id_).unique_id
+
+        self._render_page()
+        self._fetch_status()
+
+    @property
+    def is_working(self):
+        return self.status["status"] == "working"
+
+    @property
+    def current_page_label(self):
+        return self.status["page"]["label"]
+
+    @property
+    def current_page_text(self):
+        return self.status["page"]["text"]
+
+    @property
+    def current_page_time_estimate(self):
+        return self.status["page"]["time_estimate"]
+
+    @property
+    def current_page_uuid(self):
+        return self.status["page_uuid"]
+
+    def run_until(self, condition, render_pages=True, time_factor=0.0):
+        while not condition(self):
+            if not self.is_working:
+                raise RuntimeError(
+                    "Participant finished the experiment before condition was met."
+                )
+            self.take_page(render_pages, time_factor)
 
     def take_experiment(self, render_pages: bool = True, time_factor: float = 0.0):
         """
         Run the participant through the entire experiment.
         """
         start_time = time.monotonic()
-        while self.take_page(render_pages=render_pages, time_factor=time_factor):
-            pass
+        self.run_until(lambda bot: not bot.is_working, render_pages, time_factor)
         total_experiment_time = time.monotonic() - start_time
         self._report_stats(total_experiment_time)
 
@@ -888,51 +922,44 @@ class ParticipantDriver:
             raise ValueError(
                 "The signature of take_page has changed; it no longer acceptes a page argument."
             )
+        assert self.status is not None
 
-        page_time_started = time.monotonic()
-        with tempfile.TemporaryDirectory() as tempdir:
-            status, response_files = self._fetch_status(tempdir)
-            if status.get("status") != "working":
-                return False
-            if render_pages:
-                self._render_page()
-            self._simulate_page_time(page_time_started, status, time_factor)
-            self._submit_response(status, response_files, response)
+        self._simulate_page_time(time_factor)
+        self._submit_response(self.status, self.response_files, response)
+        if render_pages:
+            self._render_page()
 
         return True
 
-    def _fetch_status(self, directory):
+    def _fetch_status(self):
         """
-        Fetch the participant's status and any associated response files.
+        Fetch the participant's current status and any associated response files,
+        and store them in the participant driver's attributes
+        (self.status and self.response_files).
 
         Parameters
         ----------
         directory : str
             Path to a directory for extracting files.
-
-        Returns
-        -------
-        tuple
-            (status, response_files)
         """
         response = self.experiment.authenticated_session.get(
             f"{self.experiment.base_url}/participant_status/{self.id}"
         )
         response.raise_for_status()
 
-        response_files = {}
+        self.response_files = {}
 
         with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
             with zf.open("status.json") as f:
-                status = json.load(f)
+                self.status = json.load(f)
 
             for name in zf.namelist():
                 if name.startswith("bot_response_files/") and not name.endswith("/"):
-                    zf.extract(name, directory)
+                    zf.extract(name, self.directory)
                     key = name.replace("bot_response_files/", "", 1)
-                    response_files[key] = os.path.join(directory, name)
+                    self.response_files[key] = os.path.join(self.directory, name)
 
-        return status, response_files
+        self.status_time_fetched = time.monotonic()
 
     def _render_page(self):
         """
@@ -944,7 +971,7 @@ class ParticipantDriver:
         )
         response.raise_for_status()
 
-    def _simulate_page_time(self, page_time_started, status, time_factor):
+    def _simulate_page_time(self, time_factor):
         """
         Sleep so that the total time spent on the page matches the simulated duration.
 
@@ -957,9 +984,9 @@ class ParticipantDriver:
         time_factor : float
             Factor to multiply the simulated page time by.
         """
-        time_estimate = status["page"]["time_estimate"]
-        sleep_duration = time_estimate * time_factor
-        wake_time = page_time_started + sleep_duration
+        time_estimate = self.status["page"]["time_estimate"]
+        simulated_page_time = time_estimate * time_factor
+        wake_time = self.status_time_fetched + simulated_page_time
         remaining_sleep_duration = wake_time - time.monotonic()
         if remaining_sleep_duration > 0:
             time.sleep(remaining_sleep_duration)
@@ -986,14 +1013,10 @@ class ParticipantDriver:
         elif "raw_answer" in bot_response:
             submission_data["raw_answer"] = bot_response["raw_answer"]
 
-        metadata = bot_response.get("metadata", {})
+        submission_data["metadata"] = bot_response.get("metadata", {})
 
-        # By default, we set the time_taken attribute to the time_estimate
-        # that the experimenter specified for the page.
-        if "time_taken" not in metadata:
-            metadata["time_taken"] = time_estimate
-
-        submission_data["metadata"] = metadata
+        if "time_taken" not in submission_data["metadata"]:
+            submission_data["metadata"]["time_taken"] = time_estimate
 
         with ExitStack() as stack:
             files = {}
@@ -1014,6 +1037,9 @@ class ParticipantDriver:
         # We've made some changes to the database, so we need to expire all objects
         # to ensure that the changes are reflected in our local session.
         db.session.expire_all()
+
+        # Update our status to reflect the new state of the participant.
+        self._fetch_status()
 
     def _report_stats(self, total_experiment_time: float):
         """

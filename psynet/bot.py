@@ -158,24 +158,22 @@ class Bot(Participant):
 
     def take_page(self, *args, **kwargs):
         raise NotImplementedError(
-            "Bot.take_page has now been removed. "
-            "Please use Experiment.take_page instead."
+            "The Bot class no longer provides a take_page method. "
+            "If you want to simulate a participant taking a page, please use the BotDriver class instead."
         )
 
     def submit_response(self, response=NoArgumentProvided):
-        page = self.get_current_page()
-        self.take_page(page, response=response)
+        raise NotImplementedError(
+            "The Bot class no longer provides a submit_response method. "
+            "If you want to simulate a participant submitting a response, please use the BotDriver class instead"
+            " (you probably want to use the take_page method)."
+        )
 
     def run_until(self, condition, render_pages=False):
-        while True:
-            current_page = self.get_current_page()
-            if condition(current_page):
-                break
-            self.take_page(current_page, render_page=render_pages)
-            if not self.status == "working":
-                raise RuntimeError(
-                    "Bot finished the experiment before condition was met."
-                )
+        raise NotImplementedError(
+            "The Bot class no longer provides a run_until method. "
+            "If you want to simulate a participant running until a condition is met, please use the BotDriver class instead."
+        )
 
 
 class BotResponse:

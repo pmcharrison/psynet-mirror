@@ -224,8 +224,8 @@ class Exp(psynet.experiment.Experiment):
 
     def run_bot(self, bot):
         bot.run_until(
-            lambda page: hasattr(page, "prompt")
-            and "the end of the experiment!" in str(page.prompt.text),
+            lambda bot: bot.current_page_label == "SuccessfulEndLogic"
+            and "the end of the experiment!" in bot.current_page_text,
             render_pages=True,
         )
         page = bot.get_current_page()

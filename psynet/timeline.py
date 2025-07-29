@@ -1369,6 +1369,15 @@ class Page(Elt):
     def define_media_requests(self):
         return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
 
+    @property
+    def plain_text(self):
+        """
+        A plain text version of the page's content.
+        This is used for testing purposes.
+        Users are invited to override this method in subclasses.
+        """
+        return "Not implemented"
+
 
 class PageMaker(Elt):
     """
