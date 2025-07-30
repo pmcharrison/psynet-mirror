@@ -32,7 +32,7 @@ from psynet.asset import LocalStorage
 from psynet.consent import MainConsent
 from psynet.page import InfoPage
 from psynet.prescreen import AntiphaseHeadphoneTest
-from psynet.timeline import CodeBlock, Timeline, conditional, join
+from psynet.timeline import CodeBlock, Timeline, join, switch
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -106,15 +106,12 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         MainConsent(),
-        conditional(
-            "is_normal",
-            lambda participant: participant.id % 3 == 1,
-            normal(),
-            conditional(
-                "is_failed_prescreening",
-                lambda participant: participant.id % 3 == 2,
-                failed_prescreening(),
-                increment_performance_reward(),
-            ),
+        switch(
+            lambda participant: participant.id % 3,
+            {
+                0: increment_performance_reward(),
+                1: normal(),
+                2: failed_prescreening(),
+            },
         ),
     )
