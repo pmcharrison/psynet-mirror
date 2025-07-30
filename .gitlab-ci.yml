@@ -64,9 +64,10 @@ merge_test_results:
   needs: ["tests"]
   dependencies: ["tests"]
   when: always
+  before_script:
+    - pip install -q junitparser
   script:
     - ls -la public
-    - pip install -q junitparser
     - junitparser merge public/*junit.xml junit.xml || echo "<testsuite></testsuite>" > junit.xml
   artifacts:
     reports:
