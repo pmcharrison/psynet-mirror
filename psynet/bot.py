@@ -42,6 +42,9 @@ class Bot(Participant):
             mode=mode,
         )
 
+        # Flushing ensures that we have a valid ID for the bot.
+        db.session.flush()
+
         self._advance_to_first_page()
 
         db.session.add(self)
