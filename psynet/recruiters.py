@@ -150,22 +150,17 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         return PageMaker(self._reject_assignment, time_estimate=0.0)
 
     def _reject_assignment(self, participant) -> TimelineLogic:
-        from markupsafe import Markup
-
         _p = get_translator(context=True)
         enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
         enable_screen_out = get_config().get("prolific_enable_screen_out")
 
         logic_screen_out_successful = InfoPage(
-            Markup(
-                _p(
-                    "screen_out_successful",
-                    "You have been credited for the time spent on the experiment.<br>"
-                    "Because you could not progress to the main experiment "
-                    "your submission will appear as 'screened out' in Prolific. "
-                    "<br><br>You can now close this browser window."
-                    '<br><br><p><button onclick="window.close()" class="btn btn-primary">Close</button></p>',
-                )
+            _p(
+                "screen_out_successful",
+                "You have been credited for the time spent on the experiment. "
+                "Because you could not progress to the main experiment "
+                "your submission will appear as 'screened out' in Prolific. "
+                "You can now close this browser window.",
             ),
             show_next_button=False,
             time_estimate=0.0,
@@ -213,13 +208,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 )
             ),
             InfoPage(
-                Markup(
-                    _p(
-                        "screen_out_successful_message",
-                        "You have been credited for the time spent on the experiment. "
-                        "<br><br>You can now close this browser window."
-                        '<br><br><p><button onclick="window.close()" class="btn btn-primary">Close</button></p>',
-                    )
+                _p(
+                    "screen_out_successful_message",
+                    "You have been credited for the time spent on the experiment. "
+                    "You can now close this browser window.",
                 ),
                 show_next_button=False,
                 time_estimate=0.0,
@@ -227,17 +219,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
 
         logic_return_and_message_experimenter = InfoPage(
-            Markup(
-                _p(
-                    "screen_out_return_and_message_experimenter",
-                    "We are sorry that you could not proceed to the main experiment. "
-                    "To receive this payment for your time, please return your submission in Prolific "
-                    "and send a message to the experimenter via the Prolific messaging system. "
-                    "The experimenter will review your case and arrange payment if appropriate. "
-                    "Thank you for your understanding."
-                    "<br><br>You can now close this browser window."
-                    '<br><br><p><button onclick="window.close()" class="btn btn-primary">Close</button></p>',
-                )
+            _p(
+                "screen_out_return_and_message_experimenter",
+                "We are sorry that you could not proceed to the main experiment. "
+                "To receive this payment for your time, please return your submission in Prolific "
+                "and send a message to the experimenter via the Prolific messaging system. "
+                "The experimenter will review your case and arrange payment if appropriate. "
+                "Thank you for your understanding. "
+                "You can now close this browser window.",
             ),
             show_next_button=False,
             time_estimate=0.5,
