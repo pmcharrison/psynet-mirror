@@ -425,7 +425,6 @@ Prolific
 
     * ``device_compatibility``
     * ``peripheral_requirements``
-    * ``eligibility_requirements``
 
     See the `Prolific API Documentation <https://docs.prolific.co/docs/api-docs/public/#tag/Studies/paths/~1api~1v1~1studies~1/post>`__
     for details.
@@ -436,32 +435,12 @@ Prolific
     valid JSON as contents::
 
         {
-            "eligibility_requirements": [
-                {
-                    "attributes": [
-                        {
-                            "name": "white_list",
-                            "value": [
-                                # worker ID one,
-                                # worker ID two,
-                                # etc.
-                            ]
-                        }
-                    ],
-                    "_cls": "web.eligibility.models.CustomWhitelistEligibilityRequirement"
-                }
-            ]
-        }
-
-    You can also specify the devices you expect the participants to have, e.g.::
-
-        {
-            "eligibility_requirements": […],
             "device_compatibility": ["desktop"],
             "peripheral_requirements": ["audio", "microphone"]
         }
 
-    Supported devices are ``desktop``, ``tablet``, and ``mobile``. Supported peripherals are ``audio``, ``camera``, ``download`` (download additional software to run the experiment), and ``microphone``.
+    Supported devices are ``desktop``, ``tablet``, and ``mobile``.
+    Supported peripherals are ``audio``, ``camera``, ``download`` (download additional software to run the experiment), and ``microphone``.
 
     You would then include this file in your overall configuration by adding the following
     to your config.txt file::
