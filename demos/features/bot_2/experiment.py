@@ -37,9 +37,9 @@ class FixedDigitInputPage(ModularPage):
             control=TextControl(
                 block_copy_paste=True,
                 bot_response=lambda bot: (
-                    str(correct_answer)
+                    correct_answer
                     if bot.var.is_good_participant
-                    else str(random.randint(0, 9999999))
+                    else random.randint(0, 9999999)
                 ),
             ),
             time_estimate=time_estimate,

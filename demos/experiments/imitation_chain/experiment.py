@@ -61,7 +61,7 @@ class CustomTrial(ImitationChainTrial):
             "number",
             "What was the number?",
             time_estimate=3,
-            bot_response=lambda: str(participant.current_trial.definition["number"]),
+            bot_response=lambda: self.definition["number"],
         )
 
         return [page_1, page_2]

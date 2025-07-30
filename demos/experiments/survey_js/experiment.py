@@ -1,5 +1,3 @@
-import json
-
 import psynet.experiment
 from psynet.modular_page import ModularPage, SurveyJSControl
 from psynet.page import DebugResponsePage
@@ -82,15 +80,13 @@ class Exp(psynet.experiment.Experiment):
                 },
             ),
             time_estimate=5,
-            bot_response=lambda: json.dumps(
-                {
-                    "name": "Beatrix",
-                    "gender": "Female",
-                    "animal_preferences": ["goldfish", "dogs", "cats"],
-                    "weather": "5",
-                    "final_question": "Goodbye",
-                }
-            ),
+            bot_response=lambda: {
+                "name": "Beatrix",
+                "gender": "Female",
+                "animal_preferences": ["goldfish", "dogs", "cats"],
+                "weather": "5",
+                "final_question": "Goodbye",
+            },
         ),
         DebugResponsePage(),
     )
