@@ -10,7 +10,7 @@ import pandas
 import pytest
 from click import Context
 
-from psynet.bot import Bot
+from psynet.bot import BotDriver
 from psynet.command_line import export__local, populate_db_from_zip_file
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
@@ -56,7 +56,7 @@ class TestExpWithExport:
 
         time.sleep(1)
         for _ in range(6):
-            bot = Bot()
+            bot = BotDriver()
             bot.take_experiment()
 
         ctx = Context(export__local)
