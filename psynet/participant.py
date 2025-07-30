@@ -862,7 +862,8 @@ class ParticipantDriver:
         self._fetch_status()
 
     def __del__(self):
-        shutil.rmtree(self.directory)
+        if hasattr(self, "directory"):
+            shutil.rmtree(self.directory)
         # self._directory.cleanup()
 
     @property
