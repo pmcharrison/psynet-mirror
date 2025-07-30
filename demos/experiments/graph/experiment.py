@@ -137,8 +137,22 @@ class NecklaceNAFCPage(ModularPage):
                 prevent_control_submit=True,
             ),
             time_estimate=time_estimate,
-            bot_response=lambda: random.choice(range(len(self.necklace_states))),
         )
+
+    def get_bot_response(self, experiment, bot):
+        chosen_necklace_id = random.choice(range(len(self.necklace_states)))
+
+        # Here we just choose the first circle in the necklace, but we could
+        # choose a random circle instead if we wanted.
+        chosen_circle_id = 0
+
+        clicked_object = f"necklace_{chosen_necklace_id}_circle_{chosen_circle_id}"
+
+        return {
+            "clicked_object": clicked_object,
+            # [0, 0] is obviously wrong, but it's a placeholder for now.
+            "click_coordinates": [0, 0],
+        }
 
     def format_answer(self, raw_answer, **kwargs):
         chosen_necklace_id = int(raw_answer["clicked_object"].split("_")[1])
@@ -215,8 +229,18 @@ class NecklaceInteractivePage(ModularPage):
                 ],
             ),
             time_estimate=time_estimate,
-            bot_response=lambda: random.choice(range(len(COLOR_OPTIONS))),
         )
+
+    def get_bot_response(self, experiment, bot):
+        response = {}
+        for i in range(len(self.necklace_state)):
+            color_index = random.choice(range(len(self.color_options)))
+            color_value = self.color_options[color_index]
+            response[f"necklace_circle_{i}"] = {
+                "color_index": color_index,
+                "color_value": color_value,
+            }
+        return response
 
     def format_answer(self, raw_answer, **kwargs):
         chosen_state = [None for _ in range(len(raw_answer.keys()))]
