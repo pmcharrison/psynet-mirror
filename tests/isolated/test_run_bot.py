@@ -34,7 +34,7 @@ class TestRunBot:
         assert status["page"]["id"] == [0]
         assert status["page"]["label"] == "favourite_colour"
         assert status["page"]["time_estimate"] == 5
-        assert status["page"]["bot_response"]["raw_answer"] == "red"
+        assert status["page"]["bot_response"]["answer"] == "red"
         assert len(response_files) == 0
 
         # Check the _submit_response function
