@@ -238,11 +238,19 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         but the _current_trial attribute is (incorrectly) None. The following code
         detects this situation and retries loading the attribute a few times.
         """
-        if self.current_trial_id is None:
-            return None
+        # Ideally, the _current_trial relationship is being loaded properly.
+        # If we do see a trial there, we can just return it.
         if self._current_trial is not None:
             return self._current_trial
 
+        # If both _current_trial and current_trial_id are None, that suggests
+        # there is truly no current trial. We can therefore return None.
+        if self.current_trial_id is None:
+            return None
+
+        # If we got here, that means that current_trial_id is not None,
+        # but _current_trial is None. This suggests that the trial is not
+        # loaded properly. We can therefore try to load it again.
         retrying = Retrying(
             stop=stop_after_attempt(4),
             wait=wait_exponential(multiplier=0.1, min=0.1, max=0.5),
