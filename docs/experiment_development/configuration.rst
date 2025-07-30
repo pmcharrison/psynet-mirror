@@ -407,14 +407,6 @@ Prolific
 
     The default (``v1``) is defined in *global_config_defaults.txt*.
 
-``prolific_enable_screen_out`` *bool* |psynet-icon|
-    If ``True``, participants who fail prescreening will be marked as 'screened_out' in Prolific. Default: ``False``.
-
-``prolific_enable_return_for_bonus`` *bool* |psynet-icon|
-    If ``True``, participants are eligible for a bonus and are asked to return their submission for bonus payment.
-    If ``False``, they are asked to return the submission and message the experimenter for their payment.
-    Default: ``True``.
-
 ``prolific_estimated_completion_minutes`` *int* |dlgr-icon|
     Estimated duration in minutes of the experiment or survey.
 
@@ -487,6 +479,33 @@ Prolific
 
 ``prolific_workspace`` *str* |dlgr-icon|
     The Prolific workspace identifier.
+
+Partial payment
+...............
+
+The following two variables concern the situation in Prolific experiments where participants do not
+accumulate enough reward to cover the base payment (e.g. because they fail a pre-screening test).
+
+In this situation, PsyNet will first check if ``prolific_enable_screen_out`` is ``True``.
+If so, PsyNet will start trying to pay the participant via the 'screen out' API route in Prolific.
+This route marks the participant as 'screened out' and pays them the specified amount. At the
+time of writing (summer 2025) Prolific has unfortunately discontinued this route for new accounts,
+so by default this parameter is set to ``False``.
+
+If screening out is not possible, PsyNet will check if ``prolific_enable_return_for_bonus`` is ``True``
+(default). If so, the participant will be asked to return the submission in order to receive their payment.
+PsyNet will wait for the submission return to be registered and only then make the payment.
+Note: The experiment server has to be online still for the payment to be made.
+If ``prolific_enable_return_for_bonus`` is ``False``, then PsyNet will instead ask the participant
+to return the submission and contact the experimenter for their bonus.
+
+``prolific_enable_screen_out`` *bool* |psynet-icon|
+    If ``True``, participants who fail prescreening will be marked as 'screened out' in Prolific (if supported by your workflow). Default: ``False``.
+
+``prolific_enable_return_for_bonus`` *bool* |psynet-icon|
+    If ``True``, participants are eligible for a bonus and are asked to return their submission for bonus payment.
+    If ``False``, they are asked to return the submission and message the experimenter for their payment.
+    Default: ``True``.
 
 .. note::
 
