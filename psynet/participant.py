@@ -893,12 +893,15 @@ class ParticipantDriver:
                 )
             self.take_page(render_pages, time_factor)
 
+    def run_to_completion(self, render_pages=True, time_factor=0.0):
+        self.run_until(lambda bot: not bot.is_working, render_pages, time_factor)
+
     def take_experiment(self, render_pages: bool = True, time_factor: float = 0.0):
         """
         Run the participant through the entire experiment.
         """
         start_time = time.monotonic()
-        self.run_until(lambda bot: not bot.is_working, render_pages, time_factor)
+        self.run_to_completion(render_pages, time_factor)
         total_experiment_time = time.monotonic() - start_time
         self._report_stats(total_experiment_time)
 

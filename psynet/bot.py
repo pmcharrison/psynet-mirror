@@ -1,8 +1,5 @@
 import json
-import time
 import uuid
-from datetime import datetime
-from statistics import mean
 from typing import List, Optional
 
 from cached_property import cached_property
@@ -89,73 +86,6 @@ class Bot(Participant):
             "Please use Experiment.run_bot instead."
         )
 
-    def run_to_completion(self, time_factor=0, render_pages: bool = False):
-        # We tried the following code to simulate the Flask server and thereby
-        # run Page.render() functions directly. However the approach fails
-        # when we try to run multiple tests in succession, because Flask
-        # doesn't let us deregister the old apps.
-        #
-        # from gunicorn import util
-        # from .utils import working_directory
-        # with working_directory(self.experiment.var.server_working_directory):
-        # app = util.import_app("dallinger.experiment_server.sockets:app")
-        # with app.app_context(), app.test_request_context():
-        n_pages = 0
-
-        page_processing_times = []
-        page_total_times = []
-
-        while True:
-            page_time_started = time.monotonic()
-
-            # This commit is necessary because get_current_page can make changes to the participant
-            # (e.g. advancing them to the next page in the timeline). We need to commit so that the
-            # server (as accessed via the HTTP request) has access to this information too.
-
-            sleep_time = self.take_page(
-                time_factor=time_factor, render_page=render_pages
-            )["sleep_time"]
-
-            page_time_finished = time.monotonic()
-            page_total_time = page_time_finished - page_time_started
-
-            page_total_times.append(page_total_time)
-
-            page_processing_time = page_total_time - sleep_time
-            page_processing_times.append(page_processing_time)
-
-            n_pages += 1
-
-            if not self.status == "working":
-                break
-
-        if n_pages > 0:
-            mean_page_processing_time = mean(page_processing_times)
-        else:
-            mean_page_processing_time = None
-
-        total_experiment_time = (datetime.now() - self.creation_time).total_seconds()
-
-        # Todo - migrate these metrics to generic Participants (not just bots) so that we can report them
-        # everywhere
-        stats = {
-            "page_count": self.page_count,
-            "progress": self.progress,
-            "mean_page_processing_time": mean_page_processing_time,
-            "total_wait_page_time": self.total_wait_page_time,
-            "total_experiment_time": total_experiment_time,
-        }
-
-        logger.info(
-            f"Bot {self.id} has finished the experiment (took {stats['page_count']} page(s), "
-            f"progress = {100 * stats['progress']:.0f}%, "
-            f"mean processing time per page = {stats['mean_page_processing_time']:.3f} seconds, "
-            f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
-            f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
-        )
-
-        return stats
-
     def take_page(self, *args, **kwargs):
         raise NotImplementedError(
             "The Bot class no longer provides a take_page method. "
@@ -173,6 +103,12 @@ class Bot(Participant):
         raise NotImplementedError(
             "The Bot class no longer provides a run_until method. "
             "If you want to simulate a participant running until a condition is met, please use the BotDriver class instead."
+        )
+
+    def run_to_completion(self, *args, **kwargs):
+        raise NotImplementedError(
+            "The Bot class no longer provides a run_to_completion method. "
+            "Use BotDriver.run_to_completion instead."
         )
 
 
