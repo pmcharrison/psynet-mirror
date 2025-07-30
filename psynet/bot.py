@@ -125,6 +125,10 @@ class BotResponse:
         raw_answer :
             The raw_answer returned from the page.
 
+        answer :
+            The version of the answer that will be stored in the database,
+            having been passed through .format_answer.
+
         metadata :
             A dictionary of metadata.
 
@@ -152,12 +156,6 @@ class BotResponse:
         if raw_answer == NoArgumentProvided and answer == NoArgumentProvided:
             raise ValueError("At least one of raw_answer and answer must be provided.")
 
-        if answer != NoArgumentProvided:
-            raise ValueError(
-                "BotResponse no longer supports the answer parameter. Please use the raw_answer parameter instead, "
-                "and note that it will be passed through .format_answer."
-            )
-
         if blobs == NoArgumentProvided:
             blobs = {}
 
@@ -182,11 +180,8 @@ class BotResponse:
         if self.answer != NoArgumentProvided:
             data["answer"] = self.answer
 
-        if self.metadata != NoArgumentProvided:
-            data["metadata"] = self.metadata
-
-        if self.blobs != NoArgumentProvided:
-            data["blobs"] = {key: value.__json__() for key, value in self.blobs.items()}
+        data["metadata"] = self.metadata
+        data["blobs"] = {key: value.__json__() for key, value in self.blobs.items()}
 
         return data
 

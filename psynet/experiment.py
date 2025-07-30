@@ -3742,7 +3742,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             bot_response = current_page.call__get_bot_response(experiment, participant)
 
             if not isinstance(bot_response, BotResponse):
-                bot_response = BotResponse(raw_answer=bot_response)
+                bot_response = BotResponse(answer=bot_response)
 
             status["page"] = {
                 "id": current_page.id,
@@ -4052,7 +4052,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id = get_arg_from_dict(json_data, "participant_id")
         page_uuid = get_arg_from_dict(json_data, "page_uuid")
         raw_answer = get_arg_from_dict(
-            json_data, "raw_answer", use_default=True, default=None
+            json_data, "raw_answer", use_default=True, default=NoArgumentProvided
+        )
+        answer = get_arg_from_dict(
+            json_data, "answer", use_default=True, default=NoArgumentProvided
         )
         metadata = get_arg_from_dict(json_data, "metadata")
         client_ip_address = cls.get_client_ip_address()
@@ -4064,6 +4067,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             metadata,
             page_uuid,
             client_ip_address,
+            answer,
         )
 
         return res

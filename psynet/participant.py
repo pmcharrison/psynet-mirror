@@ -1022,6 +1022,19 @@ class ParticipantDriver:
         """
         Submit the participant's response to the server.
 
+        The HTTP submission is a POST request to the /response endpoint
+        with the following data:
+
+        - participant_id
+        - page_uuid
+        - raw_answer
+        - answer
+        - metadata
+        - blobs
+
+        raw_answer and answer are semi-optional: it is not necessary to provide more than one.
+        If answer is present, then the server will ignore raw_answer.
+
         Parameters
         ----------
         status : dict
@@ -1029,18 +1042,20 @@ class ParticipantDriver:
         response_files : dict
             Mapping of file keys to file paths.
         """
+        from .bot import BotResponse
+
+        # These come from the /participant_status endpoint.
         time_estimate = status["page"]["time_estimate"]
         bot_response = status["page"]["bot_response"]
+
+        if response != NoArgumentProvided:
+            bot_response = BotResponse(answer=response).__json__()
+
         submission_data = {
             "participant_id": self.id,
             "page_uuid": status["page_uuid"],
+            **bot_response,
         }
-        if response != NoArgumentProvided:
-            submission_data["raw_answer"] = response
-        elif "raw_answer" in bot_response:
-            submission_data["raw_answer"] = bot_response["raw_answer"]
-
-        submission_data["metadata"] = bot_response.get("metadata", {})
 
         if "time_taken" not in submission_data["metadata"]:
             submission_data["metadata"]["time_taken"] = time_estimate
