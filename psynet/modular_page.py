@@ -35,7 +35,7 @@ class Blob:
     """
 
     def __init__(self, file):
-        self.file = file
+        self.file = str(file)
 
     def save(self, dest):
         shutil.copyfile(self.file, dest)
