@@ -243,28 +243,37 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.5,
         )
 
-        # If screen out is disabled, skip the screen out attempt
-        if not enable_screen_out:
-            if enable_return_for_bonus:
-                return logic_screen_out_unsuccessful
-            else:
-                return logic_return_and_message_experimenter
+        logic_screen_out = conditional(
+            "screen_out_enabled",
+            lambda participant: enable_screen_out,
+            join(
+                AsyncCodeBlock(
+                    _screen_out_participant,
+                    wait=True,
+                    expected_wait=5.0,
+                    check_interval=0.5,
+                ),
+                conditional(
+                    label="screen_out_successful",
+                    condition=self.check_screen_out_successful,
+                    logic_if_true=logic_screen_out_successful,
+                    logic_if_false=logic_screen_out_unsuccessful,
+                ),
+            ),
+            None,
+        )
 
-        # If screen out is enabled, proceed with the original logic
+        logic_return_for_bonus = conditional(
+            "return_for_bonus_enabled",
+            lambda participant: enable_return_for_bonus,
+            logic_screen_out_unsuccessful,
+            None,
+        )
+
         return join(
-            AsyncCodeBlock(
-                _screen_out_participant,
-                wait=True,
-                expected_wait=5.0,
-                check_interval=0.5,
-            ),
-            conditional(
-                # This function should check whether the screen out attempt was successful.
-                label="screen_out_successful",
-                condition=self.check_screen_out_successful,
-                logic_if_true=logic_screen_out_successful,
-                logic_if_false=logic_screen_out_unsuccessful,
-            ),
+            logic_screen_out,
+            logic_return_for_bonus,
+            logic_return_and_message_experimenter,
         )
 
     def check_screen_out_successful(self, participant):
