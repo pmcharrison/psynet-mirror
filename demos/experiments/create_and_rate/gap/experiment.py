@@ -16,6 +16,7 @@ from psynet.modular_page import (
     ModularPage,
     PushButtonControl,
 )
+from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.timeline import (
     CodeBlock,
@@ -426,6 +427,12 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
+        # If we don't have something before the CodeBlock, then all participants
+        # get assigned roles immediately, and all end up getting the same role.
+        InfoPage(
+            "Welcome to the experiment!",
+            time_estimate=5,
+        ),
         CodeBlock(
             lambda participant: participant.var.set("is_rater", is_rater(participant))
         ),
