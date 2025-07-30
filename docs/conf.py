@@ -60,7 +60,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "PsyNet"
-copyright = "2023, Peter Harrison"
+copyright = "2025, Peter Harrison"
 author = "Peter Harrison"
 
 # The version info for the project you're documenting, acts as replacement
