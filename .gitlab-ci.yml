@@ -63,6 +63,7 @@ merge_test_results:
   stage: test
   needs: ["tests"]
   dependencies: ["tests"]
+  when: always
   script:
     - ls -la public
     - pip install -q junitparser
