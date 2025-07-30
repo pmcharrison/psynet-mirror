@@ -107,6 +107,7 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         MainConsent(),
         switch(
+            "participant_flow",
             lambda participant: participant.id % 3,
             {
                 0: increment_performance_reward(),
