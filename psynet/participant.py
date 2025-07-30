@@ -1133,7 +1133,9 @@ class ParticipantDriver:
 
     def from_db(self, attr: str):
         with transaction(commit=False):
-            participant = Participant.query.get(self.id)
+            participant = (
+                Participant.query.filter_by(id=self.id).populate_existing().one()
+            )
             return getattr(participant, attr)
 
     @property
