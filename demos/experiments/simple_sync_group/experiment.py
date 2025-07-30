@@ -4,7 +4,7 @@ import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
-from psynet.sync import GroupCloser, SimpleGrouper
+from psynet.sync import GroupCloser, SimpleGrouper, SyncGroup
 from psynet.timeline import PageMaker, Timeline
 from psynet.utils import get_logger
 
@@ -67,21 +67,21 @@ class Exp(psynet.experiment.Experiment):
     def test_serial_run_bots(self, bots: List[BotDriver]):
         advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
-        for page in pages:
-            assert page.content.startswith("You are now in group")
-        assert bots[0].sync_group.n_active_participants == 3
         for bot in bots:
-            assert len(bot.sync_group.participants) == 3
+            assert bot.current_page_text.startswith("You are now in group")
+
+        for group in SyncGroup.query.all():
+            assert group.n_active_participants == 3
+            assert len(group.participants) == 3
 
         for bot in bots:
             bot.take_page()
+
         advance_past_wait_pages(bots)
 
-        for page in pages:
-            assert page.content.startswith("You are now in group")
         for bot in bots:
-            assert len(bot.sync_group.participants) == 2
+            assert bot.current_page_text.startswith("You are now in group")
+            assert bot.sync_group_n_active_participants == 2
 
         for bot in bots:
             bot.run_to_completion()

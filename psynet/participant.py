@@ -1150,4 +1150,10 @@ class ParticipantDriver:
     def current_node(self):
         return self.from_db("current_node")
 
+    @property
+    def sync_group_n_active_participants(self):
+        with transaction(commit=False):
+            participant = Participant.query.get(self.id)
+            return participant.sync_group.n_active_participants
+
     ###############################################################################
