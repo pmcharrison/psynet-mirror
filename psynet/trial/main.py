@@ -443,6 +443,8 @@ class Trial(SQLMixinDallinger, Info):
         definition=NoArgumentProvided,  # If provided, overrides make definition
     ):
         super().__init__(origin=node)
+        db.session.add(self)
+
         self.node = node
         # self.node_id = node.id
         self.complete = False
@@ -492,8 +494,6 @@ class Trial(SQLMixinDallinger, Info):
                 assert self.definition is not None
             else:
                 self.definition = definition
-
-            db.session.add(self)
 
     def to_dict(self):
         x = super().to_dict()
