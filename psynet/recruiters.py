@@ -33,7 +33,7 @@ from sqlalchemy.sql import func
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService, get_lucid_service
-from .page import InfoPage, WaitPage, wait_while
+from .page import InfoPage
 from .participant import Participant
 from .timeline import (
     AsyncCodeBlock,
@@ -313,79 +313,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )
         return submission and submission.get("status") == "RETURNED"
-
-    def _request_partial_payment(self, participant, payment: float):
-        from psynet.experiment import get_experiment
-
-        experiment = get_experiment()
-
-        min_payment = 0.1
-
-        if payment < min_payment:
-            payment = 0.1
-            logger.warning(
-                f"Reward for participant {participant.id} ({payment}) is below {min_payment}. "
-                f"Setting to minimal reward of {min_payment}."
-            )
-
-        study_id = participant.hit_id
-        submission_id = participant.assignment_id
-
-        increase_places = get_config().get("auto_recruit")
-
-        params = {
-            "submission_ids": [submission_id],
-            "bonus_per_submission": payment,
-            "increase_places": increase_places,
-        }
-
-        endpoint = f"/studies/{study_id}/screen-out-submissions/"
-
-        if isinstance(experiment.recruiter, DevProlificRecruiter):
-            logger.info(
-                f"Simulating API call to make partial payment to participant {participant.id} of {payment}. "
-                f"Endpoint: {endpoint}. Params: {params}"
-            )
-        else:
-            response = experiment.recruiter.prolificservice._req(
-                method="POST", endpoint=endpoint, json=params
-            )
-            assert (
-                response.status_code == 200
-            ), f"{response.status_code} error in response: {response.text}"
-
-            # To do - revert to logger.info when Dallinger has been updated
-            logger.warning(
-                f"Successfully made partial payment to participant {participant.id} of {payment} via the "
-                "screen-out-submissions API."
-            )
-
-    def _wait_for_partial_payment(self, participant) -> TimelineLogic:
-        _ = participant.gettext
-
-        class CustomWaitPage(WaitPage):
-            content = _("Communicating with Prolific...")
-
-        return wait_while(
-            condition=lambda participant: not self._participant_partial_payment_complete(
-                participant
-            ),
-            expected_wait=5.0,
-            check_interval=2.0,
-            wait_page=CustomWaitPage,
-        )
-
-    def _participant_partial_payment_complete(self, participant: Participant):
-        relevant_processes = [
-            p
-            for p in participant.async_processes
-            if p.label == "Requesting partial payment"
-        ]
-        assert len(relevant_processes) == 1
-        process = relevant_processes[0]
-
-        assert not process.failed
-        return process.finished
 
 
 class ProlificRecruiter(
