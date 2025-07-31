@@ -98,20 +98,19 @@ class Bot(Participant):
     def take_page(self, *args, **kwargs):
         raise NotImplementedError(
             "The Bot class no longer provides a take_page method. "
-            "If you want to simulate a participant taking a page, please use the BotDriver class instead."
+            "Use BotDriver.take_page instead."
         )
 
     def submit_response(self, response=NoArgumentProvided):
         raise NotImplementedError(
             "The Bot class no longer provides a submit_response method. "
-            "If you want to simulate a participant submitting a response, please use the BotDriver class instead"
-            " (you probably want to use the take_page method)."
+            "Use BotDriver.take_page instead."
         )
 
     def run_until(self, condition, render_pages=False):
         raise NotImplementedError(
             "The Bot class no longer provides a run_until method. "
-            "If you want to simulate a participant running until a condition is met, please use the BotDriver class instead."
+            "Use BotDriver.run_until instead."
         )
 
     def run_to_completion(self, *args, **kwargs):
@@ -232,10 +231,6 @@ class BotDriver(ParticipantDriver):
         The ID of the participant to automate
         (i.e. corresponding to the ``id`` column in the Participant table).
         If not provided, a new bot participant is created.
-    render_pages : bool, optional
-        Whether to render pages during automation (default is True).
-    time_factor : float, optional
-        Factor to multiply the simulated page time by (default is 0.0).
     """
 
     def __init__(
