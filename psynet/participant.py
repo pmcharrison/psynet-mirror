@@ -842,10 +842,6 @@ class ParticipantDriver:
         The ID of the participant to automate
         (i.e. corresponding to the ``id`` column in the Participant table).
         If not provided, a new bot participant is created.
-    render_pages : bool, optional
-        Whether to render pages during automation (default is True).
-    time_factor : float, optional
-        Factor to multiply the simulated page time by (default is 0.0).
     """
 
     def __init__(
