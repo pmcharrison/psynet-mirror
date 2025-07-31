@@ -175,7 +175,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             join(
                 InfoPage(
                     _p(
-                        "screen_out_unsuccessful",
+                        "return_for_bonus_enabled",
                         "We are sorry that you could not proceed to the main experiment, "
                         "but we will still pay you for your time spent so far. "
                         "To receive this payment, we need you to return this assignment "
@@ -194,7 +194,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     condition=self.check_for_returned_assignment,
                     logic=InfoPage(
                         _p(
-                            "screen_out_unsuccessful_message",
+                            "check_for_returned_assignment",
                             "Sorry, but it looks like your assignment hasn't been returned yet. "
                             "Can you wait a few seconds, double-check that you have correctly "
                             "returned the experiment via the Prolific website, then press 'Next'? "
