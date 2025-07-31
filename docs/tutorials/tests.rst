@@ -153,7 +153,7 @@ together.
             advance_past_wait_pages(bots)
 
             assert "That's the end of the experiment!" in bots[0].current_page_text
-            assert "That's the end of the experiment!" in bots[1].current_page_tex
+            assert "That's the end of the experiment!" in bots[1].current_page_text
 
 
 Parallel testing
