@@ -891,6 +891,9 @@ class ParticipantDriver:
         return self.status["page_uuid"]
 
     def run_until(self, condition, render_pages=True, time_factor=0.0):
+        """
+        Take pages until a condition is met.
+        """
         while not condition(self):
             if not self.is_working:
                 raise RuntimeError(
@@ -899,6 +902,9 @@ class ParticipantDriver:
             self.take_page(render_pages, time_factor)
 
     def run_to_completion(self, render_pages=True, time_factor=0.0):
+        """
+        Take pages until the participant has finished the experiment.
+        """
         self.run_until(lambda bot: not bot.is_working, render_pages, time_factor)
 
     def take_experiment(self, render_pages: bool = True, time_factor: float = 0.0):
@@ -1028,8 +1034,8 @@ class ParticipantDriver:
         - metadata
         - blobs
 
-        raw_answer and answer are semi-optional: it is not necessary to provide more than one.
-        If answer is present, then the server will ignore raw_answer.
+        At least one of raw_answer and answer should be provided.
+        If answer is present, then raw_answer will be ignored.
 
         Parameters
         ----------
