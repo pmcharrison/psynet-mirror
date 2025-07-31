@@ -3727,6 +3727,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @login_required
     @with_transaction
     def route_participant_status(cls, participant_id):
+        """
+        This route provides a .zip file containing useful information about the
+        participant's current status. This information is used by automated tests
+        to verify what is being displayed on the current page and what response
+        should be submitted by the bot.
+
+        The zip file contains:
+        - status.json: a JSON file summarising the participant's status
+        - bot_response_files/: a directory containing the files that the participant would upload as a response to the page
+        """
         participant = Bot.query.get(participant_id)
         experiment = get_experiment()
 
