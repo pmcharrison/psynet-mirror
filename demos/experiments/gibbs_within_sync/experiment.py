@@ -237,14 +237,20 @@ class Exp(psynet.experiment.Experiment):
         for bot in bots:
             assert isinstance(bot.get_current_page(), WaitPage)
             time.sleep(0.5)
-            print(
-                ParticipantLinkBarrier.query.with_entities(
-                    ParticipantLinkBarrier.id,
-                    ParticipantLinkBarrier.barrier_id,
-                    ParticipantLinkBarrier.participant_id,
-                    ParticipantLinkBarrier.released,
-                ).all()
-            )
+            barriers = ParticipantLinkBarrier.query.with_entities(
+                ParticipantLinkBarrier.id,
+                ParticipantLinkBarrier.barrier_id,
+                ParticipantLinkBarrier.participant_id,
+                ParticipantLinkBarrier.released,
+            ).all()
+            for bot in bots:
+                print(f"Bot {bot.id} active barriers: {bot.active_barriers}")
+
+            for barrier in barriers:
+                print(
+                    f"Barrier: id = {barrier.id}, barrier_id = {barrier.barrier_id}, participant_id = {barrier.participant_id}, released = {barrier.released}"
+                )
+
             assert "prepare_trial" in bot.active_barriers
 
         # Now we can advance past the prepare_trial barrier
