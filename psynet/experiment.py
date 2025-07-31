@@ -3870,7 +3870,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         try:
             log_line_number = find_log_line_number(token)
         except FileNotFoundError:
-            log_line_number = 0
+            log_line_number = None
 
         cls.log_to_stdout(error, token, **kwargs)
         cls.log_to_db(error, token, log_line_number, **kwargs)

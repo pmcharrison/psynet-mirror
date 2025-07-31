@@ -1,9 +1,9 @@
 .. _errors:
 .. highlight:: shell
 
-=========
+=============
 Error logging
-=========
+=============
 
 PsyNet includes a built-in error logging system that automatically captures runtime errors and exceptions during your experiment.
 

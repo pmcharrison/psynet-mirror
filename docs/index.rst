@@ -21,7 +21,7 @@ but see the sidebar for a full list.
 
 If you want to refer to PsyNet in your paper, you should for now cite the following reference:
 
-Harrison, P. M. C., Marjieh, R., Adolfi, F., van Rijn, P., Anglada-Tort, M., Tchernichovski, O., Larrouy-Maestri, P., & Jacoby, N. (2020). 
+Harrison, P. M. C., Marjieh, R., Adolfi, F., van Rijn, P., Anglada-Tort, M., Tchernichovski, O., Larrouy-Maestri, P., & Jacoby, N. (2020).
 Gibbs Sampling with People. *Advances in Neural Information Processing Systems*, *33*, 10659–10671. Available at <https://proceedings.neurips.cc/paper_files/paper/2020/file/7880d7226e872b776d8b9f23975e2a3d-Paper.pdf>. Here's a BibTeX entry:
 
 Here is the citation entry::
@@ -126,7 +126,7 @@ Here is the citation entry::
    developer/contributing_a_feature_or_bugfix
    developer/prescreening_tasks
    developer/updating_documentation
-   developer/internationalization
+   tutorials/internationalization
    developer/running_tests
    developer/making_a_release
 
@@ -137,5 +137,3 @@ Here is the citation entry::
    :glob:
 
    dashboards/translation
-
-

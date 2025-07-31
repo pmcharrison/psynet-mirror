@@ -85,7 +85,7 @@ To resolve the variable, you have to use the ``.format`` method, like here:
     You have to use the ``.format`` method to replace the variables in the translation. F-strings are not allowed, as it would first replace the variable in the English string and then tries to lookup the translation which would fail.
 
 Summary of best practices
---------------
+-------------------------
 - Use ``_`` for most strings
 - Keep the strings short and simple
 - Avoid HTML tags in the strings as they might get translated or will lead to word order issues
@@ -165,7 +165,7 @@ Also you need to install the ``google-cloud-translate`` package by running:
     pip install google-cloud-translate==2.0.1
 
 The translation process
-----------------------
+-----------------------
 Both ChatGPT and Google Translate batch their translations on a file basis. This means that they can intelligently
 infer the context of the strings in the file. ChatGPT also sees the source code of the file, which can provide
 additional information for disambiguation.
