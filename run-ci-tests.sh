@@ -15,16 +15,25 @@ else
     echo "Release branch detected - will require all translations to be present."
 fi
 
+# Fail the build if any of the tests fail
+EXIT_CODE=0
+
 for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing experiment $file"
   # We use -Werror to ensure that we see all warnings as errors
-  pytest --junitxml=/public/$(basename $file)_junit.xml $file/test.py -Werror -q -o log_cli=False --chrome || exit 1
+  pytest --junitxml=/public/$(basename $file)_junit.xml $file/test.py -Werror -q -o log_cli=False --chrome
+  if [ $? -ne 0 ]; then
+    EXIT_CODE=1
+  fi
 done
 
 for file in $(psynet list-isolated-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing isolated test $file"
   # We use -Werror to ensure that we see all warnings as errors
-  pytest $file -Werror -q -o log_cli=False --chrome || exit 1
+  pytest $file -Werror -q -o log_cli=False --chrome
+  if [ $? -ne 0 ]; then
+    EXIT_CODE=1
+  fi
 done
 
 # At the moment we don't have any other tests to run, but here's some template code to do so
@@ -40,3 +49,5 @@ done
 #  --chrome \
 #  tests \
 #  || exit 1
+
+exit $EXIT_CODE
