@@ -162,63 +162,71 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.0,
         )
 
-    def _create_screen_out_unsuccessful_logic(self):
-        """Create the logic for unsuccessful screen out (return for bonus)."""
+    def _create_return_for_bonus_logic(self, enable_return_for_bonus):
+        """Create the return for bonus logic."""
+        if not enable_return_for_bonus:
+            return None
+
         _p = get_translator(context=True)
 
-        return join(
-            InfoPage(
-                _p(
-                    "screen_out_unsuccessful",
-                    "We are sorry that you could not proceed to the main experiment, "
-                    "but we will still pay you for your time spent so far. "
-                    "To receive this payment, we need you to return this assignment "
-                    "via the Prolific interface, then click the 'Next' button below.",
-                ),
-                time_estimate=0.5,
-            ),
-            while_loop(
-                # This function should check the participant's assignment status using the
-                # new functionality implemented by Jesse. Question to investigate:
-                # how up-to-date will that participant status be? Hopefully we don't need
-                # to manually trigger another refresh but maybe it's necessary.
-                # Whatever we do, we don't want to do an API call within check_for_returned_assignment,
-                # because it'll slow down the server.
-                "check_for_returned_assignment",
-                condition=self.check_for_returned_assignment,
-                logic=InfoPage(
+        return conditional(
+            "return_for_bonus_enabled",
+            lambda participant: enable_return_for_bonus,
+            join(
+                InfoPage(
                     _p(
-                        "screen_out_unsuccessful_message",
-                        "Sorry, but it looks like your assignment hasn't been returned yet. "
-                        "Can you wait a few seconds, double-check that you have correctly "
-                        "returned the experiment via the Prolific website, then press 'Next'? "
-                        "If you keep seeing this message, even after pressing 'Next' "
-                        "then please contact the experimenter via the Prolific website "
-                        "and ask them to check your submission manually.",
+                        "screen_out_unsuccessful",
+                        "We are sorry that you could not proceed to the main experiment, "
+                        "but we will still pay you for your time spent so far. "
+                        "To receive this payment, we need you to return this assignment "
+                        "via the Prolific interface, then click the 'Next' button below.",
                     ),
-                    time_estimate=5.0,
+                    time_estimate=0.5,
                 ),
-                expected_repetitions=1,
-            ),
-            CodeBlock(
-                lambda participant: self.reward_bonus(
-                    participant,
-                    participant.calculate_reward(),
+                while_loop(
+                    # This function should check the participant's assignment status using the
+                    # new functionality implemented by Jesse. Question to investigate:
+                    # how up-to-date will that participant status be? Hopefully we don't need
+                    # to manually trigger another refresh but maybe it's necessary.
+                    # Whatever we do, we don't want to do an API call within check_for_returned_assignment,
+                    # because it'll slow down the server.
+                    "check_for_returned_assignment",
+                    condition=self.check_for_returned_assignment,
+                    logic=InfoPage(
+                        _p(
+                            "screen_out_unsuccessful_message",
+                            "Sorry, but it looks like your assignment hasn't been returned yet. "
+                            "Can you wait a few seconds, double-check that you have correctly "
+                            "returned the experiment via the Prolific website, then press 'Next'? "
+                            "If you keep seeing this message, even after pressing 'Next' "
+                            "then please contact the experimenter via the Prolific website "
+                            "and ask them to check your submission manually.",
+                        ),
+                        time_estimate=5.0,
+                    ),
+                    expected_repetitions=1,
+                ),
+                CodeBlock(
+                    lambda participant: self.reward_bonus(
+                        participant,
+                        participant.calculate_reward(),
+                        _p(
+                            "partial_payment_for_incomplete_participation",
+                            "Partial payment for incomplete participation",
+                        ),
+                    )
+                ),
+                InfoPage(
                     _p(
-                        "partial_payment_for_incomplete_participation",
-                        "Partial payment for incomplete participation",
+                        "screen_out_successful_message",
+                        "You have been credited for the time spent on the experiment. "
+                        "You can now close this browser window.",
                     ),
-                )
-            ),
-            InfoPage(
-                _p(
-                    "screen_out_successful_message",
-                    "You have been credited for the time spent on the experiment. "
-                    "You can now close this browser window.",
+                    show_next_button=False,
+                    time_estimate=0.0,
                 ),
-                show_next_button=False,
-                time_estimate=0.0,
             ),
+            None,
         )
 
     def _create_return_and_message_experimenter_logic(self):
@@ -258,21 +266,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     label="screen_out_successful",
                     condition=self.check_screen_out_successful,
                     logic_if_true=self._create_screen_out_successful_logic(),
-                    logic_if_false=self._create_screen_out_unsuccessful_logic(),
+                    logic_if_false=self._create_return_for_bonus_logic(
+                        get_config().get("prolific_enable_return_for_bonus")
+                    ),
                 ),
             ),
-            None,
-        )
-
-    def _create_return_for_bonus_logic(self, enable_return_for_bonus):
-        """Create the conditional return for bonus logic."""
-        if not enable_return_for_bonus:
-            return None
-
-        return conditional(
-            "return_for_bonus_enabled",
-            lambda participant: enable_return_for_bonus,
-            self._create_screen_out_unsuccessful_logic(),
             None,
         )
 
