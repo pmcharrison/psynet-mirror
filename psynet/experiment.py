@@ -2393,6 +2393,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .get(participant_id)
         )
 
+        if answer is not NoArgumentProvided and not isinstance(participant, Bot):
+            raise ValueError(
+                "Only bots are permitted to submit formatted answers directly "
+                "instead of raw answers."
+            )
+
         try:
             event = self.timeline.get_current_elt(self, participant)
             if page_uuid != participant.page_uuid:
