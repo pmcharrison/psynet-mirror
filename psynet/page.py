@@ -64,7 +64,7 @@ class InfoPage(ModularPage):
         from .bot import BotResponse
 
         return BotResponse(
-            raw_answer=None,
+            answer=None,
             metadata=self.metadata(),
         )
 
@@ -459,11 +459,6 @@ class JsPsychPage(Page):
             css_links=css_links,
             **kwargs,
         )
-
-    def format_answer(self, raw_answer, **kwargs):
-        if raw_answer is None:
-            return None
-        return json.loads(raw_answer)
 
 
 class ExecuteFrontEndJS(InfoPage):
