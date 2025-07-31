@@ -149,12 +149,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def reject_assignment(self, participant) -> TimelineLogic:
         return PageMaker(self._reject_assignment, time_estimate=0.0)
 
-    def _reject_assignment(self, participant) -> TimelineLogic:
+    def _create_screen_out_successful_logic(self):
+        """Create the logic for successful screen out."""
         _p = get_translator(context=True)
-        enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
-        enable_screen_out = get_config().get("prolific_enable_screen_out")
 
-        logic_screen_out_successful = InfoPage(
+        return InfoPage(
             _p(
                 "screen_out_successful",
                 "You have been credited for the time spent on the experiment. "
@@ -166,7 +165,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.0,
         )
 
-        logic_screen_out_unsuccessful = join(
+    def _create_screen_out_unsuccessful_logic(self):
+        """Create the logic for unsuccessful screen out (return for bonus flow)."""
+        _p = get_translator(context=True)
+
+        return join(
             InfoPage(
                 _p(
                     "screen_out_unsuccessful",
@@ -221,7 +224,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             ),
         )
 
-        logic_return_and_message_experimenter = InfoPage(
+    def _create_return_and_message_experimenter_logic(self):
+        """Create the logic for return and message experimenter flow."""
+        _p = get_translator(context=True)
+
+        return InfoPage(
             _p(
                 "screen_out_return_and_message_experimenter",
                 "We are sorry that you could not proceed to the main experiment. "
@@ -235,7 +242,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.5,
         )
 
-        logic_screen_out = conditional(
+    def _create_screen_out_logic(self, enable_screen_out):
+        """Create the conditional screen out logic."""
+        if not enable_screen_out:
+            return None
+
+        return conditional(
             "screen_out_enabled",
             lambda participant: enable_screen_out,
             join(
@@ -248,18 +260,35 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 conditional(
                     label="screen_out_successful",
                     condition=self.check_screen_out_successful,
-                    logic_if_true=logic_screen_out_successful,
-                    logic_if_false=logic_screen_out_unsuccessful,
+                    logic_if_true=self._create_screen_out_successful_logic(),
+                    logic_if_false=self._create_screen_out_unsuccessful_logic(),
                 ),
             ),
             None,
         )
 
-        logic_return_for_bonus = conditional(
+    def _create_return_for_bonus_logic(self, enable_return_for_bonus):
+        """Create the conditional return for bonus logic."""
+        if not enable_return_for_bonus:
+            return None
+
+        return conditional(
             "return_for_bonus_enabled",
             lambda participant: enable_return_for_bonus,
-            logic_screen_out_unsuccessful,
+            self._create_screen_out_unsuccessful_logic(),
             None,
+        )
+
+    def _reject_assignment(self, participant) -> TimelineLogic:
+        enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
+        enable_screen_out = get_config().get("prolific_enable_screen_out")
+
+        logic_screen_out = self._create_screen_out_logic(enable_screen_out)
+        logic_return_for_bonus = self._create_return_for_bonus_logic(
+            enable_return_for_bonus
+        )
+        logic_return_and_message_experimenter = (
+            self._create_return_and_message_experimenter_logic()
         )
 
         return join(
