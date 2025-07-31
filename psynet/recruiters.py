@@ -65,24 +65,6 @@ def _screen_out_participant(participant):
 class PsyNetRecruiterMixin:
     show_termination_button = False
 
-    def screen_out(self, participant, bonus):
-        response = super().screen_out(participant, bonus)
-        message = response.get("message")
-        success = (
-            message == "The request to bulk screen out has been made successfully."
-        )
-        if success:
-            logger.info(message)
-        else:
-            logger.warning(f"Screen out failed: {response}")
-
-        # TODO - this should not refer to Prolific explicitly.
-        # Is screen out specific to Prolific? Maybe we should move it
-        # to the ProlificRecruiter class.
-        participant.var.prolific_screen_out_successful = success
-
-        return success
-
     def terminate_participant(
         self, participant=None, assignment_id=None, reason=None, details=None
     ):
@@ -139,6 +121,21 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
 
 
 class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
+    def screen_out(self, participant, bonus):
+        response = super().screen_out(participant, bonus)
+        message = response.get("message")
+        success = (
+            message == "The request to bulk screen out has been made successfully."
+        )
+        if success:
+            logger.info(message)
+        else:
+            logger.warning(f"Screen out failed: {response}")
+
+        participant.var.prolific_screen_out_successful = success
+
+        return success
+
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
@@ -166,7 +163,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
 
     def _create_screen_out_unsuccessful_logic(self):
-        """Create the logic for unsuccessful screen out (return for bonus flow)."""
+        """Create the logic for unsuccessful screen out (return for bonus)."""
         _p = get_translator(context=True)
 
         return join(
@@ -225,7 +222,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
 
     def _create_return_and_message_experimenter_logic(self):
-        """Create the logic for return and message experimenter flow."""
+        """Create the logic for return and message experimenter."""
         _p = get_translator(context=True)
 
         return InfoPage(
