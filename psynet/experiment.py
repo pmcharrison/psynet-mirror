@@ -20,7 +20,7 @@ from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from statistics import mean, median
-from typing import List, Type, Union
+from typing import List, Optional, Type, Union
 
 import dallinger.experiment
 import dallinger.models
@@ -1278,6 +1278,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
+        self._report_request_statistics()
+
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
 
@@ -1342,6 +1344,33 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.test_check_bots(bots)
 
         testing_stats.report()
+
+    def _report_request_statistics(self) -> Optional[float]:
+        response = self.authenticated_session.get(self.base_url + "/request_statistics")
+        response.raise_for_status()
+        mean_duration = response.json()["mean_duration"]
+
+        if mean_duration is None:
+            logger.info("Found no requests to report statistics for.")
+        else:
+            logger.info(f"Mean HTTP request duration: {mean_duration:.3f} seconds")
+
+    @experiment_route("/request_statistics", methods=["GET"])
+    @classmethod
+    @login_required
+    @with_transaction
+    def request_statistics(cls):
+        # Note that we restrict consideration to the key participant-facing requests.
+        mean_duration = (
+            db.session.query(func.avg(Request.duration))
+            .filter(
+                Request.endpoint.in_(["/timeline", "/response"]),
+            )
+            .scalar()
+        )
+        return {
+            "mean_duration": mean_duration,
+        }
 
     class TestingStats:
         def __init__(self, stat_definitions):
