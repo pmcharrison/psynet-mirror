@@ -602,12 +602,23 @@ def is_chromedriver_process(process):
 ###########
 
 
-def _run_bot(real_time=False):
+def _run_bot(real_time, dashboard_user, dashboard_password):
     from .bot import Bot
     from .experiment import get_experiment
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
     os.environ["DEPLOYMENT_PACKAGE"] = "True"
+
+    import logging
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    config.set("dashboard_user", dashboard_user)
+    config.set("dashboard_password", dashboard_password)
 
     with transaction():
         bot = Bot()
@@ -625,16 +636,24 @@ def _run_bot(real_time=False):
     is_flag=True,
     help="Instead of running the bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
 )
+@click.option(
+    "--dashboard-user",
+    help="The username for the experiment's dashboard (used for bot authentication).",
+)
+@click.option(
+    "--dashboard-password",
+    help="The password for the experiment's dashboard (used for bot authentication).",
+)
 @click.pass_context
 @require_exp_directory
-def run_bot(ctx, real_time=False):
+def run_bot(ctx, real_time=False, dashboard_user=None, dashboard_password=None):
     """
     Run a bot through the local version of the experiment.
     Prior to running this command you must spin up a local experiment, for example
     by running ``psynet debug local``. You can then call ``psynet run-bot``
     multiple times to simulate multiple bots being run through the experiment.
     """
-    _run_bot(real_time=real_time)
+    _run_bot(real_time, dashboard_user, dashboard_password)
 
 
 ##############

@@ -1285,13 +1285,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # Start N subprocesses, and in each one call `psynet run-bot`
         logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
 
+        config = get_config()
+        dashboard_user = config.get("dashboard_user")
+        dashboard_password = config.get("dashboard_password")
+
         n_processes = self.test_n_bots
 
         processes = []
         process_ids = list(range(n_processes))
         bot_ids = [process_id + 1 for process_id in process_ids]
 
-        cmd = "psynet run-bot"
+        cmd = f"psynet run-bot --dashboard-user {dashboard_user} --dashboard-password {dashboard_password}"
         if self.test_real_time:
             cmd += " --real-time"
 
@@ -1391,12 +1395,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             regex="progress = ([0-9]*)%",
             suffix="%",
             decimal_places=0,
-        ),
-        TestingStatDefinition(
-            "mean_processing_time",
-            label="processing time per page",
-            regex="mean processing time per page = ([0-9]*\\.[0-9]*) seconds",
-            suffix=" seconds",
         ),
         TestingStatDefinition(
             "total_wait_page_time",

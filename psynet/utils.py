@@ -1795,7 +1795,10 @@ def get_authenticated_session(base_url, username=None, password=None):
     resp = session.post(login_url, data=login_data)
     resp.raise_for_status()
 
-    # Step 3: Try to access a protected route to confirm login
+    # Step 3: Check for an error message in the response
+    check_for_login_errors(resp)
+
+    # Step 4: Try to access a protected route to confirm login
     protected_url = f"{base_url}/dashboard/index"
     check = session.get(protected_url)
 
@@ -1807,3 +1810,29 @@ def get_authenticated_session(base_url, username=None, password=None):
         )
 
     return session
+
+
+def check_for_login_errors(response):
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    top_level_alert = soup.find("div", class_="alert alert-danger")
+
+    if not top_level_alert:
+        return
+
+    top_level_message = top_level_alert.get_text(strip=True)
+
+    # Get any field-level error messages (e.g. under username)
+    field_errors = soup.find_all(
+        "span", style=lambda value: value and "color: red" in value
+    )
+
+    # Collect all messages
+    messages = [top_level_message]
+
+    for err in field_errors:
+        messages.append(err.get_text(strip=True))
+
+    message = " - ".join(messages)
+
+    raise RuntimeError(f"Dashboard login failed with message: '{message}'. ")

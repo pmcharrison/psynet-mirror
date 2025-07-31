@@ -51,6 +51,11 @@ class Bot(Participant):
 
         db.session.commit()
 
+    def get_driver(self):
+        if self.id is None:
+            db.session.flush()
+        return BotDriver(id_=self.id)
+
     def _advance_to_first_page(self):
         assert self.elt_id == [-1]
         self.experiment.timeline.advance_page(self.experiment, self)
