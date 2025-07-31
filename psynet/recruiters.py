@@ -204,7 +204,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 lambda participant: self.reward_bonus(
                     participant,
                     participant.calculate_reward(),
-                    _p("Partial payment for incomplete participation"),
+                    _p(
+                        "partial_payment_for_incomplete_participation",
+                        "Partial payment for incomplete participation",
+                    ),
                 )
             ),
             InfoPage(
