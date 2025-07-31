@@ -266,9 +266,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     label="screen_out_successful",
                     condition=self.check_screen_out_successful,
                     logic_if_true=self._create_screen_out_successful_logic(),
-                    logic_if_false=self._create_return_for_bonus_logic(
-                        get_config().get("prolific_enable_return_for_bonus")
-                    ),
                 ),
             ),
             None,
