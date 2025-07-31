@@ -218,7 +218,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 ),
                 InfoPage(
                     _p(
-                        "screen_out_successful_message",
+                        "return_for_bonus_completed",
                         "You have been credited for the time spent on the experiment. "
                         "You can now close this browser window.",
                     ),
