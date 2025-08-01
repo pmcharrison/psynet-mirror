@@ -957,7 +957,7 @@ class ChainTrial(Trial):
     block = Column(String, index=True)
 
     # This is the list of columns that are exported to the basic_data endpoint.
-    @classmethod
+    @classproperty
     def get_basic_data_columns(cls):
         return [
             "id",
