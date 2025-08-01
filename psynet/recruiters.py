@@ -302,8 +302,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def check_assignment_return_status(self, participant) -> bool:
         """Check and update the participant's assignment return status via API call.
 
-        Waits for up to 5 minutes for the assignment to be returned.
-
         Returns:
             bool: True if assignment is returned, False otherwise
         """
