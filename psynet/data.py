@@ -463,6 +463,20 @@ class SQLMixinDallinger(SharedMixin):
 
         return json
 
+    @classmethod
+    def get_records(cls, columns: List[str]):
+        data = (
+            db.session.query(cls)
+            .order_by(cls.id.asc())
+            .with_entities(
+                *(getattr(cls, column) for column in columns),
+            )
+            .all()
+        )
+        return [
+            {column: record[i] for i, column in enumerate(columns)} for record in data
+        ]
+
 
 #
 # @event.listens_for(SQLMixinDallinger, "after_insert", propagate=True)
