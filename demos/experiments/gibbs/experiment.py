@@ -194,7 +194,7 @@ start_nodes = [
 ]
 
 trial_maker = CustomTrialMaker(
-    id_="gibbs_demo",
+    id_="gibbs",
     start_nodes=start_nodes,
     network_class=CustomNetwork,
     trial_class=CustomTrial,

@@ -13,7 +13,6 @@ from sqlalchemy import (
     func,
     or_,
 )
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship, subqueryload
 from sqlalchemy.sql.expression import not_, select
@@ -935,10 +934,9 @@ class ChainTrial(Trial):
     # pylint: disable=abstract-method
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    participant_group = association_proxy("node", "participant_group")
-    degree = association_proxy("node", "degree")
-    context = association_proxy("node", "context")
-
+    participant_group = Column(String)
+    degree = Column(Integer)
+    context = Column(PythonObject)
     block_position = Column(Integer, index=True)
     block = Column(String, index=True)
 
@@ -957,6 +955,9 @@ class ChainTrial(Trial):
         ):
             self.block_position = participant.module_state.block_position
             self.block = participant.module_state.block
+            self.degree = node.degree
+            self.context = node.context
+            self.participant_group = node.participant_group
 
     # @property
     # @extra_var(__extra_vars__)
@@ -1917,3 +1918,59 @@ class ChainTrialMaker(NetworkTrialMaker):
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
         participant.module_state.participated_networks.append(trial.network_id)
+
+    def get_basic_data(self):
+        return {
+            "nodes": self.get_basic_data_nodes(),
+            "trials": self.get_basic_data_trials(),
+        }
+
+    def get_basic_data_nodes(self):
+        return self.node_class.get_records(
+            [
+                "id",
+                "network_id",
+                "participant_group",
+                "block",
+                "degree",
+                "context",
+                "seed",
+                "definition",
+                "creation_time",
+                "failed",
+                "failed_reason",
+            ],
+            filter_by={"trial_maker_id": self.id},
+            unpack=True,
+            basic_types=True,
+        )
+
+    def get_basic_data_trials(self):
+        return self.trial_class.get_records(
+            [
+                "id",
+                "node_id",
+                "network_id",
+                "degree",
+                "participant_id",
+                "participant_group",
+                "definition",
+                "answer",
+                "creation_time",
+                "failed",
+                "failed_reason",
+                "complete",
+                "finalized",
+                "block",
+                "block_position",
+                "is_repeat_trial",
+                "parent_trial_id",
+                "score",
+                "performance_reward",
+                "answer",
+                "time_taken",
+            ],
+            filter_by={"trial_maker_id": self.id},
+            unpack=True,
+            basic_types=True,
+        )

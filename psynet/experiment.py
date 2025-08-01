@@ -1180,7 +1180,36 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         See `artifact_storage` for an example.
         """
-        return []
+        return {
+            "participants": cls.get_basic_data_participants(),
+            **cls.get_basic_data_trial_makers(),
+        }
+
+    @classmethod
+    def get_basic_data_trial_makers(cls):
+        return {
+            trial_maker_id: trial_maker.get_basic_data()
+            for trial_maker_id, trial_maker in get_experiment().timeline.trial_makers.items()
+        }
+
+    @classmethod
+    def get_basic_data_participants(cls):
+        return Participant.get_records(
+            [
+                "id",
+                "type",
+                "status",
+                "failed",
+                "complete",
+                "creation_time",
+                "end_time",
+                "progress",
+                "base_payment",
+                "bonus",
+                "performance_reward",
+            ],
+            basic_types=True,
+        )
 
     @classmethod
     def backup_basic_data(cls):
@@ -1267,6 +1296,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
+        bots = Bot.query.all()
+        self.test_check_bots(bots)
+
+        data = self.get_basic_data(context="test_experiment")
+        self.check_basic_data(data)
+
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
 
@@ -1322,9 +1357,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             if len(finished_processes) == n_processes:
                 waiting_for_processes = False
-
-        bots = Bot.query.all()
-        self.test_check_bots(bots)
 
         testing_stats.report()
 
@@ -1406,7 +1438,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
         bots = [Bot() for _ in range(self.test_n_bots)]
         self.test_serial_run_bots(bots)
-        self.test_check_bots(bots)
 
     def test_serial_run_bots(self, bots):
         for bot in bots:
@@ -1428,6 +1459,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed
+
+    def check_basic_data(self, data: dict):
+        assert isinstance(data, dict)
 
     @classmethod
     def error_page(

@@ -153,3 +153,6 @@ class Exp(psynet.experiment.Experiment):
                 assert network not in participant_networks
 
         assert counter == len(participant_networks)
+
+    def check_basic_data(data: dict):
+        assert "participant" in data

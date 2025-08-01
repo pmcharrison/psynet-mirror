@@ -1,9 +1,11 @@
 import contextlib
 import csv
 import io
+import json
 import os
 import shutil
 import tempfile
+from datetime import datetime
 from typing import List, Optional
 from zipfile import ZipFile
 
@@ -464,18 +466,79 @@ class SQLMixinDallinger(SharedMixin):
         return json
 
     @classmethod
-    def get_records(cls, columns: List[str]):
-        data = (
-            db.session.query(cls)
-            .order_by(cls.id.asc())
-            .with_entities(
-                *(getattr(cls, column) for column in columns),
-            )
-            .all()
+    def get_records(
+        cls,
+        columns: List[str],
+        filter_by: Optional[dict] = None,
+        unpack: bool = False,
+        basic_types: bool = False,
+    ):
+        query = db.session.query(cls)
+        if filter_by:
+            query = query.filter_by(**filter_by)
+        query = query.order_by(cls.id.asc()).with_entities(
+            *(getattr(cls, column) for column in columns),
         )
-        return [
-            {column: record[i] for i, column in enumerate(columns)} for record in data
+        records = [
+            {column: record[i] for i, column in enumerate(columns)}
+            for record in query.all()
         ]
+
+        if unpack:
+            records = [unpack_dicts(record) for record in records]
+
+        if basic_types:
+            records = [coerce_to_basic_types(record) for record in records]
+
+        return records
+
+
+def unpack_dicts(record: dict) -> dict:
+    """
+    Unpacks nested dictionaries into a single level.
+    For example, if the input is:
+    {
+        "a": {"b": 1, "c": 2},
+        "d": 3
+    }
+    the output will be:
+
+    {
+        "a.b": 1,
+        "a.c": 2,
+        "d": 3
+    }
+    """
+    new = {}
+    for key, value in record.items():
+        if isinstance(value, dict):
+            for k, v in value.items():
+                new[f"{key}.{k}"] = v
+        else:
+            new[key] = value
+    return new
+
+
+def coerce_to_basic_types(record: dict) -> dict:
+    from .serialize import serialize
+
+    new = {}
+
+    for key, value in record.items():
+        # Always convert datetimes to strings.
+        if isinstance(value, datetime):
+            new[key] = value.strftime("%Y-%m-%d %H:%M:%S.%f")
+            continue
+
+        # If the value is serializable using the default JSON serializer, use that.
+        try:
+            json.dumps(value)
+            new[key] = value
+        # Otherwise, convert it to a safe string using PsyNet's serializer.
+        except TypeError:
+            new[key] = serialize(value)
+
+    return new
 
 
 #

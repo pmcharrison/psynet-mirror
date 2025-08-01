@@ -2029,6 +2029,9 @@ class TrialMaker(Module):
     def extra_files(cls):
         return []
 
+    def get_basic_data(self):
+        raise NotImplementedError
+
 
 class NetworkTrialMakerState(TrialMakerState):
     pass
