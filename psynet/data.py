@@ -468,11 +468,11 @@ class SQLMixinDallinger(SharedMixin):
     @classmethod
     def get_records(
         cls,
-        columns: List[str],
         filter_by: Optional[dict] = None,
         unpack: bool = False,
         basic_types: bool = False,
     ):
+        columns = cls.get_basic_data_columns()
         query = db.session.query(cls)
         if filter_by:
             query = query.filter_by(**filter_by)

@@ -548,6 +548,22 @@ class ChainNode(TrialNode):
         post_update=True,
     )
 
+    # This is the list of columns that are exported to the basic_data endpoint.
+    def get_basic_data_columns(cls):
+        return [
+            "id",
+            "network_id",
+            "participant_group",
+            "block",
+            "degree",
+            "context",
+            "seed",
+            "definition",
+            "creation_time",
+            "failed",
+            "failed_reason",
+        ]
+
     @property
     def chain(self):
         return self.network
@@ -939,6 +955,33 @@ class ChainTrial(Trial):
     context = Column(PythonObject)
     block_position = Column(Integer, index=True)
     block = Column(String, index=True)
+
+    # This is the list of columns that are exported to the basic_data endpoint.
+    @classmethod
+    def get_basic_data_columns(cls):
+        return [
+            "id",
+            "node_id",
+            "network_id",
+            "degree",
+            "participant_id",
+            "participant_group",
+            "definition",
+            "answer",
+            "creation_time",
+            "failed",
+            "failed_reason",
+            "complete",
+            "finalized",
+            "block",
+            "block_position",
+            "is_repeat_trial",
+            "parent_trial_id",
+            "score",
+            "performance_reward",
+            "answer",
+            "time_taken",
+        ]
 
     @property
     def chain(self):
@@ -1934,19 +1977,6 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def get_basic_data_nodes(self):
         return self.node_class.get_records(
-            [
-                "id",
-                "network_id",
-                "participant_group",
-                "block",
-                "degree",
-                "context",
-                "seed",
-                "definition",
-                "creation_time",
-                "failed",
-                "failed_reason",
-            ],
             filter_by={"trial_maker_id": self.id},
             unpack=True,
             basic_types=True,
@@ -1954,29 +1984,6 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def get_basic_data_trials(self):
         return self.trial_class.get_records(
-            [
-                "id",
-                "node_id",
-                "network_id",
-                "degree",
-                "participant_id",
-                "participant_group",
-                "definition",
-                "answer",
-                "creation_time",
-                "failed",
-                "failed_reason",
-                "complete",
-                "finalized",
-                "block",
-                "block_position",
-                "is_repeat_trial",
-                "parent_trial_id",
-                "score",
-                "performance_reward",
-                "answer",
-                "time_taken",
-            ],
             filter_by={"trial_maker_id": self.id},
             unpack=True,
             basic_types=True,

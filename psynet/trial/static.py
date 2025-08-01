@@ -60,6 +60,15 @@ class StaticTrial(ChainTrial):
 
     __extra_vars__ = Trial.__extra_vars__.copy()
 
+    @classmethod
+    def get_basic_data_columns(cls):
+        cols = super().get_basic_data_columns()
+        # These columns are only really relevant for chain experiments.
+        cols.remove("node_id")
+        cols.remove("network_id")
+        cols.remove("degree")
+        return cols
+
     def generate_asset_key(self, asset):
         return f"{self.trial_maker_id}/block_{self.block}__node_{self.node_id}__trial_{self.id}__{asset.local_key}{asset.extension}"
 

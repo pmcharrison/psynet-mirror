@@ -206,6 +206,23 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "AsyncProcess", foreign_keys=[awaited_async_code_block_process_id]
     )
 
+    # This is the list of columns that are exported to the basic_data endpoint.
+    @classmethod
+    def get_basic_data_columns(cls):
+        return [
+            "id",
+            "type",
+            "status",
+            "failed",
+            "complete",
+            "creation_time",
+            "end_time",
+            "progress",
+            "base_payment",
+            "bonus",
+            "performance_reward",
+        ]
+
     # @property
     # def current_trial(self):
     #     if self.in_module and hasattr(self.module_state, "current_trial"):

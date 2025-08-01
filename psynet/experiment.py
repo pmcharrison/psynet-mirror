@@ -1194,22 +1194,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def get_basic_data_participants(cls):
-        return Participant.get_records(
-            [
-                "id",
-                "type",
-                "status",
-                "failed",
-                "complete",
-                "creation_time",
-                "end_time",
-                "progress",
-                "base_payment",
-                "bonus",
-                "performance_reward",
-            ],
-            basic_types=True,
-        )
+        return Participant.get_records(basic_types=True)
 
     @classmethod
     def backup_basic_data(cls):

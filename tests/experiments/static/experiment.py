@@ -161,4 +161,10 @@ class Exp(psynet.experiment.Experiment):
         assert "trials" in data["animals"]
         assert len(data["animals"]["trials"]) > 0
 
+        assert "time_taken" in data["animals"]["trials"][0]
+
+        # This should be removed via StaticTrial.basic_data_columns,
+        # because it's not relevant for static experiments.
+        assert "network_id" not in data["animals"]["trials"][0]
+
         assert "nodes" not in data["animals"]
