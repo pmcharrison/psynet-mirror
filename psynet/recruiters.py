@@ -43,6 +43,7 @@ from .timeline import (
     TimelineLogic,
     conditional,
     join,
+    while_loop,
 )
 from .utils import get_logger, get_translator, render_template_with_translations
 
@@ -199,15 +200,31 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                             ),
                             time_estimate=0.5,
                         ),
-                        logic_if_false=InfoPage(
-                            _p(
-                                "assignment_return_timeout",
-                                "We waited 5 minutes but your assignment was not returned. "
-                                "Please return your assignment in Prolific and contact the experimenter "
-                                "if you need assistance. You can now close this browser window.",
+                        logic_if_false=join(
+                            while_loop(
+                                "wait_for_assignment_return",
+                                condition=lambda participant: not self.check_for_returned_assignment(
+                                    participant
+                                ),
+                                logic=InfoPage(
+                                    _p(
+                                        "waiting_for_assignment_return",
+                                        "Please wait while we check if your assignment has been returned...",
+                                    ),
+                                    time_estimate=0.5,
+                                ),
+                                expected_repetitions=1,
                             ),
-                            show_next_button=False,
-                            time_estimate=0.5,
+                            InfoPage(
+                                _p(
+                                    "assignment_return_timeout",
+                                    "We waited 5 minutes but your assignment was not returned. "
+                                    "Please return your assignment in Prolific and contact the experimenter "
+                                    "if you need assistance. You can now close this browser window.",
+                                ),
+                                show_next_button=False,
+                                time_estimate=0.5,
+                            ),
                         ),
                     ),
                 ),
