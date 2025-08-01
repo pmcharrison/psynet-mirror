@@ -162,6 +162,56 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.0,
         )
 
+    def assignment_returned_logic(self) -> TimelineLogic:
+        """Create the TimelineLogic for checking assignment return status."""
+        _p = get_translator(context=True)
+
+        return join(
+            AsyncCodeBlock(
+                self.check_assignment_return_status,
+                wait=True,
+                expected_wait=300.0,
+                check_interval=1.0,
+            ),
+            conditional(
+                label="assignment_return_result",
+                condition=self.check_for_returned_assignment,
+                logic_if_true=InfoPage(
+                    _p(
+                        "assignment_returned_successful",
+                        "Assignment return confirmed. Processing payment...",
+                    ),
+                    time_estimate=0.5,
+                ),
+                logic_if_false=join(
+                    while_loop(
+                        "wait_for_assignment_return",
+                        condition=lambda participant: not self.check_for_returned_assignment(
+                            participant
+                        ),
+                        logic=InfoPage(
+                            _p(
+                                "waiting_for_assignment_return",
+                                "Please wait while we check if your assignment has been returned...",
+                            ),
+                            time_estimate=0.5,
+                        ),
+                        expected_repetitions=1,
+                    ),
+                    InfoPage(
+                        _p(
+                            "assignment_return_timeout",
+                            "We waited 5 minutes but your assignment was not returned. "
+                            "Please return your assignment in Prolific and contact the experimenter "
+                            "if you need assistance. You can now close this browser window.",
+                        ),
+                        show_next_button=False,
+                        time_estimate=0.5,
+                    ),
+                ),
+            ),
+        )
+
     def return_for_bonus_logic(self, enable_return_for_bonus) -> TimelineLogic:
         """Create the TimelineLogic for returning the assignment in order to receive the bonus."""
         if not enable_return_for_bonus:
@@ -183,51 +233,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     ),
                     time_estimate=0.5,
                 ),
-                join(
-                    AsyncCodeBlock(
-                        self.check_assignment_return_status,
-                        wait=True,
-                        expected_wait=300.0,
-                        check_interval=1.0,
-                    ),
-                    conditional(
-                        label="assignment_return_result",
-                        condition=self.check_for_returned_assignment,
-                        logic_if_true=InfoPage(
-                            _p(
-                                "assignment_returned_successful",
-                                "Assignment return confirmed. Processing payment...",
-                            ),
-                            time_estimate=0.5,
-                        ),
-                        logic_if_false=join(
-                            while_loop(
-                                "wait_for_assignment_return",
-                                condition=lambda participant: not self.check_for_returned_assignment(
-                                    participant
-                                ),
-                                logic=InfoPage(
-                                    _p(
-                                        "waiting_for_assignment_return",
-                                        "Please wait while we check if your assignment has been returned...",
-                                    ),
-                                    time_estimate=0.5,
-                                ),
-                                expected_repetitions=1,
-                            ),
-                            InfoPage(
-                                _p(
-                                    "assignment_return_timeout",
-                                    "We waited 5 minutes but your assignment was not returned. "
-                                    "Please return your assignment in Prolific and contact the experimenter "
-                                    "if you need assistance. You can now close this browser window.",
-                                ),
-                                show_next_button=False,
-                                time_estimate=0.5,
-                            ),
-                        ),
-                    ),
-                ),
+                self.assignment_returned_logic(),
                 CodeBlock(
                     lambda participant: self.reward_bonus(
                         participant,
