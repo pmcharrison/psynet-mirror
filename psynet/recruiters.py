@@ -43,7 +43,6 @@ from .timeline import (
     TimelineLogic,
     conditional,
     join,
-    while_loop,
 )
 from .utils import get_logger, get_translator, render_template_with_translations
 
@@ -183,28 +182,34 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     ),
                     time_estimate=0.5,
                 ),
-                while_loop(
-                    # This function should check the participant's assignment status using the
-                    # new functionality implemented by Jesse. Question to investigate:
-                    # how up-to-date will that participant status be? Hopefully we don't need
-                    # to manually trigger another refresh but maybe it's necessary.
-                    # Whatever we do, we don't want to do an API call within check_for_returned_assignment,
-                    # because it'll slow down the server.
-                    "check_for_returned_assignment",
-                    condition=self.check_for_returned_assignment,
-                    logic=InfoPage(
-                        _p(
-                            "check_for_returned_assignment",
-                            "Sorry, but it looks like your assignment hasn't been returned yet. "
-                            "Can you wait a few seconds, double-check that you have correctly "
-                            "returned the experiment via the Prolific website, then press 'Next'? "
-                            "If you keep seeing this message, even after pressing 'Next' "
-                            "then please contact the experimenter via the Prolific website "
-                            "and ask them to check your submission manually.",
-                        ),
-                        time_estimate=5.0,
+                join(
+                    AsyncCodeBlock(
+                        self.check_assignment_return_status,
+                        wait=True,
+                        expected_wait=300.0,
+                        check_interval=1.0,
                     ),
-                    expected_repetitions=1,
+                    conditional(
+                        label="assignment_return_result",
+                        condition=self.check_for_returned_assignment,
+                        logic_if_true=InfoPage(
+                            _p(
+                                "assignment_returned_successful",
+                                "Assignment return confirmed. Processing payment...",
+                            ),
+                            time_estimate=0.5,
+                        ),
+                        logic_if_false=InfoPage(
+                            _p(
+                                "assignment_return_timeout",
+                                "We waited 5 minutes but your assignment was not returned. "
+                                "Please return your assignment in Prolific and contact the experimenter "
+                                "if you need assistance. You can now close this browser window.",
+                            ),
+                            show_next_button=False,
+                            time_estimate=0.5,
+                        ),
+                    ),
                 ),
                 CodeBlock(
                     lambda participant: self.reward_bonus(
@@ -294,8 +299,14 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         except KeyError:
             return False
 
-    def check_for_returned_assignment(self, participant) -> bool:
-        """Check if the participant has returned the assignment."""
+    def check_assignment_return_status(self, participant) -> bool:
+        """Check and update the participant's assignment return status via API call.
+
+        Waits for up to 5 minutes for the assignment to be returned.
+
+        Returns:
+            bool: True if assignment is returned, False otherwise
+        """
         from psynet.experiment import get_experiment
 
         experiment = get_experiment()
@@ -309,7 +320,16 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         logger.info(
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )
-        return submission and submission.get("status") == "RETURNED"
+        is_returned = submission and submission.get("status") == "RETURNED"
+        participant.var.assignment_returned = is_returned
+        return is_returned
+
+    def check_for_returned_assignment(self, participant) -> bool:
+        """Check if the participant has returned the assignment."""
+        try:
+            return participant.var.assignment_returned
+        except KeyError:
+            return False
 
 
 class ProlificRecruiter(
