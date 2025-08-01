@@ -50,7 +50,7 @@ from .utils import get_logger, get_translator, render_template_with_translations
 logger = get_logger()
 
 
-def _screen_out_participant(participant):
+def screen_out_participant(participant):
     """
     Standalone function for AsyncCodeBlock to use (can be serialized properly)
     """
@@ -146,8 +146,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
     def reject_assignment(self, participant) -> TimelineLogic:
         return PageMaker(self._reject_assignment, time_estimate=0.0)
 
-    def _create_screen_out_successful_logic(self):
-        """Create the logic for successful screen out."""
+    def successful_screenout_logic(self) -> TimelineLogic:
+        """Create the TimelineLogic for successful screen out."""
         _p = get_translator(context=True)
 
         return InfoPage(
@@ -162,8 +162,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.0,
         )
 
-    def _create_return_for_bonus_logic(self, enable_return_for_bonus):
-        """Create the return for bonus logic."""
+    def return_for_bonus_logic(self, enable_return_for_bonus) -> TimelineLogic:
+        """Create the TimelineLogic for returning the assignment in order to receive the bonus."""
         if not enable_return_for_bonus:
             return None
 
@@ -229,15 +229,15 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             None,
         )
 
-    def _create_return_and_message_experimenter_logic(self):
-        """Create the logic for return and message experimenter."""
+    def return_and_message_experimenter_logic(self) -> TimelineLogic:
+        """Create the TimelineLogic for returning the assignment and messaging the experimenter."""
         _p = get_translator(context=True)
 
         return InfoPage(
             _p(
                 "screen_out_return_and_message_experimenter",
                 "We are sorry that you could not proceed to the main experiment. "
-                "To receive this payment for your time, please return your submission in Prolific "
+                "To receive this payment for your time, please return your assignment in Prolific "
                 "and send a message to the experimenter via the Prolific messaging system. "
                 "The experimenter will review your case and arrange payment if appropriate. "
                 "Thank you for your understanding. "
@@ -247,8 +247,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.5,
         )
 
-    def _create_screen_out_logic(self, enable_screen_out):
-        """Create the conditional screen out logic."""
+    def screen_out_logic(self, enable_screen_out) -> TimelineLogic:
+        """Create the TimelineLogic for screen out."""
         if not enable_screen_out:
             return None
 
@@ -257,7 +257,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             lambda participant: enable_screen_out,
             join(
                 AsyncCodeBlock(
-                    _screen_out_participant,
+                    screen_out_participant,
                     wait=True,
                     expected_wait=5.0,
                     check_interval=0.5,
@@ -265,7 +265,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 conditional(
                     label="screen_out_successful",
                     condition=self.check_screen_out_successful,
-                    logic_if_true=self._create_screen_out_successful_logic(),
+                    logic_if_true=self.successful_screenout_logic(),
                 ),
             ),
             None,
@@ -275,12 +275,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
         enable_screen_out = get_config().get("prolific_enable_screen_out")
 
-        logic_screen_out = self._create_screen_out_logic(enable_screen_out)
-        logic_return_for_bonus = self._create_return_for_bonus_logic(
-            enable_return_for_bonus
-        )
+        logic_screen_out = self.screen_out_logic(enable_screen_out)
+        logic_return_for_bonus = self.return_for_bonus_logic(enable_return_for_bonus)
         logic_return_and_message_experimenter = (
-            self._create_return_and_message_experimenter_logic()
+            self.return_and_message_experimenter_logic()
         )
 
         return join(
@@ -289,13 +287,15 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             logic_return_and_message_experimenter,
         )
 
-    def check_screen_out_successful(self, participant):
+    def check_screen_out_successful(self, participant) -> bool:
+        """Check if the participant has been successfully screened out."""
         try:
             return participant.var.prolific_screen_out_successful
         except KeyError:
             return False
 
-    def check_for_returned_assignment(self, participant):
+    def check_for_returned_assignment(self, participant) -> bool:
+        """Check if the participant has returned the assignment."""
         from psynet.experiment import get_experiment
 
         experiment = get_experiment()
