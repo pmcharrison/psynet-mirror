@@ -2488,6 +2488,11 @@ class Module(EltCollection):
     def __init__(
         self, id_: str = None, *args, assets=None, nodes=None, state_class=None
     ):
+        if id_ == "participants":
+            raise ValueError(
+                "'participants' is a protected term that cannot be used for module or trialmaker IDs."
+            )
+
         elts = join(*args)
 
         if self.default_id is None and id_ is None:

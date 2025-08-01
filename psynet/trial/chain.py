@@ -1920,10 +1920,17 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant.module_state.participated_networks.append(trial.network_id)
 
     def get_basic_data(self):
-        return {
-            "nodes": self.get_basic_data_nodes(),
-            "trials": self.get_basic_data_trials(),
-        }
+        nodes = self.get_basic_data_nodes()
+        trials = self.get_basic_data_trials()
+
+        data = {}
+
+        if nodes is not None:
+            data["nodes"] = nodes
+        if trials is not None:
+            data["trials"] = trials
+
+        return data
 
     def get_basic_data_nodes(self):
         return self.node_class.get_records(

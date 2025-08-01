@@ -343,6 +343,11 @@ class StaticTrialMaker(ChainTrialMaker):
             sync_group_type=sync_group_type,
         )
 
+    def get_basic_data_nodes(self):
+        # In a static experiment the nodes aren't really informative,
+        # so we omit them from the basic data representation.
+        return None
+
 
 class StaticNetwork(ChainNetwork):
     pass
