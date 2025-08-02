@@ -549,20 +549,21 @@ class ChainNode(TrialNode):
     )
 
     # This is the list of columns that are exported to the basic_data endpoint.
-    def get_basic_data_columns(cls):
-        return [
-            "id",
-            "network_id",
-            "participant_group",
-            "block",
-            "degree",
-            "context",
-            "seed",
-            "definition",
-            "creation_time",
-            "failed",
-            "failed_reason",
-        ]
+    basic_attributes = [
+        "network_id",
+        "participant_group",
+        "block",
+        "degree",
+        "definition"
+    ]
+
+    def __json_basic__(self):
+        record = self.to_dict(basic=True)
+        if record["participant_group"] == "default":
+            del record["participant_group"]
+        if record["block"] == "default":
+            del record["block"]
+        return record
 
     @property
     def chain(self):
@@ -957,6 +958,33 @@ class ChainTrial(Trial):
     block = Column(String, index=True)
 
     # This is the list of columns that are exported to the basic_data endpoint.
+    basic_attributes = [
+        "id",
+        "node_id",
+        "network_id",
+        "degree",
+        "participant_id",
+        "participant_group",
+        "definition",
+        "answer",
+        "block",
+        "block_position",
+        "is_repeat_trial",
+        "parent_trial_id",
+        "score",
+        "performance_reward",
+        "answer",
+        "time_taken",
+    ]
+
+    def __json_basic__(self):
+        record = self.to_dict(basic=True)
+        if record["participant_group"] == "default":
+            del record["participant_group"]
+        if record["block"] == "default":
+            del record["block"]
+        return record
+
     @classproperty
     def get_basic_data_columns(cls):
         return [
@@ -1976,15 +2004,15 @@ class ChainTrialMaker(NetworkTrialMaker):
         return data
 
     def get_basic_data_nodes(self):
-        return self.node_class.get_records(
-            filter_by={"trial_maker_id": self.id},
-            unpack=True,
-            basic_types=True,
-        )
+        nodes = self.node_class.query.filter_by(trial_maker_id=self.id).all()
+
+        return [
+            node.to_dict(basic=True) for node in nodes if node.include_in_basic_data
+        ]
 
     def get_basic_data_trials(self):
-        return self.trial_class.get_records(
-            filter_by={"trial_maker_id": self.id},
-            unpack=True,
-            basic_types=True,
-        )
+        trials = self.trial_class.query.filter_by(trial_maker_id=self.id).all()
+
+        return [
+            trial.to_dict(basic=True) for trial in trials if trial.include_in_basic_data
+        ]

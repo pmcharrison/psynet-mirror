@@ -436,8 +436,10 @@ def json_unpack_field(x: dict, field: str, replace: bool = False):
     return x
 
 
-def json_add_extra_vars(x, obj):
+def json_add_extra_vars(x, obj, basic=False):
     def valid_key(key):
+        if basic and key not in obj.basic_attributes:
+            return False
         return not re.search("^_", key)
 
     for key in obj.__extra_vars__.keys():
