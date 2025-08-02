@@ -185,6 +185,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     AsyncCodeBlock(
                         self.check_assignment_return_status,
                         wait=True,
+                        expected_wait=5.0,
                         check_interval=1.0,
                     ),
                     conditional(
