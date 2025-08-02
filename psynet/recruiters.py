@@ -167,61 +167,58 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         _p = get_translator(context=True)
 
         return join(
-            AsyncCodeBlock(
-                self.check_assignment_return_status,
-                wait=True,
-                expected_wait=300.0,
-                check_interval=1.0,
+            CodeBlock(
+                lambda participant: participant.var.set("assignment_returned", False)
+            ),
+            InfoPage(
+                _p(
+                    "return_assignment_instructions",
+                    "Please return your submission via the Prolific interface and click Next. "
+                    "We will then automatically pay you a bonus for your time.",
+                ),
+                time_estimate=0.5,
             ),
             while_loop(
                 "wait_for_assignment_return",
-                condition=lambda participant: not self.check_for_returned_assignment(
-                    participant
-                ),
-                logic=InfoPage(
-                    _p(
-                        "waiting_for_assignment_return",
-                        "Please wait while we check if your assignment has been returned...",
+                condition=lambda participant: not participant.var.assignment_returned,
+                logic=join(
+                    AsyncCodeBlock(
+                        self.check_assignment_return_status,
+                        wait=True,
+                        check_interval=1.0,
                     ),
-                    time_estimate=0.5,
+                    conditional(
+                        label="assignment_return_result",
+                        condition=lambda participant: participant.var.assignment_returned,
+                        logic_if_true=join(
+                            CodeBlock(
+                                lambda participant: self.reward_bonus(
+                                    participant,
+                                    participant.calculate_reward(),
+                                    "Partial payment for incomplete participation",
+                                )
+                            ),
+                            InfoPage(
+                                _p(
+                                    "return_for_bonus_completed",
+                                    "That worked! You have been credited for the time spent on the experiment. "
+                                    "Thank you for participating. You can now close this browser window.",
+                                ),
+                                show_next_button=False,
+                                time_estimate=0.0,
+                            ),
+                        ),
+                        logic_if_false=InfoPage(
+                            _p(
+                                "assignment_return_retry",
+                                "That didn't work. Please could you wait a few seconds, "
+                                "try again, then click the 'Next' button?",
+                            ),
+                            time_estimate=0.5,
+                        ),
+                    ),
                 ),
                 expected_repetitions=1,
-                max_loop_time=300.0,
-            ),
-            conditional(
-                label="assignment_return_result",
-                condition=self.check_for_returned_assignment,
-                logic_if_true=join(
-                    CodeBlock(
-                        lambda participant: self.reward_bonus(
-                            participant,
-                            participant.calculate_reward(),
-                            _p(
-                                "partial_payment_for_incomplete_participation",
-                                "Partial payment for incomplete participation",
-                            ),
-                        )
-                    ),
-                    InfoPage(
-                        _p(
-                            "return_for_bonus_completed",
-                            "You have been credited for the time spent on the experiment. "
-                            "You can now close this browser window.",
-                        ),
-                        show_next_button=False,
-                        time_estimate=0.0,
-                    ),
-                ),
-                logic_if_false=InfoPage(
-                    _p(
-                        "assignment_return_timeout",
-                        "We waited 5 minutes but your assignment was not returned. "
-                        "Please return your assignment in Prolific and contact the experimenter "
-                        "if you need assistance. You can now close this browser window.",
-                    ),
-                    show_next_button=False,
-                    time_estimate=0.5,
-                ),
             ),
         )
 
