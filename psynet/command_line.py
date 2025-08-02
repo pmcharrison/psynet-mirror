@@ -1082,7 +1082,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
         elif mode == "live":
-            run_pre_checks_deploy(exp, config, is_mturk, _local, recruiter)
+            run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter)
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
