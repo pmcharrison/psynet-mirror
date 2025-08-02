@@ -17,6 +17,7 @@ from shutil import rmtree, which
 from urllib.parse import urlencode
 
 import click
+import click.shell_completion
 import dallinger.command_line.utils
 import psutil
 import psycopg2
@@ -144,6 +145,9 @@ def reset_console():
 ###########
 @psynet.command()
 def prepare():
+    """
+    Prepare the experiment for deployment.
+    """
     _prepare()
 
 
@@ -215,12 +219,18 @@ def _validate_location(ctx, param, value):
 )
 @option_server
 def experiment_variables(location, app, server):
+    """
+    Show the variables of the experiment.
+    """
     with db_connection(location, app, server) as connection:
         return _experiment_variables(connection, echo=True)
 
 
 @contextmanager
 def db_connection(location, app=None, server=None):
+    """
+    Get a database connection.
+    """
     try:
         connection = None
         with get_db_uri(location, app, server) as db_uri:
@@ -283,6 +293,9 @@ def get_db_uri(location, app=None, server=None):
     help="Name of the remote server (only relevant for ssh deployments)",
 )
 def _db(location, app, server):
+    """
+    Get the database connection URI.
+    """
     with get_db_uri(location, app, server) as uri:
         click.echo(uri)
         return uri
@@ -292,6 +305,9 @@ def _db(location, app, server):
 @click.pass_context
 @require_exp_directory
 def debug(ctx):
+    """
+    Debug the experiment.
+    """
     pass
 
 
@@ -303,6 +319,9 @@ def debug(ctx):
 )
 @require_exp_directory
 def sandbox(*args, **kwargs):
+    """
+    Sandbox the experiment (has been replaced with `psynet debug heroku`).
+    """
     raise click.ClickException(
         "`psynet sandbox` has been replaced with `psynet debug heroku`, please use the latter."
     )
@@ -780,6 +799,9 @@ def _forget_tables_defined_in_experiment_directory():
 @psynet.group("deploy")
 @require_exp_directory
 def deploy():
+    """
+    Deploy the experiment.
+    """
     pass
 
 
@@ -804,6 +826,9 @@ def deploy__local(ctx, docker, archive, legacy, no_browsers):
 @click.option("--docker", is_flag=True, default=False, help="Deploy using Docker")
 @click.pass_context
 def deploy__heroku(ctx, app, archive, docker):
+    """
+    Deploy the experiment to Heroku.
+    """
     if docker:
         _deploy__docker_heroku(ctx, app, archive)
 
@@ -862,6 +887,9 @@ def _deploy__docker_heroku(ctx, app, archive):
 )
 @click.pass_context
 def deploy__docker_ssh(ctx, app, archive, dns_host, server):
+    """
+    Deploy the experiment to a remote server via Docker and SSH.
+    """
     try:
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
@@ -942,6 +970,9 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
     help="Force complete rebuild by deleting the '_build' directory",
 )
 def docs(force_rebuild):
+    """
+    Build the documentation.
+    """
     docs_dir = os.path.join(psynet_path[0], "..", "docs")
     docs_build_dir = os.path.join(docs_dir, "_build")
     try:
@@ -1657,6 +1688,9 @@ def export_arguments(func):
 @psynet.group("export")
 @require_exp_directory
 def export():
+    """
+    Export the experiment.
+    """
     pass
 
 
@@ -1664,6 +1698,9 @@ def export():
 @export_arguments
 @click.pass_context
 def export__local(ctx=None, **kwargs):
+    """
+    Export the experiment locally.
+    """
     exp_variables = ctx.invoke(experiment_variables, location="local")
     export_(ctx, local=True, exp_variables=exp_variables, **kwargs)
 
@@ -1677,6 +1714,9 @@ def export__local(ctx=None, **kwargs):
 )
 @click.pass_context
 def export__heroku(ctx, app, **kwargs):
+    """
+    Export the experiment from Heroku.
+    """
     exp_variables = ctx.invoke(experiment_variables, location="heroku", app=app)
     export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
 
@@ -1691,6 +1731,9 @@ def export__heroku(ctx, app, **kwargs):
 @export_arguments
 @click.pass_context
 def export__docker_ssh(ctx, app, server, **kwargs):
+    """
+    Export the experiment from a remote server via Docker and SSH.
+    """
     exp_variables = ctx.invoke(
         experiment_variables, location="ssh", app=app, server=server
     )
@@ -2174,6 +2217,9 @@ def load(path):
 )
 @click.pass_context
 def generate_config(ctx):
+    """
+    Generate a configuration file for the experiment.
+    """
     path = os.path.expanduser("~/.dallingerconfig")
     if os.path.exists(path):
         if not user_confirms(
@@ -2328,6 +2374,9 @@ def post_update_psynet_requirement_():
 
 @psynet.group("destroy")
 def destroy():
+    """
+    Destroy the experiment.
+    """
     pass
 
 
@@ -2341,6 +2390,9 @@ def destroy():
 )
 @click.pass_context
 def destroy__heroku(ctx, app, expire_hit):
+    """
+    Destroy the experiment on Heroku.
+    """
     _destroy(
         ctx,
         dallinger.command_line.destroy,
@@ -2428,6 +2480,9 @@ def _destroy(
 )
 @click.pass_context
 def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
+    """
+    Destroy the experiment on a remote server via SSH.
+    """
     from dallinger.command_line import expire
     from dallinger.command_line.docker_ssh import destroy
 
@@ -2463,6 +2518,9 @@ def destroy__docker_ssh(ctx, app, apps, server, expire_hit):
 
 @psynet.group("apps")
 def apps():
+    """
+    List the apps on the server.
+    """
     pass
 
 
@@ -2479,6 +2537,9 @@ def apps__docker_ssh(ctx, server):
 
 @psynet.group("stats")
 def stats():
+    """
+    Show the stats of the experiment.
+    """
     pass
 
 
@@ -2495,6 +2556,9 @@ def stats__docker_ssh(ctx, server):
 @click.pass_context
 @require_exp_directory
 def test(ctx):
+    """
+    Test the experiment.
+    """
     pass
 
 
@@ -2699,6 +2763,9 @@ def _list_isolated_tests(ci_node_total=None, ci_node_index=None):
 @psynet.group("lucid")
 @click.pass_context
 def lucid(ctx):
+    """
+    Manage Lucid surveys.
+    """
     pass
 
 
@@ -2706,6 +2773,9 @@ def lucid(ctx):
 @click.argument("survey_number", required=True)
 @click.pass_context
 def lucid__cost(ctx, survey_number):
+    """
+    Show the cost of a Lucid survey.
+    """
     summary = get_lucid_service().get_cost(survey_number)
     c = summary["currency"]
     print(bold(f"Cost summary for survey: {survey_number}"))
@@ -2722,6 +2792,9 @@ def lucid__cost(ctx, survey_number):
 @click.argument("rids", required=True, nargs=-1)
 @click.pass_context
 def lucid__compensate(ctx, survey_number, rids):
+    """
+    Compensate participants for a Lucid survey.
+    """
     rids = list(rids)
     confirmation = f"""
     Are you sure you want to compensate {len(rids)} participants?
@@ -2737,6 +2810,9 @@ def lucid__compensate(ctx, survey_number, rids):
 @lucid.command("locale")
 @click.pass_context
 def lucid__locale(ctx):
+    """
+    Show the locales of a Lucid survey.
+    """
     print(
         get_lucid_service().get_lucid_country_language_lookup().to_markdown(index=False)
     )
@@ -2787,6 +2863,9 @@ def lucid__estimate(
     collects_pii,
     qualifications,
 ):
+    """
+    Estimate the cost of a Lucid survey.
+    """
     if qualifications is not None:
         with open(qualifications, "r") as file:
             qualifications = json.load(file)
@@ -2800,6 +2879,9 @@ def lucid__estimate(
 @click.argument("status", required=True)
 @click.pass_context
 def lucid__status(ctx, survey_number, status):
+    """
+    Change the status of a Lucid survey.
+    """
     available_statuses = ["live", "paused", "completed", "archived", "pending"]
     assert (
         status in available_statuses
@@ -2814,6 +2896,9 @@ def lucid__status(ctx, survey_number, status):
 @click.option("--path", default=None, help="Path to save the qualifications to")
 @click.pass_context
 def get_qualifications(ctx, survey_number, path):
+    """
+    Get the qualifications of a Lucid survey.
+    """
     qualifications = get_lucid_service().get_qualifications(survey_number)
     json_string = json.dumps(qualifications, indent=4)
     if path:
@@ -2845,6 +2930,9 @@ def _get_local_pandas():
 @click.option("--order", default="id", help="Sort by column")
 @click.pass_context
 def lucid__list_studies(ctx, live, paused, completed, archived, pending, n, order):
+    """
+    List the studies of a Lucid survey.
+    """
     pd = _get_local_pandas()
     assert n > 0 and n < 200
     allowed_statuses = []
@@ -2881,6 +2969,9 @@ def lucid__list_studies(ctx, live, paused, completed, archived, pending, n, orde
 @click.option("--order", default="entry_date", help="Sort by column")
 @click.pass_context
 def lucid__list_submissions(ctx, survey_number, order):
+    """
+    List the submissions of a Lucid survey.
+    """
     pd = _get_local_pandas()
     submissions = pd.DataFrame(get_lucid_service().get_submissions(survey_number))
     submissions.client_status = submissions.client_status.apply(
