@@ -38,22 +38,6 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-def get_prolific_settings():
-    with open("qualification_prolific_en.json", "r") as f:
-        qualification = json.dumps(json.load(f))
-
-    return {
-        "recruiter": "prolific",
-        "base_payment": 1.0,
-        "prolific_is_custom_screening": True,
-        "prolific_estimated_completion_minutes": 1,
-        "prolific_recruitment_config": qualification,
-        "auto_recruit": False,
-        "currency": "£",
-        "wage_per_hour": 9,
-    }
-
-
 def normal():
     return join(
         InfoPage("Click the button below.", time_estimate=5),
@@ -80,9 +64,22 @@ def increment_performance_reward():
     )
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
+def get_prolific_settings():
+    with open("qualification_prolific_en.json", "r") as f:
+        qualification = json.dumps(json.load(f))
+
+    return {
+        "recruiter": "prolific",
+        "base_payment": 0.5,
+        "prolific_is_custom_screening": True,
+        "prolific_estimated_completion_minutes": 1,
+        "prolific_recruitment_config": qualification,
+        "auto_recruit": False,
+        "currency": "£",
+        "wage_per_hour": 9,
+    }
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Simple test experiment"
     asset_storage = LocalStorage()
