@@ -139,6 +139,9 @@ class Prompt:
     def update_events(self, events):
         pass
 
+    def get_css(self):
+        return []
+
 
 class BaseAudioPrompt(Prompt):
     """
@@ -685,6 +688,9 @@ class Control:
     @property
     def metadata(self):
         return {}
+
+    def get_css(self):
+        return []
 
     @property
     def media(self):
@@ -1824,6 +1830,8 @@ class ModularPage(Page):
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
 
+        css = self.prompt.get_css() + self.control.get_css()
+
         super().__init__(
             label=label,
             time_estimate=time_estimate,
@@ -1844,6 +1852,7 @@ class ModularPage(Page):
             },
             start_trial_automatically=start_trial_automatically,
             validate=validate,
+            css=css,
             **kwargs,
         )
 
@@ -3699,18 +3708,208 @@ class SurveyJSControl(Control):
         self,
         design,
         bot_response=NoArgumentProvided,
+        show_question_numbers: bool = False,
     ):
-        super().__init__(bot_response, show_next_button=False)
+        self.show_question_numbers = show_question_numbers
+
+        super().__init__(
+            bot_response,
+            show_next_button=True,
+        )
 
         self.design = design
 
     macro = "survey_js"
+
+    @property
+    def use_psynet_next_button(self):
+        # We only use the PsyNet next button if the survey only has one page.
+        # Otherwise we use the SurveyJS navigation buttons.
+        return "pages" not in self.design
 
     def get_bot_response(self, experiment, bot, page, prompt):
         raise NotImplementedError
 
     def format_answer(self, raw_answer, **kwargs):
         return json.loads(raw_answer)
+
+    def get_css(self):
+        css = super().get_css()
+        css.append(
+            """
+            # Haven't figured out how to change CSS variables effectively
+            # this way. Class selectors seem to work though.
+            # :root {
+            #     --sjs-primary-backcolor: #0d6efd !important;
+            #     --sjs-general-backcolor-dim: #FFFFFF !important;
+            # }
+            .sd-btn {
+                background-color: #0d6efd !important;
+                font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif !important;
+                font-size: 20px !important;
+                font-weight: 400 !important;
+                # display: none !important;
+                max-width: 250px !important;
+            }
+            .sd-container-modern {
+                background-color: #FFFFFF !important;
+            }
+            .sd-element--with-frame:not(.sd-element--collapsed) {
+                box-shadow: 0px 0px 0px !important;
+            }
+            """
+        )
+        # We considered programmatically hiding the complete button via CSS,
+        # but the problem is that the survey retains a navigation placeholder div
+        # that still consumes space on the page.
+        # Instead we have set survey.showNavigationButtons = false in the HTML template.
+        # This is also imperfect because it prevents us from displaying other navigation
+        # buttons in the future. The best next step would be to upgrade to SurveyJS v2.0.0,
+        # which will allow us to set survey.showCompleteButton = false.
+        # Keeping the code below in case it's useful in the future:
+        # if self.use_psynet_next_button:
+        #     css.append(
+        #         """
+        #         .sd-navigation__complete-btn {
+        #             display: none !important;
+        #         }
+        #         """
+        #     )
+        return css
+
+
+class MultiRatingControl(SurveyJSControl):
+    """
+    A control that allows the participant to rate multiple items at once.
+    """
+
+    def __init__(
+        self,
+        *scales: "RatingScale",
+        bot_response=NoArgumentProvided,
+        show_question_numbers: bool = False,
+    ):
+        self.scales = scales
+
+        design = {
+            "elements": [scale.design for scale in scales],
+            "showQuestionNumbers": "true" if show_question_numbers else "false",
+        }
+
+        super().__init__(design, bot_response)
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return {
+            scale.name: scale.get_bot_response(experiment, bot, page, prompt)
+            for scale in self.scales
+        }
+
+
+class RatingControl(MultiRatingControl):
+    """
+    A control that allows the participant to rate a single item.
+    """
+
+    def __init__(
+        self,
+        values: int | list[float] | list[str] | dict[str, float],
+        min_description: Optional[str] = None,
+        max_description: Optional[str] = None,
+        required: bool = True,
+        bot_response=NoArgumentProvided,
+    ):
+        scale = RatingScale(
+            name="rating",
+            values=values,
+            min_description=min_description,
+            max_description=max_description,
+            required=required,
+        )
+        super().__init__(scale, bot_response=bot_response)
+
+
+class RatingScale:
+    def __init__(
+        self,
+        name: str,
+        values: int | list[float] | list[str] | dict[str, float],
+        min_description: Optional[str] = None,
+        max_description: Optional[str] = None,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        required: bool = True,
+    ):
+        self.name = name
+        self.min_description = min_description
+        self.max_description = max_description
+        self.title = title
+        self.description = description
+        self.required = required
+        self.values, self.labels = self.get_values_and_labels(values)
+        self.design = self.get_design()
+
+    @staticmethod
+    def get_values_and_labels(values):
+        """
+        Unpacks the input values (which has a variety of possible formats)
+        into a standard format.
+
+        Returns
+        -------
+
+        - values: a list of values for the rating scale
+        - labels: a corresponding list of labels
+        """
+        if isinstance(values, (int, float)):
+            assert values > 0
+            values = list(range(1, values + 1))
+
+        assert len(values) > 0
+
+        if isinstance(values, dict):
+            labels = list(values.keys())
+            values = list(values.values())
+        elif isinstance(values[0], (int, float)):
+            values = values
+            labels = [str(value) for value in values]
+        elif isinstance(values[0], str):
+            labels = values
+            values = list(range(1, len(values) + 1))
+        else:
+            raise ValueError(f"Invalid values: {values}")
+
+        return values, labels
+
+    def get_design(self):
+        design = {}
+
+        design["type"] = "rating"
+        design["name"] = self.name
+        design["required"] = self.required
+
+        if self.min_description:
+            design["minValueDescription"] = self.min_description
+        if self.max_description:
+            design["maxValueDescription"] = self.max_description
+
+        if self.title:
+            design["title"] = self.title
+
+        if self.description:
+            design["description"] = self.description
+
+        design["rateValues"] = [
+            {
+                "value": value,
+                "text": label,
+            }
+            for value, label in zip(self.values, self.labels)
+        ]
+
+        return design
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return random.choice(self.values)
 
 
 class MusicNotationPrompt(Prompt):

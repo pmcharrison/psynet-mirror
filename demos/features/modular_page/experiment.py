@@ -10,8 +10,11 @@ from psynet.modular_page import (
     Control,
     FrameSliderControl,
     ModularPage,
+    MultiRatingControl,
     Prompt,
     PushButtonControl,
+    RatingControl,
+    RatingScale,
     TimedPushButtonControl,
     VideoSliderControl,
 )
@@ -77,6 +80,37 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=5,
         ),
+        ModularPage(
+            "rating",
+            prompt=Prompt(
+                "This is an example of the RatingControl. How do you like it?",
+            ),
+            control=RatingControl(
+                values=5,
+                min_description="Rubbish",
+                max_description="Great",
+            ),
+            time_estimate=5,
+        ),
+        DebugResponsePage(),
+        ModularPage(
+            "multirating",
+            "This is an example of the MultiRatingControl.",
+            MultiRatingControl(
+                RatingScale(
+                    "happiness",
+                    values=5,
+                    title="How happy are you feeling?",
+                ),
+                RatingScale(
+                    "energy",
+                    values=5,
+                    title="How energetic are you feeling?",
+                ),
+            ),
+            time_estimate=10,
+        ),
+        DebugResponsePage(),
         ModularPage(
             "response",
             prompt=AudioPrompt(
