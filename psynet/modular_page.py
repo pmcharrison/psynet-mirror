@@ -3743,16 +3743,24 @@ class SurveyJSControl(Control):
         css = super().get_css()
         css.append(
             """
-            /* Haven't figured out how to change CSS variables effectively
-            this way. Class selectors seem to work though.
+            /* A better way to apply styles would be to use SurveyJS's theming functionality.
+            However we think we need to upgrade to SurveyJS v2.0.0 to do this.
+            For now we instead use CSS selectors for styling.
+            */
+
+            /* We tried using CSS variables but this didn't work for some reason.
             :root {
                 --sjs-primary-backcolor: #0d6efd !important;
                 --sjs-general-backcolor-dim: #FFFFFF !important;
             }
             */
-            /*This styles the buttons to be (almost) like PsyNet's buttons.*/
+
+            /* Instead we use class selectors. */
             .sd-btn {
-                background-color: #0d6efd !important;
+                /* Changing the colors would make sense but it proved complicated what
+                with the different button types and the rollover effects.
+                It doesn't seem the worst thing to leave it as is though. */
+                /* background-color: #0d6efd !important; */
                 font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif !important;
                 font-size: 20px !important;
                 font-weight: 400 !important;
