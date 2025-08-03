@@ -3723,7 +3723,6 @@ class SurveyJSControl(Control):
             bot_response,
             show_next_button=self.use_psynet_next_button,
         )
-        self.design = design
 
     macro = "survey_js"
 
@@ -3732,6 +3731,10 @@ class SurveyJSControl(Control):
         # We only use the PsyNet next button if the survey only has one page.
         # Otherwise we use the SurveyJS navigation buttons.
         return "pages" not in self.design
+
+    @property
+    def show_required_marks(self):
+        return True
 
     def get_bot_response(self, experiment, bot, page, prompt):
         raise NotImplementedError
@@ -3776,6 +3779,16 @@ class SurveyJSControl(Control):
             }
             """
         )
+
+        if not self.show_required_marks:
+            # We should be able to use design["requiredMark"] but maybe this is not
+            # available in our current version of surveyJS (< 2.0.0).
+            css.append(
+                """
+                .sd-question__required-text {
+                    display: none !important;
+                """
+            )
         # We considered programmatically hiding the complete button via CSS,
         # but the problem is that the survey retains a navigation placeholder div
         # that still consumes space on the page.
@@ -3826,6 +3839,20 @@ class MultiRatingControl(SurveyJSControl):
             scale.name: scale.get_bot_response(experiment, bot, page, prompt)
             for scale in self.scales
         }
+
+    def format_answer(self, raw_answer, **kwargs):
+        answer = super().format_answer(raw_answer, **kwargs)
+        return {scale.name: answer.get(scale.name, None) for scale in self.scales}
+
+    @property
+    def show_required_marks(self):
+        """
+        We only show required marks (asterisks by questions that are required)
+        if only some of the questions in the set are required.
+        """
+        all_required = all(scale.required for scale in self.scales)
+        all_not_required = all(not scale.required for scale in self.scales)
+        return not (all_required or all_not_required)
 
 
 class RatingControl(MultiRatingControl):

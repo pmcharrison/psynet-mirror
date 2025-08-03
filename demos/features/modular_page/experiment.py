@@ -103,6 +103,7 @@ class Exp(psynet.experiment.Experiment):
                     title="How happy are you feeling?",
                     min_description="Very unhappy",
                     max_description="Very happy",
+                    required=False,
                 ),
                 RatingScale(
                     "energy",
