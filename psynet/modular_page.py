@@ -3717,11 +3717,12 @@ class SurveyJSControl(Control):
         if not self.show_question_titles:
             design["questionTitleLocation"] = "hidden"
 
+        self.design = design
+
         super().__init__(
             bot_response,
-            show_next_button=True,
+            show_next_button=self.use_psynet_next_button,
         )
-        print(json.dumps(design, indent=4))
         self.design = design
 
     macro = "survey_js"
@@ -3742,23 +3743,26 @@ class SurveyJSControl(Control):
         css = super().get_css()
         css.append(
             """
-            # Haven't figured out how to change CSS variables effectively
-            # this way. Class selectors seem to work though.
-            # :root {
-            #     --sjs-primary-backcolor: #0d6efd !important;
-            #     --sjs-general-backcolor-dim: #FFFFFF !important;
-            # }
+            /* Haven't figured out how to change CSS variables effectively
+            this way. Class selectors seem to work though.
+            :root {
+                --sjs-primary-backcolor: #0d6efd !important;
+                --sjs-general-backcolor-dim: #FFFFFF !important;
+            }
+            */
+            /*This styles the buttons to be (almost) like PsyNet's buttons.*/
             .sd-btn {
                 background-color: #0d6efd !important;
                 font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif !important;
                 font-size: 20px !important;
                 font-weight: 400 !important;
-                # display: none !important;
                 max-width: 250px !important;
             }
+            /* This removes the grey background from the survey container. */
             .sd-container-modern {
                 background-color: #FFFFFF !important;
             }
+            /* This removes the shadow from the survey elements. */
             .sd-element--with-frame:not(.sd-element--collapsed) {
                 box-shadow: 0px 0px 0px !important;
             }
