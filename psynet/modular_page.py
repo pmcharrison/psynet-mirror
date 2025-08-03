@@ -3916,7 +3916,7 @@ class RatingScale:
 
         design["type"] = "rating"
         design["name"] = self.name
-        design["required"] = self.required
+        design["isRequired"] = self.required
 
         if self.min_description:
             design["minRateDescription"] = self.min_description
