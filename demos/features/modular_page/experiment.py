@@ -119,7 +119,7 @@ class Exp(psynet.experiment.Experiment):
             "response",
             prompt=AudioPrompt(
                 audio="/static/audio/bier.wav",
-                text="Here is an example of an audio prompt combined with a push button control``.",
+                text="Here is an example of an audio prompt combined with a push button control.",
             ),
             control=PushButtonControl(["Response A", "Response B"]),
             time_estimate=5,
