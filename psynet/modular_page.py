@@ -3816,7 +3816,7 @@ class MultiRatingControl(SurveyJSControl):
     ----------
 
     scales :
-        A list of RatingScale objects.
+        One or more RatingScale objects.
 
     bot_response :
         An optional argument that can be used to specify a response delivered by automatic bots to this page.
