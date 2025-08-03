@@ -3856,7 +3856,7 @@ class RatingControl(MultiRatingControl):
 
     def format_answer(self, raw_answer, **kwargs):
         answer = super().format_answer(raw_answer, **kwargs)
-        return answer["rating"]
+        return answer.get("rating", None)
 
 
 class RatingScale:
