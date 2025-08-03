@@ -4044,7 +4044,10 @@ class RatingScale:
         return design
 
     def get_bot_response(self, experiment, bot, page, prompt):
-        return random.choice(self.values)
+        possible_responses = self.values
+        if not self.required:
+            possible_responses.append(None)
+        return random.choice(possible_responses)
 
 
 class MusicNotationPrompt(Prompt):
