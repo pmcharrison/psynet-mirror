@@ -3811,6 +3811,21 @@ class SurveyJSControl(Control):
 class MultiRatingControl(SurveyJSControl):
     """
     A control that allows the participant to rate multiple items at once.
+
+    Parameters
+    ----------
+
+    scales :
+        A list of RatingScale objects.
+
+    bot_response :
+        An optional argument that can be used to specify a response delivered by automatic bots to this page.
+
+    show_question_numbers :
+        Whether to show question numbers (default: False).
+
+    show_question_titles :
+        Whether to show question titles (default: True).
     """
 
     def __init__(
@@ -3857,7 +3872,33 @@ class MultiRatingControl(SurveyJSControl):
 
 class RatingControl(MultiRatingControl):
     """
-    A control that allows the participant to rate a single item.
+    A control that allows the participant to give a rating on a single scale.
+
+    Parameters
+    ----------
+
+    values:
+        A list of values for the rating scale.
+        The values can be provided in a variety of formats:
+
+        - A single integer, in which case the scale will take values ranging from 1 to the integer.
+        - A list of strings, in which case the scale will take values ranging from 1 to the length of the list,
+          and the labels will be the strings in the list.
+        - A list of floats, in which case the scale will take these floats as values.
+        - A dictionary of strings to floats, in which case the floats will be used as values
+          and the strings will be used as labels.
+
+    min_description :
+        An optional description for the minimum value of the scale.
+
+    max_description :
+        An optional description for the maximum value of the scale.
+
+    required :
+        Whether the question is required (default: True).
+
+    bot_response :
+        An optional argument that can be used to specify a response delivered by automatic bots to this page.
     """
 
     def __init__(
@@ -3887,6 +3928,42 @@ class RatingControl(MultiRatingControl):
 
 
 class RatingScale:
+    """
+    A class that represents a single rating scale.
+
+    Parameters
+    ----------
+
+    name :
+        The name of the scale. This will be used as the key in the participant's answer.
+
+    values :
+        A list of values for the rating scale.
+        The values can be provided in a variety of formats:
+
+        - A single integer, in which case the scale will take values ranging from 1 to the integer.
+        - A list of strings, in which case the scale will take values ranging from 1 to the length of the list,
+          and the labels will be the strings in the list.
+        - A list of floats, in which case the scale will take these floats as values.
+        - A dictionary of strings to floats, in which case the floats will be used as values
+          and the strings will be used as labels.
+
+    min_description :
+        An optional description for the minimum value of the scale.
+
+    max_description :
+        An optional description for the maximum value of the scale.
+
+    title :
+        An optional title for the scale.
+
+    description :
+        An optional description for the scale.
+
+    required :
+        Whether the question is required (default: True).
+    """
+
     def __init__(
         self,
         name: str,
