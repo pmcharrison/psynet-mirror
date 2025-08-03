@@ -83,7 +83,7 @@ class Exp(psynet.experiment.Experiment):
         ModularPage(
             "rating",
             prompt=Prompt(
-                "This is an example of the RatingControl. How do you like it?",
+                "This is an example of the RatingControl. Use it to rate this page.",
             ),
             control=RatingControl(
                 values=5,
@@ -101,11 +101,15 @@ class Exp(psynet.experiment.Experiment):
                     "happiness",
                     values=5,
                     title="How happy are you feeling?",
+                    min_description="Very unhappy",
+                    max_description="Very happy",
                 ),
                 RatingScale(
                     "energy",
                     values=5,
                     title="How energetic are you feeling?",
+                    min_description="Very tired",
+                    max_description="Very energetic",
                 ),
             ),
             time_estimate=10,

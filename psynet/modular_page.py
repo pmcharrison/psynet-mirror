@@ -3709,14 +3709,19 @@ class SurveyJSControl(Control):
         design,
         bot_response=NoArgumentProvided,
         show_question_numbers: bool = False,
+        show_question_titles: bool = True,
     ):
         self.show_question_numbers = show_question_numbers
+        self.show_question_titles = show_question_titles
+
+        if not self.show_question_titles:
+            design["questionTitleLocation"] = "hidden"
 
         super().__init__(
             bot_response,
             show_next_button=True,
         )
-
+        print(json.dumps(design, indent=4))
         self.design = design
 
     macro = "survey_js"
@@ -3788,6 +3793,7 @@ class MultiRatingControl(SurveyJSControl):
         *scales: "RatingScale",
         bot_response=NoArgumentProvided,
         show_question_numbers: bool = False,
+        show_question_titles: bool = True,
     ):
         self.scales = scales
 
@@ -3796,7 +3802,12 @@ class MultiRatingControl(SurveyJSControl):
             "showQuestionNumbers": "true" if show_question_numbers else "false",
         }
 
-        super().__init__(design, bot_response)
+        super().__init__(
+            design,
+            bot_response,
+            show_question_numbers=show_question_numbers,
+            show_question_titles=show_question_titles,
+        )
 
     def get_bot_response(self, experiment, bot, page, prompt):
         return {
@@ -3825,7 +3836,15 @@ class RatingControl(MultiRatingControl):
             max_description=max_description,
             required=required,
         )
-        super().__init__(scale, bot_response=bot_response)
+        super().__init__(
+            scale,
+            bot_response=bot_response,
+            show_question_titles=False,
+        )
+
+    def format_answer(self, raw_answer, **kwargs):
+        answer = super().format_answer(raw_answer, **kwargs)
+        return answer["rating"]
 
 
 class RatingScale:
@@ -3888,9 +3907,9 @@ class RatingScale:
         design["required"] = self.required
 
         if self.min_description:
-            design["minValueDescription"] = self.min_description
+            design["minRateDescription"] = self.min_description
         if self.max_description:
-            design["maxValueDescription"] = self.max_description
+            design["maxRateDescription"] = self.max_description
 
         if self.title:
             design["title"] = self.title
