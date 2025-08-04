@@ -1831,6 +1831,8 @@ class ModularPage(Page):
         all_media = MediaSpec.merge(media, prompt.media, control.media)
 
         css = self.prompt.get_css() + self.control.get_css()
+        if "css" in kwargs:
+            css.append(kwargs.pop("css"))
 
         super().__init__(
             label=label,
