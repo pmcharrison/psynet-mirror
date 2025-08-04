@@ -7,9 +7,10 @@ It simulates different participant flows to ensure that screen-out and reward me
 when using Prolific.
 
 Participants are assigned to one of three experiment flows based on their participant ID:
-    1. **Normal**: Participant completes a simple flow.
-    2. **Failed prescreening**: Participant is subjected to the Antiphase Headphone Test which they fail.
-    3. **Increment performance reward**: Participant receives a performance reward increment.
+    1. **Normal**: Participant completes a simple flow. They are compensated for 3 minutes of participation, so get the full £0.50 base payment.
+    2. **Failed prescreening**: Participant fails a prescreen. They are only compensated for 2 minutes of participation, so get no base payment, but £0.33 bonus.
+    3. **Increment performance reward**: Participant completes the full experiment and also receives a performance reward increment. They get base payment plus £0.10 bonus.
+
 
 The experimenter should check the following in the Prolific dashboard:
 1. Recruitment: Verify that participants are correctly recruited and appear in the Prolific dashboard for the study.
@@ -28,10 +29,8 @@ This test is intended to be deployed and run with real participants.
 import json
 
 import psynet.experiment
-from psynet.asset import LocalStorage
 from psynet.consent import MainConsent
-from psynet.page import InfoPage
-from psynet.prescreen import AntiphaseHeadphoneTest
+from psynet.page import InfoPage, UnsuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline, join, switch
 from psynet.utils import get_logger
 
@@ -40,27 +39,31 @@ logger = get_logger()
 
 def normal():
     return join(
-        InfoPage("Click the button below.", time_estimate=5),
-        InfoPage("You finished the experiment!", time_estimate=5),
+        InfoPage(
+            "In this simulation, you are a participant who completed the full experiment as expected.",
+            time_estimate=1 * 60,
+        ),
     )
 
 
 def failed_prescreening():
     return join(
-        AntiphaseHeadphoneTest(performance_threshold=7),
         InfoPage(
-            "You failed the prescreening test.",
-            time_estimate=5,
+            "In this simulation, you are a participant whose device proved to be incompatible with the experiment requirements.",
+            time_estimate=0,
         ),
-        InfoPage("You finished the experiment!", time_estimate=5),
+        UnsuccessfulEndPage(),
     )
 
 
-def increment_performance_reward():
+def normal_plus_performance_reward():
     return join(
-        CodeBlock(lambda participant: participant.inc_performance_reward(0.50)),
-        InfoPage("You have been awarded a performance reward.", time_estimate=5),
-        InfoPage("You finished the experiment!", time_estimate=5),
+        normal(),
+        InfoPage(
+            "In this simulation you additionally received a small performance reward of £0.10.",
+            time_estimate=0,
+        ),
+        CodeBlock(lambda participant: participant.inc_performance_reward(0.10)),
     )
 
 
@@ -82,8 +85,6 @@ def get_prolific_settings():
 
 class Exp(psynet.experiment.Experiment):
     label = "Simple test experiment"
-    asset_storage = LocalStorage()
-    initial_recruitment_size = 1
 
     config = {
         **get_prolific_settings(),
@@ -103,11 +104,17 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         MainConsent(),
+        InfoPage(
+            "What happens next will depend on chance. Either way, you will receive some payment for your time. However, we will be trialling different methods of payment to make sure they are all working properly.",
+            time_estimate=(
+                2 * 60
+            ),  # If the wage_per_hour = 10, then this will mean a payment of 0.33
+        ),
         switch(
             "participant_flow",
             lambda participant: participant.id % 3,
             {
-                0: increment_performance_reward(),
+                0: normal_plus_performance_reward(),
                 1: normal(),
                 2: failed_prescreening(),
             },
