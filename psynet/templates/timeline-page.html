@@ -600,6 +600,7 @@
                 psynet.trial.onEvent("trialConstruct", async function () {
                     await psynet.media.init();
                     $(".wait-for-media-load").removeAttr("disabled");
+                    pollAudioContext()
                 });
 
                 psynet.trial.onEvent("trialPrepare", function () {
@@ -1314,6 +1315,22 @@
                 let waitForBrowserCheck = async function () {
                     return await browser.validate();
                 };
+
+                let checkAudioContextReady = function() {
+                    if (psynet.media.audioContext.state === "running") {
+                        psynet.trial.registerEvent("audioContextReady");
+                        return true;
+                    }
+                    return false;
+                }
+
+                let pollAudioContext= function() {
+                    console.log("Polling audio context");
+                    // Poll the audio context every 5ms until it is ready.
+                    if (!checkAudioContextReady()) {
+                        setTimeout(pollAudioContext, 5);
+                    }
+                }
 
                 psynet.initPage = async function () {
                     console.log("Initialising page...");

@@ -156,10 +156,27 @@
             transform: scaleX(-1);
         }
         {% endif %}
+        #prompt-video-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        .video-prompt-button {
+            margin-left: 10px;
+            margin-right: 10px;
+        }
     </style>
 
     <div id="prompt-video-container">
         <video id="prompt" style="width: {{ params.width }}; height: {{ params.height }};" alt="{{ gettext("Video not found") | replace('"',"'") | safe }}" controls></video>
+    </div>
+
+    <div id="prompt-video-controls">
+        <button id="video-prompt-play-fallback" type="button" class="btn video-prompt-button btn-primary btn-sm" style="visibility: hidden;">
+            {{ gettext("Play") }}
+        </button>
     </div>
 
     <script>
@@ -199,6 +216,11 @@
             }
         };
 
+        $("#video-prompt-play-fallback").on("click", function() {
+            psynet.trial.restart();
+            $(this).css("visibility", "hidden");
+        });
+
         videoPlayer.addEventListener("ended", () => psynet.page.prompt.stop({manual: false}));
 
         psynet.page.prompt.stop = function(providedOptions) {
@@ -219,7 +241,15 @@
             }
         };
 
-        psynet.trial.onEvent("trialPrepare", () => {
+        psynet.trial.onEvent("trialConstruct", function() {
+            if (psynet.media.audioContext.state == "suspended" && !videoPlayer.controls) {
+                $("#video-prompt-play-fallback").css("visibility", "visible");
+            }
+        });
+        psynet.trial.onEvent("trialPrepare", async function() {
+            if (psynet.media.audioContext.state == "suspended") {
+                await psynet.media.audioContext.resume();
+            }
             videoPlayer.currentTime = startAt;
         });
         psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
