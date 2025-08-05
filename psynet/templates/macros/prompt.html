@@ -58,9 +58,14 @@
         psynet.trial.onEvent("trialPrepare", () => {
             psynet.media.stopAllAudio();
             if (psynet.media.audioContext.state == "suspended") {
+                // If there has not been a user interaction yet in this session
+                // (e.g. by clicking the play button), the following line will fail
+                // and execution will stop with a warning.
+                // The user will have to start the trial manually by clicking the play button.
                 psynet.media.audioContext.resume();
             }
         });
+
         psynet.trial.onEvent("trialStop", psynet.page.prompt.stop);
     </script>
 {% endmacro %}
