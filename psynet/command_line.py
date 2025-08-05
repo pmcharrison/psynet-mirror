@@ -310,7 +310,7 @@ def sandbox(*args, **kwargs):
     )
 
 
-def _local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
+def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
@@ -352,7 +352,9 @@ def debug__local(ctx, docker, archive, legacy, no_browsers):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
-    _local(ctx, docker, archive, legacy, no_browsers, mode="debug", context_group=debug)
+    _run_local(
+        ctx, docker, archive, legacy, no_browsers, mode="debug", context_group=debug
+    )
 
 
 def run_prepare_in_subprocess():
@@ -765,7 +767,9 @@ def deploy__local(ctx, docker, archive, legacy, no_browsers):
     """
     Deploy the experiment locally (e.g., when collecting data on a computer in the lab or in the field).
     """
-    _local(ctx, docker, archive, legacy, no_browsers, mode="live", context_group=deploy)
+    _run_local(
+        ctx, docker, archive, legacy, no_browsers, mode="live", context_group=deploy
+    )
 
 
 @deploy.command("heroku")
@@ -1082,7 +1086,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
         if mode == "sandbox":
             run_pre_checks_sandbox(exp, config, is_mturk)
         elif mode == "live":
-            run_pre_checks_deploy(exp, config, is_mturk, _local, recruiter)
+            run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter)
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
