@@ -47,7 +47,10 @@
         psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
 
         psynet.trial.onEvent("trialConstruct", () => {
-            if (psynet.media.audioContext.state == "suspended") {
+            if (
+                psynet.media.audioContext.state == "suspended" &&
+                $("#audio-prompt-play").length === 0
+            ) {
                 $("#audio-prompt-play-fallback").css("visibility", "visible");
             }
         });
