@@ -29,7 +29,7 @@ This test is intended to be deployed and run with real participants.
 import json
 
 import psynet.experiment
-from psynet.consent import MainConsent
+from psynet.consent import NoConsent
 from psynet.page import InfoPage, UnsuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline, join, switch
 from psynet.utils import get_logger
@@ -103,7 +103,7 @@ class Exp(psynet.experiment.Experiment):
     }
 
     timeline = Timeline(
-        MainConsent(),
+        NoConsent(),
         InfoPage(
             "What happens next will depend on chance. Either way, you will receive some payment for your time. However, we will be trialling different methods of payment to make sure they are all working properly.",
             time_estimate=(
