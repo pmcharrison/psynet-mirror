@@ -24,9 +24,7 @@
 {% macro audio(params) %}
     {{ simple(params) }}
 
-    {% if params.controls %}
-        {{ audio_controls(params) }}
-    {% endif %}
+    {{ audio_controls(params) }}
 
     <script>
         var audioPromptPlayerOptions = {{ params.js_play_options | tojson }};
@@ -47,7 +45,19 @@
         }
 
         psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
-        psynet.trial.onEvent("trialPrepare", psynet.media.stopAllAudio);
+
+        psynet.trial.onEvent("trialConstruct", () => {
+            if (psynet.media.audioContext.state == "suspended") {
+                $("#audio-prompt-play-fallback").css("visibility", "visible");
+            }
+        });
+
+        psynet.trial.onEvent("trialPrepare", () => {
+            psynet.media.stopAllAudio();
+            if (psynet.media.audioContext.state == "suspended") {
+                psynet.media.audioContext.resume();
+            }
+        });
         psynet.trial.onEvent("trialStop", psynet.page.prompt.stop);
     </script>
 {% endmacro %}
@@ -72,6 +82,10 @@
     </style>
 
     <div id="audio-prompt-controls">
+        <button id="audio-prompt-play-fallback" type="button" class="btn audio-prompt-button btn-primary btn-sm" style="visibility: hidden;">
+            {{ gettext("Play") }}
+        </button>
+
         {% if "Play from start" in params.controls %}
         <button id="audio-prompt-play" type="button" class="btn audio-prompt-button btn-primary btn-sm" disabled>
             {{ params.controls["Play from start"] }}
@@ -95,6 +109,10 @@
     $(document).ready(function() {
         $("#audio-prompt-play").on("click", function() {
             psynet.trial.restart();
+        });
+        $("#audio-prompt-play-fallback").on("click", function() {
+            psynet.trial.restart();
+            $(this).css("visibility", "hidden");
         });
         $("#audio-prompt-stop").on("click", function() {
             psynet.trial.stop();

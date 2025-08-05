@@ -86,20 +86,6 @@
                 </div>
             </div>
         {% endblock %}
-
-        {% block resume_modal %}
-            <div id="resume-modal" class="modal">
-                <div class="modal-content">
-                    <h3>{{ pgettext("timeline_resume", "Are you ready?") }}</h3>
-                    <p>
-                        {{ pgettext("timeline_resume", "Click the button when you're ready to continue the experiment.") }}
-                    </p>
-                    <button type="button" style="max-width: 100px" class="btn btn-primary" id="resume-button">
-                        {{ pgettext("timeline_resume", "Resume") }}
-                    </button>
-                </div>
-            </div>
-        {% endblock %}
     {% endblock %}
 
     {% block footer %}
@@ -760,37 +746,11 @@
                     if (!context) {
                         throw Error("ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.");
                     }
-                    if (context.state == "suspended") {
-                        context.resume();
-                    }
                     psynet.media.audioContext = context;
-                };
-
-                let askUserToResume = function () {
-                    return new Promise((resolve) => {
-                        let resumeModal = $("#resume-modal");
-                        let resumeButton = $("#resume-button");
-                        resumeModal.css("display", "block");
-                        resumeButton.click(async function () {
-                            resumeModal.css("display", "none");
-                            $("#js-psych").trigger("focus");
-                            await psynet.media.init();
-                            resolve();
-                        });
-                    });
                 };
 
                 psynet.media.init = async function () {
                     psynet.media.initAudioContext();
-
-                    if (psynet.media.audioContext.state == "suspended") {
-                        psynet.log.info(
-                            "Audio context is suspended, and can only be resumed " +
-                            "after a user interaction. Waiting for the participant to click 'Resume'."
-                        );
-                        await askUserToResume();
-                        psynet.media.initAudioContext();
-                    }
                     let requests = psynet.media.requests;
                     let mediaTypes = Object.keys(requests);
                     let bar = psynet.media.downloadProgress.bar();
