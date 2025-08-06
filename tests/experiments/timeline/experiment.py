@@ -234,5 +234,5 @@ class Exp(psynet.experiment.Experiment):
             text
             == "That's the end of the experiment! You will receive a reward of **$0.36** for the time you "
             "spent on the experiment. You have also been awarded a performance reward of **$0.00**! Thank "
-            'you for taking part. Please click "Finish" to complete the HIT.'
+            'you for taking part. Please click "Finish" to finalize the session.'
         )
