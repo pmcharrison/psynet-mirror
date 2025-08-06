@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from .modular_page import BaseAudioPrompt
-from .timeline import Event
+from .timeline import Event, Trigger
 
 
 class Timbre(dict):
@@ -594,6 +594,17 @@ class JSSynth(BaseAudioPrompt):
 
     def update_events(self, events):
         super().update_events(events)
+
+        events["trialPrepare"].add_trigger(
+            Trigger(
+                triggering_event="audioContextReady",
+                delay=0,
+            )
+        )
+        events["trialPrepare"].trigger_condition = "all"
+        events["trialPrepare"].once = (
+            True  # TODO - could this be made the default for all pages?
+        )
 
         events["promptStart"] = Event(is_triggered_by="trialStart")
         events["promptEnd"] = Event(

@@ -847,13 +847,16 @@
             slider.updateLog();
         });
 
-        let hadMinimalInteractions = false;
         let checkMinimalInteractions = function() {
-            if (slider.interactionCount >= minimalInteractions && !hadMinimalInteractions) {
-                hadMinimalInteractions = true;
+            if (slider.interactionCount >= minimalInteractions) {
+                // Don't register the event if it has already happened
+                if (psynet.trial.events.sliderMinimalInteractions && psynet.trial.events.sliderMinimalInteractions.happened) {
+                    return;
+                }
                 psynet.trial.registerEvent("sliderMinimalInteractions");
             }
         }
+        setInterval(checkMinimalInteractions, 100);
 
         let sliderOnInput = function() {
             // Triggered whenever the slider slides to a new value

@@ -1325,7 +1325,6 @@
                 }
 
                 let pollAudioContext= function() {
-                    console.log("Polling audio context");
                     // Poll the audio context every 5ms until it is ready.
                     if (!checkAudioContextReady()) {
                         setTimeout(pollAudioContext, 5);

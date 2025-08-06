@@ -1024,7 +1024,7 @@ class Page(Elt):
                 ),
                 once=True,
             ),
-            "trialStart": Event(is_triggered_by="trialPrepare", once=True),
+            "trialStart": Event(is_triggered_by="trialPrepare", once=False),
             "responseEnable": Event(is_triggered_by="trialStart", delay=0.0, once=True),
             "submitEnable": Event(is_triggered_by="trialStart", delay=0.0, once=True),
             "trialFinish": Event(
