@@ -7,7 +7,7 @@ It simulates different participant flows to ensure that screen-out and reward me
 when using Prolific.
 
 Participants are assigned to one of three experiment flows based on their participant ID:
-    1. **Normal**: Participant completes a simple flow. They are compensated for 3 minutes of participation, so get the full £0.50 base payment.
+    1. **Normal**: Participant completes a simple flow. They are compensated for 3 minutes of participation, so get the full £0.45 base payment.
     2. **Failed prescreening**: Participant fails a prescreen. They are only compensated for 2 minutes of participation, so get no base payment, but £0.33 bonus.
     3. **Increment performance reward**: Participant completes the full experiment and also receives a performance reward increment. They get base payment plus £0.10 bonus.
 
@@ -73,7 +73,7 @@ def get_prolific_settings():
 
     return {
         "recruiter": "prolific",
-        "base_payment": 0.5,
+        "base_payment": 0.45,
         "prolific_is_custom_screening": True,
         "prolific_estimated_completion_minutes": 1,
         "prolific_recruitment_config": qualification,
