@@ -314,7 +314,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         except KeyError:
             return False
 
-    def check_assignment_return_status(self, participant) -> bool:
+    @staticmethod
+    def check_assignment_return_status(participant) -> bool:
         """Check and update the participant's assignment return status via API call.
 
         Returns:
