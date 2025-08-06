@@ -441,7 +441,7 @@ msgstr "भवद्भिः भागं स्वीकृत्य धन्
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "कृपया \"समाप्तिः\" इति क्लिक्करोध्वं यथा HIT समाप्तं भवेत्।"
 
 #: psynet/end.py
