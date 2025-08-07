@@ -193,11 +193,18 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         condition=lambda participant: participant.var.assignment_returned,
                         logic_if_true=join(
                             CodeBlock(
-                                lambda participant: self.reward_bonus(
-                                    participant,
-                                    participant.calculate_reward(),
-                                    "Partial payment for incomplete participation",
-                                )
+                                lambda participant: [
+                                    self.reward_bonus(
+                                        participant,
+                                        participant.calculate_reward(),
+                                        "Partial payment for incomplete participation",
+                                    ),
+                                    setattr(
+                                        participant,
+                                        "bonus",
+                                        participant.calculate_reward(),
+                                    ),
+                                ]
                             ),
                             InfoPage(
                                 _p(
