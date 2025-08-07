@@ -192,20 +192,7 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         label="assignment_return_result",
                         condition=lambda participant: participant.var.assignment_returned,
                         logic_if_true=join(
-                            CodeBlock(
-                                lambda participant: [
-                                    self.reward_bonus(
-                                        participant,
-                                        participant.calculate_reward(),
-                                        "Partial payment for incomplete participation",
-                                    ),
-                                    setattr(
-                                        participant,
-                                        "bonus",
-                                        participant.calculate_reward(),
-                                    ),
-                                ]
-                            ),
+                            CodeBlock(self.reward_and_set_bonus),
                             InfoPage(
                                 _p(
                                     "return_for_bonus_completed",
@@ -345,6 +332,21 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         is_returned = submission and submission.get("status") == "RETURNED"
         participant.var.assignment_returned = is_returned
         return is_returned
+
+    @staticmethod
+    def reward_and_set_bonus(participant):
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
+        recruiter = experiment.recruiter
+
+        bonus = participant.calculate_reward()
+        recruiter.reward_bonus(
+            participant,
+            bonus,
+            "Partial payment for incomplete participation",
+        )
+        participant.bonus = bonus
 
     def check_for_returned_assignment(self, participant) -> bool:
         """Check if the participant has returned the assignment."""
