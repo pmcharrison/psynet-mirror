@@ -2,6 +2,7 @@ import json
 import warnings
 from importlib import resources
 from math import ceil
+from pprint import pformat
 from typing import List, Optional, Union
 
 from dominate import tags
@@ -337,8 +338,8 @@ class DebugResponsePage(PageMaker):
         if response is None:
             return InfoPage("No response found to display.")
         page_type = response.page_type
-        answer = json.dumps(response.answer, indent=4)
-        metadata = json.dumps(response.metadata, indent=4)
+        answer = pformat(response.answer, indent=4)
+        metadata = pformat(response.metadata, indent=4)
 
         html = tags.span()
         with html:
