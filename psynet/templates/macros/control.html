@@ -1666,6 +1666,8 @@
     <link href="{{ url_for('static', filename='scripts/survey-jquery/defaultV2.min.css') }}" type="text/css" rel="stylesheet">
 
     <script>
+    var survey;
+
     function initSurvey() {
         Survey
             .StylesManager
@@ -1673,9 +1675,25 @@
 
         const surveyJson = {{ params.design | tojson }};
 
-        const survey = new Survey.Model(surveyJson);
+        survey = new Survey.Model(surveyJson);
         survey.focusFirstQuestionAutomatic = false;
-        survey.showCompletedPage = false;
+
+        {% if params.use_psynet_next_button %}
+        // survey.showCompleteButton = false; // only available in SurveyJS v2.0.0
+        survey.showNavigationButtons = false;
+
+        psynet.stageResponse = () => {
+            // This will actually do more than stage the response,
+            // it'll trigger the full submission.
+            let success = survey.completeLastPage()
+            if (!success) {
+                throw new Error(
+                    "The participant failed SurveyJS's validation checks (e.g. because they forgot to answer a question). They will be asked to try again."
+                );
+            }
+        }
+
+        {% endif %}
 
         function handleSurveyCompletion(sender, options) {
             // Setting these options instructs SurveyJS to cancel the current completion code,

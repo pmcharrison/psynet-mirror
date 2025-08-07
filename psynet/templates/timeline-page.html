@@ -1392,20 +1392,36 @@
                 psynet.nextPagePending = false;
 
                 psynet.submitResponse = async function (onRejection) {
-                    if (psynet.stageResponse) {
-                        await psynet.stageResponse();
+                    let response;
+
+                    try {
+                        response = await psynet.compileResponse();
+                    } catch (error) {
+                        onRejection();
+                        throw error;
                     }
+
+                    await psynet.nextPage(
+                        response.rawAnswer,
+                        response.metadata,
+                        response.blobs,
+                        onRejection,
+                    );
+                }
+
+                psynet.compileResponse = async function () {
+                    let response = {};
+
                     if (typeof retrieveResponse == "undefined") {
-                        await psynet.nextPage();
+                        if (psynet.stageResponse) {
+                            await psynet.stageResponse();
+                        }
+                        response = psynet.response.staged;
                     } else {
-                        let response = retrieveResponse();
-                        await psynet.nextPage(
-                            response.rawAnswer,
-                            response.metadata,
-                            response.blobs,
-                            onRejection,
-                        );
+                        response = retrieveResponse();
                     }
+
+                    return response;
                 }
 
                 psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
