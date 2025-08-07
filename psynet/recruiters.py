@@ -212,8 +212,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                         logic_if_false=InfoPage(
                             _p(
                                 "assignment_return_retry",
-                                "That didn't work. Please could you wait a few seconds, "
-                                "try again, then click the 'Next' button?",
+                                "That didn't work. Are you sure you returned the submission for this study? "
+                                "Please go to the Prolific interface, make sure you have returned the submission, "
+                                "then click the 'Next' button.",
                             ),
                             time_estimate=0.5,
                         ),
