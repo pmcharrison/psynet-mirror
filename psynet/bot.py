@@ -16,7 +16,7 @@ logger = get_logger()
 class Bot(Participant):
     def __init__(
         self,
-        recruiter_id="bot_recruiter",
+        recruiter_id=None,
         worker_id=None,
         assignment_id=None,
         unique_id=None,
@@ -24,6 +24,9 @@ class Bot(Participant):
         mode="debug",
     ):
         self.wait_until_experiment_launch_is_complete()
+
+        if recruiter_id is None:
+            recruiter_id = "generic"
 
         if worker_id is None:
             worker_id = str(uuid.uuid4())
