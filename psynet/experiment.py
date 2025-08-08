@@ -3866,15 +3866,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def handle_error(cls, error, **kwargs):
-        # We rollback to remove any pending changes to the database.
-        db.session.rollback()
         parents = cls._compile_error_parents(**kwargs)
+        db.session.rollback()
         cls.report_error(error, **parents)
         return cls.HandledError(**parents)
 
     @staticmethod
     def _compile_error_parents(**kwargs):
-        parents = {**kwargs}
+        # We merge to prevent sqlalchemy.orm.exc.DetachedInstanceError
+        parents = {
+            key: db.session.merge(value)
+            for key, value in kwargs.items()
+            if value is not None
+        }
         types = [
             "process",
             "asset",
@@ -3894,7 +3898,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         and getattr(parent, grandparent_type) is not None
                     ):
                         parents[grandparent_type] = getattr(parent, grandparent_type)
-        return parents
+        return {f"{key}_id": value.id for key, value in parents.items()}
 
     class HandledError(Exception):
         def __init__(self, message=None, participant=None, **kwargs):
@@ -3928,7 +3932,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def log_to_stdout(cls, error, token, **kwargs):
         _ = error
-        context = cls.serialize_error_context(**kwargs)
+        context = {**kwargs}
         print("\n")
         logger.error(
             "EXPERIMENT ERROR - err-%s:%s",
@@ -3971,34 +3975,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         text += "\n```" + traceback.format_exc() + "```"
         cls.notifier.notify(text)
 
-    @classmethod
-    def serialize_error_context(
-        cls,
-        participant=None,
-        response=None,
-        trial=None,
-        node=None,
-        network=None,
-        process=None,
-        asset=None,
-    ):
-        context = {}
-        if participant:
-            context["participant_id"] = participant.id
-            context["worker_id"] = participant.worker_id
-        if response:
-            context["response_id"] = response.id
-        if trial:
-            context["trial_id"] = trial.id
-        if node:
-            context["node_id"] = node.id
-        if network:
-            context["network_id"] = network.id
-        if process:
-            context["process_id"] = process.id
-        if asset:
-            context["asset_id"] = asset.id
-        return context
+    # @classmethod
+    # def serialize_error_context(
+    #     cls,
+    #     participant=None,
+    #     response=None,
+    #     trial=None,
+    #     node=None,
+    #     network=None,
+    #     process=None,
+    #     asset=None,
+    # ):
+    #     context = {}
+    #     if participant:
+    #         context["participant_id"] = participant.id
+    #         context["worker_id"] = participant.worker_id
+    #     if response:
+    #         context["response_id"] = response.id
+    #     if trial:
+    #         context["trial_id"] = trial.id
+    #     if node:
+    #         context["node_id"] = node.id
+    #     if network:
+    #         context["network_id"] = network.id
+    #     if process:
+    #         context["process_id"] = process.id
+    #     if asset:
+    #         context["asset_id"] = asset.id
+    #     return context
 
     class UniqueIdError(PermissionError):
         def __init__(self, expected, provided, participant):
