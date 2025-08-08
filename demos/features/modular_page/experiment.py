@@ -10,8 +10,11 @@ from psynet.modular_page import (
     Control,
     FrameSliderControl,
     ModularPage,
+    MultiRatingControl,
     Prompt,
     PushButtonControl,
+    RatingControl,
+    RatingScale,
     TimedPushButtonControl,
     VideoSliderControl,
 )
@@ -78,10 +81,46 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         ModularPage(
+            "rating",
+            prompt=Prompt(
+                "This is an example of the RatingControl. Use it to rate this page.",
+            ),
+            control=RatingControl(
+                values=5,
+                min_description="Rubbish",
+                max_description="Great",
+            ),
+            time_estimate=5,
+        ),
+        DebugResponsePage(),
+        ModularPage(
+            "multirating",
+            "This is an example of the MultiRatingControl.",
+            MultiRatingControl(
+                RatingScale(
+                    "happiness",
+                    values=5,
+                    title="How happy are you feeling?",
+                    min_description="Very unhappy",
+                    max_description="Very happy",
+                    required=False,
+                ),
+                RatingScale(
+                    "energy",
+                    values=5,
+                    title="How energetic are you feeling?",
+                    min_description="Very tired",
+                    max_description="Very energetic",
+                ),
+            ),
+            time_estimate=10,
+        ),
+        DebugResponsePage(),
+        ModularPage(
             "response",
             prompt=AudioPrompt(
                 audio="/static/audio/bier.wav",
-                text="Here is an example of an audio prompt combined with a push button control``.",
+                text="Here is an example of an audio prompt combined with a push button control.",
             ),
             control=PushButtonControl(["Response A", "Response B"]),
             time_estimate=5,
