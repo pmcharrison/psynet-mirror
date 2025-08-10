@@ -15,13 +15,13 @@ case "$SHELL_NAME" in
         COMPLETION_FILE="$SCRIPT_DIR/psynet-completion.bash"
         RC_FILE="$HOME/.bashrc"
         SOURCE_LINE="source $COMPLETION_FILE"
-        DIRECT_LINE='eval "$(_PSYNET_COMPLETE=bash_source psynet)"'
+        DIRECT_LINE='if command -v psynet >/dev/null 2>&1; then eval "$(_PSYNET_COMPLETE=bash_source psynet)"; fi'
         ;;
     zsh)
         COMPLETION_FILE="$SCRIPT_DIR/psynet-completion.zsh"
         RC_FILE="$HOME/.zshrc"
         SOURCE_LINE="source $COMPLETION_FILE"
-        DIRECT_LINE='eval "$(_PSYNET_COMPLETE=zsh_source psynet)"'
+        DIRECT_LINE='if command -v psynet >/dev/null 2>&1; then eval "$(_PSYNET_COMPLETE=zsh_source psynet)"; fi'
         ;;
     *)
         echo "Unsupported shell: $SHELL_NAME"
