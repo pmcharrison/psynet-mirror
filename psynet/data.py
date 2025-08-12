@@ -312,7 +312,7 @@ class SQLMixinDallinger(SharedMixin):
     def __repr__(self):
         try:
             id_ = self.id
-        except sqlalchemy.exc.DetachedInstanceError:
+        except sqlalchemy.orm.exc.DetachedInstanceError:
             id_ = "?"
         base_class = get_sql_base_class(self).__name__
         cls = self.__class__.__name__

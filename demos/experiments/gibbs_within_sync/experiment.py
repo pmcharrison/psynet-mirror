@@ -1,17 +1,15 @@
 import random
 from typing import List, Union
 
-from dallinger import db
 from dominate import tags
 from markupsafe import Markup
 
 import psynet.experiment
 from psynet.bot import Bot, BotDriver, advance_past_wait_pages
-from psynet.experiment import get_trial_maker, scheduled_task
+from psynet.experiment import get_trial_maker
 from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage
 from psynet.participant import Participant
-from psynet.process import WorkerAsyncProcess
 from psynet.sync import SimpleGrouper, SyncGroup
 from psynet.timeline import Timeline, join
 from psynet.trial.gibbs import GibbsNode, GibbsTrial, GibbsTrialMaker
@@ -289,14 +287,14 @@ class Exp(psynet.experiment.Experiment):
         assert not bot.failed or bot.failed_reason == "simulated_failure"
 
     # Uncomment the following to run bots in the background of the experiment.
-    @staticmethod
-    @scheduled_task("interval", seconds=1.0, max_instances=1)
-    def run_bot_participant():
-        from psynet.experiment import get_experiment, is_experiment_launched
+    # @staticmethod
+    # @scheduled_task("interval", seconds=1.0, max_instances=1)
+    # def bot_launcher():
+    #     from psynet.experiment import get_experiment, is_experiment_launched
 
-        n_bots = Bot.query.filter_by(status="working").count()
-        if is_experiment_launched() and n_bots < 3:  # allow only fixed number of bots
-            WorkerAsyncProcess(
-                function=get_experiment().run_bot, arguments={"time_factor": 0.9}
-            )
-            db.session.commit()
+    #     n_bots = Bot.query.filter_by(status="working").count()
+    #     if is_experiment_launched() and n_bots < 3:  # allow only fixed number of bots
+    #         WorkerAsyncProcess(
+    #             function=get_experiment().run_bot, arguments={"time_factor": 0.9}
+    #         )
+    #         db.session.commit()

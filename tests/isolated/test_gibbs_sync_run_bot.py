@@ -52,17 +52,14 @@ def count_errors():
     indirect=True,
 )
 def test_run_bots(launched_experiment):
-    """
-    Run
-    """
-    run_bot_group(launched_experiment)
+    if hasattr(launched_experiment, "bot_launcher"):
+        raise RuntimeError(
+            "The bot_launcher method should be commented out for running tests."
+        )
 
+    run_bot_group(launched_experiment)
     assert ErrorRecord.query.count() == 0
-
-    # The problem we are finding is that the new bots are joining the old sync group,
-    # which shouldn't have happened -- this group should be disbanded. Why are we topping up the old group?
     run_bot_group(launched_experiment)
-
     assert ErrorRecord.query.count() == 0
 
 
