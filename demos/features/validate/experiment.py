@@ -42,7 +42,8 @@ class Exp(psynet.experiment.Experiment):
         ),
     )
 
-    def run_bot(self, bot):
+    @classmethod
+    def run_bot(cls, bot, **kwargs):
         assert bot.current_page_text.startswith(
             "This page has a custom validation function that prohibits the answer 'blue'."
         )

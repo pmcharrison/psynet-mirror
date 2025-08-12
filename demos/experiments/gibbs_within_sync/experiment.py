@@ -1,14 +1,17 @@
 import random
 from typing import List, Union
 
+from dallinger import db
 from dominate import tags
 from markupsafe import Markup
 
 import psynet.experiment
 from psynet.bot import Bot, BotDriver, advance_past_wait_pages
+from psynet.experiment import get_trial_maker, scheduled_task
 from psynet.modular_page import ModularPage, Prompt, SliderControl
 from psynet.page import InfoPage
 from psynet.participant import Participant
+from psynet.process import WorkerAsyncProcess
 from psynet.sync import SimpleGrouper, SyncGroup
 from psynet.timeline import Timeline, join
 from psynet.trial.gibbs import GibbsNode, GibbsTrial, GibbsTrialMaker
@@ -150,6 +153,25 @@ trial_maker = GibbsTrialMaker(
 )
 
 
+def should_join_group(group: SyncGroup):
+    trial_maker_id = "gibbs_demo"
+
+    leader = group.leader
+    leader_still_in_trial_maker = leader.module_id == trial_maker_id
+    if not leader_still_in_trial_maker:
+        return False
+
+    leader_n_trials_in_trial_maker = len(
+        [t for t in leader.all_trials if t.trial_maker_id == trial_maker_id]
+    )
+    leader_n_trials_left = (
+        get_trial_maker(trial_maker_id).max_trials_per_participant
+        - leader_n_trials_in_trial_maker
+    )
+
+    return leader_n_trials_left > 1
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs within sync demo"
     initial_recruitment_size = 1
@@ -159,7 +181,7 @@ class Exp(psynet.experiment.Experiment):
         SimpleGrouper(
             group_type="gibbs",
             initial_group_size=3,
-            join_existing_groups=True,
+            join_existing_groups=should_join_group,
         ),
         trial_maker,
     )
@@ -264,3 +286,16 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert not bot.failed or bot.failed_reason == "simulated_failure"
+
+    # Uncomment the following to run bots in the background of the experiment.
+    @staticmethod
+    @scheduled_task("interval", seconds=1.0, max_instances=1)
+    def run_bot_participant():
+        from psynet.experiment import get_experiment, is_experiment_launched
+
+        n_bots = Bot.query.filter_by(status="working").count()
+        if is_experiment_launched() and n_bots < 3:  # allow only fixed number of bots
+            WorkerAsyncProcess(
+                function=get_experiment().run_bot, arguments={"time_factor": 0.9}
+            )
+            db.session.commit()

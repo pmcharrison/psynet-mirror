@@ -222,7 +222,8 @@ class Exp(psynet.experiment.Experiment):
         ),
     )
 
-    def run_bot(self, bot):
+    @classmethod
+    def run_bot(cls, bot, **kwargs):
         bot.run_until(
             lambda bot: bot.current_page_label == "SuccessfulEndLogic"
             and "the end of the experiment!" in bot.current_page_text,

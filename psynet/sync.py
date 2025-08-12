@@ -283,7 +283,7 @@ class GroupBarrier(Barrier):
                 # If join_existing_groups is False, then the group will never be able
                 # to get to the minimum size, so we should fail all participants in the group
                 # and release them.
-                if not group.join_existing_groups:
+                if not group.accepts_top_ups:
                     for participant in group.active_participants:
                         participant.fail("sync group below minimum size")
                     participants_to_release.append(participant)
@@ -538,6 +538,10 @@ class SimpleGrouper(Grouper):
         )
 
     def _join_existing_groups(self, participant: Participant):
+        # The current logic is flawed, in that participants end up joining groups that are no longer active.
+        # It's difficult to figure out a good general-purpose solution here that works well for all possible applications.
+        # I think we should disable this behaviour for now, and wait until we experience some real-world use cases,
+        # which can inform the future API.
         if not self.join_existing_groups:
             return
 
@@ -555,12 +559,17 @@ class SimpleGrouper(Grouper):
             SimpleSyncGroup.n_active_participants, SimpleSyncGroup.id
         )
 
-        group = query.one_or_none()
+        groups = query.all()
 
-        if group:
+        # Only keep groups that satisfy the join_existing_groups condition
+        groups = [g for g in groups if self.join_existing_groups(g)]
+
+        if len(groups) > 0:
+            group = groups[0]
             group.participants.append(participant)
             assert participant.active_sync_groups[self.group_type] == group
             group.check_numbers()
+            group.check_leader()
 
     def ready_to_group(self, participants: List[Participant]) -> bool:
         return len(participants) >= self.batch_size
@@ -581,7 +590,7 @@ class SimpleGrouper(Grouper):
                 max_group_size=self.max_group_size,
                 min_group_size=self.min_group_size,
                 n_active_participants=len(_participants),
-                join_existing_groups=self.join_existing_groups,
+                accepts_top_ups=self.join_existing_groups is not None,
             )
             groups.append(_group)
 
@@ -683,7 +692,7 @@ class SimpleSyncGroup(SyncGroup):
     initial_group_size = Column(Integer)
     max_group_size = Column(Integer)
     min_group_size = Column(Integer)
-    join_existing_groups = Column(Boolean)
+    accepts_top_ups = Column(Boolean)
 
 
 @register_table

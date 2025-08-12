@@ -74,7 +74,8 @@ class Exp(psynet.experiment.Experiment):
         ),
     )
 
-    def run_bot(self, bot):
+    @classmethod
+    def run_bot(cls, bot, **kwargs):
         assert bot.current_page_label == "welcome"
 
         bot.take_page(response="birds")

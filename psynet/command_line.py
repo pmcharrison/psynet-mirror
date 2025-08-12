@@ -37,7 +37,6 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-from psynet.db import transaction
 from psynet.version import check_dallinger_version, check_versions
 
 from . import deployment_info
@@ -603,7 +602,6 @@ def is_chromedriver_process(process):
 
 
 def _run_bot(real_time, dashboard_user, dashboard_password):
-    from .bot import Bot
     from .experiment import get_experiment
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
@@ -619,15 +617,10 @@ def _run_bot(real_time, dashboard_user, dashboard_password):
 
     config.set("dashboard_user", dashboard_user)
     config.set("dashboard_password", dashboard_password)
-
-    with transaction():
-        bot = Bot()
-        bot_driver = bot.get_driver()
-
     time_factor = 1.0 if real_time else 0.0
 
     exp = get_experiment()
-    exp.run_bot(bot_driver, time_factor=time_factor)
+    exp.run_bot(time_factor=time_factor)
 
 
 @psynet.command()

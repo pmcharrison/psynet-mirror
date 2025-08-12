@@ -1473,12 +1473,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for bot in bots:
             self.run_bot(bot)
 
+    @classmethod
     def run_bot(
-        self,
-        bot: BotDriver,
+        cls,
+        bot: Optional[BotDriver] = None,
         render_pages: bool = True,
         time_factor: float = 0.0,
     ):
+        if bot is None:
+            bot = BotDriver()
+
         bot.take_experiment(render_pages, time_factor)
 
     def test_check_bots(self, bots: List[Bot]):

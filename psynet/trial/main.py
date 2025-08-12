@@ -1341,16 +1341,20 @@ class TrialMaker(Module):
 
     def _leader_is_initialized(self, participant):
         group = participant.active_sync_groups[self.sync_group_type]
+        leader = group.leader
+        return self._is_initialized(leader)
+
+    def _is_initialized(self, participant):
         try:
-            leader_state = group.leader.module_states[self.id][-1]
+            state = participant.module_states[self.id][-1]
         except (KeyError, IndexError):
             return False
-        return leader_state.trial_maker_initialized
+        return state.trial_maker_initialized
 
     def _init_participants_in_sync_group(self, group: SyncGroup, experiment):
         self.init_participant(experiment, group.leader)
         for participant in group.participants:
-            if participant != group.leader:
+            if participant != group.leader and not self._is_initialized(participant):
                 self.init_participant(experiment, participant)
 
     @property
@@ -1660,6 +1664,9 @@ class TrialMaker(Module):
         )
         is_follower = sync_group and participant != sync_group.leader
         if is_follower:
+            logger.info(
+                f"participant = {participant.id}, sync_group id = {sync_group.id}"
+            )
             participant_group = sync_group.leader.module_state.participant_group
         else:
             if self.choose_participant_group is None:
