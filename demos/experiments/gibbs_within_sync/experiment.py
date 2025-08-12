@@ -153,7 +153,7 @@ trial_maker = GibbsTrialMaker(
 )
 
 
-def should_join_group(group: SyncGroup):
+def is_group_joinable(group: SyncGroup):
     trial_maker_id = "gibbs_demo"
 
     leader = group.leader
@@ -181,7 +181,8 @@ class Exp(psynet.experiment.Experiment):
         SimpleGrouper(
             group_type="gibbs",
             initial_group_size=3,
-            join_existing_groups=should_join_group,
+            join_existing_groups=True,
+            join_criterion=is_group_joinable,
         ),
         trial_maker,
     )

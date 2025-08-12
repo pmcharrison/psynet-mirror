@@ -214,8 +214,8 @@ class GroupBarrier(Barrier):
     A GroupBarrier is a Barrier that waits until all participants in a given :class:`~psynet.sync.SyncGroup`
     have reached the Barrier. It also checks the current group size against the group's minimum size parameter;
     the group won't be allowed to proceed if it's below this size.
-    If ``join_existing_groups=True`` for that group, it'll wait just in case new participants join the group.
-    If ``join_existing_groups=False``, then there's no hope for new participants, so the group will be released
+    If ``accepts_top_ups=True`` for that group, it'll wait just in case new participants join the group.
+    If ``accepts_top_ups=False``, then there's no hope for new participants, so the group will be released
     and failed.
 
     Parameters
@@ -476,6 +476,7 @@ class SimpleGrouper(Grouper):
         If set to ``True``, then before a new group is created, the Grouper will check if there are any existing
         groups that are under-quota (e.g. because some participants left the experiment early).
         If so, the arriving participant will be assigned to one of these groups instead.
+        This behavior can be further customized via the ``join_criterion`` argument.
 
     kwargs
         Further arguments to pass to Grouper.
@@ -490,6 +491,7 @@ class SimpleGrouper(Grouper):
         min_group_size: Union[int, str] = "initial_group_size",
         batch_size: Union[int, str] = "initial_group_size",
         join_existing_groups: bool = False,
+        join_criterion: Optional[Callable] = None,
         **kwargs,
     ):
         if "group_size" in kwargs:
@@ -522,6 +524,7 @@ class SimpleGrouper(Grouper):
         self.min_group_size = min_group_size
         self.batch_size = batch_size
         self.join_existing_groups = join_existing_groups
+        self.join_criterion = join_criterion
 
     def resolve(self):
         from .timeline import conditional, join
@@ -561,8 +564,10 @@ class SimpleGrouper(Grouper):
 
         groups = query.all()
 
-        # Only keep groups that satisfy the join_existing_groups condition
-        groups = [g for g in groups if self.join_existing_groups(g)]
+        # Only keep groups that satisfy the joining criterion (if provided)
+        groups = [
+            g for g in groups if self.join_criterion is None or self.join_criterion(g)
+        ]
 
         if len(groups) > 0:
             group = groups[0]
@@ -590,7 +595,7 @@ class SimpleGrouper(Grouper):
                 max_group_size=self.max_group_size,
                 min_group_size=self.min_group_size,
                 n_active_participants=len(_participants),
-                accepts_top_ups=self.join_existing_groups is not None,
+                accepts_top_ups=self.join_existing_groups,
             )
             groups.append(_group)
 
