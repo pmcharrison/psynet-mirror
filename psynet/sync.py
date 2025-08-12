@@ -478,6 +478,11 @@ class SimpleGrouper(Grouper):
         If so, the arriving participant will be assigned to one of these groups instead.
         This behavior can be further customized via the ``join_criterion`` argument.
 
+    join_criterion
+        A callable that takes ``group`` and ``participant`` as arguments, and returns ``True``
+        if the participant should be allowed to join the group, and ``False`` otherwise.
+        To be used in conjunction with ``join_existing_groups=True``.
+
     kwargs
         Further arguments to pass to Grouper.
     """
@@ -566,7 +571,10 @@ class SimpleGrouper(Grouper):
 
         # Only keep groups that satisfy the joining criterion (if provided)
         groups = [
-            g for g in groups if self.join_criterion is None or self.join_criterion(g)
+            g
+            for g in groups
+            if self.join_criterion is None
+            or self.join_criterion(group=g, participant=participant)
         ]
 
         if len(groups) > 0:
