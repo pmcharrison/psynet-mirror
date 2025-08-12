@@ -7,6 +7,7 @@ from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,
     ModularPage,
     Prompt,
     PushButtonControl,
+    RatingScale,
 )
 
 # from importlib import resources
@@ -50,6 +51,28 @@ def test_modular_page_text():
         ),
     )
     assert page.plain_text == "Do you want to continue?\n- Yes\n- No"
+
+
+def test_get_values_and_labels():
+    # int input
+    values, labels = RatingScale.get_values_and_labels(5)
+    assert values == [1, 2, 3, 4, 5]
+    assert labels == ["1", "2", "3", "4", "5"]
+
+    # list of floats
+    values, labels = RatingScale.get_values_and_labels([0.1, 0.5, 0.9])
+    assert values == [0.1, 0.5, 0.9]
+    assert labels == ["0.1", "0.5", "0.9"]
+
+    # list of strings
+    values, labels = RatingScale.get_values_and_labels(["bad", "neutral", "good"])
+    assert values == [1, 2, 3]
+    assert labels == ["bad", "neutral", "good"]
+
+    # dict input
+    values, labels = RatingScale.get_values_and_labels({"bad": 1, "good": 2})
+    assert list(values) == [1, 2]
+    assert list(labels) == ["bad", "good"]
 
 
 # The following tests have been disabled because they rely on the iterated singing demo,

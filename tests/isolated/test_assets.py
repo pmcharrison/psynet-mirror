@@ -6,6 +6,7 @@ from dallinger import db
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
 from psynet.asset import (
+    CachedAsset,
     CachedFunctionAsset,
     ExperimentAsset,
     ExternalAsset,
@@ -289,6 +290,13 @@ def test_asset_constructor():
         assert isinstance(path_asset, ExperimentAsset)
         assert str(path_asset.input_path) == f.name
 
+        # Test cached file asset
+        cached_asset = asset(f.name, cache=True, description="A cached file asset")
+        assert isinstance(cached_asset, CachedAsset)
+        assert cached_asset.input_path == f.name
+        assert cached_asset.description == "A cached file asset"
+
+    # Test cached function asset
     cached_asset = asset(
         placeholder_function, cache=True, description="A cached function asset"
     )
@@ -329,10 +337,3 @@ def test_asset_constructor():
         ),
     ):
         asset(placeholder_function)
-
-    with pytest.raises(
-        ValueError, match="Arguments can only be provided for function assets."
-    ):
-        asset(
-            "local_file.txt", arguments={"param": "value"}
-        )  # Arguments only for functions

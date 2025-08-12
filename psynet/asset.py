@@ -3582,20 +3582,21 @@ def asset(  # noqa: F841
     if callable(source):
         return _function_asset(**kwargs)
     else:
-        if arguments is not None:
-            raise ValueError("Arguments can only be provided for function assets.")
-
+        # Remove arguments that are specific to function assets
         for arg in ["arguments", "on_demand", "cache"]:
             kwargs.pop(arg)
 
         source = str(source)
 
         if source.startswith("http"):
+            # This is an external asset, i.e. one hosted externally at a URL
             url = kwargs.pop("source")
             return ExternalAsset(url, **kwargs)
         else:
+            # This is a local file asset
             input_path = kwargs.pop("source")
-            return ExperimentAsset(input_path, **kwargs)
+            cls = CachedAsset if cache else ExperimentAsset
+            return cls(input_path, **kwargs)
 
 
 def _function_asset(source, cache, on_demand, **kwargs):
