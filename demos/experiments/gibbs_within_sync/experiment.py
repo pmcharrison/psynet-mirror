@@ -151,7 +151,7 @@ trial_maker = GibbsTrialMaker(
 )
 
 
-def is_group_joinable(group: SyncGroup):
+def is_group_joinable(group: SyncGroup, participant: Participant):
     trial_maker_id = "gibbs_demo"
 
     leader = group.leader
