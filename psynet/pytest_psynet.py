@@ -383,7 +383,6 @@ def debug_experiment(
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
 
-    # timeout = request.config.getvalue("recruiter_timeout", 120)
     timeout = 60
 
     get_experiment()
@@ -391,9 +390,6 @@ def debug_experiment(
     config = get_config()
     if not config.ready:
         config.load()
-
-    config.set("dashboard_user", "test_admin")
-    config.set("dashboard_password", "test_password")
 
     p = pexpect.spawn(
         "psynet",
@@ -406,17 +402,17 @@ def debug_experiment(
         encoding="utf-8",
     )
     patch_pexpect_error_reporter(p)
-    # p.str_last_chars = 2000
     p.logfile = sys.stdout
     p.timeout = timeout
 
     try:
-        # assert_logs_contain(
-        #     "Experiment launch complete!",
-        #     process=p,
-        #     timeout=timeout,
-        # )
         p.expect_exact("Experiment launch complete!", timeout=timeout)
+
+        # The config file in server_working_directory has a few extra parameters
+        # that we need to set in order to simulate the real experiment server as well as possible.
+        server_working_directory = redis_vars.get("server_working_directory")
+        config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+
         yield p
     finally:
         try:

@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from dallinger.config import get_config
 
@@ -12,13 +10,7 @@ from psynet.utils import get_from_config
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 def test_config(in_experiment_directory):
-    global_config_path = os.path.expanduser("~/.dallingerconfig")
-    with open(global_config_path, "r") as file:
-        lines = file.read()
-    print("Printing from config:")
-    print(lines)
     _recruiter = get_from_config("recruiter")
-    print(f"Loading example value from config: {_recruiter}")
     assert _recruiter == "generic"
 
 

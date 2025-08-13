@@ -445,7 +445,7 @@ msgstr "Khangbire nakhoigi leppa aduda."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "HIT asi chongthokpa toubirak-u haina \"Finish\" button asi click toubiyu."
 
 #: psynet/end.py

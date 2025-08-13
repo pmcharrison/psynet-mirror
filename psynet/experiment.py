@@ -769,7 +769,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._nodes_on_deploy()
 
         config = dallinger_get_config()
-        self.var.server_working_directory = os.getcwd()
+        redis_vars.set("server_working_directory", os.getcwd())
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
         if deployment_info.read("is_local_deployment"):
@@ -1829,6 +1829,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_accumulated_reward_for_abort": 0.20,
             "min_browser_version": "80.0",
             "prolific_is_custom_screening": False,
+            "prolific_enable_return_for_bonus": True,
+            "prolific_enable_screen_out": False,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
@@ -2283,20 +2285,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
         super().assignment_reassigned(participant)
 
-    def bonus(self, participant):
-        """
-        Calculates and returns the reward the given participant gets when
-        completing the experiment.
+    def bonus(self, participant: Participant) -> float:
+        """Calculate the reward the participant gets when completing the experiment.
 
-        :param participant:
-            The participant.
-        :type participant:
-            :attr:`~psynet.participant.Participant`
-        :returns:
-            The reward as a ``float``.
+        Parameters
+        ----------
+        participant : Participant
+            The participant to calculate reward for.
+
+        Returns
+        -------
+        float
+            The calculated reward, rounded to 2 decimal places.
         """
         reward = participant.calculate_reward()
-        return self.check_bonus(reward, participant)
+        print(f"Initially computed reward: {reward}")
+        print(f"Participant status: {participant.status}")
+        if participant.status not in ["screened_out", "returned"]:
+            print(f"Subtracting base payment: {self.base_payment}")
+            reward -= self.base_payment
+        print(f"After base payment subtraction: {reward}")
+        return round(self.check_bonus(reward, participant), 2)
 
     def check_bonus(self, reward, participant):
         """
@@ -2762,6 +2771,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             assert value in ["light", "dark", "auto"]
 
         config.register("color_mode", unicode, validators=[color_mode_validator])
+
+        config.register("prolific_enable_return_for_bonus", bool)
+        config.register("prolific_enable_screen_out", bool)
 
     @dashboard_tab("Export")
     @classmethod

@@ -13,7 +13,8 @@ COPY LICENSE LICENSE
 
 RUN apt update && apt -f -y install curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip
 RUN service redis-server start
-RUN curl https://cli-assets.heroku.com/install.sh | sh
+RUN curl -O https://cli-assets.heroku.com/install.sh
+RUN sh -x install.sh
 
 RUN pip install --upgrade pip
 RUN pip install pip-tools --upgrade
@@ -37,7 +38,6 @@ RUN pip install --no-dependencies -e .
 # RUN pip install "git+https://github.com/Dallinger/Dallinger.git@pmch-dev"
 
 WORKDIR /PsyNet
-COPY ./ci/.dallingerconfig /root/.dallingerconfig
 COPY ./README.md README.md
 
 RUN mkdir /psynet-data

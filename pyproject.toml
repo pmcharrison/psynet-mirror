@@ -50,7 +50,7 @@ dependencies = [
     "polib",
     "progress",
     "pytest",
-    "pytest-dependency",  # used for pytest.mark.dependency calls
+    "pytest-dependency",
     "pytest-mock",
     "python-gettext",
     "rpdb",

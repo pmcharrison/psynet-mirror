@@ -184,7 +184,7 @@ looks like:
 
         <p class="vspace"></p>
         <p>
-            Please click "Finish" to complete the HIT.
+            Please click "Finish" to finalize the session.
         </p>
         <p class="vspace"></p>
 

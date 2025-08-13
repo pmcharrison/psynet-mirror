@@ -443,7 +443,7 @@ msgstr "Takk fyrir þátttökuna."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "Vinsamlegast smelltu á \"Ljúka\" til að klára HIT-ið."
 
 #: psynet/end.py
