@@ -24,14 +24,14 @@ def run_bot_group(experiment: Experiment):
         max_wait=5,
         poll_interval=0.25,
     )
-    assert count_errors() == 0
+    assert_no_errors()
 
     wait_until(
         lambda: count_working_bots() == 0 or count_errors() > 0,
         max_wait=30,
         poll_interval=1.0,
     )
-    assert count_errors() == 0
+    assert_no_errors()
 
     for bot in Bot.query.all():
         assert not bot.failed
@@ -43,6 +43,17 @@ def count_working_bots():
 
 def count_errors():
     return ErrorRecord.query.count()
+
+
+def assert_no_errors():
+    errors = ErrorRecord.query.all()
+    for error in errors:
+        print(f"Error {error.id}: {error.message}")
+        print(error.traceback)
+    if errors:
+        raise RuntimeError(
+            f"Encountered {len(errors)} error(s) logged in the database (see logs for further details)."
+        )
 
 
 @pytest.mark.usefixtures("launched_experiment")
