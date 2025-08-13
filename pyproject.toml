@@ -22,9 +22,10 @@ license = {file = "LICENSE"}
 description = "PsyNet – complex psychological experiments made easy"  # A framework for running advanced psychological experiments
 keywords = ["psychology", "experiments", "online", "networks"]
 readme = "README.md"
-requires-python = ">=3.10"  # recommended Python version: 3.12
+requires-python = ">=3.10"  # recommended Python version: 3.13
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.10",
@@ -36,7 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=11.3.1,<12",
+    "dallinger[docker]>=11.4.0,<12",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf
@@ -44,7 +45,6 @@ dependencies = [
     "html2text",
     "joblib",
     "jsonpickle",
-    "mock",
     "pandas",
     "paramiko",
     "polib",
@@ -108,7 +108,7 @@ exclude = [
 
 [tool.black]
 line-length = 88
-target-version = ["py312"]
+target-version = ["py313"]
 include = '\.pyi?$'
 exclude = '''
 /(

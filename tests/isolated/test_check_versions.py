@@ -1,8 +1,8 @@
 import os
 import tempfile
+from unittest.mock import patch
 
 import pytest
-from mock import patch
 
 from psynet.utils import working_directory
 from psynet.version import check_versions

@@ -10,7 +10,7 @@ import time
 import traceback
 import uuid
 import warnings
-from collections import Counter, OrderedDict
+from collections import Counter
 from datetime import datetime, timedelta
 from importlib import resources
 from os.path import abspath, dirname, exists
@@ -19,7 +19,7 @@ from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from statistics import mean, median
-from typing import List, Type, Union
+from typing import List, OrderedDict, Type, Union
 
 import dallinger.experiment
 import dallinger.models

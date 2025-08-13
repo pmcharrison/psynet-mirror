@@ -11,7 +11,6 @@ import dallinger.data
 import dallinger.models
 import postgres_copy
 import psutil
-import six
 import sqlalchemy
 from dallinger import db
 from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS
@@ -849,8 +848,7 @@ def ingest_zip(path, engine=None):
             model = sql_base_classes()[tablename]
 
             file = archive.open(filename)
-            if six.PY3:
-                file = io.TextIOWrapper(file, encoding="utf8", newline="")
+            file = io.TextIOWrapper(file, encoding="utf8", newline="")
             ingest_to_model(file, model, engine)
 
 
