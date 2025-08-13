@@ -309,9 +309,13 @@ class SQLMixinDallinger(SharedMixin):
         return self
 
     def __repr__(self):
+        try:
+            id_ = self.id
+        except sqlalchemy.orm.exc.DetachedInstanceError:
+            id_ = "?"
         base_class = get_sql_base_class(self).__name__
         cls = self.__class__.__name__
-        return "{}-{}-{}".format(base_class, self.id, cls)
+        return "{}-{}-{}".format(base_class, id_, cls)
 
     @declared_attr
     def vars(cls):

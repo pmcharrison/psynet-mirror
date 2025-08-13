@@ -68,13 +68,13 @@ class CustomTrial(ImitationChainTrial):
             "number_1",
             "What was the number?",
             time_estimate=3,
-            bot_response=lambda: self.definition,
+            bot_response=lambda trial: trial.definition,
         )
         page_3 = FixedDigitInputPage(
             "number_2",
             "Type the number one more time.",
             time_estimate=3,
-            bot_response=lambda: self.definition,
+            bot_response=lambda trial: trial.definition,
         )
 
         return [page_1, page_2, page_3]

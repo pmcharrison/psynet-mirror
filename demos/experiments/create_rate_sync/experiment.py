@@ -2,14 +2,13 @@ import random
 from typing import List
 
 import psynet.experiment
-from psynet.bot import Bot, advance_past_wait_pages
+from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.modular_page import ModularPage, PushButtonControl, TextControl
 from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import CodeBlock, PageMaker, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.utils import as_plain_text
 
 # Overview #####################################################################
 
@@ -130,61 +129,38 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 3
     test_mode = "serial"
 
-    def test_experiment(self):
-        bots = [Bot() for _ in range(self.test_n_bots)]
-        self.test_serial_run_bots(bots)
-        self.test_check_bots(bots)
-
-    def test_serial_run_bots(self, bots: List[Bot]):
-        from psynet.page import WaitPage
-
+    def test_serial_run_bots(self, bots: List[BotDriver]):
         advance_past_wait_pages(bots)
 
         # CREATE 1
-        page = bots[0].get_current_page()
-        assert page.label == "create"
-        bots[0].take_page(page, response="chocolate")
-        page = bots[0].get_current_page()
-        assert isinstance(page, WaitPage)
+        assert bots[0].current_page_label == "create"
+        bots[0].take_page(response="chocolate")
+        assert bots[0].current_page_label == "wait"
 
-        page = bots[1].get_current_page()
-        assert page.label == "create"
-        bots[1].take_page(page, response="pudding")
+        assert bots[1].current_page_label == "create"
+        bots[1].take_page(response="pudding")
 
-        page = bots[2].get_current_page()
-        assert page.label == "create"
-        bots[2].take_page(page, response="yoghurt")
+        assert bots[2].current_page_label == "create"
+        bots[2].take_page(response="yoghurt")
 
         advance_past_wait_pages(bots)
 
         # RATE 1
-        page = bots[0].get_current_page()
-        assert page.label == "rate"
-        bots[0].take_page(page, response="yoghurt")
+        assert bots[0].current_page_label == "rate"
+        bots[0].take_page(response="yoghurt")
 
-        page = bots[1].get_current_page()
-        assert page.label == "rate"
-        bots[1].take_page(page, response="yoghurt")
+        assert bots[1].current_page_label == "rate"
+        bots[1].take_page(response="yoghurt")
 
-        page = bots[2].get_current_page()
-        assert page.label == "rate"
-        bots[2].take_page(page, response="pudding")
+        assert bots[2].current_page_label == "rate"
+        bots[2].take_page(response="pudding")
 
         advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
-        assert (
-            as_plain_text(pages[0].prompt.text)
-            == "You chose yoghurt, your partners chose pudding and yoghurt."
-        )
-        assert (
-            as_plain_text(pages[1].prompt.text)
-            == "You chose yoghurt, your partners chose pudding and yoghurt."
-        )
-        assert (
-            as_plain_text(pages[2].prompt.text)
-            == "You chose pudding, your partners chose yoghurt and yoghurt."
-        )
+        texts = [bot.current_page_text for bot in bots]
+        assert texts[0] == "You chose yoghurt, your partners chose pudding and yoghurt."
+        assert texts[1] == "You chose yoghurt, your partners chose pudding and yoghurt."
+        assert texts[2] == "You chose pudding, your partners chose yoghurt and yoghurt."
 
         bots[0].take_page()
         bots[1].take_page()
@@ -192,30 +168,21 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         # CREATE 2
-        bots[0].take_page(page, response="schnitzel")
-        bots[1].take_page(page, response="salad")
-        bots[2].take_page(page, response="burger")
+        bots[0].take_page(response="schnitzel")
+        bots[1].take_page(response="salad")
+        bots[2].take_page(response="burger")
         advance_past_wait_pages(bots)
 
         # RATE 2
-        bots[0].take_page(page, response="salad")
-        bots[1].take_page(page, response="schnitzel")
-        bots[2].take_page(page, response="salad")
+        bots[0].take_page(response="salad")
+        bots[1].take_page(response="schnitzel")
+        bots[2].take_page(response="salad")
         advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
-        assert (
-            as_plain_text(pages[0].prompt.text)
-            == "You chose salad, your partners chose salad and schnitzel."
-        )
-        assert (
-            as_plain_text(pages[1].prompt.text)
-            == "You chose schnitzel, your partners chose salad and salad."
-        )
-        assert (
-            as_plain_text(pages[2].prompt.text)
-            == "You chose salad, your partners chose salad and schnitzel."
-        )
+        texts = [bot.current_page_text for bot in bots]
+        assert texts[0] == "You chose salad, your partners chose salad and schnitzel."
+        assert texts[1] == "You chose schnitzel, your partners chose salad and salad."
+        assert texts[2] == "You chose salad, your partners chose salad and schnitzel."
 
         bots[0].take_page()
         bots[1].take_page()
@@ -223,37 +190,27 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         # CREATE 3
-        bots[0].take_page(page, response="melon")
-        bots[1].take_page(page, response="shrimp")
-        bots[2].take_page(page, response="soup")
+        bots[0].take_page(response="melon")
+        bots[1].take_page(response="shrimp")
+        bots[2].take_page(response="soup")
         advance_past_wait_pages(bots)
 
         # RATE 3
-        bots[0].take_page(page, response="soup")
-        bots[1].take_page(page, response="soup")
-        bots[2].take_page(page, response="melon")
+        bots[0].take_page(response="soup")
+        bots[1].take_page(response="soup")
+        bots[2].take_page(response="melon")
         advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
-        assert (
-            as_plain_text(pages[0].prompt.text)
-            == "You chose soup, your partners chose melon and soup."
-        )
-        assert (
-            as_plain_text(pages[1].prompt.text)
-            == "You chose soup, your partners chose melon and soup."
-        )
-        assert (
-            as_plain_text(pages[2].prompt.text)
-            == "You chose melon, your partners chose soup and soup."
-        )
+        texts = [bot.current_page_text for bot in bots]
+        assert texts[0] == "You chose soup, your partners chose melon and soup."
+        assert texts[1] == "You chose soup, your partners chose melon and soup."
+        assert texts[2] == "You chose melon, your partners chose soup and soup."
 
         bots[0].take_page()
         bots[1].take_page()
         bots[2].take_page()
         advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
-        for page in pages:
-            text = as_plain_text(page.prompt.text)
+        texts = [bot.current_page_text for bot in bots]
+        for text in texts:
             assert "That's the end of the experiment!" in text

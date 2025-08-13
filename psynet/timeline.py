@@ -980,7 +980,16 @@ class Page(Elt):
         self._bot_response = bot_response
         self._validate_function = validate
 
-    def call__bot_response(self, experiment, bot, response=NoArgumentProvided):
+    def call__get_bot_response(self, experiment, bot, response=NoArgumentProvided):
+        """
+        Constructs the appropriate bot_response for the page.
+
+        The bot_response can be specified in two main ways:
+        - By passing an argument to the __init__ method
+        - By overriding the :meth:`~psynet.timeline.Page.get_bot_response` method
+
+        The former takes priority.
+        """
         from .bot import BotResponse
 
         if response != NoArgumentProvided:
@@ -1081,6 +1090,7 @@ class Page(Elt):
 
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
+        participant.page_count += 1
 
     def on_complete(self, experiment, participant):
         pass
@@ -1364,6 +1374,15 @@ class Page(Elt):
     @property
     def define_media_requests(self):
         return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
+
+    @property
+    def plain_text(self):
+        """
+        A plain text version of the page's content.
+        This is used for testing purposes.
+        Users are invited to override this method in subclasses.
+        """
+        return "Not implemented"
 
 
 class PageMaker(Elt):

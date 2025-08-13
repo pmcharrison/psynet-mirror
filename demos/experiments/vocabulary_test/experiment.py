@@ -62,9 +62,15 @@ class Exp(psynet.experiment.Experiment):
         assert not bot.failed
         trials = bot.all_trials
         assert len(trials) == 4  # 1 wikivocab + 1 biblevocab nl + 2x wikivocab en
-        visited_hashes = [item["hash"] for trial in trials for item in trial.answer]
-        # Make sure the participant doesn't revisit the same asset
-        assert len(visited_hashes) == len(set(visited_hashes))
+
+        # polvanrijn's original version of this code checked for uniqueness of hashes
+        # across all trials. This seems problematic as perhaps the same word appears
+        # in multiple datasets; if so, this would cause the test to stochastically fail.
+        for trial in trials:
+            visited_hashes = [item["hash"] for item in trial.answer]
+            # Make sure the participant doesn't revisit the same asset
+            assert len(visited_hashes) == len(set(visited_hashes))
+
         assets = trials[0].assets
         assert len(assets) == 30
         asset_key = random.sample(list(assets.keys()), 1)[0]

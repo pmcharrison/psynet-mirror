@@ -5,7 +5,7 @@ import dallinger.db
 
 
 @contextmanager
-def transaction():
+def transaction(commit: bool = True):
     """
     Context manager to handle database transactions.
 
@@ -14,14 +14,15 @@ def transaction():
     This ensures that we don't get problems with unintended long-lived database sessions
     that can lead to performance issues including deadlocks.
 
-    As opposed to ``dallinger.db.session_scope``, we additionally commit the transaction
+    As opposed to ``dallinger.db.session_scope``, we by default commit the transaction
     at the end of the context. In general we want to discourage users from calling ``session.commit()``
     themselves, and just use this context manager to handle transactions automatically.
     This should be best for atomicity and performance.
     """
     with dallinger.db.sessions_scope(dallinger.db.session):
         yield
-        dallinger.db.session.commit()
+        if commit:
+            dallinger.db.session.commit()
 
 
 def with_transaction(func):

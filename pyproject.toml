@@ -73,6 +73,7 @@ dev = [
     "pre-commit",
     "sphinx",
     "sphinx-autodoc-typehints",
+    "beautifulsoup4",
 ]
 slack = [
     "slack_sdk",

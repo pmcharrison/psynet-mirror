@@ -267,6 +267,8 @@ class AsyncProcess(SQLBase, SQLMixin):
                 experiment.handle_error(err, process=process)
 
             if process:
+                # We need to re-fetch the process because handle_error has done a rollback
+                process = cls.get_process(process_id)
                 process.pending = False
                 process.fail(f"Exception in asynchronous process: {repr(err)}")
 

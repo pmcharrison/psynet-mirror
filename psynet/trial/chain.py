@@ -192,6 +192,7 @@ class ChainNetwork(TrialNetwork):
         if participant is not None:
             self.id_within_participant = id_within_participant
             self.participant_id = participant.id
+            self.participant = participant
 
         self.chain_type = chain_type
         self.trials_per_node = trials_per_node
@@ -1670,6 +1671,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             "Looking for networks for participant %i.",
             participant.id,
         )
+
         n_completed_trials = participant.module_state.n_completed_trials
         if (
             self.max_trials_per_participant is not None

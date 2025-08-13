@@ -74,17 +74,18 @@ class Exp(psynet.experiment.Experiment):
         ),
     )
 
-    def run_bot(self, bot):
-        assert bot.get_current_page().label == "welcome"
+    @classmethod
+    def run_bot(cls, bot, **kwargs):
+        assert bot.current_page_label == "welcome"
 
-        bot.submit_response("birds")
-        assert bot.get_current_page().label == "birds"
+        bot.take_page(response="birds")
+        assert bot.current_page_label == "birds"
 
-        bot.submit_response("fish")
-        assert bot.get_current_page().label == "fish"
+        bot.take_page(response="fish")
+        assert bot.current_page_label == "fish"
 
-        bot.submit_response("dogs")
-        assert bot.get_current_page().label == "dogs"
+        bot.take_page(response="dogs")
+        assert bot.current_page_label == "dogs"
 
-        bot.submit_response("welcome")
-        assert bot.get_current_page().label == "welcome"
+        bot.take_page(response="welcome")
+        assert bot.current_page_label == "welcome"
