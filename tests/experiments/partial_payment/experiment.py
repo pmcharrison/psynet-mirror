@@ -43,8 +43,6 @@ BONUS = 3.5
 class Exp(psynet.experiment.Experiment):
     label = "Trying to make a partial payment"
     config = {
-        # "base_payment": 1.0, # Uncomment this and comment base_payment in the config.py file when deploying
-        "wage_per_hour": 10.0,
         "prolific_workspace": "test_workspace",
         "prolific_project": "test_project",
         "prolific_enable_screen_out": True,
