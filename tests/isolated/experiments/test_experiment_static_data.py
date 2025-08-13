@@ -1,3 +1,5 @@
+import re
+
 import jsonpickle
 import pandas as pd
 import pandas.testing as pdt
@@ -13,8 +15,8 @@ from psynet.utils import json_to_data_frame
 )
 @pytest.mark.usefixtures("launched_experiment")
 def test_jsonpickle(trial):
-    expected = '{"py/object": "dallinger_experiment.experiment.AnimalTrial", "identifiers": {"id": 1}}'
-    assert jsonpickle.encode(trial).replace("\n", "") == expected
+    pattern = r'\{"py/object": "dallinger_experiment\.experiment\.AnimalTrial", "identifiers": \{"id": \d+}}'
+    assert re.fullmatch(pattern, jsonpickle.encode(trial).replace("\n", ""))
 
 
 def test_json_to_data_frame():

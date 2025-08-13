@@ -8,11 +8,13 @@ from unittest.mock import patch
 
 import pytest
 
+from psynet.pytest_psynet import path_to_demo_experiment
 from psynet.timeline import Module
 from psynet.utils import (
     DuplicateKeyError,
     check_todos_before_deployment,
     corr,
+    get_authenticated_session,
     get_folder_size_mb,
     get_package_name,
     get_package_source_directory,
@@ -396,3 +398,18 @@ def test_safe_as_function_wrapper(caplog):
         "Traceback" in record.getMessage() or record.exc_info
         for record in caplog.records
     )
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo_experiment("hello_world")], indirect=True
+)
+def test_get_authenticated_session_allows_dashboard_access(launched_experiment):
+    """
+    Test that get_authenticated_session allows access to a protected dashboard route.
+    Uses the hello_world demo and the launched_experiment fixture.
+    """
+    base_url = launched_experiment.base_url
+    session = get_authenticated_session(base_url)
+    resp = session.get(f"{base_url}/dashboard/index")
+    assert resp.status_code == 200
+    assert "Config" in resp.text or "configuration" in resp.text

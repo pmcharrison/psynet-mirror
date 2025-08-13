@@ -62,15 +62,16 @@ class Test:
         self.check_mappers()
 
     def test_serialize_sql(self, trial, node, network, participant):
+        trial_id = trial.id
         trial_serialized = serialize(trial)
         assert (
             trial_serialized
-            == '{"py/object": "dallinger_experiment.experiment.AnimalTrial", "identifiers": {"id": 1}}'
+            == f'{{"py/object": "dallinger_experiment.experiment.AnimalTrial", "identifiers": {{"id": {trial_id}}}}}'
         )
 
         trial_unserialized = unserialize(trial_serialized)
         assert isinstance(trial_unserialized, StaticTrial)
-        assert trial.id == 1
+        assert trial_unserialized.id == trial_id
         assert isinstance(trial.node, StaticNode)
 
         self.check_mappers()

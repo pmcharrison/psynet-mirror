@@ -1,10 +1,18 @@
 # pylint: disable=attribute-defined-outside-init
 
+import io
 import json
+import os
+import shutil
+import tempfile
+import time
+import zipfile
+from contextlib import ExitStack
 from smtplib import SMTPAuthenticationError
 from typing import TYPE_CHECKING, Dict
 
 import dallinger.models
+import requests
 from dallinger import db
 from dallinger.notifications import admin_notifier
 from sqlalchemy import (
@@ -20,11 +28,21 @@ from sqlalchemy import (
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
+from tenacity import Retrying, stop_after_attempt, wait_exponential
+
+from psynet.db import transaction
+from psynet.timeline import Page
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonList, PythonObject, VarStore, extra_var
-from .utils import call_function_with_context, get_config, get_logger, organize_by_key
+from .utils import (
+    NoArgumentProvided,
+    call_function_with_context,
+    get_config,
+    get_logger,
+    organize_by_key,
+)
 
 logger = get_logger()
 
@@ -91,6 +109,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         A long unique string that is randomly generated when the participant advances
         to a new page, used as a passphrase to guarantee the security of
         data transmission from front-end to back-end.
+        Should not be modified directly.
+
+    page_count : int
+        The number of pages that the participant has advanced through.
         Should not be modified directly.
 
     complete : bool
@@ -173,14 +195,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     progress_fixes = Column(PythonList)
 
     page_uuid = Column(String)
-    aborted = Column(Boolean, default=False)
-    complete = Column(Boolean, default=False)
+    page_count = Column(Integer)
+    aborted = Column(Boolean)
+    complete = Column(Boolean)
     answer = Column(PythonObject)
     answer_accumulators = Column(PythonList)
     sequences = Column(PythonList)
     branch_log = Column(PythonObject)
-    for_loops = Column(PythonObject, default=lambda: {})
-    failure_tags = Column(PythonList, default=lambda: [])
+    for_loops = Column(PythonObject)
+    failure_tags = Column(PythonList)
 
     base_payment = Column(Float)
     performance_reward = Column(Float)
@@ -194,7 +217,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="selectin"
     )
     current_trial_id = Column(Integer, ForeignKey("info.id"))
-    current_trial = relationship(
+    _current_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[current_trial_id], lazy="joined"
     )
     trial_status = Column(String)
@@ -206,14 +229,62 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "AsyncProcess", foreign_keys=[awaited_async_code_block_process_id]
     )
 
-    # @property
-    # def current_trial(self):
-    #     if self.in_module and hasattr(self.module_state, "current_trial"):
-    #         return self.module_state.current_trial
-    #
-    # @current_trial.setter
-    # def current_trial(self, value):
-    #     self.module_state.current_trial = value
+    @property
+    def current_trial(self):
+        """
+        This property is used to deal with some flakiness we've seen in the
+        underlying SQLAlchemy relationship. For some unclear reason, we sometimes
+        end up in a situation where the foreign key current_trial_id is not None,
+        but the _current_trial attribute is (incorrectly) None. The following code
+        detects this situation and retries loading the attribute a few times.
+        """
+        # Ideally, the _current_trial relationship is being loaded properly.
+        # If we do see a trial there, we can just return it.
+        if self._current_trial is not None:
+            return self._current_trial
+
+        # If both _current_trial and current_trial_id are None, that suggests
+        # there is truly no current trial. We can therefore return None.
+        if self.current_trial_id is None:
+            return None
+
+        # If we got here, that means that current_trial_id is not None,
+        # but _current_trial is None. This suggests that the trial is not
+        # loaded properly. We can therefore try to load it again.
+        retrying = Retrying(
+            stop=stop_after_attempt(4),
+            wait=wait_exponential(multiplier=0.1, min=0.1, max=0.5),
+            reraise=True,
+        )
+        for attempt in retrying:
+            with attempt:
+                logger.warning(
+                    f"Failed to load participant [{self.id}]'s current_trial attribute, will wait a moment and retry..."
+                )
+                db.session.expire(self, ["_current_trial"])
+                if self._current_trial is None:
+                    raise RuntimeError(
+                        "The _current_trial attribute is None even though current_trial_id is not None"
+                    )
+        logger.warning(
+            f"Successfully loaded participant [{self.id}]'s current_trial attribute."
+        )
+        return self._current_trial
+
+    @current_trial.setter
+    def current_trial(self, value):
+        if value is None:
+            self.current_trial_id = None
+        else:
+            self.current_trial_id = value.id
+
+        self._current_trial = value
+
+    @property
+    def current_node(self):
+        if self.current_trial is None:
+            return None
+        return self.current_trial.node
 
     @property
     def last_response(self):
@@ -466,6 +537,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.page_count = 0
+        self.aborted = False
+        self.complete = False
         self.vars = {}
         self.time_credit = 0.0
         self.estimated_max_time_credit = (
@@ -477,6 +551,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.elt_id = [-1]
         self.elt_id_max = [len(experiment.timeline) - 1]
         self.answer_accumulators = []
+        self.for_loops = {}
+        self.failure_tags = []
         self.sequences = []
         self.complete = False
         self.performance_reward = 0.0
@@ -731,3 +807,355 @@ def get_participant(participant_id: int, for_update: bool = False) -> Participan
     if for_update:
         query = query.with_for_update(of=Participant).populate_existing()
     return query.one()
+
+
+class ParticipantDriver:
+    """
+    Driver class for automating participant actions in an experiment.
+
+    The :class:`~psynet.participant.ParticipantDriver` class contrasts with the :class:`~psynet.participant.Participant` class.
+    :class:`~psynet.participant.Participant` instances correspond to rows in the Participant table in the database.
+    These :class:`~psynet.participant.Participant` instances are used in the primary experiment logic.
+    The :class:`~psynet.participant.ParticipantDriver` class is meanwhile used to simulate how a human actually
+    interacts with the user interface.
+    This simulation is primarily useful for automated testing, but it is also
+    used for simulation studies as well as for studies where human participants interact
+    with virtual participants.
+
+    From an implementation perspective, the primary reason why we have this driver class
+    in addition to the :class:`~psynet.participant.Participant` class
+    is to avoid having long-lived database object proxies.
+    Such long-lived proxies can cause hard-to-debug issues such as database deadlocks.
+    Where possible, the class uses HTTP requests to interact with the experiment server
+    rather than directly interacting with the database; this helps us to ensure
+    that the simulation is as close as possible to the real thing.
+
+    In most cases, we anticipate users will want to use the convenience subclass :class:`~psynet.bot.BotDriver`,
+    which is a subclass of :class:`~psynet.participant.ParticipantDriver` that is specifically focused on creating
+    and controlling bot participants. However, the :class:`~psynet.participant.ParticipantDriver` class can be used
+    in the rare case where we want to occasionally control individual actions of a
+    human participant.
+
+    Parameters
+    ----------
+    id_ : int, optional
+        The ID of the participant to automate
+        (i.e. corresponding to the ``id`` column in the Participant table).
+        If not provided, a new bot participant is created.
+    """
+
+    def __init__(
+        self,
+        id_: int,
+    ):
+        from .experiment import get_experiment
+
+        self.id = id_
+        self.experiment = get_experiment()
+        # self._directory = tempfile.TemporaryDirectory()
+        # self.directory = self._directory.name
+        self.directory = tempfile.mkdtemp()
+        self.status = None
+        self.status_time_fetched = None
+        self.response_files = None
+
+        with transaction(commit=False):
+            self.participant_unique_id = Participant.query.get(id_).unique_id
+
+        self._render_page()
+        self._fetch_status()
+
+    def __del__(self):
+        if hasattr(self, "directory"):
+            shutil.rmtree(self.directory)
+        # self._directory.cleanup()
+
+    @property
+    def is_working(self):
+        return self.status["status"] == "working"
+
+    @property
+    def current_page_label(self):
+        return self.status["page"]["label"]
+
+    @property
+    def current_page_text(self):
+        return self.status["page"]["text"]
+
+    @property
+    def current_page_time_estimate(self):
+        return self.status["page"]["time_estimate"]
+
+    @property
+    def current_page_uuid(self):
+        return self.status["page_uuid"]
+
+    def run_until(self, condition, render_pages=True, time_factor=0.0):
+        """
+        Take pages until a condition is met.
+        """
+        while not condition(self):
+            if not self.is_working:
+                raise RuntimeError(
+                    "Participant finished the experiment before condition was met."
+                )
+            self.take_page(render_pages, time_factor)
+
+    def run_to_completion(self, render_pages=True, time_factor=0.0):
+        """
+        Take pages until the participant has finished the experiment.
+        """
+        self.run_until(lambda bot: not bot.is_working, render_pages, time_factor)
+
+    def take_experiment(self, render_pages: bool = True, time_factor: float = 0.0):
+        """
+        Run the participant through the entire experiment.
+        """
+        start_time = time.monotonic()
+        self.run_to_completion(render_pages, time_factor)
+        total_experiment_time = time.monotonic() - start_time
+        self._report_stats(total_experiment_time)
+
+    def take_page(
+        self,
+        render_pages: bool = True,
+        time_factor: float = 0.0,
+        response=NoArgumentProvided,
+    ):
+        """
+        Advance the participant by one page. Returns False if finished.
+
+        Parameters
+        ----------
+        render_pages : bool, optional
+            Whether to render pages during automation (default is True).
+        time_factor : float, optional
+            Factor to multiply the simulated page time by (default is 0.0).
+        response : optional
+            If provided, the participant's raw_answer will be set to this value.
+
+        Returns
+        -------
+        bool
+            True if the participant should continue, False if finished.
+        """
+        if isinstance(render_pages, Page):
+            raise ValueError(
+                "The signature of take_page has changed; it no longer acceptes a page argument."
+            )
+        assert self.status is not None
+
+        self._simulate_page_time(time_factor)
+        self._submit_response(self.status, self.response_files, response)
+        if render_pages:
+            self._render_page()
+
+        return True
+
+    def _fetch_status(self):
+        """
+        Fetch the participant's current status and any associated response files,
+        and store them in the participant driver's attributes
+        (self.status and self.response_files).
+
+        Parameters
+        ----------
+        directory : str
+            Path to a directory for extracting files.
+        """
+        response = self.experiment.authenticated_session.get(
+            f"{self.experiment.base_url}/participant_status/{self.id}"
+        )
+        response.raise_for_status()
+
+        self.response_files = {}
+
+        with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+            # Load the status.
+            with zf.open("status.json") as f:
+                self.status = json.load(f)
+
+            # Clean up any old response files.
+            try:
+                shutil.rmtree(os.path.join(self.directory, "bot_response_files"))
+            except FileNotFoundError:
+                pass
+
+            # Extract the new response files.
+            for name in zf.namelist():
+                if name.startswith("bot_response_files/") and not name.endswith("/"):
+                    zf.extract(name, self.directory)
+                    key = name.replace("bot_response_files/", "", 1)
+                    self.response_files[key] = os.path.join(self.directory, name)
+
+        self.status_time_fetched = time.monotonic()
+
+    def _render_page(self):
+        """
+        Render the current page for the participant.
+        """
+        response = requests.get(
+            f"{self.experiment.base_url}/timeline",
+            params={"unique_id": self.participant_unique_id},
+        )
+        response.raise_for_status()
+
+    def _simulate_page_time(self, time_factor):
+        """
+        Sleep so that the total time spent on the page matches the simulated duration.
+
+        Parameters
+        ----------
+        page_time_started : float
+            The time the page started (from time.monotonic()).
+        status : dict
+            The status dictionary for the participant.
+        time_factor : float
+            Factor to multiply the simulated page time by.
+        """
+        time_estimate = self.status["page"]["time_estimate"]
+        simulated_page_time = time_estimate * time_factor
+        wake_time = self.status_time_fetched + simulated_page_time
+        remaining_sleep_duration = wake_time - time.monotonic()
+        if remaining_sleep_duration > 0:
+            time.sleep(remaining_sleep_duration)
+
+    def _submit_response(self, status, response_files, response=NoArgumentProvided):
+        """
+        Submit the participant's response to the server.
+
+        The HTTP submission is a POST request to the /response endpoint
+        with the following data:
+
+        - participant_id
+        - page_uuid
+        - raw_answer
+        - answer
+        - metadata
+        - blobs
+
+        At least one of raw_answer and answer should be provided.
+        If answer is present, then raw_answer will be ignored.
+
+        Parameters
+        ----------
+        status : dict
+            The status dictionary for the participant.
+        response_files : dict
+            Mapping of file keys to file paths.
+        """
+        from .bot import BotResponse
+
+        # These come from the /participant_status endpoint.
+        time_estimate = status["page"]["time_estimate"]
+        bot_response = status["page"]["bot_response"]
+
+        if response != NoArgumentProvided:
+            bot_response = BotResponse(answer=response).__json__()
+
+        submission_data = {
+            "participant_id": self.id,
+            "page_uuid": status["page_uuid"],
+            **bot_response,
+        }
+
+        if "time_taken" not in submission_data["metadata"]:
+            submission_data["metadata"]["time_taken"] = time_estimate
+
+        with ExitStack() as stack:
+            files = {}
+            for key, path in response_files.items():
+                file_obj = stack.enter_context(open(path, "rb"))
+                files[key] = (os.path.basename(path), file_obj)
+            response = requests.post(
+                f"{self.experiment.base_url}/response",
+                data={"json": json.dumps(submission_data)},
+                files=files,
+            )
+        response.raise_for_status()
+        resp_json = response.json()
+        if resp_json.get("submission") != "approved":
+            raise RuntimeError(
+                f"The participant's response was rejected: {resp_json.get('message')}"
+            )
+        # We've made some changes to the database, so we need to expire all objects
+        # to ensure that the changes are reflected in our local session.
+        db.session.expire_all()
+
+        # Update our status to reflect the new state of the participant.
+        self._fetch_status()
+
+    def _report_stats(self, total_experiment_time: float):
+        """
+        Report statistics for the participant's run through the experiment.
+        """
+        with transaction(commit=False):
+            page_count, progress, total_wait_page_time = (
+                db.session.query(Participant)
+                .filter_by(id=self.id)
+                .with_entities(
+                    Participant.page_count,
+                    Participant.progress,
+                    Participant.total_wait_page_time,
+                )
+                .one()
+            )
+
+        stats = {
+            "page_count": page_count,
+            "progress": progress,
+            "total_wait_page_time": total_wait_page_time,
+            "total_experiment_time": total_experiment_time,
+        }
+
+        logger.info(
+            f"ParticipantDriver {self.id} has finished the experiment (took {stats['page_count']} page(s), "
+            f"progress = {100 * stats['progress']:.0f}%, "
+            f"total WaitPage time = {stats['total_wait_page_time']:.3f} seconds, "
+            f"total experiment time = {stats['total_experiment_time']:.3f} seconds)."
+        )
+
+    # The following methods cheat and use the database directly.
+    # The intention is that these provide utilities for testing,
+    # rather than being intended to simulate particular participant actions.
+    # We deem these methods low-risk because they only use
+    # short-term transactions and hence should not cause deadlocks.
+    # Feel free to add more convenience methods here as and when they prove useful.
+    ###############################################################################
+
+    def get_current_page(self) -> Page:
+        with transaction():
+            participant = Participant.query.get(self.id)
+            return participant.get_current_page()
+
+    def fail(self, reason=None):
+        with transaction(commit=True):
+            participant = Participant.query.get(self.id)
+            participant.fail(reason)
+
+    def from_db(self, attr: str):
+        with transaction(commit=False):
+            participant = (
+                Participant.query.filter_by(id=self.id).populate_existing().one()
+            )
+            return getattr(participant, attr)
+
+    @property
+    def active_barriers(self):
+        return self.from_db("active_barriers")
+
+    @property
+    def current_trial(self):
+        return self.from_db("current_trial")
+
+    @property
+    def current_node(self):
+        return self.from_db("current_node")
+
+    @property
+    def sync_group_n_active_participants(self):
+        with transaction(commit=False):
+            participant = Participant.query.get(self.id)
+            return participant.sync_group.n_active_participants
+
+    ###############################################################################

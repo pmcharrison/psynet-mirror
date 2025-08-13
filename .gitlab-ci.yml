@@ -54,12 +54,25 @@ tests:
       -e CI_COMMIT_REF_NAME
       -v "$PWD/public:/public"
       $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
-    # The docker containers are running in a different host, where the directory $PWD/public
-    # now contains junit.xml files we need access to. We merge them into a single file and cat the result to take it out of its container.
-    - docker run -v "$PWD/public:/public" $DOCKER_LOCAL_TAG bash -c 'pip install -q junitparser && junitparser merge /public/*junit.xml /public/junit.xml && cat /public/junit.xml' > junit.xml
+  artifacts:
+    paths:
+      - public/
+
+merge_test_results:
+  image: python:3.12.2-alpine
+  stage: test
+  needs: ["tests"]
+  dependencies: ["tests"]
+  when: always
+  before_script:
+    - pip install -q junitparser
+  script:
+    - ls -la public
+    - junitparser merge public/*junit.xml junit.xml || echo "<testsuite></testsuite>" > junit.xml
   artifacts:
     reports:
       junit: junit.xml
+
 deploy_docker:
   stage: deploy
   script:

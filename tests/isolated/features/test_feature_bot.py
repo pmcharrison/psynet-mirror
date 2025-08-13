@@ -1,6 +1,6 @@
 import pytest
 
-from psynet.bot import Bot
+from psynet.bot import Bot, BotDriver
 from psynet.pytest_psynet import path_to_demo_feature
 
 
@@ -10,10 +10,12 @@ from psynet.pytest_psynet import path_to_demo_feature
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_exp(self):
-        bots = [Bot() for _ in range(2)]
+        bots = [BotDriver() for _ in range(2)]
 
         for bot in bots:
             bot.take_experiment()
+
+        bots = Bot.query.all()
 
         assert bots[0].id == 1
         assert bots[1].id == 2

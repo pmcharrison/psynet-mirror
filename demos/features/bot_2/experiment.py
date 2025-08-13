@@ -9,11 +9,13 @@ import re
 import time
 from statistics import mean
 
+from dallinger import db
+
 import psynet.experiment
-from psynet.bot import Bot
 from psynet.experiment import scheduled_task
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage
+from psynet.process import WorkerAsyncProcess
 from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
     ImitationChainNode,
@@ -123,11 +125,13 @@ class Exp(psynet.experiment.Experiment):
     @scheduled_task("interval", seconds=10, max_instances=1)
     def run_bot_participant():
         # Every 10 seconds, runs a bot participant.
-        from psynet.experiment import is_experiment_launched
+        from psynet.experiment import get_experiment, is_experiment_launched
 
         if is_experiment_launched():
-            bot = Bot()
-            bot.take_experiment()
+            WorkerAsyncProcess(
+                function=get_experiment().run_bot, arguments={"time_factor": 0.2}
+            )
+            db.session.commit()
 
     def initialize_bot(self, bot):
         bot.var.is_good_participant = random.sample([True, False], 1)[0]
