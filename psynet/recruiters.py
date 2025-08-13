@@ -33,11 +33,33 @@ from sqlalchemy.sql import func
 from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService, get_lucid_service
+from .page import InfoPage
 from .participant import Participant
-from .timeline import Response, TimelineLogic
+from .timeline import (
+    AsyncCodeBlock,
+    CodeBlock,
+    PageMaker,
+    Response,
+    TimelineLogic,
+    conditional,
+    join,
+    while_loop,
+)
 from .utils import get_logger, get_translator, render_template_with_translations
 
 logger = get_logger()
+
+
+def screen_out_participant(participant):
+    """
+    Standalone function for AsyncCodeBlock to use (can be serialized properly)
+    """
+    from psynet.experiment import get_experiment
+
+    experiment = get_experiment()
+    recruiter = experiment.recruiter
+
+    return recruiter.screen_out(participant, participant.calculate_reward())
 
 
 class PsyNetRecruiterMixin:
@@ -49,11 +71,22 @@ class PsyNetRecruiterMixin:
         raise NotImplementedError
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
+        return self.approve_assignment()
+
+    def approve_assignment(self) -> TimelineLogic:
+        # This calls dallinger.submitAssignment,
+        # and this will tell Dallinger to approve the assignment and pay the base payment,
+        # AND it also pays the participant a bonus, calculated from participant.bonus()
         from .page import ExecuteFrontEndJS
+
+        _p = get_translator(context=True)
 
         return ExecuteFrontEndJS(
             "dallinger.submitAssignment()",
-            message="Communicating with the recruiter...",
+            message=_p(
+                "recruiter_communication",
+                "Communicating with the recruiter...",
+            ),
         )
 
     def check_consents(self, consents):
@@ -87,7 +120,245 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
         return status
 
 
-class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecruiter):
+class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
+    def screen_out(self, participant, bonus):
+        response = super().screen_out(participant, bonus)
+        message = response.get("message")
+        success = (
+            message == "The request to bulk screen out has been made successfully."
+        )
+        if success:
+            logger.info(message)
+        else:
+            logger.warning(f"Screen out failed: {response}")
+
+        participant.var.prolific_screen_out_successful = success
+
+        return success
+
+    def release_participant(
+        self, experiment, participant: Participant
+    ) -> TimelineLogic:
+        if participant.failed:
+            return self.reject_assignment(participant)
+        return self.approve_assignment()
+
+    def reject_assignment(self, participant) -> TimelineLogic:
+        return PageMaker(self._reject_assignment, time_estimate=0.0)
+
+    def successful_screenout_logic(self) -> TimelineLogic:
+        """Create the TimelineLogic for successful screen out."""
+        _p = get_translator(context=True)
+
+        return InfoPage(
+            _p(
+                "screen_out_successful",
+                "You have been credited for the time spent on the experiment. "
+                "Because you could not progress to the main experiment "
+                "your submission will appear as 'screened out' in Prolific. "
+                "You can now close this browser window.",
+            ),
+            show_next_button=False,
+            time_estimate=0.0,
+        )
+
+    def assignment_returned_logic(self) -> TimelineLogic:
+        """Create the TimelineLogic for checking assignment return status."""
+        _p = get_translator(context=True)
+
+        return join(
+            CodeBlock(
+                lambda participant: participant.var.set("assignment_returned", False)
+            ),
+            InfoPage(
+                _p(
+                    "return_assignment_instructions",
+                    "Please return your submission via the Prolific interface and click Next. "
+                    "We will then automatically pay you a bonus for your time.",
+                ),
+                time_estimate=0.5,
+            ),
+            while_loop(
+                "wait_for_assignment_return",
+                condition=lambda participant: not participant.var.assignment_returned,
+                logic=join(
+                    AsyncCodeBlock(
+                        self.check_assignment_return_status,
+                        wait=True,
+                        expected_wait=5.0,
+                        check_interval=1.0,
+                    ),
+                    conditional(
+                        label="assignment_return_result",
+                        condition=lambda participant: participant.var.assignment_returned,
+                        logic_if_true=join(
+                            CodeBlock(self.reward_and_set_bonus),
+                            InfoPage(
+                                _p(
+                                    "return_for_bonus_completed",
+                                    "That worked! You have been credited for the time spent on the experiment. "
+                                    "Thank you for participating. You can now close this browser window.",
+                                ),
+                                show_next_button=False,
+                                time_estimate=0.0,
+                            ),
+                        ),
+                        logic_if_false=InfoPage(
+                            _p(
+                                "assignment_return_retry",
+                                "That didn't work. Are you sure you returned the submission for this study? "
+                                "Please go to the Prolific interface, make sure you have returned the submission, "
+                                "then click the 'Next' button.",
+                            ),
+                            time_estimate=0.5,
+                        ),
+                    ),
+                ),
+                expected_repetitions=1,
+            ),
+        )
+
+    def return_for_bonus_logic(self, enable_return_for_bonus) -> TimelineLogic:
+        """Create the TimelineLogic for returning the assignment in order to receive the bonus."""
+        if not enable_return_for_bonus:
+            return None
+
+        _p = get_translator(context=True)
+
+        return conditional(
+            "return_for_bonus_enabled",
+            lambda participant: enable_return_for_bonus,
+            join(
+                InfoPage(
+                    _p(
+                        "return_for_bonus_enabled",
+                        "We are sorry that you could not proceed to the main experiment, "
+                        "but we will still pay you for your time spent so far. "
+                        "To receive this payment, we need you to return this assignment "
+                        "via the Prolific interface, then click the 'Next' button below.",
+                    ),
+                    time_estimate=0.5,
+                ),
+                self.assignment_returned_logic(),
+            ),
+            None,
+        )
+
+    def return_and_message_experimenter_logic(self) -> TimelineLogic:
+        """Create the TimelineLogic for returning the assignment and messaging the experimenter."""
+        _p = get_translator(context=True)
+
+        return InfoPage(
+            _p(
+                "screen_out_return_and_message_experimenter",
+                "We are sorry that you could not proceed to the main experiment. "
+                "To receive this payment for your time, please return your assignment in Prolific "
+                "and send a message to the experimenter via the Prolific messaging system. "
+                "The experimenter will review your case and arrange payment if appropriate. "
+                "Thank you for your understanding. "
+                "You can now close this browser window.",
+            ),
+            show_next_button=False,
+            time_estimate=0.5,
+        )
+
+    def screen_out_logic(self, enable_screen_out) -> TimelineLogic:
+        """Create the TimelineLogic for screen out."""
+        if not enable_screen_out:
+            return None
+
+        return conditional(
+            "screen_out_enabled",
+            lambda participant: enable_screen_out,
+            join(
+                AsyncCodeBlock(
+                    screen_out_participant,
+                    wait=True,
+                    expected_wait=5.0,
+                    check_interval=0.5,
+                ),
+                conditional(
+                    label="screen_out_successful",
+                    condition=self.check_screen_out_successful,
+                    logic_if_true=self.successful_screenout_logic(),
+                ),
+            ),
+            None,
+        )
+
+    def _reject_assignment(self, participant) -> TimelineLogic:
+        enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
+        enable_screen_out = get_config().get("prolific_enable_screen_out")
+
+        logic_screen_out = self.screen_out_logic(enable_screen_out)
+        logic_return_for_bonus = self.return_for_bonus_logic(enable_return_for_bonus)
+        logic_return_and_message_experimenter = (
+            self.return_and_message_experimenter_logic()
+        )
+
+        return join(
+            logic_screen_out,
+            logic_return_for_bonus,
+            logic_return_and_message_experimenter,
+        )
+
+    def check_screen_out_successful(self, participant) -> bool:
+        """Check if the participant has been successfully screened out."""
+        try:
+            return participant.var.prolific_screen_out_successful
+        except KeyError:
+            return False
+
+    @staticmethod
+    def check_assignment_return_status(participant) -> bool:
+        """Check and update the participant's assignment return status via API call.
+
+        Returns:
+            bool: True if assignment is returned, False otherwise
+        """
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
+        recruiter = experiment.recruiter
+        logger.info(
+            f"Checking Prolific submission status for assignment {participant.assignment_id}"
+        )
+        submission = recruiter.prolificservice.get_participant_submission(
+            participant.assignment_id
+        )
+        logger.info(
+            f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
+        )
+        is_returned = submission and submission.get("status") == "RETURNED"
+        participant.var.assignment_returned = is_returned
+        return is_returned
+
+    @staticmethod
+    def reward_and_set_bonus(participant):
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
+        recruiter = experiment.recruiter
+
+        bonus = participant.calculate_reward()
+        recruiter.reward_bonus(
+            participant,
+            bonus,
+            "Partial payment for incomplete participation",
+        )
+        participant.bonus = bonus
+
+    def check_for_returned_assignment(self, participant) -> bool:
+        """Check if the participant has returned the assignment."""
+        try:
+            return participant.var.assignment_returned
+        except KeyError:
+            return False
+
+
+class ProlificRecruiter(
+    PsyNetProlificRecruiterMixin, dallinger.recruiters.ProlificRecruiter
+):
     def open_recruitment(self, n: int = 1) -> dict:
         response = super().open_recruitment(n)
 
@@ -140,7 +411,7 @@ class ProlificRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.ProlificRecru
 
 
 class DevProlificRecruiter(
-    PsyNetRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
+    PsyNetProlificRecruiterMixin, dallinger.recruiters.DevProlificRecruiter
 ):
     pass
 
@@ -477,7 +748,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         40: "Overquota: Quota Full",
         41: "Overquota: Supplier Allocation",
         42: "Overquota: Survey Closed for Entry",
-        50: "Financial Term: CPI Below Supplier’s Rate Card",
+        50: "Financial Term: CPI Below Supplier's Rate Card",
         98: "Exit: End of Router",
     }
 

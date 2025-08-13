@@ -445,7 +445,7 @@ msgstr "Siyabonga ngokubamba iqhaza."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "Sicela uchofoze \"Qeda\" ukuze uqedele i-HIT."
 
 #: psynet/end.py

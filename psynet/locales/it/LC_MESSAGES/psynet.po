@@ -445,7 +445,7 @@ msgstr "Grazie per aver partecipato."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "Per favore clicca \"Fine\" per completare l'HIT."
 
 #: psynet/end.py

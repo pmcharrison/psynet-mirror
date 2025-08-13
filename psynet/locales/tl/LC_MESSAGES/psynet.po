@@ -450,7 +450,7 @@ msgstr "Salamat sa iyong paglahok."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "Paki-click ang \"Tapos\" upang makumpleto ang HIT."
 
 #: psynet/end.py
