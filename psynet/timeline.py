@@ -1,5 +1,5 @@
 # pylint: disable=abstract-method
-
+import inspect
 import json
 import random
 import time
@@ -274,6 +274,12 @@ class AsyncCodeBlock(EltCollection):
         if wait and expected_wait is None:
             raise ValueError(
                 "Asynchronous code blocks must be specified with an expected wait time unless wait=False."
+            )
+
+        if inspect.ismethod(function):
+            raise ValueError(
+                "Sorry, but AsyncCodeBlocks currently do not support instance methods or class methods. "
+                "Please make your method a static method instead."
             )
 
         self.function = function

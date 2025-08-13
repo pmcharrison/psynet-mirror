@@ -443,7 +443,7 @@ msgstr "वांटो घेतिल्ल्या खातीर तुम
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "उपकार करून HIT पुराय करपाक \"समाप्त\" क्लिक करात."
 
 #: psynet/end.py

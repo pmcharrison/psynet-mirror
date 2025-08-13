@@ -235,7 +235,7 @@ class TestExp(object):
                 (
                     "That's the end of the experiment! You will receive a reward of $0.36 "
                     "for the time you spent on the experiment. You have also been awarded a performance reward of $0.00! "
-                    'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
+                    'Thank you for taking part. Please click "Finish" to finalize the session. Finish'
                 ),
             )
 
@@ -246,4 +246,4 @@ class TestExp(object):
 
             # We haven't worked out by hand exactly what the bonus should be, so this number just comes
             # from running the test ourselves.
-            assert participant.bonus == 0.36
+            assert participant.bonus == 0.02

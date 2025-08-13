@@ -13,13 +13,12 @@ import os
 import re
 import sys
 import time
-from collections import OrderedDict
 from datetime import datetime
 from functools import lru_cache, reduce, wraps
 from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
-from typing import List, Type, Union
+from typing import List, OrderedDict, Type, Union
 from urllib.parse import ParseResult, urlparse
 
 import click
@@ -356,7 +355,7 @@ class DisableLogger:
 
 def query_yes_no(question, default="yes"):
     """
-    Ask a yes/no question via raw_input() and return their answer.
+    Ask a yes/no question via input() and return their answer.
 
     "question" is a string that is presented to the user.
     "default" is the presumed answer if the user just hits <Enter>.
@@ -1264,6 +1263,7 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
                     or not (
                         # Skip the recruiter demos because they're not meaningful to run here
                         "recruiters" in dir_
+                        or "manual_recruiter_testing" in dir_
                         # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
                         # in the CI environment
                         or dir_.endswith("/gibbs_video")
