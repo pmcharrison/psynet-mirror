@@ -35,7 +35,7 @@ before_script:
   - docker build --cache-from $DOCKER_IMAGE_CACHE_FROM --tag $DOCKER_LOCAL_TAG .
 
 pre_commit:
-  image: python:3.12.2
+  image: python:3.13
   before_script:
     - pip install pre-commit
   script:

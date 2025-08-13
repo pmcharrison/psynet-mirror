@@ -2,11 +2,11 @@ import hashlib
 import subprocess
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 import click
 import pytest
 from click.testing import CliRunner
-from mock import patch
 
 from psynet.command_line import _check_constraints
 from psynet.pytest_psynet import path_to_test_experiment
@@ -21,8 +21,8 @@ class TestCommandLine(object):
         return export
 
     def test_psynet_no_args(self):
-        output = subprocess.check_output(["psynet"])
-        assert b"Usage: psynet [OPTIONS] COMMAND [ARGS]" in output
+        result = subprocess.run(["psynet"], capture_output=True, text=True)
+        assert "Usage: psynet [OPTIONS] COMMAND [ARGS]" in result.stderr
 
     def test_psynet_help(self):
         output = subprocess.check_output(["psynet", "--help"])
