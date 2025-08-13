@@ -54,7 +54,7 @@ from dallinger.utils import get_base_url as dallinger_get_base_url
 from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
-from flask import jsonify, redirect, render_template, request, send_file
+from flask import jsonify, redirect, render_template, request, send_file, url_for
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
@@ -533,6 +533,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         self.process_timeline()
+
+    @classproperty
+    def index_html(cls):
+        return f"""
+<html>
+<head>
+    <title>PsyNet Experiment</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4">PsyNet Experiment</h1>
+            <p class="mb-3">
+                If you are a participant, please double-check your URL.
+            </p>
+            <p>
+                If you are an experimenter, please
+                <a href="{url_for("dashboard.dashboard_index")}">click here</a>
+                to access the dashboard.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+"""
 
     @classproperty
     def hidden_dashboards(cls):
