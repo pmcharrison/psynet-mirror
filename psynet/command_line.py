@@ -340,6 +340,7 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
             _debug_auto_reload(ctx, archive=None, no_browsers=no_browsers)
     finally:
         kill_psynet_worker_processes()
+        _cleanup_exp_directory()
 
 
 @debug.command("local")
@@ -379,10 +380,20 @@ def _cleanup_before_debug():
 
 
 def _cleanup_exp_directory():
-    try:
-        shutil.rmtree(".deploy")
-    except FileNotFoundError:
-        pass
+    """
+    Cleans up temporary files that are sometimes left behind by the experiment.
+    """
+    for file in ["source_code.zip", "server.log", "logs.jsonl"]:
+        try:
+            os.remove(file)
+        except FileNotFoundError:
+            pass
+
+    for dir in [".deploy"]:
+        try:
+            shutil.rmtree(dir)
+        except FileNotFoundError:
+            pass
 
 
 def run_pre_auto_reload_checks():
