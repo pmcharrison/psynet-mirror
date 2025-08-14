@@ -68,6 +68,10 @@ def update_scripts(dir):
     with working_directory(dir):
         psynet.command_line.update_scripts_()
 
+        # Skip copying config.txt for the partial_payment demo to preserve its custom config
+        if dir.endswith("partial_payment"):
+            return
+
         with resources.as_file(
             resources.files("psynet") / "resources/experiment_scripts/config.txt"
         ) as path:

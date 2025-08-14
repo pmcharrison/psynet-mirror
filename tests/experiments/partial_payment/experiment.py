@@ -43,27 +43,14 @@ BONUS = 3.5
 class Exp(psynet.experiment.Experiment):
     label = "Trying to make a partial payment"
     config = {
+        "base_payment": 1.0,
+        "wage_per_hour": 10.0,
         "prolific_workspace": "test_workspace",
         "prolific_project": "test_project",
         "prolific_enable_screen_out": True,
     }
 
     test_n_bots = 3
-
-    base_payment = 1.0
-    recruiter_ = "prolific"
-    wage_per_hour = 10.0
-
-    def __init__(self, *args, **kwargs):
-        """Override config values after initialization"""
-        super().__init__(*args, **kwargs)
-        # Force the values from experiment.py to take precedence over config.txt
-        from dallinger.config import get_config
-
-        config = get_config()
-        config.set("base_payment", self.base_payment)
-        config.set("recruiter", self.recruiter_)
-        config.set("wage_per_hour", self.wage_per_hour)
 
     timeline = Timeline(
         NoConsent(),
