@@ -534,8 +534,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.process_timeline()
 
-    @classproperty
-    def index_html(cls):
+    @classmethod
+    def get_index_html(cls):
         return f"""
 <html>
 <head>
@@ -548,7 +548,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         <div class="col-md-8">
             <h1 class="mb-4">PsyNet Experiment</h1>
             <p class="mb-3">
-                If you are a participant, please double-check your URL.
+                If you are a participant, you are in the wrong place, please double-check your URL!
             </p>
             <p>
                 If you are an experimenter, please
