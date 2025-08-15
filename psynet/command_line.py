@@ -1966,7 +1966,9 @@ def _export_source_code(app, local, server, export_path, username, password):
             log("WARNING: Experiment source code could not be downloaded.")
             return
 
-    log("Downloading source code...")
+    log(
+        "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
+    )
     if local:
         url = "http://localhost:5000"
     else:
