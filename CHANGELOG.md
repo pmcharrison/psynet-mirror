@@ -1,5 +1,77 @@
 # CHANGELOG
 
+# [13.0.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc0) Release candidate - 2025-08-18
+
+## Breaking changes
+- In Prolific recruitement the base payment is now subtracted from the bonus (see 'Partial payments in Prolific recruitment' in section 'Added' below)
+- Implementations of `test_serial_run_bots` in custom experiments might need to be changed as a result of the new  `BotDriver` class (see section 'Changed' below)
+
+## Added
+- Added support for Python 3.13 (author: Frank Höger, reviewer: Peter Harrison)
+- Added demo of multiple audio files in one page (author: Peter Harrison, reviewer: Frank Höger)
+- Added `MonitorInformation` class to automatically collect information about the monitors (screen resolution, color depth, model number etc.); refactored `next_button` macro (author: Pol van Rijn, reviewer: Peter Harrison)
+- Added opt-in functionality to leave comments on every PsyNet page (`leave_comments_on_every_page`) (useful for lab or field experiments for experimenters to leave notes) (author: Pol van Rijn, reviewer: Peter Harrison)
+- Added `psynet deploy local` subcommand (author: Pol van Rijn, reviewer: Peter Harrison)
+- Show audio input device on the monitor (author: Pol van Rijn, reviewer: Peter Harrison)
+- Support text presentation in `VocabTest` for backward compatibility and rare and foreign scripts (author: Pol van Rijn, reviewer: Peter Harrison)
+- Forward participants on the Ad page to the timeline if they already exist (author: Pol van Rijn, reviewer: Peter Harrison)
+- Check if the `page_uuid` is valid and if not tell participants to reload the page (author: Pol van Rijn, reviewer: Peter Harrison)
+- Added support for automatic data backups, which are now enabled by default. These backups are stored, along with other experiment metadata, in a customisable 'artifact storage repository'. By default PsyNet uses a 'local' storage repository located at `~/psynet-data/artifacts` on the experiment server, but this can be optionally changed to an S3 bucket (authors: Pol van Rijn, Peter Harrison; reviewer: Peter Harrison)
+- Added support for automatic experiment notifications via Slack (authors: Pol van Rijn, Peter Harrison; reviewer: Peter Harrison)
+- Added a 'Deployments' dashboard which allows the experimenter to review all studies logged in the artifact storage repository (authors: Pol van Rijn, Peter Harrison; reviewer: Peter Harrison)
+- Added a 'basic data' route which can be used to serve the basic data required for scientific analyses (authors: Pol van Rijn, Peter Harrison; reviewer: Peter Harrison)
+- Added rating scale prompts (`RatingPrompt`, `MultiRatingPrompt`) (author: Peter Harrison, reviewer: Frank Höger)
+- Partial payments in Prolific recruitment (authors: Frank Höger, Peter Harrison; reviewer: Peter Harrison)
+  - Added a `screen-out` route to make use of Dallinger's screen out functionality allowing for partial payments to participants who did not complete the whole study, e.g. participants who failed prescreening
+  - Added a `partial_payment` test experiment
+  - Added an experiment for manually testing Prolific recruiter deployments
+- Added reporting of HTTP request time analytics when running tests (author: Peter Harrison, reviewer: Frank Höger)
+- Added new `join_criterion` argument to `Grouper` allowing users to customize whether a group is `SyncGroup` is eligible to be joined (author: Peter Harrison, reviewer: Frank Höger)
+
+## Fixed
+- Pin dominate to version 2.9.1; monkey patch `dominate.dom_tag.get_event_loop` (author: Frank Höger, reviewer: Peter Harrison)
+- Separate creators and raters in GAP experiments (author: Pol van Rijn, reviewer: Frank Höger)
+- Fixed downloading assets via copying when exporting a local experiment (if the experiment is already down, you cannot download the assets from the URL) (author: Pol van Rijn, reviewer: Peter Harrison)
+- Fixed a bug where `check_dallinger_version` would freeze forever in automated tests if the versions were mismatched (author: Peter Harrison, reviewer: Frank Höger)
+- Updated database transaction code to use `dallinger.db.sessions_scope` and thereby avoid unintended long-lived database sessions that can lead to performance issues including deadlocks (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug where `cache` argument was ignored in `asset()` calls (author: Peter Harrison, reviewer: Frank Höger)
+- Added missing `time_estimate` parameter passed from `Consent`s when creating respective `ConsentPage`s (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed bug in `run_pre_checks` when executing `psynet deploy ssh` (author: Frank Höger, reviewer: Peter Harrison)
+- Renamed `_local` method to `_run_local` in _command_line.py_ to avoid accidental name clashes (author: Frank Höger, reviewer: Peter Harrison)
+- Made the `SurveyJSControl`'s style more consistent with PsyNet (author: Peter Harrison, reviewer: Frank Höger)
+- Made `current_trial` accessor more robust (avoids `current_trial is None` problems by retrying the database query) (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in junit.xml merging in CI (author: Peter Harrison, reviewer: Frank Höger)
+- CI now does not terminate early on test failure (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed stochastic bug in vocabulary test (author: Peter Harrison, reviewer: Frank Höger)
+- Temporary files like `.deploy` and `source_code.zip` are now cleaned up after `psynet` commands (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed a problem with the ad HTML template, which prevented users from trialling experiments in GitHub Codespaces (author: Peter Harrison, reviewer: Frank Höger)
+
+## Changed
+- Simplified the logging output when running `psynet debug local` (author: Peter Harrison, reviewer: Frank Höger)
+- Include _logs.jsonl_ instead of _server.log_ when exporting with `psynet export ssh` (author: Frank Höger, reviewer: Peter Harrison)
+- Allow users to specify a custom path format for storing export data in the `psynet-data` directory (author: Pol van Rijn, reviewer: Peter Harrison)
+- Reordered dashboard tabs (authors: Pol van Rijn, Peter Harrison; reviewer: Peter Harrison)
+- Automated tests now use a new `BotDriver` class which simulates participant actions using HTTP requests.
+  This makes the simulation more realistic (i.e. more likely to catch bugs) and removes deadlocks
+  in parallel testing. However, some implementations of `test_serial_run_bots` have needed to be changed
+  as a result, and this could apply also to experiments with custom implementations of this method (author: Peter Harrison, reviewer: Frank Höger)
+
+## Updated
+- Updated Dallinger to version 11.4.0. For more details see https://github.com/Dallinger/Dallinger/releases/tag/v11.4.0 (author: Frank Höger, reviewer: Peter Harrison)
+
+## Removed
+- Removed 'mock' dependency (author: Frank Höger, reviewer: Peter Harrison)
+- Removed references to eligibility requirements for Prolific recruitments (author: Frank Höger, reviewer: Peter Harrison)
+
+## Documentation
+- Added documentation for new Dallinger config variable 'server_pem' (author: Frank Höger)
+- Improved documentation for `choose_participant_group` (author: Peter Harrison)
+- Updated mentions about supported Ubuntu versions (author: Frank Höger, reviewer: Peter Harrison)
+- Added missing Dallinger and PsyNet configuration variables (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed outdated unicode datatypes for configuration variables by replacing them with `bool`, `int`, and `str` types (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed some warning messages and typos (author: Frank Höger, reviewer: Peter Harrison)
+- Added a subsection for partial payments in Prolific recruitment (author: Frank Höger, reviewer: Peter Harrison)
+
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
 ## Fixed
@@ -9,7 +81,7 @@
 
 ## Added
 - Added `AsyncCodeBlock`, a version of `CodeBlock` where the code is run asynchronously (authors: Peter Harrison and Frank Höger)
-- Expose Lucid reach estimation to command line (authors: Pol van Rijn, reviewer: Frank Höger)
+- Expose Lucid reach estimation to command line (author: Pol van Rijn, reviewer: Frank Höger)
 - Added new option to `AudioPrompt` controls, accepting either a boolean or an iterable, to support custom selection and naming of controls (author: joshfrank95, reviewer: Peter Harrison)
 - Allow participants to select multiple native languages in `NativeLanguage` questionnaire (author: joshfrank95, reviewer: Peter Harrison)
 - Added controls to `JSSynth` (author: Peter Harrison, reviewer: joshfrank95)
