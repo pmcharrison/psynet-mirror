@@ -135,7 +135,7 @@ flask-wtf==1.2.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.4.0/dev-requirements.txt
     #   dallinger
-fonttools==4.59.0
+fonttools==4.59.1
     # via matplotlib
 future==1.0.0
     # via
@@ -220,7 +220,7 @@ markupsafe==3.0.2
     #   wtforms
 matplotlib==3.10.5
     # via
-    #   -r /tmp/tmps_gjq9j5/requirements.txt
+    #   -r /tmp/tmpdrykkvnb/requirements.txt
     #   repp
 matplotlib-inline==0.1.7
     # via
@@ -299,7 +299,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.4.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master
+psynet==13.0.0rc0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
