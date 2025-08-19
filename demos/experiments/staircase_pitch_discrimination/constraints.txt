@@ -216,7 +216,7 @@ matplotlib-inline==0.1.7
 numpy==2.2.6
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.4.0/dev-requirements.txt
-    #   -r /tmp/tmp0ko58lzt/requirements.txt
+    #   -r /tmp/tmpbd8paqoo/requirements.txt
     #   dallinger
     #   pandas
     #   soundfile
@@ -281,7 +281,7 @@ psycopg2==2.9.10
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v11.4.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master
+psynet==13.0.0rc0
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
