@@ -37,7 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger @ git+https://github.com/Dallinger/Dallinger.git@56c57d211df5cdb2f593f1f2f2bd77fe9163214c"
+    "dallinger @ git+https://github.com/Dallinger/Dallinger.git@56c57d211df5cdb2f593f1f2f2bd77fe9163214c",
     # "dallinger[docker]>=11.4.0,<12",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
