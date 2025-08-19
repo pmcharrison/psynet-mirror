@@ -1,4 +1,5 @@
 import configparser
+import inspect
 import json
 import os
 import re
@@ -176,6 +177,31 @@ class ExperimentMeta(type):
                 "Experiment.test_run_bots has been renamed to Experiment.test_serial_run_bots. "
                 "Please note that this test route is only used if the tests are run in serial mode."
             )
+
+        # Check for incorrect __init__ signature
+        if hasattr(cls, "__init__") and cls.__init__ is not object.__init__:
+            sig = inspect.signature(cls.__init__)
+            params = list(sig.parameters.keys())
+            # Check if signature matches the problematic pattern: def __init__(self, session)
+            if "session" in params:
+                raise RuntimeError(
+                    """
+Your experiment class uses an outdated __init__ signature.
+Please update the __init__ signature in your experiment class (see experiment.py)
+to something like the following:
+
+    def __init__(self, **kwargs):
+        # ...
+        super().__init__(**kwargs)
+
+Note: in many cases you don't need a custom __init__ method here at all.
+For example, if your __init__ method just looks like the following, you can delete it entirely:
+
+    def __init__(self, session=None):
+        super().__init__(session)
+        self.initial_recruitment_size = 1
+                """
+                )
 
 
 @register_table
@@ -456,8 +482,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     variables = {}
 
-    def __init__(self, session=None, **kwargs):
-        super().__init__(session, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         assert isinstance(self.css, list)
         assert isinstance(self.css_links, list)
