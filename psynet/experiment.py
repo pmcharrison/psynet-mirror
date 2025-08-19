@@ -456,8 +456,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     variables = {}
 
-    def __init__(self, session=None):
-        super(Experiment, self).__init__(session)
+    def __init__(self, session=None, **kwargs):
+        super().__init__(session, **kwargs)
 
         assert isinstance(self.css, list)
         assert isinstance(self.css_links, list)
