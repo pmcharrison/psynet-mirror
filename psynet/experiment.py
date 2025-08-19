@@ -4312,7 +4312,7 @@ def get_experiment() -> Experiment:
     """
     Returns an initialized instance of the experiment class.
     """
-    return import_local_experiment()["class"](db.session)
+    return import_local_experiment()["class"]()
 
 
 @cache
