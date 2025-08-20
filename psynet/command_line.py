@@ -2250,25 +2250,16 @@ def update_scripts_():
                 file,
             )
 
-    click.echo("...updating Dockertag.")
-    with open("Dockertag", "w") as file:
-        file.write(os.path.basename(os.getcwd()))
-        file.write("\n")
+    # The following files were created by earlier versions of the update-scripts function,
+    # but we've now decided to remove them from PsyNet, partly because of the new
+    # recommended GitHub Codespaces workflow.
+    try:
+        Path("Dockerfile").unlink()
+    except FileNotFoundError:
+        pass
 
-    directories_to_copy = ["docs", "docker"]
-    for dir in directories_to_copy:
-        click.echo(f"...updating {dir} directory.")
-        if Path(dir).exists():
-            shutil.rmtree(dir, ignore_errors=True)
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{dir}"
-        ) as path:
-            shutil.copytree(
-                path,
-                dir,
-                dirs_exist_ok=True,
-            )
-    os.system("chmod +x docker/*")
+    for dir in ["docs", "docker"]:
+        shutil.rmtree(dir, ignore_errors=True)
 
 
 def pre_update_constraints_(dir):
