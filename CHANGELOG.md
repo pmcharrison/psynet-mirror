@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## Fixed
+- Fixed bug that was preventing `psynet simulate` from running.
 - Improve error message for `check_dallinger_version`.
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
