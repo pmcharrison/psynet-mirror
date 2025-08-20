@@ -2652,8 +2652,18 @@ def simulate(ctx):
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
     """
-    ctx.invoke(test__local)
-    ctx.invoke(export__local)
+    exit_code = ctx.invoke(test__local)
+    if exit_code != 0:
+        click.echo("Test failed. Simulation aborted.")
+        ctx.exit(exit_code)
+
+    ctx.invoke(
+        export__local,
+        # TODO - maybe legacy is not the best name for this parameter...
+        legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
+        no_source=True,
+        path="data/simulated_data",
+    )
 
 
 @psynet.command(name="list-experiment-dirs")
