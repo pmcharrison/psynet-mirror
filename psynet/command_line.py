@@ -2250,6 +2250,20 @@ def update_scripts_():
                 file,
             )
 
+    directories_to_copy = [".devcontainer"]
+    for dir in directories_to_copy:
+        click.echo(f"...updating {dir} directory.")
+        if Path(dir).exists():
+            shutil.rmtree(dir, ignore_errors=True)
+        with resources.as_file(
+            resources.files("psynet") / f"resources/experiment_scripts/{dir}"
+        ) as path:
+            shutil.copytree(
+                path,
+                dir,
+                dirs_exist_ok=True,
+            )
+
     # The following files were created by earlier versions of the update-scripts function,
     # but we've now decided to remove them from PsyNet, partly because of the new
     # recommended GitHub Codespaces workflow.
