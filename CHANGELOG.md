@@ -2,7 +2,10 @@
 
 ## Fixed
 - Fixed bug that was preventing `psynet simulate` from running.
-- Improve error message for `check_dallinger_version`.
+- Improved error message for `check_dallinger_version`.
+- Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
+
+
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
