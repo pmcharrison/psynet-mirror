@@ -214,8 +214,8 @@ class GroupBarrier(Barrier):
     A GroupBarrier is a Barrier that waits until all participants in a given :class:`~psynet.sync.SyncGroup`
     have reached the Barrier. It also checks the current group size against the group's minimum size parameter;
     the group won't be allowed to proceed if it's below this size.
-    If ``join_existing_groups=True`` for that group, it'll wait just in case new participants join the group.
-    If ``join_existing_groups=False``, then there's no hope for new participants, so the group will be released
+    If ``accepts_top_ups=True`` for that group, it'll wait just in case new participants join the group.
+    If ``accepts_top_ups=False``, then there's no hope for new participants, so the group will be released
     and failed.
 
     Parameters
@@ -283,7 +283,7 @@ class GroupBarrier(Barrier):
                 # If join_existing_groups is False, then the group will never be able
                 # to get to the minimum size, so we should fail all participants in the group
                 # and release them.
-                if not group.join_existing_groups:
+                if not group.accepts_top_ups:
                     for participant in group.active_participants:
                         participant.fail("sync group below minimum size")
                     participants_to_release.append(participant)
@@ -476,6 +476,12 @@ class SimpleGrouper(Grouper):
         If set to ``True``, then before a new group is created, the Grouper will check if there are any existing
         groups that are under-quota (e.g. because some participants left the experiment early).
         If so, the arriving participant will be assigned to one of these groups instead.
+        This behavior can be further customized via the ``join_criterion`` argument.
+
+    join_criterion
+        A callable that takes ``group`` and ``participant`` as arguments, and returns ``True``
+        if the participant should be allowed to join the group, and ``False`` otherwise.
+        To be used in conjunction with ``join_existing_groups=True``.
 
     kwargs
         Further arguments to pass to Grouper.
@@ -490,6 +496,7 @@ class SimpleGrouper(Grouper):
         min_group_size: Union[int, str] = "initial_group_size",
         batch_size: Union[int, str] = "initial_group_size",
         join_existing_groups: bool = False,
+        join_criterion: Optional[Callable] = None,
         **kwargs,
     ):
         if "group_size" in kwargs:
@@ -522,6 +529,7 @@ class SimpleGrouper(Grouper):
         self.min_group_size = min_group_size
         self.batch_size = batch_size
         self.join_existing_groups = join_existing_groups
+        self.join_criterion = join_criterion
 
     def resolve(self):
         from .timeline import conditional, join
@@ -538,6 +546,10 @@ class SimpleGrouper(Grouper):
         )
 
     def _join_existing_groups(self, participant: Participant):
+        # The current logic is flawed, in that participants end up joining groups that are no longer active.
+        # It's difficult to figure out a good general-purpose solution here that works well for all possible applications.
+        # I think we should disable this behaviour for now, and wait until we experience some real-world use cases,
+        # which can inform the future API.
         if not self.join_existing_groups:
             return
 
@@ -555,12 +567,22 @@ class SimpleGrouper(Grouper):
             SimpleSyncGroup.n_active_participants, SimpleSyncGroup.id
         )
 
-        group = query.one_or_none()
+        groups = query.all()
 
-        if group:
+        # Only keep groups that satisfy the joining criterion (if provided)
+        groups = [
+            g
+            for g in groups
+            if self.join_criterion is None
+            or self.join_criterion(group=g, participant=participant)
+        ]
+
+        if len(groups) > 0:
+            group = groups[0]
             group.participants.append(participant)
             assert participant.active_sync_groups[self.group_type] == group
             group.check_numbers()
+            group.check_leader()
 
     def ready_to_group(self, participants: List[Participant]) -> bool:
         return len(participants) >= self.batch_size
@@ -581,7 +603,7 @@ class SimpleGrouper(Grouper):
                 max_group_size=self.max_group_size,
                 min_group_size=self.min_group_size,
                 n_active_participants=len(_participants),
-                join_existing_groups=self.join_existing_groups,
+                accepts_top_ups=self.join_existing_groups,
             )
             groups.append(_group)
 
@@ -683,7 +705,7 @@ class SimpleSyncGroup(SyncGroup):
     initial_group_size = Column(Integer)
     max_group_size = Column(Integer)
     min_group_size = Column(Integer)
-    join_existing_groups = Column(Boolean)
+    accepts_top_ups = Column(Boolean)
 
 
 @register_table

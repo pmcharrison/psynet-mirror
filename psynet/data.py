@@ -11,7 +11,6 @@ import dallinger.data
 import dallinger.models
 import postgres_copy
 import psutil
-import six
 import sqlalchemy
 from dallinger import db
 from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS
@@ -310,9 +309,13 @@ class SQLMixinDallinger(SharedMixin):
         return self
 
     def __repr__(self):
+        try:
+            id_ = self.id
+        except sqlalchemy.orm.exc.DetachedInstanceError:
+            id_ = "?"
         base_class = get_sql_base_class(self).__name__
         cls = self.__class__.__name__
-        return "{}-{}-{}".format(base_class, self.id, cls)
+        return "{}-{}-{}".format(base_class, id_, cls)
 
     @declared_attr
     def vars(cls):
@@ -849,8 +852,7 @@ def ingest_zip(path, engine=None):
             model = sql_base_classes()[tablename]
 
             file = archive.open(filename)
-            if six.PY3:
-                file = io.TextIOWrapper(file, encoding="utf8", newline="")
+            file = io.TextIOWrapper(file, encoding="utf8", newline="")
             ingest_to_model(file, model, engine)
 
 

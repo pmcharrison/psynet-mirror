@@ -4,23 +4,22 @@ import psynet.experiment
 from psynet.bot import Bot
 from psynet.page import VolumeCalibration
 from psynet.prescreen import AntiphaseHeadphoneTest, HugginsHeadphoneTest
-from psynet.timeline import Timeline
+from psynet.timeline import CodeBlock, Timeline
 
 
 class Exp(psynet.experiment.Experiment):
     label = "Headphone test demo"
 
     timeline = Timeline(
+        CodeBlock(
+            lambda participant: participant.var.set("is_good_bot", participant.id == 1)
+        ),
         VolumeCalibration(),
         HugginsHeadphoneTest(),
         AntiphaseHeadphoneTest(),
     )
 
     test_n_bots = 2
-
-    def run_bot(self, bot):
-        bot.var.is_good_bot = bot.id == 1
-        super().run_bot(bot)
 
     def test_check_bot(self, bot: Bot, **kwargs):
         from psynet.prescreen import AntiphaseHeadphoneTrial, HugginsHeadphoneTrial

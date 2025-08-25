@@ -2,7 +2,7 @@ import time
 from typing import List
 
 import psynet.experiment
-from psynet.bot import Bot
+from psynet.bot import Bot, BotDriver
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage
 from psynet.sync import SimpleGrouper
@@ -95,7 +95,7 @@ class Exp(psynet.experiment.Experiment):
 
     test_n_bots = 5
 
-    def test_serial_run_bots(self, bots: List[Bot]):
+    def test_serial_run_bots(self, bots: List[BotDriver]):
         assert isinstance(bots[0].get_current_page(), InfoPage)
         bots[0].take_page()
         assert bots[0].get_current_page().label == "animal_trial"

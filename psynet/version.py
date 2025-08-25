@@ -188,7 +188,8 @@ def check_dallinger_version():
             f"is not the one recommended for this version of PsyNet "
             f"(PsyNet v{psynet_version} recommends Dallinger v{dallinger_recommended_version}). "
             "You can fix this problem by updating your requirements.txt file "
-            f"to state dallinger=={dallinger_recommended_version}. "
+            f"to state dallinger=={dallinger_recommended_version}, then running the following in your terminal:\n"
+            "    psynet generate-constraints && pip uninstall dallinger && pip install -r constraints.txt\n"
         )
         if os.environ.get("PYTEST_CURRENT_TEST"):
             raise RuntimeError(message)

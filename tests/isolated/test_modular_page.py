@@ -1,11 +1,12 @@
-from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,
+from markupsafe import Markup
+
+from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,; import pytest
     Control,
     ModularPage,
     Prompt,
+    PushButtonControl,
     RatingScale,
 )
-
-# from importlib import resources
 
 
 def test_import_templates():
@@ -25,6 +26,27 @@ def test_import_templates():
         page_2.import_external_templates
         == '{% import "my-prompt.html" as custom_prompt with context %} {% import "my-control.html" as custom_control with context %}'
     )
+
+
+def test_modular_page_text():
+    page = ModularPage("test", Prompt("Hi!"))
+    assert page.plain_text == "Hi!"
+
+    # User has provided unescaped HTML, this should be returned as is.
+    page = ModularPage("test", Prompt("<strong>Hi!</strong>"))
+    assert page.plain_text == "<strong>Hi!</strong>"
+
+    page = ModularPage("test", Prompt(Markup("<strong>Hi!</strong>")))
+    assert page.plain_text == "**Hi!**"
+
+    page = ModularPage(
+        "test",
+        Prompt("Do you want to continue?"),
+        PushButtonControl(
+            choices=["Yes", "No"],
+        ),
+    )
+    assert page.plain_text == "Do you want to continue?\n- Yes\n- No"
 
 
 def test_get_values_and_labels():

@@ -47,7 +47,7 @@ class CAPRecruiterStandardConsent(Module):
     ):
         label = "cap-recruiter_standard_consent"
         elts = join(
-            self.CAPRecruiterStandardConsentPage(),
+            self.CAPRecruiterStandardConsentPage(time_estimate=time_estimate),
             conditional(
                 "cap-recruiter_standard_consent_conditional",
                 lambda experiment, participant: (
@@ -112,7 +112,7 @@ class CAPRecruiterAudiovisualConsent(Module):
     ):
         label = "cap-recruiter_audiovisual_consent"
         elts = join(
-            self.CAPRecruiterAudiovisualConsentPage(),
+            self.CAPRecruiterAudiovisualConsentPage(time_estimate=time_estimate),
             conditional(
                 "cap-recruiter_audiovisual_consent_conditional",
                 lambda experiment, participant: (
@@ -192,7 +192,7 @@ class LucidConsent(Module):
     ):
         label = "lucid_consent"
         elts = join(
-            self.LucidConsentPage(),
+            self.LucidConsentPage(time_estimate=time_estimate),
             conditional(
                 "lucid_consent_conditional",
                 lambda experiment, participant: (
@@ -256,7 +256,7 @@ class PrincetonConsent(Module):
     ):
         label = "princeton_consent"
         elts = join(
-            self.PrincetonConsentPage(),
+            self.PrincetonConsentPage(time_estimate=time_estimate),
             conditional(
                 "princeton_consent_conditional",
                 lambda experiment, participant: (
@@ -316,7 +316,7 @@ class PrincetonCAPRecruiterConsent(Module):
     ):
         label = "princeton_cap_recruiter_consent"
         elts = join(
-            self.PrincetonCAPRecruiterConsentPage(),
+            self.PrincetonCAPRecruiterConsentPage(time_estimate=time_estimate),
             conditional(
                 "princeton_cap_recruiter_consent_conditional",
                 lambda experiment, participant: (
@@ -382,7 +382,7 @@ class MainConsent(Module):
     ):
         label = "main_consent"
         elts = join(
-            self.MainConsentPage(),
+            self.MainConsentPage(time_estimate=time_estimate),
             conditional(
                 "main_consent_conditional",
                 lambda experiment, participant: (
@@ -445,7 +445,7 @@ class DatabaseConsent(Module):
     ):
         label = "database_consent"
         elts = join(
-            self.DatabaseConsentPage(),
+            self.DatabaseConsentPage(time_estimate=time_estimate),
             conditional(
                 "database_consent_conditional",
                 lambda experiment, participant: (
@@ -508,7 +508,7 @@ class AudiovisualConsent(Module):
     ):
         label = "audiovisual_consent"
         elts = join(
-            self.AudiovisualConsentPage(),
+            self.AudiovisualConsentPage(time_estimate=time_estimate),
             conditional(
                 "audiovisual_consent_conditional",
                 lambda experiment, participant: (
@@ -571,7 +571,7 @@ class OpenScienceConsent(Module):
     ):
         label = "open_science_consent"
         elts = join(
-            self.OpenScienceConsentPage(),
+            self.OpenScienceConsentPage(time_estimate=time_estimate),
             conditional(
                 "open_science_consent_conditional",
                 lambda experiment, participant: (
@@ -634,7 +634,7 @@ class VoluntaryWithNoCompensationConsent(Module):
     ):
         label = "voluntary_with_no_compensation_consent"
         elts = join(
-            self.VoluntaryWithNoCompensationConsentPage(),
+            self.VoluntaryWithNoCompensationConsentPage(time_estimate=time_estimate),
             conditional(
                 "voluntary_with_no_compensation_consent_conditional",
                 lambda experiment, participant: (

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## Fixed
+- Fixed bug that was preventing `psynet simulate` from running.
+- Improved error message for `check_dallinger_version`.
+- Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
+
+
+
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
 ## Fixed
@@ -11,7 +18,7 @@
 - Added `AsyncCodeBlock`, a version of `CodeBlock` where the code is run asynchronously (authors: Peter Harrison and Frank Höger)
 - Expose Lucid reach estimation to command line (authors: Pol van Rijn, reviewer: Frank Höger)
 - Added new option to `AudioPrompt` controls, accepting either a boolean or an iterable, to support custom selection and naming of controls (author: joshfrank95, reviewer: Peter Harrison)
-- Added support for multiple native languages (author: joshfrank95, reviewer: Peter Harrison)
+- Allow participants to select multiple native languages in `NativeLanguage` questionnaire (author: joshfrank95, reviewer: Peter Harrison)
 - Added controls to `JSSynth` (author: Peter Harrison, reviewer: joshfrank95)
 - Added a CI test that flags warnings (author: Peter Harrison, reviewer: Frank Höger)
 

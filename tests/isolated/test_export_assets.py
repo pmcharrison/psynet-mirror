@@ -8,7 +8,7 @@ from click import Context
 from dallinger import db
 
 from psynet.asset import Asset, ExperimentAsset, ExternalAsset, OnDemandAsset
-from psynet.bot import Bot
+from psynet.bot import Bot, BotDriver
 from psynet.command_line import export__local
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import generate_text_file
@@ -105,8 +105,10 @@ class TestAssetExport:
 
         self._test_asset_export_modes(ctx)
 
-        bot = Bot()
-        bot.take_experiment()
+        bot_driver = BotDriver()
+        bot_driver.take_experiment()
+
+        bot = Bot.query.one()
 
         json_full = bot.to_dict()
         json_anon = bot.scrub_pii(bot.to_dict())

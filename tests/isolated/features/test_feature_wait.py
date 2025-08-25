@@ -1,6 +1,6 @@
 import pytest
 
-from psynet.bot import Bot
+from psynet.bot import Bot, BotDriver
 from psynet.pytest_psynet import path_to_demo_feature
 
 
@@ -9,8 +9,8 @@ from psynet.pytest_psynet import path_to_demo_feature
 )
 class TestExp:
     def test_exp(self, launched_experiment):
-        bot = Bot()
-
+        bot = BotDriver()
         bot.take_experiment()
 
+        bot = Bot.query.one()
         assert (bot.var.end_time - bot.var.start_time).total_seconds() > 3

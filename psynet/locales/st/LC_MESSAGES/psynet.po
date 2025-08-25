@@ -448,7 +448,7 @@ msgstr "Rea leboha ka ho nka karolo."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "Ka kopo tobetsa \"Qeta\" ho phethela HIT."
 
 #: psynet/end.py

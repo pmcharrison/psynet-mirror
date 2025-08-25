@@ -440,7 +440,7 @@ msgstr "سوپاس بۆ بەشداریکە."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "تکایە کرتە بکە لەسەر \"کۆتایی\" بۆ تەواوبوونی ئیشەکە."
 
 #: psynet/end.py

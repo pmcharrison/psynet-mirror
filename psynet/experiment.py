@@ -9,9 +9,10 @@ import tempfile
 import time
 import traceback
 import uuid
-import warnings
+import zipfile
 from collections import Counter, OrderedDict
 from datetime import datetime, timedelta
+from functools import cached_property
 from importlib import resources
 from os.path import abspath, dirname, exists
 from os.path import join as join_path
@@ -19,7 +20,7 @@ from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from statistics import mean, median
-from typing import List, Type, Union
+from typing import List, Optional, Type, Union
 
 import dallinger.experiment
 import dallinger.models
@@ -55,6 +56,7 @@ from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
+from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
@@ -69,10 +71,10 @@ from psynet.utils import (
 
 from . import deployment_info
 from .asset import Asset, AssetRegistry, LocalStorage, OnDemandAsset, S3Storage
-from .bot import Bot
+from .bot import Bot, BotDriver, BotResponse
 from .command_line import export_launch_data, log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
-from .db import with_transaction
+from .db import transaction, with_transaction
 from .end import RejectedConsentLogic, SuccessfulEndLogic, UnsuccessfulEndLogic
 from .error import ErrorRecord
 from .field import ImmutableVarStore, PythonDict
@@ -113,6 +115,7 @@ from .utils import (
     call_function_with_context,
     disable_logger,
     get_arg_from_dict,
+    get_authenticated_session,
     get_logger,
     get_translator,
     log_time_taken,
@@ -534,6 +537,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.process_timeline()
 
+    @cached_property
+    def authenticated_session(self):
+        return get_authenticated_session(self.base_url)
+
     @classmethod
     def get_index_html(cls):
         return f"""
@@ -797,7 +804,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._nodes_on_deploy()
 
         config = dallinger_get_config()
-        self.var.server_working_directory = os.getcwd()
+        redis_vars.set("server_working_directory", os.getcwd())
         self.var.deployment_id = deployment_info.read("deployment_id")
         self.var.label = self.label
         if deployment_info.read("is_local_deployment"):
@@ -985,9 +992,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "disk_usage_pct": 100 - psutil.disk_usage("/").percent,
         }
 
+    @classproperty
+    def base_url(cls):
+        return get_experiment_url()
+
     @classmethod
     def get_artifact_url(cls, deployment_id, filename):
-        return f"{get_experiment_url()}/dashboard/artifact/{deployment_id}/{filename}"
+        return f"{cls.base_url}/dashboard/artifact/{deployment_id}/{filename}"
 
     @classproperty
     def deployment_id(cls):
@@ -1009,11 +1020,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for keys in ["dashboard_user", "dashboard_password"]:
             data_params.append(f"{keys}={config.get(keys)}")
         data_params = "&".join(data_params)
-        return get_experiment_url() + "/basic_data?" + data_params
+        return cls.base_url + "/basic_data?" + data_params
 
     @classproperty
-    def dashboard_url(self):
-        return get_experiment_url() + "/dashboard"
+    def dashboard_url(cls):
+        return cls.base_url + "/dashboard"
 
     @staticmethod
     def get_last_n_from_class(
@@ -1295,6 +1306,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
+        self._report_request_statistics()
+
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
 
@@ -1302,13 +1315,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # Start N subprocesses, and in each one call `psynet run-bot`
         logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
 
+        config = get_config()
+        dashboard_user = config.get("dashboard_user")
+        dashboard_password = config.get("dashboard_password")
+
         n_processes = self.test_n_bots
 
         processes = []
         process_ids = list(range(n_processes))
         bot_ids = [process_id + 1 for process_id in process_ids]
 
-        cmd = "psynet run-bot"
+        cmd = f"psynet run-bot --dashboard-user {dashboard_user} --dashboard-password {dashboard_password}"
         if self.test_real_time:
             cmd += " --real-time"
 
@@ -1355,6 +1372,33 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.test_check_bots(bots)
 
         testing_stats.report()
+
+    def _report_request_statistics(self) -> Optional[float]:
+        response = self.authenticated_session.get(self.base_url + "/request_statistics")
+        response.raise_for_status()
+        mean_duration = response.json()["mean_duration"]
+
+        if mean_duration is None:
+            logger.info("Found no requests to report statistics for.")
+        else:
+            logger.info(f"Mean HTTP request duration: {mean_duration:.3f} seconds")
+
+    @experiment_route("/request_statistics", methods=["GET"])
+    @classmethod
+    @login_required
+    @with_transaction
+    def request_statistics(cls):
+        # Note that we restrict consideration to the key participant-facing requests.
+        mean_duration = (
+            db.session.query(func.avg(Request.duration))
+            .filter(
+                Request.endpoint.in_(["/timeline", "/response"]),
+            )
+            .scalar()
+        )
+        return {
+            "mean_duration": mean_duration,
+        }
 
     class TestingStats:
         def __init__(self, stat_definitions):
@@ -1410,12 +1454,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             decimal_places=0,
         ),
         TestingStatDefinition(
-            "mean_processing_time",
-            label="processing time per page",
-            regex="mean processing time per page = ([0-9]*\\.[0-9]*) seconds",
-            suffix=" seconds",
-        ),
-        TestingStatDefinition(
             "total_wait_page_time",
             label="total wait page time per bot",
             regex="total WaitPage time = ([0-9]*\\.[0-9]*) seconds",
@@ -1432,23 +1470,48 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def _test_experiment_serial(self):
         logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
-        bots = [Bot() for _ in range(self.test_n_bots)]
-        self.test_serial_run_bots(bots)
-        self.test_check_bots(bots)
 
-    def test_serial_run_bots(self, bots):
+        bots = [BotDriver() for _ in range(self.test_n_bots)]
+        self.test_serial_run_bots(bots)
+
+        # At the checking stage, it's most convenient to test the actual Bot instances
+        # rather than the BotDriver instances.
+        with transaction():
+            bots = Bot.query.all()
+            self.test_check_bots(bots)
+
+    def test_serial_run_bots(self, bots: List[BotDriver]):
+        """
+        Defines the logic for testing the experiment in a serial process
+        (i.e. not running bots in parallel processes).
+        This is useful for testing specific experiment logic,
+        but less useful for load-testing.
+
+        By default, this method is very simple: it just iterates over each
+        bot in turn, and runs that bot from the beginning to the end
+        of the experiment.
+
+        Experiments can override this method to implement more complex logic.
+        When doing so, it's worth familiarizing yourself a little with how
+        the BotDriver class works. Unlike many other classes in PsyNet,
+        it's not a SQLAlchemy model, but rather a utility class that
+        wraps an underlying SQLAlchemy model (the Bot class).
+        See the class's documentation for more details.
+        """
         for bot in bots:
-            db.session.add(bot)  # Protects against DetachedInstanceErrors
             self.run_bot(bot)
 
-    def run_bot(self, bot):
-        time_factor = float(self.test_real_time)
-        if time_factor > 0:
-            warnings.warn(
-                "Real-time mode doesn't seem to work well at present; take results with a pinch of salt.",
-                DeprecationWarning,
-            )
-        bot.take_experiment(render_pages=True, time_factor=time_factor)
+    @classmethod
+    def run_bot(
+        cls,
+        bot: Optional[BotDriver] = None,
+        render_pages: bool = True,
+        time_factor: float = 0.0,
+    ):
+        if bot is None:
+            bot = BotDriver()
+
+        bot.take_experiment(render_pages, time_factor)
 
     def test_check_bots(self, bots: List[Bot]):
         for b in bots:
@@ -1857,6 +1920,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_accumulated_reward_for_abort": 0.20,
             "min_browser_version": "80.0",
             "prolific_is_custom_screening": False,
+            "prolific_enable_return_for_bonus": True,
+            "prolific_enable_screen_out": False,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
@@ -2311,20 +2376,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
         super().assignment_reassigned(participant)
 
-    def bonus(self, participant):
-        """
-        Calculates and returns the reward the given participant gets when
-        completing the experiment.
+    def bonus(self, participant: Participant) -> float:
+        """Calculate the reward the participant gets when completing the experiment.
 
-        :param participant:
-            The participant.
-        :type participant:
-            :attr:`~psynet.participant.Participant`
-        :returns:
-            The reward as a ``float``.
+        Parameters
+        ----------
+        participant : Participant
+            The participant to calculate reward for.
+
+        Returns
+        -------
+        float
+            The calculated reward, rounded to 2 decimal places.
         """
         reward = participant.calculate_reward()
-        return self.check_bonus(reward, participant)
+        print(f"Initially computed reward: {reward}")
+        print(f"Participant status: {participant.status}")
+        if participant.status not in ["screened_out", "returned"]:
+            print(f"Subtracting base payment: {self.base_payment}")
+            reward -= self.base_payment
+        print(f"After base payment subtraction: {reward}")
+        return round(self.check_bonus(reward, participant), 2)
 
     def check_bonus(self, reward, participant):
         """
@@ -2390,6 +2462,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .populate_existing()
             .get(participant_id)
         )
+
+        if answer is not NoArgumentProvided and not isinstance(participant, Bot):
+            raise ValueError(
+                "Only bots are permitted to submit formatted answers directly "
+                "instead of raw answers."
+            )
 
         try:
             event = self.timeline.get_current_elt(self, participant)
@@ -2790,6 +2868,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             assert value in ["light", "dark", "auto"]
 
         config.register("color_mode", unicode, validators=[color_mode_validator])
+
+        config.register("prolific_enable_return_for_bonus", bool)
+        config.register("prolific_enable_screen_out", bool)
 
     @dashboard_tab("Export")
     @classmethod
@@ -3720,6 +3801,75 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return cls._route_timeline(experiment, participant, mode)
 
+    @experiment_route("/participant_status/<participant_id>", methods=["GET"])
+    @classmethod
+    @login_required
+    @with_transaction
+    def route_participant_status(cls, participant_id):
+        """
+        This route provides a .zip file containing useful information about the
+        participant's current status. This information is used by automated tests
+        to verify what is being displayed on the current page and what response
+        should be submitted by the bot.
+
+        The zip file contains:
+        - status.json: a JSON file summarising the participant's status
+        - bot_response_files/: a directory containing the files that the participant would upload as a response to the page
+        """
+        participant = Bot.query.get(participant_id)
+        experiment = get_experiment()
+
+        status = {
+            "status": participant.status,
+            "page_uuid": participant.page_uuid,
+        }
+
+        if participant.status == "working":
+            current_page = participant.get_current_page()
+            bot_response = current_page.call__get_bot_response(experiment, participant)
+
+            if not isinstance(bot_response, BotResponse):
+                bot_response = BotResponse(answer=bot_response)
+
+            status["page"] = {
+                "id": current_page.id,
+                "label": current_page.label,
+                "text": current_page.plain_text,
+                "time_estimate": current_page.time_estimate,
+                "bot_response": bot_response.__json__(),
+            }
+        else:
+            bot_response = None
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            # status.json (a JSON file summarising the participant's status)
+            status_path = os.path.join(tempdir, "status.json")
+            with open(status_path, "w") as f:
+                json.dump(status, f)
+
+            # bot_response_files/... (the files that the participant would upload as a response to the page)
+            files_dir = os.path.join(tempdir, "bot_response_files")
+            os.makedirs(files_dir, exist_ok=True)
+            if bot_response:
+                for key, blob in bot_response.blobs.items():
+                    src_path = blob.file
+                    dst_path = os.path.join(files_dir, key)
+                    shutil.copyfile(src_path, dst_path)
+
+            # status.zip (a zip file containing the status.json and the bot_response_files)
+            zip_path = os.path.join(tempdir, "status.zip")
+            with zipfile.ZipFile(zip_path, "w") as zf:
+                zf.write(status_path, "status.json")
+
+                if bot_response:
+                    for filename in bot_response.blobs:
+                        zf.write(
+                            os.path.join(files_dir, filename),
+                            os.path.join("bot_response_files", filename),
+                        )
+
+            return send_file(zip_path, mimetype="application/zip")
+
     @classmethod
     def fail_participant_on_error(cls, participant, error):
         error_type = str(type(error))
@@ -3760,15 +3910,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def handle_error(cls, error, **kwargs):
-        # We rollback to remove any pending changes to the database.
-        db.session.rollback()
         parents = cls._compile_error_parents(**kwargs)
+        db.session.rollback()
         cls.report_error(error, **parents)
         return cls.HandledError(**parents)
 
     @staticmethod
     def _compile_error_parents(**kwargs):
-        parents = {**kwargs}
+        # We merge to prevent sqlalchemy.orm.exc.DetachedInstanceError
+        parents = {
+            key: db.session.merge(value)
+            for key, value in kwargs.items()
+            if value is not None
+        }
         types = [
             "process",
             "asset",
@@ -3788,7 +3942,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         and getattr(parent, grandparent_type) is not None
                     ):
                         parents[grandparent_type] = getattr(parent, grandparent_type)
-        return parents
+        return {f"{key}_id": value.id for key, value in parents.items()}
 
     class HandledError(Exception):
         def __init__(self, message=None, participant=None, **kwargs):
@@ -3822,7 +3976,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def log_to_stdout(cls, error, token, **kwargs):
         _ = error
-        context = cls.serialize_error_context(**kwargs)
+        context = {**kwargs}
         print("\n")
         logger.error(
             "EXPERIMENT ERROR - err-%s:%s",
@@ -3865,34 +4019,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         text += "\n```" + traceback.format_exc() + "```"
         cls.notifier.notify(text)
 
-    @classmethod
-    def serialize_error_context(
-        cls,
-        participant=None,
-        response=None,
-        trial=None,
-        node=None,
-        network=None,
-        process=None,
-        asset=None,
-    ):
-        context = {}
-        if participant:
-            context["participant_id"] = participant.id
-            context["worker_id"] = participant.worker_id
-        if response:
-            context["response_id"] = response.id
-        if trial:
-            context["trial_id"] = trial.id
-        if node:
-            context["node_id"] = node.id
-        if network:
-            context["network_id"] = network.id
-        if process:
-            context["process_id"] = process.id
-        if asset:
-            context["asset_id"] = asset.id
-        return context
+    # @classmethod
+    # def serialize_error_context(
+    #     cls,
+    #     participant=None,
+    #     response=None,
+    #     trial=None,
+    #     node=None,
+    #     network=None,
+    #     process=None,
+    #     asset=None,
+    # ):
+    #     context = {}
+    #     if participant:
+    #         context["participant_id"] = participant.id
+    #         context["worker_id"] = participant.worker_id
+    #     if response:
+    #         context["response_id"] = response.id
+    #     if trial:
+    #         context["trial_id"] = trial.id
+    #     if node:
+    #         context["node_id"] = node.id
+    #     if network:
+    #         context["network_id"] = network.id
+    #     if process:
+    #         context["process_id"] = process.id
+    #     if asset:
+    #         context["asset_id"] = asset.id
+    #     return context
 
     class UniqueIdError(PermissionError):
         def __init__(self, expected, provided, participant):
@@ -3989,7 +4143,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id = get_arg_from_dict(json_data, "participant_id")
         page_uuid = get_arg_from_dict(json_data, "page_uuid")
         raw_answer = get_arg_from_dict(
-            json_data, "raw_answer", use_default=True, default=None
+            json_data, "raw_answer", use_default=True, default=NoArgumentProvided
+        )
+        answer = get_arg_from_dict(
+            json_data, "answer", use_default=True, default=NoArgumentProvided
         )
         metadata = get_arg_from_dict(json_data, "metadata")
         client_ip_address = cls.get_client_ip_address()
@@ -4001,6 +4158,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             metadata,
             page_uuid,
             client_ip_address,
+            answer,
         )
 
         return res

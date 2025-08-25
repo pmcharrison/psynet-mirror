@@ -36,7 +36,7 @@ or, if using PsyNet within Docker:
 
 This command takes a few moments to start as it has to spin up a
 PsyNet local server. Once the server is ready,
-the ``Experiment.test_experiment`` method is called.
+the ``Experiment.test_serial_run_bots`` method is called.
 This creates one or more 'bots', or virtual participants;
 these bots progress through the experiment one page at a time.
 Once the bots all reach the end of the experiment, and all relevant
@@ -44,21 +44,7 @@ checks have passed, the test script concludes.
 If an error occurs, then a traceback is printed, giving you a
 chance to debug it.
 
-.. code-block:: python
-
-    class Experiment(...):
-        ...
-
-        test_n_bots = 1
-
-        def test_experiment(self):
-            os.environ["PASSTHROUGH_ERRORS"] = "True"
-            os.environ["DEPLOYMENT_PACKAGE"] = "True"
-            bots = self.test_create_bots()
-            self.test_run_bots(bots)
-            self.test_check_bots(bots)
-
-The default behavior of the ``test_experiment`` is to create
+The default behavior of ``test_serial_run_bots`` is to create
 one bot and run it through the entire experiment, one page at a time.
 Unless you tell it otherwise, the bot will generate a random plausible
 response for most page types. For example, if the page asks for
@@ -111,69 +97,63 @@ together.
 
         test_n_bots = 2
 
-        def test_run_bots(self, bots: List[Bot]):
+        def test_serial_run_bots(self, bots: List[BotDriver]):
             from psynet.page import WaitPage
 
             advance_past_wait_pages(bots)
 
-            page = bots[0].get_current_page()
-            assert page.label == "choose_action"
-            bots[0].take_page(page, response="rock")
-            page = bots[0].get_current_page()
-            assert isinstance(page, WaitPage)
+            assert bots[0].current_page_label == "choose_action"
+            bots[0].take_page(response="rock")
+            assert bots[0].current_page_label == "wait"
 
-            page = bots[1].get_current_page()
-            assert page.label == "choose_action"
-            bots[1].take_page(page, response="paper")
+            assert bots[1].current_page_label == "choose_action"
+            bots[1].take_page(response="paper")
 
             advance_past_wait_pages(bots)
 
-            pages = [bot.get_current_page() for bot in bots]
-            assert pages[0].content == "You chose rock, your partner chose paper. You lost."
-            assert pages[1].content == "You chose paper, your partner chose rock. You won!"
+            assert bots[0].current_page_text == "You chose rock, your partner chose paper. You lost."
+            assert bots[1].current_page_text == "You chose paper, your partner chose rock. You won!"
 
             bots[0].take_page()
             bots[1].take_page()
             advance_past_wait_pages(bots)
 
-            bots[0].take_page(page, response="scissors")
-            bots[1].take_page(page, response="paper")
+            bots[0].take_page(response="scissors")
+            bots[1].take_page(response="paper")
             advance_past_wait_pages(bots)
 
-            pages = [bot.get_current_page() for bot in bots]
-            assert (
-                pages[0].content == "You chose scissors, your partner chose paper. You won!"
-            )
-            assert (
-                pages[1].content
-                == "You chose paper, your partner chose scissors. You lost."
-            )
+            assert bots[0].current_page_text == "You chose scissors, your partner chose paper. You won!"
+            assert bots[1].current_page_text == "You chose paper, your partner chose scissors. You lost."
 
             bots[0].take_page()
             bots[1].take_page()
             advance_past_wait_pages(bots)
 
-            bots[0].take_page(page, response="scissors")
-            bots[1].take_page(page, response="scissors")
+            bots[0].take_page(response="scissors")
+            bots[1].take_page(response="scissors")
             advance_past_wait_pages(bots)
 
-            pages = [bot.get_current_page() for bot in bots]
             assert (
-                pages[0].content
+                bots[0].current_page_text
                 == "You chose scissors, your partner chose scissors. You drew."
+            ), (
+                "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
+                "further debugging."
             )
             assert (
-                pages[1].content
+                bots[1].current_page_text
                 == "You chose scissors, your partner chose scissors. You drew."
+            ), (
+                "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
+                "further debugging."
             )
 
             bots[0].take_page()
             bots[1].take_page()
             advance_past_wait_pages(bots)
 
-            pages = [bot.get_current_page() for bot in bots]
-            for page in pages:
-                assert isinstance(page, SuccessfulEndPage)
+            assert "That's the end of the experiment!" in bots[0].current_page_text
+            assert "That's the end of the experiment!" in bots[1].current_page_text
 
 
 Parallel testing

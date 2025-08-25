@@ -22,9 +22,10 @@ license = {file = "LICENSE"}
 description = "PsyNet – complex psychological experiments made easy"  # A framework for running advanced psychological experiments
 keywords = ["psychology", "experiments", "online", "networks"]
 readme = "README.md"
-requires-python = ">=3.10"  # recommended Python version: 3.12
+requires-python = ">=3.10"  # recommended Python version: 3.13
 classifiers = [
     "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.10",
@@ -45,13 +46,12 @@ dependencies = [
     "html2text",
     "joblib",
     "jsonpickle",
-    "mock",
     "pandas",
     "paramiko",
     "polib",
     "progress",
     "pytest",
-    "pytest-dependency",  # used for pytest.mark.dependency calls
+    "pytest-dependency",
     "pytest-mock",
     "python-gettext",
     "rpdb",
@@ -74,6 +74,7 @@ dev = [
     "pre-commit",
     "sphinx",
     "sphinx-autodoc-typehints",
+    "beautifulsoup4",
 ]
 slack = [
     "slack_sdk",
@@ -109,7 +110,7 @@ exclude = [
 
 [tool.black]
 line-length = 88
-target-version = ["py312"]
+target-version = ["py313"]
 include = '\.pyi?$'
 exclude = '''
 /(

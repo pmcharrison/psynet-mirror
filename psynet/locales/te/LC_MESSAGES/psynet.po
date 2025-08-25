@@ -443,7 +443,7 @@ msgstr "పాల్గొన్నందుకు ధన్యవాదాల�
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "HIT పూర్తి చేయడానికి \"Finish\" క్లిక్ చేయండి."
 
 #: psynet/end.py

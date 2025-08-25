@@ -13,22 +13,23 @@ import os
 import re
 import sys
 import time
-from collections import OrderedDict
 from datetime import datetime
 from functools import lru_cache, reduce, wraps
 from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
-from typing import List, Type, Union
+from typing import List, OrderedDict, Type, Union
 from urllib.parse import ParseResult, urlparse
 
 import click
 import html2text
 import jsonpickle
 import pexpect
+import requests
 import tomlkit
 from _hashlib import HASH as Hash
 from babel.support import Translations
+from bs4 import BeautifulSoup
 from dallinger.config import experiment_available
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import _descendent_classes
@@ -122,6 +123,7 @@ def call_function_with_context(function, *args, **kwargs):
     assets = kwargs.get("assets", NoArgumentProvided)
     nodes = kwargs.get("nodes", NoArgumentProvided)
     trial_maker = kwargs.get("trial_maker", NoArgumentProvided)
+    trial = kwargs.get("trial", NoArgumentProvided)
 
     requested = get_args(function)
 
@@ -161,6 +163,12 @@ def call_function_with_context(function, *args, **kwargs):
                 )
             ).all()
 
+    if "trial" in requested and trial == NoArgumentProvided:
+        if participant != NoArgumentProvided and isinstance(
+            participant.current_trial, Trial
+        ):
+            trial = participant.current_trial
+
     if "trial_maker" in requested and trial_maker == NoArgumentProvided:
         if (
             participant != NoArgumentProvided
@@ -175,6 +183,7 @@ def call_function_with_context(function, *args, **kwargs):
         "assets": assets,
         "nodes": nodes,
         "trial_maker": trial_maker,
+        "trial": trial,
         **kwargs,
     }
     return call_function(function, *args, **new_kwargs)
@@ -346,7 +355,7 @@ class DisableLogger:
 
 def query_yes_no(question, default="yes"):
     """
-    Ask a yes/no question via raw_input() and return their answer.
+    Ask a yes/no question via input() and return their answer.
 
     "question" is a string that is presented to the user.
     "default" is the presumed answer if the user just hits <Enter>.
@@ -1254,6 +1263,7 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
                     or not (
                         # Skip the recruiter demos because they're not meaningful to run here
                         "recruiters" in dir_
+                        or "manual_recruiter_testing" in dir_
                         # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
                         # in the CI environment
                         or dir_.endswith("/gibbs_video")
@@ -1723,3 +1733,106 @@ def safe(func):
             logger.error(f"Error in {func.__name__}: {e}", exc_info=True)
 
     return wrapper
+
+
+def get_authenticated_session(base_url, username=None, password=None):
+    """
+    Returns a requests.Session authenticated with the dashboard login.
+
+    Handles CSRF tokens automatically by fetching the login page first.
+
+    Parameters
+    ----------
+    base_url : str
+        The root URL of the server (e.g., 'http://localhost:5000').
+    username : str, optional
+        Dashboard username. If None, will use config.
+    password : str, optional
+        Dashboard password. If None, will use config.
+
+    Returns
+    -------
+    session : requests.Session
+        Authenticated session for making further requests.
+
+    Raises
+    ------
+    RuntimeError
+        If login fails due to invalid credentials.
+
+    Examples
+    --------
+    >>> from psynet.utils import get_authenticated_session
+    >>> session = get_authenticated_session('http://localhost:5000', 'admin', 'secret')
+    >>> response = session.get('http://localhost:5000/bot/1')
+    >>> response.raise_for_status()
+    """
+    config = get_config()
+    if username is None:
+        username = config.get("dashboard_user")
+    if password is None:
+        password = config.get("dashboard_password")
+
+    session = requests.Session()
+    login_url = f"{base_url}/dashboard/login"
+
+    # Step 1: GET login page to fetch CSRF token
+    resp = session.get(login_url)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+    csrf_input = soup.find("input", {"name": "csrf_token"})
+    if not csrf_input or not csrf_input.get("value"):
+        raise RuntimeError("Could not find CSRF token in login form.")
+    csrf_token = csrf_input["value"]
+
+    # Step 2: POST login form with CSRF token
+    login_data = {
+        "username": username,
+        "password": password,
+        "remember_me": "y",
+        "csrf_token": csrf_token,
+    }
+    resp = session.post(login_url, data=login_data)
+    resp.raise_for_status()
+
+    # Step 3: Check for an error message in the response
+    check_for_login_errors(resp)
+
+    # Step 4: Try to access a protected route to confirm login
+    protected_url = f"{base_url}/dashboard/index"
+    check = session.get(protected_url)
+
+    if check.status_code != 200 or (
+        "csrf_token" in check.text and "username" in check.text
+    ):
+        raise RuntimeError(
+            "Dashboard login failed: could not access protected route after login."
+        )
+
+    return session
+
+
+def check_for_login_errors(response):
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    top_level_alert = soup.find("div", class_="alert alert-danger")
+
+    if not top_level_alert:
+        return
+
+    top_level_message = top_level_alert.get_text(strip=True)
+
+    # Get any field-level error messages (e.g. under username)
+    field_errors = soup.find_all(
+        "span", style=lambda value: value and "color: red" in value
+    )
+
+    # Collect all messages
+    messages = [top_level_message]
+
+    for err in field_errors:
+        messages.append(err.get_text(strip=True))
+
+    message = " - ".join(messages)
+
+    raise RuntimeError(f"Dashboard login failed with message: '{message}'. ")

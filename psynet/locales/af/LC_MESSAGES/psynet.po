@@ -446,7 +446,7 @@ msgstr "Dankie dat jy deelgeneem het."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "Klik asseblief op \"Voltooi\" om die HIT af te handel."
 
 #: psynet/end.py

@@ -3,14 +3,14 @@ from typing import List
 from dominate import tags
 
 import psynet.experiment
-from psynet.bot import Bot, advance_past_wait_pages
+from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.utils import as_plain_text, get_logger
+from psynet.utils import get_logger
 
 logger = get_logger()
 
@@ -128,45 +128,41 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 2
     test_mode = "serial"
 
-    def test_serial_run_bots(self, bots: List[Bot]):
-        from psynet.page import WaitPage
+    def test_serial_run_bots(self, bots: List[BotDriver]):
+        advance_past_wait_pages(bots)
+
+        assert bots[0].current_page_label == "choose_action"
+        bots[0].take_page(response="rock")
+        assert bots[0].current_page_label == "wait"
+
+        assert bots[1].current_page_label == "choose_action"
+        bots[1].take_page(response="paper")
 
         advance_past_wait_pages(bots)
 
-        page = bots[0].get_current_page()
-        assert page.label == "choose_action"
-        bots[0].take_page(page, response="rock")
-        page = bots[0].get_current_page()
-        assert isinstance(page, WaitPage)
-
-        page = bots[1].get_current_page()
-        assert page.label == "choose_action"
-        bots[1].take_page(page, response="paper")
-
-        advance_past_wait_pages(bots)
-
-        pages = [bot.get_current_page() for bot in bots]
-        assert pages[0].content == "You chose rock, your partner chose paper. You lost."
-        assert pages[1].content == "You chose paper, your partner chose rock. You won!"
+        assert (
+            bots[0].current_page_text
+            == "You chose rock, your partner chose paper. You lost."
+        )
+        assert (
+            bots[1].current_page_text
+            == "You chose paper, your partner chose rock. You won!"
+        )
 
         bots[0].take_page()
         bots[1].take_page()
         advance_past_wait_pages(bots)
 
-        bots[0].take_page(page, response="scissors")
-        bots[1].take_page(page, response="paper")
+        bots[0].take_page(response="scissors")
+        bots[1].take_page(response="paper")
         advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
-
-        logger.info("Bot 1: %s", pages[0].content)
-        logger.info("Bot 2: %s", pages[1].content)
-
         assert (
-            pages[0].content == "You chose scissors, your partner chose paper. You won!"
+            bots[0].current_page_text
+            == "You chose scissors, your partner chose paper. You won!"
         )
         assert (
-            pages[1].content
+            bots[1].current_page_text
             == "You chose paper, your partner chose scissors. You lost."
         )
 
@@ -174,20 +170,19 @@ class Exp(psynet.experiment.Experiment):
         bots[1].take_page()
         advance_past_wait_pages(bots)
 
-        bots[0].take_page(page, response="scissors")
-        bots[1].take_page(page, response="scissors")
+        bots[0].take_page(response="scissors")
+        bots[1].take_page(response="scissors")
         advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
         assert (
-            pages[0].content
+            bots[0].current_page_text
             == "You chose scissors, your partner chose scissors. You drew."
         ), (
             "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
             "further debugging."
         )
         assert (
-            pages[1].content
+            bots[1].current_page_text
             == "You chose scissors, your partner chose scissors. You drew."
         ), (
             "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
@@ -198,7 +193,5 @@ class Exp(psynet.experiment.Experiment):
         bots[1].take_page()
         advance_past_wait_pages(bots)
 
-        pages = [bot.get_current_page() for bot in bots]
-        for page in pages:
-            text = as_plain_text(page.prompt.text)
-            assert "That's the end of the experiment!" in text
+        assert "That's the end of the experiment!" in bots[0].current_page_text
+        assert "That's the end of the experiment!" in bots[1].current_page_text

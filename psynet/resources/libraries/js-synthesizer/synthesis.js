@@ -352,7 +352,7 @@ function stop_all_tonejs_audio() {
             const tone_nodes = active_nodes[key];
             for (const row of tone_nodes) {
                 for (const cell of row) {
-                    cell[0].stop();
+                    cell[1].gain.value = 0;
                 }
             }
         }

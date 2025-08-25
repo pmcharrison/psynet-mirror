@@ -5,7 +5,7 @@ import time
 import pytest
 from click import Context
 
-from psynet.bot import Bot
+from psynet.bot import BotDriver
 from psynet.command_line import export__local, prepare
 from psynet.pytest_psynet import bot_class, path_to_test_experiment
 
@@ -49,7 +49,7 @@ class TestExpWithExport:
     ):
         time.sleep(1)
         for _ in range(4):
-            bot = Bot()
+            bot = BotDriver()
             bot.take_experiment()
 
         time_started = time.monotonic()

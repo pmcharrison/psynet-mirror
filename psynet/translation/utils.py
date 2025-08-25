@@ -3,7 +3,7 @@ import re
 import sys
 import tempfile
 import time
-from collections import OrderedDict
+from typing import OrderedDict
 
 import pexpect
 import polib

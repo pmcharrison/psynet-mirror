@@ -275,7 +275,7 @@ class VocabPage(Page):
             for item in self.items
         ]
         return BotResponse(
-            answer=answer,
+            raw_answer=answer,
             metadata=self.metadata(),
         )
 
@@ -582,6 +582,9 @@ class VocabTest(StaticTrialMaker):
         return use_arabic_script, image_width, image_height, font_size
 
     def select_hashes(self, stimuli, n):
+        assert len({item["hash"] for item in stimuli}) == len(
+            stimuli
+        ), "Duplicate hashes found in input to select_hashes."
         selected_hashes = []
         enough_stimuli = False
         n_visited = sorted({item["n_visited"] for item in stimuli})
@@ -597,9 +600,15 @@ class VocabTest(StaticTrialMaker):
                     enough_stimuli = True
                 else:
                     selected_hashes.extend(available_hashes)
+        assert len(set(selected_hashes)) == len(
+            selected_hashes
+        ), "Duplicates found in output of select_hashes."
         return selected_hashes
 
     def choose_hashes(self, stimuli, previous_trials):
+        assert len({item["hash"] for item in stimuli}) == len(
+            stimuli
+        ), "Duplicate hashes found in input to choose_hashes."
         visited_hashes = []
         for _trial in previous_trials:
             visited_hashes.extend(_trial.definition["hashes"])
@@ -626,6 +635,9 @@ class VocabTest(StaticTrialMaker):
             + self.select_hashes(incorrect_stimuli, n)
         )
         selected_hashes = random.sample(selected_hashes, n * 2)
+        assert len(set(selected_hashes)) == len(
+            selected_hashes
+        ), "choose_hashes returned duplicate hashes."
         if self.n_repeat_items > 0:
             selected_hashes = selected_hashes + random.sample(
                 selected_hashes, self.n_repeat_items

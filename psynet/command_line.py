@@ -380,7 +380,10 @@ def _cleanup_before_debug():
 
 
 def _cleanup_exp_directory():
-    for file in ["source_code.zip", "server.log"]:
+    """
+    Cleans up temporary files that are sometimes left behind by the experiment.
+    """
+    for file in ["source_code.zip", "server.log", "logs.jsonl"]:
         try:
             os.remove(file)
         except FileNotFoundError:
@@ -611,17 +614,26 @@ def is_chromedriver_process(process):
 ###########
 
 
-def _run_bot(real_time=False):
-    from .bot import Bot
+def _run_bot(real_time, dashboard_user, dashboard_password):
     from .experiment import get_experiment
-
-    exp = get_experiment()
-    exp.test_real_time = real_time
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
     os.environ["DEPLOYMENT_PACKAGE"] = "True"
-    bot = Bot()
-    exp.run_bot(bot)
+
+    import logging
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    config.set("dashboard_user", dashboard_user)
+    config.set("dashboard_password", dashboard_password)
+    time_factor = 1.0 if real_time else 0.0
+
+    exp = get_experiment()
+    exp.run_bot(time_factor=time_factor)
 
 
 @psynet.command()
@@ -630,16 +642,24 @@ def _run_bot(real_time=False):
     is_flag=True,
     help="Instead of running the bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
 )
+@click.option(
+    "--dashboard-user",
+    help="The username for the experiment's dashboard (used for bot authentication).",
+)
+@click.option(
+    "--dashboard-password",
+    help="The password for the experiment's dashboard (used for bot authentication).",
+)
 @click.pass_context
 @require_exp_directory
-def run_bot(ctx, real_time=False):
+def run_bot(ctx, real_time=False, dashboard_user=None, dashboard_password=None):
     """
     Run a bot through the local version of the experiment.
     Prior to running this command you must spin up a local experiment, for example
     by running ``psynet debug local``. You can then call ``psynet run-bot``
     multiple times to simulate multiple bots being run through the experiment.
     """
-    _run_bot(real_time=real_time)
+    _run_bot(real_time, dashboard_user, dashboard_password)
 
 
 ##############
@@ -1946,7 +1966,9 @@ def _export_source_code(app, local, server, export_path, username, password):
             log("WARNING: Experiment source code could not be downloaded.")
             return
 
-    log("Downloading source code...")
+    log(
+        "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
+    )
     if local:
         url = "http://localhost:5000"
     else:
@@ -2630,8 +2652,18 @@ def simulate(ctx):
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
     """
-    ctx.invoke(test__local)
-    ctx.invoke(export__local)
+    exit_code = ctx.invoke(test__local)
+    if exit_code != 0:
+        click.echo("Test failed. Simulation aborted.")
+        ctx.exit(exit_code)
+
+    ctx.invoke(
+        export__local,
+        # TODO - maybe legacy is not the best name for this parameter...
+        legacy=True,  # required because the server is not running any more, so we need to go direct to the DB
+        no_source=True,
+        path="data/simulated_data",
+    )
 
 
 @psynet.command(name="list-experiment-dirs")

@@ -443,7 +443,7 @@ msgstr "Takk for at du deltok."
 
 #: psynet/end.py
 #, fuzzy
-msgid "Please click \"Finish\" to complete the HIT."
+msgid "Please click \"Finish\" to finalize the session."
 msgstr "Vennligst klikk \"Fullfør\" for å fullføre HIT-en."
 
 #: psynet/end.py
