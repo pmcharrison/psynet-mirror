@@ -2267,11 +2267,6 @@ def update_scripts_():
     # The following files were created by earlier versions of the update-scripts function,
     # but we've now decided to remove them from PsyNet, partly because of the new
     # recommended GitHub Codespaces workflow.
-    try:
-        Path("Dockerfile").unlink()
-    except FileNotFoundError:
-        pass
-
     for dir in ["docs", "docker"]:
         shutil.rmtree(dir, ignore_errors=True)
 
