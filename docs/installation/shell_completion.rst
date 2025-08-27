@@ -16,7 +16,7 @@ Installation
 Easy installation (recommended)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Run the installation script:
+Run the installation script from the root of the PsyNet directory:
 
 .. code-block:: bash
 
@@ -28,47 +28,19 @@ setup to your shell configuration file.
 Manual installation
 ^^^^^^^^^^^^^^^^^^^
 
-Method 1: Direct eval (fastest)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Add one of the following lines to your shell configuration file.
+If you prefer to install manually, you can source the completion scripts directly from the root of the PsyNet directory:
 
 - For Bash (``~/.bashrc``):
 
   .. code-block:: bash
 
-     # Guard to avoid errors before the virtualenv is activated
-     if command -v psynet >/dev/null 2>&1; then eval "$(_PSYNET_COMPLETE=bash_source psynet)"; fi
+     source ./psynet-completion.bash
 
 - For Zsh (``~/.zshrc``):
 
   .. code-block:: bash
 
-     # Guard to avoid errors before the virtualenv is activated
-     if command -v psynet >/dev/null 2>&1; then eval "$(_PSYNET_COMPLETE=zsh_source psynet)"; fi
-
-Method 2: Source completion scripts
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- For Bash:
-
-  .. code-block:: bash
-
-     # Copy script to system location
-     sudo cp psynet-completion.bash /etc/bash_completion.d/psynet
-
-     # Or source it directly in ~/.bashrc
-     echo "source $(pwd)/psynet-completion.bash" >> ~/.bashrc
-
-- For Zsh:
-
-  .. code-block:: bash
-
-     # Copy script to system location
-     sudo cp psynet-completion.zsh /usr/local/share/zsh/site-functions/_psynet
-
-     # Or source it directly in ~/.zshrc
-     echo "source $(pwd)/psynet-completion.zsh" >> ~/.zshrc
+     source ./psynet-completion.zsh
 
 Activate completion
 -------------------
@@ -79,20 +51,6 @@ After installation, either restart your terminal or reload your shell configurat
 
    source ~/.bashrc  # for bash
    source ~/.zshrc   # for zsh
-
-Notes for virtual environments
-------------------------------
-
-- If you open a new shell before activating the Python virtual environment that provides ``psynet``, the completion scripts will not error and will auto-register completion once ``psynet`` becomes available (e.g., after running ``source venv/bin/activate``).
-- If completion was not registered automatically, you can manually trigger it by sourcing the file again:
-
-  .. code-block:: bash
-
-     # bash
-     source /path/to/psynet-completion.bash
-
-     # zsh
-     source /path/to/psynet-completion.zsh
 
 Usage
 -----
@@ -125,36 +83,13 @@ Option completion
 Shows available options for the specific command, e.g. ``--docker``, ``--archive``, etc.
 
 Partial completion
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
    psynet d<TAB>
 
 Completes to ``psynet debug`` (or shows other commands starting with ``d``).
-
-How it works
-------------
-
-The completion system uses Click's built-in shell completion functionality:
-
-1. Automatic detection: When you press tab, the shell calls the completion function.
-2. Environment variables: The completion function sets environment variables with the current command state.
-3. PsyNet integration: The ``psynet`` command detects these environment variables and returns completion suggestions.
-4. Dynamic completion: All commands, subcommands, and options are automatically discovered from the Click command structure.
-
-Supported commands and options
-------------------------------
-
-Common options
-^^^^^^^^^^^^^^
-
-E.g.
-
-- ``--help`` – Show help
-- ``--app`` – Experiment app name
-- ``--server`` – Server name
-- ...
 
 Examples
 --------
@@ -186,15 +121,6 @@ Troubleshooting
 If completion doesn't work:
 
 1. Make sure the completion script is properly sourced.
-2. Check that your shell supports completion (bash or zsh).
-3. Try restarting your terminal.
-4. For zsh, make sure completion is enabled: ``autoload -U compinit && compinit``.
-5. Verify that ``psynet`` is in your ``PATH``: ``which psynet``.
-
-Notes
------
-
-- The completion scripts use Click's built-in completion system.
-- All completion is dynamic and based on the actual command structure.
-- File path completion is available for options that expect file paths.
-- The scripts work with both the regular ``psynet`` command and the Docker version.
+2. Try restarting your terminal.
+3. For zsh, make sure completion is enabled: ``autoload -U compinit && compinit``.
+4. Verify that ``psynet`` is in your ``PATH``: ``which psynet``.
