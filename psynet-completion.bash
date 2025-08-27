@@ -8,7 +8,7 @@ complete -o default -o nospace -F _psynet psynet
 
 # Generate and eval the completion script from psynet, but only when available.
 if command -v psynet >/dev/null 2>&1; then
-
+  # Direct eval if psynet is available
   eval "$(_PSYNET_COMPLETE=bash_source psynet)"
 else
   # Lazily register completion after psynet becomes available (e.g., after activating a virtualenv)
