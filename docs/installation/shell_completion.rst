@@ -13,8 +13,20 @@ Files
 Installation
 ------------
 
-Easy installation (recommended)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Installation using the PsyNet command (recommended)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   psynet install autocomplete
+
+.. note::
+
+   This method works for both editable and non-editable PsyNet installations. It will automatically
+   detect your shell and add the appropriate completion setup to your shell configuration file.
+
+Installation using the installation script
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Run the installation script from the root of the PsyNet directory:
 
@@ -22,8 +34,10 @@ Run the installation script from the root of the PsyNet directory:
 
    ./install-completion.sh
 
-This will automatically detect your shell and add the appropriate completion
-setup to your shell configuration file.
+.. note::
+
+   This method _only_ works for editable PsyNet installations. It will automatically detect your shell
+   and add the appropriate completion setup to your shell configuration file.
 
 Manual installation
 ^^^^^^^^^^^^^^^^^^^
