@@ -1,3 +1,5 @@
+.. _shell_completion:
+
 PsyNet shell completion
 =======================
 
@@ -36,7 +38,7 @@ Run the installation script from the root of the PsyNet directory:
 
 .. note::
 
-   This method _only_ works for editable PsyNet installations. It will automatically detect your shell
+   This method *only* works for editable PsyNet installations. It will automatically detect your shell
    and add the appropriate completion setup to your shell configuration file.
 
 Manual installation
@@ -97,7 +99,7 @@ Option completion
 Shows available options for the specific command, e.g. ``--docker``, ``--archive``, etc.
 
 Partial completion
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -136,5 +138,7 @@ If completion doesn't work:
 
 1. Make sure the completion script is properly sourced.
 2. Try restarting your terminal.
-3. For zsh, make sure completion is enabled: ``autoload -U compinit && compinit``.
+3. Make sure completion is enabled:
+    For zsh:  ``autoload -U compinit && compinit``.
+    For bash: ``complete -o default -o nospace -F _psynet psynet``.
 4. Verify that ``psynet`` is in your ``PATH``: ``which psynet``.

@@ -157,7 +157,7 @@ Install additional PsyNet components and utilities.
 .. _install_autocomplete:
 
 Install shell completion (``install autocomplete``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This command installs shell tab completion for the ``psynet`` command. It automatically
 detects your shell and adds the appropriate completion setup to your shell configuration file.
