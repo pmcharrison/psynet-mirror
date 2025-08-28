@@ -6,6 +6,9 @@
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
 
+## Changed
+- Improved the landing page that users are shown when they navigate to the experiment's base URL.
+
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
