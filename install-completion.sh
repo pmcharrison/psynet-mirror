@@ -46,7 +46,7 @@ else
 fi
 
 echo ""
-echo "Installation complete! Restart your terminal or run 'source $RC_FILE' to enable completion."
+echo "Installation complete! Restart your terminal or run 'source $RC_FILE' (without quotes) to enable completion."
 echo ""
 echo "You can now use tab completion with psynet commands:"
 echo "  psynet <TAB>             # Shows all commands"

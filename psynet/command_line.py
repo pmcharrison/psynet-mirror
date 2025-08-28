@@ -1258,6 +1258,53 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
 
 
 ##########
+# install #
+##########
+@psynet.group("install")
+def install():
+    """
+    Install additional PsyNet components.
+    """
+    pass
+
+
+@install.command("autocomplete")
+def install_autocomplete():
+    """
+    Install shell tab completion for the psynet command.
+
+    This command automatically detects your shell (bash or zsh) and adds the appropriate
+    completion setup to your shell configuration file.
+    """
+    import os
+    import subprocess
+
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    psynet_root = os.path.dirname(script_dir)
+    install_script = os.path.join(psynet_root, "install-completion.sh")
+
+    if not os.path.exists(install_script):
+        raise click.ClickException(
+            f"Installation script not found at {install_script}. "
+            "Please ensure you're running this command from a proper PsyNet installation."
+        )
+
+    # Make the script executable
+    os.chmod(install_script, 0o755)
+
+    # Run the installation script
+    try:
+        subprocess.run([install_script], check=True)
+    except subprocess.CalledProcessError as e:
+        raise click.ClickException(f"Failed to install autocomplete: {e}")
+    except FileNotFoundError:
+        raise click.ClickException(
+            "Could not find bash executable. Please install bash and try again."
+        )
+
+
+##########
 # update #
 ##########
 @psynet.command()
