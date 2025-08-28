@@ -2656,10 +2656,9 @@ def simulate(ctx):
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
     """
-    exit_code = ctx.invoke(test__local)
-    if exit_code != 0:
-        click.echo("Test failed. Simulation aborted.")
-        ctx.exit(exit_code)
+    # No need to catch the exit code here, because test__local now uses sys.exit()
+    # if an error occurs.
+    ctx.invoke(test__local)
 
     ctx.invoke(
         export__local,
