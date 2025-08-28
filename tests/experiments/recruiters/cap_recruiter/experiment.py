@@ -16,9 +16,3 @@ class Exp(psynet.experiment.Experiment):
         MainConsent(),
         InfoPage("You finished the experiment!", time_estimate=0),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = (
-            1  # increase to simulate multiple participants at once
-        )

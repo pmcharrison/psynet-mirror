@@ -16,7 +16,6 @@ logger = get_logger()
 ##########################################################################################
 # SETTINGS
 ##########################################################################################
-INITIAL_RECRUITMENT_SIZE = 1
 
 
 class Exp(psynet.experiment.Experiment):
@@ -39,7 +38,3 @@ class Exp(psynet.experiment.Experiment):
         GMSI(),
         BasicDemography(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
