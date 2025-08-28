@@ -1,5 +1,9 @@
 ![Logo](https://gitlab.com/PsyNetDev/PsyNet/-/raw/master/psynet/resources/logo.svg)
 
+![Pipeline](https://gitlab.com/PsyNetDev/PsyNet/badges/master/pipeline.svg?ignore_skipped=true)
+![Latest release](https://gitlab.com/PsyNetDev/PsyNet/-/badges/release.svg)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/pmcharrison/psychTestR)
+
 PsyNet is a powerful new Python package for designing and running the next generation of online behavioural experiments.
 It builds on the virtual lab framework [Dallinger](https://dallinger.readthedocs.io/)
 to streamline the development of highly complex experiment paradigms, ranging from simulated cultural evolution to

@@ -41,39 +41,18 @@
     </div>
 
     {% block modals %}
-        {% block help_modal %}
-            <div id="help-modal" class="modal">
+        {% block comment_modal %}
+            {% if config.get("leave_comments_on_every_page") %}
+            <div id="comment-modal" class="modal">
                 <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <div style="margin: 20px">
-                        <h3>{{ pgettext("timeline_problem", "In case of a problem, try the following:") }}</h3>
-                        <ul>
-                            <li>{{ pgettext("timeline_problem", "Reload the page.") }}</li>
-                            <li>{{ pgettext("timeline_problem", "Check that your internet connection is working.") }}</li>
-                            <li>
-                                <a
-                                        href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant.id }}%29"
-                                        target="_top"
-                                >
-                                    {{ pgettext("timeline_problem", "If the above doesn't help, send us an email with the following information:") }}
-                                </a>
-
-                                <ol>
-                                    <li>{{ pgettext("timeline_problem", "A link to the current web page;") }}</li>
-                                    <li>{{ pgettext("timeline_problem", "Your Worker ID;") }}</li>
-                                    <li>{{ pgettext("timeline_problem", "The problem you're experiencing.") }}</li>
-                                </ol>
-                            </li>
-                        </ul>
-                    </div>
-                    {% if get_from_config("leave_comments_on_every_page") %}
+                    <div><span class="close">&times;</span></div>
                     <h5>{{ pgettext("timeline_comment", "Leave a comment") }}</h5>
-                        <textarea id="comment-text" class="form-control" placeholder='{{ pgettext("timeline_comment", "Write a comment here") }}'></textarea>
-                        <button type="button" class="btn btn-primary mt-2"
-                                id="send-comment">{{ pgettext("timeline_comment", "Send comment") }}</button>
-                    {% endif %}
+                    <textarea id="comment-text" class="form-control" placeholder='{{ pgettext("timeline_comment", "Write a comment here") }}'></textarea>
+                    <button type="button" class="btn btn-primary mt-2"
+                            id="send-comment">{{ pgettext("timeline_comment", "Send comment") }}</button>
                 </div>
             </div>
+            {% endif %}
         {% endblock %}
 
         {% block alert_modal %}
@@ -144,8 +123,10 @@
                         </div>
                     {% endif %}
 
-                    <button type="button" class="btn btn-light"
-                            id="help-button">{{ pgettext("timeline", "Help!") }}</button>
+                    {% if config.get("leave_comments_on_every_page") %}
+                        <button type="button" class="btn btn-light"
+                                id="comment-button">{{ pgettext("timeline", "Comment") }}</button>
+                    {% endif %}
 
                     {% if show_termination_button or (experiment.with_lucid_recruitment() and show_termination_button is none) %}
                         <button id="terminate-button" class="btn btn-danger">
@@ -1300,11 +1281,11 @@
 
                 let initModal = function (modalId, buttonId, closeClass="close") {
                     let modal = document.getElementById(modalId);
-                    let helpBtn = document.getElementById(buttonId);
+                    let commentBtn = document.getElementById(buttonId);
                     let span = document.getElementsByClassName(closeClass)[0];
 
-                    if (modal !== null) {
-                        helpBtn.onclick = function () {
+                    if (modal !== null && commentBtn !== null) {
+                        commentBtn.onclick = function () {
                             modal.style.display = "block";
                         };
 
@@ -1359,7 +1340,7 @@
                     console.log("Initialising page...");
 
                     psynet.registerErrorHandler();
-                    initModal(modalId="help-modal", buttonId="help-button");
+                    initModal(modalId="comment-modal", buttonId="comment-button");
 
                     psynet.response.disable();
                     psynet.submit.disable();

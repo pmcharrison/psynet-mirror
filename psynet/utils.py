@@ -1774,6 +1774,19 @@ def get_authenticated_session(base_url, username=None, password=None):
         password = config.get("dashboard_password")
 
     session = requests.Session()
+
+    # Tell the server to close the TCP connection after each request (disable HTTP keep-alive).
+    # This should prevent "Connection reset by peer" errors caused by reusing stale keep-alive sockets,
+    # which can happen if the server or a proxy drops idle connections
+    # (see e.g. https://gitlab.com/PsyNetDev/PsyNet/-/jobs/11132444772)
+    #
+    # Trade-off: every request opens a new connection, which is less efficient.
+    # The other approach would be to to keep connections alive but configure a Retry/Timeout policy
+    # (e.g. with requests.adapters.HTTPAdapter + urllib3.util.Retry).
+    # However, retry logic might complicate the logs when we get error messages due to server logic.
+    # We therefore use `Connection: close` here for simplicity.
+    session.headers["Connection"] = "close"
+
     login_url = f"{base_url}/dashboard/login"
 
     # Step 1: GET login page to fetch CSRF token
