@@ -2587,9 +2587,11 @@ def test__local(
     else:
         import pytest
 
-        # Using sys.exit() to ensure that the exit code is propagated to the shell.
-        # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
-        return sys.exit(pytest.main(["test.py"]))
+        exit_code = pytest.main(["test.py"])
+        if exit_code != 0:
+            # Use sys.exit() to ensure that the exit code is propagated to the shell.
+            # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
+            sys.exit(exit_code)
 
 
 @test.command("ssh")
