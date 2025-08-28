@@ -214,12 +214,6 @@ class Exp(psynet.experiment.Experiment):
         trial_maker,
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
-
-        # Change this if you want to simulate multiple simultaneous participants.
-        self.initial_recruitment_size = 1
-
     @scheduled_task("interval", seconds=2.0, max_instances=1)
     @staticmethod
     @with_transaction

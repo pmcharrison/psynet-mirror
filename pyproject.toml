@@ -37,7 +37,8 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=11.4.0,<12",
+    "dallinger @ git+https://github.com/Dallinger/Dallinger.git@master",  # TODO - update before release, when we have new Dallinger version
+    # "dallinger[docker]>=11.4.0,<12",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf

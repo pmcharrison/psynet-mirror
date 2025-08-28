@@ -294,7 +294,3 @@ class Exp(psynet.experiment.Experiment):
         ISO_tapping,
         music_tapping,
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1

@@ -10,7 +10,3 @@ class Exp(psynet.experiment.Experiment):
         GMSI(label="gmsi_1", subscales=["Singing Abilities"]),
         GMSI(label="gmsi_2", subscales=["Musical Training"]),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1

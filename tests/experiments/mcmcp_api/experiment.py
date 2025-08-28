@@ -148,10 +148,6 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("You finished the experiment!", time_estimate=0),
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
-
     def test_experiment(self):
         super().test_experiment()
         time.sleep(1)  # Wait for any async processes to complete

@@ -259,7 +259,3 @@ class Exp(psynet.experiment.Experiment):
             target_n_participants=TOTAL_NUM_PARTICIPANTS,
         ),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
