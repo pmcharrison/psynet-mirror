@@ -132,7 +132,7 @@ pg_badger:
       done
   script:
     - cd "demos/experiments/$TEST_NAME"
-    - DATABASE_URL="postgresql://dallinger:dallinger@docker:5432/dallinger" psynet test local > /dev/null
+    - DATABASE_URL="postgresql://dallinger:dallinger@docker:5432/dallinger" psynet test local
   after_script:
     - mkdir public
     - docker logs dallinger_postgres 2> public/postgresql.log > /dev/null

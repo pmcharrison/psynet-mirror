@@ -1,0 +1,1574 @@
+[0KRunning with gitlab-runner 18.3.0~pre.23.gb8a899e1 (b8a899e1)[0;m
+[0K  on green-1.saas-linux-small-amd64.runners-manager.gitlab.com/default JLgUopmMV, system ID: s_deaa2ca09de7[0;m
+[0K[36;1mResolving secrets[0;m[0;m
+section_start:1756390233:prepare_executor[0K[0K[36;1mPreparing the "docker+machine" executor[0;m[0;m
+[0KUsing Docker executor with image python:3.13 ...[0;m
+[0KStarting service docker:25.0.2-dind...[0;m
+[0KUsing effective pull policy of [always] for container docker:25.0.2-dind[0;m
+[0KPulling docker image docker:25.0.2-dind ...[0;m
+[0KUsing docker image sha256:ff7da5c2b684680135f3c21ff5550f166c3100f3a664292c24b8d4491591157c for docker:25.0.2-dind with digest docker@sha256:fed3a24717ab1f0ba660bf2a7a8960743f7d5facd3a2f27b6da8bcae3bcf7409 ...[0;m
+[0KStarting service redis:latest...[0;m
+[0KUsing effective pull policy of [always] for container redis:latest[0;m
+[0KPulling docker image redis:latest ...[0;m
+[0KUsing docker image sha256:9d1fe3a9a889c69d0b4febf6affb4a8d90213cc35196e11d379c87a753658ff1 for redis:latest with digest redis@sha256:cc2dfb8f5151da2684b4a09bd04b567f92d07591d91980eb3eca21df07e12760 ...[0;m
+[0KWaiting for services to be up and running (timeout 30 seconds)...[0;m
+[0KUsing effective pull policy of [always] for container python:3.13[0;m
+[0KPulling docker image python:3.13 ...[0;m
+[0KUsing docker image sha256:45fd9a3ce5de4d2b5ac35306a207bf24345ec15006cf91ef7b3458a8f78da7eb for python:3.13 with digest python@sha256:18634e45b29c0dd1a9a3a3d0781f9f8a221fe32ee7a853db01e9120c710ef535 ...[0;m
+section_end:1756390281:prepare_executor[0Ksection_start:1756390281:prepare_script[0K[0K[36;1mPreparing environment[0;m[0;m
+[0KUsing effective pull policy of [always] for container sha256:f3908c9085ffeb1c8d206a1235edf36404e90422e086d7d0c5ff7b9c763bca7f[0;m
+Running on runner-jlguopmmv-project-41336520-concurrent-0 via runner-jlguopmmv-s-l-s-amd64-1756390101-029e33d0...
+section_end:1756390287:prepare_script[0Ksection_start:1756390287:get_sources[0K[0K[36;1mGetting source from Git repository[0;m[0;m
+[32;1mGitaly correlation ID: 33aee064d6a7ce59bd9512fcae27eeae[0;m
+[32;1mFetching changes with git depth set to 20...[0;m
+Initialized empty Git repository in /builds/PsyNetDev/PsyNet/.git/
+[32;1mCreated fresh repository.[0;m
+[32;1mChecking out 80b924ec as detached HEAD (ref is sys-exit-in-tests)...[0;m
+
+[32;1mSkipping Git submodules setup[0;m
+[32;1m$ git remote set-url origin "${CI_REPOSITORY_URL}" || echo 'Not a git repository; skipping'[0;m
+section_end:1756390293:get_sources[0Ksection_start:1756390293:restore_cache[0K[0K[36;1mRestoring cache[0;m[0;m
+[32;1mChecking cache for -1-non_protected...[0;m
+Downloading cache from https://storage.googleapis.com/gitlab-com-runners-cache/project/41336520/-1-non_protected[0;m  ETag[0;m="476a30c9ae96977e2a8c1f73068912f9"
+[32;1mSuccessfully extracted cache[0;m
+section_end:1756390306:restore_cache[0Ksection_start:1756390306:step_script[0K[0K[36;1mExecuting "step_script" stage of the job script[0;m[0;m
+[0KUsing effective pull policy of [always] for container python:3.13[0;m
+[0KUsing docker image sha256:45fd9a3ce5de4d2b5ac35306a207bf24345ec15006cf91ef7b3458a8f78da7eb for python:3.13 with digest python@sha256:18634e45b29c0dd1a9a3a3d0781f9f8a221fe32ee7a853db01e9120c710ef535 ...[0;m
+[32;1m$ echo Install Heroku CLI and docker[0;m
+Install Heroku CLI and docker
+[32;1m$ curl https://cli-assets.heroku.com/install.sh | sh[0;m
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  1979  100  1979    0     0  19509      0 --:--:-- --:--:-- --:--:-- 19594
+Installing CLI from https://cli-assets.heroku.com/channels/stable/heroku-linux-x64.tar.xz
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  8 58.9M    8 5167k    0     0  6311k      0  0:00:09 --:--:--  0:00:09 6309k 17 58.9M   17 10.0M    0     0  5613k      0  0:00:10  0:00:01  0:00:09 5612k 33 58.9M   33 19.6M    0     0  7194k      0  0:00:08  0:00:02  0:00:06 7193k 68 58.9M   68 40.6M    0     0  10.6M      0  0:00:05  0:00:03  0:00:02 10.6M100 58.9M  100 58.9M    0     0  13.5M      0  0:00:04  0:00:04 --:--:-- 13.5M
+v20.19.4
+heroku installed to /usr/local/bin/heroku
+ ›   Warning: Our terms of service have changed: 
+ ›   https://dashboard.heroku.com/terms-of-service
+heroku/10.13.0 linux-x64 node-v20.19.4
+[32;1m$ curl https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz | tar xzf - -C /usr/local[0;m
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0 27.1M    0 97798    0     0   284k      0  0:01:37 --:--:--  0:01:37  284k100 27.1M  100 27.1M    0     0  21.9M      0  0:00:01  0:00:01 --:--:-- 21.9M
+[32;1m$ ln -s /usr/local/docker/docker /usr/local/bin/[0;m
+[32;1m$ echo "Starting postgresql server with aggressive logging enabled (via docker)"[0;m
+Starting postgresql server with aggressive logging enabled (via docker)
+[32;1m$ docker run --rm -d --name dallinger_postgres -p 5432:5432 -e POSTGRES_USER=dallinger -e POSTGRES_PASSWORD=dallinger -e POSTGRES_DB=dallinger -v dallinger_postgres:/var/lib/postgresql/data postgres:16.2-bookworm postgres -c log_min_duration_statement=0 -c log_checkpoints=on -c log_connections=on -c log_disconnections=on -c log_lock_waits=on -c log_temp_files=0 -c log_autovacuum_min_duration=0 -c log_error_verbosity=default[0;m
+Unable to find image 'postgres:16.2-bookworm' locally
+16.2-bookworm: Pulling from library/postgres
+b0a0cf830b12: Pulling fs layer
+dda3d8fbd5ed: Pulling fs layer
+283a477db7bb: Pulling fs layer
+91d2729fa4d5: Pulling fs layer
+9739ced65621: Pulling fs layer
+ae3bb1b347a4: Pulling fs layer
+f8406d9c00ea: Pulling fs layer
+c199bff16b05: Pulling fs layer
+e0d55fdb4d15: Pulling fs layer
+c1cb13b19080: Pulling fs layer
+873532e5f8c7: Pulling fs layer
+050d9f8c3b1c: Pulling fs layer
+710e142705f8: Pulling fs layer
+cb628c265f09: Pulling fs layer
+91d2729fa4d5: Waiting
+9739ced65621: Waiting
+ae3bb1b347a4: Waiting
+f8406d9c00ea: Waiting
+c199bff16b05: Waiting
+e0d55fdb4d15: Waiting
+c1cb13b19080: Waiting
+873532e5f8c7: Waiting
+050d9f8c3b1c: Waiting
+710e142705f8: Waiting
+cb628c265f09: Waiting
+dda3d8fbd5ed: Verifying Checksum
+dda3d8fbd5ed: Download complete
+283a477db7bb: Verifying Checksum
+283a477db7bb: Download complete
+91d2729fa4d5: Verifying Checksum
+91d2729fa4d5: Download complete
+9739ced65621: Verifying Checksum
+9739ced65621: Download complete
+ae3bb1b347a4: Download complete
+c199bff16b05: Verifying Checksum
+c199bff16b05: Download complete
+f8406d9c00ea: Verifying Checksum
+f8406d9c00ea: Download complete
+b0a0cf830b12: Verifying Checksum
+b0a0cf830b12: Download complete
+c1cb13b19080: Verifying Checksum
+c1cb13b19080: Download complete
+050d9f8c3b1c: Verifying Checksum
+050d9f8c3b1c: Download complete
+873532e5f8c7: Verifying Checksum
+873532e5f8c7: Download complete
+710e142705f8: Verifying Checksum
+710e142705f8: Download complete
+cb628c265f09: Verifying Checksum
+cb628c265f09: Download complete
+b0a0cf830b12: Pull complete
+dda3d8fbd5ed: Pull complete
+283a477db7bb: Pull complete
+91d2729fa4d5: Pull complete
+9739ced65621: Pull complete
+ae3bb1b347a4: Pull complete
+f8406d9c00ea: Pull complete
+c199bff16b05: Pull complete
+e0d55fdb4d15: Verifying Checksum
+e0d55fdb4d15: Download complete
+e0d55fdb4d15: Pull complete
+c1cb13b19080: Pull complete
+873532e5f8c7: Pull complete
+050d9f8c3b1c: Pull complete
+710e142705f8: Pull complete
+cb628c265f09: Pull complete
+Digest: sha256:4aea012537edfad80f98d870a36e6b90b4c09b27be7f4b4759d72db863baeebb
+Status: Downloaded newer image for postgres:16.2-bookworm
+2a14fa7311b011bc3402bb008e236eb1cc204038f051492b48a768b6f17957e7
+[32;1m$ echo Create a virtualenv and install psynet there[0;m
+Create a virtualenv and install psynet there
+[32;1m$ pip install --upgrade pip virtualenv[0;m
+Requirement already satisfied: pip in /usr/local/lib/python3.13/site-packages (25.2)
+Collecting virtualenv
+  Downloading virtualenv-20.34.0-py3-none-any.whl.metadata (4.6 kB)
+Collecting distlib<1,>=0.3.7 (from virtualenv)
+  Downloading distlib-0.4.0-py2.py3-none-any.whl.metadata (5.2 kB)
+Collecting filelock<4,>=3.12.2 (from virtualenv)
+  Downloading filelock-3.19.1-py3-none-any.whl.metadata (2.1 kB)
+Collecting platformdirs<5,>=3.9.1 (from virtualenv)
+  Downloading platformdirs-4.4.0-py3-none-any.whl.metadata (12 kB)
+Downloading virtualenv-20.34.0-py3-none-any.whl (6.0 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/6.0 MB 73.3 MB/s  0:00:00
+Downloading distlib-0.4.0-py2.py3-none-any.whl (469 kB)
+Downloading filelock-3.19.1-py3-none-any.whl (15 kB)
+Downloading platformdirs-4.4.0-py3-none-any.whl (18 kB)
+Installing collected packages: distlib, platformdirs, filelock, virtualenv
+
+Successfully installed distlib-0.4.0 filelock-3.19.1 platformdirs-4.4.0 virtualenv-20.34.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+[32;1m$ virtualenv venv -ppython3[0;m
+created virtual environment CPython3.13.7.final.0-64 in 383ms
+  creator CPython3Posix(dest=/builds/PsyNetDev/PsyNet/venv, clear=False, no_vcs_ignore=False, global=False)
+  seeder FromAppData(download=False, pip=bundle, via=copy, app_data_dir=/root/.local/share/virtualenv)
+    added seed packages: APScheduler==3.11.0, Flask_Login==0.6.3, MarkupSafe==3.0.2, PyNaCl==1.5.0, PySocks==1.7.1, PyYAML==6.0.2, accessible_pygments==0.0.5, alabaster==1.0.0, annotated_types==0.7.0, ansi2html==1.9.2, anyio==4.10.0, arabic_reshaper==3.0.0, asttokens==3.0.0, attrs==25.3.0, babel==2.17.0, bcrypt==4.3.0, beautifulsoup4==4.13.4, blinker==1.9.0, boto3==1.40.13, botocore==1.40.13, bracex==2.6, build==1.3.0, bump_my_version==1.2.1, cached_property==2.0.1, cachetools==5.5.2, certifi==2025.8.3, cffi==1.17.1, cfgv==3.4.0, charset_normalizer==3.4.3, click==8.2.1, croniter==6.0.0, cryptography==45.0.6, dallinger==11.5.0a1, decorator==5.2.1, distlib==0.4.0, distro==1.9.0, docker==7.1.0, docutils==0.21.2, dominate==2.9.1, executing==2.2.0, faker==37.5.3, filelock==3.19.1, flask==3.1.2, flask_crossdomain==0.1, flask_sock==0.7.0, flask_wtf==1.2.2, furo==2025.7.19, future==1.0.0, gevent==25.5.1, google_api_core==2.25.1, google_auth==2.40.3, google_cloud_core==2.4.3, google_cloud_translate==3.21.1, googleapis_common_protos==1.70.0, greenlet==3.2.4, grpc_google_iam_v1==0.14.2, grpcio==1.74.0, grpcio_status==1.74.0, gunicorn==23.0.0, h11==0.16.0, heroku3==5.2.1, html2text==2025.4.15, httpcore==1.0.9, httpx==0.28.1, identify==2.6.13, idna==3.10, imagesize==1.4.1, iniconfig==2.1.0, invoke==2.2.0, ipython==8.37.0, isort==6.0.1, itsdangerous==2.2.0, jedi==0.19.2, jinja2==3.1.6, jiter==0.10.0, jmespath==1.0.1, joblib==1.5.1, jsonpickle==4.1.1, localconfig==1.1.4, markdown_it_py==4.0.0, matplotlib_inline==0.1.7, mdurl==0.1.2, nodeenv==1.9.1, numpy==2.2.6, openai==1.100.2, outcome==1.3.0.post0, packaging==25.0, pandas==2.3.1, paramiko==4.0.0, parso==0.8.4, pexpect==4.9.0, pillow==11.3.0, pip==25.2, pip_tools==7.5.0, platformdirs==4.3.8, pluggy==1.6.0, polib==1.2.0, pre_commit==4.3.0, progress==1.6.1, prompt_toolkit==3.0.51, proto_plus==1.26.1, protobuf==6.32.0, psutil==7.0.0, psycopg2==2.9.10, psynet==12.2.0a0, ptyprocess==0.7.0, pure_eval==0.2.3, pyasn1==0.6.1, pyasn1_modules==0.4.2, pycparser==2.22, pydantic==2.11.7, pydantic_core==2.33.2, pydantic_settings==2.10.1, pygments==2.19.2, pygtail==0.14.0, pyopenssl==25.1.0, pyproject_hooks==1.2.0, pytest==8.4.1, pytest_dependency==0.6.0, pytest_mock==3.14.1, python_dateutil==2.9.0.post0, python_dotenv==1.1.1, python_gettext==5.0, python_json_logger==3.3.0, pytz==2025.2, questionary==2.1.0, redis==6.4.0, requests==2.32.5, rich==14.1.0, rich_click==1.8.9, roman_numerals_py==3.1.0, rpdb==0.2.0, rq==2.5.0, rsa==4.9.1, s3transfer==0.13.1, selenium==4.35.0, setuptools==80.9.0, simple_websocket==1.1.0, six==1.17.0, slack_sdk==3.36.0, sniffio==1.3.1, snowballstemmer==3.0.1, sortedcontainers==2.4.0, soupsieve==2.7, sphinx==8.2.3, sphinx_autodoc_typehints==3.2.0, sphinx_basic_ng==1.0.0b2, sphinxcontrib_applehelp==2.0.0, sphinxcontrib_devhelp==2.0.0, sphinxcontrib_htmlhelp==2.1.0, sphinxcontrib_jsmath==1.0.1, sphinxcontrib_qthelp==2.0.0, sphinxcontrib_serializinghtml==2.0.0, sqlalchemy==1.4.54, sqlalchemy_postgres_copy==0.5.0, sshtunnel==0.4.0, stack_data==0.6.3, tabulate==0.9.0, tenacity==9.1.2, termcolor==2.3.0, timeago==1.0.16, tomlkit==0.13.3, tqdm==4.67.1, traitlets==5.14.3, trio==0.30.0, trio_websocket==0.12.2, typing_extensions==4.14.1, typing_inspection==0.4.1, tzdata==2025.2, tzlocal==5.3.1, ua_parser==1.0.1, ua_parser_builtins==0.18.0.post1, urllib3==2.5.0, user_agents==2.2.0, virtualenv==20.34.0, wcmatch==10.1, wcwidth==0.2.13, websocket_client==1.8.0, werkzeug==3.1.3, wheel==0.45.1, wsproto==1.2.0, wtforms==3.2.1, yaspin==3.1.0, zope.interface==7.2, zope_event==5.1.1
+  activators BashActivator,CShellActivator,FishActivator,NushellActivator,PowerShellActivator,PythonActivator
+[32;1m$ . venv/bin/activate[0;m
+[32;1m$ pip install -e .[dev] pytest[0;m
+Obtaining file:///builds/PsyNetDev/PsyNet
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: pytest in ./venv/lib/python3.13/site-packages (8.4.1)
+Requirement already satisfied: arabic-reshaper in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (3.0.0)
+Requirement already satisfied: babel in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (2.17.0)
+Requirement already satisfied: dallinger<12,>=11.4.0 in ./venv/lib/python3.13/site-packages (from dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (11.5.0a1)
+Requirement already satisfied: dominate==2.9.1 in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (2.9.1)
+Requirement already satisfied: html2text in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (2025.4.15)
+Requirement already satisfied: joblib in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (1.5.1)
+Requirement already satisfied: jsonpickle in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (4.1.1)
+Requirement already satisfied: pandas in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (2.3.1)
+Requirement already satisfied: paramiko in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (4.0.0)
+Requirement already satisfied: pillow in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (11.3.0)
+Requirement already satisfied: polib in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (1.2.0)
+Requirement already satisfied: progress in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (1.6.1)
+Requirement already satisfied: pytest-dependency in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (0.6.0)
+Requirement already satisfied: pytest-mock in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (3.14.1)
+Requirement already satisfied: python-gettext in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (5.0)
+Requirement already satisfied: rpdb in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (0.2.0)
+Requirement already satisfied: slack-sdk in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (3.36.0)
+Requirement already satisfied: tenacity in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (9.1.2)
+Requirement already satisfied: tomlkit in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (0.13.3)
+Requirement already satisfied: tqdm in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (4.67.1)
+Requirement already satisfied: yaspin in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (3.1.0)
+Requirement already satisfied: beautifulsoup4 in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (4.13.4)
+Requirement already satisfied: bump-my-version in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (1.2.1)
+Requirement already satisfied: furo in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (2025.7.19)
+Requirement already satisfied: google-cloud-translate in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (3.21.1)
+Requirement already satisfied: isort in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (6.0.1)
+Requirement already satisfied: openai in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (1.100.2)
+Requirement already satisfied: pre-commit in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (4.3.0)
+Requirement already satisfied: sphinx in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (8.2.3)
+Requirement already satisfied: sphinx-autodoc-typehints in ./venv/lib/python3.13/site-packages (from psynet==12.2.0a0) (3.2.0)
+Requirement already satisfied: ansi2html in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.9.2)
+Requirement already satisfied: apscheduler in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.11.0)
+Requirement already satisfied: boto3 in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.40.13)
+Requirement already satisfied: build in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.3.0)
+Requirement already satisfied: cached-property in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.0.1)
+Requirement already satisfied: click in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (8.2.1)
+Requirement already satisfied: faker in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (37.5.3)
+Requirement already satisfied: flask in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.1.2)
+Requirement already satisfied: flask-crossdomain in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.1)
+Requirement already satisfied: flask-login in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.6.3)
+Requirement already satisfied: flask-sock in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.7.0)
+Requirement already satisfied: flask-wtf in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.2.2)
+Requirement already satisfied: future in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.0.0)
+Requirement already satisfied: gevent in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (25.5.1)
+Requirement already satisfied: greenlet in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.2.4)
+Requirement already satisfied: gunicorn[gevent] in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (23.0.0)
+Requirement already satisfied: heroku3 in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (5.2.1)
+Requirement already satisfied: ipython<9 in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (8.37.0)
+Requirement already satisfied: localconfig in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.1.4)
+Requirement already satisfied: numpy<2.3 in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.2.6)
+Requirement already satisfied: pexpect in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (4.9.0)
+Requirement already satisfied: pip in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (25.2)
+Requirement already satisfied: pip-tools in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (7.5.0)
+Requirement already satisfied: platformdirs in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (4.3.8)
+Requirement already satisfied: psutil in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (7.0.0)
+Requirement already satisfied: psycopg2 in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.9.10)
+Requirement already satisfied: pygtail in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.14.0)
+Requirement already satisfied: pyopenssl in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (25.1.0)
+Requirement already satisfied: python-json-logger in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.3.0)
+Requirement already satisfied: redis in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (6.4.0)
+Requirement already satisfied: requests in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.32.5)
+Requirement already satisfied: rq in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.5.0)
+Requirement already satisfied: selenium in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (4.35.0)
+Requirement already satisfied: six in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.17.0)
+Requirement already satisfied: sqlalchemy-postgres-copy in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.5.0)
+Requirement already satisfied: sqlalchemy<2 in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.4.54)
+Requirement already satisfied: tabulate in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.9.0)
+Requirement already satisfied: timeago in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.0.16)
+Requirement already satisfied: tzlocal in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (5.3.1)
+Requirement already satisfied: ua-parser in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.0.1)
+Requirement already satisfied: urllib3 in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.5.0)
+Requirement already satisfied: user-agents in ./venv/lib/python3.13/site-packages (from dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.2.0)
+Requirement already satisfied: docker in ./venv/lib/python3.13/site-packages (from dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (7.1.0)
+Requirement already satisfied: sshtunnel in ./venv/lib/python3.13/site-packages (from dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.4.0)
+Requirement already satisfied: decorator in ./venv/lib/python3.13/site-packages (from ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (5.2.1)
+Requirement already satisfied: jedi>=0.16 in ./venv/lib/python3.13/site-packages (from ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.19.2)
+Requirement already satisfied: matplotlib-inline in ./venv/lib/python3.13/site-packages (from ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.1.7)
+Requirement already satisfied: prompt_toolkit<3.1.0,>=3.0.41 in ./venv/lib/python3.13/site-packages (from ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.0.51)
+Requirement already satisfied: pygments>=2.4.0 in ./venv/lib/python3.13/site-packages (from ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.19.2)
+Requirement already satisfied: stack_data in ./venv/lib/python3.13/site-packages (from ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.6.3)
+Requirement already satisfied: traitlets>=5.13.0 in ./venv/lib/python3.13/site-packages (from ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (5.14.3)
+Requirement already satisfied: wcwidth in ./venv/lib/python3.13/site-packages (from prompt_toolkit<3.1.0,>=3.0.41->ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.2.13)
+Requirement already satisfied: iniconfig>=1 in ./venv/lib/python3.13/site-packages (from pytest) (2.1.0)
+Requirement already satisfied: packaging>=20 in ./venv/lib/python3.13/site-packages (from pytest) (25.0)
+Requirement already satisfied: pluggy<2,>=1.5 in ./venv/lib/python3.13/site-packages (from pytest) (1.6.0)
+Requirement already satisfied: parso<0.9.0,>=0.8.4 in ./venv/lib/python3.13/site-packages (from jedi>=0.16->ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.8.4)
+Requirement already satisfied: ptyprocess>=0.5 in ./venv/lib/python3.13/site-packages (from pexpect->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.7.0)
+Requirement already satisfied: soupsieve>1.2 in ./venv/lib/python3.13/site-packages (from beautifulsoup4->psynet==12.2.0a0) (2.7)
+Requirement already satisfied: typing-extensions>=4.0.0 in ./venv/lib/python3.13/site-packages (from beautifulsoup4->psynet==12.2.0a0) (4.14.1)
+Requirement already satisfied: botocore<1.41.0,>=1.40.13 in ./venv/lib/python3.13/site-packages (from boto3->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.40.13)
+Requirement already satisfied: jmespath<2.0.0,>=0.7.1 in ./venv/lib/python3.13/site-packages (from boto3->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.0.1)
+Requirement already satisfied: s3transfer<0.14.0,>=0.13.0 in ./venv/lib/python3.13/site-packages (from boto3->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.13.1)
+Requirement already satisfied: python-dateutil<3.0.0,>=2.1 in ./venv/lib/python3.13/site-packages (from botocore<1.41.0,>=1.40.13->boto3->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.9.0.post0)
+Requirement already satisfied: pyproject_hooks in ./venv/lib/python3.13/site-packages (from build->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.2.0)
+Requirement already satisfied: httpx>=0.28.1 in ./venv/lib/python3.13/site-packages (from bump-my-version->psynet==12.2.0a0) (0.28.1)
+Requirement already satisfied: pydantic-settings in ./venv/lib/python3.13/site-packages (from bump-my-version->psynet==12.2.0a0) (2.10.1)
+Requirement already satisfied: pydantic>=2.0.0 in ./venv/lib/python3.13/site-packages (from bump-my-version->psynet==12.2.0a0) (2.11.7)
+Requirement already satisfied: questionary in ./venv/lib/python3.13/site-packages (from bump-my-version->psynet==12.2.0a0) (2.1.0)
+Requirement already satisfied: rich in ./venv/lib/python3.13/site-packages (from bump-my-version->psynet==12.2.0a0) (14.1.0)
+Requirement already satisfied: rich-click in ./venv/lib/python3.13/site-packages (from bump-my-version->psynet==12.2.0a0) (1.8.9)
+Requirement already satisfied: wcmatch>=8.5.1 in ./venv/lib/python3.13/site-packages (from bump-my-version->psynet==12.2.0a0) (10.1)
+Requirement already satisfied: anyio in ./venv/lib/python3.13/site-packages (from httpx>=0.28.1->bump-my-version->psynet==12.2.0a0) (4.10.0)
+Requirement already satisfied: certifi in ./venv/lib/python3.13/site-packages (from httpx>=0.28.1->bump-my-version->psynet==12.2.0a0) (2025.8.3)
+Requirement already satisfied: httpcore==1.* in ./venv/lib/python3.13/site-packages (from httpx>=0.28.1->bump-my-version->psynet==12.2.0a0) (1.0.9)
+Requirement already satisfied: idna in ./venv/lib/python3.13/site-packages (from httpx>=0.28.1->bump-my-version->psynet==12.2.0a0) (3.10)
+Requirement already satisfied: h11>=0.16 in ./venv/lib/python3.13/site-packages (from httpcore==1.*->httpx>=0.28.1->bump-my-version->psynet==12.2.0a0) (0.16.0)
+Requirement already satisfied: annotated-types>=0.6.0 in ./venv/lib/python3.13/site-packages (from pydantic>=2.0.0->bump-my-version->psynet==12.2.0a0) (0.7.0)
+Requirement already satisfied: pydantic-core==2.33.2 in ./venv/lib/python3.13/site-packages (from pydantic>=2.0.0->bump-my-version->psynet==12.2.0a0) (2.33.2)
+Requirement already satisfied: typing-inspection>=0.4.0 in ./venv/lib/python3.13/site-packages (from pydantic>=2.0.0->bump-my-version->psynet==12.2.0a0) (0.4.1)
+Requirement already satisfied: bracex>=2.1.1 in ./venv/lib/python3.13/site-packages (from wcmatch>=8.5.1->bump-my-version->psynet==12.2.0a0) (2.6)
+Requirement already satisfied: sniffio>=1.1 in ./venv/lib/python3.13/site-packages (from anyio->httpx>=0.28.1->bump-my-version->psynet==12.2.0a0) (1.3.1)
+Requirement already satisfied: charset_normalizer<4,>=2 in ./venv/lib/python3.13/site-packages (from requests->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.4.3)
+Requirement already satisfied: tzdata in ./venv/lib/python3.13/site-packages (from faker->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2025.2)
+Requirement already satisfied: blinker>=1.9.0 in ./venv/lib/python3.13/site-packages (from flask->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.9.0)
+Requirement already satisfied: itsdangerous>=2.2.0 in ./venv/lib/python3.13/site-packages (from flask->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.2.0)
+Requirement already satisfied: jinja2>=3.1.2 in ./venv/lib/python3.13/site-packages (from flask->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.1.6)
+Requirement already satisfied: markupsafe>=2.1.1 in ./venv/lib/python3.13/site-packages (from flask->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.0.2)
+Requirement already satisfied: werkzeug>=3.1.0 in ./venv/lib/python3.13/site-packages (from flask->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.1.3)
+Requirement already satisfied: simple-websocket>=0.5.1 in ./venv/lib/python3.13/site-packages (from flask-sock->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.1.0)
+Requirement already satisfied: wsproto in ./venv/lib/python3.13/site-packages (from simple-websocket>=0.5.1->flask-sock->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.2.0)
+Requirement already satisfied: wtforms in ./venv/lib/python3.13/site-packages (from flask-wtf->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.2.1)
+Requirement already satisfied: sphinx-basic-ng>=1.0.0.beta2 in ./venv/lib/python3.13/site-packages (from furo->psynet==12.2.0a0) (1.0.0b2)
+Requirement already satisfied: accessible-pygments>=0.0.5 in ./venv/lib/python3.13/site-packages (from furo->psynet==12.2.0a0) (0.0.5)
+Requirement already satisfied: sphinxcontrib-applehelp>=1.0.7 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (2.0.0)
+Requirement already satisfied: sphinxcontrib-devhelp>=1.0.6 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (2.0.0)
+Requirement already satisfied: sphinxcontrib-htmlhelp>=2.0.6 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (2.1.0)
+Requirement already satisfied: sphinxcontrib-jsmath>=1.0.1 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (1.0.1)
+Requirement already satisfied: sphinxcontrib-qthelp>=1.0.6 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (2.0.0)
+Requirement already satisfied: sphinxcontrib-serializinghtml>=1.1.9 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (2.0.0)
+Requirement already satisfied: docutils<0.22,>=0.20 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (0.21.2)
+Requirement already satisfied: snowballstemmer>=2.2 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (3.0.1)
+Requirement already satisfied: alabaster>=0.7.14 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (1.0.0)
+Requirement already satisfied: imagesize>=1.3 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (1.4.1)
+Requirement already satisfied: roman-numerals-py>=1.0.0 in ./venv/lib/python3.13/site-packages (from sphinx->psynet==12.2.0a0) (3.1.0)
+Requirement already satisfied: zope.event in ./venv/lib/python3.13/site-packages (from gevent->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (5.1.1)
+Requirement already satisfied: zope.interface in ./venv/lib/python3.13/site-packages (from gevent->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (7.2)
+Requirement already satisfied: google-api-core!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0,>=1.34.1 in ./venv/lib/python3.13/site-packages (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0,>=1.34.1->google-cloud-translate->psynet==12.2.0a0) (2.25.1)
+Requirement already satisfied: google-auth!=2.24.0,!=2.25.0,<3.0.0,>=2.14.1 in ./venv/lib/python3.13/site-packages (from google-cloud-translate->psynet==12.2.0a0) (2.40.3)
+Requirement already satisfied: google-cloud-core<3.0.0,>=1.4.4 in ./venv/lib/python3.13/site-packages (from google-cloud-translate->psynet==12.2.0a0) (2.4.3)
+Requirement already satisfied: proto-plus<2.0.0,>=1.22.3 in ./venv/lib/python3.13/site-packages (from google-cloud-translate->psynet==12.2.0a0) (1.26.1)
+Requirement already satisfied: protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<7.0.0,>=3.20.2 in ./venv/lib/python3.13/site-packages (from google-cloud-translate->psynet==12.2.0a0) (6.32.0)
+Requirement already satisfied: grpc-google-iam-v1<1.0.0,>=0.14.0 in ./venv/lib/python3.13/site-packages (from google-cloud-translate->psynet==12.2.0a0) (0.14.2)
+Requirement already satisfied: googleapis-common-protos<2.0.0,>=1.56.2 in ./venv/lib/python3.13/site-packages (from google-api-core!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0,>=1.34.1->google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0,>=1.34.1->google-cloud-translate->psynet==12.2.0a0) (1.70.0)
+Requirement already satisfied: grpcio<2.0.0,>=1.33.2 in ./venv/lib/python3.13/site-packages (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0,>=1.34.1->google-cloud-translate->psynet==12.2.0a0) (1.74.0)
+Requirement already satisfied: grpcio-status<2.0.0,>=1.33.2 in ./venv/lib/python3.13/site-packages (from google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.10.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,!=2.8.*,!=2.9.*,<3.0.0,>=1.34.1->google-cloud-translate->psynet==12.2.0a0) (1.74.0)
+Requirement already satisfied: cachetools<6.0,>=2.0.0 in ./venv/lib/python3.13/site-packages (from google-auth!=2.24.0,!=2.25.0,<3.0.0,>=2.14.1->google-cloud-translate->psynet==12.2.0a0) (5.5.2)
+Requirement already satisfied: pyasn1-modules>=0.2.1 in ./venv/lib/python3.13/site-packages (from google-auth!=2.24.0,!=2.25.0,<3.0.0,>=2.14.1->google-cloud-translate->psynet==12.2.0a0) (0.4.2)
+Requirement already satisfied: rsa<5,>=3.1.4 in ./venv/lib/python3.13/site-packages (from google-auth!=2.24.0,!=2.25.0,<3.0.0,>=2.14.1->google-cloud-translate->psynet==12.2.0a0) (4.9.1)
+Requirement already satisfied: pyasn1>=0.1.3 in ./venv/lib/python3.13/site-packages (from rsa<5,>=3.1.4->google-auth!=2.24.0,!=2.25.0,<3.0.0,>=2.14.1->google-cloud-translate->psynet==12.2.0a0) (0.6.1)
+Requirement already satisfied: distro<2,>=1.7.0 in ./venv/lib/python3.13/site-packages (from openai->psynet==12.2.0a0) (1.9.0)
+Requirement already satisfied: jiter<1,>=0.4.0 in ./venv/lib/python3.13/site-packages (from openai->psynet==12.2.0a0) (0.10.0)
+Requirement already satisfied: pytz>=2020.1 in ./venv/lib/python3.13/site-packages (from pandas->psynet==12.2.0a0) (2025.2)
+Requirement already satisfied: bcrypt>=3.2 in ./venv/lib/python3.13/site-packages (from paramiko->psynet==12.2.0a0) (4.3.0)
+Requirement already satisfied: cryptography>=3.3 in ./venv/lib/python3.13/site-packages (from paramiko->psynet==12.2.0a0) (45.0.6)
+Requirement already satisfied: invoke>=2.0 in ./venv/lib/python3.13/site-packages (from paramiko->psynet==12.2.0a0) (2.2.0)
+Requirement already satisfied: pynacl>=1.5 in ./venv/lib/python3.13/site-packages (from paramiko->psynet==12.2.0a0) (1.5.0)
+Requirement already satisfied: cffi>=1.14 in ./venv/lib/python3.13/site-packages (from cryptography>=3.3->paramiko->psynet==12.2.0a0) (1.17.1)
+Requirement already satisfied: pycparser in ./venv/lib/python3.13/site-packages (from cffi>=1.14->cryptography>=3.3->paramiko->psynet==12.2.0a0) (2.22)
+Requirement already satisfied: setuptools in ./venv/lib/python3.13/site-packages (from pip-tools->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (80.9.0)
+Requirement already satisfied: wheel in ./venv/lib/python3.13/site-packages (from pip-tools->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.45.1)
+Requirement already satisfied: cfgv>=2.0.0 in ./venv/lib/python3.13/site-packages (from pre-commit->psynet==12.2.0a0) (3.4.0)
+Requirement already satisfied: identify>=1.0.0 in ./venv/lib/python3.13/site-packages (from pre-commit->psynet==12.2.0a0) (2.6.13)
+Requirement already satisfied: nodeenv>=0.11.1 in ./venv/lib/python3.13/site-packages (from pre-commit->psynet==12.2.0a0) (1.9.1)
+Requirement already satisfied: pyyaml>=5.1 in ./venv/lib/python3.13/site-packages (from pre-commit->psynet==12.2.0a0) (6.0.2)
+Requirement already satisfied: virtualenv>=20.10.0 in ./venv/lib/python3.13/site-packages (from pre-commit->psynet==12.2.0a0) (20.34.0)
+Requirement already satisfied: distlib<1,>=0.3.7 in ./venv/lib/python3.13/site-packages (from virtualenv>=20.10.0->pre-commit->psynet==12.2.0a0) (0.4.0)
+Requirement already satisfied: filelock<4,>=3.12.2 in ./venv/lib/python3.13/site-packages (from virtualenv>=20.10.0->pre-commit->psynet==12.2.0a0) (3.19.1)
+Requirement already satisfied: python-dotenv>=0.21.0 in ./venv/lib/python3.13/site-packages (from pydantic-settings->bump-my-version->psynet==12.2.0a0) (1.1.1)
+Requirement already satisfied: markdown-it-py>=2.2.0 in ./venv/lib/python3.13/site-packages (from rich->bump-my-version->psynet==12.2.0a0) (4.0.0)
+Requirement already satisfied: mdurl~=0.1 in ./venv/lib/python3.13/site-packages (from markdown-it-py>=2.2.0->rich->bump-my-version->psynet==12.2.0a0) (0.1.2)
+Requirement already satisfied: croniter in ./venv/lib/python3.13/site-packages (from rq->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (6.0.0)
+Requirement already satisfied: trio~=0.30.0 in ./venv/lib/python3.13/site-packages (from selenium->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.30.0)
+Requirement already satisfied: trio-websocket~=0.12.2 in ./venv/lib/python3.13/site-packages (from selenium->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.12.2)
+Requirement already satisfied: websocket-client~=1.8.0 in ./venv/lib/python3.13/site-packages (from selenium->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.8.0)
+Requirement already satisfied: attrs>=23.2.0 in ./venv/lib/python3.13/site-packages (from trio~=0.30.0->selenium->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (25.3.0)
+Requirement already satisfied: sortedcontainers in ./venv/lib/python3.13/site-packages (from trio~=0.30.0->selenium->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.4.0)
+Requirement already satisfied: outcome in ./venv/lib/python3.13/site-packages (from trio~=0.30.0->selenium->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.3.0.post0)
+Requirement already satisfied: pysocks!=1.5.7,<2.0,>=1.5.6 in ./venv/lib/python3.13/site-packages (from urllib3[socks]<3.0,>=2.5.0->selenium->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (1.7.1)
+Requirement already satisfied: executing>=1.2.0 in ./venv/lib/python3.13/site-packages (from stack_data->ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (2.2.0)
+Requirement already satisfied: asttokens>=2.1.0 in ./venv/lib/python3.13/site-packages (from stack_data->ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (3.0.0)
+Requirement already satisfied: pure-eval in ./venv/lib/python3.13/site-packages (from stack_data->ipython<9->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.2.3)
+Requirement already satisfied: ua-parser-builtins in ./venv/lib/python3.13/site-packages (from ua-parser->dallinger<12,>=11.4.0->dallinger[docker]<12,>=11.4.0->psynet==12.2.0a0) (0.18.0.post1)
+Requirement already satisfied: termcolor<2.4.0,>=2.2.0 in ./venv/lib/python3.13/site-packages (from yaspin->psynet==12.2.0a0) (2.3.0)
+Building wheels for collected packages: psynet
+  Building editable for psynet (pyproject.toml): started
+  Building editable for psynet (pyproject.toml): finished with status 'done'
+  Created wheel for psynet: filename=psynet-12.2.0a0-py3-none-any.whl size=4322 sha256=695d48ba349204bffcc4458771406bc4094251a64b05dc1b1020fcabb92b19e0
+  Stored in directory: /tmp/pip-ephem-wheel-cache-uhaaxfgc/wheels/00/de/38/7c64a16680a05144b993fe56824a133e65a9d09eac25ef7164
+Successfully built psynet
+Installing collected packages: psynet
+  Attempting uninstall: psynet
+    Found existing installation: psynet 12.2.0a0
+    Uninstalling psynet-12.2.0a0:
+      Successfully uninstalled psynet-12.2.0a0
+Successfully installed psynet-12.2.0a0
+[32;1m$ until docker exec -i dallinger_postgres pg_isready; do # collapsed multi-line command[0;m
+/var/run/postgresql:5432 - accepting connections
+[32;1m$ cd "demos/experiments/$TEST_NAME"[0;m
+[32;1m$ DATABASE_URL="postgresql://dallinger:dallinger@docker:5432/dallinger" psynet test local > /dev/null[0;m
+section_end:1756390350:step_script[0Ksection_start:1756390350:after_script[0K[0K[36;1mRunning after_script[0;m[0;m
+[32;1mRunning after script...[0;m
+[32;1m$ mkdir public[0;m
+[32;1m$ docker logs dallinger_postgres 2> public/postgresql.log > /dev/null[0;m
+[32;1m$ curl -L https://github.com/darold/pgbadger/archive/refs/tags/v13.1.tar.gz | tar xzf - -C /usr/local[0;m
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 4265k    0 4265k    0     0  8326k      0 --:--:-- --:--:-- --:--:-- 8326k
+[32;1m$ (cd /usr/local/pgbadger-*; perl Makefile.PL; make; make install; cpan JSON::XS)[0;m
+Checking if your kit is complete...
+Looks good
+Generating a Unix-style Makefile
+Writing Makefile for pgBadger
+Writing MYMETA.yml and MYMETA.json
+Makefile:900: You must install pod2markdown to generate README.md from doc/pgBadger.pod
+cp pgbadger blib/script/pgbadger
+"/usr/bin/perl" -MExtUtils::MY -e 'MY->fixin(shift)' -- blib/script/pgbadger
+echo "=head1 SYNOPSIS" > doc/synopsis.pod
+./pgbadger --help >> doc/synopsis.pod
+echo "=head1 DESCRIPTION" >> doc/synopsis.pod
+sed -i.bak 's/ +$//g' doc/synopsis.pod
+rm doc/synopsis.pod.bak
+sed -i.bak '/^=head1 SYNOPSIS/,/^=head1 DESCRIPTION/d' doc/pgBadger.pod
+sed -i.bak '4r doc/synopsis.pod' doc/pgBadger.pod
+rm doc/pgBadger.pod.bak
+Manifying 1 pod document
+rm doc/synopsis.pod
+Makefile:900: You must install pod2markdown to generate README.md from doc/pgBadger.pod
+echo "=head1 SYNOPSIS" > doc/synopsis.pod
+./pgbadger --help >> doc/synopsis.pod
+echo "=head1 DESCRIPTION" >> doc/synopsis.pod
+sed -i.bak 's/ +$//g' doc/synopsis.pod
+rm doc/synopsis.pod.bak
+sed -i.bak '/^=head1 SYNOPSIS/,/^=head1 DESCRIPTION/d' doc/pgBadger.pod
+sed -i.bak '4r doc/synopsis.pod' doc/pgBadger.pod
+rm doc/pgBadger.pod.bak
+Manifying 1 pod document
+Installing /usr/local/man/man1/pgbadger.1p
+Installing /usr/local/bin/pgbadger
+Appending installation info to /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/perllocal.pod
+rm doc/synopsis.pod
+Loading internal logger. Log::Log4perl recommended for better logging
+
+CPAN.pm requires configuration, but most of it can be done automatically.
+If you answer 'no' below, you will enter an interactive dialog for each
+configuration option instead.
+
+Would you like to configure as much as possible automatically? [yes] yes
+
+Trying with
+    /usr/bin/wget -O "/root/.cpan/sources/authors/01mailrc.txt.gz.tmp27"
+to get
+    https://cpan.org/authors/01mailrc.txt.gz
+--2025-08-28 14:12:32--  https://cpan.org/authors/01mailrc.txt.gz
+Resolving cpan.org (cpan.org)... 151.101.129.55, 151.101.193.55, 151.101.1.55, ...
+Connecting to cpan.org (cpan.org)|151.101.129.55|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: https://www.cpan.org/authors/01mailrc.txt.gz [following]
+--2025-08-28 14:12:32--  https://www.cpan.org/authors/01mailrc.txt.gz
+Resolving www.cpan.org (www.cpan.org)... 151.101.1.55, 151.101.65.55, 151.101.129.55, ...
+Connecting to www.cpan.org (www.cpan.org)|151.101.1.55|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 250052 (244K) [application/x-gzip]
+Saving to: '/root/.cpan/sources/authors/01mailrc.txt.gz.tmp27'
+
+     0K .......... .......... .......... .......... .......... 20% 2.00M 0s
+    50K .......... .......... .......... .......... .......... 40% 12.9M 0s
+   100K .......... .......... .......... .......... .......... 61% 5.55M 0s
+   150K .......... .......... .......... .......... .......... 81% 17.6M 0s
+   200K .......... .......... .......... .......... ....      100% 24.7M=0.04s
+
+2025-08-28 14:12:32 (5.75 MB/s) - '/root/.cpan/sources/authors/01mailrc.txt.gz.tmp27' saved [250052/250052]
+
+Reading '/root/.cpan/sources/authors/01mailrc.txt.gz'
+............................................................................DONE
+
+Trying with
+    /usr/bin/wget -O "/root/.cpan/sources/modules/02packages.details.txt.gz.tmp27"
+to get
+    https://cpan.org/modules/02packages.details.txt.gz
+--2025-08-28 14:12:32--  https://cpan.org/modules/02packages.details.txt.gz
+Resolving cpan.org (cpan.org)... 151.101.129.55, 151.101.193.55, 151.101.1.55, ...
+Connecting to cpan.org (cpan.org)|151.101.129.55|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: https://www.cpan.org/modules/02packages.details.txt.gz [following]
+--2025-08-28 14:12:32--  https://www.cpan.org/modules/02packages.details.txt.gz
+Resolving www.cpan.org (www.cpan.org)... 151.101.1.55, 151.101.65.55, 151.101.129.55, ...
+Connecting to www.cpan.org (www.cpan.org)|151.101.1.55|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 2574518 (2.5M) [application/x-gzip]
+Saving to: '/root/.cpan/sources/modules/02packages.details.txt.gz.tmp27'
+
+     0K .......... .......... .......... .......... ..........  1% 2.07M 1s
+    50K .......... .......... .......... .......... ..........  3% 13.5M 1s
+   100K .......... .......... .......... .......... ..........  5% 5.53M 1s
+   150K .......... .......... .......... .......... ..........  7% 19.2M 0s
+   200K .......... .......... .......... .......... ..........  9% 26.9M 0s
+   250K .......... .......... .......... .......... .......... 11% 7.16M 0s
+   300K .......... .......... .......... .......... .......... 13% 41.5M 0s
+   350K .......... .......... .......... .......... .......... 15% 34.5M 0s
+   400K .......... .......... .......... .......... .......... 17% 35.1M 0s
+   450K .......... .......... .......... .......... .......... 19% 31.1M 0s
+   500K .......... .......... .......... .......... .......... 21% 41.5M 0s
+   550K .......... .......... .......... .......... .......... 23%  139M 0s
+   600K .......... .......... .......... .......... .......... 25% 9.49M 0s
+   650K .......... .......... .......... .......... .......... 27% 48.5M 0s
+   700K .......... .......... .......... .......... .......... 29% 43.7M 0s
+   750K .......... .......... .......... .......... .......... 31%  130M 0s
+   800K .......... .......... .......... .......... .......... 33%  100M 0s
+   850K .......... .......... .......... .......... .......... 35% 84.9M 0s
+   900K .......... .......... .......... .......... .......... 37% 50.3M 0s
+   950K .......... .......... .......... .......... .......... 39%  151M 0s
+  1000K .......... .......... .......... .......... .......... 41% 96.4M 0s
+  1050K .......... .......... .......... .......... .......... 43% 36.7M 0s
+  1100K .......... .......... .......... .......... .......... 45%  195M 0s
+  1150K .......... .......... .......... .......... .......... 47%  148M 0s
+  1200K .......... .......... .......... .......... .......... 49% 11.5M 0s
+  1250K .......... .......... .......... .......... .......... 51%  112M 0s
+  1300K .......... .......... .......... .......... .......... 53%  202M 0s
+  1350K .......... .......... .......... .......... .......... 55% 96.5M 0s
+  1400K .......... .......... .......... .......... .......... 57% 97.0M 0s
+  1450K .......... .......... .......... .......... .......... 59% 65.4M 0s
+  1500K .......... .......... .......... .......... .......... 61%  181M 0s
+  1550K .......... .......... .......... .......... .......... 63%  140M 0s
+  1600K .......... .......... .......... .......... .......... 65%  151M 0s
+  1650K .......... .......... .......... .......... .......... 67%  103M 0s
+  1700K .......... .......... .......... .......... .......... 69%  150M 0s
+  1750K .......... .......... .......... .......... .......... 71%  129M 0s
+  1800K .......... .......... .......... .......... .......... 73%  136M 0s
+  1850K .......... .......... .......... .......... .......... 75%  121M 0s
+  1900K .......... .......... .......... .......... .......... 77%  100M 0s
+  1950K .......... .......... .......... .......... .......... 79%  125M 0s
+  2000K .......... .......... .......... .......... .......... 81%  134M 0s
+  2050K .......... .......... .......... .......... .......... 83%  168M 0s
+  2100K .......... .......... .......... .......... .......... 85%  135M 0s
+  2150K .......... .......... .......... .......... .......... 87%  130M 0s
+  2200K .......... .......... .......... .......... .......... 89%  139M 0s
+  2250K .......... .......... .......... .......... .......... 91% 86.5M 0s
+  2300K .......... .......... .......... .......... .......... 93%  171M 0s
+  2350K .......... .......... .......... .......... .......... 95%  170M 0s
+  2400K .......... .......... .......... .......... .......... 97%  167M 0s
+  2450K .......... .......... .......... .......... .......... 99%  166M 0s
+  2500K .......... ....                                       100%  118M=0.08s
+
+2025-08-28 14:12:33 (30.4 MB/s) - '/root/.cpan/sources/modules/02packages.details.txt.gz.tmp27' saved [2574518/2574518]
+
+Reading '/root/.cpan/sources/modules/02packages.details.txt.gz'
+  Database was generated on Thu, 28 Aug 2025 13:41:02 GMT
+  HTTP::Date not available
+..............
+  New CPAN.pm version (v2.38) available.
+  [Currently running version is v2.36]
+  You might want to try
+    install CPAN
+    reload cpan
+  to both upgrade CPAN.pm and run the new version without leaving
+  the current session.
+
+
+..............................................................DONE
+
+Trying with
+    /usr/bin/wget -O "/root/.cpan/sources/modules/03modlist.data.gz.tmp27"
+to get
+    https://cpan.org/modules/03modlist.data.gz
+--2025-08-28 14:12:37--  https://cpan.org/modules/03modlist.data.gz
+Resolving cpan.org (cpan.org)... 151.101.129.55, 151.101.193.55, 151.101.1.55, ...
+Connecting to cpan.org (cpan.org)|151.101.129.55|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: https://www.cpan.org/modules/03modlist.data.gz [following]
+--2025-08-28 14:12:37--  https://www.cpan.org/modules/03modlist.data.gz
+Resolving www.cpan.org (www.cpan.org)... 151.101.1.55, 151.101.65.55, 151.101.129.55, ...
+Connecting to www.cpan.org (www.cpan.org)|151.101.1.55|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 248 [application/x-gzip]
+Saving to: '/root/.cpan/sources/modules/03modlist.data.gz.tmp27'
+
+     0K                                                       100% 4.01M=0s
+
+2025-08-28 14:12:37 (4.01 MB/s) - '/root/.cpan/sources/modules/03modlist.data.gz.tmp27' saved [248/248]
+
+Reading '/root/.cpan/sources/modules/03modlist.data.gz'
+DONE
+Writing /root/.cpan/Metadata
+Running install for module 'JSON::XS'
+
+Trying with
+    /usr/bin/wget -O "/root/.cpan/sources/authors/id/M/ML/MLEHMANN/JSON-XS-4.03.tar.gz.tmp27"
+to get
+    https://cpan.org/authors/id/M/ML/MLEHMANN/JSON-XS-4.03.tar.gz
+--2025-08-28 14:12:38--  https://cpan.org/authors/id/M/ML/MLEHMANN/JSON-XS-4.03.tar.gz
+Resolving cpan.org (cpan.org)... 151.101.129.55, 151.101.193.55, 151.101.1.55, ...
+Connecting to cpan.org (cpan.org)|151.101.129.55|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: https://www.cpan.org/authors/id/M/ML/MLEHMANN/JSON-XS-4.03.tar.gz [following]
+--2025-08-28 14:12:38--  https://www.cpan.org/authors/id/M/ML/MLEHMANN/JSON-XS-4.03.tar.gz
+Resolving www.cpan.org (www.cpan.org)... 151.101.1.55, 151.101.65.55, 151.101.129.55, ...
+Connecting to www.cpan.org (www.cpan.org)|151.101.1.55|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 86749 (85K) [application/x-gzip]
+Saving to: '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/JSON-XS-4.03.tar.gz.tmp27'
+
+     0K .......... .......... .......... .......... .......... 59% 2.04M 0s
+    50K .......... .......... .......... ....                 100% 23.7M=0.03s
+
+2025-08-28 14:12:38 (3.25 MB/s) - '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/JSON-XS-4.03.tar.gz.tmp27' saved [86749/86749]
+
+
+Trying with
+    /usr/bin/wget -O "/root/.cpan/sources/authors/id/M/ML/MLEHMANN/CHECKSUMS.tmp27"
+to get
+    https://cpan.org/authors/id/M/ML/MLEHMANN/CHECKSUMS
+--2025-08-28 14:12:38--  https://cpan.org/authors/id/M/ML/MLEHMANN/CHECKSUMS
+Resolving cpan.org (cpan.org)... 151.101.129.55, 151.101.193.55, 151.101.1.55, ...
+Connecting to cpan.org (cpan.org)|151.101.129.55|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: https://www.cpan.org/authors/id/M/ML/MLEHMANN/CHECKSUMS [following]
+--2025-08-28 14:12:38--  https://www.cpan.org/authors/id/M/ML/MLEHMANN/CHECKSUMS
+Resolving www.cpan.org (www.cpan.org)... 151.101.1.55, 151.101.65.55, 151.101.129.55, ...
+Connecting to www.cpan.org (www.cpan.org)|151.101.1.55|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 85026 (83K)
+Saving to: '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/CHECKSUMS.tmp27'
+
+     0K .......... .......... .......... .......... .......... 60% 3.32M 0s
+    50K .......... .......... .......... ...                  100% 3.11M=0.03s
+
+2025-08-28 14:12:38 (3.23 MB/s) - '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/CHECKSUMS.tmp27' saved [85026/85026]
+
+Checksum for /root/.cpan/sources/authors/id/M/ML/MLEHMANN/JSON-XS-4.03.tar.gz ok
+'YAML' not installed, will not store persistent state
+---- Unsatisfied dependencies detected during ----
+----       MLEHMANN/JSON-XS-4.03.tar.gz       ----
+    Canary::Stability [build_requires]
+Running install for module 'Canary::Stability'
+
+Trying with
+    /usr/bin/wget -O "/root/.cpan/sources/authors/id/M/ML/MLEHMANN/Canary-Stability-2013.tar.gz.tmp27"
+to get
+    https://cpan.org/authors/id/M/ML/MLEHMANN/Canary-Stability-2013.tar.gz
+--2025-08-28 14:12:38--  https://cpan.org/authors/id/M/ML/MLEHMANN/Canary-Stability-2013.tar.gz
+Resolving cpan.org (cpan.org)... 151.101.129.55, 151.101.193.55, 151.101.1.55, ...
+Connecting to cpan.org (cpan.org)|151.101.129.55|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: https://www.cpan.org/authors/id/M/ML/MLEHMANN/Canary-Stability-2013.tar.gz [following]
+--2025-08-28 14:12:38--  https://www.cpan.org/authors/id/M/ML/MLEHMANN/Canary-Stability-2013.tar.gz
+Resolving www.cpan.org (www.cpan.org)... 151.101.1.55, 151.101.65.55, 151.101.129.55, ...
+Connecting to www.cpan.org (www.cpan.org)|151.101.1.55|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 4861 (4.7K) [application/x-gzip]
+Saving to: '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/Canary-Stability-2013.tar.gz.tmp27'
+
+     0K ....                                                  100% 19.8M=0s
+
+2025-08-28 14:12:38 (19.8 MB/s) - '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/Canary-Stability-2013.tar.gz.tmp27' saved [4861/4861]
+
+Checksum for /root/.cpan/sources/authors/id/M/ML/MLEHMANN/Canary-Stability-2013.tar.gz ok
+Configuring M/ML/MLEHMANN/Canary-Stability-2013.tar.gz with Makefile.PL
+Checking if your kit is complete...
+Looks good
+Generating a Unix-style Makefile
+Writing Makefile for Canary::Stability
+Writing MYMETA.yml and MYMETA.json
+  MLEHMANN/Canary-Stability-2013.tar.gz
+  /usr/bin/perl Makefile.PL INSTALLDIRS=site -- OK
+Running make for M/ML/MLEHMANN/Canary-Stability-2013.tar.gz
+cp Stability.pm blib/lib/Canary/Stability.pm
+Manifying 1 pod document
+  MLEHMANN/Canary-Stability-2013.tar.gz
+  /usr/bin/make -- OK
+The current configuration of allow_installing_outdated_dists is 'ask/no', but for this option we would need 'CPAN::DistnameInfo' installed. Please install 'CPAN::DistnameInfo' as soon as possible. As long as we are not equipped with 'CPAN::DistnameInfo' this option does not take effect
+Running make test for MLEHMANN/Canary-Stability-2013.tar.gz
+PERL_DL_NONLAZY=1 "/usr/bin/perl" "-MExtUtils::Command::MM" "-MTest::Harness" "-e" "undef *Test::Harness::Switches; test_harness(0, 'blib/lib', 'blib/arch')" t/*.t
+t/00_load.t .. ok
+All tests successful.
+Files=1, Tests=1,  0 wallclock secs ( 0.01 usr +  0.01 sys =  0.02 CPU)
+Result: PASS
+  MLEHMANN/Canary-Stability-2013.tar.gz
+  /usr/bin/make test -- OK
+Running make install for MLEHMANN/Canary-Stability-2013.tar.gz
+Manifying 1 pod document
+Installing /usr/local/share/perl/5.40.1/Canary/Stability.pm
+Installing /usr/local/man/man3/Canary::Stability.3pm
+Appending installation info to /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/perllocal.pod
+  MLEHMANN/Canary-Stability-2013.tar.gz
+  /usr/bin/make install  -- OK
+  MLEHMANN/JSON-XS-4.03.tar.gz
+  Has already been unwrapped into directory /root/.cpan/build/JSON-XS-4.03-0
+Configuring M/ML/MLEHMANN/JSON-XS-4.03.tar.gz with Makefile.PL
+
+***
+*** Canary::Stability COMPATIBILITY AND SUPPORT CHECK
+*** =================================================
+***
+*** Hi!
+***
+*** I do my best to provide predictable and reliable software.
+***
+*** However, in recent releases, P5P (who maintain perl) have been
+*** introducing regressions that are sometimes subtle and at other times
+*** catastrophic, often for personal preferences with little or no concern
+*** for existing code, most notably CPAN.
+***
+*** For this reason, it has become very hard for me to maintain the level
+*** of reliability and support I have committed myself to in the past, at
+*** least with some perl versions: I simply can't keep up working around new
+*** bugs or gratituous incompatibilities, and in turn you might suffer from
+*** unanticipated problems.
+***
+*** Therefore I have introduced a support and compatibility check, the results
+*** of which follow below, together with a FAQ and some recommendations.
+***
+*** This check is just to let you know that there might be a risk, so you can
+*** make judgement calls on how to proceed - it will not keep the module from
+*** installing or working.
+***
+*** The stability canary says: (nothing, it was driven away by harsh weather)
+***
+*** It seems you are running perl version 5.040001, likely the "official" or
+*** "standard" version. While there is nothing wrong with doing that,
+*** standard perl versions 5.022 and up are not supported by JSON::XS.
+*** While this might be fatal, it might also be all right - if you run into
+*** problems, you might want to downgrade your perl or switch to the
+*** stability branch.
+***
+*** If everything works fine, you can ignore this message.
+***
+***
+*** Stability canary mini-FAQ:
+***
+*** Do I need to do anything?
+***    With luck, no. While some distributions are known to fail
+***    already, most should probably work. This message is here
+***    to alert you that your perl is not supported by JSON::XS,
+***    and if things go wrong, you either need to downgrade, or
+***    sidegrade to the stability variant of your perl version,
+***    or simply live with the consequences.
+***
+*** What is this canary thing?
+***    It's purpose is to check support status of JSON::XS with
+***    respect to your perl version.
+***
+*** What is this "stability branch"?
+***    It's a branch or fork of the official perl, by schmorp, to
+***    improve stability and compatibility with existing modules.
+***
+*** How can I skip this prompt on automated installs?
+***    Set PERL_CANARY_STABILITY_NOPROMPT=1 in your environment.
+***    More info is in the Canary::Stability manpage.
+***
+*** Long version of this FAQ: http://stableperl.schmorp.de/faq.html
+*** Stability Branch homepage: http://stableperl.schmorp.de/
+***
+
+Continue anyways?  [y] y
+Warning: prerequisite Types::Serialiser 0 not found.
+Warning: prerequisite common::sense 0 not found.
+Checking if your kit is complete...
+Looks good
+Generating a Unix-style Makefile
+Writing Makefile for JSON::XS
+Writing MYMETA.yml and MYMETA.json
+  MLEHMANN/JSON-XS-4.03.tar.gz
+  /usr/bin/perl Makefile.PL INSTALLDIRS=site -- OK
+Running make for M/ML/MLEHMANN/JSON-XS-4.03.tar.gz
+---- Unsatisfied dependencies detected during ----
+----       MLEHMANN/JSON-XS-4.03.tar.gz       ----
+    Types::Serialiser [requires]
+    common::sense [requires]
+Running install for module 'Types::Serialiser'
+
+Trying with
+    /usr/bin/wget -O "/root/.cpan/sources/authors/id/M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz.tmp27"
+to get
+    https://cpan.org/authors/id/M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz
+--2025-08-28 14:12:41--  https://cpan.org/authors/id/M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz
+Resolving cpan.org (cpan.org)... 151.101.129.55, 151.101.193.55, 151.101.1.55, ...
+Connecting to cpan.org (cpan.org)|151.101.129.55|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: https://www.cpan.org/authors/id/M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz [following]
+--2025-08-28 14:12:41--  https://www.cpan.org/authors/id/M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz
+Resolving www.cpan.org (www.cpan.org)... 151.101.1.55, 151.101.65.55, 151.101.129.55, ...
+Connecting to www.cpan.org (www.cpan.org)|151.101.1.55|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 6549 (6.4K) [application/x-gzip]
+Saving to: '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz.tmp27'
+
+     0K ......                                                100% 40.1M=0s
+
+2025-08-28 14:12:41 (40.1 MB/s) - '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz.tmp27' saved [6549/6549]
+
+Checksum for /root/.cpan/sources/authors/id/M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz ok
+Configuring M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz with Makefile.PL
+Warning: prerequisite common::sense 0 not found.
+Checking if your kit is complete...
+Looks good
+Generating a Unix-style Makefile
+Writing Makefile for Types::Serialiser
+Writing MYMETA.yml and MYMETA.json
+  MLEHMANN/Types-Serialiser-1.01.tar.gz
+  /usr/bin/perl Makefile.PL INSTALLDIRS=site -- OK
+Running make for M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz
+---- Unsatisfied dependencies detected during ----
+----   MLEHMANN/Types-Serialiser-1.01.tar.gz  ----
+    common::sense [requires]
+Running install for module 'common::sense'
+
+Trying with
+    /usr/bin/wget -O "/root/.cpan/sources/authors/id/M/ML/MLEHMANN/common-sense-3.75.tar.gz.tmp27"
+to get
+    https://cpan.org/authors/id/M/ML/MLEHMANN/common-sense-3.75.tar.gz
+--2025-08-28 14:12:41--  https://cpan.org/authors/id/M/ML/MLEHMANN/common-sense-3.75.tar.gz
+Resolving cpan.org (cpan.org)... 151.101.129.55, 151.101.193.55, 151.101.1.55, ...
+Connecting to cpan.org (cpan.org)|151.101.129.55|:443... connected.
+HTTP request sent, awaiting response... 301 Moved Permanently
+Location: https://www.cpan.org/authors/id/M/ML/MLEHMANN/common-sense-3.75.tar.gz [following]
+--2025-08-28 14:12:41--  https://www.cpan.org/authors/id/M/ML/MLEHMANN/common-sense-3.75.tar.gz
+Resolving www.cpan.org (www.cpan.org)... 151.101.1.55, 151.101.65.55, 151.101.129.55, ...
+Connecting to www.cpan.org (www.cpan.org)|151.101.1.55|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 13516 (13K) [application/x-gzip]
+Saving to: '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/common-sense-3.75.tar.gz.tmp27'
+
+     0K .......... ...                                        100% 18.6M=0.001s
+
+2025-08-28 14:12:41 (18.6 MB/s) - '/root/.cpan/sources/authors/id/M/ML/MLEHMANN/common-sense-3.75.tar.gz.tmp27' saved [13516/13516]
+
+Checksum for /root/.cpan/sources/authors/id/M/ML/MLEHMANN/common-sense-3.75.tar.gz ok
+Configuring M/ML/MLEHMANN/common-sense-3.75.tar.gz with Makefile.PL
+Checking if your kit is complete...
+Looks good
+Generating a Unix-style Makefile
+Writing Makefile for common::sense
+Writing MYMETA.yml and MYMETA.json
+  MLEHMANN/common-sense-3.75.tar.gz
+  /usr/bin/perl Makefile.PL INSTALLDIRS=site -- OK
+Running make for M/ML/MLEHMANN/common-sense-3.75.tar.gz
+"/usr/bin/perl" sense.pm.PL sense.pm 
+cp sense.pod blib/lib/common/sense.pod
+cp sense.pm blib/arch/common/sense.pm
+Manifying 2 pod documents
+  MLEHMANN/common-sense-3.75.tar.gz
+  /usr/bin/make -- OK
+The current configuration of allow_installing_outdated_dists is 'ask/no', but for this option we would need 'CPAN::DistnameInfo' installed. Please install 'CPAN::DistnameInfo' as soon as possible. As long as we are not equipped with 'CPAN::DistnameInfo' this option does not take effect
+Running make test for MLEHMANN/common-sense-3.75.tar.gz
+PERL_DL_NONLAZY=1 "/usr/bin/perl" "-MExtUtils::Command::MM" "-MTest::Harness" "-e" "undef *Test::Harness::Switches; test_harness(0, 'blib/lib', 'blib/arch')" t/*.t
+t/00_load.t .. ok
+t/01_arch.t .. ok
+All tests successful.
+Files=2, Tests=2,  0 wallclock secs ( 0.02 usr +  0.01 sys =  0.03 CPU)
+Result: PASS
+  MLEHMANN/common-sense-3.75.tar.gz
+  /usr/bin/make test -- OK
+Running make install for MLEHMANN/common-sense-3.75.tar.gz
+Manifying 2 pod documents
+Files found in blib/arch: installing files in blib/lib into architecture dependent library tree
+Installing /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/common/sense.pm
+Installing /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/common/sense.pod
+Installing /usr/local/man/man3/common::sense.3pm
+Appending installation info to /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/perllocal.pod
+  MLEHMANN/common-sense-3.75.tar.gz
+  /usr/bin/make install  -- OK
+  MLEHMANN/Types-Serialiser-1.01.tar.gz
+  Has already been unwrapped into directory /root/.cpan/build/Types-Serialiser-1.01-0
+  MLEHMANN/Types-Serialiser-1.01.tar.gz
+  Has already been prepared
+Running make for M/ML/MLEHMANN/Types-Serialiser-1.01.tar.gz
+cp Serialiser/Error.pm blib/lib/Types/Serialiser/Error.pm
+cp Serialiser.pm blib/lib/Types/Serialiser.pm
+Manifying 2 pod documents
+  MLEHMANN/Types-Serialiser-1.01.tar.gz
+  /usr/bin/make -- OK
+The current configuration of allow_installing_outdated_dists is 'ask/no', but for this option we would need 'CPAN::DistnameInfo' installed. Please install 'CPAN::DistnameInfo' as soon as possible. As long as we are not equipped with 'CPAN::DistnameInfo' this option does not take effect
+Running make test for MLEHMANN/Types-Serialiser-1.01.tar.gz
+PERL_DL_NONLAZY=1 "/usr/bin/perl" "-MExtUtils::Command::MM" "-MTest::Harness" "-e" "undef *Test::Harness::Switches; test_harness(0, 'blib/lib', 'blib/arch')" t/*.t
+t/00_load.t ... ok
+t/51_types.t .. ok
+All tests successful.
+Files=2, Tests=25,  0 wallclock secs ( 0.01 usr  0.01 sys +  0.01 cusr  0.00 csys =  0.03 CPU)
+Result: PASS
+  MLEHMANN/Types-Serialiser-1.01.tar.gz
+  /usr/bin/make test -- OK
+Running make install for MLEHMANN/Types-Serialiser-1.01.tar.gz
+Manifying 2 pod documents
+Installing /usr/local/share/perl/5.40.1/Types/Serialiser.pm
+Installing /usr/local/share/perl/5.40.1/Types/Serialiser/Error.pm
+Installing /usr/local/man/man3/Types::Serialiser::Error.3pm
+Installing /usr/local/man/man3/Types::Serialiser.3pm
+Appending installation info to /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/perllocal.pod
+  MLEHMANN/Types-Serialiser-1.01.tar.gz
+  /usr/bin/make install  -- OK
+  MLEHMANN/JSON-XS-4.03.tar.gz
+  Has already been unwrapped into directory /root/.cpan/build/JSON-XS-4.03-0
+  MLEHMANN/JSON-XS-4.03.tar.gz
+  Has already been prepared
+Running make for M/ML/MLEHMANN/JSON-XS-4.03.tar.gz
+cp XS/Boolean.pm blib/lib/JSON/XS/Boolean.pm
+cp XS.pm blib/lib/JSON/XS.pm
+Running Mkbootstrap for XS ()
+chmod 644 "XS.bs"
+"/usr/bin/perl" -MExtUtils::Command::MM -e 'cp_nonempty' -- XS.bs blib/arch/auto/JSON/XS/XS.bs 644
+"/usr/bin/perl" "/usr/share/perl/5.40/ExtUtils/xsubpp"  -typemap '/usr/share/perl/5.40/ExtUtils/typemap' -typemap '/root/.cpan/build/JSON-XS-4.03-0/typemap'  XS.xs > XS.xsc
+mv XS.xsc XS.c
+x86_64-linux-gnu-gcc -c   -D_REENTRANT -D_GNU_SOURCE -DDEBIAN -fwrapv -fno-strict-aliasing -pipe -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -O2 -g   -DVERSION=\"4.03\" -DXS_VERSION=\"4.03\" -fPIC "-I/usr/lib/x86_64-linux-gnu/perl/5.40/CORE"   XS.c
+XS.xs: In function 'decode_utf8':
+XS.xs:207:5: warning: 'Perl_utf8n_to_uvuni' is deprecated [-Wdeprecated-declarations]
+  207 |     return utf8n_to_uvuni (s, len, clen, UTF8_CHECK_ONLY);
+      |     ^~~~~~
+In file included from /usr/lib/x86_64-linux-gnu/perl/5.40/CORE/perl.h:6186,
+                 from XS.xs:2:
+/usr/lib/x86_64-linux-gnu/perl/5.40/CORE/proto.h:6037:1: note: declared here
+ 6037 | Perl_utf8n_to_uvuni(pTHX_ const U8 *s, STRLEN curlen, STRLEN *retlen, U32 flags)
+      | ^~~~~~~~~~~~~~~~~~~
+rm -f blib/arch/auto/JSON/XS/XS.so
+x86_64-linux-gnu-gcc  -shared -L/usr/local/lib -fstack-protector-strong  XS.o  -o blib/arch/auto/JSON/XS/XS.so  \
+      \
+  
+chmod 755 blib/arch/auto/JSON/XS/XS.so
+cp bin/json_xs blib/script/json_xs
+"/usr/bin/perl" -MExtUtils::MY -e 'MY->fixin(shift)' -- blib/script/json_xs
+Manifying 1 pod document
+Manifying 2 pod documents
+  MLEHMANN/JSON-XS-4.03.tar.gz
+  /usr/bin/make -- OK
+The current configuration of allow_installing_outdated_dists is 'ask/no', but for this option we would need 'CPAN::DistnameInfo' installed. Please install 'CPAN::DistnameInfo' as soon as possible. As long as we are not equipped with 'CPAN::DistnameInfo' this option does not take effect
+Running make test for MLEHMANN/JSON-XS-4.03.tar.gz
+"/usr/bin/perl" -MExtUtils::Command::MM -e 'cp_nonempty' -- XS.bs blib/arch/auto/JSON/XS/XS.bs 644
+PERL_DL_NONLAZY=1 "/usr/bin/perl" "-MExtUtils::Command::MM" "-MTest::Harness" "-e" "undef *Test::Harness::Switches; test_harness(0, 'blib/lib', 'blib/arch')" t/*.t
+t/00_load.t ............. ok
+t/01_utf8.t ............. ok
+t/02_error.t ............ ok
+t/03_types.t ............ ok
+t/04_dwiw_encode.t ...... ok
+t/05_dwiw_decode.t ...... ok
+t/06_pc_pretty.t ........ ok
+t/07_pc_esc.t ........... ok
+t/08_pc_base.t .......... ok
+t/09_pc_extra_number.t .. ok
+t/10_pc_keysort.t ....... ok
+t/11_pc_expo.t .......... ok
+t/12_blessed.t .......... ok
+t/13_limit.t ............ ok
+t/14_latin1.t ........... ok
+t/15_prefix.t ........... ok
+t/16_tied.t ............. ok
+t/17_relaxed.t .......... ok
+t/18_json_checker.t ..... ok
+t/19_incr.t ............. ok
+t/20_faihu.t ............ ok
+t/21_evans.t ............ ok
+t/22_comment_at_eof.t ... ok
+t/52_object.t ........... ok
+t/99_binary.t ........... ok
+All tests successful.
+Files=25, Tests=25635,  2 wallclock secs ( 0.91 usr  0.04 sys +  1.52 cusr  0.19 csys =  2.66 CPU)
+Result: PASS
+  MLEHMANN/JSON-XS-4.03.tar.gz
+  /usr/bin/make test -- OK
+Running make install for MLEHMANN/JSON-XS-4.03.tar.gz
+"/usr/bin/perl" -MExtUtils::Command::MM -e 'cp_nonempty' -- XS.bs blib/arch/auto/JSON/XS/XS.bs 644
+Manifying 1 pod document
+Manifying 2 pod documents
+Files found in blib/arch: installing files in blib/lib into architecture dependent library tree
+Installing /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/auto/JSON/XS/XS.so
+Installing /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/JSON/XS.pm
+Installing /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/JSON/XS/Boolean.pm
+Installing /usr/local/man/man1/json_xs.1p
+Installing /usr/local/man/man3/JSON::XS.3pm
+Installing /usr/local/man/man3/JSON::XS::Boolean.3pm
+Installing /usr/local/bin/json_xs
+Appending installation info to /usr/local/lib/x86_64-linux-gnu/perl/5.40.1/perllocal.pod
+  MLEHMANN/JSON-XS-4.03.tar.gz
+  /usr/bin/make install  -- OK
+[32;1m$ pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.html[0;m
+[>                        ] Parsed      0 bytes of 171910 (0.00%), queries: 0, events: 0[>                        ] Parsed   1010 bytes of 171910 (0.59%), queries: 0, events: 0[==>                      ] Parsed  14558 bytes of 171910 (8.47%), queries: 65, events: 0[=======>                 ] Parsed  54101 bytes of 171910 (31.47%), queries: 81, events: 0[========================>] Parsed 171910 bytes of 171910 (100.00%), queries: 304, events: 2
+LOG: Ok, generating html report...
+[32;1m$ cp /tmp/pgbadger.html "public/${TEST_NAME//\//_}.html"[0;m
+[32;1m$ pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.txt[0;m
+[>                        ] Parsed      0 bytes of 171910 (0.00%), queries: 0, events: 0[>                        ] Parsed   1010 bytes of 171910 (0.59%), queries: 0, events: 0[==>                      ] Parsed  14558 bytes of 171910 (8.47%), queries: 65, events: 0[=======>                 ] Parsed  54101 bytes of 171910 (31.47%), queries: 81, events: 0[========================>] Parsed 171910 bytes of 171910 (100.00%), queries: 304, events: 2
+LOG: Ok, generating txt report...
+[32;1m$ cat /tmp/pgbadger.txt[0;m
+
+pgBadger :: 
+
+- Global information ---------------------------------------------------
+
+Generated on Thu Aug 28 14:12:56 2025
+Log file: public/postgresql.log
+Parsed 1,634 log entries in 2s
+Log start from 2025-08-28 14:12:08 to 2025-08-28 14:12:29
+
+
+
+- Overall statistics ---------------------------------------------------
+
+Number of unique normalized queries: 48
+Number of queries: 304
+Total query duration: 109ms
+First query: 2025-08-28 14:12:23
+Last query: 2025-08-28 14:12:25
+Query peak: 224 queries/s at 2025-08-28 14:12:24
+Number of events: 2
+Number of unique normalized events: 2
+Total number of sessions: 2
+Total duration of sessions: 12s65ms
+Average duration of sessions: 6s32ms
+Average queries per sessions: 152
+Average queries duration per sessions: 54ms
+Average idle time per session: 5s977ms
+Session peak: 0 sessions at 2025-08-28 14:12:17Total number of connections: 3
+Connection peak: 2 conn/s at 2025-08-28 14:12:23Total number of databases: 2
+
+
+- Hourly statistics ----------------------------------------------------
+
+Report not supported by text format
+
+
+- Queries by type ------------------------------------------------------
+
+Type     Count     Percentage
+SELECT: 187 61.51%
+INSERT: 0 0.00%
+UPDATE: 0 0.00%
+DELETE: 0 0.00%
+COPY FROM: 0 0.00%
+COPY TO: 0 0.00%
+CTE: 0 0.00%
+DDL: 39 12.83%
+TCL: 76 25.00%
+CURSOR: 0 0.00%
+OTHERS: 2 0.66%
+
+
+- Request per database ------------------------------------------------------
+
+Database     Request type     Count    Duration
+dallinger - 2 0ms
+	tcl 2 0ms
+unknown - 302 108ms
+	ddl 39 36ms
+	others 2 0ms
+	select 187 43ms
+	tcl 74 28ms
+
+- Request per user ------------------------------------------------------
+
+User     Request type     Count    duration
+dallinger - 2 0ms
+	tcl 2 0ms
+unknown - 302 108ms
+	ddl 39 36ms
+	others 2 0ms
+	select 187 43ms
+	tcl 74 28ms
+
+- Sessions per database ------------------------------------------------------
+
+Database     Count     Total Duration     Avg duration (s)
+dallinger - 2 12s65ms 6s32ms
+
+- Sessions per user ------------------------------------------------------
+
+User     Count     Total Duration     Avg duration (s)
+dallinger - 2 12s65ms 6s32ms
+
+- Sessions per host ------------------------------------------------------
+
+User     Count     Total Duration     Avg duration (s)
+172.18.0.1 - 2 12s65ms 6s32ms
+
+- Sessions per application ------------------------------------------------------
+
+Application  Count     Total Duration     Avg duration (s)
+unknown - 2 12s65ms 6s32ms
+
+- Connections per database ------------------------------------------------------
+
+Database     User     Count
+dallinger - 2
+	dallinger 2
+root - 1
+	root 1
+
+Database     Host     Count
+dallinger - 2
+root - 1
+	[local] 1
+
+- Connections per user ------------------------------------------------------
+
+User     Count
+dallinger - 2
+root - 1
+
+- Connections per host ------------------------------------------------------
+
+Host     Count
+172.18.0.1 - 2
+[local] - 1
+
+- Slowest queries ------------------------------------------------------
+
+Rank     Duration (s)     Query
+1) 14ms - COMMIT;
+--
+2) 6ms - COMMIT;
+--
+3) 5ms - COMMIT;
+--
+4) 2ms - CREATE UNIQUE INDEX ix_asset_export_path ON asset (export_path);
+--
+5) 2ms - CREATE UNIQUE INDEX ix_asset_export_path ON asset (export_path);
+--
+6) 2ms - CREATE UNIQUE INDEX ix_module_state_id ON module_state (id);
+--
+7) 1ms - CREATE UNIQUE INDEX ix_module_state_id ON module_state (id);
+--
+8) 1ms - DROP TABLE node CASCADE;
+--
+9) 1ms - SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+--
+10) 1ms - DROP TABLE info CASCADE;
+--
+11) 1ms - SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind in ('r', 'p');
+--
+12) 1ms - DROP TABLE asset CASCADE;
+--
+13) 1ms - DROP TABLE participant CASCADE;
+--
+14) 1ms - DROP TABLE network CASCADE;
+--
+15) 1ms - COMMIT;
+--
+16) 1ms - SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind in ('r', 'p');
+--
+17) 1ms - DROP TABLE process CASCADE;
+--
+18) 1ms - DROP TABLE notification CASCADE;
+--
+19) 1ms - DROP TABLE error CASCADE;
+--
+20) 1ms - DROP TABLE transmission CASCADE;
+--
+
+- Queries that took up the most time (N) -------------------------------
+
+Rank     Total duration      Times executed     Min/Max/Avg duration (s)     Query
+1) 27ms - 5 - 0ms/14ms/5ms - commit;
+--
+	- Example 1: 14ms - COMMIT;
+	- Example 2: 6ms - COMMIT;
+	- Example 3: 5ms - COMMIT;
+2) 22ms - 116 - 0ms/0ms/0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname=?;
+--
+	- Example 1: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='participant';
+	- Example 2: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='participant';
+	- Example 3: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='experiment';
+3) 10ms - 29 - 0ms/0ms/0ms - select r.conname, pg_catalog.pg_get_constraintdef(r.oid, true) as condef, n.nspname as conschema from pg_catalog.pg_constraint r, pg_namespace n, pg_class c where r.conrelid = ? and r.contype = ? and c.oid = confrelid and n.oid = c.relnamespace order by ?;
+--
+	- Example 1: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16525 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+	- Example 2: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16603 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+	- Example 3: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16420 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+4) 4ms - 29 - 0ms/0ms/0ms - select c.oid from pg_catalog.pg_class c left join pg_catalog.pg_namespace n on n.oid = c.relnamespace where (pg_catalog.pg_table_is_visible(c.oid)) and c.relname = ? and c.relkind in (...);
+--
+	- Example 1: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'notification' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+	- Example 2: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'lucid_status' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+	- Example 3: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'participant_link_sync_group' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+5) 4ms - 2 - 2ms/2ms/2ms - create unique index ix_asset_export_path on asset (export_path);
+--
+	- Example 1: 2ms - CREATE UNIQUE INDEX ix_asset_export_path ON asset (export_path);
+	- Example 2: 2ms - CREATE UNIQUE INDEX ix_asset_export_path ON asset (export_path);
+6) 4ms - 2 - 1ms/2ms/2ms - create unique index ix_module_state_id on module_state (id);
+--
+	- Example 1: 2ms - CREATE UNIQUE INDEX ix_module_state_id ON module_state (id);
+	- Example 2: 1ms - CREATE UNIQUE INDEX ix_module_state_id ON module_state (id);
+7) 2ms - 2 - 1ms/1ms/1ms - select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = ? and c.relkind in (...);
+--
+	- Example 1: 1ms - SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind in ('r', 'p');
+	- Example 2: 1ms - SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind in ('r', 'p');
+8) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE node CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE node CASCADE;
+9) 1ms - 1 - 1ms/1ms/1ms - SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+--
+	- Example 1: 1ms - SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+10) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE info CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE info CASCADE;
+11) 1ms - 8 - 0ms/0ms/0ms - select exists ( select * from pg_catalog.pg_type t where t.typname = ? and pg_type_is_visible(t.oid) );
+--
+	- Example 1: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+	- Example 2: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+	- Example 3: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+12) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE asset CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE asset CASCADE;
+13) 1ms - 2 - 0ms/1ms/0ms - create type participant_status as enum (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+--
+	- Example 1: 1ms - CREATE TYPE participant_status AS ENUM ('abandoned', 'approved', 'bad_data', 'did_not_attend', 'missing_notification', 'overrecruited', 'recruiter_submission_started', 'rejected', 'replaced', 'returned', 'screened_out', 'submitted', 'working');
+	- Example 2: 0ms - CREATE TYPE participant_status AS ENUM ('abandoned', 'approved', 'bad_data', 'did_not_attend', 'missing_notification', 'overrecruited', 'recruiter_submission_started', 'rejected', 'replaced', 'returned', 'screened_out', 'submitted', 'working');
+14) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE participant CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE participant CASCADE;
+15) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE network CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE network CASCADE;
+16) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE process CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE process CASCADE;
+17) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE notification CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE notification CASCADE;
+18) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE error CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE error CASCADE;
+19) 1ms - 1 - 1ms/1ms/1ms - DROP TABLE transmission CASCADE;
+--
+	- Example 1: 1ms - DROP TABLE transmission CASCADE;
+20) 0ms - 1 - 0ms/0ms/0ms - DROP TABLE question CASCADE;
+--
+	- Example 1: 0ms - DROP TABLE question CASCADE;
+
+- Most frequent queries (N) --------------------------------------------
+
+Rank     Times executed     Total duration     Min/Max/Avg duration (s)     Query
+1) 116 - 22ms - 0ms/0ms/0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname=?;
+--
+	Example 1: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='participant';
+	Example 2: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='participant';
+	Example 3: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='experiment';
+2) 38 - 0ms - 0ms/0ms/0ms - begin;
+--
+	Example 1: 0ms - BEGIN;
+	Example 2: 0ms - database: dallinger, user: dallinger - BEGIN;
+	Example 3: 0ms - database: dallinger, user: dallinger - BEGIN;
+3) 33 - 0ms - 0ms/0ms/0ms - rollback;
+--
+	Example 1: 0ms - ROLLBACK;
+	Example 2: 0ms - ROLLBACK;
+	Example 3: 0ms - ROLLBACK;
+4) 29 - 10ms - 0ms/0ms/0ms - select r.conname, pg_catalog.pg_get_constraintdef(r.oid, true) as condef, n.nspname as conschema from pg_catalog.pg_constraint r, pg_namespace n, pg_class c where r.conrelid = ? and r.contype = ? and c.oid = confrelid and n.oid = c.relnamespace order by ?;
+--
+	Example 1: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16525 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+	Example 2: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16603 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+	Example 3: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16420 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+5) 29 - 4ms - 0ms/0ms/0ms - select c.oid from pg_catalog.pg_class c left join pg_catalog.pg_namespace n on n.oid = c.relnamespace where (pg_catalog.pg_table_is_visible(c.oid)) and c.relname = ? and c.relkind in (...);
+--
+	Example 1: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'notification' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+	Example 2: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'lucid_status' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+	Example 3: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'participant_link_sync_group' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+6) 8 - 1ms - 0ms/0ms/0ms - select exists ( select * from pg_catalog.pg_type t where t.typname = ? and pg_type_is_visible(t.oid) );
+--
+	Example 1: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+	Example 2: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+	Example 3: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+7) 5 - 27ms - 0ms/14ms/5ms - commit;
+--
+	Example 1: 14ms - COMMIT;
+	Example 2: 6ms - COMMIT;
+	Example 3: 5ms - COMMIT;
+8) 2 - 0ms - 0ms/0ms/0ms - create type transmission_status as enum (?, ?);
+--
+	Example 1: 0ms - CREATE TYPE transmission_status AS ENUM ('pending', 'received');
+	Example 2: 0ms - CREATE TYPE transmission_status AS ENUM ('pending', 'received');
+9) 2 - 4ms - 1ms/2ms/2ms - create unique index ix_module_state_id on module_state (id);
+--
+	Example 1: 2ms - CREATE UNIQUE INDEX ix_module_state_id ON module_state (id);
+	Example 2: 1ms - CREATE UNIQUE INDEX ix_module_state_id ON module_state (id);
+10) 2 - 2ms - 1ms/1ms/1ms - select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = ? and c.relkind in (...);
+--
+	Example 1: 1ms - SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind in ('r', 'p');
+	Example 2: 1ms - SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind in ('r', 'p');
+11) 2 - 1ms - 0ms/1ms/0ms - create type participant_status as enum (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+--
+	Example 1: 1ms - CREATE TYPE participant_status AS ENUM ('abandoned', 'approved', 'bad_data', 'did_not_attend', 'missing_notification', 'overrecruited', 'recruiter_submission_started', 'rejected', 'replaced', 'returned', 'screened_out', 'submitted', 'working');
+	Example 2: 0ms - CREATE TYPE participant_status AS ENUM ('abandoned', 'approved', 'bad_data', 'did_not_attend', 'missing_notification', 'overrecruited', 'recruiter_submission_started', 'rejected', 'replaced', 'returned', 'screened_out', 'submitted', 'working');
+12) 2 - 4ms - 2ms/2ms/2ms - create unique index ix_asset_export_path on asset (export_path);
+--
+	Example 1: 2ms - CREATE UNIQUE INDEX ix_asset_export_path ON asset (export_path);
+	Example 2: 2ms - CREATE UNIQUE INDEX ix_asset_export_path ON asset (export_path);
+13) 1 - 1ms - 1ms/1ms/1ms - DROP TABLE error CASCADE;
+--
+	Example 1: 1ms - DROP TABLE error CASCADE;
+14) 1 - 0ms - 0ms/0ms/0ms - select current_schema();
+--
+	Example 1: 0ms - select current_schema();
+15) 1 - 1ms - 1ms/1ms/1ms - DROP TABLE notification CASCADE;
+--
+	Example 1: 1ms - DROP TABLE notification CASCADE;
+16) 1 - 1ms - 1ms/1ms/1ms - DROP TABLE node CASCADE;
+--
+	Example 1: 1ms - DROP TABLE node CASCADE;
+17) 1 - 1ms - 1ms/1ms/1ms - DROP TABLE network CASCADE;
+--
+	Example 1: 1ms - DROP TABLE network CASCADE;
+18) 1 - 0ms - 0ms/0ms/0ms - DROP TABLE experiment_status CASCADE;
+--
+	Example 1: 0ms - DROP TABLE experiment_status CASCADE;
+19) 1 - 1ms - 1ms/1ms/1ms - DROP TABLE transmission CASCADE;
+--
+	Example 1: 1ms - DROP TABLE transmission CASCADE;
+20) 1 - 0ms - 0ms/0ms/0ms - DROP TABLE response CASCADE;
+--
+	Example 1: 0ms - DROP TABLE response CASCADE;
+
+- Slowest queries (N) --------------------------------------------------
+
+Rank     Min/Max/Avg duration (s)     Times executed     Total duration     Query
+1) 0ms/14ms/5ms - 5 - 27ms - commit;
+--
+	Example 1: 14ms - COMMIT;
+	Example 2: 6ms - COMMIT;
+	Example 3: 5ms - COMMIT;
+2) 2ms/2ms/2ms - 2 - 4ms - create unique index ix_asset_export_path on asset (export_path);
+--
+	Example 1: 2ms - CREATE UNIQUE INDEX ix_asset_export_path ON asset (export_path);
+	Example 2: 2ms - CREATE UNIQUE INDEX ix_asset_export_path ON asset (export_path);
+3) 1ms/2ms/2ms - 2 - 4ms - create unique index ix_module_state_id on module_state (id);
+--
+	Example 1: 2ms - CREATE UNIQUE INDEX ix_module_state_id ON module_state (id);
+	Example 2: 1ms - CREATE UNIQUE INDEX ix_module_state_id ON module_state (id);
+4) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE node CASCADE;
+--
+	Example 1: 1ms - DROP TABLE node CASCADE;
+5) 1ms/1ms/1ms - 1 - 1ms - SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+--
+	Example 1: 1ms - SELECT t.oid, typarray
+	FROM pg_type t JOIN pg_namespace ns
+	    ON typnamespace = ns.oid
+	WHERE typname = 'hstore';
+6) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE info CASCADE;
+--
+	Example 1: 1ms - DROP TABLE info CASCADE;
+7) 1ms/1ms/1ms - 2 - 2ms - select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = ? and c.relkind in (...);
+--
+	Example 1: 1ms - SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind in ('r', 'p');
+	Example 2: 1ms - SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind in ('r', 'p');
+8) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE asset CASCADE;
+--
+	Example 1: 1ms - DROP TABLE asset CASCADE;
+9) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE participant CASCADE;
+--
+	Example 1: 1ms - DROP TABLE participant CASCADE;
+10) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE network CASCADE;
+--
+	Example 1: 1ms - DROP TABLE network CASCADE;
+11) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE process CASCADE;
+--
+	Example 1: 1ms - DROP TABLE process CASCADE;
+12) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE notification CASCADE;
+--
+	Example 1: 1ms - DROP TABLE notification CASCADE;
+13) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE error CASCADE;
+--
+	Example 1: 1ms - DROP TABLE error CASCADE;
+14) 1ms/1ms/1ms - 1 - 1ms - DROP TABLE transmission CASCADE;
+--
+	Example 1: 1ms - DROP TABLE transmission CASCADE;
+15) 0ms/0ms/0ms - 1 - 0ms - DROP TABLE question CASCADE;
+--
+	Example 1: 0ms - DROP TABLE question CASCADE;
+16) 0ms/1ms/0ms - 2 - 1ms - create type participant_status as enum (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+--
+	Example 1: 1ms - CREATE TYPE participant_status AS ENUM ('abandoned', 'approved', 'bad_data', 'did_not_attend', 'missing_notification', 'overrecruited', 'recruiter_submission_started', 'rejected', 'replaced', 'returned', 'screened_out', 'submitted', 'working');
+	Example 2: 0ms - CREATE TYPE participant_status AS ENUM ('abandoned', 'approved', 'bad_data', 'did_not_attend', 'missing_notification', 'overrecruited', 'recruiter_submission_started', 'rejected', 'replaced', 'returned', 'screened_out', 'submitted', 'working');
+17) 0ms/0ms/0ms - 29 - 10ms - select r.conname, pg_catalog.pg_get_constraintdef(r.oid, true) as condef, n.nspname as conschema from pg_catalog.pg_constraint r, pg_namespace n, pg_class c where r.conrelid = ? and r.contype = ? and c.oid = confrelid and n.oid = c.relnamespace order by ?;
+--
+	Example 1: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16525 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+	Example 2: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16603 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+	Example 3: 0ms - SELECT r.conname,
+	                pg_catalog.pg_get_constraintdef(r.oid, true) as condef,
+	                n.nspname as conschema
+	          FROM  pg_catalog.pg_constraint r,
+	                pg_namespace n,
+	                pg_class c
+	
+	          WHERE r.conrelid = 16420 AND
+	                r.contype = 'f' AND
+	                c.oid = confrelid AND
+	                n.oid = c.relnamespace
+	          ORDER BY 1;
+18) 0ms/0ms/0ms - 116 - 22ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname=?;
+--
+	Example 1: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='participant';
+	Example 2: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='participant';
+	Example 3: 0ms - select relname from pg_class c join pg_namespace n on n.oid=c.relnamespace where pg_catalog.pg_table_is_visible(c.oid) and relname='experiment';
+19) 0ms/0ms/0ms - 8 - 1ms - select exists ( select * from pg_catalog.pg_type t where t.typname = ? and pg_type_is_visible(t.oid) );
+--
+	Example 1: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+	Example 2: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+	Example 3: 0ms - SELECT EXISTS (
+	                SELECT * FROM pg_catalog.pg_type t
+	                WHERE t.typname = 'participant_status'
+	                AND pg_type_is_visible(t.oid)
+	                );
+20) 0ms/0ms/0ms - 29 - 4ms - select c.oid from pg_catalog.pg_class c left join pg_catalog.pg_namespace n on n.oid = c.relnamespace where (pg_catalog.pg_table_is_visible(c.oid)) and c.relname = ? and c.relkind in (...);
+--
+	Example 1: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'notification' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+	Example 2: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'lucid_status' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+	Example 3: 0ms - SELECT c.oid
+	            FROM pg_catalog.pg_class c
+	            LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+	            WHERE (pg_catalog.pg_table_is_visible(c.oid))
+	            AND c.relname = 'participant_link_sync_group' AND c.relkind in
+	            ('r', 'v', 'm', 'f', 'p');
+
+- Most frequent events (N) ---------------------------------------------
+
+
+- Logs per type ---------------------------------------------
+
+Logs type	Count	Percentage
+EVENTLOG		1	0.12%
+FATAL		1	0.12%
+LOG		812	99.75%
+
+
+Report generated by pgBadger 13.1 (http://pgbadger.darold.net/).
+[32;1m$ pgbadger --log-duration --exclude-query '(ALTER|CREATE) (TABLE|INDEX)' public/postgresql.log -o /tmp/pgbadger.json[0;m
+[>                        ] Parsed      0 bytes of 171910 (0.00%), queries: 0, events: 0[>                        ] Parsed   1010 bytes of 171910 (0.59%), queries: 0, events: 0[==>                      ] Parsed  14558 bytes of 171910 (8.47%), queries: 65, events: 0[=======>                 ] Parsed  54101 bytes of 171910 (31.47%), queries: 81, events: 0[========================>] Parsed 171910 bytes of 171910 (100.00%), queries: 304, events: 2
+LOG: Ok, generating json report...
+[32;1m$ cp /tmp/pgbadger.html /tmp/pgbadger.json /tmp/pgbadger.txt public/[0;m
+[32;1m$ venv/bin/python ci/generate_junit_xml.py --classname "$TEST_NAME" --testname="pgbadger" /tmp/pgbadger.json > public/junit.xml[0;m
+section_end:1756390379:after_script[0Ksection_start:1756390379:upload_artifacts_on_failure[0K[0K[36;1mUploading artifacts for failed job[0;m[0;m
+[32;1mUploading artifacts...[0;m
+public/junit.xml: found 1 matching artifact files and directories[0;m 
+Uploading artifacts as "junit" to coordinator... 201 Created[0;m  correlation_id[0;m=7ddf6e6024f75db30552f4bfdd7ebc25 id[0;m=11170683825 responseStatus[0;m=201 Created token[0;m=69_D-KdKs
+section_end:1756390380:upload_artifacts_on_failure[0Ksection_start:1756390380:cleanup_file_variables[0K[0K[36;1mCleaning up project directory and file based variables[0;m[0;m
+section_end:1756390381:cleanup_file_variables[0K[31;1mERROR: Job failed: exit code 1
+[0;m
