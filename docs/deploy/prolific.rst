@@ -5,10 +5,6 @@ Deploying an experiment to Prolific
 Prolific is a paid service for sourcing online participants for psychology experiments.
 For a general introduction to Prolific, visit the `Prolific website <https://prolific.co/>`_.
 
-PsyNet has recently (as of 2022) developed support for deploying experiments to Prolific.
-The integration works well already, and we've deployed many successful experiments via this route.
-However we are still finessing some aspects of the integration to improve the user experience.
-
 Setting up your Prolific account
 --------------------------------
 
@@ -38,71 +34,95 @@ Save and close the file.
 Setting experiment configuration
 --------------------------------
 
-Several aspects of the experiment configuration need setting before you deploy to Prolific.
-This is done by editing ``config.txt``, or equivalently by setting values in the Experiment config dictionary,
+Several configuration parameters need setting before you deploy to Prolific.
+The standard way to do this is to edit ``config.txt`` in your experiment directory,
 for example:
 
-.. code-block:: python
+.. code-block:: text
 
-    class Experiment(Exp):
-        config = {
-            "wage_per_hour": 10,
-        }
+    currency = £
+    wage_per_hour = 10
+    prolific_estimated_completion_minutes = 30
+    base_payment = 5
 
+The currency parameter is specified as a symbol, for example ``£``.
+With Prolific you will ordinarily be paying in British pounds (£);
+you may be able to access other currencies if you contact Prolific support.
 
-First you need to specify the config variable ``currency``, which corresponds to the currency with which
-you expect to pay your participants. This is specified as a symbol, for example ``$``.
-With Prolific you will ordinarily be paying in pounds (£).
-If you want to pay in a different currency, you need to contact Prolific support.
+The ``wage_per_hour`` parameter should be specified in terms of your above currency unit.
+At the time of writing (August 2025), Prolific sets a minimum wage of £6.00/hour,
+but recommends a wage of at least £9.00/hour.
 
-Then you need to specify ``wage_per_hour``, i.e. how much you will aim to pay your participants per hour,
-as expressed in your fundamental currency unit.
+The ``prolific_estimated_completion_minutes`` parameter specifies the duration of the experiment.
+You can generate an estimate of the experiment's duration by running:
 
-In practice PsyNet pays participants through a combination of base payment and bonus.
-The base payment is fixed, and is ideally small.
-It is set via the config parameter ``base_payment``.
-The bonus is dynamic, and increases
-depending on how far the participant makes it through the experiment.
-The value of this progress-related bonus is determined by multiplying the ``time_estimate``
-for the part for the experiment they completed by the ``wage_per_hour`` (converting from seconds to hours as required).
-The bonus may also include a portion corresponding to performance rewards.
+::
 
-PsyNet therefore pays people primarily through the bonus mechanism. This is at odds to how
-Prolific is currently designed, in that Prolific assumes that the primary payment will come from the
-base payment. This has implications in the way that Prolific treats the duration of experiments.
-When you deploy an experiment to Prolific, you have to specify a duration of the experiment.
-Prolific will compare that duration to your base payment to make sure that you are paying the participants enough.
-So, when you deploy the experiment with Prolific, you need to set the duration to a small value,
-corresponding to the size of your base payment.
-This is done via the ``prolific_estimated_completion_minutes`` config variable.
-If you don't set the duration to this small amount, then Prolific will complain that your hourly wage is too low.
+    psynet estimate
 
-A second problem comes from the fact that Prolific imposes an automatic time-out mechanism for participants
-who take too long to complete your experiment. This time-out duration seems to be defined as a multiple of
-``prolific_estimated_completion_minutes``. If you set your experiment duration (and hence your base payment)
-too low, then participants will time out before they can finish your experiment.
-It's not the end of the world if participants time out -- you can manually approve them via the
-Prolific interface -- but it's a bit annoying, so it's worth avoiding.
+This command inspects your experiment's timeline, estimates the longest route through that timeline,
+and calculates how much payment would be due at the specified ``wage_per_hour``, for example:
 
-In practice, if you are deploying a 15-minute experiment, it seems to work to set
-``prolific_estimated_completion_minutes`` to 3, and then set your base payment to about 50 cents.
-If you're confident in the duration of the experiment you could reduce the duration to 3 minutes or so.
+.. code-block:: text
+
+    >> Estimated maximum reward for participant: £5.00
+    >> Estimated time to complete experiment: 10 min 0 sec.
+
+.. note::
+
+    ``psynet estimate`` uses various heuristics that may not hold for all experiments.
+    It is a good idea to verify the estimate by trying the experiment on yourself.
+    If you notice a systematic discrepancy, you should adjust the ``time_estimate`` parameters for your pages
+    until ``psynet estimate`` returns a more plausible estimate.
+
+    It is also important to know that the 'estimated maximum reward' does not take into account
+    any performance bonuses that you plan to pay out during the experiment.
+    It only takes into account the estimated time taken to complete each page.
+
+The ``base_payment`` parameter specifies the fixed payment that you will make
+to participants who complete the experiment. You should normally set this to the
+'maximum reward' value that ``psynet estimate`` gives you. Note that Prolific will check
+that your chosen ``base_payment`` combines with your ``prolific_estimated_completion_minutes``
+to yield an appropriate hourly wage.
+
+When a participant reaches the end of the experiment, PsyNet will examine how much financial reward
+they actually accumulated during the experiment, looking both at pages' time estimates and at
+performance bonuses (if relevant).
+It then compares this financial reward to the ``base_payment`` parameter.
+
+Three scenarios are possible:
+
+1. The actual reward is exactly equal to the ``base_payment`` parameter.
+   In this case, PsyNet will tell Prolific that the participant should be approved.
+   Prolific will then pay the participant the ``base_payment``.
+2. The actual reward is greater than the ``base_payment`` parameter.
+   PsyNet will then approve the participant (automatically delivering the base payment)
+   and additionally then use Prolific's bonus functionality to pay the remaining amount.
+3. The actual reward is less than the ``base_payment`` parameter.
+   PsyNet will then not approve the participant, but will instead try to give them a partial payment.
+   PsyNet's default behavior is to tell the participant that they will receive a partial payment,
+   but the participant needs to return the submission to receive the payment.
+   When the participant declares they have done this, PsyNet checks with Prolific via their API
+   to see if the submission has actually been returned. If so, PsyNet pays the participant;
+   if not, PsyNet asks the participant to wait and try again.
+
+This flexibility in payment amounts is particularly useful for experiments that include pre-screening tasks,
+or that deliver variable numbers of trials.
+Note however that Prolific is a bit sensitive to people abusing this functionality;
+you should avoid having too many participants receive partial payments.
 
 Now you need to set your experiment's title, which is done via the ``title`` config parameter.
 Here you should emphasize a few things:
 
 - The participant needs a Chrome browser
 - The participant needs headphones (if appropriate)
-- The actual duration of the experiment
-- The wage per hour
 
 For example, you might write
-"Organ chords experiment (headphones required, Chrome browser, 10-15 minutes, £10/hour payment)".
+"Organ chords experiment (headphones required, Chrome browser)".
 
 Next you set the experiment's ``description`` parameter. This provides more information about the experiment.
-You should explain the payment strategy in more detail, in particular how they will be paid for the time they
-take on the experiment via Prolific's bonus functionality. You should explain briefly what your payment
-policy will be if the participant doesn't finish the experiment due to a technical error.
+You should explain briefly what your payment policy will be if the participant doesn't finish the experiment,
+e.g. due to a technical error or a failed pre-screening task.
 
 .. warning::
     If you do not use your own domain name (via the ``--dns-host`` argument), then Dallinger automatically
@@ -118,15 +138,15 @@ In summary, your config.txt might look something like this:
 ::
 
     [Config]
-    title = Organ chords experiment (headphones required, Chrome browser, 10-15 minutes, £10/hour payment)
+    title = Organ chords experiment (headphones required, Chrome browser, 30 minutes, £10/hour payment)
     description = This is a music listening experiment, but no musical expertise is required to take part. You will listen to chords played on the organ, and you will be asked to rate them for pleasantness. We use a dynamic payment scheme which means you get paid in proportion to how far you make it through the experiment.
 
     [Prolific]
     recruiter = prolific
     auto_recruit = false
     wage_per_hour = 10
-    base_payment = 0.5
-    prolific_estimated_completion_minutes = 3
+    base_payment = 5
+    prolific_estimated_completion_minutes = 30
 
 
 Testing your experiment
@@ -181,6 +201,14 @@ If the command runs successfully, it should print a link to your Prolific dashbo
 PsyNet will have automatically created a 'draft study' for your, populating certain elements such as the
 title, description, and so on. Go through this draft study carefully and make sure that all the details are
 set appropriately.
+
+.. note::
+
+    The configuration parameter ``publish_experiment`` (default = ``false``) determines whether ``psynet deploy``
+    automatically publishes the experiment rather than just leaving it as a draft.
+    Consider adding ``publish_experiment = true`` to your ``config.txt`` if you are deploying many similar experiments in a row,
+    but note that you won't get a chance to make changes to the study configuration via the Prolific interface
+    before participants arrive.
 
 There is one item that is labeled something like 'Process submissions',
 where the options are 'Manually review' and 'Approve and pay'.
@@ -285,6 +313,3 @@ Finally, you need to add the qualification to your ``config.txt`` file:
 
 If you don't have an existing experiment from which you want to copy the qualifications, you can create a draft study in
 Prolific and then copy its HIT ID using the same steps as before.
-
-
-
