@@ -148,20 +148,19 @@ def prepare():
 
 
 def _prepare():
-    try:
-        from dallinger import db
+    from dallinger import db
 
-        from .experiment import get_experiment
+    from .experiment import get_experiment
 
-        redis_vars.clear()
-        db.init_db(drop_all=True)
-        experiment = get_experiment()
-        experiment.pre_deploy()
-        db.session.commit()
-        clean_sys_modules()
-        update_docker_tag()
-    finally:
-        db.session.commit()
+    redis_vars.clear()
+    db.init_db(drop_all=True)
+    experiment = get_experiment()
+    experiment.pre_deploy()
+    db.session.flush()
+    clean_sys_modules()
+    update_docker_tag()
+
+    db.session.commit()
 
 
 #########

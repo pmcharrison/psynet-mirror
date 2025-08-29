@@ -24,6 +24,10 @@ def init(
     write_all(locals())
 
 
+def is_available():
+    return os.path.exists(path)
+
+
 def reset():
     write_all({})
 
