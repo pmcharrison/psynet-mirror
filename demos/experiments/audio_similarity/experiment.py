@@ -4,13 +4,15 @@ This is a simple experiment that allows participants to rate sounds on a scale o
 
 # pylint: disable=missing-class-docstring,missing-function-docstring
 
+from math import comb
 from pathlib import Path
 
 import psynet.experiment
-from psynet.asset import asset  # noqa
+from psynet.asset import Asset, asset  # noqa
 from psynet.modular_page import ModularPage, RatingControl
 from psynet.page import InfoPage
-from psynet.timeline import Event, MediaSpec, Timeline
+from psynet.participant import Participant
+from psynet.timeline import Event, MediaSpec, ProgressDisplay, Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 N_TRIALS_PER_PARTICIPANT = 10
@@ -74,14 +76,15 @@ class CustomTrial(StaticTrial):
                 min_description="Not at all similar",
                 max_description="Very similar",
             ),
-            events={
-                "submitEnable": Event(is_triggered_by="promptEnd"),
-            },
             time_estimate=10,
             media=MediaSpec(
                 audio={
-                    "stimulus_a": self.assets["stimulus_a"],
-                    "stimulus_b": self.assets["stimulus_b"],
+                    "stimulus_a": self.trial_maker.assets[
+                        self.definition["stimulus_a"]
+                    ],
+                    "stimulus_b": self.trial_maker.assets[
+                        self.definition["stimulus_b"]
+                    ],
                 }
             ),
             events={
@@ -111,6 +114,7 @@ class CustomTrial(StaticTrial):
                     delay=0.0,
                 ),
             },
+            progress_display=ProgressDisplay([], show_bar=False),
         )
 
 
@@ -128,9 +132,10 @@ class Exp(psynet.experiment.Experiment):
         StaticTrialMaker(
             id_="ratings",
             trial_class=CustomTrial,
-            nodes=get_nodes,
+            nodes=get_nodes,  # this is a callable, it only gets called on the local machine, where the input files are available
+            assets=get_assets,  # likewise a callable
             expected_trials_per_participant=N_TRIALS_PER_PARTICIPANT,
-            assets=get_assets,
+            max_trials_per_participant=N_TRIALS_PER_PARTICIPANT,
         ),
         InfoPage(
             """
@@ -139,3 +144,13 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
     )
+
+    def test_experiment(self):
+        super().test_experiment()
+
+        assert Participant.query.count() == 1
+        assert CustomTrial.query.count() == N_TRIALS_PER_PARTICIPANT
+        assert Asset.query.count() == len(list_stimuli())
+        assert (
+            StaticNode.query.count() == comb(len(list_stimuli()), 2) * 2
+        )  # we see each combination twice, once in each order
