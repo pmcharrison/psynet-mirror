@@ -6,6 +6,9 @@
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
 
+## Added
+- Added `pre_deploy_constant`, a mechanism for specifying constants that are computed once in the pre-deploy phase
+  (i.e. on the experimenter's local machine), with this value then propagating to the deployed web app.
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
