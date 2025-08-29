@@ -1282,7 +1282,9 @@ def install_autocomplete():
     # Get the directory where this script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
     psynet_root = os.path.dirname(script_dir)
-    install_script = os.path.join(psynet_root, "install-completion.sh")
+    install_script = os.path.join(
+        psynet_root, "resources", "scripts", "install-completion.sh"
+    )
 
     if not os.path.exists(install_script):
         raise click.ClickException(

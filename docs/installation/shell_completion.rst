@@ -38,7 +38,7 @@ Run the installation script from the root of the PsyNet directory:
 
 .. code-block:: bash
 
-   ./install-completion.sh
+   ./resources/scripts/install-completion.sh
 
 .. note::
 
