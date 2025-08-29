@@ -35,6 +35,7 @@ if grep -q "_PSYNET_COMPLETE\|psynet-completion" "$RC_FILE" 2>/dev/null; then
     echo "Completion already installed in $RC_FILE"
     echo "To enable completion in current session, run:"
     echo "  source $COMPLETION_FILE"
+    exit 0
 else
     # Add completion to shell configuration
     echo "" >> "$RC_FILE"
