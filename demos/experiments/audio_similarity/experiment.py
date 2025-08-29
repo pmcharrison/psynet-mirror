@@ -79,34 +79,30 @@ class CustomTrial(StaticTrial):
             time_estimate=10,
             media=MediaSpec(
                 audio={
-                    "stimulus_a": self.trial_maker.assets[
-                        self.definition["stimulus_a"]
-                    ],
-                    "stimulus_b": self.trial_maker.assets[
-                        self.definition["stimulus_b"]
-                    ],
+                    "stimulusA": self.trial_maker.assets[self.definition["stimulus_a"]],
+                    "stimulusB": self.trial_maker.assets[self.definition["stimulus_b"]],
                 }
             ),
             events={
                 "playStimulusA": Event(
                     is_triggered_by="trialStart",
-                    js="psynet.audio.stimulus_a.play();",
+                    js="psynet.audio.stimulusA.play();",
                     message="Sound A",
                     message_color="blue",
                 ),
                 "silence": Event(
-                    is_triggered_by="audioFinished: stimulus_a",
+                    is_triggered_by="audioFinished: stimulusA",
                     message="",
                 ),
                 "playStimulusB": Event(
                     is_triggered_by="silence",
                     delay=0.5,
-                    js="psynet.audio.stimulus_b.play();",
+                    js="psynet.audio.stimulusB.play();",
                     message="Sound B",
                     message_color="blue",
                 ),
                 "responseEnable": Event(
-                    is_triggered_by="audioFinished: stimulus_b",
+                    is_triggered_by="audioFinished: stimulusB",
                     delay=0.0,
                 ),
                 "submitEnable": Event(
