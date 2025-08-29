@@ -1283,7 +1283,7 @@ def install_autocomplete():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     psynet_root = os.path.dirname(script_dir)
     install_script = os.path.join(
-        psynet_root, "resources", "scripts", "install-completion.sh"
+        psynet_root, "psynet", "resources", "scripts", "install-completion.sh"
     )
 
     if not os.path.exists(install_script):

@@ -38,7 +38,7 @@ Run the installation script from the root of the PsyNet directory:
 
 .. code-block:: bash
 
-   ./resources/scripts/install-completion.sh
+   ./psynet/resources/scripts/install-completion.sh
 
 .. note::
 
@@ -130,5 +130,11 @@ If completion doesn't work:
 
       ls -la ~/.local/bin/.psynet-completion.*
 
-4. Verify that ``psynet`` is in your ``PATH``: ``which psynet``.
-5. Check that your shell configuration file (``~/.bashrc`` or ``~/.zshrc``) contains the completion source line.
+4. Verify the ``~/.local/bin/`` directory exists and is in your ``PATH``.
+5. Verify that ``psynet`` is in your ``PATH``: ``which psynet``.
+6. Check that your shell configuration file (``~/.bashrc`` or ``~/.zshrc``) contains the completion source line.
+7. If you need to fix the shell configuration, add the following to your shell configuration file:
+   .. code-block:: bash
+
+      source ~/.local/bin/.psynet-completion.bash  # for bash
+      source ~/.local/bin/.psynet-completion.zsh   # for zsh
