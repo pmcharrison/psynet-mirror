@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Added
+- Added 'Audio Similarity' demo experiment.
+- Modules and trial makers now accept callables for the `assets` argument, which is helpful for experiments using local file assets.
+
 ## Fixed
 - Fixed bug that was preventing `psynet simulate` from running.
 - Improved error message for `check_dallinger_version`.
