@@ -6,6 +6,8 @@
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
 
+## Changed
+- Disabled pgbadger pipeline which was causing test failures; we might reinstate it one day if we find the database analyses useful again.
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
