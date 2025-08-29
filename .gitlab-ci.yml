@@ -124,7 +124,7 @@ pg_badger:
     - pip install --upgrade pip virtualenv
     - virtualenv venv -ppython3
     - . venv/bin/activate
-    - ./install-ci-dependencies.sh
+    - bash ./install-ci-dependencies.sh
     - |
       until docker exec -i dallinger_postgres pg_isready; do
         echo "Waiting for PostgreSQL to become ready..."
