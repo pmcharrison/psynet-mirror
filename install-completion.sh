@@ -7,28 +7,52 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHELL_NAME=$(basename "$SHELL")
+USER_BIN_DIR="$HOME/.local/bin"
 
 echo "Installing PsyNet tab completion for $SHELL_NAME..."
+mkdir -p "$USER_BIN_DIR"
 
 case "$SHELL_NAME" in
     bash)
-        COMPLETION_FILE="$SCRIPT_DIR/psynet-completion.bash"
+        COMPLETION_FILE="$USER_BIN_DIR/.psynet-completion.bash"
         RC_FILE="$HOME/.bashrc"
         SOURCE_LINE="source $COMPLETION_FILE"
+        COMPLETION_INIT="complete -o default -o nospace -F _psynet psynet"
         ;;
     zsh)
-        COMPLETION_FILE="$SCRIPT_DIR/psynet-completion.zsh"
+        COMPLETION_FILE="$USER_BIN_DIR/.psynet-completion.zsh"
         RC_FILE="$HOME/.zshrc"
         SOURCE_LINE="source $COMPLETION_FILE"
+        COMPLETION_INIT="autoload -Uz compinit && compinit"
         ;;
     *)
         echo "Unsupported shell: $SHELL_NAME"
         echo "Please manually add one of these lines to your shell configuration:"
-        echo "  For bash: source $SCRIPT_DIR/psynet-completion.bash"
-        echo "  For zsh: source $SCRIPT_DIR/psynet-completion.zsh"
+        echo "  For bash: source $USER_BIN_DIR/.psynet-completion.bash"
+        echo "  For zsh: source $USER_BIN_DIR/.psynet-completion.zsh"
         exit 1
         ;;
 esac
+
+# Generate completion files if they don't exist
+if [ ! -f "$COMPLETION_FILE" ]; then
+    echo "Generating completion file for $SHELL_NAME..."
+    case "$SHELL_NAME" in
+        bash)
+            _PSYNET_COMPLETE=bash_source psynet > "$COMPLETION_FILE" 2>/dev/null || {
+                echo "Failed to generate bash completion file. Please ensure psynet is installed and accessible."
+                exit 1
+            }
+            ;;
+        zsh)
+            _PSYNET_COMPLETE=zsh_source psynet > "$COMPLETION_FILE" 2>/dev/null || {
+                echo "Failed to generate zsh completion file. Please ensure psynet is installed and accessible."
+                exit 1
+            }
+            ;;
+    esac
+    echo "Generated completion file: $COMPLETION_FILE"
+fi
 
 # Check if completion is already installed
 if grep -q "_PSYNET_COMPLETE\|psynet-completion" "$RC_FILE" 2>/dev/null; then
@@ -40,6 +64,7 @@ else
     # Add completion to shell configuration
     echo "" >> "$RC_FILE"
     echo "# PsyNet tab completion" >> "$RC_FILE"
+    echo "$COMPLETION_INIT" >> "$RC_FILE"
     echo "$SOURCE_LINE" >> "$RC_FILE"
     echo "Completion installed in $RC_FILE."
     echo "To enable completion in current session, run:"
@@ -47,7 +72,8 @@ else
 fi
 
 echo ""
-echo "Installation complete! Restart your terminal or run 'source $RC_FILE' (without quotes) to enable completion."
+echo "Installation complete!"
+echo "Restart your terminal or run 'source $RC_FILE' (without quotes) to enable completion."
 echo ""
 echo "You can now use tab completion with psynet commands:"
 echo "  psynet <TAB>             # Shows all commands"
