@@ -50,7 +50,7 @@ def list_stimuli():
             "name": path.stem,
             "path": path,
         }
-        for path in list(stimulus_dir.glob("*.mp3"))
+        for path in sorted(list(stimulus_dir.glob("*.mp3")))
     ]
 
 
