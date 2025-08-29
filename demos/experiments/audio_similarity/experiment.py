@@ -125,7 +125,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage(
             """
             In this experiment you will hear some sounds. Your task will be to rate
-            them on a scale of 1 to 5 on several scales.
+            them for similarity on a scale of 1 to 5.
             """,
             time_estimate=5,
         ),
