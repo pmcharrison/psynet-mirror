@@ -9,8 +9,12 @@ It provides automatic completion for commands, subcommands, and options.
 Files
 -----
 
-- ``psynet-completion.bash`` – Bash completion script
-- ``psynet-completion.zsh`` – Zsh completion script
+- ``.psynet-completion.bash`` – bash completion script (installed in ``~/.local/bin/``)
+- ``.psynet-completion.zsh`` – zsh completion script (installed in ``~/.local/bin/``)
+
+.. note::
+
+   Completion files are generated dynamically during installation.
 
 Installation
 ------------
@@ -24,8 +28,8 @@ Installation using the PsyNet command (recommended)
 
 .. note::
 
-   This method works for both editable and non-editable PsyNet installations. It will automatically
-   detect your shell and add the appropriate completion setup to your shell configuration file.
+   This method works for both editable and non-editable PsyNet installations. It will automatically detect your shell,
+   generate the appropriate completion files, and add the appropriate setup to your shell configuration file.
 
 Installation using the installation script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -38,35 +42,18 @@ Run the installation script from the root of the PsyNet directory:
 
 .. note::
 
-   This method *only* works for editable PsyNet installations. It will automatically detect your shell
-   and add the appropriate completion setup to your shell configuration file.
-
-Manual installation
-^^^^^^^^^^^^^^^^^^^
-
-If you prefer to install manually, you can source the completion scripts directly from the root of the PsyNet directory:
-
-- For Bash (``~/.bashrc``):
-
-  .. code-block:: bash
-
-     source ./psynet-completion.bash
-
-- For Zsh (``~/.zshrc``):
-
-  .. code-block:: bash
-
-     source ./psynet-completion.zsh
+   This method *only* works for editable PsyNet installations. It will automatically detect your shell,
+   generate the appropriate completion files, and add them to your shell configuration file.
 
 Activate completion
 -------------------
 
-After installation, either restart your terminal or reload your shell configuration:
+After installation, either restart your terminal or source the completion file directly:
 
 .. code-block:: bash
 
-   source ~/.bashrc  # for bash
-   source ~/.zshrc   # for zsh
+   source ~/.local/bin/.psynet-completion.bash  # for bash
+   source ~/.local/bin/.psynet-completion.zsh   # for zsh
 
 Usage
 -----
@@ -138,7 +125,10 @@ If completion doesn't work:
 
 1. Make sure the completion script is properly sourced.
 2. Try restarting your terminal.
-3. Make sure completion is enabled:
-    For zsh:  ``autoload -U compinit && compinit``.
-    For bash: ``complete -o default -o nospace -F _psynet psynet``.
+3. Verify that the completion files exist:
+   .. code-block:: bash
+
+      ls -la ~/.local/bin/.psynet-completion.*
+
 4. Verify that ``psynet`` is in your ``PATH``: ``which psynet``.
+5. Check that your shell configuration file (``~/.bashrc`` or ``~/.zshrc``) contains the completion source line.
