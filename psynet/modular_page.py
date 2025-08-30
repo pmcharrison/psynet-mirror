@@ -169,7 +169,7 @@ class BaseAudioPrompt(Prompt):
     def preprocess_controls(self, controls: Union[bool, Iterable]):
         _ = get_translator()
         default_controls = {
-            "Play from start": _("Play from start"),
+            "Play": _("Play"),
             "Stop": _("Stop"),
             "Loop": _("Loop"),
         }
@@ -180,8 +180,15 @@ class BaseAudioPrompt(Prompt):
             else:
                 controls = {}
 
+        if isinstance(controls, str):
+            controls = {controls}
+
         if isinstance(controls, (set, list)):
             controls = {x: _(x) for x in controls}
+
+        # For backwards compatibility: 'Play' used to be called 'Play from start'
+        if "Play from start" in controls:
+            controls["Play"] = controls.pop("Play from start")
 
         if not isinstance(controls, dict):
             raise ValueError(f"Invalid value for controls: {controls}")
@@ -228,7 +235,7 @@ class AudioPrompt(BaseAudioPrompt):
         Whether to give the user playback controls, and which controls (default = ``False``).
         Accepts either a boolean or an iterable (dictionary, set, list).
         False results in no controls being displayed.
-        True results in all controls being displayed (Play from start, Stop, Loop).
+        True results in all controls being displayed (Play, Stop, Loop).
         An iterable can be used to select specific controls to display. A list, set, or dictionary with
         empty values will use standard labels. Custom labels can be specified as the dictionary values.
         A boolean, set, or list will result in automatically translated button labels if using translation.

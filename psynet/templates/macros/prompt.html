@@ -72,9 +72,9 @@
     </style>
 
     <div id="audio-prompt-controls">
-        {% if "Play from start" in params.controls %}
+        {% if "Play" in params.controls %}
         <button id="audio-prompt-play" type="button" class="btn audio-prompt-button btn-primary btn-sm" disabled>
-            {{ params.controls["Play from start"] }}
+            {{ params.controls["Play"] }}
         </button>
         {% endif %}
         {% if "Stop" in params.controls %}

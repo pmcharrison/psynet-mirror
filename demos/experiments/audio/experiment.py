@@ -299,14 +299,14 @@ example_audio_page_2b = PageMaker(
             assets["bier"],
             """
         This page customizes the audio controls to only display
-        a 'Replay' button.
+        a 'Play again' button.
         """,
             # If the user provides a dictionary, then the keys should
             # correspond to built-in controls, and the values (optional)
             # should correspond to the desired names for those controls.
-            # Here the user has just selected one of the available controls
-            # and named it 'Replay'.
-            controls={"Play from start": "Replay"},
+            # Here the user has just selected the play control
+            # and named it 'Play again'.
+            controls={"Play": "Play again"},
             loop=False,
         ),
         start_trial_automatically=True,
