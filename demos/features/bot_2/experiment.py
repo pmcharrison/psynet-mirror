@@ -117,10 +117,6 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("You finished the experiment!", time_estimate=0),
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
-
     @staticmethod
     @scheduled_task("interval", seconds=10, max_instances=1)
     def run_bot_participant():

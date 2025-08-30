@@ -442,7 +442,3 @@ class Exp(psynet.experiment.Experiment):
     )
 
     test_n_bots = 3
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1

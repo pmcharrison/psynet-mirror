@@ -151,17 +151,15 @@ def _prepare():
     try:
         from dallinger import db
 
-        from .experiment import import_local_experiment
+        from .experiment import get_experiment
 
         redis_vars.clear()
         db.init_db(drop_all=True)
-        experiment_class = import_local_experiment().get("class")
-        experiment_instance = experiment_class.new(session=None)
-        experiment_instance.pre_deploy()
+        experiment = get_experiment()
+        experiment.pre_deploy()
         db.session.commit()
         clean_sys_modules()
         update_docker_tag()
-        return experiment_class
     finally:
         db.session.commit()
 
