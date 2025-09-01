@@ -156,18 +156,18 @@ Install additional PsyNet components and utilities.
 
 .. _install_autocomplete:
 
-Install shell completion (``install autocomplete``)
+Install shell autocomplete (``install autocomplete``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This command installs shell tab completion for the ``psynet`` command. It automatically
-detects your shell and adds the appropriate completion setup to your shell configuration file.
+This command installs shell tab autocomplete for the ``psynet`` command. It automatically
+detects your shell and adds the appropriate autocomplete setup to your shell configuration file.
 
 .. code:: bash
 
   psynet install autocomplete
 
-This is equivalent to running the ``./install-completion.sh`` script manually from the root directory
-of an editable PsyNet installation. For more information about shell completion, see :ref:`shell_completion`.
+This is equivalent to running the ``./install-autocomplete.sh`` script manually from the root directory
+of an editable PsyNet installation. For more information about shell autocomplete, see :ref:`shell_autocomplete`.
 
 .. _update:
 

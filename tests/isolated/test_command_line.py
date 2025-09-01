@@ -34,7 +34,7 @@ class TestCommandLine(object):
         output = subprocess.check_output(
             ["psynet", "install", "autocomplete", "--help"]
         )
-        assert b"Install shell tab completion" in output
+        assert b"Install shell tab autocomplete" in output
 
     @patch("subprocess.run")
     @patch("os.path.exists")
@@ -56,7 +56,7 @@ class TestCommandLine(object):
 
         # Verify the last call to exists was for the install script
         last_exists_call = mock_exists.call_args_list[-1]
-        assert "install-completion.sh" in str(last_exists_call)
+        assert "install-autocomplete.sh" in str(last_exists_call)
 
     @patch("os.path.exists")
     def test_install_autocomplete_script_not_found(self, mock_exists):

@@ -1271,10 +1271,10 @@ def install():
 @install.command("autocomplete")
 def install_autocomplete():
     """
-    Install shell tab completion for the psynet command.
+    Install shell tab autocomplete for the psynet command.
 
     This command automatically detects your shell (bash or zsh) and adds the appropriate
-    completion setup to your shell configuration file.
+    autocomplete setup to your shell configuration file.
     """
     import os
     import subprocess
@@ -1283,7 +1283,7 @@ def install_autocomplete():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     psynet_root = os.path.dirname(script_dir)
     install_script = os.path.join(
-        psynet_root, "psynet", "resources", "scripts", "install-completion.sh"
+        psynet_root, "psynet", "resources", "scripts", "install-autocomplete.sh"
     )
 
     if not os.path.exists(install_script):

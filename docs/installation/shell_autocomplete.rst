@@ -1,20 +1,20 @@
-.. _shell_completion:
+.. _shell_autocomplete:
 
-PsyNet shell completion
-=======================
+PsyNet shell autocomplete
+=========================
 
-This page explains how to enable shell tab completion for the ``psynet`` command.
+This page explains how to enable shell tab autocomplete for the ``psynet`` command.
 It provides automatic completion for commands, subcommands, and options.
 
 Files
 -----
 
-- ``.psynet-completion.bash`` – bash completion script (installed in ``~/.local/bin/``)
-- ``.psynet-completion.zsh`` – zsh completion script (installed in ``~/.local/bin/``)
+- ``.psynet-autocomplete.bash`` – bash autocomplete script (installed in ``~/.local/bin/``)
+- ``.psynet-autocomplete.zsh`` – zsh autocomplete script (installed in ``~/.local/bin/``)
 
 .. note::
 
-   Completion files are generated dynamically during installation.
+   Autocomplete files are generated dynamically during installation.
 
 Installation
 ------------
@@ -29,7 +29,7 @@ Installation using the PsyNet command (recommended)
 .. note::
 
    This method works for both editable and non-editable PsyNet installations. It will automatically detect your shell,
-   generate the appropriate completion files, and add the appropriate setup to your shell configuration file.
+   generate the appropriate autocomplete files, and add the appropriate setup to your shell configuration file.
 
 Installation using the installation script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -38,22 +38,22 @@ Run the installation script from the root of the PsyNet directory:
 
 .. code-block:: bash
 
-   ./psynet/resources/scripts/install-completion.sh
+   ./psynet/resources/scripts/install-autocomplete.sh
 
 .. note::
 
    This method *only* works for editable PsyNet installations. It will automatically detect your shell,
-   generate the appropriate completion files, and add them to your shell configuration file.
+   generate the appropriate autocomplete files, and add them to your shell configuration file.
 
-Activate completion
--------------------
+Activate autocomplete
+---------------------
 
-After installation, either restart your terminal or source the completion file directly:
+After installation, either restart your terminal or source the autocomplete file directly:
 
 .. code-block:: bash
 
-   source ~/.local/bin/.psynet-completion.bash  # for bash
-   source ~/.local/bin/.psynet-completion.zsh   # for zsh
+   source ~/.local/bin/.psynet-autocomplete.bash  # for bash
+   source ~/.local/bin/.psynet-autocomplete.zsh   # for zsh
 
 Usage
 -----
@@ -121,20 +121,20 @@ Examples
 Troubleshooting
 ---------------
 
-If completion doesn't work:
+If autocomplete doesn't work:
 
-1. Make sure the completion script is properly sourced.
+1. Make sure the autocomplete script is properly sourced.
 2. Try restarting your terminal.
-3. Verify that the completion files exist:
+3. Verify that the autocomplete files exist:
    .. code-block:: bash
 
-      ls -la ~/.local/bin/.psynet-completion.*
+      ls -la ~/.local/bin/.psynet-autocomplete.*
 
 4. Verify the ``~/.local/bin/`` directory exists and is in your ``PATH``.
 5. Verify that ``psynet`` is in your ``PATH``: ``which psynet``.
-6. Check that your shell configuration file (``~/.bashrc`` or ``~/.zshrc``) contains the completion source line.
+6. Check that your shell configuration file (``~/.bashrc`` or ``~/.zshrc``) contains the autocomplete source line.
 7. If you need to fix the shell configuration, add the following to your shell configuration file:
    .. code-block:: bash
 
-      source ~/.local/bin/.psynet-completion.bash  # for bash
-      source ~/.local/bin/.psynet-completion.zsh   # for zsh
+      source ~/.local/bin/.psynet-autocomplete.bash  # for bash
+      source ~/.local/bin/.psynet-autocomplete.zsh   # for zsh
