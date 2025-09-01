@@ -109,10 +109,10 @@ pg_badger:
   services:
     - docker:25.0.2-dind
     - redis:latest
-  cache:
-      key: "$CI_BUILD_REF_NAME"
-      paths:
-      - venv/
+  # cache:
+  #     key: "$CI_BUILD_REF_NAME"
+  #     paths:
+  #     - venv/
   before_script:
     - echo Install Heroku CLI and docker
     - curl https://cli-assets.heroku.com/install.sh | sh
