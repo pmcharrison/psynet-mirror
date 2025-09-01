@@ -6,6 +6,10 @@
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
 
+# Changed
+- `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
+  about version changes in Dallinger.
+
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 

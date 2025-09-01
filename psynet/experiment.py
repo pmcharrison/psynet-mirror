@@ -1891,7 +1891,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "allow_mobile_devices": False,
             "base_payment": 0.10,
             "big_base_payment": False,
-            "check_dallinger_version": True,
+            "check_dallinger_version": False,
             "clock_on": True,
             "color_mode": "light",
             "currency": "$",
