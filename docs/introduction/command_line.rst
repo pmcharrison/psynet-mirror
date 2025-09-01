@@ -147,6 +147,28 @@ and exporting the resulting data.
   psynet simulate
 
 
+.. _install:
+
+Install PsyNet components (``install``)
+---------------------------------------
+
+Install additional PsyNet components and utilities.
+
+.. _install_autocomplete:
+
+Install shell completion (``install autocomplete``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This command installs shell tab completion for the ``psynet`` command. It automatically
+detects your shell and adds the appropriate completion setup to your shell configuration file.
+
+.. code:: bash
+
+  psynet install autocomplete
+
+This is equivalent to running the ``./install-completion.sh`` script manually from the root directory
+of an editable PsyNet installation. For more information about shell completion, see :ref:`shell_completion`.
+
 .. _update:
 
 Update PsyNet/Dallinger (``update``)

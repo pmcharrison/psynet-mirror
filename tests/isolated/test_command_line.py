@@ -29,6 +29,48 @@ class TestCommandLine(object):
         assert b"Options:" in output
         assert b"Commands:" in output
 
+    def test_install_autocomplete_help(self):
+        """Test that the install autocomplete command shows help."""
+        output = subprocess.check_output(
+            ["psynet", "install", "autocomplete", "--help"]
+        )
+        assert b"Install shell tab completion" in output
+
+    @patch("subprocess.run")
+    @patch("os.path.exists")
+    @patch("os.chmod")
+    def test_install_autocomplete_success(self, mock_chmod, mock_exists, mock_run):
+        """Test successful installation of autocomplete."""
+        from psynet.command_line import install_autocomplete
+
+        mock_exists.return_value = True
+        mock_run.return_value.returncode = 0
+
+        runner = CliRunner()
+        result = runner.invoke(install_autocomplete)
+
+        assert result.exit_code == 0
+        # Check that the script was made executable and run
+        mock_chmod.assert_called_once()
+        mock_run.assert_called_once()
+
+        # Verify the last call to exists was for the install script
+        last_exists_call = mock_exists.call_args_list[-1]
+        assert "install-completion.sh" in str(last_exists_call)
+
+    @patch("os.path.exists")
+    def test_install_autocomplete_script_not_found(self, mock_exists):
+        """Test that install autocomplete fails when script is not found."""
+        from psynet.command_line import install_autocomplete
+
+        mock_exists.return_value = False
+
+        runner = CliRunner()
+        result = runner.invoke(install_autocomplete)
+
+        assert result.exit_code != 0
+        assert "Installation script not found" in result.output
+
 
 # Disabled because our method of importing means that we can't patch
 # the necessary Dallinger commands. I think this is fine, I don't
