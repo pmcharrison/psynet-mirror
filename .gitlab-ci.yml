@@ -109,6 +109,8 @@ pg_badger:
   services:
     - docker:25.0.2-dind
     - redis:latest
+  # Have disabled this cache because it was not distinguishing effectively between different
+  # git references for the same package (seems strange, but what we saw).
   # cache:
   #     key: "$CI_BUILD_REF_NAME"
   #     paths:
