@@ -127,6 +127,7 @@ pg_badger:
     - virtualenv venv -ppython3
     - . venv/bin/activate
     - pip install -e .[dev] pytest
+    - pip install -r demos/requirements.txt
     - pip freeze # Help us debug which version of Dallinger is being installed
     - |
       until docker exec -i dallinger_postgres pg_isready; do
