@@ -2106,12 +2106,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self.create_source_code_zip_file()
 
-    # def register_pre_deploy_constants(self):
-    #     write_pre_deploy_constant_registry()
-    #     # for key, value in _pre_deploy_constant_registry.items():
-    #     #     constant = PreDeployConstant(key, value)
-    #     #     db.session.add(constant)
-
     @classmethod
     def create_source_code_zip_file(cls):
         from dallinger.command_line.utils import ExperimentFileSource
