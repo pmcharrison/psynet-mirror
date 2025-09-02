@@ -22,12 +22,57 @@ from psynet.timeline import (
     PageMaker,
     ProgressDisplay,
     ProgressStage,
-    Timeline,
     join,
 )
 from psynet.utils import get_logger
 
 logger = get_logger()
+
+
+class Exp(psynet.experiment.Experiment):
+    label = "Audio demo"
+
+    def get_timeline(self):
+        return join(
+            MainConsent(),
+            AudiovisualConsent(),
+            Module(
+                "audio_demo",
+                example_js_synth_1,
+                example_js_synth_2,
+                example_js_synth_3,
+                example_js_synth_4,
+                example_js_synth_5,
+                example_audio_page,
+                example_audio_page_1,
+                example_audio_page_2,
+                example_audio_page_2b,
+                example_audio_page_2c,
+                example_audio_page_3,
+                example_audio_meter,
+                example_record_page,
+                example_listen_then_record_page,
+                example_record_audio_video,
+                example_audio_meter_calibrate_with_audio,
+                example_audio_meter_calibrate_with_tapping,
+                example_preloading,
+                assets=all_assets,
+            ),
+        )
+
+    @property
+    def ad_requirements(self):
+        return super().ad_requirements + [
+            'You must be wearing <span style="font-weight: bold;">headphones</span> and sitting in a quiet place.'
+        ]
+
+    @property
+    def ad_payment_information(self):
+        return (
+            super().ad_payment_information
+            + '<br>Send us your <span style="font-weight: bold;">bank account information</span> to receive refunds.'
+        )
+
 
 all_assets = {
     "bier": asset("local_only/bier.wav", cache=True),
@@ -498,47 +543,3 @@ example_record_audio_video = join(
         time_estimate=5,
     ),
 )
-
-
-class Exp(psynet.experiment.Experiment):
-    label = "Audio demo"
-
-    timeline = Timeline(
-        MainConsent(),
-        AudiovisualConsent(),
-        Module(
-            "audio_demo",
-            example_js_synth_1,
-            example_js_synth_2,
-            example_js_synth_3,
-            example_js_synth_4,
-            example_js_synth_5,
-            example_audio_page,
-            example_audio_page_1,
-            example_audio_page_2,
-            example_audio_page_2b,
-            example_audio_page_2c,
-            example_audio_page_3,
-            example_audio_meter,
-            example_record_page,
-            example_listen_then_record_page,
-            example_record_audio_video,
-            example_audio_meter_calibrate_with_audio,
-            example_audio_meter_calibrate_with_tapping,
-            example_preloading,
-            assets=all_assets,
-        ),
-    )
-
-    @property
-    def ad_requirements(self):
-        return super().ad_requirements + [
-            'You must be wearing <span style="font-weight: bold;">headphones</span> and sitting in a quiet place.'
-        ]
-
-    @property
-    def ad_payment_information(self):
-        return (
-            super().ad_payment_information
-            + '<br>Send us your <span style="font-weight: bold;">bank account information</span> to receive refunds.'
-        )

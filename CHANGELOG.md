@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Added
+- Added `get_timeline` method as an alternative way to specify the experiment timeline.
+  This allows users to put the timeline logic at the beginning of the experiment.py file, enhancing readability.
+
 ## Fixed
 - Fixed bug that was preventing `psynet simulate` from running.
 - Improved error message for `check_dallinger_version`.

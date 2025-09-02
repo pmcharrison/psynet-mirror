@@ -2071,7 +2071,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     #     db.session.add(source)
     #     db.session.commit()
 
+    def get_timeline(self):
+        """
+        Override this method to provide the timeline for your experiment.
+        Alternatively, you can override the timeline class attribute.
+        We prefer ``get_timeline()`` though because it allows you to
+        put your timeline logic at the beginning of your experiment.py,
+        which enhances readability.
+
+        Returns
+        -------
+        Timeline
+            The timeline for your experiment.
+            One can also return a list of timeline elements,
+            which will automatically be wrapped in a Timeline object.
+        """
+
     def process_timeline(self):
+        # We use the output of get_timeline() if it's provided.
+        # If not, we default back to the timeline class attribute.
+        timeline = self.get_timeline()
+        if timeline is not None:
+            if not isinstance(timeline, Timeline):
+                timeline = Timeline(timeline)
+            self.timeline = timeline
+
+        # Iterate through the timeline elements, registering them as appropriate.
         for elt in self.timeline.elts:
             if isinstance(elt, DatabaseCheck):
                 self.register_database_check(elt)
