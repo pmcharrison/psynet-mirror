@@ -140,10 +140,12 @@ pg_badger:
   services:
     - docker:25.0.2-dind
     - redis:latest
-  cache:
-      key: "$CI_BUILD_REF_NAME"
-      paths:
-      - venv/
+  # Have disabled this cache because it was not distinguishing effectively between different
+  # git references for the same package (seems strange, but what we saw).
+  # cache:
+  #     key: "$CI_BUILD_REF_NAME"
+  #     paths:
+  #     - venv/
   before_script:
     - echo Install Heroku CLI and docker
     - curl https://cli-assets.heroku.com/install.sh | sh
@@ -156,6 +158,7 @@ pg_badger:
     - virtualenv venv -ppython3
     - . venv/bin/activate
     - pip install -e .[dev] pytest
+    - pip install -r demos/requirements.txt
     - |
       until docker exec -i dallinger_postgres pg_isready; do
         echo "Waiting for PostgreSQL to become ready..."
@@ -163,7 +166,7 @@ pg_badger:
       done
   script:
     - cd "demos/experiments/$TEST_NAME"
-    - DATABASE_URL="postgresql://dallinger:dallinger@docker:5432/dallinger" psynet test local > /dev/null
+    - DATABASE_URL="postgresql://dallinger:dallinger@docker:5432/dallinger" psynet test local
   after_script:
     - mkdir public
     - docker logs dallinger_postgres 2> public/postgresql.log > /dev/null

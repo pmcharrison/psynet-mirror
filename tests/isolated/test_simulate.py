@@ -1,3 +1,4 @@
+import shutil
 from glob import glob
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from psynet.pytest_psynet import path_to_demo_experiment
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_demo_experiment("static")], indirect=True
 )
-@pytest.mark.usefixtures("in_experiment_directory")
+@pytest.mark.usefixtures("in_experiment_directory", "simulated_data_directory")
 def test_simulate():
     runner = CliRunner()
     result = runner.invoke(simulate, [], catch_exceptions=False)
@@ -24,3 +25,11 @@ def test_simulate():
 
     assert Path("data/simulated_data").exists()
     assert Path("data/simulated_data/regular/data/AnimalTrial.csv").exists()
+
+
+@pytest.fixture
+def simulated_data_directory():
+    path = Path("data/simulated_data")
+    shutil.rmtree(path, ignore_errors=True)
+    yield path
+    shutil.rmtree(path, ignore_errors=True)

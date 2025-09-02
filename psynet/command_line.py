@@ -2697,7 +2697,11 @@ def test__local(
     else:
         import pytest
 
-        return pytest.main(["test.py"])
+        exit_code = pytest.main(["test.py"])
+        if exit_code != 0:
+            # Use sys.exit() to ensure that the exit code is propagated to the shell.
+            # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
+            sys.exit(exit_code)
 
 
 @test.command("ssh")
@@ -2762,10 +2766,9 @@ def simulate(ctx):
     Generates simulated data for an experiment by running the experiment's regression test
     and exporting the resulting data.
     """
-    exit_code = ctx.invoke(test__local)
-    if exit_code != 0:
-        click.echo("Test failed. Simulation aborted.")
-        ctx.exit(exit_code)
+    # No need to catch the exit code here, because test__local now uses sys.exit()
+    # if an error occurs.
+    ctx.invoke(test__local)
 
     ctx.invoke(
         export__local,
