@@ -1612,6 +1612,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         else:
             nodes = [None for _ in range(self.chains_per_experiment)]
 
+        if len(nodes) == 0:
+            raise ValueError(f"No nodes provided for trial maker {self.id}")
+
         for node in tqdm(nodes, desc="Creating networks"):
             self.create_network(experiment, start_node=node)
 
