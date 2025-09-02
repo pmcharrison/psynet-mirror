@@ -1,10 +1,11 @@
 # CHANGELOG
 
 ## Fixed
-- Fixed bug that was preventing `psynet simulate` from running.
+- Fixed bugs in `psynet simulate`.
 - Improved error message for `check_dallinger_version`.
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
+- Fixed bug in pgbadger workflow in CI.
 
 # Changed
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
