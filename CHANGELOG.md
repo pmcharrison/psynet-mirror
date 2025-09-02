@@ -12,6 +12,8 @@
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
   about version changes in Dallinger.
 
+## Changed
+- CI now requires merge requests to provide corresponding entries in CHANGELOG.md.
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
