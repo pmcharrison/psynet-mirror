@@ -37,7 +37,10 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger @ git+https://github.com/Dallinger/Dallinger.git@master",  # TODO - update before release, when we have new Dallinger version
+    # We're currently pinning to a commit on master.
+    # Note that pinning to a branch name is not permitted, as it causes dependency resolvers to fail.
+    # We need to update this once the next Dallinger release is out.
+    "dallinger @ git+https://github.com/Dallinger/Dallinger.git@46ea08307749824672102406446056414a989222",
     # "dallinger[docker]>=11.4.0,<12",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
