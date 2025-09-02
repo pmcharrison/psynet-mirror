@@ -6,6 +6,8 @@
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
 
+## Added
+- Added adblocker note to 'Are you ready to continue?' message.
 # Changed
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
   about version changes in Dallinger.
