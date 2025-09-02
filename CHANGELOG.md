@@ -28,6 +28,8 @@
 
 ## Changed
 - `AudioPrompt` has had the default play control label renamed from 'Play from start' to just 'Play'.
+- Added `pre_deploy_constant`, a mechanism for specifying constants that are computed once in the pre-deploy phase
+  (i.e. on the experimenter's local machine), with this value then propagating to the deployed web app.
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 

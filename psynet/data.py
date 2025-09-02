@@ -509,7 +509,8 @@ old_init_db = dallinger.db.init_db
 def init_db(drop_all=False, bind=db.engine):
     # Without these preliminary steps, the process can freeze --
     # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
-    db.session.commit()
+    # We used to call ``db.session.commit()`` here to close pending transactions, but now
+    # we don't need to do this because we are using proper session handling.
     close_all_sessions()
     old_init_db(drop_all, bind)
 

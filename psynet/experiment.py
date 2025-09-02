@@ -91,7 +91,7 @@ from .recruiters import (  # noqa: F401
     StagingCapRecruiter,
 )
 from .redis import redis_vars
-from .serialize import serialize
+from .serialize import serialize, unserialize
 from .timeline import (
     DatabaseCheck,
     FailedValidation,
@@ -2142,6 +2142,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.update_deployment_id()
         self.setup_experiment_config()
         self.setup_experiment_variables()
+
+        _write_pre_deploy_constant_registry()
 
         for module in self.timeline.modules.values():
             module.prepare_for_deployment(experiment=self)
@@ -4443,3 +4445,67 @@ _protected_routes = [
     "/node/<int:node_id>/transformations",
     "/transformation/<int:node_id>/<int:info_in_id>/<int:info_out_id>",
 ]
+
+
+def pre_deploy_constant(key, func: callable):
+    """
+    Registers a pre-deploy constant.
+    A pre-deploy constant is a value that is computed before the experiment is deployed,
+    and then stored in a file in the .deploy directory.
+    When the value is accessed during the deployed experiment,
+    the value is retrieved from the file rather than being computed again.
+    A common application is experiments whose design is determined by the contents of a directory,
+    such as experiments that use audio stimuli,
+    which are not uploaded directly to the experiment server and hence cannot be accessed
+    by file listing commands.
+
+    Parameters
+    ----------
+    key : str
+        The key of the pre-deploy constant. If it's not a string, it will be converted to one
+        using ``psynet.serialize.serialize``
+    func : callable
+        A callable that computes the value of the pre-deploy constant.
+
+    Returns
+    -------
+    The value of the pre-deploy constant.
+
+    Examples
+    --------
+
+    # You could place this in your experiment.py file.
+    >>> data_files = pre_deploy_constant("data_files", os.listdir("data"))
+    """
+    assert callable(
+        func
+    ), "The func argument must be a callable (e.g. lambda: os.listdir('data'))."
+    key = serialize(key)
+
+    try:
+        return _pre_deploy_constant_registry[key]
+    except KeyError:
+        if not in_deployment_package():
+            value = func()
+            _pre_deploy_constant_registry[key] = value
+            return value
+        else:
+            raise ValueError(f"Failed to find a value for pre-deploy constant {key}.")
+
+
+def _read_pre_deploy_constant_registry():
+    with open(".deploy/pre_deploy_constant_registry.json", "r") as f:
+        return unserialize(f.read())
+
+
+def _write_pre_deploy_constant_registry():
+    global _pre_deploy_constant_registry
+    os.makedirs(".deploy", exist_ok=True)
+    with open(".deploy/pre_deploy_constant_registry.json", "w") as f:
+        f.write(serialize(_pre_deploy_constant_registry))
+
+
+if in_deployment_package():
+    _pre_deploy_constant_registry = _read_pre_deploy_constant_registry()
+else:
+    _pre_deploy_constant_registry = {}
