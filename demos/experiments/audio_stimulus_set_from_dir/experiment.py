@@ -1,6 +1,7 @@
 import random
 
 import psynet.experiment
+from psynet.asset import Asset
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage
 from psynet.timeline import Timeline
@@ -32,7 +33,7 @@ class Exp(psynet.experiment.Experiment):
             id_="audio_practice",
             trial_class=CustomTrial,
             nodes=compile_nodes_from_directory(
-                input_dir="input/practice", media_ext=".wav", node_class=StaticNode
+                input_dir="data/practice", media_ext=".wav", node_class=StaticNode
             ),
             target_n_participants=0,
             recruit_mode="n_participants",
@@ -44,7 +45,7 @@ class Exp(psynet.experiment.Experiment):
             id_="audio_experiment",
             trial_class=CustomTrial,
             nodes=compile_nodes_from_directory(
-                input_dir="input/experiment", media_ext=".wav", node_class=StaticNode
+                input_dir="data/experiment", media_ext=".wav", node_class=StaticNode
             ),
             target_n_participants=10,
             recruit_mode="n_participants",
@@ -54,3 +55,9 @@ class Exp(psynet.experiment.Experiment):
             ),
         ),
     )
+
+    def test_experiment(self):
+        super().test_experiment()
+
+        assert Asset.query.filter_by(module_id="audio_practice").count() == 2
+        assert Asset.query.filter_by(module_id="audio_experiment").count() == 11

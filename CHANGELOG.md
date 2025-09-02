@@ -18,6 +18,8 @@
 
 ## Changed
 - CI now requires merge requests to provide corresponding entries in CHANGELOG.md.
+- Updated `audio_stimulus_set_from_dir` functionality to support lazy evaluation and hence work better for large
+  stimulus sets. See updated documentation for details.
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
