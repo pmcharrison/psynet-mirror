@@ -1,4 +1,11 @@
 # pylint: disable=abstract-method
+
+from typing import TYPE_CHECKING, Type
+
+if TYPE_CHECKING:
+    from psynet.asset import Asset
+    from psynet.trial.main import TrialNode
+
 import inspect
 import json
 import random
@@ -2511,7 +2518,12 @@ class Module(EltCollection):
     state_class = ModuleState  # type: Type[ModuleState]
 
     def __init__(
-        self, id_: str = None, *args, assets=None, nodes=None, state_class=None
+        self,
+        id_: str = None,
+        *args,
+        assets: Union[None, Callable, dict[str, "Asset"], list["Asset"]] = None,
+        nodes: Union[None, list["TrialNode"]] = None,
+        state_class: Optional[Type["ModuleState"]] = None,
     ):
         elts = join(*args)
 
@@ -2524,27 +2536,12 @@ class Module(EltCollection):
         self.elts = elts if elts is not None else self.default_elts
         self.nodes = nodes if nodes else []
 
-        if assets is None:
-            self._staged_assets = []
-        elif isinstance(assets, dict):
-            self._staged_assets = []
-            for _key_within_module, _asset in assets.items():
-                _asset.key_within_module = _key_within_module
-                self._staged_assets.append(_asset)
-        else:
-            assert isinstance(assets, list)
-            self._staged_assets = assets
+        self._assets = assets  # Stores the literal input from the constructor
+        self._staged_assets = (
+            None  # Will store the unpacked collection of assets in due course
+        )
 
         self.state_class = state_class if state_class else self.__class__.state_class
-
-        from psynet.asset import Asset
-
-        for elt in self.elts:
-            if isinstance(elt, Asset):
-                self._staged_assets.append(elt)
-
-        for asset in self._staged_assets:
-            asset.module_id = self.id
 
         for node in self.nodes:
             if node.module_id is not None and node.module_id != self.id:
@@ -2567,9 +2564,43 @@ class Module(EltCollection):
         self.nodes_stage_assets(experiment)
 
     def prepare_assets_for_deployment(self, experiment):
+        self._compile_staged_assets()
         for asset in self._staged_assets:
             experiment.assets.stage(asset)
         db.session.commit()
+
+    def _compile_staged_assets(self):
+        # self._assets stores the literal input from the constructor
+        # _compile_staged_assets processes self._assets, evaluating callables,
+        # providing keys to the assets as appropriate, and storing the result in self._staged_assets.
+        from psynet.asset import Asset
+
+        # Evaluate the callable (if applicable)
+        if callable(self._assets):
+            assets = self._assets()
+        else:
+            assets = self._assets
+
+        # Unpack the assets into a list of Asset objects
+        if assets is None:
+            self._staged_assets = []
+        elif isinstance(assets, dict):
+            self._staged_assets = []
+            for _key_within_module, _asset in assets.items():
+                _asset.key_within_module = _key_within_module
+                self._staged_assets.append(_asset)
+        else:
+            assert isinstance(assets, list)
+            self._staged_assets = assets
+
+        # Add any assets that are defined within the module's timeline logic
+        for elt in self.elts:
+            if isinstance(elt, Asset):
+                self._staged_assets.append(elt)
+
+        # Add the module ID to each asset
+        for asset in self._staged_assets:
+            asset.module_id = self.id
 
     def deposit_assets_on_the_fly(self):
         assets_to_deposit = [

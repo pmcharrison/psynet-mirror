@@ -3,6 +3,8 @@
 ## Added
 - Added `get_timeline` method as an alternative way to specify the experiment timeline.
   This allows users to put the timeline logic at the beginning of the experiment.py file, enhancing readability.
+- Added 'Audio Similarity' demo experiment.
+- Modules and trial makers now accept callables for the `assets` argument, which is helpful for experiments using local file assets.
 
 ## Fixed
 - Fixed bug that was preventing `psynet simulate` from running.
