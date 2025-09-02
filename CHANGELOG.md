@@ -24,6 +24,9 @@
 - Improved the landing page that users are shown when they navigate to the experiment's base URL.
 
 
+## Changed
+- `AudioPrompt` has had the default play control label renamed from 'Play from start' to just 'Play'.
+
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
 ## Fixed

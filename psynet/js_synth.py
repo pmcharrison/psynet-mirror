@@ -441,7 +441,7 @@ class JSSynth(BaseAudioPrompt):
         Whether to give the user playback controls, and which controls (default = ``False``).
         Accepts either a boolean or an iterable (dictionary, set, list).
         False results in no controls being displayed.
-        True results in all controls being displayed (Play from start, Stop, Loop).
+        True results in all controls being displayed (Play, Stop, Loop).
         An iterable can be used to select specific controls to display. A list, set, or dictionary with
         empty values will use standard labels. Custom labels can be specified as the dictionary values.
         A boolean, set, or list will result in automatically translated button labels if using translation.
