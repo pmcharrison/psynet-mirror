@@ -6,8 +6,10 @@ from psynet.experiment import pre_deploy_constant
 from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, PageMaker, Timeline
 
-local_machine_cwd = pre_deploy_constant("local_machine_cwd", lambda: os.getcwd())
+# PsyNet does not include the 'data' directory in the deployment package,
+# so we need to create a pre-deploy constant for lists of data files.
 data_files = pre_deploy_constant("data_files", lambda: sorted(os.listdir("data")))
+local_machine_cwd = pre_deploy_constant("local_machine_cwd", lambda: os.getcwd())
 
 
 class Exp(psynet.experiment.Experiment):

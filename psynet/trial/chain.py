@@ -26,7 +26,6 @@ from ..participant import Participant
 from ..sync import SyncGroup
 from ..timeline import is_list_of
 from ..utils import (
-    NoArgumentProvided,
     call_function_with_context,
     get_logger,
     log_time_taken,
@@ -1088,12 +1087,22 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     expected_trials_per_participant
         Expected number of trials that each participant will complete.
+        This can either be an integer, or the string ``"n_start_nodes"``,
+        which will be read as referring to the number of start nodes with
+        which the trial maker is initialized
+        (i.e. ``len(start_nodes)``, ``chains_per_experiment``,
+        or ``chains_per_participant`` as appropriate).
         This is used for timeline/progress estimation purposes.
 
     max_trials_per_participant
-        Maximum number of trials that each participant may complete;
+        Maximum number of trials that each participant may complete (optional);
         once this number is reached, the participant will move on
         to the next stage in the timeline.
+        This can either be an integer, or the string ``"n_start_nodes"``,
+        which will be read as referring to the number of start nodes with
+        which the trial maker is initialized
+        (i.e. ``len(start_nodes)``, ``chains_per_experiment``,
+        or ``chains_per_participant`` as appropriate).
 
     chains_per_participant
         Number of chains to be created for each participant;
@@ -1261,10 +1270,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         id_,
         trial_class: Type[ChainTrial],
         node_class: Type[ChainNode],
-        network_class: Type[ChainNetwork] = None,
+        network_class: Optional[Type[ChainNetwork]] = None,
         chain_type: str,
-        expected_trials_per_participant: int,
-        max_trials_per_participant: Optional[int] = NoArgumentProvided,
+        expected_trials_per_participant: int | str,
+        max_trials_per_participant: Optional[int | str] = None,
         max_trials_per_block: Optional[int] = None,
         max_nodes_per_chain: Optional[int] = None,
         chains_per_participant: Optional[int] = None,
@@ -1288,13 +1297,20 @@ class ChainTrialMaker(NetworkTrialMaker):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
     ):
-        if max_trials_per_participant == NoArgumentProvided:
-            max_trials_per_participant = None
-
         if network_class is None:
             network_class = self.default_network_class
 
         assert chain_type in ["within", "across"]
+
+        assert isinstance(expected_trials_per_participant, (int, float, str))
+        if isinstance(expected_trials_per_participant, str):
+            assert expected_trials_per_participant == "n_start_nodes"
+
+        assert max_trials_per_participant is None or isinstance(
+            max_trials_per_participant, (int, float, str)
+        )
+        if isinstance(max_trials_per_participant, str):
+            assert max_trials_per_participant == "n_start_nodes"
 
         if (
             chain_type == "across"
@@ -1347,6 +1363,38 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         self.start_nodes = start_nodes
 
+        if chain_type == "across":
+            # Using a pre-deploy constant allows us to count the nodes once on the local deployment machine,
+            # and use this same value on the deployed web server.
+            # This is helpful when using nodes generated from a directory, because this directory
+            # is not necessarily going to be available on the deployed web server.
+            from psynet.experiment import pre_deploy_constant
+
+            if chains_per_experiment is not None:
+                self.n_start_nodes = chains_per_experiment
+            else:
+                self.n_start_nodes = pre_deploy_constant(
+                    ("trial_maker", id_, "n_start_nodes"),
+                    lambda: self.count_start_nodes(),
+                )
+        else:
+            assert chain_type == "within"
+            if chains_per_participant is None and "n_start_nodes" in [
+                expected_trials_per_participant,
+                max_trials_per_participant,
+            ]:
+                raise ValueError(
+                    "Can't use 'n_start_nodes' parameter with within-participant chain trial-makers "
+                    "without specifying chains_per_participant."
+                )
+            self.n_start_nodes = chains_per_participant
+
+        if expected_trials_per_participant == "n_start_nodes":
+            expected_trials_per_participant = self.n_start_nodes
+
+        if max_trials_per_participant == "n_start_nodes":
+            max_trials_per_participant = self.n_start_nodes
+
         # assert len(balance_strategy) <= 2
         # assert all([x in ["across", "within"] for x in balance_strategy])
 
@@ -1390,6 +1438,14 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
 
         self.check_initialization()
+
+    def count_start_nodes(self):
+        self.resolve_start_nodes()
+        return len(self.start_nodes)
+
+    def resolve_start_nodes(self):
+        if callable(self.start_nodes):
+            self.start_nodes = call_function_with_context(self.start_nodes)
 
     def check_initialization(self):
         pass
@@ -1596,13 +1652,9 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def create_networks_across(self, experiment):
         if self.start_nodes:
-            if callable(self.start_nodes):
-                nodes = call_function_with_context(
-                    self.start_nodes, experiment=experiment
-                )
-            else:
-                nodes = self.start_nodes
-                assert isinstance(nodes, list)
+            self.resolve_start_nodes()
+            nodes = self.start_nodes
+            assert isinstance(nodes, list)
             if self.chains_per_experiment:
                 assert len(nodes) == self.chains_per_experiment, (
                     f"Problem with trial maker {self.id}: "

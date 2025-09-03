@@ -127,7 +127,7 @@ def call_function_with_context(function, *args, **kwargs):
 
     requested = get_args(function)
 
-    if experiment == NoArgumentProvided:
+    if experiment == NoArgumentProvided and "experiment" in requested:
         from .experiment import get_experiment
 
         experiment = get_experiment()

@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
-from ..utils import NoArgumentProvided, deep_copy, get_logger
+from ..utils import deep_copy, get_logger
 from .main import Trial
 
 logger = get_logger()
@@ -128,11 +128,15 @@ class StaticTrialMaker(ChainTrialMaker):
     expected_trials_per_participant
         Expected number of trials that each participant will complete.
         This is used for timeline/progress estimation purposes.
+        This can either be an integer, or the string ``"n_nodes"``,
+        which will be read as referring to the number of nodes in ``start_nodes``.
 
     max_trials_per_participant
-        Maximum number of trials that each participant may complete;
+        Maximum number of trials that each participant may complete (optional);
         once this number is reached, the participant will move on
         to the next stage in the timeline.
+        This can either be an integer, or the string ``"n_nodes"``,
+        which will be read as referring to the number of nodes in ``start_nodes``.
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
@@ -263,8 +267,8 @@ class StaticTrialMaker(ChainTrialMaker):
         id_: str,
         trial_class,
         nodes: Optional[Union[callable, List["StaticNode"]]],
-        expected_trials_per_participant: int,
-        max_trials_per_participant: Optional[int] = NoArgumentProvided,
+        expected_trials_per_participant: int | str,
+        max_trials_per_participant: Optional[int | str] = None,
         recruit_mode: Optional[str] = None,
         target_n_participants: Optional[int] = None,
         target_trials_per_node: Optional[int] = None,
@@ -289,16 +293,32 @@ class StaticTrialMaker(ChainTrialMaker):
         # if active_balancing_across_participants:
         #     balance_strategy.add("across")
 
+        assert isinstance(expected_trials_per_participant, (int, float, str))
+        if isinstance(expected_trials_per_participant, str):
+            assert expected_trials_per_participant == "n_nodes"
+            expected_trials_per_participant = (
+                "n_start_nodes"  # form expected by ChainTrialMaker
+            )
+
+        assert max_trials_per_participant is None or isinstance(
+            max_trials_per_participant, (int, float, str)
+        )
+        if isinstance(max_trials_per_participant, str):
+            assert max_trials_per_participant == "n_nodes"
+            max_trials_per_participant = (
+                "n_start_nodes"  # form expected by ChainTrialMaker
+            )
+
         if callable(nodes):
             if expected_trials_per_participant is None:
                 raise ValueError(
                     "If nodes is a function, expected_trials_per_participant must be explicitly provided."
                 )
-            chains_per_experiment = None
         else:
             assert isinstance(nodes, list)
             if (
-                expected_trials_per_participant > len(nodes)
+                isinstance(expected_trials_per_participant, (int, float))
+                and expected_trials_per_participant > len(nodes)
                 and not allow_repeated_nodes
             ):
                 raise ValueError(
@@ -306,7 +326,13 @@ class StaticTrialMaker(ChainTrialMaker):
                     f"may not exceed len(nodes) ({len(nodes)}) "
                     "unless allow_repeated_nodes = True."
                 )
-            chains_per_experiment = len(nodes)
+            # We used to set chains_per_experiment to len(nodes) here, but this is
+            # problematic if the nodes are generated from a function, because that
+            # function has not yet been called. On reflection, it seems unnecessary to
+            # set chains_per_experiment at all if start_nodes is being provided explicitly.
+            # chains_per_experiment = len(nodes)
+
+        chains_per_experiment = None
 
         if allow_repeated_nodes:
             assert (

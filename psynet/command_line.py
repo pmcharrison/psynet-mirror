@@ -634,7 +634,6 @@ def _run_bot(real_time, dashboard_user, dashboard_password):
     from .experiment import get_experiment
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
-    os.environ["DEPLOYMENT_PACKAGE"] = "True"
 
     import logging
 
