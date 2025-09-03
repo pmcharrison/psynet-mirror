@@ -2,6 +2,7 @@ import logging
 import os
 import subprocess
 import tempfile
+import time
 from datetime import datetime
 from math import isnan
 from unittest.mock import patch
@@ -12,6 +13,7 @@ from psynet.pytest_psynet import path_to_demo_experiment
 from psynet.timeline import Module
 from psynet.utils import (
     DuplicateKeyError,
+    TimeoutException,
     check_todos_before_deployment,
     corr,
     get_authenticated_session,
@@ -28,6 +30,7 @@ from psynet.utils import (
     merge_dicts,
     organize_by_key,
     safe,
+    timeout,
     working_directory,
 )
 
@@ -413,3 +416,22 @@ def test_get_authenticated_session_allows_dashboard_access(launched_experiment):
     resp = session.get(f"{base_url}/dashboard/index")
     assert resp.status_code == 200
     assert "Config" in resp.text or "configuration" in resp.text
+
+
+def test_timeout_decorator_raises_on_timeout():
+    @timeout(seconds=1)
+    def slow_func():
+        time.sleep(2)
+        return "done"
+
+    with pytest.raises(TimeoutException):
+        slow_func()
+
+
+def test_timeout_decorator_returns_normally():
+    @timeout(seconds=2)
+    def fast_func():
+        time.sleep(0.5)
+        return "done"
+
+    assert fast_func() == "done"

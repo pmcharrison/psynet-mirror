@@ -124,6 +124,7 @@ from .utils import (
     safe,
     serialise,
     suppress_stdout,
+    timeout,
     working_directory,
 )
 
@@ -1668,6 +1669,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return html
 
     @scheduled_task("interval", minutes=1, max_instances=1)
+    @timeout(seconds=30)
     @staticmethod
     @with_transaction
     def check_database():
@@ -1678,6 +1680,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             c.run()
 
     @scheduled_task("interval", minutes=1, max_instances=1)
+    @timeout(seconds=60)
     @staticmethod
     @with_transaction
     def run_recruiter_checks():
@@ -1691,6 +1694,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @scheduled_task("interval", seconds=2, max_instances=1)
     @log_time_taken
+    @timeout(seconds=10)
     @staticmethod
     @with_transaction
     def _grow_networks():
@@ -1741,6 +1745,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
+    @timeout(seconds=10)
     @staticmethod
     @with_transaction
     def _check_barriers():
@@ -1781,6 +1786,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken
+    @timeout(seconds=10)
     @staticmethod
     @with_transaction
     def _check_sync_groups():
