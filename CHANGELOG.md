@@ -19,6 +19,7 @@
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
 - Fixed bug in pgbadger workflow in CI.
 - Fixed bug in `in_deployment_package` helper function.
+- Removed `Trial.contents` setter/getter which was causing problems with upcoming Dallinger dashboard changes.
 
 # Changed
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
