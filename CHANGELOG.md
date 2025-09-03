@@ -12,6 +12,7 @@
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
 - Fixed bug in pgbadger workflow in CI.
+- Removed `Trial.contents` setter/getter which was causing problems with upcoming Dallinger dashboard changes.
 
 ## Added
 - Added adblocker note to 'Are you ready to continue?' message.
