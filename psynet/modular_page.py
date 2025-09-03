@@ -3880,6 +3880,16 @@ class SurveyJSControl(Control):
             }
             """
         )
+        if self.use_psynet_next_button:
+            # We wait to show the next button until the SurveyJS survey has loaded,
+            # to avoid content moving around during page load.
+            css.append(
+                """
+                #next-button {
+                    visibility: hidden;
+                }
+                """
+            )
 
         if not self.show_required_marks:
             # We should be able to use design["requiredMark"] but maybe this is not
@@ -3907,6 +3917,14 @@ class SurveyJSControl(Control):
         #         """
         #     )
         return css
+
+    def update_events(self, events):
+        super().update_events(events)
+        if self.use_psynet_next_button:
+            events["showNextButton"] = Event(
+                is_triggered_by="trialConstruct",
+                js="$('#next-button').css('visibility', 'visible');",
+            )
 
 
 class MultiRatingControl(SurveyJSControl):
