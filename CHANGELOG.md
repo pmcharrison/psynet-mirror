@@ -5,6 +5,12 @@
   This allows users to put the timeline logic at the beginning of the experiment.py file, enhancing readability.
 - Added 'Audio Similarity' demo experiment.
 - Modules and trial makers now accept callables for the `assets` argument, which is helpful for experiments using local file assets.
+- It is now possible to write `expected_trials_per_participant="n_nodes"` and `max_trials_per_participant="n_nodes"`
+  in StaticTrialMakers. In such cases, `n_nodes` will be taken as referring to the number of
+  start nodes with which the trial maker was initialized. This is particularly helpful for stimulus sets generated
+  programmatically by listing files in directories.
+  Analogous functionality is available in ChainTrialMakers using the term `n_start_nodes`.
+- Added adblocker note to 'Are you ready to continue?' message.
 
 ## Fixed
 - Fixed bugs in `psynet simulate`.
@@ -12,22 +18,15 @@
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
 - Fixed bug in pgbadger workflow in CI.
+- Fixed bug in `in_deployment_package` helper function.
 
-## Added
-- Added adblocker note to 'Are you ready to continue?' message.
 # Changed
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
   about version changes in Dallinger.
-
-## Changed
 - CI now requires merge requests to provide corresponding entries in CHANGELOG.md.
 - Updated `audio_stimulus_set_from_dir` functionality to support lazy evaluation and hence work better for large
   stimulus sets. See updated documentation for details.
-## Changed
 - Improved the landing page that users are shown when they navigate to the experiment's base URL.
-
-
-## Changed
 - `AudioPrompt` has had the default play control label renamed from 'Play from start' to just 'Play'.
 - Added `pre_deploy_constant`, a mechanism for specifying constants that are computed once in the pre-deploy phase
   (i.e. on the experimenter's local machine), with this value then propagating to the deployed web app.

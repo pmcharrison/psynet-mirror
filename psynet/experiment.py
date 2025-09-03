@@ -1321,7 +1321,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
-        os.environ["DEPLOYMENT_PACKAGE"] = "True"
 
         if self.test_mode == "serial" or self.test_n_bots == 1:
             self._test_experiment_serial()
@@ -4413,7 +4412,7 @@ def assert_config_txt_does_not_contain_sensitive_values():
 
 
 def in_deployment_package():
-    return bool(os.getenv("DEPLOYMENT_PACKAGE") or os.path.exists("DEPLOYMENT_PACKAGE"))
+    return os.path.exists("DEPLOYMENT_PACKAGE")
 
 
 def authenticate(auth, config):
@@ -4463,9 +4462,9 @@ def pre_deploy_constant(key, func: callable):
     ----------
     key : str
         The key of the pre-deploy constant. If it's not a string, it will be converted to one
-        using ``psynet.serialize.serialize``
+        using ``psynet.serialize.serialize``.
     func : callable
-        A callable that computes the value of the pre-deploy constant.
+        A callable that computes and returns the value of the pre-deploy constant.
 
     Returns
     -------
@@ -4474,8 +4473,8 @@ def pre_deploy_constant(key, func: callable):
     Examples
     --------
 
-    # You could place this in your experiment.py file.
-    >>> data_files = pre_deploy_constant("data_files", os.listdir("data"))
+    # You could place this in your experiment.py file to list the files in the ``data`` directory.
+    >>> data_files = pre_deploy_constant("data_files", sorted(os.listdir("data")))
     """
     assert callable(
         func
@@ -4490,7 +4489,13 @@ def pre_deploy_constant(key, func: callable):
             _pre_deploy_constant_registry[key] = value
             return value
         else:
-            raise ValueError(f"Failed to find a value for pre-deploy constant {key}.")
+            raise ValueError(
+                f"Failed to find a value for pre-deploy constant {key}. "
+                "If you defined this constant yourself, "
+                f"please ensure that pre_deploy_constant('{key}', func) is placed "
+                "somewhere in ``experiment.py`` such that it will be run when the file is loaded "
+                "(e.g., don't put it within a CodeBlock.)"
+            )
 
 
 def _read_pre_deploy_constant_registry():
