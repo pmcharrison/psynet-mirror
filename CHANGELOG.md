@@ -5,6 +5,7 @@
   This allows users to put the timeline logic at the beginning of the experiment.py file, enhancing readability.
 - Added 'Audio Similarity' demo experiment.
 - Modules and trial makers now accept callables for the `assets` argument, which is helpful for experiments using local file assets.
+- Added timeout funtionality for some scheduled tasks.
 
 ## Fixed
 - Fixed bugs in `psynet simulate`.
