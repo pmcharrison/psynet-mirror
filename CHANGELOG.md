@@ -11,6 +11,8 @@
   programmatically by listing files in directories.
   Analogous functionality is available in ChainTrialMakers using the term `n_start_nodes`.
 - Added adblocker note to 'Are you ready to continue?' message.
+- Added timeout funtionality for some scheduled tasks.
+- Added automatic timeout functionality to the CI tests to help debug stuck tasks.
 
 ## Fixed
 - Fixed bugs in `psynet simulate`.
