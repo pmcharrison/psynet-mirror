@@ -1,6 +1,8 @@
 CI_NODE_TOTAL=${CI_NODE_TOTAL:=1}
 CI_NODE_INDEX=${CI_NODE_INDEX:=1}
 
+TIMEOUT_SECONDS=300
+
 echo "Running tests on node $CI_NODE_INDEX of $CI_NODE_TOTAL"
 
 echo "Installing CI dependencies..."
@@ -21,7 +23,7 @@ EXIT_CODE=0
 for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing experiment $file"
   # We use -Werror to ensure that we see all warnings as errors
-  pytest --junitxml=/public/$(basename $file)_junit.xml $file/test.py -Werror -q -o log_cli=False --chrome
+  pytest --junitxml=/public/$(basename $file)_junit.xml $file/test.py -Werror -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS
   if [ $? -ne 0 ]; then
     EXIT_CODE=1
   fi
@@ -30,7 +32,7 @@ done
 for file in $(psynet list-isolated-tests --ci-node-total $CI_NODE_TOTAL --ci-node-index $CI_NODE_INDEX); do
   echo "Testing isolated test $file"
   # We use -Werror to ensure that we see all warnings as errors
-  pytest $file -Werror -q -o log_cli=False --chrome
+  pytest $file -Werror -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS
   if [ $? -ne 0 ]; then
     EXIT_CODE=1
   fi
