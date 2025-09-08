@@ -47,11 +47,11 @@ def new_example(
             (phase = <strong id="phase">NA</strong>, random wrap = <strong id="random-wrap">NA</strong>)
         </p>
         <p>
-            Just played <strong id="slider-audio">NA</strong>
+            Closest audio: <strong id="slider-audio">NA</strong>
         </p>
         <script>
             update_value = function() {{
-                document.getElementById("slider-audio").innerHTML = slider.audio;
+                document.getElementById("slider-audio").innerHTML = findClosestMedia(slider);
                 document.getElementById("slider-raw-value").innerHTML = parseFloat(slider.getAttribute("raw-value")).toFixed(2);
                 document.getElementById("slider-output-value").innerHTML = parseFloat(slider.getAttribute("output-value")).toFixed(2);
                 document.getElementById("phase").innerHTML = parseFloat(slider.getAttribute("phase")).toFixed(2);

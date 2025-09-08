@@ -13,7 +13,7 @@
 - Added automatic timeout functionality to the CI tests to help debug stuck tasks.
 
 ## Fixed
-- Fixed bugs in `psynet simulate`.
+- Fixed bugs that were preventing `psynet simulate` from running.
 - Improved error message for `check_dallinger_version`.
 - Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
 - Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
@@ -21,6 +21,7 @@
 - Fixed bug in `in_deployment_package` helper function.
 - Removed `Trial.contents` setter/getter which was causing problems with upcoming Dallinger dashboard changes.
 - Fixed layout jumping bug in `SurveyJSControl`.
+- Fixed a few bugs that were causing `MediaSliderControl` to fail to initialize properly in some cases.
 
 # Changed
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive

@@ -1,4 +1,3 @@
-import itertools
 import json
 import random
 import shutil
@@ -2574,6 +2573,9 @@ class MediaSliderControl(SliderControl):
         if modality not in EXTENSIONS.keys():
             raise NotImplementedError(f"Modality not implemented: {modality}")
 
+        # Deals with the case where the values are numpy numbers
+        media_locations = {k: float(v) for k, v in media_locations.items()}
+
         if isinstance(n_steps, str):
             if n_steps == "n_media":
                 n_steps = len(media_locations)
@@ -2592,7 +2594,9 @@ class MediaSliderControl(SliderControl):
         IDs_media = []
         for key, value in slider_media.items():
             if isinstance(slider_media[key], dict) and "ids" in slider_media[key]:
-                IDs_media.append(slider_media[key]["ids"])
+                ids = slider_media[key]["ids"]
+                assert isinstance(ids, list)
+                IDs_media += ids
             elif isinstance(slider_media[key], str):
                 assert any(
                     [value.lower().endswith(ext) for ext in EXTENSIONS[modality]]
@@ -2602,11 +2606,12 @@ class MediaSliderControl(SliderControl):
                 raise NotImplementedError(
                     "Currently we only support batch files or single files"
                 )
-        IDs_media = list(itertools.chain.from_iterable(IDs_media))
 
-        if not any([i in IDs_media for i in IDs_media_locations]):
+        missing = [i for i in IDs_media_locations if i not in IDs_media]
+        if missing:
             raise ValueError(
-                "All stimulus IDs you specify in `media_locations` need to be defined in `media` too."
+                "All stimulus IDs you specify in `media_locations` need to be defined in `media` too. "
+                f"Missing: {missing}"
             )
 
         if disable_while_playing:
