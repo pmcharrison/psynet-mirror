@@ -11,7 +11,7 @@ from psynet.pytest_psynet import (
     click_finish_button,
     next_page,
     path_to_test_experiment,
-    psynet_loaded,
+    psynet_ready,
     wait_until,
 )
 from psynet.utils import log_pexpect_errors
@@ -43,7 +43,7 @@ class TestExp(object):
             driver = bot.driver
 
             wait_until(
-                psynet_loaded,
+                psynet_ready,
                 max_wait=5.0,
                 error_message="Page never became ready.",
                 driver=driver,

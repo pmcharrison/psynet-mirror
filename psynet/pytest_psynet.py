@@ -207,19 +207,14 @@ def page_loaded(driver):
     return driver.execute_script("return document.readyState == 'complete'")
 
 
-def psynet_loaded(driver):
-    psynet_loaded = driver.execute_script(
-        "try { return psynet != undefined } catch(e) { if (e instanceof ReferenceError) { return false }}"
+def psynet_ready(driver):
+    return driver.execute_script(
+        """
+        if (typeof psynet === 'undefined' || !psynet) { return false; }
+        if (!psynet.pageLoaded) { return false; }
+        return psynet.trial.events.responseEnable.happened;
+        """
     )
-    if psynet_loaded:
-        page_loaded = driver.execute_script("return psynet.pageLoaded")
-        if page_loaded:
-            response_enabled = driver.execute_script(
-                "return psynet.trial.events.responseEnable.happened"
-            )
-            if response_enabled:
-                return True
-    return False
 
 
 def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0):
@@ -231,7 +226,7 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
         button.click()
 
     wait_until(
-        psynet_loaded,
+        psynet_ready,
         max_wait=max_wait,
         error_message="Page never became ready.",
         driver=driver,
@@ -252,7 +247,7 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             )
 
         wait_until(
-            lambda: psynet_loaded(driver) and get_uuid() != old_uuid,
+            lambda: psynet_ready(driver) and get_uuid() != old_uuid,
             max_wait=max_wait,
             error_message="Failed to load new page.",
         )

@@ -22,6 +22,8 @@
 - Removed `Trial.contents` setter/getter which was causing problems with upcoming Dallinger dashboard changes.
 - Fixed layout jumping bug in `SurveyJSControl`.
 - Fixed a few bugs that were causing `MediaSliderControl` to fail to initialize properly in some cases.
+- Updated `psynet_ready` Selenium helper function (previously called `psynet_loaded`) to use just one
+  atomic JS call, hopefully thereby avoiding a race condition that caused occasional CI failures.
 
 # Changed
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
