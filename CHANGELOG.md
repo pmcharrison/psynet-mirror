@@ -22,6 +22,7 @@
 - Removed `Trial.contents` setter/getter which was causing problems with upcoming Dallinger dashboard changes.
 - Fixed layout jumping bug in `SurveyJSControl`.
 - Fixed a few bugs that were causing `MediaSliderControl` to fail to initialize properly in some cases.
+- Improved Chrome driver management in pytest_psynet.py.
 
 # Changed
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive

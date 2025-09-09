@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 import warnings
@@ -188,9 +189,11 @@ def bot_class(headless=None):
             from selenium.webdriver.chrome.options import Options
 
             chrome_options = Options()
-            chrome_options.add_argument("--remote-debugging-port=9222")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--no-sandbox")
+
+            user_data_dir = tempfile.mkdtemp(prefix="psynet-chrome-")
+            chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
             if headless:
                 chrome_options.add_argument("--headless")
