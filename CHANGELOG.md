@@ -1,6 +1,11 @@
 # CHANGELOG
 
 ## Added
+- Added `psynet.debugger()` for creating breakpoints in VSCode/Cursor (see [docs](https://psynetdev.gitlab.io/PsyNet/experiment_development/development_workflow.html#breakpoints)).
+- Added debugger and GitHub Actions configuration files to experiment scripts.
+- Added `get_timeline` method as an alternative way to specify the experiment timeline
+  (see audio demo for an example).
+  This allows users to put the timeline logic at the beginning of the experiment.py file, enhancing readability.
 - Added 'Audio Similarity' demo experiment.
 - Modules and trial makers now accept callables for the `assets` argument, which is helpful for experiments using local file assets.
 - It is now possible to write `expected_trials_per_participant="n_nodes"` and `max_trials_per_participant="n_nodes"`
