@@ -97,62 +97,20 @@ Breakpoints are an essential tool for debugging experiments. They allow you to d
 the Python environment at a particular point in your code, inspect local variables,
 and try executing arbitrary code.
 
-If you are developing your experiment in PyCharm we recommend using the PyCharm debugger.
-We need to set this up in a particular way for it to work with PsyNet experiments,
-which make heavy use of subprocesses, which cannot easily be accessed using standard
-PyCharm breakpoints.
+Setting breakpoints in PsyNet is a little bit more complicated that setting breakpoints
+in simple Python scripts. This is because PsyNet makes heavy use of subprocesses,
+which cannot easily be accessed using standard IDE breakpoints.
+Nonetheless, with a little of extra work, we can achieve the same functionality.
 
-To set up the PyCharm debugger for Psynet, click Run, then Edit Configurations. Click + (Add new configuration), then
-click Python debug server.
+If you are using VSCode/Cursor, we recommend using the ``psynet.debugger()`` function,
+documented below:
 
-**Virtual environment users only**: enter 'Python debug server' as the configuration name, and ``localhost``
-as the IDE host name, and ``12345`` as the port. Install the pydevd_pycharm package by
-following the provided instructions on the New Configuration panel (copy them and run them in your terminal).
-
-**Docker users only**: enter 'Dockerized Python debug server' as the configuration name, and ``host.docker.internal``
-as the IDE host name, and ``12345`` as the port.
-
-Now to insert a breakpoint, select ‘[Dockerized] Python debug server’ from the dropdown in the top right of your screen,
-then click the green bug symbol. This will start your debug server. You will see some instructions printed in
-your console that look something like this:
-
-.. code:: bash
-
-    Starting debug server at port 12345
-    Use the following code to connect to the debugger:
-    import pydevd_pycharm
-    pydevd_pycharm.settrace('host.docker.internal', port=12345, stdoutToServer=True, stderrToServer=True)
-    Waiting for process connection...
-
-Copy and paste the two Python lines into the part of your code where you want to have the breakpoint.
-
-.. code:: bash
-
-    import pydevd_pycharm
-    pydevd_pycharm.settrace('host.docker.internal', port=12345, stdoutToServer=True, stderrToServer=True)
-
-Now run your PsyNet debug command as usual:
-
-.. code:: bash
-
-    psynet debug local  # virtual environment users
-    bash docker/psynet debug local  # Docker users
-
-Once PsyNet hits the breakpoint, your debug console should be activated. You should now be able to access the local
-environment and execute arbitrary code.
+.. autofunction:: psynet.debugger
 
 .. note::
 
-    You may be aware that PyCharm provides an alternative breakpoint functionality
-    where you simply click on the line number to create a breakpoint.
-    It would be great if this worked with PsyNet, but unfortunately due to a
-    PyCharm bug it doesn't work for us.
-    See https://youtrack.jetbrains.com/issue/PY-60474 for more details.
-
-.. note::
-
-    If you cannot use the PyCharm debug server then there are some other similar options available.
-    One option is the rpdb package (https://pypi.org/project/rpdb/).
+    If the above options don't work for you, you can fall back to a simpler option,
+    the rpdb package (https://pypi.org/project/rpdb/).
     To use this with a virtual environment, you need first to install it with ``pip install rpdb``.
     To insert a breakpoint, you put the following code in your Python script:
 

@@ -2322,6 +2322,9 @@ def update_scripts_():
     """
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
+    Path(".vscode").mkdir(exist_ok=True)
+    Path(".github/workflows").mkdir(parents=True, exist_ok=True)
+
     files_to_copy = [
         ".gitignore",
         ".dockerignore",
@@ -2330,6 +2333,8 @@ def update_scripts_():
         "__init__.py",
         "pytest.ini",
         "test.py",
+        ".github/workflows/test.yml",
+        ".vscode/launch.json",
     ]
     for file in files_to_copy:
         click.echo(f"...updating {file}.")

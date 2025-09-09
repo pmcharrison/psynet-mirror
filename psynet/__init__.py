@@ -1,8 +1,10 @@
 # Filter out the forkpty deprecation warning; apparently this is not something
 # we need to worry about (see https://github.com/gevent/gevent/issues/2052).
 import asyncio
+import os
 import warnings
 
+import debugpy
 import dominate
 from dallinger.config import Configuration, experiment_available
 
@@ -49,3 +51,58 @@ def load(self, strict=True):
 
 
 Configuration.load = load
+
+
+os.environ["GEVENT_SUPPORT"] = "True"
+
+
+def debugger():
+    """
+    Create a breakpoint using debugpy.
+
+    Standard IDE breakpoints don't work out of the box with PsyNet because it makes
+    heavy use of subprocesses, which cannot easily be accessed using standard IDE breakpoints.
+    This function provides a breakpoint that should work well in these contexts,
+    specifically when running `psynet debug local`.
+    It uses debugpy, which is the default debugger for VSCode/Cursor.
+    The following instructions assume you are using one of these two IDEs.
+    If you are using PyCharm, you should use PyCharm's remote Python debugger instead.
+
+    Before you can use this functionality, you need to make sure your IDE workspace directory contains
+    an appropriate launch.json file. In VSCode/Cursor, this file should be placed in the .vscode directory.
+    We recommend the following:
+
+    .. code:: bash
+
+        {
+            "version": "0.2.0",
+            "configurations": [
+
+                {
+                    "name": "Breakpoints in psynet debug local",
+                    "type": "debugpy",
+                    "request": "attach",
+                    "connect": {
+                        "host": "localhost",
+                        "port": 5678
+                    },
+                    "pathMappings": [
+                        {
+                            "localRoot": "${env:PWD}",
+                            "remoteRoot": "/tmp/dallinger_develop"
+                        }
+                    ]
+                }
+            ]
+        }
+
+    Once you have this file, you simply place ``psynet.debugger()`` in the code where you want to create a breakpoint.
+    Once you run ``psynet debug local``, you should see a message in your console that says "Press F5 to start debugging".
+    Pressing F5 should start the debugger, and you should be able to debug your code as usual.
+    """
+    # 5678 is the default attach port in the VS Code debug configurations.
+    # Unless a host and port are specified, host defaults to 127.0.0.1
+    debugpy.listen(5678)
+    print("Press F5 to start debugging")
+    debugpy.wait_for_client()
+    debugpy.breakpoint()
