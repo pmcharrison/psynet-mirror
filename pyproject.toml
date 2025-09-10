@@ -51,7 +51,7 @@ dependencies = [
     "joblib",
     "jsonpickle",
     "pandas",
-    "paramiko<4.0.0",  # To remove once https://github.com/pahaz/sshtunnel/pull/300 is merged and released
+    "paramiko",
     "polib",
     "progress",
     "pytest",
