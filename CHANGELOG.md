@@ -29,7 +29,7 @@
 - Fixed a few bugs that were causing `MediaSliderControl` to fail to initialize properly in some cases.
 - Improved Chrome driver management in pytest_psynet.py.
 
-# Changed
+## Changed
 - `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
   about version changes in Dallinger.
 - CI now requires merge requests to provide corresponding entries in CHANGELOG.md.
@@ -39,6 +39,9 @@
 - `AudioPrompt` has had the default play control label renamed from 'Play from start' to just 'Play'.
 - Added `pre_deploy_constant`, a mechanism for specifying constants that are computed once in the pre-deploy phase
   (i.e. on the experimenter's local machine), with this value then propagating to the deployed web app.
+
+## Updated
+- Updated Dallinger to version 11.5.0. Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.4.0 and https://github.com/Dallinger/Dallinger/releases/tag/v11.5.0 (author: Frank Höger, reviewer: Peter Harrison)
 
 # [12.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v12.1.1) Release - 2025-07-15
 
