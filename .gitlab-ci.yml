@@ -60,7 +60,8 @@ changelog_check:
   script:
     - |
       git fetch --quiet origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-      if ! git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...HEAD | grep -q '^CHANGELOG.md$'; then
+      CHANGED_FILES=$(git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...$CI_COMMIT_SHA)
+      if ! echo "$CHANGED_FILES" | grep -q 'CHANGELOG.md'; then
         echo "ERROR: Merge requests must include a corresponding entry in CHANGELOG.md."
         exit 1
       fi
