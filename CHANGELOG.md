@@ -1,48 +1,50 @@
 # CHANGELOG
 
-## Added
-- Added `psynet.debugger()` for creating breakpoints in VSCode/Cursor (see [docs](https://psynetdev.gitlab.io/PsyNet/experiment_development/development_workflow.html#breakpoints)).
-- Added debugger and GitHub Actions configuration files to experiment scripts.
-- Added `get_timeline` method as an alternative way to specify the experiment timeline
-  (see audio demo for an example).
-  This allows users to put the timeline logic at the beginning of the experiment.py file, enhancing readability.
-- Added 'Audio Similarity' demo experiment.
-- Modules and trial makers now accept callables for the `assets` argument, which is helpful for experiments using local file assets.
-- It is now possible to write `expected_trials_per_participant="n_nodes"` and `max_trials_per_participant="n_nodes"`
-  in StaticTrialMakers. In such cases, `n_nodes` will be taken as referring to the number of
-  start nodes with which the trial maker was initialized. This is particularly helpful for stimulus sets generated
-  programmatically by listing files in directories.
-  Analogous functionality is available in ChainTrialMakers using the term `n_start_nodes`.
-- Added adblocker note to 'Are you ready to continue?' message.
-- Added timeout funtionality for some scheduled tasks.
-- Added automatic timeout functionality to the CI tests to help debug stuck tasks.
+# [13.0.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc1) Release candidate - 2025-09-18
 
-## Fixed
-- Fixed bugs that were preventing `psynet simulate` from running.
-- Improved error message for `check_dallinger_version`.
-- Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all.
-- Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors.
-- Fixed bug in pgbadger workflow in CI.
-- Fixed bug in `in_deployment_package` helper function.
-- Removed `Trial.contents` setter/getter which was causing problems with upcoming Dallinger dashboard changes.
-- Fixed layout jumping bug in `SurveyJSControl`.
-- Fixed a few bugs that were causing `MediaSliderControl` to fail to initialize properly in some cases.
-- Improved Chrome driver management in pytest_psynet.py.
+## Added
+- Added 'Audio Similarity' demo experiment (author: Peter Harrison, reviewer: Frank Höger)
+- It is now possible to write `expected_trials_per_participant="n_nodes"` and `max_trials_per_participant="n_nodes"`
+  in StaticTrialMakers. In such cases, `n_nodes` will be taken as referring to the number of start nodes with which the trial maker was initialized. This is particularly helpful for stimulus sets generated programmatically by listing files in directories. Analogous functionality is available in ChainTrialMakers using the term `n_start_nodes` (author: Peter Harrison, reviewer: Frank Höger)
+- Added adblocker note to 'Are you ready to continue?' message (author: Peter Harrison, reviewer: Frank Höger)
+- Added `psynet.debugger()` for creating breakpoints in VSCode/Cursor (see [docs](https://psynetdev.gitlab.io/PsyNet/experiment_development/development_workflow.html#breakpoints)) (author: Peter Harrison, reviewer: Frank Höger)
+- Added debugger and GitHub Actions configuration files to experiment scripts (author: Peter Harrison, reviewer: Frank Höger)
+- Added `get_timeline` method as an alternative way to specify the experiment timeline (see audio demo for an example). This allows users to put the timeline logic at the beginning of the experiment.py file, enhancing readability (author: Peter Harrison, reviewer: Frank Höger)
+- Added timeout funtionality for some scheduled tasks (author: Peter Harrison)
+- Added automatic timeout functionality to the CI tests to help debug stuck tasks (author: Peter Harrison)
+- Added 'Audio Similarity' demo experiment (author: Peter Harrison, reviewer: Frank Höger)
+- Modules and trial makers now accept callables for the `assets` argument, which is helpful for experiments using local file assets (author: Peter Harrison, reviewer: Frank Höger)
+- Added shell completion for `psynet` commands (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Changed
-- `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive
-  about version changes in Dallinger.
-- CI now requires merge requests to provide corresponding entries in CHANGELOG.md.
-- Updated `audio_stimulus_set_from_dir` functionality to support lazy evaluation and hence work better for large
-  stimulus sets. See updated documentation for details.
-- Improved the landing page that users are shown when they navigate to the experiment's base URL.
-- `AudioPrompt` has had the default play control label renamed from 'Play from start' to just 'Play'.
-- Added `pre_deploy_constant`, a mechanism for specifying constants that are computed once in the pre-deploy phase
-  (i.e. on the experimenter's local machine), with this value then propagating to the deployed web app.
+- Added `pre_deploy_constant`, a mechanism for specifying constants that are computed once in the pre-deploy phase (i.e. on the experimenter's local machine), with this value then propagating to the deployed web app (author: Peter Harrison, reviewer: Frank Höger)
+- `AudioPrompt` has had the default play control label renamed from 'Play from start' to just 'Play' (author: Peter Harrison, reviewer: Frank Höger)
+- Improved the landing page that users are shown when they navigate to the experiment's base URL (author: Peter Harrison, reviewer: Frank Höger)
+- Updated `audio_stimulus_set_from_dir` functionality to support lazy evaluation and hence work better for large stimulus sets. See updated documentation for details (author: Peter Harrison, reviewer: Frank Höger)
+- CI now requires merge requests to provide corresponding entries in CHANGELOG.md (author: Peter Harrison, reviewer: Frank Höger)
+- `check_dallinger_version` now defaults to `false`, meaning that PsyNet will be less aggressive about version changes in Dallinger (author: Peter Harrison)
+- Improved error message for `check_dallinger_version` (author: Peter Harrison)
+- Address recent Dallinger changes to `Experiment` initialization (author: Peter Harrison, reviewer: Frank Höger)
+- Renamed the 'Help' button to 'Comment' and removed previous help page text (author: Frank Höger, reviewer: Peter Harrison)
+
+## Fixed
+- Fixed bugs in `psynet simulate`. (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed a few bugs that were causing `MediaSliderControl` to fail to initialize properly in some cases (author: Peter Harrison, reviewer: Frank Höger)
+- Improved Chrome driver management in pytest_psynet.py (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed layout jumping bug in `SurveyJSControl` (author: Peter Harrison, reviewer: Frank Höger)
+- Removed `Trial.contents` setter/getter which was causing problems with upcoming Dallinger dashboard changes (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in `in_deployment_package` helper function (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in pgbadger workflow in CI (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in JSSynth stopAllAudio that was in some cases preventing the JSSynth from playing at all (author: Peter Harrison, reviewer: Raja Marjieh)
+- Fixed bug in `get_authenticated_session` that occasionally caused tests to fail with 'Connection reset by peer' errors (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Updated
-- Updated Dallinger to version 11.5.0. Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.4.0 and https://github.com/Dallinger/Dallinger/releases/tag/v11.5.0 (author: Frank Höger, reviewer: Peter Harrison)
-# [13.0.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc0) Release candidate - 2025-08-18
+- Updated Dallinger to version 11.5.1. Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.5.1 (author: Frank Höger, reviewer: Peter Harrison)
+
+## Documentation
+- Updated Prolific deployment documentation to reflect the new changes to Prolific payment processes (author: Peter Harrison, reviewer: Frank Höger)
+
+# [13.0.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc0) Release candidate - 2025-09-12
 
 ## Breaking changes
 - In Prolific recruitement the base payment is now subtracted from the bonus (see 'Partial payments in Prolific recruitment' in section 'Added' below)
@@ -99,7 +101,7 @@
   as a result, and this could apply also to experiments with custom implementations of this method (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Updated
-- Updated Dallinger to version 11.4.0. For more details see https://github.com/Dallinger/Dallinger/releases/tag/v11.4.0 (author: Frank Höger, reviewer: Peter Harrison)
+- Updated Dallinger to version 11.5.0. Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.4.0 and https://github.com/Dallinger/Dallinger/releases/tag/v11.5.0 (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Removed
 - Removed 'mock' dependency (author: Frank Höger, reviewer: Peter Harrison)
