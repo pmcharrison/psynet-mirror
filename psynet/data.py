@@ -9,7 +9,6 @@ from zipfile import ZipFile
 
 import dallinger.data
 import dallinger.models
-import postgres_copy
 import psutil
 import sqlalchemy
 from dallinger import db
@@ -27,6 +26,7 @@ from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
+from dallinger.postgres_copy import copy_from as postgres_copy_from
 from dallinger.utils import classproperty
 from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
@@ -780,7 +780,7 @@ def ingest_to_model(
         columns = tuple('"{}"'.format(n) for n in next(reader))
 
         with disable_foreign_key_constraints():
-            postgres_copy.copy_from(
+            postgres_copy_from(
                 file, model, engine, columns=columns, format="csv", HEADER=False
             )
 
