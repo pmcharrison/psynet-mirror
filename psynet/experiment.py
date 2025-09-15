@@ -32,7 +32,6 @@ import rpdb
 import sqlalchemy.orm.exc
 from click import Context
 from dallinger import db
-from dallinger.compat import unicode
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
 from dallinger.experiment import experiment_route, scheduled_task
@@ -2809,25 +2808,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def extra_parameters(cls):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
-        config.register("cap_recruiter_auth_token", unicode, sensitive=True)
+        config.register("cap_recruiter_auth_token", str, sensitive=True)
         config.register("check_dallinger_version", bool)
         config.register("check_participant_opened_devtools", bool)
-        config.register("currency", unicode)
-        config.register("default_translator", unicode)
+        config.register("currency", str)
+        config.register("default_translator", str)
         config.register("enable_google_search_console", bool)
-        config.register("google_translate_json_path", unicode, sensitive=True)
-        config.register("google_translate_project_id", unicode, sensitive=True)
+        config.register("google_translate_json_path", str, sensitive=True)
+        config.register("google_translate_project_id", str, sensitive=True)
         config.register("initial_recruitment_size", int)
-        config.register("openai_api_key", unicode, sensitive=True)
-        config.register("openai_default_model", unicode)
-        config.register("openai_default_temperature", unicode)
-        config.register("label", unicode)
-        config.register("locale", unicode)
-        config.register("lucid_api_key", unicode, sensitive=True)
-        config.register("lucid_recruitment_config", unicode)
-        config.register("lucid_sha1_hashing_key", unicode, sensitive=True)
+        config.register("openai_api_key", str, sensitive=True)
+        config.register("openai_default_model", str)
+        config.register("openai_default_temperature", str)
+        config.register("label", str)
+        config.register("locale", str)
+        config.register("lucid_api_key", str, sensitive=True)
+        config.register("lucid_recruitment_config", str)
+        config.register("lucid_sha1_hashing_key", str, sensitive=True)
         config.register("min_accumulated_reward_for_abort", float)
-        config.register("min_browser_version", unicode)
+        config.register("min_browser_version", str)
         config.register("show_abort_button", bool)
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
@@ -2851,16 +2850,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ), f"Locale {locale} not available in PsyNet."
 
         config.register(
-            "supported_locales", unicode, validators=[is_valid_json, is_valid_locale]
+            "supported_locales", str, validators=[is_valid_json, is_valid_locale]
         )
         config.register("force_google_chrome", bool)
         config.register("leave_comments_on_every_page", bool)
         config.register("force_incognito_mode", bool)
         config.register("allow_mobile_devices", bool)
-        config.register("notifier", unicode)
-        config.register("experimenter_name", unicode)
-        config.register("slack_channel_name", unicode)
-        config.register("slack_bot_token", unicode)
+        config.register("notifier", str)
+        config.register("experimenter_name", str)
+        config.register("slack_channel_name", str)
+        config.register("slack_bot_token", str)
         config.register("needs_internet_access", bool)
 
         def is_positive_float(value):
@@ -2892,7 +2891,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         def color_mode_validator(value):
             assert value in ["light", "dark", "auto"]
 
-        config.register("color_mode", unicode, validators=[color_mode_validator])
+        config.register("color_mode", str, validators=[color_mode_validator])
 
         config.register("prolific_enable_return_for_bonus", bool)
         config.register("prolific_enable_screen_out", bool)
