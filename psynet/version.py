@@ -10,7 +10,7 @@ from yaspin import yaspin
 psynet_version = "13.0.0rc0"
 
 # Bump Dallinger version by changing the line below
-dallinger_recommended_version = "11.5.0"
+dallinger_recommended_version = "11.5.1"
 
 
 def check_versions():
