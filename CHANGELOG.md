@@ -1,6 +1,7 @@
 # CHANGELOG
 
 # [13.0.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc1) Release candidate - 2025-09-18
+# [13.0.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc0) Release candidate - 2025-09-16
 
 ## Added
 - Added 'Audio Similarity' demo experiment (author: Peter Harrison, reviewer: Frank Höger)
@@ -101,7 +102,7 @@
   as a result, and this could apply also to experiments with custom implementations of this method (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Updated
-- Updated Dallinger to version 11.5.0. Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.4.0 and https://github.com/Dallinger/Dallinger/releases/tag/v11.5.0 (author: Frank Höger, reviewer: Peter Harrison)
+- Updated Dallinger to version 11.5.1. Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.4.0, https://github.com/Dallinger/Dallinger/releases/tag/v11.5.0, and https://github.com/Dallinger/Dallinger/releases/tag/v11.5.1 (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Removed
 - Removed 'mock' dependency (author: Frank Höger, reviewer: Peter Harrison)
