@@ -90,15 +90,12 @@ def post_update_constraints(dir, commit_hash_master):
             psynet_constraint = f"psynet=={__version__}"
 
         with fileinput.FileInput("constraints.txt", inplace=True) as file:
-            if current_branch == "master":
-                psynet_requirement = f"psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash_master}"
-            else:
-                psynet_requirement = (
-                    "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master"
-                )
-
             for line in file:
-                print(line.replace(psynet_requirement, psynet_constraint), end="")
+                # Replace any psynet git reference with the version number
+                if "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@" in line:
+                    print(line.replace(line.strip(), psynet_constraint), end="")
+                else:
+                    print(line, end="")
 
         with fileinput.FileInput("requirements.txt", inplace=True) as file:
             psynet_requirement = f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash_master}#egg=psynet"
