@@ -466,7 +466,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
     max_allowed_base_payment = 30
-    max_exp_dir_size_in_mb = 256
 
     timeline = Timeline(InfoPage("Placeholder timeline", time_estimate=5))
 
@@ -2194,12 +2193,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         size_in_mb = ExperimentFileSource(os.getcwd()).size / (1024**2)
         log(f"Experiment directory size: {round(size_in_mb, 3)} MB.")
 
-        if size_in_mb > cls.max_exp_dir_size_in_mb:
+        exp_max_size_in_mb = int(os.environ.get("EXP_MAX_SIZE_MB", "256"))
+
+        if size_in_mb > exp_max_size_in_mb:
             raise RuntimeError(
-                f"Your experiment source package exceeds the {cls.max_exp_dir_size_in_mb} MB limit. "
+                f"Your experiment source package exceeds the {exp_max_size_in_mb} MB limit. "
                 "Large packages are discouraged because they make deployment slow. You can override "
-                "this limit by setting `Experiment.max_exp_dir_size_in_mb` to a higher number in your "
-                "`Experiment` class. However, the recommended approach (assuming your large files are "
+                "this limit by setting the EXP_MAX_SIZE_MB environment variable. "
+                "However, the recommended approach (assuming your large files are "
                 "assets, such as audio or video files) is to use PsyNet's asset management system; "
                 "see https://psynetdev.gitlab.io/PsyNet/tutorials/assets.html for a tutorial. "
                 "Importantly, you should either move your large files outside the experiment folder, "

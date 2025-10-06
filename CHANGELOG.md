@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [13.0.0rc2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc2) Release candidate - 2025-10-XX
+
+## Changed
+- Replaced `max_exp_dir_size_in_mb` experiment variable with `EXP_MAX_SIZE_MB` environment variable (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.0.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc1) Release candidate - 2025-09-18
 
 ## Added
