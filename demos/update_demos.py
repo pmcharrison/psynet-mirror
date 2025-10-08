@@ -24,6 +24,7 @@ from joblib import Parallel, delayed
 import psynet.command_line
 from psynet import __version__
 from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
+from psynet.version import dallinger_recommended_version
 
 skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
 
@@ -91,11 +92,23 @@ def post_update_constraints(dir, commit_hash_master):
 
         with fileinput.FileInput("constraints.txt", inplace=True) as file:
             for line in file:
+                updated_line = line
+
                 # Replace any psynet git reference with the version number
-                if "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@" in line:
-                    print(line.replace(line.strip(), psynet_constraint), end="")
-                else:
-                    print(line, end="")
+                if "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@" in updated_line:
+                    updated_line = updated_line.replace(
+                        updated_line.strip(), psynet_constraint
+                    )
+
+                # Ensure Dallinger is pinned to the recommended version
+                # Matches e.g. "dallinger==11.5.2"
+                updated_line = re.sub(
+                    r"^dallinger==[^\s]+",
+                    f"dallinger=={dallinger_recommended_version}",
+                    updated_line,
+                )
+
+                print(updated_line, end="")
 
         with fileinput.FileInput("requirements.txt", inplace=True) as file:
             psynet_requirement = f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash_master}#egg=psynet"
