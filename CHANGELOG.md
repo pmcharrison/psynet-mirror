@@ -2,6 +2,9 @@
 
 ## Changed
 - `dallinger_recommended_version` now only specifies the minor Dallinger version (author: Frank Höger, reviewer: Peter Harrison)
+## Fixed
+- Fixed logic when deploying from archive by making sure `Experiment.pre_deploy` gets called omitting database generation and asset uploading while still creating the source code zip file (author: Frank Höger, reviewer: Peter Harrison)
+- Deleted _static/assets_ directory to exclude assets from the source code zip file (author: Frank Höger, reviewer: Peter Harrison)
 
 # [13.0.0rc2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc2) Release candidate - 2025-10-08
 
