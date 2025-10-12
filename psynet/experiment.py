@@ -2152,6 +2152,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # `ExperimentFileSource` does not include `config.txt` (see `dallinger.utils.exclusion_policy`)
             # so we need to copy this manually.
             shutil.copyfile(f"{cwd}/config.txt", f"{temp_dir}/config.txt")
+            # Delete static/assets directory to exclude them from the source code zip file
+            shutil.rmtree(f"{temp_dir}/static/assets", ignore_errors=True)
             shutil.make_archive(base_name, "zip", temp_dir)
 
     @classmethod
