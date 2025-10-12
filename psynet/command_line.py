@@ -142,22 +142,33 @@ def reset_console():
 # prepare #
 ###########
 @psynet.command()
-def prepare():
+@click.option(
+    "--archive",
+    type=click.Path(exists=True),
+    help="Path to database archive for re-deployment",
+)
+def prepare(archive):
     """
     Prepare the experiment for deployment.
     """
-    _prepare()
+    _prepare(archive)
 
 
-def _prepare():
+def _prepare(archive=None):
     from dallinger import db
 
     from .experiment import get_experiment
 
     redis_vars.clear()
+
+    if archive:
+        from psynet.experiment import database_template_path
+
+        shutil.copyfile(archive, database_template_path)
+
     db.init_db(drop_all=True)
     experiment = get_experiment()
-    experiment.pre_deploy()
+    experiment.pre_deploy(redeploying_from_archive=archive is not None)
     db.session.flush()
     clean_sys_modules()
     update_docker_tag()
@@ -759,12 +770,7 @@ def _pre_launch(
     if config.get("check_dallinger_version"):
         check_dallinger_version()
 
-    if archive:
-        from psynet.experiment import database_template_path
-
-        shutil.copyfile(archive, database_template_path)
-    else:
-        ctx.invoke(prepare)
+    ctx.invoke(prepare, archive=archive)
 
     _forget_tables_defined_in_experiment_directory()
 

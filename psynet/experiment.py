@@ -2110,7 +2110,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if isinstance(elt, PreDeployRoutine):
                 self.pre_deploy_routines.append(elt)
 
-    def pre_deploy(self):
+    def pre_deploy(self, redeploying_from_archive=False):
         self.update_deployment_id()
         self.setup_experiment_config()
         self.setup_experiment_variables()
@@ -2126,8 +2126,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 routine.function, experiment=self, **routine.args
             )
 
-        self.assets.prepare_for_deployment()
-        self.create_database_snapshot()
+        # Skip asset preparation and database snapshot when deploying from archive
+        if not redeploying_from_archive:
+            self.assets.prepare_for_deployment()
+            self.create_database_snapshot()
 
         self.create_source_code_zip_file()
 
