@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## Changed
+- `dallinger_recommended_version` now only specifies the minor Dallinger version (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.0.0rc2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc2) Release candidate - 2025-10-08
 
 ## Changed

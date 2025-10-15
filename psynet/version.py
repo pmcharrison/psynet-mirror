@@ -9,8 +9,8 @@ from yaspin import yaspin
 
 psynet_version = "13.0.0rc2"
 
-# Bump Dallinger version by changing the line below
-dallinger_recommended_version = "11.5.2"
+# Specify Dallinger MAJOR.MINOR version to allow any patch in that series
+dallinger_recommended_version = "11.5"
 
 
 def check_versions():
@@ -181,14 +181,14 @@ def check_dallinger_version():
     import dallinger
 
     current_dallinger_version = dallinger.version.__version__
-
-    if current_dallinger_version != dallinger_recommended_version:
+    # Accept any patch in the recommended MAJOR.MINOR version series
+    if not current_dallinger_version.startswith(f"{dallinger_recommended_version}."):
         message = (
             f"The current installed version of Dallinger ({current_dallinger_version}) "
-            f"is not the one recommended for this version of PsyNet "
-            f"(PsyNet v{psynet_version} recommends Dallinger v{dallinger_recommended_version}). "
+            f"is not the one recommended for this version of PsyNet. (PsyNet v{psynet_version} "
+            f"recommends any patch in the {dallinger_recommended_version}.x series). "
             "You can fix this problem by updating your requirements.txt file "
-            f"to state dallinger=={dallinger_recommended_version}, then running the following in your terminal:\n"
+            f"to state dallinger~={dallinger_recommended_version}, then running the following in your terminal:\n"
             "    psynet generate-constraints && pip uninstall dallinger && pip install -r constraints.txt\n"
         )
         if os.environ.get("PYTEST_CURRENT_TEST"):
