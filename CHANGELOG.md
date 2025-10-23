@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [13.0.0rc6](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc6) Release - 2025-10-23
+
+## Updated
+- Updated Dallinger to version 11.5.5. Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.5.5 (author: Frank Höger)
+
 # [13.0.0rc5](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0rc5) Release - 2025-10-21
 
 ## Updated
