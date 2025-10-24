@@ -174,6 +174,13 @@ def post_update_constraints(dir, commit_hash_master):
 
 def update_psynet_requirement(dir):
     with working_directory(dir):
+        current_branch = current_git_branch()
+
+        # Determine the correct psynet requirement based on branch
+        if current_branch == "master":
+            # On master branch, keep the git reference that was set in pre_update_constraints
+            return  # Don't override the git reference
+
         with open("requirements.txt", "r") as orig_file:
             with open("updated_requirements.txt", "w") as updated_file:
                 version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
