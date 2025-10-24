@@ -14,15 +14,64 @@ import os
 import re
 import shutil
 import subprocess
+import sys
+from hashlib import md5
 from importlib import resources
+from pathlib import Path
 
 from joblib import Parallel, delayed
 
 import psynet.command_line
-from psynet import __version__
-from psynet.utils import list_experiment_dirs, working_directory
+from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
+from psynet.version import dallinger_recommended_version, psynet_version
+
+
+def get_latest_dallinger_patch_version(major_minor_version):
+    """Get the latest patch version for a given major.minor version of Dallinger."""
+    try:
+        # Use pip index to get available versions
+        result = subprocess.run(
+            ["pip", "index", "versions", "dallinger"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        # Parse the output to find versions matching the major.minor pattern
+        lines = result.stdout.split("\n")
+        versions = []
+
+        for line in lines:
+            if "Available versions:" in line:
+                # Extract version numbers from this line
+                version_part = line.split("Available versions:")[1].strip()
+                versions = [v.strip() for v in version_part.split(",")]
+                break
+
+        # Filter versions that start with the major.minor version
+        matching_versions = [
+            v for v in versions if v.startswith(f"{major_minor_version}.")
+        ]
+
+        if matching_versions:
+            # Sort versions and return the latest
+            matching_versions.sort(key=lambda x: tuple(map(int, x.split(".")[2:])))
+            return matching_versions[-1]
+        else:
+            # Fallback to the major.minor version with .0
+            return f"{major_minor_version}.0"
+
+    except (subprocess.CalledProcessError, Exception):
+        # Fallback to the major.minor version with .0 if we can't fetch
+        return f"{major_minor_version}.0"
+
 
 skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
+
+# Fetch the latest Dallinger patch version once, outside of parallel execution
+latest_dallinger_patch_version = get_latest_dallinger_patch_version(
+    dallinger_recommended_version
+)
 
 
 def update_demo(dir):
@@ -46,22 +95,125 @@ def generate_constraints(dir):
 
 def pre_update_constraints(dir):
     with working_directory(dir):
-        return psynet.command_line.pre_update_constraints_(dir)
+        commit_hash = (
+            subprocess.check_output(
+                ["git", "log", "-n 1", "master", "--pretty=format:%H"], cwd=dir
+            )
+            .decode("utf-8")
+            .strip()
+        )
+        with fileinput.FileInput("requirements.txt", inplace=True) as file:
+            psynet_requirement = (
+                r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
+            )
+            replacement_requirement = f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
+            if current_git_branch() == "master":
+                replacement_requirement = (
+                    "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
+                )
+            for line in file:
+                print(
+                    re.sub(
+                        psynet_requirement,
+                        replacement_requirement,
+                        line,
+                    ),
+                    end="",
+                )
+        return commit_hash
 
 
 def post_update_constraints(dir, commit_hash_master):
     with working_directory(dir):
-        psynet.command_line.post_update_constraints_(commit_hash_master)
+        current_branch = current_git_branch()
+
+        # Determine the correct psynet requirement for constraints.txt based on branch
+        if current_branch == "master":
+            psynet_constraint = (
+                "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master"
+            )
+        else:
+            psynet_constraint = f"psynet=={psynet_version}"
+
+        with fileinput.FileInput("constraints.txt", inplace=True) as file:
+            for line in file:
+                updated_line = line
+
+                # Replace any psynet git reference with the version number
+                if "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@" in updated_line:
+                    updated_line = updated_line.replace(
+                        updated_line.strip(), psynet_constraint
+                    )
+
+                # Replace any existing psynet version with the current version
+                # Matches e.g. "psynet==13.0.0rc2"
+                updated_line = re.sub(
+                    r"^psynet==[^\s]+",
+                    f"psynet=={psynet_version}",
+                    updated_line,
+                )
+
+                # Ensure Dallinger is pinned to the latest patch version
+                # Matches e.g. "dallinger==11.5.2"
+                updated_line = re.sub(
+                    r"^dallinger==[^\s]+",
+                    f"dallinger=={latest_dallinger_patch_version}",
+                    updated_line,
+                )
+
+                print(updated_line, end="")
+
+        with fileinput.FileInput("requirements.txt", inplace=True) as file:
+            psynet_requirement = f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash_master}#egg=psynet"
+            for line in file:
+                print(
+                    line.replace(psynet_requirement, f"psynet=={psynet_version}"),
+                    end="",
+                )
 
 
 def update_psynet_requirement(dir):
     with working_directory(dir):
-        psynet.command_line.update_psynet_requirement_()
+        with open("requirements.txt", "r") as orig_file:
+            with open("updated_requirements.txt", "w") as updated_file:
+                version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
+                for line in orig_file:
+                    # Handle psynet==X.Y.Z format
+                    match = re.search(
+                        r"^psynet(\s?)==(\s?)" + version + "$",
+                        line,
+                    )
+                    if match is not None:
+                        updated_file.write(re.sub(version, f"{psynet_version}", line))
+                    # Handle psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet format
+                    elif (
+                        "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
+                        in line
+                    ):
+                        updated_file.write(f"psynet=={psynet_version}\n")
+                    else:
+                        updated_file.write(line)
+                updated_file.close()
+            orig_file.close()
+        shutil.move("updated_requirements.txt", "requirements.txt")
 
 
 def post_update_psynet_requirement(dir):
     with working_directory(dir):
-        psynet.command_line.post_update_psynet_requirement_()
+        with fileinput.FileInput("constraints.txt", inplace=True) as file:
+            md5sum_line = (
+                "# Compiled from a requirement\\.txt file with md5sum: [0-9a-f]{32}"
+            )
+            md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
+            for line in file:
+                print(
+                    re.sub(
+                        md5sum_line,
+                        f"# Compiled from a requirement.txt file with md5sum: {md5sum}",
+                        line,
+                    ),
+                    end="",
+                )
 
 
 def update_scripts(dir):
@@ -77,16 +229,6 @@ def update_scripts(dir):
             )
 
 
-def current_git_branch():
-    return (
-        subprocess.check_output(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.STDOUT
-        )
-        .strip()
-        .decode("utf-8")
-    )
-
-
 def update_image_tag(file):
     branch_tag = "psynet:master"
     version_tag = r"psynet:v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(rc\d+|a\d+)*"
@@ -96,9 +238,9 @@ def update_image_tag(file):
             print(re.sub(version_tag, "psynet:master", line), end="")
         else:
             if re.search(version_tag, line):
-                print(re.sub(version_tag, f"psynet:v{__version__}", line), end="")
+                print(re.sub(version_tag, f"psynet:v{psynet_version}", line), end="")
             elif re.search(branch_tag, line):
-                print(re.sub(branch_tag, f"psynet:v{__version__}", line), end="")
+                print(re.sub(branch_tag, f"psynet:v{psynet_version}", line), end="")
             else:
                 print(line, end="")
 
@@ -112,7 +254,7 @@ for path in [
         update_image_tag(file)
 
 # Update demos
-n_jobs = 8
+n_jobs = int(sys.argv[1]) if len(sys.argv) > 1 else 8
 Parallel(verbose=10, n_jobs=n_jobs)(
     delayed(update_demo)(_dir) for _dir in list_experiment_dirs()
 )

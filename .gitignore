@@ -139,6 +139,7 @@ dmypy.json
 **.Rhistory
 
 # Other
+.cursor/
 .DS_Store
 .vscode/settings.json
 psynet/nips/colour/data/colmcmcp-data.zip
