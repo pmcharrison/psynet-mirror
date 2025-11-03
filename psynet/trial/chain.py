@@ -1360,6 +1360,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                         "Please make a separate node list for each one."
                     )
                 node.trial_maker_id = id_
+                assert isinstance(node, node_class)
 
         self.start_nodes = start_nodes
 
@@ -1446,6 +1447,8 @@ class ChainTrialMaker(NetworkTrialMaker):
     def resolve_start_nodes(self):
         if callable(self.start_nodes):
             self.start_nodes = call_function_with_context(self.start_nodes)
+        assert isinstance(self.start_nodes, list)
+        assert all(isinstance(node, self.node_class) for node in self.start_nodes)
 
     def check_initialization(self):
         pass
