@@ -53,6 +53,7 @@ dependencies = [
     "pytest",
     "pytest-dependency",
     "pytest-mock",
+    "pytest-timeout",
     "python-gettext",
     "rpdb",
     "slack_sdk",  # For Slack notifications
@@ -75,7 +76,6 @@ dev = [
     "sphinx",
     "sphinx-autodoc-typehints",
     "beautifulsoup4",
-    "pytest-timeout",
 ]
 slack = [
     "slack_sdk",
