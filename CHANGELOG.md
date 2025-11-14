@@ -5,6 +5,9 @@
 ## Changed
 - Disabled automatic backups (author: Frank Höger, reviewer: Peter Harrison)
 
+## Fixed
+- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
 ## Breaking changes
