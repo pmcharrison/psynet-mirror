@@ -411,7 +411,7 @@ Prolific
     Estimated duration in minutes of the experiment or survey.
 
 ``prolific_is_custom_screening`` *bool* |dlgr-icon|
-    Whether or not this study includes a custom screening. Default: `True`.
+    Whether or not this study includes a custom screening. Default: `False`.
     See https://docs.prolific.com/docs/api-docs/public/#tag/Studies/operation/CreateStudy for more information.
 
 ``prolific_project`` *str* |dlgr-icon|
