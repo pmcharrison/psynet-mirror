@@ -918,6 +918,7 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, server):
             server=server,
             dns_host=dns_host,
             app_name=app,
+            config_options={},
             archive_path=None,
         )
 
