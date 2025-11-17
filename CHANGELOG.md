@@ -4,6 +4,7 @@
 
 ## Fixed
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
+- Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`)
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
