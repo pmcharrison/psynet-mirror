@@ -90,6 +90,23 @@ class GraphChainTrial(ChainTrial):
         """
         return self.node.definition
 
+    def on_finalized(self):
+        super().on_finalized()
+        # In ordinary chain experiments, we only need to check the ready_to_spawn status
+        # of the node that generated the trial.
+        # In graph experiments, we need to check the ready_to_spawn status of all nodes
+        # at the same degree, because they might be waiting for the present node to be ready
+        # before moving forward.
+        for node in (
+            db.session.query(GraphChainNode)
+            .filter_by(
+                trial_maker_id=self.trial_maker_id,
+                degree=self.degree,
+            )
+            .all()
+        ):
+            node.check_ready_to_spawn()
+
 
 class GraphChainNode(ChainNode):
     """
