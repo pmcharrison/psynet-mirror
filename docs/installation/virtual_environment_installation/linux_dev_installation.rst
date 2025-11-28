@@ -22,7 +22,7 @@ Ubuntu 22.04 LTS
 
    sudo apt update
    sudo apt upgrade
-   sudo apt install vim python3.11-dev python3.11-venv python3-pip redis-server git libenchant-2-2 postgresql postgresql-contrib libpq-dev unzip
+   sudo apt install vim python3.11-dev python3.11-venv python3-pip redis-server git libenchant-2-2 postgresql postgresql-contrib libpq-dev unzip gettext
 
 Ubuntu 24.04 LTS
 ################
@@ -31,7 +31,7 @@ Ubuntu 24.04 LTS
 
    sudo apt update
    sudo apt upgrade
-   sudo apt install vim python3.12-dev python3.12-venv python3-pip redis-server git libenchant-2-2 postgresql postgresql-contrib libpq-dev unzip
+   sudo apt install vim python3.12-dev python3.12-venv python3-pip redis-server git libenchant-2-2 postgresql postgresql-contrib libpq-dev unzip gettext
 
 Install Python
 ~~~~~~~~~~~~~~

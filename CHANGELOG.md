@@ -12,6 +12,9 @@
 - Added missing `config_options` parameter in `psynet deploy ssh` command (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`)
 
+## Documentation
+- Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
 ## Breaking changes
