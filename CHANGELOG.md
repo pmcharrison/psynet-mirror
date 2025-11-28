@@ -6,6 +6,7 @@
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
 - Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`)
 - Added missing `config_options` parameter in `psynet deploy ssh` command
+- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
