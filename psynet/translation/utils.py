@@ -215,8 +215,23 @@ def _get_html_entries_from_file(input_path, sp):
 
 def _get_py_entries_from_dir(input_path, sp):
     # xgettext does not work recursively, so we need to walk the directory and call it on each file
+    # Skip hidden and common non-hidden directories
+    SKIP_DIRS = {
+        "venv",
+        "env",
+        "__pycache__",
+        "__pypackages__",
+        "node_modules",
+        "site-packages",
+        "dist-packages",
+    }
+
     entries = []
     for root, dirs, files in os.walk(input_path):
+        # Filter out directories we want to skip
+        # Modify dirs in-place to prevent os.walk from descending into these directories
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith(".")]
+
         for file in files:
             if file.endswith(".py"):
                 entries.extend(_get_py_entries_from_file(os.path.join(root, file), sp))
