@@ -110,6 +110,15 @@ Install Redis
    brew install redis
    brew services start redis
 
+Install gettext
+~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   brew install gettext
+
+Gettext provides translation utilities (``xgettext``, ``msgfmt``) required for managing translations in PsyNet experiments.
+
 Setup Git
 ~~~~~~~~~
 
