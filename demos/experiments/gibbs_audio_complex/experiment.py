@@ -7,7 +7,7 @@ from markupsafe import Markup
 import psynet.experiment
 import psynet.media
 from psynet.bot import Bot
-from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
+from psynet.consent import LabRecruiterAudiovisualConsent, LabRecruiterStandardConsent
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
     AudioGibbsNode,
@@ -134,8 +134,8 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        CAPRecruiterStandardConsent(),
-        CAPRecruiterAudiovisualConsent(),
+        LabRecruiterStandardConsent(),
+        LabRecruiterAudiovisualConsent(),
         trial_maker,
     )
 

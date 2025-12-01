@@ -377,11 +377,11 @@ Amazon Mechanical Turk
 ``us_only`` *bool* |dlgr-icon|
     Controls whether this HIT is available only to MTurk workers in the U.S.
 
-CAP
+Lab Recruiter
 ---
 
-``cap_recruiter_auth_token`` *str* |psynet-icon| |sensitive-icon|
-    Authentication token for communication with the API of the CAP-Recruiter web application.
+``lab_recruiter_auth_token`` *str* |psynet-icon| |sensitive-icon|
+    Authentication token for communication with the API of the Lab Recruiter web application.
 
 Lucid
 -----

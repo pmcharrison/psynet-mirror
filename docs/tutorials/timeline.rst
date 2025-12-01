@@ -112,8 +112,8 @@ being carried out. We include the `Page` types :class:`~psynet.consent.MainConse
 :class:`~psynet.consent.DatabaseConsent`, :class:`~psynet.consent.AudiovisualConsent`,
 :class:`~psynet.consent.OpenScienceConsent`, and :class:`~psynet.consent.VoluntaryWithNoCompensationConsent` for
 experiments making use of recruitment systems, like `MTurk` and `Prolific`. Additionally, `Page`
-types :class:`~psynet.consent.CAPRecruiterStandardConsentPage` and
-:class:`~psynet.consent.CAPRecruiterAudiovisualConsentPage` make use of the CAP-Recruiter web application as the
+types :class:`~psynet.consent.LabRecruiterStandardConsentPage` and
+:class:`~psynet.consent.LabRecruiterAudiovisualConsentPage` make use of the Lab Recruiter web application as the
 recruitment instrument, respectively. One or more consent pages can be added to the start of an experiment timeline, as
 appropriate.
 

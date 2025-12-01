@@ -82,12 +82,14 @@ from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
 from .participant import Participant
+from .recruiters import CapRecruiter  # noqa: F401; Backward compatibility alias
+from .recruiters import StagingCapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
-    CapRecruiter,
     DevLucidRecruiter,
+    LabRecruiter,
     LucidRecruiter,
-    StagingCapRecruiter,
+    StagingLabRecruiter,
 )
 from .redis import redis_vars
 from .serialize import serialize, unserialize
@@ -2813,7 +2815,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def extra_parameters(cls):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
-        config.register("cap_recruiter_auth_token", str, sensitive=True)
+        config.register("lab_recruiter_auth_token", str, sensitive=True)
         config.register("check_dallinger_version", bool)
         config.register("check_participant_opened_devtools", bool)
         config.register("currency", str)

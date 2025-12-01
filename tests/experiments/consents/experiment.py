@@ -1,15 +1,15 @@
 import psynet.experiment
 from psynet.consent import (
     AudiovisualConsent,
-    CAPRecruiterAudiovisualConsent,
-    CAPRecruiterStandardConsent,
     DatabaseConsent,
+    LabRecruiterAudiovisualConsent,
+    LabRecruiterStandardConsent,
     LucidConsent,
     MainConsent,
     NoConsent,
     OpenScienceConsent,
-    PrincetonCAPRecruiterConsent,
     PrincetonConsent,
+    PrincetonLabRecruiterConsent,
     VoluntaryWithNoCompensationConsent,
 )
 from psynet.graphics import PrincetonLogo
@@ -27,8 +27,8 @@ class Exp(psynet.experiment.Experiment):
         OpenScienceConsent(),
         VoluntaryWithNoCompensationConsent(),
         LucidConsent(),
-        CAPRecruiterStandardConsent(),
-        CAPRecruiterAudiovisualConsent(),
+        LabRecruiterStandardConsent(),
+        LabRecruiterAudiovisualConsent(),
         PrincetonConsent(),
-        PrincetonCAPRecruiterConsent(),
+        PrincetonLabRecruiterConsent(),
     )

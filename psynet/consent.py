@@ -11,7 +11,7 @@ class Consent(Elt):
     Inherit from this class to mark a timeline element as being part of a consent form.
     PsyNet requires you have at least one such element in your timeline,
     to make sure you don't forget to include a consent form.
-    See ``CAPRecruiterAudiovisualConsentPage`` for an example.
+    See ``LabRecruiterAudiovisualConsentPage`` for an example.
     If you're sure you want to omit the consent form, include a ``NoConsent``
     element in your timeline.
     """
@@ -28,11 +28,11 @@ class NoConsent(Consent, NullElt):
 
 
 #################
-# CAP-Recruiter #
+# Lab Recruiter #
 #################
-class CAPRecruiterStandardConsent(Module):
+class LabRecruiterStandardConsent(Module):
     """
-    The CAP-Recruiter standard consent form.
+    The Lab Recruiter standard consent form.
 
     Parameters
     ----------
@@ -45,28 +45,28 @@ class CAPRecruiterStandardConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        label = "cap-recruiter_standard_consent"
+        label = "lab-recruiter_standard_consent"
         elts = join(
-            self.CAPRecruiterStandardConsentPage(time_estimate=time_estimate),
+            self.LabRecruiterStandardConsentPage(time_estimate=time_estimate),
             conditional(
-                "cap-recruiter_standard_consent_conditional",
+                "lab-recruiter_standard_consent_conditional",
                 lambda experiment, participant: (
-                    not participant.answer["cap-recruiter_standard_consent"]
+                    not participant.answer["lab-recruiter_standard_consent"]
                 ),
                 RejectedConsentPage(),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
-                    "cap-recruiter_standard_consent",
-                    participant.answer["cap-recruiter_standard_consent"],
+                    "lab-recruiter_standard_consent",
+                    participant.answer["lab-recruiter_standard_consent"],
                 )
             ),
         )
         super().__init__(label, elts)
 
-    class CAPRecruiterStandardConsentPage(Page, Consent):
+    class LabRecruiterStandardConsentPage(Page, Consent):
         """
-        This page displays the CAP-Recruiter standard consent page.
+        This page displays the Lab Recruiter standard consent page.
 
         Parameters
         ----------
@@ -82,22 +82,22 @@ class CAPRecruiterStandardConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template(
-                    "consents/cap-recruiter_standard_consent.html"
+                    "consents/lab-recruiter_standard_consent.html"
                 ),
             )
 
         def format_answer(self, raw_answer, **kwargs):
-            return {"cap-recruiter_standard_consent": raw_answer}
+            return {"lab-recruiter_standard_consent": raw_answer}
 
         def get_bot_response(self, experiment, bot):
             return {
-                "cap-recruiter_standard_consent": True,
+                "lab-recruiter_standard_consent": True,
             }
 
 
-class CAPRecruiterAudiovisualConsent(Module):
+class LabRecruiterAudiovisualConsent(Module):
     """
-    The CAP-Recruiter audiovisual recordings consent form.
+    The Lab Recruiter audiovisual recordings consent form.
 
     Parameters
     ----------
@@ -110,34 +110,34 @@ class CAPRecruiterAudiovisualConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        label = "cap-recruiter_audiovisual_consent"
+        label = "lab-recruiter_audiovisual_consent"
         elts = join(
-            self.CAPRecruiterAudiovisualConsentPage(time_estimate=time_estimate),
+            self.LabRecruiterAudiovisualConsentPage(time_estimate=time_estimate),
             conditional(
-                "cap-recruiter_audiovisual_consent_conditional",
+                "lab-recruiter_audiovisual_consent_conditional",
                 lambda experiment, participant: (
-                    not participant.answer["cap-recruiter_audiovisual_consent"]
+                    not participant.answer["lab-recruiter_audiovisual_consent"]
                 ),
                 RejectedConsentPage(),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
-                    "cap-recruiter_audiovisual_consent",
-                    participant.answer["cap-recruiter_audiovisual_consent"],
+                    "lab-recruiter_audiovisual_consent",
+                    participant.answer["lab-recruiter_audiovisual_consent"],
                 )
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
-                    "cap-recruiter_demonstration_purposes_consent",
+                    "lab-recruiter_demonstration_purposes_consent",
                     participant.answer["demonstration_purposes_consent"],
                 )
             ),
         )
         super().__init__(label, elts)
 
-    class CAPRecruiterAudiovisualConsentPage(Page, Consent):
+    class LabRecruiterAudiovisualConsentPage(Page, Consent):
         """
-        This page displays the CAP-Recruiter audiovisual consent page.
+        This page displays the Lab Recruiter audiovisual consent page.
 
         Parameters
         ----------
@@ -153,13 +153,13 @@ class CAPRecruiterAudiovisualConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template(
-                    "consents/cap-recruiter_audiovisual_consent.html"
+                    "consents/lab-recruiter_audiovisual_consent.html"
                 ),
             )
 
         def format_answer(self, raw_answer, **kwargs):
             return {
-                "cap-recruiter_audiovisual_consent": raw_answer,
+                "lab-recruiter_audiovisual_consent": raw_answer,
                 "demonstration_purposes_consent": kwargs["metadata"][
                     "demonstration_purposes_consent"
                 ],
@@ -167,9 +167,14 @@ class CAPRecruiterAudiovisualConsent(Module):
 
         def get_bot_response(self, experiment, bot):
             return {
-                "cap-recruiter_audiovisual_consent": True,
+                "lab-recruiter_audiovisual_consent": True,
                 "demonstration_purposes_consent": True,
             }
+
+
+# Backward compatibility aliases
+CAPRecruiterStandardConsent = LabRecruiterStandardConsent
+CAPRecruiterAudiovisualConsent = LabRecruiterAudiovisualConsent
 
 
 #########
@@ -299,9 +304,9 @@ class PrincetonConsent(Module):
             return {"princeton_consent": True}
 
 
-class PrincetonCAPRecruiterConsent(Module):
+class PrincetonLabRecruiterConsent(Module):
     """
-    The Princeton University consent form to be used in conjunction with CAP-Recruiter.
+    The Princeton University consent form to be used in conjunction with Lab Recruiter.
 
     Parameters
     ----------
@@ -314,28 +319,28 @@ class PrincetonCAPRecruiterConsent(Module):
         self,
         time_estimate: Optional[float] = 30,
     ):
-        label = "princeton_cap_recruiter_consent"
+        label = "princeton_lab_recruiter_consent"
         elts = join(
-            self.PrincetonCAPRecruiterConsentPage(time_estimate=time_estimate),
+            self.PrincetonLabRecruiterConsentPage(time_estimate=time_estimate),
             conditional(
-                "princeton_cap_recruiter_consent_conditional",
+                "princeton_lab_recruiter_consent_conditional",
                 lambda experiment, participant: (
-                    not participant.answer["princeton_cap_recruiter_consent"]
+                    not participant.answer["princeton_lab_recruiter_consent"]
                 ),
                 RejectedConsentPage(),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
-                    "princeton_cap_recruiter_consent",
-                    participant.answer["princeton_cap_recruiter_consent"],
+                    "princeton_lab_recruiter_consent",
+                    participant.answer["princeton_lab_recruiter_consent"],
                 )
             ),
         )
         super().__init__(label, elts)
 
-    class PrincetonCAPRecruiterConsentPage(Page, Consent):
+    class PrincetonLabRecruiterConsentPage(Page, Consent):
         """
-        This page displays the Princeton University consent page to be used in conjunction with CAP-Recruiter.
+        This page displays the Princeton University consent page to be used in conjunction with Lab Recruiter.
 
         Parameters
         ----------
@@ -351,15 +356,19 @@ class PrincetonCAPRecruiterConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template(
-                    "consents/princeton_cap_recruiter_consent.html"
+                    "consents/princeton_lab_recruiter_consent.html"
                 ),
             )
 
         def format_answer(self, raw_answer, **kwargs):
-            return {"princeton_cap_recruiter_consent": raw_answer}
+            return {"princeton_lab_recruiter_consent": raw_answer}
 
         def get_bot_response(self, experiment, bot):
-            return {"princeton_cap_recruiter_consent": True}
+            return {"princeton_lab_recruiter_consent": True}
+
+
+# Backward compatibility alias
+PrincetonCAPRecruiterConsent = PrincetonLabRecruiterConsent
 
 
 ########
