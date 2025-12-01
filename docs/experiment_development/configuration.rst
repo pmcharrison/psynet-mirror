@@ -378,10 +378,19 @@ Amazon Mechanical Turk
     Controls whether this HIT is available only to MTurk workers in the U.S.
 
 Lab Recruiter
----
+-------------
 
 ``lab_recruiter_auth_token`` *str* |psynet-icon| |sensitive-icon|
     Authentication token for communication with the API of the Lab Recruiter web application.
+
+``lab_recruiter_external_submission_url`` *str* |psynet-icon|
+    Override the default external submission URL (where completion/failure outcomes are posted).
+    
+    Default URLs are:
+    
+    * ``lab-recruiter``: ``https://recruiter.cococo-lab.cornell.edu/tasks``
+    * ``staging-lab-recruiter``: ``https://recruiter-staging.cococo-lab.cornell.edu/tasks``
+    * ``dev-lab-recruiter``: ``http://localhost:8000/tasks``
 
 Lucid
 -----

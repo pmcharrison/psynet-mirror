@@ -2815,6 +2815,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
+        config.register("lab_recruiter_external_submission_url", str)
         config.register("check_dallinger_version", bool)
         config.register("check_participant_opened_devtools", bool)
         config.register("currency", str)

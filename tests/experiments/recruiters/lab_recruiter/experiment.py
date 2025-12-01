@@ -16,3 +16,13 @@ class Exp(psynet.experiment.Experiment):
         MainConsent(),
         InfoPage("You finished the experiment!", time_estimate=0),
     )
+
+    def test_check_bot(self, bot):
+        """Test that lab_recruiter_external_submission_url config works correctly."""
+        super().test_check_bot(bot)
+
+        # Test that the custom external submission URL is properly applied
+        assert (
+            self.recruiter.external_submission_url
+            == "https://test-recruiter.example.com/tasks"
+        )
