@@ -2,7 +2,7 @@
 
 import psynet.experiment
 import psynet.media
-from psynet.consent import CAPRecruiterStandardConsent
+from psynet.consent import LabRecruiterStandardConsent
 from psynet.modular_page import Markup
 from psynet.timeline import Timeline
 from psynet.trial.media_gibbs import (
@@ -107,6 +107,6 @@ class Exp(psynet.experiment.Experiment):
     initial_recruitment_size = 1
 
     timeline = Timeline(
-        CAPRecruiterStandardConsent(),
+        LabRecruiterStandardConsent(),
         trial_maker,
     )

@@ -10,7 +10,7 @@ logger = get_logger()
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "CAP recruiter demo"
+    label = "Lab Recruiter demo"
 
     timeline = Timeline(
         MainConsent(),

@@ -25,10 +25,10 @@ The content of this ad is initially populated by PsyNet with reference to your e
 in particular fields like ``title``, ``config``, ``wage_per_hour``, and so on.
 You can customize the content via the Prolific interface.
 
-MTurk and CAP-Recruiter
+MTurk and Lab Recruiter
 -----------------------
 
-With MTurk and CAP-Recruiter the ad page is hosted by PsyNet itself.
+With MTurk and Lab Recruiter the ad page is hosted by PsyNet itself.
 This ad page is again initially populated by PsyNet with reference to your experiment config,
 but can be customized by editing methods of the ``Experiment`` class, as detailed below.
 

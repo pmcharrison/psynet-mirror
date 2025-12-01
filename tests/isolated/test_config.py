@@ -25,7 +25,7 @@ def test_secrets(in_experiment_directory):
     assert "auto_recruit" in config.as_dict()
 
     for secret in [
-        "cap_recruiter_auth_token",
+        "lab_recruiter_auth_token",
         "lucid_api_key",
         "lucid_sha1_hashing_key",
     ]:

@@ -426,15 +426,15 @@ class MTurkRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.MTurkRecruiter):
     pass
 
 
-# CAP Recruiter
+# Lab Recruiter
 @dataclass
-class CapRecruitmentStatus(RecruitmentStatus):
+class LabRecruitmentStatus(RecruitmentStatus):
     pass
 
 
-class BaseCapRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
+class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     """
-    The CapRecruiter base class
+    The LabRecruiter base class
     """
 
     def recruit(self, n=1):
@@ -462,7 +462,7 @@ class BaseCapRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
 
     def reward_bonus(self, participant, amount, reason):
         """
-        Return values for `basePay` and `bonus` to cap-recruiter application.
+        Return values for `basePay` and `bonus` to lab-recruiter application.
         """
         data = {
             "assignmentId": participant.assignment_id,
@@ -476,11 +476,11 @@ class BaseCapRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         requests.post(
             url,
             json=data,
-            headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
+            headers={"Authorization": os.environ.get("LAB_RECRUITER_AUTH_TOKEN")},
             verify=False,  # Temporary fix because of SSLCertVerificationError
         )
 
-    def get_status(self) -> CapRecruitmentStatus:
+    def get_status(self) -> LabRecruitmentStatus:
         """Return the status of the recruiter as a RecruitmentStatus."""
         from psynet.experiment import get_experiment
 
@@ -499,44 +499,52 @@ class BaseCapRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         exp = get_experiment()
         study_status = "Recruiting" if exp.need_more_participants else "Not recruiting"
 
-        return CapRecruitmentStatus(
+        return LabRecruitmentStatus(
             recruiter_name=self.nickname,
             participant_status_counts=status_counts,
             study_id=status.study_id,
             study_status=study_status,
             study_cost=status.study_cost,
-            currency="€",  # Default currency
+            currency="$",  # Default currency
         )
 
 
-class CapRecruiter(BaseCapRecruiter):
+class LabRecruiter(BaseLabRecruiter):
     """
-    The production cap-recruiter.
-
-    """
-
-    nickname = "cap-recruiter"
-    external_submission_url = "https://cap-recruiter.ae.mpg.de/tasks"
-
-
-class StagingCapRecruiter(BaseCapRecruiter):
-    """
-    The staging cap-recruiter.
+    The production lab-recruiter.
 
     """
 
-    nickname = "staging-cap-recruiter"
-    external_submission_url = "https://staging-cap-recruiter.ae.mpg.de/tasks"
+    nickname = "lab-recruiter"
+    external_submission_url = "https://recruiter.cococo-lab.cornell.edu/tasks"
 
 
-class DevCapRecruiter(DevRecruiter, BaseCapRecruiter):
+class StagingLabRecruiter(BaseLabRecruiter):
     """
-    The development cap-recruiter.
+    The staging lab-recruiter.
 
     """
 
-    nickname = "dev-cap-recruiter"
+    nickname = "staging-lab-recruiter"
+    external_submission_url = "https://recruiter-staging.cococo-lab.cornell.edu/tasks"
+
+
+class DevLabRecruiter(DevRecruiter, BaseLabRecruiter):
+    """
+    The development lab-recruiter.
+
+    """
+
+    nickname = "dev-lab-recruiter"
     external_submission_url = "http://localhost:8000/tasks"
+
+
+# Backward compatibility aliases
+CapRecruitmentStatus = LabRecruitmentStatus
+BaseCapRecruiter = BaseLabRecruiter
+CapRecruiter = LabRecruiter
+StagingCapRecruiter = StagingLabRecruiter
+DevCapRecruiter = DevLabRecruiter
 
 
 # Lucid Recruiter
