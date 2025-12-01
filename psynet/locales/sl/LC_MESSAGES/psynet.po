@@ -29,7 +29,7 @@ msgstr "Moški"
 #, fuzzy
 msgctxt "gender"
 msgid "Non-binary"
-msgstr "Nebinarna oseba"
+msgstr "Nedoločeno"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -174,6 +174,12 @@ msgstr "Ne"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "Prosimo, navedite vsaj en jezik!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
@@ -184,8 +190,12 @@ msgstr ""
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Prosimo, navedite vsaj en jezik!"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Prosimo, navedite vse jezike, ki jih govorite kot materne jezike (torej, ki "
+"ste jih govorili od otroštva)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -314,7 +324,7 @@ msgstr "Ne vem"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "Ali so vam kdaj diagnosticirali disleksijo?"
+msgstr "Ali ste bili kdaj diagnosticirani z disleksijo?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -404,7 +414,7 @@ msgstr "Ali vam je bil eksperiment všeč?"
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you find the experiment difficult?"
-msgstr "Ali ste eksperiment našli težkega?"
+msgstr "Ali ste našli eksperiment težaven?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -475,11 +485,20 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Konec eksperimenta."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr ""
+"Ko nadaljujete na naslednjo stran, se lahko prikaže zahteva za dovoljenje; "
+"prosimo, odobrite jo."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Prišlo je do napake in zato ne morete nadaljevati, oprostite!"
+msgstr "Prišlo je do napake, zato ne morete nadaljevati, oprostite!"
 
 #: psynet/experiment.py
 #, fuzzy, python-brace-format
@@ -488,8 +507,8 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"Za povpraševanje o odškodnini se obrnite na raziskovalca na {EMAIL} in "
-"opišite, kaj je povzročilo to napako."
+"Za poizvedbo o nadomestilu se obrnite na raziskovalca na {EMAIL} in opišite,"
+" kaj je povzročilo to napako."
 
 #: psynet/experiment.py
 #, fuzzy
@@ -510,8 +529,23 @@ msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
-"Za povpraševanje o odškodnini pošljite raziskovalcu sporočilo prek spletne "
+"Za poizvedbo o nadomestilu pošljite raziskovalcu sporočilo prek spletne "
 "strani Prolific in opišite, kaj je povzročilo vašo napako."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Zaznana je bila težava s sinhronizacijo. Ali izvajate isti eksperiment v več"
+" zavihkih brskalnika? Zaprite vse druge zavihke in osvežite stran."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Predvajaj"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -699,6 +733,86 @@ msgstr "V primeru, da pozabite tipke, bodo natisnjene na vsaki strani."
 #, fuzzy
 msgid "The test will start on the next page."
 msgstr "Test se bo začel na naslednji strani."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Komuniciranje z rekruterjem..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Bili ste nagrajeni za čas, ki ste ga porabili za eksperiment. Ker niste "
+"mogli nadaljevati z glavnim eksperimentom, bo vaša oddaja prikazana kot "
+"'izločena' v Prolific. Zdaj lahko zaprete to okno brskalnika."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Prosimo, vrnite svojo oddajo prek vmesnika Prolific in kliknite Naprej. Nato"
+" vam bomo samodejno izplačali bonus za vaš čas."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"To je uspelo! Bili ste nagrajeni za čas, ki ste ga porabili za eksperiment. "
+"Hvala za sodelovanje. Zdaj lahko zaprete to okno brskalnika."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"To ni uspelo. Ste prepričani, da ste vrnili oddajo za to študijo? Prosimo, "
+"pojdite na vmesnik Prolific, se prepričajte, da ste vrnili oddajo, nato "
+"kliknite gumb 'Naprej'."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Žal nam je, da niste mogli nadaljevati z glavnim eksperimentom, vendar vam "
+"bomo vseeno plačali za vaš dosedanji čas. Da bi prejeli to plačilo, vas "
+"prosimo, da vrnete to nalogo prek vmesnika Prolific, nato kliknite gumb "
+"'Naprej' spodaj."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Žal nam je, da niste mogli nadaljevati z glavnim eksperimentom. Da bi "
+"prejeli to plačilo za vaš čas, prosimo, vrnite svojo nalogo v Prolific in "
+"pošljite sporočilo eksperimentatorju prek sistema sporočil Prolific. "
+"Eksperimentator bo pregledal vaš primer in uredil plačilo, če bo to "
+"primerno. Hvala za vaše razumevanje. Zdaj lahko zaprete to okno brskalnika."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2907,20 +3021,25 @@ msgstr "Predvajaj poziv"
 msgid "Play recording"
 msgstr "Predvajaj posnetek"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Ustavi"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Ustavi"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Ponovi"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Predvajaj od začetka"
+msgid "Loop"
+msgstr "Ponovi"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -2985,65 +3104,54 @@ msgstr "Začetek eksperimenta..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "V primeru težave poskusite naslednje:"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "Pustite komentar"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Osvežite stran."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "Napišite komentar tukaj"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Preverite, ali vaša internetna povezava deluje."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Če zgoraj navedeno ne pomaga, nam pošljite e-pošto z naslednjimi podatki:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Povezava do trenutne spletne strani;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Vaša ID delavca;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Težava, s katero se soočate."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "Pošlji komentar"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "V REDU"
+msgstr "V redu"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Ali ste pripravljeni?"
+msgstr "Ste pripravljeni?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Kliknite gumb, ko ste pripravljeni nadaljevati s poskusom."
+msgstr "Kliknite gumb, ko ste pripravljeni nadaljevati poskus."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"Opomba: če to sporočilo vidite pogosto, je morda razlog v tem, da ima vaš "
+"brskalnik nameščeno nezdružljivo razširitev (npr. blokator oglasov). "
+"Poskusite odpreti to stran v oknu brez beleženja zgodovine (lahko preprosto "
+"kopirate in prilepite URL iz trenutne strani) in/ali poskusite ročno "
+"onemogočiti svoje razširitve."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3060,36 +3168,32 @@ msgstr "Nagrada"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Pomoč!"
+msgid "Comment"
+msgstr "Komentar"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Prekinite poskus predčasno"
+msgstr "Predčasno končajte poskus"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "Komentar shranjen."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Počakajte, da se stran naloži."
+msgstr "Prosimo, počakajte, da se stran naloži."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Poskusite znova čez nekaj sekund."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Zdi se, da ste odprli poskus v več zavihkih. Zaprite vse razen enega zavihka"
-" in osvežite stran."
 
 #: psynet/translation/countries.py
 #, fuzzy

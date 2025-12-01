@@ -11,19 +11,19 @@ msgstr ""
 #, fuzzy
 msgctxt "gender"
 msgid "How do you identify yourself?"
-msgstr "Nahakna karigino hougatkhre?"
+msgstr "Nahakna karigino nahakki maru oirabage?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "Female"
-msgstr "Nupising"
+msgstr "Nupi"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "Male"
-msgstr "Nupasanasing"
+msgstr "Nupa"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -35,81 +35,79 @@ msgstr "Non-binary"
 #, fuzzy
 msgctxt "gender"
 msgid "Not specified"
-msgstr "Yenglabadi pandam khangde"
+msgstr "Not specified"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "I prefer not to answer"
-msgstr "Eina khangde nakhoigi nakhoigi ningsingdagi"
+msgstr "Eina khudong channa haiba ngamde"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "Specify yourself"
-msgstr "Nahakki ningsingbu pandam tou"
+msgstr "Nahakki maru phangba"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "age"
 msgid "What is your age?"
-msgstr "Nahakki phamtharubadi kari?"
+msgstr "Nahakki panba kayri?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "age"
 msgid "You need to provide your age as an integer between 0 and 120!"
-msgstr ""
-"Nahakna nahakki phamtharuba 0 amasung 120 ki yanaba integer ama pandam "
-"toubiu!"
+msgstr "Nahakna panba 0 amasung 120 ki manungda integer oina pibiyu!"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "age"
 msgid "Your answer was: '{AGE}'"
-msgstr "Nahakki khudol asi: '{AGE}'"
+msgstr "Nahakki khudong channa: '{AGE}'"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "country-select"
 msgid "Other country"
-msgstr "Aduga leiba lainana"
+msgstr "Ahanba lainasinaba leiba leingak"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "country-select"
 msgid "Select a country"
-msgstr "Lainana ama kheiduna hanbiu"
+msgstr "Leingak khongdoklaba"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "country-select"
 msgid "You need to select a country!"
-msgstr "Nahakna lainana ama kheiduna hanbiu!"
+msgstr "Nahakna leingak khongdoklaba!"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "country-select"
 msgid "What country are you from?"
-msgstr "Nahak karigino lainana leibra?"
+msgstr "Nahak karigi leingakna leibra?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "country-select"
 msgid "What is your current country of residence?"
-msgstr "Nahakki adum leiba lainana karino?"
+msgstr "Nahakki leingakna leiba leingak karino?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "formal-education"
 msgid "What is your highest level of formal education?"
-msgstr "Nahakki phibham adum leiba thabak tinnaba kari?"
+msgstr "Nahakki mathakta leiba formal education gi level karino?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "formal-education"
 msgid "None"
-msgstr "Amuk tharakpada"
+msgstr "None"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -133,7 +131,7 @@ msgstr "Graduate School"
 #, fuzzy
 msgctxt "formal-education"
 msgid "Postgraduate degree or higher"
-msgstr "Postgraduate degree ama atoppa"
+msgstr "Postgraduate degree or higher"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -142,36 +140,42 @@ msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
 "speaking from early childhood?"
 msgstr ""
-"Nahakki ima-tongban - mamsing adudi nahakna adum leiriba phijol asida "
-"leiriba lie ama karino?"
+"Nahakki mother tongue karino - mahakna changphamda nungainaba waheina leiba "
+"waheigi maru?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
 msgid "Select a language"
-msgstr "Liemaba lie ama kheiduna hanbiu"
+msgstr "Waheigi khongdoklaba"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
 msgid "You need to select a language!"
-msgstr "Nahakna liemaba lie ama kheiduna hanbiu!"
+msgstr "Nahakna waheigi khongdoklaba!"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
 msgid "Do you speak more than one language?"
-msgstr "Nahakna lie amadi atoppa ama pumnamak thourangbi khang-i?"
+msgstr "Nahakna amuk waheising khang-i?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgid "Yes"
-msgstr "Houjikle"
+msgstr "Houjik"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgid "No"
-msgstr "Adumle"
+msgstr "No"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "Amuk waheising khang-i!"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -180,13 +184,18 @@ msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
 msgstr ""
-"Nahakna khangba lie asi pumnamak, nungsi lie asida, anouba lie asida, ..."
+"Nahakna proficiency gi maru waheising phangba (ahangba wahei ahanba, ani "
+"wahei ani, ...)"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Liemaba lie ama pumnamak kheiduna hanbiu!"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Nahakna changphamda nungainaba waheising phangba (i.e., mahakna changphamda "
+"nungainaba waheising)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -194,51 +203,50 @@ msgctxt "music"
 msgid ""
 "How many years of formal training on a musical instrument (including voice) "
 "have you had during your lifetime?"
-msgstr "Nahakna kari phijol asida ama phijol asidagi training kari kari?"
+msgstr ""
+"Nahakna mahakki nungainaba musical instrument (voice amadi) gi maru kayri?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "On average, how many hours do you listen to music daily?"
-msgstr "Nahakna amukhupna kari phijol asida thourangbi kari?"
+msgstr "Nahakna numitkhangda music toubada kayri?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "Do you make money from playing music?"
-msgstr ""
-"Nahakna phijol asida amukhupna kari phijol aduda naidaba thourangbi kari?"
+msgstr "Nahakna music toubada phangba piba?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "Frequently"
-msgstr "Haiba khudol"
+msgstr "Houjik"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "Sometimes"
-msgstr "Anouba khudol"
+msgstr "Sometimes"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "Never"
-msgstr "Matam"
+msgstr "Never"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "Do you have hearing loss or any other hearing issues?"
-msgstr "Nahakna kari phijol asida paikhre?"
+msgstr "Nahakna hearing loss amadi hearing issues leirabage?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "Do you dance socially or professionally?"
-msgstr ""
-"Nahakna kari phijol asida ama phijol aduda thamna phijol asida leibra?"
+msgstr "Nahakna socially amadi professionally dance toubage?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -256,55 +264,55 @@ msgstr "Professionally"
 #, fuzzy
 msgctxt "dance"
 msgid "I never dance"
-msgstr "Eina paikhre"
+msgstr "Eina dance toude"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "When was the last time you danced? (choose the most accurate answer):"
-msgstr "Nahakna karigino paikhre? (karigi adum leiba phijol hanbiu):"
+msgstr "Nahakna karigi dance toure? (ahangba phangba khudong channa):"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "This week"
-msgstr "Matam adum"
+msgstr "Ahanba numit"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "This month"
-msgstr "Matam amasi"
+msgstr "Ahanba thang"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "This year"
-msgstr "Matam asi"
+msgstr "Ahanba kum"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "Some years ago"
-msgstr "Masi matam asi"
+msgstr "Kum khara"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "Many years ago"
-msgstr "Nongay hunba ama"
+msgstr "Kum khara"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "I never danced"
-msgstr "Ei nungshi khudingmakta hatnaba toubikhiba natte"
+msgstr "Eina dance toude"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Did you get speech-language therapy as a child?"
-msgstr "Nahakna school asida nungsing phijol asida therapy phaibra?"
+msgstr "Nahakna changphamda nungainaba speech-language therapy phangbire?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -315,19 +323,19 @@ msgstr "Eina khangde"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "Nahakna karigino dyslexia ki diagnosis phaibra?"
+msgstr "Nahakna dyslexia gi maru phangbire?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "income"
 msgid "What is your total household income per year?"
-msgstr "Nahakki lainana adum leiba income kari?"
+msgstr "Nahakki total household income per year karino?"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "Less than 10,000 {CURRENCY}"
-msgstr "10,000 {CURRENCY} dagi adum leiba"
+msgstr "10,000 {CURRENCY} dagi amuk leirabadi"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -393,31 +401,31 @@ msgstr "100,000 to 149,999 {CURRENCY}"
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "150,000 {CURRENCY} or more"
-msgstr "150,000 {CURRENCY} dagi atoppa"
+msgstr "150,000 {CURRENCY} amuk leirabadi"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you like the experiment?"
-msgstr "Nahakna experiment asi nangbu phajaba?"
+msgstr "Nahakna experiment phangbire?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you find the experiment difficult?"
-msgstr "Nahakna experiment asi phadonba khangba?"
+msgstr "Nahakna experiment khara phangbire?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you encounter any technical problems during the experiment?"
-msgstr "Nahakna experiment asi aduda technical phadokpa phangjaba?"
+msgstr "Nahakna experiment gi matamda technical problems phangbire?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "If so, please provide a few words describing the problem."
-msgstr "Adum oirabadi, phadokpa asi khanghanba phangbiu."
+msgstr "Phangbadi, problem gi maru khudong channa pibiyu."
 
 #: psynet/end.py
 #, fuzzy, python-brace-format
@@ -477,13 +485,22 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Experiment asi chongthamle."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr ""
+"Nongmada macha page-da chatkhiduna permissions request amuk hangdokpa "
+"ngammi; kari khangdoktuna pibiyu."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
 msgstr ""
-"Amasung mingam oirabadi nakhoina chatkhiduna chinglingeida hairiba ngamba "
-"amadi natte, khudol loire!"
+"Amasung nakhoina chatnaba ngamde, maram aduna phamkhiba phattaba amasung "
+"nakhoina chatnaba ngamde, sorry!"
 
 #: psynet/experiment.py
 #, fuzzy, python-brace-format
@@ -492,20 +509,20 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"Compensation gi maramda pukning sinbiba ngammi, karigumba error asibu "
-"hairakhibada researcher-sida {EMAIL} da contact toubiyu."
+"Compensation gi maramda chana leinaba, {EMAIL} da researcher bu contact tou "
+"amasung aduga nakhoina karigi error asida leitre haibadu puya tou."
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
-msgstr "Nongmatonda matungda info pumnamak masi quote touyuk:"
+msgstr "Nakhoina matam pumnamakta eikhoigi makha ahanba puya tou:"
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
-msgstr "Chaminkhiganu, nakhoigi progress asi record touribani."
+msgstr "Chinthok-u, nakhoigi progress asi record toukhrabani."
 
 #: psynet/experiment.py
 #, fuzzy
@@ -514,27 +531,43 @@ msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
-"Compensation gi maramda pukning sinbiba ngammi, karigumba error asibu "
-"hairakhibada researcher-sida Prolific website gi matung inna message "
-"sandoklaba."
+"Compensation gi maramda chana leinaba, Prolific website gi mapanna "
+"researcher bu message tou amasung nakhoina karigi error asida leitre haibadu"
+" puya tou."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Synchronization problem phangkhre. Nakhoina experiment asi ahanba browser "
+"tab singda thokpibra? Tab sing adu khudingbu khangdoktuna page asi refresh "
+"tou."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "খেল"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Nahakna nattraga amuk chingkhondu!"
+msgstr "আপুনি কমেও এটা উত্তৰ নিৰ্বাচন কৰিব লাগিব!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "Nahakna amuk thajadu!"
+msgstr "আপুনি এটা উত্তৰ নিৰ্বাচন কৰিব লাগিব!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Nahakna nattraga mathou amuk pangthoklaga piganu!"
+msgstr "আপুনি এটা সংখ্যা প্ৰদান কৰিব লাগিব!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -722,9 +755,94 @@ msgstr "Test asi matam asida hourakani."
 
 #: psynet/recruiters.py
 #, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Recruiter-ga leiraga loinana chatpa..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Experiment-da leiriba matamda nakhoina leiba matamgi potna nakhoibu credit "
+"tourammi. Nakhoina main experiment-da changdaba ngamde, nakhoigi submission "
+"'screened out' haibagi maramda Prolific-da utnaroi. Aduga nakhoina browser "
+"window asi khangdoktuna chatkhro."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Nakhoina Prolific interface-gi maramda nakhoigi submission asi return "
+"touraga Next button asi click tou. Eikhoina nakhoigi matamgi potna nakhoibu "
+"bonus paiduna chatkhre."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"Masi tharammi! Nakhoina experiment-da leiriba matamgi potna nakhoibu credit "
+"tourammi. Experiment-da lousinbagi maramda eikhoi nakhoibu thagatchari. "
+"Aduga nakhoina browser window asi khangdoktuna chatkhro."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"Masi tharamde. Nakhoina study asi gi maramda submission asi return touribra?"
+" Prolific interface-da chatlu, nakhoina submission asi return touribra "
+"haibasi sure touraga, 'Next' button asi click tou."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Eikhoina nakhoibu main experiment-da changdaba ngamde haibagi maramda eikhoi"
+" nungaitaba leiriba matamgi potna nakhoibu paiduna chatkhre. Masi potna "
+"phangnaba, Prolific interface-da nakhoigi assignment asi return touraga, "
+"'Next' button asi click tou."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Eikhoina nakhoibu main experiment-da changdaba ngamde haibagi maramda "
+"nungaitaba leiriba matamgi potna nakhoibu paiduna chatkhre. Masi potna "
+"phangnaba, Prolific-da nakhoigi assignment asi return touraga, Prolific "
+"messaging system-gi maramda experimenter-da message send tou. Experimenter-"
+"na nakhoigi case asi review touraga potna phangnaba ngamgani. Eikhoina "
+"nakhoibu thagatchari. Aduga nakhoina browser window asi khangdoktuna "
+"chatkhro."
+
+#: psynet/recruiters.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
-msgstr "Lucid Marketplace-da redirect tougatle..."
+msgstr "Lucid Marketplace-da redirect touraga..."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -2986,30 +3104,35 @@ msgstr "ꯄ꯭ꯂꯦ ꯄ꯭ꯔꯣꯃ꯭ꯄꯁ꯭ꯇꯁꯤ"
 msgid "Play recording"
 msgstr "ꯄ꯭ꯂꯦ ꯔꯣꯀꯥꯔꯗꯤꯟꯒꯁꯤ"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Khudongchaba"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Khudongchaba"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Loop"
+msgstr "Loop"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Loop"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Thokpagi mathakta sak-u"
-
-#: psynet/templates/macros/prompt.html
-#, fuzzy
 msgid "Video not found"
-msgstr "Leirang lei loi"
+msgstr "ভিডিঅ' খুংদা তৌবিরগনি"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
 msgid "Image not found"
-msgstr "Pheita lei loi"
+msgstr "ছবি খুংদা তৌবিরগনি"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3067,113 +3190,91 @@ msgstr "ꯋꯥꯔꯤꯡ ꯏꯃꯦꯕꯔꯤꯕꯦꯝꯇ..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Khudol ama leitrabadi, mathang mashak tou:"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "ꯃꯇꯝ ꯃꯥꯏ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Page asi phangduna pukninghanbiyu."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "ꯃꯇꯝ ꯃꯥꯏ ꯂꯣꯟꯕ ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Nahakki internet connection asi thoklaba phaoba cheksu."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Mathang khuding lakpa nattra loubadi, eikhoida email ama thiyu amasung matam"
-" asida khuding kharana thiyu:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Page asi amadi web link;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Nahakki Worker ID;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Nahakki khudol asi leiduna khuding phangdaba."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "ꯃꯇꯝ ꯃꯥꯏ ꯂꯣꯟꯕ ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "OK"
+msgstr "ꯑꯣꯀꯤ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Nahak yaoribra?"
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr ""
-"Experiment asi mathangda chingduna thoklaba matamda button asi thammi."
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ ꯑꯃꯥ ꯂꯣꯟꯕ ꯑꯃꯥ ꯂꯣꯟꯕ"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ ꯑꯃꯥ ꯂꯣꯟꯕ ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Chingba"
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Phangbi"
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Ahongba!"
+msgid "Comment"
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Experiment asi mathangda phangduna chingba"
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Page asi phangjaba phaoba kanbiyu."
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Khudak khudak khanbiyu."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Experiment asi yaaibada matam leitraba tab kharadi khanglakpa phangbijani. "
-"Tab amallei phanglakpada chatnanaba amasung page asi refresh toubiyu."
+msgstr "ꯑꯃꯥ ꯂꯣꯟꯕ"
 
 #: psynet/translation/countries.py
 #, fuzzy

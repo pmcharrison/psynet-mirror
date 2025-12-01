@@ -89,7 +89,7 @@ msgstr "Vous devez sélectionner un pays !"
 #, fuzzy
 msgctxt "country-select"
 msgid "What country are you from?"
-msgstr "De quel pays venez-vous ?"
+msgstr "De quel pays êtes-vous ?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -174,6 +174,12 @@ msgstr "Non"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "Veuillez lister au moins une langue !"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
@@ -184,8 +190,12 @@ msgstr ""
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Veuillez lister au moins une langue !"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Veuillez lister toutes les langues que vous parlez comme langues maternelles"
+" (c'est-à-dire que vous avez apprises dès l'enfance)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -201,8 +211,7 @@ msgstr ""
 #, fuzzy
 msgctxt "music"
 msgid "On average, how many hours do you listen to music daily?"
-msgstr ""
-"En moyenne, combien d'heures écoutez-vous de la musique quotidiennement ?"
+msgstr "En moyenne, combien d'heures écoutez-vous de la musique par jour ?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -306,7 +315,7 @@ msgstr "Je n'ai jamais dansé"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Did you get speech-language therapy as a child?"
-msgstr "Avez-vous suivi une thérapie orthophonique dans votre enfance ?"
+msgstr "Avez-vous suivi une thérapie orthophonique étant enfant ?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -479,6 +488,15 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Fin de l'expérience."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr ""
+"En continuant vers la page suivante, vous pourriez voir une demande "
+"d'autorisation ; veuillez l'accorder."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
@@ -516,6 +534,22 @@ msgid ""
 msgstr ""
 "Pour demander une compensation, veuillez envoyer un message au chercheur via"
 " le site Prolific et décrire ce qui a conduit à votre erreur."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Problème de synchronisation détecté. Exécutez-vous la même expérience dans "
+"plusieurs onglets de navigateur ? Veuillez fermer tous les autres onglets et"
+" actualiser la page."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Jouer"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -708,6 +742,90 @@ msgstr ""
 #, fuzzy
 msgid "The test will start on the next page."
 msgstr "Le test commencera à la page suivante."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Communication avec le recruteur..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Vous avez été crédité pour le temps passé sur l'expérience. Comme vous "
+"n'avez pas pu progresser vers l'expérience principale, votre soumission "
+"apparaîtra comme 'exclue' sur Prolific. Vous pouvez maintenant fermer cette "
+"fenêtre de navigateur."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Veuillez retourner votre soumission via l'interface Prolific et cliquer sur "
+"Suivant. Nous vous paierons alors automatiquement un bonus pour votre temps."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"Ça a marché ! Vous avez été crédité pour le temps passé sur l'expérience. "
+"Merci de votre participation. Vous pouvez maintenant fermer cette fenêtre de"
+" navigateur."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"Cela n'a pas fonctionné. Êtes-vous sûr d'avoir retourné la soumission pour "
+"cette étude ? Veuillez aller sur l'interface Prolific, assurez-vous d'avoir "
+"retourné la soumission, puis cliquez sur le bouton 'Suivant'."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Nous sommes désolés que vous n'ayez pas pu participer à l'expérience "
+"principale, mais nous vous paierons tout de même pour le temps passé jusqu'à"
+" présent. Pour recevoir ce paiement, nous avons besoin que vous retourniez "
+"cette tâche via l'interface Prolific, puis cliquez sur le bouton 'Suivant' "
+"ci-dessous."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Nous sommes désolés que vous n'ayez pas pu participer à l'expérience "
+"principale. Pour recevoir ce paiement pour votre temps, veuillez retourner "
+"votre tâche sur Prolific et envoyer un message à l'expérimentateur via le "
+"système de messagerie Prolific. L'expérimentateur examinera votre cas et "
+"arrangera le paiement si nécessaire. Merci de votre compréhension. Vous "
+"pouvez maintenant fermer cette fenêtre de navigateur."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2995,20 +3113,25 @@ msgstr "Lire l'invite"
 msgid "Play recording"
 msgstr "Lire l'enregistrement"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Arrêter"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Arrêter"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Boucle"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Lire depuis le début"
+msgid "Loop"
+msgstr "Boucle"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -3075,60 +3198,33 @@ msgstr "Démarrage de l'expérience..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "En cas de problème, essayez ce qui suit :"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "Laissez un commentaire"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Recharger la page."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "Écrivez un commentaire ici"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Vérifiez que votre connexion Internet fonctionne."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Si ce qui précède ne vous aide pas, envoyez-nous un e-mail avec les "
-"informations suivantes :"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Un lien vers la page Web actuelle ;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Votre identifiant de travailleur ;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Le problème que vous rencontrez."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "Envoyer le commentaire"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "D'ACCORD"
+msgstr "OK"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Es-tu prêt?"
+msgstr "Êtes-vous prêt ?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3140,8 +3236,24 @@ msgstr ""
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"Remarque : si vous voyez ce message souvent, cela peut être dû à une "
+"extension incompatible installée sur votre navigateur (par exemple, un "
+"bloqueur de publicités). Veuillez essayer d'ouvrir cette page dans une "
+"fenêtre de navigation privée (vous pouvez simplement copier et coller l'URL "
+"de la page actuelle), et/ou essayez de désactiver manuellement vos "
+"extensions."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "CV"
+msgstr "Reprendre"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3152,36 +3264,32 @@ msgstr "Récompense"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Aide!"
+msgid "Comment"
+msgstr "Commentaire"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Mettre fin à l'expérience prématurément"
+msgstr "Terminer l'expérience prématurément"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "Commentaire enregistré."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Veuillez patienter pendant le chargement de la page."
+msgstr "Veuillez attendre que la page se charge."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Réessayez dans quelques secondes."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Il semble que vous ayez ouvert l'expérience dans plusieurs onglets. "
-"Veuillez fermer tous les onglets sauf un et actualiser la page."
 
 #: psynet/translation/countries.py
 #, fuzzy

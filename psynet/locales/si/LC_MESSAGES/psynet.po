@@ -17,7 +17,7 @@ msgstr "ඔබ කෙසේ හඳුනාගන්නවාද?"
 #, fuzzy
 msgctxt "gender"
 msgid "Female"
-msgstr "කාන්තාව"
+msgstr "ගැහැණු"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -29,25 +29,25 @@ msgstr "පිරිමි"
 #, fuzzy
 msgctxt "gender"
 msgid "Non-binary"
-msgstr "නො-ද්වීතී"
+msgstr "නො-ද්විතීයික"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "Not specified"
-msgstr "විශේෂිත නොවේ"
+msgstr "නොපැහැදිලි"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "I prefer not to answer"
-msgstr "මම පිළිතුරු දිය නොහැක"
+msgstr "මම පිළිතුරු දීමට කැමති නැත"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "Specify yourself"
-msgstr "ඔබේ අයදුම්පත විශේෂිත කරන්න"
+msgstr "ඔබම විශේෂිත කරන්න"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -59,7 +59,7 @@ msgstr "ඔබේ වයස කීයද?"
 #, fuzzy
 msgctxt "age"
 msgid "You need to provide your age as an integer between 0 and 120!"
-msgstr "ඔබේ වයස 0 සහ 120 අතර මුළු සංඛ්‍යාකාරයක් ලෙස ලබා දිය යුතුය!"
+msgstr "ඔබේ වයස 0 සහ 120 අතර පූර්ණ සංඛ්‍යාකාරයෙන් ලබා දිය යුතුය!"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -83,25 +83,25 @@ msgstr "රටක් තෝරන්න"
 #, fuzzy
 msgctxt "country-select"
 msgid "You need to select a country!"
-msgstr "ඔබට රටක් තෝරා ගැනීමට අවශ්‍යයි!"
+msgstr "ඔබ රටක් තෝරාගත යුතුය!"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "country-select"
 msgid "What country are you from?"
-msgstr "ඔබ කුමන රටක සිටියිද?"
+msgstr "ඔබ කොයි රටේ සිටින්නෙක්ද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "country-select"
 msgid "What is your current country of residence?"
-msgstr "ඔබගේ වර්තමාන නේවාසික රට කුමක්ද?"
+msgstr "ඔබේ වර්තමාන නේවාසික රට කුමක්ද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "formal-education"
 msgid "What is your highest level of formal education?"
-msgstr "ඔබගේ ඉහළම නිල අධ්‍යාපන මට්ටම කුමක්ද?"
+msgstr "ඔබේ ඉහළම නිල අධ්‍යාපන මට්ටම කුමක්ද?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -119,7 +119,7 @@ msgstr "උසස් පාසල"
 #, fuzzy
 msgctxt "formal-education"
 msgid "College"
-msgstr "විද්‍යාලය"
+msgstr "විශ්ව විද්‍යාලය"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -131,7 +131,7 @@ msgstr "උපාධි පාසල"
 #, fuzzy
 msgctxt "formal-education"
 msgid "Postgraduate degree or higher"
-msgstr "පශ්චාත් උපාධිය හෝ ඊට ඉහළ"
+msgstr "උපාධියෙන් පසු උපාධිය හෝ ඉහළ"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -139,7 +139,8 @@ msgctxt "language-select"
 msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
 "speaking from early childhood?"
-msgstr "ඔබේ මව් භාෂාව කුමක්ද - අපි කියනවා ඔබ ළමා කාලයේ සිට කතා කරන භාෂාවක්?"
+msgstr ""
+"ඔබේ මව් බස කුමක්ද - එනම්, ඔබ කුඩා කාලයේ සිට කතා කරමින් වැඩෙන්නට ඇති භාෂාව?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -151,13 +152,13 @@ msgstr "භාෂාවක් තෝරන්න"
 #, fuzzy
 msgctxt "language-select"
 msgid "You need to select a language!"
-msgstr "ඔබට භාෂාවක් තෝරා ගැනීමට අවශ්‍යයි!"
+msgstr "ඔබ භාෂාවක් තෝරාගත යුතුය!"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
 msgid "Do you speak more than one language?"
-msgstr "ඔබට එකට වඩා භාෂා කතා කළ හැකිද?"
+msgstr "ඔබ එකට වඩා භාෂා කතා කරනවාද?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -172,18 +173,28 @@ msgstr "නැත"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid ""
-"Please list the languages you speak in order of proficiency (first language "
-"first, second language second, ...)"
-msgstr ""
-"කරුණාකර ඔබ කතා කරන භාෂා දක්වන්න, කුසලතාව අනුව (පළමු භාෂාව පළමුව, දෙවන භාෂාව "
-"දෙවනුව, ...)"
+msgid "Please list at least one language!"
+msgstr "කරුණාකර අවම වශයෙන් එක් භාෂාවක් ලැයිස්තුගත කරන්න!"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "කරුණාකර අවම වශයෙන් එක් භාෂාවක් හෝ ලියන්න!"
+msgid ""
+"Please list the languages you speak in order of proficiency (first language "
+"first, second language second, ...)"
+msgstr ""
+"කරුණාකර ඔබ කතා කරන භාෂා ප්‍රවීණතාවය අනුව ලැයිස්තුගත කරන්න (පළමු භාෂාව පළමුව,"
+" දෙවන භාෂාව දෙවනුව, ...)"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"කරුණාකර ඔබ කුඩා කාලයේ සිට කතා කරමින් වැඩෙන්නට ඇති සියලුම මව් බස ලැයිස්තුගත "
+"කරන්න."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -192,20 +203,20 @@ msgid ""
 "How many years of formal training on a musical instrument (including voice) "
 "have you had during your lifetime?"
 msgstr ""
-"ඔබගේ ජීවිතයේ කී වසරක් වාදන භාණ්ඩයක (ගායනය ඇතුළුව) නිල පුහුණුවක් ලබාගෙන "
+"ඔබේ ජීවිත කාලය තුළ සංගීත වාදනයක් (ගායනය ඇතුළුව) පිළිබඳ නිල පුහුණුව කී වසරක් "
 "තිබේද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "On average, how many hours do you listen to music daily?"
-msgstr "සාමාන්‍යයෙන්, ඔබ දිනපතා කී වරක් සංගීතය අහනවාද?"
+msgstr "සාමාන්‍යයෙන්, ඔබ දිනපතා සංගීතය ඇසීමට කී පැයක් වැය කරනවාද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "music"
 msgid "Do you make money from playing music?"
-msgstr "ඔබ සංගීතය වාදනය කිරීමෙන් මුදල් උපයනවාද?"
+msgstr "ඔබ සංගීත වාදනයෙන් මුදල් උපයනවාද?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -217,7 +228,7 @@ msgstr "නිතර"
 #, fuzzy
 msgctxt "music"
 msgid "Sometimes"
-msgstr "එකොළොස් වතාවක්"
+msgstr "කලින්"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -229,13 +240,13 @@ msgstr "කවදාවත් නැත"
 #, fuzzy
 msgctxt "music"
 msgid "Do you have hearing loss or any other hearing issues?"
-msgstr "ඔබට සවන් නැසීමක් හෝ වෙනත් සවන් ගැටළු තිබේද?"
+msgstr "ඔබට ශ්‍රවණ අහිමිවීමක් හෝ වෙනත් ශ්‍රවණ ගැටළු තිබේද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "Do you dance socially or professionally?"
-msgstr "ඔබ සමාජිකව හෝ වෘත්තීමය ලෙස නර්ථනය කරනවාද?"
+msgstr "ඔබ සමාජිකව හෝ වෘත්තීයමය ලෙස නර්තනය කරනවාද?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -247,19 +258,19 @@ msgstr "සමාජිකව"
 #, fuzzy
 msgctxt "dance"
 msgid "Professionally"
-msgstr "වෘත්තීමය ලෙස"
+msgstr "වෘත්තීයමය"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "I never dance"
-msgstr "මම කවදාවත් නර්ථනය නොකරන්නෙමි"
+msgstr "මම කවදාවත් නර්තනය නොකරමි"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "When was the last time you danced? (choose the most accurate answer):"
-msgstr "ඔබ අවසන් වරට නර්ථනය කලේ කවදාද? (වැදගත්ම පිළිතුරු තෝරන්න):"
+msgstr "ඔබ අවසාන වරට නර්තනය කළේ කවදාද? (ඉතා නිවැරදි පිළිතුර තෝරන්න):"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -283,25 +294,25 @@ msgstr "මෙම වසර"
 #, fuzzy
 msgctxt "dance"
 msgid "Some years ago"
-msgstr "කිහිප වසරකට පෙර"
+msgstr "සියලුම වසර"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "Many years ago"
-msgstr "බොහෝ වසරකට පෙර"
+msgstr "බොහෝ වසර"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "I never danced"
-msgstr "මම කවදාවත් නර්ථනය නොකළෙමි"
+msgstr "මම කවදාවත් නර්තනය නොකළෙමි"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Did you get speech-language therapy as a child?"
-msgstr "ඔබට ළමා කාලයේ කථා-භාෂා ප්‍රතිකාර ලබා දී තිබේද?"
+msgstr "ඔබට ළමා වියේදී කථා-භාෂා ප්‍රතිකාර ලබා දී තිබේද?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -312,13 +323,13 @@ msgstr "මට නොදනිමි"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "ඔබ කවදාවත් ඩිස්ලෙක්සියාවක් ලෙස වෛද්‍ය වශයෙන් හඳුනාගෙන තිබේද?"
+msgstr "ඔබට කවදාවත් ඩිස්ලෙක්සියාවක් ලෙස හඳුනාගෙන තිබේද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "income"
 msgid "What is your total household income per year?"
-msgstr "ඔබේ මුළු පවුලේ ආදායම වාර්ෂිකව කීයද?"
+msgstr "ඔබේ සමස්ත ගෘහස්ථ ආදායම වාර්ෂිකව කුමක්ද?"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -330,91 +341,91 @@ msgstr "10,000 {CURRENCY} ට අඩු"
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "10,000 to 19,999 {CURRENCY}"
-msgstr "10,000 සිට 19,999 {CURRENCY} තෙක්"
+msgstr "10,000 සිට 19,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "20,000 to 29,999 {CURRENCY}"
-msgstr "20,000 සිට 29,999 {CURRENCY} තෙක්"
+msgstr "20,000 සිට 29,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "30,000 to 39,999 {CURRENCY}"
-msgstr "30,000 සිට 39,999 {CURRENCY} තෙක්"
+msgstr "30,000 සිට 39,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "40,000 to 49,999 {CURRENCY}"
-msgstr "40,000 සිට 49,999 {CURRENCY} තෙක්"
+msgstr "40,000 සිට 49,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "50,000 to 59,999 {CURRENCY}"
-msgstr "50,000 සිට 59,999 {CURRENCY} තෙක්"
+msgstr "50,000 සිට 59,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "60,000 to 69,999 {CURRENCY}"
-msgstr "60,000 සිට 69,999 {CURRENCY} තෙක්"
+msgstr "60,000 සිට 69,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "70,000 to 79,999 {CURRENCY}"
-msgstr "70,000 සිට 79,999 {CURRENCY} තෙක්"
+msgstr "70,000 සිට 79,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "80,000 to 89,999 {CURRENCY}"
-msgstr "80,000 සිට 89,999 {CURRENCY} තෙක්"
+msgstr "80,000 සිට 89,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "90,000 to 99,999 {CURRENCY}"
-msgstr "90,000 සිට 99,999 {CURRENCY} තෙක්"
+msgstr "90,000 සිට 99,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "100,000 to 149,999 {CURRENCY}"
-msgstr "100,000 සිට 149,999 {CURRENCY} තෙක්"
+msgstr "100,000 සිට 149,999 {CURRENCY} දක්වා"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "150,000 {CURRENCY} or more"
-msgstr "150,000 {CURRENCY} හෝ ඊට වැඩි"
+msgstr "150,000 {CURRENCY} හෝ වැඩි"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you like the experiment?"
-msgstr "ඔබට අත්හදා බැලීම ප්‍රිය වුණාද?"
+msgstr "ඔබට පරීක්ෂණය කැමතිද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you find the experiment difficult?"
-msgstr "ඔබට අත්හදා බැලීම අපහසු වුණාද?"
+msgstr "ඔබට පරීක්ෂණය අපහසු වියද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you encounter any technical problems during the experiment?"
-msgstr "අත්හදා බැලීමේදී ඔබට කිසියම් තාක්ෂණික ගැටළු මුහුණ දී තිබේද?"
+msgstr "ඔබට පරීක්ෂණය අතරතුර තාක්ෂණික ගැටළු ඇතිවියද?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "If so, please provide a few words describing the problem."
-msgstr "එසේ නම්, කරුණාකර ගැටලුව විස්තර කීපයක් ලබා දෙන්න."
+msgstr "එසේ නම්, කරුණාකර ගැටලුව විස්තර කරන කිහිප වචන ලබා දෙන්න."
 
 #: psynet/end.py
 #, fuzzy, python-brace-format
@@ -473,11 +484,18 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "පර්යේෂණයේ අවසානය."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr "මීළඟ පිටුවට යාමේදී ඔබට අවසර ඉල්ලීමක් දැකිය හැක; කරුණාකර එය ලබා දෙන්න."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "දෝෂයක් ඇතිව ඇත, එබැවින් ඔබට ඉදිරියට යාමට නොහැක, සමාවන්න!"
+msgstr "දෝෂයක් ඇතිවී ඇති අතර ඔබට ඉදිරියට යාමට නොහැක, කණගාටුයි!"
 
 #: psynet/experiment.py
 #, fuzzy, python-brace-format
@@ -486,20 +504,20 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"ආධාර ගැන විමසීම සඳහා, {EMAIL} හි පර්යේෂකයාට සම්බන්ධ වන්න සහ මෙම දෝෂයට හේතුව "
-"වාර්තා කරන්න."
+"ආපසු ගෙවීම පිළිබඳ විමසීමට, කරුණාකර {EMAIL} හි පර්යේෂකයා අමතන්න සහ මෙම දෝෂයට "
+"හේතුව කුමක්දැයි විස්තර කරන්න."
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
-msgstr "කරුණාකර පහත තොරතුරුද සඳහන් කරන්න:"
+msgstr "කරුණාකර පහත තොරතුරු ද සඳහන් කරන්න:"
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
-msgstr "කැමති නම්, ඔබේ වාර්තාව සුරැකී ඇත."
+msgstr "කනගාටු නොවන්න, ඔබේ ප්‍රගතිය සටහන් කර ඇත."
 
 #: psynet/experiment.py
 #, fuzzy
@@ -508,26 +526,42 @@ msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
-"ආධාර ගැන විමසීම සඳහා, කරුණාකර Prolific වෙබ් අඩවිය හරහා පර්යේෂකයාට පණිවිඩයක් "
-"යවන්න සහ ඔබේ දෝෂයට හේතුව විස්තර කරන්න."
+"ආපසු ගෙවීම පිළිබඳ විමසීමට, කරුණාකර Prolific වෙබ් අඩවිය හරහා පර්යේෂකයාට "
+"පණිවිඩයක් යවන්න සහ ඔබේ දෝෂයට හේතුව කුමක්දැයි විස්තර කරන්න."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"සමකාලීන කිරීමේ ගැටළුවක් හඳුනාගෙන ඇත. ඔබ එකම පර්යේෂණය බහු බ්‍රවුසර ටැබ්වල "
+"ක්‍රියාත්මක කරමින් සිටීද? කරුණාකර අනෙකුත් සියලුම ටැබ් වසා පිටුව නැවත සජීවී "
+"කරන්න."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Play"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "ඔබට අවම වශයෙන් එක් පිළිතුරක් පිරික්සන්න!"
+msgstr "ඔබට අවම වශයෙන් එක් පිළිතුරක් වත් තෝරාගත යුතුය!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "ඔබට පිළිතුරක් තෝරා ගැනීමට අවශ්‍ය වේ!"
+msgstr "ඔබට පිළිතුරක් තෝරාගත යුතුය!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "ඔබට අංකයක් ලබා දිය යුතුය!"
+msgstr "ඔබට සංඛ්‍යාවක් ලබා දිය යුතුය!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -697,9 +731,88 @@ msgstr "පරීක්ෂාව මීළඟ පිටුවේ ආරම්භ
 
 #: psynet/recruiters.py
 #, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "නිවාසකයා සමඟ සන්නිවේදනය කරමින්..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"පරීක්ෂණය සඳහා ගත කළ කාලය සඳහා ඔබට ණය ලබා දී ඇත. ඔබ ප්‍රධාන පරීක්ෂණයට යා "
+"නොහැකි වූ නිසා ඔබේ ඉදිරිපත් කිරීම Prolific හි 'screened out' ලෙස පෙනේ. දැන් "
+"ඔබට මෙම බ්‍රවුසර කවුළුව වසා දැමිය හැක."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"කරුණාකර Prolific අතුරුමුහුණත හරහා ඔබේ ඉදිරිපත් කිරීම ආපසු ලබා දී 'ඊළඟ' "
+"ක්ලික් කරන්න. එවිට අපි ස්වයංක්‍රීයව ඔබේ කාලය සඳහා ඔබට බෝනස් ගෙවන්නෙමු."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"එය ක්‍රියාත්මක විය! පරීක්ෂණය සඳහා ගත කළ කාලය සඳහා ඔබට ණය ලබා දී ඇත. සහභාගී "
+"වූ ඔබට ස්තුතියි. දැන් ඔබට මෙම බ්‍රවුසර කවුළුව වසා දැමිය හැක."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"එය ක්‍රියාත්මක නොවීය. ඔබ මෙම අධ්‍යයනය සඳහා ඉදිරිපත් කිරීම ආපසු ලබා "
+"දුන්නේදැයි ඔබට විශ්වාසද? කරුණාකර Prolific අතුරුමුහුණතට යන්න, ඔබ ඉදිරිපත් "
+"කිරීම ආපසු ලබා දුන් බවට වග බලා ගන්න, එවිට 'ඊළඟ' බොත්තම ක්ලික් කරන්න."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"ඔබ ප්‍රධාන පරීක්ෂණයට යා නොහැකි වූ නිසා අපි කණගාටු වෙමු, නමුත් ඔබ ගත කළ කාලය "
+"සඳහා අපි තවමත් ඔබට ගෙවන්නෙමු. මෙම ගෙවීම ලබා ගැනීමට, Prolific අතුරුමුහුණත "
+"හරහා මෙම පවරන ආපසු ලබා දී 'ඊළඟ' බොත්තම ක්ලික් කරන්න."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"ඔබ ප්‍රධාන පරීක්ෂණයට යා නොහැකි වූ නිසා අපි කණගාටු වෙමු. ඔබේ කාලය සඳහා මෙම "
+"ගෙවීම ලබා ගැනීමට, කරුණාකර Prolific හි ඔබේ පවරන ආපසු ලබා දී Prolific පණිවිඩ "
+"පද්ධතිය හරහා පරීක්ෂකයාට පණිවිඩයක් යවන්න. පරීක්ෂකයා ඔබේ සිද්ධිය සමාලෝචනය කර "
+"අවශ්‍ය නම් ගෙවීම් සකසනු ඇත. ඔබේ අවබෝධය සඳහා ස්තුතියි. දැන් ඔබට මෙම බ්‍රවුසර "
+"කවුළුව වසා දැමිය හැක."
+
+#: psynet/recruiters.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
-msgstr "Lucid වෙළඳපොල වෙත යළියොමවාමින්..."
+msgstr "Lucid වෙළඳපොළ වෙත යොමු වෙමින්..."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -2867,30 +2980,35 @@ msgstr "ආවේණිකය වාදනය කරන්න"
 msgid "Play recording"
 msgstr "වාර්තා වාදනය"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "නවත්වන්න"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "නවත්වන්න"
+
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Loop"
+msgstr "පිටපත් කරන්න"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "පිටපත් කරන්න"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
-msgid "Play from start"
-msgstr "ආරම්භයෙන් වාදනය කරන්න"
-
-#: psynet/templates/macros/prompt.html
-#, fuzzy
 msgid "Video not found"
-msgstr "වීඩියෝව හමු නොවීය"
+msgstr "වීඩියෝව සොයාගත නොහැක"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
 msgid "Image not found"
-msgstr "පින්තූරය හමු නොවීය"
+msgstr "රූපය සොයාගත නොහැක"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2945,47 +3063,21 @@ msgstr "ප්‍රයෝගය ආරම්භ වෙමින්..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "ගැටළුවක් පැනනම් පහත දැක්වෙන දේ කරන්න:"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "අදහසක් තබන්න"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "පිටුව නැවත ප්‍රාප්ත කරන්න."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "මෙහි අදහසක් ලියන්න"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "ඔබගේ අන්තර්ජාල සම්බන්ධතාවය ක්‍රියාත්මක වේදැයි පරීක්ෂා කරන්න."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"ඉහත සඳහන් දේ උපකාර නොවන්නේ නම්, පහත තොරතුරු සමඟ අපට විද්‍යුත් තැපෑලක් යවන්න:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "වත්මන් වෙබ් පිටුවට සබැඳිය;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "ඔබගේ කම්කරු හැඳුනුම් අංකය;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "ඔබට ඇති ගැටලුව."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "අදහස යවන්න"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3003,7 +3095,21 @@ msgstr "ඔබ සූදානම්ද?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "ප්‍රයෝගය ඉදිරියට පැවැත්වීමට සූදානම් වන විට බොත්තම ක්ලික් කරන්න."
+msgstr "ප්‍රයෝගය දිගටම කරගෙන යාමට සූදානම් වූ විට බොත්තම ක්ලික් කරන්න."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"ඔබට මෙම පණිවිඩය බොහෝ විට දැකීම් නම්, එය ඔබේ බ්‍රවුසරය අසමගි අතිරේකයක් "
+"ස්ථාපනය කර ඇති නිසා විය හැක (උදා. දැන්වීම් අවහිරකරු). කරුණාකර මෙම පිටුව "
+"අමුතු කවුළුවක විවෘත කිරීමට උත්සාහ කරන්න (ඔබට වර්තමාන පිටුවෙන් URL එක පිටපත් "
+"කර අලවන්න පුළුවන්), සහ/හෝ ඔබේ අතිරේකයන් අතින් අක්‍රීය කිරීමට උත්සාහ කරන්න."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3015,41 +3121,37 @@ msgstr "නැවත ආරම්භ කරන්න"
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "ප්‍රතිලාභය"
+msgstr "ප්‍රසාදය"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "උදව්!"
+msgid "Comment"
+msgstr "අදහස"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "ප්‍රයෝගය කෙටි කලින් අවසන් කරන්න"
+msgstr "ප්‍රයෝගය ඉක්මනින් අවසන් කරන්න"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "අදහස ගබඩා කරන ලදී."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "පිටුව පූරණය වීමට කාලයක් ගත කරන්න."
+msgstr "පිටුව පූරණය වන තුරු රැඳී සිටින්න."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "තවත් කිහිපයයි සෙකන්ඩ් කාලයක් තුළ නැවත උත්සාහ කරන්න."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"ඔබ ප්‍රයෝගය විවෘත කර ඇති බව පෙනේ. කරුණාකර එක් පටියක් හැර අනෙකුත් සියල්ල වසා,"
-" පිටුව නැවත ප්‍රාප්ත කරන්න."
+msgstr "තවත් තත්පර කිහිපයකින් නැවත උත්සාහ කරන්න."
 
 #: psynet/translation/countries.py
 #, fuzzy

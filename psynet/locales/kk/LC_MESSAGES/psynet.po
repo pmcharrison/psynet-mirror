@@ -29,13 +29,13 @@ msgstr "Ер"
 #, fuzzy
 msgctxt "gender"
 msgid "Non-binary"
-msgstr "Екіжақты емес"
+msgstr "Екі жынысты емес"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "Not specified"
-msgstr "Анықталмаған"
+msgstr "Көрсетілмеген"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -53,13 +53,13 @@ msgstr "Өзіңізді көрсетіңіз"
 #, fuzzy
 msgctxt "age"
 msgid "What is your age?"
-msgstr "Сіздің жасыңыз қанша?"
+msgstr "Сіздің жасыңыз қаншада?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "age"
 msgid "You need to provide your age as an integer between 0 and 120!"
-msgstr "Жасыңызды 0-ден 120-ға дейінгі бүтін сан ретінде көрсетуіңіз керек!"
+msgstr "Жасыңызды 0 мен 120 арасындағы бүтін сан ретінде көрсетуіңіз керек!"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -95,19 +95,19 @@ msgstr "Сіз қай елденсіз?"
 #, fuzzy
 msgctxt "country-select"
 msgid "What is your current country of residence?"
-msgstr "Қазіргі уақытта қай елде тұрасыз?"
+msgstr "Сіздің қазіргі тұратын еліңіз қандай?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "formal-education"
 msgid "What is your highest level of formal education?"
-msgstr "Сіздің ресми біліміңіздің ең жоғары деңгейі қандай?"
+msgstr "Сіздің ең жоғары ресми біліміңіз қандай?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "formal-education"
 msgid "None"
-msgstr "Ешқайсысы"
+msgstr "Ешқандай"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -131,7 +131,7 @@ msgstr "Магистратура"
 #, fuzzy
 msgctxt "formal-education"
 msgid "Postgraduate degree or higher"
-msgstr "Жоғары оқу орны немесе одан жоғары"
+msgstr "Жоғары оқу орнынан кейінгі немесе одан жоғары дәрежесі"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -140,8 +140,7 @@ msgid ""
 "What is your mother tongue - i.e., the language which you have grown up "
 "speaking from early childhood?"
 msgstr ""
-"Сіздің ана тіліңіз қандай - яғни, бала кезіңізден бастап сөйлеп келе жатқан "
-"тіліңіз?"
+"Сіздің ана тіліңіз қандай - яғни, сіз бала кезіңізден бастап сөйлеген тіл?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -174,18 +173,28 @@ msgstr "Жоқ"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid ""
-"Please list the languages you speak in order of proficiency (first language "
-"first, second language second, ...)"
-msgstr ""
-"Сіз сөйлейтін тілдерді біліктілік тәртібімен тізімдеңіз (бірінші тілді "
-"бірінші, екінші тілді екінші, ...)"
+msgid "Please list at least one language!"
+msgstr "Кем дегенде бір тілді тізімдеңіз!"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Ең болмағанда бір тілді тізімдеңіз!"
+msgid ""
+"Please list the languages you speak in order of proficiency (first language "
+"first, second language second, ...)"
+msgstr ""
+"Сіз сөйлейтін тілдерді шеберлік ретімен тізімдеңіз (бірінші тіл бірінші, "
+"екінші тіл екінші, ...)"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Сіз ана тілі ретінде сөйлейтін барлық тілдерді тізімдеңіз (яғни, бала "
+"кезіңізден бастап сөйлеген тілдер)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -201,7 +210,7 @@ msgstr ""
 #, fuzzy
 msgctxt "music"
 msgid "On average, how many hours do you listen to music daily?"
-msgstr "Сіз күніне орта есеппен неше сағат музыка тыңдайсыз?"
+msgstr "Сіз күнделікті орташа есеппен қанша сағат музыка тыңдайсыз?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -231,7 +240,7 @@ msgstr "Ешқашан"
 #, fuzzy
 msgctxt "music"
 msgid "Do you have hearing loss or any other hearing issues?"
-msgstr "Сізде есту жоғалту немесе басқа есту мәселелері бар ма?"
+msgstr "Сізде есту қабілетінің жоғалуы немесе басқа есту мәселелері бар ма?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -261,7 +270,7 @@ msgstr "Мен ешқашан билемеймін"
 #, fuzzy
 msgctxt "dance"
 msgid "When was the last time you danced? (choose the most accurate answer):"
-msgstr "Соңғы рет қашан биледіңіз? (ең дәл жауабын таңдаңыз):"
+msgstr "Сіз соңғы рет қашан биледіңіз? (ең дәл жауапты таңдаңыз):"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -303,7 +312,7 @@ msgstr "Мен ешқашан билемедім"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Did you get speech-language therapy as a child?"
-msgstr "Сіз бала кезіңізде сөйлеу тілін дамыту терапиясын алдыңыз ба?"
+msgstr "Сіз бала кезіңізде сөйлеу тілі терапиясын алдыңыз ба?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -314,19 +323,19 @@ msgstr "Білмеймін"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "Сізде ешқашан дислексия диагнозы қойылды ма?"
+msgstr "Сізге дислексия диагнозы қойылған ба?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "income"
 msgid "What is your total household income per year?"
-msgstr "Сіздің жылдық жалпы отбасылық табысыңыз қандай?"
+msgstr "Сіздің жылдық жалпы үй табысыңыз қандай?"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "Less than 10,000 {CURRENCY}"
-msgstr "10,000 {CURRENCY}-ден аз"
+msgstr "10,000 {CURRENCY}-дан аз"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -392,7 +401,7 @@ msgstr "100,000-нан 149,999 {CURRENCY}-ға дейін"
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "150,000 {CURRENCY} or more"
-msgstr "150,000 {CURRENCY} немесе одан жоғары"
+msgstr "150,000 {CURRENCY} немесе одан көп"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -404,20 +413,20 @@ msgstr "Сізге эксперимент ұнады ма?"
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you find the experiment difficult?"
-msgstr "Эксперимент сізге қиын болды ма?"
+msgstr "Сіз экспериментті қиын деп таптыңыз ба?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you encounter any technical problems during the experiment?"
 msgstr ""
-"Эксперимент кезінде қандай да бір техникалық мәселелерге тап болдыңыз ба?"
+"Эксперимент барысында қандай да бір техникалық мәселелерге тап болдыңыз ба?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "If so, please provide a few words describing the problem."
-msgstr "Егер болса, мәселені сипаттайтын бірнеше сөз беріңіз."
+msgstr "Егер солай болса, мәселені сипаттайтын бірнеше сөз жазыңыз."
 
 #: psynet/end.py
 #, fuzzy, python-brace-format
@@ -476,12 +485,18 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Тәжірибе соңы."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr "Келесі бетке өткенде рұқсат сұрауы мүмкін; оны беріңіз."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr ""
-"Қателік орын алды, сондықтан сіз жалғастыра алмайсыз, кешірім сұраймыз!"
+msgstr "Қате орын алды, сондықтан сіз жалғастыра алмайсыз, кешіріңіз!"
 
 #: psynet/experiment.py
 #, fuzzy, python-brace-format
@@ -490,8 +505,8 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"Өтемақы туралы сұрау үшін {EMAIL} мекенжайы бойынша зерттеушіге хабарласыңыз"
-" және осы қателікке не себеп болғанын сипаттаңыз."
+"Өтемақы туралы сұрау үшін {EMAIL} мекенжайына зерттеушіге хабарласыңыз және "
+"осы қатеге не себеп болғанын сипаттаңыз."
 
 #: psynet/experiment.py
 #, fuzzy
@@ -513,25 +528,41 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr ""
 "Өтемақы туралы сұрау үшін Prolific веб-сайты арқылы зерттеушіге хабарлама "
-"жіберіп, қателігіңізге не себеп болғанын сипаттаңыз."
+"жіберіп, қатеге не себеп болғанын сипаттаңыз."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Синхрондау мәселесі анықталды. Сіз бір экспериментті бірнеше браузер "
+"қойындыларында іске қосып жатырсыз ба? Барлық басқа қойындыларды жабыңыз "
+"және бетті жаңартыңыз."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Ойнату"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Сіз кем дегенде бір жауапты белгілеуіңіз керек!"
+msgstr "Кем дегенде бір жауапты таңдау керек!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "Сіз жауапты таңдау керексіз!"
+msgstr "Жауапты таңдау керек!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Сіз сан беруіңіз керек!"
+msgstr "Сан енгізу керек!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -705,9 +736,90 @@ msgstr "Тест келесі бетте басталады."
 
 #: psynet/recruiters.py
 #, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Рекрутермен байланысуда..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Сізге экспериментке жұмсаған уақытыңыз үшін несие берілді. Негізгі "
+"экспериментке қатыса алмағандықтан, сіздің жіберуіңіз Prolific-те 'screened "
+"out' ретінде көрінеді. Енді осы браузер терезесін жаба аласыз."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Өтінеміз, Prolific интерфейсі арқылы жіберуіңізді қайтарып, 'Келесі' "
+"түймесін басыңыз. Содан кейін біз сізге уақытыңыз үшін автоматты түрде бонус"
+" төлейміз."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"Бұл жұмыс істеді! Сізге экспериментке жұмсаған уақытыңыз үшін несие берілді."
+" Қатысқаныңыз үшін рахмет. Енді осы браузер терезесін жаба аласыз."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"Бұл жұмыс істемеді. Сіз осы зерттеу үшін жіберуді қайтарғаныңызға сенімдісіз"
+" бе? Prolific интерфейсіне өтіп, жіберуді қайтарғаныңызға көз жеткізіп, "
+"содан кейін 'Келесі' түймесін басыңыз."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Біз негізгі экспериментке қатыса алмағаныңызға өкінеміз, бірақ біз сізге осы"
+" уақытқа дейін жұмсаған уақытыңыз үшін төлем жасаймыз. Бұл төлемді алу үшін,"
+" бізге Prolific интерфейсі арқылы осы тапсырманы қайтарып, төмендегі "
+"'Келесі' түймесін басу қажет."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Біз негізгі экспериментке қатыса алмағаныңызға өкінеміз. Уақытыңыз үшін осы "
+"төлемді алу үшін, Prolific-те тапсырмаңызды қайтарып, Prolific хабарлама "
+"жүйесі арқылы экспериментерге хабарлама жіберіңіз. Экспериментер сіздің "
+"жағдайыңызды қарап, қажет болса төлемді ұйымдастырады. Түсінігіңіз үшін "
+"рахмет. Енді осы браузер терезесін жаба аласыз."
+
+#: psynet/recruiters.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
-msgstr "Lucid Marketplace-ке қайта бағыттау..."
+msgstr "Lucid Marketplace-ке қайта бағытталуда..."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -2917,20 +3029,25 @@ msgstr "Тапсырманы ойнату"
 msgid "Play recording"
 msgstr "Жазбаны ойнату"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Тоқтату"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Тоқтату"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Цикл"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Бастап ойнау"
+msgid "Loop"
+msgstr "Цикл"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -2995,48 +3112,21 @@ msgstr "Эксперимент басталуда..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Мәселе туындаған жағдайда келесі әрекеттерді орындап көріңіз:"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "Пікір қалдыру"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Бетті қайта жүктеңіз."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "Мұнда пікір жазыңыз"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Интернет байланысы жұмыс істеп тұрғанын тексеріңіз."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Жоғарыда айтылғандар көмектеспесе, бізге келесі ақпаратты электрондық пошта "
-"арқылы жіберіңіз:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Ағымдағы веб-бетке сілтеме;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Сіздің жұмысшы идентификаторыңыз;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Сіз бастан кешірген мәселе."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "Пікір жіберу"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3048,19 +3138,33 @@ msgstr "Жарайды"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Дайынсыз ба?"
+msgstr "Сіз дайынсыз ба?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Экспериментті жалғастыруға дайын болған кезде түймені басыңыз."
+msgstr "Экспериментті жалғастыруға дайын болғанда түймені басыңыз."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"Егер бұл хабарды жиі көрсеңіз, бұл сіздің браузеріңізде үйлесімсіз кеңейтім "
+"орнатылған болуы мүмкін (мысалы, жарнама блоктаушы). Осы бетті жасырын "
+"терезеде ашып көріңіз (ағымдағы беттен URL мекенжайын көшіріп, қоюға болады)"
+" және/немесе кеңейтімдеріңізді қолмен өшіруге тырысыңыз."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Резюме"
+msgstr "Жалғастыру"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3071,14 +3175,20 @@ msgstr "Сыйақы"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Көмектесіңіздер!"
+msgid "Comment"
+msgstr "Пікір"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Экспериментті ертерек аяқтаңыз"
+msgstr "Экспериментті ерте аяқтау"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "Пікір сақталды."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3090,17 +3200,7 @@ msgstr "Беттің жүктелуін күтіңіз."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Бірнеше секундтан кейін әрекетті қайталаңыз."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Сіз экспериментті бірнеше қойындыда ашқан сияқтысыз. Бір қойындыдан "
-"басқасының барлығын жауып, бетті жаңартыңыз."
+msgstr "Бірнеше секундтан кейін қайта көріңіз."
 
 #: psynet/translation/countries.py
 #, fuzzy

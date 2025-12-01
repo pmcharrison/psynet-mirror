@@ -174,18 +174,28 @@ msgstr "Όχι"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid ""
-"Please list the languages you speak in order of proficiency (first language "
-"first, second language second, ...)"
-msgstr ""
-"Παρακαλώ απαριθμήστε τις γλώσσες που μιλάτε κατά σειρά ευχέρειας (πρώτη "
-"γλώσσα πρώτη, δεύτερη γλώσσα δεύτερη, ...)"
+msgid "Please list at least one language!"
+msgstr "Παρακαλώ αναφέρετε τουλάχιστον μία γλώσσα!"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Παρακαλώ απαριθμήστε τουλάχιστον μία γλώσσα!"
+msgid ""
+"Please list the languages you speak in order of proficiency (first language "
+"first, second language second, ...)"
+msgstr ""
+"Παρακαλώ αναφέρετε τις γλώσσες που μιλάτε κατά σειρά ευχέρειας (πρώτη γλώσσα"
+" πρώτη, δεύτερη γλώσσα δεύτερη, ...)"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Παρακαλώ αναφέρετε όλες τις γλώσσες που μιλάτε ως μητρικές (δηλαδή, που "
+"μεγαλώσατε μιλώντας από την παιδική ηλικία)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -195,7 +205,7 @@ msgid ""
 "have you had during your lifetime?"
 msgstr ""
 "Πόσα χρόνια επίσημης εκπαίδευσης σε μουσικό όργανο (συμπεριλαμβανομένης της "
-"φωνής) έχετε κατά τη διάρκεια της ζωής σας;"
+"φωνής) έχετε λάβει κατά τη διάρκεια της ζωής σας;"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -315,7 +325,7 @@ msgstr "Δεν ξέρω"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "Έχετε ποτέ διαγνωστεί με δυσλεξία;"
+msgstr "Έχετε διαγνωστεί ποτέ με δυσλεξία;"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -411,7 +421,7 @@ msgstr "Βρήκατε το πείραμα δύσκολο;"
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you encounter any technical problems during the experiment?"
-msgstr "Συναντήσατε τεχνικά προβλήματα κατά τη διάρκεια του πειράματος;"
+msgstr "Αντιμετωπίσατε τεχνικά προβλήματα κατά τη διάρκεια του πειράματος;"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -476,6 +486,15 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Τέλος του πειράματος."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr ""
+"Όταν συνεχίσετε στην επόμενη σελίδα, μπορεί να δείτε ένα αίτημα αδειών. "
+"Παρακαλώ, αποδεχτείτε το."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
@@ -514,6 +533,22 @@ msgstr ""
 "Για να ρωτήσετε σχετικά με την αποζημίωση, παρακαλώ στείλτε ένα μήνυμα στον "
 "ερευνητή μέσω της ιστοσελίδας Prolific και περιγράψτε τι οδήγησε στο σφάλμα "
 "σας."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Εντοπίστηκε πρόβλημα συγχρονισμού. Εκτελείτε το ίδιο πείραμα σε πολλαπλές "
+"καρτέλες του προγράμματος περιήγησης; Παρακαλώ κλείστε όλες τις άλλες "
+"καρτέλες και ανανεώστε τη σελίδα."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Αναπαραγωγή"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -713,9 +748,94 @@ msgstr "Το τεστ θα ξεκινήσει στην επόμενη σελίδ
 
 #: psynet/recruiters.py
 #, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Επικοινωνία με τον υπεύθυνο προσλήψεων..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Έχετε πιστωθεί για τον χρόνο που περάσατε στο πείραμα. Επειδή δεν μπορούσατε"
+" να προχωρήσετε στο κύριο πείραμα, η υποβολή σας θα εμφανιστεί ως "
+"'αποκλεισμένη' στο Prolific. Μπορείτε τώρα να κλείσετε αυτό το παράθυρο του "
+"προγράμματος περιήγησης."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Παρακαλώ επιστρέψτε την υποβολή σας μέσω της διεπαφής του Prolific και κάντε"
+" κλικ στο Επόμενο. Στη συνέχεια, θα σας πληρώσουμε αυτόματα ένα μπόνους για "
+"τον χρόνο σας."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"Αυτό λειτούργησε! Έχετε πιστωθεί για τον χρόνο που περάσατε στο πείραμα. Σας"
+" ευχαριστούμε για τη συμμετοχή σας. Μπορείτε τώρα να κλείσετε αυτό το "
+"παράθυρο του προγράμματος περιήγησης."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"Αυτό δεν λειτούργησε. Είστε σίγουροι ότι επιστρέψατε την υποβολή για αυτή τη"
+" μελέτη; Παρακαλώ πηγαίνετε στη διεπαφή του Prolific, βεβαιωθείτε ότι έχετε "
+"επιστρέψει την υποβολή και στη συνέχεια κάντε κλικ στο κουμπί 'Επόμενο'."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Λυπούμαστε που δεν μπορέσατε να προχωρήσετε στο κύριο πείραμα, αλλά θα σας "
+"πληρώσουμε για τον χρόνο που περάσατε μέχρι τώρα. Για να λάβετε αυτή την "
+"πληρωμή, χρειαζόμαστε να επιστρέψετε αυτή την ανάθεση μέσω της διεπαφής του "
+"Prolific και στη συνέχεια να κάνετε κλικ στο κουμπί 'Επόμενο' παρακάτω."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Λυπούμαστε που δεν μπορέσατε να προχωρήσετε στο κύριο πείραμα. Για να λάβετε"
+" αυτή την πληρωμή για τον χρόνο σας, παρακαλώ επιστρέψτε την ανάθεσή σας στο"
+" Prolific και στείλτε ένα μήνυμα στον πειραματιστή μέσω του συστήματος "
+"μηνυμάτων του Prolific. Ο πειραματιστής θα εξετάσει την περίπτωσή σας και θα"
+" κανονίσει την πληρωμή αν είναι κατάλληλο. Σας ευχαριστούμε για την "
+"κατανόησή σας. Μπορείτε τώρα να κλείσετε αυτό το παράθυρο του προγράμματος "
+"περιήγησης."
+
+#: psynet/recruiters.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
-msgstr "Ανακατεύθυνση στην Αγορά Lucid..."
+msgstr "Ανακατεύθυνση στο Lucid Marketplace..."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -2997,20 +3117,25 @@ msgstr "Αναπαραγωγή προτροπής"
 msgid "Play recording"
 msgstr "Αναπαραγωγή εγγραφής"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Διακοπή"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Διακοπή"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Επανάληψη"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Αναπαραγωγή από την αρχή"
+msgid "Loop"
+msgstr "Επανάληψη"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -3075,54 +3200,27 @@ msgstr "Ξεκινώντας το πείραμα..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Σε περίπτωση προβλήματος, δοκιμάστε τα εξής:"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "Αφήστε ένα σχόλιο"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Επαναφορτώστε τη σελίδα."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "Γράψτε ένα σχόλιο εδώ"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Ελέγξτε ότι η σύνδεσή σας στο διαδίκτυο λειτουργεί."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Αν τα παραπάνω δεν σας βοηθήσουν, στείλτε μας ένα email με τις ακόλουθες "
-"πληροφορίες:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Ένας σύνδεσμος προς την τρέχουσα ιστοσελίδα."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Το αναγνωριστικό εργαζομένου σας·"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Το πρόβλημα που αντιμετωπίζετε."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "Αποστολή σχολίου"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "ΕΝΤΑΞΕΙ"
+msgstr "Εντάξει"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3139,8 +3237,24 @@ msgstr "Κάντε κλικ στο κουμπί όταν είστε έτοιμο
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"Σημείωση: αν βλέπετε αυτό το μήνυμα συχνά, μπορεί να οφείλεται στο ότι το "
+"πρόγραμμα περιήγησής σας έχει εγκατεστημένη μια μη συμβατή επέκταση (π.χ. "
+"adblocker). Παρακαλώ δοκιμάστε να ανοίξετε αυτή τη σελίδα σε ένα παράθυρο "
+"ανώνυμης περιήγησης (μπορείτε απλά να αντιγράψετε και να επικολλήσετε το URL"
+" από την τρέχουσα σελίδα) και/ή δοκιμάστε να απενεργοποιήσετε χειροκίνητα "
+"τις επεκτάσεις σας."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Περίληψη"
+msgstr "Συνέχιση"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3151,14 +3265,20 @@ msgstr "Ανταμοιβή"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Βοήθεια!"
+msgid "Comment"
+msgstr "Σχόλιο"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Τερματίστε το πείραμα πρόωρα"
+msgstr "Τερματισμός του πειράματος νωρίς"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "Το σχόλιο αποθηκεύτηκε."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3170,17 +3290,7 @@ msgstr "Παρακαλώ περιμένετε να φορτώσει η σελί�
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Δοκιμάστε ξανά σε λίγα δευτερόλεπτα."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Φαίνεται ότι έχετε ανοίξει το πείραμα σε πολλές καρτέλες. Κλείστε όλες τις "
-"καρτέλες εκτός από μία και ανανεώστε τη σελίδα."
+msgstr "Δοκιμάστε ξανά σε μερικά δευτερόλεπτα."
 
 #: psynet/translation/countries.py
 #, fuzzy

@@ -35,13 +35,13 @@ msgstr "Mittebinaarne"
 #, fuzzy
 msgctxt "gender"
 msgid "Not specified"
-msgstr "Pole määratud"
+msgstr "Pole täpsustatud"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "gender"
 msgid "I prefer not to answer"
-msgstr "Eelistan mitte vastata"
+msgstr "Ma eelistan mitte vastata"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -53,7 +53,7 @@ msgstr "Määratle ennast"
 #, fuzzy
 msgctxt "age"
 msgid "What is your age?"
-msgstr "Kui vana te olete?"
+msgstr "Kui vana sa oled?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -174,6 +174,12 @@ msgstr "Ei"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "Palun loetlege vähemalt üks keel!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
@@ -184,8 +190,12 @@ msgstr ""
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Palun loetlege vähemalt üks keel!"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Palun loetlege kõik keeled, mida räägite emakeelena (st mida olete "
+"lapsepõlvest alates rääkinud)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -207,7 +217,7 @@ msgstr "Mitu tundi kuulate muusikat päevas keskmiselt?"
 #, fuzzy
 msgctxt "music"
 msgid "Do you make money from playing music?"
-msgstr "Kas teenite muusikat mängides raha?"
+msgstr "Kas teenite muusikaga raha?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -320,7 +330,7 @@ msgstr "Kas teil on kunagi diagnoositud düsleksia?"
 #, fuzzy
 msgctxt "income"
 msgid "What is your total household income per year?"
-msgstr "Mis on teie leibkonna aastane kogusissetulek?"
+msgstr "Mis on teie leibkonna kogusissetulek aastas?"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -475,6 +485,15 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Eksperimendi lõpp."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr ""
+"Kui liigute järgmisele lehele, võite näha õiguste taotlust; palun andke "
+"luba."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
@@ -512,6 +531,22 @@ msgid ""
 msgstr ""
 "Kompensatsiooni kohta pärimiseks saatke uurijale sõnum Prolific veebisaidi "
 "kaudu ja kirjeldage, mis teie vea põhjustas."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Sünkroonimisprobleem tuvastatud. Kas teil on sama eksperiment avatud mitmes "
+"brauseri vahekaardis? Palun sulgege kõik teised vahekaardid ja värskendage "
+"lehte."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Esita"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -694,6 +729,87 @@ msgstr "Juhul kui sa unustad klahvid, trükitakse need igale lehele."
 #, fuzzy
 msgid "The test will start on the next page."
 msgstr "Test algab järgmisel lehel."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Suhtlemine värbajaga..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Teid on krediteeritud eksperimendil veedetud aja eest. Kuna te ei saanud "
+"edasi liikuda põhi eksperimenti, ilmub teie esitus Prolificus kui 'välja "
+"sõelutud'. Nüüd võite selle brauseriakna sulgeda."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Palun tagastage oma esitus Prolificu liidese kaudu ja klõpsake nuppu Edasi. "
+"Seejärel maksame teile automaatselt teie aja eest boonuse."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"See töötas! Teid on krediteeritud eksperimendil veedetud aja eest. Täname "
+"osalemise eest. Nüüd võite selle brauseriakna sulgeda."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"See ei töötanud. Kas olete kindel, et tagastasite selle uuringu esituse? "
+"Palun minge Prolificu liidesesse, veenduge, et olete esituse tagastanud, ja "
+"seejärel klõpsake nuppu 'Edasi'."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Meil on kahju, et te ei saanud edasi liikuda põhi eksperimenti, kuid me "
+"maksame teile siiski teie seni veedetud aja eest. Selle makse saamiseks "
+"peame teid paluma tagastada see ülesanne Prolificu liidese kaudu ja seejärel"
+" klõpsake allolevat nuppu 'Edasi'."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Meil on kahju, et te ei saanud edasi liikuda põhi eksperimenti. Selle makse "
+"saamiseks teie aja eest palun tagastage oma ülesanne Prolificus ja saatke "
+"sõnum eksperimendi korraldajale Prolificu sõnumisüsteemi kaudu. Eksperimendi"
+" korraldaja vaatab teie juhtumi üle ja korraldab makse, kui see on "
+"asjakohane. Täname teid mõistmise eest. Nüüd võite selle brauseriakna "
+"sulgeda."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2887,20 +3003,25 @@ msgstr "Esita juhend"
 msgid "Play recording"
 msgstr "Esita salvestus"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Peata"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Peata"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Korda"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Alusta algusest"
+msgid "Loop"
+msgstr "Korda"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -2966,52 +3087,27 @@ msgstr "Katse alustamine..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Probleemi korral proovige järgmist."
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "Jäta kommentaar"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Laadi leht uuesti."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "Kirjuta siia kommentaar"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Kontrollige, kas teie internetiühendus töötab."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr "Kui ülaltoodu ei aita, saatke meile e-kiri järgmise teabega:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Link praegusele veebilehele;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Teie töötaja ID;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Probleem, millega te kokku puutute."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "Saada kommentaar"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "Olgu"
+msgstr "OK"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3023,53 +3119,63 @@ msgstr "Kas oled valmis?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Kui olete katse jätkamiseks valmis, klõpsake nuppu."
+msgstr "Klõpsa nupul, kui oled valmis eksperimendiga jätkama."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"Märkus: kui näed seda teadet sageli, võib see olla tingitud sellest, et sinu"
+" brauseris on ühilduvuse probleemiga laiendus (nt reklaamiblokeerija). Palun"
+" proovi avada see leht inkognito aknas (saad lihtsalt kopeerida ja kleepida "
+"URL-i praeguselt lehelt) ja/või proovi oma laiendusi käsitsi keelata."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "CV"
+msgstr "Jätka"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Auhind"
+msgstr "Tasu"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Appi!"
+msgid "Comment"
+msgstr "Kommentaar"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Katse enneaegselt lõpetamine"
+msgstr "Lõpeta eksperiment varakult"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "Kommentaar salvestatud."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Palun oodake, kuni leht laadib."
+msgstr "Palun oota, kuni leht laadib."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Proovi paari sekundi pärast uuesti."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Näib, et olete katse avanud mitmel vahelehel. Palun sulgege kõik vahelehed "
-"peale ühe ja värskendage lehte."
+msgstr "Proovi mõne sekundi pärast uuesti."
 
 #: psynet/translation/countries.py
 #, fuzzy
