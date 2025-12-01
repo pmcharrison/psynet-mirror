@@ -172,6 +172,12 @@ msgstr "Nem"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "Kérjük, soroljon fel legalább egy nyelvet!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
@@ -182,8 +188,12 @@ msgstr ""
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Kérjük, soroljon fel legalább egy nyelvet!"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Kérjük, sorolja fel az összes nyelvet, amelyet anyanyelvként beszél (azaz "
+"amelyet gyermekkora óta beszél)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -192,8 +202,8 @@ msgid ""
 "How many years of formal training on a musical instrument (including voice) "
 "have you had during your lifetime?"
 msgstr ""
-"Hány év formális képzést kapott élete során egy hangszer (beleértve a hangot"
-" is) terén?"
+"Hány év formális képzést kapott élete során egy hangszer (beleértve az "
+"éneket is) terén?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -301,7 +311,7 @@ msgstr "Soha nem táncoltam"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Did you get speech-language therapy as a child?"
-msgstr "Kapott beszéd-nyelv terápiát gyerekkorában?"
+msgstr "Kapott gyermekkorában beszéd- és nyelvterápiát?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -312,13 +322,13 @@ msgstr "Nem tudom"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "Diagnosztizálták valaha diszlexiával?"
+msgstr "Diagnosztizálták már valaha diszlexiával?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "income"
 msgid "What is your total household income per year?"
-msgstr "Mi az éves háztartási jövedelme?"
+msgstr "Mi az éves összjövedelme a háztartásának?"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -330,61 +340,61 @@ msgstr "Kevesebb mint 10,000 {CURRENCY}"
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "10,000 to 19,999 {CURRENCY}"
-msgstr "10,000-től 19,999 {CURRENCY}-ig"
+msgstr "10,000 és 19,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "20,000 to 29,999 {CURRENCY}"
-msgstr "20,000-től 29,999 {CURRENCY}-ig"
+msgstr "20,000 és 29,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "30,000 to 39,999 {CURRENCY}"
-msgstr "30,000-től 39,999 {CURRENCY}-ig"
+msgstr "30,000 és 39,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "40,000 to 49,999 {CURRENCY}"
-msgstr "40,000-től 49,999 {CURRENCY}-ig"
+msgstr "40,000 és 49,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "50,000 to 59,999 {CURRENCY}"
-msgstr "50,000-től 59,999 {CURRENCY}-ig"
+msgstr "50,000 és 59,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "60,000 to 69,999 {CURRENCY}"
-msgstr "60,000-től 69,999 {CURRENCY}-ig"
+msgstr "60,000 és 69,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "70,000 to 79,999 {CURRENCY}"
-msgstr "70,000-től 79,999 {CURRENCY}-ig"
+msgstr "70,000 és 79,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "80,000 to 89,999 {CURRENCY}"
-msgstr "80,000-től 89,999 {CURRENCY}-ig"
+msgstr "80,000 és 89,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "90,000 to 99,999 {CURRENCY}"
-msgstr "90,000-től 99,999 {CURRENCY}-ig"
+msgstr "90,000 és 99,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "100,000 to 149,999 {CURRENCY}"
-msgstr "100,000-től 149,999 {CURRENCY}-ig"
+msgstr "100,000 és 149,999 {CURRENCY} között"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -414,7 +424,7 @@ msgstr "Találkozott technikai problémákkal a kísérlet során?"
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "If so, please provide a few words describing the problem."
-msgstr "Ha igen, kérjük, írjon néhány szót a probléma leírására."
+msgstr "Ha igen, kérjük, írjon néhány szót a problémáról."
 
 #: psynet/end.py
 #, fuzzy, python-brace-format
@@ -473,6 +483,15 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "A kísérlet vége."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr ""
+"Amikor a következő oldalra lép, előfordulhat, hogy egy engedélykérést lát; "
+"kérjük, adja meg."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
@@ -487,7 +506,7 @@ msgid ""
 "describe what led to this error."
 msgstr ""
 "A kompenzációval kapcsolatban kérjük, vegye fel a kapcsolatot a kutatóval a "
-"következő címen: {EMAIL}, és írja le, mi vezetett ehhez a hibához."
+"{EMAIL} címen, és írja le, mi vezetett ehhez a hibához."
 
 #: psynet/experiment.py
 #, fuzzy
@@ -499,7 +518,7 @@ msgstr "Kérjük, idézze fel a következő információkat is:"
 #, fuzzy
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
-msgstr "Ne aggódjon, az előrehaladása rögzítésre került."
+msgstr "Ne aggódjon, az előrehaladása rögzítve lett."
 
 #: psynet/experiment.py
 #, fuzzy
@@ -509,7 +528,22 @@ msgid ""
 "Prolific website and describe what led to your error."
 msgstr ""
 "A kompenzációval kapcsolatban kérjük, küldjön üzenetet a kutatónak a "
-"Prolific weboldalon keresztül, és írja le, mi vezetett a hibájához."
+"Prolific weboldalán keresztül, és írja le, mi vezetett a hibához."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Szinkronizációs probléma észlelve. Több böngészőfülben futtatja ugyanazt a "
+"kísérletet? Kérjük, zárja be az összes többi fület, és frissítse az oldalt."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Lejátszás"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -697,6 +731,87 @@ msgstr "Ha elfelejtenéd a billentyűket, minden oldalon nyomtatva lesznek."
 #, fuzzy
 msgid "The test will start on the next page."
 msgstr "A teszt a következő oldalon kezdődik."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Kapcsolatfelvétel a toborzóval..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Jóváírtuk az időt, amit a kísérletre fordított. Mivel nem tudott továbblépni"
+" a fő kísérletre, a benyújtása 'kizártként' fog megjelenni a Prolificben. "
+"Most bezárhatja ezt a böngészőablakot."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Kérjük, adja vissza a benyújtását a Prolific felületén, majd kattintson a "
+"Tovább gombra. Ezt követően automatikusan kifizetjük Önnek a bónuszt az "
+"idejéért."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"Sikerült! Jóváírtuk az időt, amit a kísérletre fordított. Köszönjük a "
+"részvételt. Most bezárhatja ezt a böngészőablakot."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"Ez nem sikerült. Biztos benne, hogy visszaadta a benyújtást ehhez a "
+"tanulmányhoz? Kérjük, menjen a Prolific felületére, győződjön meg róla, hogy"
+" visszaadta a benyújtást, majd kattintson a 'Tovább' gombra."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Sajnáljuk, hogy nem tudott továbblépni a fő kísérletre, de az eddig "
+"eltöltött idejéért még mindig fizetünk Önnek. A kifizetéshez kérjük, adja "
+"vissza ezt a feladatot a Prolific felületén, majd kattintson a lenti "
+"'Tovább' gombra."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Sajnáljuk, hogy nem tudott továbblépni a fő kísérletre. Az idejéért járó "
+"kifizetéshez kérjük, adja vissza a feladatát a Prolificben, és küldjön "
+"üzenetet a kísérletvezetőnek a Prolific üzenetküldő rendszerén keresztül. A "
+"kísérletvezető felülvizsgálja az esetét, és ha indokolt, intézkedik a "
+"kifizetésről. Köszönjük a megértését. Most bezárhatja ezt a böngészőablakot."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2926,20 +3041,25 @@ msgstr "Felszólítás lejátszása"
 msgid "Play recording"
 msgstr "Felvétel lejátszása"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Leállítás"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Leállítás"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Ismétlés"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Lejátszás az elejétől"
+msgid "Loop"
+msgstr "Ismétlés"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -3005,72 +3125,60 @@ msgstr "Kísérlet indítása..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Probléma esetén próbálja ki a következőket:"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "Hagyjon megjegyzést"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Töltsd újra az oldalt."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "Írjon ide egy megjegyzést"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Ellenőrizd, hogy működik-e az internetkapcsolatod."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Ha a fentiek nem segítenek, küldjön nekünk egy e-mailt a következő "
-"információkkal:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Egy link az aktuális weboldalra;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Munkavállalói azonosító;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "A probléma, amit tapasztalsz."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "Megjegyzés küldése"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "RENDBEN"
+msgstr "OK"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Készen állsz?"
+msgstr "Készen áll?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Kattintson a gombra, ha készen áll a kísérlet folytatására."
+msgstr "Kattintson a gombra, amikor készen áll a kísérlet folytatására."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"Megjegyzés: ha ezt az üzenetet gyakran látja, az lehet, hogy a böngészőjében"
+" egy inkompatibilis bővítmény van telepítve (pl. reklámblokkoló). Kérjük, "
+"próbálja meg megnyitni ezt az oldalt inkognitó ablakban (csak másolja és "
+"illessze be az URL-t az aktuális oldalról), és/vagy próbálja meg manuálisan "
+"letiltani a bővítményeit."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "Önéletrajz"
+msgstr "Folytatás"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3081,14 +3189,20 @@ msgstr "Jutalom"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Segítség!"
+msgid "Comment"
+msgstr "Megjegyzés"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
 msgstr "A kísérlet korai befejezése"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "Megjegyzés elmentve."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3100,17 +3214,7 @@ msgstr "Kérjük, várjon, amíg az oldal betöltődik."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "Próbáld újra pár másodperc múlva."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Úgy tűnik, több lapon nyitotta meg a kísérletet. Kérjük, egy kivételével "
-"zárja be az összes lapot, és frissítse az oldalt."
+msgstr "Próbálja meg újra néhány másodperc múlva."
 
 #: psynet/translation/countries.py
 #, fuzzy

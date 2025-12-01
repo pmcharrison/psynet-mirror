@@ -11,7 +11,7 @@ msgstr ""
 #, fuzzy
 msgctxt "gender"
 msgid "How do you identify yourself?"
-msgstr "당신은 자신을 어떻게 식별하십니까?"
+msgstr "자신을 어떻게 식별하시겠습니까?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -59,7 +59,7 @@ msgstr "당신의 나이는 몇 살입니까?"
 #, fuzzy
 msgctxt "age"
 msgid "You need to provide your age as an integer between 0 and 120!"
-msgstr "나이를 0에서 120 사이의 정수로 제공해야 합니다!"
+msgstr "나이는 0에서 120 사이의 정수로 제공해야 합니다!"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -89,7 +89,7 @@ msgstr "국가를 선택해야 합니다!"
 #, fuzzy
 msgctxt "country-select"
 msgid "What country are you from?"
-msgstr "당신은 어느 나라 출신입니까?"
+msgstr "어느 나라 출신입니까?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -172,6 +172,12 @@ msgstr "아니요"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "적어도 하나의 언어를 나열하십시오!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
@@ -180,8 +186,10 @@ msgstr "구사하는 언어를 능숙도 순서대로 나열하십시오 (첫 �
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "적어도 하나의 언어를 나열하십시오!"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr "모국어로 사용하는 모든 언어를 나열하십시오 (즉, 어린 시절부터 사용해 온 언어)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -213,7 +221,7 @@ msgstr "자주"
 #, fuzzy
 msgctxt "music"
 msgid "Sometimes"
-msgstr "때때로"
+msgstr "가끔"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -255,7 +263,7 @@ msgstr "전혀 춤추지 않습니다"
 #, fuzzy
 msgctxt "dance"
 msgid "When was the last time you danced? (choose the most accurate answer):"
-msgstr "마지막으로 춤을 춘 것은 언제입니까? (가장 정확한 답변을 선택하십시오):"
+msgstr "마지막으로 춤을 춘 때는 언제입니까? (가장 정확한 답변을 선택하십시오):"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -302,7 +310,7 @@ msgstr "어린 시절에 언어 치료를 받았습니까?"
 #: psynet/demography/general.py
 #, fuzzy
 msgid "I don’t know"
-msgstr "모르겠습니다"
+msgstr "모릅니다"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -468,6 +476,13 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "실험 종료."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr "다음 페이지로 계속할 때 권한 요청이 표시될 수 있습니다. 허용해 주세요."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
@@ -501,6 +516,20 @@ msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr "보상에 대해 문의하려면 Prolific 웹사이트를 통해 연구자에게 메시지를 보내고 오류가 발생한 경위를 설명하십시오."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"동기화 문제가 감지되었습니다. 여러 브라우저 탭에서 동일한 실험을 실행 중이신가요? 다른 모든 탭을 닫고 페이지를 새로 고침하십시오."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "재생"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -678,9 +707,80 @@ msgstr "테스트는 다음 페이지에서 시작됩니다."
 
 #: psynet/recruiters.py
 #, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "리크루터와 통신 중..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"실험에 소요된 시간에 대해 크레딧이 부여되었습니다. 메인 실험으로 진행할 수 없었기 때문에 제출물이 Prolific에서 'screened"
+" out'으로 표시됩니다. 이제 이 브라우저 창을 닫을 수 있습니다."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr "Prolific 인터페이스를 통해 제출물을 반환하고 '다음'을 클릭하세요. 그러면 자동으로 시간에 대한 보너스를 지급합니다."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"잘 됐습니다! 실험에 소요된 시간에 대해 크레딧이 부여되었습니다. 참여해 주셔서 감사합니다. 이제 이 브라우저 창을 닫을 수 있습니다."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"작동하지 않았습니다. 이 연구에 대한 제출물을 반환했는지 확인하세요. Prolific 인터페이스로 이동하여 제출물을 반환했는지 확인한 후"
+" '다음' 버튼을 클릭하세요."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"메인 실험으로 진행할 수 없어 죄송하지만, 지금까지 소요된 시간에 대해 여전히 지급할 것입니다. 이 지급을 받으려면 Prolific "
+"인터페이스를 통해 이 과제를 반환한 후 아래의 '다음' 버튼을 클릭해야 합니다."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"메인 실험으로 진행할 수 없어 죄송합니다. 시간에 대한 이 지급을 받으려면 Prolific에서 과제를 반환하고 Prolific 메시징 "
+"시스템을 통해 실험자에게 메시지를 보내주세요. 실험자가 귀하의 사례를 검토하고 적절한 경우 지급을 조정할 것입니다. 이해해 주셔서 "
+"감사합니다. 이제 이 브라우저 창을 닫을 수 있습니다."
+
+#: psynet/recruiters.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
-msgstr "Lucid 마켓플레이스로 리디렉션 중..."
+msgstr "Lucid Marketplace로 리디렉션 중..."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -2657,20 +2757,25 @@ msgstr "프롬프트 재생"
 msgid "Play recording"
 msgstr "녹음 재생"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "정지"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "정지"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "반복"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "처음부터 재생"
+msgid "Loop"
+msgstr "반복"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -2730,52 +2835,27 @@ msgstr "실험 시작 중..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "문제가 발생한 경우 다음을 시도해 보세요."
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "댓글을 남기세요"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "페이지를 새로 고침하세요."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "여기에 댓글을 작성하세요"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "인터넷 연결이 작동하는지 확인하세요."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr "위의 방법으로도 문제가 해결되지 않으면 다음 정보를 이메일로 보내주세요."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "현재 웹 페이지에 대한 링크"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "귀하의 근로자 ID"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "당신이 겪고 있는 문제."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "댓글 보내기"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "alert_ok"
 msgid "OK"
-msgstr "좋아요"
+msgstr "확인"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2787,13 +2867,25 @@ msgstr "준비되셨나요?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "실험을 계속하려면 버튼을 클릭하세요."
+msgstr "실험을 계속할 준비가 되면 버튼을 클릭하세요."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"이 메시지를 자주 본다면, 브라우저에 호환되지 않는 확장 프로그램이 설치되어 있을 수 있습니다 (예: 광고 차단기). 대신 이 페이지를 "
+"시크릿 모드에서 열어보거나 (현재 페이지의 URL을 복사하여 붙여넣기만 하면 됩니다), 확장 프로그램을 수동으로 비활성화해 보세요."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "재개하다"
+msgstr "다시 시작"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2804,14 +2896,20 @@ msgstr "보상"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "돕다!"
+msgid "Comment"
+msgstr "댓글"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "실험을 일찍 종료하세요"
+msgstr "실험을 조기에 종료"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "댓글이 저장되었습니다."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -2823,15 +2921,7 @@ msgstr "페이지가 로드될 때까지 기다려 주세요."
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
-msgstr "몇 초 후에 다시 시도해 보세요."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr "여러 탭에서 실험을 실행하신 것 같습니다. 탭을 하나만 남기고 모두 닫고 페이지를 새로 고쳐주세요."
+msgstr "몇 초 후에 다시 시도해 주세요."
 
 #: psynet/translation/countries.py
 #, fuzzy

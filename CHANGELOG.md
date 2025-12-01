@@ -11,6 +11,8 @@
 
 ## Documentation
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. Modified `_get_py_entries_from_dir()` during translation extraction to skip hidden and other directories (venv, __pycache__, node_modules, site-packages, etc.) during os.walk() (author: Frank Höger, reviewer: Peter Harrison)
+- Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 

@@ -11,7 +11,7 @@ msgstr ""
 #, fuzzy
 msgctxt "gender"
 msgid "How do you identify yourself?"
-msgstr "Bạn tự nhận mình là gì?"
+msgstr "Bạn tự nhận dạng mình như thế nào?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -47,13 +47,13 @@ msgstr "Tôi không muốn trả lời"
 #, fuzzy
 msgctxt "gender"
 msgid "Specify yourself"
-msgstr "Tự chỉ định"
+msgstr "Tự xác định"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "age"
 msgid "What is your age?"
-msgstr "Bạn bao nhiêu tuổi?"
+msgstr "Tuổi của bạn là bao nhiêu?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -101,7 +101,7 @@ msgstr "Quốc gia cư trú hiện tại của bạn là gì?"
 #, fuzzy
 msgctxt "formal-education"
 msgid "What is your highest level of formal education?"
-msgstr "Trình độ học vấn chính quy cao nhất của bạn là gì?"
+msgstr "Trình độ học vấn chính thức cao nhất của bạn là gì?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -125,7 +125,7 @@ msgstr "Cao đẳng"
 #, fuzzy
 msgctxt "formal-education"
 msgid "Graduate School"
-msgstr "Trường sau đại học"
+msgstr "Trường đại học"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -173,6 +173,12 @@ msgstr "Không"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
+msgid "Please list at least one language!"
+msgstr "Vui lòng liệt kê ít nhất một ngôn ngữ!"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
 msgid ""
 "Please list the languages you speak in order of proficiency (first language "
 "first, second language second, ...)"
@@ -183,8 +189,12 @@ msgstr ""
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Vui lòng liệt kê ít nhất một ngôn ngữ!"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Vui lòng liệt kê tất cả các ngôn ngữ bạn nói như ngôn ngữ mẹ đẻ (tức là bạn "
+"đã nói từ khi còn nhỏ)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -193,8 +203,8 @@ msgid ""
 "How many years of formal training on a musical instrument (including voice) "
 "have you had during your lifetime?"
 msgstr ""
-"Bạn đã có bao nhiêu năm đào tạo chính quy về nhạc cụ (bao gồm cả giọng hát) "
-"trong suốt cuộc đời của mình?"
+"Bạn đã có bao nhiêu năm đào tạo chính thức về nhạc cụ (bao gồm cả giọng hát)"
+" trong suốt cuộc đời của mình?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -313,7 +323,7 @@ msgstr "Tôi không biết"
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "Bạn đã bao giờ được chẩn đoán mắc chứng khó đọc chưa?"
+msgstr "Bạn đã từng được chẩn đoán mắc chứng khó đọc chưa?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -325,7 +335,7 @@ msgstr "Tổng thu nhập hộ gia đình của bạn mỗi năm là bao nhiêu?
 #, fuzzy, python-brace-format
 msgctxt "income"
 msgid "Less than 10,000 {CURRENCY}"
-msgstr "Dưới 10,000 {CURRENCY}"
+msgstr "Ít hơn 10,000 {CURRENCY}"
 
 #: psynet/demography/general.py
 #, fuzzy, python-brace-format
@@ -475,6 +485,15 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Kết thúc thí nghiệm."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr ""
+"Khi tiếp tục sang trang tiếp theo, bạn có thể thấy một yêu cầu cấp quyền; "
+"vui lòng chấp nhận nó."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
@@ -512,6 +531,22 @@ msgid ""
 msgstr ""
 "Để hỏi về bồi thường, vui lòng gửi tin nhắn cho nhà nghiên cứu qua trang web"
 " Prolific và mô tả điều gì đã dẫn đến lỗi của bạn."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Phát hiện vấn đề đồng bộ hóa. Bạn có đang chạy cùng một thí nghiệm trong "
+"nhiều tab trình duyệt không? Vui lòng đóng tất cả các tab khác và làm mới "
+"trang."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Phát"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -703,6 +738,88 @@ msgstr "Trong trường hợp bạn quên các phím, chúng sẽ được in tr
 #, fuzzy
 msgid "The test will start on the next page."
 msgstr "Bài kiểm tra sẽ bắt đầu ở trang tiếp theo."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Đang giao tiếp với nhà tuyển dụng..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Bạn đã được ghi nhận thời gian tham gia thí nghiệm. Vì bạn không thể tiến "
+"tới thí nghiệm chính, bài nộp của bạn sẽ xuất hiện là 'bị loại' trên "
+"Prolific. Bạn có thể đóng cửa sổ trình duyệt này."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Vui lòng trả lại bài nộp của bạn qua giao diện Prolific và nhấp vào Tiếp "
+"theo. Chúng tôi sẽ tự động trả cho bạn một khoản tiền thưởng cho thời gian "
+"của bạn."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"Thành công! Bạn đã được ghi nhận thời gian tham gia thí nghiệm. Cảm ơn bạn "
+"đã tham gia. Bạn có thể đóng cửa sổ trình duyệt này."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"Không thành công. Bạn có chắc chắn rằng bạn đã trả lại bài nộp cho nghiên "
+"cứu này không? Vui lòng truy cập giao diện Prolific, đảm bảo rằng bạn đã trả"
+" lại bài nộp, sau đó nhấp vào nút 'Tiếp theo'."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Chúng tôi rất tiếc rằng bạn không thể tiến tới thí nghiệm chính, nhưng chúng"
+" tôi vẫn sẽ trả cho bạn thời gian đã tham gia. Để nhận khoản thanh toán này,"
+" chúng tôi cần bạn trả lại bài nộp này qua giao diện Prolific, sau đó nhấp "
+"vào nút 'Tiếp theo' bên dưới."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Chúng tôi rất tiếc rằng bạn không thể tiến tới thí nghiệm chính. Để nhận "
+"khoản thanh toán này cho thời gian của bạn, vui lòng trả lại bài nộp của bạn"
+" trong Prolific và gửi tin nhắn cho người thực hiện thí nghiệm qua hệ thống "
+"nhắn tin của Prolific. Người thực hiện thí nghiệm sẽ xem xét trường hợp của "
+"bạn và sắp xếp thanh toán nếu phù hợp. Cảm ơn bạn đã thông cảm. Bạn có thể "
+"đóng cửa sổ trình duyệt này."
 
 #: psynet/recruiters.py
 #, fuzzy
@@ -2937,20 +3054,25 @@ msgstr "Phát lời nhắc"
 msgid "Play recording"
 msgstr "Phát bản ghi"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Dừng lại"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Dừng lại"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Lặp lại"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Phát từ đầu"
+msgid "Loop"
+msgstr "Lặp lại"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -3015,48 +3137,21 @@ msgstr "Bắt đầu thí nghiệm..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Trong trường hợp gặp vấn đề, hãy thử các cách sau:"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "Để lại bình luận"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Tải lại trang."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "Viết bình luận ở đây"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Kiểm tra xem kết nối internet của bạn có hoạt động không."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Nếu các cách trên không giúp ích, hãy gửi email cho chúng tôi với thông tin "
-"sau:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Một liên kết đến trang web hiện tại;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "ID Người lao động của bạn;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Vấn đề bạn đang gặp phải."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "Gửi bình luận"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3074,7 +3169,21 @@ msgstr "Bạn đã sẵn sàng chưa?"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Click the button when you're ready to continue the experiment."
-msgstr "Nhấn nút khi bạn sẵn sàng tiếp tục thí nghiệm."
+msgstr "Nhấn nút khi bạn đã sẵn sàng tiếp tục thí nghiệm."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"Lưu ý: nếu bạn thấy thông báo này nhiều lần, có thể do trình duyệt của bạn "
+"có tiện ích mở rộng không tương thích (ví dụ: chặn quảng cáo). Vui lòng thử "
+"mở trang này trong cửa sổ ẩn danh (bạn có thể sao chép và dán URL từ trang "
+"hiện tại), và/hoặc thử tắt thủ công các tiện ích mở rộng của bạn."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3086,13 +3195,13 @@ msgstr "Tiếp tục"
 #, fuzzy
 msgctxt "timeline"
 msgid "Reward"
-msgstr "Thưởng"
+msgstr "Phần thưởng"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Giúp đỡ!"
+msgid "Comment"
+msgstr "Bình luận"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3103,24 +3212,20 @@ msgstr "Kết thúc thí nghiệm sớm"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "Bình luận đã được lưu."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Vui lòng chờ trang tải."
+msgstr "Vui lòng đợi trang tải."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Thử lại sau vài giây."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Có vẻ như bạn đã mở thí nghiệm trong nhiều tab. Vui lòng đóng tất cả các tab"
-" trừ một tab và làm mới trang."
 
 #: psynet/translation/countries.py
 #, fuzzy

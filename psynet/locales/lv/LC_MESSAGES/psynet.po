@@ -29,7 +29,7 @@ msgstr "Vīrietis"
 #, fuzzy
 msgctxt "gender"
 msgid "Non-binary"
-msgstr "Ne binārs"
+msgstr "Ne-binārs"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -95,13 +95,13 @@ msgstr "No kuras valsts jūs esat?"
 #, fuzzy
 msgctxt "country-select"
 msgid "What is your current country of residence?"
-msgstr "Kāda ir jūsu pašreizējā dzīvesvieta?"
+msgstr "Kāda ir jūsu pašreizējā dzīvesvietas valsts?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "formal-education"
 msgid "What is your highest level of formal education?"
-msgstr "Kāda ir jūsu augstākā formālās izglītības pakāpe?"
+msgstr "Kāds ir jūsu augstākais formālās izglītības līmenis?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -125,7 +125,7 @@ msgstr "Koledža"
 #, fuzzy
 msgctxt "formal-education"
 msgid "Graduate School"
-msgstr "Augstskola"
+msgstr "Maģistrantūra"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -174,18 +174,28 @@ msgstr "Nē"
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid ""
-"Please list the languages you speak in order of proficiency (first language "
-"first, second language second, ...)"
-msgstr ""
-"Lūdzu, uzskaitiet valodas, kuras jūs runājat, pēc prasmju līmeņa (pirmā "
-"valoda sākumā, otrā valoda otrajā vietā, ...)"
+msgid "Please list at least one language!"
+msgstr "Lūdzu, uzskaitiet vismaz vienu valodu!"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "language-select"
-msgid "Please list at least one language!"
-msgstr "Lūdzu, uzskaitiet vismaz vienu valodu!"
+msgid ""
+"Please list the languages you speak in order of proficiency (first language "
+"first, second language second, ...)"
+msgstr ""
+"Lūdzu, uzskaitiet valodas, kurās runājat, pēc prasmes līmeņa (pirmā valoda "
+"pirmā, otrā valoda otrā, ...)"
+
+#: psynet/demography/general.py
+#, fuzzy
+msgctxt "language-select"
+msgid ""
+"Please list all languages you speak as mother tongues (i.e., which you grew "
+"up speaking since childhood)."
+msgstr ""
+"Lūdzu, uzskaitiet visas valodas, kurās runājat kā dzimtās valodas (t.i., "
+"kuras esat runājis kopš bērnības)."
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -194,8 +204,8 @@ msgid ""
 "How many years of formal training on a musical instrument (including voice) "
 "have you had during your lifetime?"
 msgstr ""
-"Cik gadus jūs esat saņēmis formālu apmācību mūzikas instrumentā (ieskaitot "
-"balsi) savā dzīvē?"
+"Cik gadus jūs esat mācījies spēlēt mūzikas instrumentu (ieskaitot balsi) "
+"formāli?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -231,7 +241,7 @@ msgstr "Nekad"
 #, fuzzy
 msgctxt "music"
 msgid "Do you have hearing loss or any other hearing issues?"
-msgstr "Vai jums ir dzirdes zudums vai kādi citi dzirdes traucējumi?"
+msgstr "Vai jums ir dzirdes zudums vai kādas citas dzirdes problēmas?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -285,36 +295,36 @@ msgstr "Šogad"
 #, fuzzy
 msgctxt "dance"
 msgid "Some years ago"
-msgstr "Dažus gadus atpakaļ"
+msgstr "Pirms dažiem gadiem"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "Many years ago"
-msgstr "Daudzus gadus atpakaļ"
+msgstr "Pirms daudziem gadiem"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "dance"
 msgid "I never danced"
-msgstr "Es nekad neesmu dejojis"
+msgstr "Es nekad nedejoju"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Did you get speech-language therapy as a child?"
-msgstr "Vai bērnībā jums bija runas terapija?"
+msgstr "Vai jūs bērnībā saņēmāt logopēdisko terapiju?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgid "I don’t know"
-msgstr "Nezinu"
+msgstr "Es nezinu"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "speech-disorder"
 msgid "Have you ever been diagnosed with dyslexia?"
-msgstr "Vai jūs kādreiz esat diagnosticēts ar disleksiju?"
+msgstr "Vai jums kādreiz ir diagnosticēta disleksija?"
 
 #: psynet/demography/general.py
 #, fuzzy
@@ -404,19 +414,19 @@ msgstr "Vai jums patika eksperiments?"
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you find the experiment difficult?"
-msgstr "Vai jums eksperiments šķita grūts?"
+msgstr "Vai jums šķita eksperiments grūts?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "Did you encounter any technical problems during the experiment?"
-msgstr "Vai jums bija kādas tehniskas problēmas eksperimenta laikā?"
+msgstr "Vai jums radās kādas tehniskas problēmas eksperimenta laikā?"
 
 #: psynet/demography/general.py
 #, fuzzy
 msgctxt "experiment-feedback"
 msgid "If so, please provide a few words describing the problem."
-msgstr "Ja jā, lūdzu, sniedziet dažus vārdus par problēmu."
+msgstr "Ja jā, lūdzu, sniedziet dažus vārdus, aprakstot problēmu."
 
 #: psynet/end.py
 #, fuzzy, python-brace-format
@@ -475,11 +485,20 @@ msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr "Eksperimenta beigas."
 
+#: psynet/equipment.py
+#, fuzzy
+msgid ""
+"When continuing to the next page you may see a permissions request; please "
+"grant it."
+msgstr ""
+"Turpinot uz nākamo lapu, jūs varat redzēt atļaujas pieprasījumu; lūdzu, "
+"piešķiriet to."
+
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
-msgstr "Ir radusies kļūda, tāpēc jūs nevarat turpināt, atvainojiet!"
+msgstr "Ir notikusi kļūda, un tāpēc jūs nevarat turpināt, atvainojiet!"
 
 #: psynet/experiment.py
 #, fuzzy, python-brace-format
@@ -488,14 +507,14 @@ msgid ""
 "To enquire about compensation, please contact the researcher at {EMAIL} and "
 "describe what led to this error."
 msgstr ""
-"Lai jautātu par kompensāciju, lūdzu, sazinieties ar pētnieku pa e-pastu "
+"Lai uzzinātu par kompensāciju, lūdzu, sazinieties ar pētnieku pa e-pastu "
 "{EMAIL} un aprakstiet, kas izraisīja šo kļūdu."
 
 #: psynet/experiment.py
 #, fuzzy
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
-msgstr "Lūdzu, norādiet šādu informāciju:"
+msgstr "Lūdzu, norādiet arī šādu informāciju:"
 
 #: psynet/experiment.py
 #, fuzzy
@@ -510,8 +529,24 @@ msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
-"Lai jautātu par kompensāciju, lūdzu, nosūtiet pētniekam ziņojumu, izmantojot"
-" Prolific vietni, un aprakstiet, kas izraisīja jūsu kļūdu."
+"Lai uzzinātu par kompensāciju, lūdzu, nosūtiet pētniekam ziņojumu, "
+"izmantojot Prolific vietni, un aprakstiet, kas izraisīja jūsu kļūdu."
+
+#: psynet/experiment.py
+#, fuzzy
+msgctxt "timeline_problem"
+msgid ""
+"Synchronization problem detected. Are you running the same experiment in "
+"multiple browser tabs? Please close all other tabs and refresh the page."
+msgstr ""
+"Sinhronizācijas problēma konstatēta. Vai jūs veicat to pašu eksperimentu "
+"vairākās pārlūkprogrammas cilnēs? Lūdzu, aizveriet visas citas cilnes un "
+"atsvaidziniet lapu."
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Play"
+msgstr "Atskaņot"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -702,9 +737,90 @@ msgstr "Tests sāksies nākamajā lapā."
 
 #: psynet/recruiters.py
 #, fuzzy
+msgctxt "recruiter_communication"
+msgid "Communicating with the recruiter..."
+msgstr "Sazināšanās ar rekrutētāju..."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_successful"
+msgid ""
+"You have been credited for the time spent on the experiment. Because you "
+"could not progress to the main experiment your submission will appear as "
+"'screened out' in Prolific. You can now close this browser window."
+msgstr ""
+"Jūs esat saņēmis atlīdzību par eksperimentā pavadīto laiku. Tā kā jūs "
+"nevarējāt turpināt galveno eksperimentu, jūsu iesniegums Prolific tiks "
+"parādīts kā 'izslēgts'. Tagad varat aizvērt šo pārlūkprogrammas logu."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_assignment_instructions"
+msgid ""
+"Please return your submission via the Prolific interface and click Next. We "
+"will then automatically pay you a bonus for your time."
+msgstr ""
+"Lūdzu, atgrieziet savu iesniegumu Prolific saskarnē un noklikšķiniet uz "
+"Tālāk. Mēs automātiski samaksāsim jums bonusu par jūsu laiku."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_completed"
+msgid ""
+"That worked! You have been credited for the time spent on the experiment. "
+"Thank you for participating. You can now close this browser window."
+msgstr ""
+"Tas izdevās! Jūs esat saņēmis atlīdzību par eksperimentā pavadīto laiku. "
+"Paldies par dalību. Tagad varat aizvērt šo pārlūkprogrammas logu."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "assignment_return_retry"
+msgid ""
+"That didn't work. Are you sure you returned the submission for this study? "
+"Please go to the Prolific interface, make sure you have returned the "
+"submission, then click the 'Next' button."
+msgstr ""
+"Tas neizdevās. Vai esat pārliecināts, ka atgriezāt iesniegumu par šo "
+"pētījumu? Lūdzu, dodieties uz Prolific saskarni, pārliecinieties, ka esat "
+"atgriezis iesniegumu, un pēc tam noklikšķiniet uz pogas 'Tālāk'."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "return_for_bonus_enabled"
+msgid ""
+"We are sorry that you could not proceed to the main experiment, but we will "
+"still pay you for your time spent so far. To receive this payment, we need "
+"you to return this assignment via the Prolific interface, then click the "
+"'Next' button below."
+msgstr ""
+"Mēs atvainojamies, ka jūs nevarējāt turpināt galveno eksperimentu, bet mēs "
+"joprojām samaksāsim jums par jūsu līdz šim pavadīto laiku. Lai saņemtu šo "
+"maksājumu, mums ir nepieciešams, lai jūs atgrieztu šo uzdevumu Prolific "
+"saskarnē un pēc tam noklikšķiniet uz pogas 'Tālāk' zemāk."
+
+#: psynet/recruiters.py
+#, fuzzy
+msgctxt "screen_out_return_and_message_experimenter"
+msgid ""
+"We are sorry that you could not proceed to the main experiment. To receive "
+"this payment for your time, please return your assignment in Prolific and "
+"send a message to the experimenter via the Prolific messaging system. The "
+"experimenter will review your case and arrange payment if appropriate. Thank"
+" you for your understanding. You can now close this browser window."
+msgstr ""
+"Mēs atvainojamies, ka jūs nevarējāt turpināt galveno eksperimentu. Lai "
+"saņemtu šo maksājumu par jūsu laiku, lūdzu, atgrieziet savu uzdevumu "
+"Prolific un nosūtiet ziņojumu eksperimentētājam, izmantojot Prolific "
+"ziņojumu sistēmu. Eksperimentētājs pārskatīs jūsu gadījumu un, ja "
+"nepieciešams, noorganizēs maksājumu. Paldies par jūsu sapratni. Tagad varat "
+"aizvērt šo pārlūkprogrammas logu."
+
+#: psynet/recruiters.py
+#, fuzzy
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
-msgstr "Pāradresācija uz Lucid Marketplace..."
+msgstr "Pāradresēšana uz Lucid Marketplace..."
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
@@ -2912,20 +3028,25 @@ msgstr "Atskaņot pamudinājumu"
 msgid "Play recording"
 msgstr "Atskaņot ierakstu"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Stop"
 msgstr "Apturēt"
 
-#: psynet/templates/macros/control.html psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
+#, fuzzy
+msgid "Stop"
+msgstr "Apturēt"
+
+#: psynet/templates/macros/control.html
 #, fuzzy
 msgid "Loop"
 msgstr "Atkārtot"
 
-#: psynet/templates/macros/prompt.html
+#: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Play from start"
-msgstr "Atskaņot no sākuma"
+msgid "Loop"
+msgstr "Atkārtot"
 
 #: psynet/templates/macros/prompt.html
 #, fuzzy
@@ -2991,48 +3112,21 @@ msgstr "Eksperiments tiek sākts..."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "In case of a problem, try the following:"
-msgstr "Problēmas gadījumā mēģiniet veikt šādas darbības:"
+msgctxt "timeline_comment"
+msgid "Leave a comment"
+msgstr "Atstājiet komentāru"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Reload the page."
-msgstr "Ielādēt lapu atkārtoti."
+msgctxt "timeline_comment"
+msgid "Write a comment here"
+msgstr "Uzrakstiet komentāru šeit"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
-msgctxt "timeline_problem"
-msgid "Check that your internet connection is working."
-msgstr "Pārbaudiet, vai darbojas jūsu interneta savienojums."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"If the above doesn't help, send us an email with the following information:"
-msgstr ""
-"Ja iepriekš minētais nepalīdz, lūdzu, nosūtiet mums e-pastu ar šādu "
-"informāciju:"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "A link to the current web page;"
-msgstr "Saite uz pašreizējo tīmekļa lapu;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "Your Worker ID;"
-msgstr "Jūsu darbinieka ID;"
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid "The problem you're experiencing."
-msgstr "Problēma, ar kuru jūs saskaraties."
+msgctxt "timeline_comment"
+msgid "Send comment"
+msgstr "Sūtīt komentāru"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3044,7 +3138,7 @@ msgstr "Labi"
 #, fuzzy
 msgctxt "timeline_resume"
 msgid "Are you ready?"
-msgstr "Vai esi gatavs?"
+msgstr "Vai esat gatavs?"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3055,8 +3149,23 @@ msgstr "Noklikšķiniet uz pogas, kad esat gatavs turpināt eksperimentu."
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_resume"
+msgid ""
+"Note: if you see this message a lot, it might be because your browser has an"
+" incompatible extension installed (e.g. adblocker). Please try opening this "
+"page in an incognito window instead (you can just copy and paste the URL "
+"from the current page), and/or try manually disabling your extensions."
+msgstr ""
+"Piezīme: ja šo ziņojumu redzat bieži, iespējams, ka jūsu pārlūkprogrammā ir "
+"instalēts nesaderīgs paplašinājums (piemēram, reklāmu bloķētājs). Lūdzu, "
+"mēģiniet atvērt šo lapu inkognito logā (jūs varat vienkārši nokopēt un "
+"ielīmēt URL no pašreizējās lapas) un/vai mēģiniet manuāli atspējot savus "
+"paplašinājumus."
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_resume"
 msgid "Resume"
-msgstr "CV"
+msgstr "Atsākt"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
@@ -3067,36 +3176,32 @@ msgstr "Atlīdzība"
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline"
-msgid "Help!"
-msgstr "Palīgā!"
+msgid "Comment"
+msgstr "Komentārs"
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Terminate the experiment early"
-msgstr "Pārtrauciet eksperimentu priekšlaicīgi"
+msgstr "Pārtraukt eksperimentu priekšlaicīgi"
+
+#: psynet/templates/timeline-page.html
+#, fuzzy
+msgctxt "timeline_problem"
+msgid "Comment stored."
+msgstr "Komentārs saglabāts."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Please wait for the page to load."
-msgstr "Lūdzu, uzgaidiet, kamēr lapa ielādējas."
+msgstr "Lūdzu, uzgaidiet, līdz lapa ielādējas."
 
 #: psynet/templates/timeline-page.html
 #, fuzzy
 msgctxt "timeline_problem"
 msgid "Try again in a couple of seconds."
 msgstr "Mēģiniet vēlreiz pēc pāris sekundēm."
-
-#: psynet/templates/timeline-page.html
-#, fuzzy
-msgctxt "timeline_problem"
-msgid ""
-"It seems you have opened the experiment in multiple tabs. Please close all "
-"but one tab and refresh the page."
-msgstr ""
-"Šķiet, ka eksperiments ir atvērts vairākās cilnēs. Lūdzu, aizveriet visas "
-"cilnes, izņemot vienu, un atsvaidziniet lapu."
 
 #: psynet/translation/countries.py
 #, fuzzy
