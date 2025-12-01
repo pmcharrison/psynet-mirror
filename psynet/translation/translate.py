@@ -116,8 +116,11 @@ def translate(
     n_failed_translations = len(locales) - n_valid_translations
     if n_failed_translations > 0:
         print(
-            bold("Some translations failed.")
-            + " Please check the output above and fix the errors and run `psynet translate` again"
+            "\n"
+            + bold("Some translations failed.")
+            + " Please check the output above and fix the errors and run `psynet translate` again.\n"
+            + "\nNote: Duplicate translations often happen with similar-looking words. "
+            + "Please review these translations to ensure each has a distinct translation appropriate to its specific meaning.\n"
         )
     pot.save(pot_path)
 
@@ -301,7 +304,7 @@ def translate_po(
     assert (
         target_lang != "en"
     ), "English is the source language, so doesn't need translation."
-    bold_language = bold(target_language)
+    bold_language = bold(f"{target_language} ({target_lang})")
     with yaspin() as spinner:
         now = time.time()
         spinner.text = f"{bold_language}: Start translating..."
@@ -359,7 +362,7 @@ def translate_po(
 
         except Exception as e:
             error_message = str(e)
-            spinner.text = f"{bold_language}: Translation failed: {error_message}"
+            spinner.text = f"{bold_language}: {error_message}"
             spinner.fail("💥")
             return False
 

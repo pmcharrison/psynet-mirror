@@ -162,9 +162,14 @@ def assert_no_duplicate_translations_in_same_context(po_entries, locale):
             f"msgctxt == '{context}'"
         ).msgstr.value_counts()
         duplicate_translations = list(translation_counts.index[translation_counts > 1])
-        language_name = get_language_dict("en")[locale]
-        msg = f"Same translation occured multiple times in context: {context} for {locale} {language_name}. {duplicate_translations}"
-        assert all(translation_counts == 1), msg
+
+        if not all(translation_counts == 1):
+            duplicates_str = ", ".join([f"'{t}'" for t in duplicate_translations])
+            msg = (
+                f"Translation error: "
+                f"Multiple different source texts in context '{context}' were translated to the same text: {duplicates_str}."
+            )
+            raise AssertionError(msg)
 
 
 def translation_contains_same_variables(
