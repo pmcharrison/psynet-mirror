@@ -363,9 +363,9 @@ class ChatGptTranslator(Translator):
             msg = f"ChatGPT did not return a proper JSON string: {content}"
             if temperature == 0:
                 msg += (
-                    "This may be due to the low temperature setting. "
-                    "Please try again with a higher temperature leading to less-deterministic results."
-                    "You can set it by setting `openai_default_temperature` in your .dallingerconfig file."
+                    " This may be due to the low temperature setting. "
+                    "Please try again with a higher temperature leading to less-deterministic results. "
+                    "You can set it by setting `openai_default_temperature` in your .dallingerconfig file. "
                     "The default temperature of GPT4 is 0.7."
                 )
             raise InvalidTranslationError(msg) from e
