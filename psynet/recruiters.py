@@ -14,7 +14,7 @@ from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
-from dallinger.recruiters import RedisStore
+from dallinger.recruiters import RecruitmentStatus, RedisStore
 from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
@@ -926,7 +926,11 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
 
     def get_status(self):
         query = LucidStatus.query.order_by(LucidStatus.id.desc())
-        recruiter_info = super().get_status()
+        status = super().get_status()
+        if isinstance(status, RecruitmentStatus):
+            recruiter_info = vars(status)
+        else:
+            recruiter_info = status
         if query.count() > 0:
             recruiter_info = {**recruiter_info, **query.first().to_dict()}
             recruiter_info["total_working"] = LucidRID.query.filter_by(
