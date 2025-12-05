@@ -25,6 +25,7 @@
 ## Breaking changes
 - In Prolific recruitement the base payment is now subtracted from the bonus (see 'Partial payments in Prolific recruitment' in section 'Added' below)
 - Implementations of `test_serial_run_bots` in custom experiments might need to be changed as a result of the new  `BotDriver` class (see section 'Changed' below)
+- Replaced `Exp.test_real_time` and `--real-time` with `Exp.test_time_factor` and `--time-factor`
 
 ## Added
 - Added support for Python 3.13 (author: Frank Höger, reviewer: Peter Harrison)
