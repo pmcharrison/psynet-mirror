@@ -639,7 +639,7 @@ def is_chromedriver_process(process):
 ###########
 
 
-def _run_bot(real_time, dashboard_user, dashboard_password):
+def _run_bot(time_factor, dashboard_user, dashboard_password):
     from .experiment import get_experiment
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
@@ -654,7 +654,6 @@ def _run_bot(real_time, dashboard_user, dashboard_password):
 
     config.set("dashboard_user", dashboard_user)
     config.set("dashboard_password", dashboard_password)
-    time_factor = 1.0 if real_time else 0.0
 
     exp = get_experiment()
     exp.run_bot(time_factor=time_factor)
@@ -662,9 +661,10 @@ def _run_bot(real_time, dashboard_user, dashboard_password):
 
 @psynet.command()
 @click.option(
-    "--real-time",
-    is_flag=True,
-    help="Instead of running the bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
+    "--time-factor",
+    type=float,
+    default=0.0,
+    help="Multiply the timings in time_estimate by this factor. When equal to zero (the default value), the bot will run through the experiment as fast as possible.",
 )
 @click.option(
     "--dashboard-user",
@@ -676,14 +676,14 @@ def _run_bot(real_time, dashboard_user, dashboard_password):
 )
 @click.pass_context
 @require_exp_directory
-def run_bot(ctx, real_time=False, dashboard_user=None, dashboard_password=None):
+def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
     """
     Run a bot through the local version of the experiment.
     Prior to running this command you must spin up a local experiment, for example
     by running ``psynet debug local``. You can then call ``psynet run-bot``
     multiple times to simulate multiple bots being run through the experiment.
     """
-    _run_bot(real_time, dashboard_user, dashboard_password)
+    _run_bot(time_factor, dashboard_user, dashboard_password)
 
 
 ##############
@@ -2583,10 +2583,11 @@ _test_options["stagger"] = click.option(
     help="Time interval to wait (in seconds) between instantiating each parallel bot.",
 )
 
-_test_options["real_time"] = click.option(
-    "--real-time",
-    is_flag=True,
-    help="Instead of running each bot through the experiment as fast as possible, follow the timings in time_estimate instead.",
+_test_options["time_factor"] = click.option(
+    "--time-factor",
+    type=float,
+    default=0.0,
+    help="Multiply the timings in time_estimate by this factor. When equal to zero (the default value), the bot will run through the experiment as fast as possible.",
 )
 
 
@@ -2596,14 +2597,14 @@ _test_options["real_time"] = click.option(
 @_test_options["parallel"]
 @_test_options["serial"]
 @_test_options["stagger"]
-@_test_options["real_time"]
+@_test_options["time_factor"]
 def test__local(
     existing=False,
     n_bots=None,
     parallel=None,
     serial=None,
     stagger=None,
-    real_time=None,
+    time_factor=None,
 ):
     """
     Test the experiment locally.
@@ -2626,8 +2627,8 @@ def test__local(
     if stagger:
         exp.test_parallel_stagger_interval_s = float(stagger)
 
-    if real_time:
-        exp.test_real_time = True
+    if time_factor:
+        exp.test_time_factor = time_factor
 
     if existing:
         exp.test_experiment()
@@ -2648,7 +2649,7 @@ def test__local(
 @_test_options["parallel"]
 @_test_options["serial"]
 @_test_options["stagger"]
-@_test_options["real_time"]
+@_test_options["time_factor"]
 @click.pass_context
 def test__docker_ssh(
     ctx,
@@ -2658,7 +2659,7 @@ def test__docker_ssh(
     parallel=None,
     serial=None,
     stagger=None,
-    real_time=None,
+    time_factor=None,
 ):
     """
     Runs experiment tests on the remote server.
@@ -2685,8 +2686,8 @@ def test__docker_ssh(
     if stagger:
         cmd += " --stagger"
 
-    if real_time:
-        cmd += " --real-time"
+    if time_factor:
+        cmd += f" --time-factor {time_factor}"
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]

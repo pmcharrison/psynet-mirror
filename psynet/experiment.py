@@ -1317,7 +1317,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     test_n_bots = 1
     test_mode = "serial"
-    test_real_time = False
+    test_time_factor = 0.0
 
     def test_experiment(self):
         os.environ["PASSTHROUGH_ERRORS"] = "True"
@@ -1349,8 +1349,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         bot_ids = [process_id + 1 for process_id in process_ids]
 
         cmd = f"psynet run-bot --dashboard-user {dashboard_user} --dashboard-password {dashboard_password}"
-        if self.test_real_time:
-            cmd += " --real-time"
+        cmd += f" --time-factor {self.test_time_factor}"
 
         for bot_id in bot_ids:
             if bot_id > 0:
@@ -1522,7 +1521,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         See the class's documentation for more details.
         """
         for bot in bots:
-            self.run_bot(bot)
+            self.run_bot(bot, time_factor=self.test_time_factor)
 
     @classmethod
     def run_bot(
