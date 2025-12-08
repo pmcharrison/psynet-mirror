@@ -182,7 +182,7 @@ def create_lucid_recruitment_config(
             }
         )
 
-    question_answer_dict["TIMEOUT"] = ["Agree"]
+    question_answer_dict["TIMEOUT v1"] = ["Agree"]
 
     for question_name, options in question_answer_dict.items():
         if question_name not in qualifications_dict:
