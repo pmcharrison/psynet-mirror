@@ -8,6 +8,11 @@
   We have added a demo of the new approach called `chain_trial_maker`.
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
   the main PsyNet documentation.
+## Breaking Changes
+- Updated Dallinger dependency from v11.5.x to v12.0.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
+
+## Changed
+- Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
 
 ## Fixed
 - Removed unused method ``generate_asset_key``.
