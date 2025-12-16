@@ -22,6 +22,7 @@
 - Added missing `config_options` parameter in `psynet deploy ssh` command
 - Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
+- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
 
 ## Documentation
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
