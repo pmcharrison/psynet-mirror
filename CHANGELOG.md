@@ -13,6 +13,7 @@
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
+- Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 
 ## Fixed
 - Removed unused method ``generate_asset_key``.
