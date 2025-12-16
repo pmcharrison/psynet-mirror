@@ -2,6 +2,9 @@
 
 # Unreleased
 
+## Breaking Changes
+- Updated Dallinger dependency from v11.5.x to v12.0.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
+
 ## Fixed
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
 - Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`)

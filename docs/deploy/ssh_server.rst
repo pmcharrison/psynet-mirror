@@ -20,13 +20,24 @@ simultaneous experiment you think you will need to host.
 
 Once you've set up your remote server, you need to make sure that your local computer
 has passwordless SSH access to the remote server.
-If you have a key pair for the server, you probably need to add it to your SSH agent
-with code like the following:
+If you have a key pair for the server, you should place it in your `~/.ssh/` directory
+and configure Dallinger to use it. First, set the appropriate permissions:
 
 .. code:: bash
 
-    chmod 600 path/to/your/key.pem
-    ssh-add path/to/your/key.pem
+    chmod 600 ~/.ssh/your-key.pem
+
+Then, configure the `server_pem` variable in your `~/.dallingerconfig` file:
+
+.. code:: bash
+
+    [Parameters]
+    server_pem = ~/.ssh/your-key.pem
+
+.. note::
+
+    Starting with Dallinger v12.0.0, SSH deployments require the `server_pem` configuration
+    variable to be set. SSH agent-based authentication is no longer supported for deployments.
 
 If you normally need a password to access the instance, you'll need to
 upload your local machine's SSH key to the remote instance. If you don't have
