@@ -2,7 +2,15 @@
 
 # Unreleased
 
+## Added
+- Added ``make_next_definition`` method to streamline the implementation of chain experiments.
+  We have done this in a back-compatible manner and left existing dependencies unchanged for now.
+  We have added a demo of the new approach called `chain_trial_maker`.
+  More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
+  the main PsyNet documentation.
+
 ## Fixed
+- Removed unused method ``generate_asset_key``.
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
 - Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`)
 - Added missing `config_options` parameter in `psynet deploy ssh` command
