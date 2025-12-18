@@ -434,8 +434,20 @@ class LabRecruitmentStatus(RecruitmentStatus):
 
 class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
     """
-    The LabRecruiter base class
+    The LabRecruiter base class.
+
+    The external submission URL (where completion/failure outcomes are posted)
+    can be overridden via the experiment config key ``lab_recruiter_external_submission_url``.
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.config = get_config()
+
+        # Allow overriding external_submission_url via config
+        url = self.config.get("lab_recruiter_external_submission_url")
+        if url:
+            self.external_submission_url = url
 
     def recruit(self, n=1):
         """Incremental recruitment isn't implemented for now, so we return an empty list."""
