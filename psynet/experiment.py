@@ -776,7 +776,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classproperty
     def automatic_backups(cls):
-        return cls.is_deployed_experiment and cls.artifact_storage_available
+        return False
+        # TODO: reinstate this once we have fixed automatic backups
+        # return cls.is_deployed_experiment and cls.artifact_storage_available
 
     @classproperty
     def notifier(cls) -> Notifier:

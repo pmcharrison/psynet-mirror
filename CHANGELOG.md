@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# Unreleased
+
+## Changed
+- Disabled automatic backups (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
 ## Breaking changes
