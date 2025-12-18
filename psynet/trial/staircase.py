@@ -115,6 +115,10 @@ class GeometricStaircaseNode(ChainNode):
                     "methods must take exactly one argument (the parameter value to be changed)."
                 )
 
+    def make_next_definition(self, experiment, participant):
+        # To consider one day -- refactoring logic out of __init__ into make_next_definition
+        return {}
+
     @property
     def definition(self):
         return {"parameter": self.parameter}

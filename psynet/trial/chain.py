@@ -27,7 +27,9 @@ from ..sync import SyncGroup
 from ..timeline import is_list_of
 from ..utils import (
     call_function_with_context,
+    deep_copy,
     get_logger,
+    is_method_overridden,
     log_time_taken,
     negate,
 )
@@ -613,9 +615,15 @@ class ChainNode(TrialNode):
         if assets is None:
             assets = {}
 
+        # This is the legacy interface -- if we are using the new interface (make_next_definition),
+        # then definition will have been provided.
         if not definition and not self.definition:
-            if not seed and degree == 0:
-                seed = self.create_initial_seed(experiment, participant)
+            if not seed:
+                if degree == 0:
+                    seed = self.create_initial_seed(experiment, participant)
+                else:
+                    assert parent is not None
+                    seed = parent.create_seed(experiment, participant)
             definition = self.create_definition_from_seed(seed, experiment, participant)
 
         if definition:
@@ -633,6 +641,36 @@ class ChainNode(TrialNode):
         if parent:
             parent.child = self
             self.parent = parent
+
+    def make_next_definition(self, experiment, participant) -> dict:
+        """
+        Creates the definition for the next node in the chain.
+
+        Parameters
+        ----------
+
+        experiment
+            An instantiation of :class:`psynet.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant
+            The participant who initiated the creation of the node
+            (if relevant).
+
+        Returns
+        -------
+
+        dict
+            The definition for the next node in the chain.
+        """
+        # The default make_next_definition uses the legacy ``create_seed`` and
+        # ``create_definition_from_seed`` methods for back-compatibility.
+        # We encourage users to avoid using ``create_seed`` and ``create_definition_from_seed``,
+        # and instead put their full logic in ``make_next_definition``.
+        seed = self.create_seed(experiment, participant)
+        definition = self.create_definition_from_seed(seed, experiment, participant)
+        self.seed = seed
+        return definition
 
     def set_network(self, network):
         super().set_network(network)
@@ -958,6 +996,11 @@ class ChainTrial(Trial):
             self.block_position = participant.module_state.block_position
             self.block = participant.module_state.block
 
+    def make_definition(self, experiment, participant):
+        for k, v in self.node.assets.items():
+            self.assets[k] = v
+        return deep_copy(self.node.definition)
+
     # @property
     # @extra_var(__extra_vars__)
     # def degree(self):
@@ -1036,42 +1079,9 @@ ChainTrialMakerState.n_participant_trials_in_block = column_property(
 class ChainTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a chain-based paradigm.
-    This trial maker is suitable for implementing paradigms such as
-    Markov Chain Monte Carlo with People, iterated reproduction, and so on.
-    It is intended for use with the following helper classes,
-    which should be customised for the particular paradigm:
-
-    * :class:`~psynet.trial.chain.ChainNetwork`;
-      a special type of :class:`~psynet.trial.main.TrialNetwork`
-
-    * :class:`~psynet.trial.chain.ChainNode`;
-      a special type of :class:`~dallinger.models.Node`
-
-    * :class:`~psynet.trial.chain.ChainTrial`;
-      a special type of :class:`~psynet.trial.main.NetworkTrial`
-
-    A chain is initialized with a :class:`~psynet.trial.chain.ChainSource` object.
-    This :class:`~psynet.trial.chain.ChainSource` object provides
-    the initial seed to the chain.
-    The :class:`~psynet.trial.chain.ChainSource` object is followed
-    by a series of :class:`~psynet.trial.chain.ChainNode` objects
-    which are generated through the course of the experiment.
-    The last :class:`~psynet.trial.chain.ChainNode` in the chain
-    represents the current state of the chain, and it determines the
-    properties of the next trials to be drawn from that chain.
-    A new :class:`~psynet.trial.chain.ChainNode` object is generated once
-    sufficient :class:`~psynet.trial.chain.ChainTrial` objects
-    have been created for that :class:`~psynet.trial.chain.ChainNode`.
-    There can be multiple chains in an experiment, with these chains
-    either being owned by individual participants ("within-participant" designs)
-    or shared across participants ("across-participant" designs).
 
     Parameters
     ----------
-
-    network_class
-        The class object for the networks used by this maker.
-        This should subclass :class:`~psynet.trial.chain.ChainNetwork`.
 
     node_class
         The class object for the networks used by this maker.
@@ -1080,6 +1090,10 @@ class ChainTrialMaker(NetworkTrialMaker):
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.chain.ChainTrial`).
+
+    network_class
+        The class object for the networks used by this maker.
+        This should subclass :class:`~psynet.trial.chain.ChainNetwork`.
 
     chain_type
         Either ``"within"`` for within-participant chains,
@@ -1107,10 +1121,12 @@ class ChainTrialMaker(NetworkTrialMaker):
     chains_per_participant
         Number of chains to be created for each participant;
         only relevant if ``chain_type="within"``.
+        Not required if ``start_nodes`` is provided.
 
     chains_per_experiment
         Number of chains to be created for the entire experiment;
         only relevant if ``chain_type="across"``.
+        Not required if ``start_nodes`` is provided.
 
     max_nodes_per_chain
         Specifies chain length in terms of the
@@ -1156,8 +1172,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
         another participant. The built-in criteria are ``"n_participants"``
-        and ``"n_trials"``, though the latter requires overriding of
-        :attr:`~psynet.trial.main.TrialMaker.n_trials_still_required`.
+        and ``"n_trials"``.
 
     target_n_participants
         Target number of participants to recruit for the experiment. All
@@ -1952,9 +1967,21 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant = None
         if network.ready_to_spawn:
             head = network.head
-            seed = head.create_seed(experiment, participant)
+
+            if is_method_overridden(head, ChainNode, "make_next_definition"):
+                # make_next_definition is a more recent interface for creating definitions,
+                # we are going to trial this for a while, and potentially later
+                # deprecate the former interface (create_seed)
+                definition = head.make_next_definition(experiment, participant)
+                seed = None
+            else:
+                # create_seed is the former interface for creating definitions
+                definition = None
+                seed = head.create_seed(experiment, participant)
+
             node = self.node_class(
                 seed=seed,
+                definition=definition,
                 parent=head,
                 network=network,
                 experiment=experiment,

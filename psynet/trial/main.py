@@ -84,7 +84,27 @@ Info.origin = relationship(
 )  # type: TrialNode
 
 
-class Trial(SQLMixinDallinger, Info):
+class AssetParentMixin:
+    # TODO: Consider removing add_asset(s) and instead implement a custom ``[]`` operator.
+    def add_assets(self, assets: dict[str, Asset]):
+        for local_key, asset in assets.items():
+            self.add_asset(local_key, asset)
+
+    def add_asset(self, local_key: str, asset: Asset):
+        if not asset.parent:
+            asset.parent = self
+
+        asset.receive_node_definition(self.definition)
+        asset.local_key = local_key
+        asset.set_keys()
+
+        self.assets[local_key] = asset
+
+        if not asset.deposited:
+            asset.deposit()
+
+
+class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     """
     Represents a trial in the experiment.
     The user is expected to override the following methods:
@@ -522,23 +542,6 @@ class Trial(SQLMixinDallinger, Info):
             self.participant.id,
             self.id,
         )
-
-    def add_assets(self, assets: dict):
-        for local_key, asset in assets.items():
-            self.add_asset(local_key, asset)
-
-    def add_asset(self, local_key, asset):
-        if not asset.parent:
-            asset.parent = self
-
-        asset.receive_node_definition(self.definition)
-        asset.local_key = local_key
-        asset.set_keys()
-
-        self.assets[local_key] = asset
-
-        if not asset.deposited:
-            asset.deposit()
 
     def score_answer(self, answer, definition):
         """
@@ -2586,7 +2589,7 @@ class NetworkTrialMaker(TrialMaker):
         return res
 
 
-class TrialNetwork(SQLMixinDallinger, Network):
+class TrialNetwork(SQLMixinDallinger, Network, AssetParentMixin):
     """
     A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
     The user must override the abstract method :meth:`~psynet.trial.main.TrialNetwork.add_node`.
@@ -2818,7 +2821,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
         self.async_post_grow_network_complete = True
 
 
-class TrialNode(SQLMixinDallinger, dallinger.models.Node):
+class TrialNode(SQLMixinDallinger, dallinger.models.Node, AssetParentMixin):
     __extra_vars__ = {
         **SQLMixinDallinger.__extra_vars__.copy(),
     }
