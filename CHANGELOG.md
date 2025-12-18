@@ -8,6 +8,12 @@
   We have added a demo of the new approach called `chain_trial_maker`.
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
   the main PsyNet documentation.
+## Breaking Changes
+- Updated Dallinger dependency from v11.5.x to v12.0.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
+
+## Changed
+- Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
+- Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 
 ## Fixed
 - Removed unused method ``generate_asset_key``.
@@ -16,6 +22,7 @@
 - Added missing `config_options` parameter in `psynet deploy ssh` command
 - Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
+- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
 
 ## Documentation
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)

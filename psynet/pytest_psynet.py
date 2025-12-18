@@ -9,6 +9,7 @@ import time
 import uuid
 import warnings
 from pathlib import Path
+from urllib import parse
 
 import boto3
 import dallinger.pytest_dallinger
@@ -33,6 +34,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
 from psynet.asset import filter_botocore_deprecation_warnings
+from psynet.participant import Participant
 
 from .command_line import (
     clean_sys_modules,
@@ -167,6 +169,17 @@ def bot_class(headless=None):
                 )
                 consent.click()
                 logger.info("Clicked consent button.")
+
+                # Extract unique_id from URL to set participant_id on bot (required for Dallinger v12.0.0+)
+                WebDriverWait(self.driver, 10).until(
+                    lambda d: "unique_id" in d.current_url
+                )
+                url = self.driver.current_url
+                query_params = parse.parse_qs(parse.urlparse(url).query)
+                unique_id = self.get_from_query(query_params, ["unique_id"])
+                participant = Participant.query.filter_by(unique_id=unique_id).first()
+                self.participant_id = str(participant.id)
+
                 return True
             except TimeoutException:
                 logger.error("Error during experiment sign up.")
