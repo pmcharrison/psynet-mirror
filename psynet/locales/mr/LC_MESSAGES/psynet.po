@@ -554,19 +554,19 @@ msgstr "प्ले"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "आपल्याला किमान एक उत्तर तपासणे आवश्यक आहे!"
+msgstr "तुम्हाला किमान एक उत्तर तपासणे आवश्यक आहे!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "आपल्याला उत्तर निवडणे आवश्यक आहे!"
+msgstr "तुम्हाला एक उत्तर निवडणे आवश्यक आहे!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "आपल्याला एक संख्या प्रदान करणे आवश्यक आहे!"
+msgstr "तुम्हाला एक संख्या प्रदान करणे आवश्यक आहे!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy

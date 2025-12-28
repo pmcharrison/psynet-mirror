@@ -555,7 +555,7 @@ msgstr "ପ୍ଲେ"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "ଆପଣକୁ ଅନ୍ତତଃ ଗୋଟିଏ ଉତ୍ତର ଯାଞ୍ଚ କରିବାକୁ ପଡିବ!"
+msgstr "ଆପଣକୁ କମ୍ ସେ କମ୍ ଗୋଟିଏ ଉତ୍ତର ଚିହ୍ନିତ କରିବାକୁ ପଡିବ!"
 
 #: psynet/modular_page.py
 #, fuzzy

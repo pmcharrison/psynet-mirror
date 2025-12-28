@@ -557,19 +557,19 @@ msgstr "Bapala"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "U hloka ho khetha bonyane karabo e le 'ngoe!"
+msgstr "O hloka ho khetha bonyane karabo e le 'ngoe!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "U hloka ho khetha karabo!"
+msgstr "O hloka ho khetha karabo!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "U hloka ho fana ka nomoro!"
+msgstr "O hloka ho fana ka nomoro!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy

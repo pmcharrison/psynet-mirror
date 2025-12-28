@@ -1072,8 +1072,8 @@ msgid ""
 "By making recording people while moving, singing, tapping to rhythms, or "
 "speaking, we can infer the mechanisms of the auditory and visual systems."
 msgstr ""
-"Deur mense op te neem terwyl hulle beweeg, sing, ritmes tik of praat, kan "
-"ons die meganismes van die ouditiewe en visuele sisteme aflei."
+"Deur mense op te neem terwyl hulle beweeg, sing, op ritmes tik, of praat, "
+"kan ons die meganismes van die ouditiewe en visuele stelsels aflei."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1085,9 +1085,9 @@ msgid ""
 "coding list that links my name to the number."
 msgstr ""
 "Ek is ingelig dat die berging en verwerking van die <i>oudiovisuele</i> "
-"opname in gepseudonimiseerde vorm sal plaasvind, d.w.s. deur 'n nommer te "
-"gebruik en sonder om my naam in te sluit, en dat daar 'n koderinglys is wat "
-"my naam aan die nommer koppel."
+"opname in gepseudonimiseerde vorm uitgevoer sal word, d.w.s., deur 'n nommer"
+" te gebruik en sonder om my naam in te sluit, en dat daar 'n koderinglys is "
+"wat my naam aan die nommer koppel."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1107,7 +1107,7 @@ msgid ""
 "<i>audiovisual</i> data during the recording and the analysis of the "
 "material."
 msgstr ""
-"Navorsers wat met hierdie projek geassosieer is, sal toegang hê tot my "
+"Navorsers wat met hierdie projek geassosieer word, sal toegang hê tot my "
 "<i>oudiovisuele</i> data tydens die opname en die analise van die materiaal."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
@@ -1119,7 +1119,7 @@ msgid ""
 "storage of my personal data without negative consequences."
 msgstr ""
 "Ek verstaan dat ek vry is om my toestemming tot die versameling en berging "
-"van my persoonlike data te onttrek sonder negatiewe gevolge."
+"van my persoonlike data sonder negatiewe gevolge terug te trek."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1175,7 +1175,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I may withdraw my consent at any time."
-msgstr "Ek kan my toestemming te eniger tyd terugtrek."
+msgstr "Ek mag my toestemming te eniger tyd onttrek."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1185,9 +1185,9 @@ msgid ""
 "be other negative consequences; however, in this case, participation in the "
 "study will not be possible."
 msgstr ""
-"In geval van weiering of terugtrekking, sal geen koste aangegaan word nie, "
-"en daar sal geen ander negatiewe gevolge wees nie; egter, in hierdie geval "
-"sal deelname aan die studie nie moontlik wees nie."
+"In geval van weiering of onttrekking, sal geen koste aangegaan word nie en "
+"daar sal geen ander negatiewe gevolge wees nie; egter, in hierdie geval sal "
+"deelname aan die studie nie moontlik wees nie."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #, fuzzy
@@ -1209,7 +1209,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-audiovisual"
 msgid "I have received a copy of this consent form."
-msgstr "Ek het 'n afskrif van hierdie toestemmingsvorm ontvang."
+msgstr "Ek het 'n kopie van hierdie toestemmingsvorm ontvang."
 
 #: psynet/templates/consents/cap-recruiter_audiovisual_consent.html
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1238,7 +1238,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-cap"
 msgid "I have read and understood all of the information completely."
-msgstr "Ek het al die inligting ten volle gelees en verstaan."
+msgstr "Ek het al die inligting volledig gelees en verstaan."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1247,8 +1247,8 @@ msgid ""
 "If I had questions concerning the upcoming study, they were answered "
 "completely and to my satisfaction."
 msgstr ""
-"As ek vrae gehad het oor die komende studie, is hulle volledig en tot my "
-"bevrediging beantwoord."
+"As ek vrae oor die komende studie gehad het, is hulle volledig en tot my "
+"tevredenheid beantwoord."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1257,8 +1257,8 @@ msgid ""
 "I agree to the described collecting and processing of my age, gender, and "
 "country of birth."
 msgstr ""
-"Ek stem in tot die beskryfde insameling en verwerking van my ouderdom, "
-"geslag en geboorteland."
+"Ek stem in tot die beskryfde versameling en verwerking van my ouderdom, "
+"geslag, en geboorteland."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1310,7 +1310,7 @@ msgctxt "consent-cap"
 msgid ""
 "I have been informed that I may request deletion of all my data at any time."
 msgstr ""
-"Ek is ingelig dat ek op enige tydstip die verwydering van al my data kan "
+"Ek is ingelig dat ek te eniger tyd die verwydering van al my data kan "
 "versoek."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
@@ -1320,8 +1320,8 @@ msgid ""
 "However, if the coding list has already been destroyed, it will no longer be"
 " possible to identify and thus to delete my data set."
 msgstr ""
-"As die kodelys egter alreeds vernietig is, sal dit nie meer moontlik wees om"
-" my datastel te identifiseer en dus te verwyder nie."
+"As die kodelys egter reeds vernietig is, sal dit nie meer moontlik wees om "
+"my datastel te identifiseer en dus te verwyder nie."
 
 #: psynet/templates/consents/cap-recruiter_standard_consent.html
 #, fuzzy
@@ -1340,7 +1340,7 @@ msgid ""
 "I have received a copy of the participant information sheet and of the "
 "consent form."
 msgstr ""
-"Ek het 'n kopie van die deelnemerinligtingsblad en die toestemmingsvorm "
+"Ek het 'n kopie van die deelnemerinligtingsblad en van die toestemmingsvorm "
 "ontvang."
 
 #: psynet/templates/consents/database_consent.html
@@ -1389,9 +1389,9 @@ msgid ""
 "communication with you and for planning studies at the Max Planck Institute "
 "for Empirical Aesthetics (MPIEA)."
 msgstr ""
-"Ons stoor en verwerk u data slegs vir die doel van die aanvang van "
-"kommunikasie met u en vir die beplanning van studies by die Max Planck "
-"Instituut vir Empiriese Estetika (MPIEA)."
+"Ons stoor en verwerk u data slegs vir die doel om kommunikasie met u te "
+"begin en vir die beplanning van studies by die Max Planck Instituut vir "
+"Empiriese Estetika (MPIEA)."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1414,7 +1414,7 @@ msgid ""
 "nationality), we also store the date and time when you made the entry."
 msgstr ""
 "Benewens u kontakbesonderhede (d.w.s. naam en e-pos) en die demografiese "
-"data wat tydens die aanmelding versoek word (d.w.s. ouderdom, geslag en "
+"data wat in die aanmelding versoek word (d.w.s. ouderdom, geslag en "
 "nasionaliteit), stoor ons ook die datum en tyd wanneer u die inskrywing "
 "gemaak het."
 
@@ -1492,13 +1492,13 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-duration"
 msgid "You may request the deletion of your data at any time."
-msgstr "U kan te eniger tyd die verwydering van u data versoek."
+msgstr "U mag te eniger tyd die verwydering van u data versoek."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
 msgctxt "consent-duration"
 msgid "To do so, send an e-mail with the subject “Delete” to:"
-msgstr "Om dit te doen, stuur 'n e-pos met die onderwerp \"Verwyder\" aan:"
+msgstr "Om dit te doen, stuur 'n e-pos met die onderwerp “Verwyder” aan:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1514,7 +1514,7 @@ msgid ""
 "(i.e., press 'Delete account'  in the cap-recruiter log-in page)."
 msgstr ""
 "U kan ook u data uit die databasis verwyder deur u rekening te verwyder "
-"(d.w.s. druk 'Verwyder rekening' op die cap-recruiter-aanmeldbladsy)."
+"(d.w.s. druk 'Verwyder rekening' op die cap-recruiter aanmeldbladsy)."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1523,7 +1523,7 @@ msgid ""
 "Note that all information, including the experiment and payment history will"
 " be removed from our database."
 msgstr ""
-"Let daarop dat alle inligting, insluitend die eksperiment- en "
+"Let daarop dat alle inligting, insluitend die eksperiment en "
 "betalingsgeskiedenis, uit ons databasis verwyder sal word."
 
 #: psynet/templates/consents/database_consent.html
@@ -1542,8 +1542,8 @@ msgid ""
 "The data entered in the form you fill out are transferred in encrypted form "
 "to an internal server."
 msgstr ""
-"Die data wat in die vorm wat u invul ingevoer word, word in geënkripteerde "
-"vorm na 'n interne bediener oorgedra."
+"Die data wat in die vorm ingevul word, word in geënkripteerde vorm na 'n "
+"interne bediener oorgedra."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1552,8 +1552,8 @@ msgid ""
 "We will then send you an e-mail with a confirmation link to verify your "
 "e-mail address."
 msgstr ""
-"Ons sal u dan 'n e-pos stuur met 'n bevestigingsskakel om u e-posadres te "
-"verifieer."
+"Ons sal dan vir u 'n e-pos stuur met 'n bevestigingskakel om u e-posadres te"
+" verifieer."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1562,7 +1562,7 @@ msgid ""
 "We take all necessary technical and organizational security measures to "
 "protect your personal data from loss and abuse."
 msgstr ""
-"Ons neem alle nodige tegniese en organisatoriese veiligheidsmaatreëls om u "
+"Ons neem alle nodige tegniese en organisatoriese sekuriteitsmaatreëls om u "
 "persoonlike data teen verlies en misbruik te beskerm."
 
 #: psynet/templates/consents/database_consent.html
@@ -1572,7 +1572,7 @@ msgid ""
 "Your data are stored in a secure operating environment that is not "
 "accessible to the public."
 msgstr ""
-"U data word gestoor in 'n veilige bedryfsomgewing wat nie vir die publiek "
+"U data word in 'n veilige bedryfsomgewing gestoor wat nie vir die publiek "
 "toeganklik is nie."
 
 #: psynet/templates/consents/database_consent.html
@@ -1587,7 +1587,7 @@ msgstr ""
 #, fuzzy
 msgctxt "consent-protection"
 msgid "Data Protection: Rights of Data Subjects"
-msgstr "Data Beskerming: Regte van Data Onderwerpe"
+msgstr "Databeskerming: Regte van Datasubjekte"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1598,8 +1598,8 @@ msgid ""
 "provides information about the rights of data subjects."
 msgstr ""
 "Om deursigtigheid te verseker met betrekking tot die verwerking van "
-"persoonlike data, bied die Algemene Verordening op Databeskerming (GDPR) van"
-" die Europese Unie inligting oor die regte van databeskermingsonderwerpe."
+"persoonlike data, verskaf die Algemene Databeskermingsregulasie (GDPR) van "
+"die Europese Unie inligting oor die regte van datasubjekte."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1609,10 +1609,9 @@ msgid ""
 "participation in our studies, you have the following rights in principle and"
 " insofar as no legal exceptions apply in individual cases:"
 msgstr ""
-"As 'n databeskermingsonderwerp wie se persoonlike data verwerk word met "
-"betrekking tot u deelname aan ons studies, het u in beginsel die volgende "
-"regte, en in soverre geen wettige uitsonderings van toepassing is in "
-"individuele gevalle nie:"
+"As 'n datasubjek wie se persoonlike data verwerk word met betrekking tot u "
+"deelname aan ons studies, het u die volgende regte in beginsel en voorbehou "
+"dat geen wetlike uitsonderings in individuele gevalle van toepassing is nie:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1630,7 +1629,7 @@ msgstr "Regstelling (GDPR art. 16)"
 #, fuzzy
 msgctxt "consent-protection"
 msgid "Erasure (GDPR art. 17, para. 1)"
-msgstr "Verwydering (GDPR art. 17, para. 1)"
+msgstr "Verwydering (GDPR art. 17, par. 1)"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1648,7 +1647,7 @@ msgstr "Data-oordraagbaarheid (GDPR art. 20)"
 #, fuzzy
 msgctxt "consent-protection"
 msgid "Withdrawal of consent (GDPR art. 7, para. 3)"
-msgstr "Terugtrekking van toestemming (GDPR art. 7, para. 3)"
+msgstr "Terugtrekking van toestemming (GDPR art. 7, par. 3)"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1656,7 +1655,7 @@ msgctxt "consent-protection"
 msgid ""
 "Right to lodge a complaint with a supervisory authority (GDPR art. 77)."
 msgstr ""
-"Reg om 'n klag in te dien by 'n toesighoudende owerheid (GDPR art. 77)."
+"Reg om 'n klag by 'n toesighoudende owerheid in te dien (GDPR art. 77)."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1665,7 +1664,7 @@ msgid ""
 "For the Max Planck Society, this is the Data Protection Authority of "
 "Bavaria, Postfach 1349, 91504 Ansbach, Germany."
 msgstr ""
-"Vir die Max Planck Genootskap is dit die Databeskerming Owerheid van Beiere,"
+"Vir die Max Planck Genootskap is dit die Databeskermingsowerheid van Beiere,"
 " Posbus 1349, 91504 Ansbach, Duitsland."
 
 #: psynet/templates/consents/database_consent.html
@@ -1677,9 +1676,8 @@ msgid ""
 "Perception Group at the Max Planck Institute for Empirical Aesthetics:"
 msgstr ""
 "As u enige vrae het oor hierdie navorsing, u regte, of behandeling as 'n "
-"deelnemer, moet asseblief nie huiwer om die Rekenaarmatige Ouditiewe "
-"Waarnemingsgroep by die Max Planck Instituut vir Empiriese Estetika te "
-"kontak nie:"
+"deelnemer, moet asseblief nie huiwer om die Rekenaargehoorpersepsiegroep by "
+"die Max Planck Instituut vir Empiriese Estetika te kontak nie:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1713,8 +1711,8 @@ msgid ""
 "This information will be available for you to review it when you login to "
 "the database."
 msgstr ""
-"Hierdie inligting sal vir u beskikbaar wees om te hersien wanneer u in die "
-"databasis aanmeld."
+"Hierdie inligting sal beskikbaar wees vir u om dit te hersien wanneer u by "
+"die databasis aanmeld."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1723,7 +1721,7 @@ msgid ""
 "Based on this information we allow you to receive payment via an external "
 "system such as PayPAL/WISE."
 msgstr ""
-"Gebaseer op hierdie inligting laat ons u toe om betaling te ontvang via 'n "
+"Op grond van hierdie inligting laat ons u toe om betaling te ontvang via 'n "
 "eksterne stelsel soos PayPAL/WISE."
 
 #: psynet/templates/consents/database_consent.html
@@ -1744,9 +1742,9 @@ msgid ""
 "please search your bank in their website to ensure that you will be able to "
 "receive payment prior to taking part in our experiments."
 msgstr ""
-"Hierdie stelsel ondersteun die oorplasing van geld na die meeste banke "
-"regoor die wêreld, soek asseblief u bank op hul webwerf om te verseker dat u"
-" betaling kan ontvang voordat u aan ons eksperimente deelneem."
+"Hierdie stelsel ondersteun die oordrag van geld na die meeste banke regoor "
+"die wêreld, soek asseblief u bank op hul webwerf om te verseker dat u "
+"betaling kan ontvang voordat u aan ons eksperimente deelneem."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1755,8 +1753,8 @@ msgid ""
 "We also recommend checking the term of service and it’s privacy statement "
 "and see if you consent to use their system for payment."
 msgstr ""
-"Ons beveel ook aan om die diensvoorwaardes en privaatheid verklaring na te "
-"gaan en te kyk of u instem om hul stelsel vir betaling te gebruik."
+"Ons beveel ook aan om die diensvoorwaardes en privaatheidsverklaring na te "
+"gaan en te sien of u instem om hul stelsel vir betaling te gebruik."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1766,9 +1764,9 @@ msgid ""
 " not be able to pay you, however you can still participate in our "
 "experiments voluntarily, without payment."
 msgstr ""
-"As u nie kan of nie wil betaling ontvang via hierdie stelsel nie, sal ons u "
-"nie kan betaal nie, maar u kan steeds vrywillig aan ons eksperimente "
-"deelneem, sonder betaling."
+"As u nie betaling via hierdie stelsel kan of wil ontvang nie, sal ons u nie "
+"kan betaal nie, maar u kan steeds vrywillig aan ons eksperimente deelneem, "
+"sonder betaling."
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy
@@ -1784,9 +1782,9 @@ msgid ""
 "Regulation in the context of personal data being processed in our studies, "
 "please contact the Data Protection Officer of the Max Planck Society:"
 msgstr ""
-"As u verdere vrae het oor die Algemene Verordening op Databeskerming in die "
+"As u verdere vrae het rakende die Algemene Databeskermingsregulasie in die "
 "konteks van persoonlike data wat in ons studies verwerk word, kontak "
-"asseblief die Databeskerming Beampte van die Max Planck Genootskap:"
+"asseblief die Databeskermingsbeampte van die Max Planck Genootskap:"
 
 #: psynet/templates/consents/database_consent.html
 #, fuzzy

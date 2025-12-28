@@ -564,7 +564,7 @@ msgstr "Musíte vybrať odpoveď!"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Musíte poskytnúť číslo!"
+msgstr "Musíte zadať číslo!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy

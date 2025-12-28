@@ -552,7 +552,7 @@ msgstr "Прайграць"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Вам трэба выбраць хаця б адзін адказ!"
+msgstr "Вам трэба адзначыць хаця б адзін адказ!"
 
 #: psynet/modular_page.py
 #, fuzzy

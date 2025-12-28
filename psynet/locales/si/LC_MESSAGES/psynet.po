@@ -543,19 +543,19 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "Play"
+msgstr "වජ්ජා"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "ඔබට අවම වශයෙන් එක් පිළිතුරක් වත් තෝරාගත යුතුය!"
+msgstr "ඔබට අවම වශයෙන් එක් පිළිතුරක් වත් තෝරා ගත යුතුය!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "ඔබට පිළිතුරක් තෝරාගත යුතුය!"
+msgstr "ඔබට පිළිතුරක් තෝරා ගත යුතුය!"
 
 #: psynet/modular_page.py
 #, fuzzy

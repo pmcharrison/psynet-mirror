@@ -562,7 +562,7 @@ msgstr "તમારે જવાબ પસંદ કરવો પડશે!"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "તમારે એક નંબર આપવો પડશે!"
+msgstr "તમારે નંબર આપવો પડશે!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
