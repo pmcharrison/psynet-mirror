@@ -545,7 +545,7 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "বজাও"
+msgstr "প্লে"
 
 #: psynet/modular_page.py
 #, fuzzy

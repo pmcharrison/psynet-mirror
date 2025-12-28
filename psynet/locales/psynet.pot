@@ -418,12 +418,12 @@ msgid ""
 "grant it."
 msgstr ""
 
-#: psynet/experiment.py:1563
+#: psynet/experiment.py:1564
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
 msgstr ""
 
-#: psynet/experiment.py:1629
+#: psynet/experiment.py:1630
 #, python-brace-format
 msgctxt "mturk_error"
 msgid ""
@@ -431,24 +431,24 @@ msgid ""
 "describe what led to this error."
 msgstr ""
 
-#: psynet/experiment.py:1633
+#: psynet/experiment.py:1634
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr ""
 
-#: psynet/experiment.py:1656
+#: psynet/experiment.py:1657
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
 msgstr ""
 
-#: psynet/experiment.py:1660
+#: psynet/experiment.py:1661
 msgctxt "prolific_error"
 msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
 
-#: psynet/experiment.py:2507
+#: psynet/experiment.py:2508
 msgctxt "timeline_problem"
 msgid ""
 "Synchronization problem detected. Are you running the same experiment in "
@@ -668,7 +668,7 @@ msgid ""
 " you for your understanding. You can now close this browser window."
 msgstr ""
 
-#: psynet/recruiters.py:1264
+#: psynet/recruiters.py:1284
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr ""

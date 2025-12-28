@@ -557,7 +557,7 @@ msgstr "మీరు కనీసం ఒక సమాధానాన్ని �
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "మీరు ఒక సమాధానాన్ని ఎంచుకోవాలి!"
+msgstr "మీరు సమాధానాన్ని ఎంచుకోవాలి!"
 
 #: psynet/modular_page.py
 #, fuzzy

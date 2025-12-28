@@ -550,19 +550,19 @@ msgstr "પ્લે"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "તમારે ઓછામાં ઓછું એક જવાબ ચકાસવો પડશે!"
+msgstr "તમારે ઓછામાં ઓછું એક જવાબ ચકાસવો જરૂરી છે!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "તમારે જવાબ પસંદ કરવો પડશે!"
+msgstr "તમારે જવાબ પસંદ કરવો જરૂરી છે!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "તમારે એક નંબર આપવો પડશે!"
+msgstr "તમારે એક નંબર આપવો જરૂરી છે!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy

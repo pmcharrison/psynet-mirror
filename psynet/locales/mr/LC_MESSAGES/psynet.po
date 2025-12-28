@@ -560,7 +560,7 @@ msgstr "आपल्याला किमान एक उत्तर तप�
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "आपल्याला उत्तर निवडणे आवश्यक आहे!"
+msgstr "आपल्याला एक उत्तर निवडणे आवश्यक आहे!"
 
 #: psynet/modular_page.py
 #, fuzzy

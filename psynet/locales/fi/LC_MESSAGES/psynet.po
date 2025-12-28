@@ -551,19 +551,19 @@ msgstr "Toista"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Sinun täytyy valita vähintään yksi vastaus!"
+msgstr "Sinun on valittava vähintään yksi vastaus!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "Sinun täytyy valita vastaus!"
+msgstr "Sinun on valittava vastaus!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Sinun täytyy antaa numero!"
+msgstr "Sinun on annettava numero!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy

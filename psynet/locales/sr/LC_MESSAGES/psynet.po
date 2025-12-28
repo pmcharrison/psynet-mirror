@@ -552,13 +552,13 @@ msgstr "Pusti"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Morate označiti barem jedan odgovor!"
+msgstr "Morate označiti bar jedan odgovor!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "Morate odabrati odgovor!"
+msgstr "Morate izabrati odgovor!"
 
 #: psynet/modular_page.py
 #, fuzzy

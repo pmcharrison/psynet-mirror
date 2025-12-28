@@ -547,7 +547,7 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "Воспроизвести"
+msgstr "Play"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -565,7 +565,7 @@ msgstr "Вам нужно выбрать ответ!"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Вам нужно указать число!"
+msgstr "Вам нужно ввести число!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy

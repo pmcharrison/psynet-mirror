@@ -543,25 +543,25 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "पश्य"
+msgstr "प्लय"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "तव एकं उत्तरं चिह्नयितुं आवश्यकम्!"
+msgstr "कमपि उत्तरं चिह्नयितुं आवश्यकं!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "तव एकं उत्तरं चयनं आवश्यकम्!"
+msgstr "उत्तरं चयनं आवश्यकं!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "तव संख्या प्रदातुं आवश्यकम्!"
+msgstr "संख्यां प्रदातुं आवश्यकं!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
