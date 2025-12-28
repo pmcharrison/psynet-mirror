@@ -555,7 +555,7 @@ msgstr "Luaj"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Duhet të kontrolloni të paktën një përgjigje!"
+msgstr "Duhet të zgjidhni të paktën një përgjigje!"
 
 #: psynet/modular_page.py
 #, fuzzy

@@ -556,7 +556,7 @@ msgstr "Spill"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Dir musst op d'mannst eng Äntwert auswielen!"
+msgstr "Dir musst op d'mannst eng Äntwert ukräizen!"
 
 #: psynet/modular_page.py
 #, fuzzy

@@ -550,19 +550,19 @@ msgstr "वाजव"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "तुमका कमीत कमी एक उत्तर तपासूक जाय!"
+msgstr "तुमका कमीत कमी एक उत्तर तपासूक लागता!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "तुमका एक उत्तर निवडपाच जाय!"
+msgstr "तुमका एक उत्तर निवडूक लागता!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "तुमका एक नंबर पुरवपाच जाय!"
+msgstr "तुमका एक नंबर पुरवपाचो आसा!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy

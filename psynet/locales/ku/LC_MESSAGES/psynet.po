@@ -543,13 +543,13 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "بەشە"
+msgstr "بەکاربهێنە"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "پێویستە هەندێک وەڵام دیاری بکەیت!"
+msgstr "پێویستە بەلایەنی کەم یەک وەڵام دیاری بکەیت!"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -561,7 +561,7 @@ msgstr "پێویستە وەڵامێک دیاری بکەیت!"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "پێویستە ژمارەیەک دابنێیت!"
+msgstr "پێویستە ژمارەیەک دیاری بکەیت!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy

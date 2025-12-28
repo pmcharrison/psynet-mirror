@@ -555,13 +555,13 @@ msgstr "খেল"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "আপুনি কমেও এটা উত্তৰ নিৰ্বাচন কৰিব লাগিব!"
+msgstr "নহয় তেন্তে আপুনি কমেও এহাল উত্তৰ চেক কৰিব লাগিব!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "আপুনি এটা উত্তৰ নিৰ্বাচন কৰিব লাগিব!"
+msgstr "আপুনি উত্তৰ বাছনি কৰিব লাগিব!"
 
 #: psynet/modular_page.py
 #, fuzzy
