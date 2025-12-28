@@ -85,12 +85,35 @@ def update_demo(dir):
 
 
 def generate_constraints(dir):
-    subprocess.run(
-        "psynet generate-constraints",
-        shell=True,
-        cwd=dir,
-        capture_output=True,
-    )
+    with working_directory(dir):
+        # Ensure dallinger constraint is present before generating constraints
+        # This ensures we use the correct Dallinger version (from PsyNet's pyproject.toml)
+        # instead of resolving to the latest available version
+        with open("requirements.txt", "r") as f:
+            content = f.read()
+            dallinger_missing = not re.search(
+                r"^dallinger", content, re.IGNORECASE | re.MULTILINE
+            )
+
+        if dallinger_missing:
+            # Add dallinger constraint temporarily
+            with open("requirements.txt", "a") as f:
+                f.write(f"dallinger=={latest_dallinger_patch_version}\n")
+
+        try:
+            subprocess.run(
+                "psynet generate-constraints",
+                shell=True,
+                capture_output=True,
+            )
+        finally:
+            if dallinger_missing:
+                # Remove temporary dallinger line
+                with fileinput.FileInput("requirements.txt", inplace=True) as file:
+                    for line in file:
+                        if re.search(r"^dallinger==[^\s]+", line):
+                            continue
+                        print(line, end="")
 
 
 def pre_update_constraints(dir):
