@@ -153,7 +153,7 @@ class LabRecruiterAudiovisualConsent(Module):
             super().__init__(
                 time_estimate=time_estimate,
                 template_str=get_template(
-                    "consents/lab-recruiter_audiovisual_consent.html"
+                    "consents/cap-recruiter_audiovisual_consent.html"
                 ),
             )
 
