@@ -22,12 +22,17 @@ You will put this token in a general configuration file called ``.dallingerconfi
 information placed here is shared across all experiments that you run on your computer.
 This file is located in your home directory, at ``~/.dallingerconfig``.
 If the file doesn't exist already, create it; then open it with a text editor.
-Enter your API key as follows:
+Enter your API token as follows:
 
 ::
 
     [Prolific]
     prolific_api_token = xxxxxxx
+
+To deploy Prolific experiments you will also need to specify the name of a Prolific workspace
+and the name of a Prolific project. You can find both on the Prolific website.
+Your workspace should exist already, but the project doesn't need to exist yet.
+
 
 Save and close the file.
 
