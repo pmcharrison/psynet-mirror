@@ -4,7 +4,8 @@
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
     "mounts": [
-        "source=${localEnv:HOME}/psynet-data,target=/root/psynet-data,type=bind"
+        "source=${localEnv:HOME}/psynet-data,target=/root/psynet-data,type=bind",
+        "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
     ],
     "postCreateCommand": "bash .devcontainer/postcreate.sh",
     "postAttachCommand": "bash .devcontainer/postattach.sh"
