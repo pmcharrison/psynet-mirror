@@ -1,4 +1,9 @@
 FROM ghcr.io/dallinger/dallinger:12.1.0
+#
+# TODO: Remove this Dockerfile once we are happy with the new experiment Dockerfiles
+# that bypass the need for a PsyNet base image.
+
+#
 # If you want to pin a Dallinger development version, don't do it here!
 # Instead pin it below (see comments)
 #

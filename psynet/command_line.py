@@ -2311,6 +2311,7 @@ def update_scripts_():
     To be run in an experiment directory; updates a collection of template scripts and help files to their
     latest PsyNet versions.
     """
+    # TODO - refactor to avoid hardcoding the list of files/directories to copy
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
     Path(".vscode").mkdir(exist_ok=True)
