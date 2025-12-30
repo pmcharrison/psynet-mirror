@@ -36,7 +36,11 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-from psynet.version import check_dallinger_version, check_versions, python_recommended_version
+from psynet.version import (
+    check_dallinger_version,
+    check_versions,
+    python_recommended_version,
+)
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
@@ -2367,9 +2371,7 @@ def update_scripts_():
 
     # We remove no-longer-wanted directories only if we can be confident that the
     # user hasn't edited them
-    directories_to_remove = [
-        ("docs", "abfc54bbbc3ef9d5948957841727a18b")
-    ]
+    directories_to_remove = [("docs", "abfc54bbbc3ef9d5948957841727a18b")]
     for directory, hash in directories_to_remove:
         if Path(directory).exists():
             if md5_directory(directory) == hash:

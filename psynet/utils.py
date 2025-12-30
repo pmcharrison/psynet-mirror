@@ -414,7 +414,7 @@ def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
     assert Path(directory).is_dir()
     for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
         # Skip hidden files and directories (those starting with '.')
-        if path.name.startswith('.'):
+        if path.name.startswith("."):
             continue
         hash.update(path.name.encode())
         if path.is_file():
