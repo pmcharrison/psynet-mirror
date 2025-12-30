@@ -1,9 +1,29 @@
 {
-    // "image": "registry.gitlab.com/psynetdev/psynet:v12.1.0",
     "build": { "dockerfile": "../Dockerfile" },
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.isort",
+        "ms-python.black-formatter",
+        "ms-python.flake8",
+        "ms-ossdata.vscode-pgsql"
+    ],
+    "mounts": [
+        "source=${localEnv:HOME}/psynet-data,target=/root/psynet-data,type=bind",
+        "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
+    ],
     "postCreateCommand": "bash .devcontainer/postcreate.sh",
-    "postAttachCommand": "bash .devcontainer/postattach.sh"
+    "postAttachCommand": "bash .devcontainer/postattach.sh",
+    "settings": {
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.black-formatter",
+            "editor.formatOnSave": true,
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": "explicit"
+            }
+        },
+        "isort.args":["--profile", "black"]
+    }
 }
