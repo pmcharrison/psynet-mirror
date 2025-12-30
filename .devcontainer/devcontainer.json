@@ -1,3 +1,6 @@
+// Note: if you are making modifications to this file, consider also propagating these
+// changes to psynet/resources/experiment_scripts/.devcontainer/devcontainer.json,
+// which is used as a template for demo experiments.
 {
     "build": { "dockerfile": "../Dockerfile" },
     "features": {
@@ -8,7 +11,9 @@
         "ms-python.isort",
         "ms-python.black-formatter",
         "ms-python.flake8",
-        "ms-ossdata.vscode-pgsql"
+        "ms-ossdata.vscode-pgsql",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg"
     ],
     "mounts": [
         "source=${localEnv:HOME}/psynet-data,target=/root/psynet-data,type=bind",
@@ -24,6 +29,19 @@
                 "source.organizeImports": "explicit"
             }
         },
-        "isort.args":["--profile", "black"]
+        "isort.args":["--profile", "black"],
+        "sqltools.connections": [
+            {
+                "ssh": "Disabled",
+                "previewLimit": 50,
+                "server": "localhost",
+                "port": 5432,
+                "driver": "PostgreSQL",
+                "name": "dallinger",
+                "database": "dallinger",
+                "username": "dallinger",
+                "password": "dallinger"
+            }
+        ]
     }
 }

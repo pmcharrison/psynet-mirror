@@ -1,3 +1,7 @@
+// Note: if you are making modifications to this file, consider also proposing
+// corresponding changes to the .devcontainer/devcontainer.json file in the
+// root of the PsyNet package's repository, which is used to define the
+// development environment for PsyNet source code.
 {
     "build": { "dockerfile": "../Dockerfile" },
     "features": {
@@ -8,7 +12,9 @@
         "ms-python.isort",
         "ms-python.black-formatter",
         "ms-python.flake8",
-        "ms-ossdata.vscode-pgsql"
+        "ms-ossdata.vscode-pgsql",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg"
     ],
     "mounts": [
         "source=${localEnv:HOME}/psynet-data,target=/root/psynet-data,type=bind",
@@ -24,6 +30,19 @@
                 "source.organizeImports": "explicit"
             }
         },
-        "isort.args":["--profile", "black"]
+        "isort.args":["--profile", "black"],
+        "sqltools.connections": [
+            {
+                "ssh": "Disabled",
+                "previewLimit": 50,
+                "server": "localhost",
+                "port": 5432,
+                "driver": "PostgreSQL",
+                "name": "dallinger",
+                "database": "dallinger",
+                "username": "dallinger",
+                "password": "dallinger"
+            }
+        ]
     }
 }
