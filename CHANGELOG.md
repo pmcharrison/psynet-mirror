@@ -6,24 +6,35 @@
 - Updated Dallinger dependency from v11.5.x to v12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
 
 ## Added
+
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
   the main PsyNet documentation.
 
+## Breaking Changes
+
+- Updated Dallinger dependency from v11.5.x to v12.0.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
+
 ## Changed
+
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+
 - Removed unused method ``generate_asset_key``.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
-- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
+- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror
+- md5 hashing now ignores files whose names begin with `.` (e.g. `.DS_Store`)
 
 ## Documentation
+
+- Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. Modified `_get_py_entries_from_dir()` during translation extraction to skip hidden and other directories (venv, __pycache__, node_modules, site-packages, etc.) during os.walk() (author: Frank Höger, reviewer: Peter Harrison)
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 
 # [13.0.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.1) Release - 2026-01-05
@@ -41,6 +52,8 @@
 ## Documentation
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
 
+
+- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 

@@ -25,6 +25,7 @@ from psynet.utils import (
     list_isolated_tests,
     logger,
     make_parents,
+    md5_directory,
     merge_dicts,
     organize_by_key,
     safe,
@@ -413,3 +414,81 @@ def test_get_authenticated_session_allows_dashboard_access(launched_experiment):
     resp = session.get(f"{base_url}/dashboard/index")
     assert resp.status_code == 200
     assert "Config" in resp.text or "configuration" in resp.text
+
+
+def test_md5_directory_ignores_hidden_files():
+    """Test that md5_directory ignores hidden files and directories."""
+    with tempfile.TemporaryDirectory() as tempdir:
+        # Create a directory structure with visible and hidden files
+        visible_file = os.path.join(tempdir, "visible.txt")
+        hidden_file = os.path.join(tempdir, ".DS_Store")
+        hidden_dir = os.path.join(tempdir, ".hidden_dir")
+        visible_dir = os.path.join(tempdir, "visible_dir")
+        visible_dir_file = os.path.join(visible_dir, "file.txt")
+
+        with open(visible_file, "w") as f:
+            f.write("visible content")
+
+        with open(hidden_file, "w") as f:
+            f.write("hidden content")
+
+        os.makedirs(hidden_dir)
+        with open(os.path.join(hidden_dir, "hidden_file.txt"), "w") as f:
+            f.write("hidden dir content")
+
+        os.makedirs(visible_dir)
+        with open(visible_dir_file, "w") as f:
+            f.write("visible dir content")
+
+        # Get hash with hidden files
+        hash_with_hidden = md5_directory(tempdir)
+
+        # Modify hidden file - hash should remain the same
+        with open(hidden_file, "w") as f:
+            f.write("modified hidden content")
+
+        hash_after_hidden_modification = md5_directory(tempdir)
+        assert hash_with_hidden == hash_after_hidden_modification
+
+        # Modify visible file - hash should change
+        with open(visible_file, "w") as f:
+            f.write("modified visible content")
+
+        hash_after_visible_modification = md5_directory(tempdir)
+        assert hash_with_hidden != hash_after_visible_modification
+
+        # Add another hidden file - hash should remain the same
+        with open(os.path.join(tempdir, ".another_hidden"), "w") as f:
+            f.write("another hidden file")
+
+        hash_after_adding_hidden = md5_directory(tempdir)
+        assert hash_after_visible_modification == hash_after_adding_hidden
+
+        # Add another visible file - hash should change
+        with open(os.path.join(tempdir, "another_visible.txt"), "w") as f:
+            f.write("another visible file")
+
+        hash_after_adding_visible = md5_directory(tempdir)
+        assert hash_after_visible_modification != hash_after_adding_visible
+
+
+def test_md5_directory_consistency():
+    """Test that md5_directory produces consistent hashes for identical directory contents."""
+    with tempfile.TemporaryDirectory() as tempdir1:
+        with tempfile.TemporaryDirectory() as tempdir2:
+            # Create identical directory structures
+            for tempdir in [tempdir1, tempdir2]:
+                with open(os.path.join(tempdir, "file1.txt"), "w") as f:
+                    f.write("content1")
+                with open(os.path.join(tempdir, "file2.txt"), "w") as f:
+                    f.write("content2")
+                subdir = os.path.join(tempdir, "subdir")
+                os.makedirs(subdir)
+                with open(os.path.join(subdir, "file3.txt"), "w") as f:
+                    f.write("content3")
+
+            hash1 = md5_directory(tempdir1)
+            hash2 = md5_directory(tempdir2)
+
+            assert hash1 == hash2
+            assert len(hash1) == 32  # MD5 hex digest is 32 characters
