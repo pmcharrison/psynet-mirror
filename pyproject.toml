@@ -76,6 +76,7 @@ dev = [
     "sphinx",
     "sphinx-autodoc-typehints",
     "beautifulsoup4",
+    "pytest-test-groups",
 ]
 slack = [
     "slack_sdk",
