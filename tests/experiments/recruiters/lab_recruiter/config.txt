@@ -5,7 +5,6 @@ contact_email_on_error = XXX@gmail.com
 organization_name = XXX
 
 recruiter = generic
-debug_recruiter = dev-lab-recruiter
 currency = $
 wage_per_hour = 12.0
 
@@ -34,12 +33,15 @@ base_payment = 0.34
 [Lab Recruiter]
 # When recruiting with Lab Recruiter set the following:
 # recruiter = lab-recruiter
+# (default external submission URL: https://recruiter.cococo-lab.cornell.edu/tasks)
 #
-# Alternatively, when using the staging Lab Recruiter (https://staging-recruiter.cococo-lab.cornell.edu/) set:
+# Alternatively, when using the staging Lab Recruiter set:
 # recruiter = staging-lab-recruiter
+# (default external submission URL: https://recruiter-staging.cococo-lab.cornell.edu/tasks)
 #
 # For local debug Lab Recruiter set:
 # debug_recruiter = dev-lab-recruiter
+# (default external submission URL: http://localhost:8000/tasks)
 #
-# Test the custom external submission URL override
-lab_recruiter_external_submission_url = https://test-recruiter.example.com/tasks
+# You can override the external submission URL with:
+# lab_recruiter_external_submission_url = https://recruiter.yourdomain.edu/tasks
