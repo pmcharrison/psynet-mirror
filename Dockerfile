@@ -1,9 +1,8 @@
-# TODO: Update to Python 3.13 once the tests pass with 3.12
 # Use linux/amd64 platform to ensure x86_64 wheels are available (faster builds)
 # On Apple Silicon Macs, Docker will emulate x86_64 but pip can use pre-built wheels
 # Can be overridden with: docker build --build-arg DOCKER_PLATFORM=linux/arm64
 ARG DOCKER_PLATFORM=linux/amd64
-FROM --platform=${DOCKER_PLATFORM} python:3.12-bookworm
+FROM --platform=${DOCKER_PLATFORM} python:3.13-bookworm
 
 RUN pip install uv
 
