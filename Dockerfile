@@ -8,7 +8,7 @@ FROM --platform=${DOCKER_PLATFORM} python:3.12-bookworm
 RUN pip install uv
 
 # TODO: delete some of these if we can
-RUN apt update && apt -f -y install curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip nodejs npm build-essential
+RUN apt update && apt -f -y install curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip nodejs npm wget build-essential
 
 # Heroku CLI is currently needed to run `psynet test local`, this should change soon
 RUN curl https://cli-assets.heroku.com/install.sh | sh
@@ -18,13 +18,13 @@ ENV HEADLESS=TRUE
 # Install Chrome and ChromeDriver
 RUN CHROME_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json | jq .channels.Stable.version | tr -d '"') && \
     echo Installing Chrome $CHROME_VERSION && \
-    curl -fsSL chrome.deb https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip && \
-    unzip -q chrome.deb -d /opt/ && \
+    wget -O chrome.deb https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip && \
+    unzip chrome.deb -d /opt/ && \
     ln -s /opt/chrome-linux64/chrome /usr/local/bin/chrome && \
     echo "Successfully installed Chrome $(chrome --version)" && \
     echo Installing ChromeDriver $CHROME_VERSION && \
-    curl -fsSL chrome-driver.zip https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip && \
-    unzip -q chrome-driver.zip -d /usr/local/bin/ && \
+    wget -O chrome-driver.zip https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip && \
+    unzip chrome-driver.zip -d /usr/local/bin/ && \
     ln -s /usr/local/bin/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
     echo "Successfully installed ChromeDriver $(chromedriver --version)" && \
     rm -f chrome.deb chrome-driver.zip
