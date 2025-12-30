@@ -10,4 +10,6 @@ git config --global --add safe.directory '*'
 # the workspaces directory as our working directory.
 # rm -rf /experiment
 
-uv pip install --no-deps --system -e .
+uv pip install --system -e .[dev]
+
+pre-commit install
