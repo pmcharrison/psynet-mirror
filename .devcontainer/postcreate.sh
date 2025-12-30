@@ -9,3 +9,5 @@ git config --global --add safe.directory '*'
 # experiments, but when we are working in the Codespace, we instead want to use
 # the workspaces directory as our working directory.
 # rm -rf /experiment
+
+uv pip install --no-deps --system -e .

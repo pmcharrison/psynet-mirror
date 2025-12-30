@@ -11,8 +11,8 @@ RUN curl https://cli-assets.heroku.com/install.sh | sh
 RUN service redis-server start
 ENV HEADLESS=TRUE
 
-RUN mkdir /PsyNet
-WORKDIR /PsyNet
+# RUN mkdir /PsyNet
+# WORKDIR /PsyNet
 
 COPY pyproject.toml pyproject.toml
 
@@ -21,9 +21,8 @@ RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dalling
 
 RUN uv pip install --no-cache --system -r constraints.txt
 
-COPY . .
-
-RUN uv pip install --no-deps --system -e .
+# COPY . .
+# RUN uv pip install --no-deps --system -e .
 
 # RUN mkdir /psynet-data
 # RUN chmod a+rwx -R /psynet-data
