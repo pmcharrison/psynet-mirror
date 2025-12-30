@@ -36,7 +36,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-from psynet.version import check_dallinger_version, check_versions
+from psynet.version import check_dallinger_version, check_versions, python_recommended_version
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
@@ -55,6 +55,7 @@ from .utils import (
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
+    md5_directory,
     pretty_format_seconds,
     require_exp_directory,
     require_requirements_txt,
@@ -2336,12 +2337,19 @@ def update_scripts_():
                 file,
             )
 
+    # We keep Dockertag for now, but once we remove the docker directory,
+    # we should remove this too.
     click.echo("...updating Dockertag.")
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
 
-    directories_to_copy = ["docs", "docker"]
+    click.echo("...updating .python-version")
+    with open(".python-version", "w") as file:
+        file.write(python_recommended_version)
+        file.write("\n")
+
+    directories_to_copy = ["docker", ".devcontainer"]
     for dir in directories_to_copy:
         click.echo(f"...updating {dir} directory.")
         if Path(dir).exists():
@@ -2355,6 +2363,17 @@ def update_scripts_():
                 dirs_exist_ok=True,
             )
     os.system("chmod +x docker/*")
+
+    # We remove no-longer-wanted directories only if we can be confident that the
+    # user hasn't edited them
+    directories_to_remove = [
+        ("docs", "abfc54bbbc3ef9d5948957841727a18b")
+    ]
+    for directory, hash in directories_to_remove:
+        if Path(directory).exists():
+            if md5_directory(directory) == hash:
+                # The directory is unchanged, we can remove it
+                shutil.rmtree(directory)
 
 
 @psynet.group("destroy")

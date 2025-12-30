@@ -12,6 +12,8 @@ psynet_version = "13.1.0a0"
 # Specify Dallinger MAJOR.MINOR version to allow any patch in that series
 dallinger_recommended_version = "12.1"
 
+python_recommended_version = "3.13"
+
 
 def check_versions():
     "Check whether the PsyNet and Dallinger versions installed locally match the ones specified in the requirements.txt file."
