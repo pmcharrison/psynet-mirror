@@ -26,7 +26,7 @@ from dallinger.command_line.docker_ssh import (
     option_server,
     remote_postgres,
 )
-from dallinger.command_line.utils import verify_id
+from dallinger.command_line.utils import verify_id as dallinger_verify_id
 from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
@@ -68,6 +68,15 @@ from .utils import (
 )
 
 logger = get_logger()
+
+
+def verify_id(ctx, param, app):
+    # If app is None, don't verify it
+    # (in contrast to the assumption in dallinger_verify_id, it is valid
+    # to deploy without an app name, at least when using Docker SSH)
+    if app is None:
+        return
+    return dallinger_verify_id(ctx, param, app)
 
 
 def _suppress_dallinger_header():
@@ -885,7 +894,7 @@ def _deploy__docker_heroku(ctx, app, archive):
 
 
 @deploy.command("ssh")
-@click.option("--app", callback=verify_id, required=True, help="Experiment id")
+@click.option("--app", callback=verify_id, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @option_server
 @click.option(
@@ -1221,7 +1230,7 @@ def debug__docker_heroku(ctx, app, archive):
 
 @debug.command("ssh")
 @click.option(
-    "--app", callback=verify_id, required=True, help="Name of the experiment app."
+    "--app", callback=verify_id, default=None, help="Name of the experiment app."
 )
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @option_server
