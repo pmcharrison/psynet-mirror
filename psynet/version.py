@@ -95,14 +95,19 @@ def get_all_version_infos(file_content):
             # Get installed version from `pip freeze`
             installed = commit_hash_or_version_from_pip_freeze(package_name)
 
-        consistent = specified is None or specified == installed
+        if is_development_version(installed):
+            # It's hard to check consistency when the installed version is a development version,
+            # because a development version could correspond to many possible branches/commits.
+            # We therefore just mark it as consistent and continue.
+            consistent = True
+        else:
+            consistent = specified is None or specified == installed
 
         versions[package_name] = {
             "specified": specified,
             "installed": installed,
             "consistent": consistent,
         }
-
     return versions
 
 
@@ -111,6 +116,26 @@ def specified_using_version(specified):
         specified.startswith("v")
         or re.search(r"^\d+\.\d+\.\d+(?:rc\d+)?$", specified) is not None
     )
+
+
+def is_development_version(version):
+    """
+    Check whether a version string is a development version.
+
+    A development version is defined as three numbers (major.minor.patch)
+    followed by a letter and then numbers, e.g. "13.1.0a0".
+
+    Parameters
+    ----------
+    version : str
+        Version string to check
+
+    Returns
+    -------
+    bool
+        True if the version is a development version, False otherwise
+    """
+    return re.search(r"^\d+\.\d+\.\d+[a-zA-Z]\d+$", version) is not None
 
 
 def installed_version_for(package_name):
@@ -141,6 +166,7 @@ def get_requirement(name):
         ][0]
 
 
+# TODO: rename this function, as get_requirement doesn't always use pip freeze.
 def commit_hash_or_version_from_pip_freeze(package_name):
     line = get_requirement(package_name)
     match = re.search(f".*{package_name}(?:\\.git)?@([^#]*)", line, re.IGNORECASE)

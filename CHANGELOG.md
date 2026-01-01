@@ -31,6 +31,8 @@
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
 - Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror
 - md5 hashing now ignores files whose names begin with `.` (e.g. `.DS_Store`)
+- Suppress false-positive inconsistent version errors when debugging using development versions
+  (e.g. on master).
 
 ## Documentation
 
