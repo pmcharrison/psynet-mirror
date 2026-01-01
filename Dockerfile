@@ -7,7 +7,7 @@ FROM --platform=${DOCKER_PLATFORM} python:3.13-bookworm
 RUN pip install uv
 
 # TODO: delete some of these if we can
-RUN apt update && apt -f -y install curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip nodejs npm wget build-essential
+RUN apt-get update && apt-get install -y curl gettext jq libasound2 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libgbm1 libnss3 libpq-dev libxcomposite1 libxdamage1 libxfixes3 libxkbcommon0 libxrandr2 redis-server unzip nodejs npm wget build-essential
 
 # Heroku CLI is currently needed to run `psynet test local`, this should change soon
 RUN curl https://cli-assets.heroku.com/install.sh | sh
