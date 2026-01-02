@@ -12,8 +12,7 @@
         "ms-python.isort",
         "ms-python.black-formatter",
         "ms-python.flake8",
-        "ms-ossdata.vscode-pgsql",
-        "mtxr.sqltools",
+        "mtxr.sqltools",  // we could use ms-ossdata.vscode-pgsql instead, but it's not compatible with Cursor
         "mtxr.sqltools-driver-pg"
     ],
     "mounts": [
