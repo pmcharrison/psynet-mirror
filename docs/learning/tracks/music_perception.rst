@@ -8,7 +8,7 @@ Music perception track
 The music perception track is tailored towards people who want to run online behavioral studies
 about how people perceive music.
 
-The first step is to `install PsyNet <../../installation/index.html>`_.
+The first step is to `install PsyNet <../../legacy_installation/index.html>`_.
 You should make sure you do the optional step 5, namely installing editable PsyNet and Dallinger repositories.
 
 Next you should read the
