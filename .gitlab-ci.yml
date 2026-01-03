@@ -149,6 +149,7 @@ pg_badger:
   #     paths:
   #     - venv/
   before_script:
+  # TODO: migrate to use the Dev Containers build
     - echo Install Heroku CLI and docker
     - curl https://cli-assets.heroku.com/install.sh | sh
     - curl https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz | tar xzf - -C /usr/local
