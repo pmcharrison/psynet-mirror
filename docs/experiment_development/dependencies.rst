@@ -51,6 +51,8 @@ The ``generate-constraints`` thereby tries to obtain a list of package versions 
 
 You should generally run ``psynet generate-constraints`` whenever you make changes to your ``requirements.txt`` file.
 You can commit the resulting ``constraints.txt`` file to your experiment's Git repository.
+In order for your new packages to be available in your Dev Container,
+you will need to rebuild it (CMD+Shift+P > Rebuild Container).
 
 In some cases you might decide that the automatically generated constraints are not quite right.
 Perhaps it complains of an incompatibility which you think is not a problem.
