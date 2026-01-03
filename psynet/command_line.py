@@ -71,9 +71,10 @@ logger = get_logger()
 
 
 def verify_id(ctx, param, app):
-    # If app is None, don't verify it
-    # (in contrast to the assumption in dallinger_verify_id, it is valid
-    # to deploy without an app name, at least when using Docker SSH)
+    # Dallinger now in theory allows --app to be None, in which case Dallinger will use the
+    # single-app-per-server deployment route.
+    # dallinger_verify_id will raise an error if app is None, however.
+    # We therefore bypass the validation in this case.
     if app is None:
         return
     return dallinger_verify_id(ctx, param, app)
