@@ -1,5 +1,5 @@
-Installing PsyNet via Docker
-============================
+Installing PsyNet via Docker (legacy)
+=======================================
 
 .. toctree::
     :maxdepth: 1

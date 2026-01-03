@@ -1,5 +1,7 @@
-Legacy installation methods
-===========================
+.. _legacy_installation:
+
+Legacy installation
+===================
 
 Most users should nowadays follow the 'quickstart' approach to running PsyNet experiments.
 However, details of legacy installation methods are provided below for reference.
@@ -11,4 +13,3 @@ However, details of legacy installation methods are provided below for reference
     docker_installation/index
     additional_developer_installation
     shell_completion
-

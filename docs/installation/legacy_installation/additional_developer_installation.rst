@@ -1,10 +1,10 @@
 .. _additional_developer_installation:
 
-Additional developer installation steps
----------------------------------------
+Additional developer installation steps (legacy)
+-------------------------------------------------
 
 These are some additional steps you should take if you plan to contribute
-to PsyNet's source code.
+to PsyNet's source code and you are using a legacy installation method.
 
 
 Add your SSH key to GitLab

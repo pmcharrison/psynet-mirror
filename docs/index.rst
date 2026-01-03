@@ -69,9 +69,10 @@ Here is the citation entry::
 
 .. toctree::
    :hidden:
-   :caption: LEGACY INSTALLATION
+   :caption: INSTALLATION
 
-   legacy_installation/index
+   installation/quickstart
+   installation/legacy_installation/index
 
 .. toctree::
    :hidden:

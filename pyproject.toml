@@ -75,6 +75,7 @@ dev = [
     "pre-commit",
     "sphinx",
     "sphinx-autodoc-typehints",
+    "sphinx-inline-tabs",
     "beautifulsoup4",
     "pytest-test-groups",
 ]
