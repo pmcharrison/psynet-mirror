@@ -44,7 +44,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
-    "sphinx_inline_tabs",
+    "sphinx_inline_tabs",  # TODO: remove once we migrate to PyData Sphinx theme
 ]
 
 # Add any paths that contain templates here, relative to this directory.
