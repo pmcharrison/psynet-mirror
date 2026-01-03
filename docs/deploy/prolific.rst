@@ -154,17 +154,17 @@ Testing your experiment
 
 It's a good idea to test your experiment thoroughly before deploying it. There are a few ways to do this:
 
-1. Take it as a participant on your local computer by running ``bash docker/psynet debug local``;
-2. Run the automated experiment tests via ``bash docker/run pytest test.py``.
+1. Take it as a participant on your local computer by running ``psynet debug local``;
+2. Run the automated experiment tests via ``psynet test local``.
 3. Pilot it on your remote server by setting ``recruiter = generic`` in ``config.txt`` and then running
-   ``bash docker/psynet debug ssh --app your-app-name``.
+   ``psynet debug ssh --app your-app-name``.
 
 .. warning::
 
     If you are running automated experiment tests via Docker as instructed above,
     and you are using an Apple Silicon Mac, then make sure you have selected
     'Use Rosetta for x86/amd64 emulation on Apple Silicon' under the Docker preferences,
-    otherwise the tests will run very slowly.
+    otherwise the tests might run very slowly.
 
 
 Deploying your experiment

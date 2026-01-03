@@ -73,8 +73,8 @@ for a number that looks like ``10.1.0``. For example, you might see something li
     psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.0#egg=psynet
 
 It's a good idea to check what the latest released version of PsyNet is.
-You can do this by looking at the CHANGELOG on GitLab
-(https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/CHANGELOG.md?ref_type=heads).
+You should be able to see this in the top-left corner of the online documentation website.
+Alternatively, you can look at the `CHANGELOG on GitLab <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/CHANGELOG.md?ref_type=heads>`_.
 This CHANGELOG lists the changes that happen with each new version of PsyNet.
 You can compare the PsyNet version in your experiment to the latest PsyNet version listed here
 to work out how PsyNet has changed in the meantime, and what (if anything) you might need to
@@ -86,17 +86,9 @@ If both version tags begin with the same number, then you should probably be fin
 and you can just go ahead and increase the PsyNet version number in ``requirements.txt``.
 
 If you have indeed increased the PsyNet version number, you need to update ``constraints.txt``.
-On Docker, this means running:
 
-::
-
-    bash docker/generate-constraints
-
-Without Docker, this means running:
-
-::
+.. code:: bash
 
     psynet generate-constraints
 
-This command requires internet access and may take a minute or so to run.
 Once it is complete, you should be able to run ``psynet debug local`` as before.
