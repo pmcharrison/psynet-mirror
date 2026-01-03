@@ -129,11 +129,6 @@ Next you set the experiment's ``description`` parameter. This provides more info
 You should explain briefly what your payment policy will be if the participant doesn't finish the experiment,
 e.g. due to a technical error or a failed pre-screening task.
 
-.. warning::
-    If you do not use your own domain name (via the ``--dns-host`` argument), then Dallinger automatically
-    uses a ``nip.io`` subdomain. We think this may be causing certain participants to encounter phishing warnings.
-    It seems that this error can be avoided by instructing the participant to take the test in an incognito browser.
-
 You should select the Prolific recruiter by setting the config parameter ``recruiter`` to ``prolific``.
 Also, for most users we recommend setting the ``auto_recruit`` parameter to ``false``, meaning that you will manually
 control the recruitment of participants via the Prolific interface rather than letting PsyNet manage it for you.
