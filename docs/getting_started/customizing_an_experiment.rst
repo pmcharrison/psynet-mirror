@@ -36,6 +36,7 @@ then restart it by running ``psynet debug local`` again.
     The general principle is the same, but you might have a bit more work to do if the experiment was written
     for an older version of PsyNet.
     In most cases you should try and update the experiment to use the latest version of PsyNet.
+
     Have a look at `PsyNet's CHANGELOG <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/CHANGELOG.md?ref_type=heads>`_
     to see what has changed in PsyNet since the experiment was written.
     If the experiment repository does not contain a ``.devcontainer`` directory,
@@ -44,5 +45,6 @@ then restart it by running ``psynet debug local`` again.
     (you can see the latest released version in the top-left corner of the online documentation website),
     and then run ``psynet generate-constraints`` to update ``constraints.txt`` accordingly,
     and then rebuild your Dev Container (CMD+Shift+P > Rebuild Container).
-    Try running ``psynet debug local`` -- you might encounter some errors on account of your version upgrade,
+
+    Once this is all done, try running ``psynet debug local`` -- you might encounter some errors on account of your version upgrade,
     but hopefully the error message will guide you towards what needs fixing.

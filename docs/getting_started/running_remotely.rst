@@ -1,5 +1,5 @@
-Running PsyNet on a remote server
-=================================
+Running PsyNet remotely
+=======================
 
 PsyNet experiments are typically deployed to a remote server.
 You can use your own pre-existing server,
