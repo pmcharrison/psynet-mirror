@@ -55,6 +55,7 @@ Here is the citation entry::
    :caption: Getting started
 
    Running locally <getting_started/running_locally>
+   Customizing an experiment <getting_started/customizing_an_experiment>
    Running remotely <getting_started/running_remotely>
    Collecting data <getting_started/collecting_data>
 
