@@ -52,6 +52,15 @@ Here is the citation entry::
 .. toctree::
    :maxdepth: 1
    :hidden:
+   :caption: Getting started
+
+   Running locally <getting_started/running_locally>
+   Running remotely <getting_started/running_remotely>
+   Collecting data <getting_started/collecting_data>
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
    :caption: Learning
 
    learning/how_to_learn
