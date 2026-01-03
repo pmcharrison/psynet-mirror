@@ -12,7 +12,7 @@
   We have added a demo of the new approach called `chain_trial_maker`.
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
   the main PsyNet documentation.
-- Added DevContainers configuration files to demos.
+- Added DevContainers configuration files to the repository root and to the demos.
 
 ## Breaking Changes
 
