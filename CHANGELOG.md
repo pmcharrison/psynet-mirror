@@ -28,6 +28,11 @@
 ## Fixed
 
 - Removed unused method ``generate_asset_key``.
+- Removed unused method `generate_asset_key`.
+- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
+- Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`)
+- Added missing `config_options` parameter in `psynet deploy ssh` command
+- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
 - Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
 - md5 hashing now ignores files whose names begin with `.` (e.g. `.DS_Store`)
@@ -35,7 +40,8 @@
   (e.g. on master).
 - Fixed command-line argument validation bug that prevented users from accessing the
   one-app-per-server deployment route.
-- Fixed bug in the propagation of the ``update`` argument to the Dallinger CLI.
+- Fixed bug in the propagation of the `update` argument to the Dallinger CLI.
+- Fixed bug that was causing `get_hardware_status` to fail.
 
 
 ## Documentation
