@@ -81,7 +81,6 @@ Here is the citation entry::
    :hidden:
    :caption: INSTALLATION
 
-   installation/quickstart
    installation/legacy_installation/index
 
 .. toctree::

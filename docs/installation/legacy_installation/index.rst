@@ -3,7 +3,7 @@
 Legacy installation
 ===================
 
-Most users should nowadays follow the 'quickstart' approach to running PsyNet experiments.
+Most users should nowadays follow the installation instructions provided in :ref:`running_locally`.
 However, details of legacy installation methods are provided below for reference.
 
 .. toctree::
