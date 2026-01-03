@@ -29,13 +29,20 @@
 
 - Removed unused method ``generate_asset_key``.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
-- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror
+- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
 - md5 hashing now ignores files whose names begin with `.` (e.g. `.DS_Store`)
 - Suppress false-positive inconsistent version errors when debugging using development versions
   (e.g. on master).
+- Fixed command-line argument validation bug that prevented users from accessing the
+  one-app-per-server deployment route.
+- Fixed bug in the propagation of the ``update`` argument to the Dallinger CLI.
+
 
 ## Documentation
 
+- Dev Containers is now the recommended installation method;
+  the previous installation methods have been marked as 'legacy'.
+- Added a 'Getting Started' section to the documentation.
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. Modified `_get_py_entries_from_dir()` during translation extraction to skip hidden and other directories (venv, __pycache__, node_modules, site-packages, etc.) during os.walk() (author: Frank Höger, reviewer: Peter Harrison)
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
@@ -57,6 +64,11 @@
 
 
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+
+## Deprecated
+
+- Deprecated the ``bash docker/...`` interface for developing and deploying PsyNet experiments
+  in favor of the new Dev Containers approach.
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
