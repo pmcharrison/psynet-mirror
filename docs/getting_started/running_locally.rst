@@ -7,9 +7,12 @@ PsyNet relies on many interconnected services, including PostgreSQL, Redis, and 
 To simplify the installation process, we use Dev Containers to automatically provision
 these services on your local machine.
 
+This process works smoothly on MacOS and Linux, but it's more variable on Windows.
+We are still trying to document the different setup steps that might be necessary here.
+
 .. note::
 
-    See the :ref:`legacy_installation` section for details on alternative installation methods.
+    See the :ref:`legacy_installation` section for details on alternative installation methods
 
 Install Google Chrome
 ---------------------
@@ -102,6 +105,15 @@ Download PsyNet and open it in your IDE
     Finally, restart your computer, reopen Docker Desktop, and reopen your IDE.
 
 
+Install the Dev Containers extension
+------------------------------------
+
+When you open the repository in your IDE, you should see a prompt to install the 'Anysphere'
+Dev Containers extension. Go ahead and install it.
+
+If you don't see the prompt, click View > Extensions, search for the extension there,
+then install it.
+
 Launch a Dev Container
 ----------------------
 
@@ -113,8 +125,49 @@ You should now see a prompt to launch a Dev Container.
     :align: center
     :width: 400px
 
+Accept the prompt to launch the Dev Container.
+
+.. note::
+
+    Docker Desktop will need to be running for the Dev Container to start.
+
 Before proceeding to the next step, wait until the automatic configuration scripts have stopped running
-(it should take 30-60 seconds).
+(it should take 1-2 minutes).
+
+.. note::
+
+    Don't worry if you see messages like this:
+
+    .. code-block:: text
+
+        failed to start containers: postgres
+        Unable to find image 'postgres:12' locally
+        12: Pulling from library/postgres
+
+    This is not an error, it just means that the Postgres image needs to be downloaded.
+
+.. note::
+
+    Dev Containers are configured via a ``.devcontainer`` directory in the root of the repository.
+    Together with ``Dockerfile``, this defines the environment in which the experiment will run.
+    When the container is built, various installation scripts are run, including installing the Python
+    packages specified in ``requirements.txt`` and ``constraints.txt``.
+
+    There are two important things to be aware of when using Dev Containers.
+    The first is that the container has its own file system, which is by default separated from your local machine.
+    However, certain directories are 'mounted' from your local machine, which means they are shared between
+    the container and your local machine:
+
+    - The source code directory, which could be the PsyNet repository or a demo repository
+    - ``~/.dallingerconfig`` and ``~/.dallinger``: Dallinger configuration files
+    - ``~/.ssh``: SSH keys
+    - ``~/psynet-data``: PsyNet data (e.g. exported data, assets)
+
+    If you need to mount additional directories, you can do so by adding them to the ``mounts`` array in ``devcontainer.json``.
+
+    The second important thing to be aware of is that, if you make changes to the installation process
+    (e.g. by editing ``requirements.txt``), you will need to rebuild the container (CMD+Shift+P > Rebuild Container)
+    for the changes to take effect.
 
 Launch a PsyNet demo
 --------------------

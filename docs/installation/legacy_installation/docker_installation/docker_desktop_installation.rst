@@ -17,5 +17,3 @@ then you should go to Preferences and tick the box that says
 If you don't tick this box PsyNet will run very slowly.
 
 If you are on Windows, go to Resources > WSL integration and make sure all the distributions are enabled.
-
-
