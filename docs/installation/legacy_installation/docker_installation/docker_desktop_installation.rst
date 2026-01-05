@@ -16,6 +16,6 @@ then you should go to Preferences and tick the box that says
 'Use Rosetta for x86/amd64 emulation on Apple Silicon'.
 If you don't tick this box PsyNet will run very slowly.
 
-
+If you are on Windows, go to Resources > WSL integration and make sure all the distributions are enabled.
 
 

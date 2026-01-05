@@ -11,7 +11,6 @@ these services on your local machine.
 
     See the :ref:`legacy_installation` section for details on alternative installation methods.
 
-
 Install Google Chrome
 ---------------------
 
@@ -38,26 +37,70 @@ You might also consider using Cursor, which is an AI-enhanced fork of VSCode.
 Cursor is very helpful at explaining how to use PsyNet features.
 You can download Cursor for free from the following link: https://www.cursor.com/.
 
-Download PsyNet
----------------
+Download PsyNet and open it in your IDE
+---------------------------------------
 
-Download the PsyNet repository using one of the following methods:
+.. tab:: MacOS/Linux
 
-If you have Git installed, you can clone the PsyNet repository to your current directory
-with the following command:
+    If you have Git installed, you can clone the PsyNet repository to your current directory
+    with the following command:
 
-.. code-block:: bash
+    .. code-block:: bash
 
-    git clone https://gitlab.com/PsyNetDev/PsyNet
+        git clone https://gitlab.com/PsyNetDev/PsyNet
 
-Alternatively, if you don't have Git installed, you can navigate to PsyNet's GitLab page,
-click the 'Code' button, and select 'Download ZIP'.
-Once the ZIP file has downloaded, unzip it to your desired location.
+    Alternatively, if you don't have Git installed, you can navigate to PsyNet's GitLab page,
+    click the 'Code' button, and select 'Download ZIP'.
+    Once the ZIP file has downloaded, unzip it to your desired location.
 
-Open the PsyNet repository
---------------------------
+    Now open the repository in your IDE ('File' > 'Open Folder' in VSCode/Cursor).
 
-Now open the repository in your IDE ('File' > 'Open Folder' in VSCode/Cursor).
+.. tab:: Windows
+
+    Running Dev Containers on Windows is a bit more complicated than on MacOS/Linux,
+    because you need to use the Windows Subsystem for Linux (WSL) to run the Dev Containers.
+    WSL is a Linux environment that is embedded in Windows.
+
+    The important thing to know about using WSL is that it maintains its own filesystem,
+    separate from the Windows filesystem. Instead of paths like ``C:\Users\user\PsyNet``,
+    you should expect to see paths like ``/home/user/PsyNet``.
+    It is possible to access Windows directories within WSL, with paths such as
+    ``/mnt/c/Users/user/PsyNet``. However, accessing these directories is slow,
+    so you don't want to put all your project files there. Instead, you want to make sure that 
+    your project files are located outside the ``mnt`` directory, for example ``/home/user/PsyNet``.
+    The following instructions will help you do this.
+
+    An easy way to work within WSL is to use the Anysphere WSL extension for VSCode/Cursor.
+    You use the extension to open a WSL project window, and then for all intents and purposes,
+    you are working within that Linux environment.
+    Where possible, you should edit your PsyNet files within that project window.
+    To install the extension, click View > Extensions and then search for 'Anysphere WSL'.
+
+    Now open the command palette (Ctrl+Shift+P in VSCode/Cursor) and type 'WSL: Connect to WSL'.
+
+    Your window should display 'No folder opened'. Click the 'Clone Repository' button.
+    Paste in the PsyNet repository URL (https://gitlab.com/PsyNetDev/PsyNet) and click 'Clone from URL'.
+    Accept the default destination. When prompted, open the repository.
+
+    .. warning::
+
+        It's essential that you clone the repository within WSL, to a location such as 
+        ``/home/user/PsyNet``, rather than on the Windows filesystem
+        (one with ``mnt`` in the path). The latter will work, but it will be prohibitively slow
+        when it comes to running PsyNet.
+
+    Once you've done this, double-check that the Docker WSL integration is set properly.
+    In Docker Desktop settings, 
+    go to Resources > WSL integration and make sure all the distributions are enabled.
+
+    Now, you should double-check that your WSL version is up-to-date. Type the following into your Windows terminal:
+
+    .. code-block:: bash
+
+        wsl --update
+
+    Finally, restart your computer, reopen Docker Desktop, and reopen your IDE.
+
 
 Launch a Dev Container
 ----------------------
