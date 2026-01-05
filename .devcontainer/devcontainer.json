@@ -14,12 +14,17 @@
         "mtxr.sqltools",  // we could use ms-ossdata.vscode-pgsql instead, but it's not compatible with Cursor
         "mtxr.sqltools-driver-pg"
     ],
-    "initializeCommand": "mkdir -p ~/.dallinger && touch ~/.dallingerconfig",  // avoids errors if .dallinger directory doesn't exist
+    "initializeCommand": "bash .devcontainer/initialize.sh",  // avoids errors if .dallinger directory doesn't exist
     "mounts": [
         "source=${localEnv:HOME}/.dallingerconfig,target=/root/.dallingerconfig,type=bind",
         "source=${localEnv:HOME}/psynet-data,target=/root/psynet-data,type=bind",
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind",
         "source=${localEnv:HOME}/.dallinger,target=/root/.dallinger,type=bind"
+        // for Windows, use the following mounts instead:
+        // "source=${localEnv:USERPROFILE}/.dallingerconfig,target=/root/.dallingerconfig,type=bind",
+        // "source=${localEnv:USERPROFILE}/psynet-data,target=/root/psynet-data,type=bind",
+        // "source=${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,type=bind",
+        // "source=${localEnv:USERPROFILE}/.dallinger,target=/root/.dallinger,type=bind"
     ],
     "postCreateCommand": "bash .devcontainer/postcreate.sh",
     "postAttachCommand": "bash .devcontainer/postattach.sh",
