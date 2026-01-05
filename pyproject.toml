@@ -103,6 +103,7 @@ exclude = [
     "/.postgres_setup.sql",
     "/.run-ci-tests-locally-v2.sh",
     "/.run-ci-tests-locally.sh",
+    "/.venv*",
     "/ci",
     "/demos",
     "/docs",
