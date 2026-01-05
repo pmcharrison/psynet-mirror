@@ -7,7 +7,7 @@ PsyNet relies on many interconnected services, including PostgreSQL, Redis, and 
 To simplify the installation process, we use Dev Containers to automatically provision
 these services on your local machine.
 
-This process works smoothly on MacOS and Linux, but it's more variable on Windows.
+This process works smoothly on MacOS and Linux, but it's more awkward on Windows.
 We are still trying to document the different setup steps that might be necessary here.
 
 .. note::
@@ -69,7 +69,7 @@ Download PsyNet and open it in your IDE
     you should expect to see paths like ``/home/user/PsyNet``.
     It is possible to access Windows directories within WSL, with paths such as
     ``/mnt/c/Users/user/PsyNet``. However, accessing these directories is slow,
-    so you don't want to put all your project files there. Instead, you want to make sure that 
+    so you don't want to put all your project files there. Instead, you want to make sure that
     your project files are located outside the ``mnt`` directory, for example ``/home/user/PsyNet``.
     The following instructions will help you do this.
 
@@ -87,13 +87,12 @@ Download PsyNet and open it in your IDE
 
     .. warning::
 
-        It's essential that you clone the repository within WSL, to a location such as 
-        ``/home/user/PsyNet``, rather than on the Windows filesystem
-        (one with ``mnt`` in the path). The latter will work, but it will be prohibitively slow
-        when it comes to running PsyNet.
+        This process of cloning the repository within WSL is essential.
+        If you were to just clone it onto the Windows filesystem, without opening WSL first,
+        it would end up in ``/mnt`` and PsyNet would run prohibitively slowly.
 
     Once you've done this, double-check that the Docker WSL integration is set properly.
-    In Docker Desktop settings, 
+    In Docker Desktop settings,
     go to Resources > WSL integration and make sure all the distributions are enabled.
 
     Now, you should double-check that your WSL version is up-to-date. Type the following into your Windows terminal:
@@ -102,17 +101,16 @@ Download PsyNet and open it in your IDE
 
         wsl --update
 
-    Finally, restart your computer, reopen Docker Desktop, and reopen your IDE.
+    Finally, restart your computer, reopen Docker Desktop, and reopen your IDE
+    to the original WSL project window (it should be called something like '~/PsyNet [WSL: Ubuntu-22.04]').
+    To verify that the Docker WSL integration is working properly, open a terminal in your WSL project window
+    (View > Terminal) and type the following command:
 
+    .. code-block:: bash
 
-Install the Dev Containers extension
-------------------------------------
+        docker ps
 
-When you open the repository in your IDE, you should see a prompt to install the 'Anysphere'
-Dev Containers extension. Go ahead and install it.
-
-If you don't see the prompt, click View > Extensions, search for the extension there,
-then install it.
+    If you see an error message, your Docker WSL integration needs further troubleshooting, sorry...
 
 Launch a Dev Container
 ----------------------
