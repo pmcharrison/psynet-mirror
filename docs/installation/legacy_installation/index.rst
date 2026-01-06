@@ -1,10 +1,10 @@
-.. _legacy_installation:
+.. _alternative_installation:
 
-Legacy installation
-===================
+Alternative installation methods
+================================
 
 Most users should nowadays follow the installation instructions provided in :ref:`running_locally`.
-However, details of legacy installation methods are provided below for reference.
+However, details of alternative installation methods are provided below for reference.
 
 .. toctree::
     :maxdepth: 1

@@ -12,7 +12,9 @@ We are still trying to document the different setup steps that might be necessar
 
 .. note::
 
-    See the :ref:`legacy_installation` section for details on alternative installation methods
+    If you have troubles with the below, you may wish to refer to :ref:`alternative_installation`.
+    The virtual environment method described there is a more traditional way of installing PsyNet;
+    it includes a few more steps, but ultimately gives you a lot of control.
 
 Install Google Chrome
 ---------------------

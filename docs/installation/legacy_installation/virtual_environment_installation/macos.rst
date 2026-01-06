@@ -1,5 +1,5 @@
-Installing PsyNet in a virtual environment (macOS) (legacy)
-===========================================================
+Installing PsyNet in a virtual environment (macOS)
+==================================================
 
 One-time setup
 --------------
