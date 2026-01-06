@@ -583,7 +583,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             </p>
             <p>
                 If you are an experimenter, please
-                <a href="{url_for("dashboard.dashboard_index")}">click here</a>
+                <a href="{url_for("dashboard.dashboard_develop")}">click here</a>
                 to access the dashboard.
             </p>
         </div>
