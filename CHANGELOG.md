@@ -16,27 +16,31 @@
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
-- Disabled automatic backups (author: Frank Höger, reviewer: Peter Harrison)
+- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
 - Removed unused method ``generate_asset_key``.
-- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
-- Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`)
-- Added missing `config_options` parameter in `psynet deploy ssh` command
-- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
 - Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
 
 ## Documentation
-- Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. Modified `_get_py_entries_from_dir()` during translation extraction to skip hidden and other directories (venv, __pycache__, node_modules, site-packages, etc.) during os.walk() (author: Frank Höger, reviewer: Peter Harrison)
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`) (author: Frank Höger, reviewer: Peter Harrison)
-- Added missing `config_options` parameter in `psynet deploy ssh` command (author: Frank Höger, reviewer: Peter Harrison)
+
+# [13.0.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.1) Release - 2026-01-05
 
 ## Changed
-- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+- Disabled automatic backups (author: Frank Höger, reviewer: Peter Harrison)
+
+## Fixed
+- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`) (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
+- Added missing `config_options` parameter in `psynet deploy ssh` command (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed bug in Lucid (CINT) qualifications code (author: Elif Celen, reviewer: Frank Höger)
+
+## Documentation
+- Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
+
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
