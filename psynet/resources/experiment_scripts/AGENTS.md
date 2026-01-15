@@ -38,11 +38,13 @@ psynet debug local
 ```
 
 This will:
+
 - Start a Flask development server at http://127.0.0.1:5000
 - Open the experiment dashboard at http://127.0.0.1:5000/dashboard
 - Open a participant ad page at http://127.0.0.1:5000/ad?generate_tokens=true&recruiter=hotair
 
 Dashboard credentials:
+
 - Username: `admin`
 - Password: `helmholtz440`
 
@@ -63,6 +65,7 @@ psql -h localhost -U dallinger -d dallinger
 When connecting via the Shell tool, use `required_permissions: ["network"]` to allow database connections.
 
 Key tables:
+
 - `participant` - Experiment participants (id, worker_id, status, creation_time)
 - `response` - Participant responses/answers
 - `node` - Network nodes
@@ -87,6 +90,7 @@ SELECT id, answer FROM response ORDER BY id DESC LIMIT 10;
 ## Browser automation testing
 
 Cursor's browser extension can be used to interact with experiments programmatically:
+
 1. Navigate to the ad page URL
 2. Click "Begin Experiment"
 3. Progress through consent and experiment pages
