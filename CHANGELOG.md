@@ -22,6 +22,7 @@
 - Removed unused method ``generate_asset_key``.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
 - Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
+- Fixed bug where `check_ready_to_spawn` was being called when not available.
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)

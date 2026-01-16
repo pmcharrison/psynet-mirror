@@ -1012,7 +1012,7 @@ class ChainTrial(Trial):
 
     def fail(self, reason=None):
         super().fail(reason)
-        if isinstance(self.node, ChainNode):
+        if hasattr(self.node, "check_ready_to_spawn"):
             self.node.check_ready_to_spawn()
 
     @property
@@ -1029,7 +1029,8 @@ class ChainTrial(Trial):
 
     def on_finalized(self):
         super().on_finalized()
-        self.node.check_ready_to_spawn()
+        if hasattr(self.node, "check_ready_to_spawn"):
+            self.node.check_ready_to_spawn()
         if self.trial_maker and self.trial_maker.chain_type == "within":
             self.trial_maker.call_grow_network(network=self.network)
 
