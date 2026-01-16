@@ -23,7 +23,7 @@ Install dependencies as follows:
 - (For PsyNet): `uv pip install -e '.[dev,slack]'`
 - (For experiments): `uv pip install -r constraints.txt`
 
-Cursor: If running on MacOS, use `required_permissions: ["all"]` to disable sandboxing.
+Cursor: disable sandboxing when running PsyNet commands by setting `required_permissions: ["all"]`.
 
 ## Demos
 
