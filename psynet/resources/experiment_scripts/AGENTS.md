@@ -75,7 +75,7 @@ PsyNet uses PostgreSQL. Connect using:
 psql -h localhost -U dallinger -d dallinger
 ```
 
-When connecting via the Shell tool, use `required_permissions: ["network"]` to allow database connections.
+Cursor: this needs `required_permissions: ["network"]`.
 
 Key tables:
 
