@@ -795,6 +795,10 @@ class ChainNode(TrialNode):
         else:
             return self.n_completed_and_processed_trials >= self.target_n_trials
 
+    def update_status(self):
+        super().update_status()
+        self.check_ready_to_spawn()
+
     def check_ready_to_spawn(self):
         self.ready_to_spawn = self._ready_to_spawn()
 
@@ -1012,8 +1016,7 @@ class ChainTrial(Trial):
 
     def fail(self, reason=None):
         super().fail(reason)
-        if hasattr(self.node, "check_ready_to_spawn"):
-            self.node.check_ready_to_spawn()
+        self.node.update_status()
 
     @property
     def failure_cascade(self):
@@ -1029,8 +1032,7 @@ class ChainTrial(Trial):
 
     def on_finalized(self):
         super().on_finalized()
-        if hasattr(self.node, "check_ready_to_spawn"):
-            self.node.check_ready_to_spawn()
+        self.node.update_status()
         if self.trial_maker and self.trial_maker.chain_type == "within":
             self.trial_maker.call_grow_network(network=self.network)
 

@@ -2895,6 +2895,17 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node, AssetParentMixin):
     def failed_trials(self) -> List[Trial]:
         return [t for t in self.all_trials if t.failed]
 
+    def update_status(self):
+        """
+        Hook method called when the node's status may need updating.
+
+        This method is called when trials associated with the node are finalized
+        or fail. Subclasses can override this to update derived status attributes.
+        For example, ``ChainNode`` uses this to check whether the node is ready
+        to spawn a child node.
+        """
+        pass
+
     @property
     def trials(self):
         raise RuntimeError(
