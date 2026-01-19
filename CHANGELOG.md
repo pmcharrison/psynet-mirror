@@ -27,6 +27,7 @@
   hashes are available.
 - Improve string-matching robustness in `get_requirement` (previously substrings would match,
   e.g. 'net' would retrieve the 'psynet' package).
+. Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
