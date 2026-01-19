@@ -29,6 +29,9 @@
   e.g. 'net' would retrieve the 'psynet' package).
 . Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
 
+## Updated
+- Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
+
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 
