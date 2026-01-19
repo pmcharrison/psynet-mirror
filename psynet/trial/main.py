@@ -736,6 +736,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
+        if self.finalized:
+            return
         if self.failed:
             logger.info("Cannot mark as finalized because the trial is failed.")
         elif self.asset_deposit_pending:

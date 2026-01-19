@@ -8,6 +8,7 @@ from markupsafe import Markup
 from scipy import stats
 
 import psynet.experiment
+from psynet.bot import Bot
 from psynet.consent import MainConsent
 from psynet.graphics import Circle, Frame, GraphicPrompt
 from psynet.modular_page import ModularPage
@@ -441,4 +442,8 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("You finished the experiment!", time_estimate=0),
     )
 
-    test_n_bots = 3
+    test_time_factor = 0.1  # allow grow_network to keep up with the bots
+    test_n_bots = 5
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        assert len(bot.alive_trials) == 9

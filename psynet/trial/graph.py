@@ -3,8 +3,11 @@
 from typing import List, Optional, Type
 
 from dallinger import db
+from sqlalchemy import Column
+from sqlalchemy.orm import defer
 
-from ..field import claim_field
+from ..field import Integer, PythonList, PythonObject
+from ..process import WorkerAsyncProcess
 from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 from .main import with_trial_maker_namespace
 
@@ -20,8 +23,11 @@ class GraphChainNetwork(ChainNetwork):
     vertex_id
         The id of the vertex that the network is representing within the graph.
 
-    dependent_vertex_ids
+    incoming_vertex_ids
         A list of the vertex ids on which the current node depends (incoming edges).
+
+    outgoing_vertex_ids
+        A list of the vertex ids that depend on the current node (outgoing edges).
 
     source_seed
         Source seed to use when initializing the graph in the trialmaker.
@@ -30,9 +36,10 @@ class GraphChainNetwork(ChainNetwork):
 
     __extra_vars__ = ChainNetwork.__extra_vars__.copy()
 
-    vertex_id = claim_field("vertex_id", __extra_vars__, int)
-    dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
-    source_seed = claim_field("source_seed", __extra_vars__)
+    vertex_id = Column(Integer)
+    incoming_vertex_ids = Column(PythonList)
+    outgoing_vertex_ids = Column(PythonList)
+    source_seed = Column(PythonObject)
 
     def __init__(
         self,
@@ -46,7 +53,8 @@ class GraphChainNetwork(ChainNetwork):
         id_within_participant: Optional[int] = None,
     ):
         self.vertex_id = start_node.vertex_id
-        self.dependent_vertex_ids = start_node.dependent_vertex_ids
+        self.incoming_vertex_ids = list(start_node.incoming_vertex_ids)
+        self.outgoing_vertex_ids = list(start_node.outgoing_vertex_ids)
         self.source_seed = start_node.seed
 
         super().__init__(
@@ -90,6 +98,35 @@ class GraphChainTrial(ChainTrial):
         """
         return self.node.definition
 
+    def on_finalized(self):
+        super().on_finalized()
+        # Use a WorkerAsyncProcess to ensure that the checks
+        # occur in the next database transaction
+        WorkerAsyncProcess(self.check_outgoing_nodes_ready_to_spawn)
+
+    def check_outgoing_nodes_ready_to_spawn(self):
+        # In ordinary chain experiments, we only need to check the ready_to_spawn status
+        # of the node that generated the trial.
+        # In graph experiments, we need to check the ready_to_spawn status of all nodes
+        # at the same degree, because they might be waiting for the present node to be ready
+        # before moving forward.
+
+        nodes = (
+            db.session.query(GraphChainNode)
+            .filter(
+                GraphChainNode.trial_maker_id == self.trial_maker_id,
+                GraphChainNode.degree == self.degree,
+                GraphChainNode.vertex_id.in_(self.node.outgoing_vertex_ids),
+            )
+            .join(GraphChainNetwork, GraphChainNode.network_id == GraphChainNetwork.id)
+            .filter(GraphChainNode.id == GraphChainNetwork.head_id)
+            .options(defer(GraphChainNode.definition))
+            .all()
+        )
+
+        for node in nodes:
+            node.check_ready_to_spawn()
+
 
 class GraphChainNode(ChainNode):
     """
@@ -101,8 +138,12 @@ class GraphChainNode(ChainNode):
     vertex_id
         The id of the vertex that the network is representing within the graph.
 
-    dependent_vertex_ids
+    incoming_vertex_ids
         A list of the vertex ids on which the current node depends (incoming edges).
+
+    outgoing_vertex_ids
+        A list of the vertex ids that depend on the current node (outgoing edges).
+
     """
 
     __extra_vars__ = ChainNode.__extra_vars__.copy()
@@ -115,13 +156,15 @@ class GraphChainNode(ChainNode):
         experiment,
         propagate_failure: bool,
         vertex_id: int,
-        dependent_vertex_ids: List[int],
+        incoming_vertex_ids: List[int],
+        outgoing_vertex_ids: List[int],
         participant=None,
         participant_group=None,
     ):
         # pylint: disable=unused-argument
         self.vertex_id = vertex_id
-        self.dependent_vertex_ids = dependent_vertex_ids
+        self.incoming_vertex_ids = incoming_vertex_ids
+        self.outgoing_vertex_ids = outgoing_vertex_ids
         super().__init__(
             seed=seed,
             degree=degree,
@@ -202,44 +245,40 @@ class GraphChainNode(ChainNode):
             return trials[0].answer
         raise NotImplementedError
 
-    vertex_id = claim_field("vertex_id", __extra_vars__, int)
-    dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
+    vertex_id = Column(Integer)
+    incoming_vertex_ids = Column(PythonList)
+    outgoing_vertex_ids = Column(PythonList)
 
     def _ready_to_spawn(self):
-        parents = (
-            self.get_parents()
-        )  # These are parent nodes from the same layer, to be passed to the next layer
-        if len(parents) == len(
-            self.dependent_vertex_ids
-        ):  # Make sure all parents exist
-            all_parents_ready = all([p.reached_target_n_trials for p in parents])
+        incoming_nodes = (
+            self.get_incoming_nodes()
+        )  # These are incoming nodes from the same layer, to be passed to the next layer
+        if len(incoming_nodes) == len(
+            self.incoming_vertex_ids
+        ):  # Make sure all incoming nodes exist
+            all_incoming_ready = all(
+                [p.reached_target_n_trials for p in incoming_nodes]
+            )
             current_vertex_ready = (
                 self.reached_target_n_trials and len(self.pending_trials) == 0
             )
-            return all_parents_ready and current_vertex_ready
-        elif len(parents) < len(self.dependent_vertex_ids):
+            return all_incoming_ready and current_vertex_ready
+        elif len(incoming_nodes) < len(self.incoming_vertex_ids):
             return False
         else:
             return False
 
-    def get_parents(self):
-        trial_maker_id = self.network.trial_maker_id
-        degree = self.degree
-        nodes = GraphChainNode.query.all()
-        current_layer = [
-            n
-            for n in nodes
-            if n.network.trial_maker_id == trial_maker_id
-            and n.degree == degree
-            and not n.failed
-        ]
-        parents = [
-            n
-            for n in current_layer
-            if n.vertex_id in self.dependent_vertex_ids
-            and ((n.network.head == n) or (n.child))  # remove duplicate racing heads
-        ]
-        return parents
+    def get_incoming_nodes(self):
+        return (
+            db.session.query(GraphChainNode)
+            .filter(
+                GraphChainNode.trial_maker_id == self.network.trial_maker_id,
+                GraphChainNode.degree == self.degree,
+                ~GraphChainNode.failed,
+                GraphChainNode.vertex_id.in_(self.incoming_vertex_ids),
+            )
+            .all()
+        )
 
 
 class GraphChainTrialMaker(ChainTrialMaker):
@@ -337,7 +376,10 @@ class GraphChainTrialMaker(ChainTrialMaker):
                 for seed in source_seeds
                 if seed["vertex_id"] == vertex_id
             ][0]
-            dependent_vertex_ids = self.get_dependent_vertex_ids(
+            incoming_vertex_ids = self.get_incoming_vertex_ids(
+                vertex_id, network_structure
+            )
+            outgoing_vertex_ids = self.get_outgoing_vertex_ids(
                 vertex_id, network_structure
             )
             start_node = self.node_class(
@@ -347,7 +389,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
                 experiment=experiment,
                 propagate_failure=self.propagate_failure,
                 vertex_id=vertex_id,
-                dependent_vertex_ids=dependent_vertex_ids,
+                incoming_vertex_ids=incoming_vertex_ids,
+                outgoing_vertex_ids=outgoing_vertex_ids,
                 participant=None,
             )
             self.create_graph_network(experiment, start_node)
@@ -373,10 +416,15 @@ class GraphChainTrialMaker(ChainTrialMaker):
         db.session.commit()
         return network
 
-    def get_dependent_vertex_ids(self, target, network_structure):
+    def get_incoming_vertex_ids(self, target, network_structure):
         edges = network_structure["edges"]
-        dependent_vertex_ids = [e["origin"] for e in edges if e["target"] == target]
-        return dependent_vertex_ids
+        incoming_vertex_ids = [e["origin"] for e in edges if e["target"] == target]
+        return incoming_vertex_ids
+
+    def get_outgoing_vertex_ids(self, source, network_structure):
+        edges = network_structure["edges"]
+        outgoing_vertex_ids = [e["target"] for e in edges if e["origin"] == source]
+        return outgoing_vertex_ids
 
     def grow_network(self, network, experiment):
         # We set participant = None because of Dallinger's constraint of not allowing participants
@@ -392,7 +440,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
                 experiment,
                 self.propagate_failure,
                 network.vertex_id,
-                network.dependent_vertex_ids,
+                network.incoming_vertex_ids,
+                network.outgoing_vertex_ids,
                 participant,
             )
             db.session.add(node)
@@ -405,9 +454,9 @@ class GraphChainTrialMaker(ChainTrialMaker):
 
     def create_seed_bundle(self, head, experiment, participant):
         head_seed = head.create_seed(experiment, participant)
-        parents = head.get_parents()
-        while len(parents) < len(head.dependent_vertex_ids):
-            parents = head.get_parents()
+        incoming_nodes = head.get_incoming_nodes()
+        while len(incoming_nodes) < len(head.incoming_vertex_ids):
+            incoming_nodes = head.get_incoming_nodes()
         bundle = [
             {
                 "vertex_id": head.network.vertex_id,
@@ -422,7 +471,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
                 ),  # might require some thought if participant becomes relevant
                 "is_center": False,
             }
-            for p in parents
+            for p in incoming_nodes
         ]
         return bundle
 
@@ -440,11 +489,11 @@ class GraphChainTrialMaker(ChainTrialMaker):
         bundles = []
         for i in range(len(centers)):
             center = centers[i]
-            dependent_vertex_ids = self.get_dependent_vertex_ids(
+            incoming_vertex_ids = self.get_incoming_vertex_ids(
                 center["vertex_id"], network_structure
             )
             bundle = [center]
-            for j in dependent_vertex_ids:
+            for j in incoming_vertex_ids:
                 content = [c["content"] for c in centers if c["vertex_id"] == j]
                 bundle = bundle + [
                     {"vertex_id": j, "content": content[0], "is_center": False}
