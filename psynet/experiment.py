@@ -3721,10 +3721,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def grow_network(cls, network_id):
         exp = get_experiment()
-        from .trial.main import TrialNetwork, TrialNode
+        from .trial.main import TrialNetwork
 
         network = (
-            TrialNetwork.query.with_for_update(of=[TrialNetwork, TrialNode])
+            TrialNetwork.query.with_for_update(of=[TrialNetwork])
             .populate_existing()
             .get(network_id)
         )

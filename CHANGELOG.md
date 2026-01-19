@@ -47,9 +47,17 @@
 - Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 - Added missing `config_options` parameter in `psynet deploy ssh` command (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed bug in Lucid (CINT) qualifications code (author: Elif Celen, reviewer: Frank Höger)
+- Fixed bug in `grow_network` route (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed bug where networks were not growing properly in graph experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Improved performance in graph-based experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed redundant `Trial.check_if_can_mark_as_finalized` logic (author: Lucas Gautheron, reviewer: Peter Harrison)
 
 ## Documentation
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
+
+## Changed
+- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+- Renamed `incoming_vertex_ids` to `dependent_vertex_ids` in graph networks
 
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
