@@ -812,10 +812,12 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         from psynet.trial.chain import ChainNode
 
         if isinstance(definition, ChainNode):
+            use_default_node = False
             node = definition
             cls.check_node_is_valid(node)
             definition = node.definition
         elif isinstance(definition, dict):
+            use_default_node = True
             node = None
         else:
             raise TypeError(f"Invalid definition type: {type(definition)}")
@@ -823,7 +825,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         def _register_trial(experiment, participant):
             nonlocal node
 
-            if not node:
+            if use_default_node:
                 node = cls.get_default_parent_node(participant, experiment)
 
             trial = cls(
