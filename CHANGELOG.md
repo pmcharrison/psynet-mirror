@@ -19,9 +19,13 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
-- Removed unused method ``generate_asset_key``.
+- Removed unused method `generate_asset_key`.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
 - Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
+- Make `get_requirement` use `pip freeze` rather than `metadata.version` to ensure that commit
+  hashes are available.
+- Improve string-matching robustness in `get_requirement` (previously substrings would match,
+  e.g. 'net' would retrieve the 'psynet' package).
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
