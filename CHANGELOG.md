@@ -28,6 +28,7 @@
 - Fixed redundant `Trial.check_if_can_mark_as_finalized` logic (author: Lucas Gautheron, reviewer: Peter Harrison)
 - Fixed bug where `check_ready_to_spawn` was being called when not available (author: Peter Harrison, reviewer: Frank Höger)
 - Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in `update_demos.py` where `post_update_psynet_requirement` failed to update the md5sum in constraints.txt due to a mismatched regex pattern (author: Frank Höger)
 
 ## Updated
 - Updated Dallinger to version 12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key  file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (author: Frank Höger, reviewer: Peter Harrison)
