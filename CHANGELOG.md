@@ -1,38 +1,37 @@
-# CHANGELOG
-
-# Unreleased
-
-## Breaking Changes
-- Updated Dallinger dependency from v11.5.x to v12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
+# [13.1.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc0) Release candidate - 2026-01-20
 
 ## Added
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
-  the main PsyNet documentation.
-- Added `AGENTS.md` to help Cursor know how to run experiments locally.
+  the main PsyNet documentation (author: Peter Harrison, reviewer: Frank Höger)
+- Added `AGENTS.md` to help Cursor know how to run experiments locally (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Changed
-- Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
-- Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
+- Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0 (author: Frank Höger, reviewer: Peter Harrison)
+- Updated bot `sign_up` method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.x.0 bot validation requirements (author: Lucas Gautheron, reviewer: Peter Harrison)
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+- Renamed `incoming_vertex_ids` to `dependent_vertex_ids` in graph networks (author: Lucas Gautheron, reviewer: Peter Harrison)
 
 ## Fixed
-- Removed unused method `generate_asset_key`.
+- Removed unused method `generate_asset_key` (author: Peter Harrison, reviewer: Frank Höger)
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
-- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
-- Make `get_requirement` use `pip freeze` rather than `metadata.version` to ensure that commit
-  hashes are available.
-- Improve string-matching robustness in `get_requirement` (previously substrings would match,
-  e.g. 'net' would retrieve the 'psynet' package).
-. Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
+- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror` (author: Frank Höger, reviewer: Peter Harrison)
+- Make `get_requirement` use `pip freeze` rather than `metadata.version` to ensure that commit hashes are available (author: Peter Harrison, reviewer: Frank Höger)
+- Improve string-matching robustness in `get_requirement` (previously substrings would match, e.g. 'net' would retrieve the 'psynet' package) (author: Peter Harrison, reviewer: Frank Höger)
+- Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in `grow_network` route (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed bug where networks were not growing properly in graph experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Improved performance in graph-based experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed redundant `Trial.check_if_can_mark_as_finalized` logic (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed bug where `check_ready_to_spawn` was being called when not available (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Updated
+- Updated Dallinger to version 12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key  file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (author: Frank Höger, reviewer: Peter Harrison)
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed bug where `check_ready_to_spawn` was being called when not available.
-- Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError.
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
@@ -48,18 +47,9 @@
 - Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 - Added missing `config_options` parameter in `psynet deploy ssh` command (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed bug in Lucid (CINT) qualifications code (author: Elif Celen, reviewer: Frank Höger)
-- Fixed bug in `grow_network` route (author: Lucas Gautheron, reviewer: Peter Harrison)
-- Fixed bug where networks were not growing properly in graph experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
-- Improved performance in graph-based experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
-- Fixed redundant `Trial.check_if_can_mark_as_finalized` logic (author: Lucas Gautheron, reviewer: Peter Harrison)
 
 ## Documentation
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
-
-## Changed
-- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
-- Renamed `incoming_vertex_ids` to `dependent_vertex_ids` in graph networks
-
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
