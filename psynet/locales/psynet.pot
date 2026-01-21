@@ -795,10 +795,6 @@ msgctxt "ad"
 msgid "Begin Experiment"
 msgstr ""
 
-#: psynet/templates/ad.html:76 psynet/templates/psynet_error.html:29
-msgid "Abort Experiment"
-msgstr ""
-
 #: psynet/templates/ad.html:79 psynet/templates/psynet_error.html:32
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""

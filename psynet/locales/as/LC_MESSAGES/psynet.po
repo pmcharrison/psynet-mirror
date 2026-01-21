@@ -975,11 +975,6 @@ msgstr "পৰীক্ষণ আৰম্ভ কৰক"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "পৰীক্ষণ বাতিল কৰক"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "ত্ৰুটিৰ ক্ষেত্ৰত ক্ষতিপূৰণৰ বাবে ওপৰৰ বুটামটোত ক্লিক কৰক।"
 

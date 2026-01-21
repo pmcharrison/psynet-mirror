@@ -971,11 +971,6 @@ msgstr "دەستپێکردنی تاقیکردنەوە"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "وەستاندنی تاقیکردنەوە"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "کرتە بکە لەسەر دوگمەی سەرەوە بۆ وەرگرتنی پارە لە ڕوودانی هەڵەیەک."
 

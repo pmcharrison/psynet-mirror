@@ -970,11 +970,6 @@ msgstr "प्रयोगारम्भः"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "प्रयोगं त्यजत"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "त्रुटेः सन्दर्भे प्रतिपूर्तये उपरि बटनं क्लिक् कुरुत।"
 

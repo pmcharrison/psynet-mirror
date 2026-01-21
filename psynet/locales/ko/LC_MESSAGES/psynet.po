@@ -927,11 +927,6 @@ msgstr "실험 시작"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "실험 중단"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "오류가 발생한 경우 보상을 받으려면 위의 버튼을 클릭하십시오."
 

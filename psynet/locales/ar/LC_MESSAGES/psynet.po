@@ -959,11 +959,6 @@ msgstr "بدء التجربة"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "إلغاء التجربة"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "انقر على الزر أعلاه للحصول على تعويض في حالة حدوث خطأ."
 
