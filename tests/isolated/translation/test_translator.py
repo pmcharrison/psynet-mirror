@@ -59,7 +59,7 @@ def test_translator_with_file_path():
         texts=[
             "Hello, welcome to my experiment!",
             "What is your name?",
-            "Hello, ■0■!",  # The variable {NAME} gets encoded as ■0■
+            "Hello, {NAME}!",  # ChatGptTranslator uses use_codebook=False, so variables are not encoded
             "What is your favorite pet?",
             "dog",
             "cat",
@@ -67,7 +67,7 @@ def test_translator_with_file_path():
             "hamster",
             "bird",
             "snake",
-            "Great, I like ■0■ too!",  # The variable {PET} gets encoded as ■0■
+            "Great, I like {PET} too!",  # ChatGptTranslator uses use_codebook=False, so variables are not encoded
         ],
         source_lang="en",
         target_lang="fr",
@@ -77,15 +77,15 @@ def test_translator_with_file_path():
     expected_translations = [
         "Bonjour, bienvenue dans mon expérience !",
         "Quel est votre nom ?",
-        "Bonjour, ■0■ !",
-        "Quel est votre animal préféré ?",
+        "Bonjour, {NAME} !",
+        "Quel est votre animal préféré?",
         "chien",
         "chat",
         "poisson",
         "hamster",
         "oiseau",
         "serpent",
-        "Super, j'aime ■0■ aussi !",
+        "Super, j'aime {PET} aussi!",
     ]
 
     for i, translation in enumerate(translations):
