@@ -81,7 +81,7 @@ for example:
 
 .. code:: bash
 
-    cat ~/Library/LaunchAgents/homebrew.mxcl.postgresql@14.plist
+    cat ~/Library/LaunchAgents/homebrew.mxcl.postgresql@16.plist
 
 Look for a line like this:
 
@@ -94,7 +94,7 @@ View the last few lines of that file in your terminal using ``tail``, for exampl
 
 .. code:: bash
 
-    tail /usr/local/var/log/postgresql@14.log
+    tail /usr/local/var/log/postgresql@16.log
 
 Have a look at the error message.
 One possible message is something like this:
@@ -102,7 +102,7 @@ One possible message is something like this:
 .. code:: bash
 
     2023-04-25 16:53:51.224 BST [28527] FATAL:  lock file "postmaster.pid" already exists
-    2023-04-25 16:53:51.224 BST [28527] HINT:  Is another postmaster (PID 716) running in data directory "/usr/local/var/postgresql@14"?
+    2023-04-25 16:53:51.224 BST [28527] HINT:  Is another postmaster (PID 716) running in data directory "/usr/local/var/postgresql@16"?
 
 If you see this error message, try restarting your computer and trying again.
 
@@ -116,10 +116,10 @@ It has proved possible in the past to fix this problem by running the following:
 
 .. code:: bash
 
-    brew reinstall postgresql@14
-    brew services restart postgresql@14
+    brew reinstall postgresql@16
+    brew services restart postgresql@16
 
-where ``postgresql@14`` should be replaced with the exact name for the Postgres service that you saw in ``brew services``.
+where ``postgresql@16`` should be replaced with the exact name for the Postgres service that you saw in ``brew services``.
 
 If that doesn't work, try searching Google for help. If you find another solution,
 please share your experience here.
@@ -153,28 +153,28 @@ Or if you had previously a versioned form of Postgres, for example Postgres 14:
 
 .. code-block:: bash
 
-   brew remove --force postgresql@14
+   brew remove --force postgresql@16
 
 Delete the Postgres folders:
 
 .. code-block:: bash
 
    rm -rf /usr/local/var/postgres/
-   rm -rf /usr/local/var/postgresql@14/
+   rm -rf /usr/local/var/postgresql@16/
 
 Or if you're on an Apple Silicon Mac:
 
 .. code-block:: bash
 
    rm -rf /opt/homebrew/var/postgres
-   rm -rf /opt/homebrew/var/postgresql@14
+   rm -rf /opt/homebrew/var/postgresql@16
 
 Finally you can reinstall Postgres:
 
 .. code-block:: bash
 
-   brew install postgresql@14
-   brew services start postgresql@14
+   brew install postgresql@16
+   brew services start postgresql@16
 
 Heroku Startup Error / CLI not responding
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
