@@ -861,13 +861,13 @@ msgstr "नीचे आपके वर्तमान में इकट्�
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "असाइनमेंट आईडी"
+msgstr "असाइनमेंट ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
-msgstr "HIT आईडी"
+msgstr "HIT ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -911,10 +911,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "आपके मुआवजे का विवरण नीचे दी गई जानकारी में देखें।"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "प्रयोग समाप्त करें"
+msgstr "प्रयोग रद्द करें"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -957,7 +958,7 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"निम्नलिखित URL लिंक पर क्लिक करके, आपको प्रयोग में ले जाया जाएगा, जिसमें "
+"निम्नलिखित URL लिंक पर क्लिक करके, आपको प्रयोग पर ले जाया जाएगा, जिसमें "
 "पूर्ण निर्देश और एक सूचित सहमति समझौता शामिल है।"
 
 #: psynet/templates/ad.html
@@ -3073,7 +3074,7 @@ msgid ""
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
 "आप <strong>MTurk विज्ञापन पृष्ठ</strong> पर <strong>प्रयोग समाप्त "
-"करें</strong> बटन का उपयोग करके प्रयोग समाप्त कर सकते हैं।"
+"करें</strong> बटन का उपयोग करके प्रयोग को समाप्त कर सकते हैं।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3103,7 +3104,7 @@ msgstr "त्रुटि प्रकार"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "वर्कर आईडी"
+msgstr "वर्कर ID"
 
 #: psynet/templates/start.html
 #, fuzzy

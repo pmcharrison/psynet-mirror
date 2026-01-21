@@ -866,7 +866,7 @@ msgstr ""
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Təyinat ID"
+msgstr "Tapşırıq ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -916,7 +916,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Kompensasiyanızın detalları üçün aşağıdakı məlumatlara baxın."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Təcrübəni dayandır"
@@ -925,7 +926,7 @@ msgstr "Təcrübəni dayandır"
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "İştirakçılara çağırış"
+msgstr "İştirakçılar üçün çağırış"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -962,8 +963,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Aşağıdakı URL keçidini basmaqla siz təcrübəyə yönləndiriləcəksiniz, tam "
-"təlimatlar və məlumatlı razılıq müqaviləsi daxil olmaqla."
+"Aşağıdakı URL linkinə klikləməklə, tam təlimatlar və məlumatlı razılıq "
+"müqaviləsi daxil olmaqla təcrübəyə yönləndiriləcəksiniz."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -975,7 +976,7 @@ msgstr "Xəbərdarlıq"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Davam etməzdən əvvəl pop-up bloklayıcılarını söndürün."
+msgstr "Davam etməzdən əvvəl pop-up bloklayıcılarını deaktiv edin."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -986,7 +987,7 @@ msgstr "Təcrübəyə Başla"
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "Səhv halında kompensasiya almaq üçün yuxarıdakı düyməni basın."
+msgstr "Səhv baş verərsə, kompensasiya almaq üçün yuxarıdakı düyməni basın."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3075,8 +3076,9 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Eksperimentdən <strong>Eksperimentdən imtina et</strong> düyməsi ilə "
-"<strong>MTurk elan səhifəsində</strong> imtina edə bilərsiniz."
+"Eksperimentdən <strong>Eksperimentdən imtina et</strong> düyməsini "
+"<strong>MTurk elan səhifəsində</strong> istifadə edərək imtina edə "
+"bilərsiniz."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3095,7 +3097,7 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Əgər belə deyilsə, xahiş edirik aşağıdakı məlumatları qeyd edərək bizimlə "
+"Əgər belə deyilsə, zəhmət olmasa aşağıdakı məlumatları qeyd edərək bizimlə "
 "%(EMAIL)s ünvanında əlaqə saxlayın:"
 
 #: psynet/templates/psynet_error.html

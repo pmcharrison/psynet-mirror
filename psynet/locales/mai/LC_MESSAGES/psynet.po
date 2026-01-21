@@ -900,22 +900,23 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "कृपया अपन मुआवजा क' विवरण लेल नीचाँ देल गेल जानकारी देखू।"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "प्रयोग रोकू"
+msgstr "प्रयोग रद्द करू"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "भागीदार सभक लेल आह्वान"
+msgstr "भागीदारक लेल आह्वान"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "भाग लेबाक लेल आवश्यकतासभ एहि प्रकारक छथि"
+msgstr "भाग लेबाक लेल आवश्यकतासभ एहि प्रकार सँ अछि"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -924,7 +925,7 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"कृपया काज शुरू करबाक लेल ऊपर अमेजन साइट पर \"Accept HIT\" बटन पर क्लिक करू।"
+"कृपया काज शुरू करबाक लेल ऊपर अमेजन साइट पर 'Accept HIT' बटन पर क्लिक करू।"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -936,7 +937,7 @@ msgstr "एहि HIT केँ स्वीकार करबाक लेल 
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "एहि प्रयोग मे रुचि देखाबैक लेल धन्यवाद।"
+msgstr "एहि प्रयोग मे रुचि देखेबाक लेल धन्यवाद।"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -945,8 +946,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"निम्न URL लिंक पर क्लिक कएलाक बाद, अहाँ केँ प्रयोग लेल लऽ जएत, जइमे पूरा "
-"निर्देश आ सूचित सहमति समझौता शामिल अछि।"
+"निम्न URL लिंक पर क्लिक क'ला सँ, अहाँ केँ प्रयोग मे ल' जायत, जेमा पूरा "
+"निर्देश आ एकटा सूचित सहमति समझौता शामिल अछि।"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -958,7 +959,7 @@ msgstr "चेतावनी"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "कृपया जारी रखबा सँ पहिने पॉप-अप ब्लॉकर केँ अक्षम करू।"
+msgstr "कृपया जारी रखबाक पहिने पॉप-अप ब्लॉकर केँ अक्षम करू।"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -969,7 +970,7 @@ msgstr "प्रयोग शुरू करू"
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "त्रुटि केर स्थिति मे मुआवजा देबाक लेल ऊपर बटन पर क्लिक करू।"
+msgstr "त्रुटि भेला पर मुआवजा लेल ऊपर बटन पर क्लिक करू।"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3039,8 +3040,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"अहाँ <strong>MTurk विज्ञापन पृष्ठ</strong> पर <strong>प्रयोग रद्द "
-"करब</strong> बटन क' उपयोग क' अनुभव रद्द क' सकैत छी।"
+"अहाँ <strong>MTurk विज्ञापन पृष्ठ</strong> पर <strong>प्रयोग समाप्त "
+"करू</strong> बटन के उपयोग क' प्रयोग समाप्त क' सकैत छी।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3049,9 +3050,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"एक बेर रद्द कएलाक बाद, मुआवजा प्राप्त करबाक लेल हमरा स' संपर्क करबाक "
-"आवश्यकता नहि अछि; ई किछ मिनट क' बाद MTurk मार्फत स्वचालित रूप स' अहाँ क' "
-"प्रदान कएल जाएत।"
+"एक बेर समाप्त भेला पर, मुआवजा प्राप्त करबाक लेल हमरा सँ संपर्क करबाक कोनो "
+"आवश्यकता नहि अछि; ई किछ मिनटक बाद MTurk मार्फत अपने केँ स्वचालित रूप सँ "
+"प्रदान क' देल जायत।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3059,8 +3060,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"यदि एहन नहि होइछ, त' कृपया निम्नलिखित जानकारी उद्धृत करैत हमरा सँ संपर्क "
-"करू: %(EMAIL)s"
+"यदि एहन नहि अछि, त' कृपया निम्नलिखित जानकारी उद्धृत करैत हमरा सँ %(EMAIL)s "
+"पर संपर्क करू:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

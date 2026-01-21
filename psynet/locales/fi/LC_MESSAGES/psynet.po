@@ -551,19 +551,19 @@ msgstr "Toista"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Sinun on valittava vähintään yksi vastaus!"
+msgstr "Sinun täytyy valita vähintään yksi vastaus!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "Sinun on valittava vastaus!"
+msgstr "Sinun täytyy valita vastaus!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Sinun on annettava numero!"
+msgstr "Sinun täytyy antaa numero!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -905,7 +905,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Katso alla olevat tiedot korvauksestasi."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Keskeytä koe"
@@ -929,8 +930,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Aloittaaksesi tehtävän, klikkaa \"Hyväksy HIT\" -painiketta Amazon-"
-"sivustolla yllä."
+"Ole hyvä ja klikkaa \"Hyväksy HIT\" -painiketta Amazon-sivustolla yllä "
+"aloittaaksesi tehtävän."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -964,7 +965,8 @@ msgstr "Varoitus"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Poista ponnahdusikkunoiden estäjät käytöstä ennen jatkamista."
+msgstr ""
+"Ole hyvä ja poista ponnahdusikkunoiden estäjät käytöstä ennen jatkamista."
 
 #: psynet/templates/ad.html
 #, fuzzy

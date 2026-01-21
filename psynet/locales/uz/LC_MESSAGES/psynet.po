@@ -923,7 +923,8 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Kompensatsiyangiz tafsilotlari uchun quyidagi ma'lumotlarni ko'rib chiqing."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Tajriba to'xtatish"
@@ -947,20 +948,20 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Vazifani boshlash uchun yuqoridagi Amazon saytida \"HIT-ni qabul qilish\" "
+"Vazifani boshlash uchun yuqoridagi Amazon saytida \"HITni qabul qilish\" "
 "tugmasini bosing."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "Ushbu HITni qabul qilganingiz uchun tashakkur."
+msgstr "Ushbu HITni qabul qilganingiz uchun rahmat."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "Ushbu tajribaga qiziqishingiz uchun tashakkur."
+msgstr "Ushbu tajribaga qiziqishingiz uchun rahmat."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -970,7 +971,7 @@ msgid ""
 "including complete instructions and an informed consent agreement."
 msgstr ""
 "Quyidagi URL havolasini bosish orqali siz tajribaga o'tasiz, to'liq "
-"ko'rsatmalar va xabardor rozilik bitimi bilan birga."
+"ko'rsatmalar va ma'lumotli rozilik kelishuvi bilan birga."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -993,7 +994,8 @@ msgstr "Tajriba boshlash"
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "Xato yuz berganda yuqoridagi tugmani bosib to'lov olishingiz mumkin."
+msgstr ""
+"Xatolik yuz berganda kompensatsiya olish uchun yuqoridagi tugmani bosing."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3107,8 +3109,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Siz tajribani <strong>MTurk e'lon sahifasida</strong> <strong>Tajriba "
-"to'xtatish</strong> tugmasidan foydalangan holda to'xtatishingiz mumkin."
+"Siz tajribani <strong>MTurk reklama sahifasida</strong> <strong>Tajriba "
+"to'xtatish</strong> tugmasidan foydalanib to'xtatishingiz mumkin."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3118,8 +3120,8 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "To'xtatilgandan so'ng, kompensatsiya olish uchun biz bilan bog'lanishingiz "
-"shart emas; bu sizga MTurk orqali bir necha daqiqadan so'ng avtomatik tarzda"
-" berilishi kerak."
+"shart emas; bu sizga bir necha daqiqadan so'ng MTurk orqali avtomatik "
+"ravishda berilishi kerak."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3127,8 +3129,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Agar bu holat bo'lmasa, iltimos, quyidagi ma'lumotlarni keltirgan holda biz "
-"bilan %(EMAIL)s orqali bog'laning:"
+"Agar bu holat bo'lmasa, iltimos, quyidagi ma'lumotlarni keltirib, biz bilan "
+"%(EMAIL)s orqali bog'laning:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

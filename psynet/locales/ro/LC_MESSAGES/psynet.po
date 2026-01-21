@@ -865,7 +865,7 @@ msgstr "Vedeți mai jos informații despre recompensa acumulată în prezent."
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "ID de atribuire"
+msgstr "ID sarcină"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -914,10 +914,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Vezi informațiile de mai jos pentru detalii despre compensația ta."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Întrerupe experimentul"
+msgstr "Anulați experimentul"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -960,8 +961,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Făcând clic pe următorul link URL, veți fi dus la experiment, inclusiv "
-"instrucțiuni complete și un acord de consimțământ informat."
+"Făcând clic pe următorul link URL, veți fi direcționat către experiment, "
+"care include instrucțiuni complete și un acord de consimțământ informat."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3126,7 +3127,7 @@ msgid ""
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
 "Este posibil să puteți întrerupe experimentul folosind butonul "
-"<strong>Întrerupe experimentul</strong> <strong>de pe pagina de anunț "
+"<strong>Întrerupe experiment</strong> <strong>de pe pagina de anunț "
 "MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
@@ -3146,7 +3147,7 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Dacă nu este cazul, vă rugăm să ne contactați la %(EMAIL)s menționând "
+"Dacă nu este cazul, vă rugăm să ne contactați la %(EMAIL)s citând "
 "următoarele informații:"
 
 #: psynet/templates/psynet_error.html

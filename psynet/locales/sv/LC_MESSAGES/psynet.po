@@ -915,7 +915,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Se informationen nedan för detaljer om din ersättning."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Avbryt experimentet"
@@ -961,8 +962,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Genom att klicka på följande URL-länk kommer du till experimentet, inklusive"
-" fullständiga instruktioner och ett informerat samtycke."
+"Genom att klicka på följande URL-länk kommer du att tas till experimentet, "
+"inklusive fullständiga instruktioner och ett informerat samtycke."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3099,8 +3100,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"När det har avbrutits behöver du inte kontakta oss för att få ersättningen; "
-"den bör tilldelas dig automatiskt via MTurk några minuter senare."
+"När det är avbrutet behöver du inte kontakta oss för att få ersättningen; "
+"den bör automatiskt tilldelas dig via MTurk några minuter senare."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3108,8 +3109,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Om detta inte är fallet, vänligen kontakta oss på %(EMAIL)s och ange "
-"följande information:"
+"Om så inte är fallet, vänligen kontakta oss på %(EMAIL)s och ange följande "
+"information:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

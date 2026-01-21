@@ -904,7 +904,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "توهان جي معاوضي جي تفصيل لاءِ هيٺ ڏنل معلومات ڏسو."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "تجربو منسوخ ڪريو"
@@ -913,13 +914,13 @@ msgstr "تجربو منسوخ ڪريو"
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "شريڪ ٿيڻ لاءِ سڏ"
+msgstr "شرڪت ڪندڙن لاءِ سڏ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "شريڪ ٿيڻ جا گهرجون هن ريت آهن"
+msgstr "شرڪت ڪرڻ جا گهرجون هن ريت آهن"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -928,13 +929,14 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"مهرباني ڪري مٿين Amazon سائيٽ تي \"Accept HIT\" بٽڻ تي ڪلڪ ڪري ڪم شروع ڪريو."
+"مهرباني ڪري مٿي ڏنل Amazon سائيٽ تي \"Accept HIT\" بٽڻ تي ڪلڪ ڪريو ته جيئن "
+"ڪم شروع ڪري سگهو."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "هي HIT قبول ڪرڻ لاءِ مهرباني."
+msgstr "هن HIT کي قبول ڪرڻ لاءِ مهرباني."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -949,8 +951,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"هيٺين URL لنڪ تي ڪلڪ ڪندي، توهان تجربي تائين پهچندا، جنهن ۾ مڪمل هدايتون ۽ "
-"هڪ ڄاڻايل رضامندي جو معاهدو شامل آهي."
+"هيٺ ڏنل URL لنڪ تي ڪلڪ ڪندي، توهان کي تجربي ڏانهن وٺي ويندي، جنهن ۾ مڪمل "
+"هدايتون ۽ هڪ ڄاڻايل رضامندي جو معاهدو شامل آهي."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -973,7 +975,8 @@ msgstr "تجربو شروع ڪريو"
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "مٿي ڏنل بٽڻ تي ڪلڪ ڪريو ته جيئن غلطي جي صورت ۾ معاوضو ملي سگهي."
+msgstr ""
+"مٿي ڏنل بٽڻ تي ڪلڪ ڪريو ته جيئن ڪنهن غلطي جي صورت ۾ معاوضو حاصل ڪري سگهو."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3040,8 +3043,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"توهان شايد تجربو ختم ڪرڻ لاءِ <strong>تجربو ختم ڪريو</strong> بٽڻ <strong>جي"
-" MTurk اشتهار صفحي تي</strong> استعمال ڪري سگهو ٿا."
+"توهان شايد تجربو ختم ڪرڻ لاءِ <strong>تجربو ختم ڪريو</strong> بٽڻ "
+"<strong>MTurk اشتهار صفحي تي</strong> استعمال ڪري سگهو ٿا."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3050,8 +3053,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"هڪ دفعو ختم ڪرڻ کان پوءِ، توهان کي معاوضو حاصل ڪرڻ لاءِ اسان سان رابطو ڪرڻ "
-"جي ضرورت ناهي؛ اهو توهان کي MTurk ذريعي ڪجهه منٽن کان پوءِ پاڻمرادو ڏنو "
+"هڪ دفعو ختم ٿيڻ کان پوءِ، معاوضو حاصل ڪرڻ لاءِ اسان سان رابطو ڪرڻ جي ضرورت "
+"ناهي؛ اهو توهان کي خودڪار طريقي سان MTurk ذريعي ڪجهه منٽن کان پوءِ ملي "
 "ويندو."
 
 #: psynet/templates/psynet_error.html
@@ -3060,8 +3063,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"جيڪڏهن ائين ناهي، مهرباني ڪري اسان سان %(EMAIL)s تي رابطو ڪريو ۽ هيٺين "
-"معلومات کي بيان ڪريو:"
+"جيڪڏهن ائين نه آهي، مهرباني ڪري اسان سان %(EMAIL)s تي رابطو ڪريو ۽ هيٺين "
+"معلومات ڏيو:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

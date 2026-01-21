@@ -914,10 +914,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Sien die inligting hieronder vir besonderhede van jou vergoeding."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Breek eksperiment af"
+msgstr "Staak eksperiment"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -960,8 +961,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Deur op die volgende URL-skakel te klik, word jy na die eksperiment geneem, "
-"insluitend volledige instruksies en 'n ingeligte toestemmingsvorm."
+"Deur op die volgende URL-skakel te klik, sal jy na die eksperiment geneem "
+"word, insluitend volledige instruksies en 'n ingeligte toestemmingsvorm."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -973,7 +974,7 @@ msgstr "Waarskuwing"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Skakel asseblief opspringblokkeerders uit voordat jy voortgaan."
+msgstr "Skakel asseblief opspringblokkeerders af voordat jy voortgaan."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3089,9 +3090,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Jy mag die eksperiment kan afbreek deur die <strong>Breek eksperiment "
-"af</strong> knoppie <strong>op die MTurk advertensieblad</strong> te "
-"gebruik."
+"U mag die eksperiment kan staak deur die <strong>Staak eksperiment</strong> "
+"knoppie <strong>op die MTurk advertensieblad</strong> te gebruik."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3100,9 +3100,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Sodra dit afgebreek is, hoef jy ons nie te kontak om die vergoeding te "
-"ontvang nie; dit behoort outomaties aan jou toegeken te word via MTurk 'n "
-"paar minute daarna."
+"Sodra dit gestaak is, hoef u ons nie te kontak om die vergoeding te ontvang "
+"nie; dit behoort outomaties aan u toegeken te word via MTurk 'n paar minute "
+"daarna."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3110,7 +3110,7 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Indien dit nie die geval is nie, kontak ons asseblief by %(EMAIL)s met die "
+"As dit nie die geval is nie, kontak ons asseblief by %(EMAIL)s met die "
 "volgende inligting:"
 
 #: psynet/templates/psynet_error.html

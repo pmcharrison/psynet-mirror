@@ -543,7 +543,7 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "بەکاربهێنە"
+msgstr "بەشە"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -852,13 +852,13 @@ msgstr "زانیاری خوارەوە سەبارەت بە تێچووی کۆکر�
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "ناسنامەی ئەرک"
+msgstr "IDی ئەرک"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
-msgstr "ناسنامەی HIT"
+msgstr "IDی HIT"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -902,22 +902,23 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "زانیارییەکان لە خوارەوە ببین بۆ وردەکاریەکانی پاداشتەکەت."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "تاقیکردنەوە وەستانی"
+msgstr "Ceribandina rawestandin"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "بانگهێشتی بۆ بەشداربووان"
+msgstr "Bang kirin bo beşdarî"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "پێویستییەکان بۆ بەشداریکردن بە شێوەی خوارەوەیە"
+msgstr "Pêdivîstiyên beşdarî di vê dema de yên jêrîn in"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -926,20 +927,20 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"تکایە کرتە بکە لەسەر دوگمەی \"وەرگرتنی HIT\" لەسەر ماڵپەڕی ئاماژەکەرەکان "
-"لەسەر تا ڕوونکردنەوەی ئیشەکە."
+"Ji kerema xwe li ser malpera Amazonê bişkoja \"Accept HIT\" bitikîne da ku "
+"karê dest pê bike."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "سوپاس بۆ وەرگرتنی ئەم HIT ـە."
+msgstr "Spas ji bo pejirandina vê HIT."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "سوپاس بۆ بەرزبوونی پەیوەندیدانی تاقیکردنەوەی ئەم."
+msgstr "Spas ji bo balindana we li vê ceribandine."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -948,31 +949,33 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"بە کرتەکردن لەسەر بەستەری URL ـی خوارەوە، بۆ تاقیکردنەوە دەبرێیت، کە هەموو "
-"ڕێنماییەکان و ڕەزامەندی ئاگاداری پەیوەندیدا بەرەوپێش دەبرێت."
+"Bi bitikîne girêdana URL-ya jêrîn, hûn ê were ceribandine, ku di nav de "
+"fermanên temamî û peymana razîbûna agahdarî hene."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Warning"
-msgstr "ئاگاداری"
+msgstr "Hişyarî"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "تکایە پەڕەگرتنەکان دادەبەستە بەرەوپیشچوون."
+msgstr "Ji kerema xwe berî berdewamkirinê blockerên pop-up-ê neçal bike."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "دەستپێکردنی تاقیکردنەوە"
+msgstr "Dest pê kirina ceribandinê"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "کرتە بکە لەسەر دوگمەی سەرەوە بۆ وەرگرتنی پارە لە ڕوودانی هەڵەیەک."
+msgstr ""
+"Ji bo ku di rewşa çewtî de xelata we were dayîn, li ser bişkoja jor de "
+"bitikîne."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3059,7 +3062,7 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"دەتوانیت تاقیکردنەوەکە فەوت بکەیت بەکارهێنانی دوگمەی <strong>فەوتکردنی "
+"دەتوانیت تاقیکردنەوەکە وەستانی بەکارهێنانی دوگمەی <strong>وەستاندنی "
 "تاقیکردنەوە</strong> <strong>لە لاپەڕەی ڕیکلامی MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
@@ -3069,8 +3072,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"کاتێک فەوتکرا، نیازی بە پەیوەندیکردن بە ئێمە نیە بۆ وەرگرتنی پارەدان؛ ئەمە "
-"خۆکارانە پێویستە بە ئێوە پێشکەش بکرێت لە ماوەی چەند خولەکێک بە ڕێگەی MTurk."
+"کاتێک وەستاندرابێت، پێویست نییە پەیوەندیمان پێوە بکەیت بۆ وەرگرتنی پارەدان؛ "
+"ئەمە دەبێت خۆکارانە بەرز بکرێت بۆ تۆ لە ڕێگەی MTurk چەند خولەکێک دوای ئەوە."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3078,8 +3081,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"ئەگەر ئەمە ڕاست نەبوو، تکایە پەیوەندی بکە بە ئێمە لە %(EMAIL)s و ئەم "
-"زانیارییانە تۆمار بکە:"
+"ئەگەر ئەمە ڕاست نەبوو، تکایە پەیوەندیمان پێوە بکە لە %(EMAIL)s بە بەربژاردنی"
+" زانیارییە کەیەکان:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3089,7 +3092,7 @@ msgstr "جۆری هەڵە"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "ناسنامەی کارگێڕ"
+msgstr "IDی کارگێڕ"
 
 #: psynet/templates/start.html
 #, fuzzy

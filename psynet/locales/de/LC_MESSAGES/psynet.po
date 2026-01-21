@@ -882,7 +882,7 @@ msgstr "Siehe unten Informationen zu Ihrer derzeit angesammelten Belohnung."
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Auftrags-ID"
+msgstr "Aufgaben-ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -933,7 +933,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Siehe die Informationen unten für Details zu Ihrer Vergütung."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Experiment abbrechen"
@@ -957,8 +958,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Bitte klicken Sie auf den \"Accept HIT\"-Button auf der obigen Amazon-Seite,"
-" um die Aufgabe zu beginnen."
+"Bitte klicken Sie auf die Schaltfläche \"HIT akzeptieren\" auf der obigen "
+"Amazon-Seite, um die Aufgabe zu beginnen."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -1004,8 +1005,8 @@ msgstr "Experiment beginnen"
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
-"Klicken Sie auf den obigen Button, um im Falle eines Fehlers entschädigt zu "
-"werden."
+"Klicken Sie auf die obige Schaltfläche, um im Falle eines Fehlers "
+"entschädigt zu werden."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3174,7 +3175,7 @@ msgid ""
 msgstr ""
 "Sobald abgebrochen, müssen Sie uns nicht kontaktieren, um die Vergütung zu "
 "erhalten; diese sollte Ihnen automatisch über MTurk einige Minuten später "
-"gewährt werden."
+"gutgeschrieben werden."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

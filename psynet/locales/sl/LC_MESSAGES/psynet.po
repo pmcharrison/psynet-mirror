@@ -905,10 +905,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Za podrobnosti o vašem nadomestilu si oglejte spodnje informacije."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Prekini poskus"
+msgstr "Prekini eksperiment"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -952,7 +953,7 @@ msgid ""
 "including complete instructions and an informed consent agreement."
 msgstr ""
 "S klikom na naslednjo povezavo URL boste preusmerjeni na eksperiment, ki "
-"vključuje popolna navodila in soglasje."
+"vključuje popolna navodila in soglasje za sodelovanje."
 
 #: psynet/templates/ad.html
 #, fuzzy

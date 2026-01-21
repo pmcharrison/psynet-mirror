@@ -548,7 +548,7 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "Αναπαραγωγή"
+msgstr "Παίξε"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -925,10 +925,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Δείτε τις παρακάτω πληροφορίες για λεπτομέρειες της αποζημίωσής σας."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Διακοπή πειράματος"
+msgstr "Ακύρωση πειράματος"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3166,7 +3167,8 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Μόλις ακυρωθεί, δεν χρειάζεται να επικοινωνήσετε μαζί μας για να λάβετε την "
-"αποζημίωση. Αυτή θα σας απονεμηθεί αυτόματα μέσω του MTurk λίγα λεπτά μετά."
+"αποζημίωση. Αυτή θα πρέπει να σας απονεμηθεί αυτόματα μέσω του MTurk λίγα "
+"λεπτά μετά."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3175,7 +3177,7 @@ msgid ""
 "following information:"
 msgstr ""
 "Αν αυτό δεν ισχύει, παρακαλούμε επικοινωνήστε μαζί μας στο %(EMAIL)s "
-"αναφέροντας τις παρακάτω πληροφορίες:"
+"αναφέροντας τις ακόλουθες πληροφορίες:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

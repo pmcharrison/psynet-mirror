@@ -905,7 +905,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Az alábbi információkban találja a kompenzáció részleteit."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Kísérlet megszakítása"
@@ -3079,8 +3080,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Lehetősége van megszakítani a kísérletet az <strong>Abort "
-"experiment</strong> gombbal <strong>az MTurk hirdetési oldalon</strong>."
+"Lehetősége van megszakítani a kísérletet az <strong>Kísérlet "
+"megszakítása</strong> gombbal <strong>az MTurk hirdetési oldalon</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3110,7 +3111,7 @@ msgstr "Hibatípus"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Munkavállalói azonosító"
+msgstr "Dolgozó azonosító"
 
 #: psynet/templates/start.html
 #, fuzzy

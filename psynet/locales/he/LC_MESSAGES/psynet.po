@@ -832,13 +832,13 @@ msgstr "ראה למטה מידע על התגמול שצברת עד כה."
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Assignment ID"
+msgstr "מזהה משימה"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
-msgstr "HIT ID"
+msgstr "מזהה HIT"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -880,10 +880,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "ראה את המידע למטה לפרטים על הפיצוי שלך."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "הפסק ניסוי"
+msgstr "בטל ניסוי"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -903,19 +904,19 @@ msgctxt "ad"
 msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
-msgstr "אנא לחצו על כפתור \"קבל HIT\" באתר אמזון למעלה כדי להתחיל במשימה."
+msgstr "אנא לחץ על כפתור \"קבל HIT\" באתר אמזון למעלה כדי להתחיל במשימה."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "תודה שקיבלתם את ה-HIT הזה."
+msgstr "תודה שקיבלת את ה-HIT הזה."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "תודה על התעניינותכם בניסוי זה."
+msgstr "תודה על התעניינותך בניסוי זה."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -924,8 +925,7 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"בלחיצה על קישור ה-URL הבא, תועברו לניסוי, כולל הוראות מלאות והסכם הסכמה "
-"מדעת."
+"בלחיצה על קישור ה-URL הבא, תועבר לניסוי, כולל הוראות מלאות והסכם הסכמה מדעת."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -937,7 +937,7 @@ msgstr "אזהרה"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "אנא השביתו חוסמי פופ-אפ לפני ההמשך."
+msgstr "אנא השבת חוסמי פופ-אפ לפני שתמשיך."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -948,7 +948,7 @@ msgstr "התחל ניסוי"
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "לחצו על הכפתור למעלה כדי לקבל פיצוי במקרה של שגיאה."
+msgstr "לחץ על הכפתור למעלה כדי לקבל פיצוי במקרה של שגיאה."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -2952,7 +2952,7 @@ msgstr "סוג השגיאה"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Worker ID"
+msgstr "מזהה עובד"
 
 #: psynet/templates/start.html
 #, fuzzy

@@ -545,25 +545,25 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "ចាក់"
+msgstr "លេង"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "អ្នកត្រូវតែជ្រើសយ៉ាងហោចណាស់មួយចម្លើយ!"
+msgstr "អ្នកត្រូវតែពិនិត្យយ៉ាងហោចណាស់មួយចម្លើយ!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "អ្នកត្រូវតែជ្រើសយកចម្លើយមួយ!"
+msgstr "អ្នកត្រូវតែជ្រើសរើសចម្លើយ!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "អ្នកត្រូវតែផ្តល់លេខមួយ!"
+msgstr "អ្នកត្រូវតែផ្តល់លេខ!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -861,7 +861,7 @@ msgstr "មើលព័ត៌មានខាងក្រោមអំពីរង
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "លេខសម្គាល់បេសកកម្ម"
+msgstr "លេខសម្គាល់កិច្ចការ"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -910,7 +910,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "សូមមើលព័ត៌មានខាងក្រោមសម្រាប់ព័ត៌មានលម្អិតអំពីការប្រាក់សំណងរបស់អ្នក។"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "បោះបង់ការសាកល្បង"
@@ -919,13 +920,13 @@ msgstr "បោះបង់ការសាកល្បង"
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "សេចក្តីអំពាវនាវសម្រាប់អ្នកចូលរួម"
+msgstr "ការអំពាវនាវសម្រាប់អ្នកចូលរួម"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "លក្ខណៈវិនិច្ឆ័យដើម្បីចូលរួមមានដូចតទៅ"
+msgstr "លក្ខខណ្ឌក្នុងការចូលរួមមានដូចខាងក្រោម"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -935,7 +936,7 @@ msgid ""
 " task."
 msgstr ""
 "សូមចុចប៊ូតុង \"Accept HIT\" នៅលើគេហទំព័រ Amazon "
-"ខាងលើដើម្បីចាប់ផ្ដើមភារកិច្ច។"
+"ខាងលើដើម្បីចាប់ផ្តើមភារកិច្ច។"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -947,7 +948,7 @@ msgstr "សូមអរគុណសម្រាប់ការទទួលយក
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "សូមអរគុណចំពោះចំណាប់អារម្មណ៍របស់អ្នកក្នុងការសាកល្បងនេះ។"
+msgstr "សូមអរគុណសម្រាប់ចំណាប់អារម្មណ៍របស់អ្នកក្នុងការសាកល្បងនេះ។"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -957,7 +958,7 @@ msgid ""
 "including complete instructions and an informed consent agreement."
 msgstr ""
 "ដោយចុចលើតំណ URL ខាងក្រោម អ្នកនឹងត្រូវបាននាំទៅកាន់ការសាកល្បង "
-"រួមទាំងការណែនាំពេញលេញ និងកិច្ចព្រមព្រៀងយល់ព្រម។"
+"រួមទាំងការណែនាំពេញលេញ និងកិច្ចព្រមព្រៀងយល់ព្រមដែលបានជូនដំណឹង។"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -969,18 +970,18 @@ msgstr "ការព្រមាន"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "សូមបិទកម្មវិធីរាំងខ្ទប់បង្អួច មុនពេលបន្ត។"
+msgstr "សូមបិទកម្មវិធីបិទបង្អួចបង្ហាញមុនពេលបន្ត។"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "ចាប់ផ្ដើមការសាកល្បង"
+msgstr "ចាប់ផ្តើមការសាកល្បង"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "ចុចលើប៊ូតុងខាងលើដើម្បីទទួលបានសំណងនៅក្នុងករណីមានកំហុស។"
+msgstr "សូមចុចប៊ូតុងខាងលើដើម្បីទទួលបានការប្រាក់បញ្ចុះតម្លៃក្នុងករណីមានកំហុស។"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3042,8 +3043,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"អ្នកអាចបោះបង់ការធ្វើតេស្តដោយប្រើប៊ូតុង <strong>បោះបង់ការធ្វើតេស្ត</strong> "
-"<strong>នៅលើទំព័រផ្សាយពាណិជ្ជកម្ម MTurk</strong>។"
+"អ្នកអាចបញ្ឈប់ការសាកល្បងដោយប្រើប៊ូតុង <strong>បញ្ឈប់ការសាកល្បង</strong> "
+"<strong>នៅលើទំព័រផ្សព្វផ្សាយ MTurk</strong>។"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3052,9 +3053,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"បន្ទាប់ពីបានបោះបង់ហើយ មិនចាំបាច់ទាក់ទងមកយើងដើម្បីទទួលប្រាក់សំណងទេ; "
-"នេះគួរតែត្រូវបានផ្ដល់ជូនលោកអ្នកដោយស្វ័យប្រវត្តិតាមរយៈ MTurk "
-"ប៉ុន្មាននាទីបន្ទាប់។"
+"បន្ទាប់ពីបញ្ឈប់ហើយ មិនចាំបាច់ទាក់ទងមកយើងដើម្បីទទួលបានការប្រាក់សំណងទេ; "
+"វាគួរតែត្រូវបានផ្តល់ជូនអ្នកដោយស្វ័យប្រវត្តិតាមរយៈ MTurk "
+"បន្ទាប់ពីប៉ុន្មាននាទី។"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3062,7 +3063,7 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"ប្រសិនបើមិនមែនជាករណីនេះ សូមទាក់ទងយើងតាមរយៈ %(EMAIL)s "
+"ប្រសិនបើមិនមែនជាករណីនេះ សូមទាក់ទងមកយើងតាមរយៈ %(EMAIL)s "
 "ដោយដកស្រង់ព័ត៌មានដូចខាងក្រោម:"
 
 #: psynet/templates/psynet_error.html

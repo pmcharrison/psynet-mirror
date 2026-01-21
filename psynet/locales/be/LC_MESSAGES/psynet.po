@@ -909,7 +909,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Глядзіце інфармацыю ніжэй для падрабязнасцяў вашай кампенсацыі."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Спыніць эксперымент"
@@ -955,8 +956,9 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Націснуўшы на наступную спасылку URL, вы перайдзеце да эксперыменту, "
-"уключаючы поўныя інструкцыі і пагадненне аб інфармаванай згодзе."
+"Націснуўшы на наступную спасылку URL, вы будзеце перанакіраваны на "
+"эксперымент, уключаючы поўныя інструкцыі і пагадненне аб інфармаванай "
+"згодзе."
 
 #: psynet/templates/ad.html
 #, fuzzy
