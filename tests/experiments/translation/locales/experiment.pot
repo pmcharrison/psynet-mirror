@@ -6,56 +6,48 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: experiment.py
+#: experiment.py:31
 msgid "Hello, welcome to my experiment!"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:36 experiment.py:43
 msgid "What is your name?"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:50
 #, python-brace-format
 msgid "Hello, {NAME}!"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:56
 msgid "What is your favorite pet?"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:60
 msgid "dog"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:61
 msgid "cat"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:62
 msgid "fish"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:63
 msgid "hamster"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:64
 msgid "bird"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:65
 msgid "snake"
 msgstr ""
 
-#: experiment.py
+#: experiment.py:75
 #, python-brace-format
 msgid "Great, I like {PET} too!"
-msgstr ""
-
-#: experiment.py
-msgid "Translate me please"
-msgstr ""
-
-#: experiment.py
-msgid "Translate me next"
 msgstr ""
