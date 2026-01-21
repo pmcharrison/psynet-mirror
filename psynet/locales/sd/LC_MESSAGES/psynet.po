@@ -972,11 +972,6 @@ msgstr "تجربو شروع ڪريو"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "تجربو منسوخ ڪريو"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "مٿي ڏنل بٽڻ تي ڪلڪ ڪريو ته جيئن غلطي جي صورت ۾ معاوضو ملي سگهي."
 

@@ -968,11 +968,6 @@ msgstr "પ્રયોગ શરૂ કરો"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "પ્રયોગ રદ કરો"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "ભૂલના કિસ્સામાં વળતર મેળવવા માટે ઉપરના બટન પર ક્લિક કરો."
 

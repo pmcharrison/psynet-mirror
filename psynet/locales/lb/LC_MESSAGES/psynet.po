@@ -992,11 +992,6 @@ msgstr "Experiment ufänken"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Experiment ofbriechen"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Klickt op de Knäppchen hei uewen fir am Fall vun engem Feeler kompenséiert "

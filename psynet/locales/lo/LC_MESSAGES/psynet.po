@@ -957,11 +957,6 @@ msgstr "ເລີ່ມຕົ້ນການທົດລອງ"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "ຍົກເລີກການທົດລອງ"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "ຄລິກປຸ່ມຂ້າງເທິງເພື່ອຮັບຄ່າຕອບແທນໃນກໍລະນີມີຂໍ້ຜິດພາດ."
 

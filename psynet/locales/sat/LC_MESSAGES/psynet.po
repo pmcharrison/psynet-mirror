@@ -960,11 +960,6 @@ msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱮᱦᱚᱵ ᱢᱮ"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "ᱮᱠᱥᱯᱮᱨᱤᱢᱮᱱᱴ ᱵᱚᱱᱫᱚ ᱢᱮ"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "ᱦᱤᱲᱤᱡ ᱦᱩᱭᱩᱜ ᱠᱷᱟᱱ ᱯᱷᱩᱨᱜᱟᱹᱞ ᱧᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ ᱨᱮ ᱢᱮᱱᱟᱜ ᱵᱩᱛᱟᱢ ᱨᱮ ᱞᱤᱱ ᱢᱮ ᱾"
 

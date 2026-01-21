@@ -981,11 +981,6 @@ msgstr "Hefja tilraun"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Hætta við tilraun"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Smelltu á hnappinn hér að ofan til að fá bætur ef villa kemur upp."
 

@@ -987,11 +987,6 @@ msgstr "လေ့လာမှုကို စတင်ပါ"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "လေ့လာမှုကို ရပ်တန့်ပါ"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "အမှားတစ်ခုရှိပါက အထက်ပါခလုတ်ကိုနှိပ်၍ လစာရရှိပါ။"
 

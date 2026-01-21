@@ -982,11 +982,6 @@ msgstr "ପରୀକ୍ଷା ଆରମ୍ଭ କରନ୍ତୁ"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "ପରୀକ୍ଷାକୁ ରଦ୍ଦ କରନ୍ତୁ"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "ତ୍ରୁଟି ଦେଖିଲେ ଉପରେ ଥିବା ବଟନକୁ କ୍ଲିକ୍ କରନ୍ତୁ ଓ ଅର୍ଥପୂର୍ଣ୍ଣ କରାଯାଇବ।"
 

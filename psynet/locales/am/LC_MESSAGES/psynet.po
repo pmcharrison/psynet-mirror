@@ -937,11 +937,6 @@ msgstr "ሙከራ ጀምር"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "የማቋረጥ ሙከራ"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "ስህተት ከተፈጠረ ለማካካስ ከላይ ያለውን አዝራር ጠቅ ያድርጉ።"
 

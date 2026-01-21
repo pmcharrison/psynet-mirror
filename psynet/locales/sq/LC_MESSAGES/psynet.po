@@ -987,11 +987,6 @@ msgstr "Fillo Eksperimentin"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Anulo Eksperimentin"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Kliko butonin më sipër për të marrë kompensim në rast të një gabimi."
 

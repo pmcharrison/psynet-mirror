@@ -992,11 +992,6 @@ msgstr "Qala Teko"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Emisa Teko"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Tobetsa konopo e kaholimo ho lefshoa haeba ho na le phoso."
 
