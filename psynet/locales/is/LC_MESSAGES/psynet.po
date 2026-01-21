@@ -861,13 +861,13 @@ msgstr "Sjáðu hér að neðan upplýsingar um umbun sem þú hefur safnað."
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Verkefna ID"
+msgstr "Verkefna auðkenni"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
-msgstr "HIT ID"
+msgstr "HIT auðkenni"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -911,7 +911,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Sjáðu upplýsingar hér að neðan um greiðsluna þína."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Hætta við tilraun"
@@ -920,7 +921,7 @@ msgstr "Hætta við tilraun"
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "Kall eftir þátttakendum"
+msgstr "Kallað er eftir þátttakendum"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -935,8 +936,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Vinsamlegast smelltu á „Samþykkja HIT“ hnappinn á Amazon síðunni hér að ofan"
-" til að hefja verkefnið."
+"Vinsamlegast smelltu á \"Samþykkja HIT\" hnappinn á Amazon síðunni hér að "
+"ofan til að hefja verkefnið."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -948,7 +949,7 @@ msgstr "Takk fyrir að samþykkja þetta HIT."
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "Takk fyrir áhuga þinn á þessu tilraun."
+msgstr "Takk fyrir áhugann á þessu tilraun."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -957,9 +958,9 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Með því að smella á eftirfarandi vefslóðartengil verður þú leidd/ur í "
-"tilraunina, þar á meðal fullkomnar leiðbeiningar og upplýst "
-"samþykkissamkomulag."
+"Með því að smella á eftirfarandi vefslóð verður þú færð/ur til "
+"tilraunarinnar, þar á meðal fullkomnar leiðbeiningar og upplýst "
+"samþykkisyfirlýsing."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3081,7 +3082,7 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Þú gætir mögulega hætt við tilraunina með því að nota <strong>Hætta við "
+"Þú gætir hætt við tilraunina með því að nota <strong>Hætta við "
 "tilraun</strong> hnappinn <strong>á MTurk auglýsingasíðunni</strong>."
 
 #: psynet/templates/psynet_error.html
@@ -3091,9 +3092,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Þegar hætt hefur verið við, þarftu ekki að hafa samband við okkur til að fá "
-"bætur; þetta ætti að vera úthlutað þér sjálfkrafa í gegnum MTurk eftir "
-"nokkrar mínútur."
+"Þegar búið er að hætta við, þarftu ekki að hafa samband við okkur til að fá "
+"bætur; þetta ætti að vera veitt þér sjálfkrafa í gegnum MTurk nokkrum "
+"mínútum síðar."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3101,8 +3102,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Ef þetta er ekki tilfellið, vinsamlegast hafðu samband við okkur á %(EMAIL)s"
-" og vitnaðu í eftirfarandi upplýsingar:"
+"Ef þetta er ekki raunin, vinsamlegast hafðu samband við okkur á %(EMAIL)s og"
+" gefðu eftirfarandi upplýsingar:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3112,7 +3113,7 @@ msgstr "Tegund villu"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Starfsmanna ID"
+msgstr "Vinnuaðila auðkenni"
 
 #: psynet/templates/start.html
 #, fuzzy

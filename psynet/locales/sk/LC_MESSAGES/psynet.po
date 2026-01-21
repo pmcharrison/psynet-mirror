@@ -904,10 +904,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Pozrite si informácie nižšie pre podrobnosti o vašej kompenzácii."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Prerušiť experiment"
+msgstr "Zrušiť experiment"
 
 #: psynet/templates/ad.html
 #, fuzzy

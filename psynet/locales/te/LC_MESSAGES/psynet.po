@@ -557,7 +557,7 @@ msgstr "మీరు కనీసం ఒక సమాధానాన్ని �
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "మీరు ఒక సమాధానాన్ని ఎంచుకోవాలి!"
+msgstr "మీరు సమాధానాన్ని ఎంచుకోవాలి!"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -902,10 +902,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "మీ పరిహారం వివరాలకు క్రింద ఉన్న సమాచారం చూడండి."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "పరీక్షను రద్దు చేయండి"
+msgstr "ప్రయోగాన్ని రద్దు చేయండి"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -917,7 +918,7 @@ msgstr "పాల్గొనదలచినవారికి పిలుప�
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "పాల్గొనడానికి అవసరమైనవివరాలు క్రింది విధంగా ఉన్నాయి"
+msgstr "పాల్గొనడానికి అవసరమైన అర్హతలు ఈ క్రింది విధంగా ఉన్నాయి"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -925,13 +926,13 @@ msgctxt "ad"
 msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
-msgstr "దయచేసి పై అమెజాన్ సైట్‌లో \"Accept HIT\" బటన్ నొక్కి పని ప్రారంభించండి."
+msgstr "దయచేసి పై అమెజాన్ సైట్‌లో \"Accept HIT\" బటన్‌ను క్లిక్ చేయండి."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "ఈ HIT ను స్వీకరించినందుకు ధన్యవాదాలు."
+msgstr "ఈ HIT‌ను అంగీకరించినందుకు ధన్యవాదాలు."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -946,8 +947,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"క్రింది URL లింక్‌పై క్లిక్ చేయడం ద్వారా, మీరు ప్రయోగానికి తీసుకురాబడతారు, "
-"ఇందులో పూర్తిస్థాయి సూచనలు మరియు ఒక సమాచారం కలిగిన ఒప్పందం ఉంటుంది."
+"క్రింది URL లింక్‌ను క్లిక్ చేయడం ద్వారా, మీరు ప్రయోగానికి తీసుకెళ్లబడతారు, "
+"ఇందులో పూర్తి సూచనలు మరియు ఒక అవగాహన ఒప్పందం ఉంటాయి."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -959,7 +960,7 @@ msgstr "హెచ్చరిక"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "కొనసాగడానికి ముందు పాప్-అప్ బ్లాకర్‌లను ఆపివేయండి."
+msgstr "కొనసాగించే ముందు దయచేసి పాప్-అప్ బ్లాకర్లను నిలిపివేయండి."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -970,7 +971,7 @@ msgstr "ప్రయోగాన్ని ప్రారంభించండ�
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "లోపం వస్తే పరిహారం పొందడానికి పై బటన్‌ను నొక్కండి."
+msgstr "లోపం వచ్చినప్పుడు పరిహారం పొందడానికి పై బటన్‌ను క్లిక్ చేయండి."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3058,7 +3059,7 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"మీరు <strong>MTurk ప్రకటన పేజీ</strong> లోని <strong>పరీక్షను రద్దు "
+"మీరు <strong>MTurk ప్రకటన పేజీ</strong>లో <strong>ప్రయోగాన్ని రద్దు "
 "చేయండి</strong> బటన్ ఉపయోగించి ప్రయోగాన్ని రద్దు చేయగలరు."
 
 #: psynet/templates/psynet_error.html
@@ -3068,8 +3069,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"రద్దు చేసిన తర్వాత, పరిహారం అందుకోవడానికి మమ్మల్ని సంప్రదించనవసరం లేదు; ఇది "
-"రద్దు చేసిన కొన్ని నిమిషాల తర్వాత MTurk ద్వారా మీకు ఆటోమేటిక్ గా "
+"రద్దు చేసిన తర్వాత, పరిహారం అందుకోవడానికి మమ్మల్ని సంప్రదించాల్సిన అవసరం "
+"లేదు; ఇది కొన్ని నిమిషాల తర్వాత MTurk ద్వారా స్వయంచాలకంగా మీకు "
 "అందించబడుతుంది."
 
 #: psynet/templates/psynet_error.html
@@ -3078,7 +3079,7 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"అలా కాకపోతే, దయచేసి క్రింది సమాచారం పేర్కొంటూ %(EMAIL)s వద్ద మమ్మల్ని "
+"ఇది అలా కాకపోతే, దయచేసి క్రింది సమాచారం పేర్కొంటూ %(EMAIL)s వద్ద మమ్మల్ని "
 "సంప్రదించండి:"
 
 #: psynet/templates/psynet_error.html

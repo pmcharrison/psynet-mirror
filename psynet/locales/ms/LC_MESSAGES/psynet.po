@@ -933,7 +933,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Lihat maklumat di bawah untuk butiran pampasan anda."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Batalkan eksperimen"
@@ -958,7 +959,7 @@ msgid ""
 " task."
 msgstr ""
 "Sila klik butang \"Terima HIT\" di laman Amazon di atas untuk memulakan "
-"tugas."
+"tugasan."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3158,7 +3159,7 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Jika ini tidak berlaku, sila hubungi kami di %(EMAIL)s dengan menyertakan "
+"Jika ini bukan kesnya, sila hubungi kami di %(EMAIL)s dengan menyebut "
 "maklumat berikut:"
 
 #: psynet/templates/psynet_error.html

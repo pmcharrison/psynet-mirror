@@ -555,19 +555,19 @@ msgstr "ପ୍ଲେ"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "ଆପଣକୁ କମ୍ ସେ କମ୍ ଗୋଟିଏ ଉତ୍ତର ଚିହ୍ନିତ କରିବାକୁ ପଡିବ!"
+msgstr "ଆପଣକୁ ଅନ୍ୟତମ ଉତ୍ତର ଯାଞ୍ଚ କରିବାକୁ ପଡିବ!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "ଆପଣକୁ ଗୋଟିଏ ଉତ୍ତର ଚୟନ କରିବାକୁ ପଡିବ!"
+msgstr "ଆପଣକୁ ଏକ ଉତ୍ତର ଚୟନ କରିବାକୁ ପଡିବ!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "ଆପଣକୁ ଗୋଟିଏ ସଂଖ୍ୟା ପ୍ରଦାନ କରିବାକୁ ପଡିବ!"
+msgstr "ଆପଣକୁ ଏକ ସଂଖ୍ୟା ପ୍ରଦାନ କରିବାକୁ ପଡିବ!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -864,7 +864,7 @@ msgstr ""
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Assignment ID"
+msgstr "ନିଯୁକ୍ତି ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -913,22 +913,23 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "ଆପଣଙ୍କ ପରିଶ୍ରମିକର ବିବରଣୀ ପାଇଁ ତଳେ ସୂଚନା ଦେଖନ୍ତୁ।"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "ପରୀକ୍ଷାକୁ ରଦ୍ଦ କରନ୍ତୁ"
+msgstr "ପରୀକ୍ଷାକୁ ବାତିଲ୍ କରନ୍ତୁ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "ଭାଗ ନେବାକୁ ଆହ୍ୱାନ"
+msgstr "ଅଂଶଗ୍ରହଣକାରୀଙ୍କ ପାଇଁ ଆହ୍ୱାନ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "ଭାଗ ନେବାର ଆବଶ୍ୟକତାଗୁଡ଼ିକ ନିମ୍ନଲିଖିତ ଭାବରେ ଅଛି"
+msgstr "ଅଂଶଗ୍ରହଣ ପାଇଁ ଆବଶ୍ୟକତାଗୁଡିକ ନିମ୍ନଲିଖିତ ଭାବେ ଅଛି"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -937,20 +938,20 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"ଦୟାକରି ଉପରେ ଥିବା ଆମାଜନ ସାଇଟରେ \"Accept HIT\" ବଟନକୁ କ୍ଲିକ୍ କରନ୍ତୁ ଓ କାମ ଆରମ୍ଭ"
-" କରନ୍ତୁ।"
+"ଦୟାକରି କାର୍ଯ୍ୟ ଆରମ୍ଭ କରିବା ପାଇଁ ଉପରେ ଥିବା ଆମାଜନ ସାଇଟରେ \"Accept HIT\" ବଟନକୁ "
+"କ୍ଲିକ୍ କରନ୍ତୁ।"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "ଏହି HIT କୁ ଗ୍ରହଣ କରିଥିବାରୁ ଧନ୍ୟବାଦ।"
+msgstr "ଏହି HIT ଗ୍ରହଣ କରିଥିବାରୁ ଧନ୍ୟବାଦ।"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "ଏହି ପରୀକ୍ଷାରେ ଆପଣଙ୍କ ଆଗ୍ରହ ପାଇଁ ଧନ୍ୟବାଦ।"
+msgstr "ଏହି ପରୀକ୍ଷାରେ ଆପଣଙ୍କର ଆଗ୍ରହ ପାଇଁ ଧନ୍ୟବାଦ।"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -959,20 +960,20 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"ତଳକୁ ଦିଆଯାଇଥିବା URL ଲିଙ୍କ କୁ କ୍ଲିକ୍ କଲେ, ଆପଣ ପରୀକ୍ଷାକୁ ନିଆଯିବେ, ଯେଉଁଥିରେ "
-"ସମ୍ପୂର୍ଣ୍ଣ ନିର୍ଦ୍ଦେଶାବଳୀ ଓ ସଜାଗ ସମ୍ମତି ସମ୍ମତି ଚୁକ୍ତି ରହିଛି।"
+"ନିମ୍ନଲିଖିତ URL ଲିଙ୍କକୁ କ୍ଲିକ୍ କରିବାରେ, ଆପଣ ପରୀକ୍ଷାକୁ ନେଇଯିବେ, ଯାହାରେ "
+"ସମ୍ପୂର୍ଣ୍ଣ ନିର୍ଦ୍ଦେଶନାମା ଏବଂ ଏକ ସଚେତନ ସମ୍ମତି ସମ୍ମତି ଚୁକ୍ତି ଅନ୍ତର୍ଭୁକ୍ତ ଅଛି।"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Warning"
-msgstr "ସତର୍କ"
+msgstr "ସତର୍କତା"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "ଅଗାଗୁଡ଼ିକୁ ଯିବାର ପୂର୍ବରୁ ଦୟାକରି ପପ୍-ଅପ୍ ବ୍ଲକର୍ ଅଚଳ କରନ୍ତୁ।"
+msgstr "ଦୟାକରି ଆଗକୁ ବଢିବା ପୂର୍ବରୁ ପପ୍-ଅପ୍ ବ୍ଲକରଗୁଡିକୁ ଅକ୍ଷମ କରନ୍ତୁ।"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -983,7 +984,7 @@ msgstr "ପରୀକ୍ଷା ଆରମ୍ଭ କରନ୍ତୁ"
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "ତ୍ରୁଟି ଦେଖିଲେ ଉପରେ ଥିବା ବଟନକୁ କ୍ଲିକ୍ କରନ୍ତୁ ଓ ଅର୍ଥପୂର୍ଣ୍ଣ କରାଯାଇବ।"
+msgstr "ତ୍ରୁଟି ହେଲେ ମୁଲ୍ୟପ୍ରଦାନ ପାଇଁ ଉପରେ ଥିବା ବଟନକୁ କ୍ଲିକ୍ କରନ୍ତୁ।"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3063,8 +3064,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"ଆପଣ <strong>Abort experiment</strong> ବଟନ <strong>MTurk ବିଜ୍ଞାପନ "
-"ପୃଷ୍ଠାରେ</strong> ବ୍ୟବହାର କରି ପରୀକ୍ଷା ପ୍ରତ୍ୟାବର୍ତ୍ତନ କରିପାରିବେ ।"
+"ଆପଣ <strong>MTurk ବିଜ୍ଞାପନ ପୃଷ୍ଠାରେ</strong> <strong>ପରୀକ୍ଷା ବିରତି</strong> "
+"ବଟନ ବ୍ୟବହାର କରି ପରୀକ୍ଷାକୁ ବିରତ କରିପାରନ୍ତି।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3073,8 +3074,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"ପ୍ରତ୍ୟାବର୍ତ୍ତନ କରିବା ପରେ, ଆମକୁ ସମ୍ପର୍କ କରିବାର ଆବଶ୍ୟକତା ନାହିଁ; କିଛି ସମୟ ପରେ "
-"MTurk ଦ୍ୱାରା ଏହା ସ୍ୱତଃସ୍ଵୂର୍ଣ୍ଣ କରାଯିବ ।"
+"ବିରତ କରିବା ପରେ, ଆମ ସହିତ ଯୋଗାଯୋଗ କରିବାର ଆବଶ୍ୟକତା ନାହିଁ; ଏହା କିଛି ମିନିଟ ପରେ "
+"MTurk ମାଧ୍ୟମରେ ସ୍ୱୟଂଚାଳିତ ଭାବେ ଆପଣଙ୍କୁ ପ୍ରଦାନ କରାଯିବ।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3082,8 +3083,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"ଯଦି ଏହା ଘଟିନାହିଁ, ତେବେ ନିମ୍ନଲିଖିତ ସୂଚନା ବିବରଣୀ ସହିତ ଆମକୁ %(EMAIL)s ଠିକଣାରେ "
-"ସମ୍ପର୍କ କରନ୍ତୁ:"
+"ଯଦି ଏହା ଘଟିନାହିଁ, ତେବେ ଦୟାକରି ନିମ୍ନଲିଖିତ ସୂଚନା ଦେଇ ଆମ ସହିତ %(EMAIL)s ଠାରେ "
+"ଯୋଗାଯୋଗ କରନ୍ତୁ:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3093,7 +3094,7 @@ msgstr "ତ୍ରୁଟି ପ୍ରକାର"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Worker ID"
+msgstr "କର୍ମଚାରୀ ID"
 
 #: psynet/templates/start.html
 #, fuzzy

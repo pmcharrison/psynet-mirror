@@ -868,7 +868,7 @@ msgstr ""
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Assignment ID"
+msgstr "ID tal-inkarigu"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -918,10 +918,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Ara l-informazzjoni hawn taħt għal dettalji tal-kumpens tiegħek."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Ħassar l-esperiment"
+msgstr "Iwaqqaf l-esperiment"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -942,8 +943,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Jekk jogħġbok ikklikkja l-buttuna \"Accept HIT\" fuq is-sit ta' Amazon hawn "
-"fuq biex tibda l-kompitu."
+"Jekk jogħġbok ikklikkja l-buttuna \"Aċċetta HIT\" fuq is-sit ta' Amazon hawn"
+" fuq biex tibda l-kompitu."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -955,7 +956,7 @@ msgstr "Grazzi talli aċċettajt dan il-HIT."
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "Grazzi għall-interess tiegħek f'dan l-esperiment."
+msgstr "Grazzi tal-interess tiegħek f'dan l-esperiment."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -964,8 +965,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Billi tikklikkja l-link URL li ġej, se tittieħed għall-esperiment, inklużi "
-"istruzzjonijiet kompluti u ftehim ta' kunsens informat."
+"Billi tikklikkja l-link tal-URL li ġej, se tittieħed għall-esperiment, "
+"inklużi istruzzjonijiet kompluti u ftehim ta' kunsens informat."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -977,13 +978,13 @@ msgstr "Twissija"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Jekk jogħġbok itfi l-blockers tal-pop-up qabel tkompli."
+msgstr "Jekk jogħġbok itfi l-blokki tal-pop-up qabel ma tkompli."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "Ibda Esperiment"
+msgstr "Ibda l-Eksperiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3119,8 +3120,9 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Tista' tkun tista' twaqqaf l-esperiment billi tuża l-buttuna <strong>Waqqaf "
-"l-esperiment</strong> <strong>fuq il-paġna tar-reklam tal-MTurk</strong>."
+"Jista' jkun li tista' twaqqaf l-esperiment billi tuża l-buttuna "
+"<strong>Waqqaf l-esperiment</strong> <strong>fuq il-paġna tar-reklam "
+"MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3129,8 +3131,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Ladarba twaqqaf, m'hemmx bżonn li tikkuntattjana biex tirċievi l-kumpens; "
-"dan għandu jingħatalek awtomatikament permezz ta' MTurk ftit minuti wara."
+"Ladarba titwaqqaf, m'hemmx bżonn li tikkuntattjana biex tirċievi l-kumpens; "
+"dan għandu jingħata lilek awtomatikament permezz ta' MTurk ftit minuti wara."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3138,8 +3140,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Jekk dan mhux il-każ, jekk jogħġbok ikkuntattjana fuq %(EMAIL)s billi ssemmi"
-" l-informazzjoni li ġejja:"
+"Jekk dan mhux il-każ, jekk jogħġbok ikkuntattjana fuq %(EMAIL)s u semmi "
+"l-informazzjoni li ġejja:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3149,7 +3151,7 @@ msgstr "Tip ta' żball"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Worker ID"
+msgstr "ID tal-ħaddiem"
 
 #: psynet/templates/start.html
 #, fuzzy

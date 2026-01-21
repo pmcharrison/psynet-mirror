@@ -742,7 +742,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr ""
 
-#: psynet/templates/abort_possible.html:27
+#: psynet/templates/abort_possible.html:27 psynet/templates/ad.html:76
+#: psynet/templates/psynet_error.html:29
 msgid "Abort experiment"
 msgstr ""
 

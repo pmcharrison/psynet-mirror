@@ -918,10 +918,11 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Vedi le informazioni di seguito per i dettagli della tua compensazione."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Interrompi esperimento"
+msgstr "Interrompi l'esperimento"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -964,8 +965,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Facendo clic sul seguente link URL, verrai indirizzato all'esperimento, "
-"incluse istruzioni complete e un accordo di consenso informato."
+"Cliccando sul seguente link URL, verrai indirizzato all'esperimento, "
+"comprese le istruzioni complete e un accordo di consenso informato."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -977,7 +978,7 @@ msgstr "Avviso"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Si prega di disabilitare i blocchi popup prima di continuare."
+msgstr "Si prega di disabilitare i blocchi pop-up prima di continuare."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3145,8 +3146,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Se questo non è il caso, contattaci a %(EMAIL)s citando le seguenti "
-"informazioni:"
+"Se questo non è il caso, ti preghiamo di contattarci a %(EMAIL)s citando le "
+"seguenti informazioni:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

@@ -906,16 +906,17 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "آپ کے معاوضہ کی تفصیلات کے لیے نیچے دی گئی معلومات دیکھیں۔"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "تجربہ ختم کریں"
+msgstr "تجربہ منسوخ کریں"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "شرکاء کی ضرورت"
+msgstr "شرکاء کی کال"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -930,8 +931,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"براہ کرم کام شروع کرنے کے لئے اوپر دیئے گئے ایمیزون سائٹ پر \"قبول کریں "
-"HIT\" بٹن پر کلک کریں۔"
+"براہ کرم کام شروع کرنے کے لئے اوپر دی گئی ایمیزون سائٹ پر \"قبول کریں HIT\" "
+"بٹن پر کلک کریں۔"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -943,7 +944,7 @@ msgstr "اس HIT کو قبول کرنے کے لئے شکریہ۔"
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "اس تجربے میں دلچسپی لینے کے لئے شکریہ۔"
+msgstr "اس تجربے میں آپ کی دلچسپی کے لئے شکریہ۔"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3066,8 +3067,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"منسوخ کرنے کے بعد، معاوضہ حاصل کرنے کے لئے ہم سے رابطہ کرنے کی ضرورت نہیں "
-"ہے؛ یہ آپ کو MTurk کے ذریعے چند منٹ بعد خود بخود مل جانا چاہئے۔"
+"ایک بار منسوخ کرنے کے بعد، معاوضہ حاصل کرنے کے لئے ہم سے رابطہ کرنے کی ضرورت"
+" نہیں ہے؛ یہ آپ کو MTurk کے ذریعے چند منٹ بعد خود بخود مل جانا چاہئے۔"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

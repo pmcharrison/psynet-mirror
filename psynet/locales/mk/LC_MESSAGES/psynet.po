@@ -916,10 +916,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Погледнете ги информациите подолу за детали за вашата компензација."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Прекини го експериментот"
+msgstr "Прекини експеримент"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -940,8 +941,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Ве молиме кликнете на копчето \"Прифати HIT\" на сајтот на Amazon горе за да"
-" започнете со задачата."
+"Ве молиме кликнете на копчето \"Прифати HIT\" на сајтот на Amazon погоре за "
+"да ја започнете задачата."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -962,8 +963,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Со кликнување на следниот URL линк, ќе бидете одведени до експериментот, "
-"вклучувајќи целосни инструкции и согласност за информираност."
+"Со кликнување на следниот URL линк, ќе бидете пренасочени на експериментот, "
+"вклучувајќи целосни инструкции и договор за информирана согласност."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -976,14 +977,13 @@ msgstr "Предупредување"
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
 msgstr ""
-"Ве молиме оневозможете ги блокаторите за скокачки прозорци пред да "
-"продолжите."
+"Ве молиме оневозможете ги блокаторите за поп-ап прозорци пред да продолжите."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "Започни Експеримент"
+msgstr "Започни експеримент"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3113,8 +3113,9 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Може да го прекинете експериментот користејќи го копчето <strong>Прекини "
-"експеримент</strong> <strong>на страницата за оглас на MTurk</strong>."
+"Можеби ќе можете да го прекинете експериментот користејќи го копчето "
+"<strong>Прекини експеримент</strong> <strong>на страницата на MTurk "
+"огласот</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3124,7 +3125,7 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Откако ќе го прекинете, нема потреба да не контактирате за да ја добиете "
-"компензацијата; ова треба автоматски да ви биде доделено преку MTurk неколку"
+"компензацијата; таа треба автоматски да ви биде доделена преку MTurk неколку"
 " минути подоцна."
 
 #: psynet/templates/psynet_error.html
@@ -3133,8 +3134,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Ако тоа не е случај, ве молиме контактирајте не на %(EMAIL)s и наведете ја "
-"следната информација:"
+"Ако тоа не е случај, ве молиме контактирајте не на %(EMAIL)s цитирајќи ги "
+"следните информации:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

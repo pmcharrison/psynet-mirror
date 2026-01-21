@@ -924,10 +924,11 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Voir les informations ci-dessous pour les détails de votre compensation."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Abandonner l'expérience"
+msgstr "Annuler l'expérience"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -948,8 +949,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Veuillez cliquer sur le bouton \"Accepter HIT\" sur le site Amazon ci-dessus"
-" pour commencer la tâche."
+"Veuillez cliquer sur le bouton \"Accepter le HIT\" sur le site Amazon ci-"
+"dessus pour commencer la tâche."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3142,7 +3143,7 @@ msgstr "Image non trouvée"
 #, fuzzy
 msgctxt "error"
 msgid "Error!"
-msgstr "Erreur!"
+msgstr "Erreur !"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3151,8 +3152,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Vous pouvez peut-être annuler l'expérience en utilisant le bouton "
-"<strong>Annuler l'expérience</strong> <strong>sur la page de l'annonce "
+"Vous pouvez être en mesure d'abandonner l'expérience en utilisant le bouton "
+"<strong>Abandonner l'expérience</strong> <strong>sur la page de l'annonce "
 "MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
@@ -3162,9 +3163,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Une fois annulée, il n'est pas nécessaire de nous contacter pour recevoir la"
-" compensation; celle-ci devrait vous être attribuée automatiquement via "
-"MTurk quelques minutes après."
+"Une fois abandonné, il n'est pas nécessaire de nous contacter pour recevoir "
+"la compensation ; cela devrait vous être attribué automatiquement via MTurk "
+"quelques minutes après."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3173,7 +3174,7 @@ msgid ""
 "following information:"
 msgstr ""
 "Si ce n'est pas le cas, veuillez nous contacter à %(EMAIL)s en citant les "
-"informations suivantes :"
+"informations suivantes :"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

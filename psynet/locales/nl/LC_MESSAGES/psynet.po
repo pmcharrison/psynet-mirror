@@ -920,10 +920,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Zie de onderstaande informatie voor details over uw vergoeding."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Experiment afbreken"
+msgstr "Experimenteer afbreken"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -944,7 +945,7 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Klik alstublieft op de \"Accepteer HIT\" knop op de Amazon site hierboven om"
+"Klik alstublieft op de knop \"Accepteer HIT\" op de Amazon-site hierboven om"
 " de taak te beginnen."
 
 #: psynet/templates/ad.html
@@ -966,8 +967,9 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Door op de volgende URL-link te klikken, gaat u naar het experiment, "
-"inclusief volledige instructies en een geïnformeerde toestemmingsverklaring."
+"Door op de volgende URL-link te klikken, wordt u naar het experiment geleid,"
+" inclusief volledige instructies en een geïnformeerde "
+"toestemmingsverklaring."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -979,7 +981,7 @@ msgstr "Waarschuwing"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Schakel alstublieft pop-up blockers uit voordat u doorgaat."
+msgstr "Schakel alstublieft pop-upblokkeringen uit voordat u doorgaat."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -3148,7 +3150,7 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Zodra het is afgebroken, hoeft u ons niet te contacteren om de vergoeding te"
-" ontvangen; deze zou automatisch aan u moeten worden toegekend via MTurk "
+" ontvangen; deze zou automatisch via MTurk aan u moeten worden toegekend "
 "enkele minuten later."
 
 #: psynet/templates/psynet_error.html

@@ -543,25 +543,25 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "වජ්ජා"
+msgstr "පිටවන්න"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "ඔබට අවම වශයෙන් එක් පිළිතුරක් වත් තෝරා ගත යුතුය!"
+msgstr "ඔබට අවම වශයෙන් එක් පිළිතුරක් තෝරාගත යුතුය!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "ඔබට පිළිතුරක් තෝරා ගත යුතුය!"
+msgstr "ඔබට පිළිතුරක් තෝරාගත යුතුය!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "ඔබට සංඛ්‍යාවක් ලබා දිය යුතුය!"
+msgstr "ඔබට අංකයක් ලබා දිය යුතුය!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -848,7 +848,7 @@ msgstr "ඔබගේ වත්මන් ආරක්ෂා කළ ත්‍ය�
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "පැවරුම් අංකය"
+msgstr "Assignment ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -896,22 +896,23 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "ඔබේ වන්දි පිළිබඳ විස්තර සඳහා පහත තොරතුරු බලන්න."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "පරීක්ෂණය අත්හරින්න"
+msgstr "පර්යේෂණය අත්හිටවන්න"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "භාගීවන්නන් සඳහා කැඳවීම"
+msgstr "භාගීවන්නන් සඳහා ආරාධනා"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "භාගී වීම සඳහා අවශ්‍යතා මෙසේය"
+msgstr "භාගී වීම සඳහා අවශ්‍යතා පහත පරිදි වේ"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -920,20 +921,20 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"මෙම කාර්යය ආරම්භ කිරීමට ඉහත අමසන් වෙබ් අඩවියේ \"Accept HIT\" බොත්තම ක්ලික් "
+"කාර්යය ආරම්භ කිරීමට ඉහත ඇමසන් වෙබ් අඩවියේ \"Accept HIT\" බොත්තම ක්ලික් "
 "කරන්න."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "මෙම HIT එක පිළිගෙන ඇති ඔබට ස්තුතියි."
+msgstr "මෙම HIT පිළිගැනීම සඳහා ස්තූතියි."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "මෙම පර්යේෂණය සඳහා ඇති ඔබේ ආකර්ශණය සඳහා ස්තුතියි."
+msgstr "මෙම පර්යේෂණය සඳහා ඔබේ උනන්දුවට ස්තූතියි."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -942,20 +943,20 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"පහත URL සබැඳිය ක්ලික් කිරීමෙන්, ඔබට සම්පූර්ණ උපදෙස් සහ දැනුවත් එකඟතා ගිවිසුම"
-" ඇතුළත් පර්යේෂණය වෙත ගෙන යනු ලැබේ."
+"පහත URL සබැඳිය ක්ලික් කිරීමෙන්, ඔබට සම්පූර්ණ උපදෙස් සහ දැනුවත් එකඟතාව "
+"ගිවිසුම ඇතුළත් පර්යේෂණය වෙත ගෙන යනු ඇත."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Warning"
-msgstr "අවවාදයයි"
+msgstr "අවවාදය"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "දිගටම ඉදිරියට යාමට පෙර පෝප්-අප් අවහිරකාරක අක්‍රීය කරන්න."
+msgstr "ඉදිරියට යාමට පෙර පෝප්-අප් අවහිරකාරක අක්‍රීය කරන්න."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -966,7 +967,7 @@ msgstr "පර්යේෂණය ආරම්භ කරන්න"
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "දෝෂයක් සිදුවූ විට ආපසු ගෙවීම් ලබා ගැනීමට ඉහත බොත්තම ක්ලික් කරන්න."
+msgstr "දෝෂයක් සිදු වූ විට වන්දි ලබා ගැනීම සඳහා ඉහත බොත්තම ක්ලික් කරන්න."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3009,7 +3010,7 @@ msgstr "රූපය සොයාගත නොහැක"
 #, fuzzy
 msgctxt "error"
 msgid "Error!"
-msgstr "දෝෂයක්!"
+msgstr "දෝෂය!"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3018,8 +3019,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"ඔබට <strong>Abort experiment</strong> බොත්තම <strong>MTurk දැන්වීම් "
-"පිටුවේ</strong> භාවිතා කර අත්හිටවා ගත හැක."
+"ඔබට <strong>MTurk දැන්වීම් පිටුවේ</strong> <strong>ප්‍රයෝගය අවලංගු "
+"කරන්න</strong> බොත්තම භාවිතා කර ප්‍රයෝගය අවලංගු කළ හැක."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3028,8 +3029,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"එය අත්හිටවූ පසු, වන්දි ලබා ගැනීමට අප හා සම්බන්ධ වීමට අවශ්‍ය නැත; එය විනාඩි "
-"කිහිපයක් තුළ ස්වයංක්‍රීයව MTurk හරහා ඔබට පිරිනැමිය යුතුය."
+"අවලංගු කළ පසු, වන්දි ලබා ගැනීමට අප හා සම්බන්ධ වීමට අවශ්‍ය නොවේ; මෙය MTurk "
+"හරහා ස්වයංක්‍රීයව ඔබට විනාඩි කිහිපයකින් ලබා දිය යුතුය."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3037,8 +3038,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"එසේ නොමැති නම්, කරුණාකර පහත සඳහන් තොරතුරු සඳහන් කරමින් %(EMAIL)s හි අප හා "
-"සම්බන්ධ වන්න:"
+"මෙය එසේ නොවේ නම්, කරුණාකර පහත සඳහන් තොරතුරු සඳහන් කරමින් %(EMAIL)s වෙත අප හා"
+" සම්බන්ධ වන්න:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3048,7 +3049,7 @@ msgstr "දෝෂ වර්ගය"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "සේවක අංකය"
+msgstr "කම්කරු ID"
 
 #: psynet/templates/start.html
 #, fuzzy
