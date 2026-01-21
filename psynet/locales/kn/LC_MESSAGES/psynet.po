@@ -977,11 +977,6 @@ msgstr "ಪ್ರಯೋಗ ಪ್ರಾರಂಭಿಸಿ"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "ಪ್ರಯೋಗವನ್ನು ರದ್ದುಗೊಳಿಸಿ"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "ದೋಷ ಸಂಭವಿಸಿದರೆ ಪರಿಹಾರ ಪಡೆಯಲು ಮೇಲಿನ ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ."
 

@@ -972,11 +972,6 @@ msgstr "प्रयोग सुरू करात"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "प्रयोग गर्भपात करप"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "त्रुटी जाल्यार भरपाय मेळोवपा खातीर वयल्या बटणाचेर क्लिक करात."
 

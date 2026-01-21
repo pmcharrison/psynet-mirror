@@ -979,11 +979,6 @@ msgstr "Započni eksperiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Prekini eksperiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Kliknite na dugme iznad da biste bili kompenzovani u slučaju greške."
 

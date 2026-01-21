@@ -1004,11 +1004,6 @@ msgstr "Eksperiment chingsinbi"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Eksperiment khongdoklabi"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Nongsinduna amagumna thokpa khudol adu hourakpa matik mangalda touba "

@@ -969,11 +969,6 @@ msgstr "ప్రయోగాన్ని ప్రారంభించండ�
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "ప్రయోగాన్ని రద్దు చేయండి"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "లోపం వస్తే పరిహారం పొందడానికి పై బటన్‌ను నొక్కండి."
 

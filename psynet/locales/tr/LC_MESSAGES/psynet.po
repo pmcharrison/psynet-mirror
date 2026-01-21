@@ -975,11 +975,6 @@ msgstr "Deneye Başla"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Deneyi İptal Et"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Bir hata durumunda tazmin edilmek için yukarıdaki düğmeye tıklayın."
 

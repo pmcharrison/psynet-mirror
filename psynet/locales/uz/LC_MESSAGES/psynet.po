@@ -992,11 +992,6 @@ msgstr "Tajriba boshlash"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Tajriba to'xtatish"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Xato yuz berganda yuqoridagi tugmani bosib to'lov olishingiz mumkin."
 

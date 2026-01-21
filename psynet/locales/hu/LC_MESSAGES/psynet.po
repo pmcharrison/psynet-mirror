@@ -974,11 +974,6 @@ msgstr "Kísérlet megkezdése"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Kísérlet megszakítása"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr "Kattintson a fenti gombra, hogy kártérítést kapjon hiba esetén."
 

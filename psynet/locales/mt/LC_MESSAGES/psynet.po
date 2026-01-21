@@ -987,11 +987,6 @@ msgstr "Ibda Esperiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Abbanduna Esperiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Ikklikkja l-buttuna ta' hawn fuq biex tiġi kkumpensat f'każ ta' żball."

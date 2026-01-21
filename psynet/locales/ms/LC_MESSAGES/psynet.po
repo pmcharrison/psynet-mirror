@@ -1002,11 +1002,6 @@ msgstr "Mulakan Eksperimen"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Batalkan Eksperimen"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
 "Klik butang di atas untuk diberi pampasan sekiranya berlaku kesilapan."
