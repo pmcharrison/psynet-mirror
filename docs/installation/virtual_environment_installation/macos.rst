@@ -53,8 +53,8 @@ Install and setup PostgreSQL
 
 .. code-block:: bash
 
-   brew install postgresql@14
-   brew services start postgresql@14
+   brew install postgresql@16
+   brew services start postgresql@16
    createuser -P dallinger --createdb
 
 When prompted, enter the follwing password: *dallinger*
@@ -64,7 +64,7 @@ When prompted, enter the follwing password: *dallinger*
    createdb -O dallinger dallinger
    createdb -O dallinger dallinger-import
 
-   brew services restart postgresql@14
+   brew services restart postgresql@16
 
 Install libpq
 ~~~~~~~~~~~~~
