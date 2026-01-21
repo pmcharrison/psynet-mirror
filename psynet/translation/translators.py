@@ -59,7 +59,7 @@ class Translator:
                     )
                     if len(translated_texts) != len(texts):
                         raise InvalidTranslationError(
-                            "Number of translated texts does not match number of input texts"
+                            f"Number of translated texts for '{target_lang}' does not match number of input texts: {len(translated_texts)} != {len(texts)}."
                         )
                 except Exception as e:
                     if i == n_retries - 1:

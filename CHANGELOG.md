@@ -1,3 +1,17 @@
+# Unreleased
+
+## Fixed
+- Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
+- Included `tests/isolated/translation/` directory in CI test runs (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `CI` environment variable not being passed to Docker container in CI, causing `@local_only` tests to run incorrectly (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `@local_only` and `@ci_only` pytest decorators by changing condition from `os.environ.get("CI")` to `os.environ.get("CI") is not None` to ensure a boolean result (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `test_translator_with_file_path` to use `{NAME}` instead of `■0■` since `ChatGptTranslator` has `use_codebook=False` (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices) (author: Frank Höger, reviewer: Peter Harrison)
+- Standardized "Abort Experiment" to "Abort experiment" in templates for consistent capitalization and removed obsolete translation entries from PO files (author: Frank Höger, reviewer: Peter Harrison)
+
+## Updated
+- Updated translations (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.1.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc0) Release candidate - 2026-01-20
 
 ## Added
