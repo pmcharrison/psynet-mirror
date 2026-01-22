@@ -1,3 +1,16 @@
+"""
+Translation tests for PsyNet.
+
+To run translation tests locally:
+
+    pytest tests/isolated/translation/test_translations.py -v
+
+To check if translations are up to date (normally only runs on release branches):
+
+    CI_COMMIT_REF_NAME=release-test pytest tests/isolated/translation/test_translations.py::test_psynet_translations_up_to_date -v
+
+"""
+
 import os
 
 import pytest

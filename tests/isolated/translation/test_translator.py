@@ -1,3 +1,20 @@
+"""
+Translator tests for PsyNet.
+
+To run these tests locally (requires API credentials):
+
+    pytest tests/isolated/translation/test_translator.py -v
+
+These tests require either:
+- OpenAI API key (for ChatGptTranslator) - set `openai_api_key` in .dallingerconfig
+- Google Cloud Translate API key (for GoogleTranslator) - set `google_translate_json_path` in .dallingerconfig
+
+If only OpenAI credentials are available, run ChatGPT tests only:
+
+    pytest tests/isolated/translation/test_translator.py -k "ChatGpt" -v
+
+"""
+
 import os
 
 import pytest
