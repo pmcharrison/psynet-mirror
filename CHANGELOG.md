@@ -1,5 +1,8 @@
 # Unreleased
 
+## Added
+- Added `psynet locales` command to list supported translation locales (author: Frank Höger, reviewer: Peter Harrison)
+
 ## Fixed
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
 - Included `tests/isolated/translation/` directory in CI test runs (author: Frank Höger, reviewer: Peter Harrison)

@@ -3027,6 +3027,42 @@ class ListOfStrings(click.ParamType):
         return value.replace(",", " ").split()
 
 
+@psynet.command("locales")
+@click.option(
+    "--codes-only",
+    is_flag=True,
+    help="Output locale codes only, on a single line.",
+)
+def locales(codes_only):
+    """
+    List supported translation locales.
+
+    Example
+    -------
+
+    psynet locales
+        List all supported locales with their names.
+
+    psynet locales --codes-only
+        Output locale codes on a single line (useful for scripting).
+    """
+    from psynet.translation.languages import psynet_supported_locales
+
+    if codes_only:
+        click.echo(" ".join(sorted(psynet_supported_locales)))
+    else:
+        from psynet.utils import get_language_dict
+
+        language_dict = get_language_dict("en")
+        click.echo(bold("Supported locales:"))
+        click.echo()
+        for locale in sorted(psynet_supported_locales):
+            name = language_dict.get(locale, "Unknown")
+            click.echo(f"  {locale:6} {name}")
+        click.echo()
+        click.echo(f"Total: {len(psynet_supported_locales)} locales")
+
+
 @psynet.command("translate")
 @click.argument("locales", nargs=-1)
 @click.option(
