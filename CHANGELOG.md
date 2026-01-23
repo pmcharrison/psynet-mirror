@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
+
+## Fixed
+- Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.0.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.1) Release - 2026-01-05
 
 ## Changed
