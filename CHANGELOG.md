@@ -27,7 +27,8 @@
   hashes are available.
 - Improve string-matching robustness in `get_requirement` (previously substrings would match,
   e.g. 'net' would retrieve the 'psynet' package).
-. Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
+- Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in the propagation of the `--update` argument to the Dallinger CLI.
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
