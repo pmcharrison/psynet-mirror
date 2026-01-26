@@ -20,6 +20,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
 - Removed unused method `generate_asset_key`.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
 - Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
