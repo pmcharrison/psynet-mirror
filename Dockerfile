@@ -37,17 +37,3 @@ RUN uv pip install --no-cache --system -r constraints.txt
 # Install demos requirements
 COPY demos/requirements.txt demo-requirements.txt
 RUN uv pip install --no-cache --system -r demo-requirements.txt
-
-# COPY . .
-# RUN uv pip install --no-deps --system -e .
-
-# RUN mkdir /psynet-data
-# RUN chmod a+rwx -R /psynet-data
-
-# RUN mkdir /.cache
-# RUN chmod a+rwx -R /.cache
-
-# RUN mkdir /.local
-# RUN chmod a+rwx -R /.local
-
-# RUN mkdir -p ~/.ssh && echo "Host *\n    StrictHostKeyChecking no" >> ~/.ssh/config
