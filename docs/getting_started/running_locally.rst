@@ -141,7 +141,7 @@ Before proceeding to the next step, wait until the automatic configuration scrip
     .. code-block:: text
 
         failed to start containers: postgres
-        Unable to find image 'postgres:12' locally
+        Unable to find image 'postgres:16' locally
         12: Pulling from library/postgres
 
     This is not an error, it just means that the Postgres image needs to be downloaded.

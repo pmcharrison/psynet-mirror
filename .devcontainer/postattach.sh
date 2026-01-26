@@ -22,7 +22,7 @@ docker run -d --name postgres \
   -e POSTGRES_DB=dallinger \
   -v postgres:/var/lib/postgresql/data \
   -p 5432:5432 \
-  postgres:12
+  postgres:16
 fi
 
 echo "...complete."
