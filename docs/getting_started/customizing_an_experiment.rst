@@ -45,9 +45,7 @@ then restart it by running ``psynet debug local`` again.
 
     Have a look at `PsyNet's CHANGELOG <https://gitlab.com/PsyNetDev/PsyNet/-/blob/master/CHANGELOG.md?ref_type=heads>`_
     to see what has changed in PsyNet since the experiment was written.
-    If the experiment repository does not contain a ``.devcontainer`` directory,
-    you will need to copy one from a PsyNet demo, as well as the related ``Dockerfile``.
-    You'll then want to update the ``requirements.txt`` file to use the latest version of PsyNet
+    You'll want to update the ``requirements.txt`` file to use the latest version of PsyNet
     (you can see the latest released version in the top-left corner of the online documentation website),
     and then run ``psynet generate-constraints`` to update ``constraints.txt`` accordingly,
     and then run ``uv pip install -r constraints.txt`` to update your local environment.

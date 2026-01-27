@@ -12,12 +12,14 @@
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
   the main PsyNet documentation.
 - Added `AGENTS.md` to help Cursor know how to run experiments locally.
+- Added 'getting started' section to documentation.
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+- Deprecated Docker installation route in favor of the standard virtual environment method.
 
 ## Fixed
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.

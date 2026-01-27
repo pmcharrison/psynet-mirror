@@ -2369,7 +2369,7 @@ def update_scripts_():
         file.write(python_recommended_version)
         file.write("\n")
 
-    directories_to_copy = ["docker", ".devcontainer"]
+    directories_to_copy = ["docker"]
     for dir in directories_to_copy:
         click.echo(f"...updating {dir} directory.")
         if Path(dir).exists():

@@ -13,7 +13,6 @@ Before you start, you will likely need to create a ``.dallingerconfig`` file in 
     touch ~/.dallingerconfig
 
 This ``.dallingerconfig`` file provides global configuration options for PsyNet and Dallinger.
-It is auomatically shared with your Dev Containers.
 
 Setting up the server
 ---------------------
@@ -29,10 +28,6 @@ Use the tabs below to switch between the different ways of setting up a remote s
     The private key might be your personal private key (typically ``~/.ssh/id_rsa`` or ``~/.ssh/id_ed25519``)
     or alternatively it might be a PEM file that you received when setting up the server.
     If it's a PEM file, you should copy it to the ``~/.ssh`` directory (e.g. ``~/.ssh/my-server.pem``).
-
-    .. note::
-
-        The ``~/.ssh`` directory is shared between the local machine and the Dev Container.
 
     Before continuing, you should test that you can connect to your server using SSH.
     If you are using a personal private key, you should be able to connect as follows
@@ -58,7 +53,7 @@ Use the tabs below to switch between the different ways of setting up a remote s
         [PEM files]
         server_pem = ~/.ssh/id_rsa  # or ~/.ssh/id_ed25519, or ~/.ssh/my-server.pem, as appropriate
 
-    You can then register your server from your Dev Container terminal:
+    You can then register your server from your terminal:
 
     .. code-block:: bash
 
@@ -129,7 +124,6 @@ Use the tabs below to switch between the different ways of setting up a remote s
     The key pair can be created via the AWS console; AWS keeps the public key, and you download the private key
     as a PEM file (e.g. ``cool-psychology.pem``).
     You need to copy your PEM file to the ``~/.ssh`` directory on your local machine
-    (this directory will automatically be shared with the Dev Container).
     You then need to put the name of this PEM file in your ``~/.dallingerconfig`` file
     (just the name, not the full path, not the extension).
 
@@ -138,7 +132,7 @@ Use the tabs below to switch between the different ways of setting up a remote s
         [PEM files]
         ec2_default_pem = cool-psychology
 
-    You should now be able to provision a server from AWS within your Dev Container terminal:
+    You should now be able to provision a server from AWS within your terminal:
 
     .. code-block:: bash
 
