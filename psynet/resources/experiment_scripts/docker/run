@@ -4,8 +4,6 @@ set -euo pipefail
 
 touch "${HOME}/.dallingerconfig"
 
-read -p "WARNING: This Docker API is deprecated and will be removed in a future version of PsyNet. Please refer to https://psynet.dev for instructions on running PsyNet experiments using Dev Containers. Press Enter to continue anyway..." >&2
-
 . docker/params
 
 if [[ ${PSYNET_DEVELOPER_MODE:-} == "1" ]]; then

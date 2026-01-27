@@ -174,16 +174,21 @@ as long as they have different app names.
 
     If you encounter an error on deployment, try the following:
 
-    1. Rebuild your Dev Container (in VSCode/Cursor, Shift-CMD-P 'Dev Containers: Rebuild Container'),
-    then run ``psynet debug local`` to verify that the experiment runs locally.
-
-    2. Check the server logs by running the following in your terminal:
+    1. Verify that your local environment is up to date by running the following in your terminal:
 
     .. code-block:: bash
 
-            ssh -i ~/.ssh/your-server.pem your-username@your-server.com
-            cd ~/dallinger/your-experiment-name
-            docker compose logs
+        uv pip install -r constraints.txt
+
+    2. Run ``psynet debug local`` to verify that the experiment runs locally.
+
+    3. Check the server logs by running the following in your terminal:
+
+    .. code-block:: bash
+
+        ssh -i ~/.ssh/your-server.pem your-username@your-server.com
+        cd ~/dallinger/your-experiment-name
+        docker compose logs
 
 If you want to share your experiment with others, look in your console logs for a
 'Single recruitment link'. This link can be used to participate in the experiment.

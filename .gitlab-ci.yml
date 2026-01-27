@@ -26,10 +26,7 @@ before_script:
   - export REDIS_IP=$(getent ahostsv4 redis | awk '{ print $1 }' | tail -n 1)
   - echo $POSTGRES_IP
   - echo $REDIS_IP
-  # Use devcontainers CLI to build the image - this validates that the devcontainer config works correctly
-  - apk add --update nodejs npm python3 make g++
-  - npm install -g @devcontainers/cli
-  - devcontainer build --workspace-folder . --image-name $DOCKER_LOCAL_TAG
+  - docker build --tag $DOCKER_LOCAL_TAG .
 
 .default_rules: &default_rules
   rules:

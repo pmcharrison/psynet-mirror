@@ -7,41 +7,10 @@
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
-    "extensions": [
-        "ms-python.python",
-        "ms-python.isort",
-        "ms-python.black-formatter",
-        "ms-python.flake8",
-        "mtxr.sqltools",  // we could use ms-ossdata.vscode-pgsql instead, but it's not compatible with Cursor
-        "mtxr.sqltools-driver-pg"
-    ],
     "mounts": [
         "source=${localEnv:HOME}/psynet-data,target=/root/psynet-data,type=bind",
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
     ],
     "postCreateCommand": "bash .devcontainer/postcreate.sh",
-    "postAttachCommand": "bash .devcontainer/postattach.sh",
-    "settings": {
-        "[python]": {
-            "editor.defaultFormatter": "ms-python.black-formatter",
-            "editor.formatOnSave": true,
-            "editor.codeActionsOnSave": {
-                "source.organizeImports": "explicit"
-            }
-        },
-        "isort.args":["--profile", "black"],
-        "sqltools.connections": [
-            {
-                "ssh": "Disabled",
-                "previewLimit": 50,
-                "server": "localhost",
-                "port": 5432,
-                "driver": "PostgreSQL",
-                "name": "dallinger",
-                "database": "dallinger",
-                "username": "dallinger",
-                "password": "dallinger"
-            }
-        ]
-    }
+    "postAttachCommand": "bash .devcontainer/postattach.sh"
 }

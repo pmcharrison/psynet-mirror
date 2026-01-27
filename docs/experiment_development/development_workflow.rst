@@ -231,7 +231,7 @@ implementation.
     cd ~/Dallinger
     pip3 install -e .
 
-Now you can make changes to the PsyNet/Dallinger repositories (outside your Dev Container if you like),
+Now you can make changes to the PsyNet/Dallinger repositories
 and immediately see the impact of your changes in your experiment code.
 
 You might well decide to contribute your changes back to the PsyNet/Dallinger repositories.

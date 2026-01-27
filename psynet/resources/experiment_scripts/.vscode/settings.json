@@ -1,0 +1,25 @@
+// See also the PsyNet repository's .vscode/settings.json file
+// (consider propagating any changes there)
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "isort.args": ["--profile", "black"],
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "dallinger",
+            "database": "dallinger",
+            "username": "dallinger",
+            "password": "dallinger"
+        }
+    ]
+}

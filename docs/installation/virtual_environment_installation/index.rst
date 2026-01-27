@@ -1,5 +1,5 @@
-Installing PsyNet in a virtual environment)
-=============================================
+Installing PsyNet in a virtual environment
+==========================================
 
 
 .. toctree::

@@ -81,7 +81,7 @@ Here is the citation entry::
    :hidden:
    :caption: INSTALLATION
 
-   installation/legacy_installation/index
+   installation/index
 
 .. toctree::
    :hidden:

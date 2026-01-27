@@ -6,15 +6,23 @@ and try and customize it in various ways.
 Have a look through the available demos in the ``demos`` directory of the PsyNet repository,
 then choose one as your starting point.
 Copy the demo's directory to a new location on your computer, outside the original PsyNet repository.
-Then open a new Dev Container for this new experiment,
-following the same process described in :ref:`running_locally`:
+Open the new experiment directory in your IDE,
+then follow the prompts in your IDE to create a new virtual environment for the experiment.
 
-1. Open the new experiment directory in your IDE
-2. Follow the prompt to launch a Dev Container
-3. Wait until the automatic configuration scripts have stopped running
-4. Launch the experiment by running ``psynet debug local`` in the terminal
+.. note::
 
-This works because each demo directory contains their own ``Dockerfile`` and ``.devcontainer`` files.
+    Alternatively you can create a new virtual environment for the experiment by running the following in your terminal:
+
+    .. code-block:: bash
+
+        uv venv
+        source .venv/bin/activate
+
+Finally, install the dependencies for the experiment by running the following in your terminal:
+
+.. code-block:: bash
+
+    uv pip install -r constraints.txt
 
 You can now start modifying the experiment to your liking.
 Try some simple modifications to begin with, for example changing the text of the questions.
@@ -42,7 +50,7 @@ then restart it by running ``psynet debug local`` again.
     You'll then want to update the ``requirements.txt`` file to use the latest version of PsyNet
     (you can see the latest released version in the top-left corner of the online documentation website),
     and then run ``psynet generate-constraints`` to update ``constraints.txt`` accordingly,
-    and then rebuild your Dev Container (CMD+Shift+P > Rebuild Container).
+    and then run ``uv pip install -r constraints.txt`` to update your local environment.
 
     Once this is all done, try running ``psynet debug local`` -- you might encounter some errors on account of your version upgrade,
     but hopefully the error message will guide you towards what needs fixing.
