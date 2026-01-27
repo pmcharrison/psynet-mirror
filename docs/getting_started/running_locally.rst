@@ -6,7 +6,7 @@ Running PsyNet locally
 Installation
 ------------
 
-PsyNet has detailed installation instructions in the :ref:`installation` section.
+PsyNet has detailed installation instructions in the :doc:`installation section <../installation/index>`.
 Follow the appropriate instructions for your operating system,
 then follow the instructions below to check your setup.
 
@@ -29,7 +29,7 @@ Now you can launch the demo using the following command:
 
     psynet debug local
 
-You will need to wait 10 seconds or so for the demo to start.
+You will need to wait a few seconds for the demo to start.
 You may see one or more pop-ups asking whether you want to open an external website;
 you should say Yes to these.
 

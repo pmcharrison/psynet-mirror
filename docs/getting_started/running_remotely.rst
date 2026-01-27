@@ -12,7 +12,8 @@ Before you start, you will likely need to create a ``.dallingerconfig`` file in 
 
     touch ~/.dallingerconfig
 
-This ``.dallingerconfig`` file provides global configuration options for PsyNet and Dallinger.
+This ``.dallingerconfig`` file provides global configuration options for PsyNet and Dallinger
+(see :doc:`../experiment_development/configuration` for more details).
 
 Setting up the server
 ---------------------
