@@ -35,7 +35,7 @@ that the correct version is found. To install old versions you might need to run
 or go to the Applications folder and delete the appropriate version of Python.
 
 Install uv
-~~~~~~~~~~~
+~~~~~~~~~~
 
 .. code-block:: bash
 

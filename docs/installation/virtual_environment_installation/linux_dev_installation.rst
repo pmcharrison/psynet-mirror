@@ -47,7 +47,7 @@ The easiest way to do this is via the ``apt install`` command above, for example
 ``sudo apt install python3.11-dev`` for Python 3.11.
 
 Install uv
-~~~~~~~~~~~
+~~~~~~~~~~
 
 .. code-block:: bash
 
