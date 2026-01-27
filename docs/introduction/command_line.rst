@@ -8,21 +8,6 @@ Once you have installed PsyNet, you interact with it by running commands in your
 Generally speaking, you should execute all of these commands within your experiment directory
 (e.g. if you are running the timeline demo: ``psynet/demos/timeline``).
 
-The commands take slightly different forms depending on how you have installed PsyNet.
-If you are running PsyNet via Docker, you run commands that look like this:
-
-.. code:: bash
-
-    bash docker/psynet debug local
-
-If you are running PsyNet within a virtual environment, you omit the ``bash docker/`` and
-just write commands like this:
-
-.. code:: bash
-
-    psynet debug local
-
-
 .. _debug:
 
 Run an experiment in debug mode (``debug``)

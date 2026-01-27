@@ -19,15 +19,7 @@ Let's talk through what these different files and directories do.
 While reading this document, have a look at the experiment directory from a real
 PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022-consonance-carillon>`_.
 
--   ``docker`` contains various scripts for working with Docker. These are used when you run commands
-    such as ``bash docker/psynet debug``. Normally you should not edit these files directly,
-    but instead use the boilerplate files provided by PsyNet. You can update these files to
-    their latest PsyNet versions by running ``psynet update-scripts`` within an experiment directory.
-
--   ``docs`` contains documentation for your experiment. PsyNet provides boilerplate documentation
-    files for running your experiment, which you can update by running ``psynet update-scripts`` within
-    an experiment directory. If you like you can also add extra documentation specific to your
-    experiment here.
+-   ``docker`` contains various scripts for a deprecated Docker API. We are considering this in a future version of PsyNet.
 
 -   ``static`` can be used as a storage place for files that the front-end browser can access directly via HTTP.
     If you wanted to bypass PsyNet's asset management system, you could put individual scripts or media files in here,

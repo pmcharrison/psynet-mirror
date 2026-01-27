@@ -5,6 +5,9 @@
 ## Breaking Changes
 - Updated Dallinger dependency from v11.5.x to v12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
 
+## Deprecated
+- Deprecated Docker installation route in favor of the standard virtual environment method.
+
 ## Added
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
@@ -12,6 +15,9 @@
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
   the main PsyNet documentation.
 - Added `AGENTS.md` to help Cursor know how to run experiments locally.
+- Added 'getting started' section to documentation.
+- Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
+  to aid with configuring VSCode.
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
@@ -29,7 +35,13 @@
 - Improve string-matching robustness in `get_requirement` (previously substrings would match,
   e.g. 'net' would retrieve the 'psynet' package).
 - Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
+- md5 hashing now correctly ignores files whose names begin with `.` (e.g. `.DS_Store`)
+- Fixed bug in command-line argument validation that prevented users from accessing the
+  one-app-per-server deployment route.
 - Fixed bug in the propagation of the `--update` argument to the Dallinger CLI.
+- Fixed bug in version consistency check when using a development version of PsyNet.
+- Fixed bug that was causing `get_hardware_status` to fail.
+- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)

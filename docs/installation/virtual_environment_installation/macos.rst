@@ -34,6 +34,13 @@ One installation is complete, try ``python3 --version`` again to ensure
 that the correct version is found. To install old versions you might need to run ``brew uninstall python3``,
 or go to the Applications folder and delete the appropriate version of Python.
 
+Install uv
+~~~~~~~~~~
+
+.. code-block:: bash
+
+   pip3 install uv
+
 Install Homebrew
 ~~~~~~~~~~~~~~~~
 

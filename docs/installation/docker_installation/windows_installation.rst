@@ -1,12 +1,12 @@
-Installing PsyNet via Docker (Windows)
-======================================
+Installing PsyNet via Docker (Windows) (legacy)
+===============================================
 
 .. include:: shared_introduction.rst
 
 Step 0: Install WSL
 ^^^^^^^^^^^^^^^^^^^
 
-Docker on Windows depends on the "Windows Subsystem for Linux" (WSL). All code you run using PsyNet and Docker needs to be run within the Linux subsystem. 
+Docker on Windows depends on the "Windows Subsystem for Linux" (WSL). All code you run using PsyNet and Docker needs to be run within the Linux subsystem.
 If you haven't worked with Docker before you may well need to install this.
 
 .. include:: ../wsl_installation.rst

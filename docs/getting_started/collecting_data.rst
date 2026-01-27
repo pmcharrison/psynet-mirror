@@ -1,9 +1,12 @@
-===================================
-Deploying an experiment to Prolific
-===================================
+Collecting data
+===============
 
+The standard way to collect data with PsyNet is to deploy your experiment to a remote server,
+and then use Prolific to recruit participants.
 Prolific is a paid service for sourcing online participants for psychology experiments.
 For a general introduction to Prolific, visit the `Prolific website <https://prolific.co/>`_.
+
+.. To do - document alternative deployment methods here
 
 Setting up your Prolific account
 --------------------------------
@@ -22,12 +25,17 @@ You will put this token in a general configuration file called ``.dallingerconfi
 information placed here is shared across all experiments that you run on your computer.
 This file is located in your home directory, at ``~/.dallingerconfig``.
 If the file doesn't exist already, create it; then open it with a text editor.
-Enter your API key as follows:
+Enter your API token as follows:
 
 ::
 
     [Prolific]
     prolific_api_token = xxxxxxx
+
+To deploy Prolific experiments you will also need to specify the name of a Prolific workspace
+and the name of a Prolific project. You can find both on the Prolific website.
+Your workspace should exist already, but the project doesn't need to exist yet.
+
 
 Save and close the file.
 
@@ -124,11 +132,6 @@ Next you set the experiment's ``description`` parameter. This provides more info
 You should explain briefly what your payment policy will be if the participant doesn't finish the experiment,
 e.g. due to a technical error or a failed pre-screening task.
 
-.. warning::
-    If you do not use your own domain name (via the ``--dns-host`` argument), then Dallinger automatically
-    uses a ``nip.io`` subdomain. We think this may be causing certain participants to encounter phishing warnings.
-    It seems that this error can be avoided by instructing the participant to take the test in an incognito browser.
-
 You should select the Prolific recruiter by setting the config parameter ``recruiter`` to ``prolific``.
 Also, for most users we recommend setting the ``auto_recruit`` parameter to ``false``, meaning that you will manually
 control the recruitment of participants via the Prolific interface rather than letting PsyNet manage it for you.
@@ -154,17 +157,17 @@ Testing your experiment
 
 It's a good idea to test your experiment thoroughly before deploying it. There are a few ways to do this:
 
-1. Take it as a participant on your local computer by running ``bash docker/psynet debug local``;
-2. Run the automated experiment tests via ``bash docker/run pytest test.py``.
+1. Take it as a participant on your local computer by running ``psynet debug local``;
+2. Run the automated experiment tests via ``psynet test local``.
 3. Pilot it on your remote server by setting ``recruiter = generic`` in ``config.txt`` and then running
-   ``bash docker/psynet debug ssh --app your-app-name``.
+   ``psynet debug ssh --app your-app-name``.
 
 .. warning::
 
     If you are running automated experiment tests via Docker as instructed above,
     and you are using an Apple Silicon Mac, then make sure you have selected
     'Use Rosetta for x86/amd64 emulation on Apple Silicon' under the Docker preferences,
-    otherwise the tests will run very slowly.
+    otherwise the tests might run very slowly.
 
 
 Deploying your experiment
@@ -267,8 +270,35 @@ submissions straightaway, which can upset people.
   :width: 800
   :alt: Pay participants who are awaiting review
 
-Once the experiment is finished, export the data with ``psynet export ssh --app your-app-name``,
-then take down the experiment by running ``psynet destroy ssh --app your-app-name``.
+Once the experiment is finished, you will need to export the data.
+You can either do this via the admin panel or from the command line:
+
+.. code:: bash
+
+    psynet export ssh --app your-app-name
+
+There are still some issues with the export functionality; if you encounter an error,
+we recommend trying again with the legacy flag:
+
+.. code:: bash
+
+    psynet export ssh --app your-app-name --legacy
+
+Alternatively, use the admin panel to export the data, disable 'anonymous' export,
+and export only the 'Dallinger' database, not the PsyNet formatted dataset.
+This will still provide all the data you need, just in a less convenient format.
+
+Once you're done, you can take down the experiment:
+
+.. code:: bash
+
+    psynet destroy ssh --app your-app-name
+
+If you provisioned your server using ``dallinger ec2 provision``, you should also consider tearing down the server:
+
+.. code:: bash
+
+    dallinger ec2 teardown --name your-experiment-name --region us-east-1
 
 Copying qualifications
 ----------------------

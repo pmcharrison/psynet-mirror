@@ -51,13 +51,6 @@ The most important PsyNet command for local development is the following:
 
     psynet debug local
 
-If you are running PsyNet via Docker, you need to prefix this and all other PsyNet commands
-with ``bash docker/``. This means that you actually write this:
-
-.. code:: bash
-
-    bash docker/psynet debug local
-
 The latter executes a bash script that builds a Docker image for your experiment,
 creates a Docker container from that image, and executes the PsyNet command within that container.
 
@@ -197,23 +190,13 @@ To run the experiment's tests, you can enter the following into your bash termin
 
 .. code:: bash
 
-    bash docker/run psynet test local
-
-Or without docker:
-
-.. code:: bash
-
     psynet test local
 
-The nice thing about running these tests in Docker is that it uses the exact operating system environment
-(including Python version and dependencies) that your actual deployed experiment would use.
-It's a great way of finding problems.
-It's a good habit to run this test as a final check before you deploy your experiment.
+.. warning::
 
-.. note::
+    **PyCharm users**:
 
-    You can also run your experiment's tests via PyCharm.
-    However, at the time of writing (June 2024) there is a bug in PyCharm's test result parser
+    At the time of writing (June 2024) there is a bug in PyCharm's test result parser
     that causes full tracebacks to be omitted from test results in some cases.
     To fix this problem we recommend editing your PyCharm's pytest run configurations to include
     the additional argument ``--tb=short``. To do this, click Run > Edit Configurations >
@@ -233,29 +216,12 @@ To take advantage of this capacity, you will normally want to have PsyNet (and p
 source code libraries easily available on your computer. The recommended way to do this is to clone their
 Git repositories into your home directory. Make sure to preserve the original capitalization of the repository
 directory names, for example ``~/PsyNet`` and ``~/Dallinger``.
-
-You can open these libraries in PyCharm by click File > Open and then selecting the folders.
-When prompted, select the option to open each project in a new window.
-It's a good idea to have the PsyNet project open in a separate window whenever you are developing an experiment.
-You can easily jump to particular function definitions by using the full text search (Cmd-Shift-F by default).
+You can then open these libraries in your IDE and browse them when you are developing your experiment.
 
 Sometimes you will want to trial particular changes to PsyNet or Dallinger library code. This can be useful for
 debugging errors that occur within this code, or for proposing new features that you eventually contribute to
 PsyNet or Dallinger. In order to test such changes, you need to link your local source libraries to your experiment
-implementation. The way you do this depends on whether you are using Docker or not.
-
-If you are using Docker, make sure you have downloaded both PsyNet and Dallinger to the locations specified above.
-Then, whenever you are running PsyNet terminal command, insert ``-dev``, producing commands like this:
-
-.. code:: bash
-
-    bash docker/psynet-dev debug local
-    bash docker/run-dev pytest test.py
-
-This invokes Docker in the same way as before, but linking your local PsyNet and Dallinger installations.
-
-If you are not using Docker, then the process is instead to navigate to those folders within your local environment,
-then run ``pip3 install -e .`` The ``-e`` stands for 'editable'.
+implementation.
 
 .. code:: bash
 
@@ -264,3 +230,31 @@ then run ``pip3 install -e .`` The ``-e`` stands for 'editable'.
 
     cd ~/Dallinger
     pip3 install -e .
+
+Now you can make changes to the PsyNet/Dallinger repositories
+and immediately see the impact of your changes in your experiment code.
+
+You might well decide to contribute your changes back to the PsyNet/Dallinger repositories.
+This is a great way to help improve the libraries for everyone.
+To do this, you can fork the PsyNet/Dallinger repositories on GitHub/GitLab,
+make your changes, and then submit a pull request.
+Your pull request will be reviewed by the PsyNet/Dallinger maintainers,
+and if accepted, your changes will be merged into the main repositories.
+
+.. note::
+
+    Forking is only required for people who are not members of the PsyNet/Dallinger repositories.
+    Members can instead create branches on the main repository and submit pull requests from there.
+
+However, you might not want to wait for your changes to be merged into the main repositories
+before using them in your experiment.
+To deploy an experiment using a custom PsyNet or Dallinger branch, you need to open ``requirements.txt``
+and change the PsyNet/Dallinger dependency to point to your fork.
+For example, if you are using a custom PsyNet branch, you would change the dependency to something like this:
+
+.. code:: text
+
+    psynet@git+https://gitlab.com/PsyNetDev/PsyNet@your-branch-name#egg=psynet
+
+After making this change, you will need to run ``psynet generate-constraints`` to update the ``constraints.txt`` file
+(see :ref:`dependencies` for more details).

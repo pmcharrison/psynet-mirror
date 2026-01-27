@@ -1,0 +1,12 @@
+// See also the PsyNet repository's .vscode/extensions.json file
+// (consider propagating any changes there)
+{
+    "recommendations": [
+        "ms-python.python",
+        "ms-python.isort",
+        "ms-python.black-formatter",
+        "ms-python.flake8",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg"
+    ]
+}

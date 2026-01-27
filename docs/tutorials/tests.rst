@@ -28,12 +28,6 @@ and entering the following in your command line:
 
     psynet test local
 
-or, if using PsyNet within Docker:
-
-::
-
-    bash docker/psynet test local
-
 This command takes a few moments to start as it has to spin up a
 PsyNet local server. Once the server is ready,
 the ``Experiment.test_serial_run_bots`` method is called.

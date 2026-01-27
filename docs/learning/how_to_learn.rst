@@ -45,10 +45,6 @@ Then you can run the demo using the standard PsyNet debug command:
 
 .. code-block:: bash
 
-   # If you are using the Docker approach
-   bash docker/psynet debug local
-
-   # If you instead have a local installation of PsyNet
    psynet debug local
 
 You can try changing parts of the demo now to test your understanding of PsyNet, for example modifying the page
