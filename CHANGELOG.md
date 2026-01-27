@@ -1,8 +1,18 @@
-# Unreleased
+# [13.1.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc1) Release candidate - 2026-01-28
 
 ## Added
 - Added `psynet locales` command to list supported translation locales (author: Frank Höger, reviewer: Peter Harrison)
 - Added check for empty translations in `check_translations` (author: Frank Höger, reviewer: Peter Harrison)
+- Added 'getting started' section to documentation (author: Peter Harrison, reviewer: Frank Höger)
+- Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
+  to aid with configuring VSCode (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Changed
+- Optimized experiment Dockerfiles for greater build speed. The resulting Dockerfiles no longer use a PsyNet base image.
+  To update existing experiment scripts, update PsyNet, then run `psynet update-scripts` in the experiment directory (author: Peter Harrison, reviewer: Frank Höger)
+
+## Deprecated
+- Deprecated Docker installation route in favor of the standard virtual environment method (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Fixed
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
@@ -12,14 +22,16 @@
 - Fixed `test_translator_with_file_path` to use `{NAME}` instead of `■0■` since `ChatGptTranslator` has `use_codebook=False` (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices) (author: Frank Höger, reviewer: Peter Harrison)
 - Standardized "Abort Experiment" to "Abort experiment" in templates for consistent capitalization and removed obsolete translation entries from PO files (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed bug in the propagation of the `--update` argument to the Dallinger CLI (author: Peter Harrison, reviewer: Frank Höger)
+- md5 hashing now correctly ignores files whose names begin with `.` (e.g. `.DS_Store`) (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in command-line argument validation that prevented users from accessing the one-app-per-server deployment route (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in version consistency check when using a development version of PsyNet (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug that was causing `get_hardware_status` to fail (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Updated
 - Updated translations (author: Frank Höger, reviewer: Peter Harrison)
 
 # [13.1.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc0) Release candidate - 2026-01-20
-
-## Deprecated
-- Deprecated Docker installation route in favor of the standard virtual environment method.
 
 ## Added
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
