@@ -1827,8 +1827,10 @@
                 }
 
                 function beforeunloadFunction(event) {
-                    event.returnValue = `Are you sure you want to leave?`;
-                    triedToLeave = true;
+                    {% if not page.is_unity_page %}
+                        event.returnValue = `Are you sure you want to leave?`;
+                        triedToLeave = true;
+                    {% endif %}
                 }
 
                 function terminateParticipant(reason) {

@@ -17,6 +17,7 @@
 ## Breaking Changes
 
 - Updated Dallinger dependency from v11.5.x to v12.0.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
+- Added `AGENTS.md` to help Cursor know how to run experiments locally.
 
 ## Changed
 
@@ -43,6 +44,21 @@
 - Fixed bug in the propagation of the `update` argument to the Dallinger CLI.
 - Fixed bug that was causing `get_hardware_status` to fail.
 
+- Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
+- Removed unused method `generate_asset_key`.
+- Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
+- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
+- Make `get_requirement` use `pip freeze` rather than `metadata.version` to ensure that commit
+  hashes are available.
+- Improve string-matching robustness in `get_requirement` (previously substrings would match,
+  e.g. 'net' would retrieve the 'psynet' package).
+- Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in the propagation of the `--update` argument to the Dallinger CLI.
+
+## Updated
+- Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed bug where `check_ready_to_spawn` was being called when not available.
+- Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError.
 
 ## Documentation
 
@@ -64,9 +80,17 @@
 - Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 - Added missing `config_options` parameter in `psynet deploy ssh` command (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed bug in Lucid (CINT) qualifications code (author: Elif Celen, reviewer: Frank Höger)
+- Fixed bug in `grow_network` route (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed bug where networks were not growing properly in graph experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Improved performance in graph-based experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed redundant `Trial.check_if_can_mark_as_finalized` logic (author: Lucas Gautheron, reviewer: Peter Harrison)
 
 ## Documentation
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
+
+## Changed
+- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+- Renamed `incoming_vertex_ids` to `dependent_vertex_ids` in graph networks
 
 
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)

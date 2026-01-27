@@ -1,7 +1,6 @@
 import os
 import re
 import subprocess
-from importlib import metadata
 
 import click
 from dallinger.version import __version__ as dallinger_version
@@ -149,21 +148,37 @@ def installed_version_for(package_name):
 
 
 def get_requirement(name):
-    try:
-        return f"{name}=={metadata.version(name)}"
-    except metadata.PackageNotFoundError:
-        # Fallback to pip freeze if package metadata not found
-        pip_freeze_stdout = subprocess.run(
-            ["pip freeze"],
-            shell=True,
-            capture_output=True,
-        ).stdout
+    # Use pip freeze because it shows git URLs with commit hashes,
+    # unlike metadata.version().
+    pip_freeze_stdout = subprocess.run(
+        ["pip freeze"],
+        shell=True,
+        capture_output=True,
+    ).stdout
 
-        return [
-            line.decode()
-            for line in pip_freeze_stdout.splitlines()
-            if f"{name}" in line.decode()
-        ][0]
+    # Find line corresponding to this package in pip freeze output.
+    # This line could have one of the following formats:
+    #   "psynet==1.0.0"
+    #   "psynet @ git+https://..."
+    #   "psynet[extra]==1.0.0"
+    #   "-e git+https://...#egg=psynet"
+    #
+    # Regex breakdown:
+    #   ^(?:-e\s+)?           - Start of line, optionally prefixed with "-e " (editable)
+    #   {name}                - The package name (escaped for regex safety)
+    #   (?:\s*[@=\[]|$)       - Followed by " @", "=", "[", or end of line
+    #   |                     - OR
+    #   #egg={name}(?:\s|$)   - "#egg=<name>" followed by whitespace or end of line
+    pattern = re.compile(
+        rf"^(?:-e\s+)?{re.escape(name)}(?:\s*[@=\[]|$)|#egg={re.escape(name)}(?:\s|$)",
+        re.IGNORECASE,
+    )
+
+    for line in pip_freeze_stdout.decode().splitlines():
+        if pattern.search(line):
+            return line
+
+    raise ValueError(f"Package '{name}' not found in pip freeze")
 
 
 # TODO: rename this function, as get_requirement doesn't always use pip freeze.

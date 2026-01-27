@@ -122,6 +122,7 @@ class UnityPage(Page):
     """
 
     dynamically_update_progress_bar_and_reward = True
+    is_unity_page = True
 
     def __init__(
         self,

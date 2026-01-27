@@ -2345,6 +2345,7 @@ def update_scripts_():
         "test.py",
         ".github/workflows/test.yml",
         ".vscode/launch.json",
+        "AGENTS.md",
     ]
     for file in files_to_copy:
         click.echo(f"...updating {file}.")

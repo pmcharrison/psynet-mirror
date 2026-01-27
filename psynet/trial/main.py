@@ -736,6 +736,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
+        if self.finalized:
+            return
         if self.failed:
             logger.info("Cannot mark as finalized because the trial is failed.")
         elif self.asset_deposit_pending:
@@ -810,10 +812,12 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         from psynet.trial.chain import ChainNode
 
         if isinstance(definition, ChainNode):
+            use_default_node = False
             node = definition
             cls.check_node_is_valid(node)
             definition = node.definition
         elif isinstance(definition, dict):
+            use_default_node = True
             node = None
         else:
             raise TypeError(f"Invalid definition type: {type(definition)}")
@@ -821,7 +825,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         def _register_trial(experiment, participant):
             nonlocal node
 
-            if not node:
+            if use_default_node:
                 node = cls.get_default_parent_node(participant, experiment)
 
             trial = cls(
@@ -2894,6 +2898,17 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node, AssetParentMixin):
     @property
     def failed_trials(self) -> List[Trial]:
         return [t for t in self.all_trials if t.failed]
+
+    def update_status(self):
+        """
+        Hook method called when the node's status may need updating.
+
+        This method is called when trials associated with the node are finalized
+        or fail. Subclasses can override this to update derived status attributes.
+        For example, ``ChainNode`` uses this to check whether the node is ready
+        to spawn a child node.
+        """
+        pass
 
     @property
     def trials(self):
