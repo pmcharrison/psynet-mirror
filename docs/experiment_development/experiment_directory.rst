@@ -19,7 +19,7 @@ Let's talk through what these different files and directories do.
 While reading this document, have a look at the experiment directory from a real
 PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022-consonance-carillon>`_.
 
--   ``docker`` contains various scripts for a deprecated Docker API. It will be removed in a future version of PsyNet.
+-   ``docker`` contains various scripts for a deprecated Docker API. We are considering this in a future version of PsyNet.
 
 -   ``static`` can be used as a storage place for files that the front-end browser can access directly via HTTP.
     If you wanted to bypass PsyNet's asset management system, you could put individual scripts or media files in here,

@@ -192,6 +192,19 @@ To run the experiment's tests, you can enter the following into your bash termin
 
     psynet test local
 
+.. warning::
+
+    **PyCharm users**:
+
+    At the time of writing (June 2024) there is a bug in PyCharm's test result parser
+    that causes full tracebacks to be omitted from test results in some cases.
+    To fix this problem we recommend editing your PyCharm's pytest run configurations to include
+    the additional argument ``--tb=short``. To do this, click Run > Edit Configurations >
+    Edit configuration templates > Python tests > pytest, and then insert ``--tb=short``
+    under Additional Arguments. Then press OK, then remove any existing pytest configurations for your
+    current project by pressing the minus symbol in the top left. Future tests should then run
+    automatically using this option.
+
 
 Local PsyNet and Dallinger installations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -209,20 +222,6 @@ Sometimes you will want to trial particular changes to PsyNet or Dallinger libra
 debugging errors that occur within this code, or for proposing new features that you eventually contribute to
 PsyNet or Dallinger. In order to test such changes, you need to link your local source libraries to your experiment
 implementation.
-
-In order to do this with Dev Containers, you will need to modify your Dev Container's ``.devcontainer/devcontainer.json`` file
-to mount the local PsyNet and/or Dallinger repositories.
-To do this, add the following lines to the ``mounts`` section of the ``.devcontainer/devcontainer.json`` file:
-
-.. code:: json
-
-    "source=${localEnv:HOME}/PsyNet,target=/root/PsyNet,type=bind",
-    "source=${localEnv:HOME}/Dallinger,target=/root/Dallinger,type=bind"
-
-Once you rebuild your Dev Container (CMD+Shift+P > Rebuild Container),
-you should be able to see your local PsyNet and Dallinger repositories in your IDE.
-For your experiment code to use these local versions, you will need to install them as editable packages,
-by running the following commands in your terminal:
 
 .. code:: bash
 
@@ -259,7 +258,3 @@ For example, if you are using a custom PsyNet branch, you would change the depen
 
 After making this change, you will need to run ``psynet generate-constraints`` to update the ``constraints.txt`` file
 (see :ref:`dependencies` for more details).
-You should then comment out your PsyNet mounting code in ``.devcontainer/devcontainer.json``,
-then rebuild your Dev Container (CMD+Shift+P > Rebuild Container),
-and double-check that your experiment runs as you expect.
-If so, you should be all set for deploying your experiment to a remote server.
