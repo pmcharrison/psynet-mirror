@@ -1,3 +1,9 @@
+// .vscode/settings.json stores the user's VSCode settings.
+// This file provides an example configuration for PsyNet users.
+// To use it yourself, rename the file to settings.json.
+//
+// See also psynet/experiment_scripts/.vscode/settings.json.example
+// (consider propagating any changes there)
 {
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter",
