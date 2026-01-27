@@ -52,10 +52,12 @@ The ``generate-constraints`` thereby tries to obtain a list of package versions 
 You should generally run ``psynet generate-constraints`` whenever you make changes to your ``requirements.txt`` file.
 You can commit the resulting ``constraints.txt`` file to your experiment's Git repository.
 
-In some cases you might decide that the automatically generated constraints are not quite right.
-Perhaps it complains of an incompatibility which you think is not a problem.
-In this case, you can replace the automatically generated constraints.txt file with your own.
-If you take this path, you should remove the automatically generated header --
+In some cases constraints generation might fail with an error indicating that compatible versions cannot be found.
+This is often because Dallinger is overly conservative in its constraints.
+In this case, you can replace the automatically generated ``constraints.txt`` file with your own.
+For example, you might copy the original ``constraints.txt`` file and remove the version constraint from the
+problematic package.
+If you take this path, you should remove the automatically generated header,
 which looks like this:
 
 .. code:: text
@@ -64,19 +66,8 @@ which looks like this:
     #    dallinger constraints generate
     #
     # Compiled from a requirements.txt file with md5sum c240530cbeca4ce1a8c350dd55f476ef and a .python-version file requesting Python 3.13
-    ansi2html==1.9.2
-    # via
-    #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v12.0.0/dev-requirements.txt
-    #   dallinger
-    ...
 
-and instead just write package names and versions, one per line.
-
-.. code:: text
-
-    librosa==1.0.0
-    praat-parselmouth==1.0.0
-    ...
+Removing this header informs PsyNet that you are manually curating the ``constraints.txt`` file.
 
 Updating your local environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
