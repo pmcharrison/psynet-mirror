@@ -6,44 +6,20 @@
 - Updated Dallinger dependency from v11.5.x to v12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
 
 ## Added
-
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
   the main PsyNet documentation.
-- Added DevContainers configuration files to the repository root and to the demos.
-
-## Breaking Changes
-
-- Updated Dallinger dependency from v11.5.x to v12.0.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
 - Added `AGENTS.md` to help Cursor know how to run experiments locally.
 
 ## Changed
-
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
-
-- Removed unused method ``generate_asset_key``.
-- Removed unused method `generate_asset_key`.
-- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
-- Fixed documentation for `prolific_is_custom_screening` default value (`False` not `True`)
-- Added missing `config_options` parameter in `psynet deploy ssh` command
-- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
-- Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
-- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
-- md5 hashing now ignores files whose names begin with `.` (e.g. `.DS_Store`)
-- Suppress false-positive inconsistent version errors when debugging using development versions
-  (e.g. on master).
-- Fixed command-line argument validation bug that prevented users from accessing the
-  one-app-per-server deployment route.
-- Fixed bug in the propagation of the `update` argument to the Dallinger CLI.
-- Fixed bug that was causing `get_hardware_status` to fail.
-
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
 - Removed unused method `generate_asset_key`.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
@@ -61,12 +37,6 @@
 - Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError.
 
 ## Documentation
-
-- Dev Containers is now the recommended installation method;
-  the previous installation methods have been marked as 'legacy'.
-- Added a 'Getting Started' section to the documentation.
-- Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. Modified `_get_py_entries_from_dir()` during translation extraction to skip hidden and other directories (venv, __pycache__, node_modules, site-packages, etc.) during os.walk() (author: Frank Höger, reviewer: Peter Harrison)
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 
 # [13.0.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.1) Release - 2026-01-05
@@ -92,13 +62,6 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `incoming_vertex_ids` to `dependent_vertex_ids` in graph networks
 
-
-- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
-
-## Deprecated
-
-- Deprecated the ``bash docker/...`` interface for developing and deploying PsyNet experiments
-  in favor of the new Dev Containers approach.
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 
