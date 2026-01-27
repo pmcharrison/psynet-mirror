@@ -1,5 +1,3 @@
-// See also the PsyNet repository's .vscode/settings.json file
-// (consider propagating any changes there)
 {
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter",

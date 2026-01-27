@@ -16,6 +16,8 @@
   the main PsyNet documentation.
 - Added `AGENTS.md` to help Cursor know how to run experiments locally.
 - Added 'getting started' section to documentation.
+- Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
+  to aid with configuring VSCode.
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
