@@ -126,6 +126,7 @@ If completion doesn't work:
 1. Make sure the completion script is properly sourced.
 2. Try restarting your terminal.
 3. Verify that the completion files exist:
+
    .. code-block:: bash
 
       ls -la ~/.local/bin/.psynet-completion.*
@@ -134,6 +135,7 @@ If completion doesn't work:
 5. Verify that ``psynet`` is in your ``PATH``: ``which psynet``.
 6. Check that your shell configuration file (``~/.bashrc`` or ``~/.zshrc``) contains the completion source line.
 7. If you need to fix the shell configuration, add the following to your shell configuration file:
+
    .. code-block:: bash
 
       source ~/.local/bin/.psynet-completion.bash  # for bash
