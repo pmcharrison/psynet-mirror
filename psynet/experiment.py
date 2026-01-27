@@ -583,7 +583,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             </p>
             <p>
                 If you are an experimenter, please
-                <a href="{url_for("dashboard.dashboard_index")}">click here</a>
+                <a href="{url_for("dashboard.dashboard_develop")}">click here</a>
                 to access the dashboard.
             </p>
         </div>
@@ -968,9 +968,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def get_hardware_status(cls):
-        ghz_cpus = psutil.cpu_freq().max / 1000
+        cpu_freq = psutil.cpu_freq()
+        ghz_cpus = "N/A" if cpu_freq is None else f"{cpu_freq.current / 1000:.1f}GHz"
         n_cpus = psutil.cpu_count(logical=False)
-        cpu_specs = f"{n_cpus}x @ {ghz_cpus:.1f}GHz"
+        cpu_specs = f"{n_cpus}x @ {ghz_cpus}"
         ram_specs = format_bytes(psutil.virtual_memory().total)
         disk_specs = format_bytes(psutil.disk_usage("/").total)
 

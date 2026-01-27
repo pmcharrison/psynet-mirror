@@ -26,7 +26,7 @@ from dallinger.command_line.docker_ssh import (
     option_server,
     remote_postgres,
 )
-from dallinger.command_line.utils import verify_id
+from dallinger.command_line.utils import verify_id as dallinger_verify_id
 from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
@@ -36,7 +36,11 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-from psynet.version import check_dallinger_version, check_versions
+from psynet.version import (
+    check_dallinger_version,
+    check_versions,
+    python_recommended_version,
+)
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
@@ -55,6 +59,7 @@ from .utils import (
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
+    md5_directory,
     pretty_format_seconds,
     require_exp_directory,
     require_requirements_txt,
@@ -63,6 +68,17 @@ from .utils import (
 )
 
 logger = get_logger()
+
+
+def verify_id(ctx, param, app):
+    # Dallinger's docker-ssh deploy allows --app to be omitted, in which case
+    # it auto-generates a random app name (e.g., dlgr-a1b2c3d4) and uses the
+    # single-app-per-server deployment route.
+    # dallinger_verify_id will raise an error if app is None, however.
+    # We therefore bypass the validation in this case.
+    if app is None:
+        return
+    return dallinger_verify_id(ctx, param, app)
 
 
 def _suppress_dallinger_header():
@@ -880,7 +896,7 @@ def _deploy__docker_heroku(ctx, app, archive):
 
 
 @deploy.command("ssh")
-@click.option("--app", callback=verify_id, required=True, help="Experiment id")
+@click.option("--app", callback=verify_id, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @option_server
 @click.option(
@@ -1218,7 +1234,7 @@ def debug__docker_heroku(ctx, app, archive):
 
 @debug.command("ssh")
 @click.option(
-    "--app", callback=verify_id, required=True, help="Name of the experiment app."
+    "--app", callback=verify_id, default=None, help="Name of the experiment app."
 )
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @option_server
@@ -2314,6 +2330,7 @@ def update_scripts_():
     To be run in an experiment directory; updates a collection of template scripts and help files to their
     latest PsyNet versions.
     """
+    # TODO - refactor to avoid hardcoding the list of files/directories to copy
     click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
 
     Path(".vscode").mkdir(exist_ok=True)
@@ -2341,12 +2358,19 @@ def update_scripts_():
                 file,
             )
 
+    # We keep Dockertag for now, but once we remove the docker directory,
+    # we should remove this too.
     click.echo("...updating Dockertag.")
     with open("Dockertag", "w") as file:
         file.write(os.path.basename(os.getcwd()))
         file.write("\n")
 
-    directories_to_copy = ["docs", "docker"]
+    click.echo("...updating .python-version")
+    with open(".python-version", "w") as file:
+        file.write(python_recommended_version)
+        file.write("\n")
+
+    directories_to_copy = ["docker"]
     for dir in directories_to_copy:
         click.echo(f"...updating {dir} directory.")
         if Path(dir).exists():
@@ -2360,6 +2384,15 @@ def update_scripts_():
                 dirs_exist_ok=True,
             )
     os.system("chmod +x docker/*")
+
+    # We remove no-longer-wanted directories only if we can be confident that the
+    # user hasn't edited them
+    directories_to_remove = [("docs", "abfc54bbbc3ef9d5948957841727a18b")]
+    for directory, hash in directories_to_remove:
+        if Path(directory).exists():
+            if md5_directory(directory) == hash:
+                # The directory is unchanged, we can remove it
+                shutil.rmtree(directory)
 
 
 @psynet.group("destroy")

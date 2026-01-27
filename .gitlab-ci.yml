@@ -16,10 +16,7 @@ variables:
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
-  DOCKER_REGISTRY_BASE: registry.gitlab.com/psynetdev/psynet
-  DOCKER_IMAGE_CACHE_FROM: "$DOCKER_REGISTRY_BASE:master"
   DOCKER_LOCAL_TAG: psynet-build
-  DOCKER_REMOTE_TAG: "$DOCKER_REGISTRY_BASE:$CI_COMMIT_REF_NAME"
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
@@ -29,10 +26,7 @@ before_script:
   - export REDIS_IP=$(getent ahostsv4 redis | awk '{ print $1 }' | tail -n 1)
   - echo $POSTGRES_IP
   - echo $REDIS_IP
-  - docker image prune --all --force
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  - docker pull $DOCKER_IMAGE_CACHE_FROM || true
-  - docker build --cache-from $DOCKER_IMAGE_CACHE_FROM --tag $DOCKER_LOCAL_TAG .
+  - docker build --tag $DOCKER_LOCAL_TAG .
 
 .default_rules: &default_rules
   rules:
@@ -75,6 +69,7 @@ tests:
   stage: test
   <<: *default_rules
   script:
+    - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
@@ -82,7 +77,10 @@ tests:
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       -e CI_NODE_TOTAL -e CI_NODE_INDEX
       -e CI_COMMIT_REF_NAME
+      -e PSYNET_WORKSPACE
+      -v "$PWD:$PSYNET_WORKSPACE"
       -v "$PWD/public:/public"
+      -w $PSYNET_WORKSPACE
       $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
   artifacts:
     paths:

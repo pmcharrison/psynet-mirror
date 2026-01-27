@@ -1,10 +1,12 @@
+.. _alternative_installation:
+.. _installation:
+
 Installation overview
 =====================
 
-There are two main ways to install PsyNet: the *virtual environment* route and the *Docker* route.
-We generally recommend the *virtual environment* route for most users:
-the installation process includes a few more steps but the end result is a more flexible installation.
-Follow the links below for instructions.
+Most users should follow the 'virtual environment' installation instructions below.
+The documentation also supports an alternative 'Docker' installation method, but this is now deprecated
+and not recommended for new users.
 
 .. toctree::
     :maxdepth: 1

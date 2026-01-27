@@ -22,9 +22,9 @@ and install all the required packages.
 
     .. code-block:: bash
 
-        python3 -m venv .venv
+        uv venv
         source .venv/bin/activate
-        pip install -r constraints.txt
+        uv pip install -r constraints.txt
 
 
 .. note::
@@ -52,8 +52,8 @@ To do this, run the following commands (assuming you have installed PsyNet and D
 
 .. code-block:: bash
 
-   pip install -e ~/PsyNet
-   pip install -e ~/Dallinger
+   uv pip install -e ~/PsyNet
+   uv pip install -e ~/Dallinger
 
 Whenever you develop or deploy an experiment using PsyNet (assuming you are not using Docker) you will need to
 make sure you are in the appropriate virtual environment.
