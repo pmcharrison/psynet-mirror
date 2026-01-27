@@ -71,7 +71,8 @@ logger = get_logger()
 
 
 def verify_id(ctx, param, app):
-    # Dallinger now in theory allows --app to be None, in which case Dallinger will use the
+    # Dallinger's docker-ssh deploy allows --app to be omitted, in which case
+    # it auto-generates a random app name (e.g., dlgr-a1b2c3d4) and uses the
     # single-app-per-server deployment route.
     # dallinger_verify_id will raise an error if app is None, however.
     # We therefore bypass the validation in this case.
