@@ -1,3 +1,5 @@
+// See also the PsyNet repository's .vscode/launch.json file
+// (consider propagating any changes there)
 {
     "version": "0.2.0",
     "configurations": [
