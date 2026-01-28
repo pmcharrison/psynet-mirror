@@ -19,7 +19,7 @@ PsyNet releases are made periodically by the core developers. There is no real r
 
 .. code-block:: console
 
-    git checkout -b release-X.Y.Z
+    git checkout -b release-X.Y
 
 .. note::
     Before making a final release, you should consider first publishing a release candidate and  request PsyNet users to test the release candidate, e.g. by making deployments and exporting data. 
@@ -31,6 +31,12 @@ To bump the PsyNet version from a development alpha version with the `a0` suffix
 
     bump-my-version bump pre_l
 
+To update the release candidate version (e.g., from `rc0` to `rc1`) use the command
+
+.. code-block:: console
+
+    bump-my-version bump pre_n
+
 
 After all changes to be released have been merged into the ``master`` branch follow these steps:
 
@@ -39,7 +45,17 @@ After all changes to be released have been merged into the ``master`` branch fol
 
     #. Using the GitLab interface identify the merge requests that contributed to the current ``master`` branch since the last release. The last release can easily be identified by its release tag, e.g. ``v10.1.0``. Check that each merged merge request contains a populated CHANGELOG entry in its description. If any CHANGELOG entries are missing, notify the relevant contributors.
 
-    #. Combine the new CHANGELOG entries into PsyNet’s CHANGELOG.md file, updating any formatting as necessary.
+    #. Combine the new CHANGELOG entries into PsyNet’s CHANGELOG.md file, updating any formatting as necessary. Use the following section order:
+
+        1. **Breaking changes** — Highest impact, users must see first
+        2. **Security** — Critical fixes (if applicable)
+        3. **Added** — New features
+        4. **Changed** — Modifications to existing functionality
+        5. **Deprecated** — Features marked for future removal
+        6. **Removed** — Features that have been removed
+        7. **Fixed** — Bug fixes
+        8. **Updated** — Dependency updates (PsyNet-specific)
+        9. **Documentation** — Docs-only changes (lowest impact)
 
     #. Go through all the merge requests and close their associated issues with a comment linking them to the merge request: ‘Implemented in !ABC’ where ‘ABC’ is the merge request ID.
 
