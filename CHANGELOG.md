@@ -10,6 +10,7 @@
 #### Changed
 - Optimized experiment Dockerfiles for greater build speed. The resulting Dockerfiles no longer use a PsyNet base image.
   To update existing experiment scripts, update PsyNet, then run `psynet update-scripts` in the experiment directory (author: Peter Harrison, reviewer: Frank Höger)
+- Removed `deploy_docker` CI job that pushed PsyNet Docker images to the GitLab registry. The `pages` job now installs PsyNet from source instead of using a pre-built Docker image. This is part of the broader deprecation of the Docker installation route.
 
 ## Deprecated
 - Deprecated Docker installation route in favor of the standard virtual environment method (author: Peter Harrison, reviewer: Frank Höger)
