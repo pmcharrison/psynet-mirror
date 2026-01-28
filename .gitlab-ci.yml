@@ -16,9 +16,7 @@ variables:
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
   REDIS_URL: redis://redis:6379
   HEADLESS: "TRUE"
-  DOCKER_REGISTRY_BASE: registry.gitlab.com/psynetdev/psynet
   DOCKER_LOCAL_TAG: psynet-build
-  DOCKER_REMOTE_TAG: "$DOCKER_REGISTRY_BASE:$CI_COMMIT_REF_NAME"
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
