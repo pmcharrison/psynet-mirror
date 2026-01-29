@@ -84,8 +84,8 @@ def sql_sample_one(x):
 
 
 def dict_to_js_vars(x):
-    y = [f"var {key} = JSON.parse('{json.dumps(value)}'); " for key, value in x.items()]
-    return reduce(lambda a, b: a + b, y)
+    y = [f"var {key} = {json.dumps(value)}; " for key, value in x.items()]
+    return "".join(y)
 
 
 def call_function(function, *args, **kwargs):
