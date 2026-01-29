@@ -1,6 +1,9 @@
 import pytest
 
-from psynet.translation.check import assert_variable_names_match
+from psynet.translation.check import (
+    assert_variable_names_match,
+    translation_contains_same_variables,
+)
 from psynet.translation.translate import check_translations
 
 
@@ -102,3 +105,47 @@ def test_run():
         "HIDE_AFTER": 2,
     }
     check_translations(variable_placeholders=VARIABLE_PLACEHOLDERS)
+
+
+class TestTranslationContainsSameVariables:
+    """Tests for translation_contains_same_variables function."""
+
+    def test_all_checks_are_evaluated(self):
+        """Verify that all variable checks are evaluated, not just the first one.
+
+        This test would pass with a bug where only the first check (Jinja pattern)
+        is evaluated, but should fail when all checks (including HTML tags) are
+        properly evaluated.
+        """
+        # Jinja variables match, but HTML tags don't match
+        original = "Hello {NAME}"
+        translation = "Bonjour {NAME} <b>extra</b>"
+
+        # Should return False because HTML tag check fails
+        assert translation_contains_same_variables(original, translation) is False
+
+    def test_matching_jinja_variables(self):
+        """Test that matching Jinja variables pass."""
+        assert translation_contains_same_variables("Hello {NAME}", "Bonjour {NAME}")
+
+    def test_matching_html_tags(self):
+        """Test that matching HTML tags pass."""
+        assert translation_contains_same_variables(
+            "<b>Hello</b> world", "<b>Bonjour</b> monde"
+        )
+
+    def test_mismatched_html_tags(self):
+        """Test that mismatched HTML tags fail."""
+        assert not translation_contains_same_variables("<b>Hello</b>", "<i>Bonjour</i>")
+
+    def test_format_strings_both_absent(self):
+        """Test that strings without format placeholders pass."""
+        assert translation_contains_same_variables("Hello world", "Bonjour monde")
+
+    def test_format_strings_both_present(self):
+        """Test that matching empty format placeholders pass."""
+        assert translation_contains_same_variables("Hello {}", "Bonjour {}")
+
+    def test_format_string_mismatch(self):
+        """Test that mismatched format placeholders fail."""
+        assert not translation_contains_same_variables("Hello {}", "Bonjour")

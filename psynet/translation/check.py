@@ -230,7 +230,7 @@ def translation_contains_same_variables(
             checks.append(f_strings_in_original == f_strings_in_translation)
         else:
             raise ValueError(f"Unknown assertion {check['assertion']}")
-        return all(checks)
+    return all(checks)
 
 
 def assert_no_runtime_errors(
