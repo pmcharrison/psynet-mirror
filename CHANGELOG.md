@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
 - Removed unused method `generate_asset_key`.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
