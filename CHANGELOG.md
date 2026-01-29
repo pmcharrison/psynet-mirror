@@ -3,20 +3,19 @@
 ## Added
 - Added `psynet locales` command to list supported translation locales (author: Frank Höger, reviewer: Peter Harrison)
 - Added check for empty translations in `check_translations` (author: Frank Höger, reviewer: Peter Harrison)
-- Added 'getting started' section to documentation (author: Peter Harrison, reviewer: Frank Höger)
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode (author: Peter Harrison, reviewer: Frank Höger)
 
 #### Changed
 - Optimized experiment Dockerfiles for greater build speed. The resulting Dockerfiles no longer use a PsyNet base image.
   To update existing experiment scripts, update PsyNet, then run `psynet update-scripts` in the experiment directory (author: Peter Harrison, reviewer: Frank Höger)
-- Removed `deploy_docker` CI job that pushed PsyNet Docker images to the GitLab registry. The `pages` job now installs PsyNet from source instead of using a pre-built Docker image. This is part of the broader deprecation of the Docker installation route.
+- Removed `deploy_docker` CI job that pushed PsyNet Docker images to the GitLab registry. The `pages` job now installs PsyNet from source instead of using a pre-built Docker image. This is part of the broader deprecation of the Docker installation route (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Deprecated
 - Deprecated Docker installation route in favor of the standard virtual environment method (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Fixed
-- Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep)
+- Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
 - Included `tests/isolated/translation/` directory in CI test runs (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed `CI` environment variable not being passed to Docker container in CI, causing `@local_only` tests to run incorrectly (author: Frank Höger, reviewer: Peter Harrison)
@@ -32,6 +31,9 @@
 
 ## Updated
 - Updated translations (author: Frank Höger, reviewer: Peter Harrison)
+
+## Documentation
+- Added 'getting started' section (author: Peter Harrison, reviewer: Frank Höger)
 
 # [13.1.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc0) Release candidate - 2026-01-20
 
