@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# Unreleased
+
+## Fixed
+- Fixed browser "Leave page?" popup appearing at the end of Lucid experiments when redirecting to the recruiter. Added `skip_beforeunload` attribute to Page classes and set it to `True` on `ExecuteFrontEndJS` (author: Frank Höger)
+
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
 ## Fixed
