@@ -40,8 +40,8 @@
   e.g. 'net' would retrieve the 'psynet' package).
 - Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
 - md5 hashing now correctly ignores files whose names begin with `.` (e.g. `.DS_Store`)
-- Fixed `linspace` to handle single-length requests without division by zero.
-- Fixed `dict_to_js_vars` to serialize quotes safely and handle empty inputs.
+- Fixed `linspace` to handle single-length requests without division by zero (author: Cursor Agent, reviewer: Peter Harrison).
+- Fixed `dict_to_js_vars` to serialize quotes safely and handle empty inputs (author: Cursor Agent, reviewer: Peter Harrison).
 - Fixed bug in command-line argument validation that prevented users from accessing the
   one-app-per-server deployment route.
 - Fixed bug in the propagation of the `--update` argument to the Dallinger CLI.
