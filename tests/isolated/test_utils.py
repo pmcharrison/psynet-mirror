@@ -2,7 +2,7 @@ import logging
 import os
 import subprocess
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import isnan
 from unittest.mock import patch
 
@@ -14,6 +14,7 @@ from psynet.utils import (
     DuplicateKeyError,
     check_todos_before_deployment,
     corr,
+    format_timedelta,
     get_authenticated_session,
     get_folder_size_mb,
     get_package_name,
@@ -51,6 +52,20 @@ def test_make_dirs():
 def test_linspace():
     assert linspace(0, 5, 6) == [0, 1, 2, 3, 4, 5]
     assert linspace(-1, 1, 5) == [-1, -0.5, 0, 0.5, 1]
+
+
+@pytest.mark.parametrize(
+    ("delta", "expected"),
+    [
+        (timedelta(seconds=0), "0 seconds"),
+        (timedelta(seconds=60), "1 minute"),
+        (timedelta(hours=1), "1 hour"),
+        (timedelta(days=1), "1 day"),
+        (timedelta(seconds=61), "1 minute, 1 second"),
+    ],
+)
+def test_format_timedelta(delta, expected):
+    assert format_timedelta(delta) == expected
 
 
 def test_merge_dicts():
