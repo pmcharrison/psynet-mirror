@@ -4,7 +4,7 @@ import pytest
 
 from psynet.experiment import import_local_experiment
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.utils import _get_translator_called_within_psynet
+from psynet.utils import _get_translator_called_within_psynet, get_translator
 
 
 def test_get_translator_within_psynet():
@@ -22,3 +22,10 @@ def test_get_translator_within_experiment():
     experiment_module = import_local_experiment()["module"]
     translator = experiment_module._
     assert translator.namespace == "experiment"
+
+
+def test_get_translator_missing_locale_falls_back():
+    _ = get_translator(locale="zz", namespace="psynet")
+    assert _.namespace == "psynet"
+    assert _.locale == "zz"
+    assert _("Hello") == "Hello"

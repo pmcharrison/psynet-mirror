@@ -828,6 +828,15 @@ def get_translator(
         if locales_dir is None:
             locales_dir = get_locales_dir(namespace)
 
+        po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")
+        if not exists(po_path):
+            logger.warning(
+                "No translations found for locale '%s' (namespace '%s'); using default text.",
+                locale,
+                namespace,
+            )
+            return null_translator, null_translator_with_context
+
         compile_mo_file_if_necessary(locales_dir, locale, namespace)
 
         translator = gettext.translation(namespace, locales_dir, [locale])
@@ -836,7 +845,6 @@ def get_translator(
             REGISTERED_TRANSLATIONS[namespace] = {}
 
         if locale not in REGISTERED_TRANSLATIONS[namespace]:
-            po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")
             po = load_po(po_path)
             keys = []
             for entry in po:
