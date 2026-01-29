@@ -16,6 +16,7 @@
 - Deprecated Docker installation route in favor of the standard virtual environment method (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Fixed
+- Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep)
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
 - Included `tests/isolated/translation/` directory in CI test runs (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed `CI` environment variable not being passed to Docker container in CI, causing `@local_only` tests to run incorrectly (author: Frank Höger, reviewer: Peter Harrison)

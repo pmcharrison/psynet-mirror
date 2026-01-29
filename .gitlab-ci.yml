@@ -54,8 +54,11 @@ changelog_check:
   script:
     - |
       git fetch --quiet origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-      CHANGED_FILES=$(git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...$CI_COMMIT_SHA)
-      if ! echo "$CHANGED_FILES" | grep -q 'CHANGELOG.md'; then
+      MERGE_BASE=$(git merge-base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD)
+      git diff --name-only $MERGE_BASE HEAD > /tmp/changed_files.txt
+      if grep -q '^CHANGELOG.md$' /tmp/changed_files.txt; then
+        echo "CHANGELOG.md found in changed files."
+      else
         echo "ERROR: Merge requests must include a corresponding entry in CHANGELOG.md."
         exit 1
       fi
