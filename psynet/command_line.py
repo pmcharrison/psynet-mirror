@@ -198,6 +198,7 @@ def _prepare(archive=None):
 
 
 def _experiment_variables(connection, echo=False):
+    cursor = None
     try:
         cursor = connection.cursor()
         cursor.execute("SELECT vars FROM experiment")
@@ -220,7 +221,8 @@ def _experiment_variables(connection, echo=False):
             "launched yet, or it could mean that the experiment is using an incompatible version of PsyNet."
         )
     finally:
-        cursor.close()
+        if cursor is not None:
+            cursor.close()
 
 
 # Experiment variables ####
