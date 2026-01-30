@@ -15,6 +15,7 @@ from psynet.utils import (
     check_todos_before_deployment,
     corr,
     format_timedelta,
+    dict_to_js_vars,
     get_authenticated_session,
     get_folder_size_mb,
     get_package_name,
@@ -52,6 +53,16 @@ def test_make_dirs():
 def test_linspace():
     assert linspace(0, 5, 6) == [0, 1, 2, 3, 4, 5]
     assert linspace(-1, 1, 5) == [-1, -0.5, 0, 0.5, 1]
+    assert linspace(2, 5, 1) == [2]
+
+
+def test_dict_to_js_vars_handles_quotes():
+    js_vars = {"message": "Bob's bike"}
+    assert dict_to_js_vars(js_vars) == 'var message = "Bob\'s bike"; '
+
+
+def test_dict_to_js_vars_empty():
+    assert dict_to_js_vars({}) == ""
 
 
 def test_merge_dicts():
