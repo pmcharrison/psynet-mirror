@@ -1606,6 +1606,7 @@ def get_fitting_font_size(
 
     font_size = min_font_size  # Start with the smallest font size
     draw = ImageDraw.Draw(Image.new("RGB", (max_width, max_height)))
+    last_fitting_size = None
 
     # Increase font size until it exceeds the boundaries
     while True:
@@ -1614,7 +1615,10 @@ def get_fitting_font_size(
             2:
         ]  # Get width & height
         if text_width > max_width or text_height > max_height:
-            return font_size
+            if last_fitting_size is None:
+                return min_font_size
+            return last_fitting_size
+        last_fitting_size = font_size
         if font_size >= max_font_size:
             return max_font_size
         font_size += 1

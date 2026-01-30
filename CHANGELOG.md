@@ -71,6 +71,7 @@
 - Fixed bug that was causing `get_hardware_status` to fail.
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
 - Fixed `format_timedelta` to return meaningful output for zero and negative durations (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_fitting_font_size` to return the last size that fits within bounds rather than the first size that overflows (author: Cursor, reviewer: Peter Harrison)
 
 ## Removed
 - Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
