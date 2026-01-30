@@ -768,7 +768,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             call_function_with_context(
                 routine.function,
                 participant=self,
-                experiment=self,
+                experiment=exp,
             )
 
         super().fail(reason=reason)

@@ -161,7 +161,7 @@ class CompressedTimbre(ADSRTimbre):
 class StretchedTimbre(ADSRTimbre):
     """
     This is like the :class:`~psynet.js_synth.HarmonicTimbre`, except with the frequencies stretched slightly,
-    such that the octave corresponds to a frequency ratio of 2.0 rather than 1.9.
+    such that the octave corresponds to a frequency ratio of 2.1 rather than 2.0.
 
     Parameters
     ----------

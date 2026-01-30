@@ -155,7 +155,7 @@ class Notifier:
             return
         redis_vars.set(f"last_{resource_type}_{level}", datetime.now())
         msg += self._get_resource_message(resource_type)
-        if resource_type in ["memory", "cpu"]:
+        if resource_type in ["ram", "cpu"]:
             msg += self._get_worker_processes_message(resource_type)
         self.notify(msg)
 
@@ -205,7 +205,7 @@ class Notifier:
             process_name = (
                 f"{proc.name()} ({pid}) running for {format_timedelta(running_since)}"
             )
-            if resource_type == "memory":
+            if resource_type == "ram":
                 mem_pct = proc.memory_info().rss / psutil.virtual_memory().total * 100
                 mem_mb = format_bytes(proc.memory_info().rss)
                 return f"\n- {process_name} is using {mem_mb} ({mem_pct:.1f}%)"

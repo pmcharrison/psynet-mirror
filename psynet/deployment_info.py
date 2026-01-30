@@ -12,7 +12,7 @@ path = ".deploy/deployment_info.json"
 
 def init(
     redeploying_from_archive: bool,
-    mode: bool,
+    mode: str,
     is_local_deployment: bool,
     is_ssh_deployment: bool,
     server: str,

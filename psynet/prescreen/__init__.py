@@ -324,7 +324,7 @@ class NumpySerializer(json.JSONEncoder):
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, np.bool_):
-            return super().encode(bool(obj))
+            return bool(obj)
         else:
             return super().default(obj)
 

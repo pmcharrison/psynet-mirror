@@ -780,7 +780,8 @@ class SVGLogo:
             + svg[end_svg:]
         )
         if self.url is not None:
-            svg = svg.replace("<svg", f'<svg onclick="window.open("{self.url}")"')
+            svg = svg.replace("<svg", f"<svg onclick=\"window.open('{self.url}')\"")
+
         return svg
 
 

@@ -31,6 +31,23 @@
 
 ## Fixed
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
+- Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect Sphinx cross-reference in `MediaImitationChainTrial` docstring missing the `record` module in the path (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect Sphinx cross-references in `AudioImitationChainTrial` and `CameraImitationChainTrial` docstrings pointing to non-existent `audio_imitation_chain` and `video_imitation_chain` modules (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect type hint `mode: bool` in `deployment_info.init` that should be `mode: str` since mode values are strings like "debug", "sandbox", "live" (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect property name `self.job` in `WorkerAsyncProcess.cancel` that should be `self.redis_job`, which would cause an `AttributeError` when trying to cancel an async process (author: Cursor, reviewer: Peter Harrison)
+- Fixed resource type mismatch in `Notifier` where `"memory"` was used instead of `"ram"`, causing worker process info to be missing from RAM usage notifications (author: Cursor, reviewer: Peter Harrison)
+- Fixed indentation bug in `GroupBarrier.choose_who_to_release` where only the last participant was added to release list instead of all participants when group is below minimum size (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect octave ratio in `StretchedTimbre` docstring: should be 2.1 rather than 2.0, not 2.0 rather than 1.9 (author: Cursor, reviewer: Peter Harrison)
+- Fixed missing f-string prefix in `LucidService.remove_default_qualifications_from_survey` error message, causing literal `{response.status_code}` instead of actual values (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect Sphinx cross-references in `MediaImitationChainNode` and `CameraImitationChainNode` docstrings pointing to wrong module paths (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect `super().encode()` call in `NumpySerializer.default` for `np.bool_` types; should return `bool(obj)` like other numpy types (author: Cursor, reviewer: Peter Harrison)
+- Fixed `Participant.fail` passing wrong argument to fail routines where `experiment=self` should have been `experiment=exp` (author: Cursor, reviewer: Peter Harrison)
+- Fixed quote escaping issue in `SVGLogo.html` where nested double quotes in `onclick` handler produced invalid HTML (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect use of `os.path.remove` instead of `os.remove` in `RecordTrial.async_post_trial` (author: Cursor, reviewer: Peter Harrison)
+- Fixed Unicode typo in `UnityPage` docstring where `Ín` used an accented character instead of ASCII `In` (author: Cursor, reviewer: Peter Harrison)
+- Fixed Unicode typo in `HouseholdIncomePerYear` demography page where `ĺess_than_10000` used a special character instead of ASCII `less_than_10000` (author: Cursor, reviewer: Peter Harrison)
+- Fixed missing `@classmethod` decorator on `_PythonList.serialize` and `_PythonDict.serialize` methods in `psynet/field.py` (author: Cursor, reviewer: Peter Harrison)
 - Fixed `get_package_name` to read metadata from the provided path (author: Cursor, reviewer: Peter Harrison)
 - Fixed bug in `VocabTrial.show_feedback` where `self.show_feedback` (the method) was checked instead of `self.trial_maker.show_feedback` (the boolean attribute), causing feedback to be shown even when disabled (author: Cursor, reviewer: Peter Harrison).
 - Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.

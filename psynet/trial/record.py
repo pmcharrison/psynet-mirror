@@ -106,7 +106,7 @@ class RecordTrial:
                 ):
                     self.upload_plot(temp_plot.name, async_=True)
                 else:
-                    os.path.remove(temp_plot.name)
+                    os.remove(temp_plot.name)
                 try:
                     if self.analysis["failed"]:
                         self.fail(reason="analysis")
@@ -165,7 +165,7 @@ class MediaImitationChainTrial(RecordTrial, ImitationChainTrial):
     """
     A Trial class for media imitation chains.
     The user must override
-    :meth:`~psynet.trial.MediaImitationChainTrial.analyze_recording`.
+    :meth:`~psynet.trial.record.RecordTrial.analyze_recording`.
     """
 
     __extra_vars__ = {
@@ -178,7 +178,7 @@ class MediaImitationChainNode(ImitationChainNode):
     """
     A Node class for media imitation chains.
     Users must override the
-    :meth:`~psynet.trial.audio.MediaImitationChainNode.synthesize_target` method.
+    :meth:`~psynet.trial.record.MediaImitationChainNode.synthesize_target` method.
     """
 
     __extra_vars__ = ImitationChainNode.__extra_vars__.copy()

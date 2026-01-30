@@ -432,7 +432,7 @@ class WorkerAsyncProcess(AsyncProcess):
         self.cancelled = True
         self.pending = False
         self.fail("Cancelled asynchronous process")
-        self.job.cancel()
+        self.redis_job.cancel()
         db.session.commit()
 
     # @classmethod

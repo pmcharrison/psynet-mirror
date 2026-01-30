@@ -62,7 +62,8 @@ class PythonObject(TypeDecorator):
 
 
 class _PythonList(PythonObject):
-    def serialize(self, value):
+    @classmethod
+    def serialize(cls, value):
         return super().serialize(list(value))
 
 
@@ -496,6 +497,7 @@ def json_format_vars(x):
 class _PythonDict(PythonObject):
     cache_ok = True
 
+    @classmethod
     def serialize(cls, value):
         return super().serialize(dict(value))
 

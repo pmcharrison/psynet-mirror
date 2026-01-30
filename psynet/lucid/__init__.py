@@ -213,7 +213,7 @@ class LucidService(object):
             if not response.ok:
                 handle_and_raise_recruitment_error(
                     LucidServiceException(
-                        "LUCID: Error removing default qualifications. Status returned: {response.status_code}, reason: {response.reason}"
+                        f"LUCID: Error removing default qualifications. Status returned: {response.status_code}, reason: {response.reason}"
                     )
                 )
 
