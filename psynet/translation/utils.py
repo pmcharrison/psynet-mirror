@@ -252,19 +252,6 @@ def remove_line_numbers(po):
     return po
 
 
-def remove_unused_translations_po(pot_entries, po):
-    """Remove translations which don't occur in the pot file."""
-    po_entries = po_to_dict(po)
-    entries = []
-    for key, pot_entry in pot_entries.items():
-        po_entry = po_entries[key]
-        po_entry.comment = pot_entry.comment
-        entries.append(po_entry)
-    po.clear()
-    po.extend(entries)
-    return po
-
-
 def po_to_dict(po):
     """Convert a po file to a dictionary. Keys are (msgid, msgctxt) tuples. Makes sure there are no duplicates."""
     entries_dict = OrderedDict()
