@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed `get_package_name` to read metadata from the provided path (author: Cursor, reviewer: Peter Harrison)
 - Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
 - Removed unused method `generate_asset_key`.
