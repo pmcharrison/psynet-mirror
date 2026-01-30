@@ -280,8 +280,6 @@ def linspace(lower, upper, length: int):
     length : int
         The length of the resulting list.
     """
-    if length == 1:
-        return [lower]
     return [lower + x * (upper - lower) / (length - 1) for x in range(length)]
 
 
