@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed Unicode typo in `HouseholdIncomePerYear` demography page where `ĺess_than_10000` used a special character instead of ASCII `less_than_10000` (author: Cursor, reviewer: Peter Harrison)
 - Fixed missing `@classmethod` decorator on `_PythonList.serialize` and `_PythonDict.serialize` methods in `psynet/field.py` (author: Cursor, reviewer: Peter Harrison)
 - Fixed `get_package_name` to read metadata from the provided path (author: Cursor, reviewer: Peter Harrison)
 - Fixed bug in `VocabTrial.show_feedback` where `self.show_feedback` (the method) was checked instead of `self.trial_maker.show_feedback` (the boolean attribute), causing feedback to be shown even when disabled (author: Cursor, reviewer: Peter Harrison).
