@@ -1550,6 +1550,8 @@ def get_package_source_directory(path="."):
                 .get("find", {})
                 .get("where")
             )
+            if isinstance(packages_dir, (list, tuple)):
+                packages_dir = packages_dir[0] if packages_dir else None
             if packages_dir:
                 return packages_dir
 

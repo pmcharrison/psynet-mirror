@@ -359,6 +359,19 @@ def test_get_psynet_package_source_directory():
         assert os.path.isdir(source_dir)
 
 
+def test_get_package_source_directory_setuptools_where_list(tmp_path):
+    (tmp_path / "src").mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "test-package"
+[tool.setuptools.packages.find]
+where = ["src"]
+"""
+    )
+    assert get_package_source_directory(tmp_path) == "src"
+
+
 # def test_get_package_name(temp_package_dir):
 #     # Test with pyproject.toml
 #     with open("pyproject.toml", "w") as f:
