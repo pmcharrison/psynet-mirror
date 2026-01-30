@@ -165,7 +165,7 @@ class MediaImitationChainTrial(RecordTrial, ImitationChainTrial):
     """
     A Trial class for media imitation chains.
     The user must override
-    :meth:`~psynet.trial.MediaImitationChainTrial.analyze_recording`.
+    :meth:`~psynet.trial.record.RecordTrial.analyze_recording`.
     """
 
     __extra_vars__ = {
