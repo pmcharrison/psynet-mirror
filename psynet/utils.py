@@ -1634,7 +1634,7 @@ def format_timedelta(timedelta_obj):
 
     strings = []
     for period_name, period_seconds in periods:
-        if seconds > period_seconds:
+        if seconds >= period_seconds:
             period_value, seconds = divmod(seconds, period_seconds)
             has_s = "s" if period_value > 1 else ""
             strings.append("%s %s%s" % (period_value, period_name, has_s))

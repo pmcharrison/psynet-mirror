@@ -48,6 +48,7 @@
 - Fixed bug that was causing `get_hardware_status` to fail.
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
 - Fixed `linspace` to handle single-point ranges without a division by zero.
+- Fixed `format_timedelta` to return meaningful output for one-second durations.
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
