@@ -33,7 +33,7 @@ class CameraImitationChainTrial(CameraRecordTrial, MediaImitationChainTrial):
     A Trial class for camera imitation chains.
     The user must override
     :meth:`~psynet.trial.record.RecordTrial.analyze_recording` and
-    :meth:`~psynet.trial.main.TrialTrial.show_trial`.
+    :meth:`~psynet.trial.main.Trial.show_trial`.
     """
 
     pass
