@@ -2,7 +2,7 @@ import logging
 import os
 import subprocess
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import isnan
 from unittest.mock import patch
 
@@ -15,6 +15,7 @@ from psynet.utils import (
     check_todos_before_deployment,
     corr,
     dict_to_js_vars,
+    format_timedelta,
     get_authenticated_session,
     get_folder_size_mb,
     get_package_name,
@@ -89,6 +90,25 @@ def test_corr():
     x = [1, 1]
     y = [1, 1]
     assert isnan(corr(x, y))
+
+
+@pytest.mark.parametrize(
+    ("delta", "expected"),
+    [
+        (timedelta(seconds=1), "1 second"),
+        (timedelta(seconds=0), "0 seconds"),
+        (timedelta(seconds=-1), "-1 second"),
+        (timedelta(minutes=1), "1 minute"),
+        (timedelta(minutes=2, seconds=5), "2 minutes, 5 seconds"),
+        (timedelta(hours=1), "1 hour"),
+        (timedelta(hours=3, minutes=2), "3 hours, 2 minutes"),
+        (timedelta(days=1), "1 day"),
+        (timedelta(days=1, hours=1), "1 day, 1 hour"),
+        (timedelta(hours=-2, minutes=-5), "-2 hours, 5 minutes"),
+    ],
+)
+def test_format_timedelta(delta, expected):
+    assert format_timedelta(delta) == expected
 
 
 @patch("psynet.timeline.Module.started_and_finished_times")
