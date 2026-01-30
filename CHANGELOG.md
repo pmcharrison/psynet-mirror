@@ -49,7 +49,7 @@
 - Fixed bug in version consistency check when using a development version of PsyNet.
 - Fixed bug that was causing `get_hardware_status` to fail.
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
-- Fixed `format_timedelta` to return meaningful output for zero and negative durations.
+- Fixed `format_timedelta` to return meaningful output for zero and negative durations (author: Cursor, reviewer: Peter Harrison)
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
