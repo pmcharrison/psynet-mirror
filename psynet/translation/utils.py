@@ -3,7 +3,6 @@ import re
 import sys
 import tempfile
 import time
-from copy import copy
 from typing import OrderedDict
 
 import pexpect
@@ -250,22 +249,6 @@ def remove_line_numbers(po):
 
         # Store file paths without line numbers
         entry.occurrences = [(path, None) for path in paths]
-    return po
-
-
-def remove_unused_translations_po(pot_entries, po):
-    """Remove translations which don't occur in the pot file."""
-    po_entries = po_to_dict(po)
-    entries = []
-    for key, pot_entry in pot_entries.items():
-        po_entry = po_entries.get(key)
-        if po_entry is None:
-            po_entry = copy(pot_entry)
-            po_entry.msgstr = ""
-        po_entry.comment = pot_entry.comment
-        entries.append(po_entry)
-    po.clear()
-    po.extend(entries)
     return po
 
 

@@ -30,7 +30,6 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
-- Fixed translation PO merging to preserve existing entries while adding new template strings (author: Cursor, reviewer: Peter Harrison)
 - Fixed `get_package_name` to read metadata from the provided path (author: Cursor, reviewer: Peter Harrison)
 - Fixed bug in `VocabTrial.show_feedback` where `self.show_feedback` (the method) was checked instead of `self.trial_maker.show_feedback` (the boolean attribute), causing feedback to be shown even when disabled (author: Cursor, reviewer: Peter Harrison).
 - Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.
@@ -53,6 +52,10 @@
 - Fixed bug in version consistency check when using a development version of PsyNet.
 - Fixed bug that was causing `get_hardware_status` to fail.
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
+
+## Removed
+- Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `assert_all_variables_defined` helper from translation checks (author: Cursor, reviewer: Peter Harrison)
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)

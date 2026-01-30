@@ -105,15 +105,6 @@ def assert_variable_names_match(pot_entries, po_entries):
         )
 
 
-def assert_all_variables_defined(extracted_variables, variable_placeholders):
-    for variable_name in extracted_variables:
-        assert variable_name in variable_placeholders, (
-            f"Variable {variable_name} is not defined in VARIABLE_PLACEHOLDERS. "
-            f"Specify all expected variables ({extracted_variables}) in Experiment.variable_placeholders = {{}}."
-        )
-    return True
-
-
 def assert_no_missing_translations(po_entries, pot_entries, locale):
     """Check that all translations which are defined in the POT file are also present in the po file"""
 
