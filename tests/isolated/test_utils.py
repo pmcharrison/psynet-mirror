@@ -81,16 +81,23 @@ def test_corr():
     assert isnan(corr(x, y))
 
 
-def test_format_timedelta_single_second():
-    assert format_timedelta(timedelta(seconds=1)) == "1 second"
-
-
-def test_format_timedelta_zero_seconds():
-    assert format_timedelta(timedelta(seconds=0)) == "0 seconds"
-
-
-def test_format_timedelta_negative_seconds():
-    assert format_timedelta(timedelta(seconds=-1)) == "-1 second"
+@pytest.mark.parametrize(
+    ("delta", "expected"),
+    [
+        (timedelta(seconds=1), "1 second"),
+        (timedelta(seconds=0), "0 seconds"),
+        (timedelta(seconds=-1), "-1 second"),
+        (timedelta(minutes=1), "1 minute"),
+        (timedelta(minutes=2, seconds=5), "2 minutes, 5 seconds"),
+        (timedelta(hours=1), "1 hour"),
+        (timedelta(hours=3, minutes=2), "3 hours, 2 minutes"),
+        (timedelta(days=1), "1 day"),
+        (timedelta(days=1, hours=1), "1 day, 1 hour"),
+        (timedelta(hours=-2, minutes=-5), "-2 hours, 5 minutes"),
+    ],
+)
+def test_format_timedelta(delta, expected):
+    assert format_timedelta(delta) == expected
 
 
 @patch("psynet.timeline.Module.started_and_finished_times")
