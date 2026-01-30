@@ -85,6 +85,14 @@ def test_format_timedelta_single_second():
     assert format_timedelta(timedelta(seconds=1)) == "1 second"
 
 
+def test_format_timedelta_zero_seconds():
+    assert format_timedelta(timedelta(seconds=0)) == "0 seconds"
+
+
+def test_format_timedelta_negative_seconds():
+    assert format_timedelta(timedelta(seconds=-1)) == "-1 second"
+
+
 @patch("psynet.timeline.Module.started_and_finished_times")
 def test_median_finish_time_in_s(mock_started_and_finished_times):
     started_and_finished_times = [
