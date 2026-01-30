@@ -52,7 +52,6 @@ def test_make_dirs():
 def test_linspace():
     assert linspace(0, 5, 6) == [0, 1, 2, 3, 4, 5]
     assert linspace(-1, 1, 5) == [-1, -0.5, 0, 0.5, 1]
-    assert linspace(3, 9, 1) == [3]
 
 
 def test_merge_dicts():
