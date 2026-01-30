@@ -426,7 +426,7 @@ class SliderCopyTrial(SingleStimulusTrial):
     slider_start_value
         The (randomly generated) starting value of the slider.
 
-    The class contains a built-in ``:meth:`~psynet.trial.main.SliderCopyTrial.score_answer`` method
+    The class contains a built-in :meth:`~psynet.trial.dense.SliderCopyTrial.score_answer` method
     which returns the absolute distance between the true stimulus location and the stimulus location
     chosen by the participant. The resulting score is stored in the trial's ``score`` attribute,
     and can be used for performance rewards.
