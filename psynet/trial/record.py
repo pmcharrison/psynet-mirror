@@ -178,7 +178,7 @@ class MediaImitationChainNode(ImitationChainNode):
     """
     A Node class for media imitation chains.
     Users must override the
-    :meth:`~psynet.trial.audio.MediaImitationChainNode.synthesize_target` method.
+    :meth:`~psynet.trial.record.MediaImitationChainNode.synthesize_target` method.
     """
 
     __extra_vars__ = ImitationChainNode.__extra_vars__.copy()

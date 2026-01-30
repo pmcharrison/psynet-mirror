@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed incorrect Sphinx cross-references in `MediaImitationChainNode` and `CameraImitationChainNode` docstrings pointing to wrong module paths (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect `super().encode()` call in `NumpySerializer.default` for `np.bool_` types; should return `bool(obj)` like other numpy types (author: Cursor, reviewer: Peter Harrison)
 - Fixed `Participant.fail` passing wrong argument to fail routines where `experiment=self` should have been `experiment=exp` (author: Cursor, reviewer: Peter Harrison)
 - Fixed quote escaping issue in `SVGLogo.html` where nested double quotes in `onclick` handler produced invalid HTML (author: Cursor, reviewer: Peter Harrison)

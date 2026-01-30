@@ -43,7 +43,7 @@ class CameraImitationChainNode(MediaImitationChainNode):
     """
     A Node class for camera imitation chains.
     Users must override the
-    :meth:`~psynet.trial.audio.VideoImitationChainNode.synthesize_target` method.
+    :meth:`~psynet.trial.record.MediaImitationChainNode.synthesize_target` method.
     """
 
     media_extension = ".webm"
