@@ -2,7 +2,7 @@ import logging
 import os
 import subprocess
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import isnan
 from unittest.mock import patch
 
@@ -14,6 +14,7 @@ from psynet.utils import (
     DuplicateKeyError,
     check_todos_before_deployment,
     corr,
+    format_timedelta,
     get_authenticated_session,
     get_folder_size_mb,
     get_package_name,
@@ -79,6 +80,10 @@ def test_corr():
     x = [1, 1]
     y = [1, 1]
     assert isnan(corr(x, y))
+
+
+def test_format_timedelta_single_second():
+    assert format_timedelta(timedelta(seconds=1)) == "1 second"
 
 
 @patch("psynet.timeline.Module.started_and_finished_times")
