@@ -1685,7 +1685,7 @@ def get_experiment_url(app=None, server=None):
 
 def generate_text_file(path, text="Lorem ipsum"):
     with open(path, "w") as file:
-        file.write("Lorem ipsum")
+        file.write(text)
 
 
 def git_repository_available():
