@@ -15,6 +15,7 @@ from psynet.utils import (
     check_todos_before_deployment,
     corr,
     dict_to_js_vars,
+    generate_text_file,
     get_authenticated_session,
     get_folder_size_mb,
     get_package_name,
@@ -47,6 +48,14 @@ def test_make_dirs():
             file.write("Test")
 
         assert make_parents(path) == path
+
+
+def test_generate_text_file_uses_custom_text(tmp_path):
+    target = tmp_path / "custom.txt"
+
+    generate_text_file(target, text="Custom contents")
+
+    assert target.read_text() == "Custom contents"
 
 
 def test_linspace():
