@@ -339,7 +339,7 @@ class VocabTrial(StaticTrial):
             return self.show_text_trial()
 
     def show_feedback(self, experiment, participant):
-        if not self.show_feedback or self.score is None:
+        if not self.trial_maker.show_feedback or self.score is None:
             return None
         prompt = _("Your score was") + f" {self.score:.0%}. "
         prompt += _("Press the button to continue.")
