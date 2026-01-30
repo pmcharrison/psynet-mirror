@@ -1406,8 +1406,22 @@ def is_a_package(path):
 
 def get_package_name(path="."):
     """
-    Finds the name of the package by introspecting the current working directory.
-    Assumes that either setup.py or pyproject.toml is present.
+    Find the package name by inspecting a directory.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to the directory containing ``pyproject.toml`` or ``setup.py``.
+
+    Returns
+    -------
+    str
+        The package name from the configuration file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If neither ``pyproject.toml`` nor ``setup.py`` is present in ``path``.
     """
     path = Path(path)
     if (path / "pyproject.toml").exists():
