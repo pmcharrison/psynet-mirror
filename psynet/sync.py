@@ -286,7 +286,7 @@ class GroupBarrier(Barrier):
                 if not group.accepts_top_ups:
                     for participant in group.active_participants:
                         participant.fail("sync group below minimum size")
-                    participants_to_release.append(participant)
+                        participants_to_release.append(participant)
                 continue
 
             all_participants_present = all(
