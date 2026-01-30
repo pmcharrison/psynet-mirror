@@ -73,7 +73,7 @@ class UnityPage(Page):
     """
     This is the main page when conducting Unity experiments. Its attributes ``contents`` and ``attributes`` can be accessed through the JavaScript variable ``psynet.page`` inside the page template.
 
-    Ín order to conclude this page call the ``psynet.nextPage`` function which has following parameters:
+    In order to conclude this page call the ``psynet.nextPage`` function which has following parameters:
 
     * ``rawAnswer``: The main answer that the page returns.
 
