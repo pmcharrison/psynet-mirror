@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed `Participant.fail` passing wrong argument to fail routines where `experiment=self` should have been `experiment=exp` (author: Cursor, reviewer: Peter Harrison)
 - Fixed quote escaping issue in `SVGLogo.html` where nested double quotes in `onclick` handler produced invalid HTML (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect use of `os.path.remove` instead of `os.remove` in `RecordTrial.async_post_trial` (author: Cursor, reviewer: Peter Harrison)
 - Fixed Unicode typo in `UnityPage` docstring where `Ín` used an accented character instead of ASCII `In` (author: Cursor, reviewer: Peter Harrison)
