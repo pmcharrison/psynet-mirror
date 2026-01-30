@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed missing f-string prefix in `LucidService.remove_default_qualifications_from_survey` error message, causing literal `{response.status_code}` instead of actual values (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect Sphinx cross-references in `MediaImitationChainNode` and `CameraImitationChainNode` docstrings pointing to wrong module paths (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect `super().encode()` call in `NumpySerializer.default` for `np.bool_` types; should return `bool(obj)` like other numpy types (author: Cursor, reviewer: Peter Harrison)
 - Fixed `Participant.fail` passing wrong argument to fail routines where `experiment=self` should have been `experiment=exp` (author: Cursor, reviewer: Peter Harrison)
