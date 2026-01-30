@@ -62,6 +62,8 @@ def test_linspace():
         (timedelta(hours=1), "1 hour"),
         (timedelta(days=1), "1 day"),
         (timedelta(seconds=61), "1 minute, 1 second"),
+        (timedelta(seconds=-1), "-1 second"),
+        (timedelta(seconds=-61), "-1 minute, 1 second"),
     ],
 )
 def test_format_timedelta(delta, expected):

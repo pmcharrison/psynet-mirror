@@ -1620,8 +1620,13 @@ def format_timedelta(timedelta_obj):
     Formats a timedelta object as a human-readable string.
     Source: https://stackoverflow.com/questions/538666/format-timedelta-to-string
     """
-    seconds = int(timedelta_obj.total_seconds())
-    if seconds <= 0:
+    total_seconds = timedelta_obj.total_seconds()
+    if total_seconds == 0:
+        return "0 seconds"
+
+    sign = "-" if total_seconds < 0 else ""
+    seconds = int(abs(total_seconds))
+    if seconds == 0:
         return "0 seconds"
 
     periods = [
@@ -1640,7 +1645,7 @@ def format_timedelta(timedelta_obj):
             has_s = "s" if period_value > 1 else ""
             strings.append("%s %s%s" % (period_value, period_name, has_s))
 
-    return ", ".join(strings)
+    return f"{sign}{', '.join(strings)}"
 
 
 def get_experiment_url(app=None, server=None):
