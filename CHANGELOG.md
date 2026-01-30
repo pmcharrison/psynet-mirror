@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed incorrect type hint `mode: bool` in `deployment_info.init` that should be `mode: str` since mode values are strings like "debug", "sandbox", "live" (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect property name `self.job` in `WorkerAsyncProcess.cancel` that should be `self.redis_job`, which would cause an `AttributeError` when trying to cancel an async process (author: Cursor, reviewer: Peter Harrison)
 - Fixed resource type mismatch in `Notifier` where `"memory"` was used instead of `"ram"`, causing worker process info to be missing from RAM usage notifications (author: Cursor, reviewer: Peter Harrison)
 - Fixed indentation bug in `GroupBarrier.choose_who_to_release` where only the last participant was added to release list instead of all participants when group is below minimum size (author: Cursor, reviewer: Peter Harrison)
