@@ -106,7 +106,7 @@ class RecordTrial:
                 ):
                     self.upload_plot(temp_plot.name, async_=True)
                 else:
-                    os.path.remove(temp_plot.name)
+                    os.remove(temp_plot.name)
                 try:
                     if self.analysis["failed"]:
                         self.fail(reason="analysis")

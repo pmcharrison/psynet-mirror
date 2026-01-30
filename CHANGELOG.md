@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed incorrect use of `os.path.remove` instead of `os.remove` in `RecordTrial.async_post_trial` (author: Cursor, reviewer: Peter Harrison)
 - Fixed Unicode typo in `UnityPage` docstring where `Ín` used an accented character instead of ASCII `In` (author: Cursor, reviewer: Peter Harrison)
 - Fixed Unicode typo in `HouseholdIncomePerYear` demography page where `ĺess_than_10000` used a special character instead of ASCII `less_than_10000` (author: Cursor, reviewer: Peter Harrison)
 - Fixed missing `@classmethod` decorator on `_PythonList.serialize` and `_PythonDict.serialize` methods in `psynet/field.py` (author: Cursor, reviewer: Peter Harrison)
