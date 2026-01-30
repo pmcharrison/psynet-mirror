@@ -54,6 +54,10 @@
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
 - Fixed `format_timedelta` to return meaningful output for zero and negative durations (author: Cursor, reviewer: Peter Harrison)
 
+## Removed
+- Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `assert_all_variables_defined` helper from translation checks (author: Cursor, reviewer: Peter Harrison)
+
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed bug where `check_ready_to_spawn` was being called when not available.
