@@ -30,6 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Fixed incorrect octave ratio in `StretchedTimbre` docstring: should be 2.1 rather than 2.0, not 2.0 rather than 1.9 (author: Cursor, reviewer: Peter Harrison)
 - Fixed missing f-string prefix in `LucidService.remove_default_qualifications_from_survey` error message, causing literal `{response.status_code}` instead of actual values (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect Sphinx cross-references in `MediaImitationChainNode` and `CameraImitationChainNode` docstrings pointing to wrong module paths (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect `super().encode()` call in `NumpySerializer.default` for `np.bool_` types; should return `bool(obj)` like other numpy types (author: Cursor, reviewer: Peter Harrison)
