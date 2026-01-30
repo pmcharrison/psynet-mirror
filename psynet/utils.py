@@ -1621,6 +1621,9 @@ def format_timedelta(timedelta_obj):
     Source: https://stackoverflow.com/questions/538666/format-timedelta-to-string
     """
     seconds = int(timedelta_obj.total_seconds())
+    if seconds <= 0:
+        return "0 seconds"
+
     periods = [
         ("year", 60 * 60 * 24 * 365),
         ("month", 60 * 60 * 24 * 30),
@@ -1636,9 +1639,6 @@ def format_timedelta(timedelta_obj):
             period_value, seconds = divmod(seconds, period_seconds)
             has_s = "s" if period_value > 1 else ""
             strings.append("%s %s%s" % (period_value, period_name, has_s))
-
-    if not strings:
-        return "0 seconds"
 
     return ", ".join(strings)
 
