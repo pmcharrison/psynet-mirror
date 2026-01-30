@@ -898,11 +898,12 @@ def get_locales_dir(namespace: str):
 
 
 def get_locales_dir_from_path(path="."):
+    path = Path(path)
 
-    if in_python_package():
-        return Path(get_package_source_directory(path)) / "locales"
-    elif experiment_available():
-        path = Path(path)
+    if is_a_package(path):
+        source_dir = get_package_source_directory(path)
+        return path / source_dir / "locales"
+    elif (path / "experiment.py").exists():
         return path / "locales"
     else:
         raise ValueError("Could not determine the locales directory.")

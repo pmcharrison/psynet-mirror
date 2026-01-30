@@ -19,6 +19,7 @@ from psynet.utils import (
     generate_text_file,
     get_authenticated_session,
     get_folder_size_mb,
+    get_locales_dir_from_path,
     get_package_name,
     get_package_source_directory,
     get_psynet_root,
@@ -357,6 +358,24 @@ def test_get_psynet_package_source_directory():
         source_dir = get_package_source_directory()
         assert source_dir == "psynet"
         assert os.path.isdir(source_dir)
+
+
+def test_get_locales_dir_from_path_uses_given_path(tmp_path):
+    (tmp_path / "src").mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "test-package"
+[tool.setuptools.packages.find]
+where = ["src"]
+"""
+    )
+    expected = tmp_path / "src" / "locales"
+
+    with working_directory(get_psynet_root()):
+        locales_dir = get_locales_dir_from_path(tmp_path)
+
+    assert locales_dir == expected
 
 
 def test_get_package_source_directory_setuptools_where_list(tmp_path):

@@ -73,6 +73,7 @@
 - Fixed `format_timedelta` to return meaningful output for zero and negative durations (author: Cursor, reviewer: Peter Harrison)
 - Fixed `get_fitting_font_size` to return the last size that fits within bounds rather than the first size that overflows (author: Cursor, reviewer: Peter Harrison)
 - Fixed `get_package_source_directory` to handle setuptools `where` lists in pyproject files (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_locales_dir_from_path` to resolve locales relative to the provided path rather than the current working directory (author: Cursor, reviewer: Peter Harrison)
 
 ## Removed
 - Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
