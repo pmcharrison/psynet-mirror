@@ -302,6 +302,17 @@ def test_get_package_name_from_setup(setup_package):
     assert get_package_name() == setup_package
 
 
+def test_get_package_name_from_path(tmp_path):
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "temp-package"
+"""
+    )
+    with working_directory(get_psynet_root()):
+        assert get_package_name(tmp_path) == "temp-package"
+
+
 def test_get_psynet_package_name():
     psynet_root = get_psynet_root()
     with working_directory(psynet_root):

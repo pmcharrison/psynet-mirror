@@ -1408,14 +1408,28 @@ def is_a_package(path):
 
 def get_package_name(path="."):
     """
-    Finds the name of the package by introspecting the current working directory.
-    Assumes that either setup.py or pyproject.toml is present.
+    Find the package name by inspecting a directory.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to the directory containing ``pyproject.toml`` or ``setup.py``.
+
+    Returns
+    -------
+    str
+        The package name from the configuration file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If neither ``pyproject.toml`` nor ``setup.py`` is present in ``path``.
     """
     path = Path(path)
     if (path / "pyproject.toml").exists():
-        return get_package_name_from_pyproject()
+        return get_package_name_from_pyproject(path)
     elif (path / "setup.py").exists():
-        name = get_package_name_from_setup()
+        name = get_package_name_from_setup(path)
         if name is not None:
             return name
     raise FileNotFoundError(
@@ -1423,23 +1437,34 @@ def get_package_name(path="."):
     )
 
 
-def get_package_name_from_pyproject():
+def get_package_name_from_pyproject(path="."):
     """
     Get package name from pyproject.toml file.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to the directory containing pyproject.toml.
 
     Returns
     -------
     str
         The package name from pyproject.toml.
     """
-    with open("pyproject.toml", "r") as f:
+    path = Path(path)
+    with open(path / "pyproject.toml", "r") as f:
         pyproject = tomlkit.parse(f.read())
         return pyproject["project"]["name"]
 
 
-def get_package_name_from_setup():
+def get_package_name_from_setup(path="."):
     """
     Get package name from setup.py file.
+
+    Parameters
+    ----------
+    path : str or Path, optional
+        Path to the directory containing setup.py.
 
     Returns
     -------
@@ -1448,7 +1473,8 @@ def get_package_name_from_setup():
     """
     import ast
 
-    with open("setup.py") as f:
+    path = Path(path)
+    with open(path / "setup.py") as f:
         setup_contents = f.read()
     setup_ast = ast.parse(setup_contents)
     for node in ast.walk(setup_ast):
@@ -1553,7 +1579,7 @@ def get_package_source_directory(path="."):
                                     return ast.literal_eval(keyword.value.values[i])
 
     # Fall back to default locations
-    package_name = get_package_name()
+    package_name = get_package_name(path)
     possible_locations = [
         package_name,
         os.path.join("src", package_name),
