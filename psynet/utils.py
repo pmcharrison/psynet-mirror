@@ -1554,7 +1554,10 @@ def get_package_source_directory(path="."):
             if isinstance(packages_dir, (list, tuple)):
                 packages_dir = packages_dir[0] if packages_dir else None
             if packages_dir:
-                return packages_dir
+                packages_dir = Path(packages_dir)
+                if not packages_dir.is_absolute():
+                    packages_dir = path / packages_dir
+                return str(packages_dir)
 
         # Check for packages-dir in [tool.poetry]
         if "tool" in pyproject and "poetry" in pyproject["tool"]:
@@ -1562,7 +1565,10 @@ def get_package_source_directory(path="."):
                 pyproject["tool"]["poetry"].get("packages", [{}])[0].get("from")
             )
             if packages_dir:
-                return packages_dir
+                packages_dir = Path(packages_dir)
+                if not packages_dir.is_absolute():
+                    packages_dir = path / packages_dir
+                return str(packages_dir)
 
     # Then try setup.py
     if setup_path.exists():
@@ -1579,7 +1585,12 @@ def get_package_source_directory(path="."):
                         if isinstance(keyword.value, ast.Dict):
                             for i, key in enumerate(keyword.value.keys):
                                 if ast.literal_eval(key) == "":
-                                    return ast.literal_eval(keyword.value.values[i])
+                                    packages_dir = Path(
+                                        ast.literal_eval(keyword.value.values[i])
+                                    )
+                                    if not packages_dir.is_absolute():
+                                        packages_dir = path / packages_dir
+                                    return str(packages_dir)
 
     # Fall back to default locations
     package_name = get_package_name(path)
@@ -1590,8 +1601,9 @@ def get_package_source_directory(path="."):
     ]
 
     for location in possible_locations:
-        if os.path.isdir(location):
-            return location
+        candidate = path / location
+        if candidate.is_dir():
+            return str(candidate)
 
     raise FileNotFoundError(
         f"Could not find package source directory for '{package_name}' "

@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 from datetime import datetime, timedelta
 from math import isnan
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -388,7 +389,23 @@ name = "test-package"
 where = ["src"]
 """
     )
-    assert get_package_source_directory(tmp_path) == "src"
+    assert Path(get_package_source_directory(tmp_path)) == tmp_path / "src"
+
+
+def test_get_package_source_directory_respects_path(tmp_path):
+    package_dir = tmp_path / "my_pkg"
+    package_dir.mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "my_pkg"
+"""
+    )
+
+    with working_directory(get_psynet_root()):
+        source_dir = get_package_source_directory(tmp_path)
+
+    assert Path(source_dir) == package_dir
 
 
 # def test_get_package_name(temp_package_dir):
