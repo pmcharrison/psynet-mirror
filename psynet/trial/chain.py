@@ -1763,7 +1763,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 return "exit"
             else:
                 next_block = participant.module_state.block_order[next_block_position]
-                self._sync_block_state(participant, next_block)
+                self.set_block_state(participant, next_block)
 
         # networks = db.session.query(
         #     self.network_class.chain_type,
@@ -1907,14 +1907,14 @@ class ChainTrialMaker(NetworkTrialMaker):
                 f"Advanced from block '{current_block}' to '{chosen.block}' "
                 "because there weren't any spots available in the former."
             )
-            self._sync_block_state(participant, chosen.block)
+            self.set_block_state(participant, chosen.block)
 
         return [chosen]
 
     def prioritize_networks(self, networks, participant, experiment):
         return networks
 
-    def _sync_block_state(self, participant, block):
+    def set_block_state(self, participant, block):
         new_block_position = participant.module_state.block_order.index(block)
         if self.sync_group_type:
             group = participant.active_sync_groups[self.sync_group_type]

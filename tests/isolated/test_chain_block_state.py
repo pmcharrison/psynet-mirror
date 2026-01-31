@@ -51,7 +51,7 @@ def test_sync_block_state_updates_participant():
     state = DummyModuleState(["A", "B", "C"])
     participant = DummyParticipant(state)
 
-    trial_maker._sync_block_state(participant, "C")
+    trial_maker.set_block_state(participant, "C")
 
     assert state.block_position == 2
     assert state.block == "C"
@@ -67,7 +67,7 @@ def test_sync_block_state_updates_sync_group():
     participant_a.active_sync_groups = {"sync": group}
     participant_b.active_sync_groups = {"sync": group}
 
-    trial_maker._sync_block_state(participant_a, "B")
+    trial_maker.set_block_state(participant_a, "B")
 
     assert state_a.block_position == 1
     assert state_b.block_position == 1
