@@ -346,14 +346,6 @@ def corr(x: list, y: list, method="pearson"):
     return float(df.corr(method=method).at["x", "y"])
 
 
-class DisableLogger:
-    def __enter__(self):
-        logging.disable(logging.CRITICAL)
-
-    def __exit__(self, a, b, c):
-        logging.disable(logging.NOTSET)
-
-
 def md5_object(x):
     string = jsonpickle.encode(x).encode("utf-8")
     hashed = hashlib.md5(string)
