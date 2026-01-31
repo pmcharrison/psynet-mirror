@@ -84,6 +84,7 @@
 - Removed unused `assert_all_variables_defined` helper from translation checks (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `import_module` helper from utils (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `get_package_locales_directory` helper from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `pretty_log_dict` and `query_yes_no` helpers from utils (author: Cursor, reviewer: Peter Harrison)
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)

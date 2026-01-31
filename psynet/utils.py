@@ -354,39 +354,6 @@ class DisableLogger:
         logging.disable(logging.NOTSET)
 
 
-def query_yes_no(question, default="yes"):
-    """
-    Ask a yes/no question via input() and return their answer.
-
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is True for "yes" or False for "no".
-    """
-    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        sys.stdout.write(question + prompt)
-        choice = input().lower()
-        if default is not None and choice == "":
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
-
-
 def md5_object(x):
     string = jsonpickle.encode(x).encode("utf-8")
     hashed = hashlib.md5(string)
@@ -562,14 +529,6 @@ def pretty_format_seconds(seconds):
     if seconds_remainder > 0:
         formatted_time += f" {seconds_remainder} sec"
     return formatted_time
-
-
-def pretty_log_dict(dict, spaces_for_indentation=0):
-    return "\n".join(
-        " " * spaces_for_indentation
-        + "{}: {}".format(key, (f'"{value}"' if isinstance(value, str) else value))
-        for key, value in dict.items()
-    )
 
 
 def require_exp_directory(f):
