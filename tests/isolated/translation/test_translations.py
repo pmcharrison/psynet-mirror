@@ -1,10 +1,15 @@
+import polib
 import pytest
 
 from psynet.translation.check import (
     assert_variable_names_match,
+)
+from psynet.translation.check import check_translations as check_translations_internal
+from psynet.translation.check import (
     translation_contains_same_variables,
 )
 from psynet.translation.translate import check_translations
+from psynet.utils import get_psynet_root, working_directory
 
 
 def make_entry(msgid="", msgstr=""):
@@ -149,3 +154,36 @@ class TestTranslationContainsSameVariables:
     def test_format_string_mismatch(self):
         """Test that mismatched format placeholders fail."""
         assert not translation_contains_same_variables("Hello {}", "Bonjour")
+
+
+def test_check_translations_uses_path_namespace(tmp_path):
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "temp_pkg"
+"""
+    )
+    package_dir = tmp_path / "temp_pkg"
+    package_dir.mkdir()
+    locales_dir = package_dir / "locales"
+    po_dir = locales_dir / "fr" / "LC_MESSAGES"
+    po_dir.mkdir(parents=True)
+
+    pot = polib.POFile()
+    pot.append(polib.POEntry(msgid="Hello", msgstr=""))
+    pot.save(locales_dir / "temp_pkg.pot")
+
+    po = polib.POFile()
+    po.append(polib.POEntry(msgid="Hello", msgstr="Bonjour"))
+    po_path = po_dir / "temp_pkg.po"
+
+    with working_directory(get_psynet_root()):
+        with pytest.raises(RuntimeError, match="No translation found for fr"):
+            check_translations_internal(
+                path=tmp_path, locales=["fr"], recreate_pot=False
+            )
+
+    po.save(po_path)
+
+    with working_directory(get_psynet_root()):
+        check_translations_internal(path=tmp_path, locales=["fr"], recreate_pot=False)

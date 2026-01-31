@@ -291,7 +291,7 @@ def check_translations(
 
     if is_a_package(path):
         source_directory = get_package_source_directory(path)
-        namespace = get_package_name()
+        namespace = get_package_name(path)
         if locales is None:
             from .languages import psynet_supported_locales
 
