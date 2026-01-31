@@ -3,6 +3,7 @@
 import logging
 
 import psynet.experiment
+from psynet.asset import asset
 from psynet.page import InfoPage
 from psynet.timeline import Timeline, for_loop
 from psynet.trial.static import StaticTrial
@@ -30,7 +31,10 @@ class Exp(psynet.experiment.Experiment):
         for_loop(
             label="loop over custom trials",
             iterate_over=lambda: range(3),
-            logic=CustomTrial.cue(definition={}),
+            logic=CustomTrial.cue(
+                definition={},
+                assets={"stimulus": asset("static/stimulus.txt")},
+            ),
             time_estimate_per_iteration=10,
         )
     )

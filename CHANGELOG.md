@@ -50,6 +50,7 @@
 - Fixed missing `@classmethod` decorator on `_PythonList.serialize` and `_PythonDict.serialize` methods in `psynet/field.py` (author: Cursor, reviewer: Peter Harrison)
 - Fixed `get_package_name` to read metadata from the provided path (author: Cursor, reviewer: Peter Harrison)
 - Fixed bug in `VocabTrial.show_feedback` where `self.show_feedback` (the method) was checked instead of `self.trial_maker.show_feedback` (the boolean attribute), causing feedback to be shown even when disabled (author: Cursor, reviewer: Peter Harrison).
+- Fixed `Trial.cue` asset registration to deposit assets before generating keys, preventing missing `deployment_id` errors (author: Cursor; reviewer: Peter Harrison)
 - Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.
 - Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.

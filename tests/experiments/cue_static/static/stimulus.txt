@@ -1,0 +1,1 @@
+Example stimulus file for cue_static test.
