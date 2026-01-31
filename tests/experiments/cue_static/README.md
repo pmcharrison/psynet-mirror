@@ -1,5 +1,9 @@
 # README
 
-This experiment is implemented using *PsyNet*, a framework for running behavioral experiments
-in-person and over the internet. For comprehensive guidance on running PsyNet experiments,
-please visit [PsyNet's documentation website](https://psynetdev.gitlab.io/PsyNet/).
+This experiment is implemented using the [PsyNet framework](https://www.psynet.dev/).
+
+For installation instructions, see docs/INSTALL.md.
+
+For a list of run commands, see docs/RUN.md.
+
+For more information about PsyNet, see the [documentation website](https://psynetdev.gitlab.io/PsyNet/).
