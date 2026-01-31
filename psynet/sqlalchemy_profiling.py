@@ -520,7 +520,11 @@ def _build_stack(stack_depth: int) -> Optional[Tuple[str, ...]]:
     filtered = []
     for frame in stack:
         filename = frame.filename.replace("\\", "/")
-        if "/sqlalchemy/" in filename or filename == _MODULE_PATH:
+        if (
+            "/sqlalchemy/" in filename
+            or filename == _MODULE_PATH
+            or filename.endswith("/psynet/sqlalchemy_profiling.py")
+        ):
             continue
         filtered.append(frame)
     if stack_depth:
@@ -610,7 +614,11 @@ def _commit_callsite() -> str:
     filtered = []
     for frame in stack:
         filename = frame.filename.replace("\\", "/")
-        if "/sqlalchemy/" in filename or filename == _MODULE_PATH:
+        if (
+            "/sqlalchemy/" in filename
+            or filename == _MODULE_PATH
+            or filename.endswith("/psynet/sqlalchemy_profiling.py")
+        ):
             continue
         filtered.append(frame)
     if not filtered:
