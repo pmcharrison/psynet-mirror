@@ -77,6 +77,7 @@
 - Fixed `get_package_source_directory` to resolve paths relative to the provided package root (author: Cursor, reviewer: Peter Harrison)
 - Fixed `check_translations` to resolve the package namespace from the provided path (author: Cursor, reviewer: Peter Harrison)
 - Fixed translation validation to report missing entries before variable-mismatch checks (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_package_locales_directory` to use the installed package location rather than treating the name as a path (author: Cursor, reviewer: Peter Harrison)
 - Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
 
 ## Removed

@@ -1504,7 +1504,7 @@ def get_installed_package_source_directory(package_name: str) -> Path:
 
 
 def get_package_locales_directory(package_name: str) -> Path:
-    return get_package_source_directory(package_name) / "locales"
+    return get_installed_package_source_directory(package_name) / "locales"
 
 
 def get_package_source_directory(path="."):

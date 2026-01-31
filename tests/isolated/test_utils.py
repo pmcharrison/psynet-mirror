@@ -21,6 +21,7 @@ from psynet.utils import (
     get_authenticated_session,
     get_folder_size_mb,
     get_locales_dir_from_path,
+    get_package_locales_directory,
     get_package_name,
     get_package_source_directory,
     get_psynet_root,
@@ -371,6 +372,12 @@ def test_get_psynet_package_source_directory():
         source_dir = get_package_source_directory()
         assert source_dir == "psynet"
         assert os.path.isdir(source_dir)
+
+
+def test_get_package_locales_directory_for_installed_package():
+    psynet_root = get_psynet_root()
+    expected = psynet_root / "psynet" / "locales"
+    assert get_package_locales_directory("psynet") == expected
 
 
 def test_get_locales_dir_from_path_uses_given_path(tmp_path):
