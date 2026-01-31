@@ -12,7 +12,7 @@ import random
 import time
 from collections import Counter
 from datetime import datetime
-from functools import cached_property, reduce
+from functools import cached_property
 from importlib import resources
 from statistics import median
 from types import FunctionType
@@ -1941,58 +1941,31 @@ def is_list_of(x, what):
 def join(*args):
     from .asset import AssetSpecification
 
-    valid_classes = (AssetSpecification, Elt, EltCollection, FunctionType)
+    list_classes = (list, tuple)
 
+    def normalize(arg, index):
+        if arg is None:
+            return []
+        if isinstance(arg, FunctionType):
+            return [CodeBlock(arg)]
+        if isinstance(arg, EltCollection):
+            return normalize(arg.resolve(), index)
+        if isinstance(arg, (AssetSpecification, Elt)):
+            return [arg]
+        if isinstance(arg, list_classes):
+            normalized = []
+            for item in arg:
+                normalized.extend(normalize(item, index))
+            return normalized
+        raise TypeError(
+            f"Element {index + 1} of the input to join() was neither an Asset/Elt/EltCollection "
+            f"nor a list/tuple of such objects: ({arg})."
+        )
+
+    normalized = []
     for i, arg in enumerate(args):
-        if not (
-            (arg is None)
-            or (isinstance(arg, valid_classes) or is_list_of(arg, valid_classes))
-        ):
-            raise TypeError(
-                f"Element {i + 1} of the input to join() was neither an Asset/Elt/EltCollection nor a list of such objects: ({arg})."
-            )
-
-    args = [a for a in args if a is not None]
-
-    if len(args) == 0:
-        return []
-    elif len(args) == 1:
-        # join called with a single argument
-        if isinstance(args[0], (Elt, FunctionType)):
-            return [args[0]]
-        elif isinstance(args[0], EltCollection):
-            return args[0].resolve()
-        else:
-            return args[0]
-    else:
-
-        def f(x, y):
-            if isinstance(x, FunctionType):
-                x = CodeBlock(x)
-            if isinstance(y, FunctionType):
-                y = CodeBlock(y)
-            if isinstance(x, EltCollection):
-                x = x.resolve()
-            if isinstance(y, EltCollection):
-                y = y.resolve()
-            if x is None:
-                return y
-            elif y is None:
-                return x
-            elif isinstance(x, Elt) and isinstance(y, Elt):
-                return [x, y]
-            elif isinstance(x, Elt) and isinstance(y, list):
-                return [x] + y
-            elif isinstance(x, list) and isinstance(y, Elt):
-                return x + [y]
-            elif isinstance(x, list) and isinstance(y, list):
-                return x + y
-            else:
-                raise ValueError(
-                    f"Don't know how to join the following two timeline components: {x}, {y}."
-                )
-
-        return reduce(f, args)
+        normalized.extend(normalize(arg, i))
+    return normalized
 
 
 class StartWhile(NullElt):
