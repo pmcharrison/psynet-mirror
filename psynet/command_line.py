@@ -1105,12 +1105,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
             pass
 
     if docker:
-        if not Path("Dockerfile").exists():
-            raise click.UsageError(
-                "If using PsyNet with Docker, it is mandatory to include a Dockerfile in the experiment directory. "
-                "To add a generic Dockerfile to your experiment directory, run the following command:\n"
-                "psynet update-scripts"
-            )
+        check_dockerfile()
 
     if not local_:
         init_db(drop_all=True)
@@ -1598,6 +1593,61 @@ def check_constraints():
         spinner.ok("✔")
 
     verify_psynet_requirement()
+
+
+def check_dockerfile():
+    """
+    Check that a Dockerfile exists and uses the correct format.
+
+    This function performs two checks:
+    1. Ensures a Dockerfile exists in the experiment directory
+    2. Ensures the Dockerfile uses the new format (Python base image)
+       rather than the outdated PsyNet base image format
+
+    Raises
+    ------
+    click.UsageError
+        If Dockerfile is missing or uses outdated format
+    """
+    from psynet.version import psynet_version
+
+    update_scripts_recommendation = (
+        "To fix this issue, run:\n"
+        "  psynet update-scripts\n\n"
+        "Note: This command will also update other experiment files including .gitignore, "
+        "README.md, test.py, and configuration files in .vscode/ and .github/workflows/.\n\n"
+        "IMPORTANT: Before running this command, commit any pending changes to git so you can "
+        "review the automatic changes that psynet update-scripts makes."
+    )
+
+    dockerfile_path = Path("Dockerfile")
+
+    # Check 1: Dockerfile must exist
+    if not dockerfile_path.exists():
+        raise click.UsageError(
+            "Docker deployments require a Dockerfile in the experiment directory.\n\n"
+            + update_scripts_recommendation
+        )
+
+    # Check 2: Dockerfile must use new format (Python base image, not PsyNet base image)
+    dockerfile_content = dockerfile_path.read_text()
+
+    uses_psynet_base_image = bool(
+        re.search(
+            r"FROM\s+registry\.gitlab\.com/psynetdev/psynet:",
+            dockerfile_content,
+            re.IGNORECASE,
+        )
+    )
+
+    if uses_psynet_base_image:
+        raise click.UsageError(
+            "Your Dockerfile appears to be using an outdated format that references a PsyNet base image:\n"
+            f"  FROM registry.gitlab.com/psynetdev/psynet:...\n\n"
+            f"This format is no longer supported in PsyNet v{psynet_version}. "
+            "The Dockerfile should now build directly from a Python base image.\n\n"
+            + update_scripts_recommendation
+        )
 
 
 def _check_constraints(spinner=None):
