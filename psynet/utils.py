@@ -438,6 +438,7 @@ def import_module(name, source):
     spec = importlib.util.spec_from_file_location(name, source)
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
+    return foo
 
 
 def serialise_datetime(x):

@@ -76,6 +76,7 @@
 - Fixed `get_locales_dir_from_path` to resolve locales relative to the provided path rather than the current working directory (author: Cursor, reviewer: Peter Harrison)
 - Fixed `get_package_source_directory` to resolve paths relative to the provided package root (author: Cursor, reviewer: Peter Harrison)
 - Fixed `check_translations` to resolve the package namespace from the provided path (author: Cursor, reviewer: Peter Harrison)
+- Fixed `import_module` to return the loaded module instead of `None` (author: Cursor, reviewer: Peter Harrison)
 
 ## Removed
 - Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)

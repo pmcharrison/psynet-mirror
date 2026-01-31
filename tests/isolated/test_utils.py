@@ -25,6 +25,7 @@ from psynet.utils import (
     get_package_source_directory,
     get_psynet_root,
     git_repository_available,
+    import_module,
     linspace,
     list_experiment_dirs,
     list_isolated_tests,
@@ -406,6 +407,15 @@ name = "my_pkg"
         source_dir = get_package_source_directory(tmp_path)
 
     assert Path(source_dir) == package_dir
+
+
+def test_import_module_returns_loaded_module(tmp_path):
+    module_path = tmp_path / "temp_module.py"
+    module_path.write_text("value = 123\n")
+
+    module = import_module("temp_module", str(module_path))
+
+    assert module.value == 123
 
 
 # def test_get_package_name(temp_package_dir):
