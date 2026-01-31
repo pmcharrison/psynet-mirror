@@ -1616,9 +1616,13 @@ def check_dockerfile():
     # Check 1: Dockerfile must exist
     if not dockerfile_path.exists():
         raise click.UsageError(
-            "Docker deployments require a Dockerfile in the experiment directory. "
-            "To add a Dockerfile to your experiment directory, run the following command:\n"
-            "  psynet update-scripts"
+            "Docker deployments require a Dockerfile in the experiment directory.\n\n"
+            "To add a Dockerfile to your experiment directory, run:\n"
+            "  psynet update-scripts\n\n"
+            "Note: This command will also update other experiment files including .gitignore, "
+            "README.md, test.py, and configuration files in .vscode/ and .github/workflows/.\n\n"
+            "IMPORTANT: Before running this command, commit any pending changes to git so you can "
+            "review the automatic changes that psynet update-scripts makes."
         )
 
     # Check 2: Dockerfile must use new format (Python base image, not PsyNet base image)
@@ -1638,9 +1642,12 @@ def check_dockerfile():
             f"  FROM registry.gitlab.com/psynetdev/psynet:...\n\n"
             f"This format is no longer supported in PsyNet v{psynet_version}. "
             "The Dockerfile should now build directly from a Python base image.\n\n"
-            "To fix this issue, run the following command to update your experiment scripts:\n"
+            "To fix this issue, run:\n"
             "  psynet update-scripts\n\n"
-            "This will update your Dockerfile to the current format."
+            "Note: This command will also update other experiment files including .gitignore, "
+            "README.md, test.py, and configuration files in .vscode/ and .github/workflows/.\n\n"
+            "IMPORTANT: Before running this command, commit any pending changes to git so you can "
+            "review the automatic changes that psynet update-scripts makes."
         )
 
 
