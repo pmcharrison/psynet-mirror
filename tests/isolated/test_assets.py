@@ -1,10 +1,12 @@
 import os
 import tempfile
+from types import SimpleNamespace
 
 import pytest
 from dallinger import db
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
+import psynet.trial.main as trial_main
 from psynet.asset import (
     CachedAsset,
     CachedFunctionAsset,
@@ -138,17 +140,13 @@ def test_add_asset_deposits_before_set_keys():
     assert parent.assets["stimulus"] is asset
 
 
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("static")], indirect=True
-)
-@pytest.mark.usefixtures("launched_experiment")
-def test_add_asset_flushes_trial_before_deposit(
-    launched_experiment,
-    trial_class,
-    node,
-    participant,
-    db_session,
-):
+def test_add_asset_flushes_trial_before_deposit(monkeypatch):
+    class DummyParent(AssetParentMixin):
+        def __init__(self):
+            self.definition = {}
+            self.assets = {}
+            self.id = None
+
     class DummyAsset:
         def __init__(self):
             self.parent = None
@@ -165,22 +163,26 @@ def test_add_asset_flushes_trial_before_deposit(
             assert self.parent.id is not None
             self.deposited = True
 
-    trial = trial_class(
-        experiment=launched_experiment,
-        node=node,
-        participant=participant,
-        propagate_failure=False,
-        is_repeat_trial=False,
-    )
-    db.session.add(trial)
-
-    assert trial.id is None
-
+    parent = DummyParent()
     asset = DummyAsset()
-    trial.add_asset("stimulus", asset)
+    flush_calls = []
 
-    assert trial.id is not None
+    def fake_flush(objects=None):
+        flush_calls.append(objects)
+        parent.id = 123
+
+    def fake_inspect(_obj):
+        return SimpleNamespace(session=db.session)
+
+    monkeypatch.setattr(db.session, "flush", fake_flush)
+    monkeypatch.setattr(trial_main, "inspect", fake_inspect)
+
+    parent.add_asset("stimulus", asset)
+
+    assert flush_calls
+    assert parent.id == 123
     assert asset.deposited is True
+    assert parent.assets["stimulus"] is asset
 
 
 @pytest.mark.usefixtures("in_experiment_directory")

@@ -24,8 +24,9 @@ from sqlalchemy import (
     not_,
     or_,
     select,
+    inspect,
 )
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoInspectionAvailable, NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, declared_attr, deferred, relationship
@@ -97,8 +98,14 @@ class AssetParentMixin:
         asset.receive_node_definition(self.definition)
         asset.local_key = local_key
         if getattr(self, "id", None) is None:
-            db.session.add(self)
-            db.session.flush([self])
+            try:
+                state = inspect(self)
+            except NoInspectionAvailable:
+                state = None
+            if state is not None:
+                if state.session is None:
+                    db.session.add(self)
+                db.session.flush([self])
         if asset.deposited:
             asset.set_keys()
         else:
