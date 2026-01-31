@@ -2,8 +2,10 @@ import pytest
 
 from psynet.page import InfoPage
 from psynet.timeline import (
+    AsyncCodeBlock,
     CodeBlock,
     CreditEstimate,
+    Elt,
     MediaSpec,
     Timeline,
     join,
@@ -189,6 +191,19 @@ def test_join_1():
     assert isinstance(x, list)
     assert len(x) == 1
     assert x[0] == page
+
+
+def test_join_accepts_list_input_with_collections():
+    def background_task(participant):
+        return None
+
+    page = InfoPage("Test")
+    async_block = AsyncCodeBlock(background_task, wait=False)
+    joined = join([page, async_block, background_task, None])
+    assert isinstance(joined, list)
+    assert all(isinstance(elt, Elt) for elt in joined)
+    assert not any(isinstance(elt, AsyncCodeBlock) for elt in joined)
+    assert any(isinstance(elt, CodeBlock) for elt in joined)
 
 
 def test_lambda_compiles_as_code_block_in_timeline():
