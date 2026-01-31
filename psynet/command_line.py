@@ -392,13 +392,18 @@ def _enable_sql_profile(sql_profile_options, sql_profile_dir):
     elif not os.getenv("PSYNET_SQL_PROFILE"):
         os.environ["PSYNET_SQL_PROFILE"] = "1"
 
-    profile_dir = sql_profile_dir or tempfile.mkdtemp(prefix="psynet-sql-profile-")
+    if sql_profile_dir:
+        profile_dir = sql_profile_dir
+        keep_profile_dir = True
+    else:
+        profile_dir = tempfile.mkdtemp(prefix="psynet-sql-profile-")
+        keep_profile_dir = False
     os.makedirs(profile_dir, exist_ok=True)
     os.environ["PSYNET_SQL_PROFILE_DIR"] = profile_dir
-    return profile_dir
+    return profile_dir, keep_profile_dir
 
 
-def _print_sql_profile_aggregation(profile_dir):
+def _print_sql_profile_aggregation(profile_dir, *, show_dir):
     from psynet.sqlalchemy_profiling import (
         _parse_env_settings,
         aggregate_sqlalchemy_profiles,
@@ -415,7 +420,8 @@ def _print_sql_profile_aggregation(profile_dir):
     click.echo(
         format_aggregated_profile(aggregated, top_n=top_n, commit_top_n=commit_top_n)
     )
-    click.echo(f"Raw SQL profile files saved to: {profile_dir}")
+    if show_dir:
+        click.echo(f"Raw SQL profile files saved to: {profile_dir}")
 
 
 @debug.command("local")
@@ -453,9 +459,12 @@ def debug__local(
     Debug the experiment locally (this should normally be your first choice).
     """
     profile_dir = None
+    keep_profile_dir = False
     try:
         if sql_profile:
-            profile_dir = _enable_sql_profile(sql_profile_options, sql_profile_dir)
+            profile_dir, keep_profile_dir = _enable_sql_profile(
+                sql_profile_options, sql_profile_dir
+            )
         _run_local(
             ctx,
             docker,
@@ -467,7 +476,9 @@ def debug__local(
         )
     finally:
         if profile_dir:
-            _print_sql_profile_aggregation(profile_dir)
+            _print_sql_profile_aggregation(profile_dir, show_dir=keep_profile_dir)
+            if not keep_profile_dir:
+                shutil.rmtree(profile_dir, ignore_errors=True)
 
 
 def run_prepare_in_subprocess():
@@ -2757,6 +2768,21 @@ _test_options["time_factor"] = click.option(
 @_test_options["serial"]
 @_test_options["stagger"]
 @_test_options["time_factor"]
+@click.option(
+    "--sql-profile",
+    is_flag=True,
+    help="Enable SQL profiling and aggregate results across processes.",
+)
+@click.option(
+    "--sql-profile-options",
+    default=None,
+    help="Options passed to PSYNET_SQL_PROFILE (e.g. 'min_ms=5,top_n=50').",
+)
+@click.option(
+    "--sql-profile-dir",
+    default=None,
+    help="Directory to store per-process SQL profile JSON files.",
+)
 def test__local(
     existing=False,
     n_bots=None,
@@ -2764,6 +2790,9 @@ def test__local(
     serial=None,
     stagger=None,
     time_factor=None,
+    sql_profile=False,
+    sql_profile_options=None,
+    sql_profile_dir=None,
 ):
     """
     Test the experiment locally.
@@ -2789,16 +2818,34 @@ def test__local(
     if time_factor:
         exp.test_time_factor = time_factor
 
-    if existing:
-        exp.test_experiment()
-    else:
-        import pytest
+    profile_dir = None
+    keep_profile_dir = False
+    exit_code = None
+    error = None
+    try:
+        if sql_profile:
+            profile_dir, keep_profile_dir = _enable_sql_profile(
+                sql_profile_options, sql_profile_dir
+            )
+        if existing:
+            exp.test_experiment()
+        else:
+            import pytest
 
-        exit_code = pytest.main(["test.py"])
-        if exit_code != 0:
-            # Use sys.exit() to ensure that the exit code is propagated to the shell.
-            # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
-            sys.exit(exit_code)
+            exit_code = pytest.main(["test.py"])
+    except Exception as exc:
+        error = exc
+    finally:
+        if profile_dir:
+            _print_sql_profile_aggregation(profile_dir, show_dir=keep_profile_dir)
+            if not keep_profile_dir:
+                shutil.rmtree(profile_dir, ignore_errors=True)
+    if error:
+        raise error
+    if exit_code not in (None, 0):
+        # Use sys.exit() to ensure that the exit code is propagated to the shell.
+        # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
+        sys.exit(exit_code)
 
 
 @test.command("ssh")
