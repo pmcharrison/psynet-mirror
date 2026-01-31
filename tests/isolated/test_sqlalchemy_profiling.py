@@ -7,6 +7,7 @@ from psynet.sqlalchemy_profiling import (
     _parse_env_settings,
     aggregate_sqlalchemy_profiles,
     assert_query_count,
+    assert_query_duration,
     format_aggregated_profile,
     sqlalchemy_profile,
 )
@@ -201,6 +202,25 @@ def test_assert_query_count_raises_when_below_minimum():
     engine = create_engine("sqlite:///:memory:")
     with pytest.raises(AssertionError, match="Expected between 1 and 2 queries"):
         with assert_query_count(max_queries=2, min_queries=1, engine=engine):
+            pass
+
+
+def test_assert_query_duration_passes_with_high_limit():
+    engine = create_engine("sqlite:///:memory:")
+    with assert_query_duration(max_duration_ms=1e6, engine=engine):
+        with engine.begin() as conn:
+            conn.execute(text("SELECT 1"))
+
+
+def test_assert_query_duration_raises_when_below_minimum():
+    engine = create_engine("sqlite:///:memory:")
+    with pytest.raises(
+        AssertionError,
+        match="Expected total query time between 1.0 and 2.0 ms",
+    ):
+        with assert_query_duration(
+            max_duration_ms=2.0, min_duration_ms=1.0, engine=engine
+        ):
             pass
 
 

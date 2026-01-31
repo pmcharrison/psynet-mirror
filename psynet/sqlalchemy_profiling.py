@@ -498,6 +498,47 @@ def assert_query_count(
         )
 
 
+@contextmanager
+def assert_query_duration(
+    max_duration_ms: float,
+    *,
+    min_duration_ms: float = 0.0,
+    engine: Optional[Engine] = None,
+    **profiler_kwargs,
+) -> Iterable[SQLAlchemyQueryProfiler]:
+    """
+    Assert a total query duration budget within a block.
+
+    Parameters
+    ----------
+    max_duration_ms :
+        Maximum total query time in milliseconds allowed.
+    min_duration_ms :
+        Minimum total query time in milliseconds expected.
+    engine :
+        SQLAlchemy engine to attach to. Defaults to Dallinger's engine.
+    **profiler_kwargs
+        Keyword arguments forwarded to ``SQLAlchemyQueryProfiler``.
+
+    Yields
+    ------
+    SQLAlchemyQueryProfiler
+        The active profiler instance.
+    """
+    if engine is None:
+        from dallinger import db
+
+        engine = db.engine
+    with sqlalchemy_profile(engine, **profiler_kwargs) as profiler:
+        yield profiler
+    total_ms = profiler.total_time_ms
+    if total_ms < min_duration_ms or total_ms > max_duration_ms:
+        raise AssertionError(
+            f"Expected total query time between {min_duration_ms} and "
+            f"{max_duration_ms} ms, but saw {total_ms:.2f} ms."
+        )
+
+
 def get_active_sqlalchemy_profiler() -> Optional[SQLAlchemyQueryProfiler]:
     """
     Return the profiler enabled by environment variables, if any.
