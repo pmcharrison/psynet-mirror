@@ -1503,10 +1503,6 @@ def get_installed_package_source_directory(package_name: str) -> Path:
     return Path(package.__file__).parent
 
 
-def get_package_locales_directory(package_name: str) -> Path:
-    return get_installed_package_source_directory(package_name) / "locales"
-
-
 def get_package_source_directory(path="."):
     """
     Get the source directory of the package by inspecting pyproject.toml or setup.py.
