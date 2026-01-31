@@ -1111,7 +1111,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 "To add a generic Dockerfile to your experiment directory, run the following command:\n"
                 "psynet update-scripts"
             )
-        
+
         # Check for outdated Dockerfile format (using PsyNet base image)
         _check_dockerfile_format()
 
@@ -1606,28 +1606,32 @@ def check_constraints():
 def _check_dockerfile_format():
     """
     Check if the Dockerfile uses an outdated format (PsyNet base image).
-    
+
     The Dockerfile format changed from using a PsyNet base image
     (FROM registry.gitlab.com/psynetdev/psynet:...) to building directly from Python
     (FROM python:3.13-bookworm).
-    
+
     This function detects when experiments are using the old Dockerfile format
     and suggests running `psynet update-scripts`.
     """
     from psynet.version import psynet_version
-    
+
     dockerfile_path = Path("Dockerfile")
     if not dockerfile_path.exists():
         return  # Already checked elsewhere
-    
+
     # Read the Dockerfile
     dockerfile_content = dockerfile_path.read_text()
-    
+
     # Check if it uses the old PsyNet base image format
     uses_psynet_base_image = bool(
-        re.search(r'FROM\s+registry\.gitlab\.com/psynetdev/psynet:', dockerfile_content, re.IGNORECASE)
+        re.search(
+            r"FROM\s+registry\.gitlab\.com/psynetdev/psynet:",
+            dockerfile_content,
+            re.IGNORECASE,
+        )
     )
-    
+
     if uses_psynet_base_image:
         raise click.UsageError(
             "Your Dockerfile appears to be using an outdated format that references a PsyNet base image:\n"

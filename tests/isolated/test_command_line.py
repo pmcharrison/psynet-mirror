@@ -440,32 +440,32 @@ def test_check_dockerfile_format():
         with working_directory(dir):
             # Test 1: No Dockerfile - should not raise
             _check_dockerfile_format()
-            
+
             # Test 2: Dockerfile with new format (python:3.13) - should not raise
             with open("Dockerfile", "w") as f:
                 f.write("FROM python:3.13-bookworm\n")
                 f.write("RUN pip install psynet\n")
-            
+
             _check_dockerfile_format()
-            
+
             # Test 3: Dockerfile with old format (version tag) - should raise
             with open("Dockerfile", "w") as f:
                 f.write("FROM registry.gitlab.com/psynetdev/psynet:v13.0.3\n")
                 f.write("RUN mkdir /experiment\n")
-            
+
             with pytest.raises(
                 click.UsageError,
-                match="Your Dockerfile appears to be using an outdated format"
+                match="Your Dockerfile appears to be using an outdated format",
             ):
                 _check_dockerfile_format()
-            
+
             # Test 4: Dockerfile with old format (master tag) - should raise
             with open("Dockerfile", "w") as f:
                 f.write("FROM registry.gitlab.com/psynetdev/psynet:master\n")
                 f.write("RUN mkdir /experiment\n")
-            
+
             with pytest.raises(
                 click.UsageError,
-                match="Your Dockerfile appears to be using an outdated format"
+                match="Your Dockerfile appears to be using an outdated format",
             ):
                 _check_dockerfile_format()
