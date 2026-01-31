@@ -1913,11 +1913,21 @@ class ChainTrialMaker(NetworkTrialMaker):
                 f"Advanced from block '{current_block}' to '{chosen.block}' "
                 "because there weren't any spots available in the former."
             )
+            self._sync_block_state(participant, chosen.block)
 
         return [chosen]
 
     def prioritize_networks(self, networks, participant, experiment):
         return networks
+
+    def _sync_block_state(self, participant, block):
+        new_block_position = participant.module_state.block_order.index(block)
+        if self.sync_group_type:
+            group = participant.active_sync_groups[self.sync_group_type]
+            for group_participant in group.participants:
+                group_participant.module_state.set_block_position(new_block_position)
+        else:
+            participant.module_state.set_block_position(new_block_position)
 
     def custom_network_filter(self, candidates, participant):
         """
