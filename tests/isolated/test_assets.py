@@ -137,6 +137,46 @@ def test_add_asset_deposits_before_set_keys():
     assert parent.assets["stimulus"] is asset
 
 
+def test_add_asset_flushes_parent_before_deposit(monkeypatch):
+    class DummyParent(AssetParentMixin):
+        def __init__(self):
+            self.definition = {}
+            self.assets = {}
+            self.id = None
+
+    class DummyAsset:
+        def __init__(self):
+            self.parent = None
+            self.local_key = None
+            self.deposited = False
+
+        def receive_node_definition(self, definition):
+            self.node_definition = definition
+
+        def set_keys(self):
+            pass
+
+        def deposit(self):
+            assert self.parent.id is not None
+            self.deposited = True
+
+    parent = DummyParent()
+    asset = DummyAsset()
+    flush_calls = []
+
+    def fake_flush(objects=None):
+        flush_calls.append(objects)
+        parent.id = 123
+
+    monkeypatch.setattr(db.session, "flush", fake_flush)
+
+    parent.add_asset("stimulus", asset)
+
+    assert flush_calls
+    assert asset.deposited is True
+    assert parent.assets["stimulus"] is asset
+
+
 @pytest.mark.usefixtures("in_experiment_directory")
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("static")], indirect=True
