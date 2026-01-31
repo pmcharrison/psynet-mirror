@@ -1,5 +1,6 @@
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import Column, Integer, String, create_engine, text
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 from psynet.sqlalchemy_profiling import (
     _parse_bool,
@@ -7,6 +8,21 @@ from psynet.sqlalchemy_profiling import (
     assert_query_count,
     sqlalchemy_profile,
 )
+
+Base = declarative_base()
+
+
+class Widget(Base):
+    __tablename__ = "widget"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+
+def make_session_factory():
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    return engine, sessionmaker(bind=engine)
 
 
 def test_sqlalchemy_profile_counts_queries():
@@ -100,6 +116,39 @@ def test_get_stats_sorted_by_count():
     stats = profiler.get_stats(sort_by="count")
     assert stats[0].statement == "SELECT 1"
     assert stats[0].count >= stats[1].count
+
+
+def test_commit_profile_classifies_types():
+    engine, SessionLocal = make_session_factory()
+    with sqlalchemy_profile(engine) as profiler:
+        session = SessionLocal()
+        widget = Widget(name="alpha")
+        session.add(widget)
+        session.commit()
+
+        widget.name = "beta"
+        session.commit()
+
+        other = Widget(name="gamma")
+        session.add(other)
+        widget.name = "delta"
+        session.commit()
+
+        session.delete(other)
+        session.commit()
+
+        session.execute(text("SELECT 1"))
+        session.commit()
+        session.close()
+
+    commit_types = {stat.commit_type for stat in profiler.get_commit_stats()}
+    assert "insert" in commit_types
+    assert "update" in commit_types
+    assert "insert+update" in commit_types
+    assert "delete" in commit_types
+    assert "no-op" in commit_types
+    assert profiler.commit_total_count >= 5
+    assert profiler.commit_total_time_ms >= 0.0
 
 
 def test_assert_query_count_raises_when_exceeded():

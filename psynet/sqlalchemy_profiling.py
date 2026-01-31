@@ -9,6 +9,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session as SASession
 
 _AUTO_PROFILER = None
 
@@ -38,9 +39,34 @@ class QueryStats:
         return self.total_ms / self.count
 
 
+@dataclass
+class CommitStats:
+    commit_type: str
+    stack: Optional[Tuple[str, ...]]
+    count: int = 0
+    total_ms: float = 0.0
+    min_ms: float = float("inf")
+    max_ms: float = 0.0
+
+    def add(self, duration_ms: float) -> None:
+        self.count += 1
+        self.total_ms += duration_ms
+        if self.count == 1:
+            self.min_ms = duration_ms
+        else:
+            self.min_ms = min(self.min_ms, duration_ms)
+        self.max_ms = max(self.max_ms, duration_ms)
+
+    @property
+    def mean_ms(self) -> float:
+        if self.count == 0:
+            return 0.0
+        return self.total_ms / self.count
+
+
 class SQLAlchemyQueryProfiler:
     """
-    Collect timing statistics for SQLAlchemy statements.
+    Collect timing statistics for SQLAlchemy statements and commits.
 
     Parameters
     ----------
@@ -75,8 +101,13 @@ class SQLAlchemyQueryProfiler:
         self._normalize_sql = normalize_sql
         self._max_statement_chars = max_statement_chars
         self._stats: Dict[Tuple[str, Optional[Tuple[str, ...]]], QueryStats] = {}
+        self._commit_stats: Dict[Tuple[str, Optional[Tuple[str, ...]]], CommitStats] = (
+            {}
+        )
         self._total_count = 0
         self._total_time_ms = 0.0
+        self._commit_total_count = 0
+        self._commit_total_time_ms = 0.0
         self._started = False
         self._lock = threading.Lock()
 
@@ -95,11 +126,22 @@ class SQLAlchemyQueryProfiler:
     def total_time_ms(self) -> float:
         return self._total_time_ms
 
+    @property
+    def commit_total_count(self) -> int:
+        return self._commit_total_count
+
+    @property
+    def commit_total_time_ms(self) -> float:
+        return self._commit_total_time_ms
+
     def start(self) -> None:
         if self._started:
             return
         event.listen(self.engine, "before_cursor_execute", self._before_cursor_execute)
         event.listen(self.engine, "after_cursor_execute", self._after_cursor_execute)
+        event.listen(SASession, "before_commit", self._before_commit)
+        event.listen(SASession, "after_commit", self._after_commit)
+        event.listen(SASession, "after_rollback", self._after_rollback)
         self._started = True
 
     def stop(self) -> None:
@@ -107,6 +149,9 @@ class SQLAlchemyQueryProfiler:
             return
         event.remove(self.engine, "before_cursor_execute", self._before_cursor_execute)
         event.remove(self.engine, "after_cursor_execute", self._after_cursor_execute)
+        event.remove(SASession, "before_commit", self._before_commit)
+        event.remove(SASession, "after_commit", self._after_commit)
+        event.remove(SASession, "after_rollback", self._after_rollback)
         self._started = False
 
     def reset(self) -> None:
@@ -114,6 +159,9 @@ class SQLAlchemyQueryProfiler:
             self._stats.clear()
             self._total_count = 0
             self._total_time_ms = 0.0
+            self._commit_stats.clear()
+            self._commit_total_count = 0
+            self._commit_total_time_ms = 0.0
 
     def get_stats(
         self,
@@ -135,6 +183,26 @@ class SQLAlchemyQueryProfiler:
             stats = stats[:top_n]
         return stats
 
+    def get_commit_stats(
+        self,
+        *,
+        top_n: Optional[int] = None,
+        sort_by: str = "total_ms",
+        min_total_ms: Optional[float] = None,
+        min_count: int = 1,
+    ) -> List[CommitStats]:
+        stats = [
+            stat
+            for stat in self._commit_stats.values()
+            if stat.count >= min_count
+            and (min_total_ms is None or stat.total_ms >= min_total_ms)
+        ]
+        sort_key = _sort_key(sort_by)
+        stats.sort(key=sort_key, reverse=True)
+        if top_n is not None:
+            stats = stats[:top_n]
+        return stats
+
     def format_summary(
         self,
         *,
@@ -142,6 +210,7 @@ class SQLAlchemyQueryProfiler:
         sort_by: str = "total_ms",
         min_total_ms: Optional[float] = None,
         min_count: int = 1,
+        include_commits: bool = True,
     ) -> str:
         stats = self.get_stats(
             top_n=top_n,
@@ -155,6 +224,8 @@ class SQLAlchemyQueryProfiler:
         ]
         if not stats:
             lines.append("No queries captured.")
+            if include_commits:
+                lines.append(self.format_commit_summary())
             return "\n".join(lines)
 
         lines.append("count total_ms mean_ms  max_ms statement")
@@ -168,10 +239,51 @@ class SQLAlchemyQueryProfiler:
             )
             if stat.stack:
                 lines.extend([f"      at {frame}" for frame in stat.stack])
+        if include_commits:
+            lines.append("")
+            lines.append(self.format_commit_summary())
         return "\n".join(lines)
 
     def print_summary(self, **kwargs) -> None:
         print(self.format_summary(**kwargs))
+
+    def format_commit_summary(
+        self,
+        *,
+        top_n: int = 10,
+        sort_by: str = "total_ms",
+        min_total_ms: Optional[float] = None,
+        min_count: int = 1,
+    ) -> str:
+        stats = self.get_commit_stats(
+            top_n=top_n,
+            sort_by=sort_by,
+            min_total_ms=min_total_ms,
+            min_count=min_count,
+        )
+        lines = [
+            "Commit profile: "
+            f"{self.commit_total_count} commits, {self.commit_total_time_ms:.2f} ms"
+        ]
+        if not stats:
+            lines.append("No commits captured.")
+            return "\n".join(lines)
+
+        lines.append("count total_ms mean_ms  max_ms commit_type")
+        for stat in stats:
+            lines.append(
+                f"{stat.count:5d} "
+                f"{stat.total_ms:8.2f} "
+                f"{stat.mean_ms:7.2f} "
+                f"{stat.max_ms:7.2f} "
+                f"{stat.commit_type}"
+            )
+            if stat.stack:
+                lines.extend([f"      at {frame}" for frame in stat.stack])
+        return "\n".join(lines)
+
+    def print_commit_summary(self, **kwargs) -> None:
+        print(self.format_commit_summary(**kwargs))
 
     def _before_cursor_execute(
         self, conn, cursor, statement, parameters, context, executemany
@@ -210,6 +322,59 @@ class SQLAlchemyQueryProfiler:
             stat.add(duration_ms)
             self._total_count += 1
             self._total_time_ms += duration_ms
+
+    def _before_commit(self, session: SASession) -> None:
+        if not self._session_matches_engine(session):
+            return
+        session.info["_psynet_commit_start_time"] = perf_counter()
+        session.info["_psynet_commit_snapshot"] = _commit_snapshot(session)
+        if self._capture_stack:
+            session.info["_psynet_commit_stack"] = _build_stack(self._stack_depth)
+
+    def _after_commit(self, session: SASession) -> None:
+        self._record_commit(session, rolled_back=False)
+
+    def _after_rollback(self, session: SASession) -> None:
+        self._record_commit(session, rolled_back=True)
+
+    def _record_commit(self, session: SASession, *, rolled_back: bool) -> None:
+        if not self._session_matches_engine(session):
+            return
+        start_time = session.info.pop("_psynet_commit_start_time", None)
+        snapshot = session.info.pop("_psynet_commit_snapshot", None)
+        stack = (
+            session.info.pop("_psynet_commit_stack", None)
+            if self._capture_stack
+            else None
+        )
+        if start_time is None:
+            return
+        duration_ms = (perf_counter() - start_time) * 1000.0
+        commit_type = _classify_commit(snapshot)
+        if rolled_back:
+            commit_type = f"{commit_type} (rolled back)"
+        key = (commit_type, stack)
+        with self._lock:
+            stat = self._commit_stats.get(key)
+            if stat is None:
+                stat = CommitStats(commit_type=commit_type, stack=stack)
+                self._commit_stats[key] = stat
+            stat.add(duration_ms)
+            self._commit_total_count += 1
+            self._commit_total_time_ms += duration_ms
+
+    def _session_matches_engine(self, session: SASession) -> bool:
+        try:
+            bind = session.get_bind()
+        except Exception:
+            return False
+        if bind is None:
+            return False
+        if bind is self.engine:
+            return True
+        if hasattr(bind, "engine") and bind.engine is self.engine:
+            return True
+        return False
 
 
 @contextmanager
@@ -410,3 +575,26 @@ def _parse_env_settings(value: Optional[str]) -> Dict[str, object]:
             key, val = part.split("=", 1)
             options[key.strip().lower()] = val.strip()
     return {"enabled": enabled, "options": options}
+
+
+def _commit_snapshot(session: SASession) -> Tuple[int, int, int]:
+    return (len(session.new), len(session.dirty), len(session.deleted))
+
+
+def _classify_commit(snapshot: Optional[Tuple[int, int, int]]) -> str:
+    if snapshot is None:
+        return "unknown"
+    new_count, dirty_count, deleted_count = snapshot
+    has_new = new_count > 0
+    has_dirty = dirty_count > 0
+    has_deleted = deleted_count > 0
+    if not (has_new or has_dirty or has_deleted):
+        return "no-op"
+    parts = []
+    if has_new:
+        parts.append("insert")
+    if has_dirty:
+        parts.append("update")
+    if has_deleted:
+        parts.append("delete")
+    return "+".join(parts)
