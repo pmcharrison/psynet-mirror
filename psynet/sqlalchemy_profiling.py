@@ -98,18 +98,14 @@ class SQLAlchemyQueryProfiler:
     def start(self) -> None:
         if self._started:
             return
-        event.listen(
-            self.engine, "before_cursor_execute", self._before_cursor_execute
-        )
+        event.listen(self.engine, "before_cursor_execute", self._before_cursor_execute)
         event.listen(self.engine, "after_cursor_execute", self._after_cursor_execute)
         self._started = True
 
     def stop(self) -> None:
         if not self._started:
             return
-        event.remove(
-            self.engine, "before_cursor_execute", self._before_cursor_execute
-        )
+        event.remove(self.engine, "before_cursor_execute", self._before_cursor_execute)
         event.remove(self.engine, "after_cursor_execute", self._after_cursor_execute)
         self._started = False
 

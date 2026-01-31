@@ -23,6 +23,7 @@
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
 - Added SQLAlchemy query profiling utilities with optional env-driven summaries and pytest helpers (author: Cursor, reviewer: Peter Harrison)
+- Added unit tests for SQLAlchemy query profiling utilities (author: Cursor, reviewer: Peter Harrison)
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
