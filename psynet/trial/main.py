@@ -96,12 +96,12 @@ class AssetParentMixin:
 
         asset.receive_node_definition(self.definition)
         asset.local_key = local_key
-        asset.set_keys()
+        if asset.deposited:
+            asset.set_keys()
+        else:
+            asset.deposit()
 
         self.assets[local_key] = asset
-
-        if not asset.deposited:
-            asset.deposit()
 
 
 class Trial(SQLMixinDallinger, Info, AssetParentMixin):

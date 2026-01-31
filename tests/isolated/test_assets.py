@@ -15,6 +15,7 @@ from psynet.asset import (
     asset,
 )
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.trial.main import AssetParentMixin
 
 
 class MultiplyAsset(ExperimentAsset):
@@ -88,6 +89,52 @@ def folder_asset_clone(debug_storage):
         asset.deposit(debug_storage)
 
         yield asset
+
+
+def test_add_asset_deposits_before_set_keys():
+    class DummyParent(AssetParentMixin):
+        def __init__(self):
+            self.definition = {}
+            self.assets = {}
+
+    class DummyAsset:
+        def __init__(self):
+            self.parent = None
+            self.local_key = None
+            self.deposited = False
+            self.deposit_called = False
+            self.calls = []
+            self.deployment_id = None
+            self.storage = None
+
+        def receive_node_definition(self, definition):
+            self.node_definition = definition
+
+        def set_keys(self):
+            if not self.deposit_called:
+                raise RuntimeError("set_keys called before deposit")
+            if self.deployment_id is None or self.storage is None:
+                raise RuntimeError("deposit did not initialize asset")
+            self.calls.append("set_keys")
+
+        def deposit(self):
+            self.calls.append("deposit")
+            self.deposit_called = True
+            self.deployment_id = "test-deployment"
+            self.storage = object()
+            self.deposited = True
+            self.set_keys()
+
+    parent = DummyParent()
+    asset = DummyAsset()
+
+    parent.add_asset("stimulus", asset)
+
+    assert asset.parent is parent
+    assert asset.local_key == "stimulus"
+    assert asset.deposit_called is True
+    assert asset.calls == ["deposit", "set_keys"]
+    assert parent.assets["stimulus"] is asset
 
 
 @pytest.mark.usefixtures("in_experiment_directory")
