@@ -187,3 +187,32 @@ name = "temp_pkg"
 
     with working_directory(get_psynet_root()):
         check_translations_internal(path=tmp_path, locales=["fr"], recreate_pot=False)
+
+
+def test_check_translations_missing_entry_raises(tmp_path):
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "temp_pkg"
+"""
+    )
+    package_dir = tmp_path / "temp_pkg"
+    package_dir.mkdir()
+    locales_dir = package_dir / "locales"
+    po_dir = locales_dir / "fr" / "LC_MESSAGES"
+    po_dir.mkdir(parents=True)
+
+    pot = polib.POFile()
+    pot.append(polib.POEntry(msgid="Hello", msgstr=""))
+    pot.append(polib.POEntry(msgid="Goodbye", msgstr=""))
+    pot.save(locales_dir / "temp_pkg.pot")
+
+    po = polib.POFile()
+    po.append(polib.POEntry(msgid="Hello", msgstr="Bonjour"))
+    po.save(po_dir / "temp_pkg.po")
+
+    with working_directory(get_psynet_root()):
+        with pytest.raises(IndexError, match="Missing translations for fr"):
+            check_translations_internal(
+                path=tmp_path, locales=["fr"], recreate_pot=False
+            )

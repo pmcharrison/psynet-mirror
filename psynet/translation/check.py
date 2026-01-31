@@ -255,9 +255,9 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
         )
         po_entries = po_to_dict(po)
 
-        assert_variable_names_match(pot_entries, po_entries)
-
         assert_no_missing_translations(po_entries, pot_entries, locale)
+
+        assert_variable_names_match(pot_entries, po_entries)
 
         assert_no_duplicate_translations_in_same_context(po_entries, locale)
 
