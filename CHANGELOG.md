@@ -74,10 +74,26 @@
 - Fixed bug that was causing `get_hardware_status` to fail.
 - Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
 - Fixed `format_timedelta` to return meaningful output for zero and negative durations (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_fitting_font_size` to return the last size that fits within bounds rather than the first size that overflows (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_package_source_directory` to handle setuptools `where` lists in pyproject files (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_locales_dir_from_path` to resolve locales relative to the provided path rather than the current working directory (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_package_source_directory` to resolve paths relative to the provided package root (author: Cursor, reviewer: Peter Harrison)
+- Fixed `check_translations` to resolve the package namespace from the provided path (author: Cursor, reviewer: Peter Harrison)
+- Fixed translation validation to report missing entries before variable-mismatch checks (author: Cursor, reviewer: Peter Harrison)
+- Fixed `S3Storage.list` to honor `top` and `extension` filters (author: Cursor, reviewer: Peter Harrison)
+- Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
 
 ## Removed
 - Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `assert_all_variables_defined` helper from translation checks (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `import_module` helper from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `get_package_locales_directory` helper from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `pretty_log_dict` and `query_yes_no` helpers from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `DisableLogger` helper from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `LANGUAGES_WITHOUT_CAPITALIZATION` constant from translation checks (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `format_hash` and `hash_object` helpers from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
+- Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)

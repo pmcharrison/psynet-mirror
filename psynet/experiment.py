@@ -13,7 +13,7 @@ import uuid
 import zipfile
 from collections import Counter, OrderedDict
 from datetime import datetime, timedelta
-from functools import cached_property
+from functools import cache, cached_property
 from importlib import resources
 from os.path import abspath, dirname, exists
 from os.path import join as join_path
@@ -112,7 +112,6 @@ from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class
 )
 from .utils import (
     NoArgumentProvided,
-    cache,
     call_function,
     call_function_with_context,
     disable_logger,

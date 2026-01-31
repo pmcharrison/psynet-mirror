@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 from datetime import datetime, timedelta
 from math import isnan
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -19,6 +20,7 @@ from psynet.utils import (
     generate_text_file,
     get_authenticated_session,
     get_folder_size_mb,
+    get_locales_dir_from_path,
     get_package_name,
     get_package_source_directory,
     get_psynet_root,
@@ -31,6 +33,7 @@ from psynet.utils import (
     md5_directory,
     merge_dicts,
     organize_by_key,
+    pretty_format_seconds,
     safe,
     working_directory,
 )
@@ -118,6 +121,11 @@ def test_corr():
 )
 def test_format_timedelta(delta, expected):
     assert format_timedelta(delta) == expected
+
+
+def test_pretty_format_seconds_rounding():
+    assert pretty_format_seconds(59.6) == "1 min"
+    assert pretty_format_seconds(59.4) == "0 min 59 sec"
 
 
 @patch("psynet.timeline.Module.started_and_finished_times")
@@ -357,6 +365,53 @@ def test_get_psynet_package_source_directory():
         source_dir = get_package_source_directory()
         assert source_dir == "psynet"
         assert os.path.isdir(source_dir)
+
+
+def test_get_locales_dir_from_path_uses_given_path(tmp_path):
+    (tmp_path / "src").mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "test-package"
+[tool.setuptools.packages.find]
+where = ["src"]
+"""
+    )
+    expected = tmp_path / "src" / "locales"
+
+    with working_directory(get_psynet_root()):
+        locales_dir = get_locales_dir_from_path(tmp_path)
+
+    assert locales_dir == expected
+
+
+def test_get_package_source_directory_setuptools_where_list(tmp_path):
+    (tmp_path / "src").mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "test-package"
+[tool.setuptools.packages.find]
+where = ["src"]
+"""
+    )
+    assert Path(get_package_source_directory(tmp_path)) == tmp_path / "src"
+
+
+def test_get_package_source_directory_respects_path(tmp_path):
+    package_dir = tmp_path / "my_pkg"
+    package_dir.mkdir()
+    (tmp_path / "pyproject.toml").write_text(
+        """
+[project]
+name = "my_pkg"
+"""
+    )
+
+    with working_directory(get_psynet_root()):
+        source_dir = get_package_source_directory(tmp_path)
+
+    assert Path(source_dir) == package_dir
 
 
 # def test_get_package_name(temp_package_dir):

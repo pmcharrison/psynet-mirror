@@ -1,11 +1,8 @@
-import base64
 import contextlib
-import functools
 import gettext
 import glob
 import hashlib
 import importlib
-import importlib.util
 import inspect
 import json
 import logging
@@ -14,12 +11,11 @@ import re
 import sys
 import time
 from datetime import datetime
-from functools import lru_cache, reduce, wraps
+from functools import reduce, wraps
 from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
 from typing import List, OrderedDict, Type, Union
-from urllib.parse import ParseResult, urlparse
 
 import click
 import html2text
@@ -347,54 +343,10 @@ def corr(x: list, y: list, method="pearson"):
     return float(df.corr(method=method).at["x", "y"])
 
 
-class DisableLogger:
-    def __enter__(self):
-        logging.disable(logging.CRITICAL)
-
-    def __exit__(self, a, b, c):
-        logging.disable(logging.NOTSET)
-
-
-def query_yes_no(question, default="yes"):
-    """
-    Ask a yes/no question via input() and return their answer.
-
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is True for "yes" or False for "no".
-    """
-    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        sys.stdout.write(question + prompt)
-        choice = input().lower()
-        if default is not None and choice == "":
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
-
-
 def md5_object(x):
     string = jsonpickle.encode(x).encode("utf-8")
     hashed = hashlib.md5(string)
     return str(hashed.hexdigest())
-
-
-hash_object = md5_object
 
 
 # MD5 hashing code:
@@ -428,16 +380,6 @@ def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
 
 def md5_directory(directory: Union[str, Path]) -> str:
     return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
-
-
-def format_hash(hashed, digits=32):
-    return base64.urlsafe_b64encode(hashed.digest())[:digits].decode("utf-8")
-
-
-def import_module(name, source):
-    spec = importlib.util.spec_from_file_location(name, source)
-    foo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(foo)
 
 
 def serialise_datetime(x):
@@ -544,18 +486,6 @@ def wait_while(condition, **kwargs):
     wait_until(lambda: not condition(), **kwargs)
 
 
-def strip_url_parameters(url):
-    parse_result = urlparse(url)
-    return ParseResult(
-        scheme=parse_result.scheme,
-        netloc=parse_result.netloc,
-        path=parse_result.path,
-        params=None,
-        query=None,
-        fragment=None,
-    ).geturl()
-
-
 def is_valid_html5_id(str):
     if not str or " " in str:
         return False
@@ -563,20 +493,12 @@ def is_valid_html5_id(str):
 
 
 def pretty_format_seconds(seconds):
-    minutes_and_seconds = divmod(seconds, 60)
-    seconds_remainder = round(minutes_and_seconds[1])
-    formatted_time = f"{round(minutes_and_seconds[0])} min"
+    total_seconds = int(round(seconds))
+    minutes, seconds_remainder = divmod(total_seconds, 60)
+    formatted_time = f"{minutes} min"
     if seconds_remainder > 0:
         formatted_time += f" {seconds_remainder} sec"
     return formatted_time
-
-
-def pretty_log_dict(dict, spaces_for_indentation=0):
-    return "\n".join(
-        " " * spaces_for_indentation
-        + "{}: {}".format(key, (f'"{value}"' if isinstance(value, str) else value))
-        for key, value in dict.items()
-    )
 
 
 def require_exp_directory(f):
@@ -898,11 +820,12 @@ def get_locales_dir(namespace: str):
 
 
 def get_locales_dir_from_path(path="."):
+    path = Path(path)
 
-    if in_python_package():
-        return Path(get_package_source_directory(path)) / "locales"
-    elif experiment_available():
-        path = Path(path)
+    if is_a_package(path):
+        source_dir = get_package_source_directory(path)
+        return path / source_dir / "locales"
+    elif (path / "experiment.py").exists():
         return path / "locales"
     else:
         raise ValueError("Could not determine the locales directory.")
@@ -989,12 +912,6 @@ def get_extension(path):
         return extension
     else:
         return ""
-
-
-# Backported from Python 3.9
-def cache(user_function, /):
-    'Simple lightweight unbounded cache.  Sometimes called "memoize".'
-    return lru_cache(maxsize=None)(user_function)
 
 
 def organize_by_key(lst, key, sort_key=None):
@@ -1509,10 +1426,6 @@ def get_installed_package_source_directory(package_name: str) -> Path:
     return Path(package.__file__).parent
 
 
-def get_package_locales_directory(package_name: str) -> Path:
-    return get_package_source_directory(package_name) / "locales"
-
-
 def get_package_source_directory(path="."):
     """
     Get the source directory of the package by inspecting pyproject.toml or setup.py.
@@ -1550,8 +1463,13 @@ def get_package_source_directory(path="."):
                 .get("find", {})
                 .get("where")
             )
+            if isinstance(packages_dir, (list, tuple)):
+                packages_dir = packages_dir[0] if packages_dir else None
             if packages_dir:
-                return packages_dir
+                packages_dir = Path(packages_dir)
+                if not packages_dir.is_absolute():
+                    packages_dir = path / packages_dir
+                return str(packages_dir)
 
         # Check for packages-dir in [tool.poetry]
         if "tool" in pyproject and "poetry" in pyproject["tool"]:
@@ -1559,7 +1477,10 @@ def get_package_source_directory(path="."):
                 pyproject["tool"]["poetry"].get("packages", [{}])[0].get("from")
             )
             if packages_dir:
-                return packages_dir
+                packages_dir = Path(packages_dir)
+                if not packages_dir.is_absolute():
+                    packages_dir = path / packages_dir
+                return str(packages_dir)
 
     # Then try setup.py
     if setup_path.exists():
@@ -1576,7 +1497,12 @@ def get_package_source_directory(path="."):
                         if isinstance(keyword.value, ast.Dict):
                             for i, key in enumerate(keyword.value.keys):
                                 if ast.literal_eval(key) == "":
-                                    return ast.literal_eval(keyword.value.values[i])
+                                    packages_dir = Path(
+                                        ast.literal_eval(keyword.value.values[i])
+                                    )
+                                    if not packages_dir.is_absolute():
+                                        packages_dir = path / packages_dir
+                                    return str(packages_dir)
 
     # Fall back to default locations
     package_name = get_package_name(path)
@@ -1587,8 +1513,9 @@ def get_package_source_directory(path="."):
     ]
 
     for location in possible_locations:
-        if os.path.isdir(location):
-            return location
+        candidate = path / location
+        if candidate.is_dir():
+            return str(candidate)
 
     raise FileNotFoundError(
         f"Could not find package source directory for '{package_name}' "
@@ -1606,6 +1533,7 @@ def get_fitting_font_size(
 
     font_size = min_font_size  # Start with the smallest font size
     draw = ImageDraw.Draw(Image.new("RGB", (max_width, max_height)))
+    last_fitting_size = None
 
     # Increase font size until it exceeds the boundaries
     while True:
@@ -1614,7 +1542,10 @@ def get_fitting_font_size(
             2:
         ]  # Get width & height
         if text_width > max_width or text_height > max_height:
-            return font_size
+            if last_fitting_size is None:
+                return min_font_size
+            return last_fitting_size
+        last_fitting_size = font_size
         if font_size >= max_font_size:
             return max_font_size
         font_size += 1
@@ -1763,7 +1694,7 @@ def safe(func):
         The wrapped function.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
