@@ -20,6 +20,7 @@ def make_trial_maker(**kwargs):
         expected_trials_per_participant=1,
         max_trials_per_participant=1,
         chains_per_experiment=1,
+        recruit_mode="n_trials",
     )
     return ChainTrialMaker(**{**args, **kwargs})
 
