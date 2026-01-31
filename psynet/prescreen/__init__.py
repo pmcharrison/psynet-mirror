@@ -32,9 +32,8 @@ from psynet.timeline import (
     conditional,
     join,
 )
-from psynet.trial import Node
 from psynet.trial.audio import AudioRecordTrial
-from psynet.trial.static import StaticTrial, StaticTrialMaker
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger, get_translator
 
 from .vocabtest import BibleVocab, WikiVocab  # noqa: F401
@@ -572,7 +571,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
 
     def get_nodes(self, duration_rec_sec: float, min_num_detected_taps: int):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "duration_rec_sec": duration_rec_sec,
                     "min_num_detected_taps": min_num_detected_taps,
@@ -777,7 +776,7 @@ class REPPMarkersTest(StaticTrialMaker):
 
     def get_nodes(self):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "stim_name": f"audio{i + 1}.wav",
                     "markers_onsets": [
@@ -936,7 +935,7 @@ class LanguageVocabularyTest(StaticTrialMaker):
 
     def get_nodes(self, media_url: str, language_code: str, words: list):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "word": word,
                 },
@@ -1064,7 +1063,7 @@ class LexTaleTest(StaticTrialMaker):
 
     def get_nodes(self, media_url: str):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "label": label,
                     "correct_answer": correct_answer,
@@ -1344,7 +1343,7 @@ class ColorBlindnessTest(StaticTrialMaker):
 
     def get_nodes(self, media_url: str):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "label": label,
                     "correct_answer": answer,
@@ -1482,7 +1481,7 @@ class ColorVocabularyTest(StaticTrialMaker):
                 "choices": choices,
                 "correct_answer": correct_answer,
             }
-            stimuli.append(Node(definition=definition))
+            stimuli.append(StaticNode(definition=definition))
         return stimuli
 
 
@@ -1650,7 +1649,7 @@ class GeneralHeadphoneTest(StaticTrialMaker):
 
     def get_nodes(self, media_url: str):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "label": label,
                     "correct_answer": answer,
@@ -1974,7 +1973,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             stimuli = [stimuli[i] for i in specific_stimuli]
 
         return [
-            Node(
+            StaticNode(
                 definition=stimulus,
                 assets={
                     "stimulus": ExternalAsset(
