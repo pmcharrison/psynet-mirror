@@ -33,7 +33,8 @@ def test_chain_trial_maker_rejects_mismatched_start_nodes():
 
 
 def test_chain_trial_maker_rejects_callable_start_nodes_with_mismatch():
-    start_nodes = lambda: [ChainNode(definition={"seed": "x"})]
+    def start_nodes():
+        return [ChainNode(definition={"seed": "x"})]
 
     trial_maker = make_trial_maker(start_nodes=start_nodes)
 
