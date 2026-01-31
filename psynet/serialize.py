@@ -1,6 +1,5 @@
 import inspect
 import pickle
-import re
 import warnings
 from functools import cached_property
 
@@ -198,21 +197,7 @@ class SQLHandler(jsonpickle.handlers.BaseHandler):
         return state
 
     def restore(self, state):
-        from .experiment import import_local_experiment
-
         raise RuntimeError("This should not be called directly")
-
-        cls_definition = state["py/object"]
-        is_custom_cls = cls_definition.startswith("dallinger_experiment")
-
-        if is_custom_cls:
-            cls_name = re.sub(".*\\.", "", cls_definition)
-            exp = import_local_experiment()
-            cls = getattr(exp["module"], cls_name)
-        else:
-            cls = loadclass(state["py/object"])
-        identifiers = state["identifiers"]
-        return cls.query.filter_by(**identifiers).one()
 
 
 jsonpickle.register(SQLBase, SQLHandler, base=True)

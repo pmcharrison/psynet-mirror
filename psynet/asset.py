@@ -133,9 +133,6 @@ class InheritedAssets(AssetCollection):
         raise NotImplementedError(
             "This code needs revisiting, the implementation has not been updated yet"
         )
-        super().__init__(key, local_key=None, description=None)
-
-        self.path = path
 
     def prepare_for_deployment(self, registry):
         self.ingest_specification_to_db()
@@ -3349,11 +3346,19 @@ class S3Storage(AssetStorage):
         top: int = None,
         extension: str = None,
     ):
-        return list_files_in_s3_bucket(
+        keys = list_files_in_s3_bucket(
             self.s3_bucket,
             prefix=os.path.join(self.root, folder_path) + "/",
             sort_by_date=sort_by_date,
         )
+        if extension:
+            normalized_extension = (
+                extension if extension.startswith(".") else f".{extension}"
+            )
+            keys = [key for key in keys if key.endswith(normalized_extension)]
+        if top is not None:
+            keys = keys[:top]
+        return keys
 
     def read_file(self, file_path: str) -> str:
         client = get_boto3_s3_client()

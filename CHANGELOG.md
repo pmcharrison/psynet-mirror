@@ -77,6 +77,7 @@
 - Fixed `get_package_source_directory` to resolve paths relative to the provided package root (author: Cursor, reviewer: Peter Harrison)
 - Fixed `check_translations` to resolve the package namespace from the provided path (author: Cursor, reviewer: Peter Harrison)
 - Fixed translation validation to report missing entries before variable-mismatch checks (author: Cursor, reviewer: Peter Harrison)
+- Fixed `S3Storage.list` to honor `top` and `extension` filters (author: Cursor, reviewer: Peter Harrison)
 - Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
 
 ## Removed
@@ -89,6 +90,7 @@
 - Removed unused `LANGUAGES_WITHOUT_CAPITALIZATION` constant from translation checks (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `format_hash` and `hash_object` helpers from utils (author: Cursor, reviewer: Peter Harrison)
 - Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
+- Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
