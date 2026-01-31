@@ -35,7 +35,6 @@ from psynet.utils import (
     organize_by_key,
     pretty_format_seconds,
     safe,
-    strip_url_parameters,
     working_directory,
 )
 
@@ -127,11 +126,6 @@ def test_format_timedelta(delta, expected):
 def test_pretty_format_seconds_rounding():
     assert pretty_format_seconds(59.6) == "1 min"
     assert pretty_format_seconds(59.4) == "0 min 59 sec"
-
-
-def test_strip_url_parameters_removes_fragment_only():
-    url = "https://example.com/path?x=1#section"
-    assert strip_url_parameters(url) == "https://example.com/path"
 
 
 @patch("psynet.timeline.Module.started_and_finished_times")

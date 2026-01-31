@@ -1,5 +1,4 @@
 import contextlib
-import functools
 import gettext
 import glob
 import hashlib
@@ -17,7 +16,6 @@ from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
 from typing import List, OrderedDict, Type, Union
-from urllib.parse import ParseResult, urlparse
 
 import click
 import html2text
@@ -345,6 +343,12 @@ def corr(x: list, y: list, method="pearson"):
     return float(df.corr(method=method).at["x", "y"])
 
 
+# Backported from Python 3.9
+def cache(user_function, /):
+    'Simple lightweight unbounded cache.  Sometimes called "memoize".'
+    return lru_cache(maxsize=None)(user_function)
+
+
 def md5_object(x):
     string = jsonpickle.encode(x).encode("utf-8")
     hashed = hashlib.md5(string)
@@ -486,18 +490,6 @@ def wait_until(
 
 def wait_while(condition, **kwargs):
     wait_until(lambda: not condition(), **kwargs)
-
-
-def strip_url_parameters(url):
-    parse_result = urlparse(url)
-    return ParseResult(
-        scheme=parse_result.scheme,
-        netloc=parse_result.netloc,
-        path=parse_result.path,
-        params=None,
-        query=None,
-        fragment=None,
-    ).geturl()
 
 
 def is_valid_html5_id(str):
@@ -926,12 +918,6 @@ def get_extension(path):
         return extension
     else:
         return ""
-
-
-# Backported from Python 3.9
-def cache(user_function, /):
-    'Simple lightweight unbounded cache.  Sometimes called "memoize".'
-    return lru_cache(maxsize=None)(user_function)
 
 
 def organize_by_key(lst, key, sort_key=None):
@@ -1714,7 +1700,7 @@ def safe(func):
         The wrapped function.
     """
 
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
