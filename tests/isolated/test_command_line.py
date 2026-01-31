@@ -8,7 +8,7 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from psynet.command_line import _check_constraints
+from psynet.command_line import _check_constraints, _check_dockerfile_format
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import working_directory
 
@@ -432,3 +432,47 @@ def test_check_constraints():
                     constraints.flush()
 
                     _check_constraints()
+
+
+def test_check_dockerfile_format():
+    """Test that _check_dockerfile_format detects outdated Dockerfiles."""
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            # Test 1: No Dockerfile - should not raise
+            _check_dockerfile_format()
+            
+            # Test 2: Dockerfile with new format (python:3.13) - should not raise
+            with open("Dockerfile", "w") as f:
+                f.write("FROM python:3.13-bookworm\n")
+                f.write("RUN pip install psynet\n")
+            
+            _check_dockerfile_format()
+            
+            # Test 3: Dockerfile with old format and PsyNet >= 13.1.0 - should raise
+            with open("Dockerfile", "w") as f:
+                f.write("FROM registry.gitlab.com/psynetdev/psynet:v13.0.3\n")
+                f.write("RUN mkdir /experiment\n")
+            
+            # Mock the version to be >= 13.1.0
+            with patch("psynet.command_line.psynet_version", "13.1.0"):
+                with pytest.raises(
+                    click.UsageError,
+                    match="Your Dockerfile appears to be using an outdated format"
+                ):
+                    _check_dockerfile_format()
+            
+            # Test 4: Dockerfile with old format and PsyNet < 13.1.0 - should not raise
+            with patch("psynet.command_line.psynet_version", "13.0.3"):
+                _check_dockerfile_format()
+            
+            # Test 5: Dockerfile with old format (master tag) and PsyNet >= 13.1.0 - should raise
+            with open("Dockerfile", "w") as f:
+                f.write("FROM registry.gitlab.com/psynetdev/psynet:master\n")
+                f.write("RUN mkdir /experiment\n")
+            
+            with patch("psynet.command_line.psynet_version", "13.1.0rc0"):
+                with pytest.raises(
+                    click.UsageError,
+                    match="Your Dockerfile appears to be using an outdated format"
+                ):
+                    _check_dockerfile_format()

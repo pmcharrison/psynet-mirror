@@ -1111,6 +1111,9 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 "To add a generic Dockerfile to your experiment directory, run the following command:\n"
                 "psynet update-scripts"
             )
+        
+        # Check for outdated Dockerfile format (using PsyNet base image)
+        _check_dockerfile_format()
 
     if not local_:
         init_db(drop_all=True)
@@ -1598,6 +1601,55 @@ def check_constraints():
         spinner.ok("✔")
 
     verify_psynet_requirement()
+
+
+def _check_dockerfile_format():
+    """
+    Check if the Dockerfile uses an outdated format (PsyNet base image) with a newer PsyNet version.
+    
+    Starting from PsyNet v13.1.0, the Dockerfile format changed from using a PsyNet base image
+    (FROM registry.gitlab.com/psynetdev/psynet:...) to building directly from Python
+    (FROM python:3.13-bookworm).
+    
+    This function detects when experiments are using the old Dockerfile format with newer
+    PsyNet versions and suggests running `psynet update-scripts`.
+    """
+    from psynet.version import parse_version, psynet_version
+    
+    dockerfile_path = Path("Dockerfile")
+    if not dockerfile_path.exists():
+        return  # Already checked elsewhere
+    
+    # Read the Dockerfile
+    dockerfile_content = dockerfile_path.read_text()
+    
+    # Check if it uses the old PsyNet base image format
+    uses_psynet_base_image = bool(
+        re.search(r'FROM\s+registry\.gitlab\.com/psynetdev/psynet:', dockerfile_content, re.IGNORECASE)
+    )
+    
+    if not uses_psynet_base_image:
+        return  # Using new format, all good
+    
+    # Check if current PsyNet version is >= 13.1.0
+    # The new Dockerfile format was introduced after v13.0.3
+    try:
+        current_version = parse_version(psynet_version)
+        min_new_format_version = parse_version("13.1.0")
+        
+        if current_version >= min_new_format_version:
+            raise click.UsageError(
+                "Your Dockerfile appears to be using an outdated format that references a PsyNet base image:\n"
+                f"  FROM registry.gitlab.com/psynetdev/psynet:...\n\n"
+                f"This format is no longer supported in PsyNet v{psynet_version}. "
+                "The Dockerfile should now build directly from a Python base image.\n\n"
+                "To fix this issue, run the following command to update your experiment scripts:\n"
+                "  psynet update-scripts\n\n"
+                "This will update your Dockerfile to the current format."
+            )
+    except (ValueError, AttributeError):
+        # If we can't parse the version (e.g., development version), skip the check
+        pass
 
 
 def _check_constraints(spinner=None):
