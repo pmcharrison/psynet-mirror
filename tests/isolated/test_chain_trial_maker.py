@@ -32,15 +32,6 @@ def test_chain_trial_maker_rejects_mismatched_start_nodes():
         make_trial_maker(start_nodes=start_nodes)
 
 
-def test_chain_trial_maker_allows_mismatched_start_nodes_with_flag():
-    start_nodes = [ChainNode(definition={"seed": "x"})]
-
-    make_trial_maker(
-        start_nodes=start_nodes,
-        allow_mismatched_start_nodes=True,
-    )
-
-
 def test_chain_trial_maker_rejects_callable_start_nodes_with_mismatch():
     start_nodes = lambda: [ChainNode(definition={"seed": "x"})]
 

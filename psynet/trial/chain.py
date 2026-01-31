@@ -1157,10 +1157,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         To achieve this, ``start_nodes`` should be a lambda function that returns a list of newly created nodes.
         This lambda function may accept ``participant`` as one of its arguments.
 
-    allow_mismatched_start_nodes
-        If ``True``, skips validation that ``start_nodes`` are instances of ``node_class``.
-        Defaults to ``False``.
-
     # balance_strategy
         #   A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
         #   If the list contains "across", then the balancing will take into account trials from other participants.
@@ -1305,7 +1301,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         target_n_participants: Optional[int] = None,
         balance_across_chains: bool = False,
         start_nodes: Optional[Union[callable, List[ChainNode]]] = None,
-        allow_mismatched_start_nodes: bool = False,
         # balance_strategy: Set[str] = {"within", "across"},
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
@@ -1326,8 +1321,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         assert chain_type in ["within", "across"]
 
         self.node_class = node_class
-        self.allow_mismatched_start_nodes = allow_mismatched_start_nodes
-
         assert isinstance(expected_trials_per_participant, (int, float, str))
         if isinstance(expected_trials_per_participant, str):
             assert expected_trials_per_participant == "n_start_nodes"
@@ -1475,7 +1468,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             self._validate_start_nodes(self.start_nodes)
 
     def _validate_start_nodes(self, nodes):
-        if self.allow_mismatched_start_nodes or not isinstance(nodes, list):
+        if not isinstance(nodes, list):
             return
         for index, node in enumerate(nodes):
             if node is None:
@@ -1484,8 +1477,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 raise ValueError(
                     "start_nodes must be instances of "
                     f"{self.node_class.__name__} (or subclasses). "
-                    f"Got {type(node).__name__} at index {index}. "
-                    "If this is intentional, set allow_mismatched_start_nodes=True."
+                    f"Got {type(node).__name__} at index {index}."
                 )
 
     def check_initialization(self):
