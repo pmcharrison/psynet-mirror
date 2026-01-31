@@ -1,4 +1,3 @@
-import base64
 import contextlib
 import functools
 import gettext
@@ -352,9 +351,6 @@ def md5_object(x):
     return str(hashed.hexdigest())
 
 
-hash_object = md5_object
-
-
 # MD5 hashing code:
 # https://stackoverflow.com/a/54477583/8454486
 def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
@@ -386,10 +382,6 @@ def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
 
 def md5_directory(directory: Union[str, Path]) -> str:
     return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
-
-
-def format_hash(hashed, digits=32):
-    return base64.urlsafe_b64encode(hashed.digest())[:digits].decode("utf-8")
 
 
 def serialise_datetime(x):

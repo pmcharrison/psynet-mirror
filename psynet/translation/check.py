@@ -19,34 +19,6 @@ from .utils import compile_mo, create_pot, get_po_path, load_po, po_to_dict
 JINJA_PATTERN = "%\\((.+?)\\)s"
 F_STRING_PATTERN = "{(.+?)}"
 
-LANGUAGES_WITHOUT_CAPITALIZATION = [
-    "zh",  # Chinese
-    "ja",  # Japanese
-    "ko",  # Korean
-    "th",  # Thai
-    "he",  # Hebrew
-    "ar",  # Arabic
-    "ka",  # Georgian
-    "fa",  # Persian
-    "ha",  # Hausa
-    "ps",  # Pashto
-    "ug",  # Uyghur
-    "ur",  # Urdu
-    "as",  # Assamese
-    "be",  # Bengali
-    "gu",  # Gujarati
-    "hi",  # Hindi
-    "kn",  # Kannada
-    "ml",  # Malayalam
-    "mr",  # Marathi
-    "pa",  # Punjabi
-    "sa",  # Sanskrit
-    "te",  # Telugu
-    "bo",  # Tibetan
-    "km",  # Khmer
-    "lo",  # Lao
-]
-
 
 def variable_name_check(variable_name):
     """Check if a variable name is uppercase and only contains underscores and capital letters."""
