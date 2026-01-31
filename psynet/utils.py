@@ -5,7 +5,6 @@ import gettext
 import glob
 import hashlib
 import importlib
-import importlib.util
 import inspect
 import json
 import logging
@@ -432,13 +431,6 @@ def md5_directory(directory: Union[str, Path]) -> str:
 
 def format_hash(hashed, digits=32):
     return base64.urlsafe_b64encode(hashed.digest())[:digits].decode("utf-8")
-
-
-def import_module(name, source):
-    spec = importlib.util.spec_from_file_location(name, source)
-    foo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(foo)
-    return foo
 
 
 def serialise_datetime(x):
