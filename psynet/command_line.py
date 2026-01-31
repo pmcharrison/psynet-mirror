@@ -386,19 +386,88 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
         _cleanup_exp_directory()
 
 
+def _enable_sql_profile(sql_profile_options, sql_profile_dir):
+    if sql_profile_options:
+        os.environ["PSYNET_SQL_PROFILE"] = sql_profile_options
+    elif not os.getenv("PSYNET_SQL_PROFILE"):
+        os.environ["PSYNET_SQL_PROFILE"] = "1"
+
+    profile_dir = sql_profile_dir or tempfile.mkdtemp(prefix="psynet-sql-profile-")
+    os.makedirs(profile_dir, exist_ok=True)
+    os.environ["PSYNET_SQL_PROFILE_DIR"] = profile_dir
+    return profile_dir
+
+
+def _print_sql_profile_aggregation(profile_dir):
+    from psynet.sqlalchemy_profiling import (
+        _parse_env_settings,
+        aggregate_sqlalchemy_profiles,
+        format_aggregated_profile,
+    )
+
+    settings = _parse_env_settings(os.getenv("PSYNET_SQL_PROFILE"))
+    options = settings.get("options", {})
+    top_n = int(options.get("top_n", 20))
+    commit_top_n = int(options.get("commit_top_n", top_n))
+    aggregated = aggregate_sqlalchemy_profiles(profile_dir)
+    click.echo("")
+    click.echo("Aggregated SQLAlchemy profile (all processes):")
+    click.echo(
+        format_aggregated_profile(aggregated, top_n=top_n, commit_top_n=commit_top_n)
+    )
+    click.echo(f"Raw SQL profile files saved to: {profile_dir}")
+
+
 @debug.command("local")
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
+@click.option(
+    "--sql-profile",
+    is_flag=True,
+    help="Enable SQL profiling and aggregate results across processes.",
+)
+@click.option(
+    "--sql-profile-options",
+    default=None,
+    help="Options passed to PSYNET_SQL_PROFILE (e.g. 'min_ms=5,top_n=50').",
+)
+@click.option(
+    "--sql-profile-dir",
+    default=None,
+    help="Directory to store per-process SQL profile JSON files.",
+)
 @click.pass_context
-def debug__local(ctx, docker, archive, legacy, no_browsers):
+def debug__local(
+    ctx,
+    docker,
+    archive,
+    legacy,
+    no_browsers,
+    sql_profile,
+    sql_profile_options,
+    sql_profile_dir,
+):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
-    _run_local(
-        ctx, docker, archive, legacy, no_browsers, mode="debug", context_group=debug
-    )
+    profile_dir = None
+    try:
+        if sql_profile:
+            profile_dir = _enable_sql_profile(sql_profile_options, sql_profile_dir)
+        _run_local(
+            ctx,
+            docker,
+            archive,
+            legacy,
+            no_browsers,
+            mode="debug",
+            context_group=debug,
+        )
+    finally:
+        if profile_dir:
+            _print_sql_profile_aggregation(profile_dir)
 
 
 def run_prepare_in_subprocess():

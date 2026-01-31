@@ -758,6 +758,91 @@ def _aggregate_profile_dicts(
     }
 
 
+def format_aggregated_profile(
+    aggregated: Dict[str, object],
+    *,
+    top_n: int = 20,
+    commit_top_n: int = 10,
+    sort_by: str = "total_ms",
+) -> str:
+    queries = aggregated.get("queries", {})
+    commits = aggregated.get("commits", {})
+    query_stats = list(queries.get("stats", []) or [])
+    commit_stats = list(commits.get("stats", []) or [])
+
+    query_stats.sort(key=lambda stat: _sort_value_for_dict(stat, sort_by), reverse=True)
+    commit_stats.sort(
+        key=lambda stat: _sort_value_for_dict(stat, sort_by), reverse=True
+    )
+
+    lines = [
+        "Aggregated SQLAlchemy query profile: "
+        f"{queries.get('total_count', 0)} queries, "
+        f"{float(queries.get('total_time_ms', 0.0) or 0.0):.2f} ms"
+    ]
+    if not query_stats:
+        lines.append("No queries captured.")
+    else:
+        lines.append("count total_ms mean_ms  max_ms statement")
+        for stat in query_stats[:top_n]:
+            count = int(stat.get("count", 0) or 0)
+            total_ms = float(stat.get("total_ms", 0.0) or 0.0)
+            mean_ms = total_ms / count if count else 0.0
+            max_ms = float(stat.get("max_ms", 0.0) or 0.0)
+            statement = stat.get("statement", "")
+            lines.append(
+                f"{count:5d} {total_ms:8.2f} {mean_ms:7.2f} {max_ms:7.2f} {statement}"
+            )
+            for frame in stat.get("stack") or []:
+                lines.append(f"      at {frame}")
+
+    lines.append("")
+    lines.append(
+        "Commit profile: "
+        f"{commits.get('total_count', 0)} commits, "
+        f"{float(commits.get('total_time_ms', 0.0) or 0.0):.2f} ms"
+    )
+    if not commit_stats:
+        lines.append("No commits captured.")
+    else:
+        lines.append("count total_ms mean_ms  max_ms callsite types")
+        for stat in commit_stats[:commit_top_n]:
+            count = int(stat.get("count", 0) or 0)
+            total_ms = float(stat.get("total_ms", 0.0) or 0.0)
+            mean_ms = total_ms / count if count else 0.0
+            max_ms = float(stat.get("max_ms", 0.0) or 0.0)
+            callsite = stat.get("callsite", "unknown")
+            types = _format_commit_type_counts(stat.get("commit_type_counts") or {})
+            lines.append(
+                f"{count:5d} {total_ms:8.2f} {mean_ms:7.2f} {max_ms:7.2f} "
+                f"{callsite} [{types}]"
+            )
+
+    return "\n".join(lines)
+
+
+def _sort_value_for_dict(stat: Dict[str, object], sort_by: str) -> float:
+    sort_by = sort_by.lower()
+    if sort_by == "mean_ms":
+        total_ms = float(stat.get("total_ms", 0.0) or 0.0)
+        count = int(stat.get("count", 0) or 0)
+        return total_ms / count if count else 0.0
+    if sort_by == "count":
+        return float(stat.get("count", 0) or 0)
+    if sort_by == "max_ms":
+        return float(stat.get("max_ms", 0.0) or 0.0)
+    return float(stat.get("total_ms", 0.0) or 0.0)
+
+
+def _format_commit_type_counts(type_counts: Dict[str, int]) -> str:
+    if not type_counts:
+        return "unknown"
+    parts = [
+        f"{commit_type}={count}" for commit_type, count in sorted(type_counts.items())
+    ]
+    return ", ".join(parts)
+
+
 def _commit_snapshot(session: SASession) -> Tuple[int, int, int]:
     return (len(session.new), len(session.dirty), len(session.deleted))
 

@@ -26,6 +26,7 @@
 - Added unit tests for SQLAlchemy query profiling utilities (author: Cursor, reviewer: Peter Harrison)
 - Added commit timing grouped by callsite with commit-type breakdown in SQLAlchemy profiler (author: Cursor, reviewer: Peter Harrison)
 - Added JSON export and aggregation helper for SQLAlchemy profiling summaries (author: Cursor, reviewer: Peter Harrison)
+- Added `psynet debug local --sql-profile` to aggregate SQL profiling across processes (author: Cursor, reviewer: Peter Harrison)
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
