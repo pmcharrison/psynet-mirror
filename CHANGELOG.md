@@ -31,6 +31,7 @@
 
 ## Fixed
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
+- Fixed `join` to accept list/tuple inputs so `join(pages)` works when assembling timeline components such as `AsyncCodeBlock` (author: Cursor, reviewer: Peter Harrison)
 - Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect Sphinx cross-reference in `MediaImitationChainTrial` docstring missing the `record` module in the path (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect Sphinx cross-references in `AudioImitationChainTrial` and `CameraImitationChainTrial` docstrings pointing to non-existent `audio_imitation_chain` and `video_imitation_chain` modules (author: Cursor, reviewer: Peter Harrison)
