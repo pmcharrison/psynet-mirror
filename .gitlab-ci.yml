@@ -1,5 +1,12 @@
 image: docker:26.1.1
 
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
+default:
+  interruptible: true
+
 services:
   - docker:26.1.1-dind
   - postgres:16-bookworm
