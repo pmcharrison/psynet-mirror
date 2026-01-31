@@ -88,7 +88,7 @@
 - Removed unused `DisableLogger` helper from utils (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `LANGUAGES_WITHOUT_CAPITALIZATION` constant from translation checks (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `format_hash` and `hash_object` helpers from utils (author: Cursor, reviewer: Peter Harrison)
-- Removed unused `strip_url_parameters` helper from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)

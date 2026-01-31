@@ -8,7 +8,7 @@ import urllib.parse
 import urllib.request
 import uuid
 import warnings
-from functools import cached_property
+from functools import cache, cached_property
 from os import environ, makedirs, remove, symlink, unlink, walk
 from pathlib import Path
 from typing import Callable, Optional, Union
@@ -33,7 +33,6 @@ from .media import get_aws_credentials
 from .process import LocalAsyncProcess
 from .serialize import prepare_function_for_serialization
 from .utils import (
-    cache,
     get_args,
     get_extension,
     get_file_size_mb,

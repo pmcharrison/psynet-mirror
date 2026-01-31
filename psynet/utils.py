@@ -11,7 +11,7 @@ import re
 import sys
 import time
 from datetime import datetime
-from functools import lru_cache, reduce, wraps
+from functools import reduce, wraps
 from os.path import exists
 from os.path import join as join_path
 from pathlib import Path
@@ -341,12 +341,6 @@ def corr(x: list, y: list, method="pearson"):
 
     df = pd.DataFrame({"x": x, "y": y}, columns=["x", "y"])
     return float(df.corr(method=method).at["x", "y"])
-
-
-# Backported from Python 3.9
-def cache(user_function, /):
-    'Simple lightweight unbounded cache.  Sometimes called "memoize".'
-    return lru_cache(maxsize=None)(user_function)
 
 
 def md5_object(x):

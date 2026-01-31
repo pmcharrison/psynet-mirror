@@ -4,11 +4,12 @@ import shutil
 import struct
 import tempfile
 import wave
+from functools import cache
 
 import boto3
 from dallinger.config import get_config
 
-from .utils import cache, get_logger
+from .utils import get_logger
 
 logger = get_logger()
 
