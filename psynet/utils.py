@@ -556,9 +556,9 @@ def is_valid_html5_id(str):
 
 
 def pretty_format_seconds(seconds):
-    minutes_and_seconds = divmod(seconds, 60)
-    seconds_remainder = round(minutes_and_seconds[1])
-    formatted_time = f"{round(minutes_and_seconds[0])} min"
+    total_seconds = int(round(seconds))
+    minutes, seconds_remainder = divmod(total_seconds, 60)
+    formatted_time = f"{minutes} min"
     if seconds_remainder > 0:
         formatted_time += f" {seconds_remainder} sec"
     return formatted_time

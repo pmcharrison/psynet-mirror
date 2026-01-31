@@ -33,6 +33,7 @@ from psynet.utils import (
     md5_directory,
     merge_dicts,
     organize_by_key,
+    pretty_format_seconds,
     safe,
     working_directory,
 )
@@ -120,6 +121,11 @@ def test_corr():
 )
 def test_format_timedelta(delta, expected):
     assert format_timedelta(delta) == expected
+
+
+def test_pretty_format_seconds_rounding():
+    assert pretty_format_seconds(59.6) == "1 min"
+    assert pretty_format_seconds(59.4) == "0 min 59 sec"
 
 
 @patch("psynet.timeline.Module.started_and_finished_times")
