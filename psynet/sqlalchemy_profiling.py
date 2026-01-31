@@ -3,7 +3,7 @@ import os
 import threading
 import traceback
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from time import perf_counter
 from typing import Dict, Iterable, List, Optional, Tuple
 
@@ -41,14 +41,14 @@ class QueryStats:
 
 @dataclass
 class CommitStats:
-    commit_type: str
-    stack: Optional[Tuple[str, ...]]
+    callsite: str
+    commit_type_counts: Dict[str, int] = field(default_factory=dict)
     count: int = 0
     total_ms: float = 0.0
     min_ms: float = float("inf")
     max_ms: float = 0.0
 
-    def add(self, duration_ms: float) -> None:
+    def add(self, duration_ms: float, commit_type: str) -> None:
         self.count += 1
         self.total_ms += duration_ms
         if self.count == 1:
@@ -56,12 +56,25 @@ class CommitStats:
         else:
             self.min_ms = min(self.min_ms, duration_ms)
         self.max_ms = max(self.max_ms, duration_ms)
+        self.commit_type_counts[commit_type] = (
+            self.commit_type_counts.get(commit_type, 0) + 1
+        )
 
     @property
     def mean_ms(self) -> float:
         if self.count == 0:
             return 0.0
         return self.total_ms / self.count
+
+    @property
+    def types_summary(self) -> str:
+        if not self.commit_type_counts:
+            return "unknown"
+        parts = [
+            f"{commit_type}={count}"
+            for commit_type, count in sorted(self.commit_type_counts.items())
+        ]
+        return ", ".join(parts)
 
 
 class SQLAlchemyQueryProfiler:
@@ -101,9 +114,7 @@ class SQLAlchemyQueryProfiler:
         self._normalize_sql = normalize_sql
         self._max_statement_chars = max_statement_chars
         self._stats: Dict[Tuple[str, Optional[Tuple[str, ...]]], QueryStats] = {}
-        self._commit_stats: Dict[Tuple[str, Optional[Tuple[str, ...]]], CommitStats] = (
-            {}
-        )
+        self._commit_stats: Dict[str, CommitStats] = {}
         self._total_count = 0
         self._total_time_ms = 0.0
         self._commit_total_count = 0
@@ -269,17 +280,15 @@ class SQLAlchemyQueryProfiler:
             lines.append("No commits captured.")
             return "\n".join(lines)
 
-        lines.append("count total_ms mean_ms  max_ms commit_type")
+        lines.append("count total_ms mean_ms  max_ms callsite types")
         for stat in stats:
             lines.append(
                 f"{stat.count:5d} "
                 f"{stat.total_ms:8.2f} "
                 f"{stat.mean_ms:7.2f} "
                 f"{stat.max_ms:7.2f} "
-                f"{stat.commit_type}"
+                f"{stat.callsite} [{stat.types_summary}]"
             )
-            if stat.stack:
-                lines.extend([f"      at {frame}" for frame in stat.stack])
         return "\n".join(lines)
 
     def print_commit_summary(self, **kwargs) -> None:
@@ -328,8 +337,7 @@ class SQLAlchemyQueryProfiler:
             return
         session.info["_psynet_commit_start_time"] = perf_counter()
         session.info["_psynet_commit_snapshot"] = _commit_snapshot(session)
-        if self._capture_stack:
-            session.info["_psynet_commit_stack"] = _build_stack(self._stack_depth)
+        session.info["_psynet_commit_callsite"] = _commit_callsite()
 
     def _after_commit(self, session: SASession) -> None:
         self._record_commit(session, rolled_back=False)
@@ -342,24 +350,20 @@ class SQLAlchemyQueryProfiler:
             return
         start_time = session.info.pop("_psynet_commit_start_time", None)
         snapshot = session.info.pop("_psynet_commit_snapshot", None)
-        stack = (
-            session.info.pop("_psynet_commit_stack", None)
-            if self._capture_stack
-            else None
-        )
+        callsite = session.info.pop("_psynet_commit_callsite", "unknown")
         if start_time is None:
             return
         duration_ms = (perf_counter() - start_time) * 1000.0
         commit_type = _classify_commit(snapshot)
         if rolled_back:
             commit_type = f"{commit_type} (rolled back)"
-        key = (commit_type, stack)
+        key = callsite
         with self._lock:
             stat = self._commit_stats.get(key)
             if stat is None:
-                stat = CommitStats(commit_type=commit_type, stack=stack)
+                stat = CommitStats(callsite=callsite)
                 self._commit_stats[key] = stat
-            stat.add(duration_ms)
+            stat.add(duration_ms, commit_type)
             self._commit_total_count += 1
             self._commit_total_time_ms += duration_ms
 
@@ -598,3 +602,17 @@ def _classify_commit(snapshot: Optional[Tuple[int, int, int]]) -> str:
     if has_deleted:
         parts.append("delete")
     return "+".join(parts)
+
+
+def _commit_callsite() -> str:
+    stack = traceback.extract_stack()
+    filtered = []
+    for frame in stack:
+        filename = frame.filename.replace("\\", "/")
+        if "/sqlalchemy/" in filename or filename.endswith("sqlalchemy_profiling.py"):
+            continue
+        filtered.append(frame)
+    if not filtered:
+        return "unknown"
+    frame = filtered[-1]
+    return f"{frame.filename}:{frame.lineno} in {frame.name}"

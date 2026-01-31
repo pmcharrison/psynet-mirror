@@ -25,6 +25,10 @@ def make_session_factory():
     return engine, sessionmaker(bind=engine)
 
 
+def commit_in_helper(session):
+    session.commit()
+
+
 def test_sqlalchemy_profile_counts_queries():
     engine = create_engine("sqlite:///:memory:")
     with sqlalchemy_profile(engine) as profiler:
@@ -124,29 +128,32 @@ def test_commit_profile_classifies_types():
         session = SessionLocal()
         widget = Widget(name="alpha")
         session.add(widget)
-        session.commit()
+        commit_in_helper(session)
 
         widget.name = "beta"
-        session.commit()
+        commit_in_helper(session)
 
         other = Widget(name="gamma")
         session.add(other)
         widget.name = "delta"
-        session.commit()
+        commit_in_helper(session)
 
         session.delete(other)
-        session.commit()
+        commit_in_helper(session)
 
         session.execute(text("SELECT 1"))
-        session.commit()
+        commit_in_helper(session)
         session.close()
 
-    commit_types = {stat.commit_type for stat in profiler.get_commit_stats()}
-    assert "insert" in commit_types
-    assert "update" in commit_types
-    assert "insert+update" in commit_types
-    assert "delete" in commit_types
-    assert "no-op" in commit_types
+    stats = profiler.get_commit_stats()
+    assert len(stats) == 1
+    assert "commit_in_helper" in stats[0].callsite
+    commit_types = stats[0].commit_type_counts
+    assert commit_types["insert"] >= 1
+    assert commit_types["update"] >= 1
+    assert commit_types["insert+update"] >= 1
+    assert commit_types["delete"] >= 1
+    assert commit_types["no-op"] >= 1
     assert profiler.commit_total_count >= 5
     assert profiler.commit_total_time_ms >= 0.0
 

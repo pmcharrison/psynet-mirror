@@ -24,7 +24,7 @@
   to aid with configuring VSCode.
 - Added SQLAlchemy query profiling utilities with optional env-driven summaries and pytest helpers (author: Cursor, reviewer: Peter Harrison)
 - Added unit tests for SQLAlchemy query profiling utilities (author: Cursor, reviewer: Peter Harrison)
-- Added commit timing and commit-type classification to SQLAlchemy profiler (author: Cursor, reviewer: Peter Harrison)
+- Added commit timing grouped by callsite with commit-type breakdown in SQLAlchemy profiler (author: Cursor, reviewer: Peter Harrison)
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
