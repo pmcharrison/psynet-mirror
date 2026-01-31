@@ -73,7 +73,8 @@ def test_sqlalchemy_profile_captures_stack():
     assert len(stats) == 1
     assert stats[0].stack is not None
     assert 1 <= len(stats[0].stack) <= 2
-    assert any("test_sqlalchemy_profiling.py" in frame for frame in stats[0].stack)
+    assert all("/sqlalchemy/" not in frame for frame in stats[0].stack)
+    assert all("sqlalchemy_profiling.py" not in frame for frame in stats[0].stack)
 
 
 def test_sqlalchemy_profile_reset_clears_stats():
