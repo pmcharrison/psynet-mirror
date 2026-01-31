@@ -448,31 +448,24 @@ def test_check_dockerfile_format():
             
             _check_dockerfile_format()
             
-            # Test 3: Dockerfile with old format and PsyNet >= 13.1.0 - should raise
+            # Test 3: Dockerfile with old format (version tag) - should raise
             with open("Dockerfile", "w") as f:
                 f.write("FROM registry.gitlab.com/psynetdev/psynet:v13.0.3\n")
                 f.write("RUN mkdir /experiment\n")
             
-            # Mock the version to be >= 13.1.0
-            with patch("psynet.command_line.psynet_version", "13.1.0"):
-                with pytest.raises(
-                    click.UsageError,
-                    match="Your Dockerfile appears to be using an outdated format"
-                ):
-                    _check_dockerfile_format()
-            
-            # Test 4: Dockerfile with old format and PsyNet < 13.1.0 - should not raise
-            with patch("psynet.command_line.psynet_version", "13.0.3"):
+            with pytest.raises(
+                click.UsageError,
+                match="Your Dockerfile appears to be using an outdated format"
+            ):
                 _check_dockerfile_format()
             
-            # Test 5: Dockerfile with old format (master tag) and PsyNet >= 13.1.0 - should raise
+            # Test 4: Dockerfile with old format (master tag) - should raise
             with open("Dockerfile", "w") as f:
                 f.write("FROM registry.gitlab.com/psynetdev/psynet:master\n")
                 f.write("RUN mkdir /experiment\n")
             
-            with patch("psynet.command_line.psynet_version", "13.1.0rc0"):
-                with pytest.raises(
-                    click.UsageError,
-                    match="Your Dockerfile appears to be using an outdated format"
-                ):
-                    _check_dockerfile_format()
+            with pytest.raises(
+                click.UsageError,
+                match="Your Dockerfile appears to be using an outdated format"
+            ):
+                _check_dockerfile_format()
