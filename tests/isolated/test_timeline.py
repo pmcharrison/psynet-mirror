@@ -2,6 +2,7 @@ import pytest
 
 from psynet.page import InfoPage
 from psynet.timeline import (
+    AsyncCodeBlock,
     CodeBlock,
     CreditEstimate,
     MediaSpec,
@@ -189,6 +190,21 @@ def test_join_1():
     assert isinstance(x, list)
     assert len(x) == 1
     assert x[0] == page
+
+
+def test_join_list_resolves_elt_collections():
+    def background_task(participant):
+        participant.var.apples = 3
+
+    page = InfoPage("Test", time_estimate=1)
+    async_block = AsyncCodeBlock(background_task, wait=False)
+
+    result = join([page, async_block])
+
+    assert isinstance(result, list)
+    assert page in result
+    assert not any(isinstance(elt, AsyncCodeBlock) for elt in result)
+    assert all(hasattr(elt, "returns_time_credit") for elt in result)
 
 
 def test_lambda_compiles_as_code_block_in_timeline():
