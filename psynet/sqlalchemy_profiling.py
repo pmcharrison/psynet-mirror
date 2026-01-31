@@ -12,6 +12,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session as SASession
 
 _AUTO_PROFILER = None
+_MODULE_PATH = os.path.abspath(__file__).replace("\\", "/")
 
 
 @dataclass
@@ -519,7 +520,7 @@ def _build_stack(stack_depth: int) -> Optional[Tuple[str, ...]]:
     filtered = []
     for frame in stack:
         filename = frame.filename.replace("\\", "/")
-        if "/sqlalchemy/" in filename or filename.endswith("sqlalchemy_profiling.py"):
+        if "/sqlalchemy/" in filename or filename == _MODULE_PATH:
             continue
         filtered.append(frame)
     if stack_depth:
@@ -609,7 +610,7 @@ def _commit_callsite() -> str:
     filtered = []
     for frame in stack:
         filename = frame.filename.replace("\\", "/")
-        if "/sqlalchemy/" in filename or filename.endswith("sqlalchemy_profiling.py"):
+        if "/sqlalchemy/" in filename or filename == _MODULE_PATH:
             continue
         filtered.append(frame)
     if not filtered:
