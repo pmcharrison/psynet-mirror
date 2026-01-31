@@ -30,7 +30,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
-- Added automatic check during Docker deployment to detect outdated Dockerfile format (PsyNet base image) and provide clear guidance to run `psynet update-scripts` (author: Cursor, reviewer: Peter Harrison)
+- Added automatic check during Docker deployment to detect missing or outdated Dockerfile format (PsyNet base image) and provide clear guidance to run `psynet update-scripts`. Dockerfiles are now mandatory for all Docker deployments (author: Cursor, reviewer: Peter Harrison)
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
 - Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
 - Fixed incorrect Sphinx cross-reference in `MediaImitationChainTrial` docstring missing the `record` module in the path (author: Cursor, reviewer: Peter Harrison)

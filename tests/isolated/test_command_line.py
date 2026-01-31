@@ -8,7 +8,7 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from psynet.command_line import _check_constraints, _check_dockerfile_format
+from psynet.command_line import _check_constraints, check_dockerfile, update_scripts_
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import working_directory
 
@@ -434,19 +434,22 @@ def test_check_constraints():
                     _check_constraints()
 
 
-def test_check_dockerfile_format():
-    """Test that _check_dockerfile_format detects outdated Dockerfiles."""
+def test_check_dockerfile():
+    """Test that check_dockerfile detects missing and outdated Dockerfiles."""
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
-            # Test 1: No Dockerfile - should not raise
-            _check_dockerfile_format()
+            # Test 1: No Dockerfile - should raise
+            with pytest.raises(
+                click.UsageError,
+                match="Docker deployments require a Dockerfile",
+            ):
+                check_dockerfile()
 
-            # Test 2: Dockerfile with new format (python:3.13) - should not raise
-            with open("Dockerfile", "w") as f:
-                f.write("FROM python:3.13-bookworm\n")
-                f.write("RUN pip install psynet\n")
-
-            _check_dockerfile_format()
+            # Test 2: Dockerfile with new format - should not raise
+            # Use update_scripts_ to generate a proper Dockerfile
+            with patch("click.echo"):  # Suppress output
+                update_scripts_()
+            check_dockerfile()
 
             # Test 3: Dockerfile with old format (version tag) - should raise
             with open("Dockerfile", "w") as f:
@@ -457,7 +460,7 @@ def test_check_dockerfile_format():
                 click.UsageError,
                 match="Your Dockerfile appears to be using an outdated format",
             ):
-                _check_dockerfile_format()
+                check_dockerfile()
 
             # Test 4: Dockerfile with old format (master tag) - should raise
             with open("Dockerfile", "w") as f:
@@ -468,4 +471,4 @@ def test_check_dockerfile_format():
                 click.UsageError,
                 match="Your Dockerfile appears to be using an outdated format",
             ):
-                _check_dockerfile_format()
+                check_dockerfile()
