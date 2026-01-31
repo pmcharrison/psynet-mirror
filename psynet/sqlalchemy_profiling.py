@@ -885,12 +885,6 @@ def _commit_callsite() -> str:
         filename = frame.filename.replace("\\", "/")
         if filename.startswith("<"):
             continue
-        if (
-            "/site-packages/" in filename
-            or "/dist-packages/" in filename
-            or "/.venv/" in filename
-        ):
-            continue
         if not os.path.isabs(filename) or not os.path.exists(filename):
             continue
         return f"{frame.filename}:{frame.lineno} in {frame.name}"

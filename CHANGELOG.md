@@ -105,6 +105,7 @@
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed bug where `check_ready_to_spawn` was being called when not available.
 - Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError.
+- Fixed commit callsite selection to include non-SQLAlchemy frames in site-packages (author: Cursor, reviewer: Peter Harrison)
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
