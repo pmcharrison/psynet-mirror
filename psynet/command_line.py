@@ -392,6 +392,8 @@ def _enable_sql_profile(sql_profile_options, sql_profile_dir):
     elif not os.getenv("PSYNET_SQL_PROFILE"):
         os.environ["PSYNET_SQL_PROFILE"] = "1"
 
+    os.environ["PSYNET_SQL_PROFILE_SILENT"] = "1"
+
     if sql_profile_dir:
         profile_dir = sql_profile_dir
         keep_profile_dir = True

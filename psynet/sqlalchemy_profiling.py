@@ -563,7 +563,9 @@ def maybe_enable_sqlalchemy_profiling(
         max_statement_chars=max_statement_chars,
     )
     profiler.start()
-    atexit.register(profiler.print_summary, top_n=top_n)
+    silent = _parse_bool(os.getenv("PSYNET_SQL_PROFILE_SILENT", "0"))
+    if not silent:
+        atexit.register(profiler.print_summary, top_n=top_n)
     profile_dir = os.getenv("PSYNET_SQL_PROFILE_DIR")
     if profile_dir:
         atexit.register(profiler.write_json_summary, profile_dir)
