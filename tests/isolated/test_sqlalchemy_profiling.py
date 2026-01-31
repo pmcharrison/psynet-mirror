@@ -5,6 +5,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from psynet.sqlalchemy_profiling import (
     _parse_bool,
     _parse_env_settings,
+    aggregate_sqlalchemy_profiles,
     assert_query_count,
     sqlalchemy_profile,
 )
@@ -158,6 +159,30 @@ def test_commit_profile_classifies_types():
     assert commit_types["no-op"] >= 1
     assert profiler.commit_total_count >= 5
     assert profiler.commit_total_time_ms >= 0.0
+
+
+def test_profile_json_aggregation(tmp_path):
+    engine = create_engine("sqlite:///:memory:")
+    with sqlalchemy_profile(engine) as profiler:
+        with engine.begin() as conn:
+            conn.execute(text("SELECT 1"))
+    profiler.write_json_summary(str(tmp_path))
+
+    with sqlalchemy_profile(engine) as profiler:
+        with engine.begin() as conn:
+            conn.execute(text("SELECT 1"))
+            conn.execute(text("SELECT 2"))
+    profiler.write_json_summary(str(tmp_path))
+
+    aggregated = aggregate_sqlalchemy_profiles(str(tmp_path))
+    assert aggregated["profiles"] == 2
+    assert aggregated["queries"]["total_count"] == 3
+    stats = {
+        (stat["statement"], tuple(stat["stack"]) if stat["stack"] else None): stat
+        for stat in aggregated["queries"]["stats"]
+    }
+    assert stats[("SELECT 1", None)]["count"] == 2
+    assert stats[("SELECT 2", None)]["count"] == 1
 
 
 def test_assert_query_count_raises_when_exceeded():

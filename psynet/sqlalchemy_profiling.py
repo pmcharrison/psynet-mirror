@@ -1,6 +1,9 @@
 import atexit
+import json
 import os
+import sys
 import threading
+import time
 import traceback
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -259,6 +262,54 @@ class SQLAlchemyQueryProfiler:
     def print_summary(self, **kwargs) -> None:
         print(self.format_summary(**kwargs))
 
+    def to_dict(self) -> Dict[str, object]:
+        query_stats = [
+            {
+                "statement": stat.statement,
+                "stack": list(stat.stack) if stat.stack else None,
+                "count": stat.count,
+                "total_ms": stat.total_ms,
+                "min_ms": stat.min_ms,
+                "max_ms": stat.max_ms,
+            }
+            for stat in self.get_stats(top_n=None, sort_by="total_ms")
+        ]
+        commit_stats = [
+            {
+                "callsite": stat.callsite,
+                "count": stat.count,
+                "total_ms": stat.total_ms,
+                "min_ms": stat.min_ms,
+                "max_ms": stat.max_ms,
+                "commit_type_counts": dict(stat.commit_type_counts),
+            }
+            for stat in self.get_commit_stats(top_n=None, sort_by="total_ms")
+        ]
+        return {
+            "schema_version": 1,
+            "pid": os.getpid(),
+            "command": " ".join(sys.argv),
+            "generated_at": time.time(),
+            "queries": {
+                "total_count": self.total_count,
+                "total_time_ms": self.total_time_ms,
+                "stats": query_stats,
+            },
+            "commits": {
+                "total_count": self.commit_total_count,
+                "total_time_ms": self.commit_total_time_ms,
+                "stats": commit_stats,
+            },
+        }
+
+    def write_json_summary(self, output_dir: str) -> str:
+        os.makedirs(output_dir, exist_ok=True)
+        filename = f"sql-profile-{os.getpid()}-{time.time_ns()}.json"
+        path = os.path.join(output_dir, filename)
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(self.to_dict(), handle, indent=2, sort_keys=True)
+        return path
+
     def format_commit_summary(
         self,
         *,
@@ -474,6 +525,8 @@ def maybe_enable_sqlalchemy_profiling(
     env_var :
         Environment variable that enables profiling. Set to a truthy value or
         a comma-separated list like ``min_ms=50,top_n=20,stack=1``.
+        If ``PSYNET_SQL_PROFILE_DIR`` is set, a JSON summary file will be written
+        to that directory when the process exits.
 
     Returns
     -------
@@ -511,6 +564,9 @@ def maybe_enable_sqlalchemy_profiling(
     )
     profiler.start()
     atexit.register(profiler.print_summary, top_n=top_n)
+    profile_dir = os.getenv("PSYNET_SQL_PROFILE_DIR")
+    if profile_dir:
+        atexit.register(profiler.write_json_summary, profile_dir)
     _AUTO_PROFILER = profiler
     return profiler
 
@@ -584,6 +640,122 @@ def _parse_env_settings(value: Optional[str]) -> Dict[str, object]:
             key, val = part.split("=", 1)
             options[key.strip().lower()] = val.strip()
     return {"enabled": enabled, "options": options}
+
+
+def aggregate_sqlalchemy_profiles(profile_dir: str) -> Dict[str, object]:
+    profiles = []
+    if os.path.isdir(profile_dir):
+        for filename in sorted(os.listdir(profile_dir)):
+            if not filename.endswith(".json"):
+                continue
+            path = os.path.join(profile_dir, filename)
+            with open(path, "r", encoding="utf-8") as handle:
+                data = json.load(handle)
+            data["_source_path"] = path
+            profiles.append(data)
+    return _aggregate_profile_dicts(profiles)
+
+
+def _aggregate_profile_dicts(
+    profiles: Iterable[Dict[str, object]],
+) -> Dict[str, object]:
+    query_stats_map: Dict[Tuple[str, Optional[Tuple[str, ...]]], Dict[str, object]] = {}
+    commit_stats_map: Dict[str, Dict[str, object]] = {}
+    total_query_count = 0
+    total_query_time_ms = 0.0
+    total_commit_count = 0
+    total_commit_time_ms = 0.0
+    sources = []
+
+    for profile in profiles:
+        sources.append(
+            {
+                "pid": profile.get("pid"),
+                "command": profile.get("command"),
+                "source_path": profile.get("_source_path"),
+            }
+        )
+        queries = profile.get("queries", {})
+        total_query_count += int(queries.get("total_count", 0) or 0)
+        total_query_time_ms += float(queries.get("total_time_ms", 0.0) or 0.0)
+        for stat in queries.get("stats", []) or []:
+            statement = stat.get("statement", "")
+            stack = stat.get("stack")
+            stack_key = tuple(stack) if stack else None
+            key = (statement, stack_key)
+            existing = query_stats_map.get(key)
+            if existing is None:
+                existing = {
+                    "statement": statement,
+                    "stack": list(stack) if stack else None,
+                    "count": 0,
+                    "total_ms": 0.0,
+                    "min_ms": float("inf"),
+                    "max_ms": 0.0,
+                }
+                query_stats_map[key] = existing
+            count = int(stat.get("count", 0) or 0)
+            total_ms = float(stat.get("total_ms", 0.0) or 0.0)
+            min_ms = float(stat.get("min_ms", 0.0) or 0.0)
+            max_ms = float(stat.get("max_ms", 0.0) or 0.0)
+            existing["count"] += count
+            existing["total_ms"] += total_ms
+            existing["min_ms"] = min(existing["min_ms"], min_ms)
+            existing["max_ms"] = max(existing["max_ms"], max_ms)
+
+        commits = profile.get("commits", {})
+        total_commit_count += int(commits.get("total_count", 0) or 0)
+        total_commit_time_ms += float(commits.get("total_time_ms", 0.0) or 0.0)
+        for stat in commits.get("stats", []) or []:
+            callsite = stat.get("callsite", "unknown")
+            existing = commit_stats_map.get(callsite)
+            if existing is None:
+                existing = {
+                    "callsite": callsite,
+                    "count": 0,
+                    "total_ms": 0.0,
+                    "min_ms": float("inf"),
+                    "max_ms": 0.0,
+                    "commit_type_counts": {},
+                }
+                commit_stats_map[callsite] = existing
+            count = int(stat.get("count", 0) or 0)
+            total_ms = float(stat.get("total_ms", 0.0) or 0.0)
+            min_ms = float(stat.get("min_ms", 0.0) or 0.0)
+            max_ms = float(stat.get("max_ms", 0.0) or 0.0)
+            existing["count"] += count
+            existing["total_ms"] += total_ms
+            existing["min_ms"] = min(existing["min_ms"], min_ms)
+            existing["max_ms"] = max(existing["max_ms"], max_ms)
+            for commit_type, type_count in (
+                stat.get("commit_type_counts") or {}
+            ).items():
+                existing["commit_type_counts"][commit_type] = existing[
+                    "commit_type_counts"
+                ].get(commit_type, 0) + int(type_count or 0)
+
+    query_stats = sorted(
+        query_stats_map.values(), key=lambda item: item["total_ms"], reverse=True
+    )
+    commit_stats = sorted(
+        commit_stats_map.values(), key=lambda item: item["total_ms"], reverse=True
+    )
+    return {
+        "schema_version": 1,
+        "profiles": len(sources),
+        "generated_at": time.time(),
+        "sources": sources,
+        "queries": {
+            "total_count": total_query_count,
+            "total_time_ms": total_query_time_ms,
+            "stats": query_stats,
+        },
+        "commits": {
+            "total_count": total_commit_count,
+            "total_time_ms": total_commit_time_ms,
+            "stats": commit_stats,
+        },
+    }
 
 
 def _commit_snapshot(session: SASession) -> Tuple[int, int, int]:
