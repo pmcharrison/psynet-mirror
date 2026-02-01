@@ -157,7 +157,7 @@ pages:
       artifacts: true
   script:
     # Pages only deploys the docs_build artifact on release tags.
-    # GitLab Pages publishes the public/ artifact from this job.
+    # GitLab Pages treats the pages job as special and publishes its public/ artifact.
     - echo "Publishing docs"
   artifacts:
     paths:
