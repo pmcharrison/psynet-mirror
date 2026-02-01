@@ -10,7 +10,6 @@ Tutorials
    assets
    specifying_dependencies
    tests
-   internationalization
    synchronization
    ad_page
    modular_page
