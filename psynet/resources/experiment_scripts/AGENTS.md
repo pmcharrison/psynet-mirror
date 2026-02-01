@@ -21,17 +21,9 @@ ask the user if they want to either
 (a) create one at .venv or
 (b) specify the path to another existing .venv to use.
 
-Install dependencies as follows:
-
-- (For PsyNet): `uv pip install -e '.[dev,slack]'`
-- (For experiments): `uv pip install -r constraints.txt`
-
-Cursor: disable sandboxing when running PsyNet commands by setting `required_permissions: ["all"]`.
-
-## Cloud agent setup
-
-If you are running as a cloud agent, make sure the base system dependencies are installed
-before running PsyNet commands. These are not managed by the Python virtual environment:
+Required system dependencies (all workflows) are not managed by the Python virtual environment.
+If you are a cloud agent, assume they are uninstalled and install them.
+Otherwise, ask the user whether they are happy to have them installed:
 
 - **Python 3.13.x**: Install a 3.13 release and verify `python3 --version`.
   Check the repository Dockerfile for the exact patch version we target
@@ -45,6 +37,13 @@ before running PsyNet commands. These are not managed by the Python virtual envi
   with `heroku --version`.
 - **Chromedriver**: Leave uninstalled by default; only install it if you need
   browser automation.
+
+Install dependencies as follows:
+
+- (For PsyNet): `uv pip install -e '.[dev,slack]'`
+- (For experiments): `uv pip install -r constraints.txt`
+
+Cursor: disable sandboxing when running PsyNet commands by setting `required_permissions: ["all"]`.
 
 ## Demos
 
