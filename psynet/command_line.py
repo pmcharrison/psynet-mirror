@@ -913,6 +913,7 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, server):
         )
 
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
+        # Explicitly pass update=False to avoid Click converting the default to the string 'False'
         result = ctx.invoke(
             dallinger_docker_ssh_deploy,
             server=server,
@@ -920,6 +921,7 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, server):
             app_name=app,
             config_options={},
             archive_path=None,
+            update=False,
         )
 
         _post_deploy(result)
@@ -1246,6 +1248,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
         )
 
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive_path=None.
+        # Explicitly pass update=False to avoid Click converting the default to the string 'False'
         result = ctx.invoke(
             sandbox,
             server=server,
@@ -1253,6 +1256,7 @@ def debug__docker_ssh(ctx, app, archive, server, dns_host):
             app_name=app,
             config_options={},
             archive_path=None,
+            update=False,
         )
 
         _post_deploy(result)
