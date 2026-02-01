@@ -28,7 +28,7 @@
 - Added JSON export and aggregation helper for SQLAlchemy profiling summaries (author: Cursor, reviewer: Peter Harrison)
 - Added `psynet debug local --sql-profile` to aggregate SQL profiling across processes (author: Cursor, reviewer: Peter Harrison)
 - Added `psynet test local --sql-profile` to aggregate SQL profiling across processes (author: Cursor, reviewer: Peter Harrison)
-- Added `assert_query_duration` helper for SQL profiling tests (author: Cursor, reviewer: Peter Harrison)
+- Added `assert_query_duration` helper for SQL profiling tests with total/max thresholds (author: Cursor, reviewer: Peter Harrison)
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0

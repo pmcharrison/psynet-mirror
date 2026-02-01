@@ -1,5 +1,7 @@
+import time
+
 import pytest
-from sqlalchemy import Column, Integer, String, create_engine, text
+from sqlalchemy import Column, Integer, String, create_engine, event, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from psynet.sqlalchemy_profiling import (
@@ -207,7 +209,7 @@ def test_assert_query_count_raises_when_below_minimum():
 
 def test_assert_query_duration_passes_with_high_limit():
     engine = create_engine("sqlite:///:memory:")
-    with assert_query_duration(max_duration_ms=1e6, engine=engine):
+    with assert_query_duration(max_total_duration_ms=1e6, engine=engine):
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
 
@@ -216,12 +218,33 @@ def test_assert_query_duration_raises_when_below_minimum():
     engine = create_engine("sqlite:///:memory:")
     with pytest.raises(
         AssertionError,
-        match="Expected total query time between 1.0 and 2.0 ms",
+        match="Expected total query time >= 1.0 ms",
     ):
         with assert_query_duration(
-            max_duration_ms=2.0, min_duration_ms=1.0, engine=engine
+            max_total_duration_ms=2.0, min_total_duration_ms=1.0, engine=engine
         ):
             pass
+
+
+def test_assert_query_duration_raises_when_over_max_query():
+    engine = create_engine("sqlite:///:memory:")
+
+    def slow(*args, **kwargs):
+        time.sleep(0.01)
+
+    event.listen(engine, "before_cursor_execute", slow)
+    try:
+        with pytest.raises(
+            AssertionError,
+            match="Expected max query time <= 1.0 ms",
+        ):
+            with assert_query_duration(
+                max_total_duration_ms=1e6, max_query_duration_ms=1.0, engine=engine
+            ):
+                with engine.begin() as conn:
+                    conn.execute(text("SELECT 1"))
+    finally:
+        event.remove(engine, "before_cursor_execute", slow)
 
 
 def test_parse_env_settings_and_bool():

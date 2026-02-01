@@ -500,20 +500,23 @@ def assert_query_count(
 
 @contextmanager
 def assert_query_duration(
-    max_duration_ms: float,
+    max_total_duration_ms: Optional[float] = None,
     *,
-    min_duration_ms: float = 0.0,
+    max_query_duration_ms: Optional[float] = None,
+    min_total_duration_ms: float = 0.0,
     engine: Optional[Engine] = None,
     **profiler_kwargs,
 ) -> Iterable[SQLAlchemyQueryProfiler]:
     """
-    Assert a total query duration budget within a block.
+    Assert query duration budgets within a block.
 
     Parameters
     ----------
-    max_duration_ms :
+    max_total_duration_ms :
         Maximum total query time in milliseconds allowed.
-    min_duration_ms :
+    max_query_duration_ms :
+        Maximum single-query time in milliseconds allowed.
+    min_total_duration_ms :
         Minimum total query time in milliseconds expected.
     engine :
         SQLAlchemy engine to attach to. Defaults to Dallinger's engine.
@@ -525,6 +528,10 @@ def assert_query_duration(
     SQLAlchemyQueryProfiler
         The active profiler instance.
     """
+    if max_total_duration_ms is None and max_query_duration_ms is None:
+        raise ValueError(
+            "Provide max_total_duration_ms, max_query_duration_ms, or both."
+        )
     if engine is None:
         from dallinger import db
 
@@ -532,11 +539,24 @@ def assert_query_duration(
     with sqlalchemy_profile(engine, **profiler_kwargs) as profiler:
         yield profiler
     total_ms = profiler.total_time_ms
-    if total_ms < min_duration_ms or total_ms > max_duration_ms:
+    if total_ms < min_total_duration_ms:
         raise AssertionError(
-            f"Expected total query time between {min_duration_ms} and "
-            f"{max_duration_ms} ms, but saw {total_ms:.2f} ms."
+            f"Expected total query time >= {min_total_duration_ms} ms, "
+            f"but saw {total_ms:.2f} ms."
         )
+    if max_total_duration_ms is not None and total_ms > max_total_duration_ms:
+        raise AssertionError(
+            f"Expected total query time <= {max_total_duration_ms} ms, "
+            f"but saw {total_ms:.2f} ms."
+        )
+    if max_query_duration_ms is not None:
+        stats = profiler.get_stats(top_n=None, sort_by="max_ms")
+        max_stat_ms = max((stat.max_ms for stat in stats), default=0.0)
+        if max_stat_ms > max_query_duration_ms:
+            raise AssertionError(
+                f"Expected max query time <= {max_query_duration_ms} ms, "
+                f"but saw {max_stat_ms:.2f} ms."
+            )
 
 
 def get_active_sqlalchemy_profiler() -> Optional[SQLAlchemyQueryProfiler]:
