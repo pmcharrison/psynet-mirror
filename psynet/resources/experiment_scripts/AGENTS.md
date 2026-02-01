@@ -28,6 +28,24 @@ Install dependencies as follows:
 
 Cursor: disable sandboxing when running PsyNet commands by setting `required_permissions: ["all"]`.
 
+## Cloud agent setup
+
+If you are running as a cloud agent, make sure the base system dependencies are installed
+before running PsyNet commands. These are not managed by the Python virtual environment:
+
+- **Python 3.13.x**: Install a 3.13 release and verify `python3 --version`.
+  Check the repository Dockerfile for the exact patch version we target
+  (e.g., `psynet/resources/experiment_scripts/Dockerfile` or the root `Dockerfile`).
+- **PostgreSQL**: Install the server and client, ensure the service is running,
+  and create the `dallinger` user/database if they do not exist. Verify with
+  `psql -h localhost -U dallinger -d dallinger`.
+- **Redis**: Install the Redis server, ensure it is running, and verify with
+  `redis-cli ping` (expect `PONG`).
+- **Heroku CLI**: Install the CLI so `heroku` commands are available and verify
+  with `heroku --version`.
+- **Chromedriver**: Leave uninstalled by default; only install it if you need
+  browser automation.
+
 ## Demos
 
 Demos are contained in `demos/experiments` and `demos/features`.
