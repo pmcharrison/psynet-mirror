@@ -232,7 +232,7 @@ def test_assert_query_duration_raises_when_over_max_query():
     def slow(*args, **kwargs):
         time.sleep(0.01)
 
-    event.listen(engine, "before_cursor_execute", slow)
+    event.listen(engine, "after_cursor_execute", slow)
     try:
         with pytest.raises(
             AssertionError,
@@ -244,7 +244,7 @@ def test_assert_query_duration_raises_when_over_max_query():
                 with engine.begin() as conn:
                     conn.execute(text("SELECT 1"))
     finally:
-        event.remove(engine, "before_cursor_execute", slow)
+        event.remove(engine, "after_cursor_execute", slow)
 
 
 def test_parse_env_settings_and_bool():
