@@ -21,10 +21,10 @@ from sqlalchemy import (
     String,
     and_,
     func,
+    inspect,
     not_,
     or_,
     select,
-    inspect,
 )
 from sqlalchemy.exc import NoInspectionAvailable, NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
