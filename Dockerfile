@@ -16,7 +16,7 @@ RUN service redis-server start
 RUN curl -O https://cli-assets.heroku.com/install.sh
 RUN sh -x install.sh
 
-RUN pip install --upgrade pip
+RUN pip install "pip<26" --upgrade
 RUN pip install pip-tools --upgrade
 
 RUN export HEADLESS=TRUE

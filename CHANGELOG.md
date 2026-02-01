@@ -4,6 +4,7 @@
 
 ## Fixed
 - Fixed bug in the propagation of the `--update` argument to the Dallinger CLI (author: Peter Harrison, reviewer: Frank Höger) 
+- Pin pip<26 in Dockerfile (author: Frank Höger)
 
 # [13.0.3](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.3) Release - 2026-01-29
 
