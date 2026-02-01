@@ -24,6 +24,9 @@ class PythonObject(TypeDecorator):
         return value
 
     def process_bind_param(self, value, dialect):
+        """
+        Serialize values before storing them in the database.
+        """
         if value is None:
             return value
         try:
@@ -38,6 +41,9 @@ class PythonObject(TypeDecorator):
         return value
 
     def process_result_value(self, value, dialect):
+        """
+        Deserialize values loaded from the database.
+        """
         if value is None:
             return None
         try:

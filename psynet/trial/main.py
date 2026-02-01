@@ -2211,18 +2211,15 @@ class NetworkTrialMaker(TrialMaker):
     networks : list
         Returns the networks owned by the trial maker.
 
-    performance_threshold : float
-        Score threshold used by the default performance check method, defaults to 0.0.
-        By default, corresponds to the minimum proportion of non-failed trials that
-        the participant must achieve to pass the performance check.
-
     end_performance_check_waits : bool
         If ``True`` (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
 
     performance_threshold : float (default = -1.0)
-        The performance threshold that is used in the
-        :meth:`~psynet.trial.main.NetworkTrialMaker.performance_check` method.
+        Score threshold used by the default performance check method.
+        By default, corresponds to the minimum proportion of non-failed trials that
+        the participant must achieve to pass the performance check.
+        This is used in :meth:`~psynet.trial.main.NetworkTrialMaker.performance_check`.
     """
 
     state_class = NetworkTrialMakerState
