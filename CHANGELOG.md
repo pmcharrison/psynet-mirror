@@ -108,6 +108,7 @@
 - Aligned API doc filenames with module names and removed cross-module API autodoc sections (author: Cursor, reviewer: Peter)
 - Linked tutorials to canonical API pages to avoid duplicate autodoc indexing (author: Cursor, reviewer: Peter)
 - Reduced Sphinx API warnings by excluding external members and fixing trial docs and toctrees (author: Cursor, reviewer: Peter)
+- Added a titled AWS automatic provisioning doc stub to clear toctree warnings (author: Cursor, reviewer: Peter)
 
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
