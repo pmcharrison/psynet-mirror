@@ -18,7 +18,8 @@ import paramiko
 import requests
 from dallinger import db
 from dallinger.utils import classproperty
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, inspect
+from sqlalchemy.exc import NoInspectionAvailable
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import deferred, relationship
@@ -380,6 +381,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def trial(self):
         from .trial.main import Trial
 
+        self._raise_if_detached("parent", "trial")
         if isinstance(self.parent, Trial):
             return self.parent
 
@@ -387,6 +389,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def node(self):
         from .trial.main import Trial, TrialNode
 
+        self._raise_if_detached("parent", "node")
         if isinstance(self.parent, Trial):
             return self.parent.node
         elif isinstance(self.parent, TrialNode):
@@ -396,6 +399,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def network(self):
         from .trial.main import Trial, TrialNetwork, TrialNode
 
+        self._raise_if_detached("parent", "network")
         if isinstance(self.parent, (Trial, TrialNode)):
             return self.parent.network
         elif isinstance(self.parent, TrialNetwork):
@@ -405,12 +409,25 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def participant(self):
         from .participant import Participant
 
+        self._raise_if_detached("parent", "participant")
         if self.parent is None:
             return None
         elif isinstance(self.parent, Participant):
             return self.parent
         else:
             return self.parent.participant
+
+    def _raise_if_detached(self, attribute, context):
+        try:
+            state = inspect(self)
+        except NoInspectionAvailable:
+            return
+        if getattr(state, "detached", False) and attribute in state.unloaded:
+            raise ValueError(
+                f"Cannot access Asset.{context} because this Asset instance is detached. "
+                "Create the asset inside the PageMaker/CodeBlock (or show_trial) that uses it, "
+                "rather than reusing an Asset instance defined at module import time."
+            )
 
     @property
     def trial_maker(self):

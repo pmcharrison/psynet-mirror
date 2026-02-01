@@ -7,6 +7,7 @@ from dallinger import db
 from sqlalchemy.orm import attributes
 from sqlalchemy.orm.exc import DetachedInstanceError
 
+import psynet.asset as asset_module
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
 import psynet.trial.main as trial_main
 from psynet.asset import (
@@ -271,6 +272,20 @@ def test_add_asset_rejects_detached_asset(monkeypatch):
         match="detach",
     ):
         parent.add_asset("stimulus", asset)
+
+
+def test_asset_parent_access_requires_session(monkeypatch):
+    test_asset = ExperimentAsset("dummy.txt", local_key="stimulus")
+
+    def fake_inspect(obj):
+        if obj is test_asset:
+            return SimpleNamespace(detached=True, unloaded={"parent"})
+        raise asset_module.NoInspectionAvailable()
+
+    monkeypatch.setattr(asset_module, "inspect", fake_inspect)
+
+    with pytest.raises(ValueError, match="detached"):
+        _ = test_asset.participant
 
 
 @pytest.mark.usefixtures("in_experiment_directory")
