@@ -192,6 +192,4 @@ Further reading
 Low-level documentation
 -----------------------
 
-.. automodule:: psynet.graphics
-    :members:
-    :show-inheritance:
+For the full API reference, see :doc:`/api/graphics`.

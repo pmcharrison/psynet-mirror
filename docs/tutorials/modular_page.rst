@@ -157,6 +157,4 @@ Other controls
 API
 ---
 
-.. automodule:: psynet.modular_page
-    :show-inheritance:
-    :members:
+For the full API reference, see :doc:`/api/modular_page`.
