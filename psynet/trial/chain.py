@@ -1467,15 +1467,19 @@ class ChainTrialMaker(NetworkTrialMaker):
             self.start_nodes = call_function_with_context(self.start_nodes)
             self._validate_start_nodes(self.start_nodes)
 
+    def _start_nodes_param_name(self) -> str:
+        return "start_nodes"
+
     def _validate_start_nodes(self, nodes):
         if not isinstance(nodes, list):
             return
+        param_name = self._start_nodes_param_name()
         for index, node in enumerate(nodes):
             if node is None:
                 continue
             if not isinstance(node, self.node_class):
                 raise ValueError(
-                    "start_nodes must be instances of "
+                    f"{param_name} must be instances of "
                     f"{self.node_class.__name__} (or subclasses). "
                     f"Got {type(node).__name__} at index {index}."
                 )
