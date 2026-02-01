@@ -15,9 +15,11 @@ The project uses a Python virtual environment located at `.venv/`. Activate it b
 source .venv/bin/activate
 ```
 
-In cloud agent workflows, this virtual environment should be created automatically.
-If this virtual environment does not exist, ask the user if they want to either
-(a) create one at .venv or (b) specify the path to another existing .venv to use.
+If you are a cloud agent, create this virtual environment without asking the user.
+If you are running locally and the virtual environment does not exist,
+ask the user if they want to either
+(a) create one at .venv or
+(b) specify the path to another existing .venv to use.
 
 Install dependencies as follows:
 
