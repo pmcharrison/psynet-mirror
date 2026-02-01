@@ -23,7 +23,8 @@ ask the user if they want to either
 
 Required system dependencies (all workflows) are not managed by the Python virtual environment.
 If you are a cloud agent, assume they are uninstalled and install them.
-Otherwise, ask the user whether they are happy to have them installed:
+Otherwise, check whether they are installed; if not, ask the user whether they are
+happy to have them installed:
 
 - **Python 3.13.x**: Install a 3.13 release and verify `python3 --version`.
   Check the repository Dockerfile for the exact patch version we target

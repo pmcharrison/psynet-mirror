@@ -105,7 +105,7 @@
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 - Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
-- Consolidated system dependency setup instructions in experiment scripts AGENTS.md (author: Cursor, reviewer: Peter)
+- Clarified system dependency checks in experiment scripts AGENTS.md (author: Cursor, reviewer: Peter)
 
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
