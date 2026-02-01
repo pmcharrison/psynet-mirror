@@ -22,6 +22,7 @@
 - Added 'getting started' section to documentation.
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
+- Added `.cursor/environment.json` for automatic configuration of Cursor cloud agents (author: Peter Harrison).
 
 ## Changed
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
