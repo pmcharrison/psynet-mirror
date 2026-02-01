@@ -173,8 +173,10 @@ def test_add_asset_flushes_trial_before_deposit(monkeypatch):
         flush_calls.append(objects)
         parent.id = 123
 
-    def fake_inspect(_obj):
-        return SimpleNamespace(session=db.session)
+    def fake_inspect(obj):
+        if obj is parent:
+            return SimpleNamespace(session=db.session)
+        raise trial_main.NoInspectionAvailable()
 
     monkeypatch.setattr(db.session, "flush", fake_flush)
     monkeypatch.setattr(trial_main, "inspect", fake_inspect)
