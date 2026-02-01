@@ -103,6 +103,12 @@ class AssetParentMixin:
             asset_state = inspect(asset)
         except NoInspectionAvailable:
             asset_state = None
+        if asset_state is not None and asset_state.detached:
+            raise ValueError(
+                "Asset instances passed to Trial.cue must be created within the "
+                "PageMaker/CodeBlock function that calls Trial.cue. Reusing an Asset "
+                "instance across trials detaches it from the current session."
+            )
         if asset_state is None:
             try:
                 needs_parent = getattr(asset, "parent", None) is None
@@ -840,10 +846,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             to ``trial.definition``.
 
         assets :
-            Optional dictionary mapping asset keys to callables that return new
-            :class:`~psynet.asset.Asset` instances. These callables are invoked
-            per trial, which avoids reusing the same asset object across trials.
-            Passing an ``Asset`` instance directly is not supported.
+            Optional dictionary of assets to add to the trial (in addition to any provided by
+            providing a ``Source`` containing assets to the ``definition`` parameter).
         """
         from psynet.trial.chain import ChainNode
 
@@ -857,19 +861,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             node = None
         else:
             raise TypeError(f"Invalid definition type: {type(definition)}")
-
-        if assets:
-            for local_key, asset_factory in assets.items():
-                if isinstance(asset_factory, Asset):
-                    raise ValueError(
-                        "Trial.cue assets must be callables that create new Asset instances "
-                        f"per trial. Asset instances are not supported (key: {local_key})."
-                    )
-                if not callable(asset_factory):
-                    raise TypeError(
-                        "Trial.cue assets must be callables that return Asset instances "
-                        f"(key: {local_key}, type: {type(asset_factory)})."
-                    )
 
         def _register_trial(experiment, participant):
             nonlocal node
@@ -889,21 +880,7 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             participant.current_trial = trial
 
             if assets:
-                trial_assets = {}
-                for local_key, asset_factory in assets.items():
-                    trial_asset = call_function_with_context(
-                        asset_factory,
-                        experiment=experiment,
-                        participant=participant,
-                        trial=trial,
-                    )
-                    if not isinstance(trial_asset, Asset):
-                        raise TypeError(
-                            "Trial.cue asset factories must return Asset instances "
-                            f"(key: {local_key}, type: {type(trial_asset)})."
-                        )
-                    trial_assets[local_key] = trial_asset
-                trial.add_assets(trial_assets)
+                trial.add_assets(assets)
 
         return join(
             CodeBlock(_register_trial),

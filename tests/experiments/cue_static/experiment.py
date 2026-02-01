@@ -33,7 +33,7 @@ class Exp(psynet.experiment.Experiment):
             iterate_over=lambda: range(3),
             logic=CustomTrial.cue(
                 definition={},
-                assets={"stimulus": lambda: asset("static/stimulus.txt")},
+                assets={"stimulus": asset("static/stimulus.txt")},
             ),
             time_estimate_per_iteration=10,
         )

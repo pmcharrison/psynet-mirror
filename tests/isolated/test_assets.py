@@ -235,6 +235,44 @@ def test_add_asset_detached_parent(monkeypatch):
     assert asset.set_keys_called is True
 
 
+def test_add_asset_rejects_detached_asset(monkeypatch):
+    class DummyParent(AssetParentMixin):
+        def __init__(self):
+            self.definition = {}
+            self.assets = {}
+            self.id = 1
+
+    class DummyAsset:
+        def __init__(self):
+            self.parent = None
+            self.local_key = None
+
+        def receive_node_definition(self, definition):
+            self.node_definition = definition
+
+        def set_keys(self):
+            pass
+
+        def deposit(self):
+            pass
+
+    parent = DummyParent()
+    asset = DummyAsset()
+
+    def fake_inspect(obj):
+        if obj is asset:
+            return SimpleNamespace(detached=True)
+        raise trial_main.NoInspectionAvailable()
+
+    monkeypatch.setattr(trial_main, "inspect", fake_inspect)
+
+    with pytest.raises(
+        ValueError,
+        match="detached",
+    ):
+        parent.add_asset("stimulus", asset)
+
+
 @pytest.mark.usefixtures("in_experiment_directory")
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("static")], indirect=True
