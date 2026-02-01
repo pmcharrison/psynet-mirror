@@ -79,7 +79,7 @@ def moto_s3_server():
         from moto.server import ThreadedMotoServer
     except ImportError as exc:
         raise RuntimeError(
-            "Moto is required for S3 tests. Install with 'pip install moto[s3]'."
+            "Moto is required for S3 tests. Install with 'pip install moto[server,s3]'."
         ) from exc
 
     port = _get_free_port()
