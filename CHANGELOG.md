@@ -25,7 +25,7 @@
 
 ## Changed
 - Added AGENTS guidance to update CI allow-lists when adding root paths (author: Cursor, reviewer: Peter Harrison)
-- Updated GitLab CI rules so docs build runs for docs/code changes, non-docs jobs skip docs-only changes, meta-only changes skip builds, Pages deploy only on releases, and docs build rules reuse a shared pipeline condition (author: Cursor, reviewer: Peter Harrison)
+- Updated GitLab CI rules so docs build runs for docs/code changes, non-docs jobs skip docs-only changes, meta-only changes skip builds, Pages deploy only on releases, docs build rules reuse a shared pipeline condition, and Python image versions are centralized (author: Cursor, reviewer: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
