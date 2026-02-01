@@ -22,6 +22,7 @@
 - Added 'getting started' section to documentation.
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
+- Added optional client-side timing logs for page load and response transitions when `psynet_timing=1` is enabled (author: Cursor, reviewer: Peter Harrison)
 
 ## Changed
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
