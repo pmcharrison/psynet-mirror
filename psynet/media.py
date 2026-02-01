@@ -7,6 +7,7 @@ import wave
 from functools import cache
 
 import boto3
+from botocore.config import Config
 from dallinger.config import get_config
 
 from .utils import get_logger
@@ -66,21 +67,40 @@ def get_aws_credentials(capitalize=False):
     if not config.ready:
         config.load()
     cred = {
-        "aws_access_key_id": config.get("aws_access_key_id"),
-        "aws_secret_access_key": config.get("aws_secret_access_key"),
-        "region_name": config.get("aws_region"),
+        "aws_access_key_id": config.get("aws_access_key_id")
+        or os.environ.get("AWS_ACCESS_KEY_ID"),
+        "aws_secret_access_key": config.get("aws_secret_access_key")
+        or os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "region_name": config.get("aws_region")
+        or os.environ.get("AWS_DEFAULT_REGION")
+        or os.environ.get("AWS_REGION"),
     }
+    cred = {key: value for key, value in cred.items() if value}
     if capitalize:
         cred = {key.upper(): value for key, value in cred.items()}
     return cred
 
 
+def get_s3_endpoint_url():
+    return os.environ.get("PSYNET_S3_ENDPOINT_URL")
+
+
+def get_s3_client_kwargs():
+    endpoint_url = get_s3_endpoint_url()
+    if not endpoint_url:
+        return {}
+    return {
+        "endpoint_url": endpoint_url,
+        "config": Config(s3={"addressing_style": "path"}),
+    }
+
+
 def new_s3_client():
-    return boto3.client("s3", **get_aws_credentials())
+    return boto3.client("s3", **get_aws_credentials(), **get_s3_client_kwargs())
 
 
 def new_s3_resource():
-    return boto3.resource("s3", **get_aws_credentials())
+    return boto3.resource("s3", **get_aws_credentials(), **get_s3_client_kwargs())
 
 
 def get_s3_bucket(bucket_name: str):

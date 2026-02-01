@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import re
+import socket
 import subprocess
 import sys
 import tempfile
@@ -60,6 +61,57 @@ ci_only = pytest.mark.skipif(
 local_only = pytest.mark.skipif(
     os.environ.get("CI"), reason="This test only runs in local environment"
 )
+
+
+def _get_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def moto_s3_server():
+    if os.environ.get("PSYNET_S3_ENDPOINT_URL"):
+        yield
+        return
+
+    try:
+        from moto.server import ThreadedMotoServer
+    except ImportError as exc:
+        raise RuntimeError(
+            "Moto is required for S3 tests. Install with 'pip install moto[s3]'."
+        ) from exc
+
+    port = _get_free_port()
+    server = ThreadedMotoServer(ip_address="127.0.0.1", port=port)
+    server.start()
+
+    os.environ["PSYNET_S3_ENDPOINT_URL"] = f"http://127.0.0.1:{port}"
+    os.environ.setdefault("AWS_ACCESS_KEY_ID", "testing")
+    os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "testing")
+    os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
+    os.environ.setdefault("AWS_REGION", "us-east-1")
+
+    from psynet import asset as psynet_asset
+    from psynet import media as psynet_media
+
+    psynet_media.get_aws_credentials.cache_clear()
+    psynet_asset.get_boto3_s3_session.cache_clear()
+    psynet_asset.get_boto3_s3_client.cache_clear()
+    psynet_asset.get_boto3_s3_resource.cache_clear()
+    psynet_asset.get_boto3_s3_bucket.cache_clear()
+    psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
+
+    client = psynet_asset.get_boto3_s3_client()
+    try:
+        client.create_bucket(Bucket="psynet-tests")
+    except client.exceptions.BucketAlreadyOwnedByYou:
+        pass
+
+    try:
+        yield
+    finally:
+        server.stop()
 
 
 def assert_text(driver, element_id, value):

@@ -29,7 +29,7 @@ from psynet.timeline import NullElt
 from . import deployment_info
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject  # , register_extra_var
-from .media import get_aws_credentials
+from .media import get_aws_credentials, get_s3_client_kwargs, get_s3_endpoint_url
 from .process import LocalAsyncProcess
 from .serialize import prepare_function_for_serialization
 from .utils import (
@@ -2890,13 +2890,13 @@ def get_boto3_s3_session():
 @cache
 def get_boto3_s3_client():
     filter_botocore_deprecation_warnings()
-    return boto3.client("s3", **get_aws_credentials())
+    return boto3.client("s3", **get_aws_credentials(), **get_s3_client_kwargs())
 
 
 @cache
 def get_boto3_s3_resource():
     filter_botocore_deprecation_warnings()
-    return get_boto3_s3_session().resource("s3")
+    return get_boto3_s3_session().resource("s3", **get_s3_client_kwargs())
 
 
 @cache
@@ -3112,6 +3112,9 @@ class S3AwscliTransferBackend(S3TransferBackend):
     def run_command(self, cmd, verbose=True):
         if verbose:
             logger.info(f"Running AWS CLI command: {cmd}")
+        endpoint_url = get_s3_endpoint_url()
+        if endpoint_url:
+            cmd = ["aws", "--endpoint-url", endpoint_url, *cmd[1:]]
         try:
             subprocess.run(
                 cmd,
