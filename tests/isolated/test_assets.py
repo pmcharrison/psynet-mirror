@@ -4,6 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 from dallinger import db
+from sqlalchemy.orm import attributes
+from sqlalchemy.orm.exc import DetachedInstanceError
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
 import psynet.trial.main as trial_main
@@ -183,6 +185,52 @@ def test_add_asset_flushes_trial_before_deposit(monkeypatch):
     assert parent.id == 123
     assert asset.deposited is True
     assert parent.assets["stimulus"] is asset
+
+
+def test_add_asset_detached_parent(monkeypatch):
+    class DummyParent(AssetParentMixin):
+        def __init__(self):
+            self.definition = {}
+            self.assets = {}
+            self.id = 1
+
+    class DummyAsset:
+        def __init__(self):
+            self._parent = None
+            self.local_key = None
+            self.deposited = True
+            self.set_keys_called = False
+
+        @property
+        def parent(self):
+            raise DetachedInstanceError(
+                "Parent instance is not bound to a Session"
+            )
+
+        @parent.setter
+        def parent(self, value):
+            self._parent = value
+
+        def receive_node_definition(self, definition):
+            self.node_definition = definition
+
+        def set_keys(self):
+            self.set_keys_called = True
+
+    parent = DummyParent()
+    asset = DummyAsset()
+
+    def fake_inspect(_obj):
+        parent_attr = SimpleNamespace(loaded_value=attributes.NO_VALUE)
+        return SimpleNamespace(attrs=SimpleNamespace(parent=parent_attr))
+
+    monkeypatch.setattr(trial_main, "inspect", fake_inspect)
+    monkeypatch.setattr(trial_main, "object_session", lambda _obj: None)
+
+    parent.add_asset("stimulus", asset)
+
+    assert asset._parent is parent
+    assert asset.set_keys_called is True
 
 
 @pytest.mark.usefixtures("in_experiment_directory")
