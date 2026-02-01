@@ -361,6 +361,9 @@ class StaticTrialMaker(ChainTrialMaker):
             sync_group_type=sync_group_type,
         )
 
+    def _start_nodes_param_name(self) -> str:
+        return "nodes"
+
 
 class StaticNetwork(ChainNetwork):
     pass
