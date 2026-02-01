@@ -268,7 +268,7 @@ def test_add_asset_rejects_detached_asset(monkeypatch):
 
     with pytest.raises(
         ValueError,
-        match="detached",
+        match="detach",
     ):
         parent.add_asset("stimulus", asset)
 

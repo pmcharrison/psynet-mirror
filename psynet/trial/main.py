@@ -103,7 +103,7 @@ class AssetParentMixin:
             asset_state = inspect(asset)
         except NoInspectionAvailable:
             asset_state = None
-        if asset_state is not None and asset_state.detached:
+        if asset_state is not None and getattr(asset_state, "detached", False):
             raise ValueError(
                 "Asset instances passed to Trial.cue must be created within the "
                 "PageMaker/CodeBlock function that calls Trial.cue. Reusing an Asset "
