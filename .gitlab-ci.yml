@@ -1,8 +1,41 @@
+# Change allow-lists:
+# - code_changes triggers full CI (tests, linting, pg_badger).
+# - docs_build runs when docs or code changes are present.
+# - workflow:rules uses these lists to avoid pipelines on meta-only changes.
+# Meta-only root files (e.g. CHANGELOG.md, AGENTS.md, .vscode/) are omitted to skip builds.
+.code_changes: &code_changes
+  - .gitlab-ci.yml
+  - .jshintrc
+  - ci/**/*
+  - demos/**/*
+  - dev-requirements.in
+  - Dockerfile
+  - install-ci-dependencies.sh
+  - psynet/**/*
+  - pyproject.toml
+  - run-ci-tests-locally-v2.sh
+  - tests/**/*
+
+# Shared condition for MR, branch, and tag pipelines.
+.pipeline_condition: &pipeline_condition $CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH || $CI_COMMIT_TAG
+
 image: docker:26.1.1
 
 workflow:
   auto_cancel:
     on_new_commit: interruptible
+  rules:
+    # Keep pipelines for tags and for docs/code changes; skip meta-only changes.
+    - if: $CI_COMMIT_TAG
+      when: always
+    - if: *pipeline_condition
+      changes:
+        - docs/**
+      when: always
+    - if: *pipeline_condition
+      changes: *code_changes
+      when: always
+    - when: never
 
 default:
   interruptible: true
@@ -35,26 +68,6 @@ before_script:
   - echo $POSTGRES_IP
   - echo $REDIS_IP
   - docker build --tag $DOCKER_LOCAL_TAG .
-
-# Change allow-lists:
-# - code_changes triggers full CI (tests, linting, pg_badger).
-# - docs_build runs when docs or code changes are present.
-# Meta-only root files (e.g. CHANGELOG.md, AGENTS.md, .vscode/) are omitted to skip builds.
-.code_changes: &code_changes
-  - .gitlab-ci.yml
-  - .jshintrc
-  - ci/**/*
-  - demos/**/*
-  - dev-requirements.in
-  - Dockerfile
-  - install-ci-dependencies.sh
-  - psynet/**/*
-  - pyproject.toml
-  - run-ci-tests-locally-v2.sh
-  - tests/**/*
-
-# Shared condition for MR, branch, and tag pipelines.
-.pipeline_condition: &pipeline_condition $CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH || $CI_COMMIT_TAG
 
 .default_rules: &default_rules
   rules:
