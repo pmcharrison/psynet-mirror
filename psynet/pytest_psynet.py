@@ -374,6 +374,9 @@ def in_experiment_directory(experiment_directory):
     loaded_experiment_directory = experiment_directory
     redis_vars.clear()
     with working_directory(experiment_directory):
+        from dallinger import config as dallinger_config
+
+        dallinger_config.config = None
         yield experiment_directory
     clean_sys_modules()
     clear_all_caches()
