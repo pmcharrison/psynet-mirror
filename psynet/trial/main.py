@@ -192,10 +192,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         The :class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
         belongs.
 
-    complete : bool
-        Whether the trial has been completed (i.e. received a response
-        from the participant). The user should not typically change this directly.
-
     finalized : bool
         Whether the trial has been finalized. This is a stronger condition than ``complete``;
         in particular, a trial is only marked as finalized once its async processes
@@ -295,7 +291,16 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     def complete(cls):
         # Dallinger v9.6.0 adds an Info.complete column.
         # The following code inherits that column if it exists.
-        return cls.__table__.c.get("complete", Column(Boolean))
+        doc = (
+            "Whether the trial has been completed (i.e. received a response from the "
+            "participant). The user should not typically change this directly."
+        )
+        column = cls.__table__.c.get("complete")
+        if column is None:
+            column = Column(Boolean, doc=doc)
+        elif not column.doc:
+            column.doc = doc
+        return column
 
     finalized = Column(Boolean)
     is_repeat_trial = Column(Boolean)
