@@ -28,6 +28,7 @@
 - Clarified GitLab Pages publishing behavior in CI config comments (author: Cursor, reviewer: Peter Harrison)
 - Noted that GitLab Pages treats the pages job as special when publishing artifacts (author: Cursor, reviewer: Peter Harrison)
 - Added workflow rules to skip CI pipelines for meta-only changes while still running for docs or code changes (author: Cursor, reviewer: Peter Harrison)
+- Updated CI pipeline conditions to cover merged results/merge train sources for docs builds (author: Cursor, reviewer: Peter Harrison)
 - Updated GitLab CI rules so docs build runs for docs/code changes, non-docs jobs skip docs-only changes, meta-only changes skip builds, Pages deploy only on releases, shared pipeline conditions reduce duplication, and Python image versions are centralized (author: Cursor, reviewer: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
