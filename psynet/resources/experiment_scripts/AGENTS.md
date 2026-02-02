@@ -21,6 +21,25 @@ ask the user if they want to either
 (a) create one at .venv or
 (b) specify the path to another existing .venv to use.
 
+Required system dependencies (all workflows) are not managed by the Python virtual environment.
+If you are a cloud agent, assume they are uninstalled and install them.
+Otherwise, check whether they are installed; if not, ask the user whether they are
+happy to have them installed:
+
+- **Python 3.13.x**: Install a 3.13 release and verify `python3 --version`.
+  Check the repository Dockerfile for the exact patch version we target
+  (e.g., `psynet/resources/experiment_scripts/Dockerfile` or the root `Dockerfile`).
+- **PostgreSQL**: Install the server and client, ensure the service is running,
+  and create the `dallinger` user/database if they do not exist. When prompted by
+  `createuser -P`, set the password to `dallinger` (per the installation docs).
+  Verify with `psql -h localhost -U dallinger -d dallinger`.
+- **Redis**: Install the Redis server, ensure it is running, and verify with
+  `redis-cli ping` (expect `PONG`).
+- **Heroku CLI**: Install the CLI so `heroku` commands are available and verify
+  with `heroku --version`.
+- **Chromedriver**: Leave uninstalled by default; only install it if you need
+  browser automation.
+
 Install dependencies as follows:
 
 - (For PsyNet): `uv pip install -e '.[dev,slack]'`
