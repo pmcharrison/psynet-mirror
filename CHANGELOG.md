@@ -105,14 +105,8 @@
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 - Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
-- Aligned API doc filenames with module names and removed cross-module API autodoc sections (author: Cursor, reviewer: Peter)
-- Linked tutorials to canonical API pages to avoid duplicate autodoc indexing (author: Cursor, reviewer: Peter)
-- Reduced Sphinx API warnings by excluding external members and fixing trial docs and toctrees (author: Cursor, reviewer: Peter)
-- Added a titled AWS automatic provisioning doc stub to clear toctree warnings (author: Cursor, reviewer: Peter)
-- Removed internationalization from the tutorials toctree (author: Cursor, reviewer: Peter)
-- Documented the Trial complete flag on the attribute definition and standardized the column doc text (author: Cursor, reviewer: Peter)
-- Added rationale comments for excluded autodoc members in API docs (author: Cursor, reviewer: Peter)
-- Merged graphics low-level docs into further reading and simplified modular page API link (author: Cursor, reviewer: Peter)
+- Streamlined API documentation structure and reduced Sphinx warnings (author: Cursor, reviewer: Peter)
+- Simplified documentation navigation and reference links (author: Cursor, reviewer: Peter)
 
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
