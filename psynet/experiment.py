@@ -2814,6 +2814,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def extra_parameters(cls):
+        """
+        Register PsyNet-specific configuration parameters.
+        """
         config = dallinger_get_config()
         config.register("big_base_payment", bool)
         config.register("lab_recruiter_auth_token", str, sensitive=True)
