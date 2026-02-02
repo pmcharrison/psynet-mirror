@@ -10,11 +10,13 @@ bash install-ci-dependencies.sh || exit 1
 
 echo "Checking if translation is needed..."
 echo "CI_COMMIT_REF_NAME = $CI_COMMIT_REF_NAME"
-if [[ ! "$CI_COMMIT_REF_NAME" =~ ^release- ]]; then
-    echo "Not a release branch - will use the null translator to populate any missing translations."
-    psynet translate --translator null || exit 1
+# Skip null translator for release branches AND version tags (e.g., v13.0.4)
+# These should have all translations present
+if [[ "$CI_COMMIT_REF_NAME" =~ ^release- ]] || [[ "$CI_COMMIT_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+    echo "Release branch or version tag detected - will require all translations to be present."
 else
-    echo "Release branch detected - will require all translations to be present."
+    echo "Not a release branch/tag - will use the null translator to populate any missing translations."
+    psynet translate --translator null || exit 1
 fi
 
 # Fail the build if any of the tests fail

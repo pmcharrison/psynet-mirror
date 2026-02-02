@@ -1,10 +1,11 @@
 # CHANGELOG
 
-# [13.0.4](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.4) Release - 2026-02-01
+# [13.0.4](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.4) Release - 2026-02-02
 
 ## Fixed
 - Fixed bug in the propagation of the `--update` argument to the Dallinger CLI (author: Peter Harrison, reviewer: Frank Höger) 
 - Pin pip<26 in Dockerfile (author: Frank Höger)
+- Fixed CI test failures on version tags by treating them like release branches (skip null translator) (author: Frank Höger)
 
 # [13.0.3](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.3) Release - 2026-01-29
 
