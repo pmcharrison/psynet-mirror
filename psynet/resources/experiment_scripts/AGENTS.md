@@ -30,8 +30,9 @@ happy to have them installed:
   Check the repository Dockerfile for the exact patch version we target
   (e.g., `psynet/resources/experiment_scripts/Dockerfile` or the root `Dockerfile`).
 - **PostgreSQL**: Install the server and client, ensure the service is running,
-  and create the `dallinger` user/database if they do not exist. Verify with
-  `psql -h localhost -U dallinger -d dallinger`.
+  and create the `dallinger` user/database if they do not exist. When prompted by
+  `createuser -P`, set the password to `dallinger` (per the installation docs).
+  Verify with `psql -h localhost -U dallinger -d dallinger`.
 - **Redis**: Install the Redis server, ensure it is running, and verify with
   `redis-cli ping` (expect `PONG`).
 - **Heroku CLI**: Install the CLI so `heroku` commands are available and verify
