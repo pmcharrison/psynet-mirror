@@ -25,6 +25,7 @@
 
 ## Changed
 - Added AGENTS guidance to update CI allow-lists when adding root paths (author: Cursor, reviewer: Peter Harrison)
+- Clarified which meta-only files are excluded from CI triggers in AGENTS guidance (author: Cursor, reviewer: Peter Harrison)
 - Clarified GitLab Pages publishing behavior in CI config comments (author: Cursor, reviewer: Peter Harrison)
 - Noted that GitLab Pages treats the pages job as special when publishing artifacts (author: Cursor, reviewer: Peter Harrison)
 - Added workflow rules to skip CI pipelines for meta-only changes while still running for docs or code changes (author: Cursor, reviewer: Peter Harrison)
