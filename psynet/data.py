@@ -1,9 +1,11 @@
 import contextlib
 import csv
+import inspect
 import io
 import os
 import shutil
 import tempfile
+from pathlib import Path
 from typing import List, Optional
 from zipfile import ZipFile
 
@@ -44,7 +46,7 @@ from tqdm import tqdm
 
 from . import field
 from .field import PythonDict, is_basic_type
-from .utils import json_to_data_frame, organize_by_key
+from .utils import get_psynet_root, json_to_data_frame, organize_by_key
 
 
 def get_db_tables():
@@ -279,6 +281,25 @@ class InvalidDefinitionError(ValueError):
 checked_classes = set()
 
 
+def _polymorphic_identity_for_class(cls):
+    try:
+        class_path = inspect.getsourcefile(cls) or inspect.getfile(cls)
+    except TypeError:
+        class_path = None
+
+    if not class_path:
+        return importable_name(cls)
+
+    root = get_psynet_root().resolve()
+    resolved_path = Path(class_path).resolve()
+    try:
+        relative_path = resolved_path.relative_to(root)
+    except ValueError:
+        relative_path = Path(os.path.relpath(resolved_path, str(root)))
+
+    return f"{relative_path.as_posix()}:{cls.__name__}"
+
+
 class SQLMixinDallinger(SharedMixin):
     """
     We apply this Mixin class when subclassing Dallinger classes,
@@ -406,8 +427,8 @@ class SQLMixinDallinger(SharedMixin):
         ):
             polymorphic_identity = cls.polymorphic_identity
         else:
-            # Otherwise, take the polymorphic_identity from the fully qualified class name
-            polymorphic_identity = importable_name(cls)
+            # Otherwise, derive the polymorphic identity from the repo-relative file path.
+            polymorphic_identity = _polymorphic_identity_for_class(cls)
         x = {"polymorphic_identity": polymorphic_identity}
         if not cls.inherits_table:
             x["polymorphic_on"] = cls.type

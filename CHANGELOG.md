@@ -32,6 +32,7 @@
 
 ## Fixed
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
+- Use repo-relative file paths for SQLAlchemy polymorphic identities to prevent collisions when loading multiple experiments in one session (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
 - Added validation to ensure `ChainTrialMaker` start nodes are instances of `node_class`, preventing silent fallback to base-class behavior when subclasses are expected (author: Cursor; reviewer: Peter Harrison)
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)

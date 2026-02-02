@@ -1,5 +1,6 @@
 import time
 from collections import Counter
+from pathlib import Path
 
 import pytest
 
@@ -12,8 +13,15 @@ from psynet.pytest_psynet import (
     path_to_test_experiment,
 )
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial
+from psynet.utils import get_psynet_root
 
 PYTEST_BOT_CLASS = bot_class()
+
+
+def _expected_polymorphic_identity(relative_path, class_name):
+    root = get_psynet_root()
+    relative_path = (root / Path(relative_path)).relative_to(root).as_posix()
+    return f"{relative_path}:{class_name}"
 
 
 @pytest.mark.parametrize(
@@ -29,8 +37,12 @@ class TestExp:
             networks = StaticNetwork.query.filter_by(trial_maker_id="animals").all()
             nodes = StaticNode.query.all()
 
-            assert networks[0].type == "psynet.trial.static.StaticNetwork"
-            assert nodes[0].type == "psynet.trial.static.StaticNode"
+            assert networks[0].type == _expected_polymorphic_identity(
+                "psynet/trial/static.py", "StaticNetwork"
+            )
+            assert nodes[0].type == _expected_polymorphic_identity(
+                "psynet/trial/static.py", "StaticNode"
+            )
 
             assert len(networks) == 12
             assert len(nodes) == 12
@@ -42,7 +54,9 @@ class TestExp:
 
             trial = StaticTrial.query.filter_by(id=1).one()
             assert trial.answer == "A little"
-            assert trial.type == "dallinger_experiment.experiment.AnimalTrial"
+            assert trial.type == _expected_polymorphic_identity(
+                "tests/experiments/static/experiment.py", "AnimalTrial"
+            )
 
             assert_text(driver, "trial-position", "Trial 2")
 
