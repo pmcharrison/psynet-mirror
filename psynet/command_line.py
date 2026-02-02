@@ -1600,6 +1600,7 @@ def check_dockerfile():
     Check that a Dockerfile exists and uses the correct format.
 
     This function performs two checks:
+
     1. Ensures a Dockerfile exists in the experiment directory
     2. Ensures the Dockerfile uses the new format (Python base image)
        rather than the outdated PsyNet base image format
