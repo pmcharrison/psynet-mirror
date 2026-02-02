@@ -105,31 +105,33 @@ class AssetParentMixin:
             asset_state = None
         if asset_state is not None and getattr(asset_state, "detached", False):
             raise ValueError(
-                "Asset instances passed to Trial.cue must be created within the "
-                "PageMaker/CodeBlock function that calls Trial.cue. Reusing an Asset "
-                "instance across trials detaches it from the current session.\n\n"
-                "Before (incorrect):\n"
-                "    stimulus = asset(\"static/stimulus.txt\")\n"
-                "    timeline = Timeline(\n"
-                "        for_loop(\n"
-                "            label=\"loop\",\n"
-                "            iterate_over=lambda: range(3),\n"
-                "            logic=CustomTrial.cue(definition={}, assets={\"stimulus\": stimulus}),\n"
-                "            time_estimate_per_iteration=10,\n"
-                "        )\n"
-                "    )\n\n"
-                "After (correct):\n"
-                "    timeline = Timeline(\n"
-                "        for_loop(\n"
-                "            label=\"loop\",\n"
-                "            iterate_over=lambda: range(3),\n"
-                "            logic=lambda _item, experiment, participant: CustomTrial.cue(\n"
-                "                definition={},\n"
-                "                assets={\"stimulus\": asset(\"static/stimulus.txt\")},\n"
-                "            ),\n"
-                "            time_estimate_per_iteration=10,\n"
-                "        )\n"
-                "    )"
+                """Asset instances passed to Trial.cue must be created within the
+PageMaker/CodeBlock function that calls Trial.cue. Reusing an Asset instance across
+trials detaches it from the current session.
+
+Before (incorrect):
+    stimulus = asset("static/stimulus.txt")
+    timeline = Timeline(
+        for_loop(
+            label="loop",
+            iterate_over=lambda: range(3),
+            logic=CustomTrial.cue(definition={}, assets={"stimulus": stimulus}),
+            time_estimate_per_iteration=10,
+        )
+    )
+
+After (correct):
+    timeline = Timeline(
+        for_loop(
+            label="loop",
+            iterate_over=lambda: range(3),
+            logic=lambda _item, experiment, participant: CustomTrial.cue(
+                definition={},
+                assets={"stimulus": asset("static/stimulus.txt")},
+            ),
+            time_estimate_per_iteration=10,
+        )
+    )"""
             )
         if asset_state is None:
             try:
