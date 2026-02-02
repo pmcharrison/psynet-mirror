@@ -25,7 +25,6 @@
 
 ## Changed
 - Added AGENTS guidance to update CI allow-lists when adding root paths (author: Cursor, reviewer: Peter Harrison)
-- Clarified which meta-only files are excluded from CI triggers in AGENTS guidance (author: Cursor, reviewer: Peter Harrison)
 - Clarified GitLab Pages publishing behavior in CI config comments (author: Cursor, reviewer: Peter Harrison)
 - Noted that GitLab Pages treats the pages job as special when publishing artifacts (author: Cursor, reviewer: Peter Harrison)
 - Added workflow rules to skip CI pipelines for meta-only changes while still running for docs or code changes (author: Cursor, reviewer: Peter Harrison)
@@ -111,6 +110,7 @@
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 - Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
+- Tweaked history documentation wording for clarity (author: Cursor, reviewer: Peter Harrison)
 
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
