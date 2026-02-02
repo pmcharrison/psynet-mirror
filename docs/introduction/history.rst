@@ -7,7 +7,7 @@ The PsyNet project began in 2020 as a collaboration between Peter Harrison and N
 attempting to build a higher-level abstraction
 around the `Dallinger platform <https://dallinger.readthedocs.io/en/latest/>`_.
 Highlights of Dallinger included sophisticated code for deploying online experiments onto
-Heroku webservers, an advanced system for representing network-based experiments as graph-based
+Heroku web servers, an advanced system for representing network-based experiments as graph-based
 structures, and excellent integration with Amazon Mechanical Turk. However, implementing
 experiments with Dallinger proved rather time-consuming, with each experiment requiring
 a significant amount of front-end web programming and boilerplate experiment logic.
