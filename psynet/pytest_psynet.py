@@ -71,6 +71,13 @@ def _get_free_port():
 
 @pytest.fixture(scope="session", autouse=True)
 def moto_s3_server():
+    """
+    Start a Moto-backed S3 endpoint for tests.
+
+    This fixture sets `PSYNET_S3_ENDPOINT_URL` and basic AWS credentials so
+    boto3 targets a local S3 emulator instead of AWS. If a custom endpoint
+    is already provided, it is respected and no Moto server is started.
+    """
     if os.environ.get("PSYNET_S3_ENDPOINT_URL"):
         yield
         return

@@ -3110,6 +3110,14 @@ class S3AwscliTransferBackend(S3TransferBackend):
         self.run_command(cmd)
 
     def run_command(self, cmd, verbose=True):
+        """
+        Run an AWS CLI command for S3 operations.
+
+        If `PSYNET_S3_ENDPOINT_URL` is set, the command is amended with
+        `--endpoint-url` so the AWS CLI talks to a custom S3-compatible
+        endpoint (for example Moto, LocalStack, or MinIO). This is useful
+        in CI or local testing where access to real AWS should be avoided.
+        """
         if verbose:
             logger.info(f"Running AWS CLI command: {cmd}")
         endpoint_url = get_s3_endpoint_url()

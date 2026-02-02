@@ -82,10 +82,25 @@ def get_aws_credentials(capitalize=False):
 
 
 def get_s3_endpoint_url():
+    """
+    Get the custom S3 endpoint URL, if configured.
+
+    This reads `PSYNET_S3_ENDPOINT_URL` from the environment. When set, PsyNet
+    will direct boto3 to use the specified S3-compatible endpoint (for example
+    Moto, LocalStack, or MinIO) instead of AWS. This is useful for CI or local
+    testing where real S3 access is not desired.
+    """
     return os.environ.get("PSYNET_S3_ENDPOINT_URL")
 
 
 def get_s3_client_kwargs():
+    """
+    Build boto3 client/resource kwargs for custom S3 endpoints.
+
+    Returns an empty dict when no custom endpoint is configured. When a custom
+    endpoint is set, this includes `endpoint_url` and path-style addressing,
+    which improves compatibility with S3 emulators.
+    """
     endpoint_url = get_s3_endpoint_url()
     if not endpoint_url:
         return {}
