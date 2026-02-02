@@ -298,7 +298,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         column = cls.__table__.c.get("complete")
         if column is None:
             column = Column(Boolean, doc=doc)
-        elif not column.doc:
+        else:
+            # Ensure a consistent docstring even if Dallinger already defines one.
             column.doc = doc
         return column
 
