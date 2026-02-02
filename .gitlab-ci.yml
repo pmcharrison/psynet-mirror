@@ -26,6 +26,7 @@ workflow:
     on_new_commit: interruptible
 
 default:
+  # Docs-only pipelines can be canceled; full-build jobs override this setting.
   interruptible: true
 
 services:
@@ -65,6 +66,7 @@ before_script:
 
 pre_commit:
   image: "python:${PYTHON_VERSION}"
+  interruptible: false
   <<: *default_rules
   before_script:
     - pip install pre-commit
@@ -76,6 +78,7 @@ changelog_check:
     name: alpine/git
     entrypoint: ["/bin/sh", "-c"]
   stage: test
+  interruptible: false
   before_script: []
   script:
     - |
@@ -94,6 +97,7 @@ changelog_check:
 tests:
   parallel: 10
   stage: test
+  interruptible: false
   <<: *default_rules
   script:
     - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
@@ -116,6 +120,7 @@ tests:
 merge_test_results:
   image: "python:${PYTHON_VERSION}-alpine"
   stage: test
+  interruptible: false
   <<: *default_rules
   needs: ["tests"]
   dependencies: ["tests"]
@@ -170,6 +175,7 @@ pages:
 
 pg_badger:
   image: "python:${PYTHON_VERSION}"
+  interruptible: false
   <<: *default_rules
   services:
     - docker:25.0.2-dind
