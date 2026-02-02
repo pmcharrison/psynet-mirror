@@ -31,7 +31,7 @@ class Exp(psynet.experiment.Experiment):
         for_loop(
             label="loop over custom trials",
             iterate_over=lambda: range(3),
-            logic=CustomTrial.cue(
+            logic=lambda _item, experiment, participant: CustomTrial.cue(
                 definition={},
                 assets={"stimulus": asset("static/stimulus.txt")},
             ),
