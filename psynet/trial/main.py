@@ -29,14 +29,7 @@ from sqlalchemy import (
 from sqlalchemy.exc import NoInspectionAvailable, NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import (
-    attributes,
-    column_property,
-    declared_attr,
-    deferred,
-    object_session,
-    relationship,
-)
+from sqlalchemy.orm import column_property, declared_attr, deferred, relationship
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -99,13 +92,12 @@ class AssetParentMixin:
             self.add_asset(local_key, asset)
 
     def add_asset(self, local_key: str, asset: Asset):
-        try:
-            asset_state = inspect(asset)
-        except NoInspectionAvailable:
-            asset_state = None
-        if asset_state is not None and getattr(asset_state, "detached", False):
-            raise ValueError(
-                """Asset instances passed to Trial.cue must be created within the
+        if isinstance(asset, Asset):
+            try:
+                asset._raise_if_detached("parent", "parent")
+            except ValueError as exc:
+                raise ValueError(
+                    """Asset instances passed to Trial.cue must be created within the
 per-participant timeline function that calls Trial.cue (for example, a PageMaker
 function or a for_loop logic callable). Reusing an Asset instance across trials
 detaches it from the current session.
@@ -145,20 +137,12 @@ After (correct):
             time_estimate_per_iteration=10,
         )
     )"""
-            )
-        if asset_state is None:
-            try:
-                needs_parent = getattr(asset, "parent", None) is None
-            except Exception:
-                needs_parent = True
-        else:
-            parent_attr = asset_state.attrs.parent
-            if parent_attr.loaded_value is not attributes.NO_VALUE:
-                needs_parent = parent_attr.loaded_value is None
-            elif object_session(asset) is None:
-                needs_parent = True
-            else:
-                needs_parent = asset.parent is None
+                ) from exc
+
+        try:
+            needs_parent = getattr(asset, "parent", None) is None
+        except Exception:
+            needs_parent = True
         if needs_parent:
             asset.parent = self
 
