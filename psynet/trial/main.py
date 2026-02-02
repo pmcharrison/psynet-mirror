@@ -93,51 +93,7 @@ class AssetParentMixin:
 
     def add_asset(self, local_key: str, asset: Asset):
         if isinstance(asset, Asset):
-            try:
-                asset._raise_if_detached("parent", "parent")
-            except ValueError as exc:
-                raise ValueError(
-                    """Asset instances passed to Trial.cue must be created within the
-per-participant timeline function that calls Trial.cue (for example, a PageMaker
-function or a for_loop logic callable). Reusing an Asset instance across trials
-detaches it from the current session.
-
-Before (incorrect):
-    stimulus_assets = [
-        asset("static/stimulus_0.txt"),
-        asset("static/stimulus_1.txt"),
-        asset("static/stimulus_2.txt"),
-    ]
-    timeline = Timeline(
-        for_loop(
-            label="loop",
-            iterate_over=lambda: range(3),
-            logic=lambda i, experiment, participant: CustomTrial.cue(
-                definition={"index": i},
-                assets={"stimulus": stimulus_assets[i]},
-            ),
-            time_estimate_per_iteration=10,
-        )
-    )
-
-After (correct):
-    stimulus_files = [
-        "static/stimulus_0.txt",
-        "static/stimulus_1.txt",
-        "static/stimulus_2.txt",
-    ]
-    timeline = Timeline(
-        for_loop(
-            label="loop",
-            iterate_over=lambda: range(3),
-            logic=lambda i, experiment, participant: CustomTrial.cue(
-                definition={"index": i},
-                assets={"stimulus": asset(stimulus_files[i])},
-            ),
-            time_estimate_per_iteration=10,
-        )
-    )"""
-                ) from exc
+            asset._raise_if_detached("parent", "parent")
 
         try:
             needs_parent = getattr(asset, "parent", None) is None
