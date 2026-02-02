@@ -153,8 +153,4 @@ Other controls
 
 * :class:`~psynet.modular_page.SurveyJSControl`
 
-
-API
----
-
 For the full API reference, see :doc:`/api/modular_page`.

@@ -112,7 +112,7 @@
 - Removed internationalization from the tutorials toctree (author: Cursor, reviewer: Peter)
 - Documented the Trial complete flag on the attribute definition and standardized the column doc text (author: Cursor, reviewer: Peter)
 - Added rationale comments for excluded autodoc members in API docs (author: Cursor, reviewer: Peter)
-- Merged graphics low-level docs into further reading (author: Cursor, reviewer: Peter)
+- Merged graphics low-level docs into further reading and simplified modular page API link (author: Cursor, reviewer: Peter)
 
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
