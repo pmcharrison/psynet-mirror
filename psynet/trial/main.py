@@ -111,12 +111,19 @@ function or a for_loop logic callable). Reusing an Asset instance across trials
 detaches it from the current session.
 
 Before (incorrect):
-    stimulus = asset("static/stimulus_0.txt")
+    stimulus_assets = [
+        asset("static/stimulus_0.txt"),
+        asset("static/stimulus_1.txt"),
+        asset("static/stimulus_2.txt"),
+    ]
     timeline = Timeline(
         for_loop(
             label="loop",
             iterate_over=lambda: range(3),
-            logic=CustomTrial.cue(definition={}, assets={"stimulus": stimulus}),
+            logic=lambda i, experiment, participant: CustomTrial.cue(
+                definition={"index": i},
+                assets={"stimulus": stimulus_assets[i]},
+            ),
             time_estimate_per_iteration=10,
         )
     )
