@@ -200,14 +200,14 @@ def test_add_asset_rejects_detached_asset(monkeypatch):
 
     def fake_inspect(obj):
         if obj is asset:
-            return SimpleNamespace(detached=True, unloaded={"parent"})
-        raise asset_module.NoInspectionAvailable()
+            return SimpleNamespace(detached=True)
+        raise trial_main.NoInspectionAvailable()
 
-    monkeypatch.setattr(asset_module, "inspect", fake_inspect)
+    monkeypatch.setattr(trial_main, "inspect", fake_inspect)
 
     with pytest.raises(
         ValueError,
-        match="detached",
+        match="detaches",
     ):
         parent.add_asset("stimulus", asset)
 

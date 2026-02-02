@@ -92,14 +92,18 @@ class AssetParentMixin:
             self.add_asset(local_key, asset)
 
     def add_asset(self, local_key: str, asset: Asset):
-        if isinstance(asset, Asset):
-            asset._raise_if_detached("parent", "parent")
-
         try:
-            needs_parent = getattr(asset, "parent", None) is None
-        except Exception:
-            needs_parent = True
-        if needs_parent:
+            asset_state = inspect(asset)
+        except NoInspectionAvailable:
+            asset_state = None
+        if asset_state is not None and asset_state.detached:
+            raise ValueError(
+                "Asset instances passed to Trial.cue must be created within the "
+                "per-participant timeline function that calls Trial.cue. Reusing an "
+                "Asset instance across trials detaches it from the current session."
+            )
+
+        if asset.parent is None:
             asset.parent = self
 
         asset.receive_node_definition(self.definition)
