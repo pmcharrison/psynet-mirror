@@ -17,7 +17,7 @@ OCCUPATIONS = ["doctor", "babysitter", "teacher"]
 SAMPLE_RANGE = 5
 
 
-class CustomTrial(MCMCPTrial):
+class DemoMcmcpCustomTrial(MCMCPTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -39,7 +39,7 @@ class CustomTrial(MCMCPTrial):
         )
 
 
-class CustomNode(MCMCPNode):
+class DemoMcmcpCustomNode(MCMCPNode):
     def create_initial_seed(self, experiment, participant):
         return {"age": random.randint(0, MAX_AGE)}
 
@@ -51,7 +51,7 @@ class CustomNode(MCMCPNode):
 
 def start_nodes(participant):
     return [
-        CustomNode(
+        DemoMcmcpCustomNode(
             context={
                 "occupation": occupation,
             },
@@ -68,8 +68,8 @@ class Exp(psynet.experiment.Experiment):
         MCMCPTrialMaker(
             id_="mcmcp_demo",
             start_nodes=start_nodes,
-            trial_class=CustomTrial,
-            node_class=CustomNode,
+            trial_class=DemoMcmcpCustomTrial,
+            node_class=DemoMcmcpCustomNode,
             chain_type="within",  # can be "within" or "across"
             expected_trials_per_participant=9,
             max_trials_per_participant=9,

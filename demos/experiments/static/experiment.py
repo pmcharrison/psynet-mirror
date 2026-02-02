@@ -23,7 +23,7 @@ nodes = [
 ]
 
 
-class AnimalTrial(StaticTrial):
+class DemoStaticAnimalTrial(StaticTrial):
     time_estimate = 3
 
     def finalize_definition(self, definition, experiment, participant):
@@ -111,7 +111,7 @@ class AnimalTrialMaker(StaticTrialMaker):
 
 trial_maker = AnimalTrialMaker(
     id_="animals",
-    trial_class=AnimalTrial,
+    trial_class=DemoStaticAnimalTrial,
     nodes=nodes,
     expected_trials_per_participant=6,
     max_trials_per_block=2,

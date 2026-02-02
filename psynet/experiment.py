@@ -4336,6 +4336,54 @@ def _patch_dallinger_models():
 
 _patch_dallinger_models()
 
+_EXPERIMENT_SQL_CLASS_REGISTRY: dict[str, str] = {}
+
+
+def _iter_experiment_modules(experiment_path: str):
+    experiment_path = abspath(experiment_path)
+    for module in sys.modules.values():
+        module_path = getattr(module, "__file__", None)
+        if not module_path:
+            continue
+        try:
+            module_path = abspath(module_path)
+            if os.path.commonpath([experiment_path, module_path]) == experiment_path:
+                yield module
+        except ValueError:
+            continue
+
+
+def _iter_experiment_sqlalchemy_classes(experiment_path: str):
+    for module in _iter_experiment_modules(experiment_path):
+        for _, cls in inspect.getmembers(module, inspect.isclass):
+            if cls.__module__ != module.__name__:
+                continue
+            if cls is db.Base:
+                continue
+            if issubclass(cls, db.Base):
+                yield cls
+
+
+def _register_experiment_sqlalchemy_classes(experiment_path: str) -> None:
+    """Register experiment SQLAlchemy class names.
+
+    Parameters
+    ----------
+    experiment_path
+        Absolute path to the experiment directory.
+    """
+    experiment_path = abspath(experiment_path)
+    for cls in _iter_experiment_sqlalchemy_classes(experiment_path):
+        existing_path = _EXPERIMENT_SQL_CLASS_REGISTRY.get(cls.__name__)
+        if existing_path and existing_path != experiment_path:
+            raise RuntimeError(
+                "Detected a SQLAlchemy class name collision between experiment directories. "
+                f"Class name '{cls.__name__}' was already registered from '{existing_path}', "
+                f"but '{experiment_path}' defines another class with the same name. "
+                "Please rename one of the classes to keep experiment class names unique."
+            )
+        _EXPERIMENT_SQL_CLASS_REGISTRY[cls.__name__] = experiment_path
+
 
 def import_local_experiment():
     # Imports experiment.py and returns a dict consisting of
@@ -4351,7 +4399,7 @@ def import_local_experiment():
 
     import dallinger.experiment
 
-    dallinger.experiment.load()
+    experiment_class = dallinger.experiment.load()
 
     dallinger_experiment = sys.modules.get("dallinger_experiment")
     sys.path.append(os.getcwd())
@@ -4364,10 +4412,12 @@ def import_local_experiment():
             f'Please check your imports!\nOriginal error was "AttributeError: {e}"'
         )
 
+    _register_experiment_sqlalchemy_classes(os.getcwd())
+
     return {
         "package": dallinger_experiment,
         "module": module,
-        "class": dallinger.experiment.load(),  # TODO - use the class as loaded above instead?
+        "class": experiment_class,
     }
 
 

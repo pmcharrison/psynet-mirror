@@ -15,7 +15,7 @@ logger = logging.getLogger()
 # the experiment would fail with a sqlalchemy.orm.exc.DetachedInstanceError.
 
 
-class CustomTrial(StaticTrial):
+class TestCueStaticCustomTrial(StaticTrial):
     time_estimate = 10
 
     def show_trial(self, experiment, participant):
@@ -30,7 +30,7 @@ class Exp(psynet.experiment.Experiment):
         for_loop(
             label="loop over custom trials",
             iterate_over=lambda: range(3),
-            logic=CustomTrial.cue(definition={}),
+            logic=TestCueStaticCustomTrial.cue(definition={}),
             time_estimate_per_iteration=10,
         )
     )

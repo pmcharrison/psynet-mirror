@@ -69,7 +69,7 @@ class ColorSliderPage(ModularPage):
         }
 
 
-class CustomNetwork(GibbsNetwork):
+class DemoGibbsWithinCustomNetwork(GibbsNetwork):
     run_async_post_grow_network = True
 
     def async_post_grow_network(self):
@@ -81,7 +81,7 @@ class CustomNetwork(GibbsNetwork):
             self.var.growth_counter = 1
 
 
-class CustomTrial(GibbsTrial):
+class DemoGibbsWithinCustomTrial(GibbsTrial):
     # If True, then the starting value for the free parameter is resampled
     # on each trial.
     run_async_post_trial = True
@@ -112,7 +112,7 @@ class CustomTrial(GibbsTrial):
         ]
 
 
-class CustomNode(GibbsNode):
+class DemoGibbsWithinCustomNode(GibbsNode):
     vector_length = 3
 
     def random_sample(self, i):
@@ -151,10 +151,12 @@ class CustomTrialMaker(GibbsTrialMaker):
 
 trial_maker = CustomTrialMaker(
     id_="gibbs_demo",
-    start_nodes=lambda: [CustomNode(context={"target": random.sample(TARGETS, 1)[0]})],
-    network_class=CustomNetwork,
-    trial_class=CustomTrial,
-    node_class=CustomNode,
+    start_nodes=lambda: [
+        DemoGibbsWithinCustomNode(context={"target": random.sample(TARGETS, 1)[0]})
+    ],
+    network_class=DemoGibbsWithinCustomNetwork,
+    trial_class=DemoGibbsWithinCustomTrial,
+    node_class=DemoGibbsWithinCustomNode,
     chain_type="within",  # can be "within" or "across"
     expected_trials_per_participant=4,
     max_trials_per_participant=4,

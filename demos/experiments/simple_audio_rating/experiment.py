@@ -59,7 +59,7 @@ if __name__ == "__main__":
         print(f"- {stimulus['name']}")
 
 
-class CustomTrial(StaticTrial):
+class DemoSimpleAudioRatingCustomTrial(StaticTrial):
     time_estimate = 10
 
     def show_trial(self, experiment, participant):
@@ -106,7 +106,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         StaticTrialMaker(
             id_="ratings",
-            trial_class=CustomTrial,
+            trial_class=DemoSimpleAudioRatingCustomTrial,
             nodes=get_nodes,
             expected_trials_per_participant="n_nodes",
             max_trials_per_participant="n_nodes",

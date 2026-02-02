@@ -17,7 +17,7 @@ nodes = [
 ]
 
 
-class AnimalTrial(StaticTrial):
+class DemoSyncQuorumAnimalTrial(StaticTrial):
     time_estimate = 3
 
     def show_trial(self, experiment, participant):
@@ -32,7 +32,7 @@ class AnimalTrial(StaticTrial):
 
 trial_maker = StaticTrialMaker(
     id_="animals",
-    trial_class=AnimalTrial,
+    trial_class=DemoSyncQuorumAnimalTrial,
     nodes=nodes,
     expected_trials_per_participant=6,
     max_trials_per_participant=99,
@@ -40,7 +40,7 @@ trial_maker = StaticTrialMaker(
 )
 
 waiting_logic = PageMaker(
-    trial_maker.cue_trial, time_estimate=AnimalTrial.time_estimate
+    trial_maker.cue_trial, time_estimate=DemoSyncQuorumAnimalTrial.time_estimate
 )
 
 

@@ -53,7 +53,7 @@ def custom_progress_display():
     )
 
 
-class CustomTrial(CameraImitationChainTrial):
+class DemoImitationChainVideoCustomTrial(CameraImitationChainTrial):
     time_estimate = 15
 
     def show_trial(self, experiment, participant):
@@ -113,7 +113,7 @@ class CustomTrial(CameraImitationChainTrial):
         return {"failed": False}
 
 
-class CustomNode(CameraImitationChainNode):
+class DemoImitationChainVideoCustomNode(CameraImitationChainNode):
     def create_initial_seed(self, experiment, participant):
         possibilities = ["Figure 8", "Circle", "Triangle", "Square"]
         return random.choice(possibilities)
@@ -152,8 +152,8 @@ class Exp(psynet.experiment.Experiment):
         ),
         CameraImitationChainTrialMaker(
             id_="video-chain",
-            trial_class=CustomTrial,
-            node_class=CustomNode,
+            trial_class=DemoImitationChainVideoCustomTrial,
+            node_class=DemoImitationChainVideoCustomNode,
             chain_type="within",
             expected_trials_per_participant=8,
             max_nodes_per_chain=4,

@@ -64,7 +64,7 @@ if __name__ == "__main__":
         print(f"- {stimulus['name']}")
 
 
-class CustomTrial(StaticTrial):
+class DemoAudioSimilarityCustomTrial(StaticTrial):
     time_estimate = 10
 
     def show_trial(self, experiment, participant):
@@ -127,7 +127,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         StaticTrialMaker(
             id_="ratings",
-            trial_class=CustomTrial,
+            trial_class=DemoAudioSimilarityCustomTrial,
             nodes=get_nodes,  # this is a callable, it only gets called on the local machine, where the input files are available
             assets=get_assets,  # likewise a callable
             expected_trials_per_participant=N_TRIALS_PER_PARTICIPANT,
@@ -140,7 +140,7 @@ class Exp(psynet.experiment.Experiment):
         super().test_experiment()
 
         assert Participant.query.count() == 1
-        assert CustomTrial.query.count() == N_TRIALS_PER_PARTICIPANT
+        assert DemoAudioSimilarityCustomTrial.query.count() == N_TRIALS_PER_PARTICIPANT
         assert Asset.query.count() == len(list_stimuli())
         assert (
             StaticNode.query.count() == comb(len(list_stimuli()), 2) * 2

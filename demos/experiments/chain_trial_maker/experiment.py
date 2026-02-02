@@ -18,7 +18,7 @@ def get_timeline():
     return Timeline(
         ChainTrialMaker(
             id_="stories",
-            trial_class=CustomTrial,
+            trial_class=DemoChainTrialMakerCustomTrial,
             node_class=CustomChainNode,
             chain_type="across",
             start_nodes=get_start_nodes,
@@ -51,7 +51,7 @@ def get_start_nodes():
     ]
 
 
-class CustomTrial(ChainTrial):
+class DemoChainTrialMakerCustomTrial(ChainTrial):
     time_estimate = 60
 
     def show_trial(self, experiment, participant):

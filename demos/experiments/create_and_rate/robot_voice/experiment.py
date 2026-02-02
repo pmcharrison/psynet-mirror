@@ -50,7 +50,7 @@ AUDIO_DURATION = 0.75
 RATE_MODE = "select"  # 'rate' or 'select'
 
 
-class CreateTrial(CreateTrialMixin, AudioGibbsTrial):
+class DemoCreateAndRateRobotVoiceCreateTrial(CreateTrialMixin, AudioGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -61,7 +61,7 @@ class CreateTrial(CreateTrialMixin, AudioGibbsTrial):
         return get_prompt(self)
 
 
-class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
+class DemoCreateAndRateRobotVoiceSingleRateTrial(RateTrialMixin, ImitationChainTrial):
     time_estimate = 5
 
     def get_target_answer(self, target):
@@ -104,7 +104,7 @@ class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
         return RateTrialMixin.format_answer(self, raw_answer, **kwargs)
 
 
-class SelectTrial(SelectTrialMixin, ImitationChainTrial):
+class DemoCreateAndRateRobotVoiceSelectTrial(SelectTrialMixin, ImitationChainTrial):
     time_estimate = 5
 
     def get_target_answer(self, target):
@@ -146,7 +146,9 @@ class SelectTrial(SelectTrialMixin, ImitationChainTrial):
         )
 
 
-class CreateAndRateNode(CreateAndRateNodeMixin, AudioGibbsNode):
+class DemoCreateAndRateRobotVoiceCreateAndRateNode(
+    CreateAndRateNodeMixin, AudioGibbsNode
+):
     vector_length = DIMENSIONS
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
@@ -157,7 +159,7 @@ class CreateAndRateNode(CreateAndRateNodeMixin, AudioGibbsNode):
 
     def summarize_trials(self, trials: list, experiment, participant):
         winning_target = super().summarize_trials(trials, experiment, participant)
-        if isinstance(winning_target, CreateAndRateNode):
+        if isinstance(winning_target, DemoCreateAndRateRobotVoiceCreateAndRateNode):
             # is previous iteration
             return winning_target.definition
         else:
@@ -173,7 +175,7 @@ class CustomCreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, AudioGibbsTria
 
 
 start_nodes = [
-    CreateAndRateNode(
+    DemoCreateAndRateRobotVoiceCreateAndRateNode(
         context={
             "img_url": url,
         }
@@ -189,10 +191,10 @@ def make_trial_maker(rate_mode):
     include_previous_iteration = True
     if rate_mode == "rate":
         nodes = [start_nodes[0]]
-        rater_class = SingleRateTrial
+        rater_class = DemoCreateAndRateRobotVoiceSingleRateTrial
     elif rate_mode == "select":
         nodes = [start_nodes[1]]
-        rater_class = SelectTrial
+        rater_class = DemoCreateAndRateRobotVoiceSelectTrial
     else:
         raise ValueError("Invalid type")
 
@@ -202,8 +204,8 @@ def make_trial_maker(rate_mode):
     return CustomCreateAndRateTrialMaker(
         n_creators=1,
         n_raters=1 + include_previous_iteration,
-        node_class=CreateAndRateNode,
-        creator_class=CreateTrial,
+        node_class=DemoCreateAndRateRobotVoiceCreateAndRateNode,
+        creator_class=DemoCreateAndRateRobotVoiceCreateTrial,
         rater_class=rater_class,
         include_previous_iteration=include_previous_iteration,
         rate_mode=rate_mode,

@@ -33,7 +33,7 @@ NUM_CHAINS_PER_PARTICIPANT = 2
 NUM_TRIALS_PER_PARTICIPANT = 2
 
 
-class CustomTrial(ImageGibbsTrial):
+class DemoGibbsImageCustomTrial(ImageGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -57,7 +57,7 @@ class CustomTrial(ImageGibbsTrial):
         )
 
 
-class CustomNode(ImageGibbsNode):
+class DemoGibbsImageCustomNode(ImageGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
@@ -79,13 +79,15 @@ class CustomGibbsTrialMaker(ImageGibbsTrialMaker):
 
 trial_maker = CustomGibbsTrialMaker(
     id_="gibbs_image_demo",
-    trial_class=CustomTrial,
-    node_class=CustomNode,
+    trial_class=DemoGibbsImageCustomTrial,
+    node_class=DemoGibbsImageCustomNode,
     chain_type="across",  # can be "within" or "across"
     expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
-    start_nodes=lambda: [CustomNode(context={"target": target}) for target in TARGETS],
+    start_nodes=lambda: [
+        DemoGibbsImageCustomNode(context={"target": target}) for target in TARGETS
+    ],
     chains_per_experiment=NUM_CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,

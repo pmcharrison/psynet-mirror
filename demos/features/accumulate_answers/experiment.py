@@ -44,7 +44,7 @@ nodes_1 = [
 ]
 
 
-class AnimalTrial(StaticTrial):
+class DemoFeatureAccumulateAnswersAnimalTrial(StaticTrial):
     time_estimate = 10
     accumulate_answers = True
 
@@ -70,7 +70,7 @@ class AnimalTrial(StaticTrial):
 
 trial_maker_1 = StaticTrialMaker(
     id_="animals",
-    trial_class=AnimalTrial,
+    trial_class=DemoFeatureAccumulateAnswersAnimalTrial,
     nodes=nodes_1,
     expected_trials_per_participant=3,
     max_trials_per_participant=3,

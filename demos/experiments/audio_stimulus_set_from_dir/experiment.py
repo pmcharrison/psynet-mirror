@@ -12,7 +12,7 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-class CustomTrial(StaticTrial):
+class DemoAudioStimulusSetFromDirCustomTrial(StaticTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -31,7 +31,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("We begin with the practice trials.", time_estimate=5),
         StaticTrialMaker(
             id_="audio_practice",
-            trial_class=CustomTrial,
+            trial_class=DemoAudioStimulusSetFromDirCustomTrial,
             nodes=compile_nodes_from_directory(
                 input_dir="data/practice", media_ext=".wav", node_class=StaticNode
             ),
@@ -43,7 +43,7 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("We continue with the experiment trials.", time_estimate=5),
         StaticTrialMaker(
             id_="audio_experiment",
-            trial_class=CustomTrial,
+            trial_class=DemoAudioStimulusSetFromDirCustomTrial,
             nodes=compile_nodes_from_directory(
                 input_dir="data/experiment", media_ext=".wav", node_class=StaticNode
             ),

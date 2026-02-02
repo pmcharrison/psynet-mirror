@@ -90,7 +90,7 @@ def as_native_type(x):
     return x
 
 
-class CustomTrialAnalysis(AudioImitationChainTrial):
+class DemoTappingMemoryCustomTrialAnalysis(AudioImitationChainTrial):
     def analyze_recording(self, audio_file: str, output_plot: str):
         info_stimulus = self.origin.var.info_stimulus
         title_in_graph = "Participant {}".format(self.participant_id)
@@ -116,7 +116,7 @@ class CustomTrialAnalysis(AudioImitationChainTrial):
         }
 
 
-class CustomTrial(CustomTrialAnalysis):
+class DemoTappingMemoryCustomTrial(DemoTappingMemoryCustomTrialAnalysis):
     time_estimate = TIME_ESTIMATE_PER_TRIAL
 
     def show_trial(self, experiment, participant):
@@ -179,7 +179,7 @@ class CustomTrial(CustomTrialAnalysis):
         )
 
 
-class CustomNode(AudioImitationChainNode):
+class DemoTappingMemoryCustomNode(AudioImitationChainNode):
     def summarize_trials(self, trials: list, experiment, participant):
         new_rhythm = [trial.analysis["ioi_new_seed"] for trial in trials]
         return [mean(x) for x in zip(*new_rhythm)]
@@ -204,13 +204,13 @@ class CustomNode(AudioImitationChainNode):
         raise NotImplementedError
 
 
-class PracticeNode(CustomNode):
+class PracticeNode(DemoTappingMemoryCustomNode):
     @property
     def duration_range(self):
         return [500, 2000]
 
 
-class ExperimentNode(CustomNode):
+class ExperimentNode(DemoTappingMemoryCustomNode):
     @property
     def duration_range(self):
         return [250, 2000]
@@ -243,7 +243,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         AudioImitationChainTrialMaker(
             id_="trial_maker_iterated_tapping",
-            trial_class=CustomTrial,
+            trial_class=DemoTappingMemoryCustomTrial,
             node_class=ExperimentNode,
             chain_type="within",
             expected_trials_per_participant=NUM_TRIALS_PARTICIPANT,

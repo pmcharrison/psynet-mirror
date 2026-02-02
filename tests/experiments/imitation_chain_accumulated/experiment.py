@@ -55,7 +55,7 @@ class FixedDigitInputPage(ModularPage):
         return None
 
 
-class CustomTrial(ImitationChainTrial):
+class TestImitationChainAccumulatedCustomTrial(ImitationChainTrial):
     accumulate_answers = True
     time_estimate = 5 + 3 + 3
 
@@ -80,11 +80,11 @@ class CustomTrial(ImitationChainTrial):
         return [page_1, page_2, page_3]
 
 
-class CustomNetwork(ImitationChainNetwork):
+class TestImitationChainAccumulatedCustomNetwork(ImitationChainNetwork):
     pass
 
 
-class CustomNode(ImitationChainNode):
+class TestImitationChainAccumulatedCustomNode(ImitationChainNode):
     def create_initial_seed(self, experiment, participant):
         return random.randint(0, 9999999)
 
@@ -120,9 +120,9 @@ class Exp(psynet.experiment.Experiment):
         ),
         CustomTrialMaker(
             id_="imitation_demo",
-            network_class=CustomNetwork,
-            trial_class=CustomTrial,
-            node_class=CustomNode,
+            network_class=TestImitationChainAccumulatedCustomNetwork,
+            trial_class=TestImitationChainAccumulatedCustomTrial,
+            node_class=TestImitationChainAccumulatedCustomNode,
             chain_type="within",
             max_nodes_per_chain=5,
             max_trials_per_participant=5,

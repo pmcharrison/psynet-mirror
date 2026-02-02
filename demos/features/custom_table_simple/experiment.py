@@ -14,7 +14,7 @@ from psynet.timeline import CodeBlock, PageMaker, Timeline, join, while_loop
 
 
 @register_table
-class Coin(SQLBase, SQLMixin):
+class DemoFeatureCustomTableSimpleCoin(SQLBase, SQLMixin):
     __tablename__ = "coin"
 
     participant = relationship(Participant, backref="all_coins")
@@ -30,7 +30,7 @@ def collect_coin():
 
 
 def _collect_coin(participant):
-    coin = Coin(participant)
+    coin = DemoFeatureCustomTableSimpleCoin(participant)
     db.session.add(coin)
 
 

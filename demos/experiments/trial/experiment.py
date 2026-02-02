@@ -18,7 +18,7 @@ WORDS = [
 ]
 
 
-class RateTrial(Trial):
+class DemoTrialRateTrial(Trial):
     time_estimate = 3
 
     def show_trial(self, experiment, participant):
@@ -38,7 +38,7 @@ word_ratings = Module(
     for_loop(
         label="Randomly sample three words from the word list",
         iterate_over=lambda: random.sample(WORDS, 3),
-        logic=lambda word: RateTrial.cue(
+        logic=lambda word: DemoTrialRateTrial.cue(
             {
                 "word": word,
             }

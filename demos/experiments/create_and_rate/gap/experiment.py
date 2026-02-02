@@ -65,7 +65,7 @@ NUM_TRIALS_PER_PARTICIPANT = max(
 NUM_ITERATIONS_PER_CHAIN = 20
 
 
-class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
+class DemoCreateAndRateGapCreateTrial(CreateTrialMixin, AudioImitationChainTrial):
     time_estimate = 13
     accumulate_answers = True
 
@@ -205,13 +205,13 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
 
 
 def get_target_url(target):
-    if issubclass(target.__class__, CreateAndRateNode):
+    if issubclass(target.__class__, DemoCreateAndRateGapCreateAndRateNode):
         return target.definition["url"]
     else:
         return target.answer["serial-prosody-recording"]["url"]
 
 
-class SelectTrial(SelectTrialMixin, ImitationChainTrial):
+class DemoCreateAndRateGapSelectTrial(SelectTrialMixin, ImitationChainTrial):
     time_estimate = 5
     accumulate_answers = False
 
@@ -280,7 +280,9 @@ class SelectTrial(SelectTrialMixin, ImitationChainTrial):
         return super().format_answer(answer, **kwargs)
 
 
-class CreateAndRateNode(CreateAndRateNodeMixin, AudioImitationChainNode):
+class DemoCreateAndRateGapCreateAndRateNode(
+    CreateAndRateNodeMixin, AudioImitationChainNode
+):
     def create_definition_from_seed(self, seed, experiment, participant):
         return seed
 
@@ -314,10 +316,10 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
         creation_networks = []
         rating_networks = []
         for network in candidates:
-            node = CreateAndRateNode.query.filter_by(
+            node = DemoCreateAndRateGapCreateAndRateNode.query.filter_by(
                 network_id=network.id, degree=network.degree
             ).one()
-            n_creations = CreateTrial.query.filter_by(
+            n_creations = DemoCreateAndRateGapCreateTrial.query.filter_by(
                 network_id=network.id, node_id=node.id, failed=False, finalized=True
             ).count()
             if n_creations < N_CREATORS:
@@ -351,10 +353,10 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
 def is_rater(participant):
     counts = {"create": 0, "rate": 0}
     for network in ImitationChainNetwork.query.all():
-        node = CreateAndRateNode.query.filter_by(
+        node = DemoCreateAndRateGapCreateAndRateNode.query.filter_by(
             network_id=network.id, degree=network.degree
         ).one()
-        n_creations = CreateTrial.query.filter_by(
+        n_creations = DemoCreateAndRateGapCreateTrial.query.filter_by(
             network_id=network.id, node_id=node.id, failed=False, finalized=True
         ).count()
         if n_creations < N_CREATORS:
@@ -378,7 +380,7 @@ def is_rater(participant):
 ##########################################################################################
 
 start_nodes = [
-    CreateAndRateNode(
+    DemoCreateAndRateGapCreateAndRateNode(
         seed={
             "initial_speaker": initial_speaker,
             "sentence_repetition": repetition,
@@ -396,9 +398,9 @@ start_nodes = [
 trial_maker = CreateAndRateTrialMaker(
     n_creators=N_CREATORS,
     n_raters=N_RATERS,
-    node_class=CreateAndRateNode,
-    creator_class=CreateTrial,
-    rater_class=SelectTrial,
+    node_class=DemoCreateAndRateGapCreateAndRateNode,
+    creator_class=DemoCreateAndRateGapCreateTrial,
+    rater_class=DemoCreateAndRateGapSelectTrial,
     # mixin params
     include_previous_iteration=True,
     rate_mode="select",
@@ -455,10 +457,10 @@ class Exp(psynet.experiment.Experiment):
         assert [p.var.is_rater for p in participants] == [False] * N_CREATORS + [
             True
         ] * N_RATERS * 2
-        creations = CreateTrial.query.all()
+        creations = DemoCreateAndRateGapCreateTrial.query.all()
         assert len(creations) == 4
         assert len(set([t.participant_id for t in creations])) == 2
-        ratings = SelectTrial.query.all()
+        ratings = DemoCreateAndRateGapSelectTrial.query.all()
         assert len(ratings) == 6
         assert len(set([t.participant_id for t in ratings])) == 6
 
@@ -466,4 +468,4 @@ class Exp(psynet.experiment.Experiment):
         assert all([t.finalized for t in all_trials])
         assert all([t.complete for t in all_trials])
         assert all([t.answer is not None for t in all_trials])
-        assert CreateAndRateNode.query.count() == n_expected_nodes
+        assert DemoCreateAndRateGapCreateAndRateNode.query.count() == n_expected_nodes

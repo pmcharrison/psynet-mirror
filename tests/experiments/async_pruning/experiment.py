@@ -82,7 +82,7 @@ class ColorSliderPage(ModularPage):
         }
 
 
-class CustomNetwork(GibbsNetwork):
+class TestAsyncPruningCustomNetwork(GibbsNetwork):
     def make_definition(self):
         return {"target": self.balance_across_networks(TARGETS)}
 
@@ -102,7 +102,7 @@ class CustomNetwork(GibbsNetwork):
                 time.sleep(1e6)
 
 
-class CustomTrial(GibbsTrial):
+class TestAsyncPruningCustomTrial(GibbsTrial):
     # If True, then the starting value for the free parameter is resampled
     # on each trial.
     resample_free_parameter = True
@@ -167,7 +167,7 @@ class CustomTrial(GibbsTrial):
         self.var.computation_output = seed + 1
 
 
-class CustomNode(GibbsNode):
+class TestAsyncPruningCustomNode(GibbsNode):
     vector_length = 3
 
     def random_sample(self, i):
@@ -184,9 +184,9 @@ class CustomTrialMaker(GibbsTrialMaker):
 
 trial_maker = CustomTrialMaker(
     id_="async_pruning",
-    network_class=CustomNetwork,
-    trial_class=CustomTrial,
-    node_class=CustomNode,
+    network_class=TestAsyncPruningCustomNetwork,
+    trial_class=TestAsyncPruningCustomTrial,
+    node_class=TestAsyncPruningCustomNode,
     chain_type="across",  # can be "within" or "across"
     expected_trials_per_participant=4,
     max_trials_per_participant=4,
@@ -221,7 +221,11 @@ class Exp(psynet.experiment.Experiment):
         from psynet.experiment import is_experiment_launched
 
         if is_experiment_launched():
-            trials = CustomTrial.query.with_for_update().populate_existing().all()
+            trials = (
+                TestAsyncPruningCustomTrial.query.with_for_update()
+                .populate_existing()
+                .all()
+            )
             for t in trials:
                 WorkerAsyncProcess(
                     function=t.expensive_computation,

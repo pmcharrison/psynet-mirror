@@ -39,7 +39,7 @@ CONDITIONS = [
 ]
 
 
-class CustomTrial(SingleStimulusTrial):
+class DemoFeatureDenseColorCustomTrial(SingleStimulusTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -63,7 +63,7 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         DenseTrialMaker(
             id_="color",
-            trial_class=CustomTrial,
+            trial_class=DemoFeatureDenseColorCustomTrial,
             conditions=CONDITIONS,
             recruit_mode="n_participants",
             target_n_participants=1,

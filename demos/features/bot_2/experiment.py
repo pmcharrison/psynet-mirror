@@ -62,7 +62,7 @@ class FixedDigitInputPage(ModularPage):
         return None
 
 
-class CustomTrial(ImitationChainTrial):
+class DemoFeatureBot2CustomTrial(ImitationChainTrial):
     time_estimate = 2 + 3
 
     def show_trial(self, experiment, participant):
@@ -80,7 +80,7 @@ class CustomTrial(ImitationChainTrial):
         return [page_1, page_2]
 
 
-class CustomNode(ImitationChainNode):
+class DemoFeatureBot2CustomNode(ImitationChainNode):
     def create_initial_seed(self, experiment, participant):
         return random.randint(0, 9999999)
 
@@ -99,8 +99,8 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         CustomTrialMaker(
             id_="imitation_demo",
-            trial_class=CustomTrial,
-            node_class=CustomNode,
+            trial_class=DemoFeatureBot2CustomTrial,
+            node_class=DemoFeatureBot2CustomNode,
             chain_type="within",
             max_nodes_per_chain=5,
             expected_trials_per_participant=5,

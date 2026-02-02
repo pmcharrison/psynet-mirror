@@ -42,7 +42,7 @@ nodes = [
 ]
 
 
-class CustomTrial(StaticTrial):
+class DemoStaticAudioCustomTrial(StaticTrial):
     _time_trial = 3
     _time_feedback = 2
 
@@ -124,7 +124,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         StaticTrialMaker(
             id_="static_audio",
-            trial_class=CustomTrial,
+            trial_class=DemoStaticAudioCustomTrial,
             nodes=nodes,
             expected_trials_per_participant=len(nodes),
             target_n_participants=3,

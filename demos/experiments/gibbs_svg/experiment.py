@@ -28,7 +28,7 @@ NUM_CHAINS_PER_PARTICIPANT = 2
 NUM_TRIALS_PER_PARTICIPANT = 2
 
 
-class CustomTrial(HtmlGibbsTrial):
+class DemoGibbsSvgCustomTrial(HtmlGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -52,7 +52,7 @@ class CustomTrial(HtmlGibbsTrial):
         )
 
 
-class CustomNode(HtmlGibbsNode):
+class DemoGibbsSvgCustomNode(HtmlGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
@@ -64,13 +64,15 @@ class CustomNode(HtmlGibbsNode):
 
 trial_maker = HtmlGibbsTrialMaker(
     id_="gibbs_svg_demo",
-    trial_class=CustomTrial,
-    node_class=CustomNode,
+    trial_class=DemoGibbsSvgCustomTrial,
+    node_class=DemoGibbsSvgCustomNode,
     chain_type="across",  # can be "within" or "across"
     expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
-    start_nodes=lambda: [CustomNode(context={"target": target}) for target in TARGETS],
+    start_nodes=lambda: [
+        DemoGibbsSvgCustomNode(context={"target": target}) for target in TARGETS
+    ],
     chains_per_experiment=NUM_CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,

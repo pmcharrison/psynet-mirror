@@ -70,7 +70,7 @@ CHAINS_PER_EXPERIMENT = (
 NUM_TRIALS_PER_PARTICIPANT = len(TARGETS) * 3  # every participant does 9 trials
 
 
-class CustomTrial(AudioGibbsTrial):
+class DemoGibbsAudioComplexCustomTrial(AudioGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -84,7 +84,7 @@ class CustomTrial(AudioGibbsTrial):
         )
 
 
-class CustomNode(AudioGibbsNode):
+class DemoGibbsAudioComplexCustomNode(AudioGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = RANGES
     granularity = GRANULARITY
@@ -107,10 +107,12 @@ class CustomTrialMaker(AudioGibbsTrialMaker):
 
 trial_maker = CustomTrialMaker(
     id_="gibbs_audio_complex_demo",
-    trial_class=CustomTrial,
-    node_class=CustomNode,
+    trial_class=DemoGibbsAudioComplexCustomTrial,
+    node_class=DemoGibbsAudioComplexCustomNode,
     start_nodes=lambda: [
-        CustomNode(context={"target": target, "input_file": sentence})
+        DemoGibbsAudioComplexCustomNode(
+            context={"target": target, "input_file": sentence}
+        )
         for target in TARGETS
         for sentence in SENTENCE_RECORDINGS
     ],

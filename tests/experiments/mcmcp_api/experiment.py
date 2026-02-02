@@ -26,7 +26,7 @@ OCCUPATIONS = ["doctor", "babysitter", "teacher"]
 SAMPLE_RANGE = 5
 
 
-class CustomTrial(MCMCPTrial):
+class TestMcmcpApiCustomTrial(MCMCPTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -49,7 +49,7 @@ class CustomTrial(MCMCPTrial):
         )
 
 
-class CustomNode(MCMCPNode):
+class TestMcmcpApiCustomNode(MCMCPNode):
     def async_on_deploy(self):
         super().async_on_deploy()
         self.var.api_response = self.make_api_call(
@@ -111,7 +111,7 @@ class CustomNode(MCMCPNode):
 
 def start_nodes(participant):
     return [
-        CustomNode(
+        TestMcmcpApiCustomNode(
             context={
                 "occupation": occupation,
             },
@@ -128,8 +128,8 @@ class Exp(psynet.experiment.Experiment):
         MCMCPTrialMaker(
             id_="mcmcp_demo",
             start_nodes=start_nodes,
-            trial_class=CustomTrial,
-            node_class=CustomNode,
+            trial_class=TestMcmcpApiCustomTrial,
+            node_class=TestMcmcpApiCustomNode,
             chain_type="within",  # can be "within" or "across"
             expected_trials_per_participant=9,
             max_trials_per_participant=9,
@@ -151,7 +151,7 @@ class Exp(psynet.experiment.Experiment):
     def test_experiment(self):
         super().test_experiment()
         time.sleep(1)  # Wait for any async processes to complete
-        nodes = CustomNode.query.all()
+        nodes = TestMcmcpApiCustomNode.query.all()
         assert len(nodes) > 0
         for n in nodes:
             assert n.var.has("api_response")

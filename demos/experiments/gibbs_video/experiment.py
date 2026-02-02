@@ -42,7 +42,7 @@ NUM_CHAINS_PER_PARTICIPANT = 2
 NUM_TRIALS_PER_PARTICIPANT = 2
 
 
-class CustomTrial(VideoGibbsTrial):
+class DemoGibbsVideoCustomTrial(VideoGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -67,7 +67,7 @@ class CustomTrial(VideoGibbsTrial):
         )
 
 
-class CustomNode(VideoGibbsNode):
+class DemoGibbsVideoCustomNode(VideoGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = VECTOR_RANGES
     granularity = GRANULARITY
@@ -83,13 +83,15 @@ class CustomTrialMaker(VideoGibbsTrialMaker):
 
 trial_maker = CustomTrialMaker(
     id_="gibbs_video_demo",
-    trial_class=CustomTrial,
-    node_class=CustomNode,
+    trial_class=DemoGibbsVideoCustomTrial,
+    node_class=DemoGibbsVideoCustomNode,
     chain_type="across",  # can be "within" or "across"
     expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
-    start_nodes=lambda: [CustomNode(context={"target": target}) for target in TARGETS],
+    start_nodes=lambda: [
+        DemoGibbsVideoCustomNode(context={"target": target}) for target in TARGETS
+    ],
     chains_per_experiment=NUM_CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,

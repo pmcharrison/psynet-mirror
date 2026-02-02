@@ -247,7 +247,7 @@ class NecklaceInteractivePage(ModularPage):
         return necklace
 
 
-class CustomTrial(GraphChainTrial):
+class DemoGraphCustomTrial(GraphChainTrial):
     accumulate_answers = True
     time_estimate = 20
 
@@ -264,14 +264,14 @@ class CustomTrial(GraphChainTrial):
         page_2 = NecklaceInteractivePage(
             label="reproduce",
             prompt="Recolor the present necklace like the necklace you just chose.",
-            necklace_state=CustomNode.generate_class_seed(),
+            necklace_state=DemoGraphCustomNode.generate_class_seed(),
             color_options=COLOR_OPTIONS,
         )
 
         return [page_1, page_2]
 
 
-class CustomNode(GraphChainNode):
+class DemoGraphCustomNode(GraphChainNode):
     @staticmethod
     def generate_class_seed(vertex=None):
         return [
@@ -424,8 +424,8 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("Let's begin!", time_estimate=3),
         CustomTrialMaker(
             id_="graph_demo",
-            trial_class=CustomTrial,
-            node_class=CustomNode,
+            trial_class=DemoGraphCustomTrial,
+            node_class=DemoGraphCustomNode,
             grid_dimension=3,
             chain_type="across",
             max_nodes_per_chain=5,

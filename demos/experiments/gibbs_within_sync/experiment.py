@@ -67,7 +67,7 @@ class ColorSliderPage(ModularPage):
         )
 
 
-class CustomTrial(GibbsTrial):
+class DemoGibbsWithinSyncCustomTrial(GibbsTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -124,7 +124,7 @@ class CustomTrial(GibbsTrial):
         return InfoPage(html)
 
 
-class CustomNode(GibbsNode):
+class DemoGibbsWithinSyncCustomNode(GibbsNode):
     vector_length = 3
 
     def random_sample(self, i):
@@ -133,10 +133,12 @@ class CustomNode(GibbsNode):
 
 trial_maker = GibbsTrialMaker(
     id_="gibbs_demo",
-    start_nodes=lambda: [CustomNode(context={"target": random.sample(TARGETS, 1)[0]})],
+    start_nodes=lambda: [
+        DemoGibbsWithinSyncCustomNode(context={"target": random.sample(TARGETS, 1)[0]})
+    ],
     sync_group_type="gibbs",
-    trial_class=CustomTrial,
-    node_class=CustomNode,
+    trial_class=DemoGibbsWithinSyncCustomTrial,
+    node_class=DemoGibbsWithinSyncCustomNode,
     chain_type="within",
     expected_trials_per_participant=4,
     max_trials_per_participant=4,

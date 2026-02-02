@@ -15,7 +15,7 @@ def synth_stimulus(path, frequency_gradient, start_frequency):
     synth_prosody(vector=frequencies, output_path=path)
 
 
-class RateTrial(Trial):
+class DemoTrial3RateTrial(Trial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -42,13 +42,13 @@ audio_ratings = Module(
             }
             for _ in range(5)
         ],
-        logic=lambda definition: RateTrial.cue(
+        logic=lambda definition: DemoTrial3RateTrial.cue(
             definition,
             assets={
                 "audio": asset(synth_stimulus, extension=".wav", on_demand=True),
             },
         ),
-        time_estimate_per_iteration=RateTrial.time_estimate,
+        time_estimate_per_iteration=DemoTrial3RateTrial.time_estimate,
     ),
 )
 

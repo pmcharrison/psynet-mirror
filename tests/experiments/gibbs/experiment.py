@@ -81,7 +81,7 @@ class ColorSliderPage(ModularPage):
         }
 
 
-class CustomNetwork(GibbsNetwork):
+class TestGibbsCustomNetwork(GibbsNetwork):
     run_async_post_grow_network = True
 
     def async_post_grow_network(self):
@@ -93,7 +93,7 @@ class CustomNetwork(GibbsNetwork):
             self.var.growth_counter = 1
 
 
-class CustomTrial(GibbsTrial):
+class TestGibbsCustomTrial(GibbsTrial):
     # If True, then the starting value for the free parameter is resampled
     # on each trial.
     run_async_post_trial = True
@@ -139,7 +139,7 @@ class CustomTrial(GibbsTrial):
             asset.deposit()
 
 
-class CustomNode(GibbsNode):
+class TestGibbsCustomNode(GibbsNode):
     vector_length = 3
 
     def random_sample(self, i):
@@ -188,7 +188,7 @@ class CustomTrialMaker(GibbsTrialMaker):
 
 
 start_nodes = [
-    CustomNode(context={"target": target}, participant_group=participant_group)
+    TestGibbsCustomNode(context={"target": target}, participant_group=participant_group)
     for target in TARGETS
     for participant_group in ["A", "B"]
 ]
@@ -196,9 +196,9 @@ start_nodes = [
 trial_maker = CustomTrialMaker(
     id_="gibbs_demo",
     start_nodes=start_nodes,
-    network_class=CustomNetwork,
-    trial_class=CustomTrial,
-    node_class=CustomNode,
+    network_class=TestGibbsCustomNetwork,
+    trial_class=TestGibbsCustomTrial,
+    node_class=TestGibbsCustomNode,
     chain_type="across",  # can be "within" or "across"
     expected_trials_per_participant=4,
     max_trials_per_participant=4,
@@ -224,7 +224,7 @@ trial_maker = CustomTrialMaker(
 # We just include it so we can test the export functionality
 # in the regression tests.
 @register_table
-class Coin(SQLBase, SQLMixin):
+class TestGibbsCoin(SQLBase, SQLMixin):
     __tablename__ = "coin"
 
     participant = relationship(Participant, backref="all_coins")
@@ -240,7 +240,7 @@ def collect_coin():
 
 
 def _collect_coin(participant):
-    coin = Coin(participant)
+    coin = TestGibbsCoin(participant)
     coin.var.test = "123"
     db.session.add(coin)
 

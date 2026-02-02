@@ -19,7 +19,7 @@ nodes = [
 ]
 
 
-class AnimalTrial(StaticTrial):
+class TestStaticBigAnimalTrial(StaticTrial):
     time_estimate = 3
 
     def show_trial(self, experiment, participant):
@@ -38,7 +38,7 @@ class AnimalTrial(StaticTrial):
 
 trial_maker = StaticTrialMaker(
     id_="animals",
-    trial_class=AnimalTrial,
+    trial_class=TestStaticBigAnimalTrial,
     nodes=nodes,
     expected_trials_per_participant=6,
     max_trials_per_block=2,

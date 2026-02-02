@@ -34,7 +34,7 @@ NODES = [
 ]
 
 
-class RateTrial(Trial):
+class DemoTrial2RateTrial(Trial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -55,8 +55,8 @@ audio_ratings = Module(
     for_loop(
         label="Deliver 5 random samples from the stimulus set",
         iterate_over=lambda nodes: random.sample(nodes, 5),
-        logic=lambda node: RateTrial.cue(node),
-        time_estimate_per_iteration=RateTrial.time_estimate,
+        logic=lambda node: DemoTrial2RateTrial.cue(node),
+        time_estimate_per_iteration=DemoTrial2RateTrial.time_estimate,
         expected_repetitions=5,
     ),
     nodes=NODES,

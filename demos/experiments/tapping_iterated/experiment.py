@@ -89,7 +89,7 @@ def as_native_type(x):
     return x
 
 
-class CustomTrialAnalysis(AudioImitationChainTrial):
+class DemoTappingIteratedCustomTrialAnalysis(AudioImitationChainTrial):
     def analyze_recording(self, audio_file: str, output_plot: str):
         info_stimulus = self.origin.var.info_stimulus
         title_in_graph = "Participant {}".format(self.participant_id)
@@ -119,7 +119,7 @@ class CustomTrialAnalysis(AudioImitationChainTrial):
         }
 
 
-class CustomTrial(CustomTrialAnalysis):
+class DemoTappingIteratedCustomTrial(DemoTappingIteratedCustomTrialAnalysis):
     time_estimate = TIME_ESTIMATE_PER_TRIAL
 
     def show_trial(self, experiment, participant):
@@ -175,7 +175,7 @@ class CustomTrial(CustomTrialAnalysis):
         )
 
 
-class CustomNode(AudioImitationChainNode):
+class DemoTappingIteratedCustomNode(AudioImitationChainNode):
     def summarize_trials(self, trials: list, experiment, participant):
         new_rhythm = [trial.analysis["ioi_new_seed"] for trial in trials]
         return [mean(x) for x in zip(*new_rhythm)]
@@ -243,8 +243,8 @@ class Exp(psynet.experiment.Experiment):
         ),
         AudioImitationChainTrialMaker(
             id_="trial_maker_iterated_tapping",
-            trial_class=CustomTrial,
-            node_class=CustomNode,
+            trial_class=DemoTappingIteratedCustomTrial,
+            node_class=DemoTappingIteratedCustomNode,
             chain_type="within",
             expected_trials_per_participant=NUM_TRIALS_PARTICIPANT,
             max_trials_per_participant=NUM_TRIALS_PARTICIPANT,
@@ -271,7 +271,9 @@ class Exp(psynet.experiment.Experiment):
         assert img is not None
         assert Asset.query.filter_by(url=img).count() == 1
 
-        trials = CustomTrial.query.filter_by(participant_id=bot.id).all()
+        trials = DemoTappingIteratedCustomTrial.query.filter_by(
+            participant_id=bot.id
+        ).all()
         assert len(trials) == NUM_TRIALS_PARTICIPANT
 
         for t in trials:

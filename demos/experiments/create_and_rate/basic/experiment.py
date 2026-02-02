@@ -29,7 +29,7 @@ def animal_prompt(text, img_url):
     )
 
 
-class CreateTrial(CreateTrialMixin, ImitationChainTrial):
+class DemoCreateAndRateBasicCreateTrial(CreateTrialMixin, ImitationChainTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -41,7 +41,7 @@ class CreateTrial(CreateTrialMixin, ImitationChainTrial):
         )
 
 
-class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
+class DemoCreateAndRateBasicSingleRateTrial(RateTrialMixin, ImitationChainTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -64,7 +64,7 @@ class SingleRateTrial(RateTrialMixin, ImitationChainTrial):
         )
 
 
-class SelectTrial(SelectTrialMixin, ImitationChainTrial):
+class DemoCreateAndRateBasicSelectTrial(SelectTrialMixin, ImitationChainTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -93,7 +93,7 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
 
 
 def get_trial_maker(option):
-    rater_class = SingleRateTrial
+    rater_class = DemoCreateAndRateBasicSingleRateTrial
     n_creators = 2
     n_raters = 2
     rate_mode = "rate"
@@ -106,7 +106,7 @@ def get_trial_maker(option):
     elif option == "rate":
         include_previous_iteration = False
     elif option == "select":
-        rater_class = SelectTrial
+        rater_class = DemoCreateAndRateBasicSelectTrial
         n_raters = 3
         target_selection_method = "all"
         rate_mode = "select"
@@ -122,7 +122,7 @@ def get_trial_maker(option):
         n_creators=n_creators,
         n_raters=n_raters,
         node_class=CreateAndRateNode,
-        creator_class=CreateTrial,
+        creator_class=DemoCreateAndRateBasicCreateTrial,
         rater_class=rater_class,
         # mixin params
         include_previous_iteration=include_previous_iteration,
