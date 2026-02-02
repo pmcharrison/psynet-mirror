@@ -106,8 +106,9 @@ class AssetParentMixin:
         if asset_state is not None and getattr(asset_state, "detached", False):
             raise ValueError(
                 """Asset instances passed to Trial.cue must be created within the
-PageMaker/CodeBlock function that calls Trial.cue. Reusing an Asset instance across
-trials detaches it from the current session.
+per-participant timeline function that calls Trial.cue (for example, a PageMaker
+function or a for_loop logic callable). Reusing an Asset instance across trials
+detaches it from the current session.
 
 Before (incorrect):
     stimulus = asset("static/stimulus.txt")
