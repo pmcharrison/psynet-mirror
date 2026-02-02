@@ -38,7 +38,6 @@ from psynet.asset import filter_botocore_deprecation_warnings
 from psynet.participant import Participant
 
 from .command_line import (
-    clean_sys_modules,
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
     working_directory,
@@ -99,6 +98,9 @@ def moto_s3_server():
     os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
     os.environ.setdefault("AWS_REGION", "us-east-1")
 
+    import boto3
+    from botocore.config import Config
+
     from psynet import asset as psynet_asset
     from psynet import media as psynet_media
 
@@ -109,7 +111,14 @@ def moto_s3_server():
     psynet_asset.get_boto3_s3_bucket.cache_clear()
     psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
 
-    client = psynet_asset.get_boto3_s3_client()
+    client = boto3.client(
+        "s3",
+        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", "testing"),
+        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", "testing"),
+        region_name=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
+        endpoint_url=os.environ.get("PSYNET_S3_ENDPOINT_URL"),
+        config=Config(s3={"addressing_style": "path"}),
+    )
     try:
         client.create_bucket(Bucket="psynet-tests")
     except client.exceptions.BucketAlreadyOwnedByYou:
@@ -381,11 +390,9 @@ def in_experiment_directory(experiment_directory):
     loaded_experiment_directory = experiment_directory
     redis_vars.clear()
     with working_directory(experiment_directory):
-        from dallinger import config as dallinger_config
-
-        dallinger_config.config = None
         yield experiment_directory
-    clean_sys_modules()
+    # Avoid unloading experiment modules: re-importing them in the same process
+    # can re-register SQLAlchemy classes and trigger warnings-as-errors.
     clear_all_caches()
 
 

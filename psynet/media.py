@@ -63,18 +63,25 @@ def unpack_batch_file(input_path: str, output_paths: list[str]):
 
 @cache
 def get_aws_credentials(capitalize=False):
-    config = get_config()
-    if not config.ready:
-        config.load()
-    cred = {
-        "aws_access_key_id": config.get("aws_access_key_id")
-        or os.environ.get("AWS_ACCESS_KEY_ID"),
-        "aws_secret_access_key": config.get("aws_secret_access_key")
-        or os.environ.get("AWS_SECRET_ACCESS_KEY"),
-        "region_name": config.get("aws_region")
-        or os.environ.get("AWS_DEFAULT_REGION")
+    env_cred = {
+        "aws_access_key_id": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "aws_secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "region_name": os.environ.get("AWS_DEFAULT_REGION")
         or os.environ.get("AWS_REGION"),
     }
+    if all(env_cred.values()):
+        cred = env_cred
+    else:
+        config = get_config()
+        if not config.ready:
+            config.load()
+        cred = {
+            "aws_access_key_id": config.get("aws_access_key_id")
+            or env_cred["aws_access_key_id"],
+            "aws_secret_access_key": config.get("aws_secret_access_key")
+            or env_cred["aws_secret_access_key"],
+            "region_name": config.get("aws_region") or env_cred["region_name"],
+        }
     cred = {key: value for key, value in cred.items() if value}
     if capitalize:
         cred = {key.upper(): value for key, value in cred.items()}

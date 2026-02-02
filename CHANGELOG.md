@@ -32,7 +32,7 @@
 
 ## Fixed
 - Documented custom S3 endpoint usage for AWS CLI, boto3, and Moto test server (author: Cursor, reviewer: Peter Harrison)
-- Reset Dallinger config per test experiment directory to ensure config.txt and experiment defaults load correctly (author: Cursor, reviewer: Peter Harrison)
+- Avoided eager config loading and experiment re-imports in isolated tests to prevent SQLAlchemy class re-registration warnings (author: Cursor, reviewer: Peter Harrison)
 - Switched S3 tests to use a Moto-backed endpoint to avoid conflicting bucket operations in CI (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
