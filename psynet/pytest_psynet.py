@@ -73,9 +73,10 @@ def moto_s3_server():
     """
     Start a Moto-backed S3 endpoint for tests.
 
-    This fixture sets `PSYNET_S3_ENDPOINT_URL` and basic AWS credentials so
-    boto3 targets a local S3 emulator instead of AWS. If a custom endpoint
-    is already provided, it is respected and no Moto server is started.
+    This fixture sets `PSYNET_S3_ENDPOINT_URL` and test AWS credentials in the
+    Dallinger config so boto3 targets a local S3 emulator instead of AWS. If a
+    custom endpoint is already provided, it is respected and no Moto server is
+    started.
     """
     if os.environ.get("PSYNET_S3_ENDPOINT_URL"):
         yield
@@ -93,16 +94,16 @@ def moto_s3_server():
     server.start()
 
     os.environ["PSYNET_S3_ENDPOINT_URL"] = f"http://127.0.0.1:{port}"
-    os.environ.setdefault("AWS_ACCESS_KEY_ID", "testing")
-    os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "testing")
-    os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
-    os.environ.setdefault("AWS_REGION", "us-east-1")
 
-    import boto3
-    from botocore.config import Config
+    from dallinger.config import get_config as dallinger_get_config
 
     from psynet import asset as psynet_asset
     from psynet import media as psynet_media
+
+    config = dallinger_get_config()
+    config.set("aws_access_key_id", "testing")
+    config.set("aws_secret_access_key", "testing")
+    config.set("aws_region", "us-east-1")
 
     psynet_media.get_aws_credentials.cache_clear()
     psynet_asset.get_boto3_s3_session.cache_clear()
@@ -111,14 +112,7 @@ def moto_s3_server():
     psynet_asset.get_boto3_s3_bucket.cache_clear()
     psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
 
-    client = boto3.client(
-        "s3",
-        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID", "testing"),
-        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY", "testing"),
-        region_name=os.environ.get("AWS_DEFAULT_REGION", "us-east-1"),
-        endpoint_url=os.environ.get("PSYNET_S3_ENDPOINT_URL"),
-        config=Config(s3={"addressing_style": "path"}),
-    )
+    client = psynet_asset.get_boto3_s3_client()
     try:
         client.create_bucket(Bucket="psynet-tests")
     except client.exceptions.BucketAlreadyOwnedByYou:
@@ -364,6 +358,17 @@ def deployment_info():
     deployment_info.delete()
 
 
+@pytest.fixture(autouse=True)
+def reset_sys_modules():
+    """
+    Override Dallinger's module reset to avoid re-registering SQLAlchemy classes.
+
+    Re-importing the same experiment module in one pytest session can trigger
+    SQLAlchemy warnings (treated as errors) due to class re-registration.
+    """
+    yield
+
+
 @pytest.fixture(scope="class")
 def experiment_directory(request):
     return request.param
@@ -541,6 +546,7 @@ def db_session(in_experiment_directory):
 
 
 dallinger.pytest_dallinger.db_session = db_session
+dallinger.pytest_dallinger.reset_sys_modules = reset_sys_modules
 
 
 @pytest.fixture(scope="class")

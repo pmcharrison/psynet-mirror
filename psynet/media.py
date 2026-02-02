@@ -63,24 +63,41 @@ def unpack_batch_file(input_path: str, output_paths: list[str]):
 
 @cache
 def get_aws_credentials(capitalize=False):
-    env_cred = {
-        "aws_access_key_id": os.environ.get("AWS_ACCESS_KEY_ID"),
-        "aws_secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
-        "region_name": os.environ.get("AWS_DEFAULT_REGION")
-        or os.environ.get("AWS_REGION"),
-    }
-    if all(env_cred.values()):
-        cred = env_cred
-    else:
-        config = get_config()
-        if not config.ready:
+    config = get_config()
+
+    def _get_from_data(key):
+        for layer in config.data:
+            try:
+                value = layer[key]
+            except KeyError:
+                continue
+            if isinstance(value, str):
+                value = value.strip()
+            return value
+        return None
+
+    if not config.ready:
+        aws_access_key_id = _get_from_data("aws_access_key_id")
+        aws_secret_access_key = _get_from_data("aws_secret_access_key")
+        region_name = _get_from_data("aws_region")
+        if aws_access_key_id and aws_secret_access_key and region_name:
+            cred = {
+                "aws_access_key_id": aws_access_key_id,
+                "aws_secret_access_key": aws_secret_access_key,
+                "region_name": region_name,
+            }
+        else:
             config.load()
+            cred = {
+                "aws_access_key_id": config.get("aws_access_key_id"),
+                "aws_secret_access_key": config.get("aws_secret_access_key"),
+                "region_name": config.get("aws_region"),
+            }
+    else:
         cred = {
-            "aws_access_key_id": config.get("aws_access_key_id")
-            or env_cred["aws_access_key_id"],
-            "aws_secret_access_key": config.get("aws_secret_access_key")
-            or env_cred["aws_secret_access_key"],
-            "region_name": config.get("aws_region") or env_cred["region_name"],
+            "aws_access_key_id": config.get("aws_access_key_id"),
+            "aws_secret_access_key": config.get("aws_secret_access_key"),
+            "region_name": config.get("aws_region"),
         }
     cred = {key: value for key, value in cred.items() if value}
     if capitalize:
