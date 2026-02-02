@@ -110,6 +110,7 @@
 - Reduced Sphinx API warnings by excluding external members and fixing trial docs and toctrees (author: Cursor, reviewer: Peter)
 - Added a titled AWS automatic provisioning doc stub to clear toctree warnings (author: Cursor, reviewer: Peter)
 - Removed internationalization from the tutorials toctree (author: Cursor, reviewer: Peter)
+- Documented the Trial complete flag on the API page (author: Cursor, reviewer: Peter)
 
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
