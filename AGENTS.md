@@ -7,9 +7,12 @@ Read and follow `psynet/resources/experiment_scripts/AGENTS.md`.
 When you need to check CI status for PsyNet, use the GitLab API with the
 `GITLAB_TOKEN` environment variable (project access token). This token should
 be provided automatically if you are working with the team's Cursor Cloud Agent
-setup. If not, you may need to create a token via
-https://gitlab.com/PsyNetDev/PsyNet/-/settings/access_tokens. Fetch the latest
-pipeline with:
+setup. If not, tell the user to create a token via
+https://gitlab.com/PsyNetDev/PsyNet/-/settings/access_tokens
+and add it as a secret in the Cloud Agent dashboard
+(https://cursor.com/dashboard?tab=cloud-agents)
+
+Fetch the latest pipeline with:
 
 ```
 GET https://gitlab.com/api/v4/projects/PsyNetDev%2FPsyNet/pipelines?per_page=1
