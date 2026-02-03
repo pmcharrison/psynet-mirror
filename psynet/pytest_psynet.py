@@ -73,10 +73,11 @@ def moto_s3_server():
     """
     Start a Moto-backed S3 endpoint for tests.
 
-    This fixture sets `PSYNET_S3_ENDPOINT_URL` and test AWS credentials in the
-    Dallinger config so boto3 targets a local S3 emulator instead of AWS. If a
-    custom endpoint is already provided, it is respected and no Moto server is
-    started.
+    This fixture sets `PSYNET_S3_ENDPOINT_URL` so boto3 targets a local S3
+    emulator instead of AWS. It temporarily uses Dallinger's `stub_config`
+    values to create the test bucket, avoiding premature config loading.
+    If a custom endpoint is already provided, it is respected and no Moto
+    server is started.
     """
     if os.environ.get("PSYNET_S3_ENDPOINT_URL"):
         yield
@@ -95,28 +96,29 @@ def moto_s3_server():
 
     os.environ["PSYNET_S3_ENDPOINT_URL"] = f"http://127.0.0.1:{port}"
 
-    from dallinger.config import get_config as dallinger_get_config
+    from dallinger import config as dallinger_config
+    from dallinger.pytest_dallinger import stub_config
 
     from psynet import asset as psynet_asset
     from psynet import media as psynet_media
 
-    config = dallinger_get_config()
-    config.set("aws_access_key_id", "testing")
-    config.set("aws_secret_access_key", "testing")
-    config.set("aws_region", "us-east-1")
-
-    psynet_media.get_aws_credentials.cache_clear()
-    psynet_asset.get_boto3_s3_session.cache_clear()
-    psynet_asset.get_boto3_s3_client.cache_clear()
-    psynet_asset.get_boto3_s3_resource.cache_clear()
-    psynet_asset.get_boto3_s3_bucket.cache_clear()
-    psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
-
-    client = psynet_asset.get_boto3_s3_client()
+    orig_config = dallinger_config.config
+    dallinger_config.config = stub_config.__wrapped__()
     try:
-        client.create_bucket(Bucket="psynet-tests")
-    except client.exceptions.BucketAlreadyOwnedByYou:
-        pass
+        psynet_media.get_aws_credentials.cache_clear()
+        psynet_asset.get_boto3_s3_session.cache_clear()
+        psynet_asset.get_boto3_s3_client.cache_clear()
+        psynet_asset.get_boto3_s3_resource.cache_clear()
+        psynet_asset.get_boto3_s3_bucket.cache_clear()
+        psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
+
+        client = psynet_asset.get_boto3_s3_client()
+        try:
+            client.create_bucket(Bucket="psynet-tests")
+        except client.exceptions.BucketAlreadyOwnedByYou:
+            pass
+    finally:
+        dallinger_config.config = orig_config
 
     try:
         yield
