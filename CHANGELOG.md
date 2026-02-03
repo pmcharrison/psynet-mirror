@@ -108,6 +108,7 @@
 - Clarified system dependency checks and PostgreSQL password guidance in experiment scripts AGENTS.md (author: Cursor, reviewer: Peter)
 - Streamlined API documentation structure and reduced Sphinx warnings (author: Cursor, reviewer: Peter)
 - Simplified documentation navigation and reference links (author: Cursor, reviewer: Peter)
+- Documented GitLab CI status checks and token guidance for agents in AGENTS.md (author: Cursor, reviewer: Peter)
 
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
