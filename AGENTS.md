@@ -15,13 +15,22 @@ Do not push directly to the upstream Dallinger repo.
 
 #### One-time setup (cloud agents)
 
-1. Create a fine-grained GitHub PAT.
-2. Scope it to the agent's fork of Dallinger only.
-3. Permissions:
+1. Check GitHub CLI auth:
+   - `gh auth status`
+   - If you see a Dallinger org error about token lifetime, create a new
+     fine-grained PAT with an expiry of 1 year or less.
+2. If needed, create a fine-grained GitHub PAT.
+3. Scope it to the agent's fork of Dallinger only.
+4. Permissions:
    - Contents: Read and write
    - Pull requests: Read and write
-4. Export the token as `GH_TOKEN` or `GITHUB_TOKEN` in the shell. Do not store it in the repo.
-5. Export the fork URL as `DALLINGER_FORK_URL` (e.g., `https://github.com/<your-username>/Dallinger`).
+5. Export the token as `GH_TOKEN` or `GITHUB_TOKEN` in the shell. Do not store it in the repo.
+6. Ensure you have a fork (e.g. `gh repo fork Dallinger/Dallinger --clone=false`).
+7. Export the fork URL as `DALLINGER_FORK_URL` (e.g., `https://github.com/<your-username>/Dallinger`).
+8. If `~/Dallinger` does not exist, clone your fork there and add the upstream remote:
+   - `gh repo clone "$DALLINGER_FORK_URL" ~/Dallinger`
+   - `cd ~/Dallinger`
+   - `git remote add upstream https://github.com/Dallinger/Dallinger.git`
 
 #### One-time setup (local)
 
@@ -49,11 +58,12 @@ Do not push directly to the upstream Dallinger repo.
 5. Open a PR to upstream:
    - `gh pr create --base master --head <your-username>:<branch-name>`
 6. If your PsyNet PR depends on this new unmerged change to Dallinger,
-   specify your fork in `pyproject.toml`:
+   specify your fork in `pyproject.toml` (use a literal URL; environment
+   variables are not expanded in `pyproject.toml`):
 
    ```toml
    # In [project].dependencies
-   "dallinger[docker] @ git+$DALLINGER_FORK_URL.git@<branch-name>",
+   "dallinger[docker] @ git+https://github.com/<your-username>/Dallinger.git@<branch-name>",
    ```
 
 #### Dallinger CI logs (CLI only)

@@ -21,10 +21,28 @@ ask the user if they want to either
 (a) create one at .venv or
 (b) specify the path to another existing .venv to use.
 
+If `.venv` does not exist, create it:
+
+- Prefer `python3 -m venv .venv` (use `python3` if `python` is unavailable).
+- If that fails with "ensurepip is not available" (missing `python3-venv`),
+  create it via virtualenv instead:
+  - `python3 -m pip install --user virtualenv`
+  - `python3 -m virtualenv .venv`
+
+If `uv` is not available inside the virtual environment, install it with:
+
+```bash
+python -m pip install uv
+```
+
 Install dependencies as follows:
 
 - (For PsyNet): `uv pip install -e '.[dev,slack]'`
 - (For experiments): `uv pip install -r constraints.txt`
+
+If dependency installation fails with `pg_config executable not found`, install
+PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,
+`postgresql-devel` on Fedora, `brew install postgresql` on macOS) and retry.
 
 Cursor: disable sandboxing when running PsyNet commands by setting `required_permissions: ["all"]`.
 
