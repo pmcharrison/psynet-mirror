@@ -2,6 +2,26 @@
 
 Read and follow `psynet/resources/experiment_scripts/AGENTS.md`.
 
+## CI status checks (GitLab)
+
+When you need to check CI status for PsyNet, use the GitLab API with the
+`GITLAB_TOKEN` environment variable (project access token). Fetch the latest
+pipeline with:
+
+```
+GET https://gitlab.com/api/v4/projects/PsyNetDev%2FPsyNet/pipelines?per_page=1
+```
+
+Then list jobs for that pipeline and, if needed, fetch job logs via the trace
+endpoint:
+
+```
+GET https://gitlab.com/api/v4/projects/<project_id>/pipelines/<pipeline_id>/jobs
+GET https://gitlab.com/api/v4/projects/<project_id>/jobs/<job_id>/trace
+```
+
+This is the preferred approach for agents when verifying CI status or logs.
+
 ## Finishing up changes
 
 When you make changes to the PsyNet codebase:
