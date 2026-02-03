@@ -1724,7 +1724,7 @@ def export_arguments(func):
         ),
         click.option(
             "--no-source",
-            flag_value="no_source",
+            is_flag=True,
             default=False,
             help="Skip exporting the experiment's source code",
         ),
@@ -1929,6 +1929,9 @@ def export_(
             # unzip the file
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
                 zip_ref.extractall(path)
+            # Download source code unless --no-source was passed
+            if not no_source:
+                _export_source_code(app, local, server, path, username, password)
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -1946,7 +1949,7 @@ def export_(
     else:
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
-            _export_source_code = not (source_code_exported or no_source)
+            should_export_source_code = not (source_code_exported or no_source)
             _export_(
                 ctx,
                 app,
@@ -1954,7 +1957,7 @@ def export_(
                 path,
                 assets,
                 _anonymize,
-                _export_source_code,
+                should_export_source_code,
                 n_parallel,
                 docker_ssh,
                 server,
@@ -1962,7 +1965,7 @@ def export_(
                 username,
                 password,
             )
-            if _export_source_code:
+            if should_export_source_code:
                 source_code_exported = True
 
 

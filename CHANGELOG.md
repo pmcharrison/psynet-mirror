@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# Unreleased
+
+## Fixed
+- Fixed bug where `psynet export` never downloaded source code due to incorrect `--no-source` flag definition (`flag_value` instead of `is_flag`), causing the default value to be the string `'False'` instead of boolean `False`
+- Fixed missing source code download in non-legacy export path
+
 # [13.0.4](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.4) Release - 2026-02-02
 
 ## Fixed
