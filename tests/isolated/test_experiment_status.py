@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 from dallinger import db
+from dallinger.config import get_config
 
 from psynet.experiment import ExperimentStatus, get_experiment
 from psynet.pytest_psynet import path_to_test_experiment
@@ -17,6 +18,11 @@ def test_record_experiment_status_uses_row_timestamp(
     in_experiment_directory, db_session, deployment_info
 ):
     exp = get_experiment()
+    config = get_config()
+    if not config.ready:
+        config.load()
+    config.set("dashboard_user", "test_admin")
+    config.set("dashboard_password", "test_password")
     creation_time = datetime.datetime.now() - datetime.timedelta(days=7)
     redis_vars.set("creation_time", creation_time)
     redis_vars.set("base_url", "http://localhost:5000")
