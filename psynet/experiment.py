@@ -1183,7 +1183,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def record_experiment_status(cls, online: bool = True):
         status = cls.get_status(lookback_s=60)  # since we poll every minute
         status["isOffline"] = not online
-        status_obj = ExperimentStatus(**status)
+        status_for_db = status.copy()
+        status_for_db.pop("creation_time", None)
+        status_obj = ExperimentStatus(**status_for_db)
         db.session.add(status_obj)
         if cls.automatic_backups:
             cls.artifact_storage.write_experiment_status(status, cls.deployment_id)
