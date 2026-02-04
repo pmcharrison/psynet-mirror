@@ -13,17 +13,17 @@ If a change is needed in Dallinger, make it there and submit a PR .
 
 ### Dallinger repo instructions
 
-Cloud Agents push to a Dallinger fork at `DALLINGER_FORK_URL` using the PAT `GH_TOKEN`.
+Cloud Agents push to a Dallinger fork at `DALLINGER_FORK_URL` using the PAT `DALLINGER_GH_TOKEN`.
 If these environment variables are not present, tell the user to follow these user instructions:
 
 #### User instructions
 
 1. Create a fine-grained GitHub PAT via the GitHub website.
-   - Scope it to the agent's fork of Dallinger only.
+   - Scope it to the agent's fork of Dallinger only, with the following permissions:
+      - Contents: Read and write
+      - Pull requests: Read and write
    - Set an expiry of 1 year or less (required for interacting with Dallinger organization).
-   - Contents: Read and write
-   - Pull requests: Read and write
-2. Save this token as a Cloud Agent secret named `GH_TOKEN` via the Cursor website.
+2. Save this token as a Cloud Agent secret named `DALLINGER_GH_TOKEN` via the Cursor website.
 3. Create a Dallinger fork on the GitHub website (e.g., `https://github.com/<your-username>/Dallinger`).
 4. Save the fork URL as a Cloud Agent secret named `DALLINGER_FORK_URL` via the Cursor website.
 
@@ -61,7 +61,8 @@ variables are not expanded in `pyproject.toml`):
 "dallinger[docker] @ git+https://github.com/<your-username>/Dallinger.git@<branch-name>",
 ```
 
-Use the GitHub CLI to find and read Dallinger job logs:
+Use the GitHub CLI to find and read Dallinger job logs.
+Use the token `DALLINGER_GH_TOKEN` for all these commands.
 
 1. List recent runs:
    - `gh run list --repo "$DALLINGER_FORK_URL" --limit 10`
