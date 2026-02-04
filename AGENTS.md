@@ -29,7 +29,13 @@ If these environment variables are not present, tell the user to follow these us
 
 #### Cloud Agent instructions
 
-Clone the fork at `DALLINGER_FORK_URL`  to `~/Dallinger`.
+Clone the fork at `DALLINGER_FORK_URL` to `~/Dallinger`.
+If `~/Dallinger` already exists, remove it or reuse that checkout.
+
+Authenticate GitHub CLI + git using the token (avoid printing the token):
+
+- `printf "%s" "$DALLINGER_GH_TOKEN" | gh auth login --hostname github.com --git-protocol https --with-token`
+- `gh auth setup-git`
 
 Add the upstream remote:
 
@@ -38,6 +44,7 @@ Add the upstream remote:
 
 Make sure it is up-to-date:
 
+- `git fetch upstream master`
 - `git merge upstream/master`
 
 Create a feature branch:
@@ -45,6 +52,8 @@ Create a feature branch:
 - `git checkout -b <branch-name>`
 
 Install it in editable mode: `uv pip install -e ~/Dallinger`.
+If this fails with `pg_config executable not found`, install PostgreSQL
+development headers (e.g. `libpq-dev`) and retry.
 
 Make changes and commit locally.
 
@@ -62,7 +71,8 @@ variables are not expanded in `pyproject.toml`):
 ```
 
 Use the GitHub CLI to find and read Dallinger job logs.
-Use the token `DALLINGER_GH_TOKEN` for all these commands.
+Use the token `DALLINGER_GH_TOKEN` for all these commands (either via
+`gh auth login --with-token` above or by setting `GH_TOKEN` in the command).
 
 1. List recent runs:
    - `gh run list --repo "$DALLINGER_FORK_URL" --limit 10`
