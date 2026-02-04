@@ -1121,9 +1121,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "label": cls.label,
             "initial_recruitment_size": cls.initial_recruitment_size,
             "auto_recruit": config.get("auto_recruit", None),
-            "experiment_creation_time": cls.creation_time.astimezone().isoformat(
-                timespec="minutes"
-            ),
+            "launch_time": cls.creation_time.astimezone().isoformat(timespec="minutes"),
             "now": datetime.now().astimezone().isoformat(timespec="minutes"),
             "experimenter_name": config.get("experimenter_name", None),
             "currency": config.get("currency", None),
@@ -1183,6 +1181,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def record_experiment_status(cls, online: bool = True):
         status = cls.get_status(lookback_s=60)  # since we poll every minute
         status["isOffline"] = not online
+        status["status_time"] = (
+            datetime.now().astimezone().isoformat(timespec="seconds")
+        )
         status_obj = ExperimentStatus(**status)
         db.session.add(status_obj)
         if cls.automatic_backups:
