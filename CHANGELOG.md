@@ -105,6 +105,8 @@
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 - Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
+- Clarified AGENTS setup for Dallinger auth and local environment bootstrapping (author: Cursor, reviewer: Peter Harrison)
+- Clarified Dallinger fork workflow steps around auth, upstream sync, and pg_config failures (author: Cursor, reviewer: Peter Harrison)
 - Clarified system dependency checks and PostgreSQL password guidance in experiment scripts AGENTS.md (author: Cursor, reviewer: Peter)
 - Streamlined API documentation structure and reduced Sphinx warnings (author: Cursor, reviewer: Peter)
 - Simplified documentation navigation and reference links (author: Cursor, reviewer: Peter)
