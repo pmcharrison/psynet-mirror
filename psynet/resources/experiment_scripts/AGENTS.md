@@ -14,31 +14,32 @@ Otherwise assume we are working on the PsyNet source code.
 
 ## Before running commands
 
-The project uses a Python virtual environment located at `.venv/`. Activate it before running any commands:
+### System dependencies
 
-```bash
-source .venv/bin/activate
-```
+Cloud agents will need to install the following dependencies.
+Local agents should check for their availability and install if necessary.
 
-If you are a cloud agent, create this virtual environment without asking the user.
-If you are running locally and the virtual environment does not exist,
-ask the user if they want to either
-(a) create one at .venv or
-(b) specify the path to another existing .venv to use.
+- **Python 3.13.x**: Install a 3.13 release and verify `python3 --version`.
+  Check the repository Dockerfile for the exact patch version we target
+  (e.g., `psynet/resources/experiment_scripts/Dockerfile` or the root `Dockerfile`).
+- **uv**: Install via `pip`.
+- **PostgreSQL**: Install the server and client, ensure the service is running,
+  and create the `dallinger` user/database if they do not exist. When prompted by
+  `createuser -P`, set the password to `dallinger` (per the installation docs).
+  Verify with `psql -h localhost -U dallinger -d dallinger`.
+- **Redis**: Install the Redis server, ensure it is running, and verify with
+  `redis-cli ping` (expect `PONG`).
+- **Heroku CLI**: Install the CLI so `heroku` commands are available and verify
+  with `heroku --version`.
+- **Chromedriver**: Leave uninstalled by default; only install it if you need
+  browser automation.
 
-If `.venv` does not exist, create it:
+### Python dependencies
 
-- Prefer `python3 -m venv .venv` (use `python3` if `python` is unavailable).
-- If that fails with "ensurepip is not available" (missing `python3-venv`),
-  create it via virtualenv instead:
-  - `python3 -m pip install --user virtualenv`
-  - `python3 -m virtualenv .venv`
-
-If `uv` is not available inside the virtual environment, install it with:
-
-```bash
-python -m pip install uv
-```
+By default, assume a Python virtual environment located at `.venv/`.
+Activate it before running Python commands.
+Cloud agents should create this environment automatically via `uv`.
+Local agents should prompt the user before doing so.
 
 Install dependencies as follows:
 

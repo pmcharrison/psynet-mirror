@@ -85,6 +85,32 @@ Use the token `DALLINGER_GH_TOKEN` for all these commands (either via
 Local agents use a similar approach, but `~/Dallinger` should be created already by the user,
 and it may be a clone of the original repository, not a fork.
 
+## CI status checks (GitLab)
+
+When you need to check CI status for PsyNet, use the GitLab API with the
+`GITLAB_TOKEN` environment variable (project access token). This token should
+be provided automatically if you are working with the team's Cursor Cloud Agent
+setup. If not, tell the user to create a token via
+https://gitlab.com/PsyNetDev/PsyNet/-/settings/access_tokens
+and add it as a secret in the Cloud Agent dashboard
+(https://cursor.com/dashboard?tab=cloud-agents)
+
+Fetch the latest pipeline with:
+
+```
+GET https://gitlab.com/api/v4/projects/PsyNetDev%2FPsyNet/pipelines?per_page=1
+```
+
+Then list jobs for that pipeline and, if needed, fetch job logs via the trace
+endpoint:
+
+```
+GET https://gitlab.com/api/v4/projects/<project_id>/pipelines/<pipeline_id>/jobs
+GET https://gitlab.com/api/v4/projects/<project_id>/jobs/<job_id>/trace
+```
+
+This is the preferred approach for agents when verifying CI status or logs.
+
 ## Finishing up changes
 
 When you make changes to the PsyNet codebase:

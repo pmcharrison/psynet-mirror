@@ -942,11 +942,6 @@ class ChainTrial(Trial):
         The user should not typically change this directly.
         Stored in ``property1`` in the database.
 
-    complete : bool
-        Whether the trial has been completed (i.e. received a response
-        from the participant). The user should not typically change this directly.
-        Stored in ``property2`` in the database.
-
     answer : Object
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
@@ -1320,6 +1315,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         assert chain_type in ["within", "across"]
 
+        self.node_class = node_class
         assert isinstance(expected_trials_per_participant, (int, float, str))
         if isinstance(expected_trials_per_participant, str):
             assert expected_trials_per_participant == "n_start_nodes"
@@ -1371,6 +1367,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             raise ValueError(f"Unrecognized chain type: {chain_type}")
 
         if isinstance(start_nodes, list):
+            self._validate_start_nodes(start_nodes)
             for node in start_nodes:
                 if node.trial_maker_id is not None and node.trial_maker_id != id_:
                     raise RuntimeError(
@@ -1416,7 +1413,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         # assert len(balance_strategy) <= 2
         # assert all([x in ["across", "within"] for x in balance_strategy])
 
-        self.node_class = node_class
         self.trial_class = trial_class
         self.chain_type = chain_type
         self.max_trials_per_participant = max_trials_per_participant
@@ -1464,6 +1460,24 @@ class ChainTrialMaker(NetworkTrialMaker):
     def resolve_start_nodes(self):
         if callable(self.start_nodes):
             self.start_nodes = call_function_with_context(self.start_nodes)
+            self._validate_start_nodes(self.start_nodes)
+
+    def _start_nodes_param_name(self) -> str:
+        return "start_nodes"
+
+    def _validate_start_nodes(self, nodes):
+        if not isinstance(nodes, list):
+            return
+        param_name = self._start_nodes_param_name()
+        for index, node in enumerate(nodes):
+            if node is None:
+                continue
+            if not isinstance(node, self.node_class):
+                raise ValueError(
+                    f"{param_name} must be instances of "
+                    f"{self.node_class.__name__} (or subclasses). "
+                    f"Got {type(node).__name__} at index {index}."
+                )
 
     def check_initialization(self):
         pass
@@ -1647,6 +1661,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             nodes = call_function_with_context(
                 self.start_nodes, experiment=experiment, participant=participant
             )
+            self._validate_start_nodes(nodes)
             if self.chains_per_participant is not None:
                 assert len(nodes) == self.chains_per_participant, (
                     f"Problem with trial maker {self.id}: "
