@@ -1,3 +1,15 @@
+
+# Unreleased
+
+## Fixed
+- Fixed version check message being printed twice by moving spinner success call outside the package loop (author: Frank Höger)
+- Fixed misleading error message "No LucidRID for Lucid RID" in `get_participant` which was actually querying the Participant table; changed to warning that explains this can happen during early termination (e.g., mobile detection, wrong browser) (author: Frank Höger)
+- Fixed Lucid participants who completed the experiment being incorrectly marked as "returned" with `failed_reason=user-tried-to-leave`. This was caused by a race condition where the redirect to Lucid triggered the beforeunload event, which then called `/terminate_participant` and overwrote the completion status. The endpoint now skips termination for participants with `progress=1` (author: Frank Höger)
+- Fixed `/terminate_participant` endpoint failing with AssertionError when participant record doesn't exist in database (e.g., due to race conditions during mobile phone detection). The endpoint now extracts the assignment_id from request parameters to still call Lucid's termination API (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed Lucid participants who reject consent getting stuck in "working" status. `RejectedConsentLogic` now properly terminates the participant on Lucid's side and auto-redirects them back to Lucid after 2 seconds (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed bug where `psynet export` never downloaded source code due to incorrect `--no-source` flag definition (`flag_value` instead of `is_flag`), causing the default value to be the string `'False'` instead of boolean `False`  (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed missing source code download in non-legacy export path  (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.1.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc1) Release candidate - 2026-01-28
 
 ## Added
@@ -13,11 +25,6 @@
 
 ## Deprecated
 - Deprecated Docker installation route in favor of the standard virtual environment method (author: Peter Harrison, reviewer: Frank Höger)
-# Unreleased
-
-## Fixed
-- Fixed bug where `psynet export` never downloaded source code due to incorrect `--no-source` flag definition (`flag_value` instead of `is_flag`), causing the default value to be the string `'False'` instead of boolean `False`
-- Fixed missing source code download in non-legacy export path
 
 # [13.0.4](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.4) Release - 2026-02-02
 

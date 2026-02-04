@@ -1364,12 +1364,14 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                     assignment_id=assignment_id
                 ).one()
             except NoResultFound:
-                logger.error(
-                    f"No LucidRID for Lucid RID '{assignment_id}' found. This should never happen."
+                logger.warning(
+                    f"No Participant for Lucid RID '{assignment_id}' found. "
+                    "This can happen when users are terminated before completing recruitment "
+                    "(e.g., mobile detection, wrong browser, or other early termination)."
                 )
             except MultipleResultsFound:
                 logger.error(
-                    f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
+                    f"Multiple participants for Lucid RID '{assignment_id}' found. This should never happen."
                 )
 
         return participant
