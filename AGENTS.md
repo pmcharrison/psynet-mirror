@@ -1,72 +1,65 @@
 # Agent instructions
 
-Read and follow `psynet/resources/experiment_scripts/AGENTS.md`.
+Start by following `psynet/resources/experiment_scripts/AGENTS.md`.
 
-The below instructions are specific to PsyNet developers (not just PsyNet experiment developers).
+Then act on the following PsyNet developer instructions:
 
 ## Dallinger repo
 
-When developing PsyNet, keep a local checkout of Dallinger at `~/Dallinger`. If a change is needed in Dallinger, make it there and submit a PR.
+### Summary
 
-### Safe fork-based workflow
+When developing PsyNet, keep a local checkout of Dallinger at `~/Dallinger`.
+If a change is needed in Dallinger, make it there and submit a PR .
 
-When operating as a Cloud Agent, we use forks for safety.
-Do not push directly to the upstream Dallinger repo.
+### Dallinger repo instructions
 
-#### One-time setup (cloud agents)
+Cloud Agents push to a Dallinger fork at `DALLINGER_FORK_URL` using the PAT `GH_TOKEN`.
+If these environment variables are not present, tell the user to follow these user instructions:
 
-1. Check GitHub CLI auth:
-   - `gh auth status`
-   - If you see a Dallinger org error about token lifetime, create a new
-     fine-grained PAT with an expiry of 1 year or less.
-2. If needed, create a fine-grained GitHub PAT.
-3. Scope it to the agent's fork of Dallinger only.
-4. Permissions:
+#### User instructions
+
+1. Create a fine-grained GitHub PAT via the GitHub website.
+   - Scope it to the agent's fork of Dallinger only.
+   - Set an expiry of 1 year or less (required for interacting with Dallinger organization).
    - Contents: Read and write
    - Pull requests: Read and write
-5. Export the token as `GH_TOKEN` or `GITHUB_TOKEN` in the shell. Do not store it in the repo.
-6. Ensure you have a fork (e.g. `gh repo fork Dallinger/Dallinger --clone=false`).
-7. Export the fork URL as `DALLINGER_FORK_URL` (e.g., `https://github.com/<your-username>/Dallinger`).
-8. If `~/Dallinger` does not exist, clone your fork there and add the upstream remote:
-   - `gh repo clone "$DALLINGER_FORK_URL" ~/Dallinger`
-   - `cd ~/Dallinger`
-   - `git remote add upstream https://github.com/Dallinger/Dallinger.git`
+2. Save this token as a Cloud Agent secret named `GH_TOKEN` via the Cursor website.
+3. Create a Dallinger fork on the GitHub website (e.g., `https://github.com/<your-username>/Dallinger`).
+4. Save the fork URL as a Cloud Agent secret named `DALLINGER_FORK_URL` via the Cursor website.
 
-#### One-time setup (local)
+#### Cloud Agent instructions
 
-1. Fork the upstream Dallinger repo in GitHub if you do not already have a fork.
-2. Clone the fork to `~/Dallinger`:
-   - `gh repo clone "$DALLINGER_FORK_URL" ~/Dallinger`
-3. Add the upstream remote:
-   - `cd ~/Dallinger`
-   - `git remote add upstream https://github.com/Dallinger/Dallinger.git`
-4. Install Dallinger in editable mode:
-   - `cd ~/Dallinger`
-   - `uv pip install -e .`
+Clone the fork at `DALLINGER_FORK_URL`  to `~/Dallinger`.
 
-#### Workflow
+Add the upstream remote:
 
-1. Sync with upstream:
-   - `git fetch upstream`
-   - `git checkout master`
-   - `git merge upstream/master`
-2. Create a feature branch:
-   - `git checkout -b <branch-name>`
-3. Make changes and commit locally.
-4. Push:
-   - `git push -u origin <branch-name>`
-5. Open a PR to upstream:
-   - `gh pr create --base master --head <your-username>:<branch-name>`
-6. If your PsyNet PR depends on this new unmerged change to Dallinger,
-   specify your fork in `pyproject.toml` (use a literal URL; environment
-   variables are not expanded in `pyproject.toml`):
+- `cd ~/Dallinger`
+- `git remote add upstream https://github.com/Dallinger/Dallinger.git`
 
-   ```toml
-   # In [project].dependencies
-   "dallinger[docker] @ git+https://github.com/<your-username>/Dallinger.git@<branch-name>",
-   ```
+Make sure it is up-to-date:
 
-#### Dallinger CI logs (CLI only)
+- `git merge upstream/master`
+
+Create a feature branch:
+
+- `git checkout -b <branch-name>`
+
+Install it in editable mode: `uv pip install -e ~/Dallinger`.
+
+Make changes and commit locally.
+
+Push: `git push -u origin <branch-name>`
+
+Open a PR to upstream: `gh pr create --base master --head <your-username>:<branch-name>`
+
+If your PsyNet PR depends on this new unmerged change to Dallinger,
+specify your fork in `pyproject.toml` (use a literal URL; environment
+variables are not expanded in `pyproject.toml`):
+
+```toml
+# In [project].dependencies
+"dallinger[docker] @ git+https://github.com/<your-username>/Dallinger.git@<branch-name>",
+```
 
 Use the GitHub CLI to find and read Dallinger job logs:
 
@@ -77,6 +70,9 @@ Use the GitHub CLI to find and read Dallinger job logs:
 3. If the run is against upstream, use the canonical repo:
    - `gh run list --repo https://github.com/Dallinger/Dallinger --limit 10`
    - `gh run view <run-id> --repo https://github.com/Dallinger/Dallinger --log-failed`
+
+Local agents use a similar approach, but `~/Dallinger` should be created already by the user,
+and it may be a clone of the original repository, not a fork.
 
 ## Finishing up changes
 

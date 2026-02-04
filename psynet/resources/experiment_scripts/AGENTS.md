@@ -7,6 +7,11 @@ and with the development of individual PsyNet experiments.
 If the root contains a file called `experiment.py`, assume that we are working on an experiment.
 Otherwise assume we are working on the PsyNet source code.
 
+## Initial setup
+
+- Install Python 3.13 (use same version specified in `Dockerfile`)
+- Install uv (`pip3 install uv`)
+
 ## Before running commands
 
 The project uses a Python virtual environment located at `.venv/`. Activate it before running any commands:
