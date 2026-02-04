@@ -38,6 +38,7 @@ from psynet.asset import filter_botocore_deprecation_warnings
 from psynet.participant import Participant
 
 from .command_line import (
+    clean_sys_modules,
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
     working_directory,
@@ -360,17 +361,6 @@ def deployment_info():
     deployment_info.delete()
 
 
-@pytest.fixture(autouse=True)
-def reset_sys_modules():
-    """
-    Override Dallinger's module reset to avoid re-registering SQLAlchemy classes.
-
-    Re-importing the same experiment module in one pytest session can trigger
-    SQLAlchemy warnings (treated as errors) due to class re-registration.
-    """
-    yield
-
-
 @pytest.fixture(scope="class")
 def experiment_directory(request):
     return request.param
@@ -398,8 +388,7 @@ def in_experiment_directory(experiment_directory):
     redis_vars.clear()
     with working_directory(experiment_directory):
         yield experiment_directory
-    # Avoid unloading experiment modules: re-importing them in the same process
-    # can re-register SQLAlchemy classes and trigger warnings-as-errors.
+    clean_sys_modules()
     clear_all_caches()
 
 
@@ -548,7 +537,6 @@ def db_session(in_experiment_directory):
 
 
 dallinger.pytest_dallinger.db_session = db_session
-dallinger.pytest_dallinger.reset_sys_modules = reset_sys_modules
 
 
 @pytest.fixture(scope="class")
