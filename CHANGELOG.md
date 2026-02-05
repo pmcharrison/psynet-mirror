@@ -4,6 +4,11 @@
 ## Fixed
 - Fixed `lab_recruiter_external_submission_url` config parameter being required; it is now optional with an empty string default (author: Frank Höger)
 - Fixed Lucid recruiter `get_status` crashing with `AttributeError: 'DataFrame' object has no attribute 'client_status'` when submissions list is empty (author: Frank Höger)
+- Fixed Lucid completion handling for 403 responses: these are now expected (likely already completed via browser redirect) and marked locally, rather than logged as errors (author: Frank Höger)
+- Fixed Lucid termination handling for 403 and 400 responses: 403 (already terminated via redirect or rejected early) and 400 (RID never activated on Lucid) are now expected and marked locally, rather than logged as errors (author: Frank Höger)
+
+## Changed
+- Improved Lucid termination logging: intent is logged before the API call, and RID is included in all messages (author: Frank Höger)
 - Fixed version check message being printed twice by moving spinner success call outside the package loop (author: Frank Höger)
 - Fixed misleading error message "No LucidRID for Lucid RID" in `get_participant` which was actually querying the Participant table; changed to warning that explains this can happen during early termination (e.g., mobile detection, wrong browser) (author: Frank Höger)
 - Fixed Lucid participants who completed the experiment being incorrectly marked as "returned" with `failed_reason=user-tried-to-leave`. This was caused by a race condition where the redirect to Lucid triggered the beforeunload event, which then called `/terminate_participant` and overwrote the completion status. The endpoint now skips termination for participants with `progress=1` (author: Frank Höger)

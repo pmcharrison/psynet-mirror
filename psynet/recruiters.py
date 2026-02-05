@@ -1313,10 +1313,10 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             participant.status = "returned"
             db.session.commit()
         try:
-            self.lucidservice.terminate_respondent(assignment_id, reason, details)
             logger.info(
                 f"Terminating respondent with RID '{assignment_id}'. Reason: '{reason}'"
             )
+            self.lucidservice.terminate_respondent(assignment_id, reason, details)
         except Exception as e:
             logger.error(
                 f"Error terminating respondent with RID '{assignment_id}': {e}"
