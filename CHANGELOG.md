@@ -1,11 +1,5 @@
 
-# Unreleased
-
-## Fixed
-- Fixed `lab_recruiter_external_submission_url` config parameter being required; it is now optional with an empty string default (author: Frank Höger)
-- Fixed Lucid recruiter `get_status` crashing with `AttributeError: 'DataFrame' object has no attribute 'client_status'` when submissions list is empty (author: Frank Höger)
-- Fixed Lucid completion handling for 403 responses: these are now expected (likely already completed via browser redirect) and marked locally, rather than logged as errors (author: Frank Höger)
-- Fixed Lucid termination handling for 403 and 400 responses: 403 (already terminated via redirect or rejected early) and 400 (RID never activated on Lucid) are now expected and marked locally, rather than logged as errors (author: Frank Höger)
+# [13.1.0rc2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc2) Release candidate - 2026-02-03
 
 ## Changed
 - Improved Lucid termination logging: intent is logged before the API call, and RID is included in all messages (author: Frank Höger)
@@ -16,6 +10,12 @@
 - Fixed Lucid participants who reject consent getting stuck in "working" status. `RejectedConsentLogic` now properly terminates the participant on Lucid's side and auto-redirects them back to Lucid after 2 seconds (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed bug where `psynet export` never downloaded source code due to incorrect `--no-source` flag definition (`flag_value` instead of `is_flag`), causing the default value to be the string `'False'` instead of boolean `False`  (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed missing source code download in non-legacy export path  (author: Frank Höger, reviewer: Peter Harrison)
+
+## Fixed
+- Fixed `lab_recruiter_external_submission_url` config parameter being required; it is now optional with an empty string default (author: Frank Höger)
+- Fixed Lucid recruiter `get_status` crashing with `AttributeError: 'DataFrame' object has no attribute 'client_status'` when submissions list is empty (author: Frank Höger)
+- Fixed Lucid completion handling for 403 responses: these are now expected (likely already completed via browser redirect) and marked locally, rather than logged as errors (author: Frank Höger)
+- Fixed Lucid termination handling for 403 and 400 responses: 403 (already terminated via redirect or rejected early) and 400 (RID never activated on Lucid) are now expected and marked locally, rather than logged as errors (author: Frank Höger)
 
 # [13.1.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc1) Release candidate - 2026-01-28
 
