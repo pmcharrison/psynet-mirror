@@ -445,7 +445,7 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         self.config = get_config()
 
         # Allow overriding external_submission_url via config
-        url = self.config.get("lab_recruiter_external_submission_url")
+        url = self.config.get("lab_recruiter_external_submission_url", "")
         if url:
             self.external_submission_url = url
 
