@@ -34,8 +34,26 @@
       </div>
     </div>
     <script>
+      // Helper function to convert a URL path to an absolute URL without credentials.
+      // This prevents "Request cannot be constructed from a URL that includes credentials" errors
+      // when fetch() is called with URLs derived from a page that has embedded credentials.
+      function toAbsoluteUrlWithoutCredentials(path) {
+        // If path is already an absolute URL, strip credentials from it
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+          const url = new URL(path);
+          url.username = '';
+          url.password = '';
+          return url.href;
+        }
+        // Otherwise, prepend the current origin (without credentials)
+        const origin = new URL(window.location.href);
+        origin.username = '';
+        origin.password = '';
+        return origin.origin + path;
+      }
+
       let randomKey = Math.random().toString(36).substring(7);  // random key to prevent caching
-      let buildUrl = "{{ resources }}/scripts/Build";
+      let buildUrl = toAbsoluteUrlWithoutCredentials("{{ resources }}/scripts/Build");
       let loaderUrl = buildUrl + "/WebGL.loader.js?random=" + randomKey;
       let config = {
         dataUrl: buildUrl + "/WebGL.data?random=" + randomKey,
