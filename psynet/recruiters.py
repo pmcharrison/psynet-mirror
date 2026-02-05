@@ -819,14 +819,12 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             submissions = self.lucidservice.get_submissions(survey_number)
         if submissions is not None:
             respondents = pd.DataFrame(submissions)
-            respondents["status"] = respondents.client_status.apply(
-                lambda x: self.client_codes.get(x, "Unknown")
-            )
-
-            submission_status_counts = respondents["status"].value_counts().to_dict()
-            if len(respondents) > 0:
+            if len(respondents) > 0 and "client_status" in respondents.columns:
                 respondents["status"] = respondents.client_status.apply(
                     lambda x: self.client_codes.get(x, "Unknown")
+                )
+                submission_status_counts = (
+                    respondents["status"].value_counts().to_dict()
                 )
                 respondents["market_place_code"] = respondents.fulcrum_status.apply(
                     lambda x: self.market_place_codes.get(x, "Unknown")
