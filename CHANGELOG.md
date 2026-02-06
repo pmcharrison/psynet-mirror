@@ -112,6 +112,21 @@
 - Simplified documentation navigation and reference links (author: Cursor, reviewer: Peter)
 - Documented GitLab CI status checks and token guidance for agents in AGENTS.md (author: Cursor, reviewer: Peter)
 
+# [13.0.4](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.4) Release - 2026-02-05
+
+## Fixed
+- Fixed bug where `psynet export` never downloaded source code due to incorrect `--no-source` flag definition (`flag_value` instead of `is_flag`), causing the default value to be the string `'False'` instead of boolean `False` (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed missing source code download in non-legacy export path (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed bug in the propagation of the `--update` argument to the Dallinger CLI (author: Peter Harrison, reviewer: Frank Höger)
+- Pin pip<26 in Dockerfile (author: Frank Höger)
+- Fixed CI test failures on version tags by treating them like release branches (skip null translator) (author: Frank Höger)
+- Fixed Unity WebGL pages failing with "Request cannot be constructed from a URL that includes credentials" when the page URL contained embedded credentials (e.g. when navigating from the dashboard in debug mode). The Unity template now constructs asset URLs with an origin stripped of credentials so that `fetch()` for `.wasm` and `.data` files succeeds (author: Frank Höger)
+
+# [13.0.3](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.3) Release - 2026-01-29
+
+## Fixed
+- Fixed browser "Leave page?" popup appearing at the end of Lucid experiments when redirecting to the recruiter. Added `skip_beforeunload` attribute to Page classes and set it to `True` on `ExecuteFrontEndJS`  (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 
 ## Fixed
