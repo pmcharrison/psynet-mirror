@@ -115,7 +115,7 @@ This is the preferred approach for agents when verifying CI status or logs.
 
 When you make changes to the PsyNet codebase:
 
-1. **Update the CHANGELOG**: Add an entry to `CHANGELOG.md` under the appropriate section (Added, Changed, Fixed, etc.) in the "Unreleased" section. Format: `- Description (author: Cursor, reviewer: [Name])` where `[Name]` is the person who invoked the agent (typically found in user context or Slack messages).
+1. **Update the CHANGELOG**: Add an entry to `CHANGELOG.md` under the appropriate section (Added, Changed, Fixed, etc.) in the "Unreleased" section. Format: `- Description (author: [Name])` where `[Name]` is the person who invoked the agent (typically found in user context or Slack messages).
 
 2. **Run pre-commit**: Before committing, run pre-commit to ensure code formatting is correct:
 
