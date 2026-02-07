@@ -20,7 +20,7 @@ def test_verify_psynet_requirement_missing_version():
                 file.flush()
 
                 with pytest.raises(
-                    AssertionError,
+                    ValueError,
                     match="When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
                     "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
                     "or a commit hash.",
@@ -43,7 +43,7 @@ def test_verify_psynet_requirement_extension():
                     file.flush()
 
                     with pytest.raises(
-                        AssertionError,
+                        ValueError,
                         match="When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
                         "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
                         "or a commit hash.",
@@ -63,7 +63,7 @@ def test_verify_psynet_requirement_master_branch():
                         file.flush()
 
                     with pytest.raises(
-                        AssertionError,
+                        ValueError,
                         match="When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
                         "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
                         "or a commit hash.",

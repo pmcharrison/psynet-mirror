@@ -1785,14 +1785,15 @@ def verify_psynet_requirement(*, allow_master_branch: bool = False):
             ]
         )
 
-        assert valid, (
-            "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
-            + branch_note
-            + "\n\nExamples:\n"
-            + "\n".join(examples)
-            + "\nYou can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
-            "in your terminal."
-        )
+        if not valid:
+            raise ValueError(
+                "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+                + branch_note
+                + "\n\nExamples:\n"
+                + "\n".join(examples)
+                + "\nYou can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+                "in your terminal."
+            )
 
 
 ##########
