@@ -2,7 +2,6 @@ import hashlib
 import json
 import subprocess
 import tempfile
-import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
@@ -476,7 +475,7 @@ def test_export_data_skips_basic_data_when_none(tmp_path, monkeypatch):
     assert not basic_data_zip.exists()
 
 
-def test_export_data_writes_basic_data_zip_for_dataframes(tmp_path, monkeypatch):
+def test_export_data_writes_basic_data_folder_for_dataframes(tmp_path, monkeypatch):
     from psynet.command_line import export_data
 
     basic_data = {
@@ -495,10 +494,12 @@ def test_export_data_writes_basic_data_zip_for_dataframes(tmp_path, monkeypatch)
         export_path=str(export_path),
     )
 
-    basic_data_path = export_path / "regular" / "basic_data.zip"
-    assert basic_data_path.exists()
-    with zipfile.ZipFile(basic_data_path, "r") as zip_file:
-        assert sorted(zip_file.namelist()) == ["participant.csv", "trial.csv"]
+    basic_data_dir = export_path / "regular" / "basic_data"
+    assert basic_data_dir.exists()
+    assert sorted(path.name for path in basic_data_dir.iterdir()) == [
+        "participant.csv",
+        "trial.csv",
+    ]
 
 
 def test_check_constraints():
