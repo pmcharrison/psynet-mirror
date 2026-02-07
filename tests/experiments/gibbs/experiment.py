@@ -267,22 +267,29 @@ class Exp(psynet.experiment.Experiment):
 
     @classmethod
     def get_basic_data(cls, context=None, **kwargs):
+        trial_rows = db.session.query(
+            CustomTrial.id,
+            CustomTrial.participant_id,
+            CustomTrial.context,
+            CustomTrial.answer,
+        ).all()
         trials = [
             {
-                "id": trial.id,
-                "participant_id": trial.participant_id,
-                "target": (trial.context or {}).get("target"),
-                "answer": trial.answer,
+                "id": trial_id,
+                "participant_id": participant_id,
+                "target": (context_data or {}).get("target"),
+                "answer": answer,
             }
-            for trial in CustomTrial.query.all()
+            for trial_id, participant_id, context_data, answer in trial_rows
         ]
+        participant_rows = db.session.query(
+            Participant.id,
+            Participant.status,
+            Participant.bonus,
+        ).all()
         participants = [
-            {
-                "id": participant.id,
-                "status": participant.status,
-                "bonus": participant.bonus,
-            }
-            for participant in Participant.query.all()
+            {"id": participant_id, "status": status, "bonus": bonus}
+            for participant_id, status, bonus in participant_rows
         ]
         return {
             "trial": pd.DataFrame(
