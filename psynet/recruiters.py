@@ -26,7 +26,7 @@ from dallinger.recruiters import (
 from dallinger.utils import get_base_url
 from dominate import tags
 from dominate.util import raw
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, Float, Integer, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql import func
 
@@ -571,7 +571,7 @@ class LucidRID(SQLBase, SQLMixin):
     vars = None
     creation_time = None
 
-    rid = Column(String, ForeignKey("participant.worker_id"), index=True)
+    rid = Column(String, index=True)
     registered_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 

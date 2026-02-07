@@ -52,7 +52,6 @@ if TYPE_CHECKING:
 
 # pylint: disable=unused-import
 
-UniqueConstraint(dallinger.models.Participant.worker_id)
 UniqueConstraint(dallinger.models.Participant.unique_id)
 
 
