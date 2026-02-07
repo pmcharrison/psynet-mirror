@@ -456,6 +456,20 @@ def _print_sql_profile_aggregation(profile_dir, *, show_dir):
 
 
 def sql_profiled_command(func):
+    """
+    Wrap a Click command to enable aggregated SQL profiling.
+
+    Parameters
+    ----------
+    func : callable
+        Command function with ``sql_profile`` keyword arguments.
+
+    Returns
+    -------
+    callable
+        Wrapped command that enables profiling and prints aggregation.
+    """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         profile_dir = None
