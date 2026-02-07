@@ -113,6 +113,10 @@ def moto_s3_server():
     # defaults while avoiding those side effects.
     dallinger_config.config = stub_config.__wrapped__()
     try:
+        # Clear only the S3-related caches so these objects are rebuilt against
+        # the stub_config + Moto endpoint. This is more targeted (and safer)
+        # than clear_all_caches(), which would wipe unrelated caches across the
+        # test session.
         psynet_media.get_aws_credentials.cache_clear()
         psynet_asset.get_boto3_s3_session.cache_clear()
         psynet_asset.get_boto3_s3_client.cache_clear()
