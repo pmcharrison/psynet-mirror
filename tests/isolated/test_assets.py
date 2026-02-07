@@ -1,13 +1,10 @@
 import os
 import tempfile
-from types import SimpleNamespace
 
 import pytest
 from dallinger import db
 
-import psynet.asset as asset_module
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
-import psynet.trial.main as trial_main
 from psynet.asset import (
     CachedAsset,
     CachedFunctionAsset,
@@ -18,7 +15,6 @@ from psynet.asset import (
     asset,
 )
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.trial.main import AssetParentMixin
 
 
 class MultiplyAsset(ExperimentAsset):
