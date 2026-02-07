@@ -22,6 +22,7 @@
 - Added 'getting started' section to documentation.
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
+- Added checks to catch cases where Assets are created in the wrong place.
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
