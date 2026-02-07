@@ -22,17 +22,10 @@
 - Added 'getting started' section to documentation.
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
-- Added SQLAlchemy query profiling utilities with optional env-driven summaries and pytest helpers (author: Cursor, reviewer: Peter Harrison)
-- Added unit tests for SQLAlchemy query profiling utilities (author: Cursor, reviewer: Peter Harrison)
-- Added commit timing grouped by callsite with commit-type breakdown in SQLAlchemy profiler (author: Cursor, reviewer: Peter Harrison)
-- Added JSON export and aggregation helper for SQLAlchemy profiling summaries (author: Cursor, reviewer: Peter Harrison)
-- Added `psynet debug local --sql-profile` to aggregate SQL profiling across processes (author: Cursor, reviewer: Peter Harrison)
-- Added `psynet test local --sql-profile` to aggregate SQL profiling across processes (author: Cursor, reviewer: Peter Harrison)
-- Added `assert_query_duration` helper for SQL profiling tests with total/max thresholds (author: Cursor, reviewer: Peter Harrison)
+- Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (author: Cursor, reviewer: Peter Harrison)
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
-- Suppressed per-process SQL profiling output when using aggregated CLI profiling (author: Cursor, reviewer: Peter Harrison)
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
@@ -40,7 +33,6 @@
 ## Fixed
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
-- Fixed SQL profiling tests to dispose SQLite engines to avoid ResourceWarning failures in CI (author: Cursor, reviewer: Peter Harrison)
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
 - Fixed `join` to accept list/tuple inputs so `join(pages)` works when assembling timeline components such as `AsyncCodeBlock` (author: Cursor, reviewer: Peter Harrison)
 - Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
@@ -109,7 +101,6 @@
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed bug where `check_ready_to_spawn` was being called when not available.
 - Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError.
-- Fixed commit callsite selection to include non-SQLAlchemy frames in site-packages (author: Cursor, reviewer: Peter Harrison)
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
