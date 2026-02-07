@@ -15,7 +15,21 @@ python_recommended_version = "3.13"
 
 
 def check_versions(allow_master_branch: bool = False):
-    "Check whether the PsyNet and Dallinger versions installed locally match the ones specified in the requirements.txt file."
+    """
+    Check whether PsyNet and Dallinger versions match requirements.txt.
+
+    Parameters
+    ----------
+    allow_master_branch : bool, optional
+        If True, a requirements.txt entry pinned to ``master`` is permitted and the
+        version comparison is skipped for that package. This is intended for local
+        debugging workflows. Defaults to False.
+
+    Raises
+    ------
+    ValueError
+        If any specified package version does not match the installed version.
+    """
     if os.environ.get("SKIP_VERSION_CHECK"):
         print(
             "SKIP_VERSION_CHECK is set so we will skip checking PsyNet versions specified vs. installed."
@@ -49,7 +63,7 @@ def check_versions(allow_master_branch: bool = False):
                     spinner.color = "red"
                     spinner.fail("✗")
 
-                    assert False, (
+                    raise ValueError(
                         f"The {package_name} versions installed on your local computer and specified in requirements.txt do not match.\n"
                         f'\nVersion installed locally: {version_infos["installed"]}'
                         f'\nVersion specified in requirements.txt: {version_infos["specified"]}'
@@ -61,6 +75,24 @@ def check_versions(allow_master_branch: bool = False):
 
 
 def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
+    """
+    Parse requirements.txt content and compare to installed versions.
+
+    Parameters
+    ----------
+    file_content : str
+        Contents of a requirements.txt file.
+    allow_master_branch : bool, optional
+        If True, treat a ``master``-pinned requirement as a skipped comparison.
+        Defaults to False.
+
+    Returns
+    -------
+    dict
+        Mapping of package name to a dict containing ``specified``, ``installed``,
+        ``status`` (``consistent``, ``inconsistent``, or ``skipped``), and an optional
+        ``skip_reason``.
+    """
     versions = {}
     for package_name in ["Dallinger", "PsyNet"]:
         versions[package_name] = {
@@ -112,15 +144,16 @@ def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
         if is_development_version(installed):
             # It's hard to check consistency when the installed version is a development version,
             # because a development version could correspond to many possible branches/commits.
-            # We therefore just mark it as consistent and continue.
-            status = "consistent"
+            # We therefore skip the comparison and continue.
+            status = "skipped"
+            skip_reason = "installed version is a development version"
         else:
             status = (
                 "consistent"
                 if specified is None or specified == installed
                 else "inconsistent"
             )
-        skip_reason = None
+            skip_reason = None
         if allow_master_branch and specified == "master":
             status = "skipped"
             skip_reason = "requirements.txt pins this package to master"

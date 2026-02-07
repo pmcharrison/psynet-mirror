@@ -1697,6 +1697,21 @@ def _check_constraints(spinner=None):
 
 
 def verify_psynet_requirement(*, allow_master_branch: bool = False):
+    """
+    Validate the PsyNet requirement specification in requirements.txt.
+
+    Parameters
+    ----------
+    allow_master_branch : bool, optional
+        If True, allow the master branch in requirements.txt. This is intended for
+        local debugging, where a specific version or commit may not be required.
+        Defaults to False.
+
+    Raises
+    ------
+    AssertionError
+        If the PsyNet requirement is missing or ambiguous.
+    """
     environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
     if os.environ.get(environment_variable, None):
         print(
