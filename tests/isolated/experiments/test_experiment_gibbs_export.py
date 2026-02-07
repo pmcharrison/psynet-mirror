@@ -12,6 +12,7 @@ from click import Context
 
 from psynet.bot import BotDriver
 from psynet.command_line import export__local, populate_db_from_zip_file
+from psynet.experiment import Request
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.timeline import Response
@@ -51,6 +52,7 @@ class TestExpWithExport:
         data_dir,
         database_zip_file,
         coin_class,
+        db_session,
     ):
         import time
 
@@ -58,6 +60,19 @@ class TestExpWithExport:
         for _ in range(6):
             bot = BotDriver()
             bot.take_experiment()
+
+        participant = Participant.query.first()
+        assert participant is not None
+        db_session.add(
+            Request(
+                unique_id=participant.unique_id,
+                duration=0.01,
+                method="GET",
+                endpoint="/test/request",
+                params={"source": "test"},
+            )
+        )
+        db_session.commit()
 
         ctx = Context(export__local)
         ctx.invoke(export__local, path=data_root_dir, assets="none", n_parallel=None)
@@ -162,6 +177,7 @@ class TestExport:
             "ModuleState.csv",
             # "Notification.csv",  # We don't expect any notifications to be created
             # "Recruitment.csv",  # We don't expect any recruitment
+            # "Request.csv",  # We exclude Request by default
             "Response.csv",
             # "Transmission.csv",  # We don't expect any transmissions to be created
             "WorkerAsyncProcess.csv",
