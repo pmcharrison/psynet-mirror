@@ -179,6 +179,16 @@ class TestExport:
         trials = pandas.read_csv(os.path.join(basic_data_dir, "trial.csv"))
         assert not participants.empty
         assert not trials.empty
+        assert {"id", "status", "bonus"}.issubset(participants.columns)
+        assert participants["id"].is_unique
+        assert (participants["id"] > 0).all()
+        assert not participants["status"].isna().any()
+        assert not participants["bonus"].isna().any()
+        assert {"id", "participant_id", "target", "answer"}.issubset(trials.columns)
+        assert not trials["target"].isna().any()
+        assert set(trials["target"]).issubset({"tree", "rock", "carrot", "banana"})
+        assert set(trials["participant_id"]).issubset(set(participants["id"]))
+        assert not trials["answer"].isna().all()
 
     # test_psynet_exports(data_dir)
 

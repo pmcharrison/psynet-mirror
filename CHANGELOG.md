@@ -16,6 +16,7 @@
 - Added checks to catch cases where Assets are created in the wrong place.
 - Added a basic_data export example to the static demo (author: Peter)
 - Added basic_data CSV export to the Gibbs export test experiment (author: Peter)
+- Added basic_data CSV value assertions to the Gibbs export test (author: Peter)
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
