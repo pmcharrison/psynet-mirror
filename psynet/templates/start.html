@@ -50,57 +50,35 @@
             })
         }
 
-        async function createParticipant() {
+        function getAssignmentId(entryInformation) {
+            return entryInformation.assignmentId || entryInformation.assignment_id;
+        }
+
+        function shouldAttemptCreate(resp) {
+            if (!resp || resp.status !== 403 || !resp.html) {
+                return false;
+            }
+            return resp.html.includes("/load-participant POST: no participant found");
+        }
+
+        async function createParticipant(entryInformation) {
             // This is similar to dallinger.createParticipant but it bypasses the dallinger.identity
             // storage object, which shares information across different browser windows and hence
             // is not reliable when testing multiple participants on the same machine.
 
-            let entryInformation = getEntryInformation();
+            if (!entryInformation) {
+                entryInformation = getEntryInformation();
+            }
             let fingerprintHash = await getFingerprintHash();
             let url = "/participant";
             let data = {};
 
-            function shouldAttemptResume(resp) {
-                if (!resp || resp.status !== 403 || !resp.html) {
-                    return false;
-                }
-                return resp.html.includes("worker has already participated");
-            }
-
-            function buildResumeInformation() {
-                let resumeInformation = Object.assign({}, entryInformation);
-                if (Object.keys(resumeInformation).length === 0) {
-                    let recruiter = dallinger.getUrlParameter('recruiter');
-                    let hitId = dallinger.getUrlParameter('hitId');
-                    let workerId = dallinger.getUrlParameter('workerId');
-                    let assignmentId = dallinger.getUrlParameter('assignmentId');
-                    if (recruiter) {
-                        resumeInformation.recruiter = recruiter;
-                    }
-                    if (hitId) {
-                        resumeInformation.hitId = hitId;
-                    }
-                    if (workerId) {
-                        resumeInformation.workerId = workerId;
-                    }
-                    if (assignmentId) {
-                        resumeInformation.assignmentId = assignmentId;
-                    }
-                }
-                return resumeInformation;
-            }
-
-            function attemptResume() {
-                let resumeInformation = buildResumeInformation();
-                dallinger.post("/load-participant", resumeInformation).done(function (resp) {
-                    window.location = "/timeline?unique_id=" + resp.participant.unique_id;
-                }).fail(function(resp) {
-                    dallinger.error(resp);
-                });
-            }
-
             if (Object.keys(entryInformation).length > 0) {
-                data = Object.assign({}, entryInformation, {fingerprint_hash: fingerprintHash});
+                data = Object.assign(
+                    {},
+                    entryInformation,
+                    {fingerprint_hash: fingerprintHash}
+                );
             } else {
                 let recruiter = dallinger.getUrlParameter('recruiter');
                 let hitId = dallinger.getUrlParameter('hitId');
@@ -119,14 +97,28 @@
             dallinger.post(url, data).done(function (resp) {
                 window.location = "/timeline?unique_id=" + resp.participant.unique_id;
             }).fail(function(resp) {
-                if (shouldAttemptResume(resp)) {
-                    attemptResume();
-                } else {
-                    dallinger.error(resp);
-                }
+                dallinger.error(resp);
             });
         }
 
-        createParticipant();
+        function startParticipantFlow() {
+            let entryInformation = getEntryInformation();
+            let assignmentId = getAssignmentId(entryInformation);
+            if (assignmentId && assignmentId !== "ASSIGNMENT_ID_NOT_AVAILABLE") {
+                dallinger.post("/load-participant", entryInformation).done(function (resp) {
+                    window.location = "/timeline?unique_id=" + resp.participant.unique_id;
+                }).fail(function(resp) {
+                    if (shouldAttemptCreate(resp)) {
+                        createParticipant(entryInformation);
+                    } else {
+                        dallinger.error(resp);
+                    }
+                });
+            } else {
+                createParticipant(entryInformation);
+            }
+        }
+
+        startParticipantFlow();
     </script>
 {% endblock %}

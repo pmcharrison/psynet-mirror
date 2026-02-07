@@ -60,7 +60,7 @@
 - Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.
 - Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
-- Added a /start fallback to resume existing participants when back navigation triggers a createParticipant error (author: Peter Harrison)
+- Updated /start to resume existing participants by assignment ID before attempting to create a new participant (author: Peter Harrison)
 - Removed unused method `generate_asset_key`.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
 - Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`

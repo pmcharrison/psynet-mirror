@@ -37,7 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=12.1.0,<13",
+    "dallinger[docker] @ git+https://github.com/pmcharrison/Dallinger.git@cursor/allow-repeat-worker-ids",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf
