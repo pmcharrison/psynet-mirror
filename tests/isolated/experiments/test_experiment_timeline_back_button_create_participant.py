@@ -1,7 +1,7 @@
 import pytest
 from selenium.webdriver.common.by import By
 
-from psynet.pytest_psynet import assert_text, bot_class, path_to_test_experiment
+from psynet.pytest_psynet import bot_class, path_to_test_experiment
 from psynet.utils import wait_until
 
 PYTEST_BOT_CLASS = bot_class()
@@ -25,21 +25,24 @@ class TestExp:
                 max_wait=10,
                 error_message="Timeline consent button never appeared.",
             )
-
             # Back navigation should revisit /start and re-run createParticipant.
             driver.back()
+            wait_until(
+                lambda: "/start" in driver.current_url,
+                max_wait=10,
+                error_message="Back navigation did not reach the /start page.",
+            )
+            driver.refresh()
 
             wait_until(
-                lambda: "/error-page" in driver.current_url,
+                lambda: bool(driver.find_elements(By.NAME, "error_type")),
                 max_wait=10,
                 error_message=(
-                    "Back navigation did not reach the error page that follows "
-                    "the createParticipant failure."
+                    "Back navigation did not render the error page "
+                    "after the createParticipant failure."
                 ),
             )
-            assert_text(driver, "header", "Error!")
-            assert_text(
-                driver,
-                "error-text",
-                "There has been an error and so you are unable to continue, sorry!",
+            error_type = driver.find_element(By.NAME, "error_type").get_attribute(
+                "value"
             )
+            assert "worker has already participated" in error_type
