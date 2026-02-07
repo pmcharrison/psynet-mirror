@@ -120,9 +120,7 @@ class Prompt:
 
     @property
     def metadata(self):
-        # Sometimes `self.text` will be a `markupsafe.Markup` object, which will be encoded
-        # strangely by jsonpickle. We call `str()` to ensure a simpler representation.
-        return {"text": str(self.text)}
+        return {}
 
     @property
     def media(self):

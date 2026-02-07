@@ -88,6 +88,11 @@ def test_get_values_and_labels():
     assert list(labels) == ["bad", "good"]
 
 
+def test_prompt_metadata_excludes_text():
+    prompt = Prompt("Hi!")
+    assert "text" not in prompt.metadata
+
+
 # The following tests have been disabled because they rely on the iterated singing demo,
 # but it has proved tricky to maintain compatibility between the tests and the demo.
 # Long-term we should rewrite these.
