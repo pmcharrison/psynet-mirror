@@ -103,6 +103,7 @@
 - Removed unused `format_hash` and `hash_object` helpers from utils (author: Cursor, reviewer: Peter Harrison)
 - Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
 - Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
+- Removed the PgBadger CI job and related reporting scripts (author: Cursor, reviewer: Peter Harrison)
 
 ## Updated
 - Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
