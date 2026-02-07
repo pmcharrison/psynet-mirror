@@ -104,6 +104,7 @@
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
+- Added docstrings for SQL profiling CLI helpers (author: Cursor, reviewer: Peter Harrison)
 
 # [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
 

@@ -388,6 +388,24 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
 
 
 def _enable_sql_profile(sql_profile_options, sql_profile_dir):
+    """
+    Enable SQL profiling for CLI commands and configure output location.
+
+    Parameters
+    ----------
+    sql_profile_options : str or None
+        Options string for ``PSYNET_SQL_PROFILE`` (e.g. ``min_ms=5,top_n=50``).
+    sql_profile_dir : str or None
+        Directory to store per-process SQL profile JSON files. When ``None``,
+        a temporary directory is created.
+
+    Returns
+    -------
+    profile_dir : str
+        Directory where SQL profile JSON files will be written.
+    keep_profile_dir : bool
+        ``True`` when the directory was explicitly provided, otherwise ``False``.
+    """
     if sql_profile_options:
         os.environ["PSYNET_SQL_PROFILE"] = sql_profile_options
     elif not os.getenv("PSYNET_SQL_PROFILE"):
@@ -407,6 +425,16 @@ def _enable_sql_profile(sql_profile_options, sql_profile_dir):
 
 
 def _print_sql_profile_aggregation(profile_dir, *, show_dir):
+    """
+    Print aggregated SQL profiling output for all processes.
+
+    Parameters
+    ----------
+    profile_dir : str
+        Directory containing per-process SQL profile JSON files.
+    show_dir : bool
+        Whether to print the location of the raw profile files.
+    """
     from psynet.sqlalchemy_profiling import (
         _parse_env_settings,
         aggregate_sqlalchemy_profiles,
