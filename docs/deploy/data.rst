@@ -5,85 +5,30 @@
 Data
 ====
 
-In PsyNet, we categorize data into three main forms:
+When an experiment is live, data is stored in a PostgreSQL database.
+The data can be inspected in real time via the experiment dashboard,
+or it can be exported for offline analysis.
 
-- **Basic data**: Data provided via the the ``/basic_data`` endpoint. This includes only information relevant to downstream analysis and must be implemented explicitly by the experimenter.
-- **Database snapshot**: A raw copy of the database at a given time, useful for restoring experiments from a specific state.
-- **PsyNet full export**: A complete export of data from an experiment, intended for offline analysis or sharing.
+Viewing data in the dashboard
+=============================
 
+The 'database' section of the dashboard provides a simple viewer of database objects.
+Each object type is displayed in a separate table.
+It is possible to perform certain actions on selected objects, such as marking them as 'failed'.
 
-Basic data: The /basic_data endpoint
+Exporting data from the dashboard
+=================================
+
+The 'export' section of the dashboard allows you to export data from the database.
+It is possible to customize the nature of the export in various ways,
+for example concerning anonymization and the inclusion of assets.
+
+Exporting data from the command line
 ====================================
 
-The ``/basic_data`` endpoint serves processed experiment data.
-To use it, implement the ``get_basic_data`` method in your experiment class.
-We recommend that the method returns a dictionary, where the keys correspond to object types,
-and the values are lists of dictionaries, where each dictionary contains the fields you want to expose.
-
-You can customize this method to meet your needs — for example,
-by using query parameters to expose different data “sheets” (e.g. ``/basic_data?sheet=participant``).
-
-Here is an example implementation:
-
-.. code:: python
-
-    class Exp(psynet.experiment.Experiment):
-        # Your experiment configuration here
-        # ...
-
-        @classmethod
-        def get_basic_data(cls, context=None, **kwargs, ):
-            data = {
-                "trial":
-                    [
-                    # List all trials with their answers
-                        {
-                            "id": trial.id,
-                            "answer": str(trial.answer),
-                        }
-                        for trial in Trial.query.filter_by(failed=False, finalized=True).all()
-                    ],
-                "participant": [
-                    # List all participants with their last answer
-                    {
-                        "id": participant.id,
-                        "answer": str(participant.answer),
-                    }
-                    for participant in Participant.query.filter_by().all()
-                ],
-            }
-            sheet = kwargs.get("sheet", "participant")
-            if sheet not in data:
-                raise DataError("Invalid sheet parameter")
-            return data[sheet]
-
-Database snapshot
-=================
-
-PsyNet automatically creates database snapshots at regular intervals (typically once per minute) while your experiment is running.
-These snapshots act as a safety net against data loss and allow you to restore the experiment state if needed.
-
-PsyNet full export
-==================
-
-You can export data from PsyNet either via the command line or through the experiment dashboard.
-
-If you export from the dashboard, also your psynet export is automatically backed up and you will be notified via Slack
-if you have set up the `Slack integration <../tutorials/setting_up_slack.html>`_.
-
-Exporting from the dashboard
-----------------------------
-
-Visit the “Export” section (endpoint: ``/dashboard/export``).
-Choose whether to anonymize participant data and whether to include assets (e.g., audio files). You can export:
-
-- A full PsyNet export (processed data and optionally including assets)
-- A database snapshot (excluding assets)
-
-Exporting from the command line
--------------------------------
-
-Use the ``psynet export`` command to export data from local, SSH, or Heroku-based experiments:
+It is also possible to export data from the command line using the 'psynet export' command.
+This should normally be run in the experiment directory for the experiment you are running,
+using a virtual environment with the same dependencies as the deployed experiment.
 
 .. code:: bash
 
@@ -91,12 +36,7 @@ Use the ``psynet export`` command to export data from local, SSH, or Heroku-base
     psynet export ssh --app my-app-name
     psynet export heroku --app my-app-name
 
-.. note::
-
-    Prepend ``docker/`` to these commands if you are running PsyNet within Docker.
-
-
-The data is saved by default to ``~/psyNet-data/export``.
+The data is saved by default to ``~/psynet-data/export``.
 The organization of exports and the naming of the files is still under discussion and development.
 If you want to choose your own export location, use the ``--path`` argument:
 
@@ -119,26 +59,150 @@ during source code exporting, we recommend using the ``--no-source`` argument:
 
     psynet export ssh --app my-app-name --no-source
 
-Even when you use the command line to export data, it tries to export the data in the same way as the dashboard does (and thus also save a backup of the export).
-If you want to only download the database snapshot and automatically process it locally, you can use the ``--legacy`` argument:
+The ``--legacy`` argument uses an older export method that only downloads the database snapshot
+and processes it locally, rather than using the dashboard export method (which also saves a backup).
+This can be useful if you encounter troubles with the default export method:
 
-**Anonymization**.
-Data can be exported in anonymous or non-anonymous mode. Anonymous mode strips
-worker IDs from the participants table and excludes assets that are marked
-as personal, for example audio recordings. This is good for producing datasets
-that you want to upload to open-access repositories.
+.. code:: bash
 
-**Logs**.
-When exporting from an ``ssh`` server, the server logs will be exported as a ``logs.jsonl`` file.
-This file contains structured JSON log entries with timestamps, log levels, and messages that can be easily parsed and analyzed.
-You can open this file with a text editor to investigate what happened during the experiment.
-It's normally best to keep these logs private though, as it's easy to imagine confidential information
-accidentally being leaked via such logs.
+    psynet export ssh --app my-app-name --legacy
 
-**Database snapshot vs basic data**.
-Data is by defaulted exported in both database snapshot and basic data form.
-The database snapshot corresponds to the exact way in which the data is stored
-in the database when the experiment is live. This format is required if you
-want to resurrect an experiment from a snapshot.
-The basic data form is more suited to downstream data analysis; it unpacks some
-of the data formats and merges certain information between tables.
+
+Anonymization
+=============
+
+When anonymization is selected, certain personally identifying columns are removed from the exported data.
+By default, this means removing the 'worker_id' column from the participants table.
+Depending on your experiment design, you may want to anonymize other columns as well.
+
+Assets
+======
+
+By default, only assets that are created during the course of the experiment are exported.
+This might for example include audio recordings.
+However, it is also possible to export all assets, including for example experiment stimuli.
+
+Export data types
+=================
+
+Several types of data can be exported during the export process. They each have different functions.
+
+The **database snapshot** is a raw copy of the database at a given time.
+It is useful for restoring experiments from a specific state;
+however, it is less human-readable than some of the other export types.
+
+The **data files** are created by reorganizing and reformatting the database snapshot,
+grouping data by object type, unpacking JSON columns into separate columns, etc.
+They are typically a similar size to the database snapshot.
+
+The **basic data files** are a minimal set of data files that provide the essential information for downstream analysis.
+They are only present if the experimenter has implemented the ``get_basic_data`` method in their experiment class.
+
+The **assets** correspond to heavy files (e.g. audio, video) that are associated with the experiment.
+Not all experiments use assets.
+
+The **server logs** can also be exported when exporting from an ``ssh`` server.
+These come in the form of a ``logs.jsonl`` file. Don't share these publicly
+as they may contain confidential information.
+
+A 'PsyNet full export' combines together all of the above types of data.
+This is the default export type.
+
+More about basic data
+=====================
+
+The basic data route is really intended for confident experimenters.
+If you are not comfortable with SQLAlchemy, you may want to stick to the default export methods.
+
+You define the basic data representation for your experiment by implementing the ``get_basic_data`` method
+in your experiment class. You have a lot of flexibility in how you implement this method.
+
+JSON method
+-----------
+
+One possibility is to return an arbitrary dictionary of data.
+In this case, the data will be saved as a JSON file.
+For example:
+
+.. code:: python
+
+    @classmethod
+    def get_basic_data(cls, context=None, **kwargs):
+        return {
+            "trials": [
+                {
+                    "id": trial.id,
+                    "question": trial.definition.get("question"),
+                    "answer": trial.answer,
+                }
+                for trial in Trial.query.all()
+            ]
+        }
+
+DataFrame method
+----------------
+
+Alternatively, you can return a dictionary of dataframes.
+In this case, the data will be saved as a set of CSV files.
+For example:
+
+.. code:: python
+
+    @classmethod
+    def get_basic_data(cls, context=None, **kwargs):
+        trials = [
+            {
+                "id": trial.id,
+                "participant_id": trial.participant_id,
+                "animal": trial.definition.get("animal"),
+                "block": trial.block,
+                "answer": trial.answer,
+                "score": trial.score,
+            }
+            for trial in StaticTrial.query.all()
+        ]
+        participants = [
+            {
+                "id": participant.id,
+                "status": participant.status,
+                "bonus": participant.bonus,
+            }
+            for participant in Participant.query.all()
+        ]
+        return {
+            "trial": pd.DataFrame.from_records(trials),
+            "participant": pd.DataFrame.from_records(participants),
+        }
+
+Anonymization in basic data
+-----------------------------
+
+When exporting data, PsyNet calls ``get_basic_data()`` with an ``anonymize`` keyword argument
+(``True`` or ``False``) indicating whether anonymized data should be returned.
+You can use this parameter to conditionally exclude or modify sensitive information in your basic data.
+
+For example, you might exclude participant IDs or other personally identifying information when ``anonymize=True``:
+
+.. code:: python
+
+    @classmethod
+    def get_basic_data(cls, context=None, anonymize=False, **kwargs):
+        trials = [
+            {
+                "id": trial.id,
+                "participant_id": trial.participant_id if not anonymize else None,
+                "animal": trial.definition.get("animal"),
+                "answer": trial.answer,
+            }
+            for trial in StaticTrial.query.all()
+        ]
+        return {
+            "trial": pd.DataFrame.from_records(trials),
+        }
+
+Automatic backups
+=================
+
+PsyNet does have some functionality implemented for making regular data backups.
+However, at the time of writing, this is disabled by default and should be considered experimental.
+To enable it, you can set the ``automatic_backups`` class attribute to ``True`` in your experiment class.

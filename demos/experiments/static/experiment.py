@@ -161,25 +161,8 @@ class Exp(psynet.experiment.Experiment):
             for participant in Participant.query.all()
         ]
         return {
-            "trial": pd.DataFrame(
-                trials,
-                columns=[
-                    "id",
-                    "participant_id",
-                    "animal",
-                    "block",
-                    "answer",
-                    "score",
-                ],
-            ),
-            "participant": pd.DataFrame(
-                participants,
-                columns=[
-                    "id",
-                    "status",
-                    "bonus",
-                ],
-            ),
+            "trial": pd.DataFrame.from_records(trials),
+            "participant": pd.DataFrame.from_records(participants),
         }
 
     def check_network_participants_relationship(self, participant):
