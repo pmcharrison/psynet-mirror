@@ -188,6 +188,7 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
         data["class"] = obj.__class__.__name__  # for the Dallinger classes
     if scrub_pii and hasattr(obj, "scrub_pii"):
         data = obj.scrub_pii(data)
+    field.json_format_vars(data)
     for key, value in data.items():
         if not is_basic_type(value):
             from .serialize import serialize
