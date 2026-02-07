@@ -17,6 +17,9 @@
 - Added a basic_data export example to the static demo (author: Peter)
 - Added basic_data CSV export to the Gibbs export test experiment (author: Peter)
 - Added basic_data CSV value assertions to the Gibbs export test (author: Peter)
+- Added basic_data export examples to the static demo and Gibbs export test experiment (author: Peter Harrison)
+- 'Basic data' is now included by default in PsyNet exports (author: Peter Harrison).
+- Added support for CSV-format basic data export.
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
