@@ -3,6 +3,7 @@ import tempfile
 import time
 from typing import List, Union
 
+import pandas as pd
 from dallinger import db
 from markupsafe import Markup
 from sqlalchemy import Column, ForeignKey, Integer
@@ -263,6 +264,36 @@ class Exp(psynet.experiment.Experiment):
     )
 
     test_n_bots = 6
+
+    @classmethod
+    def get_basic_data(cls, context=None, **kwargs):
+        trials = [
+            {
+                "id": trial.id,
+                "participant_id": trial.participant_id,
+                "target": (trial.context or {}).get("target"),
+                "answer": trial.answer,
+            }
+            for trial in CustomTrial.query.all()
+        ]
+        participants = [
+            {
+                "id": participant.id,
+                "status": participant.status,
+                "bonus": participant.bonus,
+            }
+            for participant in Participant.query.all()
+        ]
+        return {
+            "trial": pd.DataFrame(
+                trials,
+                columns=["id", "participant_id", "target", "answer"],
+            ),
+            "participant": pd.DataFrame(
+                participants,
+                columns=["id", "status", "bonus"],
+            ),
+        }
 
     def test_check_bots(self, bots: List[Bot]):
         time.sleep(2.0)

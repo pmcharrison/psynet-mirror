@@ -30,6 +30,11 @@ def data_dir(data_root_dir):
 
 
 @pytest.fixture
+def basic_data_dir(data_root_dir):
+    return os.path.join(data_root_dir, "regular", "basic_data")
+
+
+@pytest.fixture
 def database_zip_file(data_root_dir):
     return os.path.join(data_root_dir, "regular", "database.zip")
 
@@ -166,6 +171,14 @@ class TestExport:
             # "Transmission.csv",  # We don't expect any transmissions to be created
             "WorkerAsyncProcess.csv",
         ]
+
+    def test_basic_data_export(self, basic_data_dir):
+        assert os.path.isdir(basic_data_dir)
+        assert sorted(os.listdir(basic_data_dir)) == ["participant.csv", "trial.csv"]
+        participants = pandas.read_csv(os.path.join(basic_data_dir, "participant.csv"))
+        trials = pandas.read_csv(os.path.join(basic_data_dir, "trial.csv"))
+        assert not participants.empty
+        assert not trials.empty
 
     # test_psynet_exports(data_dir)
 

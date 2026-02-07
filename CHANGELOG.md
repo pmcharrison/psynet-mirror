@@ -15,6 +15,7 @@
 - Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking (author: Cursor, reviewer: Peter Harrison)
 - Added checks to catch cases where Assets are created in the wrong place.
 - Added a basic_data export example to the static demo (author: Peter)
+- Added basic_data CSV export to the Gibbs export test experiment (author: Peter)
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
