@@ -92,8 +92,8 @@ class AssetParentMixin:
             self.add_asset(local_key, asset)
 
     def add_asset(self, local_key: str, asset: Asset):
-        if isinstance(asset, Asset):
-            asset._raise_if_detached()
+        assert isinstance(asset, Asset)
+        asset._raise_if_detached()
 
         if asset.parent is None:
             asset.parent = self
