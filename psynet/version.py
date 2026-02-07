@@ -14,7 +14,7 @@ dallinger_recommended_version = "12.1"
 python_recommended_version = "3.13"
 
 
-def check_versions():
+def check_versions(*, allow_master_branch: bool = False):
     "Check whether the PsyNet and Dallinger versions installed locally match the ones specified in the requirements.txt file."
     if os.environ.get("SKIP_VERSION_CHECK"):
         print(
@@ -27,7 +27,10 @@ def check_versions():
         color="green",
     ) as spinner:
         with open("requirements.txt", "r") as file:
-            versions = get_all_version_infos(file.read())
+            versions = get_all_version_infos(
+                file.read(),
+                allow_master_branch=allow_master_branch,
+            )
 
             for package_name, version_infos in versions.items():
                 consistent = version_infos["consistent"]
@@ -46,7 +49,7 @@ def check_versions():
                     )
 
 
-def get_all_version_infos(file_content):
+def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
     versions = {}
     for package_name in ["Dallinger", "PsyNet"]:
         versions[package_name] = {
@@ -101,6 +104,8 @@ def get_all_version_infos(file_content):
             consistent = True
         else:
             consistent = specified is None or specified == installed
+        if allow_master_branch and specified == "master":
+            consistent = True
 
         versions[package_name] = {
             "specified": specified,

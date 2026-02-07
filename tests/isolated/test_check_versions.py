@@ -81,6 +81,22 @@ def test_check_versions_psynet_editable_commit_hash(mock_get_requirement):
 
 @patch("psynet.__version__", "10.0.0")
 @patch("psynet.version.get_requirement")
+def test_check_versions_psynet_master_branch_allowed_for_local(mock_get_requirement):
+    mock_get_requirement.return_value = "-e git+https://gitlab.com/PsyNetDev/PsyNet@COMMIT_HASH_FROM_PIP_FREEZE#egg=psynet"
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            with open("requirements.txt", "w") as file:
+                file.write(
+                    "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet\n"
+                )
+                file.flush()
+
+            check_versions(allow_master_branch=True)
+
+
+@patch("psynet.__version__", "10.0.0")
+@patch("psynet.version.get_requirement")
 def test_check_versions_psynet_pip_install_requirement(mock_get_requirement):
     mock_get_requirement.return_value = "psynet==10.0.0"
 

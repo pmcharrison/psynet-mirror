@@ -708,8 +708,9 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
-    verify_psynet_requirement()
-    check_versions()
+    allow_master_branch = local_
+    verify_psynet_requirement(allow_master_branch=allow_master_branch)
+    check_versions(allow_master_branch=allow_master_branch)
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -1695,7 +1696,7 @@ def _check_constraints(spinner=None):
         )
 
 
-def verify_psynet_requirement():
+def verify_psynet_requirement(*, allow_master_branch: bool = False):
     environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
     if os.environ.get(environment_variable, None):
         print(
@@ -1713,6 +1714,8 @@ def verify_psynet_requirement():
                 "[a-fA-F0-9]{8,40}",
                 "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
             ]
+            if allow_master_branch:
+                regexes.append("master")
             file_content = file.read()
             for regex in regexes:
                 match = re.search(
@@ -1741,17 +1744,38 @@ def verify_psynet_requirement():
             spinner.color = "red"
             spinner.fail("✗")
 
+        if allow_master_branch:
+            branch_note = (
+                "For local deployments, the master branch is allowed, but other branch names are not; "
+                "you have to specify a particular version or a commit hash."
+            )
+        else:
+            branch_note = (
+                "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
+                "or a commit hash."
+            )
+
+        examples = [
+            "* psynet==10.1.1",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
+        ]
+        if allow_master_branch:
+            examples.append(
+                "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
+            )
+        examples.extend(
+            [
+                "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+                "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
+            ]
+        )
+
         assert valid, (
             "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
-            "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
-            "or a commit hash.\n"
-            "\n"
-            "\nExamples:\n"
-            "* psynet==10.1.1\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
-            "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+            + branch_note
+            + "\n\nExamples:\n"
+            + "\n".join(examples)
+            + "\nYou can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
             "in your terminal."
         )
 
