@@ -2051,11 +2051,12 @@ class ModularPage(Page):
 
     def metadata(self, **kwargs):
         """
-        By default, the metadata attribute combines the metadata
-        of the :class:`~psynet.page.Prompt` member.
-        and the :class:`~psynet.page.Control` members.
+        By default, the metadata attribute includes the metadata of the
+        :class:`~psynet.page.Control` member. Prompt metadata is omitted
+        to avoid persisting prompt content in response metadata.
+        Override this method if you need to store prompt-specific metadata.
         """
-        return {"prompt": self.prompt.metadata, "control": self.control.metadata}
+        return {"control": self.control.metadata}
 
     def pre_render(self):
         """

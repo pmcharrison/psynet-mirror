@@ -53,6 +53,19 @@ def test_modular_page_text():
     assert page.plain_text == "Do you want to continue?\n- Yes\n- No"
 
 
+def test_modular_page_metadata_excludes_prompt():
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        PushButtonControl(
+            choices=["Yes", "No"],
+        ),
+    )
+    metadata = page.metadata()
+    assert "prompt" not in metadata
+    assert metadata["control"] == page.control.metadata
+
+
 def test_get_values_and_labels():
     # int input
     values, labels = RatingScale.get_values_and_labels(5)
