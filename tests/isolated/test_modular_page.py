@@ -53,7 +53,7 @@ def test_modular_page_text():
     assert page.plain_text == "Do you want to continue?\n- Yes\n- No"
 
 
-def test_modular_page_metadata_excludes_prompt():
+def test_modular_page_metadata_includes_prompt():
     page = ModularPage(
         "test",
         Prompt("Hi!"),
@@ -62,7 +62,7 @@ def test_modular_page_metadata_excludes_prompt():
         ),
     )
     metadata = page.metadata()
-    assert "prompt" not in metadata
+    assert metadata["prompt"] == page.prompt.metadata
     assert metadata["control"] == page.control.metadata
 
 
