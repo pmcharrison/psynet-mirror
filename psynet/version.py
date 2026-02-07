@@ -14,7 +14,7 @@ dallinger_recommended_version = "12.1"
 python_recommended_version = "3.13"
 
 
-def check_versions(*, allow_master_branch: bool = False):
+def check_versions(allow_master_branch: bool = False):
     "Check whether the PsyNet and Dallinger versions installed locally match the ones specified in the requirements.txt file."
     if os.environ.get("SKIP_VERSION_CHECK"):
         print(
