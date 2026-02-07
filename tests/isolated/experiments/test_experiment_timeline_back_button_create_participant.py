@@ -1,3 +1,5 @@
+from urllib.parse import parse_qs, urlparse
+
 import pytest
 from selenium.webdriver.common.by import By
 
@@ -20,6 +22,10 @@ class TestExp:
                 max_wait=10,
                 error_message="Timeline page never loaded.",
             )
+            initial_unique_id = parse_qs(urlparse(driver.current_url).query).get(
+                "unique_id", [None]
+            )[0]
+            assert initial_unique_id is not None
             wait_until(
                 lambda: bool(driver.find_elements(By.ID, "consent")),
                 max_wait=10,
@@ -35,14 +41,14 @@ class TestExp:
             driver.refresh()
 
             wait_until(
-                lambda: bool(driver.find_elements(By.NAME, "error_type")),
+                lambda: "/timeline" in driver.current_url,
                 max_wait=10,
                 error_message=(
-                    "Back navigation did not render the error page "
-                    "after the createParticipant failure."
+                    "Back navigation did not resume the timeline after "
+                    "the createParticipant failure."
                 ),
             )
-            error_type = driver.find_element(By.NAME, "error_type").get_attribute(
-                "value"
-            )
-            assert "worker has already participated" in error_type
+            resumed_unique_id = parse_qs(urlparse(driver.current_url).query).get(
+                "unique_id", [None]
+            )[0]
+            assert resumed_unique_id == initial_unique_id

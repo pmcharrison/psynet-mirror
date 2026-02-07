@@ -60,9 +60,47 @@
             let url = "/participant";
             let data = {};
 
-            if (entryInformation) {
-                data = entryInformation;
-                data.fingerprint_hash = fingerprintHash;
+            function shouldAttemptResume(resp) {
+                if (!resp || resp.status !== 403 || !resp.html) {
+                    return false;
+                }
+                return resp.html.includes("worker has already participated");
+            }
+
+            function buildResumeInformation() {
+                let resumeInformation = Object.assign({}, entryInformation);
+                if (Object.keys(resumeInformation).length === 0) {
+                    let recruiter = dallinger.getUrlParameter('recruiter');
+                    let hitId = dallinger.getUrlParameter('hitId');
+                    let workerId = dallinger.getUrlParameter('workerId');
+                    let assignmentId = dallinger.getUrlParameter('assignmentId');
+                    if (recruiter) {
+                        resumeInformation.recruiter = recruiter;
+                    }
+                    if (hitId) {
+                        resumeInformation.hitId = hitId;
+                    }
+                    if (workerId) {
+                        resumeInformation.workerId = workerId;
+                    }
+                    if (assignmentId) {
+                        resumeInformation.assignmentId = assignmentId;
+                    }
+                }
+                return resumeInformation;
+            }
+
+            function attemptResume() {
+                let resumeInformation = buildResumeInformation();
+                dallinger.post("/load-participant", resumeInformation).done(function (resp) {
+                    window.location = "/timeline?unique_id=" + resp.participant.unique_id;
+                }).fail(function(resp) {
+                    dallinger.error(resp);
+                });
+            }
+
+            if (Object.keys(entryInformation).length > 0) {
+                data = Object.assign({}, entryInformation, {fingerprint_hash: fingerprintHash});
             } else {
                 let recruiter = dallinger.getUrlParameter('recruiter');
                 let hitId = dallinger.getUrlParameter('hitId');
@@ -81,7 +119,11 @@
             dallinger.post(url, data).done(function (resp) {
                 window.location = "/timeline?unique_id=" + resp.participant.unique_id;
             }).fail(function(resp) {
-                dallinger.error(resp);
+                if (shouldAttemptResume(resp)) {
+                    attemptResume();
+                } else {
+                    dallinger.error(resp);
+                }
             });
         }
 
