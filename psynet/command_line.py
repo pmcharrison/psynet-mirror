@@ -1,3 +1,4 @@
+import functools
 import importlib
 import json
 import os
@@ -426,6 +427,26 @@ def _print_sql_profile_aggregation(profile_dir, *, show_dir):
         click.echo(f"Raw SQL profile files saved to: {profile_dir}")
 
 
+def sql_profiled_command(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        profile_dir = None
+        keep_profile_dir = False
+        try:
+            if kwargs.get("sql_profile"):
+                profile_dir, keep_profile_dir = _enable_sql_profile(
+                    kwargs.get("sql_profile_options"), kwargs.get("sql_profile_dir")
+                )
+            return func(*args, **kwargs)
+        finally:
+            if profile_dir:
+                _print_sql_profile_aggregation(profile_dir, show_dir=keep_profile_dir)
+                if not keep_profile_dir:
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+
+    return wrapper
+
+
 @debug.command("local")
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
@@ -447,6 +468,7 @@ def _print_sql_profile_aggregation(profile_dir, *, show_dir):
     help="Directory to store per-process SQL profile JSON files.",
 )
 @click.pass_context
+@sql_profiled_command
 def debug__local(
     ctx,
     docker,
@@ -460,27 +482,15 @@ def debug__local(
     """
     Debug the experiment locally (this should normally be your first choice).
     """
-    profile_dir = None
-    keep_profile_dir = False
-    try:
-        if sql_profile:
-            profile_dir, keep_profile_dir = _enable_sql_profile(
-                sql_profile_options, sql_profile_dir
-            )
-        _run_local(
-            ctx,
-            docker,
-            archive,
-            legacy,
-            no_browsers,
-            mode="debug",
-            context_group=debug,
-        )
-    finally:
-        if profile_dir:
-            _print_sql_profile_aggregation(profile_dir, show_dir=keep_profile_dir)
-            if not keep_profile_dir:
-                shutil.rmtree(profile_dir, ignore_errors=True)
+    _run_local(
+        ctx,
+        docker,
+        archive,
+        legacy,
+        no_browsers,
+        mode="debug",
+        context_group=debug,
+    )
 
 
 def run_prepare_in_subprocess():
@@ -2785,6 +2795,7 @@ _test_options["time_factor"] = click.option(
     default=None,
     help="Directory to store per-process SQL profile JSON files.",
 )
+@sql_profiled_command
 def test__local(
     existing=False,
     n_bots=None,
@@ -2820,31 +2831,14 @@ def test__local(
     if time_factor:
         exp.test_time_factor = time_factor
 
-    profile_dir = None
-    keep_profile_dir = False
-    exit_code = None
-    error = None
-    try:
-        if sql_profile:
-            profile_dir, keep_profile_dir = _enable_sql_profile(
-                sql_profile_options, sql_profile_dir
-            )
-        if existing:
-            exp.test_experiment()
-        else:
-            import pytest
+    if existing:
+        exp.test_experiment()
+        return
 
-            exit_code = pytest.main(["test.py"])
-    except Exception as exc:
-        error = exc
-    finally:
-        if profile_dir:
-            _print_sql_profile_aggregation(profile_dir, show_dir=keep_profile_dir)
-            if not keep_profile_dir:
-                shutil.rmtree(profile_dir, ignore_errors=True)
-    if error:
-        raise error
-    if exit_code not in (None, 0):
+    import pytest
+
+    exit_code = pytest.main(["test.py"])
+    if exit_code != 0:
         # Use sys.exit() to ensure that the exit code is propagated to the shell.
         # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
         sys.exit(exit_code)
