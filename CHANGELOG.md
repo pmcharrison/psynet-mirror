@@ -22,7 +22,7 @@
 - Added 'getting started' section to documentation.
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
-- Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (author: Cursor, reviewer: Peter Harrison)
+- Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile --sql-profile-options "min_ms=0,top_n=30"`) (author: Cursor, reviewer: Peter Harrison)
 
 ## Changed
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
