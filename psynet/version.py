@@ -34,11 +34,7 @@ def check_versions(allow_master_branch: bool = False):
             )
 
             for package_name, version_infos in versions.items():
-                status = version_infos.get("status")
-                if status is None:
-                    status = (
-                        "consistent" if version_infos["consistent"] else "inconsistent"
-                    )
+                status = version_infos["status"]
 
                 if status == "consistent":
                     spinner.ok("✔")
@@ -70,7 +66,6 @@ def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
         versions[package_name] = {
             "specified": None,
             "installed": None,
-            "consistent": True,
             "status": "consistent",
             "skip_reason": None,
         }
@@ -118,20 +113,21 @@ def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
             # It's hard to check consistency when the installed version is a development version,
             # because a development version could correspond to many possible branches/commits.
             # We therefore just mark it as consistent and continue.
-            consistent = True
+            status = "consistent"
         else:
-            consistent = specified is None or specified == installed
-        status = "consistent" if consistent else "inconsistent"
+            status = (
+                "consistent"
+                if specified is None or specified == installed
+                else "inconsistent"
+            )
         skip_reason = None
         if allow_master_branch and specified == "master":
             status = "skipped"
             skip_reason = "requirements.txt pins this package to master"
-            consistent = True
 
         versions[package_name] = {
             "specified": specified,
             "installed": installed,
-            "consistent": consistent,
             "status": status,
             "skip_reason": skip_reason,
         }
