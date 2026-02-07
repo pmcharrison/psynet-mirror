@@ -381,7 +381,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def trial(self):
         from .trial.main import Trial
 
-        self._raise_if_detached("parent", "trial")
+        self._raise_if_detached()
         if isinstance(self.parent, Trial):
             return self.parent
 
@@ -389,7 +389,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def node(self):
         from .trial.main import Trial, TrialNode
 
-        self._raise_if_detached("parent", "node")
+        self._raise_if_detached()
         if isinstance(self.parent, Trial):
             return self.parent.node
         elif isinstance(self.parent, TrialNode):
@@ -399,7 +399,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def network(self):
         from .trial.main import Trial, TrialNetwork, TrialNode
 
-        self._raise_if_detached("parent", "network")
+        self._raise_if_detached()
         if isinstance(self.parent, (Trial, TrialNode)):
             return self.parent.network
         elif isinstance(self.parent, TrialNetwork):
@@ -409,7 +409,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def participant(self):
         from .participant import Participant
 
-        self._raise_if_detached("parent", "participant")
+        self._raise_if_detached()
         if self.parent is None:
             return None
         elif isinstance(self.parent, Participant):
@@ -417,15 +417,16 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         else:
             return self.parent.participant
 
-    def _raise_if_detached(self, attribute, context):
+    def _raise_if_detached(self):
         try:
             state = inspect(self)
         except NoInspectionAvailable:
             return
-        if getattr(state, "detached", False) and attribute in state.unloaded:
+        if getattr(state, "detached", False):
             raise ValueError(
-                f"Cannot access Asset.{context} because this Asset instance is detached. "
-                "Create the asset inside the PageMaker/CodeBlock (or show_trial) that uses it, "
+                "Cannot access an Asset attribute because this Asset instance is detached. "
+                "Create the asset inside the per-participant timeline function that uses it "
+                "(for example, show_trial or a for_loop/PageMaker function that calls Trial.cue), "
                 "rather than reusing an Asset instance defined at module import time."
             )
 

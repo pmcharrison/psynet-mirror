@@ -201,13 +201,13 @@ def test_add_asset_rejects_detached_asset(monkeypatch):
     def fake_inspect(obj):
         if obj is asset:
             return SimpleNamespace(detached=True)
-        raise trial_main.NoInspectionAvailable()
+        raise asset_module.NoInspectionAvailable()
 
-    monkeypatch.setattr(trial_main, "inspect", fake_inspect)
+    monkeypatch.setattr(asset_module, "inspect", fake_inspect)
 
     with pytest.raises(
         ValueError,
-        match="detaches",
+        match="detached",
     ):
         parent.add_asset("stimulus", asset)
 
@@ -217,7 +217,7 @@ def test_asset_parent_access_requires_session(monkeypatch):
 
     def fake_inspect(obj):
         if obj is test_asset:
-            return SimpleNamespace(detached=True, unloaded={"parent"})
+            return SimpleNamespace(detached=True)
         raise asset_module.NoInspectionAvailable()
 
     monkeypatch.setattr(asset_module, "inspect", fake_inspect)
