@@ -3,7 +3,6 @@
 import logging
 
 import psynet.experiment
-from psynet.asset import asset
 from psynet.page import InfoPage
 from psynet.timeline import Timeline, for_loop
 from psynet.trial.static import StaticTrial

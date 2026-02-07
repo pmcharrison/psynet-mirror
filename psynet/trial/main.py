@@ -26,7 +26,7 @@ from sqlalchemy import (
     or_,
     select,
 )
-from sqlalchemy.exc import NoInspectionAvailable, NoResultFound
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, declared_attr, deferred, relationship
@@ -870,8 +870,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     @classmethod
     def check_node_is_valid(cls, source):
-        from sqlalchemy import inspect
-
         if not inspect(source).persistent:
             raise ValueError(
                 f"The node with definition {source.definition} looks like it hasn't "
