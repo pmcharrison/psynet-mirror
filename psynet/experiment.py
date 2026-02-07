@@ -1121,9 +1121,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "label": cls.label,
             "initial_recruitment_size": cls.initial_recruitment_size,
             "auto_recruit": config.get("auto_recruit", None),
-            "creation_time": cls.creation_time.astimezone().isoformat(
-                timespec="minutes"
-            ),
+            "launch_time": cls.creation_time.astimezone().isoformat(timespec="minutes"),
             "now": datetime.now().astimezone().isoformat(timespec="minutes"),
             "experimenter_name": config.get("experimenter_name", None),
             "currency": config.get("currency", None),
