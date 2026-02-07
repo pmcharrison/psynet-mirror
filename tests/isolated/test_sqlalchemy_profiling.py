@@ -10,6 +10,7 @@ from psynet.sqlalchemy_profiling import (
     aggregate_sqlalchemy_profiles,
     assert_query_count,
     assert_query_duration,
+    format_aggregated_html,
     format_aggregated_profile,
     sqlalchemy_profile,
 )
@@ -189,9 +190,15 @@ def test_profile_json_aggregation(sqlite_engine, tmp_path):
 
     aggregated = aggregate_sqlalchemy_profiles(str(tmp_path))
     formatted = format_aggregated_profile(aggregated, top_n=10, commit_top_n=10)
+    html_report = format_aggregated_html(
+        aggregated, top_n=10, commit_top_n=10, query_preview_chars=4
+    )
     assert aggregated["profiles"] == 2
     assert aggregated["queries"]["total_count"] == 3
     assert "Aggregated SQLAlchemy query profile" in formatted
+    assert "<table" in html_report
+    assert "SELECT 1" in html_report
+    assert "..." in html_report
     stats = {
         (stat["statement"], tuple(stat["stack"]) if stat["stack"] else None): stat
         for stat in aggregated["queries"]["stats"]

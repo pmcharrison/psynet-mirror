@@ -424,7 +424,7 @@ def _enable_sql_profile(sql_profile_options, sql_profile_dir):
     return profile_dir, keep_profile_dir
 
 
-def _print_sql_profile_aggregation(profile_dir, *, show_dir):
+def _print_sql_profile_aggregation(profile_dir, *, formats, show_dir):
     """
     Print aggregated SQL profiling output for all processes.
 
@@ -432,12 +432,15 @@ def _print_sql_profile_aggregation(profile_dir, *, show_dir):
     ----------
     profile_dir : str
         Directory containing per-process SQL profile JSON files.
+    formats : set[str]
+        Output formats to generate (e.g. ``{"html", "text"}``).
     show_dir : bool
         Whether to print the location of the raw profile files.
     """
     from psynet.sqlalchemy_profiling import (
         _parse_env_settings,
         aggregate_sqlalchemy_profiles,
+        format_aggregated_html,
         format_aggregated_profile,
     )
 
@@ -446,11 +449,28 @@ def _print_sql_profile_aggregation(profile_dir, *, show_dir):
     top_n = int(options.get("top_n", 20))
     commit_top_n = int(options.get("commit_top_n", top_n))
     aggregated = aggregate_sqlalchemy_profiles(profile_dir)
-    click.echo("")
-    click.echo("Aggregated SQLAlchemy profile (all processes):")
-    click.echo(
-        format_aggregated_profile(aggregated, top_n=top_n, commit_top_n=commit_top_n)
-    )
+    if "text" in formats:
+        click.echo("")
+        click.echo("Aggregated SQLAlchemy profile (all processes):")
+        click.echo(
+            format_aggregated_profile(
+                aggregated, top_n=top_n, commit_top_n=commit_top_n
+            )
+        )
+    if "json" in formats:
+        json_path = os.path.join(profile_dir, "sql-profile-aggregated.json")
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump(aggregated, handle, indent=2, sort_keys=True)
+        click.echo(f"SQL profile JSON: {json_path}")
+    if "html" in formats:
+        html_path = os.path.join(profile_dir, "sql-profile-report.html")
+        with open(html_path, "w", encoding="utf-8") as handle:
+            handle.write(
+                format_aggregated_html(
+                    aggregated, top_n=top_n, commit_top_n=commit_top_n
+                )
+            )
+        click.echo(f"SQL profile report: {html_path}")
     if show_dir:
         click.echo(f"Raw SQL profile files saved to: {profile_dir}")
 
@@ -471,6 +491,11 @@ _sql_profile_options = [
         default=None,
         help="Directory to store per-process SQL profile JSON files.",
     ),
+    click.option(
+        "--sql-profile-format",
+        default="html",
+        help=("Comma-separated outputs: html,text,json,none " "(default: html)."),
+    ),
 ]
 
 
@@ -478,6 +503,22 @@ def _add_sql_profile_options(func):
     for option in reversed(_sql_profile_options):
         func = option(func)
     return func
+
+
+def _parse_sql_profile_formats(value: str):
+    parts = {part.strip().lower() for part in (value or "").split(",") if part}
+    if not parts:
+        parts = {"html"}
+    if "all" in parts:
+        parts = {"html", "text", "json"}
+    if "none" in parts:
+        return set()
+    unknown = parts - {"html", "text", "json"}
+    if unknown:
+        raise click.UsageError(
+            "Unknown --sql-profile-format values: " + ", ".join(sorted(unknown))
+        )
+    return parts
 
 
 def sql_profiled_command(func):
@@ -499,15 +540,24 @@ def sql_profiled_command(func):
     def wrapper(*args, **kwargs):
         profile_dir = None
         keep_profile_dir = False
+        show_dir = False
+        formats = set()
         try:
             if kwargs.get("sql_profile"):
+                formats = _parse_sql_profile_formats(kwargs.get("sql_profile_format"))
                 profile_dir, keep_profile_dir = _enable_sql_profile(
                     kwargs.get("sql_profile_options"), kwargs.get("sql_profile_dir")
                 )
+                show_dir = kwargs.get("sql_profile_dir") is not None
+                if formats.intersection({"html", "json"}):
+                    keep_profile_dir = True
             return func(*args, **kwargs)
         finally:
             if profile_dir:
-                _print_sql_profile_aggregation(profile_dir, show_dir=keep_profile_dir)
+                if formats:
+                    _print_sql_profile_aggregation(
+                        profile_dir, formats=formats, show_dir=show_dir
+                    )
                 if not keep_profile_dir:
                     shutil.rmtree(profile_dir, ignore_errors=True)
 
@@ -531,6 +581,7 @@ def debug__local(
     sql_profile,
     sql_profile_options,
     sql_profile_dir,
+    sql_profile_format,
 ):
     """
     Debug the experiment locally (this should normally be your first choice).
@@ -2845,6 +2896,7 @@ def test__local(
     sql_profile=False,
     sql_profile_options=None,
     sql_profile_dir=None,
+    sql_profile_format=None,
 ):
     """
     Test the experiment locally.

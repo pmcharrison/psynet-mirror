@@ -1,4 +1,5 @@
 import atexit
+import html
 import json
 import os
 import sys
@@ -926,6 +927,148 @@ def _format_commit_type_counts(type_counts: Dict[str, int]) -> str:
         f"{commit_type}={count}" for commit_type, count in sorted(type_counts.items())
     ]
     return ", ".join(parts)
+
+
+def format_aggregated_html(
+    aggregated: Dict[str, object],
+    *,
+    top_n: int = 20,
+    commit_top_n: int = 10,
+    query_preview_chars: int = 200,
+) -> str:
+    queries = aggregated.get("queries", {})
+    commits = aggregated.get("commits", {})
+    query_stats = list(queries.get("stats", []) or [])[:top_n]
+    commit_stats = list(commits.get("stats", []) or [])[:commit_top_n]
+    total_query_ms = float(queries.get("total_time_ms", 0.0) or 0.0)
+
+    def fmt_number(value):
+        return f"{value:.2f}"
+
+    def esc(value):
+        return html.escape(value or "")
+
+    rows = []
+    for stat in query_stats:
+        count = int(stat.get("count", 0) or 0)
+        total_ms = float(stat.get("total_ms", 0.0) or 0.0)
+        mean_ms = total_ms / count if count else 0.0
+        max_ms = float(stat.get("max_ms", 0.0) or 0.0)
+        percent = (total_ms / total_query_ms * 100.0) if total_query_ms else 0.0
+        statement = stat.get("statement", "")
+        preview = _truncate_query(statement, query_preview_chars)
+        stack_lines = stat.get("stack") or []
+        stack_html = ""
+        if stack_lines:
+            stack_html = (
+                "<div class='stack'><pre>"
+                + esc("\n".join(stack_lines))
+                + "</pre></div>"
+            )
+        rows.append(
+            "<tr>"
+            f"<td class='num'>{count:d}</td>"
+            f"<td class='num'>{fmt_number(total_ms)}</td>"
+            f"<td class='num'>{fmt_number(mean_ms)}</td>"
+            f"<td class='num'>{fmt_number(max_ms)}</td>"
+            f"<td class='num'>{fmt_number(percent)}</td>"
+            "<td class='query'>"
+            "<details>"
+            f"<summary>{esc(preview)}</summary>"
+            f"<pre>{esc(statement)}</pre>"
+            f"{stack_html}"
+            "</details>"
+            "</td>"
+            "</tr>"
+        )
+
+    commit_rows = []
+    for stat in commit_stats:
+        count = int(stat.get("count", 0) or 0)
+        total_ms = float(stat.get("total_ms", 0.0) or 0.0)
+        mean_ms = total_ms / count if count else 0.0
+        max_ms = float(stat.get("max_ms", 0.0) or 0.0)
+        callsite = stat.get("callsite", "unknown")
+        types = _format_commit_type_counts(stat.get("commit_type_counts") or {})
+        commit_rows.append(
+            "<tr>"
+            f"<td class='num'>{count:d}</td>"
+            f"<td class='num'>{fmt_number(total_ms)}</td>"
+            f"<td class='num'>{fmt_number(mean_ms)}</td>"
+            f"<td class='num'>{fmt_number(max_ms)}</td>"
+            f"<td class='callsite'>{esc(callsite)}</td>"
+            f"<td class='types'>{esc(types)}</td>"
+            "</tr>"
+        )
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SQLAlchemy profiling report</title>
+  <style>
+    body {{ font-family: Arial, sans-serif; margin: 24px; }}
+    table {{ border-collapse: collapse; width: 100%; }}
+    th, td {{ border: 1px solid #ddd; padding: 8px; vertical-align: top; }}
+    th {{ background: #f5f5f5; text-align: left; }}
+    td.num {{ text-align: right; white-space: nowrap; }}
+    td.query summary {{ cursor: pointer; }}
+    td.query pre {{ white-space: pre-wrap; margin: 8px 0 0 0; }}
+    .stack pre {{ background: #fafafa; padding: 8px; }}
+    .section {{ margin-top: 28px; }}
+  </style>
+</head>
+<body>
+  <h1>SQLAlchemy profiling report</h1>
+  <p>Total queries: {queries.get("total_count", 0)}; total time: {fmt_number(total_query_ms)} ms</p>
+  <div class="section">
+    <h2>Queries</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Count</th>
+          <th>Total ms</th>
+          <th>Mean ms</th>
+          <th>Max ms</th>
+          <th>% total</th>
+          <th>Query</th>
+        </tr>
+      </thead>
+      <tbody>
+        {''.join(rows) if rows else '<tr><td colspan="6">No queries captured.</td></tr>'}
+      </tbody>
+    </table>
+  </div>
+  <div class="section">
+    <h2>Commits</h2>
+    <p>Total commits: {commits.get("total_count", 0)}; total time: {fmt_number(float(commits.get("total_time_ms", 0.0) or 0.0))} ms</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Count</th>
+          <th>Total ms</th>
+          <th>Mean ms</th>
+          <th>Max ms</th>
+          <th>Callsite</th>
+          <th>Types</th>
+        </tr>
+      </thead>
+      <tbody>
+        {''.join(commit_rows) if commit_rows else '<tr><td colspan="6">No commits captured.</td></tr>'}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
+"""
+
+
+def _truncate_query(statement: str, max_chars: int) -> str:
+    if max_chars <= 0:
+        return "..."
+    if len(statement) <= max_chars:
+        return statement
+    return statement[: max_chars - 3] + "..."
 
 
 def _commit_snapshot(session: SASession) -> Tuple[int, int, int]:
