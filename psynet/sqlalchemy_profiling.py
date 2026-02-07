@@ -20,6 +20,17 @@ _MODULE_PATH = os.path.abspath(__file__).replace("\\", "/")
 
 @dataclass
 class QueryStats:
+    """
+    Aggregate statistics for a normalized SQL statement.
+
+    Parameters
+    ----------
+    statement
+        Normalized SQL statement.
+    stack
+        Optional stack trace identifying the callsite.
+    """
+
     statement: str
     stack: Optional[Tuple[str, ...]]
     count: int = 0
@@ -45,6 +56,17 @@ class QueryStats:
 
 @dataclass
 class CommitStats:
+    """
+    Aggregate commit timing statistics grouped by callsite.
+
+    Parameters
+    ----------
+    callsite
+        The resolved callsite for the commit.
+    commit_type_counts
+        Counts of commit types observed at this callsite.
+    """
+
     callsite: str
     commit_type_counts: Dict[str, int] = field(default_factory=dict)
     count: int = 0

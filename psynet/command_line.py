@@ -455,6 +455,31 @@ def _print_sql_profile_aggregation(profile_dir, *, show_dir):
         click.echo(f"Raw SQL profile files saved to: {profile_dir}")
 
 
+_sql_profile_options = [
+    click.option(
+        "--sql-profile",
+        is_flag=True,
+        help="Enable SQL profiling and aggregate results across processes.",
+    ),
+    click.option(
+        "--sql-profile-options",
+        default=None,
+        help="Options passed to PSYNET_SQL_PROFILE (e.g. 'min_ms=5,top_n=50').",
+    ),
+    click.option(
+        "--sql-profile-dir",
+        default=None,
+        help="Directory to store per-process SQL profile JSON files.",
+    ),
+]
+
+
+def _add_sql_profile_options(func):
+    for option in reversed(_sql_profile_options):
+        func = option(func)
+    return func
+
+
 def sql_profiled_command(func):
     """
     Wrap a Click command to enable aggregated SQL profiling.
@@ -494,21 +519,7 @@ def sql_profiled_command(func):
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
-@click.option(
-    "--sql-profile",
-    is_flag=True,
-    help="Enable SQL profiling and aggregate results across processes.",
-)
-@click.option(
-    "--sql-profile-options",
-    default=None,
-    help="Options passed to PSYNET_SQL_PROFILE (e.g. 'min_ms=5,top_n=50').",
-)
-@click.option(
-    "--sql-profile-dir",
-    default=None,
-    help="Directory to store per-process SQL profile JSON files.",
-)
+@_add_sql_profile_options
 @click.pass_context
 @sql_profiled_command
 def debug__local(
@@ -2822,21 +2833,7 @@ _test_options["time_factor"] = click.option(
 @_test_options["serial"]
 @_test_options["stagger"]
 @_test_options["time_factor"]
-@click.option(
-    "--sql-profile",
-    is_flag=True,
-    help="Enable SQL profiling and aggregate results across processes.",
-)
-@click.option(
-    "--sql-profile-options",
-    default=None,
-    help="Options passed to PSYNET_SQL_PROFILE (e.g. 'min_ms=5,top_n=50').",
-)
-@click.option(
-    "--sql-profile-dir",
-    default=None,
-    help="Directory to store per-process SQL profile JSON files.",
-)
+@_add_sql_profile_options
 @sql_profiled_command
 def test__local(
     existing=False,
