@@ -29,7 +29,7 @@
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
-- Updated S3 test setup to use a Moto-backed endpoint, document endpoint overrides, and rely on Dallinger stub_config for initial S3 client creation (author: Peter Harrison)
+- Updated S3 test setup to use a Moto-backed endpoint (author: Peter Harrison)
 
 ## Fixed
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
