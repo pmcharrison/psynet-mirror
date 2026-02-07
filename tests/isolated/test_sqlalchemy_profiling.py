@@ -24,18 +24,26 @@ class Widget(Base):
     name = Column(String)
 
 
-def make_session_factory():
-    engine = create_engine("sqlite:///:memory:")
+def make_session_factory(engine):
     Base.metadata.create_all(engine)
-    return engine, sessionmaker(bind=engine)
+    return sessionmaker(bind=engine)
 
 
 def commit_in_helper(session):
     session.commit()
 
 
-def test_sqlalchemy_profile_counts_queries():
+@pytest.fixture
+def sqlite_engine():
     engine = create_engine("sqlite:///:memory:")
+    try:
+        yield engine
+    finally:
+        engine.dispose()
+
+
+def test_sqlalchemy_profile_counts_queries(sqlite_engine):
+    engine = sqlite_engine
     with sqlalchemy_profile(engine) as profiler:
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
@@ -49,8 +57,8 @@ def test_sqlalchemy_profile_counts_queries():
     assert profiler.total_time_ms >= 0.0
 
 
-def test_sqlalchemy_profile_filters_by_min_duration():
-    engine = create_engine("sqlite:///:memory:")
+def test_sqlalchemy_profile_filters_by_min_duration(sqlite_engine):
+    engine = sqlite_engine
     with sqlalchemy_profile(engine, min_duration_ms=1e9) as profiler:
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
@@ -60,8 +68,8 @@ def test_sqlalchemy_profile_filters_by_min_duration():
     assert "No queries captured." in profiler.format_summary()
 
 
-def test_sqlalchemy_profile_normalizes_statements():
-    engine = create_engine("sqlite:///:memory:")
+def test_sqlalchemy_profile_normalizes_statements(sqlite_engine):
+    engine = sqlite_engine
     with sqlalchemy_profile(engine, normalize_sql=True) as profiler:
         with engine.begin() as conn:
             conn.execute(text("SELECT  1"))
@@ -73,8 +81,8 @@ def test_sqlalchemy_profile_normalizes_statements():
     assert stats[0].count == 2
 
 
-def test_sqlalchemy_profile_truncates_statements():
-    engine = create_engine("sqlite:///:memory:")
+def test_sqlalchemy_profile_truncates_statements(sqlite_engine):
+    engine = sqlite_engine
     long_number = "1" * 50
     statement = f"SELECT {long_number}"
     max_chars = 20
@@ -88,8 +96,8 @@ def test_sqlalchemy_profile_truncates_statements():
     assert len(stats[0].statement) == max_chars
 
 
-def test_sqlalchemy_profile_captures_stack():
-    engine = create_engine("sqlite:///:memory:")
+def test_sqlalchemy_profile_captures_stack(sqlite_engine):
+    engine = sqlite_engine
     with sqlalchemy_profile(engine, capture_stack=True, stack_depth=2) as profiler:
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
@@ -104,8 +112,8 @@ def test_sqlalchemy_profile_captures_stack():
     )
 
 
-def test_sqlalchemy_profile_reset_clears_stats():
-    engine = create_engine("sqlite:///:memory:")
+def test_sqlalchemy_profile_reset_clears_stats(sqlite_engine):
+    engine = sqlite_engine
     with sqlalchemy_profile(engine) as profiler:
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
@@ -116,8 +124,8 @@ def test_sqlalchemy_profile_reset_clears_stats():
     assert profiler.get_stats() == []
 
 
-def test_get_stats_sorted_by_count():
-    engine = create_engine("sqlite:///:memory:")
+def test_get_stats_sorted_by_count(sqlite_engine):
+    engine = sqlite_engine
     with sqlalchemy_profile(engine) as profiler:
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
@@ -129,8 +137,9 @@ def test_get_stats_sorted_by_count():
     assert stats[0].count >= stats[1].count
 
 
-def test_commit_profile_classifies_types():
-    engine, SessionLocal = make_session_factory()
+def test_commit_profile_classifies_types(sqlite_engine):
+    engine = sqlite_engine
+    SessionLocal = make_session_factory(engine)
     with sqlalchemy_profile(engine) as profiler:
         session = SessionLocal()
         widget = Widget(name="alpha")
@@ -165,8 +174,8 @@ def test_commit_profile_classifies_types():
     assert profiler.commit_total_time_ms >= 0.0
 
 
-def test_profile_json_aggregation(tmp_path):
-    engine = create_engine("sqlite:///:memory:")
+def test_profile_json_aggregation(sqlite_engine, tmp_path):
+    engine = sqlite_engine
     with sqlalchemy_profile(engine) as profiler:
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
@@ -191,8 +200,8 @@ def test_profile_json_aggregation(tmp_path):
     assert stats[("SELECT 2", None)]["count"] == 1
 
 
-def test_assert_query_count_raises_when_exceeded():
-    engine = create_engine("sqlite:///:memory:")
+def test_assert_query_count_raises_when_exceeded(sqlite_engine):
+    engine = sqlite_engine
     with pytest.raises(AssertionError, match="Expected between 0 and 1 queries"):
         with assert_query_count(max_queries=1, engine=engine):
             with engine.begin() as conn:
@@ -200,22 +209,22 @@ def test_assert_query_count_raises_when_exceeded():
                 conn.execute(text("SELECT 1"))
 
 
-def test_assert_query_count_raises_when_below_minimum():
-    engine = create_engine("sqlite:///:memory:")
+def test_assert_query_count_raises_when_below_minimum(sqlite_engine):
+    engine = sqlite_engine
     with pytest.raises(AssertionError, match="Expected between 1 and 2 queries"):
         with assert_query_count(max_queries=2, min_queries=1, engine=engine):
             pass
 
 
-def test_assert_query_duration_passes_with_high_limit():
-    engine = create_engine("sqlite:///:memory:")
+def test_assert_query_duration_passes_with_high_limit(sqlite_engine):
+    engine = sqlite_engine
     with assert_query_duration(max_total_duration_ms=1e6, engine=engine):
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
 
 
-def test_assert_query_duration_raises_when_below_minimum():
-    engine = create_engine("sqlite:///:memory:")
+def test_assert_query_duration_raises_when_below_minimum(sqlite_engine):
+    engine = sqlite_engine
     with pytest.raises(
         AssertionError,
         match="Expected total query time >= 1.0 ms",
@@ -226,8 +235,8 @@ def test_assert_query_duration_raises_when_below_minimum():
             pass
 
 
-def test_assert_query_duration_raises_when_over_max_query():
-    engine = create_engine("sqlite:///:memory:")
+def test_assert_query_duration_raises_when_over_max_query(sqlite_engine):
+    engine = sqlite_engine
 
     def slow(*args, **kwargs):
         time.sleep(0.01)
