@@ -814,29 +814,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         assets :
             Optional dictionary of assets to add to the trial (in addition to any provided by
             providing a ``Source`` containing assets to the ``definition`` parameter).
-
-        Examples
-        --------
-        When using ``Trial.cue`` inside a per-participant timeline function (e.g. a for_loop
-        logic callable), create a fresh ``Asset`` instance per trial:
-
-        ::
-
-            STIMULUS_FILES = [
-                "static/stimulus_0.txt",
-                "static/stimulus_1.txt",
-                "static/stimulus_2.txt",
-            ]
-
-            for_loop(
-                label="loop",
-                iterate_over=lambda: range(3),
-                logic=lambda i, experiment, participant: CustomTrial.cue(
-                    definition={"index": i},
-                    assets={"stimulus": asset(STIMULUS_FILES[i])},
-                ),
-                time_estimate_per_iteration=10,
-            )
         """
         from psynet.trial.chain import ChainNode
 
