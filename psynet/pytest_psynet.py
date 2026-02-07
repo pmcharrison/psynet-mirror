@@ -34,7 +34,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
-from psynet.asset import filter_botocore_deprecation_warnings, get_boto3_s3_client
+from psynet.asset import filter_botocore_deprecation_warnings
 from psynet.participant import Participant
 
 from .command_line import (
@@ -69,16 +69,14 @@ def _get_free_port():
         return sock.getsockname()[1]
 
 
-@pytest.fixture(scope="function", autouse=True)
-def moto_s3_server(
-    active_config,
-):  # the active_config fixture is required for the loading of AWS credentials
+@pytest.fixture(scope="session", autouse=True)
+def moto_s3_server():
     """
     Start a Moto-backed S3 endpoint for tests.
 
-    Using this fixture allows us to test S3-based functionality without
-    running real AWS queries. The URL used for this local S3 emulator is
-    stored in the `PSYNET_S3_ENDPOINT_URL` environment variable.
+    This fixture sets `PSYNET_S3_ENDPOINT_URL` so boto3 targets a local S3
+    emulator instead of AWS. It temporarily uses Dallinger's `stub_config`
+    values to create the test bucket, avoiding premature config loading.
     If a custom endpoint is already provided, it is respected and no Moto
     server is started.
     """
@@ -97,32 +95,36 @@ def moto_s3_server(
     server = ThreadedMotoServer(ip_address="127.0.0.1", port=port)
     server.start()
 
-    endpoint_url = f"http://127.0.0.1:{port}"
-    os.environ["PSYNET_S3_ENDPOINT_URL"] = endpoint_url
+    os.environ["PSYNET_S3_ENDPOINT_URL"] = f"http://127.0.0.1:{port}"
 
-    def moto_server_ready():
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.settimeout(0.5)
-            return sock.connect_ex(("127.0.0.1", port)) == 0
+    from dallinger import config as dallinger_config
+    from dallinger.pytest_dallinger import stub_config
 
-    wait_until(
-        moto_server_ready,
-        max_wait=5,
-        error_message=f"Timed out waiting for Moto server at {endpoint_url}",
-    )
+    from psynet import asset as psynet_asset
+    from psynet import media as psynet_media
 
-    # This is necessary because S3 helpers like get_aws_credentials() and get_boto3_s3_client()
-    # use a cache to avoid making multiple calls to the AWS API.
-    clear_all_caches()
+    orig_config = dallinger_config.config
+    dallinger_config.config = stub_config.__wrapped__()
+    try:
+        psynet_media.get_aws_credentials.cache_clear()
+        psynet_asset.get_boto3_s3_session.cache_clear()
+        psynet_asset.get_boto3_s3_client.cache_clear()
+        psynet_asset.get_boto3_s3_resource.cache_clear()
+        psynet_asset.get_boto3_s3_bucket.cache_clear()
+        psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
 
-    client = get_boto3_s3_client()
-    client.create_bucket(Bucket="psynet-tests")
+        client = psynet_asset.get_boto3_s3_client()
+        try:
+            client.create_bucket(Bucket="psynet-tests")
+        except client.exceptions.BucketAlreadyOwnedByYou:
+            pass
+    finally:
+        dallinger_config.config = orig_config
 
     try:
         yield
     finally:
         server.stop()
-        os.environ.pop("PSYNET_S3_ENDPOINT_URL", None)
 
 
 def assert_text(driver, element_id, value):
