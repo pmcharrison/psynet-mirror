@@ -154,6 +154,7 @@ def get_all_version_infos(file_content, allow_master_branch: bool = False):
                 else "inconsistent"
             )
             skip_reason = None
+        # Local debugging can intentionally pin to master, so skip strict comparison.
         if allow_master_branch and specified == "master":
             status = "skipped"
             skip_reason = "requirements.txt pins this package to master"
