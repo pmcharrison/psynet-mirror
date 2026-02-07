@@ -1746,7 +1746,7 @@ def verify_psynet_requirement(*, allow_master_branch: bool = False):
 
         if allow_master_branch:
             branch_note = (
-                "For local deployments, the master branch is allowed, but other branch names are not; "
+                "For local debugging, the master branch is allowed, but other branch names are not; "
                 "you have to specify a particular version or a commit hash."
             )
         else:
