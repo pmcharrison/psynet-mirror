@@ -22,6 +22,7 @@ def check_versions(*, allow_master_branch: bool = False):
         )
         return
 
+    skip_messages = []
     with yaspin(
         text="Checking whether PsyNet and Dallinger versions specified and installed are the same...",
         color="green",
@@ -33,20 +34,34 @@ def check_versions(*, allow_master_branch: bool = False):
             )
 
             for package_name, version_infos in versions.items():
-                consistent = version_infos["consistent"]
+                status = version_infos.get("status")
+                if status is None:
+                    status = (
+                        "consistent" if version_infos["consistent"] else "inconsistent"
+                    )
 
-                if consistent:
+                if status == "consistent":
                     spinner.ok("✔")
+                elif status == "skipped":
+                    spinner.ok("✔")
+                    skip_reason = version_infos.get("skip_reason")
+                    if skip_reason:
+                        skip_messages.append(
+                            f"Skipped version check for {package_name}: {skip_reason}"
+                        )
                 else:
                     spinner.color = "red"
                     spinner.fail("✗")
 
-                    assert consistent, (
+                    assert False, (
                         f"The {package_name} versions installed on your local computer and specified in requirements.txt do not match.\n"
                         f'\nVersion installed locally: {version_infos["installed"]}'
                         f'\nVersion specified in requirements.txt: {version_infos["specified"]}'
                         "\n\nYou can skip this check by writing `export SKIP_VERSION_CHECK=1` (without quotes) in your terminal."
                     )
+
+    for message in skip_messages:
+        click.echo(message)
 
 
 def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
@@ -56,6 +71,8 @@ def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
             "specified": None,
             "installed": None,
             "consistent": True,
+            "status": "consistent",
+            "skip_reason": None,
         }
         specified = None
         installed = None
@@ -104,13 +121,19 @@ def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
             consistent = True
         else:
             consistent = specified is None or specified == installed
+        status = "consistent" if consistent else "inconsistent"
+        skip_reason = None
         if allow_master_branch and specified == "master":
+            status = "skipped"
+            skip_reason = "requirements.txt pins this package to master"
             consistent = True
 
         versions[package_name] = {
             "specified": specified,
             "installed": installed,
             "consistent": consistent,
+            "status": status,
+            "skip_reason": skip_reason,
         }
     return versions
 
