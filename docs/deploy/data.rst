@@ -200,6 +200,53 @@ For example, you might exclude participant IDs or other personally identifying i
             "trial": pd.DataFrame.from_records(trials),
         }
 
+Accessing basic data via HTTP
+------------------------------
+
+Once you have implemented the ``get_basic_data`` method, you can access your basic data via an HTTP endpoint at ``/basic_data``.
+This allows you to fetch data directly from a running experiment without needing to export it first.
+
+The endpoint requires dashboard credentials, which can be provided as query parameters:
+``dashboard_user`` and ``dashboard_password``.
+
+You can construct the full URL using the ``basic_data_url`` property:
+
+.. code:: python
+
+    from psynet.experiment import Experiment
+    
+    url = Experiment.basic_data_url()
+    # Returns: https://your-experiment-url.com/basic_data?dashboard_user=...&dashboard_password=...
+
+Alternatively, you can access the endpoint directly by including the credentials in the URL:
+
+.. code:: bash
+
+    curl "https://your-experiment-url.com/basic_data?dashboard_user=USER&dashboard_password=PASSWORD"
+
+Any GET parameters you pass to the endpoint will be forwarded to your ``get_basic_data`` method via the ``**kwargs`` parameter.
+This allows you to implement dynamic behavior based on URL parameters.
+For example, you could filter data by a specific parameter:
+
+.. code:: python
+
+    @classmethod
+    def get_basic_data(cls, context=None, **kwargs):
+        sheet = kwargs.get("sheet", "participant")
+        # Return different data based on the 'sheet' parameter
+        if sheet == "participant":
+            return [...]
+        elif sheet == "trial":
+            return [...]
+
+The endpoint returns JSON data directly, making it easy to consume from various tools:
+
+- **Python**: Use ``requests.get(url).json()`` or ``urllib.request.urlopen(url).read()``
+- **R**: Use ``jsonlite::fromJSON(url)``
+- **Web browser**: Simply navigate to the URL to view the JSON data
+
+Note that the endpoint should not expose sensitive information, as the authentication credentials are included in the URL itself.
+
 Automatic backups
 =================
 
