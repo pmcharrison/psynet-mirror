@@ -53,7 +53,7 @@ def test_modular_page_text():
     assert page.plain_text == "Do you want to continue?\n- Yes\n- No"
 
 
-def test_modular_page_metadata_includes_prompt():
+def test_modular_page_metadata():
     page = ModularPage(
         "test",
         Prompt("Hi!"),
