@@ -104,6 +104,13 @@ def moto_s3_server():
     from psynet import media as psynet_media
 
     orig_config = dallinger_config.config
+    # This is a bit awkward: we temporarily swap in Dallinger's stub_config so
+    # the Moto bucket can be created without forcing a full config.load() early.
+    # Loading config here can pick up the wrong experiment directory and trigger
+    # SQLAlchemy re-registration warnings in CI. We tried env-based credentials
+    # and eager config loading, but both led to flaky cross-test interactions.
+    # Using stub_config keeps the behavior consistent with Dallinger's test
+    # defaults while avoiding those side effects.
     dallinger_config.config = stub_config.__wrapped__()
     try:
         psynet_media.get_aws_credentials.cache_clear()
