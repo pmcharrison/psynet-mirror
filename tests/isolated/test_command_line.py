@@ -1,6 +1,8 @@
 import hashlib
+import json
 import subprocess
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
@@ -403,6 +405,50 @@ class TestExport:
             mock_log.assert_called_with(
                 "Warning: Failed to export logs from /home/testuser/dallinger/test-app/logs.jsonl: Permission denied"
             )
+
+
+def test_export_data_writes_basic_data(tmp_path, monkeypatch):
+    from psynet.command_line import export_data
+
+    basic_data = {"participant": [{"id": 1}]}
+
+    class DummyExperiment:
+        def get_basic_data(self, context=None, **kwargs):
+            assert context == "export"
+            assert kwargs["anonymize"] is True
+            return basic_data
+
+    def fake_get_experiment():
+        return DummyExperiment()
+
+    @contextmanager
+    def dummy_spinner(*args, **kwargs):
+        class Spinner:
+            def ok(self, *_args, **_kwargs):
+                return None
+
+        yield Spinner()
+
+    monkeypatch.setattr("psynet.experiment.get_experiment", fake_get_experiment)
+    monkeypatch.setattr(
+        "psynet.command_line.dump_db_to_disk", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("psynet.command_line.yaspin", dummy_spinner)
+
+    export_path = tmp_path / "export"
+    export_path.mkdir()
+
+    export_data(
+        local=True,
+        anonymize=True,
+        database_zip_path=str(tmp_path / "database.zip"),
+        export_path=str(export_path),
+    )
+
+    basic_data_path = export_path / "anonymous" / "basic_data.json"
+    assert basic_data_path.exists()
+    with open(basic_data_path, "r") as file:
+        assert json.load(file) == basic_data
 
 
 def test_check_constraints():

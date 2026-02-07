@@ -33,6 +33,7 @@
 - Removed prompt text from prompt metadata to avoid large export file sizes (author: Peter)
 - Suppressed forkpty DeprecationWarning in pytest configuration (author: Peter Harrison)
 - Exported datetimes in database exports as readable strings to avoid jsonpickle formatting (author: Peter)
+- Included basic_data.json in local exports (author: Peter)
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
