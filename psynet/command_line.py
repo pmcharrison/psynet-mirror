@@ -1712,7 +1712,6 @@ def verify_psynet_requirement():
             regexes = [
                 "[a-fA-F0-9]{8,40}",
                 "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
-                "master",
             ]
             file_content = file.read()
             for regex in regexes:
@@ -1750,7 +1749,6 @@ def verify_psynet_requirement():
             "\nExamples:\n"
             "* psynet==10.1.1\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet\n"  # Only master branch is allowed
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
             "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "

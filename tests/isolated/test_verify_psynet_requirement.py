@@ -51,6 +51,26 @@ def test_verify_psynet_requirement_extension():
                         verify_psynet_requirement()
 
 
+def test_verify_psynet_requirement_master_branch():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            for extension in ["", ".git"]:
+                for egg in ["", "#egg=psynet"]:
+                    with open("requirements.txt", "w") as file:
+                        file.write(
+                            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet{extension}@master{egg}\n"
+                        )
+                        file.flush()
+
+                    with pytest.raises(
+                        AssertionError,
+                        match="When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+                        "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
+                        "or a commit hash.",
+                    ):
+                        verify_psynet_requirement()
+
+
 def test_verify_psynet_requirement_commit_hash():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
