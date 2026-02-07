@@ -2,11 +2,13 @@ import hashlib
 import json
 import subprocess
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
 import click
+import pandas as pd
 import pytest
 from click.testing import CliRunner
 
@@ -407,15 +409,10 @@ class TestExport:
             )
 
 
-def test_export_data_writes_basic_data(tmp_path, monkeypatch):
-    from psynet.command_line import export_data
-
-    basic_data = {"participant": [{"id": 1}]}
-
+def _setup_basic_data_export(monkeypatch, basic_data):
     class DummyExperiment:
         def get_basic_data(self, context=None, **kwargs):
             assert context == "export"
-            assert kwargs["anonymize"] is True
             return basic_data
 
     def fake_get_experiment():
@@ -435,6 +432,13 @@ def test_export_data_writes_basic_data(tmp_path, monkeypatch):
     )
     monkeypatch.setattr("psynet.command_line.yaspin", dummy_spinner)
 
+
+def test_export_data_writes_basic_data_json(tmp_path, monkeypatch):
+    from psynet.command_line import export_data
+
+    basic_data = {"participant": [{"id": 1}]}
+    _setup_basic_data_export(monkeypatch, basic_data)
+
     export_path = tmp_path / "export"
     export_path.mkdir()
 
@@ -449,6 +453,52 @@ def test_export_data_writes_basic_data(tmp_path, monkeypatch):
     assert basic_data_path.exists()
     with open(basic_data_path, "r") as file:
         assert json.load(file) == basic_data
+
+
+def test_export_data_skips_basic_data_when_none(tmp_path, monkeypatch):
+    from psynet.command_line import export_data
+
+    _setup_basic_data_export(monkeypatch, None)
+
+    export_path = tmp_path / "export"
+    export_path.mkdir()
+
+    export_data(
+        local=True,
+        anonymize=True,
+        database_zip_path=str(tmp_path / "database.zip"),
+        export_path=str(export_path),
+    )
+
+    basic_data_json = export_path / "anonymous" / "basic_data.json"
+    basic_data_zip = export_path / "anonymous" / "basic_data.zip"
+    assert not basic_data_json.exists()
+    assert not basic_data_zip.exists()
+
+
+def test_export_data_writes_basic_data_zip_for_dataframes(tmp_path, monkeypatch):
+    from psynet.command_line import export_data
+
+    basic_data = {
+        "participant": pd.DataFrame([{"id": 1}]),
+        "trial": pd.DataFrame([{"id": 2, "answer": "ok"}]),
+    }
+    _setup_basic_data_export(monkeypatch, basic_data)
+
+    export_path = tmp_path / "export"
+    export_path.mkdir()
+
+    export_data(
+        local=True,
+        anonymize=False,
+        database_zip_path=str(tmp_path / "database.zip"),
+        export_path=str(export_path),
+    )
+
+    basic_data_path = export_path / "regular" / "basic_data.zip"
+    assert basic_data_path.exists()
+    with zipfile.ZipFile(basic_data_path, "r") as zip_file:
+        assert sorted(zip_file.namelist()) == ["participant.csv", "trial.csv"]
 
 
 def test_check_constraints():
