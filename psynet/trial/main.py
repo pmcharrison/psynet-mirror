@@ -101,6 +101,7 @@ class AssetParentMixin:
         asset.receive_node_definition(self.definition)
         asset.local_key = local_key
         if self.id is None:
+            # Ensure the trial has an ID before asset keys/depositing.
             db.session.flush([self])
         if asset.deposited:
             asset.set_keys()
