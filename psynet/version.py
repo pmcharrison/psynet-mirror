@@ -74,7 +74,7 @@ def check_versions(allow_master_branch: bool = False):
         click.echo(message)
 
 
-def get_all_version_infos(file_content, *, allow_master_branch: bool = False):
+def get_all_version_infos(file_content, allow_master_branch: bool = False):
     """
     Parse requirements.txt content and compare to installed versions.
 
