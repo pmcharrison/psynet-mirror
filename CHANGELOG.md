@@ -29,11 +29,9 @@
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+- Updated S3 test setup to use a Moto-backed endpoint, document endpoint overrides, and rely on Dallinger stub_config for initial S3 client creation (author: Peter Harrison)
 
 ## Fixed
-- Documented custom S3 endpoint usage for AWS CLI, boto3, and Moto test server (author: Cursor, reviewer: Peter Harrison)
-- Avoided eager config loading in S3 tests by using Dallinger's stub_config for initial Moto bucket creation (author: Cursor, reviewer: Peter Harrison)
-- Switched S3 tests to use a Moto-backed endpoint to avoid conflicting bucket operations in CI (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
