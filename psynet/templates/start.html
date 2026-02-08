@@ -61,6 +61,8 @@
             return resp.html.includes("/load-participant POST: no participant found");
         }
 
+        let startInProgress = false;
+
         async function createParticipant(entryInformation) {
             // This is similar to dallinger.createParticipant but it bypasses the dallinger.identity
             // storage object, which shares information across different browser windows and hence
@@ -102,6 +104,10 @@
         }
 
         function startParticipantFlow() {
+            if (startInProgress) {
+                return;
+            }
+            startInProgress = true;
             let entryInformation = getEntryInformation();
             let assignmentId = getAssignmentId(entryInformation);
             if (assignmentId && assignmentId !== "ASSIGNMENT_ID_NOT_AVAILABLE") {
@@ -119,6 +125,11 @@
             }
         }
 
-        startParticipantFlow();
+        window.addEventListener("pageshow", function (event) {
+            if (event.persisted) {
+                startInProgress = false;
+            }
+            startParticipantFlow();
+        });
     </script>
 {% endblock %}

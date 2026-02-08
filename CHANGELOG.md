@@ -61,6 +61,7 @@
 - Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
 - Updated /start to resume existing participants by assignment ID before attempting to create a new participant (author: Peter Harrison)
+- Ensured /start reruns participant flow after bfcache restores (author: Peter Harrison)
 - Removed the worker_id uniqueness constraint and LucidRID foreign key to support repeat worker IDs when configured (author: Peter Harrison)
 - Removed unused method `generate_asset_key`.
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)

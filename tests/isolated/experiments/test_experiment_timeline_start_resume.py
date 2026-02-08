@@ -104,7 +104,9 @@ class TestStartResumeDefault:
 
             # Existing assignment ID should resume the same participant.
             driver.get(_start_url(base_url, recruitment_params))
-            _wait_for_timeline(driver, "Resume by assignment ID did not reach timeline.")
+            _wait_for_timeline(
+                driver, "Resume by assignment ID did not reach timeline."
+            )
             assert _get_unique_id(driver) == initial_unique_id
 
             # Same worker with a new assignment ID should error by default.
@@ -126,9 +128,7 @@ class TestStartResumeDefault:
             new_params["assignmentId"] = f"{new_params['assignmentId']}NEW"
             new_params["hitId"] = f"{new_params['hitId']}NEW"
             driver.get(_start_url(base_url, new_params))
-            _wait_for_timeline(
-                driver, "New participant did not reach the timeline."
-            )
+            _wait_for_timeline(driver, "New participant did not reach the timeline.")
             assert _get_unique_id(driver) == (
                 f"{new_params['workerId']}:{new_params['assignmentId']}"
             )
@@ -159,9 +159,7 @@ class TestStartResumeAllowRepeat:
             repeat_params = dict(recruitment_params)
             repeat_params["assignmentId"] = f"{repeat_params['assignmentId']}REPEAT"
             driver.get(_start_url(base_url, repeat_params))
-            _wait_for_timeline(
-                driver, "Repeat worker ID did not reach the timeline."
-            )
+            _wait_for_timeline(driver, "Repeat worker ID did not reach the timeline.")
             repeated_unique_id = _get_unique_id(driver)
             assert repeated_unique_id != initial_unique_id
             assert repeated_unique_id == (

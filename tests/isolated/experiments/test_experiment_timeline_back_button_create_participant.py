@@ -32,15 +32,8 @@ class TestExp:
                 max_wait=10,
                 error_message="Timeline consent button never appeared.",
             )
-            # Back navigation should revisit /start and resume the same session.
+            # Back navigation should resume the same session.
             driver.back()
-            wait_until(
-                lambda: "/start" in driver.current_url,
-                max_wait=10,
-                error_message="Back navigation did not reach the /start page.",
-            )
-            driver.refresh()
-
             wait_until(
                 lambda: "/timeline" in driver.current_url,
                 max_wait=10,
