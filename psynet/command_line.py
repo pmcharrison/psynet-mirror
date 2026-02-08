@@ -2060,8 +2060,7 @@ def export_(
                 )
             log(
                 "You can add the --legacy flag or --postprocess-location local "
-                "to retry the export locally. To use the ORM export path, add "
-                "--postprocess-method db."
+                "to retry the export locally."
             )
     else:
         for anonymize_mode in anonymize_modes:
