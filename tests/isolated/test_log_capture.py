@@ -60,6 +60,17 @@ def _collect_output(process, condition=None, timeout=30):
     return "".join(output)
 
 
+def _wait_for_async_logs(timeout=30):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if redis_vars.get(WORKER_DONE_KEY, False) and redis_vars.get(
+            CLOCK_DONE_KEY, False
+        ):
+            return
+        time.sleep(0.1)
+    raise AssertionError("Timed out waiting for log capture tasks to finish")
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("log_capture")], indirect=True
 )
@@ -75,12 +86,8 @@ class TestLogCapture:
         response = requests.post(f"{base_url}/log_capture", timeout=10)
         response.raise_for_status()
 
-        def _ready():
-            return redis_vars.get(WORKER_DONE_KEY, False) and redis_vars.get(
-                CLOCK_DONE_KEY, False
-            )
-
-        output_after = _collect_output(debug_experiment, condition=_ready, timeout=30)
+        _wait_for_async_logs(timeout=30)
+        output_after = _collect_output(debug_experiment, timeout=5)
         output_after += _collect_output(debug_experiment, timeout=2)
 
         _assert_markers(output_after, "web.1", "experiment", "web")
