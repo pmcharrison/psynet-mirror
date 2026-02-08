@@ -32,6 +32,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Captured launch output while waiting for Redis readiness so warning checks still work with PopenSpawn (author: Peter Harrison)
 - Stabilized PopenSpawn-based test runs by waiting for launch via Redis and reaping bot subprocesses to prevent CI hangs (author: Peter Harrison)
 - Fixed forkpty() deprecation warning in Python 3.13+ by replacing pexpect.spawn with pexpect.popen_spawn.PopenSpawn in test fixtures and utility functions. This avoids the deadlock risk when using forkpty() in multi-threaded processes (author: Cursor Agent, reviewer: Peter Harrison)
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)

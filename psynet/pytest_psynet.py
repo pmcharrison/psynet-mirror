@@ -426,11 +426,41 @@ def debug_experiment(
     p.timeout = timeout
 
     try:
-        wait_until(
-            is_experiment_launched,
-            max_wait=timeout,
-            error_message="Experiment launch didn't finish in time",
-        )
+        launch_output = []
+        deadline = time.monotonic() + timeout
+        while True:
+            if is_experiment_launched():
+                break
+            if hasattr(p, "proc") and p.proc.poll() is not None:
+                break
+            if time.monotonic() > deadline:
+                raise RuntimeError("Experiment launch didn't finish in time")
+            try:
+                while True:
+                    chunk = p.read_nonblocking(size=100000, timeout=0)
+                    if not chunk:
+                        break
+                    if isinstance(chunk, bytes):
+                        chunk = chunk.decode("utf-8", errors="replace")
+                    launch_output.append(chunk)
+            except pexpect.TIMEOUT:
+                pass
+            time.sleep(0.1)
+
+        try:
+            while True:
+                chunk = p.read_nonblocking(size=100000, timeout=0)
+                if not chunk:
+                    break
+                if isinstance(chunk, bytes):
+                    chunk = chunk.decode("utf-8", errors="replace")
+                launch_output.append(chunk)
+        except pexpect.TIMEOUT:
+            pass
+
+        p.before = "".join(launch_output)
+        if not is_experiment_launched():
+            raise RuntimeError("Experiment launch didn't finish in time")
 
         # The config file in server_working_directory has a few extra parameters
         # that we need to set in order to simulate the real experiment server as well as possible.
