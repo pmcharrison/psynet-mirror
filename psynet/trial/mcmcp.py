@@ -3,7 +3,6 @@
 import random
 from collections import Counter
 
-from ..field import extra_var
 from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 
@@ -75,12 +74,10 @@ class MCMCPTrial(ChainTrial):
         return definition
 
     @property
-    @extra_var(__extra_vars__)
     def first_stimulus(self):
         return self.definition["ordered"][0]["value"]
 
     @property
-    @extra_var(__extra_vars__)
     def second_stimulus(self):
         return self.definition["ordered"][1]["value"]
 

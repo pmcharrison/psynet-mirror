@@ -8,7 +8,6 @@ from sqlalchemy.orm import declared_attr, deferred
 
 from psynet.field import PythonList, _PythonList
 
-from ..field import extra_var
 from ..utils import get_logger
 from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
@@ -144,17 +143,14 @@ class GibbsTrial(ChainTrial):
         return self.definition["initial_vector"]
 
     @property
-    @extra_var(__extra_vars__)
     def initial_index(self):
         return self.definition["initial_index"]
 
     @property
-    @extra_var(__extra_vars__)
     def active_index(self):
         return self.definition["active_index"]
 
     @property
-    @extra_var(__extra_vars__)
     def reverse_scale(self):
         return self.definition["reverse_scale"]
 

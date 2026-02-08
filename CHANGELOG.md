@@ -4,6 +4,7 @@
 
 ## Breaking Changes
 - Updated Dallinger dependency from v11.5.x to v12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
+- The `extra_var` decorator now raises an error; define explicit SQLAlchemy columns instead (author: Peter Harrison)
 #### Changed
 - Optimized experiment Dockerfiles for greater build speed. The resulting Dockerfiles no longer use a PsyNet base image.
   To update existing experiment scripts, update PsyNet, then run `psynet update-scripts` in the experiment directory (author: Peter Harrison, reviewer: Frank Höger)

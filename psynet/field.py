@@ -100,8 +100,10 @@ def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
 # Don't apply this decorator to time consuming operations, especially database queries!
 def extra_var(extra_vars):
     def real_decorator(function):
-        register_extra_var(extra_vars, function.__name__, overwrite=True)
-        return function
+        raise RuntimeError(
+            "extra_var is no longer supported. Please define explicit SQLAlchemy "
+            "columns for exportable fields."
+        )
 
     return real_decorator
 
