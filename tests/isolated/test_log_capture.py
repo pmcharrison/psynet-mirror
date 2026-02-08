@@ -38,18 +38,18 @@ def _collect_output(process, condition=None, timeout=30):
     output = []
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        old_timeout = process.timeout
+        process.timeout = 0.5
         try:
-            while True:
-                chunk = process.read_nonblocking(size=100000, timeout=0)
-                if not chunk:
-                    break
-                if isinstance(chunk, bytes):
-                    chunk = chunk.decode("utf-8", errors="replace")
+            chunk = process.read(1000000)
+            if chunk:
                 output.append(chunk)
         except pexpect.TIMEOUT:
             pass
         except pexpect.EOF:
             break
+        finally:
+            process.timeout = old_timeout
         if condition and condition():
             break
         time.sleep(0.1)
