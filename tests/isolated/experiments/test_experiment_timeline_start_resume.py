@@ -91,6 +91,7 @@ def experiment_directory(request):
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestStartResumeDefault:
+    # Overview: assignment ID resumes, repeat worker blocks by default, new IDs create new participant.
     def test_start_resume_scenarios(self, bot_recruits):
         for bot in bot_recruits:
             driver = bot.driver
@@ -144,6 +145,7 @@ class TestStartResumeDefault:
 class TestStartResumeAllowRepeat:
     allow_repeat_worker_ids = True
 
+    # Overview: repeat worker ID should create a second participant when enabled.
     def test_repeat_worker_id_creates_new_participant(self, bot_recruits):
         for bot in bot_recruits:
             driver = bot.driver

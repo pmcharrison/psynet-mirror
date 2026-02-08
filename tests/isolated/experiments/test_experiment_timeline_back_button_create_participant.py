@@ -14,6 +14,7 @@ PYTEST_BOT_CLASS = bot_class()
 )
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
+    # Overview: back-navigation to /start should resume the same participant.
     def test_back_button_replays_create_participant(self, bot_recruits):
         for bot in bot_recruits:
             driver = bot.driver
@@ -31,7 +32,7 @@ class TestExp:
                 max_wait=10,
                 error_message="Timeline consent button never appeared.",
             )
-            # Back navigation should revisit /start and re-run createParticipant.
+            # Back navigation should revisit /start and resume the same session.
             driver.back()
             wait_until(
                 lambda: "/start" in driver.current_url,
