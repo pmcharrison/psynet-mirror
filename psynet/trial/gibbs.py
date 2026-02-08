@@ -74,7 +74,7 @@ class GibbsTrial(ChainTrial):
     __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
     resample_free_parameter = True
-    _updated_vector = Column("updated_vector", PythonList)
+    updated_vector = Column(PythonList)
 
     def choose_reverse_scale(self):
         return bool(random.randint(0, 1))
@@ -160,7 +160,7 @@ class GibbsTrial(ChainTrial):
         return self.definition["reverse_scale"]
 
     def on_finalized(self):
-        self._updated_vector = self._compute_updated_vector(
+        self.updated_vector = self._compute_updated_vector(
             self.definition,
             self.answer,
             self.active_index,
