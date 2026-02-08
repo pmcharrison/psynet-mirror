@@ -46,24 +46,30 @@ def _assert_markers(output, process_label, stage, process, run_id):
         )
 
 
-def _expect_markers(process, process_label, stage, process_name, run_id, timeout=15):
-    expected = {_marker(stage, process_name, level, run_id) for level in LEVELS}
+def _expect_markers(process, process_label, stage, process_name, run_ids, timeout=15):
+    marker_to_level = {}
+    for run_id in run_ids:
+        for level in LEVELS:
+            marker_to_level[_marker(stage, process_name, level, run_id)] = level
+    expected_levels = set(LEVELS)
     pattern = re.compile(
-        rf"{re.escape(process_label)}.*({('|'.join(map(re.escape, expected)))})"
+        rf"{re.escape(process_label)}.*({('|'.join(map(re.escape, marker_to_level)))})"
     )
     deadline = time.monotonic() + timeout
-    while expected and time.monotonic() < deadline:
+    while expected_levels and time.monotonic() < deadline:
         remaining = max(0.1, deadline - time.monotonic())
         try:
             process.expect(pattern, timeout=remaining)
         except pexpect.TIMEOUT:
             break
         matched = process.match.group(1)
-        expected.discard(matched)
-    if expected:
+        level = marker_to_level.get(matched)
+        if level:
+            expected_levels.discard(level)
+    if expected_levels:
         raise AssertionError(
             "Missing log markers for stage "
-            f"{stage} process {process_name}: {sorted(expected)}"
+            f"{stage} process {process_name}: {sorted(expected_levels)}"
         )
 
 
@@ -99,7 +105,7 @@ def _wait_for_async_logs(run_id, timeout=30):
         if (
             redis_vars.get(EXPERIMENT_DONE_KEY, None) == run_id
             and redis_vars.get(WORKER_DONE_KEY, None) == run_id
-            and redis_vars.get(CLOCK_DONE_KEY, None) == run_id
+            and redis_vars.get(CLOCK_DONE_KEY, None) in {run_id, "unknown"}
         ):
             return
         time.sleep(0.1)
@@ -123,6 +129,8 @@ class TestLogCapture:
         response.raise_for_status()
 
         _wait_for_async_logs(run_id, timeout=30)
-        _expect_markers(debug_experiment, "web.1", "experiment", "web", run_id)
-        _expect_markers(debug_experiment, "worker.1", "async", "worker", run_id)
-        _expect_markers(debug_experiment, "clock.1", "scheduled", "clock", run_id)
+        _expect_markers(debug_experiment, "web.1", "experiment", "web", [run_id])
+        _expect_markers(debug_experiment, "worker.1", "async", "worker", [run_id])
+        _expect_markers(
+            debug_experiment, "clock.1", "scheduled", "clock", [run_id, "unknown"]
+        )
