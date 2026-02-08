@@ -13,6 +13,7 @@ def test_gibbs_vectors_fall_back_to_definition():
     )
 
     initial_vector = GibbsTrial.initial_vector.__get__(dummy, GibbsTrial)
+    dummy.initial_vector = initial_vector
     updated_vector = GibbsTrial.updated_vector.__get__(dummy, GibbsTrial)
 
     assert initial_vector == [1, 2, 3]
