@@ -13,19 +13,30 @@ LOG_PREFIX = "LOG_CAPTURE"
 
 LEVELS = ("info", "warning", "error", "critical", "exception")
 
+RUN_ID_KEY = "log_capture_run_id"
 WORKER_DONE_KEY = "log_capture_worker_done"
 CLOCK_DONE_KEY = "log_capture_clock_done"
 EXPERIMENT_DONE_KEY = "log_capture_experiment_done"
 
 
-def _marker(stage, process, level):
-    return f"{LOG_PREFIX}|stage={stage}|process={process}|level={level}"
+def _marker(stage, process, level, run_id):
+    return f"{LOG_PREFIX}|run={run_id}|stage={stage}|process={process}|level={level}"
 
 
-def _assert_markers(output, process_label, stage, process):
+def _get_run_id(timeout=10):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        run_id = redis_vars.get(RUN_ID_KEY, None)
+        if run_id:
+            return run_id
+        time.sleep(0.1)
+    raise AssertionError("Timed out waiting for log capture run id")
+
+
+def _assert_markers(output, process_label, stage, process, run_id):
     missing = []
     for level in LEVELS:
-        marker = _marker(stage, process, level)
+        marker = _marker(stage, process, level, run_id)
         pattern = re.compile(rf"{re.escape(process_label)}.*{re.escape(marker)}")
         if not pattern.search(output):
             missing.append(marker)
@@ -35,8 +46,8 @@ def _assert_markers(output, process_label, stage, process):
         )
 
 
-def _expect_markers(process, process_label, stage, process_name, timeout=15):
-    expected = {_marker(stage, process_name, level) for level in LEVELS}
+def _expect_markers(process, process_label, stage, process_name, run_id, timeout=15):
+    expected = {_marker(stage, process_name, level, run_id) for level in LEVELS}
     pattern = re.compile(
         rf"{re.escape(process_label)}.*({('|'.join(map(re.escape, expected)))})"
     )
@@ -82,13 +93,13 @@ def _collect_output(process, condition=None, timeout=30):
     return "".join(output)
 
 
-def _wait_for_async_logs(timeout=30):
+def _wait_for_async_logs(run_id, timeout=30):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if (
-            redis_vars.get(EXPERIMENT_DONE_KEY, False)
-            and redis_vars.get(WORKER_DONE_KEY, False)
-            and redis_vars.get(CLOCK_DONE_KEY, False)
+            redis_vars.get(EXPERIMENT_DONE_KEY, None) == run_id
+            and redis_vars.get(WORKER_DONE_KEY, None) == run_id
+            and redis_vars.get(CLOCK_DONE_KEY, None) == run_id
         ):
             return
         time.sleep(0.1)
@@ -103,14 +114,15 @@ class TestLogCapture:
     def test_log_capture(self, debug_experiment):
         launch_output = debug_experiment.before or ""
         launch_output += _collect_output(debug_experiment, timeout=5)
-        _assert_markers(launch_output, "web.1", "launch", "web")
+        run_id = _get_run_id()
+        _assert_markers(launch_output, "web.1", "launch", "web", run_id)
 
         base_url = get_experiment_url()
         assert base_url, "Experiment base URL was not set"
         response = requests.post(f"{base_url}/log_capture", timeout=10)
         response.raise_for_status()
 
-        _wait_for_async_logs(timeout=30)
-        _expect_markers(debug_experiment, "web.1", "experiment", "web")
-        _expect_markers(debug_experiment, "worker.1", "async", "worker")
-        _expect_markers(debug_experiment, "clock.1", "scheduled", "clock")
+        _wait_for_async_logs(run_id, timeout=30)
+        _expect_markers(debug_experiment, "web.1", "experiment", "web", run_id)
+        _expect_markers(debug_experiment, "worker.1", "async", "worker", run_id)
+        _expect_markers(debug_experiment, "clock.1", "scheduled", "clock", run_id)

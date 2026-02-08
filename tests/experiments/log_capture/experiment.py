@@ -1,3 +1,5 @@
+import uuid
+
 from dallinger.experiment import experiment_route
 from dallinger.experiment_server.utils import success_response
 
@@ -13,13 +15,15 @@ logger = get_logger()
 
 LOG_PREFIX = "LOG_CAPTURE"
 
+RUN_ID_KEY = "log_capture_run_id"
 WORKER_DONE_KEY = "log_capture_worker_done"
 CLOCK_DONE_KEY = "log_capture_clock_done"
 EXPERIMENT_DONE_KEY = "log_capture_experiment_done"
 
 
 def _log_marker(stage, process, level):
-    return f"{LOG_PREFIX}|stage={stage}|process={process}|level={level}"
+    run_id = redis_vars.get(RUN_ID_KEY, "unknown")
+    return f"{LOG_PREFIX}|run={run_id}|stage={stage}|process={process}|level={level}"
 
 
 def _emit_logs(stage, process):
@@ -35,7 +39,7 @@ def _emit_logs(stage, process):
 
 def _worker_log_task():
     _emit_logs("async", "worker")
-    redis_vars.set(WORKER_DONE_KEY, True)
+    redis_vars.set(WORKER_DONE_KEY, redis_vars.get(RUN_ID_KEY, "unknown"))
 
 
 class Exp(psynet.experiment.Experiment):
@@ -47,9 +51,11 @@ class Exp(psynet.experiment.Experiment):
 
     def on_every_launch(self):
         super().on_every_launch()
-        redis_vars.set(WORKER_DONE_KEY, False)
-        redis_vars.set(CLOCK_DONE_KEY, False)
-        redis_vars.set(EXPERIMENT_DONE_KEY, False)
+        run_id = uuid.uuid4().hex
+        redis_vars.set(RUN_ID_KEY, run_id)
+        redis_vars.set(WORKER_DONE_KEY, None)
+        redis_vars.set(CLOCK_DONE_KEY, None)
+        redis_vars.set(EXPERIMENT_DONE_KEY, None)
         _emit_logs("launch", "web")
 
     @experiment_route("/log_capture", methods=["POST"])
@@ -58,7 +64,7 @@ class Exp(psynet.experiment.Experiment):
     def log_capture(cls):
         _emit_logs("experiment", "web")
         WorkerAsyncProcess(function=_worker_log_task)
-        redis_vars.set(EXPERIMENT_DONE_KEY, True)
+        redis_vars.set(EXPERIMENT_DONE_KEY, redis_vars.get(RUN_ID_KEY, "unknown"))
         return success_response()
 
     @psynet.experiment.scheduled_task("interval", seconds=1.0, max_instances=1)
@@ -69,4 +75,4 @@ class Exp(psynet.experiment.Experiment):
         if redis_vars.get(CLOCK_DONE_KEY, default=False):
             return
         _emit_logs("scheduled", "clock")
-        redis_vars.set(CLOCK_DONE_KEY, True)
+        redis_vars.set(CLOCK_DONE_KEY, redis_vars.get(RUN_ID_KEY, "unknown"))
