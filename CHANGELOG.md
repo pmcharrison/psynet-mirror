@@ -33,6 +33,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Included error entries from server JSON logs in pytest debug log dumps to show web tracebacks. (author: Peter Harrison)
 - Dump PsyNet debug logs on pytest failures to surface web tracebacks from local tests. (author: Peter Harrison)
 - Captured launch output while waiting for Redis readiness and draining buffered logs so warning checks still work with PopenSpawn (author: Peter Harrison)
 - Stabilized PopenSpawn-based test runs by waiting for launch via Redis and reaping bot subprocesses to prevent CI hangs (author: Peter Harrison)

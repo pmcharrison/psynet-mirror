@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 import re
@@ -58,6 +59,9 @@ warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 _LOG_DUMP_HEADER = "===== PsyNet debug logs (tail) ====="
 _LOG_DUMP_FOOTER = "===== End PsyNet debug logs ====="
 _LOG_DUMP_MAX_LINES = 200
+_SERVER_LOG_DUMP_HEADER = "===== PsyNet server logs (errors) ====="
+_SERVER_LOG_DUMP_FOOTER = "===== End PsyNet server logs ====="
+_SERVER_LOG_MAX_LINES = 400
 
 
 class _LogCapture:
@@ -89,15 +93,21 @@ def _tail_lines(text, max_lines=_LOG_DUMP_MAX_LINES):
     return "\n".join(lines)
 
 
-def _drain_process_output(process, timeout=0.5):
+def _drain_process_output(process, timeout=1.0, read_timeout=0.2):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        old_timeout = process.timeout
+        process.timeout = read_timeout
         try:
-            chunk = process.read_nonblocking(size=100000, timeout=0)
+            chunk = process.read(1000000)
         except (pexpect.TIMEOUT, pexpect.EOF):
-            break
+            chunk = process.before
+        finally:
+            process.timeout = old_timeout
         if not chunk:
             break
+        if isinstance(chunk, str):
+            process.before = ""
 
 
 def _get_log_capture(process):
@@ -130,6 +140,57 @@ def _dump_debug_logs(process, nodeid=None):
     else:
         print("No log output captured.")
     print(_LOG_DUMP_FOOTER)
+
+    server_working_directory = getattr(
+        process, "_psynet_server_working_directory", None
+    )
+    if server_working_directory:
+        _dump_server_logs(server_working_directory, nodeid=nodeid)
+
+
+def _dump_server_logs(server_working_directory, nodeid=None):
+    log_path = os.path.join(server_working_directory, "logs.jsonl")
+    if not os.path.exists(log_path):
+        return
+
+    try:
+        with open(log_path, "r", encoding="utf-8") as log_file:
+            lines = log_file.read().splitlines()
+    except OSError:
+        return
+
+    lines = lines[-_SERVER_LOG_MAX_LINES:]
+    entries = []
+    for line in lines:
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        level = entry.get("levelname")
+        if entry.get("exc_info") or level in {"ERROR", "CRITICAL"}:
+            entries.append(entry)
+
+    if not entries:
+        return
+
+    header = _SERVER_LOG_DUMP_HEADER
+    if nodeid:
+        header = f"{header} {nodeid}"
+
+    print(f"\n{header}")
+    for entry in entries:
+        name = entry.get("name", "unknown")
+        level = entry.get("levelname", "UNKNOWN")
+        timestamp = entry.get("asctime", "")
+        message = entry.get("message", "")
+        if timestamp:
+            print(f"{timestamp} {name} {level}: {message}")
+        else:
+            print(f"{name} {level}: {message}")
+        exc_info = entry.get("exc_info")
+        if exc_info:
+            print(exc_info)
+    print(_SERVER_LOG_DUMP_FOOTER)
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -552,6 +613,7 @@ def debug_experiment(
         # The config file in server_working_directory has a few extra parameters
         # that we need to set in order to simulate the real experiment server as well as possible.
         server_working_directory = redis_vars.get("server_working_directory")
+        p._psynet_server_working_directory = server_working_directory
         config.load_from_file(os.path.join(server_working_directory, "config.txt"))
 
         yield p
