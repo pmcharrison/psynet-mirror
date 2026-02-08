@@ -55,6 +55,29 @@ from .utils import clear_all_caches, wait_until
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
+
+class _LogCapture:
+    def __init__(self, *streams):
+        self._streams = streams
+        self._buffer = []
+
+    def write(self, data):
+        if isinstance(data, bytes):
+            text = data.decode("utf-8", errors="replace")
+        else:
+            text = data
+        self._buffer.append(text)
+        for stream in self._streams:
+            stream.write(text)
+
+    def flush(self):
+        for stream in self._streams:
+            stream.flush()
+
+    def getvalue(self):
+        return "".join(self._buffer)
+
+
 ci_only = pytest.mark.skipif(
     not os.environ.get("CI"), reason="This test only runs in CI environment"
 )
@@ -422,11 +445,11 @@ def debug_experiment(
         encoding="utf-8",
     )
     patch_pexpect_error_reporter(p)
-    p.logfile = sys.stdout
+    log_capture = _LogCapture(sys.stdout)
+    p.logfile = log_capture
     p.timeout = timeout
 
     try:
-        launch_output = []
         deadline = time.monotonic() + timeout
         while True:
             if is_experiment_launched():
@@ -437,12 +460,8 @@ def debug_experiment(
                 raise RuntimeError("Experiment launch didn't finish in time")
             try:
                 while True:
-                    chunk = p.read_nonblocking(size=100000, timeout=0)
-                    if not chunk:
+                    if not p.read_nonblocking(size=100000, timeout=0):
                         break
-                    if isinstance(chunk, bytes):
-                        chunk = chunk.decode("utf-8", errors="replace")
-                    launch_output.append(chunk)
             except pexpect.TIMEOUT:
                 pass
             time.sleep(0.1)
@@ -452,19 +471,15 @@ def debug_experiment(
             drained = False
             try:
                 while True:
-                    chunk = p.read_nonblocking(size=100000, timeout=0)
-                    if not chunk:
+                    if not p.read_nonblocking(size=100000, timeout=0):
                         break
                     drained = True
-                    if isinstance(chunk, bytes):
-                        chunk = chunk.decode("utf-8", errors="replace")
-                    launch_output.append(chunk)
             except pexpect.TIMEOUT:
                 pass
             if not drained:
                 time.sleep(0.05)
 
-        p.before = "".join(launch_output)
+        p.before = log_capture.getvalue()
         if not is_experiment_launched():
             raise RuntimeError("Experiment launch didn't finish in time")
 
