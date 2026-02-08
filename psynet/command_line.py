@@ -46,9 +46,9 @@ from . import deployment_info
 from .data import (
     drop_all_db_tables,
     dump_db_to_disk,
-    dump_db_to_disk_from_zip,
     ingest_zip,
     init_db,
+    postprocess_database_zip,
 )
 from .log import bold
 from .lucid import get_lucid_service
@@ -2322,7 +2322,7 @@ def export_data(
         from psynet.experiment import get_experiment
 
         export_classes_to_skip = get_experiment().export_classes_to_skip
-        dump_db_to_disk_from_zip(
+        postprocess_database_zip(
             database_zip_path,
             data_path,
             scrub_pii=anonymize,

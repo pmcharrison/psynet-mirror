@@ -269,7 +269,7 @@ def dump_db_to_disk(dir, scrub_pii: bool):
             json_to_data_frame(objects).to_csv(file, index=False)
 
 
-def dump_db_to_disk_from_zip(
+def postprocess_database_zip(
     zip_path, output_dir, scrub_pii: bool, export_classes_to_skip=None
 ):
     """
