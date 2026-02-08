@@ -132,7 +132,7 @@ class GibbsTrial(ChainTrial):
         assert definition is not None
         assert answer is not None
         assert active_index is not None
-        initial_vector = definition.get("initial_vector", definition.get("vector"))
+        initial_vector = definition["initial_vector"]
         assert initial_vector is not None
         updated_vector = list(initial_vector)
         assert 0 <= active_index < len(updated_vector)
@@ -141,9 +141,7 @@ class GibbsTrial(ChainTrial):
 
     @property
     def initial_vector(self):
-        if self.definition is None:
-            return None
-        return self.definition.get("initial_vector", self.definition.get("vector"))
+        return self.definition["initial_vector"]
 
     @property
     @extra_var(__extra_vars__)
@@ -323,9 +321,8 @@ class GibbsNode(ChainNode):
         initial_index = trials[0].initial_index
         answers = [t.answer for t in trials]
         assert all(answer is not None for answer in answers)
-        observations = answers
 
-        summary = self.summarize_trial_dimension(observations)
+        summary = self.summarize_trial_dimension(answers)
         self.var.summarize_trials_output = summary
 
         initial_vector = trials[0].initial_vector
