@@ -135,22 +135,17 @@ class GibbsTrial(ChainTrial):
 
     @classmethod
     def _compute_updated_vector(cls, definition, answer, active_index):
-        if definition is None:
-            raise ValueError("Cannot compute updated_vector without a definition.")
-        if answer is None:
-            raise ValueError("Cannot compute updated_vector without an answer.")
-        if active_index is None:
-            raise ValueError("Cannot compute updated_vector without active_index.")
+        assert definition is not None, "updated_vector requires a definition."
+        assert answer is not None, "updated_vector requires an answer."
+        assert active_index is not None, "updated_vector requires active_index."
         initial_vector = cls._initial_vector_from_definition(definition)
-        if initial_vector is None:
-            raise ValueError(
-                "Cannot compute updated_vector without initial_vector in definition."
-            )
+        assert (
+            initial_vector is not None
+        ), "updated_vector requires initial_vector in definition."
         updated_vector = list(initial_vector)
-        if active_index >= len(updated_vector) or active_index < 0:
-            raise ValueError(
-                "Cannot compute updated_vector with active_index outside initial_vector."
-            )
+        assert (
+            0 <= active_index < len(updated_vector)
+        ), "updated_vector requires active_index within initial_vector."
         updated_vector[active_index] = answer
         return updated_vector
 
