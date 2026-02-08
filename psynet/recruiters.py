@@ -571,6 +571,9 @@ class LucidRID(SQLBase, SQLMixin):
     vars = None
     creation_time = None
 
+    # NOTE: This used to be a FK to participant.worker_id, but worker_id can now
+    # repeat when allow_repeat_worker_ids is enabled. Consider storing a
+    # participant_id or unique_id here if we want referential integrity again.
     rid = Column(String, index=True)
     registered_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
