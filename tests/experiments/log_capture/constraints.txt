@@ -1,0 +1,2 @@
+# Constraints file for log capture test experiment.
+# This is intentionally minimal; the tests run against the editable PsyNet install.

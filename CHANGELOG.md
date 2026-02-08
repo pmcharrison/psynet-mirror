@@ -13,6 +13,7 @@
 - Deprecated Docker installation route in favor of the standard virtual environment method.
 
 ## Added
+- Added log capture coverage to verify launch, web, worker, and clock logging across levels. (author: Peter Harrison)
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
