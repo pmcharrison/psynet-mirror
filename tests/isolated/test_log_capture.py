@@ -35,6 +35,27 @@ def _assert_markers(output, process_label, stage, process):
         )
 
 
+def _expect_markers(process, process_label, stage, process_name, timeout=15):
+    expected = {_marker(stage, process_name, level) for level in LEVELS}
+    pattern = re.compile(
+        rf"{re.escape(process_label)}.*({('|'.join(map(re.escape, expected)))})"
+    )
+    deadline = time.monotonic() + timeout
+    while expected and time.monotonic() < deadline:
+        remaining = max(0.1, deadline - time.monotonic())
+        try:
+            process.expect(pattern, timeout=remaining)
+        except pexpect.TIMEOUT:
+            break
+        matched = process.match.group(1)
+        expected.discard(matched)
+    if expected:
+        raise AssertionError(
+            "Missing log markers for stage "
+            f"{stage} process {process_name}: {sorted(expected)}"
+        )
+
+
 def _collect_output(process, condition=None, timeout=30):
     output = []
     deadline = time.monotonic() + timeout
@@ -90,9 +111,6 @@ class TestLogCapture:
         response.raise_for_status()
 
         _wait_for_async_logs(timeout=30)
-        output_after = _collect_output(debug_experiment, timeout=5)
-        output_after += _collect_output(debug_experiment, timeout=2)
-
-        _assert_markers(output_after, "web.1", "experiment", "web")
-        _assert_markers(output_after, "worker.1", "async", "worker")
-        _assert_markers(output_after, "clock.1", "scheduled", "clock")
+        _expect_markers(debug_experiment, "web.1", "experiment", "web")
+        _expect_markers(debug_experiment, "worker.1", "async", "worker")
+        _expect_markers(debug_experiment, "clock.1", "scheduled", "clock")
