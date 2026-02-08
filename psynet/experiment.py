@@ -62,6 +62,7 @@ from sqlalchemy.orm import joinedload, with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
+from psynet.pexpect_utils import spawn_pexpect
 from psynet.utils import (
     format_bytes,
     get_config,
@@ -1356,7 +1357,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 time.sleep(self.test_parallel_stagger_interval_s)
 
             logger.info(f"Creating and running bot {bot_id}...")
-            p = pexpect.spawn(cmd, timeout=None, cwd=None)
+            p = spawn_pexpect(cmd, timeout=None, cwd=None)
             processes.append(p)
 
         waiting_for_processes = True

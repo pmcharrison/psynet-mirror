@@ -1,4 +1,4 @@
-import pexpect
+import subprocess
 
 
 def test_import():
@@ -8,15 +8,17 @@ def test_import():
     # had not already been imported.
 
     # We need to run this in a subprocess to make sure that no other packages are imported
-    p = pexpect.spawn(
-        'python3 -c "from psynet.trial.chain import ChainNetwork"', timeout=10
+    result = subprocess.run(
+        ["python3", "-c", "from psynet.trial.chain import ChainNetwork"],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=10,
     )
 
-    # Print the output of this command
-    while not p.eof():
-        line = p.readline().decode("utf-8")
-        print(line, end="")
-    p.close()
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, end="")
 
-    # Assert that the command ran successfully
-    assert p.exitstatus == 0
+    assert result.returncode == 0

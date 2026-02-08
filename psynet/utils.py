@@ -34,6 +34,7 @@ from flask.globals import current_app
 from flask.templating import Environment, _render
 from sqlalchemy import or_
 
+from psynet.pexpect_utils import spawn_pexpect
 from psynet.translation.utils import load_po
 
 package_root = os.path.dirname(os.path.abspath(__file__))
@@ -897,7 +898,7 @@ def sample_from_surface_of_unit_sphere(n_dimensions):
 
 def run_subprocess_with_live_output(command, timeout=None, cwd=None):
     _command = command.replace('"', '\\"').replace("'", "\\'")
-    p = pexpect.spawn(f'bash -c "{_command}"', timeout=timeout, cwd=cwd)
+    p = spawn_pexpect(f'bash -c "{_command}"', timeout=timeout, cwd=cwd)
     while not p.eof():
         line = p.readline().decode("utf-8")
         print(line, end="")

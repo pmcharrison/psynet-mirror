@@ -5,11 +5,11 @@ import tempfile
 import time
 from typing import OrderedDict
 
-import pexpect
 import polib
 from yaspin import yaspin
 
 from psynet.log import bold
+from psynet.pexpect_utils import spawn_pexpect
 
 
 def new_pot(fpath):
@@ -36,7 +36,7 @@ def load_po(po_path):
 def get_pot_from_command(cmd, tmp_pot_file, sp):
     """Create a pot file from a command and open."""
     timeout = 60
-    p = pexpect.spawn(cmd, timeout=timeout)
+    p = spawn_pexpect(cmd, timeout=timeout)
     while not p.eof():
         line = p.readline().decode("utf-8")
         sp.text = line

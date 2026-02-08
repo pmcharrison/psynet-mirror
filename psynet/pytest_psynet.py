@@ -35,6 +35,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
 from psynet.asset import filter_botocore_deprecation_warnings
 from psynet.participant import Participant
+from psynet.pexpect_utils import spawn_pexpect
 
 from .command_line import (
     clean_sys_modules,
@@ -407,7 +408,7 @@ def debug_experiment(
     if not config.ready:
         config.load()
 
-    p = pexpect.spawn(
+    p = spawn_pexpect(
         "psynet",
         ["debug", "local", "--legacy", "--no-browsers"],
         env={
