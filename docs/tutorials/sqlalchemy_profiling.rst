@@ -17,6 +17,10 @@ Run the experiment test with profiling enabled:
 At the end of the run, PsyNet prints a file path to an HTML report. Open that
 file in your browser to inspect the results.
 
+When running in a TTY (and not in CI), PsyNet will automatically open the
+HTML report in your default browser. To disable this behavior, add
+``--sql-profile-no-open``.
+
 What the report shows
 ---------------------
 

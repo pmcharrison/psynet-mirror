@@ -424,7 +424,7 @@ def _enable_sql_profile(sql_profile_options, sql_profile_dir):
     return profile_dir, keep_profile_dir
 
 
-def _print_sql_profile_aggregation(profile_dir, *, formats, show_dir):
+def _print_sql_profile_aggregation(profile_dir, *, formats, open_html, show_dir):
     """
     Print aggregated SQL profiling output for all processes.
 
@@ -434,6 +434,8 @@ def _print_sql_profile_aggregation(profile_dir, *, formats, show_dir):
         Directory containing per-process SQL profile JSON files.
     formats : set[str]
         Output formats to generate (e.g. ``{"html", "text"}``).
+    open_html : bool
+        Whether to attempt opening the HTML report in a browser.
     show_dir : bool
         Whether to print the location of the raw profile files.
     """
@@ -471,6 +473,11 @@ def _print_sql_profile_aggregation(profile_dir, *, formats, show_dir):
                 )
             )
         click.echo(f"SQL profile report: {html_path}")
+        if open_html:
+            try:
+                click.launch(html_path)
+            except Exception as err:
+                click.echo(f"Failed to open SQL profile report: {err}")
     if show_dir:
         click.echo(f"Raw SQL profile files saved to: {profile_dir}")
 
@@ -490,6 +497,11 @@ _sql_profile_options = [
         "--sql-profile-dir",
         default=None,
         help="Directory to store per-process SQL profile JSON files.",
+    ),
+    click.option(
+        "--sql-profile-no-open",
+        is_flag=True,
+        help="Do not auto-open the SQL profile report in a browser.",
     ),
     click.option(
         "--sql-profile-format",
@@ -521,6 +533,14 @@ def _parse_sql_profile_formats(value: str):
     return parts
 
 
+def _should_open_sql_profile(no_open: bool) -> bool:
+    if no_open:
+        return False
+    if os.getenv("CI"):
+        return False
+    return sys.stdout.isatty()
+
+
 def sql_profiled_command(func):
     """
     Wrap a Click command to enable aggregated SQL profiling.
@@ -542,6 +562,7 @@ def sql_profiled_command(func):
         keep_profile_dir = False
         show_dir = False
         formats = set()
+        open_html = False
         try:
             if kwargs.get("sql_profile"):
                 formats = _parse_sql_profile_formats(kwargs.get("sql_profile_format"))
@@ -549,6 +570,11 @@ def sql_profiled_command(func):
                     kwargs.get("sql_profile_options"), kwargs.get("sql_profile_dir")
                 )
                 show_dir = kwargs.get("sql_profile_dir") is not None
+                open_html = _should_open_sql_profile(
+                    kwargs.get("sql_profile_no_open", False)
+                )
+                if "html" not in formats:
+                    open_html = False
                 if formats.intersection({"html", "json"}):
                     keep_profile_dir = True
             return func(*args, **kwargs)
@@ -556,7 +582,10 @@ def sql_profiled_command(func):
             if profile_dir:
                 if formats:
                     _print_sql_profile_aggregation(
-                        profile_dir, formats=formats, show_dir=show_dir
+                        profile_dir,
+                        formats=formats,
+                        open_html=open_html,
+                        show_dir=show_dir,
                     )
                 if not keep_profile_dir:
                     shutil.rmtree(profile_dir, ignore_errors=True)
@@ -582,6 +611,7 @@ def debug__local(
     sql_profile_options,
     sql_profile_dir,
     sql_profile_format,
+    sql_profile_no_open,
 ):
     """
     Debug the experiment locally (this should normally be your first choice).
@@ -2897,6 +2927,7 @@ def test__local(
     sql_profile_options=None,
     sql_profile_dir=None,
     sql_profile_format=None,
+    sql_profile_no_open=False,
 ):
     """
     Test the experiment locally.
