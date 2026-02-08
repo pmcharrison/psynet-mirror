@@ -71,9 +71,10 @@ class Exp(psynet.experiment.Experiment):
     @psynet.experiment.scheduled_task("interval", seconds=1.0, max_instances=1)
     @staticmethod
     def log_from_clock():
-        if not psynet.experiment.is_experiment_launched():
+        run_id = redis_vars.get(RUN_ID_KEY, None)
+        if not run_id:
             return
-        if redis_vars.get(CLOCK_DONE_KEY, default=False):
+        if redis_vars.get(CLOCK_DONE_KEY, default=None) == run_id:
             return
         _emit_logs("scheduled", "clock")
-        redis_vars.set(CLOCK_DONE_KEY, redis_vars.get(RUN_ID_KEY, "unknown"))
+        redis_vars.set(CLOCK_DONE_KEY, run_id)
