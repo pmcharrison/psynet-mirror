@@ -985,7 +985,8 @@ def format_aggregated_html(
         callsite_html = ""
         if callsite_counts:
             callsite_html = (
-                "<div class='callsites'><strong>Callsites</strong><ul>"
+                "<div class='callsites' style='margin-top: 8px;'>"
+                "<strong>Callsites</strong><ul>"
                 + "".join(
                     f"<li>{esc(site)} ({count})</li>"
                     for site, count in _top_callsite_counts(callsite_counts)
