@@ -118,7 +118,7 @@ class GibbsTrial(ChainTrial):
             vector[active_index] = self.node.random_sample(active_index)
 
         definition = {
-            "vector": vector,
+            "vector": list(vector),
             "initial_vector": list(vector),
             "initial_index": initial_index,
             "active_index": active_index,
