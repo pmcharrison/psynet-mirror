@@ -10,7 +10,8 @@ Otherwise assume we are working on the PsyNet source code.
 ## Initial setup
 
 - Install Python 3.13 (use same version specified in `Dockerfile`)
-- Install uv (`pip3 install uv`)
+- Install uv (`pip3 install uv`). If you install with `--user`, make sure
+  `~/.local/bin` is on your `PATH` so the `uv` command is available.
 
 ## Before running commands
 
@@ -23,6 +24,9 @@ Local agents should check for their availability and install if necessary.
   Check the repository Dockerfile for the exact patch version we target
   (e.g., `psynet/resources/experiment_scripts/Dockerfile` or the root `Dockerfile`).
 - **uv**: Install via `pip`.
+- **Python development headers**: Install `python3.13-dev` (Debian/Ubuntu),
+  `python3-devel` (Fedora), or the platform equivalent so packages like
+  `psycopg2` can compile (otherwise you may see `Python.h: No such file`).
 - **PostgreSQL**: Install the server and client, ensure the service is running,
   and create the `dallinger` user/database if they do not exist. When prompted by
   `createuser -P`, set the password to `dallinger` (per the installation docs).
@@ -49,6 +53,8 @@ Install dependencies as follows:
 If dependency installation fails with `pg_config executable not found`, install
 PostgreSQL development headers (e.g. `libpq-dev` on Debian/Ubuntu,
 `postgresql-devel` on Fedora, `brew install postgresql` on macOS) and retry.
+If it fails with `Python.h: No such file`, install the Python development
+headers for your interpreter (e.g. `python3.13-dev` on Debian/Ubuntu).
 
 Cursor: disable sandboxing when running PsyNet commands by setting `required_permissions: ["all"]`.
 
