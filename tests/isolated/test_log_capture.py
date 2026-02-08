@@ -46,31 +46,47 @@ def _assert_markers(output, process_label, stage, process, run_id):
         )
 
 
-def _expect_markers(process, process_label, stage, process_name, run_ids, timeout=15):
-    marker_to_level = {}
-    for run_id in run_ids:
-        for level in LEVELS:
-            marker_to_level[_marker(stage, process_name, level, run_id)] = level
-    expected_levels = set(LEVELS)
-    pattern = re.compile(
-        rf"{re.escape(process_label)}.*({('|'.join(map(re.escape, marker_to_level)))})"
-    )
+def _expect_all_markers(process, run_id, timeout=20):
+    marker_map = {}
+    expected = {
+        ("experiment", "web"): set(LEVELS),
+        ("async", "worker"): set(LEVELS),
+        ("scheduled", "clock"): set(LEVELS),
+    }
+    process_labels = {
+        "web": "web.1",
+        "worker": "worker.1",
+        "clock": "clock.1",
+    }
+    for (stage, process_name), levels in expected.items():
+        run_ids = [run_id]
+        if process_name == "clock":
+            run_ids.append("unknown")
+        for marker_run_id in run_ids:
+            for level in levels:
+                marker = _marker(stage, process_name, level, marker_run_id)
+                marker_map[marker] = (stage, process_name, level)
+    marker_pattern = "|".join(map(re.escape, marker_map))
+    pattern = re.compile(rf"(web\.1|worker\.1|clock\.1).*({marker_pattern})")
     deadline = time.monotonic() + timeout
-    while expected_levels and time.monotonic() < deadline:
+    while any(expected.values()) and time.monotonic() < deadline:
         remaining = max(0.1, deadline - time.monotonic())
         try:
             process.expect(pattern, timeout=remaining)
         except pexpect.TIMEOUT:
             break
-        matched = process.match.group(1)
-        level = marker_to_level.get(matched)
-        if level:
-            expected_levels.discard(level)
-    if expected_levels:
-        raise AssertionError(
-            "Missing log markers for stage "
-            f"{stage} process {process_name}: {sorted(expected_levels)}"
-        )
+        matched_label = process.match.group(1)
+        matched_marker = process.match.group(2)
+        info = marker_map.get(matched_marker)
+        if not info:
+            continue
+        stage, process_name, level = info
+        if process_labels[process_name] != matched_label:
+            continue
+        expected[(stage, process_name)].discard(level)
+    missing = {key: sorted(levels) for key, levels in expected.items() if levels}
+    if missing:
+        raise AssertionError(f"Missing log markers: {missing}")
 
 
 def _collect_output(process, condition=None, timeout=30):
@@ -129,8 +145,4 @@ class TestLogCapture:
         response.raise_for_status()
 
         _wait_for_async_logs(run_id, timeout=30)
-        _expect_markers(debug_experiment, "web.1", "experiment", "web", [run_id])
-        _expect_markers(debug_experiment, "worker.1", "async", "worker", [run_id])
-        _expect_markers(
-            debug_experiment, "clock.1", "scheduled", "clock", [run_id, "unknown"]
-        )
+        _expect_all_markers(debug_experiment, run_id)
