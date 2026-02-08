@@ -31,6 +31,7 @@
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 - Reworked PsyNet data export to build CSVs from the Dallinger database zip using in-memory processing, and added stored module tracking/Gibbs export fields (author: Peter Harrison)
+- Added explicit postprocess location/method export options (author: Peter Harrison)
 
 ## Fixed
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)

@@ -3418,8 +3418,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 password=config.get("dashboard_password"),
                 assets=kwargs.get("assets"),
                 anonymize=anonymize,
-                legacy=True,
-                use_db_zip_export=True,
+                postprocess_location="local",
+                postprocess_method="csv",
             )
         else:
             if anonymize == "both":

@@ -1781,7 +1781,26 @@ def app_argument(func):
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
-        click.option("--legacy", is_flag=True, help="Process the export locally"),
+        click.option(
+            "--legacy",
+            is_flag=True,
+            help=(
+                "Deprecated. Equivalent to --postprocess-location local "
+                "--postprocess-method db."
+            ),
+        ),
+        click.option(
+            "--postprocess-location",
+            type=click.Choice(["remote", "local"]),
+            default=None,
+            help="Where to postprocess data; remote uses the dashboard export.",
+        ),
+        click.option(
+            "--postprocess-method",
+            type=click.Choice(["csv", "db"]),
+            default=None,
+            help="How to postprocess local exports; csv uses database.zip, db uses ORM.",
+        ),
         click.option(
             "--assets",
             default="experiment",
@@ -1889,6 +1908,8 @@ def export_(
     local=False,
     path=None,
     legacy=False,
+    postprocess_location=None,
+    postprocess_method=None,
     assets="experiment",
     anonymize="both",
     n_parallel=None,
@@ -1898,7 +1919,6 @@ def export_(
     dns_host=None,
     username=None,
     password=None,
-    use_db_zip_export: bool = False,
 ):
     """
     Export data from an experiment.
@@ -1980,8 +2000,22 @@ def export_(
     else:
         anonymize_modes = ["yes", "no"]
 
+    if legacy:
+        if postprocess_location is None:
+            postprocess_location = "local"
+        if postprocess_method is None:
+            postprocess_method = "db"
+    if postprocess_location is None:
+        postprocess_location = "remote"
+    if postprocess_method is None:
+        postprocess_method = "csv"
+    if postprocess_location == "remote" and postprocess_method != "csv":
+        raise ValueError(
+            "--postprocess-method is only applicable when --postprocess-location=local."
+        )
+
     source_code_exported = False
-    if not legacy:
+    if postprocess_location == "remote":
         experiment_url = get_experiment_url(app, server)
         params = {
             "type": "psynet",
@@ -2018,7 +2052,10 @@ def export_(
                     f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
                     f"\nResponse content: {response.content}"
                 )
-            log("You can add the --legacy flag to retry the export locally.")
+            log(
+                "You can add the --legacy flag or --postprocess-location local "
+                "to retry the export locally."
+            )
     else:
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
@@ -2037,7 +2074,7 @@ def export_(
                 dns_host,
                 username,
                 password,
-                use_db_zip_export=use_db_zip_export,
+                postprocess_method=postprocess_method,
             )
             if _export_source_code:
                 source_code_exported = True
@@ -2057,7 +2094,7 @@ def _export_(
     dns_host=None,
     username=None,
     password=None,
-    use_db_zip_export: bool = False,
+    postprocess_method: str = "csv",
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
@@ -2070,7 +2107,7 @@ def _export_(
         anonymize,
         database_zip_path,
         export_path,
-        use_db_zip_export=use_db_zip_export,
+        postprocess_method=postprocess_method,
     )
 
     if assets != "none":
@@ -2276,12 +2313,12 @@ def export_data(
     anonymize,
     database_zip_path,
     export_path,
-    use_db_zip_export: bool = False,
+    postprocess_method: str = "csv",
 ):
     subdir = "anonymous" if anonymize else "regular"
     data_path = os.path.join(export_path, subdir, "data")
 
-    if use_db_zip_export:
+    if postprocess_method == "csv":
         from psynet.experiment import get_experiment
 
         export_classes_to_skip = get_experiment().export_classes_to_skip
@@ -2291,12 +2328,14 @@ def export_data(
             scrub_pii=anonymize,
             export_classes_to_skip=export_classes_to_skip,
         )
-    else:
+    elif postprocess_method == "db":
         if not local:
             log("Populating the local database with the downloaded data.")
             populate_db_from_zip_file(database_zip_path)
 
         dump_db_to_disk(data_path, scrub_pii=anonymize)
+    else:
+        raise ValueError("postprocess_method must be either 'csv' or 'db'.")
 
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
