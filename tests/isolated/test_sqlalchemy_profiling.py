@@ -203,6 +203,7 @@ def test_profile_json_aggregation(sqlite_engine, tmp_path):
         (stat["statement"], tuple(stat["stack"]) if stat["stack"] else None): stat
         for stat in aggregated["queries"]["stats"]
     }
+    assert stats[("SELECT 1", None)]["callsite_counts"]
     assert stats[("SELECT 1", None)]["count"] == 2
     assert stats[("SELECT 2", None)]["count"] == 1
 

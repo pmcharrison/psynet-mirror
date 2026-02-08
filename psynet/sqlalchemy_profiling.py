@@ -30,16 +30,19 @@ class QueryStats:
         Normalized SQL statement.
     stack
         Optional stack trace identifying the callsite.
+    callsite_counts
+        Counts of execution callsites observed for this statement.
     """
 
     statement: str
     stack: Optional[Tuple[str, ...]]
+    callsite_counts: Dict[str, int] = field(default_factory=dict)
     count: int = 0
     total_ms: float = 0.0
     min_ms: float = float("inf")
     max_ms: float = 0.0
 
-    def add(self, duration_ms: float) -> None:
+    def add(self, duration_ms: float, callsite: Optional[str] = None) -> None:
         self.count += 1
         self.total_ms += duration_ms
         if self.count == 1:
@@ -47,6 +50,8 @@ class QueryStats:
         else:
             self.min_ms = min(self.min_ms, duration_ms)
         self.max_ms = max(self.max_ms, duration_ms)
+        if callsite:
+            self.callsite_counts[callsite] = self.callsite_counts.get(callsite, 0) + 1
 
     @property
     def mean_ms(self) -> float:
@@ -129,6 +134,7 @@ class SQLAlchemyQueryProfiler:
         engine: Engine,
         *,
         capture_stack: bool = False,
+        capture_callsite: bool = True,
         stack_depth: int = 6,
         min_duration_ms: float = 0.0,
         normalize_sql: bool = True,
@@ -136,6 +142,7 @@ class SQLAlchemyQueryProfiler:
     ) -> None:
         self.engine = engine
         self._capture_stack = capture_stack
+        self._capture_callsite = capture_callsite
         self._stack_depth = stack_depth
         self._min_duration_ms = min_duration_ms
         self._normalize_sql = normalize_sql
@@ -290,6 +297,7 @@ class SQLAlchemyQueryProfiler:
             {
                 "statement": stat.statement,
                 "stack": list(stat.stack) if stat.stack else None,
+                "callsite_counts": dict(stat.callsite_counts),
                 "count": stat.count,
                 "total_ms": stat.total_ms,
                 "min_ms": stat.min_ms,
@@ -377,6 +385,8 @@ class SQLAlchemyQueryProfiler:
         context._psynet_query_start_time = perf_counter()
         if self._capture_stack:
             context._psynet_query_stack = _build_stack(self._stack_depth)
+        if self._capture_callsite:
+            context._psynet_query_callsite = _execution_callsite()
 
     def _after_cursor_execute(
         self, conn, cursor, statement, parameters, context, executemany
@@ -397,13 +407,14 @@ class SQLAlchemyQueryProfiler:
             if self._capture_stack
             else None
         )
+        callsite = getattr(context, "_psynet_query_callsite", None)
         key = (statement_text, stack)
         with self._lock:
             stat = self._stats.get(key)
             if stat is None:
                 stat = QueryStats(statement=statement_text, stack=stack)
                 self._stats[key] = stat
-            stat.add(duration_ms)
+            stat.add(duration_ms, callsite=callsite)
             self._total_count += 1
             self._total_time_ms += duration_ms
 
@@ -774,6 +785,7 @@ def _aggregate_profile_dicts(
                 existing = {
                     "statement": statement,
                     "stack": list(stack) if stack else None,
+                    "callsite_counts": {},
                     "count": 0,
                     "total_ms": 0.0,
                     "min_ms": float("inf"),
@@ -788,6 +800,10 @@ def _aggregate_profile_dicts(
             existing["total_ms"] += total_ms
             existing["min_ms"] = min(existing["min_ms"], min_ms)
             existing["max_ms"] = max(existing["max_ms"], max_ms)
+            for callsite, call_count in (stat.get("callsite_counts") or {}).items():
+                existing["callsite_counts"][callsite] = existing["callsite_counts"].get(
+                    callsite, 0
+                ) + int(call_count or 0)
 
         commits = profile.get("commits", {})
         total_commit_count += int(commits.get("total_count", 0) or 0)
@@ -958,12 +974,23 @@ def format_aggregated_html(
         statement = stat.get("statement", "")
         preview = _truncate_query(statement, query_preview_chars)
         stack_lines = stat.get("stack") or []
+        callsite_counts = stat.get("callsite_counts") or {}
         stack_html = ""
         if stack_lines:
             stack_html = (
                 "<div class='stack'><pre>"
                 + esc("\n".join(stack_lines))
                 + "</pre></div>"
+            )
+        callsite_html = ""
+        if callsite_counts:
+            callsite_html = (
+                "<div class='callsites'><strong>Callsites</strong><ul>"
+                + "".join(
+                    f"<li>{esc(site)} ({count})</li>"
+                    for site, count in _top_callsite_counts(callsite_counts)
+                )
+                + "</ul></div>"
             )
         rows.append(
             "<tr>"
@@ -976,6 +1003,7 @@ def format_aggregated_html(
             "<details>"
             f"<summary>{esc(preview)}</summary>"
             f"<pre>{esc(statement)}</pre>"
+            f"{callsite_html}"
             f"{stack_html}"
             "</details>"
             "</td>"
@@ -1071,6 +1099,12 @@ def _truncate_query(statement: str, max_chars: int) -> str:
     return statement[: max_chars - 3] + "..."
 
 
+def _top_callsite_counts(callsite_counts: Dict[str, int], limit: int = 5):
+    return sorted(callsite_counts.items(), key=lambda item: item[1], reverse=True)[
+        :limit
+    ]
+
+
 def _commit_snapshot(session: SASession) -> Tuple[int, int, int]:
     return (len(session.new), len(session.dirty), len(session.deleted))
 
@@ -1094,7 +1128,7 @@ def _classify_commit(snapshot: Optional[Tuple[int, int, int]]) -> str:
     return "+".join(parts)
 
 
-def _commit_callsite() -> str:
+def _execution_callsite() -> str:
     stack = traceback.extract_stack()
     filtered = []
     for frame in stack:
@@ -1117,3 +1151,7 @@ def _commit_callsite() -> str:
             continue
         return f"{frame.filename}:{frame.lineno} in {frame.name}"
     return f"{fallback.filename}:{fallback.lineno} in {fallback.name}"
+
+
+def _commit_callsite() -> str:
+    return _execution_callsite()
