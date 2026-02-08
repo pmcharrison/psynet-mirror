@@ -65,6 +65,7 @@ def _collect_output(process, condition=None, timeout=30):
 class TestLogCapture:
     def test_log_capture(self, debug_experiment):
         launch_output = debug_experiment.before or ""
+        launch_output += _collect_output(debug_experiment, timeout=5)
         _assert_markers(launch_output, "web.1", "launch", "web")
 
         base_url = get_experiment_url()
