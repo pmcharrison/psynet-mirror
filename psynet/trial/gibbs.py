@@ -74,8 +74,8 @@ class GibbsTrial(ChainTrial):
     __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
     resample_free_parameter = True
-    initial_vector = Column(PythonList)
-    updated_vector = Column(PythonList)
+    _initial_vector = Column("initial_vector", PythonList)
+    _updated_vector = Column("updated_vector", PythonList)
 
     def choose_reverse_scale(self):
         return bool(random.randint(0, 1))
@@ -128,6 +128,14 @@ class GibbsTrial(ChainTrial):
         return definition
 
     @property
+    def initial_vector(self):
+        if self._initial_vector is not None:
+            return self._initial_vector
+        if self.definition is None:
+            return None
+        return self.definition.get("vector")
+
+    @property
     @extra_var(__extra_vars__)
     def initial_index(self):
         return self.definition["initial_index"]
@@ -142,14 +150,27 @@ class GibbsTrial(ChainTrial):
     def reverse_scale(self):
         return self.definition["reverse_scale"]
 
+    @property
+    def updated_vector(self):
+        if self._updated_vector is not None:
+            return self._updated_vector
+        if self.answer is None or self.initial_vector is None:
+            return None
+        updated_vector = list(self.initial_vector)
+        updated_vector[self.active_index] = self.answer
+        return updated_vector
+
     def on_finalized(self):
-        self.initial_vector = list(self.definition["vector"])
+        if self.definition is None:
+            self._initial_vector = None
+        else:
+            self._initial_vector = list(self.definition["vector"])
         if self.answer is None:
-            self.updated_vector = None
+            self._updated_vector = None
         else:
             updated_vector = list(self.initial_vector)
             updated_vector[self.active_index] = self.answer
-            self.updated_vector = updated_vector
+            self._updated_vector = updated_vector
         super().on_finalized()
 
 
