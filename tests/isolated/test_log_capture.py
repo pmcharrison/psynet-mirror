@@ -42,14 +42,16 @@ def _collect_output(process, condition=None, timeout=30):
         process.timeout = 0.5
         try:
             chunk = process.read(1000000)
-            if chunk:
-                output.append(chunk)
         except pexpect.TIMEOUT:
-            pass
+            chunk = process.before
         except pexpect.EOF:
-            break
+            chunk = process.before
         finally:
             process.timeout = old_timeout
+        if chunk:
+            output.append(chunk)
+            if isinstance(chunk, str):
+                process.before = ""
         if condition and condition():
             break
         time.sleep(0.1)
