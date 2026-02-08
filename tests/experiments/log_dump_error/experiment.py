@@ -10,6 +10,10 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         MainConsent(),
         InfoPage("Starting log dump error test", time_estimate=1),
-        CodeBlock(lambda participant: participant.var.set("broken", undefined_var)),
+        CodeBlock(
+            lambda participant: participant.var.set(
+                "broken", undefined_var  # noqa: F821
+            )
+        ),
         InfoPage("This page should never be reached", time_estimate=1),
     )

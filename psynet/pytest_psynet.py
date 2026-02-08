@@ -138,8 +138,6 @@ def pytest_runtest_makereport(item, call):
     report = outcome.get_result()
     if not report.failed:
         return
-    if getattr(item, "_psynet_logs_dumped", False):
-        return
 
     process = None
     funcargs = getattr(item, "funcargs", {})
@@ -151,8 +149,7 @@ def pytest_runtest_makereport(item, call):
     if process is None:
         return
 
-    _dump_debug_logs(process, nodeid=item.nodeid)
-    item._psynet_logs_dumped = True
+    process._psynet_log_dump_requested = item.nodeid
 
 
 ci_only = pytest.mark.skipif(
@@ -563,6 +560,14 @@ def debug_experiment(
             flush_output(p, timeout=0.1)
         except (IOError, pexpect.exceptions.EOF):
             pass
+        log_dump_nodeid = getattr(p, "_psynet_log_dump_requested", None)
+        if log_dump_nodeid and not getattr(p, "_psynet_logs_dumped", False):
+            try:
+                flush_output(p, timeout=1.0)
+            except (IOError, pexpect.exceptions.EOF):
+                pass
+            _dump_debug_logs(p, nodeid=log_dump_nodeid)
+            p._psynet_logs_dumped = True
         if isinstance(p, popen_spawn.PopenSpawn):
             terminate_popen_spawn(p, timeout=5)
         else:
