@@ -55,6 +55,10 @@ from .utils import clear_all_caches, wait_until
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
+_LOG_DUMP_HEADER = "===== PsyNet debug logs (tail) ====="
+_LOG_DUMP_FOOTER = "===== End PsyNet debug logs ====="
+_LOG_DUMP_MAX_LINES = 200
+
 
 class _LogCapture:
     def __init__(self, *streams):
@@ -76,6 +80,79 @@ class _LogCapture:
 
     def getvalue(self):
         return "".join(self._buffer)
+
+
+def _tail_lines(text, max_lines=_LOG_DUMP_MAX_LINES):
+    lines = text.splitlines()
+    if len(lines) > max_lines:
+        lines = lines[-max_lines:]
+    return "\n".join(lines)
+
+
+def _drain_process_output(process, timeout=0.5):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            chunk = process.read_nonblocking(size=100000, timeout=0)
+        except (pexpect.TIMEOUT, pexpect.EOF):
+            break
+        if not chunk:
+            break
+
+
+def _get_log_capture(process):
+    if hasattr(process, "_psynet_log_capture"):
+        return process._psynet_log_capture
+    logfile = getattr(process, "logfile", None)
+    if isinstance(logfile, _LogCapture):
+        return logfile
+    return None
+
+
+def _dump_debug_logs(process, nodeid=None):
+    try:
+        _drain_process_output(process)
+    except Exception:
+        pass
+
+    log_capture = _get_log_capture(process)
+    if log_capture is None:
+        return
+
+    output = log_capture.getvalue()
+    header = _LOG_DUMP_HEADER
+    if nodeid:
+        header = f"{header} {nodeid}"
+
+    print(f"\n{header}")
+    if output:
+        print(_tail_lines(output))
+    else:
+        print("No log output captured.")
+    print(_LOG_DUMP_FOOTER)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    if not report.failed:
+        return
+    if getattr(item, "_psynet_logs_dumped", False):
+        return
+
+    process = None
+    funcargs = getattr(item, "funcargs", {})
+    if funcargs:
+        process = funcargs.get("debug_experiment") or funcargs.get(
+            "debug_server_process"
+        )
+
+    if process is None:
+        return
+
+    _dump_debug_logs(process, nodeid=item.nodeid)
+    item._psynet_logs_dumped = True
 
 
 ci_only = pytest.mark.skipif(
@@ -447,6 +524,7 @@ def debug_experiment(
     patch_pexpect_error_reporter(p)
     log_capture = _LogCapture(sys.stdout)
     p.logfile = log_capture
+    p._psynet_log_capture = log_capture
     p.timeout = timeout
 
     try:
