@@ -127,25 +127,15 @@ class GibbsTrial(ChainTrial):
 
         return definition
 
-    @staticmethod
-    def _initial_vector_from_definition(definition):
-        if definition is None:
-            return None
-        return definition.get("initial_vector", definition.get("vector"))
-
     @classmethod
     def _compute_updated_vector(cls, definition, answer, active_index):
-        assert definition is not None, "updated_vector requires a definition."
-        assert answer is not None, "updated_vector requires an answer."
-        assert active_index is not None, "updated_vector requires active_index."
-        initial_vector = cls._initial_vector_from_definition(definition)
-        assert (
-            initial_vector is not None
-        ), "updated_vector requires initial_vector in definition."
+        assert definition is not None
+        assert answer is not None
+        assert active_index is not None
+        initial_vector = definition.get("initial_vector", definition.get("vector"))
+        assert initial_vector is not None
         updated_vector = list(initial_vector)
-        assert (
-            0 <= active_index < len(updated_vector)
-        ), "updated_vector requires active_index within initial_vector."
+        assert 0 <= active_index < len(updated_vector)
         updated_vector[active_index] = answer
         return updated_vector
 
