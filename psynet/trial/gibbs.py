@@ -140,6 +140,12 @@ class GibbsTrial(ChainTrial):
         return updated_vector
 
     @property
+    def initial_vector(self):
+        if self.definition is None:
+            return None
+        return self.definition.get("initial_vector", self.definition.get("vector"))
+
+    @property
     @extra_var(__extra_vars__)
     def initial_index(self):
         return self.definition["initial_index"]
@@ -315,10 +321,8 @@ class GibbsNode(ChainNode):
         self.var.summarize_trials_used = [t.id for t in trials]
         active_index = trials[0].active_index
         initial_index = trials[0].initial_index
-        updated_vectors = [
-            self._compute_updated_vector(t.definition, t.answer, t.active_index)
-            for t in trials
-        ]
+        updated_vectors = [t.updated_vector for t in trials]
+        assert all(vector is not None for vector in updated_vectors)
         observations = [vector[active_index] for vector in updated_vectors]
 
         summary = self.summarize_trial_dimension(observations)

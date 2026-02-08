@@ -184,9 +184,7 @@ class MediaGibbsTrial(GibbsTrial):
     def show_trial(self, experiment, participant):
         self._validate()
 
-        initial_vector = self.definition.get(
-            "initial_vector", self.definition.get("vector")
-        )
+        initial_vector = self.initial_vector
         assert initial_vector is not None
         start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
@@ -451,9 +449,7 @@ class AudioGibbsTrial(MediaGibbsTrial):
     def show_trial(self, experiment, participant):
         self._validate()
 
-        initial_vector = self.definition.get(
-            "initial_vector", self.definition.get("vector")
-        )
+        initial_vector = self.initial_vector
         assert initial_vector is not None
         start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
@@ -511,9 +507,7 @@ class ImageGibbsTrial(MediaGibbsTrial):
                 "<continuous_updates> can only equal <True> if <disable_slider_on_change> is 'never'."
             )
 
-        initial_vector = self.definition.get(
-            "initial_vector", self.definition.get("vector")
-        )
+        initial_vector = self.initial_vector
         assert initial_vector is not None
         start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
@@ -574,9 +568,7 @@ class HtmlGibbsTrial(MediaGibbsTrial):
                 "<continuous_updates> can only equal <True> if <disable_slider_on_change> is 'never'."
             )
 
-        initial_vector = self.definition.get(
-            "initial_vector", self.definition.get("vector")
-        )
+        initial_vector = self.initial_vector
         assert initial_vector is not None
         start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
@@ -632,9 +624,7 @@ class VideoGibbsTrial(MediaGibbsTrial):
     def show_trial(self, experiment, participant):
         self._validate()
 
-        initial_vector = self.definition.get(
-            "initial_vector", self.definition.get("vector")
-        )
+        initial_vector = self.initial_vector
         assert initial_vector is not None
         start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
