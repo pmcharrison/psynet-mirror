@@ -103,6 +103,7 @@ class TestExport:
             assert set(decoded) == {
                 "active_index",
                 "initial_index",
+                "initial_vector",
                 "reverse_scale",
                 "vector",
             }
@@ -110,6 +111,7 @@ class TestExport:
             assert decoded["initial_index"] == trials["initial_index"][0]
             assert decoded["reverse_scale"] == trials["reverse_scale"][0]
             assert decoded["vector"] == json.loads(trials["vector"][0])
+            assert decoded["initial_vector"] == json.loads(trials["initial_vector"][0])
 
         except JSONDecodeError:
             raise ValueError(
