@@ -32,6 +32,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Fixed
+- Stabilized PopenSpawn-based test runs by waiting for launch via Redis and reaping bot subprocesses to prevent CI hangs (author: Peter Harrison)
 - Fixed forkpty() deprecation warning in Python 3.13+ by replacing pexpect.spawn with pexpect.popen_spawn.PopenSpawn in test fixtures and utility functions. This avoids the deadlock risk when using forkpty() in multi-threaded processes (author: Cursor Agent, reviewer: Peter Harrison)
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)

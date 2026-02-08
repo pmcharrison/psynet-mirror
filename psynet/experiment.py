@@ -84,6 +84,7 @@ from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
 from .participant import Participant
+from .pexpect_utils import finalize_popen_spawn
 from .recruiters import CapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import StagingCapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import (  # noqa: F401
@@ -1371,17 +1372,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         while waiting_for_processes:
             for process, process_id, bot_id in zip(processes, process_ids, bot_ids):
+                if process_id in finished_processes:
+                    continue
                 try:
                     while True:
-                        output = (
-                            process.read_nonblocking(size=100000, timeout=0)
-                            .decode()
-                            .strip()
-                            .split("\n")
-                        )
-                        for line in output:
-                            line.replace("INFO:root:", "")
-                            logger.info(f"(Bot {bot_id}) " + line)
+                        chunk = process.read_nonblocking(size=100000, timeout=0)
+                        if not chunk:
+                            break
+                        if isinstance(chunk, bytes):
+                            output = chunk.decode("utf-8", errors="replace")
+                        else:
+                            output = chunk
+                        for line in output.splitlines():
+                            line = line.strip()
+                            if not line:
+                                continue
+                            line = line.replace("INFO:root:", "")
+                            logger.info(f"(Bot {bot_id}) {line}")
 
                             testing_stats.update_from_line(bot_id, line)
 
@@ -1389,7 +1396,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 except pexpect.TIMEOUT:
                     pass
                 except pexpect.EOF:
-                    assert process.exitstatus == 0
+                    exit_code = finalize_popen_spawn(process)
+                    if exit_code not in (0, None):
+                        raise AssertionError(
+                            f"Bot {bot_id} exited with status {exit_code}"
+                        )
+                    finished_processes.add(process_id)
+                    continue
+
+                if hasattr(process, "proc") and process.proc.poll() is not None:
+                    exit_code = finalize_popen_spawn(process)
+                    if exit_code not in (0, None):
+                        raise AssertionError(
+                            f"Bot {bot_id} exited with status {exit_code}"
+                        )
                     finished_processes.add(process_id)
 
             if len(finished_processes) == n_processes:

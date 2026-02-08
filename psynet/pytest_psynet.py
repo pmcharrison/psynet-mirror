@@ -2,7 +2,6 @@ import datetime
 import logging
 import os
 import re
-import signal
 import subprocess
 import sys
 import tempfile
@@ -37,7 +36,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
 from psynet.asset import filter_botocore_deprecation_warnings
 from psynet.participant import Participant
-from psynet.pexpect_utils import close_popen_spawn_streams
+from psynet.pexpect_utils import terminate_popen_spawn
 
 from .command_line import (
     clean_sys_modules,
@@ -46,7 +45,7 @@ from .command_line import (
     working_directory,
 )
 from .data import init_db
-from .experiment import get_experiment, import_local_experiment
+from .experiment import get_experiment, import_local_experiment, is_experiment_launched
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
 from .trial.main import TrialNetwork
@@ -427,7 +426,11 @@ def debug_experiment(
     p.timeout = timeout
 
     try:
-        p.expect_exact("Experiment launch complete!", timeout=timeout)
+        wait_until(
+            is_experiment_launched,
+            max_wait=timeout,
+            error_message="Experiment launch didn't finish in time",
+        )
 
         # The config file in server_working_directory has a few extra parameters
         # that we need to set in order to simulate the real experiment server as well as possible.
@@ -438,27 +441,16 @@ def debug_experiment(
     finally:
         try:
             flush_output(p, timeout=0.1)
-            if isinstance(p, popen_spawn.PopenSpawn):
-                try:
-                    p.kill(signal.SIGINT)
-                except OSError:
-                    pass
-                else:
-                    deadline = time.monotonic() + 5
-                    while p.proc.poll() is None and time.monotonic() < deadline:
-                        time.sleep(0.1)
-                    if p.proc.poll() is None:
-                        try:
-                            p.kill(signal.SIGKILL)
-                        except OSError:
-                            pass
-            else:
-                p.sendcontrol("c")
-            flush_output(p, timeout=3)
         except (IOError, pexpect.exceptions.EOF):
             pass
         if isinstance(p, popen_spawn.PopenSpawn):
-            close_popen_spawn_streams(p)
+            terminate_popen_spawn(p, timeout=5)
+        else:
+            try:
+                p.sendcontrol("c")
+                flush_output(p, timeout=3)
+            except (IOError, pexpect.exceptions.EOF):
+                pass
         kill_psynet_chrome_processes()
         kill_chromedriver_processes()
         clear_all_caches()
