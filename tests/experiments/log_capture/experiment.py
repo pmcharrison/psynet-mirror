@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from dallinger.experiment import experiment_route
@@ -9,9 +10,9 @@ from psynet.page import InfoPage
 from psynet.process import WorkerAsyncProcess
 from psynet.redis import redis_vars
 from psynet.timeline import Timeline
-from psynet.utils import get_logger
 
-logger = get_logger()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
 LOG_PREFIX = "LOG_CAPTURE"
 
