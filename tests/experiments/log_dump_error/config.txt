@@ -1,0 +1,18 @@
+[Config]
+title = Log dump error test
+description = Log dump error test experiment
+contact_email_on_error = test@example.com
+organization_name = Test Org
+
+recruiter = generic
+currency = $
+wage_per_hour = 12.0
+
+num_dynos_web = 1
+num_dynos_worker = 0
+clock_on = true
+
+[Prolific]
+auto_recruit = false
+prolific_estimated_completion_minutes = 1
+base_payment = 0.10

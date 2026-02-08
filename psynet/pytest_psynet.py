@@ -516,6 +516,7 @@ def debug_experiment(
         ["psynet", "debug", "local", "--legacy", "--no-browsers"],
         env={
             **env,
+            "PASSTHROUGH_ERRORS": "True",
             "dashboard_user": "test_admin",
             "dashboard_password": "test_password",
         },

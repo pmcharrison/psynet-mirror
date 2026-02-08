@@ -15,11 +15,11 @@ def test_debug_logs_dumped_on_failure(pytester):
 
             @pytest.mark.parametrize(
                 "experiment_directory",
-                [path_to_test_experiment("timeline")],
+                [path_to_test_experiment("log_dump_error")],
                 indirect=True,
             )
-            def test_failure(debug_experiment):
-                raise AssertionError("Intentional failure")
+            def test_failure(launched_experiment):
+                launched_experiment.test_experiment()
             """
         )
     )
@@ -29,6 +29,7 @@ def test_debug_logs_dumped_on_failure(pytester):
     result.stdout.fnmatch_lines(
         [
             "*PsyNet debug logs (tail)*",
-            "*Experiment launch complete!*",
+            "*Traceback (most recent call last):*",
+            "*NameError: name 'undefined_var' is not defined*",
         ]
     )
