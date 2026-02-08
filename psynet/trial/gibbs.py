@@ -321,14 +321,16 @@ class GibbsNode(ChainNode):
         self.var.summarize_trials_used = [t.id for t in trials]
         active_index = trials[0].active_index
         initial_index = trials[0].initial_index
-        updated_vectors = [t.updated_vector for t in trials]
-        assert all(vector is not None for vector in updated_vectors)
-        observations = [vector[active_index] for vector in updated_vectors]
+        answers = [t.answer for t in trials]
+        assert all(answer is not None for answer in answers)
+        observations = answers
 
         summary = self.summarize_trial_dimension(observations)
         self.var.summarize_trials_output = summary
 
-        vector = list(updated_vectors[0])
+        initial_vector = trials[0].initial_vector
+        assert initial_vector is not None
+        vector = list(initial_vector)
         vector[active_index] = summary
 
         return {
