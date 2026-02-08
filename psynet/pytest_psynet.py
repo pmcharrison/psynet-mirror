@@ -447,16 +447,22 @@ def debug_experiment(
                 pass
             time.sleep(0.1)
 
-        try:
-            while True:
-                chunk = p.read_nonblocking(size=100000, timeout=0)
-                if not chunk:
-                    break
-                if isinstance(chunk, bytes):
-                    chunk = chunk.decode("utf-8", errors="replace")
-                launch_output.append(chunk)
-        except pexpect.TIMEOUT:
-            pass
+        post_deadline = time.monotonic() + 1.0
+        while time.monotonic() < post_deadline:
+            drained = False
+            try:
+                while True:
+                    chunk = p.read_nonblocking(size=100000, timeout=0)
+                    if not chunk:
+                        break
+                    drained = True
+                    if isinstance(chunk, bytes):
+                        chunk = chunk.decode("utf-8", errors="replace")
+                    launch_output.append(chunk)
+            except pexpect.TIMEOUT:
+                pass
+            if not drained:
+                time.sleep(0.05)
 
         p.before = "".join(launch_output)
         if not is_experiment_launched():
