@@ -466,7 +466,7 @@ def debug_experiment(
                 pass
             time.sleep(0.1)
 
-        post_deadline = time.monotonic() + 1.0
+        post_deadline = time.monotonic() + 5.0
         while time.monotonic() < post_deadline:
             drained = False
             try:
@@ -476,6 +476,8 @@ def debug_experiment(
                     drained = True
             except pexpect.TIMEOUT:
                 pass
+            if "Experiment launch complete!" in log_capture.getvalue():
+                break
             if not drained:
                 time.sleep(0.05)
 
