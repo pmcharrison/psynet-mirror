@@ -458,30 +458,18 @@ def debug_experiment(
                 break
             if time.monotonic() > deadline:
                 raise RuntimeError("Experiment launch didn't finish in time")
-            try:
-                while True:
-                    if not p.read_nonblocking(size=100000, timeout=0):
-                        break
-            except pexpect.TIMEOUT:
-                pass
             time.sleep(0.1)
 
-        post_deadline = time.monotonic() + 5.0
-        while time.monotonic() < post_deadline:
-            drained = False
-            try:
-                while True:
-                    if not p.read_nonblocking(size=100000, timeout=0):
-                        break
-                    drained = True
-            except pexpect.TIMEOUT:
-                pass
-            if "Experiment launch complete!" in log_capture.getvalue():
-                break
-            if not drained:
-                time.sleep(0.05)
+        old_timeout = p.timeout
+        p.timeout = 0.5
+        try:
+            p.read(1000000)
+        except pexpect.TIMEOUT:
+            pass
+        finally:
+            p.timeout = old_timeout
 
-        p.before = log_capture.getvalue()
+        p.before = p.before or log_capture.getvalue()
         if not is_experiment_launched():
             raise RuntimeError("Experiment launch didn't finish in time")
 
