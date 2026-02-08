@@ -1793,13 +1793,19 @@ def export_arguments(func):
             "--postprocess-location",
             type=click.Choice(["remote", "local"]),
             default=None,
-            help="Where to postprocess data; remote uses the dashboard export.",
+            help=(
+                "Where to postprocess data; remote uses the dashboard export. "
+                "Defaults to remote."
+            ),
         ),
         click.option(
             "--postprocess-method",
             type=click.Choice(["csv", "db"]),
             default=None,
-            help="How to postprocess local exports; csv uses database.zip, db uses ORM.",
+            help=(
+                "How to postprocess local exports; csv uses database.zip, db uses ORM. "
+                "Defaults to csv."
+            ),
         ),
         click.option(
             "--assets",
