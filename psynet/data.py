@@ -465,7 +465,11 @@ def dump_db_to_disk_from_zip(
                 for key in ["client_ip_address", "worker_id"]:
                     row.pop(key, None)
 
-            field.json_clean(row, details=True)
+            field.json_clean(
+                row,
+                details="details" in row,
+                contents="contents" in row,
+            )
             field.json_format_vars(row)
 
             for key, value in list(row.items()):
