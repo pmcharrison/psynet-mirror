@@ -15,6 +15,7 @@ LEVELS = ("info", "warning", "error", "critical", "exception")
 
 WORKER_DONE_KEY = "log_capture_worker_done"
 CLOCK_DONE_KEY = "log_capture_clock_done"
+EXPERIMENT_DONE_KEY = "log_capture_experiment_done"
 
 
 def _marker(stage, process, level):
@@ -63,8 +64,10 @@ def _collect_output(process, condition=None, timeout=30):
 def _wait_for_async_logs(timeout=30):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        if redis_vars.get(WORKER_DONE_KEY, False) and redis_vars.get(
-            CLOCK_DONE_KEY, False
+        if (
+            redis_vars.get(EXPERIMENT_DONE_KEY, False)
+            and redis_vars.get(WORKER_DONE_KEY, False)
+            and redis_vars.get(CLOCK_DONE_KEY, False)
         ):
             return
         time.sleep(0.1)
