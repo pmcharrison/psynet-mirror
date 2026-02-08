@@ -35,6 +35,7 @@ from flask.templating import Environment, _render
 from pexpect import popen_spawn
 from sqlalchemy import or_
 
+from psynet.pexpect_utils import wait_and_collect_output
 from psynet.translation.utils import load_po
 
 package_root = os.path.dirname(os.path.abspath(__file__))
@@ -906,19 +907,8 @@ def run_subprocess_with_live_output(command, timeout=None, cwd=None):
         cwd=cwd,
     )
 
-    try:
-        p.expect(pexpect.EOF, timeout=timeout)
-    except pexpect.exceptions.TIMEOUT:
-        pass
-
-    # Read any remaining buffered output
-    output = p.before.decode("utf-8") if p.before else ""
+    output = wait_and_collect_output(p, timeout=timeout)
     print(output, end="")
-
-    p.wait()
-    for stream in (p.proc.stdin, p.proc.stdout, p.proc.stderr):
-        if stream and not stream.closed:
-            stream.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)
 

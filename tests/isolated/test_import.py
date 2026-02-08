@@ -1,7 +1,8 @@
 import shlex
 
-import pexpect.exceptions
 from pexpect import popen_spawn
+
+from psynet.pexpect_utils import wait_and_collect_output
 
 
 def test_import():
@@ -17,20 +18,8 @@ def test_import():
     p = popen_spawn.PopenSpawn(shlex.split(cmd), timeout=10)
 
     # Print the output of this command
-    # PopenSpawn doesn't have eof(), so use expect() to wait for EOF
-    try:
-        p.expect(pexpect.EOF, timeout=10)
-    except pexpect.exceptions.TIMEOUT:
-        pass
-
-    # Read any remaining buffered output
-    output = p.before.decode("utf-8") if p.before else ""
+    output = wait_and_collect_output(p, timeout=10)
     print(output, end="")
-
-    p.wait()
-    for stream in (p.proc.stdin, p.proc.stdout, p.proc.stderr):
-        if stream and not stream.closed:
-            stream.close()
 
     # Assert that the command ran successfully
     assert p.exitstatus == 0

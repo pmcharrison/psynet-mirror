@@ -37,6 +37,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
 from psynet.asset import filter_botocore_deprecation_warnings
 from psynet.participant import Participant
+from psynet.pexpect_utils import close_popen_spawn_streams
 
 from .command_line import (
     clean_sys_modules,
@@ -454,15 +455,10 @@ def debug_experiment(
             else:
                 p.sendcontrol("c")
             flush_output(p, timeout=3)
-            # Why do we need to call flush_output twice? Good question.
-            # Something about calling p.sendcontrol("c") seems to disrupt the log.
-            # Better to call it both before and after.
         except (IOError, pexpect.exceptions.EOF):
             pass
         if isinstance(p, popen_spawn.PopenSpawn):
-            for stream in (p.proc.stdin, p.proc.stdout, p.proc.stderr):
-                if stream and not stream.closed:
-                    stream.close()
+            close_popen_spawn_streams(p)
         kill_psynet_chrome_processes()
         kill_chromedriver_processes()
         clear_all_caches()

@@ -6,12 +6,12 @@ import tempfile
 import time
 from typing import OrderedDict
 
-import pexpect
 import polib
 from pexpect import popen_spawn
 from yaspin import yaspin
 
 from psynet.log import bold
+from psynet.pexpect_utils import wait_and_collect_output
 
 
 def new_pot(fpath):
@@ -43,20 +43,8 @@ def get_pot_from_command(cmd, tmp_pot_file, sp):
     # Split command string into list for PopenSpawn
     cmd_list = shlex.split(cmd) if isinstance(cmd, str) else cmd
     p = popen_spawn.PopenSpawn(cmd_list, timeout=timeout)
-    # PopenSpawn doesn't have eof(), so use expect() to wait for EOF
-    try:
-        p.expect(pexpect.EOF, timeout=timeout)
-    except pexpect.exceptions.TIMEOUT:
-        pass
-
-    # Read any remaining buffered output
-    output = p.before.decode("utf-8") if p.before else ""
+    output = wait_and_collect_output(p, timeout=timeout)
     sp.text = output
-
-    p.wait()
-    for stream in (p.proc.stdin, p.proc.stdout, p.proc.stderr):
-        if stream and not stream.closed:
-            stream.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)
     if os.path.exists(tmp_pot_file):
