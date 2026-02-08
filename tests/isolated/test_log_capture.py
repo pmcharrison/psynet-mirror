@@ -30,8 +30,7 @@ def _assert_markers(output, process_label, stage, process):
             missing.append(marker)
     if missing:
         raise AssertionError(
-            "Missing log markers for stage "
-            f"{stage} process {process}: {missing}"
+            "Missing log markers for stage " f"{stage} process {process}: {missing}"
         )
 
 

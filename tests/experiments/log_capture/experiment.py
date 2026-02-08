@@ -1,8 +1,8 @@
 from dallinger.experiment import experiment_route
 from dallinger.experiment_server.utils import success_response
 
+import psynet.experiment
 from psynet.db import with_transaction
-from psynet.experiment import Experiment, is_experiment_launched, scheduled_task
 from psynet.page import InfoPage
 from psynet.process import WorkerAsyncProcess
 from psynet.redis import redis_vars
@@ -38,7 +38,7 @@ def _worker_log_task():
     redis_vars.set(WORKER_DONE_KEY, True)
 
 
-class Exp(Experiment):
+class Exp(psynet.experiment.Experiment):
     label = "Log capture test"
 
     timeline = Timeline(
@@ -61,10 +61,10 @@ class Exp(Experiment):
         redis_vars.set(EXPERIMENT_DONE_KEY, True)
         return success_response()
 
-    @scheduled_task("interval", seconds=1.0, max_instances=1)
+    @psynet.experiment.scheduled_task("interval", seconds=1.0, max_instances=1)
     @staticmethod
     def log_from_clock():
-        if not is_experiment_launched():
+        if not psynet.experiment.is_experiment_launched():
             return
         if redis_vars.get(CLOCK_DONE_KEY, default=False):
             return
