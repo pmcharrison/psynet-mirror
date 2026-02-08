@@ -4,6 +4,7 @@ import io
 import os
 import shutil
 import tempfile
+from collections import defaultdict
 from typing import List, Optional
 from zipfile import ZipFile
 
@@ -264,6 +265,218 @@ def dump_db_to_disk(dir, scrub_pii: bool):
     for cls, objects in objects_by_class.items():
         filename = cls + ".csv"
         filepath = os.path.join(dir, filename)
+        with open(make_parents(filepath), "w") as file:
+            json_to_data_frame(objects).to_csv(file, index=False)
+
+
+def dump_db_to_disk_from_zip(
+    zip_path, output_dir, scrub_pii: bool, export_classes_to_skip=None
+):
+    """
+    Builds a PsyNet export from a Dallinger database.zip.
+
+    Parameters
+    ----------
+    zip_path
+        Path to the Dallinger database export zip.
+    output_dir
+        Directory to which the PsyNet CSV files should be written.
+    scrub_pii
+        Whether to remove personally identifying information.
+    export_classes_to_skip
+        Optional list of class names to omit from the export.
+    """
+    import pandas as pd
+    from jsonpickle.unpickler import loadclass
+
+    from psynet.serialize import PsyNetUnpickler, serialize, unserialize
+
+    from .utils import make_parents
+
+    if export_classes_to_skip is None:
+        try:
+            from psynet.experiment import get_experiment
+
+            export_classes_to_skip = get_experiment().export_classes_to_skip
+        except Exception:
+            export_classes_to_skip = []
+
+    base_classes_by_table = {
+        table: cls.__name__ for table, cls in sql_base_classes().items()
+    }
+
+    unpickler = PsyNetUnpickler()
+    class_cache = {}
+
+    def load_class(type_value):
+        if not type_value or not isinstance(type_value, str):
+            return None
+        if type_value in class_cache:
+            return class_cache[type_value]
+        cls = None
+        if type_value.startswith("dallinger_experiment"):
+            try:
+                cls = unpickler.get_experiment_object(type_value)
+            except Exception:
+                cls = None
+        else:
+            try:
+                cls = loadclass(type_value)
+            except Exception:
+                cls = None
+        class_cache[type_value] = cls
+        return cls
+
+    def normalize_value(value):
+        if value is None:
+            return None
+        try:
+            if pd.isna(value):
+                return None
+        except Exception:
+            pass
+        if hasattr(value, "item") and not isinstance(value, (dict, list, str, bytes)):
+            try:
+                return value.item()
+            except Exception:
+                return value
+        return value
+
+    def decode_serialized(value):
+        if value is None:
+            return None
+        if isinstance(value, (dict, list)):
+            return value
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        try:
+            return unserialize(value)
+        except Exception:
+            return None
+
+    def coerce_int(value):
+        if value is None:
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float) and value.is_integer():
+            return int(value)
+        try:
+            return int(str(value))
+        except Exception:
+            return value
+
+    def class_name_for_row(type_value, table_name):
+        if isinstance(type_value, str) and type_value:
+            return type_value.split(".")[-1]
+        return base_classes_by_table.get(table_name, table_name)
+
+    def to_visualization_type(cls, class_name, row):
+        if cls is None:
+            return class_name
+        from psynet.trial.chain import ChainNode
+        from psynet.trial.main import GenericTrialNode
+
+        degree = row.get("degree")
+        try:
+            degree = int(float(degree)) if degree is not None else None
+        except (TypeError, ValueError):
+            degree = None
+        if issubclass(cls, GenericTrialNode):
+            return "TrialSource"
+        if issubclass(cls, ChainNode) and degree == 0:
+            return "TrialSource"
+        return class_name
+
+    def unpack_field(row, field_name):
+        obj = decode_serialized(row.get(field_name))
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if key not in row:
+                    row[key] = value
+
+    def unpack_vars(row):
+        obj = decode_serialized(row.get("vars"))
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if str(key).startswith("_"):
+                    continue
+                if key not in row:
+                    row[key] = value
+
+    tables = {}
+    with ZipFile(zip_path, "r") as archive:
+        for filename in archive.namelist():
+            if not filename.startswith("data/") or not filename.endswith(".csv"):
+                continue
+            table_name = os.path.splitext(os.path.basename(filename))[0]
+            with archive.open(filename) as csv_file:
+                df = pd.read_csv(csv_file)
+            tables[table_name] = df.to_dict(orient="records")
+
+    module_locals = defaultdict(dict)
+    module_rows = tables.get("module_state", [])
+    grouped = defaultdict(lambda: defaultdict(list))
+    for row in module_rows:
+        row = {key: normalize_value(value) for key, value in row.items()}
+        participant_id = coerce_int(row.get("participant_id"))
+        module_id = row.get("module_id")
+        if participant_id is None or not module_id:
+            continue
+        vars_obj = decode_serialized(row.get("vars"))
+        if not isinstance(vars_obj, dict):
+            continue
+        grouped[participant_id][module_id].append((row.get("time_started"), vars_obj))
+
+    for participant_id, module_groups in grouped.items():
+        for module_id, entries in module_groups.items():
+            entries.sort(key=lambda entry: str(entry[0]))
+            for index, (_, vars_obj) in enumerate(entries):
+                prefix = f"{module_id}__" if index == 0 else f"{module_id}__{index}__"
+                for key, value in vars_obj.items():
+                    if str(key).startswith("_"):
+                        continue
+                    module_locals[participant_id][prefix + key] = value
+
+    objects_by_class = defaultdict(list)
+    for table_name, rows in tables.items():
+        base_class_name = base_classes_by_table.get(table_name)
+        for row in rows:
+            row = {key: normalize_value(value) for key, value in row.items()}
+            polymorphic_type = row.get("type")
+            class_name = class_name_for_row(polymorphic_type, table_name)
+            if class_name in export_classes_to_skip:
+                continue
+
+            if table_name == "participant":
+                participant_id = coerce_int(row.get("id"))
+                row.update(module_locals.get(participant_id, {}))
+
+            unpack_vars(row)
+            unpack_field(row, "definition")
+            unpack_field(row, "answer")
+
+            row["class"] = class_name
+            cls = load_class(polymorphic_type)
+            row["type"] = to_visualization_type(cls, class_name, row)
+            row["object_type"] = base_class_name or row["type"]
+
+            if scrub_pii:
+                for key in ["client_ip_address", "worker_id"]:
+                    row.pop(key, None)
+
+            field.json_clean(row, details=True)
+            field.json_format_vars(row)
+
+            for key, value in list(row.items()):
+                if not is_basic_type(value):
+                    row[key] = serialize(value)
+
+            objects_by_class[class_name].append(row)
+
+    for cls, objects in objects_by_class.items():
+        filename = cls + ".csv"
+        filepath = os.path.join(output_dir, filename)
         with open(make_parents(filepath), "w") as file:
             json_to_data_frame(objects).to_csv(file, index=False)
 

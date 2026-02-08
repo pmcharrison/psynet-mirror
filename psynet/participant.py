@@ -8,6 +8,7 @@ import tempfile
 import time
 import zipfile
 from contextlib import ExitStack
+from datetime import datetime
 from smtplib import SMTPAuthenticationError
 from typing import TYPE_CHECKING, Dict
 
@@ -35,7 +36,7 @@ from psynet.timeline import Page
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject, VarStore, extra_var
+from .field import PythonList, PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
     call_function_with_context,
@@ -216,6 +217,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     module_state = relationship(
         "ModuleState", foreign_keys=[module_state_id], post_update=True, lazy="selectin"
     )
+    module_id = Column(String)
+    started_modules = Column(PythonList)
+    finished_modules = Column(PythonList)
+    aborted_modules = Column(PythonList)
     current_trial_id = Column(Integer, ForeignKey("info.id"))
     _current_trial = relationship(
         "psynet.trial.main.Trial", foreign_keys=[current_trial_id], lazy="joined"
@@ -404,6 +409,22 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             sort_key=lambda x: x.time_started,
         )
 
+    def _sync_module_tracking(self):
+        ordered_states = sorted(
+            self._module_states,
+            key=lambda x: x.time_started or datetime.min,
+        )
+        self.started_modules = [
+            state.module_id for state in ordered_states if state.started
+        ]
+        self.finished_modules = [
+            state.module_id for state in ordered_states if state.finished
+        ]
+        self.aborted_modules = [
+            state.module_id for state in ordered_states if state.aborted
+        ]
+        self.module_id = self.module_state.module_id if self.module_state else None
+
     def select_module(self, module_id: str):
         candidates = [
             state
@@ -412,6 +433,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ]
         assert len(candidates) == 1
         self.module_state = candidates[0]
+        self._sync_module_tracking()
 
     @property
     def var(self):
@@ -443,38 +465,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
                     output[prefix + key] = value
         return output
 
-    @property
-    @extra_var(__extra_vars__)
-    def aborted_modules(self):
-        return [
-            log.module_id
-            for log in sorted(self._module_states, key=lambda x: x.time_started)
-            if log.aborted
-        ]
-
-    @property
-    @extra_var(__extra_vars__)
-    def started_modules(self):
-        return [
-            log.module_id
-            for log in sorted(self._module_states, key=lambda x: x.time_started)
-            if log.started
-        ]
-
-    @property
-    @extra_var(__extra_vars__)
-    def finished_modules(self):
-        return [
-            log.module_id
-            for log in sorted(self._module_states, key=lambda x: x.time_started)
-            if log.finished
-        ]
-
     def start_module(self, module: "Module"):
         self.check_module_not_already_started(module)
         state = module.state_class(module, self)
         state.start()
         self.module_state = state
+        self._sync_module_tracking()
 
     def check_module_not_already_started(self, module: "Module"):
         if module.id not in self.module_states:
@@ -520,16 +516,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
                 self.module_state = None
             else:
                 self.module_state = unfinished[-1]
+        self._sync_module_tracking()
 
     @property
     def in_module(self):
         return self.module_state is not None
-
-    @property
-    @extra_var(__extra_vars__)
-    def module_id(self):
-        if self.module_state:
-            return self.module_state.module_id
 
     def set_answer(self, value):
         self.answer = value
@@ -561,6 +552,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.client_ip_address = None
         self.branch_log = []
         self.total_wait_page_time = 0.0
+        self.module_id = None
+        self.started_modules = []
+        self.finished_modules = []
+        self.aborted_modules = []
 
         db.session.add(self)
 

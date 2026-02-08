@@ -2461,14 +2461,20 @@ class ModuleState(SQLBase, SQLMixin):
     def start(self):
         self.time_started = datetime.now()
         self.started = True
+        if self.participant:
+            self.participant._sync_module_tracking()
 
     def finish(self):
         self.time_finished = datetime.now()
         self.finished = True
+        if self.participant:
+            self.participant._sync_module_tracking()
 
     def abort(self):
         self.time_finished = datetime.now()
         self.aborted = True
+        if self.participant:
+            self.participant._sync_module_tracking()
 
     # def get(self, module_id: str):
     #     return self.participant.get_module_state(module_id)

@@ -3419,6 +3419,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assets=kwargs.get("assets"),
                 anonymize=anonymize,
                 legacy=True,
+                use_db_zip_export=True,
             )
         else:
             if anonymize == "both":

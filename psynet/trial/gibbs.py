@@ -6,7 +6,7 @@ from statistics import mean, median
 from sqlalchemy import Column
 from sqlalchemy.orm import declared_attr, deferred
 
-from psynet.field import _PythonList
+from psynet.field import PythonList, _PythonList
 
 from ..field import extra_var
 from ..utils import get_logger
@@ -74,6 +74,8 @@ class GibbsTrial(ChainTrial):
     __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
     resample_free_parameter = True
+    initial_vector = Column(PythonList)
+    updated_vector = Column(PythonList)
 
     def choose_reverse_scale(self):
         return bool(random.randint(0, 1))
@@ -127,11 +129,6 @@ class GibbsTrial(ChainTrial):
 
     @property
     @extra_var(__extra_vars__)
-    def initial_vector(self):
-        return self.definition["vector"]
-
-    @property
-    @extra_var(__extra_vars__)
     def initial_index(self):
         return self.definition["initial_index"]
 
@@ -145,14 +142,15 @@ class GibbsTrial(ChainTrial):
     def reverse_scale(self):
         return self.definition["reverse_scale"]
 
-    @property
-    @extra_var(__extra_vars__)
-    def updated_vector(self):
+    def on_finalized(self):
+        self.initial_vector = list(self.definition["vector"])
         if self.answer is None:
-            return None
-        new = self.initial_vector.copy()
-        new[self.active_index] = self.answer
-        return new
+            self.updated_vector = None
+        else:
+            updated_vector = list(self.initial_vector)
+            updated_vector[self.active_index] = self.answer
+            self.updated_vector = updated_vector
+        super().on_finalized()
 
 
 class GibbsNode(ChainNode):

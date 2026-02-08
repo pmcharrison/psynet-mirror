@@ -70,6 +70,8 @@ class MCMCPTrial(ChainTrial):
         definition["ordered"] = [
             {"role": role, "value": definition[role]} for role in order
         ]
+        definition["first_stimulus"] = definition["ordered"][0]["value"]
+        definition["second_stimulus"] = definition["ordered"][1]["value"]
         return definition
 
     @property

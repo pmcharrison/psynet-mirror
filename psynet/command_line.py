@@ -43,7 +43,13 @@ from psynet.version import (
 )
 
 from . import deployment_info
-from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
+from .data import (
+    drop_all_db_tables,
+    dump_db_to_disk,
+    dump_db_to_disk_from_zip,
+    ingest_zip,
+    init_db,
+)
 from .log import bold
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
@@ -1892,6 +1898,7 @@ def export_(
     dns_host=None,
     username=None,
     password=None,
+    use_db_zip_export: bool = False,
 ):
     """
     Export data from an experiment.
@@ -2030,6 +2037,7 @@ def export_(
                 dns_host,
                 username,
                 password,
+                use_db_zip_export=use_db_zip_export,
             )
             if _export_source_code:
                 source_code_exported = True
@@ -2049,6 +2057,7 @@ def _export_(
     dns_host=None,
     username=None,
     password=None,
+    use_db_zip_export: bool = False,
 ):
     """
     An internal version of the export version where argument preprocessing has been done already.
@@ -2056,7 +2065,13 @@ def _export_(
     database_zip_path = export_database(
         ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
     )
-    export_data(local, anonymize, database_zip_path, export_path)
+    export_data(
+        local,
+        anonymize,
+        database_zip_path,
+        export_path,
+        use_db_zip_export=use_db_zip_export,
+    )
 
     if assets != "none":
         experiment_assets_only = assets == "experiment"
@@ -2256,15 +2271,32 @@ def export_database(
     return database_zip_path
 
 
-def export_data(local, anonymize, database_zip_path, export_path):
+def export_data(
+    local,
+    anonymize,
+    database_zip_path,
+    export_path,
+    use_db_zip_export: bool = False,
+):
     subdir = "anonymous" if anonymize else "regular"
     data_path = os.path.join(export_path, subdir, "data")
 
-    if not local:
-        log("Populating the local database with the downloaded data.")
-        populate_db_from_zip_file(database_zip_path)
+    if use_db_zip_export:
+        from psynet.experiment import get_experiment
 
-    dump_db_to_disk(data_path, scrub_pii=anonymize)
+        export_classes_to_skip = get_experiment().export_classes_to_skip
+        dump_db_to_disk_from_zip(
+            database_zip_path,
+            data_path,
+            scrub_pii=anonymize,
+            export_classes_to_skip=export_classes_to_skip,
+        )
+    else:
+        if not local:
+            log("Populating the local database with the downloaded data.")
+            populate_db_from_zip_file(database_zip_path)
+
+        dump_db_to_disk(data_path, scrub_pii=anonymize)
 
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")

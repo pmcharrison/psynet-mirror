@@ -116,6 +116,17 @@ class TestExport:
                 f"The following exported trial definition was not valid JSON: {trials.definition[0]}"
             )
 
+        assert "initial_vector" in trials.columns
+        assert "updated_vector" in trials.columns
+        answered_trials = trials.dropna(subset=["answer"])
+        if not answered_trials.empty:
+            trial_row = answered_trials.iloc[0]
+            initial_vector = json.loads(trial_row["initial_vector"])
+            updated_vector = json.loads(trial_row["updated_vector"])
+            expected = list(initial_vector)
+            expected[int(trial_row["active_index"])] = trial_row["answer"]
+            assert updated_vector == expected
+
     def test_coins_file(self, data_dir):
         coins_file = os.path.join(data_dir, "Coin.csv")
         coins = pandas.read_csv(coins_file)
