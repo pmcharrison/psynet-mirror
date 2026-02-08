@@ -127,11 +127,22 @@ class GibbsTrial(ChainTrial):
 
         return definition
 
-    @property
-    def initial_vector(self):
-        if self.definition is None:
+    @staticmethod
+    def _initial_vector_from_definition(definition):
+        if definition is None:
             return None
-        return self.definition.get("initial_vector", self.definition.get("vector"))
+        return definition.get("initial_vector", definition.get("vector"))
+
+    @classmethod
+    def _compute_updated_vector(cls, definition, answer, active_index):
+        if answer is None:
+            return None
+        initial_vector = cls._initial_vector_from_definition(definition)
+        if initial_vector is None:
+            return None
+        updated_vector = list(initial_vector)
+        updated_vector[active_index] = answer
+        return updated_vector
 
     @property
     @extra_var(__extra_vars__)
@@ -148,23 +159,12 @@ class GibbsTrial(ChainTrial):
     def reverse_scale(self):
         return self.definition["reverse_scale"]
 
-    @property
-    def updated_vector(self):
-        if self._updated_vector is not None:
-            return self._updated_vector
-        if self.answer is None or self.initial_vector is None:
-            return None
-        updated_vector = list(self.initial_vector)
-        updated_vector[self.active_index] = self.answer
-        return updated_vector
-
     def on_finalized(self):
-        if self.answer is None:
-            self._updated_vector = None
-        else:
-            updated_vector = list(self.initial_vector)
-            updated_vector[self.active_index] = self.answer
-            self._updated_vector = updated_vector
+        self._updated_vector = self._compute_updated_vector(
+            self.definition,
+            self.answer,
+            self.active_index,
+        )
         super().on_finalized()
 
 
@@ -320,12 +320,16 @@ class GibbsNode(ChainNode):
         self.var.summarize_trials_used = [t.id for t in trials]
         active_index = trials[0].active_index
         initial_index = trials[0].initial_index
-        observations = [t.updated_vector[active_index] for t in trials]
+        updated_vectors = [
+            self._compute_updated_vector(t.definition, t.answer, t.active_index)
+            for t in trials
+        ]
+        observations = [vector[active_index] for vector in updated_vectors]
 
         summary = self.summarize_trial_dimension(observations)
         self.var.summarize_trials_output = summary
 
-        vector = trials[0].updated_vector.copy()
+        vector = list(updated_vectors[0])
         vector[active_index] = summary
 
         return {

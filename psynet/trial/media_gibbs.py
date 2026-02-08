@@ -184,7 +184,8 @@ class MediaGibbsTrial(GibbsTrial):
     def show_trial(self, experiment, participant):
         self._validate()
 
-        start_value = self.initial_vector[self.active_index]
+        initial_vector = self._initial_vector_from_definition(self.definition)
+        start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
 
         return ModularPage(
@@ -447,7 +448,8 @@ class AudioGibbsTrial(MediaGibbsTrial):
     def show_trial(self, experiment, participant):
         self._validate()
 
-        start_value = self.initial_vector[self.active_index]
+        initial_vector = self._initial_vector_from_definition(self.definition)
+        start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
         return ModularPage(
             "gibbs_audio_trial",
@@ -503,7 +505,8 @@ class ImageGibbsTrial(MediaGibbsTrial):
                 "<continuous_updates> can only equal <True> if <disable_slider_on_change> is 'never'."
             )
 
-        start_value = self.initial_vector[self.active_index]
+        initial_vector = self._initial_vector_from_definition(self.definition)
+        start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
         return ModularPage(
             f"gibbs_{self.network.modality}_trial",
@@ -562,7 +565,8 @@ class HtmlGibbsTrial(MediaGibbsTrial):
                 "<continuous_updates> can only equal <True> if <disable_slider_on_change> is 'never'."
             )
 
-        start_value = self.initial_vector[self.active_index]
+        initial_vector = self._initial_vector_from_definition(self.definition)
+        start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
         return ModularPage(
             f"gibbs_{self.network.modality}_trial",
@@ -616,7 +620,8 @@ class VideoGibbsTrial(MediaGibbsTrial):
     def show_trial(self, experiment, participant):
         self._validate()
 
-        start_value = self.initial_vector[self.active_index]
+        initial_vector = self._initial_vector_from_definition(self.definition)
+        start_value = initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
         return ModularPage(
             f"gibbs_{self.network.modality}_trial",
