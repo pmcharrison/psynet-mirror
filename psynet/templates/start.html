@@ -125,6 +125,9 @@
             }
         }
 
+        // Handle browser back/forward navigation: when the page is restored from the
+        // back/forward cache (bfcache), reset the startInProgress flag so the participant
+        // flow can restart properly, then reinitialize the flow.
         window.addEventListener("pageshow", function (event) {
             if (event.persisted) {
                 startInProgress = false;
