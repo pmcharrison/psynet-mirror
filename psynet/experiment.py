@@ -3,6 +3,7 @@ import inspect
 import json
 import os
 import re
+import shlex
 import shutil
 import signal
 import sys
@@ -57,6 +58,7 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
+from pexpect import popen_spawn
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
@@ -1356,7 +1358,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 time.sleep(self.test_parallel_stagger_interval_s)
 
             logger.info(f"Creating and running bot {bot_id}...")
-            p = pexpect.spawn(cmd, timeout=None, cwd=None)
+            # Use PopenSpawn instead of spawn to avoid forkpty() deprecation warning
+            # in Python 3.13+ multi-threaded processes.
+            cmd_list = shlex.split(cmd) if isinstance(cmd, str) else cmd
+            p = popen_spawn.PopenSpawn(cmd_list, timeout=None, cwd=None)
             processes.append(p)
 
         waiting_for_processes = True

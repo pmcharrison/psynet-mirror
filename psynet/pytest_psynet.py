@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import re
+import signal
 import subprocess
 import sys
 import tempfile
@@ -23,6 +24,7 @@ from dallinger.bots import BotBase
 from dallinger.config import get_config
 from dallinger.models import Node
 from dallinger.pytest_dallinger import flush_output
+from pexpect import popen_spawn
 from selenium.common.exceptions import (
     ElementClickInterceptedException,
     NoSuchElementException,
@@ -407,9 +409,11 @@ def debug_experiment(
     if not config.ready:
         config.load()
 
-    p = pexpect.spawn(
-        "psynet",
-        ["debug", "local", "--legacy", "--no-browsers"],
+    # Use popen_spawn instead of spawn to avoid forkpty() deprecation warning
+    # in Python 3.13+ multi-threaded processes. popen_spawn uses subprocess.Popen
+    # instead of PTY-based spawning, avoiding the deadlock risk.
+    p = popen_spawn.PopenSpawn(
+        ["psynet", "debug", "local", "--legacy", "--no-browsers"],
         env={
             **env,
             "dashboard_user": "test_admin",
@@ -433,13 +437,32 @@ def debug_experiment(
     finally:
         try:
             flush_output(p, timeout=0.1)
-            p.sendcontrol("c")
+            if isinstance(p, popen_spawn.PopenSpawn):
+                try:
+                    p.kill(signal.SIGINT)
+                except OSError:
+                    pass
+                else:
+                    deadline = time.monotonic() + 5
+                    while p.proc.poll() is None and time.monotonic() < deadline:
+                        time.sleep(0.1)
+                    if p.proc.poll() is None:
+                        try:
+                            p.kill(signal.SIGKILL)
+                        except OSError:
+                            pass
+            else:
+                p.sendcontrol("c")
             flush_output(p, timeout=3)
             # Why do we need to call flush_output twice? Good question.
             # Something about calling p.sendcontrol("c") seems to disrupt the log.
             # Better to call it both before and after.
         except (IOError, pexpect.exceptions.EOF):
             pass
+        if isinstance(p, popen_spawn.PopenSpawn):
+            for stream in (p.proc.stdin, p.proc.stdout, p.proc.stderr):
+                if stream and not stream.closed:
+                    stream.close()
         kill_psynet_chrome_processes()
         kill_chromedriver_processes()
         clear_all_caches()

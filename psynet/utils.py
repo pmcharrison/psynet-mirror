@@ -32,6 +32,7 @@ from dallinger.recruiters import _descendent_classes
 from flask import url_for
 from flask.globals import current_app
 from flask.templating import Environment, _render
+from pexpect import popen_spawn
 from sqlalchemy import or_
 
 from psynet.translation.utils import load_po
@@ -896,12 +897,28 @@ def sample_from_surface_of_unit_sphere(n_dimensions):
 
 
 def run_subprocess_with_live_output(command, timeout=None, cwd=None):
+    # Use PopenSpawn instead of spawn to avoid forkpty() deprecation warning
+    # in Python 3.13+ multi-threaded processes.
     _command = command.replace('"', '\\"').replace("'", "\\'")
-    p = pexpect.spawn(f'bash -c "{_command}"', timeout=timeout, cwd=cwd)
-    while not p.eof():
-        line = p.readline().decode("utf-8")
-        print(line, end="")
-    p.close()
+    p = popen_spawn.PopenSpawn(
+        ["bash", "-c", _command],
+        timeout=timeout,
+        cwd=cwd,
+    )
+
+    try:
+        p.expect(pexpect.EOF, timeout=timeout)
+    except pexpect.exceptions.TIMEOUT:
+        pass
+
+    # Read any remaining buffered output
+    output = p.before.decode("utf-8") if p.before else ""
+    print(output, end="")
+
+    p.wait()
+    for stream in (p.proc.stdin, p.proc.stdout, p.proc.stderr):
+        if stream and not stream.closed:
+            stream.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)
 

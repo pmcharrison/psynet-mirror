@@ -1,5 +1,6 @@
 import os
 import re
+import shlex
 import sys
 import tempfile
 import time
@@ -7,6 +8,7 @@ from typing import OrderedDict
 
 import pexpect
 import polib
+from pexpect import popen_spawn
 from yaspin import yaspin
 
 from psynet.log import bold
@@ -35,12 +37,26 @@ def load_po(po_path):
 
 def get_pot_from_command(cmd, tmp_pot_file, sp):
     """Create a pot file from a command and open."""
+    # Use PopenSpawn instead of spawn to avoid forkpty() deprecation warning
+    # in Python 3.13+ multi-threaded processes.
     timeout = 60
-    p = pexpect.spawn(cmd, timeout=timeout)
-    while not p.eof():
-        line = p.readline().decode("utf-8")
-        sp.text = line
-    p.close()
+    # Split command string into list for PopenSpawn
+    cmd_list = shlex.split(cmd) if isinstance(cmd, str) else cmd
+    p = popen_spawn.PopenSpawn(cmd_list, timeout=timeout)
+    # PopenSpawn doesn't have eof(), so use expect() to wait for EOF
+    try:
+        p.expect(pexpect.EOF, timeout=timeout)
+    except pexpect.exceptions.TIMEOUT:
+        pass
+
+    # Read any remaining buffered output
+    output = p.before.decode("utf-8") if p.before else ""
+    sp.text = output
+
+    p.wait()
+    for stream in (p.proc.stdin, p.proc.stdout, p.proc.stderr):
+        if stream and not stream.closed:
+            stream.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)
     if os.path.exists(tmp_pot_file):
