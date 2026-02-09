@@ -12,6 +12,14 @@ Both are free and work well with PsyNet.
 - **VSCode**: Download from https://code.visualstudio.com/
 - **Cursor**: Download from https://cursor.sh/
 
+.. note::
+
+    **VSCode vs Cursor**: Cursor is built on VSCode and includes AI-assisted coding features (like AI chat and code completion).
+    For PsyNet development purposes, both work equally well. VSCode is completely free and open source, while Cursor offers
+    a free tier with some limitations and paid plans for advanced AI features. Choose VSCode if you prefer the original,
+    more established editor, or Cursor if you want AI-powered development assistance. The setup instructions and functionality
+    are largely the same for both.
+
 **PyCharm** is also supported as an alternative IDE, but note that PyCharm remote debugging is currently not working (as of February 2025).
 If you choose to use PyCharm, you will need to configure it yourself; we do not provide detailed setup instructions as they may become outdated.
 
