@@ -183,11 +183,11 @@ def _dump_server_logs(server_working_directory, nodeid=None):
         level = entry.get("levelname", "UNKNOWN")
         timestamp = entry.get("asctime", "")
         message = entry.get("message", "")
+        exc_info = entry.get("exc_info")
         if timestamp:
             print(f"{timestamp} {name} {level}: {message}")
         else:
             print(f"{name} {level}: {message}")
-        exc_info = entry.get("exc_info")
         if exc_info:
             print(exc_info)
     print(_SERVER_LOG_DUMP_FOOTER)
