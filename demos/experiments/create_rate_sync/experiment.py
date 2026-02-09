@@ -106,8 +106,6 @@ class CreateRateTrial(StaticTrial):
 class Exp(psynet.experiment.Experiment):
     label = "Synchronous create and rate demo"
 
-    initial_recruitment_size = 1
-
     timeline = Timeline(
         SimpleGrouper(
             group_type="create_rate",

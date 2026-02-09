@@ -160,7 +160,6 @@ class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialM
 
 class Exp(psynet.experiment.Experiment):
     label = "Picnic"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         instructions,
