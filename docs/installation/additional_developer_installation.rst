@@ -104,7 +104,7 @@ If you haven't already done so, download PsyNet from GitLab:
 Open PsyNet in your IDE
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can open the PsyNet project in your IDE by selecting something like 'File' > 'Open Folder',
+You can open the PsyNet project in your IDE by selecting 'File' > 'Open Folder',
 then navigating to the ``psynet`` directory and selecting it.
 
 If you are using PyCharm, follow the PyCharm prompts to create a virtual environment for PsyNet.

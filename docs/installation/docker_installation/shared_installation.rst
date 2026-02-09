@@ -101,7 +101,7 @@ Step 5: Set up your IDE
 
 ### Setting up your IDE
 
-Open your IDE and click something like File > Open Folder.
+Open your IDE and click File > Open Folder.
 Select the folder that Git downloaded for you. This opens the experiment directory as a project.
 
 The first thing you should do is 'build' the experiment. The first time you build a PsyNet

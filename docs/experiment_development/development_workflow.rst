@@ -31,7 +31,7 @@ Both are free and work well with PsyNet.
 If you choose to use PyCharm, you will need to configure it yourself; we do not provide detailed setup instructions as they may become outdated.
 
 PsyNet demos come with instructions about how to configure your IDE.
-The most important steps are (a) opening the experiment directory as a project (something like File > Open Folder),
+The most important steps are (a) opening the experiment directory as a project (File > Open Folder),
 and (b) configuring your Python interpreter if needed. The instructions depend on whether you are using
 Docker or not. See ``docs/INSTALL.md`` in your PsyNet demo for these instructions.
 

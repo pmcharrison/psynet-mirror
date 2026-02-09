@@ -14,7 +14,7 @@ and named this new directory ``my-audio``.
 It's best if you put this somewhere outside your PsyNet package installation directory;
 for example, you could put in a new folder called ``~/psynet-experiments``.
 The first step is then to open this directory in your IDE.
-Click something like File > Open in your IDE, then select your project folder.
+Click File > Open in your IDE, then select your project folder.
 If asked, click New Window.
 
 The next step depends on whether you are using the Docker mode for running PsyNet,

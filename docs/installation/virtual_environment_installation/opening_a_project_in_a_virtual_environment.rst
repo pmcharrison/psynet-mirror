@@ -1,4 +1,4 @@
-To open a project in your IDE (e.g. a demo), click something like 'File' > 'Open Folder',
+To open a project in your IDE (e.g. a demo), click 'File' > 'Open Folder',
 then navigate to the directory containing the project, select the project folder, and click 'Open'.
 
 You can create a virtual environment and install the required packages by running the following commands:
