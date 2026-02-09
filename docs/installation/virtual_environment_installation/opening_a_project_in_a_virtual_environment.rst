@@ -1,27 +1,21 @@
 To open a project in your IDE (e.g. a demo), click something like 'File' > 'Open Folder',
 then navigate to the directory containing the project, select the project folder, and click 'Open'.
 
-You can create a virtual environment and install the required packages by running the following command:
+You can create a virtual environment and install the required packages by running the following commands:
+
+.. code-block:: bash
+
+    uv venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    uv pip install -r constraints.txt
 
 .. note::
 
     This workflow creates an isolated virtual environment for each project.
     Your IDE will typically detect the virtual environment automatically when you open the project.
-
-.. note::
-
-    If you are using PyCharm, when you open a new project you should see a dialogue box that says something like
-    "File requirements.txt contains project dependencies. Would you like to create a virtual environment using it?".
-    In the dependencies field you should see a path ending in requirements.txt. Replace "requirements.txt"
-    with "constraints.txt" and then click "OK". PyCharm will then create a virtual environment for you
-    and install all the required packages. Note that PyCharm remote debugging is currently not working (as of February 2025).
-
-    .. code-block:: bash
-
-        uv venv
-        source .venv/bin/activate
-        uv pip install -r constraints.txt
-
+    If it doesn't, you may need to manually select the virtual environment's Python interpreter in your IDE's settings.
+    In most IDEs, you can do this by looking for an interpreter or Python environment selector (often in the bottom-right corner
+    or in settings/preferences), and selecting the Python executable from the ``.venv`` folder you just created.
 
 .. note::
 
@@ -35,13 +29,6 @@ You can create a virtual environment and install the required packages by runnin
     Moreover, listing these versions explicitly in constraints.txt means that when future experimenters
     come to run the experiment, they will be able to install exactly the same versions of the packages
     that we originally used.
-
-If you are using PyCharm and do not see this dialogue box, you can instead create the virtual environment by
-clicking the interpreter box in the bottom right corner of the screen (it might say something like
-'No interpreter selected' or 'Python 3.X'), then clicking 'Add new interpreter' > 'Add local interpreter'.
-Select 'Virtualenv environment', select 'New', make sure that the correct version of Python is selected,
-then press OK. PyCharm will spend some time processing this selection, but then when you open a new terminal tab it should load
-your virtual environment automatically.
 
 If you are working as a PsyNet developer, now is the moment to install PsyNet and Dallinger in development mode.
 To do this, run the following commands (assuming you have installed PsyNet and Dallinger in the default locations):
