@@ -101,12 +101,13 @@ If you haven't already done so, download PsyNet from GitLab:
     cd
     git clone https://gitlab.com/PsyNetDev/PsyNet
 
-Open PsyNet as a PyCharm project
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Open PsyNet in your IDE
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are using PyCharm, you can open the PsyNet project by selecting 'Open' from the PyCharm welcome screen,
+You can open the PsyNet project in your IDE by selecting something like 'File' > 'Open Folder',
 then navigating to the ``psynet`` directory and selecting it.
-Follow the PyCharm prompts to create a virtual environment for PsyNet.
+
+If you are using PyCharm, follow the PyCharm prompts to create a virtual environment for PsyNet.
 When prompted to choose which requirements to install from,
 select ``demos/timeline/constraints.txt``.
 This ensures that the right versions of all the PsyNet dependencies are installed

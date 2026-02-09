@@ -1,24 +1,20 @@
-To open a project in PyCharm (e.g. a demo), click 'Open' in the PyCharm welcome screen,
-then navigate to the directory containing the project, select the project, and click 'Open'.
-Alternatively, if you already have a PyCharm project open, click 'File' > 'Open', find the directory,
-select it, and click 'Open'.
+To open a project in your IDE (e.g. a demo), click something like 'File' > 'Open Folder',
+then navigate to the directory containing the project, select the project folder, and click 'Open'.
 
-When you open a new project in PyCharm, you should see a dialogue box that says something like
-"File requirements.txt contains project dependencies. Would you like to create a virtual environment using it?".
-In the dependencies field you should see a path ending in requirements.txt. Replace "requirements.txt"
-with "constraints.txt" and then click "OK". PyCharm will then create a virtual environment for you
-and install all the required packages.
+You can create a virtual environment and install the required packages by running the following command:
 
 .. note::
 
     This workflow creates an isolated virtual environment for each project.
-    PyCharm remembers which virtual environment to use for each project, and will load it automatically
-    when you open the project.
+    Your IDE will typically detect the virtual environment automatically when you open the project.
 
 .. note::
 
-    If you are not using PyCharm, you can create a virtual environment and install the required packages
-    by running the following command:
+    If you are using PyCharm, when you open a new project you should see a dialogue box that says something like
+    "File requirements.txt contains project dependencies. Would you like to create a virtual environment using it?".
+    In the dependencies field you should see a path ending in requirements.txt. Replace "requirements.txt"
+    with "constraints.txt" and then click "OK". PyCharm will then create a virtual environment for you
+    and install all the required packages. Note that PyCharm remote debugging is currently not working (as of February 2025).
 
     .. code-block:: bash
 
@@ -40,7 +36,7 @@ and install all the required packages.
     come to run the experiment, they will be able to install exactly the same versions of the packages
     that we originally used.
 
-If you do not see this PyCharm dialogue box, you can instead create the virtual environment by
+If you are using PyCharm and do not see this dialogue box, you can instead create the virtual environment by
 clicking the interpreter box in the bottom right corner of the screen (it might say something like
 'No interpreter selected' or 'Python 3.X'), then clicking 'Add new interpreter' > 'Add local interpreter'.
 Select 'Virtualenv environment', select 'New', make sure that the correct version of Python is selected,
@@ -59,12 +55,12 @@ Whenever you develop or deploy an experiment using PsyNet (assuming you are not 
 make sure you are in the appropriate virtual environment.
 You can confirm that you are in the correct virtual environment by looking at the start of your terminal prompt.
 It should look something like this: ``(my-project) your-name@your-computer-name ~ %``.
-If you have only just created your new virtual environment in PyCharm, you might need to open
+If you have only just created your new virtual environment, you might need to open
 a new terminal window for your virtual environment to be loaded.
-Your virtual environment should activate automatically when you open your project in PyCharm;
-if it does not, you can select it by clicking the interpreter box in the bottom right corner of the screen.
+Your virtual environment should activate automatically when you open your project in your IDE;
+if it does not (and you are using PyCharm), you can select it by clicking the interpreter box in the bottom right corner of the screen.
 
-Once PyCharm has finished installing the required packages, you should be able to run the experiment
+Once the required packages have been installed, you should be able to run the experiment
 with the following command:
 
 .. code-block:: bash

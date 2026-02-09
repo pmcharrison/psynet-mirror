@@ -13,11 +13,10 @@ pasted it to a new location on our computer,
 and named this new directory ``my-audio``.
 It's best if you put this somewhere outside your PsyNet package installation directory;
 for example, you could put in a new folder called ``~/psynet-experiments``.
-The first step is then to open this directory in PyCharm
-(click File, Open, then select your project, then click Open).
+The first step is then to open this directory in your IDE.
+Click something like File > Open in your IDE, then select your project folder.
 If asked, click New Window.
 
-You should then see a dialog box titled ``Creating virtual environment``.
 The next step depends on whether you are using the Docker mode for running PsyNet,
 or whether you are using the *virtual environment* mode.
 
@@ -25,14 +24,23 @@ or whether you are using the *virtual environment* mode.
 Docker mode
 -----------
 
-If you are using the Docker mode, click ``Cancel`` and then follow the instructions in ``INSTALL.md``
+If you are using the Docker mode, follow the instructions in ``INSTALL.md``
 to set up your project. You can then follow the instructions in ``RUN.md`` to run the experiment.
 
 Virtual environment mode
 ------------------------
 
-If you are using the *virtual environment* mode, you will want to use this dialog box to create a virtual environment
-for your project. The default name of this virtual environment will be the name of your folder,
+If you are using the *virtual environment* mode, you will need to create a virtual environment
+for your project. You can do this by opening a terminal in your IDE and running:
+
+.. code-block:: bash
+
+    uv venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    uv pip install -r constraints.txt
+
+If you are using PyCharm, you should see a dialog box titled ``Creating virtual environment``.
+The default name of this virtual environment will be the name of your folder,
 that normally works well. The dialog box will have selected a particular version of Python to use for this
 virtual environment (e.g. Python 3.11); have a look at this and make sure it's what you were expecting
 (we don't want really old versions of Python here because they would be incompatible with PsyNet).
@@ -43,9 +51,9 @@ When you've finished configuring these elements, press OK.
 Assuming you have internet access, PyCharm should then automatically download and install
 the experiment dependencies. This might take a few minutes.
 
-When the process is done, you should see ``Python 3.xx (<your-project-name>)`` in the bottom
+When the process is done, if you are using PyCharm you should see ``Python 3.xx (<your-project-name>)`` in the bottom
 right corner of your screen.
-If you then open a new terminal window in PyCharm, you should see ``(<your-project-name)``
+If you then open a new terminal window in your IDE, you should see ``(<your-project-name)``
 prefixed to the terminal prompt. This indicates that you are in the desired virtual environment.
 You should be able to run ``psynet --version`` in this terminal to confirm that you have
 successfully installed PsyNet.

@@ -20,25 +20,25 @@ see `version control with Git <../tutorials/version_control_with_git.html>`_
 for a PsyNet-oriented introduction to Git.
 
 
-PyCharm as an IDE
-^^^^^^^^^^^^^^^^^
+IDE Setup
+^^^^^^^^^
 
 Interactive development environments (IDE)
-help you to manage and run your source files. We particularly recommend PyCharm Professional,
-which integrates well with the development requirements of PsyNet.
-It is possible to get free educational licenses for PyCharm Professional,
-see online for details.
+help you to manage and run your source files. We recommend using **VSCode** or **Cursor** for PsyNet development.
+Both are free and work well with PsyNet.
 
-PsyNet demos come with instructions about how to configure your PyCharm IDE.
-The most important steps are (a) opening the experiment directory as a project (File > Open in PyCharm),
-and (b) configuring your Python interpreter. The instructions for the latter depend on whether you are using
+**PyCharm** is also supported as an alternative IDE, but note that PyCharm remote debugging is currently not working (as of February 2025).
+If you choose to use PyCharm, you will need to configure it yourself; we do not provide detailed setup instructions as they may become outdated.
+
+PsyNet demos come with instructions about how to configure your IDE.
+The most important steps are (a) opening the experiment directory as a project (something like File > Open Folder),
+and (b) configuring your Python interpreter if needed. The instructions depend on whether you are using
 Docker or not. See ``docs/INSTALL.md`` in your PsyNet demo for these instructions.
 
-Once you've set up your PyCharm interpreter, you will be able to see your experiment's source files
-by clicking on the File navigator on the left side of the screen.
-You will be able to interact with a bash console by clicking on the ``Terminal`` tab on the bottom of the screen,
-and with a Python console by clicking on the ``Python Console`` tab on the bottom of the screen.
-When you are writing PsyNet commands, you will probably be interacting directly with the ``Terminal`` tab.
+Once you've set up your IDE, you will be able to see your experiment's source files
+in the file explorer on the left side of the screen.
+You will be able to interact with a terminal by opening the integrated terminal in your IDE.
+When you are writing PsyNet commands, you will probably be interacting directly with the terminal.
 See `Command line <../introduction/command_line.html>`_ for an overview of PsyNet commands.
 
 
@@ -95,8 +95,8 @@ in simple Python scripts. This is because PsyNet makes heavy use of subprocesses
 which cannot easily be accessed using standard IDE breakpoints.
 Nonetheless, with a little of extra work, we can achieve the same functionality.
 
-If you are using VSCode/Cursor, we recommend using the ``psynet.debugger()`` function,
-documented below:
+For debugging, we recommend using the ``psynet.debugger()`` function,
+which works with VSCode and Cursor. This is documented below:
 
 .. autofunction:: psynet.debugger
 
