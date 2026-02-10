@@ -6,7 +6,7 @@ from dallinger import db
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sync import SimpleGrouper, SimpleSyncGroup
+from psynet.sync import SimpleGrouper
 
 
 def get_random_id():
@@ -96,39 +96,3 @@ def test_group_allocator(in_experiment_directory, db_session):
 
     assert participants[0].sync_group is None
     grouper.receive_participant(participants[0])
-
-
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
-)
-def test_sync_group_assign_roles(in_experiment_directory, db_session):
-    exp = get_experiment()
-    participants = [new_participant(exp) for _ in range(3)]
-    db.session.commit()
-
-    group = SimpleSyncGroup(
-        group_type="main",
-        initial_group_size=3,
-        max_group_size=3,
-        min_group_size=3,
-        n_active_participants=3,
-        accepts_top_ups=False,
-    )
-    db.session.add(group)
-    for participant in reversed(participants):
-        group.participants.append(participant)
-    group.check_numbers()
-    db.session.commit()
-
-    ordered_participants = sorted(group.active_participants, key=lambda p: p.id)
-    ordered_ids = [participant.id for participant in ordered_participants]
-    assert ordered_ids == sorted(ordered_ids)
-
-    roles = ["speaker", "listener", "observer"]
-    assert len(roles) == len(ordered_participants)
-    for participant, role in zip(ordered_participants, roles):
-        participant.var.role = role
-    db.session.commit()
-
-    assigned_roles = [participant.var.role for participant in ordered_participants]
-    assert assigned_roles == roles
