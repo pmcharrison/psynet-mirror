@@ -47,8 +47,11 @@ assign roles at a ``GroupBarrier`` so all group members are present:
 
 ::
 
+    import random
+
     def assign_roles(group, participants):
         roles = ["speaker", "listener", "observer"]
+        random.shuffle(roles)
         ordered = sorted(participants, key=lambda p: p.id)
         assert len(roles) == len(ordered)
         for participant, role in zip(ordered, roles):

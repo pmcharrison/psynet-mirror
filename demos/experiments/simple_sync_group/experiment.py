@@ -1,3 +1,4 @@
+import random
 from typing import List
 
 import psynet.experiment
@@ -36,6 +37,7 @@ def assign_roles(group: SyncGroup, participants: List[Participant]):
         len(participants),
         [f"member_{index}" for index in range(1, len(participants) + 1)],
     )
+    random.shuffle(roles)
     ordered_participants = sorted(participants, key=lambda p: p.id)
     if len(roles) != len(ordered_participants):
         raise ValueError(
@@ -121,7 +123,7 @@ class Exp(psynet.experiment.Experiment):
             assigned_roles = [
                 participant.var.role for participant in ordered_participants
             ]
-            assert assigned_roles == expected_roles
+            assert sorted(assigned_roles) == sorted(expected_roles)
 
         for bot in bots:
             bot.take_page()
@@ -141,7 +143,7 @@ class Exp(psynet.experiment.Experiment):
             assigned_roles = [
                 participant.var.role for participant in ordered_participants
             ]
-            assert assigned_roles == expected_roles
+            assert sorted(assigned_roles) == sorted(expected_roles)
 
         for bot in bots:
             bot.run_to_completion()
