@@ -1,6 +1,107 @@
 # CHANGELOG
 
 # [13.0.5](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.5) Release - 2026-02-12
+# Unreleased
+
+## Breaking Changes
+- Updated Dallinger dependency from v11.5.x to v12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
+#### Changed
+- Optimized experiment Dockerfiles for greater build speed. The resulting Dockerfiles no longer use a PsyNet base image.
+  To update existing experiment scripts, update PsyNet, then run `psynet update-scripts` in the experiment directory (author: Peter Harrison, reviewer: Frank Höger)
+- Removed `deploy_docker` CI job that pushed PsyNet Docker images to the GitLab registry. The `pages` job now installs PsyNet from source instead of using a pre-built Docker image. This is part of the broader deprecation of the Docker installation route.
+
+## Deprecated
+- Deprecated Docker installation route in favor of the standard virtual environment method.
+
+## Added
+- Added ``make_next_definition`` method to streamline the implementation of chain experiments.
+  We have done this in a back-compatible manner and left existing dependencies unchanged for now.
+  We have added a demo of the new approach called `chain_trial_maker`.
+  More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
+  the main PsyNet documentation.
+- Added `AGENTS.md` to help Cursor know how to run experiments locally.
+- Added 'getting started' section to documentation.
+- Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
+  to aid with configuring VSCode.
+- Added checks to catch cases where Assets are created in the wrong place.
+
+## Changed
+- Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
+- Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
+- Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
+- Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
+- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+
+## Fixed
+- Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
+- Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
+- Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
+- Added validation to ensure `ChainTrialMaker` start nodes are instances of `node_class`, preventing silent fallback to base-class behavior when subclasses are expected (author: Cursor; reviewer: Peter Harrison)
+- Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
+- Fixed `join` to accept list/tuple inputs so `join(pages)` works when assembling timeline components such as `AsyncCodeBlock` (author: Cursor, reviewer: Peter Harrison)
+- Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect Sphinx cross-reference in `MediaImitationChainTrial` docstring missing the `record` module in the path (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect Sphinx cross-references in `AudioImitationChainTrial` and `CameraImitationChainTrial` docstrings pointing to non-existent `audio_imitation_chain` and `video_imitation_chain` modules (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect type hint `mode: bool` in `deployment_info.init` that should be `mode: str` since mode values are strings like "debug", "sandbox", "live" (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect property name `self.job` in `WorkerAsyncProcess.cancel` that should be `self.redis_job`, which would cause an `AttributeError` when trying to cancel an async process (author: Cursor, reviewer: Peter Harrison)
+- Fixed resource type mismatch in `Notifier` where `"memory"` was used instead of `"ram"`, causing worker process info to be missing from RAM usage notifications (author: Cursor, reviewer: Peter Harrison)
+- Fixed indentation bug in `GroupBarrier.choose_who_to_release` where only the last participant was added to release list instead of all participants when group is below minimum size (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect octave ratio in `StretchedTimbre` docstring: should be 2.1 rather than 2.0, not 2.0 rather than 1.9 (author: Cursor, reviewer: Peter Harrison)
+- Fixed missing f-string prefix in `LucidService.remove_default_qualifications_from_survey` error message, causing literal `{response.status_code}` instead of actual values (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect Sphinx cross-references in `MediaImitationChainNode` and `CameraImitationChainNode` docstrings pointing to wrong module paths (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect `super().encode()` call in `NumpySerializer.default` for `np.bool_` types; should return `bool(obj)` like other numpy types (author: Cursor, reviewer: Peter Harrison)
+- Fixed `Participant.fail` passing wrong argument to fail routines where `experiment=self` should have been `experiment=exp` (author: Cursor, reviewer: Peter Harrison)
+- Fixed quote escaping issue in `SVGLogo.html` where nested double quotes in `onclick` handler produced invalid HTML (author: Cursor, reviewer: Peter Harrison)
+- Fixed incorrect use of `os.path.remove` instead of `os.remove` in `RecordTrial.async_post_trial` (author: Cursor, reviewer: Peter Harrison)
+- Fixed Unicode typo in `UnityPage` docstring where `Ín` used an accented character instead of ASCII `In` (author: Cursor, reviewer: Peter Harrison)
+- Fixed Unicode typo in `HouseholdIncomePerYear` demography page where `ĺess_than_10000` used a special character instead of ASCII `less_than_10000` (author: Cursor, reviewer: Peter Harrison)
+- Fixed missing `@classmethod` decorator on `_PythonList.serialize` and `_PythonDict.serialize` methods in `psynet/field.py` (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_package_name` to read metadata from the provided path (author: Cursor, reviewer: Peter Harrison)
+- Fixed bug in `VocabTrial.show_feedback` where `self.show_feedback` (the method) was checked instead of `self.trial_maker.show_feedback` (the boolean attribute), causing feedback to be shown even when disabled (author: Cursor, reviewer: Peter Harrison).
+- Fixed `Trial.cue` asset registration to deposit assets before generating keys, preventing missing `deployment_id` errors (author: Cursor; reviewer: Peter Harrison)
+- Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.
+- Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
+- Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
+- Removed unused method `generate_asset_key`.
+- Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
+- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
+- Make `get_requirement` use `pip freeze` rather than `metadata.version` to ensure that commit
+  hashes are available.
+- Improve string-matching robustness in `get_requirement` (previously substrings would match,
+  e.g. 'net' would retrieve the 'psynet' package).
+- Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
+- md5 hashing now correctly ignores files whose names begin with `.` (e.g. `.DS_Store`)
+- Fixed `linspace` to handle single-length requests without division by zero (author: Cursor Agent, reviewer: Peter Harrison).
+- Fixed `dict_to_js_vars` to serialize quotes safely and handle empty inputs (author: Cursor Agent, reviewer: Peter Harrison).
+- Fixed bug in command-line argument validation that prevented users from accessing the
+  one-app-per-server deployment route.
+- Fixed bug in the propagation of the `--update` argument to the Dallinger CLI.
+- Fixed bug in version consistency check when using a development version of PsyNet.
+- Fixed bug that was causing `get_hardware_status` to fail.
+- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies
+- Fixed `format_timedelta` to return meaningful output for zero and negative durations (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_fitting_font_size` to return the last size that fits within bounds rather than the first size that overflows (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_package_source_directory` to handle setuptools `where` lists in pyproject files (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_locales_dir_from_path` to resolve locales relative to the provided path rather than the current working directory (author: Cursor, reviewer: Peter Harrison)
+- Fixed `get_package_source_directory` to resolve paths relative to the provided package root (author: Cursor, reviewer: Peter Harrison)
+- Fixed `check_translations` to resolve the package namespace from the provided path (author: Cursor, reviewer: Peter Harrison)
+- Fixed translation validation to report missing entries before variable-mismatch checks (author: Cursor, reviewer: Peter Harrison)
+- Fixed `S3Storage.list` to honor `top` and `extension` filters (author: Cursor, reviewer: Peter Harrison)
+- Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
+- Fixed `psynet.debugger()` crashing with `RuntimeError: debugpy.listen() has already been called on this process` when hitting the breakpoint more than once per session. `debugpy.listen()` is now only called on the first invocation (author: Frank Höger)
+- Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `experiment.py`. Changed to `${fileDirname}` across all demos, tests, and the experiment template (author: Frank Höger)
+
+## Removed
+- Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `assert_all_variables_defined` helper from translation checks (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `import_module` helper from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `get_package_locales_directory` helper from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `pretty_log_dict` and `query_yes_no` helpers from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `DisableLogger` helper from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `LANGUAGES_WITHOUT_CAPITALIZATION` constant from translation checks (author: Cursor, reviewer: Peter Harrison)
+- Removed unused `format_hash` and `hash_object` helpers from utils (author: Cursor, reviewer: Peter Harrison)
+- Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
+- Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
 
 ## Updated
 - Updated Dallinger to version 11.5.5 (author: Frank Höger, reviewer: Peter Harrison)
