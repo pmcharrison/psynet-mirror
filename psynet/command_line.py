@@ -2258,6 +2258,13 @@ def _export_(
                 report, "logs_export", "failed", error=_format_exception(e)
             )
             log(f"WARNING: Failed to export logs: {e}")
+    else:
+        _record_export_step(
+            report,
+            "logs_export",
+            "skipped",
+            details={"reason": "docker_ssh disabled"},
+        )
 
     log(f"Export complete. You can find your results at: {export_path}")
     return report
