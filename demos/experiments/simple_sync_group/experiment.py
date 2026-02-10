@@ -36,16 +36,36 @@ def assign_roles(group: SyncGroup, participants: List[Participant]):
         len(participants),
         [f"member_{index}" for index in range(1, len(participants) + 1)],
     )
-    group.assign_roles(roles)
+    ordered_participants = sorted(participants, key=lambda p: p.id)
+    if len(roles) != len(ordered_participants):
+        raise ValueError(
+            f"Number of roles ({len(roles)}) must match number of participants "
+            f"({len(ordered_participants)})."
+        )
+    for participant, role in zip(ordered_participants, roles):
+        participant.var.role = role
+
+
+def format_group_message(participant: Participant) -> str:
+    ordered_participants = sorted(
+        participant.sync_group.active_participants, key=lambda p: p.id
+    )
+    participants_text = ", ".join(
+        [
+            f"{participant.id} ({participant.var.role})"
+            for participant in ordered_participants
+        ]
+    )
+    return (
+        f"You are now in group {participant.sync_group.id} with participants "
+        f"{participants_text}"
+    )
 
 
 def show_current_group():
     return PageMaker(
         lambda participant: InfoPage(
-            (
-                f"You are now in group {participant.sync_group.id} with participants "
-                f"{', '.join([f'{p.id} ({p.var.role})' for p in participant.sync_group.active_participants_ordered])}"
-            ),
+            (format_group_message(participant)),
         ),
         time_estimate=5,
     )

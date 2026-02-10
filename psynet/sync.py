@@ -668,30 +668,6 @@ class SyncGroup(SQLBase, SQLMixin):
     def active_participants(self) -> List[Participant]:
         return [p for p in self.participants if not p.failed and p.status == "working"]
 
-    @property
-    def active_participants_ordered(self) -> List[Participant]:
-        return sorted(self.active_participants, key=lambda p: p.id)
-
-    def assign_roles(self, roles: List[str], var_name: str = "role"):
-        """
-        Assign roles to active participants using a deterministic ID order.
-
-        Parameters
-        ----------
-        roles
-            Role labels to assign in order.
-        var_name
-            Participant variable name used to store the role.
-        """
-        ordered_participants = self.active_participants_ordered
-        if len(roles) != len(ordered_participants):
-            raise ValueError(
-                f"Number of roles ({len(roles)}) must match number of active participants "
-                f"({len(ordered_participants)})."
-            )
-        for participant, role in zip(ordered_participants, roles):
-            participant.var.set(var_name, role)
-
     leader = relationship(
         "psynet.participant.Participant",
         cascade="all",

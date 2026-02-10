@@ -120,17 +120,15 @@ def test_sync_group_assign_roles(in_experiment_directory, db_session):
     group.check_numbers()
     db.session.commit()
 
-    ordered_ids = [participant.id for participant in group.active_participants_ordered]
+    ordered_participants = sorted(group.active_participants, key=lambda p: p.id)
+    ordered_ids = [participant.id for participant in ordered_participants]
     assert ordered_ids == sorted(ordered_ids)
 
     roles = ["speaker", "listener", "observer"]
-    group.assign_roles(roles)
+    assert len(roles) == len(ordered_participants)
+    for participant, role in zip(ordered_participants, roles):
+        participant.var.role = role
     db.session.commit()
 
-    assigned_roles = [
-        participant.var.role for participant in group.active_participants_ordered
-    ]
+    assigned_roles = [participant.var.role for participant in ordered_participants]
     assert assigned_roles == roles
-
-    with pytest.raises(ValueError, match="Number of roles"):
-        group.assign_roles(["speaker", "listener"])
