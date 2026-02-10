@@ -32,6 +32,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 - Reworked PsyNet data export to build CSVs from the Dallinger database zip using in-memory processing, and added stored module tracking/Gibbs export fields (author: Peter Harrison)
 - Added explicit postprocess location/method export options (author: Peter Harrison)
+- Export now records per-step failures and continues where possible, writing `export_report.json` (author: Peter Harrison)
 
 ## Fixed
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)

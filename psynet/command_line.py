@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import traceback
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
@@ -2020,6 +2021,7 @@ def export_(
             "--postprocess-method is only applicable when --postprocess-location=local."
         )
 
+    export_reports = []
     source_code_exported = False
     if postprocess_location == "remote":
         experiment_url = get_experiment_url(app, server)
@@ -2039,34 +2041,68 @@ def export_(
             spinner.ok("✔")
         os.makedirs(path, exist_ok=True)
         zip_path = os.path.join(path, "data.zip")
-        if response.status_code == 200:
-            with open(zip_path, "wb") as f:
-                f.write(response.content)
-            # unzip the file
-            with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                zip_ref.extractall(path)
-            log(f"Export complete. You can find your results at: {path}")
-        else:
-            log(
-                f"Failed to export data. Response: {response.reason} ({response.status_code})"
-            )
-            try:
-                message = response.json().get("message")
-                log(f"Reason: {message}.")
-            except json.JSONDecodeError as e:
-                log(
-                    f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
-                    f"\nResponse content: {response.content}"
+        report = {
+            "postprocess_location": postprocess_location,
+            "postprocess_method": postprocess_method,
+            "steps": {},
+            "success": True,
+        }
+        try:
+            if response.status_code == 200:
+                with open(zip_path, "wb") as f:
+                    f.write(response.content)
+                # unzip the file
+                with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                    zip_ref.extractall(path)
+                _record_export_step(
+                    report,
+                    "dashboard_export",
+                    "success",
+                    details={"zip_path": zip_path},
                 )
-            log(
-                "You can add the --legacy flag or --postprocess-location local "
-                "to retry the export locally."
+                log(f"Export complete. You can find your results at: {path}")
+            else:
+                report["success"] = False
+                error_details = {
+                    "status_code": response.status_code,
+                    "reason": response.reason,
+                }
+                try:
+                    message = response.json().get("message")
+                    if message:
+                        error_details["message"] = message
+                        log(f"Reason: {message}.")
+                except json.JSONDecodeError as e:
+                    error_details["json_error"] = str(e)
+                    error_details["response_content"] = response.content.decode(
+                        errors="replace"
+                    )
+                    log(
+                        f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
+                        f"\nResponse content: {response.content}"
+                    )
+                _record_export_step(
+                    report, "dashboard_export", "failed", details=error_details
+                )
+                log(
+                    f"Failed to export data. Response: {response.reason} ({response.status_code})"
+                )
+                log(
+                    "You can add the --legacy flag or --postprocess-location local "
+                    "to retry the export locally."
+                )
+        except Exception as e:
+            report["success"] = False
+            _record_export_step(
+                report, "dashboard_export", "failed", error=_format_exception(e)
             )
+            log(f"Failed to export data: {e}")
+        export_reports.append(report)
     else:
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
             _export_source_code = not (source_code_exported or no_source)
-            _export_(
+            report = _export_(
                 ctx,
                 app,
                 local,
@@ -2082,8 +2118,15 @@ def export_(
                 password,
                 postprocess_method=postprocess_method,
             )
+            report["anonymize"] = anonymize_mode
+            export_reports.append(report)
             if _export_source_code:
                 source_code_exported = True
+
+    if export_reports:
+        report_path = _write_export_report(path, export_reports)
+        if any(not report.get("success", False) for report in export_reports):
+            log(f"Export completed with warnings. See {report_path} for details.")
 
 
 def _export_(
@@ -2105,38 +2148,119 @@ def _export_(
     """
     An internal version of the export version where argument preprocessing has been done already.
     """
-    database_zip_path = export_database(
-        ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
-    )
-    export_data(
-        local,
-        anonymize,
-        database_zip_path,
-        export_path,
-        postprocess_method=postprocess_method,
-    )
+    os.makedirs(export_path, exist_ok=True)
+    report = {
+        "postprocess_method": postprocess_method,
+        "steps": {},
+        "success": True,
+    }
 
-    if assets != "none":
-        experiment_assets_only = assets == "experiment"
-        include_on_demand_assets = assets == "all"
-        export_assets(
-            export_path,
-            anonymize,
-            experiment_assets_only,
-            include_on_demand_assets,
-            n_parallel,
-            server,
-            local,
+    database_zip_path = None
+    try:
+        database_zip_path = export_database(
+            ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
         )
+        _record_export_step(
+            report,
+            "database_export",
+            "success",
+            details={"zip_path": database_zip_path},
+        )
+    except Exception as e:
+        report["success"] = False
+        _record_export_step(
+            report, "database_export", "failed", error=_format_exception(e)
+        )
+        log(f"WARNING: Failed to export database: {e}")
+
+    if database_zip_path is None:
+        _record_export_step(
+            report,
+            "postprocess_data",
+            "skipped",
+            details={"reason": "database export failed"},
+        )
+    else:
+        try:
+            export_data(
+                local,
+                anonymize,
+                database_zip_path,
+                export_path,
+                postprocess_method=postprocess_method,
+            )
+            _record_export_step(report, "postprocess_data", "success")
+        except Exception as e:
+            report["success"] = False
+            _record_export_step(
+                report, "postprocess_data", "failed", error=_format_exception(e)
+            )
+            log(f"WARNING: Failed to postprocess data: {e}")
+
+    if assets == "none":
+        _record_export_step(
+            report, "assets_export", "skipped", details={"reason": "assets=none"}
+        )
+    else:
+        try:
+            experiment_assets_only = assets == "experiment"
+            include_on_demand_assets = assets == "all"
+            export_assets(
+                export_path,
+                anonymize,
+                experiment_assets_only,
+                include_on_demand_assets,
+                n_parallel,
+                server,
+                local,
+            )
+            _record_export_step(report, "assets_export", "success")
+        except Exception as e:
+            report["success"] = False
+            _record_export_step(
+                report, "assets_export", "failed", error=_format_exception(e)
+            )
+            log(f"WARNING: Failed to export assets: {e}")
 
     if export_source_code:
-        _export_source_code(app, local, server, export_path, username, password)
+        try:
+            source_code_ok = _export_source_code(
+                app, local, server, export_path, username, password
+            )
+            status = "success" if source_code_ok else "failed"
+            if not source_code_ok:
+                report["success"] = False
+            _record_export_step(report, "source_code_export", status)
+        except Exception as e:
+            report["success"] = False
+            _record_export_step(
+                report, "source_code_export", "failed", error=_format_exception(e)
+            )
+            log(f"WARNING: Failed to export source code: {e}")
+    else:
+        _record_export_step(
+            report,
+            "source_code_export",
+            "skipped",
+            details={"reason": "no_source=True"},
+        )
 
-    # Export logs.jsonl file for SSH exports
     if docker_ssh and server:
-        export_logs(app, server, export_path)
+        try:
+            logs_ok = export_logs(app, server, export_path)
+            status = "success" if logs_ok else "failed"
+            if not logs_ok:
+                report["success"] = False
+            _record_export_step(report, "logs_export", status)
+        except Exception as e:
+            report["success"] = False
+            _record_export_step(
+                report, "logs_export", "failed", error=_format_exception(e)
+            )
+            log(f"WARNING: Failed to export logs: {e}")
 
     log(f"Export complete. You can find your results at: {export_path}")
+    return report
 
 
 def export_logs(app, server, export_path):
@@ -2162,9 +2286,11 @@ def export_logs(app, server, export_path):
 
         with yaspin(text="Logs exported.", color="green") as spinner:
             spinner.ok("✔")
+        return True
 
     except Exception as e:
         log(f"Warning: Failed to export logs from {remote_logs_path}: {str(e)}")
+        return False
 
 
 def _export_source_code(app, local, server, export_path, username, password):
@@ -2191,7 +2317,7 @@ def _export_source_code(app, local, server, export_path, username, password):
             abort=False,
         ):
             log("WARNING: Experiment source code could not be downloaded.")
-            return
+            return False
 
     log(
         "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
@@ -2222,7 +2348,7 @@ def _export_source_code(app, local, server, export_path, username, password):
                 f.write(response.content)
             spinner.ok("✔")
             log(f"Experiment source code saved to {source_code_zip_path}.")
-            break
+            return True
         elif response.status_code == 401:
             try_again = click.confirm(
                 "Authentication failed.\nPress ENTER to try again or 'n' to skip downloading the source code.",
@@ -2231,7 +2357,7 @@ def _export_source_code(app, local, server, export_path, username, password):
             )
             if not try_again:
                 log("Skipped downloading the source code.")
-                break
+                return False
             # Reset the credentials so the user gets another chance to enter them correctly
             username, password = None, None
         else:
@@ -2256,7 +2382,32 @@ def _export_source_code(app, local, server, export_path, username, password):
                     f"\nAdditionally, decoding JSON data from the response failed with '{str(e)}'"
                     f"\nResponse content: {response.content}"
                 )
-            break
+            return False
+
+
+def _format_exception(error):
+    return {
+        "type": type(error).__name__,
+        "message": str(error),
+        "traceback": traceback.format_exc(),
+    }
+
+
+def _record_export_step(report, name, status, error=None, details=None):
+    step = {"status": status}
+    if error is not None:
+        step["error"] = error
+    if details is not None:
+        step["details"] = details
+    report["steps"][name] = step
+
+
+def _write_export_report(export_path, reports):
+    report_path = os.path.join(export_path, "export_report.json")
+    payload = {"reports": reports}
+    with open(make_parents(report_path), "w") as report_file:
+        json.dump(payload, report_file, indent=2)
+    return report_path
 
 
 def export_database(
