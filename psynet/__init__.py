@@ -88,7 +88,7 @@ def debugger():
                     },
                     "pathMappings": [
                         {
-                            "localRoot": "${env:PWD}",
+                            "localRoot": "${fileDirname}",
                             "remoteRoot": "/tmp/dallinger_develop"
                         }
                     ]
@@ -102,7 +102,12 @@ def debugger():
     """
     # 5678 is the default attach port in the VS Code debug configurations.
     # Unless a host and port are specified, host defaults to 127.0.0.1
-    debugpy.listen(5678)
-    print("Press F5 to start debugging")
-    debugpy.wait_for_client()
+    if not debugger._listening:
+        debugpy.listen(5678)
+        debugger._listening = True
+        print("Press F5 to start debugging")
+        debugpy.wait_for_client()
     debugpy.breakpoint()
+
+
+debugger._listening = False

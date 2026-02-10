@@ -15,6 +15,8 @@
 
 ## Fixed
 - Fixed `lab_recruiter_external_submission_url` config parameter being required; it is now optional with an empty string default (author: Frank Höger)
+- Fixed `psynet.debugger()` crashing with `RuntimeError: debugpy.listen() has already been called on this process` when hitting the breakpoint more than once per session. `debugpy.listen()` is now only>
+- Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `exp>
 
 - **Lucid**
   - Fixed Lucid recruiter `get_status` crashing with `AttributeError: 'DataFrame' object has no attribute 'client_status'` when submissions list is empty (author: Frank Höger)
