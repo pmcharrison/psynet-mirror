@@ -41,6 +41,25 @@ If the participant is a member of multiple active SyncGroups, then they can be a
 via ``participant.active_sync_groups``, which takes the form of a dictionary keyed by ``group_type``.
 The full list of participants within the SyncGroup can then be accessed (and modified)
 via ``sync_group.participants``, which is a list.
+The order of ``sync_group.participants`` is not guaranteed. If you need a stable ordering
+(for example, to assign roles), sort by participant ID or use
+``sync_group.active_participants_ordered``. A convenient pattern is to assign roles at a
+``GroupBarrier`` so all group members are present:
+
+::
+
+    def assign_roles(group, participants):
+        roles = ["speaker", "listener", "observer"]
+        group.assign_roles(roles)
+
+    GroupBarrier(
+        id_="assign_roles",
+        group_type="rock_paper_scissors",
+        on_release=assign_roles,
+    )
+
+``assign_roles`` raises a ``ValueError`` if the role list length does not match the
+number of active participants.
 
 It is possible to put multiple ``Grouper`` constructs in a timeline.
 If they have different ``group_type`` parameters then they will be used to create different grouping namespaces.

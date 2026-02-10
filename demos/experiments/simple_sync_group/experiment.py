@@ -4,11 +4,16 @@ import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
 from psynet.page import InfoPage, WaitPage
 from psynet.participant import Participant
-from psynet.sync import GroupCloser, SimpleGrouper, SyncGroup
+from psynet.sync import GroupBarrier, GroupCloser, SimpleGrouper, SyncGroup
 from psynet.timeline import PageMaker, Timeline
 from psynet.utils import get_logger
 
 logger = get_logger()
+
+ROLE_SETS = {
+    2: ["speaker", "listener"],
+    3: ["speaker", "listener", "observer"],
+}
 
 
 def waiting_page(participant: Participant):
@@ -26,12 +31,20 @@ def waiting_page(participant: Participant):
     return WaitPage(content=content, wait_time=2.5)
 
 
+def assign_roles(group: SyncGroup, participants: List[Participant]):
+    roles = ROLE_SETS.get(
+        len(participants),
+        [f"member_{index}" for index in range(1, len(participants) + 1)],
+    )
+    group.assign_roles(roles)
+
+
 def show_current_group():
     return PageMaker(
         lambda participant: InfoPage(
             (
                 f"You are now in group {participant.sync_group.id} with participants "
-                f"{', '.join(sorted([str(p.id) for p in participant.sync_group.participants], key=int))}"
+                f"{', '.join([f'{p.id} ({p.var.role})' for p in participant.sync_group.active_participants_ordered])}"
             ),
         ),
         time_estimate=5,
@@ -48,6 +61,11 @@ class Exp(psynet.experiment.Experiment):
             waiting_logic=PageMaker(waiting_page, time_estimate=5),
             max_wait_time=20,
         ),
+        GroupBarrier(
+            id_="assign_roles_first",
+            group_type="main",
+            on_release=assign_roles,
+        ),
         show_current_group(),
         GroupCloser(group_type="main"),
         SimpleGrouper(
@@ -55,6 +73,11 @@ class Exp(psynet.experiment.Experiment):
             initial_group_size=2,
             waiting_logic=PageMaker(waiting_page, time_estimate=5),
             max_wait_time=20,
+        ),
+        GroupBarrier(
+            id_="assign_roles_second",
+            group_type="main",
+            on_release=assign_roles,
         ),
         show_current_group(),
     )
