@@ -67,7 +67,7 @@ def format_group_message(participant: Participant) -> str:
 def show_current_group():
     return PageMaker(
         lambda participant: InfoPage(
-            (format_group_message(participant)),
+            format_group_message(participant),
         ),
         time_estimate=5,
     )
