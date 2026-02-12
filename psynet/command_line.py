@@ -2671,7 +2671,9 @@ _test_options["serial"] = click.option(
 
 _test_options["stagger"] = click.option(
     "--stagger",
-    help="Time interval to wait (in seconds) between instantiating each parallel bot.",
+    help="""
+    Time interval to wait (in seconds) between instantiating each parallel bot.
+    If not specified, will default to Experiment.test_parallel_stagger_interval_s (0.1 s)""",
 )
 
 _test_options["time_factor"] = click.option(
@@ -2779,6 +2781,179 @@ def test__docker_ssh(
 
     if time_factor:
         cmd += f" --time-factor {time_factor}"
+
+    server_info = CONFIGURED_HOSTS[server]
+    ssh_host = server_info["host"]
+    ssh_user = server_info.get("user")
+    executor = Executor(ssh_host, user=ssh_user)
+    executor.run_and_echo(f"cd ~/dallinger/{app} && docker compose exec web {cmd}")
+
+
+_test_options["performance_n_bots"] = click.option(
+    "--n-bots",
+    help="""
+    The --n-bots parameter can accept a comma-separated list of integers
+    to run sequential tests with different maximum concurrency levels.
+    Example: --n-bots "5,10,20" will run three separate tests.
+    If not specified, will default to Experiment.test_n_bots""",
+)
+
+_test_options["performance_time_factor"] = click.option(
+    "--time-factor",
+    type=float,
+    default=1.0,
+    help="""
+    Multiply the timings in time_estimate by a random amount around this factor.
+    Actual multiplier will vary randomly using a lognormal distribution with an upper
+    bound of 3x this factor. When equal to zero, the bot will run through the
+    experiment as fast as possible. Default: 1.0""",
+)
+
+_test_options["performance_stagger"] = click.option(
+    "--stagger",
+    help="""
+    Average time interval to wait (in seconds) between starting each bot.
+    Start times will vary randomly using a gamma distribution with an upper bound of 5x this value.
+    If not specified, will default to Experiment.test_parallel_stagger_interval_s (0.1 s)""",
+)
+
+_test_options["duration_minutes"] = click.option(
+    "--duration-minutes",
+    type=float,
+    default=1.0,
+    help="""
+    Duration of the performance test in minutes.
+    The performance test will attempt to keep 'n-bots' running for 'duration-minutes' minutes.
+    Default: 1 minute""",
+)
+
+
+@psynet.group("performance-test")
+@click.pass_context
+@require_exp_directory
+def performance_test(ctx):
+    """
+    Performance test the experiment.
+    """
+    pass
+
+
+@performance_test.command("local")
+@_test_options["performance_n_bots"]
+@_test_options["performance_stagger"]
+@_test_options["performance_time_factor"]
+@_test_options["duration_minutes"]
+@click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
+def performance_test__local(
+    n_bots=None,
+    stagger=None,
+    time_factor=None,
+    duration_minutes=None,
+    debug=False,
+):
+    """
+    Run a performance test of the experiment locally.
+
+    The --n-bots parameter can accept a comma-separated list of integers
+    to run sequential tests with different concurrency levels.
+    Example: --n-bots "5,10,20" will run three separate tests.
+
+    NOTE: This command requires a running experiment server.
+    Start your server first with: psynet debug local
+    Then run this command in a separate terminal.
+    """
+    import logging
+    import sys
+
+    from psynet.experiment import get_experiment
+
+    # Configure logging to output to console
+    root_logger = logging.getLogger()
+    log_level = logging.DEBUG if debug else logging.INFO
+    root_logger.setLevel(log_level)
+
+    # Remove any existing handlers
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+
+    # Add console handler with clean format (no prefixes)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(log_level)
+    formatter = logging.Formatter('%(message)s')
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+
+    try:
+        exp = get_experiment()
+    except Exception as e:
+        print(f"ERROR: Failed to get experiment: {e}", file=sys.stderr)
+        print(
+            "Make sure the experiment server is running first (psynet debug local)",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    # Parse n_bots - can be comma-separated list
+    if n_bots:
+        bot_counts = [int(x.strip()) for x in n_bots.split(",")]
+    else:
+        bot_counts = [exp.test_n_bots]
+
+    if stagger:
+        exp.test_parallel_stagger_interval_s = float(stagger)
+
+    if time_factor:
+        exp.test_time_factor = time_factor
+
+    if duration_minutes:
+        exp.test_duration_minutes = duration_minutes
+
+    exp.performance_test_experiment(bot_counts=bot_counts)
+
+
+@performance_test.command("ssh")
+@click.option("--app", required=True, help="Name of the experiment app.")
+@option_server
+@_test_options["performance_n_bots"]
+@_test_options["performance_stagger"]
+@_test_options["performance_time_factor"]
+@_test_options["duration_minutes"]
+@click.pass_context
+def performance_test__docker_ssh(
+    ctx,
+    app,
+    server,
+    n_bots=None,
+    stagger=None,
+    time_factor=None,
+    duration_minutes=None,
+):
+    """
+    Runs performance tests on the remote server. Assumes that the app has
+    already been launched on the remote server using ``psynet debug ssh``.
+
+    Running this command will not reset the database to a vanilla state, but
+    will instead just use the state that exists already. Be sure the app has is
+    configured to allow a large quantity of bots.
+
+    If the app is in use during the performance test, results may not be
+    reliable.
+    """
+    from dallinger.command_line.docker_ssh import Executor
+
+    cmd = "psynet performance-test local"
+
+    if n_bots:
+        cmd += f" --n-bots {n_bots}"
+
+    if stagger:
+        cmd += " --stagger"
+
+    if time_factor:
+        cmd += f" --time-factor {time_factor}"
+
+    if duration_minutes:
+        cmd += f" --duration-minutes {duration_minutes}"
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]
