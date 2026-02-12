@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# [13.0.5](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.5) Release - 2026-02-12
+
+## Updated
+- Updated Dallinger to version 11.5.5 (author: Frank Höger, reviewer: Peter Harrison)
+  Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.5.7
+
 # [13.0.4](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.4) Release - 2026-02-05
 
 ## Fixed
