@@ -87,6 +87,8 @@
 - Fixed translation validation to report missing entries before variable-mismatch checks (author: Cursor, reviewer: Peter Harrison)
 - Fixed `S3Storage.list` to honor `top` and `extension` filters (author: Cursor, reviewer: Peter Harrison)
 - Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
+- Fixed `psynet.debugger()` crashing with `RuntimeError: debugpy.listen() has already been called on this process` when hitting the breakpoint more than once per session. `debugpy.listen()` is now only called on the first invocation (author: Frank Höger)
+- Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `experiment.py`. Changed to `${fileDirname}` across all demos, tests, and the experiment template (author: Frank Höger)
 
 ## Removed
 - Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
