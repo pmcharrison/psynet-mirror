@@ -12,7 +12,7 @@
             },
             "pathMappings": [
                 {
-                    "localRoot": "${env:PWD}",
+                    "localRoot": "${fileDirname}",
                     "remoteRoot": "/tmp/dallinger_develop"
                 }
             ]
