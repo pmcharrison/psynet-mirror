@@ -58,6 +58,21 @@ we plan to remove it in the future.
 The ``-s`` argument tells pytest to log live output from the test as it runs.
 This is normally a good idea for keeping track of what's going on.
 
+Playwright UI tests
+-------------------
+
+PsyNet includes Playwright tests under ``tests/playwright``. These can be run
+using Playwright's UI mode during development:
+
+.. code-block:: shell
+
+    npm install
+    npx playwright install chromium
+    HEADLESS=false npx playwright test --ui
+
+These tests launch demo experiments locally, so you still need PostgreSQL and
+Redis running (same as for the pytest-driven e2e tests).
+
 If you are using PyCharm it is usually preferable to run the tests through
 the PyCharm interface. First you have to configure PyCharm's run configurations.
 Do this as follows:
