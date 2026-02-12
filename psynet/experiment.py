@@ -1,7 +1,10 @@
 import configparser
 import inspect
 import json
+import logging
+import math
 import os
+import random
 import re
 import shutil
 import signal
@@ -1395,6 +1398,513 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         testing_stats.report()
 
+    test_duration_minutes = 1
+
+    def performance_test_experiment(self, bot_counts=None):
+        """Run performance tests for one or more bot count values."""
+        os.environ["PASSTHROUGH_ERRORS"] = "True"
+
+        if bot_counts is None:
+            bot_counts = [self.test_n_bots]
+
+        all_results = []
+
+        logger.info("=" * 80)
+        logger.info("⚡ STARTING PERFORMANCE TEST SUITE")
+        logger.info(f"Bot counts: {', '.join(str(n) for n in bot_counts)}")
+        logger.info(f"Duration per test: {self.test_duration_minutes:.1f} minutes")
+        logger.info(f"Average stagger: {self.test_parallel_stagger_interval_s:.1f} seconds")
+        logger.info(f"Average time factor: {self.test_time_factor:.1f}")
+
+        for i, n_bots in enumerate(bot_counts, 1):
+            logger.info("")
+            logger.info("=" * 80)
+            logger.info(f"TEST {i}/{len(bot_counts)}: Running with {n_bots:,} concurrent bots")
+
+            result = self._test_performance(n_bots)
+            all_results.append(result)
+
+            if i < len(bot_counts):
+                logger.debug("")
+                logger.debug("Waiting 5 seconds before next test...")
+                time.sleep(5)
+
+        self._print_performance_summary(all_results)
+
+    def _print_performance_summary(self, results):
+        """Print a comprehensive summary of all performance test results."""
+        logger.info("")
+        logger.info("=" * 80)
+        logger.info("📊 PERFORMANCE TEST SUMMARY")
+        logger.info("=" * 80)
+        logger.info("")
+
+        # Summary table
+        logger.info("┌" + "─" * 75 + "┐")
+        logger.info(
+            "│ {:>6} │ {:>10} │ {:>10} │ {:>10} │ {:>12} │ {:>10} │".format(
+                "Bots", "Completed", "Requests", "Errors", "Avg Resp (s)", "Run Time"
+            )
+        )
+        logger.info("├" + "─" * 75 + "┤")
+
+        for result in results:
+            avg_time = (
+                f"{result['avg_response_time']:.3f}"
+                if result["avg_response_time"] is not None
+                else "N/A"
+            )
+            error_count = result["total_requests"] - result["successful_requests"]
+            run_time = result["actual_duration"]
+
+            logger.info(
+                "│ {:>6,} │ {:>10,} │ {:>10,} │ {:>10,} │ {:>12} │ {:>9.1f}s │".format(
+                    result["n_bots"],
+                    result["completed_experiments"],
+                    result["total_requests"],
+                    error_count,
+                    avg_time,
+                    run_time,
+                )
+            )
+
+        logger.info("└" + "─" * 75 + "┘")
+        logger.info("")
+
+        # Detailed results
+        for idx, result in enumerate(results, 1):
+            logger.info(f"Test {idx} Details (n={result['n_bots']:,} bots):")
+            logger.info(f"  Total bots started: {result['total_bots_started']:,}")
+            logger.info(f"  Completed during duration: {result['completed_during_test']:,}")
+            logger.info(f"  Completed experiments: {result['completed_experiments']:,}")
+            logger.info(f"  Failed experiments: {result['failed_experiments']:,}")
+
+            if result["total_bots_started"] > 0:
+                success_rate = (
+                    result["completed_experiments"] / result["total_bots_started"]
+                ) * 100
+                logger.info(f"  Success rate: {success_rate:.1f}%")
+
+            logger.info(f"  Total requests: {result['total_requests']:,}")
+            logger.info(f"  Successful requests: {result['successful_requests']:,}")
+            error_count = result["total_requests"] - result["successful_requests"]
+            logger.info(f"  Error responses: {error_count:,}")
+
+            if result["avg_response_time"] is not None:
+                logger.info(
+                    f"  Average response time: {result['avg_response_time']:.3f}s"
+                )
+            else:
+                logger.info("  Average response time: N/A")
+
+            run_time = result["actual_duration"]
+            logger.info(f"  Final completion time: {run_time:.1f} seconds")
+
+            if result.get("avg_bot_duration") is not None:
+                logger.info(f"  Average time to complete: {result['avg_bot_duration']:.1f}s")
+
+            if result.get("avg_init_time") is not None:
+                logger.info(f"  Average bot initialization time: {result['avg_init_time']:.1f}s")
+
+            logger.info("")
+
+        logger.info("=" * 80)
+
+    def _test_performance(self, n):
+        """
+        Run a load test by maintaining up to n concurrent bot processes for a
+        specified duration.
+
+        Returns a dictionary with performance metrics.
+        """
+        duration_minutes = self.test_duration_minutes
+        logger.info("")
+        logger.info("▶ Starting load test with {n:,} concurrent bots for {duration_minutes} minutes...".format(
+            n=n, duration_minutes=duration_minutes
+        ))
+
+        # Setup
+        initial_state = self._capture_initial_state()
+        bot_state = self._initialize_bot_tracking()
+        start_time = time.time()
+        end_time = start_time + (duration_minutes * 60)
+
+        # Create bot launcher
+        start_new_bot = self._create_bot_launcher(bot_state)
+
+        # Launch first bot and wait for initialization
+        logger.debug("Launching first bot and waiting for initialization...")
+        start_new_bot()
+
+        # Show initial status immediately
+        self._show_realtime_status(bot_state, time.time(), end_time, force=True)
+
+        # Main monitoring loop
+        self._run_monitoring_loop(n, bot_state, start_new_bot, start_time, end_time)
+        self._clear_realtime_status()
+
+        # Calculate and report results
+        actual_duration = time.time() - start_time
+        return self._calculate_and_report_results(
+            n, duration_minutes, actual_duration, initial_state, bot_state
+        )
+
+    def _capture_initial_state(self):
+        """Capture initial database state before test."""
+        initial_stats = self.authenticated_session.get(
+            self.base_url + "/request_statistics"
+        ).json()
+        max_request_id = db.session.query(func.max(Request.id)).scalar() or 0
+
+        return {
+            "initial_requests": initial_stats["total_requests"],
+            "max_request_id": max_request_id,
+        }
+
+    def _initialize_bot_tracking(self):
+        """Initialize tracking structures for bots."""
+        return {
+            "processes": {},
+            "next_bot_id": 1,
+            "next_process_id": 0,
+            "total_bots_started": 0,
+            "total_bots_completed": 0,
+            "bots_completed_during_test": 0,
+            "total_bots_failed": 0,
+            "bot_durations": [],
+            "initialization_times": [],
+            "first_bot_initialized": False,
+            "bots_to_launch": 0,
+            "testing_stats": self.TestingStats(self.testing_stat_definitions),
+            "last_status_update": time.time(),
+            "status_line_length": 0,
+        }
+
+    @staticmethod
+    def _bounded_random_multiplier(max_multiplier=3.0):
+        """Bounded lognormal distribution for user completion times"""
+        sigma = 0.6
+        mu = -0.5 * sigma * sigma
+        while True:
+            x = math.exp(random.gauss(mu, sigma))
+            if x <= max_multiplier:
+                return x
+
+    def _bounded_random_stagger(self, max_multiplier=5.0):
+        """Bounded gamma distribution for bot stagger"""
+        k = 3.0
+        theta = self.test_parallel_stagger_interval_s / k
+        if not theta:
+            return 0.0
+        while True:
+            x = random.gammavariate(k, theta)
+            if x <= max_multiplier:
+                return x
+
+    def _create_bot_launcher(self, bot_state):
+        """Create a function to launch new bot processes."""
+        config = get_config()
+        dashboard_user = config.get("dashboard_user")
+        dashboard_password = config.get("dashboard_password")
+        time_factor = self.test_time_factor
+
+        def start_new_bot():
+            bot_id = bot_state["next_bot_id"]
+            process_id = bot_state["next_process_id"]
+            bot_state["next_bot_id"] += 1
+            bot_state["next_process_id"] += 1
+
+            randomized_time_factor = time_factor * self._bounded_random_multiplier()
+            cmd = (
+                f"psynet run-bot --dashboard-user {dashboard_user} "
+                f"--dashboard-password {dashboard_password} "
+                f"--time-factor {randomized_time_factor}"
+            )
+
+            logger.debug(f"Starting bot {bot_id} (time_factor={randomized_time_factor:.2f})...")
+
+            try:
+                p = pexpect.spawn(cmd, timeout=None, cwd=None)
+                bot_state["processes"][process_id] = {
+                    "process": p,
+                    "bot_id": bot_id,
+                    "spawn_time": time.time(),
+                    "start_time": None,
+                    "next_start_time": None,
+                }
+                bot_state["total_bots_started"] += 1
+
+                return True
+            except Exception as e:
+                logger.error(f"Failed to start bot {bot_id}: {e}")
+                return False
+
+        return start_new_bot
+
+    def _show_realtime_status(self, bot_state, current_time, end_time, force=False):
+        """Show real-time status update if not in debug mode and enough time has passed."""
+        is_debug = logger.getEffectiveLevel() <= logging.DEBUG
+        if is_debug:
+            return
+
+        # Update every 2 seconds, or immediately if forced
+        if not force and current_time - bot_state["last_status_update"] < 2:
+            return
+
+        bot_state["last_status_update"] = current_time
+
+        # Calculate stats
+        running = len([p for p in bot_state["processes"].values() if p["next_start_time"] is None])
+        completed = bot_state["total_bots_completed"]
+        failed = bot_state["total_bots_failed"]
+
+        # Calculate average response time from recent bot durations
+        recent_durations = bot_state["bot_durations"][-5:] if bot_state["bot_durations"] else []
+        avg_duration = sum(recent_durations) / len(recent_durations) if recent_durations else 0
+
+        # Time remaining
+        time_left = max(0, end_time - current_time)
+        mins_left = int(time_left / 60)
+        secs_left = int(time_left % 60)
+
+        # Build status line
+        status = f"🤖 Running: {running} | ✓ Completed: {completed:,} | ✗ Failed: {failed} | ⏱ Avg: {avg_duration:.1f}s | ⏳ {mins_left}:{secs_left:02d} left"
+
+        # Clear previous line and print new status
+        sys.stdout.write("\r" + " " * bot_state["status_line_length"] + "\r")
+        sys.stdout.write(status)
+        sys.stdout.flush()
+        bot_state["status_line_length"] = len(status)
+
+    def _clear_realtime_status(self):
+        """Clear the status line when progress is complete."""
+        is_debug = logger.getEffectiveLevel() <= logging.DEBUG
+        if not is_debug:
+            sys.stdout.write("\r" + " " * 150 + "\r")
+            sys.stdout.flush()
+
+    def _run_monitoring_loop(self, n, bot_state, start_new_bot, start_time, end_time):
+        """Main loop to monitor bot processes."""
+        while time.time() < end_time or len(bot_state["processes"]) > 0:
+            current_time = time.time()
+
+            # Show real-time status update
+            self._show_realtime_status(bot_state, current_time, end_time)
+
+            # Start new bots after bots have completed
+            if self._start_scheduled_bots(bot_state, start_new_bot, current_time, end_time):
+                # Force status update after starting a bot
+                self._show_realtime_status(bot_state, current_time, end_time, force=True)
+
+            # Launch n-1 bots after first one initializes
+            if bot_state["first_bot_initialized"] and bot_state["bots_to_launch"] > 0:
+                logger.debug(f"First bot initialized. Launching remaining {bot_state['bots_to_launch']} bots...")
+                for i in range(bot_state["bots_to_launch"]):
+                    if i > 0:
+                        random_stagger = self._bounded_random_stagger()
+                        logger.debug(f'Waiting {random_stagger:.2f}s before launching next bot...')
+                        time.sleep(random_stagger)
+                    start_new_bot()
+                    # Force status update after each bot
+                    self._show_realtime_status(bot_state, time.time(), end_time, force=True)
+                bot_state["bots_to_launch"] = 0
+
+            self._monitor_all_processes(bot_state, current_time, end_time, n)
+
+            time.sleep(0.1)
+
+    def _start_scheduled_bots(self, bot_state, start_new_bot, current_time, end_time):
+        """Start bots that are scheduled to start. Returns True if any bots were started."""
+        to_start = [
+            pid for pid, info in list(bot_state["processes"].items())
+            if info["next_start_time"] is not None and current_time >= info["next_start_time"]
+        ]
+
+        for process_id in to_start:
+            del bot_state["processes"][process_id]
+            if current_time < end_time:
+                start_new_bot()
+
+        return len(to_start) > 0
+
+    def _monitor_all_processes(self, bot_state, current_time, end_time, n):
+        """Monitor all running bot processes."""
+        for process_id, process_info in list(bot_state["processes"].items()):
+            if process_info["next_start_time"] is not None:
+                continue  # Wait to start
+
+            self._monitor_single_process(
+                bot_state, process_id, process_info, current_time, end_time, n
+            )
+
+    def _monitor_single_process(self, bot_state, process_id, process_info, current_time, end_time, n):
+        """Monitor a single bot process."""
+        p = process_info["process"]
+        bot_id = process_info["bot_id"]
+
+        try:
+            while True:
+                output = p.read_nonblocking(size=100000, timeout=0).decode().strip().split("\n")
+                for line in output:
+                    line = line.replace("INFO:root:", "")
+                    logger.debug(f"(Bot {bot_id}) " + line)
+                    bot_state["testing_stats"].update_from_line(bot_id, line)
+
+                    # Detect bot initialization
+                    if process_info["start_time"] is None and "Initializing" in line:
+                        process_info["start_time"] = time.time()
+                        init_time = process_info["start_time"] - process_info["spawn_time"]
+                        logger.debug(f"Bot {bot_id} initialized in {init_time:.1f}s")
+
+                        bot_state["initialization_times"].append(init_time)
+
+                        if not bot_state["first_bot_initialized"]:
+                            bot_state["first_bot_initialized"] = True
+                            bot_state["bots_to_launch"] = n - 1
+
+                time.sleep(0.01)
+
+        except pexpect.TIMEOUT:
+            pass
+        except pexpect.EOF:
+            self._handle_bot_completion(bot_state, process_info, process_id, current_time, end_time)
+        except Exception as e:
+            self._handle_bot_error(bot_state, process_info, process_id, e, current_time, end_time)
+
+    def _handle_bot_completion(self, bot_state, process_info, process_id, current_time, end_time):
+        """Handle a bot process completion."""
+        p = process_info["process"]
+        bot_id = process_info["bot_id"]
+
+        # Calculate duration
+        if process_info["start_time"] is not None:
+            bot_duration = current_time - process_info["start_time"]
+        else:
+            bot_duration = current_time - process_info["spawn_time"]
+
+        if p.exitstatus == 0:
+            logger.debug(f"Bot {bot_id} completed successfully in {bot_duration:.1f}s")
+            bot_state["total_bots_completed"] += 1
+            # Track completions during duration-minutes
+            if current_time < end_time:
+                bot_state["bots_completed_during_test"] += 1
+            if process_info["start_time"] is not None:
+                bot_state["bot_durations"].append(bot_duration)
+        else:
+            logger.error(f"Bot {bot_id} failed with exit status {p.exitstatus}")
+            bot_state["total_bots_failed"] += 1
+
+        # Schedule bot replacement or cleanup
+        if current_time < end_time:
+            random_delay = self._bounded_random_stagger()
+            process_info["next_start_time"] = current_time + random_delay
+            logger.debug(f"Will start replacement bot in {random_delay:.2f} seconds")
+        else:
+            del bot_state["processes"][process_id]
+
+    def _handle_bot_error(self, bot_state, process_info, process_id, error, current_time, end_time):
+        """Handle a bot process error."""
+        bot_id = process_info["bot_id"]
+        logger.error(f"Error monitoring bot {bot_id}: {error}")
+        bot_state["total_bots_failed"] += 1
+
+        if current_time < end_time:
+            random_delay = self._bounded_random_stagger()
+            process_info["next_start_time"] = current_time + random_delay
+            logger.debug(f"Will start replacement bot in {random_delay:.2f} seconds")
+        else:
+            del bot_state["processes"][process_id]
+
+    def _calculate_and_report_results(self, n, duration_minutes, actual_duration, initial_state, bot_state):
+        """Calculate final metrics and report results."""
+        # Get final request state from DB
+        final_stats = self.authenticated_session.get(
+            self.base_url + "/request_statistics"
+        ).json()
+        final_requests = final_stats["total_requests"]
+
+        requests_during_test = final_requests - initial_state["initial_requests"]
+
+        key_endpoints = ["/timeline", "/response"]
+        avg_response_time = (
+            db.session.query(func.avg(Request.duration))
+            .filter(
+                Request.id > initial_state["max_request_id"],
+                Request.endpoint.in_(key_endpoints),
+            )
+            .scalar()
+        )
+
+        avg_bot_duration = (
+            sum(bot_state["bot_durations"]) / len(bot_state["bot_durations"])
+            if bot_state["bot_durations"] else None
+        )
+
+        avg_init_time = (
+            sum(bot_state["initialization_times"]) / len(bot_state["initialization_times"])
+            if bot_state["initialization_times"] else None
+        )
+
+        self._report_test_results(
+            n, duration_minutes, actual_duration,
+            bot_state["total_bots_started"],
+            bot_state["total_bots_completed"],
+            bot_state["bots_completed_during_test"],
+            bot_state["total_bots_failed"],
+            avg_bot_duration, avg_init_time,
+            requests_during_test, avg_response_time
+        )
+
+        return {
+            "n_bots": n,
+            "duration_minutes": duration_minutes,
+            "actual_duration": actual_duration,
+            "total_bots_started": bot_state["total_bots_started"],
+            "completed_experiments": bot_state["total_bots_completed"],
+            "completed_during_test": bot_state["bots_completed_during_test"],
+            "failed_experiments": bot_state["total_bots_failed"],
+            "total_requests": requests_during_test,
+            "successful_requests": requests_during_test,
+            "avg_response_time": avg_response_time,
+            "avg_bot_duration": avg_bot_duration,
+            "avg_init_time": avg_init_time,
+        }
+
+    def _report_test_results(
+        self, n, duration_minutes, actual_duration,
+        total_started, total_completed, completed_during_test, total_failed,
+        avg_bot_duration, avg_init_time,
+        requests_during_test, avg_response_time
+    ):
+        """Print test results. Mostly in debug mode, to prevent duplication with end summary"""
+        logger.info("")
+        logger.info("✓ Test completed")
+        logger.debug(f"TEST RESULTS (n={n:,} bots):")
+        logger.debug(f"Target duration: {duration_minutes} minutes")
+        logger.info(f"Final completion time: {actual_duration:.1f} seconds")
+
+        if avg_init_time is not None:
+            logger.debug(f"Average bot initialization time: {avg_init_time:.1f}s")
+
+        logger.info(f"Total bots started: {total_started:,}")
+        logger.info(f"Completed during duration: {completed_during_test:,}")
+        logger.debug(f"Completed experiments: {total_completed:,}")
+        logger.debug(f"Failed experiments: {total_failed:,}")
+
+        if total_started > 0:
+            success_rate = (total_completed / total_started) * 100
+            logger.debug(f"Success rate: {success_rate:.1f}%")
+
+        if avg_bot_duration is not None:
+            logger.debug(f"Average time to complete: {avg_bot_duration:.1f}s")
+
+        logger.debug(f"Requests during test: {requests_during_test:,}")
+
+        if avg_response_time is not None:
+            logger.debug(f"Average response time: {avg_response_time:.3f}s")
+        else:
+            logger.debug("Average response time: N/A")
+
     def _report_request_statistics(self) -> Optional[float]:
         response = self.authenticated_session.get(self.base_url + "/request_statistics")
         response.raise_for_status()
@@ -1411,15 +1921,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def request_statistics(cls):
         # Note that we restrict consideration to the key participant-facing requests.
+        key_endpoints = ["/timeline", "/response"]
+
         mean_duration = (
             db.session.query(func.avg(Request.duration))
-            .filter(
-                Request.endpoint.in_(["/timeline", "/response"]),
-            )
+            .filter(Request.endpoint.in_(key_endpoints))
             .scalar()
         )
+
+        total_requests = (
+            db.session.query(func.count(Request.id))
+            .scalar()
+        ) or 0
+
         return {
             "mean_duration": mean_duration,
+            "total_requests": total_requests,
         }
 
     class TestingStats:
