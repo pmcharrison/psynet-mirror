@@ -53,6 +53,7 @@ docker run \
   -v "${HOME}"/.dallingerconfig:/root/.dallingerconfig \
   -v "${HOME}"/.netrc:/root/.netrc \
   -v "${HOME}"/.gitconfig:/root/.gitconfig \
+  -v "${HOME}"/.dallinger:/root/.dallinger \
   -v "$PSYNET_EXPORT_STORAGE":/psynet-data/export \
   -v ~/.ssh:/root/.ssh \
   --network dallinger \
