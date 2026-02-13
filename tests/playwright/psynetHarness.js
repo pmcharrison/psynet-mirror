@@ -429,6 +429,11 @@ async function clickNext(page, timeoutMs) {
   await waitForPageChange(page, oldUuid, timeoutMs);
 }
 
+async function clickNextAndWait(page, timeoutMs = 60000) {
+  await waitForNextEnabled(page, timeoutMs);
+  await clickNext(page, timeoutMs);
+}
+
 async function waitForNextEnabled(page, timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -469,6 +474,89 @@ async function clickStartButton(page) {
     return true;
   }
   return false;
+}
+
+async function submitAnswerAndWait(page, answer, timeoutMs = 60000) {
+  const oldUuid = await getPageUuid(page);
+  await page.waitForFunction(
+    () => typeof psynet !== "undefined" && typeof psynet.nextPage === "function",
+    null,
+    { timeout: Math.min(timeoutMs, 15000) }
+  );
+  await page.evaluate((payload) => psynet.nextPage(payload), answer);
+  await waitForPageChange(page, oldUuid, timeoutMs);
+}
+
+async function getPromptText(page) {
+  const prompt = page.locator("#prompt-text");
+  if ((await prompt.count()) === 0) {
+    return "";
+  }
+  return (await prompt.first().innerText()).trim();
+}
+
+async function advanceOneStep(page, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 60000;
+  await acceptConsents(page);
+
+  const nextButton = page.locator("#next-button");
+  if ((await nextButton.count()) === 0) {
+    return false;
+  }
+
+  if (!(await nextButton.isEnabled())) {
+    await kickoffTrial(page);
+    await waitForNextEnabled(page, Math.min(timeoutMs, 15000)).catch(() => {});
+  }
+
+  if (!(await nextButton.isEnabled())) {
+    return false;
+  }
+
+  await clickNext(page, timeoutMs);
+  return true;
+}
+
+async function advanceUntilPromptContains(page, text, options = {}) {
+  const maxSteps = options.maxSteps ?? 20;
+  const stallLimit = options.stallLimit ?? 6;
+  const timeoutMs = options.timeoutMs ?? 60000;
+  let stalledAttempts = 0;
+
+  for (let step = 0; step < maxSteps; step += 1) {
+    const promptText = await getPromptText(page);
+    if (promptText.includes(text)) {
+      return;
+    }
+
+    const progressed = await advanceOneStep(page, { timeoutMs });
+    if (progressed) {
+      stalledAttempts = 0;
+      continue;
+    }
+
+    stalledAttempts += 1;
+    if (stalledAttempts >= stallLimit) {
+      throw new Error(
+        `Could not progress to prompt containing "${text}". Current prompt: "${promptText}".`
+      );
+    }
+    await page.waitForTimeout(1000);
+  }
+
+  throw new Error(`Did not reach prompt containing "${text}" within ${maxSteps} steps.`);
+}
+
+async function withExperiment(page, context, experimentDir, runTest) {
+  const { proc, urlPromise } = startExperiment(experimentDir);
+  try {
+    const url = await urlPromise;
+    const experimentPage = await beginExperiment(page, context, url);
+    await acceptConsents(experimentPage);
+    return await runTest(experimentPage);
+  } finally {
+    await stopExperiment(proc);
+  }
 }
 
 async function clickFinish(page, timeoutMs) {
@@ -546,15 +634,21 @@ async function advanceUntilFinish(page, options = {}) {
 
 module.exports = {
   advanceUntilFinish,
+  advanceUntilPromptContains,
+  advanceOneStep,
   assertNoBackendError,
   beginExperiment,
   acceptConsents,
   clickAudioPlay,
+  clickNextAndWait,
   clickRecord,
   clickStartButton,
+  getPromptText,
   getPageUuid,
+  submitAnswerAndWait,
   startExperiment,
   stopExperiment,
+  withExperiment,
   waitForNextEnabled,
   waitForPageChange
 };
