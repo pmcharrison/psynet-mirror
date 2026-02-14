@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+from contextlib import chdir
 from contextlib import contextmanager
 from hashlib import md5
 from importlib import resources
@@ -2839,12 +2840,14 @@ def performance_test(ctx):
 
 
 @performance_test.command("local")
+@_test_options["existing"]
 @_test_options["performance_n_bots"]
 @_test_options["performance_stagger"]
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
 def performance_test__local(
+    existing=False,
     n_bots=None,
     stagger=None,
     time_factor=None,
@@ -2858,10 +2861,23 @@ def performance_test__local(
     to run sequential tests with different concurrency levels.
     Example: --n-bots "5,10,20" will run three separate tests.
 
-    NOTE: This command requires a running experiment server.
-    Start your server first with: psynet debug local
-    Then run this command in a separate terminal.
+    By default, this command starts a new experiment server automatically.
+    Use --existing to connect to an already-running server instead.
     """
+    if existing:
+        _run_performance_test_with_existing_server(
+            n_bots, stagger, time_factor, duration_minutes, debug
+        )
+    else:
+        _run_performance_test_with_new_server(
+            n_bots, stagger, time_factor, duration_minutes, debug
+        )
+
+
+def _run_performance_test_with_existing_server(
+    n_bots, stagger, time_factor, duration_minutes, debug
+):
+    """Run performance test connecting to an already-running server."""
     import logging
     import sys
 
@@ -2911,6 +2927,215 @@ def performance_test__local(
     exp.performance_test_experiment(bot_counts=bot_counts)
 
 
+def _start_local_server_and_wait_for_ready(
+    debug=False, max_wait=60, ready_phrase="Serving Flask"
+):
+    """Start the server subprocess, stream stdout to a temp log via a reader thread,
+    wait until a readiness marker appears in output and launch the experiment
+
+    Parameters
+    ----------
+    debug : bool
+        If True, print server output to console in real time.
+    max_wait : int
+        Maximum seconds to wait for server readiness.
+    ready_phrase : str
+        Phrase to look for in server output to determine readiness.
+    Returns
+    -------
+    dict with keys: process, tmp_log_path, log_file, stop_event,
+                    reader_thread, develop_path
+    """
+    from dallinger.command_line.develop import _bootstrap
+    from dallinger.utils import develop_target_path
+    from psynet import deployment_info
+    import subprocess
+    import sys
+    import tempfile
+    import threading
+    import time
+    from collections import deque
+
+    _bootstrap()
+    config = get_config()
+    develop_path = develop_target_path(config)
+
+    with chdir(develop_path):
+        deploy_package_path = Path('DEPLOYMENT_PACKAGE')
+        if deploy_package_path.is_symlink():
+            deploy_package_path.unlink()
+        deploy_path = Path(".deploy")
+        if deploy_path.is_symlink():
+            deploy_path.unlink()
+        deployment_info.init(
+            redeploying_from_archive=True,
+            mode="debug",
+            is_local_deployment=True,
+            is_ssh_deployment=False,
+            server='local',
+            app='local',
+        )
+        deployment_info.write(deployment_id=config.get('id'))
+
+    print("▶ Starting experiment server...")
+
+    # Create temp log file
+    tmp_log = tempfile.NamedTemporaryFile(delete=False, prefix="psynet_server_", suffix=".log")
+    tmp_log_path = tmp_log.name
+    tmp_log.close()
+    print(f"Server log: {tmp_log_path}")
+
+    # Start server process
+    process = subprocess.Popen(
+        ["./run.sh"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        cwd=develop_path,
+        text=True,
+        bufsize=1,
+        start_new_session=True,
+    )
+
+    # Open log file for appending
+    log_file = open(tmp_log_path, "a", encoding="utf-8")
+
+    # Set up reader thread state
+    recent_lines = deque(maxlen=1000)
+    stop_event = threading.Event()
+
+    def _reader(stdout, logfile, recent, show, stop_evt):
+        try:
+            while True:
+                if stop_evt.is_set():
+                    break
+                ln = stdout.readline()
+                if not ln:
+                    break
+                try:
+                    logfile.write(ln)
+                    logfile.flush()
+                except Exception:
+                    pass
+                recent.append(ln)
+                if show:
+                    print(ln, end="")
+        except Exception:
+            pass
+        finally:
+            try:
+                stdout.close()
+            except Exception:
+                pass
+
+    reader_thread = threading.Thread(
+        target=_reader,
+        args=(process.stdout, log_file, recent_lines, bool(debug), stop_event),
+    )
+    reader_thread.daemon = True
+    reader_thread.start()
+
+    # Wait for server to be ready
+    print("⏳ Waiting for server to be ready...", end="", flush=True)
+    start_wait = time.time()
+    server_ready = False
+    while time.time() - start_wait < max_wait:
+        if any(ready_phrase in line for line in recent_lines):
+            server_ready = True
+            print(" Ready!")
+            # Launch experiment
+            requests.post('http://localhost:5000/launch')
+            time.sleep(1)
+            break
+
+        if process.poll() is not None:
+            print("\nServer terminated early. Last log lines:\n")
+            try:
+                for line in list(recent_lines)[-50:]:
+                    print(line, end="")
+            except Exception:
+                pass
+            sys.exit(1)
+
+        print(".", end="", flush=True)
+        time.sleep(0.5)
+
+    if not server_ready:
+        print(f"\n❌ Server failed to start within {max_wait} seconds", file=sys.stderr)
+        process.terminate()
+        process.wait(timeout=5)
+        sys.exit(1)
+
+    print()
+    return {
+        "process": process,
+        "tmp_log_path": tmp_log_path,
+        "log_file": log_file,
+        "stop_event": stop_event,
+        "reader_thread": reader_thread,
+        "develop_path": develop_path,
+    }
+
+
+def _stop_server(server_info):
+    """Stop the server and clean up resources.
+
+    Parameters
+    ----------
+    server_info : dict
+        Dictionary returned by _start_local_server_and_wait_for_ready with keys:
+        process, tmp_log_path, log_file, stop_event, reader_thread, develop_path
+    """
+    import subprocess
+
+    process = server_info["process"]
+    tmp_log_path = server_info["tmp_log_path"]
+    log_file = server_info["log_file"]
+    stop_event = server_info["stop_event"]
+    reader_thread = server_info["reader_thread"]
+
+    # Signal the reader thread to stop and join it cleanly
+    try:
+        stop_event.set()
+        reader_thread.join(timeout=5)
+    except Exception:
+        pass
+
+    # Close logfile
+    try:
+        log_file.close()
+    except Exception:
+        pass
+
+    # Terminate server process
+    process.terminate()
+    try:
+        process.wait(timeout=15)
+    except subprocess.TimeoutExpired:
+        print("⚠ Server didn't stop gracefully, forcing shutdown...")
+        process.kill()
+        process.wait()
+    print(f"✓ Server stopped (log: {tmp_log_path})")
+
+
+def _run_performance_test_with_new_server(
+    n_bots, stagger, time_factor, duration_minutes, debug
+):
+    """Run performance test after starting a new experiment server"""
+    server_info = _start_local_server_and_wait_for_ready(debug=debug)
+
+    try:
+        develop_path = server_info["develop_path"]
+        logger.debug(f"Changing to experiment directory for performance test: {develop_path}")
+        with chdir(develop_path):
+            _run_performance_test_with_existing_server(
+                n_bots, stagger, time_factor, duration_minutes, debug
+            )
+        print("✓ Performance test completed")
+
+    finally:
+        _stop_server(server_info)
+
+
 @performance_test.command("ssh")
 @click.option("--app", required=True, help="Name of the experiment app.")
 @option_server
@@ -2941,7 +3166,7 @@ def performance_test__docker_ssh(
     """
     from dallinger.command_line.docker_ssh import Executor
 
-    cmd = "psynet performance-test local"
+    cmd = "psynet performance-test local --existing"
 
     if n_bots:
         cmd += f" --n-bots {n_bots}"

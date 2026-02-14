@@ -37,6 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
+    "cached_property",
     "dallinger[docker]>=12.1.0,<13",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
@@ -74,7 +75,7 @@ dev = [
     "openai",
     "pre-commit",
     "sphinx",
-    "sphinx-autodoc-typehints",
+    "sphinx-autodoc-typehints<3.0.0",
     "sphinx-inline-tabs",
     "beautifulsoup4",
     "pytest-test-groups",
