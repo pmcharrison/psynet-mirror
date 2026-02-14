@@ -1,3 +1,15 @@
+# [13.1.0rc3](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc3) Release candidate - 2026-02-13
+
+## Fixed
+- Fixed `psynet.debugger()` crashing with `RuntimeError: debugpy.listen() has already been called on this process` when hitting the breakpoint more than once per session. `debugpy.listen()` is now only called on the first invocation (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `experiment.py`. Changed to `${fileDirname}` across all demos, tests, and the experiment template (author: Frank Höger, reviewer: Peter Harrison)
+
+## Reverted
+- Reverted update to PostgreSQL version 16 from 13.1.0rc0 (author: Frank Höger)
+
+## Updated
+- Updated Dallinger to version 12.1.2 (author: Frank Höger)
+  Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v12.1.2
 
 # [13.1.0rc2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc2) Release candidate - 2026-02-03
 
@@ -15,8 +27,6 @@
 
 ## Fixed
 - Fixed `lab_recruiter_external_submission_url` config parameter being required; it is now optional with an empty string default (author: Frank Höger)
-- Fixed `psynet.debugger()` crashing with `RuntimeError: debugpy.listen() has already been called on this process` when hitting the breakpoint more than once per session. `debugpy.listen()` is now only>
-- Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `exp>
 
 - **Lucid**
   - Fixed Lucid recruiter `get_status` crashing with `AttributeError: 'DataFrame' object has no attribute 'client_status'` when submissions list is empty (author: Frank Höger)
