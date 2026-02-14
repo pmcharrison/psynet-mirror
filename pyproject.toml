@@ -75,7 +75,7 @@ dev = [
     "openai",
     "pre-commit",
     "sphinx",
-    "sphinx-autodoc-typehints",
+    "sphinx-autodoc-typehints<3.0.0",
     "sphinx-inline-tabs",
     "beautifulsoup4",
     "pytest-test-groups",
