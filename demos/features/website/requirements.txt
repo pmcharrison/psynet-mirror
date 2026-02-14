@@ -1,4 +1,4 @@
-psynet==13.1.0rc2
+psynet==13.1.0rc3
 dominate
 
 # Alternatively, you can use one of the following syntaxes to specify a custom PsyNet version
