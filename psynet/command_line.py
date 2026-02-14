@@ -8,8 +8,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
-from contextlib import chdir
-from contextlib import contextmanager
+from contextlib import chdir, contextmanager
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
@@ -3203,7 +3202,7 @@ def _run_performance_test_with_existing_server(
     # Add console handler with clean format (no prefixes)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
-    formatter = logging.Formatter('%(message)s')
+    formatter = logging.Formatter("%(message)s")
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
 
@@ -3254,9 +3253,6 @@ def _start_local_server_and_wait_for_ready(
     dict with keys: process, tmp_log_path, log_file, stop_event,
                     reader_thread, develop_path
     """
-    from dallinger.command_line.develop import _bootstrap
-    from dallinger.utils import develop_target_path
-    from psynet import deployment_info
     import subprocess
     import sys
     import tempfile
@@ -3264,12 +3260,17 @@ def _start_local_server_and_wait_for_ready(
     import time
     from collections import deque
 
+    from dallinger.command_line.develop import _bootstrap
+    from dallinger.utils import develop_target_path
+
+    from psynet import deployment_info
+
     _bootstrap()
     config = get_config()
     develop_path = develop_target_path(config)
 
     with chdir(develop_path):
-        deploy_package_path = Path('DEPLOYMENT_PACKAGE')
+        deploy_package_path = Path("DEPLOYMENT_PACKAGE")
         if deploy_package_path.is_symlink():
             deploy_package_path.unlink()
         deploy_path = Path(".deploy")
@@ -3280,15 +3281,17 @@ def _start_local_server_and_wait_for_ready(
             mode="debug",
             is_local_deployment=True,
             is_ssh_deployment=False,
-            server='local',
-            app='local',
+            server="local",
+            app="local",
         )
-        deployment_info.write(deployment_id=config.get('id'))
+        deployment_info.write(deployment_id=config.get("id"))
 
     print("▶ Starting experiment server...")
 
     # Create temp log file
-    tmp_log = tempfile.NamedTemporaryFile(delete=False, prefix="psynet_server_", suffix=".log")
+    tmp_log = tempfile.NamedTemporaryFile(
+        delete=False, prefix="psynet_server_", suffix=".log"
+    )
     tmp_log_path = tmp_log.name
     tmp_log.close()
     print(f"Server log: {tmp_log_path}")
@@ -3351,7 +3354,7 @@ def _start_local_server_and_wait_for_ready(
             server_ready = True
             print(" Ready!")
             # Launch experiment
-            requests.post('http://localhost:5000/launch')
+            requests.post("http://localhost:5000/launch")
             time.sleep(1)
             break
 
@@ -3433,7 +3436,9 @@ def _run_performance_test_with_new_server(
 
     try:
         develop_path = server_info["develop_path"]
-        logger.debug(f"Changing to experiment directory for performance test: {develop_path}")
+        logger.debug(
+            f"Changing to experiment directory for performance test: {develop_path}"
+        )
         with chdir(develop_path):
             _run_performance_test_with_existing_server(
                 n_bots, stagger, time_factor, duration_minutes, debug
