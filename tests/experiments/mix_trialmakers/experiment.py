@@ -1,14 +1,9 @@
 # pylint: disable=unused-import,abstract-method
 
-import logging
-
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.pytest_psynet import AnimalTrial, ColorTrial, trial_maker_1, trial_maker_2
 from psynet.timeline import Timeline, for_loop, join
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
 
 
 class Exp(psynet.experiment.Experiment):
