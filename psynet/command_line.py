@@ -3018,6 +3018,14 @@ def _start_local_server_and_wait_for_ready(
 
 
 def _terminate_server_process(process):
+    def _signal_process_or_group(pid, sig):
+        try:
+            os.killpg(os.getpgid(pid), sig)
+            return
+        except Exception:
+            pass
+        os.kill(pid, sig)
+
     if not process.isalive():
         process.close(force=True)
         return
@@ -3034,25 +3042,22 @@ def _terminate_server_process(process):
     if not finished:
         pid = getattr(process, "pid", None)
         if pid is not None:
-            try:
+            for sig, timeout in ((signal.SIGTERM, 5), (signal.SIGKILL, None)):
                 try:
-                    os.killpg(os.getpgid(pid), signal.SIGTERM)
-                except Exception:
-                    os.kill(pid, signal.SIGTERM)
-                process.expect_exact(pexpect.EOF, timeout=5)
-                finished = True
-            except (ProcessLookupError, pexpect.TIMEOUT, pexpect.EOF):
-                pass
-            except Exception:
-                pass
-
-            if not finished:
-                try:
-                    try:
-                        os.killpg(os.getpgid(pid), signal.SIGKILL)
-                    except Exception:
-                        os.kill(pid, signal.SIGKILL)
+                    _signal_process_or_group(pid, sig)
                 except ProcessLookupError:
+                    break
+                except Exception:
+                    continue
+
+                if timeout is None:
+                    break
+
+                try:
+                    process.expect_exact(pexpect.EOF, timeout=timeout)
+                    finished = True
+                    break
+                except (ProcessLookupError, pexpect.TIMEOUT, pexpect.EOF):
                     pass
                 except Exception:
                     pass
