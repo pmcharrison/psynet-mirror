@@ -91,6 +91,7 @@
 - Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `experiment.py`. Changed to `${fileDirname}` across all demos, tests, and the experiment template (author: Frank Höger)
 
 ## Removed
+- Removed redundant `logging.basicConfig(level=logging.INFO)` and root logger initialization from demo/test experiment scripts where they were unused (author: Peter Harrison)
 - Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `assert_all_variables_defined` helper from translation checks (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `import_module` helper from utils (author: Cursor, reviewer: Peter Harrison)
