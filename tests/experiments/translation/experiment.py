@@ -1,7 +1,5 @@
 # pylint: disable=unused-import,abstract-method
 
-import logging
-
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import NoConsent
@@ -9,10 +7,6 @@ from psynet.modular_page import PushButtonControl, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.timeline import CodeBlock, PageMaker, Timeline
 from psynet.utils import get_translator
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
-
 
 _ = get_translator()
 
