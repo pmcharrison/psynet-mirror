@@ -424,6 +424,52 @@ def _enable_sql_profile(sql_profile_options, sql_profile_dir):
     return profile_dir, keep_profile_dir
 
 
+def _is_ubuntu() -> bool:
+    """Return True if the current OS is Ubuntu (or an Ubuntu derivative)."""
+    try:
+        with open("/etc/os-release") as f:
+            return "ubuntu" in f.read().lower()
+    except Exception:
+        return False
+
+
+def _open_in_browser(url: str) -> None:
+    """Open *url* in a browser, preferring Google Chrome on Ubuntu for local files.
+
+    Snap-confined browsers (e.g. Chromium on Ubuntu) cannot read ``file://``
+    URLs outside their sandbox, so on Ubuntu we try non-snap Google Chrome
+    first.  Falls back to ``click.launch()`` and finally prints the URL for
+    the user to open manually.
+    """
+    if _is_ubuntu():
+        # On Ubuntu the default browser is often snap-confined Chromium which
+        # silently fails to read file:// URLs (ERR_FILE_NOT_FOUND).  Use
+        # non-snap Google Chrome instead.
+        for name in ("google-chrome", "google-chrome-stable"):
+            path = shutil.which(name)
+            if path:
+                try:
+                    subprocess.Popen(
+                        [path, url],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    return
+                except Exception:
+                    continue
+    else:
+        try:
+            click.launch(url)
+            return
+        except Exception:
+            pass
+
+    click.echo(
+        "Could not open the SQL profile report automatically. "
+        "Please open the file URL shown above in your browser."
+    )
+
+
 def _print_sql_profile_aggregation(profile_dir, *, formats, open_html, show_dir):
     """
     Print aggregated SQL profiling output for all processes.
@@ -474,10 +520,7 @@ def _print_sql_profile_aggregation(profile_dir, *, formats, open_html, show_dir)
             )
         click.echo(f"SQL profile report: {html_path}")
         if open_html:
-            try:
-                click.launch(html_path)
-            except Exception as err:
-                click.echo(f"Failed to open SQL profile report: {err}")
+            _open_in_browser(f"file://{html_path}")
     if show_dir:
         click.echo(f"Raw SQL profile files saved to: {profile_dir}")
 
