@@ -110,7 +110,10 @@ function startExperiment(experimentDir) {
   const logStream = fs.createWriteStream(logPath, { flags: "a" });
   latestBackendLogPath = logPath;
 
-  const args = ["debug", "local"];
+  // Auto-reload debug mode can restart while tests are running (e.g., after local
+  // recording assets are written), which destabilizes DB state mid-test.
+  // Legacy mode avoids those reload cycles and is more reliable for Playwright.
+  const args = ["debug", "local", "--legacy"];
   const proc = spawn(psynetCmd, args, {
     detached: true,
     cwd: experimentDir,
@@ -200,12 +203,12 @@ async function stopExperiment(proc) {
     return;
   }
 
-  if (proc.exitCode !== null || proc.signalCode !== null) {
-    return;
-  }
-
   const waitForExit = (timeoutMs) =>
     new Promise((resolve) => {
+      if (proc.exitCode !== null || proc.signalCode !== null) {
+        resolve(true);
+        return;
+      }
       let finished = false;
       const done = (didExit) => {
         if (finished) {
@@ -225,16 +228,23 @@ async function stopExperiment(proc) {
       proc.once("exit", onExit);
     });
 
-  killProcessTree(proc, "SIGINT");
-  const exitedOnSigint = await waitForExit(3000);
-  if (exitedOnSigint) {
-    await waitForPortToBeFree(DEBUG_PORT, 10000);
-    return;
+  let exited = proc.exitCode !== null || proc.signalCode !== null;
+  if (!exited) {
+    killProcessTree(proc, "SIGINT");
+    exited = await waitForExit(3000);
   }
 
-  killProcessTree(proc, "SIGKILL");
-  await waitForExit(3000);
+  if (!exited) {
+    killProcessTree(proc, "SIGKILL");
+    await waitForExit(3000);
+  }
+
+  // Detached child processes can outlive the parent; ensure the port is actually free.
   await waitForPortToBeFree(DEBUG_PORT, 10000);
+  if (await isPortInUse(DEBUG_PORT)) {
+    killProcessTree(proc, "SIGKILL");
+    await waitForPortToBeFree(DEBUG_PORT, 10000);
+  }
 }
 
 async function beginExperiment(page, context, url) {
@@ -549,12 +559,16 @@ async function advanceUntilPromptContains(page, text, options = {}) {
 
 async function withExperiment(page, context, experimentDir, runTest) {
   const { proc, urlPromise } = startExperiment(experimentDir);
+  let experimentPage = null;
   try {
     const url = await urlPromise;
-    const experimentPage = await beginExperiment(page, context, url);
+    experimentPage = await beginExperiment(page, context, url);
     await acceptConsents(experimentPage);
     return await runTest(experimentPage);
   } finally {
+    if (experimentPage && !experimentPage.isClosed()) {
+      await experimentPage.goto("about:blank").catch(() => {});
+    }
     await stopExperiment(proc);
   }
 }
