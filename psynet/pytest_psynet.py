@@ -8,6 +8,7 @@ import tempfile
 import time
 import uuid
 import warnings
+from functools import cached_property
 from pathlib import Path
 from urllib import parse
 
@@ -17,7 +18,6 @@ import pexpect
 import pexpect.exceptions
 import pytest
 import sqlalchemy.exc
-from cached_property import cached_property
 from dallinger import db, pytest_dallinger
 from dallinger.bots import BotBase
 from dallinger.config import get_config
