@@ -22,8 +22,86 @@ async function expectMainBodyContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   });
 }
 
+async function getTrialEvents(page) {
+  return page.evaluate(() => {
+    return (psynet?.trial?.eventLog || []).map((event) => ({
+      eventType: event.eventType,
+      localTimeMs: new Date(event.localTime).getTime(),
+      info: event.info ?? null
+    }));
+  });
+}
+
+function getEventTimes(events, eventType) {
+  return events
+    .filter((event) => event.eventType === eventType)
+    .map((event) => event.localTimeMs);
+}
+
+function assertEventDelayWithin(
+  events,
+  {
+    fromEvent,
+    toEvent,
+    minMs,
+    maxMs,
+    fromOccurrence = 0,
+    toOccurrence = 0
+  }
+) {
+  const fromTimes = getEventTimes(events, fromEvent);
+  const toTimes = getEventTimes(events, toEvent);
+  expect(fromTimes.length).toBeGreaterThan(fromOccurrence);
+  expect(toTimes.length).toBeGreaterThan(toOccurrence);
+
+  const delayMs = toTimes[toOccurrence] - fromTimes[fromOccurrence];
+  expect(delayMs).toBeGreaterThanOrEqual(minMs);
+  expect(delayMs).toBeLessThanOrEqual(maxMs);
+}
+
+async function waitForTrialEventCount(
+  page,
+  eventType,
+  expectedCount,
+  timeout = PROMPT_TIMEOUT_MS
+) {
+  await expect
+    .poll(
+      async () => {
+        const events = await getTrialEvents(page);
+        return getEventTimes(events, eventType).length;
+      },
+      { timeout }
+    )
+    .toBeGreaterThanOrEqual(expectedCount);
+}
+
+async function getActiveSoundIds(page) {
+  return page.evaluate(() => {
+    return (psynet?.media?.sounds || []).map((sound) => sound.stimulusId);
+  });
+}
+
+async function waitForSoundActiveState(
+  page,
+  stimulusId,
+  expectedActive,
+  timeout = PROMPT_TIMEOUT_MS
+) {
+  await expect
+    .poll(
+      async () => {
+        const activeSoundIds = await getActiveSoundIds(page);
+        return activeSoundIds.includes(stimulusId);
+      },
+      { timeout }
+    )
+    .toBe(expectedActive);
+}
+
 async function useStandardAudioControls(page, options = {}) {
   const stopAfterPlay = options.stopAfterPlay ?? true;
+  const toggleLoop = options.toggleLoop ?? false;
   const playButton = page.locator("#audio-prompt-play");
   const stopButton = page.locator("#audio-prompt-stop");
   const loopToggle = page.locator("#audio-prompt-loop-input");
@@ -37,12 +115,14 @@ async function useStandardAudioControls(page, options = {}) {
     await stopButton.click();
   }
 
-  const wasChecked = await loopToggle.isChecked();
-  await loopToggle.click();
-  if (wasChecked) {
-    await expect(loopToggle).not.toBeChecked();
-  } else {
-    await expect(loopToggle).toBeChecked();
+  if (toggleLoop) {
+    const wasChecked = await loopToggle.isChecked();
+    await loopToggle.click();
+    if (wasChecked) {
+      await expect(loopToggle).not.toBeChecked();
+    } else {
+      await expect(loopToggle).toBeChecked();
+    }
   }
 }
 
@@ -53,7 +133,7 @@ test("audio demo", async ({ page, context }) => {
       experimentPage,
       "harmonic complex tone as the timbre"
     );
-    await useStandardAudioControls(experimentPage);
+    await useStandardAudioControls(experimentPage, { toggleLoop: true });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await expectPromptContains(experimentPage, "select various instrument sounds");
@@ -86,14 +166,45 @@ test("audio demo", async ({ page, context }) => {
       "simple audio page with one stimulus"
     );
     await expect(experimentPage.locator("#audio-prompt-controls")).toHaveCount(0);
+    await waitForTrialEventCount(experimentPage, "audioFinished: prompt", 1, 30000);
+    const simpleAudioEvents = await getTrialEvents(experimentPage);
+    assertEventDelayWithin(simpleAudioEvents, {
+      fromEvent: "trialStart",
+      toEvent: "audioFinished: prompt",
+      minMs: 500,
+      maxMs: 20000
+    });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await expectPromptContains(experimentPage, "loops the same stimulus");
+    await waitForTrialEventCount(experimentPage, "audioFinished: prompt", 2, 45000);
+    const loopingAudioEvents = await getTrialEvents(experimentPage);
+    const loopingFinishTimes = getEventTimes(
+      loopingAudioEvents,
+      "audioFinished: prompt"
+    );
+    expect(loopingFinishTimes[1] - loopingFinishTimes[0]).toBeGreaterThanOrEqual(
+      500
+    );
+    expect(loopingFinishTimes[1] - loopingFinishTimes[0]).toBeLessThanOrEqual(
+      25000
+    );
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await expectPromptContains(experimentPage, "adds audio playback controls");
     await expect(experimentPage.locator("#next-button")).toBeDisabled();
+    const controlsEventsBeforePlay = await getTrialEvents(experimentPage);
+    expect(getEventTimes(controlsEventsBeforePlay, "trialStart").length).toBe(0);
     await useStandardAudioControls(experimentPage, { stopAfterPlay: false });
+    await waitForTrialEventCount(experimentPage, "trialStart", 1, 15000);
+    await waitForTrialEventCount(experimentPage, "audioFinished: prompt", 1, 30000);
+    const controlsAudioEvents = await getTrialEvents(experimentPage);
+    assertEventDelayWithin(controlsAudioEvents, {
+      fromEvent: "trialStart",
+      toEvent: "audioFinished: prompt",
+      minMs: 500,
+      maxMs: 25000
+    });
     await waitForNextEnabled(experimentPage, 45000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
@@ -105,7 +216,19 @@ test("audio demo", async ({ page, context }) => {
     await expect(experimentPage.locator("#audio-prompt-loop-input")).toHaveCount(
       0
     );
+    await waitForTrialEventCount(experimentPage, "audioFinished: prompt", 1, 30000);
+    const customControlEventsBeforeReplay = await getTrialEvents(experimentPage);
+    const customFinishedCountBeforeReplay = getEventTimes(
+      customControlEventsBeforeReplay,
+      "audioFinished: prompt"
+    ).length;
     await experimentPage.locator("#audio-prompt-play").click();
+    await waitForTrialEventCount(
+      experimentPage,
+      "audioFinished: prompt",
+      customFinishedCountBeforeReplay + 1,
+      30000
+    );
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await expectPromptContains(
@@ -113,6 +236,36 @@ test("audio demo", async ({ page, context }) => {
       "access audio stimuli outside of Audio Prompts"
     );
     await expect(experimentPage.locator("#audio-prompt-controls")).toHaveCount(0);
+    await waitForTrialEventCount(experimentPage, "playStimulus1", 1, 15000);
+    await waitForTrialEventCount(experimentPage, "audioFinished: stimulus_1", 1, 30000);
+    await waitForTrialEventCount(experimentPage, "playStimulus2", 1, 15000);
+    await waitForTrialEventCount(experimentPage, "responseEnable", 1, 15000);
+    await waitForTrialEventCount(experimentPage, "submitEnable", 1, 15000);
+    const sequenceEvents = await getTrialEvents(experimentPage);
+    assertEventDelayWithin(sequenceEvents, {
+      fromEvent: "trialStart",
+      toEvent: "playStimulus1",
+      minMs: 0,
+      maxMs: 1500
+    });
+    assertEventDelayWithin(sequenceEvents, {
+      fromEvent: "audioFinished: stimulus_1",
+      toEvent: "playStimulus2",
+      minMs: 250,
+      maxMs: 2500
+    });
+    assertEventDelayWithin(sequenceEvents, {
+      fromEvent: "playStimulus2",
+      toEvent: "responseEnable",
+      minMs: 700,
+      maxMs: 3000
+    });
+    assertEventDelayWithin(sequenceEvents, {
+      fromEvent: "responseEnable",
+      toEvent: "submitEnable",
+      minMs: 0,
+      maxMs: 1000
+    });
     await waitForNextEnabled(experimentPage, 60000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
@@ -128,7 +281,28 @@ test("audio demo", async ({ page, context }) => {
     const firstRecordButton = experimentPage.locator("#btn-record-record");
     await expect(firstRecordButton).toBeVisible();
     await expect(firstRecordButton).toBeEnabled();
+    const firstRecordEventsBefore = await getTrialEvents(experimentPage);
+    const firstRecordEndCountBefore = getEventTimes(
+      firstRecordEventsBefore,
+      "recordEnd"
+    ).length;
     await firstRecordButton.click();
+    await waitForTrialEventCount(
+      experimentPage,
+      "recordEnd",
+      firstRecordEndCountBefore + 1,
+      45000
+    );
+    const firstRecordEvents = await getTrialEvents(experimentPage);
+    const firstRecordTrialStarts = getEventTimes(firstRecordEvents, "trialStart");
+    const firstRecordEnds = getEventTimes(firstRecordEvents, "recordEnd");
+    expect(firstRecordTrialStarts.length).toBeGreaterThan(0);
+    expect(firstRecordEnds.length).toBeGreaterThan(0);
+    const firstRecordDurationMs =
+      firstRecordEnds[firstRecordEnds.length - 1] -
+      firstRecordTrialStarts[firstRecordTrialStarts.length - 1];
+    expect(firstRecordDurationMs).toBeGreaterThanOrEqual(2000);
+    expect(firstRecordDurationMs).toBeLessThanOrEqual(12000);
     await expect(experimentPage.locator("#btn-record-play-recording")).toBeEnabled({
       timeout: 45000
     });
@@ -146,6 +320,21 @@ test("audio demo", async ({ page, context }) => {
       experimentPage,
       "activate the recorder 3 seconds afterwards"
     );
+    await waitForTrialEventCount(experimentPage, "recordStart", 1, 45000);
+    await waitForTrialEventCount(experimentPage, "recordEnd", 1, 45000);
+    const listenThenRecordEvents = await getTrialEvents(experimentPage);
+    assertEventDelayWithin(listenThenRecordEvents, {
+      fromEvent: "trialStart",
+      toEvent: "recordStart",
+      minMs: 2200,
+      maxMs: 7000
+    });
+    assertEventDelayWithin(listenThenRecordEvents, {
+      fromEvent: "recordStart",
+      toEvent: "recordEnd",
+      minMs: 700,
+      maxMs: 5000
+    });
     await expect(experimentPage.locator("#btn-record-record")).toBeEnabled();
     await expect(experimentPage.locator("#btn-record-play-recording")).toBeEnabled({
       timeout: 45000
@@ -159,7 +348,32 @@ test("audio demo", async ({ page, context }) => {
     const videoRecordButton = experimentPage.locator("#btn-record-record");
     await expect(videoRecordButton).toBeVisible();
     await expect(videoRecordButton).toBeEnabled();
+    const videoRecordEventsBefore = await getTrialEvents(experimentPage);
+    expect(getEventTimes(videoRecordEventsBefore, "trialStart").length).toBe(0);
     await videoRecordButton.click();
+    await waitForTrialEventCount(experimentPage, "trialStart", 1, 15000);
+    await waitForTrialEventCount(experimentPage, "audioStart", 1, 15000);
+    await waitForTrialEventCount(experimentPage, "recordStart", 1, 30000);
+    await waitForTrialEventCount(experimentPage, "recordEnd", 1, 45000);
+    const videoRecordEvents = await getTrialEvents(experimentPage);
+    assertEventDelayWithin(videoRecordEvents, {
+      fromEvent: "trialStart",
+      toEvent: "audioStart",
+      minMs: 0,
+      maxMs: 1500
+    });
+    assertEventDelayWithin(videoRecordEvents, {
+      fromEvent: "trialStart",
+      toEvent: "recordStart",
+      minMs: 1800,
+      maxMs: 7000
+    });
+    assertEventDelayWithin(videoRecordEvents, {
+      fromEvent: "recordStart",
+      toEvent: "recordEnd",
+      minMs: 1200,
+      maxMs: 6000
+    });
     await expectPromptContains(
       experimentPage,
       "Here's the recording you just made.",
@@ -196,8 +410,21 @@ test("audio demo", async ({ page, context }) => {
     });
     await expect(playBierButton).toBeEnabled();
     await expect(stopBierButton).toBeEnabled();
+    const preloadingEventsBefore = await getTrialEvents(experimentPage);
+    const bierFinishedCountBefore = getEventTimes(
+      preloadingEventsBefore,
+      "audioFinished: bier"
+    ).length;
     await playBierButton.click();
+    await waitForSoundActiveState(experimentPage, "bier", true, 10000);
     await stopBierButton.click();
+    await waitForTrialEventCount(
+      experimentPage,
+      "audioFinished: bier",
+      bierFinishedCountBefore + 1,
+      15000
+    );
+    await waitForSoundActiveState(experimentPage, "bier", false, 15000);
 
     const finishButton = experimentPage.locator("#Finish");
     const finishIsVisible =
