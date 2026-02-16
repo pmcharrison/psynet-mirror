@@ -10,6 +10,9 @@ const config = {
   use: {
     headless,
     viewport: { width: 1024, height: 768 },
+    screenshot: "only-on-failure",
+    trace: "retain-on-failure",
+    video: "retain-on-failure",
     permissions: ["microphone", "camera"],
     launchOptions: {
       args: [

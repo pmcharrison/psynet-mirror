@@ -33,6 +33,7 @@
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 - Extended the Playwright audio demo test with detailed page-by-page UI interactions plus audio playback/timing assertions, avoiding direct `nextPage` shortcuts (author: [Peter])
+- Configured Playwright to retain screenshots, traces, and videos for failed tests to improve CI debugging artifacts (author: [Peter])
 
 ## Fixed
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
