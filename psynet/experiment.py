@@ -1464,7 +1464,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             logger.info(
                 "│ {:>6,} │ {:>10,} │ {:>10,} │ {:>10,} │ {:>12} │ {:>12} │".format(
                     result["n_bots"],
-                    result["completed_experiments"],
+                    result["completed_during_test"],
                     result["total_requests"],
                     error_count,
                     avg_response_time,
@@ -1477,23 +1477,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # Detailed results
         for idx, result in enumerate(results, 1):
+
+            bots_finished = max(result["completed_during_test"],
+                                result["bots_succeeded"] + result["bots_failed"])
+
             logger.info(f"Test {idx} Details (n={result['n_bots']:,} bots):")
             logger.info(f"  Total bots started: {result['total_bots_started']:,}")
-            logger.info(
-                f"  Finished within duration: {result['completed_during_test']:,}"
-            )
-            logger.info(f"  Completed experiments: {result['completed_experiments']:,}")
-            logger.info(f"  Failed experiments: {result['failed_experiments']:,}")
+            logger.info(f"  Finished within duration: {bots_finished:,}")
+            logger.info(f"  Successful experiments: {result['bots_succeeded']:,}")
+            logger.info(f"  Failed experiments: {result['bots_failed']:,}")
+            logger.info(f"  Incomplete experiments: {result['bots_incomplete']:,}")
 
-            successful_or_failed_bots = (
-                result["completed_experiments"] + result["failed_experiments"]
-            )
-            if successful_or_failed_bots > 0:
+            if bots_finished > 0:
                 success_rate = (
-                    result["completed_experiments"] / successful_or_failed_bots
+                    result["bots_succeeded"] / bots_finished
                 ) * 100
                 logger.info(f"  Success rate: {success_rate:.1f}%")
             elif result["total_bots_started"] > 0:
+                logger.info("  Success rate: 0.0%")
+            else:
                 logger.info("  Success rate: N/A")
 
             logger.info(f"  Total requests: {result['total_requests']:,}")
@@ -1611,7 +1613,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "total_bots_started": 0,
             "total_bots_completed": 0,
             "bots_completed_during_test": 0,
-            "total_bots_failed": 0,
+            "total_bot_errors": 0,
             "bot_durations": [],
             "initialization_times": [],
             "first_bot_initialized": False,
@@ -1619,6 +1621,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "testing_stats": self.TestingStats(self.testing_stat_definitions),
             "last_status_update": time.time(),
             "status_line_length": 0,
+            "bot_ids": set(),
         }
 
     @staticmethod
@@ -1676,6 +1679,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "next_start_time": None,
                 }
                 bot_state["total_bots_started"] += 1
+                bot_state["bot_ids"].add(bot_id)
 
                 return True
             except Exception as e:
@@ -1701,7 +1705,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             [p for p in bot_state["processes"].values() if p["next_start_time"] is None]
         )
         completed = bot_state["total_bots_completed"]
-        failed = bot_state["total_bots_failed"]
+        errors = bot_state["total_bot_errors"]
 
         # Calculate average response time from recent bot durations
         recent_durations = (
@@ -1717,7 +1721,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         secs_left = int(time_left % 60)
 
         # Build status line
-        status = f"🤖 Running: {running} | ✓ Completed: {completed:,} | ✗ Failed: {failed} | ⏱ Avg: {avg_duration:.1f}s | ⏳ {mins_left}:{secs_left:02d} left"
+        status = f"🤖 Running: {running} | ✓ Completed: {completed:,} | ✗ Errors: {errors} | ⏱ Avg: {avg_duration:.1f}s | ⏳ {mins_left}:{secs_left:02d} left"
 
         # Clear previous line and print new status
         sys.stdout.write("\r" + " " * bot_state["status_line_length"] + "\r")
@@ -1892,8 +1896,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         if p.exitstatus == 0:
             logger.debug(f"Bot {bot_id} completed successfully in {bot_duration:.1f}s")
-            bot_state["total_bots_completed"] += 1
-            # Track completions during duration-minutes
             if current_time < end_time:
                 bot_state["bots_completed_during_test"] += 1
             if process_info["start_time"] is not None:
@@ -1901,7 +1903,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             if p.exitstatus is not None:
                 logger.error(f"Bot {bot_id} failed with exit status {p.exitstatus}")
-                bot_state["total_bots_failed"] += 1
+                bot_state["total_bot_errors"] += 1
 
         # Schedule bot replacement or cleanup
         if current_time < end_time:
@@ -1917,7 +1919,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """Handle a bot process error."""
         bot_id = process_info["bot_id"]
         logger.error(f"Error monitoring bot {bot_id}: {error}")
-        bot_state["total_bots_failed"] += 1
+        bot_state["total_bot_errors"] += 1
 
         if current_time < end_time:
             random_delay = self._bounded_random_stagger()
@@ -1957,6 +1959,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .one()
         )
 
+        bot_ids = bot_state["bot_ids"]
+        bots = Bot.query.filter(Bot.id.in_(list(bot_ids))).all()
+        bots_succeeded = bots_failed = bots_incomplete = 0
+        for bot in bots:
+            if bot.status in {'approved', 'submitted'}:
+                bots_succeeded += 1
+            elif bot.status == 'working':
+                bots_incomplete += 1
+            else:
+                bots_failed += 1
+
         avg_response_time = stats.avg
         median_response_time = stats.median
         p95_response_time = stats.p95
@@ -1981,9 +1994,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             duration_minutes,
             actual_duration,
             bot_state["total_bots_started"],
-            bot_state["total_bots_completed"],
             bot_state["bots_completed_during_test"],
-            bot_state["total_bots_failed"],
+            bot_state["total_bot_errors"],
+            bots_succeeded,
+            bots_failed,
+            bots_incomplete,
             avg_bot_duration,
             avg_init_time,
             requests_during_test,
@@ -1995,9 +2010,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "duration_minutes": duration_minutes,
             "actual_duration": actual_duration,
             "total_bots_started": bot_state["total_bots_started"],
-            "completed_experiments": bot_state["total_bots_completed"],
             "completed_during_test": bot_state["bots_completed_during_test"],
-            "failed_experiments": bot_state["total_bots_failed"],
+            "bots_succeeded": bots_succeeded,
+            "bots_failed": bots_failed,
+            "bots_incomplete": bots_incomplete,
             "total_requests": requests_during_test,
             "successful_requests": requests_during_test,
             "avg_response_time": avg_response_time,
@@ -2015,9 +2031,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         duration_minutes,
         actual_duration,
         total_started,
-        total_completed,
         completed_during_test,
-        total_failed,
+        total_errors,
+        bots_succeeded,
+        bots_failed,
+        bots_incomplete,
         avg_bot_duration,
         avg_init_time,
         requests_during_test,
@@ -2025,33 +2043,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     ):
         """Print test results. Mostly in debug mode, to prevent duplication with end summary"""
         logger.info("✓ Test completed")
-        logger.debug(f"TEST RESULTS (n={n:,} bots):")
-        logger.debug(f"Target duration: {duration_minutes} minutes")
+        logger.info(f"TEST RESULTS (n={n:,} bots):")
+        logger.info(f"Target duration: {duration_minutes} minutes")
 
         if avg_init_time is not None:
-            logger.debug(f"Average bot initialization time: {avg_init_time:.1f}s")
+            logger.info(f"Average bot initialization time: {avg_init_time:.1f}s")
+
+        bots_finished = max(completed_during_test, bots_succeeded + bots_failed)
 
         logger.info(f"Total bots started: {total_started:,}")
-        logger.info(f"Completed during duration: {completed_during_test:,}")
-        logger.debug(f"Completed experiments: {total_completed:,}")
-        logger.debug(f"Failed experiments: {total_failed:,}")
+        logger.info(f"Bots completed during duration: {bots_finished:,}")
+        logger.info(f"Successful experiments: {bots_succeeded:,}")
+        logger.info(f"Failed experiments: {bots_failed:,}")
+        logger.info(f"Incomplete experiments: {bots_incomplete:,}")
+        logger.info(f"Bot errors: {total_errors:,}")
 
-        successful_or_failed_bots = total_completed + total_failed
-        if successful_or_failed_bots > 0:
-            success_rate = (total_completed / successful_or_failed_bots) * 100
-            logger.debug(f"Success rate: {success_rate:.1f}%")
+        if bots_finished > 0:
+            success_rate = (bots_succeeded / bots_finished) * 100
+            logger.info(f"Success rate: {success_rate:.1f}%")
         elif total_started > 0:
-            logger.debug("Success rate: N/A")
+            logger.info("Success rate: 0.0%")
+        else:
+            logger.info("Success rate: N/A")
 
         if avg_bot_duration is not None:
-            logger.debug(f"Average time to complete: {avg_bot_duration:.1f}s")
+            logger.info(f"Average time to complete: {avg_bot_duration:.1f}s")
 
-        logger.debug(f"Requests during test: {requests_during_test:,}")
+        logger.info(f"Requests during test: {requests_during_test:,}")
 
         if avg_response_time is not None:
-            logger.debug(f"Average response time: {avg_response_time:.3f}s")
+            logger.info(f"Average response time: {avg_response_time:.3f}s")
         else:
-            logger.debug("Average response time: N/A")
+            logger.info("Average response time: N/A")
 
     def _report_request_statistics(self) -> Optional[float]:
         response = self.authenticated_session.get(self.base_url + "/request_statistics")
