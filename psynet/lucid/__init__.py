@@ -1,11 +1,11 @@
 import json
 import os.path
 from datetime import datetime, timedelta
+from functools import cached_property
 from typing import List
 
 import pandas as pd
 import requests
-from cached_property import cached_property
 from dallinger import db
 from dallinger.db import session
 from sqlalchemy import Column, DateTime, func
