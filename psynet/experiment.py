@@ -1437,6 +1437,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def _print_performance_summary(self, results):
         """Print a comprehensive summary of all performance test results."""
+
+        def _format_response_metric(value):
+            return f"{value:.3f}" if value is not None else "N/A"
+
         logger.info("")
         logger.info("=" * 80)
         logger.info("📊 PERFORMANCE TEST SUMMARY")
@@ -1454,15 +1458,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         for result in results:
             error_count = result["total_requests"] - result["successful_requests"]
+            avg_response_time = _format_response_metric(result["avg_response_time"])
+            p95_response_time = _format_response_metric(result["p95_response_time"])
 
             logger.info(
-                "│ {:>6,} │ {:>10,} │ {:>10,} │ {:>10,} │ {:>12.3f} │ {:>12.3f} │".format(
+                "│ {:>6,} │ {:>10,} │ {:>10,} │ {:>10,} │ {:>12} │ {:>12} │".format(
                     result["n_bots"],
                     result["completed_experiments"],
                     result["total_requests"],
                     error_count,
-                    result["avg_response_time"],
-                    result["p95_response_time"],
+                    avg_response_time,
+                    p95_response_time,
                 )
             )
 
@@ -1479,12 +1485,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             logger.info(f"  Completed experiments: {result['completed_experiments']:,}")
             logger.info(f"  Failed experiments: {result['failed_experiments']:,}")
 
-            if result["total_bots_started"] > 0:
+            successful_or_failed_bots = (
+                result["completed_experiments"] + result["failed_experiments"]
+            )
+            if successful_or_failed_bots > 0:
                 success_rate = (
-                    result["completed_experiments"]
-                    / (result["completed_experiments"] + result["failed_experiments"])
+                    result["completed_experiments"] / successful_or_failed_bots
                 ) * 100
                 logger.info(f"  Success rate: {success_rate:.1f}%")
+            elif result["total_bots_started"] > 0:
+                logger.info("  Success rate: N/A")
 
             logger.info(f"  Total requests: {result['total_requests']:,}")
             logger.info(f"  Successful requests: {result['successful_requests']:,}")
@@ -2026,9 +2036,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.debug(f"Completed experiments: {total_completed:,}")
         logger.debug(f"Failed experiments: {total_failed:,}")
 
-        if total_started > 0:
-            success_rate = (total_completed / (total_completed + total_failed)) * 100
+        successful_or_failed_bots = total_completed + total_failed
+        if successful_or_failed_bots > 0:
+            success_rate = (total_completed / successful_or_failed_bots) * 100
             logger.debug(f"Success rate: {success_rate:.1f}%")
+        elif total_started > 0:
+            logger.debug("Success rate: N/A")
 
         if avg_bot_duration is not None:
             logger.debug(f"Average time to complete: {avg_bot_duration:.1f}s")

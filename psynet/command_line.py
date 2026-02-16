@@ -3,11 +3,12 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
 import zipfile
-from contextlib import chdir, contextmanager
+from contextlib import contextmanager
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
@@ -17,6 +18,7 @@ from urllib.parse import urlencode
 import click
 import click.shell_completion
 import dallinger.command_line.utils
+import pexpect
 import psutil
 import psycopg2
 import requests
@@ -2926,61 +2928,26 @@ def _run_performance_test_with_existing_server(
     exp.performance_test_experiment(bot_counts=bot_counts)
 
 
+class _OutputTee:
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, data):
+        for stream in self.streams:
+            stream.write(data)
+            stream.flush()
+
+    def flush(self):
+        for stream in self.streams:
+            stream.flush()
+
+
 def _start_local_server_and_wait_for_ready(
-    debug=False, max_wait=60, ready_phrase="Serving Flask"
+    debug=False, max_wait=60, ready_phrase="Experiment launch complete!"
 ):
-    """Start the server subprocess, stream stdout to a temp log via a reader thread,
-    wait until a readiness marker appears in output and launch the experiment
-
-    Parameters
-    ----------
-    debug : bool
-        If True, print server output to console in real time.
-    max_wait : int
-        Maximum seconds to wait for server readiness.
-    ready_phrase : str
-        Phrase to look for in server output to determine readiness.
-    Returns
-    -------
-    dict with keys: process, tmp_log_path, log_file, stop_event,
-                    reader_thread, develop_path
-    """
-    import subprocess
-    import sys
-    import tempfile
-    import threading
-    import time
-    from collections import deque
-
-    from dallinger.command_line.develop import _bootstrap
-    from dallinger.utils import develop_target_path
-
-    from psynet import deployment_info
-
-    _bootstrap()
-    config = get_config()
-    develop_path = develop_target_path(config)
-
-    with chdir(develop_path):
-        deploy_package_path = Path("DEPLOYMENT_PACKAGE")
-        if deploy_package_path.is_symlink():
-            deploy_package_path.unlink()
-        deploy_path = Path(".deploy")
-        if deploy_path.is_symlink():
-            deploy_path.unlink()
-        deployment_info.init(
-            redeploying_from_archive=True,
-            mode="debug",
-            is_local_deployment=True,
-            is_ssh_deployment=False,
-            server="local",
-            app="local",
-        )
-        deployment_info.write(deployment_id=config.get("id"))
-
+    """Start ``psynet debug local`` and wait for launch completion."""
     print("▶ Starting experiment server...")
 
-    # Create temp log file
     tmp_log = tempfile.NamedTemporaryFile(
         delete=False, prefix="psynet_server_", suffix=".log"
     )
@@ -2988,135 +2955,136 @@ def _start_local_server_and_wait_for_ready(
     tmp_log.close()
     print(f"Server log: {tmp_log_path}")
 
-    # Start server process
-    process = subprocess.Popen(
-        ["./run.sh"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        cwd=develop_path,
-        text=True,
-        bufsize=1,
-        start_new_session=True,
-    )
-
-    # Open log file for appending
     log_file = open(tmp_log_path, "a", encoding="utf-8")
+    logfile = _OutputTee(sys.stdout, log_file) if debug else log_file
+    env = os.environ.copy()
+    env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
+    env.setdefault("BROWSER", "true")
 
-    # Set up reader thread state
-    recent_lines = deque(maxlen=1000)
-    stop_event = threading.Event()
+    start_commands = [
+        ["debug", "local", "--legacy", "--no-browsers"],
+        ["debug", "local"],
+    ]
+    process = None
+    legacy_fallback_marker = "No such file or directory: 'heroku'"
 
-    def _reader(stdout, logfile, recent, show, stop_evt):
+    for command_args in start_commands:
         try:
-            while True:
-                if stop_evt.is_set():
-                    break
-                ln = stdout.readline()
-                if not ln:
-                    break
-                try:
-                    logfile.write(ln)
-                    logfile.flush()
-                except Exception:
-                    pass
-                recent.append(ln)
-                if show:
-                    print(ln, end="")
+            process = pexpect.spawn(
+                "psynet",
+                command_args,
+                env=env,
+                encoding="utf-8",
+                timeout=max_wait,
+            )
+        except Exception:
+            log_file.close()
+            raise click.ClickException("Failed to start experiment server process.")
+
+        process.logfile = logfile
+        print("⏳ Waiting for server to be ready...", end="", flush=True)
+
+        try:
+            process.expect_exact(ready_phrase, timeout=max_wait)
+            print(" Ready!")
+            print()
+            return {
+                "process": process,
+                "tmp_log_path": tmp_log_path,
+                "log_file": log_file,
+            }
+        except (pexpect.TIMEOUT, pexpect.EOF):
+            recent_output = (process.before or "").splitlines()[-50:]
+            _terminate_server_process(process)
+
+            if command_args == start_commands[0] and any(
+                legacy_fallback_marker in line for line in recent_output
+            ):
+                print(
+                    "\n⚠ Legacy debug server unavailable; retrying with auto-reload mode..."
+                )
+                continue
+
+            print(
+                f"\n❌ Server failed to start within {max_wait} seconds",
+                file=sys.stderr,
+            )
+            if recent_output:
+                print("Last server output:", file=sys.stderr)
+                for line in recent_output:
+                    print(line, file=sys.stderr)
+            log_file.close()
+            raise click.ClickException("Failed to start experiment server.")
+
+
+def _terminate_server_process(process):
+    def _signal_process_or_group(pid, sig):
+        try:
+            os.killpg(os.getpgid(pid), sig)
+            return
         except Exception:
             pass
-        finally:
-            try:
-                stdout.close()
-            except Exception:
-                pass
+        os.kill(pid, sig)
 
-    reader_thread = threading.Thread(
-        target=_reader,
-        args=(process.stdout, log_file, recent_lines, bool(debug), stop_event),
-    )
-    reader_thread.daemon = True
-    reader_thread.start()
+    if not process.isalive():
+        process.close(force=True)
+        return
 
-    # Wait for server to be ready
-    print("⏳ Waiting for server to be ready...", end="", flush=True)
-    start_wait = time.time()
-    server_ready = False
-    while time.time() - start_wait < max_wait:
-        if any(ready_phrase in line for line in recent_lines):
-            server_ready = True
-            print(" Ready!")
-            # Launch experiment
-            requests.post("http://localhost:5000/launch")
-            time.sleep(1)
-            break
+    finished = False
 
-        if process.poll() is not None:
-            print("\nServer terminated early. Last log lines:\n")
-            try:
-                for line in list(recent_lines)[-50:]:
-                    print(line, end="")
-            except Exception:
-                pass
-            sys.exit(1)
+    try:
+        process.sendcontrol("c")
+        process.expect_exact(pexpect.EOF, timeout=15)
+        finished = True
+    except (pexpect.TIMEOUT, pexpect.EOF):
+        pass
 
-        print(".", end="", flush=True)
-        time.sleep(0.5)
+    if not finished:
+        pid = getattr(process, "pid", None)
+        if pid is not None:
+            for sig, timeout in ((signal.SIGTERM, 5), (signal.SIGKILL, None)):
+                try:
+                    _signal_process_or_group(pid, sig)
+                except ProcessLookupError:
+                    break
+                except Exception:
+                    continue
 
-    if not server_ready:
-        print(f"\n❌ Server failed to start within {max_wait} seconds", file=sys.stderr)
-        process.terminate()
-        process.wait(timeout=5)
-        sys.exit(1)
+                if timeout is None:
+                    break
 
-    print()
-    return {
-        "process": process,
-        "tmp_log_path": tmp_log_path,
-        "log_file": log_file,
-        "stop_event": stop_event,
-        "reader_thread": reader_thread,
-        "develop_path": develop_path,
-    }
+                try:
+                    process.expect_exact(pexpect.EOF, timeout=timeout)
+                    finished = True
+                    break
+                except (ProcessLookupError, pexpect.TIMEOUT, pexpect.EOF):
+                    pass
+                except Exception:
+                    pass
+
+    process.close(force=True)
 
 
 def _stop_server(server_info):
-    """Stop the server and clean up resources.
-
-    Parameters
-    ----------
-    server_info : dict
-        Dictionary returned by _start_local_server_and_wait_for_ready with keys:
-        process, tmp_log_path, log_file, stop_event, reader_thread, develop_path
-    """
-    import subprocess
+    """Stop ``psynet debug local`` and clean up resources."""
 
     process = server_info["process"]
     tmp_log_path = server_info["tmp_log_path"]
     log_file = server_info["log_file"]
-    stop_event = server_info["stop_event"]
-    reader_thread = server_info["reader_thread"]
-
-    # Signal the reader thread to stop and join it cleanly
     try:
-        stop_event.set()
-        reader_thread.join(timeout=5)
-    except Exception:
-        pass
+        _terminate_server_process(process)
+    finally:
+        try:
+            process.logfile = None
+        except Exception:
+            pass
 
-    # Close logfile
-    try:
-        log_file.close()
-    except Exception:
-        pass
+        try:
+            log_file.close()
+        except Exception:
+            pass
 
-    # Terminate server process
-    process.terminate()
-    try:
-        process.wait(timeout=15)
-    except subprocess.TimeoutExpired:
-        print("⚠ Server didn't stop gracefully, forcing shutdown...")
-        process.kill()
-        process.wait()
+    kill_psynet_worker_processes()
     print(f"✓ Server stopped (log: {tmp_log_path})")
 
 
@@ -3127,14 +3095,19 @@ def _run_performance_test_with_new_server(
     server_info = _start_local_server_and_wait_for_ready(debug=debug)
 
     try:
-        develop_path = server_info["develop_path"]
-        logger.debug(
-            f"Changing to experiment directory for performance test: {develop_path}"
+        config = get_config()
+        if not config.ready:
+            config.load()
+
+        # Load runtime server config so dashboard credentials and URL settings
+        # match the launched debug instance.
+        server_working_directory = redis_vars.get("server_working_directory")
+        if server_working_directory:
+            config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+
+        _run_performance_test_with_existing_server(
+            n_bots, stagger, time_factor, duration_minutes, debug
         )
-        with chdir(develop_path):
-            _run_performance_test_with_existing_server(
-                n_bots, stagger, time_factor, duration_minutes, debug
-            )
         print("✓ Performance test completed")
 
     finally:
