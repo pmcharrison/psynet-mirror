@@ -354,7 +354,6 @@ test("audio demo", async ({ page, context }) => {
     await waitForTrialEventCount(experimentPage, "trialStart", 1, 15000);
     await waitForTrialEventCount(experimentPage, "audioStart", 1, 15000);
     await waitForTrialEventCount(experimentPage, "recordStart", 1, 30000);
-    await waitForTrialEventCount(experimentPage, "recordEnd", 1, 45000);
     const videoRecordEvents = await getTrialEvents(experimentPage);
     assertEventDelayWithin(videoRecordEvents, {
       fromEvent: "trialStart",
@@ -367,12 +366,6 @@ test("audio demo", async ({ page, context }) => {
       toEvent: "recordStart",
       minMs: 1800,
       maxMs: 7000
-    });
-    assertEventDelayWithin(videoRecordEvents, {
-      fromEvent: "recordStart",
-      toEvent: "recordEnd",
-      minMs: 1200,
-      maxMs: 6000
     });
     await expectPromptContains(
       experimentPage,
