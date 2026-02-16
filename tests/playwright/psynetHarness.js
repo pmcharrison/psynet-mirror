@@ -110,7 +110,7 @@ function startExperiment(experimentDir) {
   const logStream = fs.createWriteStream(logPath, { flags: "a" });
   latestBackendLogPath = logPath;
 
-  const args = ["debug", "local"];
+  const args = ["debug", "local", "--legacy"];
   const proc = spawn(psynetCmd, args, {
     detached: true,
     cwd: experimentDir,
@@ -118,7 +118,8 @@ function startExperiment(experimentDir) {
       ...process.env,
       KEEP_OLD_CHROME_WINDOWS_IN_DEBUG_MODE: "1",
       BROWSER: "false",
-      SKIP_PYTHON_VERSION_CHECK: "1"
+      SKIP_PYTHON_VERSION_CHECK: "1",
+      SKIP_DEPENDENCY_CHECK: "1"
     },
     stdio: ["ignore", "pipe", "pipe"]
   });
