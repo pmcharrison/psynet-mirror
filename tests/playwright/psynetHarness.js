@@ -110,10 +110,7 @@ function startExperiment(experimentDir) {
   const logStream = fs.createWriteStream(logPath, { flags: "a" });
   latestBackendLogPath = logPath;
 
-  // Auto-reload debug mode can restart while tests are running (e.g., after local
-  // recording assets are written), which destabilizes DB state mid-test.
-  // Legacy mode avoids those reload cycles and is more reliable for Playwright.
-  const args = ["debug", "local", "--legacy"];
+  const args = ["debug", "local"];
   const proc = spawn(psynetCmd, args, {
     detached: true,
     cwd: experimentDir,
@@ -121,8 +118,7 @@ function startExperiment(experimentDir) {
       ...process.env,
       KEEP_OLD_CHROME_WINDOWS_IN_DEBUG_MODE: "1",
       BROWSER: "false",
-      SKIP_PYTHON_VERSION_CHECK: "1",
-      SKIP_DEPENDENCY_CHECK: "1"
+      SKIP_PYTHON_VERSION_CHECK: "1"
     },
     stdio: ["ignore", "pipe", "pipe"]
   });
