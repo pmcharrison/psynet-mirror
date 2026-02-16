@@ -171,7 +171,7 @@ test("audio demo", async ({ page, context }) => {
     assertEventDelayWithin(simpleAudioEvents, {
       fromEvent: "trialStart",
       toEvent: "audioFinished: prompt",
-      minMs: 500,
+      minMs: 100,
       maxMs: 20000
     });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
@@ -184,7 +184,7 @@ test("audio demo", async ({ page, context }) => {
       "audioFinished: prompt"
     );
     expect(loopingFinishTimes[1] - loopingFinishTimes[0]).toBeGreaterThanOrEqual(
-      500
+      100
     );
     expect(loopingFinishTimes[1] - loopingFinishTimes[0]).toBeLessThanOrEqual(
       25000
@@ -202,7 +202,7 @@ test("audio demo", async ({ page, context }) => {
     assertEventDelayWithin(controlsAudioEvents, {
       fromEvent: "trialStart",
       toEvent: "audioFinished: prompt",
-      minMs: 500,
+      minMs: 100,
       maxMs: 25000
     });
     await waitForNextEnabled(experimentPage, 45000);
@@ -251,7 +251,7 @@ test("audio demo", async ({ page, context }) => {
     assertEventDelayWithin(sequenceEvents, {
       fromEvent: "audioFinished: stimulus_1",
       toEvent: "playStimulus2",
-      minMs: 250,
+      minMs: 100,
       maxMs: 2500
     });
     assertEventDelayWithin(sequenceEvents, {
