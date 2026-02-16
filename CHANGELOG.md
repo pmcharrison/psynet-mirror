@@ -24,6 +24,9 @@
   to aid with configuring VSCode.
 - Added checks to catch cases where Assets are created in the wrong place.
 
+## Fixed
+- Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
+
 ## Changed
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
