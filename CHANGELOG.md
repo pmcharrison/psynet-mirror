@@ -32,6 +32,7 @@
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+- Extended the Playwright audio demo test with detailed page-by-page UI interactions and assertions, avoiding direct `nextPage` shortcuts (author: [Peter])
 
 ## Fixed
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
