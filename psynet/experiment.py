@@ -1478,8 +1478,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # Detailed results
         for idx, result in enumerate(results, 1):
 
-            bots_finished = max(result["completed_during_test"],
-                                result["bots_succeeded"] + result["bots_failed"])
+            bots_finished = max(
+                result["completed_during_test"],
+                result["bots_succeeded"] + result["bots_failed"],
+            )
 
             logger.info(f"Test {idx} Details (n={result['n_bots']:,} bots):")
             logger.info(f"  Total bots started: {result['total_bots_started']:,}")
@@ -1489,9 +1491,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             logger.info(f"  Incomplete experiments: {result['bots_incomplete']:,}")
 
             if bots_finished > 0:
-                success_rate = (
-                    result["bots_succeeded"] / bots_finished
-                ) * 100
+                success_rate = (result["bots_succeeded"] / bots_finished) * 100
                 logger.info(f"  Success rate: {success_rate:.1f}%")
             elif result["total_bots_started"] > 0:
                 logger.info("  Success rate: 0.0%")
@@ -1963,9 +1963,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         bots = Bot.query.filter(Bot.id.in_(list(bot_ids))).all()
         bots_succeeded = bots_failed = bots_incomplete = 0
         for bot in bots:
-            if bot.status in {'approved', 'submitted'}:
+            if bot.status in {"approved", "submitted"}:
                 bots_succeeded += 1
-            elif bot.status == 'working':
+            elif bot.status == "working":
                 bots_incomplete += 1
             else:
                 bots_failed += 1
