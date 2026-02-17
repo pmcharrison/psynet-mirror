@@ -19,6 +19,7 @@ const config = {
         "--disable-dev-shm-usage",
         "--no-sandbox",
         "--font-render-hinting=none",
+        "--disable-font-subpixel-positioning",
         "--disable-lcd-text",
         "--force-color-profile=srgb",
         "--autoplay-policy=no-user-gesture-required",

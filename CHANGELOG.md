@@ -36,7 +36,7 @@
 - Configured Playwright to retain screenshots, traces, and videos for failed tests to improve CI debugging artifacts (author: [Peter])
 - Added visual snapshot assertions to the Playwright audio demo test to catch UI presentation regressions on key audio pages (author: [Peter])
 - Added deterministic font rendering rules to the audio demo CSS to reduce cross-environment visual snapshot differences in CI (author: [Peter])
-- Added deterministic Chromium text-rendering launch flags for Playwright tests to reduce cross-environment visual snapshot differences while keeping strict thresholds (author: [Peter])
+- Added deterministic Chromium text-rendering launch flags (including `--disable-font-subpixel-positioning`) for Playwright tests to reduce cross-environment visual snapshot differences while keeping strict thresholds (author: [Peter])
 
 ## Fixed
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
