@@ -441,7 +441,13 @@ test("audio demo", async ({ page, context }) => {
     });
     await expect(playBierButton).toBeEnabled();
     await expect(stopBierButton).toBeEnabled();
-    await expect(experimentPage.locator("#main-body ul").first()).toHaveScreenshot(
+    const preloadingButtons = experimentPage.locator(".wait-for-media-load");
+    const preloadingButtonCount = await preloadingButtons.count();
+    expect(preloadingButtonCount).toBeGreaterThan(0);
+    for (let i = 0; i < preloadingButtonCount; i += 1) {
+      await expect(preloadingButtons.nth(i)).toBeEnabled();
+    }
+    await expect(experimentPage.locator("#main-body")).toHaveScreenshot(
       "audio-preloading-page.png",
       SNAPSHOT_OPTIONS
     );
