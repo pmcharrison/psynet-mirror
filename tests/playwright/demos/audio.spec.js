@@ -147,12 +147,33 @@ test("audio demo", async ({ page, context }) => {
     const slider = experimentPage.locator("#sliderpage_slider");
     await expect(slider).toBeVisible();
     await expect(slider).toBeEnabled();
+    const sliderEventsBeforeInteraction = await getTrialEvents(experimentPage);
+    const sliderChangeCountBefore = getEventTimes(
+      sliderEventsBeforeInteraction,
+      "sliderChange"
+    ).length;
+    const sliderSubmitEnableCountBefore = getEventTimes(
+      sliderEventsBeforeInteraction,
+      "submitEnable"
+    ).length;
     const sliderValueBefore = Number(await slider.inputValue());
     await slider.focus();
     await experimentPage.keyboard.press("ArrowRight");
     await expect
       .poll(async () => Number(await slider.inputValue()), { timeout: 5000 })
       .not.toBe(sliderValueBefore);
+    await waitForTrialEventCount(
+      experimentPage,
+      "sliderChange",
+      sliderChangeCountBefore + 1,
+      15000
+    );
+    await waitForTrialEventCount(
+      experimentPage,
+      "submitEnable",
+      sliderSubmitEnableCountBefore + 1,
+      30000
+    );
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await expectPromptContains(experimentPage, "Shepard tones");

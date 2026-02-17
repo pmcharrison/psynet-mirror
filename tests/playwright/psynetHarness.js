@@ -457,7 +457,58 @@ async function waitForNextEnabled(page, timeoutMs) {
     }
     await page.waitForTimeout(200);
   }
-  throw new Error(`Timed out waiting for next button to be enabled after ${timeoutMs}ms.`);
+  const debugInfo = await getNextButtonDebugInfo(page);
+  throw new Error(
+    `Timed out waiting for next button to be enabled after ${timeoutMs}ms.\n` +
+      `Debug context: ${JSON.stringify(debugInfo, null, 2)}`
+  );
+}
+
+async function getNextButtonDebugInfo(page) {
+  const url = page.url();
+  const pageInfo = await page
+    .evaluate(() => {
+      const button = document.getElementById("next-button");
+      const slider = document.getElementById("sliderpage_slider");
+      const promptText = (document.getElementById("prompt-text")?.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim();
+      const mainBodyPreview = (document.getElementById("main-body")?.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 250);
+      const trialEvents = (psynet?.trial?.eventLog || []).slice(-20).map((event) => ({
+        eventType: event.eventType,
+        localTime: new Date(event.localTime).toISOString(),
+        info: event.info ?? null
+      }));
+
+      return {
+        promptText,
+        mainBodyPreview,
+        trialState: psynet?.trial?.state ?? null,
+        trialInProgress: !!psynet?.trial?.inProgress,
+        nextButton: button
+          ? {
+              text: (button.textContent || "").trim(),
+              disabled: button.hasAttribute("disabled"),
+              className: button.className
+            }
+          : null,
+        slider: slider
+          ? {
+              value: slider.value,
+              rawValue: slider.getAttribute("raw-value"),
+              outputValue: slider.getAttribute("output-value"),
+              disabled: slider.hasAttribute("disabled")
+            }
+          : null,
+        activeSounds: (psynet?.media?.sounds || []).map((sound) => sound.stimulusId),
+        trialEvents
+      };
+    })
+    .catch((error) => ({ evaluateError: error.message }));
+  return { url, ...pageInfo };
 }
 
 async function clickAudioPlay(page) {

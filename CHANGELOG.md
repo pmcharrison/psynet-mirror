@@ -41,6 +41,8 @@
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
 - Added validation to ensure `ChainTrialMaker` start nodes are instances of `node_class`, preventing silent fallback to base-class behavior when subclasses are expected (author: Cursor; reviewer: Peter Harrison)
 - Fixed Playwright harness experiment lifecycle by enforcing legacy local debug mode and stronger teardown, preventing stale processes from destabilizing repeated runs (author: [Peter])
+- Fixed SliderControl to re-register minimal-interaction gating on `trialPrepare`, so pages that call `psynet.trial.restart()` can re-enable submit/next correctly after slider interaction (author: [Peter])
+- Added richer Playwright next-button timeout diagnostics (prompt text, event tail, control state) to speed up CI failure triage (author: [Peter])
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
 - Fixed `join` to accept list/tuple inputs so `join(pages)` works when assembling timeline components such as `AsyncCodeBlock` (author: Cursor, reviewer: Peter Harrison)
 - Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
