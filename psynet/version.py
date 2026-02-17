@@ -6,7 +6,7 @@ import click
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
-psynet_version = "13.1.0"
+psynet_version = "13.2.0a0"
 
 # Specify Dallinger MAJOR.MINOR version to allow any patch in that series
 dallinger_recommended_version = "12.1"
@@ -122,7 +122,7 @@ def is_development_version(version):
     Check whether a version string is a development version.
 
     A development version is defined as three numbers (major.minor.patch)
-    followed by a letter and then numbers, e.g. "13.1.0a0".
+    followed by a letter and then numbers, e.g. "13.2.0a0a0".
 
     Parameters
     ----------
