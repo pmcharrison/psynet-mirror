@@ -441,7 +441,7 @@ test("audio demo", async ({ page, context }) => {
     });
     await expect(playBierButton).toBeEnabled();
     await expect(stopBierButton).toBeEnabled();
-    await expect(experimentPage.locator("#main-body")).toHaveScreenshot(
+    await expect(experimentPage.locator("#main-body ul").first()).toHaveScreenshot(
       "audio-preloading-page.png",
       SNAPSHOT_OPTIONS
     );
