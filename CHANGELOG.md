@@ -34,6 +34,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 - Extended the Playwright audio demo test with detailed page-by-page UI interactions plus audio playback/timing assertions, avoiding direct `nextPage` shortcuts (author: [Peter])
 - Configured Playwright to retain screenshots, traces, and videos for failed tests to improve CI debugging artifacts (author: [Peter])
+- Added visual snapshot assertions to the Playwright audio demo test to catch UI presentation regressions on key audio pages (author: [Peter])
 
 ## Fixed
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
