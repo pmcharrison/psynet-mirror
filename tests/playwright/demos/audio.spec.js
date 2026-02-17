@@ -14,10 +14,6 @@ const SNAPSHOT_OPTIONS = {
   caret: "hide",
   maxDiffPixelRatio: 0.02
 };
-const PRELOADING_SNAPSHOT_OPTIONS = {
-  ...SNAPSHOT_OPTIONS,
-  maxDiffPixelRatio: 0.06
-};
 
 async function expectPromptContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   await expect(page.locator("#prompt-text")).toContainText(text, {
@@ -29,6 +25,10 @@ async function expectMainBodyContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   await expect(page.locator("#main-body")).toContainText(text, {
     timeout
   });
+}
+
+async function expectLocatorScreenshot(locator, snapshotName, options = SNAPSHOT_OPTIONS) {
+  await expect(locator).toHaveScreenshot(snapshotName, options);
 }
 
 async function getTrialEvents(page) {
@@ -156,9 +156,9 @@ test("audio demo", async ({ page, context }) => {
     const slider = experimentPage.locator("#sliderpage_slider");
     await expect(slider).toBeVisible();
     await expect(slider).toBeEnabled();
-    await expect(experimentPage.locator("#main-body")).toHaveScreenshot(
-      "audio-slider-page.png",
-      SNAPSHOT_OPTIONS
+    await expectLocatorScreenshot(
+      experimentPage.locator("#main-body"),
+      "audio-slider-page.png"
     );
     const sliderEventsBeforeInteraction = await getTrialEvents(experimentPage);
     const sliderChangeCountBefore = getEventTimes(
@@ -227,9 +227,9 @@ test("audio demo", async ({ page, context }) => {
 
     await expectPromptContains(experimentPage, "adds audio playback controls");
     await expect(experimentPage.locator("#next-button")).toBeDisabled();
-    await expect(experimentPage.locator("#audio-prompt-controls")).toHaveScreenshot(
-      "audio-controls-standard.png",
-      SNAPSHOT_OPTIONS
+    await expectLocatorScreenshot(
+      experimentPage.locator("#audio-prompt-controls"),
+      "audio-controls-standard.png"
     );
     const controlsEventsBeforePlay = await getTrialEvents(experimentPage);
     expect(getEventTimes(controlsEventsBeforePlay, "trialStart").length).toBe(0);
@@ -254,9 +254,9 @@ test("audio demo", async ({ page, context }) => {
     await expect(experimentPage.locator("#audio-prompt-loop-input")).toHaveCount(
       0
     );
-    await expect(experimentPage.locator("#audio-prompt-controls")).toHaveScreenshot(
-      "audio-controls-play-again-only.png",
-      SNAPSHOT_OPTIONS
+    await expectLocatorScreenshot(
+      experimentPage.locator("#audio-prompt-controls"),
+      "audio-controls-play-again-only.png"
     );
     await waitForTrialEventCount(experimentPage, "audioFinished: prompt", 1, 30000);
     const customControlEventsBeforeReplay = await getTrialEvents(experimentPage);
@@ -451,9 +451,9 @@ test("audio demo", async ({ page, context }) => {
     for (let i = 0; i < preloadingButtonCount; i += 1) {
       await expect(preloadingButtons.nth(i)).toBeEnabled();
     }
-    await expect(experimentPage.locator("#main-body")).toHaveScreenshot(
-      "audio-preloading-page.png",
-      PRELOADING_SNAPSHOT_OPTIONS
+    await expectLocatorScreenshot(
+      experimentPage.locator("#main-body"),
+      "audio-preloading-page.png"
     );
     const preloadingEventsBefore = await getTrialEvents(experimentPage);
     const bierFinishedCountBefore = getEventTimes(

@@ -213,6 +213,14 @@ example_preloading = PageMaker(
         ),
         css=[
             """
+        #main-body {
+            font-family: "Liberation Sans", sans-serif;
+            font-kerning: none;
+            font-variant-ligatures: none;
+            text-rendering: geometricPrecision;
+            -webkit-font-smoothing: antialiased;
+        }
+
         .btn {
             margin: 2px
         }
