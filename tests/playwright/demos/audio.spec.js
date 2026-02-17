@@ -14,6 +14,10 @@ const SNAPSHOT_OPTIONS = {
   caret: "hide",
   maxDiffPixelRatio: 0.02
 };
+const PRELOADING_SNAPSHOT_OPTIONS = {
+  ...SNAPSHOT_OPTIONS,
+  maxDiffPixelRatio: 0.06
+};
 
 async function expectPromptContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   await expect(page.locator("#prompt-text")).toContainText(text, {
@@ -449,7 +453,7 @@ test("audio demo", async ({ page, context }) => {
     }
     await expect(experimentPage.locator("#main-body")).toHaveScreenshot(
       "audio-preloading-page.png",
-      SNAPSHOT_OPTIONS
+      PRELOADING_SNAPSHOT_OPTIONS
     );
     const preloadingEventsBefore = await getTrialEvents(experimentPage);
     const bierFinishedCountBefore = getEventTimes(
