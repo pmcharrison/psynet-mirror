@@ -13,6 +13,7 @@
 - Deprecated Docker installation route in favor of the standard virtual environment method.
 
 ## Added
+- Added automatic SSH known_hosts management during deployment. The remote server's host key is now added to `~/.ssh/known_hosts` before any SSH connections are made, so users no longer need to manually SSH to the server first (author: Frank Höger)
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
