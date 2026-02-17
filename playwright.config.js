@@ -18,6 +18,9 @@ const config = {
       args: [
         "--disable-dev-shm-usage",
         "--no-sandbox",
+        "--font-render-hinting=none",
+        "--disable-lcd-text",
+        "--force-color-profile=srgb",
         "--autoplay-policy=no-user-gesture-required",
         "--use-fake-device-for-media-stream",
         "--use-fake-ui-for-media-stream",

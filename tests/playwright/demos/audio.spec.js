@@ -9,15 +9,11 @@ const {
 
 const PROMPT_TIMEOUT_MS = 90000;
 const STEP_TIMEOUT_MS = 120000;
-const IS_CI = String(process.env.CI || "").toLowerCase() === "true";
 const SNAPSHOT_OPTIONS = {
   animations: "disabled",
   caret: "hide",
   maxDiffPixelRatio: 0.02
 };
-const PRELOADING_SNAPSHOT_NAME = IS_CI
-  ? "audio-preloading-page-ci.png"
-  : "audio-preloading-page-local.png";
 
 async function expectPromptContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   await expect(page.locator("#prompt-text")).toContainText(text, {
@@ -457,7 +453,7 @@ test("audio demo", async ({ page, context }) => {
     }
     await expectLocatorScreenshot(
       experimentPage.locator("#main-body"),
-      PRELOADING_SNAPSHOT_NAME
+      "audio-preloading-page.png"
     );
     const preloadingEventsBefore = await getTrialEvents(experimentPage);
     const bierFinishedCountBefore = getEventTimes(
