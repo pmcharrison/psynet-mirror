@@ -862,7 +862,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "보상에 대한 자세한 내용은 아래 정보를 참조하세요."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "실험 중단"
@@ -927,13 +928,8 @@ msgstr "실험 시작"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "실험 중단"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "오류가 발생한 경우 보상을 받으려면 위의 버튼을 클릭하십시오."
+msgstr "오류가 발생한 경우 보상을 받으려면 위 버튼을 클릭하십시오."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -2807,15 +2803,14 @@ msgctxt "mturk_error"
 msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"중단 후에는 보상을 받기 위해 저희에게 연락할 필요가 없습니다. 몇 분 후에 MTurk를 통해 자동으로 보상이 지급될 것입니다."
+msgstr "중단 후에는 보상을 받기 위해 저희에게 연락할 필요가 없습니다. 몇 분 후에 MTurk를 통해 자동으로 지급됩니다."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
 msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
-msgstr "그렇지 않은 경우, 다음 정보를 인용하여 %(EMAIL)s로 저희에게 연락해 주십시오:"
+msgstr "그렇지 않은 경우, 다음 정보를 인용하여 %(EMAIL)s로 저희에게 연락해 주세요:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

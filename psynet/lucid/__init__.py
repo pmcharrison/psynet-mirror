@@ -313,9 +313,19 @@ class LucidService(object):
                 session.commit()
                 self.log("Respondent completed successfully.")
             else:
-                self.log(
-                    f"Error completing respondent. Status returned: {response.status_code}, reason: {response.reason}"
-                )
+                if response.status_code == 403:
+                    self.log(
+                        f"Completion returned status code 403 for RID '{rid}'. "
+                        "Likely already completed via browser redirect. "
+                        "Marking as completed locally."
+                    )
+                    lucid_rid.completed_at = datetime.now()
+                    session.commit()
+                else:
+                    self.log(
+                        f"Error completing respondent (RID '{rid}'): "
+                        f"{response.status_code} {response.reason}"
+                    )
         else:
             self.log(
                 "Completion canceled. Respondent already completed or terminated survey."
@@ -338,9 +348,25 @@ class LucidService(object):
                 session.commit()
                 self.log("Respondent terminated successfully.")
             else:
-                self.log(
-                    f"Error terminating respondent. Status returned: {response.status_code}, reason: {response.reason}"
-                )
+                if response.status_code == 403:
+                    self.log(
+                        f"Termination returned status code 403 for RID '{rid}'. "
+                        "Likely already terminated via redirect or rejected early "
+                        "(e.g., mobile/browser detection). Marking as terminated locally."
+                    )
+                    self.set_termination_details(rid, reason, details)
+                elif response.status_code == 400:
+                    self.log(
+                        f"Termination returned status code 400 for RID '{rid}'. "
+                        "Likely RID was never activated on Lucid (very early termination). "
+                        "Marking as terminated locally."
+                    )
+                    self.set_termination_details(rid, reason, details)
+                else:
+                    self.log(
+                        f"Error terminating respondent (RID '{rid}'): "
+                        f"{response.status_code} {response.reason}"
+                    )
         else:
             self.log(
                 "Termination canceled. Respondent has already completed or terminated the survey."

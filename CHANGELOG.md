@@ -14,13 +14,18 @@
 
 ## Added
 - Added automatic SSH known_hosts management during deployment. The remote server's host key is now added to `~/.ssh/known_hosts` before any SSH connections are made, so users no longer need to manually SSH to the server first (author: Frank Höger)
+# [13.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0) Release - 2026-02-17
+
+## Added
+- Added automatic SSH known_hosts management during deployment. The remote server's host key is now added to `~/.ssh/known_hosts` before any SSH connections are made, so users no longer need to manually SSH to the server first (author: Frank Höger, reviewer: Peter Harrison)
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
   More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
-  the main PsyNet documentation.
-- Added `AGENTS.md` to help Cursor know how to run experiments locally.
-- Added 'getting started' section to documentation.
+  the main PsyNet documentation (author: Peter Harrison, reviewer: Frank Höger)
+- Added `AGENTS.md` to help Cursor know how to run experiments locally (author: Peter Harrison, reviewer: Frank Höger)
+- Added `psynet locales` command to list supported translation locales (author: Frank Höger, reviewer: Peter Harrison)
+- Added check for empty translations in `check_translations` (author: Frank Höger, reviewer: Peter Harrison)
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
 - Added checks to catch cases where Assets are created in the wrong place.
@@ -32,8 +37,22 @@
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
+  to aid with configuring VSCode (author: Peter Harrison, reviewer: Frank Höger)
+- Added 'getting started' section to documentation (author: Peter Harrison, reviewer: Frank Höger)
+
+## Changed
+- Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0 (author: Frank Höger, reviewer: Peter Harrison)
+- Updated bot `sign_up` method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.x.0 bot validation requirements (author: Lucas Gautheron, reviewer: Peter Harrison)
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
+- Renamed `incoming_vertex_ids` to `dependent_vertex_ids` in graph networks (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Optimized experiment Dockerfiles for greater build speed. The resulting Dockerfiles no longer use a PsyNet base image.
+  To update existing experiment scripts, update PsyNet, then run `psynet update-scripts` in the experiment directory (author: Peter Harrison, reviewer: Frank Höger)
+- Removed `deploy_docker` CI job that pushed PsyNet Docker images to the GitLab registry. The `pages` job now installs PsyNet from source instead of using a pre-built Docker image. This is part of the broader deprecation of the Docker installation route (author: Frank Höger, reviewer: Peter Harrison)
+- Improved Lucid termination logging: intent is logged before the API call, and RID is included in all messages (author: Frank Höger)
+
+## Deprecated
+- Deprecated Docker installation route in favor of the standard virtual environment method (author: Peter Harrison, reviewer: Frank Höger)
 
 ## Fixed
 - Removed prompt text from prompt metadata to avoid large export file sizes (author: Peter)
@@ -68,12 +87,19 @@
 - Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
 - Removed unused method `generate_asset_key`.
+- Fixed TODO scan to skip virtual environments and tolerate non-UTF-8 files (author: Cursor, reviewer: Peter)
+- Fixed `psynet.debugger()` crashing with `RuntimeError: debugpy.listen() has already been called on this process` when hitting the breakpoint more than once per session. `debugpy.listen()` is now only called on the first invocation (author: Frank Höger, reviewers: Peter Harrison, Frank Höger)
+- Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `experiment.py`. Changed to `${fileDirname}` across all demos, tests, and the experiment template (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed version check message being printed twice (author: Frank Höger)
+- Fixed bug where `psynet export` never downloaded source code due to incorrect `--no-source` flag definition (`flag_value` instead of `is_flag`), causing the default value to be the string `'False'` instead of boolean `False` (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed missing source code download in non-legacy export path (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `lab_recruiter_external_submission_url` config parameter being required; it is now optional with an empty string default (author: Frank Höger)
+- Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages (author: Frank Höger)
+- Removed unused method `generate_asset_key` (author: Peter Harrison, reviewer: Frank Höger)
 - Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
-- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
-- Make `get_requirement` use `pip freeze` rather than `metadata.version` to ensure that commit
-  hashes are available.
-- Improve string-matching robustness in `get_requirement` (previously substrings would match,
-  e.g. 'net' would retrieve the 'psynet' package).
+- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror` (author: Frank Höger, reviewer: Peter Harrison)
+- Make `get_requirement` use `pip freeze` rather than `metadata.version` to ensure that commit hashes are available (author: Peter Harrison, reviewer: Frank Höger)
+- Improve string-matching robustness in `get_requirement` (previously substrings would match, e.g. 'net' would retrieve the 'psynet' package) (author: Peter Harrison, reviewer: Frank Höger)
 - Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
 - md5 hashing now correctly ignores files whose names begin with `.` (e.g. `.DS_Store`)
 - Fixed `linspace` to handle single-length requests without division by zero (author: Cursor Agent, reviewer: Peter Harrison).
@@ -108,11 +134,30 @@
 - Removed unused `format_hash` and `hash_object` helpers from utils (author: Cursor, reviewer: Peter Harrison)
 - Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
 - Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
+- md5 hashing now correctly ignores files whose names begin with `.` (e.g. `.DS_Store`) (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in command-line argument validation that prevented users from accessing the one-app-per-server deployment route (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in the propagation of the `--update` argument to the Dallinger CLI (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in version consistency check when using a development version of PsyNet (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug that was causing `get_hardware_status` to fail (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed GitLab CI test failures by moving `pytest-timeout` from optional dev dependencies to main dependencies (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed bug in `grow_network` route (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed bug where networks were not growing properly in graph experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Improved performance in graph-based experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed redundant `Trial.check_if_can_mark_as_finalized` logic (author: Lucas Gautheron, reviewer: Peter Harrison)
+- Fixed bug where `check_ready_to_spawn` was being called when not available (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in `update_demos.py` where `post_update_psynet_requirement` failed to update the md5sum in constraints.txt due to a mismatched regex pattern (author: Frank Höger)
+- **Lucid**
+  - Fixed misleading error message "No LucidRID for Lucid RID" in `get_participant` which was actually querying the Participant table; changed to warning that explains this can happen during early termination (e.g., mobile detection, wrong browser) (author: Frank Höger)
+  - Fixed Lucid participants who completed the experiment being incorrectly marked as "returned" with `failed_reason=user-tried-to-leave`. This was caused by a race condition where the redirect to Lucid triggered the beforeunload event, which then called `/terminate_participant` and overwrote the completion status. The endpoint now skips termination for participants with `progress=1` (author: Frank Höger)
+  - Fixed `/terminate_participant` endpoint failing with AssertionError when participant record doesn't exist in database (e.g., due to race conditions during mobile phone detection). The endpoint now extracts the assignment_id from request parameters to still call Lucid's termination API (author: Frank Höger, reviewer: Peter Harrison)
+  - Fixed Lucid participants who reject consent getting stuck in "working" status. `RejectedConsentLogic` now properly terminates the participant on Lucid's side and auto-redirects them back to Lucid after 2 seconds (author: Frank Höger, reviewer: Peter Harrison)
+  - Fixed Lucid recruiter `get_status` crashing with `AttributeError: 'DataFrame' object has no attribute 'client_status'` when submissions list is empty (author: Frank Höger)
+  - Fixed Lucid completion handling for 403 responses: these are now expected (likely already completed via browser redirect) and marked locally, rather than logged as errors (author: Frank Höger)
+  - Fixed Lucid termination handling for 403 and 400 responses: 403 (already terminated via redirect or rejected early) and 400 (RID never activated on Lucid) are now expected and marked locally, rather than logged as errors (author: Frank Höger)
 
 ## Updated
-- Updated to latest PostgreSQL version 16 consistently (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed bug where `check_ready_to_spawn` was being called when not available.
-- Fixed bug where in certain cases `Trial.cue` produced a sqlalchemy.orm.exc.DetachedInstanceError.
+- Updated Dallinger to version 12.1.2. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (author: Frank Höger, reviewer: Peter Harrison)
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
@@ -144,6 +189,49 @@
 ## Fixed
 - Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages (author: Frank Höger, reviewer: Peter Harrison)
 
+# [13.0.5](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.5) Release - 2026-02-12
+
+## Fixed
+- Fixed `psynet.debugger()` crashing with `RuntimeError: debugpy.listen() has already been called on this process` when hitting the breakpoint more than once per session. `debugpy.listen()` is now only called on the first invocation (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `experiment.py`. Changed to `${fileDirname}` across all demos, tests, and the experiment template (author: Frank Höger, reviewer: Peter Harrison)
+
+## Updated
+- Updated Dallinger to version 11.5.7 (author: Frank Höger)
+  Read about the changes at https://github.com/Dallinger/Dallinger/releases/tag/v11.5.7
+
+# [13.0.4](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.4) Release - 2026-02-02
+
+## Fixed
+- Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
+- Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
+- Included `tests/isolated/translation/` directory in CI test runs (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `CI` environment variable not being passed to Docker container in CI, causing `@local_only` tests to run incorrectly (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `@local_only` and `@ci_only` pytest decorators by changing condition from `os.environ.get("CI")` to `os.environ.get("CI") is not None` to ensure a boolean result (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `test_translator_with_file_path` to use `{NAME}` instead of `■0■` since `ChatGptTranslator` has `use_codebook=False` (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices) (author: Frank Höger, reviewer: Peter Harrison)
+- Standardized "Abort Experiment" to "Abort experiment" in templates for consistent capitalization and removed obsolete translation entries from PO files (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed bug in the propagation of the `--update` argument to the Dallinger CLI (author: Peter Harrison, reviewer: Frank Höger)
+- md5 hashing now correctly ignores files whose names begin with `.` (e.g. `.DS_Store`) (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in command-line argument validation that prevented users from accessing the one-app-per-server deployment route (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug in version consistency check when using a development version of PsyNet (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed bug that was causing `get_hardware_status` to fail (author: Peter Harrison, reviewer: Frank Höger)
+
+## Updated
+- Updated translations (author: Frank Höger, reviewer: Peter Harrison)
+
+## Documentation
+- Added 'getting started' section (author: Peter Harrison, reviewer: Frank Höger)
+
+# [13.0.3](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.3) Release - 2026-01-29
+
+## Fixed
+- Fixed browser "Leave page?" popup appearing at the end of Lucid experiments when redirecting to the recruiter. Added `skip_beforeunload` attribute to Page classes and set it to `True` on `ExecuteFrontEndJS`  (author: Frank Höger, reviewer: Peter Harrison)
+
+# [13.0.2](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.2) Release - 2026-01-27
+
+## Fixed
+- Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages (author: Frank Höger, reviewer: Peter Harrison)
+
 # [13.0.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.1) Release - 2026-01-05
 
 ## Changed
@@ -155,18 +243,9 @@
 - Fixed translation extraction hanging indefinitely when virtual environment directories are present in the experiment directory. The `_get_py_entries_from_dir()` function now skips hidden directories (starting with `.`) and common virtual environment directory names (`.venv`, `venv`, `.env`, `env`, etc.) to avoid processing thousands of Python library files (author: Frank Höger, reviewer: Peter Harrison)
 - Added missing `config_options` parameter in `psynet deploy ssh` command (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed bug in Lucid (CINT) qualifications code (author: Elif Celen, reviewer: Frank Höger)
-- Fixed bug in `grow_network` route (author: Lucas Gautheron, reviewer: Peter Harrison)
-- Fixed bug where networks were not growing properly in graph experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
-- Improved performance in graph-based experiments (author: Lucas Gautheron, reviewer: Peter Harrison)
-- Fixed redundant `Trial.check_if_can_mark_as_finalized` logic (author: Lucas Gautheron, reviewer: Peter Harrison)
 
 ## Documentation
 - Add `gettext` package to installation section (author: Frank Höger, reviewer: Peter Harrison)
-
-## Changed
-- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
-- Renamed `incoming_vertex_ids` to `dependent_vertex_ids` in graph networks
-
 
 # [13.0.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.0) Release - 2025-10-23
 

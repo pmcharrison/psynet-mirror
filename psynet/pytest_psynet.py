@@ -54,11 +54,11 @@ logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
 ci_only = pytest.mark.skipif(
-    not os.environ.get("CI"), reason="This test only runs in CI environment"
+    os.environ.get("CI") is None, reason="This test only runs in CI environment"
 )
 
 local_only = pytest.mark.skipif(
-    os.environ.get("CI"), reason="This test only runs in local environment"
+    os.environ.get("CI") is not None, reason="This test only runs in local environment"
 )
 
 

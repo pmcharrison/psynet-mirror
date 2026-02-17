@@ -940,10 +940,11 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Tingnan ang impormasyon sa ibaba para sa mga detalye ng iyong kompensasyon."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Itigil ang eksperimento"
+msgstr "I-abort ang eksperimento"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -1000,18 +1001,13 @@ msgstr "Babala"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Paki-disable ang pop-up blockers bago magpatuloy."
+msgstr "Paki-disable ang mga pop-up blocker bago magpatuloy."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Simulan ang Eksperimento"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "I-abort ang Eksperimento"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3195,7 +3191,7 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Kapag naihinto na, hindi na kailangang makipag-ugnayan sa amin upang "
+"Kapag naihinto na, hindi mo na kailangang makipag-ugnayan sa amin upang "
 "matanggap ang kompensasyon; ito ay awtomatikong ibibigay sa iyo sa "
 "pamamagitan ng MTurk ilang minuto pagkatapos."
 
@@ -3211,7 +3207,7 @@ msgstr ""
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Error type"
-msgstr "Uri ng Error"
+msgstr "Uri ng error"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

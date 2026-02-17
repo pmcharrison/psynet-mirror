@@ -906,7 +906,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Podrobnosti o vaší kompenzaci naleznete níže."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Přerušit experiment"
@@ -930,8 +931,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Prosím, klikněte na tlačítko \"Přijmout HIT\" na výše uvedené stránce "
-"Amazonu, abyste mohli začít úkol."
+"Prosím, klikněte na tlačítko \"Přijmout HIT\" na výše uvedeném webu Amazon, "
+"abyste mohli začít úkol."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -965,18 +966,13 @@ msgstr "Varování"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Před pokračováním prosím vypněte blokování vyskakovacích oken."
+msgstr "Před pokračováním prosím deaktivujte blokování vyskakovacích oken."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Začít experiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Přerušit experiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

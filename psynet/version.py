@@ -6,7 +6,7 @@ import click
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
-psynet_version = "13.1.0a0"
+psynet_version = "13.1.0"
 
 # Specify Dallinger MAJOR.MINOR version to allow any patch in that series
 dallinger_recommended_version = "12.1"
@@ -32,18 +32,18 @@ def check_versions():
             for package_name, version_infos in versions.items():
                 consistent = version_infos["consistent"]
 
-                if consistent:
-                    spinner.ok("✔")
-                else:
+                if not consistent:
                     spinner.color = "red"
                     spinner.fail("✗")
 
-                    assert consistent, (
+                    raise AssertionError(
                         f"The {package_name} versions installed on your local computer and specified in requirements.txt do not match.\n"
                         f'\nVersion installed locally: {version_infos["installed"]}'
                         f'\nVersion specified in requirements.txt: {version_infos["specified"]}'
                         "\n\nYou can skip this check by writing `export SKIP_VERSION_CHECK=1` (without quotes) in your terminal."
                     )
+
+            spinner.ok("✔")
 
 
 def get_all_version_infos(file_content):

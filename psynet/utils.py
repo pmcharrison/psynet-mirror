@@ -1212,6 +1212,7 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
     isolated_tests_demos = isolated_tests_root / "demos"
     isolated_tests_experiments = isolated_tests_root / "experiments"
     isolated_tests_features = isolated_tests_root / "features"
+    isolated_tests_translation = isolated_tests_root / "translation"
 
     tests = []
     for directory in [
@@ -1219,6 +1220,7 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
         isolated_tests_demos,
         isolated_tests_experiments,
         isolated_tests_features,
+        isolated_tests_translation,
     ]:
         tests.extend(glob.glob(str(directory / "*.py")))
 

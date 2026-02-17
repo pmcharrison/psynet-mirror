@@ -1797,7 +1797,7 @@ def export_arguments(func):
         ),
         click.option(
             "--no-source",
-            flag_value="no_source",
+            is_flag=True,
             default=False,
             help="Skip exporting the experiment's source code",
         ),
@@ -2002,6 +2002,9 @@ def export_(
             # unzip the file
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
                 zip_ref.extractall(path)
+            # Download source code unless --no-source was passed
+            if not no_source:
+                _export_source_code(app, local, server, path, username, password)
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -2019,7 +2022,7 @@ def export_(
     else:
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
-            _export_source_code = not (source_code_exported or no_source)
+            should_export_source_code = not (source_code_exported or no_source)
             _export_(
                 ctx,
                 app,
@@ -2027,7 +2030,7 @@ def export_(
                 path,
                 assets,
                 _anonymize,
-                _export_source_code,
+                should_export_source_code,
                 n_parallel,
                 docker_ssh,
                 server,
@@ -2035,7 +2038,7 @@ def export_(
                 username,
                 password,
             )
-            if _export_source_code:
+            if should_export_source_code:
                 source_code_exported = True
 
 
@@ -2167,7 +2170,7 @@ def _export_source_code(app, local, server, export_path, username, password):
             with open(source_code_zip_path, "wb") as f:
                 f.write(response.content)
             spinner.ok("✔")
-            log(f"Experiment source code saved to {source_code_zip_path}.")
+            log(f"Experiment source code saved to {source_code_zip_path}")
             break
         elif response.status_code == 401:
             try_again = click.confirm(
@@ -3082,6 +3085,42 @@ class ListOfStrings(click.ParamType):
         if value is None:
             return []
         return value.replace(",", " ").split()
+
+
+@psynet.command("locales")
+@click.option(
+    "--codes-only",
+    is_flag=True,
+    help="Output locale codes only, on a single line.",
+)
+def locales(codes_only):
+    """
+    List supported translation locales.
+
+    Example
+    -------
+
+    psynet locales
+        List all supported locales with their names.
+
+    psynet locales --codes-only
+        Output locale codes on a single line (useful for scripting).
+    """
+    from psynet.translation.languages import psynet_supported_locales
+
+    if codes_only:
+        click.echo(" ".join(sorted(psynet_supported_locales)))
+    else:
+        from psynet.utils import get_language_dict
+
+        language_dict = get_language_dict("en")
+        click.echo(bold("Supported locales:"))
+        click.echo()
+        for locale in sorted(psynet_supported_locales):
+            name = language_dict.get(locale, "Unknown")
+            click.echo(f"  {locale:6} {name}")
+        click.echo()
+        click.echo(f"Total: {len(psynet_supported_locales)} locales")
 
 
 @psynet.command("translate")
