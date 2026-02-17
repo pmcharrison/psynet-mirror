@@ -221,12 +221,31 @@ example_preloading = PageMaker(
             font-display: block;
         }
 
+        @font-face {
+            font-family: "SnapshotInter";
+            src: url("/static/css/fonts/font-files/Inter-Medium.woff2") format("woff2");
+            font-style: normal;
+            font-weight: 500;
+            font-display: block;
+        }
+
+        @font-face {
+            font-family: "SnapshotInter";
+            src: url("/static/css/fonts/font-files/Inter-Bold.woff2") format("woff2");
+            font-style: normal;
+            font-weight: 700;
+            font-display: block;
+        }
+
         #main-body {
             font-family: "SnapshotInter", sans-serif !important;
             letter-spacing: 0 !important;
             font-kerning: none !important;
             font-variant-ligatures: none !important;
             font-feature-settings: "kern" 0, "liga" 0, "calt" 0 !important;
+            font-synthesis: none !important;
+            text-rendering: geometricPrecision !important;
+            -webkit-font-smoothing: antialiased !important;
         }
 
         #main-body .btn {
@@ -235,6 +254,9 @@ example_preloading = PageMaker(
             font-kerning: none !important;
             font-variant-ligatures: none !important;
             font-feature-settings: "kern" 0, "liga" 0, "calt" 0 !important;
+            font-synthesis: none !important;
+            text-rendering: geometricPrecision !important;
+            -webkit-font-smoothing: antialiased !important;
         }
 
         .btn {
