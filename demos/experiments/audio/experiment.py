@@ -213,12 +213,28 @@ example_preloading = PageMaker(
         ),
         css=[
             """
+        @font-face {
+            font-family: "SnapshotInter";
+            src: url("/static/css/fonts/font-files/Inter-Regular.woff2") format("woff2");
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+        }
+
         #main-body {
-            font-family: "Liberation Sans", sans-serif;
-            font-kerning: none;
-            font-variant-ligatures: none;
-            text-rendering: geometricPrecision;
-            -webkit-font-smoothing: antialiased;
+            font-family: "SnapshotInter", sans-serif !important;
+            letter-spacing: 0 !important;
+            font-kerning: none !important;
+            font-variant-ligatures: none !important;
+            font-feature-settings: "kern" 0, "liga" 0, "calt" 0 !important;
+        }
+
+        #main-body .btn {
+            font-family: "SnapshotInter", sans-serif !important;
+            letter-spacing: 0 !important;
+            font-kerning: none !important;
+            font-variant-ligatures: none !important;
+            font-feature-settings: "kern" 0, "liga" 0, "calt" 0 !important;
         }
 
         .btn {
