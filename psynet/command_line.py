@@ -767,6 +767,10 @@ def _pre_launch(
 
         deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
+        from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
+
+        ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+
     run_pre_checks(mode, local_, heroku, docker, app)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one

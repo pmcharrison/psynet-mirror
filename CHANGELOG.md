@@ -1,3 +1,8 @@
+[Unreleased]
+
+## Added
+- Added automatic SSH known_hosts management during deployment. The remote server's host key is now added to `~/.ssh/known_hosts` before any SSH connections are made, so users no longer need to manually SSH to the server first (author: Frank Höger)
+
 # [13.1.0rc3](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0rc3) Release candidate - 2026-02-13
 
 ## Fixed
