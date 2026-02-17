@@ -452,8 +452,8 @@ test("audio demo", async ({ page, context }) => {
       await expect(preloadingButtons.nth(i)).toBeEnabled();
     }
     await expectLocatorScreenshot(
-      experimentPage.locator("#main-body"),
-      "audio-preloading-page.png"
+      experimentPage.locator("#audio-preloading-controls"),
+      "audio-preloading-controls.png"
     );
     const preloadingEventsBefore = await getTrialEvents(experimentPage);
     const bierFinishedCountBefore = getEventTimes(
