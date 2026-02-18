@@ -2,22 +2,16 @@
 
 ## Unreleased
 
-## [13.2.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc1) Release candidate - 2026-05-07
+### Fixed
+- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
 
-### Changed
-
-- Switched audio-tooling demo dependencies from private GitLab git URLs to public PyPI releases: `repp` + `reppextension` are now installed via `repp-tapping==1.4.0` (which bundles `reppextension` as a deprecated compatibility shim) and `sing4me` via `sing4me==2.0.0`. The `[demos]` extra declares both directly and the Dockerfile no longer needs the private-deps install step (author: Frank Höger).
-- Refactored the docs `pages:` GitLab CI job: extracted the inline shell into `docs/scripts/build_pages.sh` (the CI job is now a thin wrapper) and tidied `docs/scripts/generate_version_switcher.py`. The branch pipeline now also rebuilds the latest active prerelease into `public/rc/<tag>/` and prunes stale `public/rc/` subdirs once their base ships stable, so the site only ever advertises a currently-pending release candidate (author: Frank Höger).
-- Marked the highest stable release as `"preferred": true` in the version switcher, so pydata-sphinx-theme preselects it as the canonical version and renders a "switch to vX.Y" banner on alpha, rc, and older stable subdirs (author: Frank Höger).
-
-## [13.2.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0) Release candidate - 2026-04-27
-
-### Added
-
-- Added documentation builds for release-candidate / alpha tags, published at `/rc/<tag>/`, with the new RC visible in the version switcher from every deployed subdir (author: Cursor, reviewer: Frank Höger)
+## Added
+- Added `RELEASE.md` documenting the patch release process (author: Frank Höger)
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
+### Added
+
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
@@ -75,7 +69,6 @@
 
 ### Fixed
 
-- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
 - Stabilised flaky Playwright demo tests `audio.spec.js` and `imitation_chain_video.spec.js` (author: Frank Höger)
 - Stabilised flaky Playwright `video_feature.spec.js` demo by waiting for the initial auto-recording cycle to finish before clicking "Record from start" (author: Frank Höger)
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
@@ -160,7 +153,6 @@
 - Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
 - Removed the PgBadger CI job and related reporting scripts (author: Cursor, reviewer: Peter Harrison)
 - Removed `dict_to_js_vars` as it is no longer used anywhere in code (author: Marco)
-- Removed the unused `bump-my-version` dev dependency and the corresponding `.bumpversion.toml` config; the release process edits the three version files manually (author: Cursor, reviewer: Frank Höger)
 
 ### Documentation
 
