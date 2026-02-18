@@ -895,6 +895,7 @@ class Page(Elt):
     returns_time_credit = True
     dynamically_update_progress_bar_and_reward = False
     is_unity_page = False
+    skip_beforeunload = False
 
     def __init__(
         self,
