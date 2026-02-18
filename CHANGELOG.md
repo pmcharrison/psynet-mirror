@@ -2,6 +2,7 @@
 
 ## Fixed
 - Fixed browser "Leave page?" popup appearing at the end of experiments when redirecting participants to the recruiter. Added `skip_beforeunload` attribute to Page classes and set it to `True` on `ExecuteFrontEndJS` (author: Frank Höger)
+- Removed stale `deploy/prolific` toctree entry from docs that pointed to a page that no longer exists (author: Frank Höger)
 
 # [13.1.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.0) Release - 2026-02-17
 
