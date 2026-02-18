@@ -1,6 +1,9 @@
 # CHANGELOG
 
 # Unreleased
+## Fixed
+- Fixed browser "Leave page?" popup appearing at the end of experiments when redirecting participants to the recruiter. Added `skip_beforeunload` attribute to Page classes and set it to `True` on `ExecuteFrontEndJS` (author: Frank Höger)
+- Removed stale `deploy/prolific` toctree entry from docs that pointed to a page that no longer exists (author: Frank Höger)
 
 ## Breaking Changes
 - Updated Dallinger dependency from v11.5.x to v12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
