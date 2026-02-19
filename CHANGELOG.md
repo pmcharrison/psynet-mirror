@@ -58,6 +58,7 @@
 - Fixed translation validation to report missing entries before variable-mismatch checks (author: Cursor, reviewer: Peter Harrison)
 - Fixed `S3Storage.list` to honor `top` and `extension` filters (author: Cursor, reviewer: Peter Harrison)
 - Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
+- Replaced bare `assert response.ok` in Lucid API calls with informative error messages that include the HTTP status code, URL, and response body (author: Frank Höger)
 
 ## Removed
 - Removed redundant `logging.basicConfig(level=logging.INFO)` and root logger initialization from demo/test experiment scripts where they were unused (author: Peter Harrison)

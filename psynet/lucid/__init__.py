@@ -71,6 +71,15 @@ class LucidService(object):
         }
         self.default_locale = default_locale
 
+    @staticmethod
+    def _check_response(response):
+        if not response.ok:
+            raise LucidServiceException(
+                f"Lucid API request failed: {response.status_code} {response.reason} "
+                f"for {response.request.method} {response.url}\n"
+                f"Response body: {response.text[:1000]}"
+            )
+
     @property
     def request_base_url_v1(self):
         return "https://api.samplicio.us/Demand/v1"
@@ -458,7 +467,7 @@ class LucidService(object):
     def get_lucid_country_language_lookup(self):
         url = "https://api.samplicio.us/Lookup/v1/BasicLookups/BundledLookups/CountryLanguages"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         lookup = pd.DataFrame(response.json()["AllCountryLanguages"])
         codes = lookup.Code.apply(lambda x: x.split("-"))
         names = lookup.Name.apply(lambda x: x.split("-"))
@@ -475,7 +484,7 @@ class LucidService(object):
             locale = self.default_locale
         url = f"{self.request_base_url_v2_beta}/questions?id={question_id}&locale={locale}&fields={field}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         result = response.json()["result"]
         assert (
             len(result) > 0
@@ -513,14 +522,14 @@ class LucidService(object):
         if allowed_statuses is not None:
             url += f"&status={','.join(allowed_statuses)}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         return response.json()["result"]
 
     def _get_survey_fields(self, survey_number, fields):
         fields_str = ",".join(fields)
         url = f"{self.request_base_url_v2_beta}/surveys?id={survey_number}&fields={fields_str}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         result = response.json()["result"]
         assert len(result) > 0, f"No survey with id {survey_number} found."
         return [result[0][field] for field in fields]
@@ -532,7 +541,7 @@ class LucidService(object):
         entry_date_after = self._lookback_timestamp(days_lookback)
         url = f"{self.request_base_url_v2_beta}/sessions/statistics?survey_id={survey_number}&entry_date_after={entry_date_after}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         stats = response.json()["statistics"]
 
         (
@@ -594,7 +603,7 @@ class LucidService(object):
             "Accept": "text/plain",
         }
         response = requests.patch(url, data=data, headers=headers)
-        assert response.ok
+        self._check_response(response)
         logger.info(f"Experiment {survey_number} is set to status: {new_status}")
         return response.json()
 
@@ -610,7 +619,7 @@ class LucidService(object):
             "Accept": "text/plain",
         }
         response = requests.post(url, data=data, headers=headers)
-        assert response.ok
+        self._check_response(response)
         return response.json()
 
     def get_questions(self, standard: bool = True, fields: List[str] = None):
@@ -620,7 +629,7 @@ class LucidService(object):
         class_name = "standard" if standard else "custom"
         url = f"{self.request_base_url_v2_beta}/questions?fields={fields}&class={class_name}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         return response.json()["result"]
 
     def get_qualifications_dict(self):
