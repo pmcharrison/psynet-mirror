@@ -115,7 +115,7 @@ test_docker_experiments:
         -v "$PWD:$PSYNET_WORKSPACE" \
         -w $PSYNET_WORKSPACE \
         $DOCKER_LOCAL_TAG \
-        psynet list-docker-experiments)
+        python -c "from psynet.utils import list_docker_build_experiments; print('\n'.join(list_docker_build_experiments()))")
       
       if [ -z "$EXPERIMENTS" ]; then
         echo "No experiments require custom Docker builds"
