@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 import psynet.experiment
@@ -104,7 +106,10 @@ class CustomTrial(StaticTrial):
 class Exp(psynet.experiment.Experiment):
     label = "Static audio demo"
 
-    asset_storage = S3Storage("psynet-tests", "static-audio")
+    asset_storage = S3Storage(
+        "psynet-tests",
+        os.environ.get("PSYNET_TEST_STATIC_AUDIO_S3_ROOT", "static-audio"),
+    )
 
     timeline = Timeline(
         VolumeCalibration(),

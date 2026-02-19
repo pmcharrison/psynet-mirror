@@ -1,5 +1,6 @@
 import os
 import tempfile
+from uuid import uuid4
 
 import pytest
 
@@ -13,7 +14,11 @@ from psynet.pytest_psynet import path_to_test_experiment
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("static_audio")], indirect=True
 )
-def test_s3_asset_preparation(in_experiment_directory):
+def test_s3_asset_preparation(in_experiment_directory, monkeypatch):
+    monkeypatch.setenv(
+        "PSYNET_TEST_STATIC_AUDIO_S3_ROOT", f"static-audio/{uuid4().hex}"
+    )
+    get_experiment.cache_clear()
     exp = get_experiment()
     exp.asset_storage.delete_all()
     deployment_info.init(

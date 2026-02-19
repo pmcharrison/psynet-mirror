@@ -24,6 +24,7 @@
 ## Fixed
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Updated experiment Dockerfile ordering so `prepare_docker_image.sh` runs before Python dependency installation, enabling system-level prerequisites for packages like rpy2 (author: Peter Harrison)
+- Reduced S3 CI flakiness by retrying transient `OperationAborted` bucket configuration updates and isolating S3 test roots per run (author: Peter Harrison)
 - Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
 - Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)

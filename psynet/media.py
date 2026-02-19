@@ -3,10 +3,12 @@ import os
 import shutil
 import struct
 import tempfile
+import time
 import wave
 from functools import cache
 
 import boto3
+import botocore
 from dallinger.config import get_config
 
 from .utils import get_logger
@@ -89,6 +91,39 @@ def get_s3_bucket(bucket_name: str):
     return resource.Bucket(bucket_name)
 
 
+def _is_operation_aborted(error):
+    return (
+        isinstance(error, botocore.exceptions.ClientError)
+        and error.response.get("Error", {}).get("Code") == "OperationAborted"
+    )
+
+
+def _run_bucket_operation_with_retry(
+    operation, operation_name, max_attempts=5, initial_delay_seconds=0.25
+):
+    delay_seconds = initial_delay_seconds
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            operation()
+            return
+        except botocore.exceptions.ClientError as error:
+            should_retry = _is_operation_aborted(error) and attempt < max_attempts
+            if not should_retry:
+                raise
+
+            logger.warning(
+                "S3 bucket operation '%s' hit OperationAborted (attempt %d/%d); "
+                "retrying in %.2fs.",
+                operation_name,
+                attempt,
+                max_attempts,
+                delay_seconds,
+            )
+            time.sleep(delay_seconds)
+            delay_seconds *= 2
+
+
 def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
     logger.info("Setting bucket CORSRules and policies...")
 
@@ -107,8 +142,14 @@ def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
         ]
     }
 
-    cors.delete()
-    cors.put(CORSConfiguration=config)
+    _run_bucket_operation_with_retry(
+        operation=cors.delete,
+        operation_name=f"delete CORS configuration for bucket '{bucket_name}'",
+    )
+    _run_bucket_operation_with_retry(
+        operation=lambda: cors.put(CORSConfiguration=config),
+        operation_name=f"set CORS configuration for bucket '{bucket_name}'",
+    )
 
     if public_read:
         bucket_policy = s3_resource.BucketPolicy(bucket_name)
@@ -127,7 +168,10 @@ def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
                 ],
             }
         )
-        bucket_policy.put(Policy=new_policy)
+        _run_bucket_operation_with_retry(
+            operation=lambda: bucket_policy.put(Policy=new_policy),
+            operation_name=f"set public-read policy for bucket '{bucket_name}'",
+        )
 
 
 def make_bucket_public(bucket_name):
@@ -138,14 +182,23 @@ def make_bucket_public(bucket_name):
 
     s3_resource = new_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
-    bucket.Acl().put(ACL="public-read")
+    _run_bucket_operation_with_retry(
+        operation=lambda: bucket.Acl().put(ACL="public-read"),
+        operation_name=f"set ACL for bucket '{bucket_name}'",
+    )
 
     cors = bucket.Cors()
 
     config = {"CORSRules": [{"AllowedMethods": ["GET"], "AllowedOrigins": ["*"]}]}
 
-    cors.delete()
-    cors.put(CORSConfiguration=config)
+    _run_bucket_operation_with_retry(
+        operation=cors.delete,
+        operation_name=f"delete CORS configuration for bucket '{bucket_name}'",
+    )
+    _run_bucket_operation_with_retry(
+        operation=lambda: cors.put(CORSConfiguration=config),
+        operation_name=f"set CORS configuration for bucket '{bucket_name}'",
+    )
 
     bucket_policy = s3_resource.BucketPolicy(bucket_name)
     new_policy = json.dumps(
@@ -162,7 +215,10 @@ def make_bucket_public(bucket_name):
             ],
         }
     )
-    bucket_policy.put(Policy=new_policy)
+    _run_bucket_operation_with_retry(
+        operation=lambda: bucket_policy.put(Policy=new_policy),
+        operation_name=f"set public-read policy for bucket '{bucket_name}'",
+    )
 
 
 def recode_wav(file_path):
