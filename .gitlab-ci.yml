@@ -134,8 +134,11 @@ test_docker_experiments:
         
         EXPERIMENT_NAME=$(basename $experiment)
         
-        # experiment is already an absolute path
-        cd $experiment
+        # Convert absolute path from Docker context to relative path from PWD
+        # experiment is like /root/workspaces/PsyNet/demos/experiments/adaptive_test_catr
+        # We need demos/experiments/adaptive_test_catr
+        RELATIVE_PATH=$(echo $experiment | sed "s|$PSYNET_WORKSPACE/||")
+        cd $RELATIVE_PATH
         
         # Build custom Docker image
         echo "Building Docker image for $EXPERIMENT_NAME..."
@@ -158,7 +161,8 @@ test_docker_experiments:
           test-$EXPERIMENT_NAME \
           bash -c "pytest test.py --chrome --timeout=300 -q" || EXIT_CODE=1
         
-        cd $PSYNET_WORKSPACE
+        # Return to root
+        cd -
       done
       
       exit $EXIT_CODE
