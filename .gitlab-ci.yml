@@ -131,16 +131,17 @@ test_docker_experiments:
         docker build --tag "$image_tag" "$experiment_dir"
 
         echo "Running tests for $experiment_dir"
-        docker run \
+        if ! docker run \
           --add-host=postgres:$POSTGRES_IP \
           --add-host=redis:$REDIS_IP \
           -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD \
           -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY \
           -e CI -e CI_COMMIT_REF_NAME \
+          -e PSYNET_WORKSPACE=/workspace \
+          -v "$PWD:/workspace" \
           -v "$PWD/public:/public" \
-          "$image_tag" bash -c "pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core\" -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS"
-
-        if [ $? -ne 0 ]; then
+          -w "/workspace/$experiment_dir" \
+          "$image_tag" bash -c "pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core\" -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS"; then
           EXIT_CODE=1
         fi
       done < /tmp/docker-build-experiments.txt
