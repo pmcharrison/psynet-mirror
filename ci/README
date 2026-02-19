@@ -2,3 +2,6 @@ These files are used in CI builds.
 
 `docker-build-experiments.txt` lists experiment directories that should be tested
 via their own Dockerfiles in CI.
+
+`run-ci-docker-command.sh` wraps the shared `docker run` arguments used by the
+main CI test job and the custom Docker experiment test job.

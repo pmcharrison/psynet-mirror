@@ -80,19 +80,9 @@ tests:
   stage: test
   <<: *default_rules
   script:
+    - mkdir -p public
     - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
-    - docker run
-      --add-host=postgres:$POSTGRES_IP
-      --add-host=redis:$REDIS_IP
-      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
-      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      -e CI -e CI_NODE_TOTAL -e CI_NODE_INDEX
-      -e CI_COMMIT_REF_NAME
-      -e PSYNET_WORKSPACE
-      -v "$PWD:$PSYNET_WORKSPACE"
-      -v "$PWD/public:/public"
-      -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG bash -c "bash run-ci-tests.sh"
+    - bash ci/run-ci-docker-command.sh "$DOCKER_LOCAL_TAG" "$PSYNET_WORKSPACE" "$PSYNET_WORKSPACE" bash -c "bash run-ci-tests.sh"
   artifacts:
     paths:
       - public/
@@ -104,16 +94,9 @@ test_docker_experiments:
     - mkdir -p public
     - export TIMEOUT_SECONDS=300
     - |
-      docker run --rm -v "$PWD:/workspace" -w /workspace $DOCKER_LOCAL_TAG bash -lc '
-      PYTHONPATH=/workspace python - <<'"'"'PY'"'"'
-      from pathlib import Path
-      from psynet.utils import get_psynet_root, list_docker_build_experiment_dirs
-
-      root = get_psynet_root()
-      for directory in list_docker_build_experiment_dirs():
-          print(Path(directory).relative_to(root))
-      PY
-      ' > /tmp/docker-build-experiments.txt
+      docker run --rm -v "$PWD:/workspace" -w /workspace "$DOCKER_LOCAL_TAG" \
+        bash -lc "psynet list-docker-build-experiments --relative" \
+        > /tmp/docker-build-experiments.txt
     - |
       if [ ! -s /tmp/docker-build-experiments.txt ]; then
         echo "No docker-build experiments configured."
@@ -131,17 +114,8 @@ test_docker_experiments:
         docker build --tag "$image_tag" "$experiment_dir"
 
         echo "Running tests for $experiment_dir"
-        if ! docker run \
-          --add-host=postgres:$POSTGRES_IP \
-          --add-host=redis:$REDIS_IP \
-          -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD \
-          -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY \
-          -e CI -e CI_COMMIT_REF_NAME \
-          -e PSYNET_WORKSPACE=/workspace \
-          -v "$PWD:/workspace" \
-          -v "$PWD/public:/public" \
-          -w "/workspace/$experiment_dir" \
-          "$image_tag" bash -c "pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core\" -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS"; then
+        if ! bash ci/run-ci-docker-command.sh "$image_tag" "/workspace" "/workspace/$experiment_dir" \
+          bash -c "pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core\" -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS"; then
           EXIT_CODE=1
         fi
       done < /tmp/docker-build-experiments.txt
