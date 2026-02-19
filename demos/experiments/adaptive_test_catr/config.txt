@@ -1,0 +1,25 @@
+[Config]
+title = Adaptive Testing Demo with catR (Chrome browser, 5 minutes to complete)
+description = This experiment demonstrates computerized adaptive testing using the catR R package. Please use a Chrome browser in incognito mode.
+contact_email_on_error = support@example.com
+organization_name = PsyNet Demo
+
+recruiter = generic
+currency = $
+wage_per_hour = 12.0
+
+[Prolific]
+# recruiter = prolific
+auto_recruit = false
+prolific_estimated_completion_minutes = 5
+base_payment = 0.84
+
+[Lucid]
+# recruiter = lucid
+# debug_recruiter = DevLucidRecruiter
+# lucid_recruitment_config = file:./lucid_recruitment_config.json
+# show_reward = false
+
+[Lab Recruiter]
+# recruiter = lab-recruiter
+# debug_recruiter = dev-lab-recruiter

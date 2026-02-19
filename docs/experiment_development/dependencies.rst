@@ -92,6 +92,43 @@ You might include something like the following, to install the unzip utility:
     apt update
     apt install unzip
 
+Using R packages with rpy2
+"""""""""""""""""""""""""""
+
+You can use R packages in your PsyNet experiments by installing R in the Docker image
+and using the ``rpy2`` Python package to interface with R. Here's how:
+
+1. Add ``rpy2`` to your ``requirements.txt``:
+
+::
+
+    rpy2
+
+2. Create a ``prepare_docker_image.sh`` script to install R and your required R packages:
+
+::
+
+    #!/bin/sh
+    apt-get update
+    apt-get install -y r-base r-base-dev
+    R -e "install.packages('catR', repos='https://cloud.r-project.org/')"
+
+3. Use rpy2 in your experiment code:
+
+::
+
+    from rpy2.robjects.packages import importr
+    catr = importr('catR')
+    # Now you can call catR functions from Python
+
+For a complete working example, see the ``adaptive_test_catr`` demo in ``demos/experiments/adaptive_test_catr``.
+
+.. note::
+
+    When running locally with ``psynet debug local``, you'll need to install R and the required
+    R packages on your local system. When deploying with Docker, the ``prepare_docker_image.sh``
+    script handles this automatically.
+
 .. warning::
 
     This shell script should not place any files into the experiment directory itself,
