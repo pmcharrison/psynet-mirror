@@ -2832,6 +2832,25 @@ def _list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=
         print(directory)
 
 
+@psynet.command(name="list-docker-experiments")
+@click.option("--ci-node-total", default=None, type=int)
+@click.option("--ci-node-index", default=None, type=int)
+def _list_docker_experiments(ci_node_total=None, ci_node_index=None):
+    """
+    Lists experiments requiring custom Docker builds for CI testing.
+
+    These experiments are listed in ci/docker-build-experiments.txt and need
+    their own Docker image due to system dependencies or idiosyncratic packages.
+    """
+    from psynet.utils import list_docker_build_experiments
+
+    for directory in list_docker_build_experiments(
+        ci_node_total=ci_node_total,
+        ci_node_index=ci_node_index,
+    ):
+        print(directory)
+
+
 @psynet.command(name="list-isolated-tests")
 @click.option("--ci-node-total", default=None, type=int)
 @click.option("--ci-node-index", default=None, type=int)

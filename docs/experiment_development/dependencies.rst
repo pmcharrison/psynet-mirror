@@ -129,6 +129,30 @@ For a complete working example, see the ``adaptive_test_catr`` demo in ``demos/e
     R packages on your local system. When deploying with Docker, the ``prepare_docker_image.sh``
     script handles this automatically.
 
+CI Testing with Custom Dependencies
+""""""""""""""""""""""""""""""""""""
+
+**For PsyNet contributors**: If you're adding a demo experiment to the PsyNet repository that
+requires custom dependencies (via ``prepare_docker_image.sh`` or idiosyncratic Python packages),
+you need to add it to the CI configuration so it gets tested properly.
+
+Add your experiment to ``ci/docker-build-experiments.txt`` in the repository root:
+
+.. code-block:: text
+
+    demos/experiments/your_experiment  # Brief description of requirements
+
+This tells CI to:
+
+1. Skip your experiment in the standard test suite (which uses a shared base Docker image)
+2. Build your experiment's individual Dockerfile
+3. Test your experiment in its custom Docker image with all dependencies
+
+The list is validated on each CI run to catch typos and missing experiments.
+
+**For PsyNet users**: Your own experiments can use ``prepare_docker_image.sh`` freely.
+The CI configuration only applies to experiments in the PsyNet repository itself.
+
 .. warning::
 
     This shell script should not place any files into the experiment directory itself,

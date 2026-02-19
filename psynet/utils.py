@@ -1168,9 +1168,95 @@ def get_psynet_root():
     return Path(psynet.__file__).parent.parent
 
 
+def validate_docker_build_experiments_list(list_file):
+    """
+    Validate that all experiments in the docker-build list actually exist.
+
+    Args:
+        list_file: Path to the docker-build-experiments.txt file
+
+    Raises:
+        ValueError: If any path doesn't exist or lacks experiment.py
+    """
+    root = get_psynet_root()
+
+    with open(list_file) as f:
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+
+            # Skip empty lines and comments
+            if not line or line.startswith("#"):
+                continue
+
+            # Remove inline comments
+            path = line.split("#")[0].strip()
+
+            # Validate path exists
+            full_path = root / path
+            if not full_path.exists():
+                raise ValueError(
+                    f"Error in {list_file.name} line {line_num}: "
+                    f"Path does not exist: {path}"
+                )
+
+            # Validate it's an experiment
+            if not (full_path / "experiment.py").exists():
+                raise ValueError(
+                    f"Error in {list_file.name} line {line_num}: "
+                    f"Path is not an experiment (no experiment.py): {path}"
+                )
+
+    return True
+
+
+def list_docker_build_experiments(ci_node_total=None, ci_node_index=None):
+    """
+    List experiments requiring custom Docker builds.
+
+    Reads from ci/docker-build-experiments.txt and returns absolute paths
+    to experiments that need their own Docker image for CI testing.
+
+    These experiments are excluded from the standard CI test suite and tested
+    separately using their individual Dockerfiles.
+
+    Returns:
+        List of absolute paths to experiments requiring custom Docker builds
+    """
+    root = get_psynet_root()
+    list_file = root / "ci" / "docker-build-experiments.txt"
+
+    if not list_file.exists():
+        return []
+
+    # Validate list
+    validate_docker_build_experiments_list(list_file)
+
+    # Parse experiments
+    experiments = []
+    with open(list_file) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                path = line.split("#")[0].strip()
+                experiments.append(str(root / path))
+
+    experiments = sorted(experiments)
+
+    # Apply CI parallelization
+    if ci_node_total is not None and ci_node_index is not None:
+        experiments = with_parallel_ci(experiments, ci_node_total, ci_node_index)
+
+    return experiments
+
+
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
     test_experiments_root = get_psynet_root() / "tests/experiments"
+
+    # Get list of experiments requiring custom Docker builds
+    docker_build_experiments = set()
+    if for_ci_tests:
+        docker_build_experiments = set(list_docker_build_experiments())
 
     dirs = sorted(
         [
@@ -1183,12 +1269,10 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
                 and (
                     not for_ci_tests
                     or not (
-                        # Skip the recruiter demos because they're not meaningful to run here
-                        "recruiters" in dir_
+                        # Skip experiments requiring custom Docker builds
+                        dir_ in docker_build_experiments
+                        or "recruiters" in dir_
                         or "manual_recruiter_testing" in dir_
-                        # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
-                        # in the CI environment
-                        or dir_.endswith("/gibbs_video")
                     )
                 )
             )

@@ -97,6 +97,71 @@ tests:
     paths:
       - public/
 
+test_docker_experiments:
+  stage: test
+  <<: *default_rules
+  script:
+    - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
+    # Validate the docker-build experiments list
+    - echo "Validating ci/docker-build-experiments.txt..."
+    - docker run
+      -v "$PWD:$PSYNET_WORKSPACE"
+      -w $PSYNET_WORKSPACE
+      $DOCKER_LOCAL_TAG
+      python -c "from psynet.utils import validate_docker_build_experiments_list, get_psynet_root; validate_docker_build_experiments_list(get_psynet_root() / 'ci' / 'docker-build-experiments.txt'); print('Validation passed')"
+    # Get list of experiments requiring custom Docker builds
+    - |
+      EXPERIMENTS=$(docker run \
+        -v "$PWD:$PSYNET_WORKSPACE" \
+        -w $PSYNET_WORKSPACE \
+        $DOCKER_LOCAL_TAG \
+        psynet list-docker-experiments)
+      
+      if [ -z "$EXPERIMENTS" ]; then
+        echo "No experiments require custom Docker builds"
+        exit 0
+      fi
+      
+      echo "Experiments requiring custom Docker builds:"
+      echo "$EXPERIMENTS"
+      
+      # Build and test each experiment
+      EXIT_CODE=0
+      for experiment in $EXPERIMENTS; do
+        echo "========================================="
+        echo "Building and testing: $experiment"
+        echo "========================================="
+        
+        EXPERIMENT_NAME=$(basename $experiment)
+        
+        cd $PSYNET_WORKSPACE/$experiment
+        
+        # Build custom Docker image
+        echo "Building Docker image for $EXPERIMENT_NAME..."
+        docker build -t test-$EXPERIMENT_NAME .
+        
+        # Run tests in custom image
+        echo "Running tests for $EXPERIMENT_NAME..."
+        docker run \
+          --add-host=postgres:$POSTGRES_IP \
+          --add-host=redis:$REDIS_IP \
+          -e HEADLESS=TRUE \
+          -e REDIS_URL=$REDIS_URL \
+          -e DATABASE_URL=$DATABASE_URL \
+          -e POSTGRES_DB=$POSTGRES_DB \
+          -e POSTGRES_USER=$POSTGRES_USER \
+          -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+          -e CI=$CI \
+          -v "$PWD:/experiment" \
+          -w /experiment \
+          test-$EXPERIMENT_NAME \
+          bash -c "pytest test.py --chrome --timeout=300 -q" || EXIT_CODE=1
+        
+        cd $PSYNET_WORKSPACE
+      done
+      
+      exit $EXIT_CODE
+
 merge_test_results:
   image: python:3.13-alpine
   stage: test

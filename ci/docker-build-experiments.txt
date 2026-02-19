@@ -1,0 +1,20 @@
+# CI: Experiments Requiring Custom Docker Builds
+#
+# This file lists experiments that need their own Docker image for CI testing.
+# These experiments are excluded from the standard CI test suite and instead
+# tested in a separate job that builds their individual Dockerfiles.
+#
+# Use this for experiments that require:
+# - System dependencies (via prepare_docker_image.sh): R, ffmpeg, sox, etc.
+# - Idiosyncratic Python packages: rpy2, opencv-python, tensorflow, etc.
+# - Complex build requirements not in the base CI image
+#
+# Format:
+# - One experiment path per line (relative to repository root)
+# - Lines starting with # are comments
+# - Inline comments (after #) are allowed and encouraged
+#
+# The list is validated on each CI run to catch typos and missing experiments.
+
+demos/experiments/adaptive_test_catr  # R + catR package + rpy2 for adaptive testing
+demos/experiments/gibbs_video         # ffmpeg for video processing

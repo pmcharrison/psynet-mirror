@@ -5,6 +5,7 @@
 ## Added
 - Added checks to catch cases where Assets are created in the wrong place.
 - Added demo experiment and documentation showing how to use R packages (e.g., catR) in PsyNet experiments via rpy2 and prepare_docker_image.sh (author: Cursor)
+- Added CI support for testing experiments with custom Docker builds via centralized `ci/docker-build-experiments.txt` configuration file (author: Cursor)
 
 ## Changed
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
