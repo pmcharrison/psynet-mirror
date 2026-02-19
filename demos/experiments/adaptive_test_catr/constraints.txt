@@ -1,0 +1,4 @@
+# This constraints file is maintained manually for this demo because rpy2
+# requires matching system dependencies (R) installed in Docker.
+psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet
+rpy2

@@ -97,12 +97,65 @@ tests:
     paths:
       - public/
 
+test_docker_experiments:
+  stage: test
+  <<: *default_rules
+  script:
+    - mkdir -p public
+    - export TIMEOUT_SECONDS=300
+    - |
+      docker run --rm -v "$PWD:/workspace" -w /workspace $DOCKER_LOCAL_TAG bash -lc '
+      PYTHONPATH=/workspace python - <<'"'"'PY'"'"'
+      from pathlib import Path
+      from psynet.utils import get_psynet_root, list_docker_build_experiment_dirs
+
+      root = get_psynet_root()
+      for directory in list_docker_build_experiment_dirs():
+          print(Path(directory).relative_to(root))
+      PY
+      ' > /tmp/docker-build-experiments.txt
+    - |
+      if [ ! -s /tmp/docker-build-experiments.txt ]; then
+        echo "No docker-build experiments configured."
+        exit 0
+      fi
+
+      EXIT_CODE=0
+      while IFS= read -r experiment_dir; do
+        [ -z "$experiment_dir" ] && continue
+
+        experiment_name=$(basename "$experiment_dir")
+        image_tag="custom-${experiment_name}"
+
+        echo "Building Docker image for $experiment_dir"
+        docker build --tag "$image_tag" "$experiment_dir"
+
+        echo "Running tests for $experiment_dir"
+        docker run \
+          --add-host=postgres:$POSTGRES_IP \
+          --add-host=redis:$REDIS_IP \
+          -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD \
+          -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY \
+          -e CI -e CI_COMMIT_REF_NAME \
+          -v "$PWD/public:/public" \
+          "$image_tag" bash -c "pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core\" -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS"
+
+        if [ $? -ne 0 ]; then
+          EXIT_CODE=1
+        fi
+      done < /tmp/docker-build-experiments.txt
+
+      exit $EXIT_CODE
+  artifacts:
+    paths:
+      - public/
+
 merge_test_results:
   image: python:3.13-alpine
   stage: test
   <<: *default_rules
-  needs: ["tests"]
-  dependencies: ["tests"]
+  needs: ["tests", "test_docker_experiments"]
+  dependencies: ["tests", "test_docker_experiments"]
   when: always
   before_script:
     - pip install -q junitparser

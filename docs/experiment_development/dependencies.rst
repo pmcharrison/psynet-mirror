@@ -85,6 +85,9 @@ System dependencies
 It is also possible to specify arbitrary system dependencies if you are using PsyNet with Docker.
 To do this, add a file called ``prepare_docker_image.sh`` to your experiment directory.
 This should be a Linux shell script.
+This script runs before PsyNet installs your Python dependencies, so you can use it
+to install system libraries that are needed when building Python packages
+(for example, installing R before installing ``rpy2``).
 You might include something like the following, to install the unzip utility:
 
 ::

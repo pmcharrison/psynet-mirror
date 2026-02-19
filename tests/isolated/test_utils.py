@@ -26,6 +26,7 @@ from psynet.utils import (
     get_psynet_root,
     git_repository_available,
     linspace,
+    list_docker_build_experiment_dirs,
     list_experiment_dirs,
     list_isolated_tests,
     logger,
@@ -214,6 +215,47 @@ def test_demo_dirs():
         psynet_root.joinpath("tests/experiments/recruiters/lab_recruiter").__str__()
         not in dirs
     )
+    assert psynet_root.joinpath("demos/experiments/gibbs_video").__str__() not in dirs
+
+
+@patch("psynet.utils.get_psynet_root")
+def test_list_docker_build_experiment_dirs(mock_get_psynet_root, tmp_path):
+    demo_dir = tmp_path / "demos" / "experiments" / "custom"
+    demo_dir.mkdir(parents=True)
+    (demo_dir / "experiment.py").write_text("")
+
+    config_dir = tmp_path / "ci"
+    config_dir.mkdir(parents=True)
+    (config_dir / "docker-build-experiments.txt").write_text(
+        "\n".join(
+            [
+                "# Demo list",
+                "demos/experiments/custom  # inline comment",
+                "",
+            ]
+        )
+    )
+
+    mock_get_psynet_root.return_value = tmp_path
+    assert list_docker_build_experiment_dirs() == [str(demo_dir)]
+
+
+@patch("psynet.utils.get_psynet_root")
+def test_list_docker_build_experiment_dirs_raises_for_unknown_path(
+    mock_get_psynet_root, tmp_path
+):
+    config_dir = tmp_path / "ci"
+    config_dir.mkdir(parents=True)
+    (config_dir / "docker-build-experiments.txt").write_text(
+        "demos/experiments/does_not_exist\n"
+    )
+
+    mock_get_psynet_root.return_value = tmp_path
+    with pytest.raises(
+        ValueError,
+        match=r"Path does not exist: demos/experiments/does_not_exist",
+    ):
+        list_docker_build_experiment_dirs()
 
 
 def test_isolated_tests():

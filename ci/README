@@ -1,1 +1,4 @@
 These files are used in CI builds.
+
+`docker-build-experiments.txt` lists experiment directories that should be tested
+via their own Dockerfiles in CI.

@@ -57,6 +57,7 @@ from .utils import (
     get_package_name,
     git_repository_available,
     in_python_package,
+    list_docker_build_experiment_dirs,
     list_experiment_dirs,
     list_isolated_tests,
     make_parents,
@@ -3111,6 +3112,19 @@ def _list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=
         ci_node_index=ci_node_index,
     ):
         print(directory)
+
+
+@psynet.command(name="list-docker-build-experiments")
+@click.option("--relative", is_flag=True)
+def _list_docker_build_experiments(relative=False):
+    """
+    Lists experiment directories that should be tested with custom Docker builds in CI.
+    """
+    psynet_root = Path(__file__).resolve().parent.parent
+
+    for directory in list_docker_build_experiment_dirs():
+        path = Path(directory)
+        print(path.relative_to(psynet_root) if relative else path)
 
 
 @psynet.command(name="list-isolated-tests")

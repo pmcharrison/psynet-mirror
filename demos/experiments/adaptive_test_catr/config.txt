@@ -1,0 +1,8 @@
+[Config]
+title = Adaptive testing demo with catR
+description = This demo shows how to call catR in R from PsyNet via rpy2.
+contact_email_on_error = support@example.com
+organization_name = PsyNet
+recruiter = generic
+currency = $
+wage_per_hour = 12.0

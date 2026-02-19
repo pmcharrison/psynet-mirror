@@ -14,13 +14,16 @@
   to aid with configuring VSCode.
 - Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking (author: Cursor, reviewer: Peter Harrison)
 - Added checks to catch cases where Assets are created in the wrong place.
+- Added an `adaptive_test_catr` demo showing catR integration via rpy2 with Docker-based R setup using `prepare_docker_image.sh` (author: Peter Harrison)
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
+- Added a dedicated CI job for experiments listed in `ci/docker-build-experiments.txt` so they are tested with their own Dockerfiles instead of the shared base image (author: Peter Harrison)
 
 ## Fixed
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
+- Updated experiment Dockerfile ordering so `prepare_docker_image.sh` runs before Python dependency installation, enabling system-level prerequisites for packages like rpy2 (author: Peter Harrison)
 - Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
 - Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)

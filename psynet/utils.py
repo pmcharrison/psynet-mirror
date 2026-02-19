@@ -1168,9 +1168,66 @@ def get_psynet_root():
     return Path(psynet.__file__).parent.parent
 
 
+def list_docker_build_experiment_dirs():
+    psynet_root = get_psynet_root().resolve()
+    config_path = psynet_root / "ci" / "docker-build-experiments.txt"
+    if not config_path.exists():
+        return []
+
+    experiment_dirs = []
+    known_paths = set()
+
+    with open(config_path) as file:
+        for line_number, raw_line in enumerate(file, start=1):
+            line = raw_line.split("#", maxsplit=1)[0].strip()
+            if not line:
+                continue
+
+            experiment_path = (psynet_root / line).resolve()
+            try:
+                experiment_path.relative_to(psynet_root)
+            except ValueError as error:
+                raise ValueError(
+                    f"Error in {config_path} line {line_number}: "
+                    f"Path must be inside the repository: {line}"
+                ) from error
+
+            experiment_path_str = str(experiment_path)
+            if experiment_path_str in known_paths:
+                raise ValueError(
+                    f"Error in {config_path} line {line_number}: Duplicate path: {line}"
+                )
+
+            if not experiment_path.exists():
+                raise ValueError(
+                    f"Error in {config_path} line {line_number}: "
+                    f"Path does not exist: {line}"
+                )
+
+            if not experiment_path.is_dir():
+                raise ValueError(
+                    f"Error in {config_path} line {line_number}: "
+                    f"Path is not a directory: {line}"
+                )
+
+            if not (experiment_path / "experiment.py").exists():
+                raise ValueError(
+                    f"Error in {config_path} line {line_number}: "
+                    f"Path is not an experiment (no experiment.py): {line}"
+                )
+
+            known_paths.add(experiment_path_str)
+            experiment_dirs.append(experiment_path_str)
+
+    return experiment_dirs
+
+
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
     test_experiments_root = get_psynet_root() / "tests/experiments"
+    docker_build_experiment_dirs = (
+        set(list_docker_build_experiment_dirs()) if for_ci_tests else set()
+    )
 
     dirs = sorted(
         [
@@ -1186,9 +1243,9 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
                         # Skip the recruiter demos because they're not meaningful to run here
                         "recruiters" in dir_
                         or "manual_recruiter_testing" in dir_
-                        # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
-                        # in the CI environment
-                        or dir_.endswith("/gibbs_video")
+                        # Skip experiments with custom Docker builds because they're
+                        # tested in a separate CI job using their own Dockerfile.
+                        or dir_ in docker_build_experiment_dirs
                     )
                 )
             )
