@@ -14,7 +14,6 @@
 import os
 
 import pytest
-
 from experiment import run_catr_smoke_test
 
 pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
