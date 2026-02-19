@@ -134,7 +134,8 @@ test_docker_experiments:
         
         EXPERIMENT_NAME=$(basename $experiment)
         
-        cd $PSYNET_WORKSPACE/$experiment
+        # experiment is already an absolute path
+        cd $experiment
         
         # Build custom Docker image
         echo "Building Docker image for $EXPERIMENT_NAME..."
