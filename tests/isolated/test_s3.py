@@ -3,13 +3,12 @@ import tempfile
 from glob import glob
 from os import makedirs
 from os.path import basename, join
-from uuid import uuid4
 
 from psynet.asset import S3Storage
 
 
 def get_s3_storage(transfer_backend):
-    return S3Storage("psynet-tests", f"s3-tests/{uuid4().hex}", transfer_backend)
+    return S3Storage("psynet-tests", "s3-tests", transfer_backend)
 
 
 def create_test_file(test_folder, test_file_path):
