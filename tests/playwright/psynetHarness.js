@@ -110,7 +110,7 @@ function startExperiment(experimentDir) {
   const logStream = fs.createWriteStream(logPath, { flags: "a" });
   latestBackendLogPath = logPath;
 
-  const args = ["debug", "local"];
+  const args = ["debug", "local", "--legacy"];
   const proc = spawn(psynetCmd, args, {
     detached: true,
     cwd: experimentDir,
@@ -118,7 +118,8 @@ function startExperiment(experimentDir) {
       ...process.env,
       KEEP_OLD_CHROME_WINDOWS_IN_DEBUG_MODE: "1",
       BROWSER: "false",
-      SKIP_PYTHON_VERSION_CHECK: "1"
+      SKIP_PYTHON_VERSION_CHECK: "1",
+      SKIP_DEPENDENCY_CHECK: "1"
     },
     stdio: ["ignore", "pipe", "pipe"]
   });
@@ -200,12 +201,12 @@ async function stopExperiment(proc) {
     return;
   }
 
-  if (proc.exitCode !== null || proc.signalCode !== null) {
-    return;
-  }
-
   const waitForExit = (timeoutMs) =>
     new Promise((resolve) => {
+      if (proc.exitCode !== null || proc.signalCode !== null) {
+        resolve(true);
+        return;
+      }
       let finished = false;
       const done = (didExit) => {
         if (finished) {
@@ -225,16 +226,23 @@ async function stopExperiment(proc) {
       proc.once("exit", onExit);
     });
 
-  killProcessTree(proc, "SIGINT");
-  const exitedOnSigint = await waitForExit(3000);
-  if (exitedOnSigint) {
-    await waitForPortToBeFree(DEBUG_PORT, 10000);
-    return;
+  let exited = proc.exitCode !== null || proc.signalCode !== null;
+  if (!exited) {
+    killProcessTree(proc, "SIGINT");
+    exited = await waitForExit(3000);
   }
 
-  killProcessTree(proc, "SIGKILL");
-  await waitForExit(3000);
+  if (!exited) {
+    killProcessTree(proc, "SIGKILL");
+    await waitForExit(3000);
+  }
+
+  // Detached child processes can outlive the parent; ensure the port is actually free.
   await waitForPortToBeFree(DEBUG_PORT, 10000);
+  if (await isPortInUse(DEBUG_PORT)) {
+    killProcessTree(proc, "SIGKILL");
+    await waitForPortToBeFree(DEBUG_PORT, 10000);
+  }
 }
 
 async function beginExperiment(page, context, url) {
@@ -449,7 +457,58 @@ async function waitForNextEnabled(page, timeoutMs) {
     }
     await page.waitForTimeout(200);
   }
-  throw new Error(`Timed out waiting for next button to be enabled after ${timeoutMs}ms.`);
+  const debugInfo = await getNextButtonDebugInfo(page);
+  throw new Error(
+    `Timed out waiting for next button to be enabled after ${timeoutMs}ms.\n` +
+      `Debug context: ${JSON.stringify(debugInfo, null, 2)}`
+  );
+}
+
+async function getNextButtonDebugInfo(page) {
+  const url = page.url();
+  const pageInfo = await page
+    .evaluate(() => {
+      const button = document.getElementById("next-button");
+      const slider = document.getElementById("sliderpage_slider");
+      const promptText = (document.getElementById("prompt-text")?.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim();
+      const mainBodyPreview = (document.getElementById("main-body")?.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 250);
+      const trialEvents = (psynet?.trial?.eventLog || []).slice(-20).map((event) => ({
+        eventType: event.eventType,
+        localTime: new Date(event.localTime).toISOString(),
+        info: event.info ?? null
+      }));
+
+      return {
+        promptText,
+        mainBodyPreview,
+        trialState: psynet?.trial?.state ?? null,
+        trialInProgress: !!psynet?.trial?.inProgress,
+        nextButton: button
+          ? {
+              text: (button.textContent || "").trim(),
+              disabled: button.hasAttribute("disabled"),
+              className: button.className
+            }
+          : null,
+        slider: slider
+          ? {
+              value: slider.value,
+              rawValue: slider.getAttribute("raw-value"),
+              outputValue: slider.getAttribute("output-value"),
+              disabled: slider.hasAttribute("disabled")
+            }
+          : null,
+        activeSounds: (psynet?.media?.sounds || []).map((sound) => sound.stimulusId),
+        trialEvents
+      };
+    })
+    .catch((error) => ({ evaluateError: error.message }));
+  return { url, ...pageInfo };
 }
 
 async function clickAudioPlay(page) {
@@ -549,12 +608,16 @@ async function advanceUntilPromptContains(page, text, options = {}) {
 
 async function withExperiment(page, context, experimentDir, runTest) {
   const { proc, urlPromise } = startExperiment(experimentDir);
+  let experimentPage = null;
   try {
     const url = await urlPromise;
-    const experimentPage = await beginExperiment(page, context, url);
+    experimentPage = await beginExperiment(page, context, url);
     await acceptConsents(experimentPage);
     return await runTest(experimentPage);
   } finally {
+    if (experimentPage && !experimentPage.isClosed()) {
+      await experimentPage.goto("about:blank").catch(() => {});
+    }
     await stopExperiment(proc);
   }
 }
