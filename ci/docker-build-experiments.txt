@@ -1,4 +1,4 @@
 # Experiments in this list are excluded from the base CI job
 # and tested separately by building their own Docker image.
-demos/experiments/adaptive_test_catr  # Requires R + catR + rpy2
 demos/experiments/gibbs_video  # Requires ffmpeg
+demos/experiments/adaptive_test_catr  # Requires R + catR + rpy2
