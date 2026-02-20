@@ -1698,7 +1698,16 @@ def _check_constraints(spinner=None):
 
 def verify_psynet_requirement(*, allow_master_branch: bool = False):
     """
-    Validate the PsyNet requirement specification in requirements.txt.
+    Validate that ``requirements.txt`` pins PsyNet unambiguously.
+
+    The check requires a deterministic PsyNet specification so deployments are
+    reproducible. Accepted formats are:
+    - ``psynet==<version>``
+    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v<version>#egg=psynet``
+    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit-hash>#egg=psynet``
+
+    If ``allow_master_branch`` is True, ``@master`` is also accepted for local
+    debugging.
 
     Parameters
     ----------
@@ -1709,7 +1718,7 @@ def verify_psynet_requirement(*, allow_master_branch: bool = False):
 
     Raises
     ------
-    AssertionError
+    ValueError
         If the PsyNet requirement is missing or ambiguous.
     """
     environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
