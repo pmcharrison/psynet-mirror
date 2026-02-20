@@ -3082,11 +3082,11 @@ class S3AwscliTransferBackend(S3TransferBackend):
         endpoint (for example Moto, LocalStack, or MinIO). This is useful
         in CI or local testing where access to real AWS should be avoided.
         """
-        if verbose:
-            logger.info(f"Running AWS CLI command: {cmd}")
         endpoint_url = get_s3_endpoint_url()
         if endpoint_url:
             cmd = ["aws", "--endpoint-url", endpoint_url, *cmd[1:]]
+        if verbose:
+            logger.info(f"Running AWS CLI command: {cmd}")
         try:
             subprocess.run(
                 cmd,
