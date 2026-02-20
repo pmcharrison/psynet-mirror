@@ -2080,6 +2080,31 @@ def app_argument(func):
     )(func)
 
 
+def _resolve_ssh_app(ctx, app, server):
+    if app:
+        return app
+
+    from dallinger.command_line.docker_ssh import apps as dallinger_apps
+
+    available_apps = ctx.invoke(dallinger_apps, server=server)
+    if len(available_apps) == 1:
+        resolved_app = available_apps[0]
+        log(f"No --app provided; using the only app on the server: {resolved_app}")
+        return resolved_app
+
+    if len(available_apps) == 0:
+        raise click.UsageError(
+            "No apps found on the server. Please specify --app or deploy an app. "
+            "You can list apps with `psynet apps ssh --server <server>`."
+        )
+
+    app_list = ", ".join(available_apps)
+    raise click.UsageError(
+        "Multiple apps found on the server. Please specify --app. "
+        f"Available apps: {app_list}"
+    )
+
+
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
@@ -2160,8 +2185,10 @@ def export__heroku(ctx, app, **kwargs):
 @export.command("ssh")
 @click.option(
     "--app",
-    required=True,
-    help="Name of the app to export",
+    default=None,
+    required=False,
+    callback=verify_id,
+    help="Name of the app to export (optional if only one app is available)",
 )
 @option_server
 @export_arguments
@@ -2170,6 +2197,7 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     """
     Export the experiment from a remote server via Docker and SSH.
     """
+    app = _resolve_ssh_app(ctx, app, server)
     exp_variables = ctx.invoke(
         experiment_variables, location="ssh", app=app, server=server
     )
