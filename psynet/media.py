@@ -106,24 +106,24 @@ def get_s3_client_kwargs():
     }
 
 
-def new_s3_client():
+def get_s3_client():
     return boto3.client("s3", **get_aws_credentials(), **get_s3_client_kwargs())
 
 
-def new_s3_resource():
+def get_s3_resource():
     return boto3.resource("s3", **get_aws_credentials(), **get_s3_client_kwargs())
 
 
 def get_s3_bucket(bucket_name: str):
     # pylint: disable=no-member
-    resource = new_s3_resource()
+    resource = get_s3_resource()
     return resource.Bucket(bucket_name)
 
 
 def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
     logger.info("Setting bucket CORSRules and policies...")
 
-    s3_resource = new_s3_resource()
+    s3_resource = get_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
 
     cors = bucket.Cors()
@@ -167,7 +167,7 @@ def make_bucket_public(bucket_name):
         bucket_name,
     )
 
-    s3_resource = new_s3_resource()
+    s3_resource = get_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
     bucket.Acl().put(ACL="public-read")
 

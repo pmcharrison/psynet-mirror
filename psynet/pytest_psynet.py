@@ -44,7 +44,7 @@ from .command_line import (
 )
 from .data import init_db
 from .experiment import get_experiment, import_local_experiment
-from .media import new_s3_resource
+from .media import get_s3_resource
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
 from .trial.main import TrialNetwork
@@ -118,13 +118,9 @@ def moto_s3_server():
         # than clear_all_caches(), which would wipe unrelated caches across the
         # test session.
         psynet_media.get_aws_credentials.cache_clear()
-        psynet_asset.get_boto3_s3_session.cache_clear()
-        psynet_asset.get_boto3_s3_client.cache_clear()
-        psynet_asset.get_boto3_s3_resource.cache_clear()
-        psynet_asset.get_boto3_s3_bucket.cache_clear()
         psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
 
-        client = psynet_asset.get_boto3_s3_client()
+        client = psynet_asset.get_s3_client()
         try:
             client.create_bucket(Bucket="psynet-tests")
         except client.exceptions.BucketAlreadyOwnedByYou:
@@ -875,7 +871,7 @@ def artifact_storage(request, tmp_path):
         # Delete files in the root folder that are older than 4 hours.
         # We apply this 4-hour criterion to avoid conflicting with other tests
         # being run in parallel.
-        s3 = new_s3_resource()
+        s3 = get_s3_resource()
         bucket = s3.Bucket(bucket_name)
         prefix = root + "/"
         now = datetime.datetime.now(datetime.timezone.utc)
