@@ -6,8 +6,7 @@
 - Added checks to catch cases where Assets are created in the wrong place.
 
 ## Changed
-- Renamed `verify_psynet_requirement` to `check_psynet_requirement_is_unambiguous` for clearer intent in deployment prechecks (author: Peter Harrison)
-- Renamed version-checking helpers in `psynet/version.py` for clearer intent, including `check_versions` to `check_core_dependency_versions_match_requirements` and `get_all_version_infos` to `collect_core_dependency_version_info_from_requirements` (author: Peter Harrison)
+- Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 
 ## Fixed
