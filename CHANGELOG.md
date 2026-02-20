@@ -24,6 +24,7 @@
   to aid with configuring VSCode.
 
 ## Changed
+- Renamed `verify_psynet_requirement` to `check_psynet_requirement_is_unambiguous` for clearer intent in deployment prechecks (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements

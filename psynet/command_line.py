@@ -708,7 +708,7 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
-    verify_psynet_requirement()
+    check_psynet_requirement_is_unambiguous()
     check_versions()
     initial_recruitment_size = exp.initial_recruitment_size
 
@@ -1165,7 +1165,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
-    verify_psynet_requirement()
+    check_psynet_requirement_is_unambiguous()
     check_versions()
 
     us_only = config.get("us_only")
@@ -1569,9 +1569,9 @@ def generate_constraints(ctx):
     )
 
     try:
-        # We have removed verify_psynet_requirement here because it caused problems for Docker users.
+        # We have removed check_psynet_requirement_is_unambiguous here because it caused problems for Docker users.
         # Instead, we just run this in the sandbox/deploy prechecks.
-        # verify_psynet_requirement()
+        # check_psynet_requirement_is_unambiguous()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
@@ -1592,7 +1592,7 @@ def check_constraints():
         _check_constraints(spinner)
         spinner.ok("✔")
 
-    verify_psynet_requirement()
+    check_psynet_requirement_is_unambiguous()
 
 
 def check_dockerfile():
@@ -1695,7 +1695,7 @@ def _check_constraints(spinner=None):
         )
 
 
-def verify_psynet_requirement():
+def check_psynet_requirement_is_unambiguous():
     """
     Validate that ``requirements.txt`` pins PsyNet unambiguously.
 

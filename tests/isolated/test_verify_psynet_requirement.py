@@ -3,11 +3,11 @@ import tempfile
 
 import pytest
 
-from psynet.command_line import verify_psynet_requirement
+from psynet.command_line import check_psynet_requirement_is_unambiguous
 from psynet.utils import working_directory
 
 
-def test_verify_psynet_requirement_missing_version():
+def test_check_psynet_requirement_is_unambiguous_missing_version():
     try:
         del os.environ["SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"]
     except KeyError:
@@ -25,14 +25,14 @@ def test_verify_psynet_requirement_missing_version():
                     "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
                     "or a commit hash.",
                 ):
-                    verify_psynet_requirement()
+                    check_psynet_requirement_is_unambiguous()
 
 
-def test_verify_psynet_requirement_extension():
+def test_check_psynet_requirement_is_unambiguous_extension():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             os.environ["SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"] = "1"
-            verify_psynet_requirement()
+            check_psynet_requirement_is_unambiguous()
             del os.environ["SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"]
 
             for extension in ["", ".git"]:
@@ -48,10 +48,10 @@ def test_verify_psynet_requirement_extension():
                         "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
                         "or a commit hash.",
                     ):
-                        verify_psynet_requirement()
+                        check_psynet_requirement_is_unambiguous()
 
 
-def test_verify_psynet_requirement_master_branch():
+def test_check_psynet_requirement_is_unambiguous_master_branch():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             for extension in ["", ".git"]:
@@ -68,10 +68,10 @@ def test_verify_psynet_requirement_master_branch():
                         "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
                         "or a commit hash.",
                     ):
-                        verify_psynet_requirement()
+                        check_psynet_requirement_is_unambiguous()
 
 
-def test_verify_psynet_requirement_commit_hash():
+def test_check_psynet_requirement_is_unambiguous_commit_hash():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             for extension in ["", ".git"]:
@@ -82,10 +82,10 @@ def test_verify_psynet_requirement_commit_hash():
                         )
                         file.flush()
 
-                        verify_psynet_requirement()
+                        check_psynet_requirement_is_unambiguous()
 
 
-def test_verify_psynet_requirement_short_commit_hash():
+def test_check_psynet_requirement_is_unambiguous_short_commit_hash():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             for extension in ["", ".git"]:
@@ -96,10 +96,10 @@ def test_verify_psynet_requirement_short_commit_hash():
                         )
                         file.flush()
 
-                        verify_psynet_requirement()
+                        check_psynet_requirement_is_unambiguous()
 
 
-def test_verify_psynet_requirement_version_tag():
+def test_check_psynet_requirement_is_unambiguous_version_tag():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             for extension in ["", ".git"]:
@@ -112,24 +112,24 @@ def test_verify_psynet_requirement_version_tag():
                                 )
                                 file.flush()
 
-                                verify_psynet_requirement()
+                                check_psynet_requirement_is_unambiguous()
 
 
-def test_verify_psynet_requirement_name_based():
+def test_check_psynet_requirement_is_unambiguous_name_based():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             with open("requirements.txt", "w") as file:
                 file.write("psynet==10.1.0\n")
                 file.flush()
 
-                verify_psynet_requirement()
+                check_psynet_requirement_is_unambiguous()
 
 
-def test_verify_psynet_requirement_name_based_with_spaces():
+def test_check_psynet_requirement_is_unambiguous_name_based_with_spaces():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):
             with open("requirements.txt", "w") as file:
                 file.write("psynet == 10.1.0\n")
                 file.flush()
 
-                verify_psynet_requirement()
+                check_psynet_requirement_is_unambiguous()
