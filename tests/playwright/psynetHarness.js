@@ -535,17 +535,6 @@ async function clickStartButton(page) {
   return false;
 }
 
-async function submitAnswerAndWait(page, answer, timeoutMs = 60000) {
-  const oldUuid = await getPageUuid(page);
-  await page.waitForFunction(
-    () => typeof psynet !== "undefined" && typeof psynet.nextPage === "function",
-    null,
-    { timeout: Math.min(timeoutMs, 15000) }
-  );
-  await page.evaluate((payload) => psynet.nextPage(payload), answer);
-  await waitForPageChange(page, oldUuid, timeoutMs);
-}
-
 async function getPromptText(page) {
   const prompt = page.locator("#prompt-text");
   if ((await prompt.count()) === 0) {
@@ -607,19 +596,43 @@ async function advanceUntilPromptContains(page, text, options = {}) {
 }
 
 async function withExperiment(page, context, experimentDir, runTest) {
-  const { proc, urlPromise } = startExperiment(experimentDir);
+  const reuseRecruitmentUrl = process.env.PSYNET_RECRUITMENT_URL || null;
+  const usingExistingBackend = !!reuseRecruitmentUrl;
+  const experimentHandle = usingExistingBackend
+    ? { proc: null, urlPromise: Promise.resolve(reuseRecruitmentUrl) }
+    : startExperiment(experimentDir);
+  const { proc, urlPromise } = experimentHandle;
+
   let experimentPage = null;
   try {
     const url = await urlPromise;
-    experimentPage = await beginExperiment(page, context, url);
+    const runUrl = usingExistingBackend ? withFreshParticipantIds(url) : url;
+    experimentPage = await beginExperiment(page, context, runUrl);
     await acceptConsents(experimentPage);
     return await runTest(experimentPage);
   } finally {
     if (experimentPage && !experimentPage.isClosed()) {
       await experimentPage.goto("about:blank").catch(() => {});
     }
-    await stopExperiment(proc);
+    if (!usingExistingBackend) {
+      await stopExperiment(proc);
+    }
   }
+}
+
+function withFreshParticipantIds(rawUrl) {
+  const url = new URL(rawUrl);
+  const suffix = Math.random().toString(36).slice(2, 10);
+  if (url.searchParams.has("assignmentId")) {
+    url.searchParams.set("assignmentId", `a_${suffix}`);
+  }
+  if (url.searchParams.has("hitId")) {
+    url.searchParams.set("hitId", `h_${suffix}`);
+  }
+  if (url.searchParams.has("workerId")) {
+    url.searchParams.set("workerId", `w_${suffix}`);
+  }
+  return url.toString();
 }
 
 async function clickFinish(page, timeoutMs) {
@@ -708,7 +721,6 @@ module.exports = {
   clickStartButton,
   getPromptText,
   getPageUuid,
-  submitAnswerAndWait,
   startExperiment,
   stopExperiment,
   withExperiment,
