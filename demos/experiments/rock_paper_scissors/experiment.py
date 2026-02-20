@@ -105,8 +105,6 @@ class RockPaperScissorsTrial(StaticTrial):
 class Exp(psynet.experiment.Experiment):
     label = "Rock paper scissors demo"
 
-    initial_recruitment_size = 1
-
     timeline = Timeline(
         SimpleGrouper(
             group_type="rock_paper_scissors",

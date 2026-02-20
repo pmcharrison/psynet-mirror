@@ -247,7 +247,6 @@ def _collect_coin(participant):
 
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         ModularPage(

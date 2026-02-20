@@ -16,7 +16,6 @@ def check_module_b(participant):
 
 class Exp(psynet.experiment.Experiment):
     label = "Module demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         Module(

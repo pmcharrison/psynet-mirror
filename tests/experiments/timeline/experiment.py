@@ -29,7 +29,6 @@ from psynet.utils import as_plain_text
 
 class Exp(psynet.experiment.Experiment):
     label = "Timeline experiment"
-    initial_recruitment_size = 1
 
     variables = {
         "new_variable": "some-value",
