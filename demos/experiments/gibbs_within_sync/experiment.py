@@ -172,7 +172,6 @@ def is_group_joinable(group: SyncGroup, participant: Participant):
 
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs within sync demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         InfoPage("Welcome to the experiment!", time_estimate=5),

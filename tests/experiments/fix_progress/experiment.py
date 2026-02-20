@@ -30,7 +30,6 @@ def assert_progress(participant, value):
 
 class Exp(psynet.experiment.Experiment):
     label = "Testing progress bounds"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         CodeBlock(lambda participant: participant.var.set("counter", 0)),

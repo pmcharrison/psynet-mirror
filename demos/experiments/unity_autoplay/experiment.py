@@ -134,7 +134,6 @@ trial_maker = GameTrialMaker(
 # Experiment
 class Exp(psynet.experiment.Experiment):
     label = "Unity autoplay demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         MainConsent(),
