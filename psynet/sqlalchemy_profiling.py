@@ -951,18 +951,51 @@ def _format_commit_type_counts(type_counts: Dict[str, int]) -> str:
     return ", ".join(parts)
 
 
+def _severity_class(
+    percent_total: float,
+    max_ms: float,
+    *,
+    high_percent: float,
+    medium_percent: float,
+    low_percent: float,
+    high_max_ms: float,
+    medium_max_ms: float,
+    low_max_ms: float,
+) -> str:
+    if percent_total >= high_percent or max_ms >= high_max_ms:
+        return "sev-high"
+    if percent_total >= medium_percent or max_ms >= medium_max_ms:
+        return "sev-medium"
+    if percent_total >= low_percent or max_ms >= low_max_ms:
+        return "sev-low"
+    return "sev-none"
+
+
 def format_aggregated_html(
     aggregated: Dict[str, object],
     *,
     top_n: int = 20,
     commit_top_n: int = 10,
     query_preview_chars: int = 200,
+    query_severity_high_percent: float = 15.0,
+    query_severity_medium_percent: float = 5.0,
+    query_severity_low_percent: float = 1.0,
+    query_severity_high_max_ms: float = 50.0,
+    query_severity_medium_max_ms: float = 20.0,
+    query_severity_low_max_ms: float = 5.0,
+    commit_severity_high_percent: float = 20.0,
+    commit_severity_medium_percent: float = 8.0,
+    commit_severity_low_percent: float = 2.0,
+    commit_severity_high_max_ms: float = 100.0,
+    commit_severity_medium_max_ms: float = 40.0,
+    commit_severity_low_max_ms: float = 10.0,
 ) -> str:
     queries = aggregated.get("queries", {})
     commits = aggregated.get("commits", {})
     query_stats = list(queries.get("stats", []) or [])[:top_n]
     commit_stats = list(commits.get("stats", []) or [])[:commit_top_n]
     total_query_ms = float(queries.get("total_time_ms", 0.0) or 0.0)
+    total_commit_ms = float(commits.get("total_time_ms", 0.0) or 0.0)
 
     def fmt_number(value):
         return f"{value:.2f}"
@@ -991,7 +1024,7 @@ def format_aggregated_html(
         callsite_html = ""
         if callsite_counts:
             callsite_html = (
-                "<div class='callsites' style='margin-top: 8px;'>"
+                "<div class='callsites'>"
                 "<strong>Callsites</strong><ul>"
                 + "".join(
                     f"<li>{esc(site)} ({count})</li>"
@@ -999,8 +1032,18 @@ def format_aggregated_html(
                 )
                 + "</ul></div>"
             )
+        severity_class = _severity_class(
+            percent,
+            max_ms,
+            high_percent=query_severity_high_percent,
+            medium_percent=query_severity_medium_percent,
+            low_percent=query_severity_low_percent,
+            high_max_ms=query_severity_high_max_ms,
+            medium_max_ms=query_severity_medium_max_ms,
+            low_max_ms=query_severity_low_max_ms,
+        )
         rows.append(
-            "<tr>"
+            f"<tr class='{severity_class}'>"
             f"<td class='num'>{count:d}</td>"
             f"<td class='num'>{fmt_number(total_ms)}</td>"
             f"<td class='num'>{fmt_number(mean_ms)}</td>"
@@ -1023,10 +1066,21 @@ def format_aggregated_html(
         total_ms = float(stat.get("total_ms", 0.0) or 0.0)
         mean_ms = total_ms / count if count else 0.0
         max_ms = float(stat.get("max_ms", 0.0) or 0.0)
+        percent = (total_ms / total_commit_ms * 100.0) if total_commit_ms else 0.0
         callsite = stat.get("callsite", "unknown")
         types = _format_commit_type_counts(stat.get("commit_type_counts") or {})
+        severity_class = _severity_class(
+            percent,
+            max_ms,
+            high_percent=commit_severity_high_percent,
+            medium_percent=commit_severity_medium_percent,
+            low_percent=commit_severity_low_percent,
+            high_max_ms=commit_severity_high_max_ms,
+            medium_max_ms=commit_severity_medium_max_ms,
+            low_max_ms=commit_severity_low_max_ms,
+        )
         commit_rows.append(
-            "<tr>"
+            f"<tr class='{severity_class}'>"
             f"<td class='num'>{count:d}</td>"
             f"<td class='num'>{fmt_number(total_ms)}</td>"
             f"<td class='num'>{fmt_number(mean_ms)}</td>"
@@ -1049,7 +1103,11 @@ def format_aggregated_html(
     td.num {{ text-align: right; white-space: nowrap; }}
     td.query summary {{ cursor: pointer; }}
     td.query pre {{ white-space: pre-wrap; margin: 8px 0 0 0; }}
+    .callsites {{ margin-top: 8px; }}
     .stack pre {{ background: #fafafa; padding: 8px; }}
+    tr.sev-high td {{ background: #f8d7da; }}
+    tr.sev-medium td {{ background: #fff3cd; }}
+    tr.sev-low td {{ background: #d1e7dd; }}
     .section {{ margin-top: 28px; }}
   </style>
 </head>

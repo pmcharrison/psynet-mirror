@@ -208,6 +208,91 @@ def test_profile_json_aggregation(sqlite_engine, tmp_path):
     assert stats[("SELECT 2", None)]["count"] == 1
 
 
+def test_format_aggregated_html_adds_severity_classes():
+    aggregated = {
+        "queries": {
+            "total_count": 3,
+            "total_time_ms": 100.0,
+            "stats": [
+                {
+                    "statement": "SELECT 1",
+                    "count": 1,
+                    "total_ms": 70.0,
+                    "max_ms": 3.0,
+                    "stack": None,
+                    "callsite_counts": {},
+                },
+                {
+                    "statement": "SELECT 2",
+                    "count": 1,
+                    "total_ms": 20.0,
+                    "max_ms": 2.0,
+                    "stack": None,
+                    "callsite_counts": {},
+                },
+                {
+                    "statement": "SELECT 3",
+                    "count": 1,
+                    "total_ms": 10.0,
+                    "max_ms": 1.0,
+                    "stack": None,
+                    "callsite_counts": {},
+                },
+            ],
+        },
+        "commits": {
+            "total_count": 3,
+            "total_time_ms": 100.0,
+            "stats": [
+                {
+                    "callsite": "high",
+                    "count": 1,
+                    "total_ms": 70.0,
+                    "max_ms": 4.0,
+                    "commit_type_counts": {"insert": 1},
+                },
+                {
+                    "callsite": "medium",
+                    "count": 1,
+                    "total_ms": 20.0,
+                    "max_ms": 3.0,
+                    "commit_type_counts": {"update": 1},
+                },
+                {
+                    "callsite": "low",
+                    "count": 1,
+                    "total_ms": 10.0,
+                    "max_ms": 2.0,
+                    "commit_type_counts": {"no-op": 1},
+                },
+            ],
+        },
+    }
+
+    html_report = format_aggregated_html(
+        aggregated,
+        query_severity_high_percent=60.0,
+        query_severity_medium_percent=15.0,
+        query_severity_low_percent=5.0,
+        query_severity_high_max_ms=1e9,
+        query_severity_medium_max_ms=1e9,
+        query_severity_low_max_ms=1e9,
+        commit_severity_high_percent=60.0,
+        commit_severity_medium_percent=15.0,
+        commit_severity_low_percent=5.0,
+        commit_severity_high_max_ms=1e9,
+        commit_severity_medium_max_ms=1e9,
+        commit_severity_low_max_ms=1e9,
+    )
+
+    assert html_report.count("class='sev-high'") == 2
+    assert html_report.count("class='sev-medium'") == 2
+    assert html_report.count("class='sev-low'") == 2
+    assert "tr.sev-high td" in html_report
+    assert "tr.sev-medium td" in html_report
+    assert "tr.sev-low td" in html_report
+
+
 def test_assert_query_count_raises_when_exceeded(sqlite_engine):
     engine = sqlite_engine
     with pytest.raises(AssertionError, match="Expected between 0 and 1 queries"):
