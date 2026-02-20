@@ -48,7 +48,7 @@ Useful options include:
 
 * ``min_ms`` - minimum per-query duration to record (ms).
 * ``top_n`` - number of rows to show in reports.
-* ``stack`` - set to ``1`` to capture query callsites.
+* ``stack`` - set to ``1`` to capture query stack traces for callsite context.
 
 Output formats
 --------------
@@ -72,5 +72,6 @@ If you want to keep the per-process JSON files, provide ``--sql-profile-dir``:
 
    psynet test local --sql-profile --sql-profile-dir /tmp/sql-profile
 
-When no directory is provided, PsyNet uses a temporary directory and cleans it
-up after producing the aggregated report.
+When no directory is provided, PsyNet uses a temporary directory. The directory
+is cleaned up only when no persistent output is requested (for example,
+text-only output); it is kept when writing HTML or JSON reports.
