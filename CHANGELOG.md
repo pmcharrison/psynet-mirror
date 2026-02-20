@@ -3,16 +3,7 @@
 # Unreleased
 
 ## Added
-- Added ``make_next_definition`` method to streamline the implementation of chain experiments.
-  We have done this in a back-compatible manner and left existing dependencies unchanged for now.
-  We have added a demo of the new approach called `chain_trial_maker`.
-  More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
-  the main PsyNet documentation.
-- Added `AGENTS.md` to help Cursor know how to run experiments locally.
-- Added 'getting started' section to documentation.
-- Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
-  to aid with configuring VSCode.
-- Added regression tests to verify correct behavior when participants return to the start page.
+- Added regression tests to verify correct behavior when participants return to the start page (author: Peter Harrison).
 - Added checks to catch cases where Assets are created in the wrong place.
 
 ## Changed
@@ -20,7 +11,7 @@
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 
 ## Fixed
-- Fixed bug where pressing 'Back' during the experiment would trigger an error.
+- Fixed bug where pressing 'Back' during the experiment would trigger an error (author: Peter Harrison).
 - Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
 - Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
@@ -61,19 +52,9 @@
 - Fixed `Trial.cue` asset registration to deposit assets before generating keys, preventing missing `deployment_id` errors (author: Cursor; reviewer: Peter Harrison)
 - Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.
 - Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
-- Fixed erroneous participant termination ("user-tried-to-leave") when Unity pages reload during Lucid recruitment. Added `is_unity_page` attribute to Page classes to skip the beforeunload detection for Unity pages.
 - Updated /start to resume existing participants by assignment ID before attempting to create a new participant (author: Peter Harrison)
 - Ensured /start reruns participant flow after bfcache restores (author: Peter Harrison)
 - Removed the worker_id uniqueness constraint and LucidRID foreign key to support repeat worker IDs when configured (author: Peter Harrison)
-- Removed unused method `generate_asset_key`.
-- Improved error messages in `psynet translate` (author: Frank Höger, reviewer: Peter Harrison)
-- Suppress yaspin color warnings in non-TTY environments to fix test failures in CI with `pytest -Werror`
-- Make `get_requirement` use `pip freeze` rather than `metadata.version` to ensure that commit
-  hashes are available.
-- Improve string-matching robustness in `get_requirement` (previously substrings would match,
-  e.g. 'net' would retrieve the 'psynet' package).
-- Added missing `.dallinger` mapping to `docker/run` (author: Peter Harrison, reviewer: Frank Höger)
-- md5 hashing now correctly ignores files whose names begin with `.` (e.g. `.DS_Store`)
 - Fixed `linspace` to handle single-length requests without division by zero (author: Cursor Agent, reviewer: Peter Harrison).
 - Fixed `dict_to_js_vars` to serialize quotes safely and handle empty inputs (author: Cursor Agent, reviewer: Peter Harrison).
 - Fixed `format_timedelta` to return meaningful output for zero and negative durations (author: Cursor, reviewer: Peter Harrison)
