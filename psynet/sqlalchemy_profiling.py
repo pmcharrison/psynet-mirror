@@ -9,7 +9,7 @@ import traceback
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from time import perf_counter
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple, TypeVar
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session as SASession
 
 _AUTO_PROFILER = None
 _MODULE_PATH = os.path.abspath(__file__).replace("\\", "/")
+_StatType = TypeVar("_StatType")
 
 
 @dataclass
@@ -43,13 +44,7 @@ class QueryStats:
     max_ms: float = 0.0
 
     def add(self, duration_ms: float, callsite: Optional[str] = None) -> None:
-        self.count += 1
-        self.total_ms += duration_ms
-        if self.count == 1:
-            self.min_ms = duration_ms
-        else:
-            self.min_ms = min(self.min_ms, duration_ms)
-        self.max_ms = max(self.max_ms, duration_ms)
+        _update_timing_aggregates(self, duration_ms)
         if callsite:
             self.callsite_counts[callsite] = self.callsite_counts.get(callsite, 0) + 1
 
@@ -81,13 +76,7 @@ class CommitStats:
     max_ms: float = 0.0
 
     def add(self, duration_ms: float, commit_type: str) -> None:
-        self.count += 1
-        self.total_ms += duration_ms
-        if self.count == 1:
-            self.min_ms = duration_ms
-        else:
-            self.min_ms = min(self.min_ms, duration_ms)
-        self.max_ms = max(self.max_ms, duration_ms)
+        _update_timing_aggregates(self, duration_ms)
         self.commit_type_counts[commit_type] = (
             self.commit_type_counts.get(commit_type, 0) + 1
         )
@@ -216,17 +205,13 @@ class SQLAlchemyQueryProfiler:
         min_total_ms: Optional[float] = None,
         min_count: int = 1,
     ) -> List[QueryStats]:
-        stats = [
-            stat
-            for stat in self._stats.values()
-            if stat.count >= min_count
-            and (min_total_ms is None or stat.total_ms >= min_total_ms)
-        ]
-        sort_key = _sort_key(sort_by)
-        stats.sort(key=sort_key, reverse=True)
-        if top_n is not None:
-            stats = stats[:top_n]
-        return stats
+        return _filter_and_sort_stats(
+            self._stats.values(),
+            top_n=top_n,
+            sort_by=sort_by,
+            min_total_ms=min_total_ms,
+            min_count=min_count,
+        )
 
     def get_commit_stats(
         self,
@@ -236,17 +221,13 @@ class SQLAlchemyQueryProfiler:
         min_total_ms: Optional[float] = None,
         min_count: int = 1,
     ) -> List[CommitStats]:
-        stats = [
-            stat
-            for stat in self._commit_stats.values()
-            if stat.count >= min_count
-            and (min_total_ms is None or stat.total_ms >= min_total_ms)
-        ]
-        sort_key = _sort_key(sort_by)
-        stats.sort(key=sort_key, reverse=True)
-        if top_n is not None:
-            stats = stats[:top_n]
-        return stats
+        return _filter_and_sort_stats(
+            self._commit_stats.values(),
+            top_n=top_n,
+            sort_by=sort_by,
+            min_total_ms=min_total_ms,
+            min_count=min_count,
+        )
 
     def format_summary(
         self,
@@ -423,7 +404,7 @@ class SQLAlchemyQueryProfiler:
             return
         session.info["_psynet_commit_start_time"] = perf_counter()
         session.info["_psynet_commit_snapshot"] = _commit_snapshot(session)
-        session.info["_psynet_commit_callsite"] = _commit_callsite()
+        session.info["_psynet_commit_callsite"] = _execution_callsite()
 
     def _after_commit(self, session: SASession) -> None:
         self._record_commit(session, rolled_back=False)
@@ -669,17 +650,7 @@ def maybe_enable_sqlalchemy_profiling(
 
 
 def _build_stack(stack_depth: int) -> Optional[Tuple[str, ...]]:
-    stack = traceback.extract_stack()
-    filtered = []
-    for frame in stack:
-        filename = frame.filename.replace("\\", "/")
-        if (
-            "/sqlalchemy/" in filename
-            or filename == _MODULE_PATH
-            or filename.endswith("/psynet/sqlalchemy_profiling.py")
-        ):
-            continue
-        filtered.append(frame)
+    filtered = _filtered_stack_frames()
     if stack_depth:
         filtered = filtered[-stack_depth:]
     if not filtered:
@@ -711,6 +682,37 @@ def _sort_key(sort_by: str):
     if sort_by == "max_ms":
         return lambda stat: stat.max_ms
     return lambda stat: stat.total_ms
+
+
+def _update_timing_aggregates(stat, duration_ms: float) -> None:
+    stat.count += 1
+    stat.total_ms += duration_ms
+    if stat.count == 1:
+        stat.min_ms = duration_ms
+    else:
+        stat.min_ms = min(stat.min_ms, duration_ms)
+    stat.max_ms = max(stat.max_ms, duration_ms)
+
+
+def _filter_and_sort_stats(
+    stats: Iterable[_StatType],
+    *,
+    top_n: Optional[int],
+    sort_by: str,
+    min_total_ms: Optional[float],
+    min_count: int,
+) -> List[_StatType]:
+    filtered_stats = [
+        stat
+        for stat in stats
+        if stat.count >= min_count
+        and (min_total_ms is None or stat.total_ms >= min_total_ms)
+    ]
+    sort_key = _sort_key(sort_by)
+    filtered_stats.sort(key=sort_key, reverse=True)
+    if top_n is not None:
+        filtered_stats = filtered_stats[:top_n]
+    return filtered_stats
 
 
 def _parse_bool(value: str) -> bool:
@@ -1130,17 +1132,7 @@ def _classify_commit(snapshot: Optional[Tuple[int, int, int]]) -> str:
 
 
 def _execution_callsite() -> str:
-    stack = traceback.extract_stack()
-    filtered = []
-    for frame in stack:
-        filename = frame.filename.replace("\\", "/")
-        if (
-            "/sqlalchemy/" in filename
-            or filename == _MODULE_PATH
-            or filename.endswith("/psynet/sqlalchemy_profiling.py")
-        ):
-            continue
-        filtered.append(frame)
+    filtered = _filtered_stack_frames()
     if not filtered:
         return "unknown"
     fallback = filtered[-1]
@@ -1154,5 +1146,15 @@ def _execution_callsite() -> str:
     return f"{fallback.filename}:{fallback.lineno} in {fallback.name}"
 
 
-def _commit_callsite() -> str:
-    return _execution_callsite()
+def _filtered_stack_frames():
+    filtered = []
+    for frame in traceback.extract_stack():
+        filename = frame.filename.replace("\\", "/")
+        if (
+            "/sqlalchemy/" in filename
+            or filename == _MODULE_PATH
+            or filename.endswith("/psynet/sqlalchemy_profiling.py")
+        ):
+            continue
+        filtered.append(frame)
+    return filtered
