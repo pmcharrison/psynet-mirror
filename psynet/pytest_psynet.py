@@ -12,7 +12,6 @@ import warnings
 from pathlib import Path
 from urllib import parse
 
-import boto3
 import dallinger.pytest_dallinger
 import pexpect
 import pexpect.exceptions
@@ -45,6 +44,7 @@ from .command_line import (
 )
 from .data import init_db
 from .experiment import get_experiment, import_local_experiment
+from .media import new_s3_resource
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
 from .trial.main import TrialNetwork
@@ -875,7 +875,7 @@ def artifact_storage(request, tmp_path):
         # Delete files in the root folder that are older than 4 hours.
         # We apply this 4-hour criterion to avoid conflicting with other tests
         # being run in parallel.
-        s3 = boto3.resource("s3")
+        s3 = new_s3_resource()
         bucket = s3.Bucket(bucket_name)
         prefix = root + "/"
         now = datetime.datetime.now(datetime.timezone.utc)
