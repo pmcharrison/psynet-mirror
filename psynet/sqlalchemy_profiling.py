@@ -610,7 +610,7 @@ def maybe_enable_sqlalchemy_profiling(
         The active profiler instance if enabled.
     """
     value = os.getenv(env_var)
-    settings = _parse_env_settings(value)
+    settings = parse_env_settings(value)
     if not settings["enabled"]:
         return None
     if engine is None:
@@ -720,7 +720,7 @@ def _parse_bool(value: str) -> bool:
     return value not in {"0", "false", "no", "off", ""}
 
 
-def _parse_env_settings(value: Optional[str]) -> Dict[str, object]:
+def parse_env_settings(value: Optional[str]) -> Dict[str, object]:
     if value is None:
         return {"enabled": False, "options": {}}
     raw = value.strip()
@@ -739,6 +739,10 @@ def _parse_env_settings(value: Optional[str]) -> Dict[str, object]:
             key, val = part.split("=", 1)
             options[key.strip().lower()] = val.strip()
     return {"enabled": enabled, "options": options}
+
+
+# Backwards-compatibility alias; prefer parse_env_settings.
+_parse_env_settings = parse_env_settings
 
 
 def aggregate_sqlalchemy_profiles(profile_dir: str) -> Dict[str, object]:

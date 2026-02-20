@@ -6,12 +6,12 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from psynet.sqlalchemy_profiling import (
     _parse_bool,
-    _parse_env_settings,
     aggregate_sqlalchemy_profiles,
     assert_query_count,
     assert_query_duration,
     format_aggregated_html,
     format_aggregated_profile,
+    parse_env_settings,
     sqlalchemy_profile,
 )
 
@@ -265,11 +265,11 @@ def test_assert_query_duration_raises_when_over_max_query(sqlite_engine):
 
 
 def test_parse_env_settings_and_bool():
-    assert _parse_env_settings(None) == {"enabled": False, "options": {}}
-    assert _parse_env_settings("") == {"enabled": False, "options": {}}
-    assert _parse_env_settings("0") == {"enabled": False, "options": {}}
+    assert parse_env_settings(None) == {"enabled": False, "options": {}}
+    assert parse_env_settings("") == {"enabled": False, "options": {}}
+    assert parse_env_settings("0") == {"enabled": False, "options": {}}
 
-    settings = _parse_env_settings("min_ms=50,top_n=5,stack=1")
+    settings = parse_env_settings("min_ms=50,top_n=5,stack=1")
     assert settings["enabled"] is True
     assert settings["options"] == {"min_ms": "50", "top_n": "5", "stack": "1"}
 

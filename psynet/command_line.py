@@ -486,13 +486,13 @@ def _print_sql_profile_aggregation(profile_dir, *, formats, open_html, show_dir)
         Whether to print the location of the raw profile files.
     """
     from psynet.sqlalchemy_profiling import (
-        _parse_env_settings,
         aggregate_sqlalchemy_profiles,
         format_aggregated_html,
         format_aggregated_profile,
+        parse_env_settings,
     )
 
-    settings = _parse_env_settings(os.getenv("PSYNET_SQL_PROFILE"))
+    settings = parse_env_settings(os.getenv("PSYNET_SQL_PROFILE"))
     options = settings.get("options", {})
     top_n = int(options.get("top_n", 20))
     commit_top_n = int(options.get("commit_top_n", top_n))
