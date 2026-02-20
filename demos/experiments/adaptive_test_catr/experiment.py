@@ -1,3 +1,5 @@
+import math
+
 import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, Timeline
@@ -44,11 +46,10 @@ def run_catr_smoke_test():
     return float(theta[0])
 
 
-def verify_catr_in_timeline(participant):
+def verify_catr_in_timeline():
     theta = run_catr_smoke_test()
-    if not isinstance(theta, float):
-        raise RuntimeError("catR smoke test did not return a float value.")
-    participant.var.set("catr_theta", theta)
+    if not math.isfinite(theta):
+        raise RuntimeError("catR smoke test did not return a finite value.")
 
 
 class Exp(psynet.experiment.Experiment):
