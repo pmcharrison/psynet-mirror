@@ -14,16 +14,9 @@ dallinger_recommended_version = "12.1"
 python_recommended_version = "3.13"
 
 
-def check_versions(allow_master_branch: bool = False):
+def check_versions():
     """
     Check whether PsyNet and Dallinger versions match requirements.txt.
-
-    Parameters
-    ----------
-    allow_master_branch : bool, optional
-        If True, a requirements.txt entry pinned to ``master`` is permitted and the
-        version comparison is skipped for that package. This is intended for local
-        debugging workflows. Defaults to False.
 
     Raises
     ------
@@ -42,10 +35,7 @@ def check_versions(allow_master_branch: bool = False):
         color="green",
     ) as spinner:
         with open("requirements.txt", "r") as file:
-            versions = get_all_version_infos(
-                file.read(),
-                allow_master_branch=allow_master_branch,
-            )
+            versions = get_all_version_infos(file.read())
 
             for package_name, version_infos in versions.items():
                 status = version_infos["status"]
@@ -74,7 +64,7 @@ def check_versions(allow_master_branch: bool = False):
         click.echo(message)
 
 
-def get_all_version_infos(file_content, allow_master_branch: bool = False):
+def get_all_version_infos(file_content):
     """
     Parse requirements.txt content and compare to installed versions.
 
@@ -82,10 +72,6 @@ def get_all_version_infos(file_content, allow_master_branch: bool = False):
     ----------
     file_content : str
         Contents of a requirements.txt file.
-    allow_master_branch : bool, optional
-        If True, treat a ``master``-pinned requirement as a skipped comparison.
-        Defaults to False.
-
     Returns
     -------
     dict
@@ -154,11 +140,6 @@ def get_all_version_infos(file_content, allow_master_branch: bool = False):
                 else "inconsistent"
             )
             skip_reason = None
-        # Local debugging can intentionally pin to master, so skip strict comparison.
-        if allow_master_branch and specified == "master":
-            status = "skipped"
-            skip_reason = "requirements.txt pins this package to master"
-
         versions[package_name] = {
             "specified": specified,
             "installed": installed,

@@ -71,20 +71,6 @@ def test_verify_psynet_requirement_master_branch():
                         verify_psynet_requirement()
 
 
-def test_verify_psynet_requirement_master_branch_allowed_for_local():
-    with tempfile.TemporaryDirectory() as dir:
-        with working_directory(dir):
-            for extension in ["", ".git"]:
-                for egg in ["", "#egg=psynet"]:
-                    with open("requirements.txt", "w") as file:
-                        file.write(
-                            f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet{extension}@master{egg}\n"
-                        )
-                        file.flush()
-
-                    verify_psynet_requirement(allow_master_branch=True)
-
-
 def test_verify_psynet_requirement_commit_hash():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):

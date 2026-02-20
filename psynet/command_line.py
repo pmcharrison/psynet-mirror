@@ -708,9 +708,8 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
-    allow_master_branch = local_
-    verify_psynet_requirement(allow_master_branch=allow_master_branch)
-    check_versions(allow_master_branch=allow_master_branch)
+    verify_psynet_requirement()
+    check_versions()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -1696,7 +1695,7 @@ def _check_constraints(spinner=None):
         )
 
 
-def verify_psynet_requirement(*, allow_master_branch: bool = False):
+def verify_psynet_requirement():
     """
     Validate that ``requirements.txt`` pins PsyNet unambiguously.
 
@@ -1705,16 +1704,6 @@ def verify_psynet_requirement(*, allow_master_branch: bool = False):
     - ``psynet==<version>``
     - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v<version>#egg=psynet``
     - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit-hash>#egg=psynet``
-
-    If ``allow_master_branch`` is True, ``@master`` is also accepted for local
-    debugging.
-
-    Parameters
-    ----------
-    allow_master_branch : bool, optional
-        If True, allow the master branch in requirements.txt. This is intended for
-        local debugging, where a specific version or commit may not be required.
-        Defaults to False.
 
     Raises
     ------
@@ -1738,8 +1727,6 @@ def verify_psynet_requirement(*, allow_master_branch: bool = False):
                 "[a-fA-F0-9]{8,40}",
                 "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
             ]
-            if allow_master_branch:
-                regexes.append("master")
             file_content = file.read()
             for regex in regexes:
                 match = re.search(
@@ -1768,31 +1755,17 @@ def verify_psynet_requirement(*, allow_master_branch: bool = False):
             spinner.color = "red"
             spinner.fail("✗")
 
-        if allow_master_branch:
-            branch_note = (
-                "For local debugging, the master branch is allowed, but other branch names are not; "
-                "you have to specify a particular version or a commit hash."
-            )
-        else:
-            branch_note = (
-                "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
-                "or a commit hash."
-            )
+        branch_note = (
+            "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
+            "or a commit hash."
+        )
 
         examples = [
             "* psynet==10.1.1",
             "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
         ]
-        if allow_master_branch:
-            examples.append(
-                "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
-            )
-        examples.extend(
-            [
-                "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
-                "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
-            ]
-        )
 
         if not valid:
             raise ValueError(
