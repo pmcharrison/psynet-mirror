@@ -7,11 +7,7 @@
 
 ## Changed
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
-- Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
-- Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
-- Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
-- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
-- Updated S3 test setup to use a Moto-backed endpoint (author: Peter Harrison)
+- Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 
 ## Fixed
 - Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
