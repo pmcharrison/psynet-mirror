@@ -1,6 +1,7 @@
 import datetime
 import functools
 import importlib
+import io
 import json
 import os
 import re
@@ -11,7 +12,7 @@ import sys
 import tempfile
 import threading
 import zipfile
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
@@ -1013,6 +1014,41 @@ def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
         )
 
 
+def _list_remote_apps_via_psynet_apps(ctx, server):
+    from dallinger.command_line.docker_ssh import apps as dallinger_apps
+
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        result = ctx.invoke(dallinger_apps, server=server)
+    if not result:
+        return []
+    return result.split()
+
+
+def _abort_if_app_exists_via_psynet_apps(ctx, server, app):
+    if not app:
+        return
+
+    from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
+
+    server_info = CONFIGURED_HOSTS[server]
+    ssh_host = server_info["host"]
+    ssh_user = server_info.get("user")
+    ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+
+    apps = _list_remote_apps_via_psynet_apps(ctx, server)
+    if app in apps:
+        click.echo(
+            "\n".join(
+                [
+                    f"App with name {app} already exists: found in psynet apps list. Aborting.",
+                    "Use a different name, destroy the current app or add --update",
+                ]
+            )
+        )
+        raise click.Abort
+
+
 ##########
 # deploy #
 ##########
@@ -1199,6 +1235,8 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, server):
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
+
+        _abort_if_app_exists_via_psynet_apps(ctx, server, app)
 
         _pre_launch(
             ctx,
