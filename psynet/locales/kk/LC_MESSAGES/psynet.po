@@ -550,19 +550,19 @@ msgstr "Ойнату"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Кем дегенде бір жауапты таңдау керек!"
+msgstr "Кем дегенде бір жауапты белгілеуіңіз керек!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "Жауапты таңдау керек!"
+msgstr "Жауапты таңдауыңыз керек!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "Сан енгізу керек!"
+msgstr "Сіз сан беруіңіз керек!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -905,16 +905,17 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Өтемақыңыз туралы мәліметтерді төменнен қараңыз."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Тәжірибені тоқтату"
+msgstr "Экспериментті тоқтату"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "Қатысушыларды шақыру"
+msgstr "Қатысушыларға шақыру"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -929,8 +930,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Тапсырманы бастау үшін жоғарыдағы Amazon сайтындағы \"Қабылдау HIT\" "
-"түймесін басыңыз."
+"Тапсырманы бастау үшін жоғарыдағы Amazon сайтындағы \"HIT қабылдау\" "
+"батырмасын басыңыз."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -951,8 +952,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Келесі URL сілтемесін басу арқылы сіз экспериментке өтесіз, толық нұсқаулар "
-"мен ақпараттандырылған келісім келісімін қоса алғанда."
+"Келесі URL сілтемесін басу арқылы сіз экспериментке, толық нұсқаулар мен "
+"ақпараттандырылған келісімге қол жеткізесіз."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -964,7 +965,7 @@ msgstr "Ескерту"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Жалғастырмас бұрын қалқыма блокаторларын өшіріңіз."
+msgstr "Жалғастырмас бұрын қалқымалы терезелерді блоктауды өшіріңіз."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -974,13 +975,8 @@ msgstr "Экспериментті бастау"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Экспериментті тоқтату"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "Қате болған жағдайда өтемақы алу үшін жоғарыдағы түймені басыңыз."
+msgstr "Қате болған жағдайда өтемақы алу үшін жоғарыдағы батырманы басыңыз."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3072,8 +3068,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Экспериментті <strong>MTurk жарнама бетінде</strong> <strong>Экспериментті "
-"тоқтату</strong> батырмасы арқылы тоқтата аласыз."
+"Сіз <strong>MTurk жарнама бетінде</strong> <strong>Экспериментті "
+"тоқтату</strong> батырмасын пайдаланып экспериментті тоқтата аласыз."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3082,8 +3078,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Тоқтатылғаннан кейін, өтемақы алу үшін бізбен хабарласудың қажеті жоқ; бұл "
-"сізге бірнеше минуттан кейін MTurk арқылы автоматты түрде берілуі керек."
+"Тоқтатылғаннан кейін, өтемақы алу үшін бізбен байланысудың қажеті жоқ; бұл "
+"сізге MTurk арқылы бірнеше минуттан кейін автоматты түрде берілуі керек."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3091,8 +3087,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Егер олай болмаса, келесі ақпаратты көрсетіп, бізбен %(EMAIL)s мекенжайы "
-"арқылы хабарласыңыз:"
+"Егер олай болмаса, келесі ақпаратты көрсетіп, бізге %(EMAIL)s мекенжайына "
+"хабарласыңыз:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

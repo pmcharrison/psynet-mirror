@@ -115,11 +115,11 @@ Here is the citation entry::
    :caption: DEPLOYING
 
    deploy/web_servers
+   deploy/aws_automatic_provisioning
    deploy/aws_server_setup
    deploy/physical_server_setup
    deploy/ssh_server
    deploy/heroku_server
-   deploy/prolific
    deploy/deploy_from_archive
    deploy/data
    deploy/deployment_monitor

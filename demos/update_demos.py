@@ -207,20 +207,21 @@ def update_psynet_requirement(dir):
 
 def post_update_psynet_requirement(dir):
     with working_directory(dir):
-        with fileinput.FileInput("constraints.txt", inplace=True) as file:
-            md5sum_line = (
-                "# Compiled from a requirement\\.txt file with md5sum: [0-9a-f]{32}"
-            )
-            md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
-            for line in file:
-                print(
-                    re.sub(
-                        md5sum_line,
-                        f"# Compiled from a requirement.txt file with md5sum: {md5sum}",
-                        line,
-                    ),
-                    end="",
-                )
+        constraints_path = Path("constraints.txt")
+        md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
+        python_version = Path(".python-version").read_text().strip()
+
+        old_pattern = (
+            r"# Compiled from a requirements\.txt file with md5sum [0-9a-f]{32}.*"
+        )
+        new_line = (
+            f"# Compiled from a requirements.txt file with md5sum {md5sum} "
+            f"and a .python-version file requesting Python {python_version}"
+        )
+
+        content = constraints_path.read_text()
+        content = re.sub(old_pattern, new_line, content)
+        constraints_path.write_text(content)
 
 
 def update_scripts(dir):

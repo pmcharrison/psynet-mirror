@@ -9,6 +9,7 @@ import tempfile
 import time
 import uuid
 import warnings
+from functools import cached_property
 from pathlib import Path
 from urllib import parse
 
@@ -17,7 +18,6 @@ import pexpect
 import pexpect.exceptions
 import pytest
 import sqlalchemy.exc
-from cached_property import cached_property
 from dallinger import db, pytest_dallinger
 from dallinger.bots import BotBase
 from dallinger.config import get_config
@@ -55,11 +55,11 @@ logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
 ci_only = pytest.mark.skipif(
-    not os.environ.get("CI"), reason="This test only runs in CI environment"
+    os.environ.get("CI") is None, reason="This test only runs in CI environment"
 )
 
 local_only = pytest.mark.skipif(
-    os.environ.get("CI"), reason="This test only runs in local environment"
+    os.environ.get("CI") is not None, reason="This test only runs in local environment"
 )
 
 

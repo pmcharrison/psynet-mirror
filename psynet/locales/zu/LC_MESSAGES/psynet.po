@@ -867,7 +867,7 @@ msgstr "Bheka ngezansi ulwazi ngembuyiselo oqoqile njengamanje."
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Assignment ID"
+msgstr "I-Assignment ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -915,7 +915,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Bheka ulwazi olungezansi ngemininingwane yemholo wakho."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Misa ucwaningo"
@@ -930,7 +931,7 @@ msgstr "Ukubizelwa kwabathathi-nxaxheba"
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "Izimfuneko zokubamba iqhaza zimi kanje"
+msgstr "Izidingo zokubamba iqhaza zimi kanje"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -940,7 +941,7 @@ msgid ""
 " task."
 msgstr ""
 "Sicela uchofoze inkinobho ethi \"Yamukela i-HIT\" kuwebhusayithi ye-Amazon "
-"ngenhla ukuze uqale umsebenzi."
+"engenhla ukuze uqale umsebenzi."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -962,7 +963,7 @@ msgid ""
 "including complete instructions and an informed consent agreement."
 msgstr ""
 "Ngokuchofoza isixhumanisi se-URL esilandelayo, uzothathwa uye ocwaningweni, "
-"okuhlanganisa nemiyalelo ephelele nesivumelwano sokuvuma ngokuqonda."
+"okuhlanganisa nemiyalelo ephelele nesivumelwano sokuvuma ngolwazi."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -974,7 +975,7 @@ msgstr "Isixwayiso"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Sicela ukhubaze abavimbeli be-pop-up ngaphambi kokuqhubeka."
+msgstr "Sicela ukhubaze izivimbeli zokuphuma ngaphambi kokuqhubeka."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -984,13 +985,8 @@ msgstr "Qala Ucwaningo"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Misa Ucwaningo"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "Chofoza inkinobho engenhla ukuze uhlonishwe uma kwenzeka iphutha."
+msgstr "Chofoza inkinobho engenhla ukuze ukhokhelwe uma kwenzeka iphutha."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3099,8 +3095,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Ungase ukwazi ukuyeka ukuhlolwa usebenzisa inkinobho ethi <strong>Yekisa "
-"ukuhlolwa</strong> <strong>ekhasini lesikhangiso se-MTurk</strong>."
+"Ungakwazi ukuhoxisa ucwaningo usebenzisa inkinobho ethi <strong>Hoxisa "
+"ucwaningo</strong> <strong>ekhasini lesikhangiso se-MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3109,7 +3105,7 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Uma seyiyekile, akudingeki ukuthi usithinte ukuze uthole isinxephezelo; "
+"Uma usuhoxisile, akudingeki ukuthi usithinte ukuze uthole isinxephezelo; "
 "lokhu kufanele kunikezwe kuwe ngokuzenzakalelayo nge-MTurk ngemva kwemizuzu "
 "embalwa."
 
@@ -3119,8 +3115,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Uma kungenjalo, sicela uxhumane nathi ku-%(EMAIL)s ucaphune imininingwane "
-"elandelayo:"
+"Uma lokhu kungenzeki, sicela usithinte ku-%(EMAIL)s ucaphuna ulwazi "
+"olulandelayo:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3130,7 +3126,7 @@ msgstr "Uhlobo lwephutha"
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Worker ID"
+msgstr "I-Worker ID"
 
 #: psynet/templates/start.html
 #, fuzzy

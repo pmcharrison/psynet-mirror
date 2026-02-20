@@ -1,6 +1,6 @@
-========
-Consents
-========
+=======
+Consent
+=======
 
 .. automodule:: psynet.consent
     :members:

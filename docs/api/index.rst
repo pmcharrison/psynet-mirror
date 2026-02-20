@@ -9,7 +9,7 @@ API Documentation
    audio_mixer
    bot
    command_line
-   consents
+   consent
    data
    demography
    error

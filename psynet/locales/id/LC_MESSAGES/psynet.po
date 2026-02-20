@@ -553,7 +553,7 @@ msgstr "Putar"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "Anda perlu mencentang setidaknya satu jawaban!"
+msgstr "Anda perlu memilih setidaknya satu jawaban!"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -921,7 +921,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Lihat informasi di bawah untuk detail kompensasi Anda."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Batalkan eksperimen"
@@ -968,7 +969,7 @@ msgid ""
 "including complete instructions and an informed consent agreement."
 msgstr ""
 "Dengan mengklik tautan URL berikut, Anda akan dibawa ke eksperimen, termasuk"
-" instruksi lengkap dan persetujuan informasi."
+" instruksi lengkap dan perjanjian persetujuan yang diinformasikan."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -987,11 +988,6 @@ msgstr "Silakan nonaktifkan pemblokir pop-up sebelum melanjutkan."
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Mulai Eksperimen"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Batalkan Eksperimen"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3141,8 +3137,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Jika ini tidak terjadi, silakan hubungi kami di %(EMAIL)s dengan menyebutkan"
-" informasi berikut:"
+"Jika tidak demikian, silakan hubungi kami di %(EMAIL)s dengan menyebutkan "
+"informasi berikut:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

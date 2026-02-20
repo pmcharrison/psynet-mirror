@@ -854,7 +854,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "请参阅下面的信息以获取您的补偿详情。"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "中止实验"
@@ -897,7 +898,7 @@ msgctxt "ad"
 msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
-msgstr "点击以下URL链接，您将进入实验，包括完整的说明和知情同意协议。"
+msgstr "通过点击以下URL链接，您将进入实验，其中包括完整的说明和知情同意协议。"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -916,11 +917,6 @@ msgstr "请在继续之前禁用弹出窗口拦截器。"
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "开始实验"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "中止实验"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
