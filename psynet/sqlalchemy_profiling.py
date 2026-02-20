@@ -1154,11 +1154,7 @@ def _filtered_stack_frames():
     filtered = []
     for frame in traceback.extract_stack():
         filename = frame.filename.replace("\\", "/")
-        if (
-            "/sqlalchemy/" in filename
-            or filename == _MODULE_PATH
-            or filename.endswith("/psynet/sqlalchemy_profiling.py")
-        ):
+        if "/sqlalchemy/" in filename or filename == _MODULE_PATH:
             continue
         filtered.append(frame)
     return filtered
