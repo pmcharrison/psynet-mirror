@@ -210,7 +210,6 @@ class CustomNode(AudioImitationChainNode):
 
 class Exp(psynet.experiment.Experiment):
     label = "Iterated tapping demo"
-    initial_recruitment_size = 1
 
     # asset_storage = S3Storage("psynet-tests", "iterated-tapping")
 

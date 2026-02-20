@@ -128,7 +128,6 @@ trial_maker = AnimalTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Static experiment demo"
-    initial_recruitment_size = 1
     test_n_bots = 2
 
     timeline = Timeline(

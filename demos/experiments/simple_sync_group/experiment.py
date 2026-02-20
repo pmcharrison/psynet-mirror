@@ -41,8 +41,6 @@ def show_current_group():
 class Exp(psynet.experiment.Experiment):
     label = "Simple SyncGroup demo"
 
-    initial_recruitment_size = 1
-
     timeline = Timeline(
         SimpleGrouper(
             group_type="main",

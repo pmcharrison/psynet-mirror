@@ -8,7 +8,6 @@ from psynet.timeline import Timeline, for_loop, join
 
 class Exp(psynet.experiment.Experiment):
     label = "Static experiment demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         trial_maker_1.custom(

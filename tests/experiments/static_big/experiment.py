@@ -50,7 +50,6 @@ trial_maker = StaticTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Static experiment demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         trial_maker,

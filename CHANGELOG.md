@@ -16,6 +16,7 @@
 - Added checks to catch cases where Assets are created in the wrong place.
 
 ## Changed
+- Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 
 ## Fixed
@@ -31,6 +32,7 @@
 - Standardized "Abort Experiment" to "Abort experiment" in templates for consistent capitalization and removed obsolete translation entries from PO files (author: Frank Höger, reviewer: Peter Harrison)
 - Removed prompt text from prompt metadata to avoid large export file sizes (author: Peter)
 - Suppressed forkpty DeprecationWarning in pytest configuration (author: Peter Harrison)
+- Exported datetimes in database exports as readable strings to avoid jsonpickle formatting (author: Peter)
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)

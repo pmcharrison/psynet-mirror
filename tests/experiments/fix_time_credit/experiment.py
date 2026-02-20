@@ -22,7 +22,6 @@ def assert_time_credit(participant, value):
 
 class Exp(psynet.experiment.Experiment):
     label = "Testing time credit bounds"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         CodeBlock(lambda participant: participant.var.set("counter", 0)),

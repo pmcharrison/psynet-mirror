@@ -424,7 +424,6 @@ trial_maker = CreateAndRateTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Genetic Algorithm with People"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         # If we don't have something before the CodeBlock, then all participants
