@@ -104,14 +104,9 @@ If you haven't already done so, download PsyNet from GitLab:
 Open PsyNet in your IDE
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can open the PsyNet project in your IDE by selecting 'File' > 'Open Folder',
-then navigating to the ``psynet`` directory and selecting it.
-
-If you are using PyCharm, follow the PyCharm prompts to create a virtual environment for PsyNet.
-When prompted to choose which requirements to install from,
-select ``demos/timeline/constraints.txt``.
-This ensures that the right versions of all the PsyNet dependencies are installed
-(if you just ran ``pip install psynet`` you would get the latest, potentially incompatible versions of the dependencies).
+Open the PsyNet folder (the folder you downloaded from GitLab) in your IDE.
+Use your IDE to create a virtual environment for PsyNet, using the Python version specified
+in ``pyproject.toml``.
 
 Install PsyNet and Dallinger in editable mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,15 +122,6 @@ Within the virtual environment you just created, install PsyNet and Dallinger in
 
 Editable mode means that any changes you make to the
 Dallinger/PsyNet source code will be automatically reflected in your virtual environment.
-
-.. note::
-
-    If you are developing using Docker, you can use these editable versions of Dallinger and PsyNet
-    by using the ``psynet-dev`` Docker command variants, for example:
-
-    .. code-block:: bash
-
-       bash docker/psynet-dev debug local
 
 You can then check your installation by running
 

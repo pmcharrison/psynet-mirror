@@ -64,7 +64,6 @@ uses GitLab. You will probably want to create an account on that website before 
     to have you password managed by ``ssh-agent``.
 
 
-
 Step 4: Download an experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -101,10 +100,8 @@ Step 5: Set up your IDE
 
 ### Setting up your IDE
 
-Open your IDE and click File > Open Folder.
-Select the folder that Git downloaded for you. This opens the experiment directory as a project.
-
-The first thing you should do is 'build' the experiment. The first time you build a PsyNet
+Open your IDE and use your IDE to open the downloaded folder.
+You should then 'build' the experiment. The first time you build a PsyNet
 experiment it will download PsyNet and lots of other dependencies. Make sure you have a
 good internet connection for this, it will take a few minutes.
 You build the experiment by running the following in your IDE's terminal:
@@ -129,16 +126,8 @@ run the following command, then try again:
 
 If you see other error messages at this point, see Troubleshooting.
 
-The project includes a pre-configured `.vscode/launch.json` file that is set up for debugging.
-You can use this to debug your experiment by setting breakpoints and using the debugger.
-
-### PyCharm (alternative)
-
-If you prefer to use PyCharm, you can open the project in PyCharm. However, note that:
-
-- PyCharm remote debugging is currently not working (as of February 2025)
-- We do not provide detailed PyCharm setup instructions as they may become outdated
-- You will need to configure PyCharm's Docker interpreter yourself if you want to use Docker integration
+The project includes a pre-configured `.vscode/launch.json` file that is set up for debugging in VSCode/Cursor.
+You can use this to debug your experiment by setting breakpoints and using the debugger.]
 
 Step 6: Running the experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

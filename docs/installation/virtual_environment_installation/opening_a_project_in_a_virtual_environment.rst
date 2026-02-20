@@ -7,7 +7,7 @@ You can create a virtual environment and install the required packages by runnin
 
     uv venv
     source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-    uv pip install -r constraints.txt
+    uv pip install -r requirements.txt -c constraints.txt
 
 .. note::
 

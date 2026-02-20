@@ -57,24 +57,29 @@ for debugging.
 
 ### VSCode/Cursor
 
-You can debug your experiment using VSCode or Cursor. The project includes a pre-configured
-`.vscode/launch.json` file that is set up for debugging.
-
-To use the debugger:
-
-1. Add `psynet.debugger()` calls in your code where you want to set breakpoints
-2. Start your experiment with `bash docker/psynet debug local`
-3. In VSCode/Cursor, go to the Run and Debug panel (or press F5)
-4. Select "Breakpoints in psynet debug local" from the dropdown
-5. Click the play button or press F5 to start debugging
-
-The debugger will attach to your running experiment and pause at any `psynet.debugger()` calls.
-
-For more information, see the `psynet.debugger()` documentation in the PsyNet API reference.
+Unfortunately we don't currently have a workflow for using the debugger in VSCode/Cursor when running in Docker mode.
 
 ### PyCharm
 
-**Note**: PyCharm remote debugging is currently not working (as of February 2025). We recommend using VSCode or Cursor instead for debugging PsyNet experiments.
+We used to have a workflow for Docker debugging in PyCharm, but this is not currently working either
+(as of February 2025). For reference, this is how it worked:
+
+1. Click Run > Edit Configurations in PyCharm.
+2. Create a new Python Debug Server configuration, and call it something like 'Dockerized Python debug server'.
+3. For IDE host name, enter `host.docker.internal`.
+4. For port, enter a port of your choice, for example `12345`.
+
+Now start this debug server via your PyCharm interface (this typically involves clicking on a green bug icon).
+This should display some code that looks something like this:
+
+```python
+import pydevd_pycharm
+pydevd_pycharm.settrace('host.docker.internal', port=12345, stdoutToServer=True, stderrToServer=True)
+```
+
+Copy and paste this code into the part of the script that you want to debug, then run it.
+If all goes well, the PyCharm interpreter should activate once it reaches this code,
+and you can then explore the local state of the program.
 
 ## Advanced usage
 
