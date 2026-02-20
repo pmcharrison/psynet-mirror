@@ -872,7 +872,7 @@ msgstr ""
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Aufgab ID"
+msgstr "Zouweisungs ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -923,7 +923,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Kuckt d'Informatioun hei ënnen fir Detailer iwwer Är Entschiedegung."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Experiment ofbriechen"
@@ -932,13 +933,13 @@ msgstr "Experiment ofbriechen"
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "Call fir Participanten"
+msgstr "Opruff un d'Participanten"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "D'Ufuerderunge fir matzemaachen sinn wéi follegt"
+msgstr "D'Ufuerderunge fir matzemaachen sinn déi folgend"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -947,14 +948,14 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Klickt w.e.g. op de \"HIT akzeptéieren\" Knäppchen op der Amazon Site "
-"uewendriwwer fir d'Aufgab unzefänken."
+"Klickt w.e.g. op de \"Accept HIT\" Knäppchen op der Amazon Säit hei uewen "
+"fir d'Aufgab unzefänken."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "Merci fir akzeptéieren dësem HIT."
+msgstr "Merci datt Dir dësen HIT akzeptéiert hutt."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -969,8 +970,9 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Andeems Dir op de folgende URL Link klickt, gitt Dir an d'Experiment geholl,"
-" komplett Instruktiounen an en informéiert Zoustëmmungsaccord."
+"Wann Dir op de folgende URL-Link klickt, gitt Dir zum Experiment gefouert, "
+"inklusiv kompletter Instruktiounen an enger informéierter "
+"Zoustëmmungserklärung."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -982,18 +984,13 @@ msgstr "Warnung"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Deaktivéiert w.e.g. Pop-up Blocker ier Dir weiderfuert."
+msgstr "Schalt w.e.g. Pop-up Blocker aus, ier Dir weiderfuert."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Experiment ufänken"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Experiment ofbriechen"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3132,9 +3129,9 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Dir kënnt vläicht d'Experiment ofbriechen andeems Dir den <strong>Experiment"
-" ofbriechen</strong> Knäppchen <strong>op der MTurk Annonce Säit</strong> "
-"benotzt."
+"Dir kënnt eventuell den Experiment mat dem <strong>Experiment "
+"ofbriechen</strong> Knäppchen <strong>op der MTurk Annonce Säit</strong> "
+"ofbriechen."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3143,9 +3140,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Eemol ofgebrach ass et net néideg eis ze kontaktéieren fir d'Entschiedegung "
-"ze kréien; dëst soll Iech automatesch via MTurk e puer Minutten "
-"ausgezeechent ginn no."
+"Wann ofgebrach, ass et net néideg eis ze kontaktéieren fir d'Kompensatioun "
+"ze kréien; dës sollt Iech automatesch iwwer MTurk e puer Minutten duerno "
+"zougestallt ginn."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

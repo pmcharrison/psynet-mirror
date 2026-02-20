@@ -28,6 +28,18 @@ Copy the SSH key to the clipboard by running this command:
 
    pbcopy < ~/.ssh/id_rsa.pub
 
+On Linux you can print the key and copy it manually:
+
+.. code-block:: bash
+
+   cat ~/.ssh/id_rsa.pub
+
+On WSL you can also copy it directly to the Windows clipboard:
+
+.. code-block:: bash
+
+   cat ~/.ssh/id_rsa.pub | clip.exe
+
 Then navigate to `GitLab SSH keys <https://gitlab.com/-/profile/keys>`_,
 click 'Add new key', paste the key in the 'Key' box,
 remove the Expiration date if you think it's helpful, then click 'Add key'.

@@ -1,11 +1,11 @@
 import json
 import os.path
 from datetime import datetime, timedelta
+from functools import cached_property
 from typing import List
 
 import pandas as pd
 import requests
-from cached_property import cached_property
 from dallinger import db
 from dallinger.db import session
 from sqlalchemy import Column, DateTime, func
@@ -70,6 +70,15 @@ class LucidService(object):
             "Accept": "text/plain",
         }
         self.default_locale = default_locale
+
+    @staticmethod
+    def _check_response(response):
+        if not response.ok:
+            raise LucidServiceException(
+                f"Lucid API request failed: {response.status_code} {response.reason} "
+                f"for {response.request.method} {response.url}\n"
+                f"Response body: {response.text[:1000]}"
+            )
 
     @property
     def request_base_url_v1(self):
@@ -313,9 +322,19 @@ class LucidService(object):
                 session.commit()
                 self.log("Respondent completed successfully.")
             else:
-                self.log(
-                    f"Error completing respondent. Status returned: {response.status_code}, reason: {response.reason}"
-                )
+                if response.status_code == 403:
+                    self.log(
+                        f"Completion returned status code 403 for RID '{rid}'. "
+                        "Likely already completed via browser redirect. "
+                        "Marking as completed locally."
+                    )
+                    lucid_rid.completed_at = datetime.now()
+                    session.commit()
+                else:
+                    self.log(
+                        f"Error completing respondent (RID '{rid}'): "
+                        f"{response.status_code} {response.reason}"
+                    )
         else:
             self.log(
                 "Completion canceled. Respondent already completed or terminated survey."
@@ -338,9 +357,25 @@ class LucidService(object):
                 session.commit()
                 self.log("Respondent terminated successfully.")
             else:
-                self.log(
-                    f"Error terminating respondent. Status returned: {response.status_code}, reason: {response.reason}"
-                )
+                if response.status_code == 403:
+                    self.log(
+                        f"Termination returned status code 403 for RID '{rid}'. "
+                        "Likely already terminated via redirect or rejected early "
+                        "(e.g., mobile/browser detection). Marking as terminated locally."
+                    )
+                    self.set_termination_details(rid, reason, details)
+                elif response.status_code == 400:
+                    self.log(
+                        f"Termination returned status code 400 for RID '{rid}'. "
+                        "Likely RID was never activated on Lucid (very early termination). "
+                        "Marking as terminated locally."
+                    )
+                    self.set_termination_details(rid, reason, details)
+                else:
+                    self.log(
+                        f"Error terminating respondent (RID '{rid}'): "
+                        f"{response.status_code} {response.reason}"
+                    )
         else:
             self.log(
                 "Termination canceled. Respondent has already completed or terminated the survey."
@@ -432,7 +467,7 @@ class LucidService(object):
     def get_lucid_country_language_lookup(self):
         url = "https://api.samplicio.us/Lookup/v1/BasicLookups/BundledLookups/CountryLanguages"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         lookup = pd.DataFrame(response.json()["AllCountryLanguages"])
         codes = lookup.Code.apply(lambda x: x.split("-"))
         names = lookup.Name.apply(lambda x: x.split("-"))
@@ -449,7 +484,7 @@ class LucidService(object):
             locale = self.default_locale
         url = f"{self.request_base_url_v2_beta}/questions?id={question_id}&locale={locale}&fields={field}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         result = response.json()["result"]
         assert (
             len(result) > 0
@@ -487,14 +522,14 @@ class LucidService(object):
         if allowed_statuses is not None:
             url += f"&status={','.join(allowed_statuses)}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         return response.json()["result"]
 
     def _get_survey_fields(self, survey_number, fields):
         fields_str = ",".join(fields)
         url = f"{self.request_base_url_v2_beta}/surveys?id={survey_number}&fields={fields_str}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         result = response.json()["result"]
         assert len(result) > 0, f"No survey with id {survey_number} found."
         return [result[0][field] for field in fields]
@@ -506,7 +541,7 @@ class LucidService(object):
         entry_date_after = self._lookback_timestamp(days_lookback)
         url = f"{self.request_base_url_v2_beta}/sessions/statistics?survey_id={survey_number}&entry_date_after={entry_date_after}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         stats = response.json()["statistics"]
 
         (
@@ -568,7 +603,7 @@ class LucidService(object):
             "Accept": "text/plain",
         }
         response = requests.patch(url, data=data, headers=headers)
-        assert response.ok
+        self._check_response(response)
         logger.info(f"Experiment {survey_number} is set to status: {new_status}")
         return response.json()
 
@@ -584,7 +619,7 @@ class LucidService(object):
             "Accept": "text/plain",
         }
         response = requests.post(url, data=data, headers=headers)
-        assert response.ok
+        self._check_response(response)
         return response.json()
 
     def get_questions(self, standard: bool = True, fields: List[str] = None):
@@ -594,7 +629,7 @@ class LucidService(object):
         class_name = "standard" if standard else "custom"
         url = f"{self.request_base_url_v2_beta}/questions?fields={fields}&class={class_name}"
         response = requests.get(url, headers=self.headers)
-        assert response.ok
+        self._check_response(response)
         return response.json()["result"]
 
     def get_qualifications_dict(self):

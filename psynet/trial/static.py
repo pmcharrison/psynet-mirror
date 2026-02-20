@@ -33,11 +33,6 @@ class StaticTrial(ChainTrial):
         The user should not typically change this directly.
         Stored in ``property1`` in the database.
 
-    complete : bool
-        Whether the trial has been completed (i.e. received a response
-        from the participant). The user should not typically change this directly.
-        Stored in ``property2`` in the database.
-
     answer : Object
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
@@ -360,6 +355,9 @@ class StaticTrialMaker(ChainTrialMaker):
             choose_participant_group=choose_participant_group,
             sync_group_type=sync_group_type,
         )
+
+    def _start_nodes_param_name(self) -> str:
+        return "nodes"
 
 
 class StaticNetwork(ChainNetwork):

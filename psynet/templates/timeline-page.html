@@ -1827,7 +1827,7 @@
                 }
 
                 function beforeunloadFunction(event) {
-                    {% if not page.is_unity_page %}
+                    {% if not page.is_unity_page and not page.skip_beforeunload %}
                         event.returnValue = `Are you sure you want to leave?`;
                         triedToLeave = true;
                     {% endif %}

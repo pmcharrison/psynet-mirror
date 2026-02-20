@@ -445,7 +445,7 @@ class BaseLabRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter):
         self.config = get_config()
 
         # Allow overriding external_submission_url via config
-        url = self.config.get("lab_recruiter_external_submission_url")
+        url = self.config.get("lab_recruiter_external_submission_url", "")
         if url:
             self.external_submission_url = url
 
@@ -819,14 +819,12 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             submissions = self.lucidservice.get_submissions(survey_number)
         if submissions is not None:
             respondents = pd.DataFrame(submissions)
-            respondents["status"] = respondents.client_status.apply(
-                lambda x: self.client_codes.get(x, "Unknown")
-            )
-
-            submission_status_counts = respondents["status"].value_counts().to_dict()
-            if len(respondents) > 0:
+            if len(respondents) > 0 and "client_status" in respondents.columns:
                 respondents["status"] = respondents.client_status.apply(
                     lambda x: self.client_codes.get(x, "Unknown")
+                )
+                submission_status_counts = (
+                    respondents["status"].value_counts().to_dict()
                 )
                 respondents["market_place_code"] = respondents.fulcrum_status.apply(
                     lambda x: self.market_place_codes.get(x, "Unknown")
@@ -1315,10 +1313,10 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
             participant.status = "returned"
             db.session.commit()
         try:
-            self.lucidservice.terminate_respondent(assignment_id, reason, details)
             logger.info(
                 f"Terminating respondent with RID '{assignment_id}'. Reason: '{reason}'"
             )
+            self.lucidservice.terminate_respondent(assignment_id, reason, details)
         except Exception as e:
             logger.error(
                 f"Error terminating respondent with RID '{assignment_id}': {e}"
@@ -1364,12 +1362,14 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
                     assignment_id=assignment_id
                 ).one()
             except NoResultFound:
-                logger.error(
-                    f"No LucidRID for Lucid RID '{assignment_id}' found. This should never happen."
+                logger.warning(
+                    f"No Participant for Lucid RID '{assignment_id}' found. "
+                    "This can happen when users are terminated before completing recruitment "
+                    "(e.g., mobile detection, wrong browser, or other early termination)."
                 )
             except MultipleResultsFound:
                 logger.error(
-                    f"Multiple rows for Lucid RID '{assignment_id}' found. This should never happen."
+                    f"Multiple participants for Lucid RID '{assignment_id}' found. This should never happen."
                 )
 
         return participant

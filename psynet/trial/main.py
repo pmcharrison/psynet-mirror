@@ -21,6 +21,7 @@ from sqlalchemy import (
     String,
     and_,
     func,
+    inspect,
     not_,
     or_,
     select,
@@ -91,17 +92,24 @@ class AssetParentMixin:
             self.add_asset(local_key, asset)
 
     def add_asset(self, local_key: str, asset: Asset):
-        if not asset.parent:
+        assert isinstance(asset, Asset)
+        asset._raise_if_detached()
+
+        if asset.parent is None:
             asset.parent = self
 
         asset.receive_node_definition(self.definition)
         asset.local_key = local_key
-        asset.set_keys()
+        if self.id is None:
+            # Ensure the trial has an ID before asset keys/depositing.
+            db.session.flush([self])
+        if asset.deposited:
+            asset.set_keys()
+        else:
+            # deposit() will call set_keys() internally.
+            asset.deposit()
 
         self.assets[local_key] = asset
-
-        if not asset.deposited:
-            asset.deposit()
 
 
 class Trial(SQLMixinDallinger, Info, AssetParentMixin):
@@ -191,10 +199,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     node
         The :class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
         belongs.
-
-    complete : bool
-        Whether the trial has been completed (i.e. received a response
-        from the participant). The user should not typically change this directly.
 
     finalized : bool
         Whether the trial has been finalized. This is a stronger condition than ``complete``;
@@ -295,7 +299,17 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
     def complete(cls):
         # Dallinger v9.6.0 adds an Info.complete column.
         # The following code inherits that column if it exists.
-        return cls.__table__.c.get("complete", Column(Boolean))
+        doc = (
+            "Whether the trial has been completed (i.e. received a response from the "
+            "participant). The user should not typically change this directly."
+        )
+        column = cls.__table__.c.get("complete")
+        if column is None:
+            column = Column(Boolean, doc=doc)
+        else:
+            # Ensure a consistent docstring even if Dallinger already defines one.
+            column.doc = doc
+        return column
 
     finalized = Column(Boolean)
     is_repeat_trial = Column(Boolean)
@@ -862,8 +876,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     @classmethod
     def check_node_is_valid(cls, source):
-        from sqlalchemy import inspect
-
         if not inspect(source).persistent:
             raise ValueError(
                 f"The node with definition {source.definition} looks like it hasn't "
@@ -2211,18 +2223,15 @@ class NetworkTrialMaker(TrialMaker):
     networks : list
         Returns the networks owned by the trial maker.
 
-    performance_threshold : float
-        Score threshold used by the default performance check method, defaults to 0.0.
-        By default, corresponds to the minimum proportion of non-failed trials that
-        the participant must achieve to pass the performance check.
-
     end_performance_check_waits : bool
         If ``True`` (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
 
     performance_threshold : float (default = -1.0)
-        The performance threshold that is used in the
-        :meth:`~psynet.trial.main.NetworkTrialMaker.performance_check` method.
+        Score threshold used by the default performance check method.
+        By default, corresponds to the minimum proportion of non-failed trials that
+        the participant must achieve to pass the performance check.
+        This is used in :meth:`~psynet.trial.main.NetworkTrialMaker.performance_check`.
     """
 
     state_class = NetworkTrialMakerState

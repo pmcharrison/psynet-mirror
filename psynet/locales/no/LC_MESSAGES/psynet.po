@@ -908,7 +908,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Se informasjonen nedenfor for detaljer om kompensasjonen din."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Avbryt eksperiment"
@@ -917,7 +918,7 @@ msgstr "Avbryt eksperiment"
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "Invitasjon til deltakere"
+msgstr "Kunngjøring for deltakere"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -974,11 +975,6 @@ msgstr "Vennligst deaktiver popup-blokkere før du fortsetter."
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Start eksperiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Avbryt eksperiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

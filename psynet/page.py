@@ -463,6 +463,9 @@ class JsPsychPage(Page):
 
 
 class ExecuteFrontEndJS(InfoPage):
+    # Skip beforeunload detection since this page is expected to navigate away
+    skip_beforeunload = True
+
     def __init__(self, js: str, message: str = ""):
         super().__init__(
             content=message,
