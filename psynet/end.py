@@ -187,6 +187,17 @@ class UnsuccessfulEndLogic(EndLogic):
 
 
 class RejectedConsentLogic(UnsuccessfulEndLogic):
+    def before_debrief(self, experiment, participant) -> None:
+        super().before_debrief(experiment, participant)
+
+        # For Lucid recruitment, terminate the participant on Lucid's side
+        # before showing the page, since the auto-redirect bypasses the normal
+        # release_participant flow (user won't click Finish)
+        if experiment.with_lucid_recruitment():
+            experiment.recruiter.terminate_participant(
+                participant=participant, reason="consent-rejected"
+            )
+
     def after_debrief(self, experiment, participant):
         super().after_debrief(experiment, participant)
         participant.fail()
@@ -200,6 +211,18 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
         with html:
             tags.span(_p("final_page_rejected_consent", "Consent was rejected."))
             tags.span(_p("final_page_rejected_consent", "End of experiment."))
+
+            # For Lucid recruitment, auto-redirect back to Lucid
+            if experiment.with_lucid_recruitment():
+                tags.span(_("You will be redirected."))
+                external_submit_url = experiment.recruiter.external_submit_url(
+                    participant=participant
+                )
+                tags.script(
+                    dominate.util.raw(
+                        f'setTimeout(() => {{ window.location = "{external_submit_url}"; }}, 2000)'
+                    )
+                )
 
         return self.debrief_page(
             html, experiment, participant, show_finish_button=False

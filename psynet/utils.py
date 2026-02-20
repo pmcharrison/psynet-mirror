@@ -1212,6 +1212,7 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
     isolated_tests_demos = isolated_tests_root / "demos"
     isolated_tests_experiments = isolated_tests_root / "experiments"
     isolated_tests_features = isolated_tests_root / "features"
+    isolated_tests_translation = isolated_tests_root / "translation"
 
     tests = []
     for directory in [
@@ -1219,6 +1220,7 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
         isolated_tests_demos,
         isolated_tests_experiments,
         isolated_tests_features,
+        isolated_tests_translation,
     ]:
         tests.extend(glob.glob(str(directory / "*.py")))
 
@@ -1238,13 +1240,23 @@ class PatternDir:
         return {"pattern": self.pattern, "glob_dir": self.glob_dir}
 
 
+def _should_skip_todo_path(path: Path) -> bool:
+    skip_dirs = {"venv", ".venv", ".tox", "node_modules", "__pycache__"}
+    return any(part in skip_dirs for part in path.parts)
+
+
 def _check_todos(pattern, glob_dir):
     from glob import iglob
 
     todo_count = {}
     for path in list(iglob(glob_dir, recursive=True)):
+        path_obj = Path(path)
+        if _should_skip_todo_path(path_obj):
+            continue
+        if not path_obj.is_file():
+            continue
         key = (path, pattern)
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
             line_has_todo = [line.strip().startswith(pattern) for line in f.readlines()]
             if any(line_has_todo):
                 todo_count[key] = sum(line_has_todo)

@@ -902,7 +902,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Tazama maelezo hapa chini kwa maelezo ya fidia yako."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Sitisha jaribio"
@@ -968,11 +969,6 @@ msgstr "Tafadhali zima vizuizi vya pop-up kabla ya kuendelea."
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Anza Jaribio"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Sitisha Jaribio"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3064,9 +3060,9 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Unaweza kuwa na uwezo wa kusitisha jaribio kwa kutumia kitufe cha <strong> "
-"Sitisha jaribio </strong> <strong> kwenye ukurasa wa tangazo la MTurk "
-"</strong>."
+"Unaweza kuwa na uwezo wa kusitisha jaribio kwa kutumia kitufe cha "
+"<strong>Sitisha jaribio</strong> <strong>kwenye ukurasa wa tangazo la "
+"MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

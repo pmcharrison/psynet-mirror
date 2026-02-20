@@ -908,7 +908,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Pogledajte informacije u nastavku za detalje o vašoj naknadi."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Prekini eksperiment"
@@ -974,11 +975,6 @@ msgstr "Molimo onemogućite blokatore skočnih prozora prije nastavka."
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Započni eksperiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Prekini eksperiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3091,8 +3087,8 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Nakon prekida, nema potrebe da nas kontaktirate kako biste primili naknadu; "
-"ona bi vam trebala biti automatski dodijeljena putem MTurk nekoliko minuta "
-"kasnije."
+"ona bi vam trebala biti automatski dodijeljena putem MTurk-a nekoliko minuta"
+" kasnije."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

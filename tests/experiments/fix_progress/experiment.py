@@ -1,16 +1,10 @@
 # pylint: disable=unused-import,abstract-method
 
-import logging
-
 import pytest
 
 import psynet.experiment
 from psynet.page import InfoPage, WaitPage
 from psynet.timeline import CodeBlock, Timeline, while_loop
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
-
 
 # This experiment is written to test that the 'progress bound' functionality
 # works appropriately; in particular, we check that if the participant

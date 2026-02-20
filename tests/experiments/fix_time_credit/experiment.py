@@ -1,14 +1,8 @@
 # pylint: disable=unused-import,abstract-method
 
-import logging
-
 import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, Timeline, while_loop
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
-
 
 # This experiment is written to test that the 'time credit bound' functionality
 # works appropriately.

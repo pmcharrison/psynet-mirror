@@ -555,7 +555,7 @@ msgstr "খেল"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "আপুনি কমেও এটা উত্তৰ নিৰ্বাচন কৰিব লাগিব!"
+msgstr "আপুনি কমেও এটাই উত্তৰ নিৰ্বাচন কৰিব লাগিব!"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -882,7 +882,7 @@ msgstr ""
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Assignment ID"
+msgstr "অ্যাসাইনমেন্ট ID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -935,22 +935,23 @@ msgstr ""
 "Nahakki potpham khangba piba adugi khangba adu matamda leiba khangba asi "
 "ukhraba."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Naharolngamkhraba lousinaba"
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "Hunna anyaanggi khollage"
+msgstr "ꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯃꯇꯝꯕ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "Khollaga loinana thamliba matik mangalda touba ngamgani"
+msgstr "ꯃꯇꯝꯕ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -958,21 +959,19 @@ msgctxt "ad"
 msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
-msgstr ""
-"Khutlak changba thabak asi houraba amasung hourakpa ngamdaba amata thokpa "
-"ngamgani."
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "HIT asi hourakpa ngamdaba amasung hourakpa mathou."
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "Eksperiment asi hourakpa mathou."
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -980,39 +979,30 @@ msgctxt "ad"
 msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
-msgstr ""
-"URL link asi changba khudol adu hourakpada, eksperimentta chingsinbinani "
-"amasung thouranggi pukning amasung inthokpa yaona hourakpani."
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Warning"
-msgstr "Nungshiba"
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Potlamanggi khudol adu hourakpa matik mangalda touba ngamgani."
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "Eksperiment chingsinbi"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Eksperiment khongdoklabi"
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr ""
-"Nongsinduna amagumna thokpa khudol adu hourakpa matik mangalda touba "
-"ngamgani."
+msgstr "ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ ꯑꯃꯅꯤ ꯑꯃꯁꯤꯡꯗꯥ"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3138,7 +3128,7 @@ msgstr "ছবি খুংদা তৌবিরগনি"
 #, fuzzy
 msgctxt "error"
 msgid "Error!"
-msgstr "Error!"
+msgstr "ত্রুটি!"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3147,9 +3137,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Nahakna <strong>MTurk ad page</strong>-gi <strong>Abort experiment</strong> "
-"button si phangjaba yade haibadi experiment asi abort tourabasu khudong "
-"chaba phangba ngamgani."
+"আপনি <strong>MTurk বিজ্ঞাপন পৃষ্ঠায়</strong> <strong>পরীক্ষা বাতিল</strong>"
+" বোতামটি ব্যবহার করে পরীক্ষা বাতিল করতে সক্ষম হতে পারেন।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3158,9 +3147,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Abort toukhiba matungda, compensation phangnanaba makhoida contact "
-"touribiyu; MTurk maramda khudong chaba khara matungda nakhoi pumnamakki "
-"compensation asi khudong chaba award tougani."
+"একবার বাতিল হয়ে গেলে, ক্ষতিপূরণ পেতে আমাদের সাথে যোগাযোগ করার প্রয়োজন নেই;"
+" এটি কয়েক মিনিট পরে MTurk এর মাধ্যমে স্বয়ংক্রিয়ভাবে আপনাকে প্রদান করা "
+"উচিত।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3168,19 +3157,18 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Houjikti madudi leiramde, nahakna nanggi karigumba matungda khudong chaba "
-"phangbi haibadi, nahakna khudong chaba matungda maram adu %(EMAIL)s-da "
-"contact touribiyu:"
+"যদি এটি না হয়, তাহলে অনুগ্রহ করে নিম্নলিখিত তথ্য উল্লেখ করে %(EMAIL)s এ "
+"আমাদের সাথে যোগাযোগ করুন:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Error type"
-msgstr "Error type"
+msgstr "ত্রুটি প্রকার"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Worker ID"
+msgstr "কর্মী ID"
 
 #: psynet/templates/start.html
 #, fuzzy
