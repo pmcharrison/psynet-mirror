@@ -2080,13 +2080,42 @@ def app_argument(func):
     )(func)
 
 
+def _normalize_ssh_apps(available_apps):
+    if available_apps is None:
+        return []
+
+    if isinstance(available_apps, str):
+        lines = [line.strip() for line in available_apps.splitlines() if line.strip()]
+        if len(lines) == 1 and " " in lines[0]:
+            return [part.strip() for part in lines[0].split() if part.strip()]
+        return lines
+
+    if isinstance(available_apps, (list, tuple, set)):
+        apps = []
+        for item in available_apps:
+            if isinstance(item, str):
+                item = item.strip()
+                if item:
+                    apps.append(item)
+            elif isinstance(item, dict):
+                name = item.get("app") or item.get("name")
+                if name:
+                    apps.append(str(name).strip())
+        return apps
+
+    try:
+        return _normalize_ssh_apps(list(available_apps))
+    except TypeError:
+        return []
+
+
 def _resolve_ssh_app(ctx, app, server):
     if app:
         return app
 
     from dallinger.command_line.docker_ssh import apps as dallinger_apps
 
-    available_apps = ctx.invoke(dallinger_apps, server=server)
+    available_apps = _normalize_ssh_apps(ctx.invoke(dallinger_apps, server=server))
     if len(available_apps) == 1:
         resolved_app = available_apps[0]
         log(f"No --app provided; using the only app on the server: {resolved_app}")
