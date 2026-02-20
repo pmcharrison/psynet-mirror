@@ -121,8 +121,11 @@ test_docker_experiments:
         docker build --tag "$image_tag" "$experiment_dir"
 
         echo "Running tests for $experiment_dir"
-        if ! sh ci/run-ci-docker-command.sh "$image_tag" "/workspace" "/workspace/$experiment_dir" \
+        if sh ci/run-ci-docker-command.sh "$image_tag" "/workspace" "/workspace/$experiment_dir" \
           bash -c "pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core\" -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS"; then
+          :
+        else
+          echo "Tests failed for $experiment_dir with exit code $?"
           EXIT_CODE=1
         fi
       done < /tmp/docker-build-experiments.txt
