@@ -51,3 +51,6 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
     )
+
+    def test_experiment(self):
+        verify_catr_in_timeline()
