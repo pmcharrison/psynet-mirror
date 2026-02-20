@@ -21,6 +21,7 @@
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Added a dedicated CI job for experiments listed in `ci/docker-build-experiments.txt` so they are tested with their own Dockerfiles instead of the shared base image (author: Peter Harrison)
 - Refactored shared Docker test invocation into `ci/run-ci-docker-command.sh` to reduce duplication between `tests` and `test_docker_experiments` CI jobs (author: Peter Harrison)
+- Updated `adaptive_test_catr` to use the standard experiment `test.py` and run catR verification from a timeline `CodeBlock` during normal experiment execution (author: Peter Harrison)
 
 ## Fixed
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)

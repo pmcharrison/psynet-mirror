@@ -6,7 +6,7 @@ This demo shows how to call the R package `catR` from PsyNet using `rpy2`.
 
 - `prepare_docker_image.sh` installs R and the `catR` package.
 - `requirements.txt` and `constraints.txt` include `rpy2`.
-- `experiment.py` contains `run_catr_smoke_test()`, a minimal catR integration helper.
+- `experiment.py` contains `run_catr_smoke_test()`, and a timeline `CodeBlock` that executes this catR check during standard experiment tests.
 
 ## Notes
 
