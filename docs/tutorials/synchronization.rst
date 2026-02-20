@@ -42,7 +42,7 @@ via ``participant.active_sync_groups``, which takes the form of a dictionary key
 The full list of participants within the SyncGroup can then be accessed (and modified)
 via ``sync_group.participants``, which is a list.
 The order of ``sync_group.participants`` is not guaranteed. If you need a stable ordering
-(for example, to assign roles), sort by participant ID. A convenient pattern is to
+(for example, to assign deterministic roles), sort by participant ID. A convenient pattern is to
 assign roles at a ``GroupBarrier`` so all group members are present:
 
 ::
@@ -52,9 +52,8 @@ assign roles at a ``GroupBarrier`` so all group members are present:
     def assign_roles(group, participants):
         roles = ["speaker", "listener", "observer"]
         random.shuffle(roles)
-        ordered = sorted(participants, key=lambda p: p.id)
-        assert len(roles) == len(ordered)
-        for participant, role in zip(ordered, roles):
+        assert len(roles) == len(participants)
+        for participant, role in zip(participants, roles):
             participant.var.role = role
 
     GroupBarrier(

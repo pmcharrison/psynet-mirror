@@ -38,13 +38,12 @@ def assign_roles(group: SyncGroup, participants: List[Participant]):
         [f"member_{index}" for index in range(1, len(participants) + 1)],
     )
     random.shuffle(roles)
-    ordered_participants = sorted(participants, key=lambda p: p.id)
-    if len(roles) != len(ordered_participants):
+    if len(roles) != len(participants):
         raise ValueError(
             f"Number of roles ({len(roles)}) must match number of participants "
-            f"({len(ordered_participants)})."
+            f"({len(participants)})."
         )
-    for participant, role in zip(ordered_participants, roles):
+    for participant, role in zip(participants, roles):
         participant.var.role = role
 
 
