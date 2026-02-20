@@ -37,9 +37,9 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 from psynet.version import (
-    check_dallinger_version,
-    check_versions,
-    python_recommended_version,
+    check_core_dependency_versions_match_requirements,
+    check_installed_dallinger_version_is_recommended,
+    recommended_python_major_minor,
 )
 
 from . import deployment_info
@@ -709,7 +709,7 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
     check_psynet_requirement_is_unambiguous()
-    check_versions()
+    check_core_dependency_versions_match_requirements()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -786,7 +786,7 @@ def _pre_launch(
     deployment_info.write(locale=config.get("locale", "en"))
 
     if config.get("check_dallinger_version"):
-        check_dallinger_version()
+        check_installed_dallinger_version_is_recommended()
 
     ctx.invoke(prepare, archive=archive)
 
@@ -1166,7 +1166,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
     check_psynet_requirement_is_unambiguous()
-    check_versions()
+    check_core_dependency_versions_match_requirements()
 
     us_only = config.get("us_only")
 
@@ -2440,7 +2440,7 @@ def update_scripts_():
 
     click.echo("...updating .python-version")
     with open(".python-version", "w") as file:
-        file.write(python_recommended_version)
+        file.write(recommended_python_major_minor)
         file.write("\n")
 
     directories_to_copy = ["docker"]
