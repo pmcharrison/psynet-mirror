@@ -548,7 +548,7 @@ msgstr ""
 #: psynet/modular_page.py
 #, fuzzy
 msgid "Play"
-msgstr "Reproduzir"
+msgstr "Play"
 
 #: psynet/modular_page.py
 #, fuzzy
@@ -914,7 +914,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Veja as informações abaixo para detalhes de sua compensação."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Abortar experimento"
@@ -939,7 +940,7 @@ msgid ""
 " task."
 msgstr ""
 "Por favor, clique no botão \"Aceitar HIT\" no site da Amazon acima para "
-"começar a tarefa."
+"iniciar a tarefa."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -980,11 +981,6 @@ msgstr "Por favor, desative os bloqueadores de pop-up antes de continuar."
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Iniciar Experimento"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Abortar Experimento"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy

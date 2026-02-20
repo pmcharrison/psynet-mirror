@@ -9,7 +9,7 @@ default:
 
 services:
   - docker:26.1.1-dind
-  - postgres:16-bookworm
+  - postgres:16.2-bookworm
   - redis:latest
 
 variables:
@@ -60,9 +60,13 @@ changelog_check:
   before_script: []
   script:
     - |
-      git fetch --quiet origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-      CHANGED_FILES=$(git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...$CI_COMMIT_SHA)
-      if ! echo "$CHANGED_FILES" | grep -q 'CHANGELOG.md'; then
+      git fetch --unshallow origin || git fetch --depth=100 origin
+      git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+      MERGE_BASE=$(git merge-base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD)
+      git diff --name-only $MERGE_BASE HEAD > /tmp/changed_files.txt
+      if grep -q '^CHANGELOG.md$' /tmp/changed_files.txt; then
+        echo "CHANGELOG.md found in changed files."
+      else
         echo "ERROR: Merge requests must include a corresponding entry in CHANGELOG.md."
         exit 1
       fi
@@ -82,7 +86,7 @@ tests:
       --add-host=redis:$REDIS_IP
       -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
-      -e CI_NODE_TOTAL -e CI_NODE_INDEX
+      -e CI -e CI_NODE_TOTAL -e CI_NODE_INDEX
       -e CI_COMMIT_REF_NAME
       -e PSYNET_WORKSPACE
       -v "$PWD:$PSYNET_WORKSPACE"
@@ -144,7 +148,7 @@ pg_badger:
     - curl https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz | tar xzf - -C /usr/local
     - ln -s /usr/local/docker/docker /usr/local/bin/
     - echo "Starting postgresql server with aggressive logging enabled (via docker)"
-    - docker run --rm -d --name dallinger_postgres -p 5432:5432 -e POSTGRES_USER=dallinger -e POSTGRES_PASSWORD=dallinger -e POSTGRES_DB=dallinger -v dallinger_postgres:/var/lib/postgresql/data postgres:16-bookworm postgres -c log_min_duration_statement=0 -c log_checkpoints=on -c log_connections=on -c log_disconnections=on -c log_lock_waits=on -c log_temp_files=0 -c log_autovacuum_min_duration=0 -c log_error_verbosity=default
+    - docker run --rm -d --name dallinger_postgres -p 5432:5432 -e POSTGRES_USER=dallinger -e POSTGRES_PASSWORD=dallinger -e POSTGRES_DB=dallinger -v dallinger_postgres:/var/lib/postgresql/data postgres:16.2-bookworm postgres -c log_min_duration_statement=0 -c log_checkpoints=on -c log_connections=on -c log_disconnections=on -c log_lock_waits=on -c log_temp_files=0 -c log_autovacuum_min_duration=0 -c log_error_verbosity=default
     - echo Create a virtualenv and install psynet there
     - pip install --upgrade pip virtualenv
     - virtualenv venv -ppython3

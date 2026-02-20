@@ -810,7 +810,7 @@ msgstr "現在の蓄積された報酬に関する情報を以下に示します
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "割り当てID"
+msgstr "アサインメントID"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
@@ -856,10 +856,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "報酬の詳細については、以下の情報をご覧ください。"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "実験を中止する"
+msgstr "実験を中止"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -921,13 +922,8 @@ msgstr "実験を開始"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "実験を中止"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "エラーが発生した場合は、上記のボタンをクリックして補償を受けてください。"
+msgstr "エラーが発生した場合に補償を受けるには、上記のボタンをクリックしてください。"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -2758,7 +2754,7 @@ msgctxt "mturk_error"
 msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
-msgstr "中止後、補償を受けるために私たちに連絡する必要はありません。数分後にMTurkを通じて自動的に補償が支払われるはずです。"
+msgstr "中止後、補償を受け取るために私たちに連絡する必要はありません。数分後にMTurkを通じて自動的に支払われるはずです。"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

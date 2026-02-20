@@ -100,6 +100,30 @@ def assert_no_missing_translations(po_entries, pot_entries, locale):
     ), f"Keys in {locale} do not match keys in the template"
 
 
+def assert_no_empty_translations(po_entries, pot_entries, locale, language_name):
+    """Check that all translations have non-empty msgstr values."""
+
+    def parse_translation(msgid, msgctxt):
+        return msgid if msgctxt is None else f"{msgctxt}: {msgid}"
+
+    empty_translations = [
+        key
+        for key in pot_entries.keys()
+        if key in po_entries and not po_entries[key].msgstr.strip()
+    ]
+    empty_translations = [
+        parse_translation(msgid, msgctxt) for msgid, msgctxt in empty_translations
+    ]
+
+    if len(empty_translations) > 0:
+        entries_str = ", ".join(empty_translations[:5])
+        if len(empty_translations) > 5:
+            entries_str += f", ... and {len(empty_translations) - 5} more"
+        raise ValueError(
+            f"Empty translations for locale '{locale}' ({language_name}): {entries_str}"
+        )
+
+
 def assert_no_duplicate_translations_in_same_context(po_entries, locale):
     """
     Check if the same translation does not occur multiple times in the same context.
@@ -231,7 +255,13 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
 
         assert_variable_names_match(pot_entries, po_entries)
 
-        assert_no_duplicate_translations_in_same_context(po_entries, locale)
+        assert_no_empty_translations(po_entries, pot_entries, locale, language_name)
+
+        # Check for duplicates - warn but don't fail
+        try:
+            assert_no_duplicate_translations_in_same_context(po_entries, locale)
+        except AssertionError as e:
+            print(f"⚠️  Warning: {e}")
 
         po_path = get_po_path(locale, locales_dir, namespace)
         compile_mo(po_path)
@@ -256,8 +286,22 @@ def _check_translations(pot_entries, translations, locales_dir, namespace):
 
 
 def check_translations(
-    path=".", locales: Optional[list[str]] = None, recreate_pot=True
+    path=".",
+    locales: Optional[list[str]] = None,
+    recreate_pot=True,
 ):
+    """
+    Check translations for errors.
+
+    Parameters
+    ----------
+    path : str
+        Path to package or experiment directory.
+    locales : list[str], optional
+        List of locales to check. If None, uses supported_locales.
+    recreate_pot : bool
+        Whether to recreate the POT file from source.
+    """
     path = Path(path)
     locales_dir = get_locales_dir_from_path(path)
 

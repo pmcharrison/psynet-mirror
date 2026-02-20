@@ -910,7 +910,8 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Zemāk redzamajā informācijā skatiet informāciju par jūsu kompensāciju."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Pārtraukt eksperimentu"
@@ -925,7 +926,7 @@ msgstr "Aicinājums piedalīties"
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "Lai piedalītos, nepieciešams izpildīt šādas prasības"
+msgstr "Lai piedalītos, ir nepieciešams:"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -956,8 +957,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Noklikšķinot uz šīs URL saites, jūs tiksiet novirzīts uz eksperimentu, kas "
-"iekļauj pilnīgas instrukcijas un informētu piekrišanas līgumu."
+"Noklikšķinot uz sekojošās URL saites, jūs tiksiet novirzīts uz eksperimentu,"
+" kurā iekļautas pilnīgas instrukcijas un informētas piekrišanas līgums."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -969,7 +970,7 @@ msgstr "Brīdinājums"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Lūdzu, atspējojiet uznirstošo logu bloķētājus, pirms turpināt."
+msgstr "Lūdzu, atspējojiet uznirstošo logu bloķētājus pirms turpināt."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -979,14 +980,10 @@ msgstr "Sākt eksperimentu"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Pārtraukt eksperimentu"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
 msgstr ""
-"Noklikšķiniet uz augstāk esošās pogas, lai tiktu kompensēts kļūdas gadījumā."
+"Noklikšķiniet uz augstāk esošās pogas, lai saņemtu kompensāciju kļūdas "
+"gadījumā."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3071,7 +3068,7 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Jūs varētu pārtraukt eksperimentu, izmantojot <strong>Pārtraukt "
+"Jūs varat pārtraukt eksperimentu, izmantojot <strong>Pārtraukt "
 "eksperimentu</strong> pogu <strong>MTurk reklāmas lapā</strong>."
 
 #: psynet/templates/psynet_error.html
@@ -3082,8 +3079,8 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Pēc pārtraukšanas nav nepieciešams sazināties ar mums, lai saņemtu "
-"kompensāciju; tai vajadzētu tikt automātiski piešķirtai jums caur MTurk pēc "
-"dažām minūtēm."
+"kompensāciju; tā jums automātiski tiks piešķirta caur MTurk pēc dažām "
+"minūtēm."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

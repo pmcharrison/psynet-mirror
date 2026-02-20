@@ -859,13 +859,13 @@ msgstr "আপনার বর্তমান জমাকৃত পুরস্
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "Assignment ID"
+msgstr "অ্যাসাইনমেন্ট আইডি"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
-msgstr "HIT ID"
+msgstr "HIT আইডি"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -908,7 +908,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "আপনার ক্ষতিপূরণের বিস্তারিত জানার জন্য নিচের তথ্য দেখুন।"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "পরীক্ষা বাতিল করুন"
@@ -932,8 +933,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"অনুগ্রহ করে উপরে অ্যামাজন সাইটে \"Accept HIT\" বোতামটি ক্লিক করে কাজটি শুরু "
-"করুন।"
+"অনুগ্রহ করে উপরের অ্যামাজন সাইটে \"Accept HIT\" বোতামে ক্লিক করুন কাজটি শুরু"
+" করতে।"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -954,20 +955,20 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"নিম্নলিখিত URL লিঙ্কে ক্লিক করলে আপনি পরীক্ষায় নিয়ে যাওয়া হবে, যেখানে "
-"সম্পূর্ণ নির্দেশনা এবং একটি স্বজ্ঞাত সম্মতি চুক্তি অন্তর্ভুক্ত থাকবে।"
+"নিম্নলিখিত URL লিঙ্কে ক্লিক করে, আপনি পরীক্ষায় নিয়ে যাওয়া হবে, যার মধ্যে "
+"সম্পূর্ণ নির্দেশাবলী এবং একটি অবগত সম্মতি চুক্তি অন্তর্ভুক্ত থাকবে।"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Warning"
-msgstr "সতর্কীকরণ"
+msgstr "সতর্কতা"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "অবিরত থাকার পূর্বে পপ-আপ ব্লকারগুলি নিষ্ক্রিয় করুন।"
+msgstr "চালিয়ে যাওয়ার আগে পপ-আপ ব্লকারগুলি নিষ্ক্রিয় করুন।"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -977,13 +978,8 @@ msgstr "পরীক্ষা শুরু করুন"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "পরীক্ষা বাতিল করুন"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "ত্রুটি হলে ক্ষতিপূরণের জন্য উপরের বোতামটি ক্লিক করুন।"
+msgstr "ত্রুটির ক্ষেত্রে ক্ষতিপূরণের জন্য উপরের বোতামে ক্লিক করুন।"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3058,8 +3054,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"আপনি <strong>MTurk বিজ্ঞাপনের পৃষ্ঠায়</strong> <strong>পরীক্ষা "
-"বাতিল</strong> বোতাম ব্যবহার করে পরীক্ষা বাতিল করতে সক্ষম হতে পারেন।"
+"আপনি <strong>MTurk বিজ্ঞাপন পৃষ্ঠায়</strong> <strong>পরীক্ষা বাতিল</strong>"
+" বোতাম ব্যবহার করে পরীক্ষা বাতিল করতে সক্ষম হতে পারেন।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3068,9 +3064,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"একবার বাতিল হলে, ক্ষতিপূরণ পাওয়ার জন্য আমাদের সাথে যোগাযোগ করার প্রয়োজন "
-"নেই; এটি কয়েক মিনিট পর স্বয়ংক্রিয়ভাবে MTurk এর মাধ্যমে আপনাকে প্রদান করা "
-"উচিত।"
+"বাতিল করার পর, ক্ষতিপূরণ পেতে আমাদের সাথে যোগাযোগ করার প্রয়োজন নেই; এটি "
+"কয়েক মিনিট পরে MTurk এর মাধ্যমে স্বয়ংক্রিয়ভাবে আপনাকে প্রদান করা উচিত।"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3078,18 +3073,18 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"যদি এটি না ঘটে, তবে নিম্নলিখিত তথ্য উল্লেখ করে আমাদের %(EMAIL)s এ যোগাযোগ "
-"করুন:"
+"যদি এটি না হয়, তাহলে নিম্নলিখিত তথ্য উল্লেখ করে আমাদের সাথে %(EMAIL)s এ "
+"যোগাযোগ করুন:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Error type"
-msgstr "ত্রুটি প্রকার"
+msgstr "ত্রুটির ধরন"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Worker ID"
-msgstr "Worker ID"
+msgstr "কর্মী আইডি"
 
 #: psynet/templates/start.html
 #, fuzzy

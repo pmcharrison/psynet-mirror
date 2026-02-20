@@ -1121,9 +1121,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "label": cls.label,
             "initial_recruitment_size": cls.initial_recruitment_size,
             "auto_recruit": config.get("auto_recruit", None),
-            "creation_time": cls.creation_time.astimezone().isoformat(
-                timespec="minutes"
-            ),
+            "launch_time": cls.creation_time.astimezone().isoformat(timespec="minutes"),
             "now": datetime.now().astimezone().isoformat(timespec="minutes"),
             "experimenter_name": config.get("experimenter_name", None),
             "currency": config.get("currency", None),
@@ -3761,9 +3759,37 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def terminate_participant(cls):
         recruiter = get_experiment().recruiter
         participant = recruiter.get_participant(request)
-        external_submit_url = recruiter.terminate_participant(
-            participant=participant, reason=request.values.get("reason")
-        )
+
+        # Don't terminate participants who have already completed the experiment.
+        # This can happen due to race conditions when the page redirects to Lucid
+        # after completion, triggering the beforeunload event.
+        if participant is not None and participant.progress == 1:
+            logger.info(
+                f"Skipping termination for participant {participant.id} who has already completed (progress=1)."
+            )
+            external_submit_url = recruiter.external_submit_url(participant=participant)
+            return render_template_with_translations(
+                "exit_recruiter_lucid.html",
+                external_submit_url=external_submit_url,
+            )
+
+        # If participant lookup failed, we still need to terminate on Lucid's side
+        # using the assignment_id from the request
+        if participant is None:
+            assignment_id = request.values.get("assignmentId") or request.values.get(
+                "RID"
+            )
+            unique_id = request.values.get("unique_id")
+            if assignment_id is None and unique_id is not None:
+                assignment_id = unique_id.split(":")[1]
+
+            external_submit_url = recruiter.terminate_participant(
+                assignment_id=assignment_id, reason=request.values.get("reason")
+            )
+        else:
+            external_submit_url = recruiter.terminate_participant(
+                participant=participant, reason=request.values.get("reason")
+            )
 
         return render_template_with_translations(
             "exit_recruiter_lucid.html",

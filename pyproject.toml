@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "psynet"
-version = "13.1.0a0"
+version = "13.2.0a0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -37,7 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=12.1.0,<13",
+    "dallinger[docker]>=12.1.2,<13",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf

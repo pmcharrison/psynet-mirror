@@ -914,10 +914,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Xem thông tin dưới đây để biết chi tiết về tiền bồi thường của bạn."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Hủy bỏ thí nghiệm"
+msgstr "Hủy thí nghiệm"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -973,18 +974,13 @@ msgstr "Cảnh báo"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Vui lòng tắt trình chặn pop-up trước khi tiếp tục."
+msgstr "Vui lòng tắt trình chặn cửa sổ bật lên trước khi tiếp tục."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Bắt đầu Thí nghiệm"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Hủy Thí nghiệm"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3108,7 +3104,7 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Sau khi hủy bỏ, không cần liên hệ với chúng tôi để nhận bồi thường; điều này"
-" sẽ được tự động trao cho bạn qua MTurk sau vài phút."
+" sẽ được trao tự động qua MTurk sau vài phút."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
