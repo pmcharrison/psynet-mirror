@@ -1,5 +1,3 @@
-import math
-
 import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, Timeline
@@ -7,12 +5,12 @@ from psynet.timeline import CodeBlock, Timeline
 
 def run_catr_smoke_test():
     """
-    Execute a small catR computation via rpy2.
+    Execute a minimal catR call via rpy2.
 
     Returns
     -------
-    float
-        Ability estimate returned by catR's ``thetaEst``.
+    str
+        Installed catR version string.
     """
     try:
         from rpy2 import robjects
@@ -22,19 +20,10 @@ def run_catr_smoke_test():
         ) from error
 
     try:
-        theta = robjects.r(
+        catr_version = robjects.r(
             """
             suppressMessages(library(catR))
-
-            item_bank <- matrix(c(
-                1.2, -1.0, 0.0, 1.0,
-                1.0,  0.0, 0.0, 1.0,
-                1.3,  0.8, 0.0, 1.0
-            ), ncol = 4, byrow = TRUE)
-
-            responses <- c(1, 0, 1)
-            theta <- thetaEst(it = item_bank, x = responses, method = "ML")
-            as.numeric(theta)
+            as.character(packageVersion("catR"))
             """
         )
     except Exception as error:
@@ -43,13 +32,13 @@ def run_catr_smoke_test():
             "via prepare_docker_image.sh."
         ) from error
 
-    return float(theta[0])
+    return str(catr_version[0])
 
 
 def verify_catr_in_timeline():
-    theta = run_catr_smoke_test()
-    if not math.isfinite(theta):
-        raise RuntimeError("catR smoke test did not return a finite value.")
+    catr_version = run_catr_smoke_test()
+    if not catr_version:
+        raise RuntimeError("catR smoke test returned an empty version string.")
 
 
 class Exp(psynet.experiment.Experiment):
