@@ -1453,7 +1453,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("┌" + "─" * table_width + "┐")
         logger.info(
             row_fmt.format(
-                "Bots", "Completed", "Requests", "Req Errors", "Bot Errors", "Avg Resp (s)", "95% (s)"
+                "∥ Bots", "Completed", "Bot Errors", "Requests", "Req Errors", "Avg Resp (s)", "95% (s)"
             )
         )
         logger.info("├" + "─" * table_width + "┤")
@@ -1467,9 +1467,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 row_fmt.format(
                     result["n_bots"],
                     result["completed_during_test"],
+                    result["bot_errors"],
                     result["total_requests"],
                     req_error_count,
-                    result["bot_errors"],
                     avg_response_time,
                     p95_response_time,
                 )
