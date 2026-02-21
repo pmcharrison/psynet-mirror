@@ -1448,31 +1448,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("")
 
         # Summary table
-        logger.info("┌" + "─" * 77 + "┐")
+        row_fmt = "│ {:>6} │ {:>10} │ {:>10} │ {:>10} │ {:>10} │ {:>12} │ {:>12} │"
+        table_width = 90
+        logger.info("┌" + "─" * table_width + "┐")
         logger.info(
-            "│ {:>6} │ {:>10} │ {:>10} │ {:>10} │ {:>12} │ {:>12} │".format(
-                "Bots", "Completed", "Requests", "Errors", "Avg Resp (s)", "95% (s)"
+            row_fmt.format(
+                "Bots", "Completed", "Requests", "Req Errors", "Bot Errors", "Avg Resp (s)", "95% (s)"
             )
         )
-        logger.info("├" + "─" * 77 + "┤")
+        logger.info("├" + "─" * table_width + "┤")
 
         for result in results:
-            error_count = result["total_requests"] - result["successful_requests"]
+            req_error_count = result["total_requests"] - result["successful_requests"]
             avg_response_time = _format_response_metric(result["avg_response_time"])
             p95_response_time = _format_response_metric(result["p95_response_time"])
 
             logger.info(
-                "│ {:>6,} │ {:>10,} │ {:>10,} │ {:>10,} │ {:>12} │ {:>12} │".format(
+                row_fmt.format(
                     result["n_bots"],
                     result["completed_during_test"],
                     result["total_requests"],
-                    error_count,
+                    req_error_count,
+                    result["bot_errors"],
                     avg_response_time,
                     p95_response_time,
                 )
             )
 
-        logger.info("└" + "─" * 77 + "┘")
+        logger.info("└" + "─" * table_width + "┘")
         logger.info("")
 
         # Detailed results
@@ -2016,6 +2019,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "bots_incomplete": bots_incomplete,
             "total_requests": requests_during_test,
             "successful_requests": requests_during_test,
+            "bot_errors": bot_state["total_bot_errors"],
             "avg_response_time": avg_response_time,
             "median_response_time": median_response_time,
             "p95_response_time": p95_response_time,
