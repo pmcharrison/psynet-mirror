@@ -1448,18 +1448,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("")
 
         # Summary table
-        row_fmt = "│ {:>6} │ {:>10} │ {:>10} │ {:>10} │ {:>10} │ {:>12} │ {:>12} │"
-        table_width = 90
+        row_fmt = "│ {:>6} │ {:>10} │ {:>10} │ {:>10} │ {:>12} │ {:>12} │"
+        table_width = 77
         logger.info("┌" + "─" * table_width + "┐")
         logger.info(
             row_fmt.format(
-                "∥ Bots", "Completed", "Bot Errors", "Requests", "Req Errors", "Avg Resp (s)", "95% (s)"
+                "∥ Bots", "Completed", "Bot Errors", "Requests", "Avg Resp (s)", "95% (s)"
             )
         )
         logger.info("├" + "─" * table_width + "┤")
 
         for result in results:
-            req_error_count = result["total_requests"] - result["successful_requests"]
             avg_response_time = _format_response_metric(result["avg_response_time"])
             p95_response_time = _format_response_metric(result["p95_response_time"])
 
@@ -1469,7 +1468,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     result["completed_during_test"],
                     result["bot_errors"],
                     result["total_requests"],
-                    req_error_count,
                     avg_response_time,
                     p95_response_time,
                 )
@@ -1502,9 +1500,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 logger.info("  Success rate: N/A")
 
             logger.info(f"  Total requests: {result['total_requests']:,}")
-            logger.info(f"  Successful requests: {result['successful_requests']:,}")
-            error_count = result["total_requests"] - result["successful_requests"]
-            logger.info(f"  Error responses: {error_count:,}")
             if result.get("avg_bot_duration") is not None:
                 logger.info(
                     f"  Average time to complete: {result['avg_bot_duration']:.1f}s"
@@ -2018,7 +2013,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "bots_failed": bots_failed,
             "bots_incomplete": bots_incomplete,
             "total_requests": requests_during_test,
-            "successful_requests": requests_during_test,
             "bot_errors": bot_state["total_bot_errors"],
             "avg_response_time": avg_response_time,
             "median_response_time": median_response_time,
