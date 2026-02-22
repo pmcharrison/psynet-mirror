@@ -507,6 +507,26 @@ def test_export_data_sanitizes_basic_data_dataframe_keys(
     ]
 
 
+def test_export_data_avoids_suffix_filename_collisions(
+    monkeypatch, run_basic_data_export
+):
+    basic_data = {
+        "trial": pd.DataFrame([{"id": 1}]),
+        "trial_2": pd.DataFrame([{"id": 2}]),
+        "trial/": pd.DataFrame([{"id": 3}]),
+    }
+    _setup_basic_data_export(monkeypatch, basic_data)
+    export_path = run_basic_data_export(anonymize=False)
+
+    basic_data_dir = export_path / "regular" / "basic_data"
+    assert basic_data_dir.exists()
+    assert sorted(path.name for path in basic_data_dir.iterdir()) == [
+        "trial.csv",
+        "trial_2.csv",
+        "trial_3.csv",
+    ]
+
+
 def test_check_constraints():
     with tempfile.TemporaryDirectory() as dir:
         with working_directory(dir):

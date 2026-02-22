@@ -2581,8 +2581,9 @@ def _write_basic_dataframes(export_subdir_path, data):
     basic_data_dir = os.path.join(export_subdir_path, "basic_data")
     os.makedirs(basic_data_dir, exist_ok=True)
     filename_counts = {}
+    used_filenames = set()
     for key, dataframe in data.items():
-        filename = _make_basic_data_filename(key, filename_counts)
+        filename = _make_basic_data_filename(key, filename_counts, used_filenames)
         csv_path = os.path.join(basic_data_dir, f"{filename}.csv")
         dataframe.to_csv(csv_path, index=False)
 
@@ -2593,11 +2594,37 @@ def _write_basic_data_json(export_subdir_path, data):
         json.dump(data, file, indent=2)
 
 
-def _make_basic_data_filename(key, counts):
+def _make_basic_data_filename(key, counts, used_filenames):
+    """
+    Allocate a unique CSV-safe filename stem for one basic-data key.
+
+    Parameters
+    ----------
+    key : Any
+        Original basic-data key from the export payload.
+    counts : dict[str, int]
+        Per-sanitized-key counters used to generate numeric suffixes.
+    used_filenames : set[str]
+        Case-folded filename stems already reserved in this export run.
+
+    Returns
+    -------
+    str
+        A unique filename stem (without extension).
+    """
     sanitized = _sanitize_basic_data_key(key)
-    counts[sanitized] = counts.get(sanitized, 0) + 1
-    count = counts[sanitized]
-    return sanitized if count == 1 else f"{sanitized}_{count}"
+    counts[sanitized] = counts.get(sanitized, 0)
+
+    while True:
+        counts[sanitized] += 1
+        count = counts[sanitized]
+        filename = sanitized if count == 1 else f"{sanitized}_{count}"
+        # Reserve names case-insensitively to avoid collisions on
+        # case-insensitive filesystems (e.g., default macOS/Windows).
+        reserved_name = filename.casefold()
+        if reserved_name not in used_filenames:
+            used_filenames.add(reserved_name)
+            return filename
 
 
 def _sanitize_basic_data_key(key):
