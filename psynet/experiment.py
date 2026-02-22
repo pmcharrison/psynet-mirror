@@ -1232,9 +1232,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         Returns
         -------
-        dict
+        dict | None
             A dictionary of data to be returned to the client. The keys of the dictionary should be strings, and the
-            values can be any JSON-serializable object.
+            values can be any JSON-serializable object. Return ``None`` if no basic data is provided.
 
         Raises
         ------
@@ -1243,12 +1243,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         See `artifact_storage` for an example.
         """
-        return []
+        return None
 
     @classmethod
     def backup_basic_data(cls):
         data = cls.get_basic_data(context="backup")
-        if len(data) > 0:
+        if data is not None:
             cls.artifact_storage.write_basic_data(data)
 
     @staticmethod
@@ -1272,6 +1272,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 return error_response(error_text="Invalid credentials", simple=True)
 
             data = exp.get_basic_data(context="route", **request.args)
+            if data is None:
+                return []
 
             return data
         except ValueError as e:
