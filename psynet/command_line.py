@@ -2580,8 +2580,10 @@ def _select_basic_data_serializer(data):
 def _write_basic_dataframes(export_subdir_path, data):
     basic_data_dir = os.path.join(export_subdir_path, "basic_data")
     os.makedirs(basic_data_dir, exist_ok=True)
+    filename_counts = {}
     for key, dataframe in data.items():
-        csv_path = os.path.join(basic_data_dir, f"{str(key)}.csv")
+        filename = _make_basic_data_filename(key, filename_counts)
+        csv_path = os.path.join(basic_data_dir, f"{filename}.csv")
         dataframe.to_csv(csv_path, index=False)
 
 
@@ -2589,6 +2591,21 @@ def _write_basic_data_json(export_subdir_path, data):
     basic_data_path = os.path.join(export_subdir_path, "basic_data.json")
     with open(make_parents(basic_data_path), "w") as file:
         json.dump(data, file, indent=2)
+
+
+def _make_basic_data_filename(key, counts):
+    sanitized = _sanitize_basic_data_key(key)
+    counts[sanitized] = counts.get(sanitized, 0) + 1
+    count = counts[sanitized]
+    return sanitized if count == 1 else f"{sanitized}_{count}"
+
+
+def _sanitize_basic_data_key(key):
+    filename = str(key).strip()
+    filename = re.sub(r"[\\/]+", "_", filename)
+    filename = re.sub(r"[^A-Za-z0-9._-]+", "_", filename)
+    filename = filename.strip("._")
+    return filename or "data"
 
 
 def _is_dataframe_dict(data):
