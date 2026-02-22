@@ -432,21 +432,28 @@ def _setup_basic_data_export(monkeypatch, basic_data):
     monkeypatch.setattr("psynet.command_line.yaspin", dummy_spinner)
 
 
-def test_export_data_writes_basic_data_json(tmp_path, monkeypatch):
+@pytest.fixture
+def run_basic_data_export(tmp_path):
     from psynet.command_line import export_data
 
+    def _run(anonymize):
+        export_path = tmp_path / "export"
+        export_path.mkdir()
+        export_data(
+            local=True,
+            anonymize=anonymize,
+            database_zip_path=str(tmp_path / "database.zip"),
+            export_path=str(export_path),
+        )
+        return export_path
+
+    return _run
+
+
+def test_export_data_writes_basic_data_json(monkeypatch, run_basic_data_export):
     basic_data = {"participant": [{"id": 1}]}
     _setup_basic_data_export(monkeypatch, basic_data)
-
-    export_path = tmp_path / "export"
-    export_path.mkdir()
-
-    export_data(
-        local=True,
-        anonymize=True,
-        database_zip_path=str(tmp_path / "database.zip"),
-        export_path=str(export_path),
-    )
+    export_path = run_basic_data_export(anonymize=True)
 
     basic_data_path = export_path / "anonymous" / "basic_data.json"
     assert basic_data_path.exists()
@@ -454,20 +461,9 @@ def test_export_data_writes_basic_data_json(tmp_path, monkeypatch):
         assert json.load(file) == basic_data
 
 
-def test_export_data_skips_basic_data_when_none(tmp_path, monkeypatch):
-    from psynet.command_line import export_data
-
+def test_export_data_skips_basic_data_when_none(monkeypatch, run_basic_data_export):
     _setup_basic_data_export(monkeypatch, None)
-
-    export_path = tmp_path / "export"
-    export_path.mkdir()
-
-    export_data(
-        local=True,
-        anonymize=True,
-        database_zip_path=str(tmp_path / "database.zip"),
-        export_path=str(export_path),
-    )
+    export_path = run_basic_data_export(anonymize=True)
 
     basic_data_json = export_path / "anonymous" / "basic_data.json"
     basic_data_zip = export_path / "anonymous" / "basic_data.zip"
@@ -475,24 +471,15 @@ def test_export_data_skips_basic_data_when_none(tmp_path, monkeypatch):
     assert not basic_data_zip.exists()
 
 
-def test_export_data_writes_basic_data_folder_for_dataframes(tmp_path, monkeypatch):
-    from psynet.command_line import export_data
-
+def test_export_data_writes_basic_data_folder_for_dataframes(
+    monkeypatch, run_basic_data_export
+):
     basic_data = {
         "participant": pd.DataFrame([{"id": 1}]),
         "trial": pd.DataFrame([{"id": 2, "answer": "ok"}]),
     }
     _setup_basic_data_export(monkeypatch, basic_data)
-
-    export_path = tmp_path / "export"
-    export_path.mkdir()
-
-    export_data(
-        local=True,
-        anonymize=False,
-        database_zip_path=str(tmp_path / "database.zip"),
-        export_path=str(export_path),
-    )
+    export_path = run_basic_data_export(anonymize=False)
 
     basic_data_dir = export_path / "regular" / "basic_data"
     assert basic_data_dir.exists()
