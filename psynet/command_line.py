@@ -2566,16 +2566,29 @@ def export_basic_data(export_path, anonymize):
         return
 
     subdir = "anonymous" if anonymize else "regular"
+    basic_data_path = os.path.join(export_path, subdir)
+    serializer = _select_basic_data_serializer(data)
+    serializer(basic_data_path, data)
+
+
+def _select_basic_data_serializer(data):
     if _is_dataframe_dict(data):
-        basic_data_dir = os.path.join(export_path, subdir, "basic_data")
-        os.makedirs(basic_data_dir, exist_ok=True)
-        for key, dataframe in data.items():
-            csv_path = os.path.join(basic_data_dir, f"{str(key)}.csv")
-            dataframe.to_csv(csv_path, index=False)
-    else:
-        basic_data_path = os.path.join(export_path, subdir, "basic_data.json")
-        with open(make_parents(basic_data_path), "w") as file:
-            json.dump(data, file, indent=2)
+        return _write_basic_dataframes
+    return _write_basic_data_json
+
+
+def _write_basic_dataframes(export_subdir_path, data):
+    basic_data_dir = os.path.join(export_subdir_path, "basic_data")
+    os.makedirs(basic_data_dir, exist_ok=True)
+    for key, dataframe in data.items():
+        csv_path = os.path.join(basic_data_dir, f"{str(key)}.csv")
+        dataframe.to_csv(csv_path, index=False)
+
+
+def _write_basic_data_json(export_subdir_path, data):
+    basic_data_path = os.path.join(export_subdir_path, "basic_data.json")
+    with open(make_parents(basic_data_path), "w") as file:
+        json.dump(data, file, indent=2)
 
 
 def _is_dataframe_dict(data):
