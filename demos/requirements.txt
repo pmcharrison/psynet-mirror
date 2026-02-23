@@ -7,3 +7,4 @@ praat-parselmouth
 scipy
 soundfile
 statsmodels
+chardet==5.2.0
