@@ -34,7 +34,6 @@ COPY pyproject.toml pyproject.toml
 RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate
 RUN uv pip install --no-cache --system -r constraints.txt
 
-# Compile and install demo requirements using base constraints
+# Compile and install demo requirements using Dallinger constraints
 COPY demos/requirements.txt demo-requirements.txt
-RUN uv pip compile demo-requirements.txt --constraint constraints.txt --output-file demo-constraints.txt \
-    && uv pip install --no-cache --system -r demo-constraints.txt
+RUN DALLINGER_REQ=$(python3 - <<'PY'\nimport tomllib\nfrom pathlib import Path\n\ndata = tomllib.loads(Path(\"pyproject.toml\").read_text(encoding=\"utf-8\"))\nfor dep in data[\"project\"][\"dependencies\"]:\n    if dep.startswith(\"dallinger\"):\n        print(dep)\n        break\nelse:\n    raise SystemExit(\"Dallinger dependency not found in pyproject.toml\")\nPY\n) \\\n+    && mkdir -p /tmp/demo-constraints \\\n+    && cp demo-requirements.txt /tmp/demo-constraints/demo-requirements.txt \\\n+    && printf \"%s\\n-r demo-requirements.txt\\n\" \"$DALLINGER_REQ\" > /tmp/demo-constraints/requirements.txt \\\n+    && (cd /tmp/demo-constraints && curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate) \\\n+    && uv pip install --no-cache --system -r /tmp/demo-constraints/constraints.txt

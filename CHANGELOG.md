@@ -10,7 +10,7 @@
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 
 ## Fixed
-- Generated demo constraints during Docker builds so demo dependencies stay aligned with base constraints, avoiding RequestsDependencyWarning in CI (author: Peter Harrison)
+- Generated demo constraints during Docker builds using Dallinger's constraints pipeline to avoid RequestsDependencyWarning in CI (author: Peter Harrison)
 - Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
 - Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
