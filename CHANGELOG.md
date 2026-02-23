@@ -4,6 +4,7 @@
 
 ## Added
 - Added checks to catch cases where Assets are created in the wrong place.
+- Added diagnostics to log missing translation details in CI failures (author: Peter Harrison)
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)

@@ -632,6 +632,76 @@ def get_locale() -> str:
 
 
 REGISTERED_TRANSLATIONS = {}
+_LOGGED_MISSING_TRANSLATIONS = set()
+
+
+def _log_missing_translation_diagnostics(message, context, locale, namespace):
+    key = (namespace, locale, context, message)
+    if key in _LOGGED_MISSING_TRANSLATIONS:
+        return
+    _LOGGED_MISSING_TRANSLATIONS.add(key)
+
+    try:
+        locales_dir = get_locales_dir(namespace)
+        po_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.po")
+        mo_path = join_path(locales_dir, locale, "LC_MESSAGES", f"{namespace}.mo")
+
+        registered_locales = list(REGISTERED_TRANSLATIONS.get(namespace, {}).keys())
+        registered_count = len(
+            REGISTERED_TRANSLATIONS.get(namespace, {}).get(locale, [])
+        )
+
+        logger.error(
+            (
+                "Translation missing diagnostics: message=%r context=%r locale=%s "
+                "namespace=%s cwd=%s locales_dir=%s po_exists=%s mo_exists=%s "
+                "registered_locales=%s registered_count=%s"
+            ),
+            message,
+            context,
+            locale,
+            namespace,
+            os.getcwd(),
+            locales_dir,
+            exists(po_path),
+            exists(mo_path),
+            registered_locales,
+            registered_count,
+        )
+
+        if exists(po_path):
+            po = load_po(po_path)
+            message_text = message if isinstance(message, str) else str(message)
+            matches = [entry for entry in po if entry.msgid == message_text]
+            contexts = sorted({entry.msgctxt or None for entry in matches})
+            flags = sorted({flag for entry in matches for flag in entry.flags})
+            sample_msgstrs = [entry.msgstr for entry in matches[:3]]
+
+            logger.error(
+                (
+                    "Translation missing diagnostics: po_matches=%s contexts=%s "
+                    "flags=%s sample_msgstrs=%s"
+                ),
+                len(matches),
+                contexts,
+                flags,
+                sample_msgstrs,
+            )
+
+            if not matches:
+                normalized_message = message_text.strip()
+                if normalized_message != message_text:
+                    normalized_matches = [
+                        entry
+                        for entry in po
+                        if entry.msgid.strip() == normalized_message
+                    ]
+                    logger.error(
+                        "Translation missing diagnostics: normalized_matches=%s",
+                        len(normalized_matches),
+                    )
+    except Exception:
+        logger.exception("Translation missing diagnostics failed.")
 
 
 class TranslationNotFoundError(KeyError):
@@ -647,6 +717,7 @@ def check_translation_is_available(message, context, locale, namespace):
     is_available = (context, message) in REGISTERED_TRANSLATIONS[namespace][locale]
 
     if not is_available:
+        _log_missing_translation_diagnostics(message, context, locale, namespace)
         message = (
             f"Could not find a translation for message {message!r} in locale = {locale}, context = {context}, namespace = {namespace}. "
             "Perhaps the translatable string was not properly captured by `psynet translate`? "
