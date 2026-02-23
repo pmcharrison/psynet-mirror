@@ -27,6 +27,7 @@
 - Centralized shared pytest flags in `ci/run-pytest-with-common-flags.sh`, added safer temporary-file handling in docker experiment test scripts, split docker test script logic into functions, and added a CI `shellcheck` job for touched shell scripts (author: Peter Harrison)
 - Pinned `adaptive_test_catr` dependency resolution to Dallinger's tested constraints and pinned `rpy2` to avoid CI breakage from transitive updates such as incompatible `rq` releases (author: Peter Harrison)
 - Updated docker-experiment pytest invocation to call the shared pytest helper through `bash -c`, restoring reliable CI log capture and execution behavior for custom Docker experiments (author: Peter Harrison)
+- Added a fallback diagnostic rerun for custom Docker experiment tests when a per-experiment log is unexpectedly empty, so CI still surfaces actionable failure output (author: Peter Harrison)
 
 ## Fixed
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)

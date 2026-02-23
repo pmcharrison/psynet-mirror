@@ -23,12 +23,35 @@ build_experiment_image() {
   docker build --tag "$image_tag" "$experiment_dir"
 }
 
+run_empty_log_diagnostic() {
+  diagnostic_log="public/${experiment_name}_diagnostic.log"
+  warning_filter="ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core"
+  diagnostic_cmd="pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"$warning_filter\" -o log_cli=True --chrome --timeout=${timeout_seconds} -vv -s"
+
+  echo "Collecting fallback diagnostics in $diagnostic_log"
+  if sh ci/run-ci-docker-command.sh "$image_tag" "/workspace" "/workspace/$experiment_dir" \
+    bash -c "$diagnostic_cmd" > "$diagnostic_log" 2>&1; then
+    echo "Diagnostic rerun unexpectedly succeeded."
+  else
+    diagnostic_status=$?
+    echo "Diagnostic rerun failed with exit code $diagnostic_status"
+  fi
+
+  if [ -s "$diagnostic_log" ]; then
+    echo "Last 200 lines from $diagnostic_log:"
+    tail -n 200 "$diagnostic_log" || true
+  else
+    echo "Diagnostic log is also empty: $diagnostic_log"
+  fi
+}
+
 show_failure_log_tail() {
   if [ -s "$log_file" ]; then
     echo "Last 200 lines from $log_file:"
     tail -n 200 "$log_file" || true
   elif [ -f "$log_file" ]; then
     echo "Log file exists but is empty: $log_file"
+    run_empty_log_diagnostic
   else
     echo "No log file was created for $experiment_dir."
   fi
