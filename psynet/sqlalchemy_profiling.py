@@ -2,6 +2,7 @@ import atexit
 import html
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -17,6 +18,7 @@ from sqlalchemy.orm import Session as SASession
 
 _AUTO_PROFILER = None
 _MODULE_PATH = os.path.abspath(__file__).replace("\\", "/")
+_RAW_PROFILE_FILENAME_RE = re.compile(r"^sql-profile-\d+-\d+\.json$")
 _StatType = TypeVar("_StatType")
 
 
@@ -749,7 +751,7 @@ def aggregate_sqlalchemy_profiles(profile_dir: str) -> Dict[str, object]:
     profiles = []
     if os.path.isdir(profile_dir):
         for filename in sorted(os.listdir(profile_dir)):
-            if not filename.endswith(".json"):
+            if not _RAW_PROFILE_FILENAME_RE.match(filename):
                 continue
             path = os.path.join(profile_dir, filename)
             with open(path, "r", encoding="utf-8") as handle:

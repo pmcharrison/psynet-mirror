@@ -396,8 +396,9 @@ def _enable_sql_profile(sql_profile_options, sql_profile_dir):
     sql_profile_options : str or None
         Options string for ``PSYNET_SQL_PROFILE`` (e.g. ``min_ms=5,top_n=50``).
     sql_profile_dir : str or None
-        Directory to store per-process SQL profile JSON files. When ``None``,
-        a temporary directory is created.
+        Parent directory for SQL profile outputs. When provided, a unique run
+        subdirectory is created inside it. When ``None``, a temporary directory
+        is created.
 
     Returns
     -------
@@ -413,15 +414,18 @@ def _enable_sql_profile(sql_profile_options, sql_profile_dir):
 
     os.environ["PSYNET_SQL_PROFILE_SILENT"] = "1"
 
-    if sql_profile_dir:
-        profile_dir = sql_profile_dir
-        keep_profile_dir = True
-    else:
-        profile_dir = tempfile.mkdtemp(prefix="psynet-sql-profile-")
-        keep_profile_dir = False
+    profile_dir, keep_profile_dir = _create_sql_profile_run_dir(sql_profile_dir)
     os.makedirs(profile_dir, exist_ok=True)
     os.environ["PSYNET_SQL_PROFILE_DIR"] = profile_dir
     return profile_dir, keep_profile_dir
+
+
+def _create_sql_profile_run_dir(sql_profile_dir):
+    """Create the SQL profiling output directory for a single command run."""
+    if sql_profile_dir:
+        os.makedirs(sql_profile_dir, exist_ok=True)
+        return tempfile.mkdtemp(prefix="run-", dir=sql_profile_dir), True
+    return tempfile.mkdtemp(prefix="psynet-sql-profile-"), False
 
 
 def _is_ubuntu() -> bool:
@@ -539,7 +543,7 @@ _sql_profile_options = [
     click.option(
         "--sql-profile-dir",
         default=None,
-        help="Directory to store per-process SQL profile JSON files.",
+        help="Parent directory for SQL profile outputs (creates a unique run subdirectory).",
     ),
     click.option(
         "--sql-profile-no-open",
