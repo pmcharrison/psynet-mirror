@@ -39,9 +39,10 @@ run_experiment_tests() {
   log_file="public/${experiment_name}.log"
   echo "Writing test output to $log_file"
 
+  pytest_cmd="sh /workspace/ci/run-pytest-with-common-flags.sh ${timeout_seconds} --junitxml=/public/${experiment_name}_junit.xml test.py"
+
   if sh ci/run-ci-docker-command.sh "$image_tag" "/workspace" "/workspace/$experiment_dir" \
-    sh "/workspace/ci/run-pytest-with-common-flags.sh" "$timeout_seconds" \
-    "--junitxml=/public/${experiment_name}_junit.xml" "test.py" > "$log_file" 2>&1; then
+    bash -c "$pytest_cmd" > "$log_file" 2>&1; then
     :
   else
     status=$?
