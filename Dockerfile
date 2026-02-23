@@ -34,6 +34,7 @@ COPY pyproject.toml pyproject.toml
 RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate
 RUN uv pip install --no-cache --system -r constraints.txt
 
-# Install demos requirements
+# Compile and install demo requirements using base constraints
 COPY demos/requirements.txt demo-requirements.txt
-RUN uv pip install --no-cache --system -r demo-requirements.txt
+RUN uv pip compile demo-requirements.txt --constraint constraints.txt --output-file demo-constraints.txt \
+    && uv pip install --no-cache --system -r demo-constraints.txt
