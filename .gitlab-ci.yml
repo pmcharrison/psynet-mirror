@@ -121,11 +121,19 @@ test_docker_experiments:
         docker build --tag "$image_tag" "$experiment_dir"
 
         echo "Running tests for $experiment_dir"
+        log_file="public/${experiment_name}.log"
+        echo "Writing test output to $log_file"
         if sh ci/run-ci-docker-command.sh "$image_tag" "/workspace" "/workspace/$experiment_dir" \
-          bash -c "pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core\" -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS"; then
+          bash -c "pytest --junitxml=/public/${experiment_name}_junit.xml test.py -Werror -W \"ignore:color, on_color and attrs are not supported when output stream is not a TTY:UserWarning:yaspin.core\" -q -o log_cli=False --chrome --timeout=$TIMEOUT_SECONDS" \
+          > "$log_file" 2>&1; then
           :
         else
-          echo "Tests failed for $experiment_dir with exit code $?"
+          status=$?
+          echo "Tests failed for $experiment_dir with exit code $status"
+          if [ -f "$log_file" ]; then
+            echo "Last 200 lines from $log_file:"
+            tail -n 200 "$log_file" || true
+          fi
           EXIT_CODE=1
         fi
       done < /tmp/docker-build-experiments.txt
