@@ -197,10 +197,48 @@ def create_pot(input_path: str, pot_path):
                 if entry.msgid == "Next":
                     next_occurrences = entry.occurrences
                     break
+            control_path = os.path.join(
+                input_path, "templates", "macros", "control.html"
+            )
+            control_exists = os.path.exists(control_path)
+            control_contains_next = False
+            if control_exists:
+                with open(control_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                control_contains_next = (
+                    'gettext("Next")' in content or "gettext('Next')" in content
+                )
+            control_entries = [
+                entry
+                for entry in pot
+                if any(
+                    path.endswith("psynet/templates/macros/control.html")
+                    for path, _ in entry.occurrences
+                )
+            ]
+
+            try:
+                import subprocess
+
+                import babel
+                import jinja2
+
+                pybabel_version = subprocess.check_output(
+                    ["pybabel", "--version"], text=True
+                ).strip()
+                babel_version = getattr(babel, "__version__", "unknown")
+                jinja_version = getattr(jinja2, "__version__", "unknown")
+            except Exception:
+                pybabel_version = "unknown"
+                babel_version = "unknown"
+                jinja_version = "unknown"
+
             print(
                 (
                     "Translation debug: pot_path=%s input_path=%s cwd=%s "
-                    "entries=%s has_next=%s next_occurrences=%s"
+                    "entries=%s has_next=%s next_occurrences=%s "
+                    "control_exists=%s control_contains_next=%s control_entries=%s "
+                    "pybabel_version=%s babel_version=%s jinja2_version=%s"
                 )
                 % (
                     pot_path,
@@ -209,6 +247,12 @@ def create_pot(input_path: str, pot_path):
                     len(pot),
                     has_next,
                     next_occurrences,
+                    control_exists,
+                    control_contains_next,
+                    len(control_entries),
+                    pybabel_version,
+                    babel_version,
+                    jinja_version,
                 )
             )
 
