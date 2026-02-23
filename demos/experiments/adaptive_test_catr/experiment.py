@@ -1,5 +1,7 @@
 import os
 import subprocess
+import sys
+import textwrap
 
 import psynet.experiment
 from psynet.page import InfoPage
@@ -15,37 +17,49 @@ def run_catr_smoke_test():
     str
         Installed catR version string.
     """
-    if "R_HOME" not in os.environ:
-        try:
-            os.environ["R_HOME"] = subprocess.check_output(
-                ["R", "RHOME"], text=True
-            ).strip()
-        except Exception as error:
-            raise RuntimeError(
-                "R_HOME is not set and could not be inferred via `R RHOME`."
-            ) from error
-
     try:
-        from rpy2 import robjects
-    except ImportError as error:
+        r_home = subprocess.check_output(["R", "RHOME"], text=True).strip()
+    except Exception as error:
         raise RuntimeError(
-            "Could not import rpy2. Add rpy2 to requirements.txt."
+            "R_HOME is not set and could not be inferred via `R RHOME`."
         ) from error
 
-    try:
+    smoke_test_script = textwrap.dedent(
+        """
+        from rpy2 import robjects
+
         catr_version = robjects.r(
-            """
+            '''
             suppressMessages(library(catR))
             as.character(packageVersion("catR"))
-            """
+            '''
+        )
+        print(str(catr_version[0]))
+        """
+    )
+
+    env = os.environ.copy()
+    env["R_HOME"] = r_home
+
+    try:
+        result = subprocess.run(
+            [sys.executable, "-c", smoke_test_script],
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
         )
     except Exception as error:
         raise RuntimeError(
-            "Failed to execute catR. Ensure R and catR are installed "
-            "via prepare_docker_image.sh."
+            "Failed to execute catR via rpy2 in a subprocess. "
+            "Ensure R, catR, and rpy2 are installed."
         ) from error
 
-    return str(catr_version[0])
+    catr_version = result.stdout.strip()
+    if not catr_version:
+        raise RuntimeError("catR smoke test returned an empty version string.")
+
+    return catr_version
 
 
 def verify_catr_in_timeline():

@@ -30,6 +30,7 @@
 - Added a fallback diagnostic rerun for custom Docker experiment tests when a per-experiment log is unexpectedly empty, so CI still surfaces actionable failure output (author: Peter Harrison)
 - Updated `adaptive_test_catr` catR smoke test to set `R_HOME` from `R RHOME` when needed, preventing runtime failures where R is installed but `R_HOME` is missing in the process environment (author: Peter Harrison)
 - Removed the `adaptive_test_catr` experiment-specific `test_experiment()` override so CI now exercises catR through the timeline `CodeBlock` during the standard bot flow (author: Peter Harrison)
+- Updated `adaptive_test_catr` catR smoke test to run the rpy2 call in a subprocess with explicit `R_HOME`, avoiding embedded-R runtime failures in the bot-driven CI flow (author: Peter Harrison)
 
 ## Fixed
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
