@@ -154,8 +154,8 @@ pg_badger:
     - virtualenv venv -ppython3
     - . venv/bin/activate
     - pip install uv
-    - curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra dev --extra demo
-    - pip install -e ".[dev,demo]" pytest -c constraints.txt
+    - curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra dev --extra demos
+    - pip install -e ".[dev,demos]" pytest -c constraints.txt
     - |
       until docker exec -i dallinger_postgres pg_isready; do
         echo "Waiting for PostgreSQL to become ready..."
