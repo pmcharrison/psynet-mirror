@@ -216,6 +216,7 @@ def create_pot(input_path: str, pot_path):
                     for path, _ in entry.occurrences
                 )
             ]
+            control_msgids = sorted({entry.msgid for entry in control_entries})
 
             try:
                 import subprocess
@@ -238,7 +239,8 @@ def create_pot(input_path: str, pot_path):
                     "Translation debug: pot_path=%s input_path=%s cwd=%s "
                     "entries=%s has_next=%s next_occurrences=%s "
                     "control_exists=%s control_contains_next=%s control_entries=%s "
-                    "pybabel_version=%s babel_version=%s jinja2_version=%s"
+                    "control_msgids=%s pybabel_version=%s babel_version=%s "
+                    "jinja2_version=%s"
                 )
                 % (
                     pot_path,
@@ -250,6 +252,7 @@ def create_pot(input_path: str, pot_path):
                     control_exists,
                     control_contains_next,
                     len(control_entries),
+                    control_msgids,
                     pybabel_version,
                     babel_version,
                     jinja_version,
