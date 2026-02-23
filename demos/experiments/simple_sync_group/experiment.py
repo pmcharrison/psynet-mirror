@@ -33,10 +33,7 @@ def waiting_page(participant: Participant):
 
 
 def assign_roles(group: SyncGroup, participants: List[Participant]):
-    roles = ROLE_SETS.get(
-        len(participants),
-        [f"member_{index}" for index in range(1, len(participants) + 1)],
-    )
+    roles = ROLE_SETS[len(participants)]
     random.shuffle(roles)
     if len(roles) != len(participants):
         raise ValueError(
