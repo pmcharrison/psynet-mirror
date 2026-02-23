@@ -23,6 +23,7 @@
 - Refactored shared Docker test invocation into `ci/run-ci-docker-command.sh` to reduce duplication between `tests` and `test_docker_experiments` CI jobs (author: Peter Harrison)
 - Updated `adaptive_test_catr` to use the standard experiment `test.py` and run catR verification from a timeline `CodeBlock` during normal experiment execution (author: Peter Harrison)
 - Improved `test_docker_experiments` diagnostics by saving per-experiment logs in `public/` and printing the last 200 log lines when a dockerized experiment test fails (author: Peter Harrison)
+- Moved `test_docker_experiments` shell logic from `.gitlab-ci.yml` into `ci/run-docker-experiment-tests.sh` to keep CI configuration concise and easier to debug (author: Peter Harrison)
 
 ## Fixed
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)

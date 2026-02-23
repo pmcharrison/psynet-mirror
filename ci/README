@@ -5,3 +5,6 @@ via their own Dockerfiles in CI.
 
 `run-ci-docker-command.sh` wraps the shared `docker run` arguments used by the
 main CI test job and the custom Docker experiment test job.
+
+`run-docker-experiment-tests.sh` runs the custom Docker experiment CI flow
+(experiment discovery, image builds, pytest execution, and failure log tails).
