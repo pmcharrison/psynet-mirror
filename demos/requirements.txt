@@ -2,6 +2,9 @@ git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp@mas
 git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension#egg=reppextension
 sing4me@git+https://gitlab.com/computational-audition/sing4me#egg=sing4me
 music21
+# TODO: Drop this pin once Dallinger constraints support extras (PR 8813):
+# https://github.com/Dallinger/Dallinger/pull/8813
+chardet==5.2.0
 numpy
 praat-parselmouth
 scipy
