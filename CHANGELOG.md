@@ -4,15 +4,11 @@
 
 ## Added
 - Added checks to catch cases where Assets are created in the wrong place.
-- Added diagnostics to log missing translation details in CI failures (author: Peter Harrison)
-- Added translation extraction debug output when `PSYNET_TRANSLATION_DEBUG=1` (author: Peter Harrison)
-- Added translation debug output for Babel/Jinja2 versions and control.html extraction (author: Peter Harrison)
-- Added translation debug output listing extracted control.html msgids (author: Peter Harrison)
 - Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
-- Pinned Dallinger to the upstream master branch while diagnosing CI translation failures (author: Peter Harrison)
+- Pinned Babel to 2.17.0 due to a Jinja gettext extraction regression in 2.18.0; see `tests/isolated/translation/test_babel_extraction.py` (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 
 ## Fixed

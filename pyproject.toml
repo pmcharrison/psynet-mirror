@@ -36,8 +36,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "babel",
-    "dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@master",
+    # Babel 2.18.0 drops Jinja gettext extraction; see tests/isolated/translation/test_babel_extraction.py
+    "babel==2.17.0",
+    "dallinger[docker]>=12.1.2,<13",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf

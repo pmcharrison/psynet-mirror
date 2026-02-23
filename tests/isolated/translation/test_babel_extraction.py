@@ -10,6 +10,9 @@ def test_jinja_gettext_is_extracted(tmp_path):
     templates_dir.mkdir()
 
     template_path = templates_dir / "example.html"
+    # Regression guard: Babel 2.18.0 stops extracting gettext(...) from Jinja,
+    # while 2.17.0 still extracts both gettext(...) and pgettext(...).
+    # Revisit this test if a future Babel release restores extraction.
     template_path.write_text(
         '{{ gettext("Next") }} {{ pgettext("context", "Hello") }}',
         encoding="utf-8",

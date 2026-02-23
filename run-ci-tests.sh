@@ -12,7 +12,6 @@ echo "Checking if translation is needed..."
 echo "CI_COMMIT_REF_NAME = $CI_COMMIT_REF_NAME"
 if [[ ! "$CI_COMMIT_REF_NAME" =~ ^release- ]]; then
     echo "Not a release branch - will use the null translator to populate any missing translations."
-    export PSYNET_TRANSLATION_DEBUG=1
     psynet translate --translator null || exit 1
 else
     echo "Release branch detected - will require all translations to be present."
