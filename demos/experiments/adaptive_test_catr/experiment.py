@@ -1,3 +1,6 @@
+import os
+import subprocess
+
 import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, Timeline
@@ -12,6 +15,16 @@ def run_catr_smoke_test():
     str
         Installed catR version string.
     """
+    if "R_HOME" not in os.environ:
+        try:
+            os.environ["R_HOME"] = subprocess.check_output(
+                ["R", "RHOME"], text=True
+            ).strip()
+        except Exception as error:
+            raise RuntimeError(
+                "R_HOME is not set and could not be inferred via `R RHOME`."
+            ) from error
+
     try:
         from rpy2 import robjects
     except ImportError as error:
