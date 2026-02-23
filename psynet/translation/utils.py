@@ -190,6 +190,28 @@ def create_pot(input_path: str, pot_path):
             sp.fail("💥")
             exit(1)
 
+        if os.environ.get("PSYNET_TRANSLATION_DEBUG") == "1":
+            has_next = any(entry.msgid == "Next" for entry in pot)
+            next_occurrences = []
+            for entry in pot:
+                if entry.msgid == "Next":
+                    next_occurrences = entry.occurrences
+                    break
+            print(
+                (
+                    "Translation debug: pot_path=%s input_path=%s cwd=%s "
+                    "entries=%s has_next=%s next_occurrences=%s"
+                )
+                % (
+                    pot_path,
+                    input_path,
+                    os.getcwd(),
+                    len(pot),
+                    has_next,
+                    next_occurrences,
+                )
+            )
+
         sp.text = bold("Translations extracted successfully.") + f" ({taken}s)"
         sp.ok("✅")
 
