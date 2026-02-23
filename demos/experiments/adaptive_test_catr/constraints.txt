@@ -1,4 +1,6 @@
-# This constraints file is maintained manually for this demo because rpy2
-# requires matching system dependencies (R) installed in Docker.
+# Keep this demo aligned with Dallinger's tested dependency stack to avoid
+# transitive dependency drift (e.g. rq API changes) in CI.
+-c https://raw.githubusercontent.com/Dallinger/Dallinger/v12.1.2/dev-requirements.txt
+
 psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet
-rpy2
+rpy2==3.6.4
