@@ -8,6 +8,7 @@
 - Added translation extraction debug output when `PSYNET_TRANSLATION_DEBUG=1` (author: Peter Harrison)
 - Added translation debug output for Babel/Jinja2 versions and control.html extraction (author: Peter Harrison)
 - Added translation debug output listing extracted control.html msgids (author: Peter Harrison)
+- Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
