@@ -2,8 +2,10 @@ git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp@mas
 git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension#egg=reppextension
 sing4me@git+https://gitlab.com/computational-audition/sing4me#egg=sing4me
 music21
-# TODO: Drop this pin once Dallinger constraints support extras (PR 8813):
-# https://github.com/Dallinger/Dallinger/pull/8813
+# TODO: Once Dallinger constraints support extras (PR 8813), move demo deps into
+# a `demo` extra in pyproject.toml and install demos from constraints generated
+# with `dallinger constraints generate --extra demo` (i.e., via the Dallinger
+# constraints pipeline). Then drop this pin.
 chardet==5.2.0
 numpy
 praat-parselmouth
