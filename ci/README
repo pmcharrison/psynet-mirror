@@ -8,3 +8,6 @@ main CI test job and the custom Docker experiment test job.
 
 `run-docker-experiment-tests.sh` runs the custom Docker experiment CI flow
 (experiment discovery, image builds, pytest execution, and failure log tails).
+
+`run-pytest-with-common-flags.sh` centralizes shared pytest options (warnings,
+browser mode, logging mode, and timeout).

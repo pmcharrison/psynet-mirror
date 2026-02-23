@@ -52,6 +52,17 @@ pre_commit:
   script:
     - pre-commit run --all-files
 
+shellcheck:
+  image: koalaman/shellcheck-alpine:stable
+  stage: test
+  <<: *default_rules
+  before_script: []
+  script:
+    - shellcheck ci/run-ci-docker-command.sh
+    - shellcheck ci/run-docker-experiment-tests.sh
+    - shellcheck ci/run-pytest-with-common-flags.sh
+    - shellcheck run-ci-tests.sh
+
 changelog_check:
   image:
     name: alpine/git
