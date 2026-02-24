@@ -1594,6 +1594,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._run_monitoring_loop(n, bot_state, start_new_bot, start_time, end_time)
         self._clear_realtime_status()
 
+        for bot_id, info in bot_state["bot_exit_failures"].items():
+            msg = f"Bot {bot_id} exited with status {info['exitstatus']}"
+            if info["output"]:
+                msg += "\n  Last output:\n    " + "\n    ".join(info["output"])
+            logger.error(msg)
+        for bot_id, error in bot_state["bot_monitor_errors"].items():
+            logger.error(f"Error monitoring bot {bot_id}: {error}")
+
         # Calculate and report results
         actual_duration = time.time() - start_time
         return self._calculate_and_report_results(
@@ -1624,6 +1632,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "total_bot_errors": 0,
             "bot_durations": [],
             "initialization_times": [],
+            "bot_exit_failures": {},
+            "bot_monitor_errors": {},
             "first_bot_initialized": False,
             "bots_to_launch": 0,
             "testing_stats": self.TestingStats(self.testing_stat_definitions),
@@ -1685,6 +1695,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "spawn_time": time.time(),
                     "start_time": None,
                     "next_start_time": None,
+                    "recent_output": [],
                 }
                 bot_state["total_bots_started"] += 1
                 bot_state["bot_ids"].add(bot_id)
@@ -1861,6 +1872,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     line = line.replace("INFO:root:", "")
                     logger.debug(f"(Bot {bot_id}) " + line)
                     bot_state["testing_stats"].update_from_line(bot_id, line)
+                    recent = process_info["recent_output"]
+                    recent.append(line)
+                    # Keep just the most recent 10 lines. Remove overflow from
+                    # the front of the list
+                    recent[:] = recent[-10:]
 
                     # Detect bot initialization
                     if process_info["start_time"] is None and "Initializing" in line:
@@ -1910,7 +1926,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 bot_state["bot_durations"].append(bot_duration)
         else:
             if p.exitstatus is not None:
-                logger.error(f"Bot {bot_id} failed with exit status {p.exitstatus}")
+                bot_state["bot_exit_failures"][bot_id] = {
+                    "exitstatus": p.exitstatus,
+                    "output": process_info["recent_output"],
+                }
                 bot_state["total_bot_errors"] += 1
 
         # Schedule bot replacement or cleanup
@@ -1926,7 +1945,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     ):
         """Handle a bot process error."""
         bot_id = process_info["bot_id"]
-        logger.error(f"Error monitoring bot {bot_id}: {error}")
+        bot_state["bot_monitor_errors"][bot_id] = error
         bot_state["total_bot_errors"] += 1
 
         if current_time < end_time:
