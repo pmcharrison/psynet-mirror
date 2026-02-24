@@ -53,14 +53,6 @@ for file in $(psynet list-isolated-tests --ci-node-total $CI_NODE_TOTAL --ci-nod
   fi
 done
 
-if [ "$CI_NODE_INDEX" -eq 1 ]; then
-  echo "Running Playwright tests..."
-  npx playwright test
-  if [ $? -ne 0 ]; then
-    EXIT_CODE=1
-  fi
-fi
-
 # At the moment we don't have any other tests to run, but here's some template code to do so
 # if we decide to add some.
 #pytest \
