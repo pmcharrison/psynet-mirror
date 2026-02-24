@@ -1402,7 +1402,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     test_duration_minutes = 1
 
-    def performance_test_experiment(self, bot_counts=None):
+    def performance_test_experiment(self, bot_counts=None, bot_log_path=None):
         """Run performance tests for one or more bot count values."""
         os.environ["PASSTHROUGH_ERRORS"] = "True"
 
@@ -1427,7 +1427,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"TEST {i}/{len(bot_counts)}: Running with {n_bots:,} concurrent bots"
             )
 
-            result = self._test_performance(n_bots)
+            result = self._test_performance(n_bots, bot_log_path=bot_log_path)
             all_results.append(result)
 
             if i < len(bot_counts):
@@ -1559,7 +1559,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         logger.info("=" * header_width)
 
-    def _test_performance(self, n):
+    def _test_performance(self, n, bot_log_path):
         """
         Run a load test by maintaining up to n concurrent bot processes for a
         specified duration.
@@ -1580,6 +1580,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         start_time = time.time()
         end_time = start_time + (duration_minutes * 60)
 
+        bot_state["bot_log_file"] = open(bot_log_path, "ab")
+
         # Create bot launcher
         start_new_bot = self._create_bot_launcher(bot_state)
 
@@ -1591,16 +1593,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._show_realtime_status(bot_state, time.time(), end_time, force=True)
 
         # Main monitoring loop
-        self._run_monitoring_loop(n, bot_state, start_new_bot, start_time, end_time)
+        self._run_monitoring_loop(
+            n, bot_state, start_new_bot, start_time, end_time
+        )
         self._clear_realtime_status()
 
-        for bot_id, info in bot_state["bot_exit_failures"].items():
-            msg = f"Bot {bot_id} exited with status {info['exitstatus']}"
-            if info["output"]:
-                msg += "\n  Last output:\n    " + "\n    ".join(info["output"])
-            logger.error(msg)
-        for bot_id, error in bot_state["bot_monitor_errors"].items():
-            logger.error(f"Error monitoring bot {bot_id}: {error}")
+        bot_state["bot_log_file"].close()
 
         # Calculate and report results
         actual_duration = time.time() - start_time
@@ -1640,6 +1638,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "last_status_update": time.time(),
             "status_line_length": 0,
             "bot_ids": set(),
+            "bot_log_file": None,
         }
 
     @staticmethod
@@ -1688,7 +1687,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
 
             try:
-                p = pexpect.spawn(cmd, timeout=None, cwd=None)
+                env = os.environ.copy()
+                # Disable colors in log output, so it can be read with any tool
+                env["PYTHON_COLORS"] = "0"
+                p = pexpect.spawn(cmd, timeout=None, cwd=None, env=env)
                 bot_state["processes"][process_id] = {
                     "process": p,
                     "bot_id": bot_id,
@@ -1697,6 +1699,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "next_start_time": None,
                     "recent_output": [],
                 }
+                if bot_state["bot_log_file"]:
+                    p.logfile_read = bot_state["bot_log_file"]
                 bot_state["total_bots_started"] += 1
                 bot_state["bot_ids"].add(bot_id)
 
