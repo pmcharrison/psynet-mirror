@@ -37,6 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
+    "chardet<6",
     "dallinger[docker]>=12.1.2,<13",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
