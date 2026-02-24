@@ -36,8 +36,7 @@ classifiers = [
 ]
 
 dependencies = [
-    # Babel 2.18.0 drops Jinja gettext extraction; see tests/isolated/translation/test_babel_extraction.py
-    "babel==2.17.0",
+    "babel",
     "dallinger[docker]>=12.1.2,<13",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:

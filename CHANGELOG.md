@@ -8,7 +8,7 @@
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
-- Pinned Babel to 2.17.0 due to a Jinja gettext extraction regression in 2.18.0; see `tests/isolated/translation/test_babel_extraction.py` (author: Peter Harrison)
+- Removed Babel pin to 2.17.0 and corrected pybabel Jinja keyword config (`gettext:1`) so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 
 ## Fixed
