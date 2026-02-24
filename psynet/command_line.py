@@ -3208,12 +3208,10 @@ def _run_performance_test_with_existing_server(
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
 
-    tmp_log = tempfile.NamedTemporaryFile(
+    bot_log_file = tempfile.NamedTemporaryFile(
         delete=False, prefix="psynet_bots_", suffix=".log"
     )
-    bot_log_path = tmp_log.name
-    tmp_log.close()
-    print(f"Bot output log: {bot_log_path}")
+    print(f"Bot output log: {bot_log_file.name}")
 
     try:
         exp = get_experiment()
@@ -3240,8 +3238,9 @@ def _run_performance_test_with_existing_server(
     if duration_minutes:
         exp.test_duration_minutes = duration_minutes
 
-    exp.performance_test_experiment(bot_counts=bot_counts, bot_log_path=bot_log_path)
-    print(f"Bot output log: {bot_log_path}")
+    exp.performance_test_experiment(bot_counts=bot_counts, bot_log_file=bot_log_file)
+    bot_log_file.close()
+    print(f"Bot output log: {bot_log_file.name}")
 
 
 class _OutputTee:

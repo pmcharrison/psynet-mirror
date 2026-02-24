@@ -1402,7 +1402,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     test_duration_minutes = 1
 
-    def performance_test_experiment(self, bot_counts=None, bot_log_path=None):
+    def performance_test_experiment(self, bot_counts=None, bot_log_file=None):
         """Run performance tests for one or more bot count values."""
         os.environ["PASSTHROUGH_ERRORS"] = "True"
 
@@ -1427,7 +1427,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"TEST {i}/{len(bot_counts)}: Running with {n_bots:,} concurrent bots"
             )
 
-            result = self._test_performance(n_bots, bot_log_path=bot_log_path)
+            result = self._test_performance(n_bots, bot_log_file=bot_log_file)
             all_results.append(result)
 
             if i < len(bot_counts):
@@ -1559,7 +1559,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         logger.info("=" * header_width)
 
-    def _test_performance(self, n, bot_log_path):
+    def _test_performance(self, n, bot_log_file):
         """
         Run a load test by maintaining up to n concurrent bot processes for a
         specified duration.
@@ -1577,10 +1577,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # Setup
         initial_state = self._capture_initial_state()
         bot_state = self._initialize_bot_tracking()
+        bot_state["bot_log_file"] = bot_log_file
         start_time = time.time()
         end_time = start_time + (duration_minutes * 60)
-
-        bot_state["bot_log_file"] = open(bot_log_path, "ab")
 
         # Create bot launcher
         start_new_bot = self._create_bot_launcher(bot_state)
@@ -1597,8 +1596,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             n, bot_state, start_new_bot, start_time, end_time
         )
         self._clear_realtime_status()
-
-        bot_state["bot_log_file"].close()
 
         # Calculate and report results
         actual_duration = time.time() - start_time
