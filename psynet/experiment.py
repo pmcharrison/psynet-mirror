@@ -1470,6 +1470,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     result["completed_during_test"],
                     result["bot_errors"],
                     result["total_requests"],
+                    result["request_errors"],
                     avg_response_time,
                     p95_response_time,
                 )
@@ -1502,6 +1503,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 logger.info("  Success rate: N/A")
 
             logger.info(f"  Total requests: {result['total_requests']:,}")
+            logger.info(f"  Error responses: {result['request_errors']:,}")
             if result.get("avg_bot_duration") is not None:
                 logger.info(
                     f"  Average time to complete: {result['avg_bot_duration']:.1f}s"
@@ -1959,6 +1961,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .one()
         )
 
+        request_errors = (
+            db.session.query(func.count(Request.id))
+            .filter(
+                Request.id > initial_state["max_request_id"],
+                Request.endpoint.in_(key_endpoints),
+                Request.status_code >= 400,
+            )
+            .scalar()
+        )
+
         bot_ids = bot_state["bot_ids"]
         bots = Bot.query.filter(Bot.id.in_(list(bot_ids))).all()
         bots_succeeded = bots_failed = bots_incomplete = 0
@@ -2023,6 +2035,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "stddev_response_time": stddev_response_time,
             "avg_bot_duration": avg_bot_duration,
             "avg_init_time": avg_init_time,
+            "request_errors": request_errors,
         }
 
     def _report_test_results(
