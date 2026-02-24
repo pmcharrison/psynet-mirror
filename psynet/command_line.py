@@ -1,3 +1,4 @@
+import functools
 import importlib
 import json
 import os
@@ -386,18 +387,290 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
         _cleanup_exp_directory()
 
 
+def _enable_sql_profile(sql_profile_options, sql_profile_dir):
+    """
+    Enable SQL profiling for CLI commands and configure output location.
+
+    Parameters
+    ----------
+    sql_profile_options : str or None
+        Options string for ``PSYNET_SQL_PROFILE`` (e.g. ``min_ms=5,top_n=50``).
+    sql_profile_dir : str or None
+        Parent directory for SQL profile outputs. When provided, a unique run
+        subdirectory is created inside it. When ``None``, a temporary directory
+        is created.
+
+    Returns
+    -------
+    profile_dir : str
+        Directory where SQL profile JSON files will be written.
+    keep_profile_dir : bool
+        ``True`` when the directory was explicitly provided, otherwise ``False``.
+    """
+    if sql_profile_options:
+        os.environ["PSYNET_SQL_PROFILE"] = sql_profile_options
+    elif not os.getenv("PSYNET_SQL_PROFILE"):
+        os.environ["PSYNET_SQL_PROFILE"] = "1"
+
+    os.environ["PSYNET_SQL_PROFILE_SILENT"] = "1"
+
+    profile_dir, keep_profile_dir = _create_sql_profile_run_dir(sql_profile_dir)
+    os.makedirs(profile_dir, exist_ok=True)
+    os.environ["PSYNET_SQL_PROFILE_DIR"] = profile_dir
+    return profile_dir, keep_profile_dir
+
+
+def _create_sql_profile_run_dir(sql_profile_dir):
+    """Create the SQL profiling output directory for a single command run."""
+    if sql_profile_dir:
+        os.makedirs(sql_profile_dir, exist_ok=True)
+        return tempfile.mkdtemp(prefix="run-", dir=sql_profile_dir), True
+    return tempfile.mkdtemp(prefix="psynet-sql-profile-"), False
+
+
+def _is_ubuntu() -> bool:
+    """Return True if the current OS is Ubuntu (or an Ubuntu derivative)."""
+    try:
+        with open("/etc/os-release") as f:
+            return "ubuntu" in f.read().lower()
+    except Exception:
+        return False
+
+
+def _open_in_browser(url: str) -> None:
+    """Open *url* in a browser, preferring Google Chrome on Ubuntu for local files.
+
+    Snap-confined browsers (e.g. Chromium on Ubuntu) cannot read ``file://``
+    URLs outside their sandbox, so on Ubuntu we try non-snap Google Chrome
+    first.  Falls back to ``click.launch()`` and finally prints the URL for
+    the user to open manually.
+    """
+    if _is_ubuntu():
+        # On Ubuntu the default browser is often snap-confined Chromium which
+        # silently fails to read file:// URLs (ERR_FILE_NOT_FOUND).  Use
+        # non-snap Google Chrome instead.
+        for name in ("google-chrome", "google-chrome-stable"):
+            path = shutil.which(name)
+            if path:
+                try:
+                    subprocess.Popen(
+                        [path, url],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    return
+                except Exception:
+                    continue
+    else:
+        try:
+            click.launch(url)
+            return
+        except Exception:
+            pass
+
+    click.echo(
+        "Could not open the SQL profile report automatically. "
+        "Please open the file URL shown above in your browser."
+    )
+
+
+def _print_sql_profile_aggregation(profile_dir, *, formats, open_html, show_dir):
+    """
+    Print aggregated SQL profiling output for all processes.
+
+    Parameters
+    ----------
+    profile_dir : str
+        Directory containing per-process SQL profile JSON files.
+    formats : set[str]
+        Output formats to generate (e.g. ``{"html", "text"}``).
+    open_html : bool
+        Whether to attempt opening the HTML report in a browser.
+    show_dir : bool
+        Whether to print the location of the raw profile files.
+    """
+    from psynet.sqlalchemy_profiling import (
+        aggregate_sqlalchemy_profiles,
+        format_aggregated_html,
+        format_aggregated_profile,
+        parse_env_settings,
+    )
+
+    settings = parse_env_settings(os.getenv("PSYNET_SQL_PROFILE"))
+    options = settings.get("options", {})
+    top_n = int(options.get("top_n", 20))
+    commit_top_n = int(options.get("commit_top_n", top_n))
+    aggregated = aggregate_sqlalchemy_profiles(profile_dir)
+    if "text" in formats:
+        click.echo("")
+        click.echo("Aggregated SQLAlchemy profile (all processes):")
+        click.echo(
+            format_aggregated_profile(
+                aggregated, top_n=top_n, commit_top_n=commit_top_n
+            )
+        )
+    if "json" in formats:
+        json_path = os.path.join(profile_dir, "sql-profile-aggregated.json")
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump(aggregated, handle, indent=2, sort_keys=True)
+        click.echo(f"SQL profile JSON: {json_path}")
+    if "html" in formats:
+        html_path = os.path.join(profile_dir, "sql-profile-report.html")
+        with open(html_path, "w", encoding="utf-8") as handle:
+            handle.write(
+                format_aggregated_html(
+                    aggregated, top_n=top_n, commit_top_n=commit_top_n
+                )
+            )
+        click.echo(f"SQL profile report: {html_path}")
+        if open_html:
+            _open_in_browser(f"file://{html_path}")
+    if show_dir:
+        click.echo(f"Raw SQL profile files saved to: {profile_dir}")
+
+
+_sql_profile_options = [
+    click.option(
+        "--sql-profile",
+        is_flag=True,
+        help="Enable SQL profiling and aggregate results across processes.",
+    ),
+    click.option(
+        "--sql-profile-options",
+        default=None,
+        help="Options passed to PSYNET_SQL_PROFILE (e.g. 'min_ms=5,top_n=50').",
+    ),
+    click.option(
+        "--sql-profile-dir",
+        default=None,
+        help="Parent directory for SQL profile outputs (creates a unique run subdirectory).",
+    ),
+    click.option(
+        "--sql-profile-no-open",
+        is_flag=True,
+        help="Do not auto-open the SQL profile report in a browser.",
+    ),
+    click.option(
+        "--sql-profile-format",
+        default="html",
+        help=("Comma-separated outputs: html,text,json,none " "(default: html)."),
+    ),
+]
+
+
+def _add_sql_profile_options(func):
+    for option in reversed(_sql_profile_options):
+        func = option(func)
+    return func
+
+
+def _parse_sql_profile_formats(value: str):
+    parts = {part.strip().lower() for part in (value or "").split(",") if part}
+    if not parts:
+        parts = {"html"}
+    if "all" in parts:
+        parts = {"html", "text", "json"}
+    if "none" in parts:
+        return set()
+    unknown = parts - {"html", "text", "json"}
+    if unknown:
+        raise click.UsageError(
+            "Unknown --sql-profile-format values: " + ", ".join(sorted(unknown))
+        )
+    return parts
+
+
+def _should_open_sql_profile(no_open: bool) -> bool:
+    if no_open:
+        return False
+    if os.getenv("CI"):
+        return False
+    return sys.stdout.isatty()
+
+
+def sql_profiled_command(func):
+    """
+    Wrap a Click command to enable aggregated SQL profiling.
+
+    Parameters
+    ----------
+    func : callable
+        Command function with ``sql_profile`` keyword arguments.
+
+    Returns
+    -------
+    callable
+        Wrapped command that enables profiling and prints aggregation.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        profile_dir = None
+        keep_profile_dir = False
+        show_dir = False
+        formats = set()
+        open_html = False
+        try:
+            if kwargs.get("sql_profile"):
+                formats = _parse_sql_profile_formats(kwargs.get("sql_profile_format"))
+                profile_dir, keep_profile_dir = _enable_sql_profile(
+                    kwargs.get("sql_profile_options"), kwargs.get("sql_profile_dir")
+                )
+                show_dir = kwargs.get("sql_profile_dir") is not None
+                open_html = _should_open_sql_profile(
+                    kwargs.get("sql_profile_no_open", False)
+                )
+                if "html" not in formats:
+                    open_html = False
+                if formats.intersection({"html", "json"}):
+                    keep_profile_dir = True
+            return func(*args, **kwargs)
+        finally:
+            if profile_dir:
+                if formats:
+                    _print_sql_profile_aggregation(
+                        profile_dir,
+                        formats=formats,
+                        open_html=open_html,
+                        show_dir=show_dir,
+                    )
+                if not keep_profile_dir:
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+
+    return wrapper
+
+
 @debug.command("local")
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
+@_add_sql_profile_options
 @click.pass_context
-def debug__local(ctx, docker, archive, legacy, no_browsers):
+@sql_profiled_command
+def debug__local(
+    ctx,
+    docker,
+    archive,
+    legacy,
+    no_browsers,
+    sql_profile,
+    sql_profile_options,
+    sql_profile_dir,
+    sql_profile_format,
+    sql_profile_no_open,
+):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
     _run_local(
-        ctx, docker, archive, legacy, no_browsers, mode="debug", context_group=debug
+        ctx,
+        docker,
+        archive,
+        legacy,
+        no_browsers,
+        mode="debug",
+        context_group=debug,
     )
 
 
@@ -2696,6 +2969,8 @@ _test_options["time_factor"] = click.option(
 @_test_options["serial"]
 @_test_options["stagger"]
 @_test_options["time_factor"]
+@_add_sql_profile_options
+@sql_profiled_command
 def test__local(
     existing=False,
     n_bots=None,
@@ -2703,6 +2978,11 @@ def test__local(
     serial=None,
     stagger=None,
     time_factor=None,
+    sql_profile=False,
+    sql_profile_options=None,
+    sql_profile_dir=None,
+    sql_profile_format=None,
+    sql_profile_no_open=False,
 ):
     """
     Test the experiment locally.
@@ -2730,14 +3010,15 @@ def test__local(
 
     if existing:
         exp.test_experiment()
-    else:
-        import pytest
+        return
 
-        exit_code = pytest.main(["test.py"])
-        if exit_code != 0:
-            # Use sys.exit() to ensure that the exit code is propagated to the shell.
-            # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
-            sys.exit(exit_code)
+    import pytest
+
+    exit_code = pytest.main(["test.py"])
+    if exit_code != 0:
+        # Use sys.exit() to ensure that the exit code is propagated to the shell.
+        # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
+        sys.exit(exit_code)
 
 
 @test.command("ssh")

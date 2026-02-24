@@ -3,6 +3,16 @@
 # Unreleased
 
 ## Added
+- Added ``make_next_definition`` method to streamline the implementation of chain experiments.
+  We have done this in a back-compatible manner and left existing dependencies unchanged for now.
+  We have added a demo of the new approach called `chain_trial_maker`.
+  More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
+  the main PsyNet documentation.
+- Added `AGENTS.md` to help Cursor know how to run experiments locally.
+- Added 'getting started' section to documentation.
+- Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
+  to aid with configuring VSCode.
+- Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking (author: Cursor, reviewer: Peter Harrison)
 - Added checks to catch cases where Assets are created in the wrong place.
 - Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
 
@@ -12,6 +22,7 @@
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 
 ## Fixed
+- Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
 - Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
@@ -77,6 +88,7 @@
 - Removed unused `format_hash` and `hash_object` helpers from utils (author: Cursor, reviewer: Peter Harrison)
 - Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
 - Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
+- Removed the PgBadger CI job and related reporting scripts (author: Cursor, reviewer: Peter Harrison)
 
 ## Documentation
 - Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
@@ -165,6 +177,8 @@
 
 ## Documentation
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
+- Added SQLAlchemy profiling tutorial (author: Cursor, reviewer: Peter Harrison)
+- Added docstrings for SQL profiling CLI helpers (author: Cursor, reviewer: Peter Harrison)
 
 # [13.0.5](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.0.5) Release - 2026-02-12
 
