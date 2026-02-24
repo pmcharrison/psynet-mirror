@@ -4,8 +4,7 @@ const net = require("net");
 const path = require("path");
 const readline = require("readline");
 
-const RECRUITMENT_URL_RE =
-  /http:\/\/(?:localhost|127\.0\.0\.1):\d+\/ad\?recruiter=[a-zA-Z0-9]+&assignmentId=[a-zA-Z0-9]+&hitId=[a-zA-Z0-9]+&workerId=[a-zA-Z0-9]+&mode=debug/;
+const URL_IN_TEXT_RE = /https?:\/\/[^\s"'<>]+/g;
 
 const PSYNET_ERROR_SELECTORS = ["#error-text", "#error-text-main"];
 let latestBackendLogPath = null;
@@ -14,6 +13,44 @@ const DEBUG_PORT = Number(process.env.PSYNET_DEBUG_PORT || 5000);
 function parseBoolEnv(name) {
   const value = String(process.env[name] || "").trim().toLowerCase();
   return value === "1" || value === "true" || value === "yes";
+}
+
+function normalizeLogUrl(urlLike) {
+  if (!urlLike) {
+    return null;
+  }
+  // Strip trailing punctuation frequently attached in log lines.
+  return urlLike.replace(/[),.;]+$/, "");
+}
+
+function extractRecruitmentUrlFromLine(line) {
+  if (!line) {
+    return null;
+  }
+  const urls = line.match(URL_IN_TEXT_RE) || [];
+  for (const rawUrl of urls) {
+    const candidate = normalizeLogUrl(rawUrl);
+    try {
+      const parsed = new URL(candidate);
+      if (!/^https?:$/.test(parsed.protocol)) {
+        continue;
+      }
+      if (!["localhost", "127.0.0.1"].includes(parsed.hostname)) {
+        continue;
+      }
+      if (parsed.pathname !== "/ad") {
+        continue;
+      }
+      const requiredParams = ["recruiter", "assignmentId", "hitId", "workerId"];
+      if (!requiredParams.every((param) => parsed.searchParams.has(param))) {
+        continue;
+      }
+      return parsed.toString();
+    } catch (error) {
+      // Ignore malformed tokens from log output.
+    }
+  }
+  return null;
 }
 
 function getPsynetDebugArgs() {
@@ -188,9 +225,9 @@ function startExperiment(experimentDir) {
     if (outputLines.length > 200) {
       outputLines.shift();
     }
-    const match = line.match(RECRUITMENT_URL_RE);
-    if (match) {
-      resolveUrl(match[0]);
+    const recruitmentUrl = extractRecruitmentUrlFromLine(line);
+    if (recruitmentUrl) {
+      resolveUrl(recruitmentUrl);
     }
   };
 
