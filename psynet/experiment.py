@@ -221,6 +221,7 @@ class Request(SQLBase, SQLMixin):
     method = Column(String)
     endpoint = Column(String)
     params = Column(PythonDict, default={})
+    status_code = Column(Integer)
 
     def to_dict(self):
         return {
@@ -870,6 +871,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 method=request.method,
                 endpoint=request.path,
                 params=params,
+                status_code=response.status_code,
             )
             db.session.add(request_obj)
             db.session.commit()
