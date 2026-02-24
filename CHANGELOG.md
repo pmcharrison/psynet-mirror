@@ -32,21 +32,17 @@
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
-- Extended the Playwright audio demo test with detailed page-by-page UI interactions plus audio playback/timing assertions, avoiding direct `nextPage` shortcuts (author: [Peter])
-- Configured Playwright to retain screenshots, traces, and videos for failed tests to improve CI debugging artifacts (author: [Peter])
-- Added visual snapshot assertions to the Playwright audio demo test to catch UI presentation regressions on key audio pages (author: [Peter])
-- Added deterministic font rendering rules to the audio demo CSS to reduce cross-environment visual snapshot differences in CI (author: [Peter])
-- Added deterministic Chromium text-rendering launch flags (including `--disable-font-subpixel-positioning`) for Playwright tests to reduce cross-environment visual snapshot differences while keeping strict thresholds (author: [Peter])
-- Updated the audio preloading visual snapshot to target the controls panel (instead of full body text) to avoid nondeterministic line wrapping while preserving strict screenshot thresholds (author: [Peter])
+- Expanded Playwright demo coverage to perform real UI interactions (controls, recording, playback, event-log assertions) across audio, graphics, imitation_chain_video, static_audio, and video_feature demos (author: Marco).
+- Added Playwright failure diagnostics and artifacts (screenshots, traces, videos, JUnit/HTML reports) and stabilized visual snapshots for the audio demo (author: Peter).
 
 ## Fixed
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
 - Added validation to ensure `ChainTrialMaker` start nodes are instances of `node_class`, preventing silent fallback to base-class behavior when subclasses are expected (author: Cursor; reviewer: Peter Harrison)
-- Fixed Playwright harness experiment lifecycle by enforcing legacy local debug mode and stronger teardown, preventing stale processes from destabilizing repeated runs (author: [Peter])
-- Fixed SliderControl to re-register minimal-interaction gating on `trialPrepare`, so pages that call `psynet.trial.restart()` can re-enable submit/next correctly after slider interaction (author: [Peter])
-- Added richer Playwright next-button timeout diagnostics (prompt text, event tail, control state) to speed up CI failure triage (author: [Peter])
+- Fixed Playwright harness experiment lifecycle and teardown to reduce stale-process/port conflicts, while keeping legacy mode optional via environment flag (author: Peter).
+- Fixed SliderControl to re-register minimal-interaction gating on `trialPrepare`, so pages that call `psynet.trial.restart()` can re-enable submit/next correctly after slider interaction (author: Peter).
+- Added richer Playwright next-button timeout diagnostics (prompt text, event tail, control state) to speed up CI failure triage (author: Peter).
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
 - Fixed `join` to accept list/tuple inputs so `join(pages)` works when assembling timeline components such as `AsyncCodeBlock` (author: Cursor, reviewer: Peter Harrison)
 - Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
