@@ -1443,21 +1443,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         def _format_response_metric(value):
             return f"{value:.3f}" if value is not None else "N/A"
 
-        logger.info("")
-        logger.info("=" * 80)
-        logger.info("📊 PERFORMANCE TEST SUMMARY")
-        logger.info("=" * 80)
-        logger.info("")
-
         # Summary table
-        row_fmt = "│ {:>6} │ {:>10} │ {:>10} │ {:>10} │ {:>12} │ {:>12} │"
-        table_width = 77
+        columns = {
+            "∥ Bots": 6,
+            "Completed": 10,
+            "Bot Errors": 10,
+            "Requests": 10,
+            "Req Errors": 10,
+            "Avg Resp (s)": 12,
+            "95% (s)": 12,
+        }
+        row_fmt = "│" + "".join(f" {{:>{w}}} │" for w in columns.values())
+        table_width = sum(w + 3 for w in columns.values()) - 1
+        header_width = table_width + 2
+
+        logger.info("")
+        logger.info("=" * header_width)
+        logger.info("📊 PERFORMANCE TEST SUMMARY")
+        logger.info("=" * header_width)
+        logger.info("")
         logger.info("┌" + "─" * table_width + "┐")
-        logger.info(
-            row_fmt.format(
-                "∥ Bots", "Completed", "Bot Errors", "Requests", "Avg Resp (s)", "95% (s)"
-            )
-        )
+        logger.info(row_fmt.format(*columns.keys()))
         logger.info("├" + "─" * table_width + "┤")
 
         for result in results:
@@ -1551,7 +1557,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             logger.info("")
 
-        logger.info("=" * 80)
+        logger.info("=" * header_width)
 
     def _test_performance(self, n):
         """
