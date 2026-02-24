@@ -2,6 +2,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
+  clearEntryGatewayPage,
   clickNextAndWait,
   waitForNextEnabled,
   withExperiment
@@ -14,6 +15,22 @@ const SNAPSHOT_OPTIONS = {
   caret: "hide",
   maxDiffPixelRatio: 0.02
 };
+
+/*
+UI coverage checklist:
+- Consent flow: click both initial "I agree" pages.
+- Prompt controls: exercise play/stop/loop/custom-play controls across audio prompt variants.
+- Dynamic UI: validate slider interaction, meter visibility, progress/status text transitions.
+- Recording flow: trigger audio/video recording controls, verify staged blobs are non-empty.
+- Playback flow: replay recorded media and assert playback-related UI/state becomes active.
+- Preloading controls: click all play/stop button pairs and verify activation/deactivation.
+- Event integrity: assert key timing/order constraints for trial, media, and submission events.
+- End-to-end: reach Finish and recruiter-exit URL.
+
+Intentionally not covered:
+- Pixel-perfect animation trajectories and frame-by-frame rendering.
+- Exact audio waveform content or recording semantic quality.
+*/
 
 async function expectPromptContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   await expect(page.locator("#prompt-text")).toContainText(text, {
@@ -29,6 +46,31 @@ async function expectMainBodyContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
 
 async function expectLocatorScreenshot(locator, snapshotName, options = SNAPSHOT_OPTIONS) {
   await expect(locator).toHaveScreenshot(snapshotName, options);
+}
+
+async function clickConsentAgree(page, timeout = STEP_TIMEOUT_MS) {
+  const consentButton = page
+    .locator('button#consent, button:has-text("I agree")')
+    .first();
+  await expect(consentButton).toBeVisible({ timeout });
+  await consentButton.click({ force: true });
+  await page.waitForLoadState("domcontentloaded", { timeout }).catch(() => {});
+}
+
+async function acceptAudioDemoConsents(page, timeout = STEP_TIMEOUT_MS) {
+  await expect(page.locator("#main-body")).toContainText(
+    "We need your consent to proceed",
+    { timeout }
+  );
+  await clickConsentAgree(page, timeout);
+
+  await expect(page.locator("#main-body")).toContainText(
+    "you may be asked to make a voice or video recording",
+    { timeout }
+  );
+  await clickConsentAgree(page, timeout);
+
+  await expect(page.locator("#prompt-text")).toBeVisible({ timeout });
 }
 
 async function getTrialEvents(page) {
@@ -91,6 +133,26 @@ async function getActiveSoundIds(page) {
   });
 }
 
+async function getStagedBlobInfo(page) {
+  return page.evaluate(() => {
+    const staged = psynet?.response?.staged?.blobs || {};
+    const audioBlob = staged.audioRecording || null;
+    const cameraBlob = staged.cameraRecording || null;
+    return {
+      audioExists: !!audioBlob,
+      audioSize:
+        audioBlob && typeof audioBlob.size === "number" ? audioBlob.size : 0,
+      audioType:
+        audioBlob && typeof audioBlob.type === "string" ? audioBlob.type : null,
+      cameraExists: !!cameraBlob,
+      cameraSize:
+        cameraBlob && typeof cameraBlob.size === "number" ? cameraBlob.size : 0,
+      cameraType:
+        cameraBlob && typeof cameraBlob.type === "string" ? cameraBlob.type : null
+    };
+  });
+}
+
 async function waitForSoundActiveState(
   page,
   stimulusId,
@@ -106,6 +168,31 @@ async function waitForSoundActiveState(
       { timeout }
     )
     .toBe(expectedActive);
+}
+
+async function waitForAnyAudioPlayback(
+  page,
+  baselineActiveSounds,
+  timeout = 10000
+) {
+  await expect
+    .poll(
+      async () => {
+        return page.evaluate((baselineCount) => {
+          const activeSoundCount = (psynet?.media?.sounds || []).length;
+          const domAudioPlaying = Array.from(document.querySelectorAll("audio")).some(
+            (audio) =>
+              !audio.paused &&
+              !audio.ended &&
+              Number.isFinite(audio.currentTime) &&
+              audio.currentTime > 0
+          );
+          return activeSoundCount > baselineCount || domAudioPlaying;
+        }, baselineActiveSounds);
+      },
+      { timeout }
+    )
+    .toBe(true);
 }
 
 async function useStandardAudioControls(page, options = {}) {
@@ -138,6 +225,11 @@ async function useStandardAudioControls(page, options = {}) {
 test("audio demo", async ({ page, context }) => {
   const absDir = path.resolve("demos/experiments/audio");
   await withExperiment(page, context, absDir, async (experimentPage) => {
+    // Section 1: clear generic entry page and then clear the two audio-specific consent forms.
+    await clearEntryGatewayPage(experimentPage);
+    await acceptAudioDemoConsents(experimentPage);
+
+    // Section 2: validate default JS synth controls (play, stop, loop toggle).
     await expectPromptContains(
       experimentPage,
       "harmonic complex tone as the timbre"
@@ -145,10 +237,12 @@ test("audio demo", async ({ page, context }) => {
     await useStandardAudioControls(experimentPage, { toggleLoop: true });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 3: validate an instrument page without explicit controls still progresses correctly.
     await expectPromptContains(experimentPage, "select various instrument sounds");
     await expect(experimentPage.locator("#audio-prompt-play")).toHaveCount(0);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 4: validate slider interaction updates UI value and corresponding timeline events.
     await expectPromptContains(
       experimentPage,
       "manipulate individual notes with a slider"
@@ -189,12 +283,14 @@ test("audio demo", async ({ page, context }) => {
     );
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 5: smoke-check additional timbre pages load and remain navigable.
     await expectPromptContains(experimentPage, "Shepard tones");
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     await expectPromptContains(experimentPage, "custom sampler");
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 6: validate auto-play prompt without controls reaches completion via event timing.
     await expectPromptContains(
       experimentPage,
       "simple audio page with one stimulus"
@@ -210,6 +306,7 @@ test("audio demo", async ({ page, context }) => {
     });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 7: validate looping prompt emits multiple completion events before submission.
     await expectPromptContains(experimentPage, "loops the same stimulus");
     await waitForTrialEventCount(experimentPage, "audioFinished: prompt", 2, 45000);
     const loopingAudioEvents = await getTrialEvents(experimentPage);
@@ -225,6 +322,7 @@ test("audio demo", async ({ page, context }) => {
     );
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 8: validate manual-start controls gate trial start and unlock submission.
     await expectPromptContains(experimentPage, "adds audio playback controls");
     await expect(experimentPage.locator("#next-button")).toBeDisabled();
     await expectLocatorScreenshot(
@@ -246,6 +344,7 @@ test("audio demo", async ({ page, context }) => {
     await waitForNextEnabled(experimentPage, 45000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 9: validate customized control surface and explicit replay behavior.
     await expectPromptContains(experimentPage, "customizes the audio controls");
     await expect(experimentPage.locator("#audio-prompt-play")).toContainText(
       "Play again"
@@ -273,6 +372,7 @@ test("audio demo", async ({ page, context }) => {
     );
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 10: validate scripted multi-stimulus playback sequence and enable-order events.
     await expectPromptContains(
       experimentPage,
       "access audio stimuli outside of Audio Prompts"
@@ -311,14 +411,17 @@ test("audio demo", async ({ page, context }) => {
     await waitForNextEnabled(experimentPage, 60000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 11: validate play-window prompt is interactive via standard audio controls.
     await expectPromptContains(experimentPage, "play window");
     await useStandardAudioControls(experimentPage);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 12: validate audio meter page renders the meter UI.
     await expectPromptContains(experimentPage, "shows an audio meter");
     await expect(experimentPage.locator("#audio-meter")).toBeVisible();
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 13: validate audio recording, stored blob metadata, and playback button behavior.
     await expectPromptContains(experimentPage, "lets you record audio");
     const firstRecordButton = experimentPage.locator("#btn-record-record");
     await expect(firstRecordButton).toBeVisible();
@@ -345,19 +448,41 @@ test("audio demo", async ({ page, context }) => {
       firstRecordTrialStarts[firstRecordTrialStarts.length - 1];
     expect(firstRecordDurationMs).toBeGreaterThanOrEqual(2000);
     expect(firstRecordDurationMs).toBeLessThanOrEqual(12000);
-    await expect(experimentPage.locator("#btn-record-play-recording")).toBeEnabled({
+    const firstPlayRecordingButton = experimentPage.locator(
+      "#btn-record-play-recording"
+    );
+    await expect(firstPlayRecordingButton).toBeEnabled({
       timeout: 45000
     });
+    const firstBlobInfo = await getStagedBlobInfo(experimentPage);
+    expect(firstBlobInfo.audioExists).toBe(true);
+    expect(firstBlobInfo.audioSize).toBeGreaterThan(0);
+    if (firstBlobInfo.audioType) {
+      expect(firstBlobInfo.audioType).toContain("audio");
+    }
+    const activeSoundsBeforePlayback = (await getActiveSoundIds(experimentPage)).length;
+    await firstPlayRecordingButton.click();
+    await waitForAnyAudioPlayback(experimentPage, activeSoundsBeforePlayback, 10000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 14: validate audio playback page can be progressed even when autoplay is blocked.
     await expectPromptContains(
       experimentPage,
       "Here's the recording you just made.",
       STEP_TIMEOUT_MS
     );
     await expect(experimentPage.locator("video#prompt")).toHaveCount(0);
+    const playbackAudioPlayButton = experimentPage.locator("#audio-prompt-play");
+    if ((await playbackAudioPlayButton.count()) > 0) {
+      await expect(playbackAudioPlayButton).toBeEnabled({
+        timeout: STEP_TIMEOUT_MS
+      });
+      await playbackAudioPlayButton.click();
+    }
+    await waitForNextEnabled(experimentPage, STEP_TIMEOUT_MS);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 15: validate delayed-record flow captions, timing, and playback availability.
     await expectPromptContains(
       experimentPage,
       "activate the recorder 3 seconds afterwards"
@@ -377,12 +502,28 @@ test("audio demo", async ({ page, context }) => {
       minMs: 700,
       maxMs: 5000
     });
-    await expect(experimentPage.locator("#btn-record-record")).toBeEnabled();
-    await expect(experimentPage.locator("#btn-record-play-recording")).toBeEnabled({
+    const delayedRecordButton = experimentPage.locator("#btn-record-record");
+    const delayedPlayRecordingButton = experimentPage.locator(
+      "#btn-record-play-recording"
+    );
+    await expect(delayedRecordButton).toBeEnabled();
+    await expect(delayedPlayRecordingButton).toBeEnabled({
       timeout: 45000
     });
+    const delayedBlobInfo = await getStagedBlobInfo(experimentPage);
+    expect(delayedBlobInfo.audioExists).toBe(true);
+    expect(delayedBlobInfo.audioSize).toBeGreaterThan(0);
+    if (delayedBlobInfo.audioType) {
+      expect(delayedBlobInfo.audioType).toContain("audio");
+    }
+    const delayedActiveSoundsBeforePlayback = (
+      await getActiveSoundIds(experimentPage)
+    ).length;
+    await delayedPlayRecordingButton.click();
+    await waitForAnyAudioPlayback(experimentPage, delayedActiveSoundsBeforePlayback, 10000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 16: validate combined audio+video recording timing and resulting playback prompt.
     await expectPromptContains(
       experimentPage,
       "plays audio and records video after a couple of seconds"
@@ -415,8 +556,21 @@ test("audio demo", async ({ page, context }) => {
       STEP_TIMEOUT_MS
     );
     await expect(experimentPage.locator("video#prompt")).toBeVisible();
+    await expect
+      .poll(
+        () =>
+          experimentPage.locator("video#prompt").evaluate((video) => {
+            return {
+              hasSource: Boolean(video.currentSrc),
+              duration: Number(video.duration || 0)
+            };
+          }),
+        { timeout: 30000 }
+      )
+      .toMatchObject({ hasSource: true });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 17: validate calibrated meter variants expose expected slider controls.
     await expectPromptContains(
       experimentPage,
       "default meter parameters are designed to work well for music playback"
@@ -436,6 +590,7 @@ test("audio demo", async ({ page, context }) => {
     expect(tappingCalibrationSliderCount).toBeGreaterThanOrEqual(9);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    // Section 18: validate preloading controls are enabled and actually start/stop each asset.
     await expectMainBodyContains(experimentPage, "demonstrates audio preloading");
     const playBierButton = experimentPage.getByRole("button", {
       name: "Play 'bier'."
@@ -455,22 +610,39 @@ test("audio demo", async ({ page, context }) => {
       experimentPage.locator("#audio-preloading-controls"),
       "audio-preloading-controls.png"
     );
-    const preloadingEventsBefore = await getTrialEvents(experimentPage);
-    const bierFinishedCountBefore = getEventTimes(
-      preloadingEventsBefore,
-      "audioFinished: bier"
-    ).length;
-    await playBierButton.click();
-    await waitForSoundActiveState(experimentPage, "bier", true, 10000);
-    await stopBierButton.click();
-    await waitForTrialEventCount(
-      experimentPage,
-      "audioFinished: bier",
-      bierFinishedCountBefore + 1,
-      15000
-    );
-    await waitForSoundActiveState(experimentPage, "bier", false, 15000);
+    const preloadingStimuli = [
+      { label: "bier", id: "bier" },
+      { label: "funk_game_loop", id: "funk_game_loop" },
+      { label: "honey_bee", id: "honey_bee" },
+      { label: "there_it_is", id: "there_it_is" }
+    ];
+    for (const stimulus of preloadingStimuli) {
+      const playButton = experimentPage.getByRole("button", {
+        name: `Play '${stimulus.label}'.`
+      });
+      const stopButton = experimentPage.getByRole("button", {
+        name: `Stop '${stimulus.label}'.`
+      });
+      await expect(playButton).toBeEnabled();
+      await expect(stopButton).toBeEnabled();
+      const preloadingEventsBefore = await getTrialEvents(experimentPage);
+      const finishedCountBefore = getEventTimes(
+        preloadingEventsBefore,
+        `audioFinished: ${stimulus.id}`
+      ).length;
+      await playButton.click();
+      await waitForSoundActiveState(experimentPage, stimulus.id, true, 10000);
+      await stopButton.click();
+      await waitForTrialEventCount(
+        experimentPage,
+        `audioFinished: ${stimulus.id}`,
+        finishedCountBefore + 1,
+        15000
+      );
+      await waitForSoundActiveState(experimentPage, stimulus.id, false, 15000);
+    }
 
+    // Section 19: validate final finish action lands on recruiter exit.
     const finishButton = experimentPage.locator("#Finish");
     const finishIsVisible =
       (await finishButton.count()) > 0 && (await finishButton.first().isVisible());

@@ -2,12 +2,28 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
+  clearEntryGatewayPage,
   clickNextAndWait,
   withExperiment
 } = require("../psynetHarness");
 
 const PROMPT_TIMEOUT_MS = 90000;
 const STEP_TIMEOUT_MS = 120000;
+
+/*
+UI coverage checklist:
+- Shape rendering: assert expected SVG primitives and basic animation state change.
+- GraphicControl clicks: click answerable graphics and verify click registration in debug output.
+- Mixed media: verify synchronized audio prompt behavior and control visibility expectations.
+- Typography/rendering: compare big/small text effective rendered size.
+- Recording flow: verify countdown/status text, auto-start recording, and staged audio blob.
+- Playback flow: click "play recording" control before submission.
+- End-to-end: reach Finish and recruiter-exit URL.
+
+Intentionally not covered:
+- Full animation path validation over time for each SVG element.
+- Exact audio content produced by user/bot recording.
+*/
 
 async function clickUiAndWaitForPageChange(page, locator, timeoutMs = 60000) {
   const oldUuid = await page.evaluate(() => window.pageUuid || null).catch(() => null);
@@ -91,6 +107,14 @@ async function getStagedAudioRecordingInfo(page) {
   });
 }
 
+async function getGraphicAttribute(locator, attribute) {
+  return locator.first().evaluate((el, attr) => {
+    const raw = el.getAttribute(attr);
+    const num = Number.parseFloat(raw ?? "");
+    return Number.isFinite(num) ? num : raw;
+  }, attribute);
+}
+
 async function getRenderedTextHeight(locator) {
   return locator.first().evaluate((el) => {
     const bboxHeight =
@@ -116,6 +140,9 @@ async function getRenderedTextHeight(locator) {
 test("graphics demo", async ({ page, context }) => {
   const absDir = path.resolve("demos/experiments/graphics");
   await withExperiment(page, context, absDir, async (experimentPage) => {
+    // Section 0: clear shared entry gateway page before timeline-specific assertions.
+    await clearEntryGatewayPage(experimentPage);
+
     // Section 1: smoke-check intro page and move into graphics-specific pages.
     await expectMainBodyContains(experimentPage, "Graphic components");
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
@@ -126,6 +153,11 @@ test("graphics demo", async ({ page, context }) => {
     await expect(experimentPage.locator("#main-body svg circle")).toHaveCount(1);
     await expect(experimentPage.locator("#main-body svg ellipse")).toHaveCount(1);
     await expect(experimentPage.locator("#main-body svg rect")).toHaveCount(1);
+    const animatedCircle = experimentPage.locator("#main-body svg circle");
+    const circleCxBefore = await getGraphicAttribute(animatedCircle, "cx");
+    await experimentPage.waitForTimeout(1200);
+    const circleCxAfter = await getGraphicAttribute(animatedCircle, "cx");
+    expect(circleCxAfter).not.toBe(circleCxBefore);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     // Section 3: verify GraphicControl click path through real UI and persisted server answer.
@@ -213,27 +245,14 @@ test("graphics demo", async ({ page, context }) => {
       "trigger timing in the Control object"
     );
     await expect(experimentPage.locator("#btn-record-record")).toHaveCount(0);
+    await expectMainBodyContains(experimentPage, "3");
+    await expectMainBodyContains(experimentPage, "2");
+    await expectMainBodyContains(experimentPage, "1");
+    await expectMainBodyContains(experimentPage, "Sing!");
+    await expectMainBodyContains(experimentPage, "Stop.");
     await waitForTrialEventCount(experimentPage, "responseEnable", 1, 30000);
-    const recordStartCountBefore = getEventTimes(
-      await getTrialEvents(experimentPage),
-      "recordStart"
-    ).length;
-    const recordEndCountBefore = getEventTimes(
-      await getTrialEvents(experimentPage),
-      "recordEnd"
-    ).length;
-    await waitForTrialEventCount(
-      experimentPage,
-      "recordStart",
-      recordStartCountBefore + 1,
-      45000
-    );
-    await waitForTrialEventCount(
-      experimentPage,
-      "recordEnd",
-      recordEndCountBefore + 1,
-      45000
-    );
+    await waitForTrialEventCount(experimentPage, "recordStart", 1, 45000);
+    await waitForTrialEventCount(experimentPage, "recordEnd", 1, 45000);
     const recordedAudio = await getStagedAudioRecordingInfo(experimentPage);
     expect(recordedAudio.exists).toBe(true);
     expect(recordedAudio.size).toBeGreaterThan(0);

@@ -11,6 +11,29 @@ const PSYNET_ERROR_SELECTORS = ["#error-text", "#error-text-main"];
 let latestBackendLogPath = null;
 const DEBUG_PORT = Number(process.env.PSYNET_DEBUG_PORT || 5000);
 
+function parseBoolEnv(name) {
+  const value = String(process.env[name] || "").trim().toLowerCase();
+  return value === "1" || value === "true" || value === "yes";
+}
+
+function getPsynetDebugArgs() {
+  const args = ["debug", "local"];
+
+  // Optional compatibility switch for local troubleshooting. We do not force legacy mode.
+  if (parseBoolEnv("PSYNET_USE_LEGACY_DEBUG")) {
+    args.push("--legacy");
+  }
+
+  // Optional extra flags for local debugging; split on whitespace.
+  const extraFlags = String(process.env.PSYNET_DEBUG_EXTRA_FLAGS || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  args.push(...extraFlags);
+
+  return args;
+}
+
 function isPortInUse(port) {
   return new Promise((resolve) => {
     const socket = new net.Socket();
@@ -98,9 +121,28 @@ function resolvePsynetCommand() {
   return "psynet";
 }
 
-function startExperiment(experimentDir) {
+function resolvePsynetLaunch() {
+  const debugArgs = getPsynetDebugArgs();
   const psynetCmd = resolvePsynetCommand();
-  if (!psynetCmd) {
+
+  // In some environments, psynet debug local is only reliable when launched through uv.
+  if (parseBoolEnv("PSYNET_USE_UV_RUN")) {
+    const uvRunTarget = process.env.PSYNET_UV_RUN_TARGET || psynetCmd;
+    return {
+      cmd: "uv",
+      args: ["run", uvRunTarget, ...debugArgs]
+    };
+  }
+
+  return {
+    cmd: psynetCmd,
+    args: debugArgs
+  };
+}
+
+function startExperiment(experimentDir) {
+  const launch = resolvePsynetLaunch();
+  if (!launch || !launch.cmd) {
     throw new Error("Unable to resolve psynet command.");
   }
   const logsDir = path.join(process.cwd(), "test-results", "psynet-backend-logs");
@@ -110,16 +152,14 @@ function startExperiment(experimentDir) {
   const logStream = fs.createWriteStream(logPath, { flags: "a" });
   latestBackendLogPath = logPath;
 
-  const args = ["debug", "local", "--legacy"];
-  const proc = spawn(psynetCmd, args, {
+  const proc = spawn(launch.cmd, launch.args, {
     detached: true,
     cwd: experimentDir,
     env: {
       ...process.env,
       KEEP_OLD_CHROME_WINDOWS_IN_DEBUG_MODE: "1",
       BROWSER: "false",
-      SKIP_PYTHON_VERSION_CHECK: "1",
-      SKIP_DEPENDENCY_CHECK: "1"
+      SKIP_PYTHON_VERSION_CHECK: "1"
     },
     stdio: ["ignore", "pipe", "pipe"]
   });
@@ -166,6 +206,7 @@ function startExperiment(experimentDir) {
     rejectUrl(
       new Error(
         `Timed out waiting for recruitment URL after ${timeoutMs}ms.\n` +
+          `Command: ${launch.cmd} ${launch.args.join(" ")}\n` +
           `Recent output:\n${tail}\n` +
           `Backend log: ${logPath}`
       )
@@ -181,6 +222,7 @@ function startExperiment(experimentDir) {
       rejectUrl(
         new Error(
           `psynet debug local exited with code ${code}.\n` +
+            `Command: ${launch.cmd} ${launch.args.join(" ")}\n` +
             `Recent output:\n${tail}\n` +
             `Backend log: ${logPath}`
         )
@@ -320,72 +362,6 @@ async function assertNoBackendError(page) {
   );
 }
 
-async function acceptConsents(page) {
-  const deadlineMs = Date.now() + 90000;
-  let settledWithoutConsent = 0;
-
-  while (Date.now() < deadlineMs) {
-    await assertNoBackendError(page);
-    const consent = page.locator("#consent");
-    const consentVisible =
-      (await consent.count()) > 0 && (await consent.first().isVisible());
-
-    if (!consentVisible) {
-      const onConsentPage = /\/consent\b/.test(page.url());
-      if (onConsentPage) {
-        await Promise.race([
-          page.waitForSelector("#consent", { timeout: 2000 }),
-          page.waitForURL((nextUrl) => !/\/consent\b/.test(nextUrl.toString()), {
-            timeout: 2000
-          })
-        ]).catch(() => {});
-        continue;
-      }
-
-      const readyForExperiment = await page
-        .waitForFunction(() => {
-          const hasNext = !!document.getElementById("next-button");
-          const hasMainBody = !!document.getElementById("main-body");
-          const hasPrompt = !!document.getElementById("prompt-text");
-          const hasFinish = !!document.getElementById("Finish");
-          return hasNext || hasMainBody || hasPrompt || hasFinish;
-        }, { timeout: 1500 })
-        .then(() => true)
-        .catch(() => false);
-
-      if (readyForExperiment) {
-        settledWithoutConsent += 1;
-        if (settledWithoutConsent >= 2) {
-          return;
-        }
-      } else {
-        settledWithoutConsent = 0;
-      }
-
-      await page.waitForTimeout(200);
-      continue;
-    }
-
-    settledWithoutConsent = 0;
-    const previousUrl = page.url();
-
-    await consent.first().click({ force: true });
-
-    await Promise.race([
-      page.waitForURL((url) => url.toString() !== previousUrl, { timeout: 15000 }),
-      page.waitForFunction(() => {
-        const button = document.getElementById("consent");
-        return !button || button.offsetParent === null;
-      }, { timeout: 15000 }),
-      page.waitForLoadState("networkidle", { timeout: 15000 })
-    ]).catch(() => {});
-
-    await page.waitForTimeout(300);
-  }
-
-  throw new Error("Timed out while accepting consent pages.");
-}
-
 async function getPageUuid(page) {
   try {
     return await page.evaluate(() => window.pageUuid);
@@ -462,6 +438,20 @@ async function waitForNextEnabled(page, timeoutMs) {
     `Timed out waiting for next button to be enabled after ${timeoutMs}ms.\n` +
       `Debug context: ${JSON.stringify(debugInfo, null, 2)}`
   );
+}
+
+async function clearEntryGatewayPage(page, timeoutMs = 60000) {
+  const gatewayText = page.locator("text=To proceed, click the button below.");
+  if ((await gatewayText.count().catch(() => 0)) === 0) {
+    return false;
+  }
+
+  await gatewayText.first().waitFor({ state: "visible", timeout: timeoutMs });
+  const nextButton = page.getByRole("button", { name: "Next" });
+  await nextButton.waitFor({ state: "visible", timeout: timeoutMs });
+  await nextButton.click({ force: true });
+  await page.waitForLoadState("domcontentloaded", { timeout: timeoutMs }).catch(() => {});
+  return true;
 }
 
 async function getNextButtonDebugInfo(page) {
@@ -545,7 +535,6 @@ async function getPromptText(page) {
 
 async function advanceOneStep(page, options = {}) {
   const timeoutMs = options.timeoutMs ?? 60000;
-  await acceptConsents(page);
 
   const nextButton = page.locator("#next-button");
   if ((await nextButton.count()) === 0) {
@@ -608,7 +597,6 @@ async function withExperiment(page, context, experimentDir, runTest) {
     const url = await urlPromise;
     const runUrl = usingExistingBackend ? withFreshParticipantIds(url) : url;
     experimentPage = await beginExperiment(page, context, runUrl);
-    await acceptConsents(experimentPage);
     return await runTest(experimentPage);
   } finally {
     if (experimentPage && !experimentPage.isClosed()) {
@@ -648,8 +636,6 @@ async function advanceUntilFinish(page, options = {}) {
   const timeoutMs = options.timeoutMs ?? 90000;
 
   for (let i = 0; i < maxSteps; i += 1) {
-    await acceptConsents(page);
-
     const finish = page.locator("#Finish");
     if ((await finish.count()) > 0 && (await finish.isVisible())) {
       await clickFinish(page, timeoutMs);
@@ -714,7 +700,7 @@ module.exports = {
   advanceOneStep,
   assertNoBackendError,
   beginExperiment,
-  acceptConsents,
+  clearEntryGatewayPage,
   clickAudioPlay,
   clickNextAndWait,
   clickRecord,
