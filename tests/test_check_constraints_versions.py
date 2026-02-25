@@ -41,7 +41,7 @@ def versions_match_at_provided_levels(version1, version2):
 def test_check_dallinger_version_in_demo_constraints(demo_directory):
     """
     Checks that the dallinger version in the demo constraints.txt files corresponds to
-    psynet.version.dallinger_recommended_version.
+    psynet.version.recommended_dallinger_major_minor.
 
     Note
     ----
@@ -56,7 +56,7 @@ def test_check_dallinger_version_in_demo_constraints(demo_directory):
     dallinger_version = get_dallinger_version(constraints_path)
 
     assert versions_match_at_provided_levels(
-        dallinger_version, psynet.version.dallinger_recommended_version
+        dallinger_version, psynet.version.recommended_dallinger_major_minor
     )
 
 
