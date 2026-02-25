@@ -555,6 +555,16 @@ msgstr "Abspielen"
 
 #: psynet/modular_page.py
 #, fuzzy
+msgid "Stop"
+msgstr "Stopp"
+
+#: psynet/modular_page.py
+#, fuzzy
+msgid "Loop"
+msgstr "Schleife"
+
+#: psynet/modular_page.py
+#, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr "Sie müssen mindestens eine Antwort auswählen!"
@@ -858,49 +868,14 @@ msgid ""
 "Aborting the experiment is not possible as the experimenter does not allow "
 "it at this time!"
 msgstr ""
-"Das Abbrechen des Experiments ist nicht möglich, da der Experimentator es "
-"derzeit nicht erlaubt!"
-
-#: psynet/templates/abort_not_possible.html
-#, fuzzy, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
-"able to be compensated."
-msgstr ""
-"Sie müssen <strong>mindestens "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> an Belohnung "
-"ansammeln, um entschädigt zu werden."
+"Das Abbrechen des Experiments ist nicht möglich, da der Experimentator es zu"
+" diesem Zeitpunkt nicht erlaubt!"
 
 #: psynet/templates/abort_not_possible.html
 #, fuzzy
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
 msgstr "Siehe unten Informationen zu Ihrer derzeit angesammelten Belohnung."
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Assignment ID"
-msgstr "Aufgaben-ID"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "HIT ID"
-msgstr "HIT-ID"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Accumulated reward"
-msgstr "Gesammelte Belohnung"
-
-#: psynet/templates/abort_not_possible.html
-#: psynet/templates/abort_possible.html
-#, fuzzy
-msgid "Close window"
-msgstr "Fenster schließen"
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -915,9 +890,9 @@ msgid ""
 "If you click the Abort button, the experiment will end early, and you will "
 "be automatically paid the compensation you have earned so far."
 msgstr ""
-"Wenn Sie auf die Abbrechen-Taste klicken, wird das Experiment vorzeitig "
-"beendet und Sie erhalten automatisch die Vergütung, die Sie bisher verdient "
-"haben."
+"Wenn Sie auf die Abbrechen-Schaltfläche klicken, wird das Experiment "
+"vorzeitig beendet und Sie erhalten automatisch die Vergütung, die Sie bisher"
+" verdient haben."
 
 #: psynet/templates/abort_possible.html
 #, fuzzy
@@ -932,12 +907,6 @@ msgstr ""
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Siehe die Informationen unten für Details zu Ihrer Vergütung."
-
-#: psynet/templates/abort_possible.html psynet/templates/ad.html
-#: psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort experiment"
-msgstr "Experiment abbrechen"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -1001,24 +970,11 @@ msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Experiment beginnen"
 
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Click the above button to be compensated in case of an error."
-msgstr ""
-"Klicken Sie auf die obige Schaltfläche, um im Falle eines Fehlers "
-"entschädigt zu werden."
-
 #: psynet/templates/consent.html
 #, fuzzy
 msgctxt "consent"
 msgid "To proceed, click the button below."
 msgstr "Um fortzufahren, klicken Sie auf die Schaltfläche unten."
-
-#: psynet/templates/consent.html psynet/templates/keyboard.html
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Next"
-msgstr "Weiter"
 
 #: psynet/templates/consents/audiovisual_consent.html
 #, fuzzy
@@ -1846,7 +1802,7 @@ msgid ""
 msgstr ""
 "Der Zweck dieses Projekts ist es, zu untersuchen, wie Menschen aus "
 "verschiedenen Teilen der Welt Klänge (z.B. Sprache, Musik) und Bilder (z.B. "
-"Gesichter, Farben) wahrnehmen."
+"Gesichter, Farben) erleben."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -1976,7 +1932,7 @@ msgid ""
 "You are free to refuse to take part, and you may stop taking part at any "
 "time."
 msgstr ""
-"Sie sind frei, die Teilnahme zu verweigern, und Sie können die Teilnahme "
+"Sie sind frei, die Teilnahme abzulehnen, und Sie können die Teilnahme "
 "jederzeit beenden."
 
 #: psynet/templates/consents/main_consent.html
@@ -2040,8 +1996,8 @@ msgid ""
 msgstr ""
 "Wir können einige demografische Daten sammeln (z.B. Alter, Geschlecht, "
 "Wohnsitzland) sowie Informationen über Ihre Lern- und Expositionsgeschichte "
-"(z.B. musikalische Erfahrung mit einem Instrument, Jahre formaler Bildung, "
-"gesprochene Sprachen)."
+"(z.B. musikalische Erfahrung beim Spielen eines Instruments, Jahre formaler "
+"Bildung, gesprochene Sprachen)."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2125,7 +2081,7 @@ msgstr ""
 "Obwohl Forscher Ihren alphanumerischen Code nicht verwenden werden, um Ihre "
 "wahre Identität abzuleiten, könnte dieser Datensatz in einigen Fällen mit "
 "Ihrer öffentlichen Profilseite verknüpft werden, wenn ein Datenverstoß "
-"stattfindet."
+"auftritt."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2164,9 +2120,9 @@ msgid ""
 "In these cases, we will only share fully anonymized data, such as "
 "demographic, aggregated, or extracted data without any personal identifiers."
 msgstr ""
-"In diesen Fällen werden wir nur vollständig anonymisierte Daten wie "
-"demografische, aggregierte oder extrahierte Daten ohne persönliche "
-"Identifikatoren teilen."
+"In diesen Fällen werden wir nur vollständig anonymisierte Daten teilen, wie "
+"z.B. demografische, aggregierte oder extrahierte Daten ohne persönliche "
+"Identifikatoren."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/macros/consent.html
@@ -2237,9 +2193,9 @@ msgstr ""
 "Obwohl es Ihnen möglicherweise nicht direkt zugutekommt, kann diese Studie "
 "der Gesellschaft zugutekommen, indem sie uns hilft zu verstehen, wie "
 "Menschen Informationen aus Ton und Bild ableiten, und möglicherweise "
-"Maschinen zu entwickeln, die unsere Fähigkeiten nachahmen können (z.B. in "
-"der Tonerkennung und Computer Vision) und die Wahrnehmungsfähigkeiten bei "
-"Menschen mit Hör- oder Sehbehinderungen zu verbessern."
+"Maschinen zu entwickeln, die unsere Fähigkeiten replizieren können (z.B. in "
+"der Tonerkennung und Computer Vision) und um die Wahrnehmungsfähigkeiten bei"
+" Menschen zu verbessern, deren Hör- oder Sehvermögen beeinträchtigt ist."
 
 #: psynet/templates/consents/main_consent.html
 #: psynet/templates/consents/voluntary_with_no_compensation_consent.html
@@ -2258,11 +2214,6 @@ msgid ""
 msgstr ""
 "Wenn Sie die Studie zufriedenstellend abschließen, entschädigen wir Sie für "
 "Ihre Teilnahme:"
-
-#: psynet/templates/consents/main_consent.html
-#, fuzzy
-msgid "per hour"
-msgstr "pro Stunde"
 
 #: psynet/templates/consents/main_consent.html
 #, fuzzy
@@ -2297,9 +2248,9 @@ msgid ""
 "and the right to demand the deletion of data in cases of inadmissible data "
 "storage and the right to data portability."
 msgstr ""
-"Sie haben das Recht auf Informationen über die Daten, die im Max-Planck-"
-"Institut über Sie gespeichert sind, das Recht auf Berichtigung ungenauer "
-"Daten und das Recht, die Löschung von Daten im Falle unzulässiger "
+"Sie haben das Recht auf Informationen über die Daten, die über Sie am Max-"
+"Planck-Institut gespeichert sind, das Recht auf Berichtigung ungenauer Daten"
+" und das Recht, die Löschung von Daten im Falle unzulässiger "
 "Datenspeicherung zu verlangen, sowie das Recht auf Datenübertragbarkeit."
 
 #: psynet/templates/consents/main_consent.html
@@ -2475,16 +2426,6 @@ msgstr "Indem Sie die Aufgabe erledigen, helfen Sie der Wissenschaft, danke!"
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
 msgstr "Lucid-Umfrageeinreichung"
-
-#: psynet/templates/keyboard.html
-#, fuzzy
-msgid "Select a keyboard layout:"
-msgstr "Wählen Sie ein Tastaturlayout:"
-
-#: psynet/templates/keyboard.html
-#, fuzzy
-msgid "You did not press all required keys."
-msgstr "Sie haben nicht alle erforderlichen Tasten gedrückt."
 
 #: psynet/templates/macros/browser-detect.html
 #, fuzzy
@@ -2708,11 +2649,6 @@ msgstr "Auf dem Mac: Drücken Sie"
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
-msgid "Do you understand and consent to these terms?"
-msgstr "Verstehen Sie diese Bedingungen und stimmen Sie ihnen zu?"
-
-#: psynet/templates/macros/consent.html
-#, fuzzy
 msgctxt "consent"
 msgid "I agree"
 msgstr "Ich stimme zu"
@@ -2722,11 +2658,6 @@ msgstr "Ich stimme zu"
 msgctxt "consent"
 msgid "No, thank you (return task)"
 msgstr "Nein, danke (Aufgabe zurückgeben)"
-
-#: psynet/templates/macros/consent.html
-#, fuzzy
-msgid "Scroll up/down to see all text"
-msgstr "Scrollen Sie nach oben/unten, um den gesamten Text zu sehen"
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2793,9 +2724,9 @@ msgid ""
 msgstr ""
 "Insbesondere beabsichtigen wir, eine breite Palette von Verhaltensmethoden "
 "zu kombinieren, um die Wege zu charakterisieren, auf denen Menschen aus "
-"unterschiedlichen Hintergründen äußere Bedingungen sowohl im auditiven (z.B."
-" Sprache, Musik) als auch im visuellen (z.B. Gesichter, Farben) Bereich "
-"verinnerlichen und verarbeiten."
+"verschiedenen Hintergründen äußere Bedingungen verinnerlichen und "
+"verarbeiten, sowohl im auditiven (z.B. Sprache, Musik) als auch im visuellen"
+" (z.B. Gesichter, Farben) Bereich."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -2933,8 +2864,8 @@ msgid ""
 "anonymized data, such as demographic, aggregated, or extracted data."
 msgstr ""
 "In diesen Fällen können wir Ihr audiovisuelles Material zusammen mit "
-"vollständig anonymisierten Daten wie demografischen, aggregierten oder "
-"extrahierten Daten teilen."
+"vollständig anonymisierten Daten teilen, wie z.B. demografische, aggregierte"
+" oder extrahierte Daten."
 
 #: psynet/templates/macros/consent.html
 #, fuzzy
@@ -3023,11 +2954,6 @@ msgstr "Wenn Sie nicht einwilligen möchten, schließen Sie bitte diese Seite."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
-msgid "Reset"
-msgstr "Zurücksetzen"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
 msgctxt "audio_meter_calibrate"
 msgid "Sliders"
 msgstr "Schieberegler"
@@ -3075,8 +3001,8 @@ msgid ""
 "The <strong>threshold</strong> parameters determine the point at which the "
 "volume is determined to be 'too high' or 'too low'."
 msgstr ""
-"Die <strong>Schwellenwert</strong>-Parameter bestimmen den Punkt, an dem die"
-" Lautstärke als 'zu hoch' oder 'zu niedrig' angesehen wird."
+"Die <strong>Schwellen</strong>-Parameter bestimmen den Punkt, an dem die "
+"Lautstärke als 'zu hoch' oder 'zu niedrig' angesehen wird."
 
 #: psynet/templates/macros/control.html
 #, fuzzy
@@ -3099,56 +3025,6 @@ msgstr ""
 "Die <strong>Nachrichtendauer</strong>-Parameter bestimmen, wie lange "
 "Warnmeldungen angezeigt werden."
 
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Record from start"
-msgstr "Von Anfang an aufnehmen"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Play all"
-msgstr "Alles abspielen"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Play prompt"
-msgstr "Aufforderung abspielen"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Play recording"
-msgstr "Aufnahme abspielen"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Stop"
-msgstr "Stopp"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Stop"
-msgstr "Stopp"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Loop"
-msgstr "Schleife"
-
-#: psynet/templates/macros/control.html
-#, fuzzy
-msgid "Loop"
-msgstr "Schleife"
-
-#: psynet/templates/macros/prompt.html
-#, fuzzy
-msgid "Video not found"
-msgstr "Video nicht gefunden"
-
-#: psynet/templates/macros/prompt.html
-#, fuzzy
-msgid "Image not found"
-msgstr "Bild nicht gefunden"
-
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgctxt "error"
@@ -3162,9 +3038,9 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"Möglicherweise können Sie das Experiment mit dem <strong>Experiment "
-"abbrechen</strong>-Button <strong>auf der MTurk-Anzeigenseite</strong> "
-"abbrechen."
+"Möglicherweise können Sie das Experiment mit der Schaltfläche "
+"<strong>Experiment abbrechen</strong> <strong>auf der MTurk-"
+"Anzeigenseite</strong> abbrechen."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3174,27 +3050,8 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "Sobald abgebrochen, müssen Sie uns nicht kontaktieren, um die Vergütung zu "
-"erhalten; diese sollte Ihnen automatisch über MTurk einige Minuten später "
-"gutgeschrieben werden."
-
-#: psynet/templates/psynet_error.html
-#, fuzzy, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-"Falls dies nicht der Fall ist, kontaktieren Sie uns bitte unter %(EMAIL)s "
-"und geben Sie die folgenden Informationen an:"
-
-#: psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Error type"
-msgstr "Fehlertyp"
-
-#: psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Worker ID"
-msgstr "Arbeiter-ID"
+"erhalten; diese sollte Ihnen automatisch über MTurk wenige Minuten später "
+"zugewiesen werden."
 
 #: psynet/templates/start.html
 #, fuzzy

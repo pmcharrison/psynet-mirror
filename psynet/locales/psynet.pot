@@ -398,16 +398,16 @@ msgctxt "final_page_unsuccessful"
 msgid "However, you will still be paid for the time you spent already."
 msgstr ""
 
-#: psynet/end.py:176
+#: psynet/end.py:176 psynet/end.py:217
 msgid "You will be redirected."
 msgstr ""
 
-#: psynet/end.py:201
+#: psynet/end.py:212
 msgctxt "final_page_rejected_consent"
 msgid "Consent was rejected."
 msgstr ""
 
-#: psynet/end.py:202
+#: psynet/end.py:213
 msgctxt "final_page_rejected_consent"
 msgid "End of experiment."
 msgstr ""
@@ -418,12 +418,12 @@ msgid ""
 "grant it."
 msgstr ""
 
-#: psynet/experiment.py:1566
+#: psynet/experiment.py:1564
 msgctxt "error-msg"
 msgid "There has been an error and so you are unable to continue, sorry!"
 msgstr ""
 
-#: psynet/experiment.py:1632
+#: psynet/experiment.py:1630
 #, python-brace-format
 msgctxt "mturk_error"
 msgid ""
@@ -431,91 +431,91 @@ msgid ""
 "describe what led to this error."
 msgstr ""
 
-#: psynet/experiment.py:1636
+#: psynet/experiment.py:1634
 msgctxt "mturk_error"
 msgid "Please also quote the following information:"
 msgstr ""
 
-#: psynet/experiment.py:1659
+#: psynet/experiment.py:1657
 msgctxt "prolific_error"
 msgid "Don't worry, your progress has been recorded."
 msgstr ""
 
-#: psynet/experiment.py:1663
+#: psynet/experiment.py:1661
 msgctxt "prolific_error"
 msgid ""
 "To enquire about compensation, please send the researcher a message via the "
 "Prolific website and describe what led to your error."
 msgstr ""
 
-#: psynet/experiment.py:2510
+#: psynet/experiment.py:2508
 msgctxt "timeline_problem"
 msgid ""
 "Synchronization problem detected. Are you running the same experiment in "
 "multiple browser tabs? Please close all other tabs and refresh the page."
 msgstr ""
 
-#: psynet/modular_page.py:171
+#: psynet/modular_page.py:169
 msgid "Play"
 msgstr ""
 
-#: psynet/modular_page.py:172
+#: psynet/modular_page.py:170
 msgid "Stop"
 msgstr ""
 
-#: psynet/modular_page.py:173
+#: psynet/modular_page.py:171
 msgid "Loop"
 msgstr ""
 
-#: psynet/modular_page.py:1013
+#: psynet/modular_page.py:1011
 msgctxt "validation"
 msgid "You need to check at least one answer!"
 msgstr ""
 
-#: psynet/modular_page.py:1093 psynet/modular_page.py:1473
+#: psynet/modular_page.py:1091 psynet/modular_page.py:1471
 msgctxt "validation"
 msgid "You need to select an answer!"
 msgstr ""
 
-#: psynet/modular_page.py:1523
+#: psynet/modular_page.py:1521
 msgctxt "validation"
 msgid "You need to provide a number!"
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1238
+#: psynet/prescreen/__init__.py:1237
 msgctxt "color_blindness_test"
 msgid "Write down the number in the image."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1319
+#: psynet/prescreen/__init__.py:1318
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "We will now perform a quick test to check your ability to perceive colors."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1323
+#: psynet/prescreen/__init__.py:1322
 msgctxt "color_blindness_test_intro_1"
 msgid ""
 "In each trial, you will be presented with an image that contains a number."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1331
+#: psynet/prescreen/__init__.py:1330
 #, python-brace-format
 msgctxt "color_blindness_test_intro_1"
 msgid "This image will disappear after {HIDE_AFTER} seconds."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1337
+#: psynet/prescreen/__init__.py:1336
 msgctxt "color_blindness_test_intro_1"
 msgid "You must enter the number that you see into the text box."
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1766
+#: psynet/prescreen/__init__.py:1765
 msgctxt "Beep-headphone-test"
 msgid "Which sound is different from the other two: 1, 2, or 3?"
 msgstr ""
 
-#: psynet/prescreen/__init__.py:1802
+#: psynet/prescreen/__init__.py:1801
 msgid ""
 "Your task will be to judge <strong>which sound is the odd one out</strong>."
 msgstr ""
@@ -668,7 +668,7 @@ msgid ""
 " you for your understanding. You can now close this browser window."
 msgstr ""
 
-#: psynet/recruiters.py:1284
+#: psynet/recruiters.py:1282
 msgctxt "lucid_error"
 msgid "Redirecting to Lucid Marketplace..."
 msgstr ""
@@ -685,39 +685,9 @@ msgid ""
 "it at this time!"
 msgstr ""
 
-#: psynet/templates/abort_not_possible.html:15
-#, python-format
-msgid ""
-"You have to accumulate <strong>at least "
-"%(CURRENCY)s%(MIN_ACCUMULATED_REWARD_FOR_ABORT)s</strong> of reward to be "
-"able to be compensated."
-msgstr ""
-
 #: psynet/templates/abort_not_possible.html:16
 msgctxt "abort_possible"
 msgid "See below information on your currently accumulated reward."
-msgstr ""
-
-#: psynet/templates/abort_not_possible.html:20
-#: psynet/templates/abort_possible.html:18
-#: psynet/templates/psynet_error.html:23
-msgid "Assignment ID"
-msgstr ""
-
-#: psynet/templates/abort_not_possible.html:21
-#: psynet/templates/abort_possible.html:19
-#: psynet/templates/psynet_error.html:22
-msgid "HIT ID"
-msgstr ""
-
-#: psynet/templates/abort_not_possible.html:22
-#: psynet/templates/abort_possible.html:20
-msgid "Accumulated reward"
-msgstr ""
-
-#: psynet/templates/abort_not_possible.html:26
-#: psynet/templates/abort_possible.html:24
-msgid "Close window"
 msgstr ""
 
 #: psynet/templates/abort_possible.html:9
@@ -740,11 +710,6 @@ msgstr ""
 #: psynet/templates/abort_possible.html:14
 msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
-msgstr ""
-
-#: psynet/templates/abort_possible.html:27 psynet/templates/ad.html:76
-#: psynet/templates/psynet_error.html:29
-msgid "Abort experiment"
 msgstr ""
 
 #: psynet/templates/ad.html:32
@@ -796,18 +761,9 @@ msgctxt "ad"
 msgid "Begin Experiment"
 msgstr ""
 
-#: psynet/templates/ad.html:79 psynet/templates/psynet_error.html:32
-msgid "Click the above button to be compensated in case of an error."
-msgstr ""
-
 #: psynet/templates/consent.html:24
 msgctxt "consent"
 msgid "To proceed, click the button below."
-msgstr ""
-
-#: psynet/templates/consent.html:31 psynet/templates/keyboard.html:113
-#: psynet/templates/macros/control.html:47
-msgid "Next"
 msgstr ""
 
 #: psynet/templates/consents/audiovisual_consent.html:12
@@ -1709,10 +1665,6 @@ msgid ""
 "participation:"
 msgstr ""
 
-#: psynet/templates/consents/main_consent.html:83
-msgid "per hour"
-msgstr ""
-
 #: psynet/templates/consents/main_consent.html:84
 msgctxt "consent-compensation"
 msgid ""
@@ -1860,14 +1812,6 @@ msgstr ""
 #: psynet/templates/exit_recruiter_lucid.html:6
 msgctxt "exit_recruiter_lucid"
 msgid "Lucid Survey Submission"
-msgstr ""
-
-#: psynet/templates/keyboard.html:9
-msgid "Select a keyboard layout:"
-msgstr ""
-
-#: psynet/templates/keyboard.html:105
-msgid "You did not press all required keys."
 msgstr ""
 
 #: psynet/templates/macros/browser-detect.html:171
@@ -2043,10 +1987,6 @@ msgctxt "browser_compatibility"
 msgid "On Mac: Press"
 msgstr ""
 
-#: psynet/templates/macros/consent.html:3
-msgid "Do you understand and consent to these terms?"
-msgstr ""
-
 #: psynet/templates/macros/consent.html:7
 msgctxt "consent"
 msgid "I agree"
@@ -2055,10 +1995,6 @@ msgstr ""
 #: psynet/templates/macros/consent.html:11
 msgctxt "consent"
 msgid "No, thank you (return task)"
-msgstr ""
-
-#: psynet/templates/macros/consent.html:19
-msgid "Scroll up/down to see all text"
 msgstr ""
 
 #: psynet/templates/macros/consent.html:26
@@ -2261,10 +2197,6 @@ msgctxt "consent-consent"
 msgid "If you do not wish to consent, please close this page."
 msgstr ""
 
-#: psynet/templates/macros/control.html:78
-msgid "Reset"
-msgstr ""
-
 #: psynet/templates/macros/control.html:1028
 msgctxt "audio_meter_calibrate"
 msgid "Sliders"
@@ -2317,38 +2249,6 @@ msgid ""
 "messages are displayed for."
 msgstr ""
 
-#: psynet/templates/macros/control.html:1093
-msgid "Record from start"
-msgstr ""
-
-#: psynet/templates/macros/control.html:1096
-msgid "Play all"
-msgstr ""
-
-#: psynet/templates/macros/control.html:1099
-msgid "Play prompt"
-msgstr ""
-
-#: psynet/templates/macros/control.html:1102
-msgid "Play recording"
-msgstr ""
-
-#: psynet/templates/macros/control.html:1105
-msgid "Stop"
-msgstr ""
-
-#: psynet/templates/macros/control.html:1114
-msgid "Loop"
-msgstr ""
-
-#: psynet/templates/macros/prompt.html:136
-msgid "Video not found"
-msgstr ""
-
-#: psynet/templates/macros/prompt.html:219
-msgid "Image not found"
-msgstr ""
-
 #: psynet/templates/psynet_error.html:9
 msgctxt "error"
 msgid "Error!"
@@ -2366,21 +2266,6 @@ msgctxt "mturk_error"
 msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-
-#: psynet/templates/psynet_error.html:19
-#, python-format
-msgid ""
-"If this is not the case, please contact us at %(EMAIL)s quoting the "
-"following information:"
-msgstr ""
-
-#: psynet/templates/psynet_error.html:21
-msgid "Error type"
-msgstr ""
-
-#: psynet/templates/psynet_error.html:24
-msgid "Worker ID"
 msgstr ""
 
 #: psynet/templates/start.html:27
