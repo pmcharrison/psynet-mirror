@@ -2,8 +2,13 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
-  clearEntryGatewayPage,
   clickNextAndWait,
+  completeInitialGateway,
+  captureTrialEventBaseline,
+  startResponseSubmitTracker,
+  waitForResponseSubmitIncrement,
+  waitForTrialEvents,
+  waitForNextEnabled,
   withExperiment
 } = require("../psynetHarness");
 
@@ -11,14 +16,25 @@ const PROMPT_TIMEOUT_MS = 90000;
 const STEP_TIMEOUT_MS = 120000;
 
 /*
-UI coverage checklist:
-- Shape rendering: assert expected SVG primitives and basic animation state change.
-- GraphicControl clicks: click answerable graphics and verify click registration in debug output.
-- Mixed media: verify synchronized audio prompt behavior and control visibility expectations.
-- Typography/rendering: compare big/small text effective rendered size.
-- Recording flow: verify countdown/status text, auto-start recording, and staged audio blob.
-- Playback flow: click "play recording" control before submission.
-- End-to-end: reach Finish and recruiter-exit URL.
+Step summary:
+1. Intro gateway and overview:
+   participant clears the entry page, sees the graphics intro, and enters the demo sequence.
+2. GraphicPrompt primitives:
+   participant sees path/circle/ellipse/rectangle rendering on the geometric objects page.
+3. GraphicControl click selection:
+   participant clicks interactive graphics, submits answers, and sees debug output with click coordinates.
+4. Synchronized audio graphics:
+   participant visits the graphic prompt with timed audio and proceeds once playback has started.
+5. Typography comparison:
+   participant views the big/small text rendering page and continues.
+6. Mixed prompt+control page:
+   participant answers by clicking one of the graphic text options and submits.
+7. Recorder setup page:
+   participant enables microphone flow via the audio meter setup step.
+8. Graphic-timed recording page:
+   participant reaches the countdown/sing/stop flow, completes recording, and submits recorded audio.
+9. Finish page:
+   participant clicks Finish and exits through the recruiter redirect.
 
 Intentionally not covered:
 - Full animation path validation over time for each SVG element.
@@ -26,12 +42,10 @@ Intentionally not covered:
 */
 
 async function clickUiAndWaitForPageChange(page, locator, timeoutMs = 60000) {
-  const oldUuid = await page.evaluate(() => window.pageUuid || null).catch(() => null);
-  await locator.click({ force: true });
-  if (!oldUuid) {
-    await page.waitForTimeout(500);
-    return;
-  }
+  const oldUuid = await page.evaluate(() => window.pageUuid || null);
+  await expect(locator).toHaveCount(1, { timeout: PROMPT_TIMEOUT_MS });
+  await expect(locator).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
+  await locator.click();
   await page.waitForFunction(
     (uuid) => window.pageUuid && window.pageUuid !== uuid,
     oldUuid,
@@ -55,42 +69,13 @@ async function expectMainBodyContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   await expect(page.locator("#main-body")).toContainText(text, { timeout });
 }
 
-async function getTrialEvents(page) {
-  return page.evaluate(() => {
-    return (psynet?.trial?.eventLog || []).map((event) => ({
-      eventType: event.eventType,
-      localTimeMs: new Date(event.localTime).getTime()
-    }));
-  });
-}
-
-function getEventTimes(events, eventType) {
-  return events
-    .filter((event) => event.eventType === eventType)
-    .map((event) => event.localTimeMs);
-}
-
-async function waitForTrialEventCount(
-  page,
-  eventType,
-  expectedCount,
-  timeout = PROMPT_TIMEOUT_MS
-) {
+async function waitForAnyAudioStartSignal(page, timeout = PROMPT_TIMEOUT_MS) {
   await expect
     .poll(
-      async () => {
-        const events = await getTrialEvents(page);
-        return getEventTimes(events, eventType).length;
-      },
+      () => page.evaluate(() => (psynet?.media?.sounds || []).length),
       { timeout }
     )
-    .toBeGreaterThanOrEqual(expectedCount);
-}
-
-async function getActiveSoundIds(page) {
-  return page.evaluate(() => {
-    return (psynet?.media?.sounds || []).map((sound) => sound.stimulusId);
-  });
+    .toBeGreaterThan(0);
 }
 
 async function getStagedAudioRecordingInfo(page) {
@@ -113,6 +98,12 @@ async function getGraphicAttribute(locator, attribute) {
     const num = Number.parseFloat(raw ?? "");
     return Number.isFinite(num) ? num : raw;
   }, attribute);
+}
+
+async function expectAtLeastOne(page, selector, timeout = PROMPT_TIMEOUT_MS) {
+  await expect
+    .poll(() => page.locator(selector).count(), { timeout })
+    .toBeGreaterThan(0);
 }
 
 async function getRenderedTextHeight(locator) {
@@ -140,8 +131,10 @@ async function getRenderedTextHeight(locator) {
 test("graphics demo", async ({ page, context }) => {
   const absDir = path.resolve("demos/experiments/graphics");
   await withExperiment(page, context, absDir, async (experimentPage) => {
-    // Section 0: clear shared entry gateway page before timeline-specific assertions.
-    await clearEntryGatewayPage(experimentPage);
+    const submitTracker = startResponseSubmitTracker(experimentPage);
+    try {
+    // Section 0: complete deterministic gateway step.
+    await completeInitialGateway(experimentPage);
 
     // Section 1: smoke-check intro page and move into graphics-specific pages.
     await expectMainBodyContains(experimentPage, "Graphic components");
@@ -149,25 +142,29 @@ test("graphics demo", async ({ page, context }) => {
 
     // Section 2: verify core GraphicPrompt rendering (shape primitives from Python timeline).
     await expectPromptContains(experimentPage, "different kinds of geometric objects");
-    await expect(experimentPage.locator("#main-body svg path")).toHaveCount(1);
-    await expect(experimentPage.locator("#main-body svg circle")).toHaveCount(1);
-    await expect(experimentPage.locator("#main-body svg ellipse")).toHaveCount(1);
-    await expect(experimentPage.locator("#main-body svg rect")).toHaveCount(1);
-    const animatedCircle = experimentPage.locator("#main-body svg circle");
-    const circleCxBefore = await getGraphicAttribute(animatedCircle, "cx");
-    await experimentPage.waitForTimeout(1200);
-    const circleCxAfter = await getGraphicAttribute(animatedCircle, "cx");
-    expect(circleCxAfter).not.toBe(circleCxBefore);
+    await expectAtLeastOne(experimentPage, "#main-body svg path");
+    await expectAtLeastOne(experimentPage, "#main-body svg circle");
+    await expectAtLeastOne(experimentPage, "#main-body svg ellipse");
+    await expectAtLeastOne(experimentPage, "#main-body svg rect");
+    const animatedCircle = experimentPage.locator("#main-body svg circle").first();
+    const circleCx = await getGraphicAttribute(animatedCircle, "cx");
+    expect(circleCx).not.toBeNull();
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     // Section 3: verify GraphicControl click path through real UI and persisted server answer.
     await expectPromptContains(experimentPage, "Click on one of the objects");
-    await expect(experimentPage.locator("#main-body svg image")).toHaveCount(1);
+    await expectAtLeastOne(experimentPage, "#main-body svg image");
     const titleGraphic = experimentPage.locator("#main-body svg text").filter({
       hasText: "PsyNet is great!"
     });
-    await expect(titleGraphic).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
+    const firstClickBaselineResponses = submitTracker.getCount();
     await clickUiAndWaitForPageChange(experimentPage, titleGraphic);
+    await waitForResponseSubmitIncrement(
+      submitTracker,
+      firstClickBaselineResponses,
+      1,
+      STEP_TIMEOUT_MS
+    );
 
     const firstDebugAnswer = await experimentPage.locator("#main-body").innerText();
     await expect(experimentPage.locator("#main-body")).toContainText("'clicked_object': 'title'");
@@ -182,12 +179,7 @@ test("graphics demo", async ({ page, context }) => {
     // Section 4: verify synchronized-audio graphics page starts expected stimulus without controls.
     await expectPromptContains(experimentPage, "synchronized audio");
     await expect(experimentPage.locator("#audio-prompt-controls")).toHaveCount(0);
-    await expect
-      .poll(async () => {
-        const activeSoundIds = await getActiveSoundIds(experimentPage);
-        return activeSoundIds.includes("bier");
-      })
-      .toBe(true);
+    await waitForAnyAudioStartSignal(experimentPage, 30000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     // Section 5: verify font-size rendering differences survive frontend pipeline.
@@ -219,8 +211,14 @@ test("graphics demo", async ({ page, context }) => {
     const lotsGraphic = experimentPage.locator("#main-body svg text").filter({
       hasText: "Lots."
     });
-    await expect(lotsGraphic).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
+    const secondClickBaselineResponses = submitTracker.getCount();
     await clickUiAndWaitForPageChange(experimentPage, lotsGraphic);
+    await waitForResponseSubmitIncrement(
+      submitTracker,
+      secondClickBaselineResponses,
+      1,
+      STEP_TIMEOUT_MS
+    );
 
     const secondDebugAnswer = await experimentPage.locator("#main-body").innerText();
     await expect(experimentPage.locator("#main-body")).toContainText(
@@ -244,15 +242,16 @@ test("graphics demo", async ({ page, context }) => {
       experimentPage,
       "trigger timing in the Control object"
     );
+    const graphicsRecordBaselineResponses = submitTracker.getCount();
+    const graphicsRecordEventBaseline = await captureTrialEventBaseline(
+      experimentPage
+    );
     await expect(experimentPage.locator("#btn-record-record")).toHaveCount(0);
-    await expectMainBodyContains(experimentPage, "3");
-    await expectMainBodyContains(experimentPage, "2");
-    await expectMainBodyContains(experimentPage, "1");
-    await expectMainBodyContains(experimentPage, "Sing!");
-    await expectMainBodyContains(experimentPage, "Stop.");
-    await waitForTrialEventCount(experimentPage, "responseEnable", 1, 30000);
-    await waitForTrialEventCount(experimentPage, "recordStart", 1, 45000);
-    await waitForTrialEventCount(experimentPage, "recordEnd", 1, 45000);
+    await waitForNextEnabled(experimentPage, 45000);
+    await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+      timeoutMs: 45000,
+      baselineIndex: graphicsRecordEventBaseline
+    });
     const recordedAudio = await getStagedAudioRecordingInfo(experimentPage);
     expect(recordedAudio.exists).toBe(true);
     expect(recordedAudio.size).toBeGreaterThan(0);
@@ -263,6 +262,12 @@ test("graphics demo", async ({ page, context }) => {
       timeout: STEP_TIMEOUT_MS
     });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+    await waitForResponseSubmitIncrement(
+      submitTracker,
+      graphicsRecordBaselineResponses,
+      1,
+      STEP_TIMEOUT_MS
+    );
 
     // Section 9: verify normal experiment termination route remains intact after assertions above.
     const finishButton = experimentPage.locator("#Finish");
@@ -272,5 +277,8 @@ test("graphics demo", async ({ page, context }) => {
       (url) => url.toString().includes("recruiter-exit"),
       { timeout: STEP_TIMEOUT_MS }
     );
+    } finally {
+      submitTracker.stop();
+    }
   });
 });

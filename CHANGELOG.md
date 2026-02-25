@@ -96,6 +96,7 @@
 - Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
 - Fixed `psynet.debugger()` crashing with `RuntimeError: debugpy.listen() has already been called on this process` when hitting the breakpoint more than once per session. `debugpy.listen()` is now only called on the first invocation (author: Frank Höger)
 - Fixed debugger `launch.json` path mapping using `${env:PWD}` which resolved to the wrong directory in multi-root workspaces, causing Cursor to open a nonexistent file instead of the experiment's `experiment.py`. Changed to `${fileDirname}` across all demos, tests, and the experiment template (author: Frank Höger)
+- Hardened Playwright demo tests against flaky timeline transitions by replacing brittle exact-count/transient-text assertions with event/baseline waits and tolerant auto-advance handling across audio, graphics, static_audio, imitation_chain_video, and video_feature specs (author: Marco)
 
 ## Removed
 - Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
@@ -118,6 +119,7 @@
 - Updated translation files (`.po` files) for all supported languages using `psynet translate` to ensure consistency and completeness (author: Frank Höger, reviewer: Peter Harrison)
 - Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
 - Clarified AGENTS setup for Dallinger auth and local environment bootstrapping (author: Cursor, reviewer: Peter Harrison)
+- Added Playwright anti-flakiness guardrails to `AGENTS.md` so future E2E tests use stable selectors/events and auto-advance-safe assertions (author: Marco)
 - Clarified Dallinger fork workflow steps around auth, upstream sync, and pg_config failures (author: Cursor, reviewer: Peter Harrison)
 - Clarified system dependency checks and PostgreSQL password guidance in experiment scripts AGENTS.md (author: Cursor, reviewer: Peter)
 - Streamlined API documentation structure and reduced Sphinx warnings (author: Cursor, reviewer: Peter)

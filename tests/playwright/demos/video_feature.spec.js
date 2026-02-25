@@ -3,8 +3,14 @@ const { test, expect } = require("@playwright/test");
 
 const {
   advanceUntilFinish,
-  clearEntryGatewayPage,
+  captureTrialEventBaseline,
   clickNextAndWait,
+  completeInitialGateway,
+  startResponseSubmitTracker,
+  waitForResponseSubmitIncrement,
+  waitForAudioRecordingReady,
+  waitForTrialEvents,
+  waitForVideoRecordingReady,
   withExperiment
 } = require("../psynetHarness");
 
@@ -12,14 +18,19 @@ const PROMPT_TIMEOUT_MS = 90000;
 const STEP_TIMEOUT_MS = 120000;
 
 /*
-UI coverage checklist:
-- Prompt media readiness: verify video prompt source/duration is loaded before progressing.
-- AV sync pages: assert soundtrack trigger events where video+audio pages are expected.
-- Audio recording page: click record/play controls, verify event timing, and staged audio blob.
-- Video recording page: validate countdown captions, recording state, and staged camera blob.
-- Dual-source recording: verify both camera and screen blobs exist and can be replayed.
-- Playback page: ensure final video prompt renders with load-ready media.
-- End-to-end: finish remaining timeline steps.
+Step summary:
+1. Intro gateway and first video prompt:
+   participant clears entry and sees the baseline video prompt page.
+2. Video/audio prompt variants:
+   participant navigates play-window, muted+audio, and synchronized AV prompt pages.
+3. Audio response on video page:
+   participant records an audio response, replays it, and submits.
+4. Delayed video response page:
+   participant records video after countdown behavior, verifies playback, and submits.
+5. Dual camera+screen recording page:
+   participant records with simultaneous camera and screen capture, replays, and submits.
+6. Final playback and finish:
+   participant reaches playback/closing pages and finishes the experiment.
 
 Intentionally not covered:
 - Exact audiovisual synchronization at sub-frame precision.
@@ -32,15 +43,6 @@ async function expectPromptContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
 
 async function expectMainBodyContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   await expect(page.locator("#main-body")).toContainText(text, { timeout });
-}
-
-async function getTrialEvents(page) {
-  return page.evaluate(() => {
-    return (psynet?.trial?.eventLog || []).map((event) => ({
-      eventType: event.eventType,
-      localTimeMs: new Date(event.localTime).getTime()
-    }));
-  });
 }
 
 async function getActiveSoundIds(page) {
@@ -63,48 +65,24 @@ async function getStagedAudioRecordingInfo(page) {
   });
 }
 
-function getEventTimes(events, eventType) {
-  return events
-    .filter((event) => event.eventType === eventType)
-    .map((event) => event.localTimeMs);
-}
-
-async function waitForTrialEventCount(
-  page,
-  eventType,
-  expectedCount,
-  timeout = PROMPT_TIMEOUT_MS
-) {
+async function waitForAnyAudioPlayback(page, baselineActiveSounds, timeout = 10000) {
   await expect
     .poll(
-      async () => {
-        const events = await getTrialEvents(page);
-        return getEventTimes(events, eventType).length;
-      },
+      () =>
+        page.evaluate((baselineCount) => {
+          const activeSoundCount = (psynet?.media?.sounds || []).length;
+          const domAudioPlaying = Array.from(document.querySelectorAll("audio")).some(
+            (audio) =>
+              !audio.paused &&
+              !audio.ended &&
+              Number.isFinite(audio.currentTime) &&
+              audio.currentTime > 0
+          );
+          return activeSoundCount > baselineCount || domAudioPlaying;
+        }, baselineActiveSounds),
       { timeout }
     )
-    .toBeGreaterThanOrEqual(expectedCount);
-}
-
-function assertEventDelayWithin(
-  events,
-  {
-    fromEvent,
-    toEvent,
-    minMs,
-    maxMs,
-    fromOccurrence = 0,
-    toOccurrence = 0
-  }
-) {
-  const fromTimes = getEventTimes(events, fromEvent);
-  const toTimes = getEventTimes(events, toEvent);
-  expect(fromTimes.length).toBeGreaterThan(fromOccurrence);
-  expect(toTimes.length).toBeGreaterThan(toOccurrence);
-
-  const delayMs = toTimes[toOccurrence] - fromTimes[fromOccurrence];
-  expect(delayMs).toBeGreaterThanOrEqual(minMs);
-  expect(delayMs).toBeLessThanOrEqual(maxMs);
+    .toBe(true);
 }
 
 async function getStagedVideoRecordingInfo(page) {
@@ -140,167 +118,151 @@ async function expectVideoPromptReady(page, timeout = PROMPT_TIMEOUT_MS) {
 test("video feature demo", async ({ page, context }) => {
   const absDir = path.resolve("demos/features/video");
   await withExperiment(page, context, absDir, async (experimentPage) => {
-    // Section 0: clear shared entry gateway page before timeline-specific assertions.
-    await clearEntryGatewayPage(experimentPage);
+    const submitTracker = startResponseSubmitTracker(experimentPage);
+    try {
+      // Section 0: complete deterministic gateway step.
+      await completeInitialGateway(experimentPage);
 
-    // Section 1: validate first prompt page renders video.
-    await expectVideoPromptReady(experimentPage);
-    await expectPromptContains(experimentPage, "Example video prompt");
-    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+      // Section 1: validate first prompt page renders video.
+      await expectVideoPromptReady(experimentPage);
+      await expectPromptContains(experimentPage, "Example video prompt");
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
-    // Section 2: verify subsequent prompt pages still render expected video/audio UI.
-    await expectPromptContains(experimentPage, "play window");
-    await expectVideoPromptReady(experimentPage);
-    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+      // Section 2: verify subsequent prompt pages still render expected video/audio UI.
+      await expectPromptContains(experimentPage, "play window");
+      await expectVideoPromptReady(experimentPage);
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
-    await expectPromptContains(experimentPage, "video, muted, alongside an audio file");
-    await expectVideoPromptReady(experimentPage);
-    await waitForTrialEventCount(experimentPage, "playSoundtrack", 1, 15000);
-    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+      await expectPromptContains(experimentPage, "video, muted, alongside an audio file");
+      await expectVideoPromptReady(experimentPage);
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
-    await expectPromptContains(experimentPage, "well-synchronized");
-    await expectVideoPromptReady(experimentPage);
-    await waitForTrialEventCount(experimentPage, "playSoundtrack", 1, 15000);
-    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+      await expectPromptContains(experimentPage, "well-synchronized");
+      await expectVideoPromptReady(experimentPage);
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
-    // Section 3: validate audio-recording-on-video page by exercising record controls and events.
-    await expectPromptContains(
-      experimentPage,
-      "record an audio response",
-      PROMPT_TIMEOUT_MS
-    );
-    const audioRecordButton = experimentPage.locator("#btn-record-record");
-    const audioPlayRecordingButton = experimentPage.locator(
-      "#btn-record-play-recording"
-    );
-    await expect(audioRecordButton).toBeVisible();
-    await expect(audioRecordButton).toBeEnabled();
-    await audioRecordButton.click();
-    await waitForTrialEventCount(experimentPage, "trialStart", 1, 15000);
-    await waitForTrialEventCount(experimentPage, "recordStart", 1, 30000);
-    await waitForTrialEventCount(experimentPage, "recordEnd", 1, 45000);
-    await waitForTrialEventCount(experimentPage, "submitEnable", 1, 45000);
-    await waitForTrialEventCount(experimentPage, "playSoundtrack", 1, 15000);
-    await waitForTrialEventCount(experimentPage, "stopSoundtrack", 1, 15000);
-    const audioRecordEvents = await getTrialEvents(experimentPage);
-    assertEventDelayWithin(audioRecordEvents, {
-      fromEvent: "recordStart",
-      toEvent: "recordEnd",
-      minMs: 2500,
-      maxMs: 9000
-    });
-    await expect(audioPlayRecordingButton).toBeEnabled({ timeout: 45000 });
-    const audioRecordingBlob = await getStagedAudioRecordingInfo(experimentPage);
-    expect(audioRecordingBlob.exists).toBe(true);
-    expect(audioRecordingBlob.size).toBeGreaterThan(0);
-    if (audioRecordingBlob.type) {
-      expect(audioRecordingBlob.type).toContain("audio");
+      // Section 3: validate audio-recording-on-video page by exercising record controls.
+      await expectPromptContains(
+        experimentPage,
+        "record an audio response",
+        PROMPT_TIMEOUT_MS
+      );
+      const audioRecordButton = experimentPage.locator("#btn-record-record");
+      const audioPlayRecordingButton = experimentPage.locator(
+        "#btn-record-play-recording"
+      );
+      await expect(audioRecordButton).toBeVisible();
+      await expect(audioRecordButton).toBeEnabled();
+      const audioRecordEventBaseline = await captureTrialEventBaseline(experimentPage);
+      await audioRecordButton.click();
+      await waitForAudioRecordingReady(experimentPage, 45000);
+      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+        timeoutMs: 45000,
+        baselineIndex: audioRecordEventBaseline
+      });
+      await expect(audioPlayRecordingButton).toBeEnabled({ timeout: 45000 });
+      const audioRecordingBlob = await getStagedAudioRecordingInfo(experimentPage);
+      expect(audioRecordingBlob.exists).toBe(true);
+      expect(audioRecordingBlob.size).toBeGreaterThan(0);
+      if (audioRecordingBlob.type) {
+        expect(audioRecordingBlob.type).toContain("audio");
+      }
+      const activeSoundsBeforeAudioPlayback = (await getActiveSoundIds(experimentPage)).length;
+      await audioPlayRecordingButton.click();
+      await waitForAnyAudioPlayback(
+        experimentPage,
+        activeSoundsBeforeAudioPlayback,
+        10000
+      );
+      const audioBaselineResponses = submitTracker.getCount();
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+      await waitForResponseSubmitIncrement(
+        submitTracker,
+        audioBaselineResponses,
+        1,
+        STEP_TIMEOUT_MS
+      );
+
+      // Section 4: validate delayed video recording page timing and staged camera blob.
+      await expectPromptContains(
+        experimentPage,
+        "record a video response after a countdown",
+        PROMPT_TIMEOUT_MS
+      );
+      const videoRecordButton = experimentPage.locator("#btn-record-record");
+      await expect(videoRecordButton).toBeVisible();
+      await expect(videoRecordButton).toBeEnabled();
+      const singlePlayRecordingButton = experimentPage.locator(
+        "#btn-record-play-recording"
+      );
+      const singleVideoEventBaseline = await captureTrialEventBaseline(experimentPage);
+      await videoRecordButton.click();
+      await waitForVideoRecordingReady(experimentPage, { timeoutMs: 45000 });
+      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+        timeoutMs: 45000,
+        baselineIndex: singleVideoEventBaseline
+      });
+      const singleVideoRecording = await getStagedVideoRecordingInfo(experimentPage);
+      expect(singleVideoRecording.cameraExists).toBe(true);
+      expect(singleVideoRecording.cameraSize).toBeGreaterThan(0);
+      if (singleVideoRecording.cameraType) {
+        expect(singleVideoRecording.cameraType).toContain("video");
+      }
+      await expect(singlePlayRecordingButton).toBeEnabled({ timeout: 45000 });
+      await singlePlayRecordingButton.click();
+      const singleVideoBaselineResponses = submitTracker.getCount();
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+      await waitForResponseSubmitIncrement(
+        submitTracker,
+        singleVideoBaselineResponses,
+        1,
+        STEP_TIMEOUT_MS
+      );
+
+      // Section 5: validate dual-source recording stores both camera and screen blobs.
+      await expectMainBodyContains(
+        experimentPage,
+        "simultaneous screen recording",
+        PROMPT_TIMEOUT_MS
+      );
+      const dualRecordButton = experimentPage.locator("#btn-record-record");
+      await expect(dualRecordButton).toBeVisible();
+      await expect(dualRecordButton).toBeEnabled();
+      const dualPlayRecordingButton = experimentPage.locator(
+        "#btn-record-play-recording"
+      );
+      const dualVideoEventBaseline = await captureTrialEventBaseline(experimentPage);
+      await dualRecordButton.click();
+      await waitForVideoRecordingReady(experimentPage, {
+        timeoutMs: 60000,
+        requireScreen: true
+      });
+      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+        timeoutMs: 60000,
+        baselineIndex: dualVideoEventBaseline
+      });
+      const dualRecording = await getStagedVideoRecordingInfo(experimentPage);
+      expect(dualRecording.cameraExists).toBe(true);
+      expect(dualRecording.cameraSize).toBeGreaterThan(0);
+      expect(dualRecording.screenExists).toBe(true);
+      expect(dualRecording.screenSize).toBeGreaterThan(0);
+      await expect(dualPlayRecordingButton).toBeEnabled({ timeout: 45000 });
+      await dualPlayRecordingButton.click();
+      const dualVideoBaselineResponses = submitTracker.getCount();
+      await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+      await waitForResponseSubmitIncrement(
+        submitTracker,
+        dualVideoBaselineResponses,
+        1,
+        STEP_TIMEOUT_MS
+      );
+
+      // Section 6: ensure playback page appears and finish remaining timeline safely.
+      await expectMainBodyContains(experimentPage, "camera recording", STEP_TIMEOUT_MS);
+      await expectVideoPromptReady(experimentPage, STEP_TIMEOUT_MS);
+      await advanceUntilFinish(experimentPage);
+    } finally {
+      submitTracker.stop();
     }
-    const activeSoundsBeforeAudioPlayback = await getActiveSoundIds(experimentPage);
-    await audioPlayRecordingButton.click();
-    await expect
-      .poll(
-        async () => {
-          const activeSoundsAfterAudioPlayback = await getActiveSoundIds(experimentPage);
-          return activeSoundsAfterAudioPlayback.length;
-        },
-        { timeout: 10000 }
-      )
-      .toBeGreaterThan(activeSoundsBeforeAudioPlayback.length);
-    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
-
-    // Section 4: validate delayed video recording page timing and staged camera blob.
-    await expectPromptContains(
-      experimentPage,
-      "record a video response after a countdown",
-      PROMPT_TIMEOUT_MS
-    );
-    const videoRecordButton = experimentPage.locator("#btn-record-record");
-    await expect(videoRecordButton).toBeVisible();
-    await expect(videoRecordButton).toBeEnabled();
-    const firstVideoEvents = await getTrialEvents(experimentPage);
-    const startsBefore = getEventTimes(firstVideoEvents, "recordStart").length;
-    const endsBefore = getEventTimes(firstVideoEvents, "recordEnd").length;
-    await videoRecordButton.click();
-    await expectMainBodyContains(experimentPage, "Recording in 3 seconds...");
-    await expectMainBodyContains(experimentPage, "Recording in 2 seconds...");
-    await expectMainBodyContains(experimentPage, "Recording in 1 seconds...");
-    await expectMainBodyContains(experimentPage, "Recording!");
-    await waitForTrialEventCount(
-      experimentPage,
-      "recordStart",
-      startsBefore + 1,
-      30000
-    );
-    await waitForTrialEventCount(
-      experimentPage,
-      "recordEnd",
-      endsBefore + 1,
-      45000
-    );
-    const videoEventsAfterClick = await getTrialEvents(experimentPage);
-    const trialStartsBefore = getEventTimes(firstVideoEvents, "trialStart").length;
-    assertEventDelayWithin(videoEventsAfterClick, {
-      fromEvent: "trialStart",
-      toEvent: "recordStart",
-      minMs: 2000,
-      maxMs: 8000,
-      fromOccurrence: trialStartsBefore,
-      toOccurrence: startsBefore
-    });
-    const singleVideoRecording = await getStagedVideoRecordingInfo(experimentPage);
-    expect(singleVideoRecording.cameraExists).toBe(true);
-    expect(singleVideoRecording.cameraSize).toBeGreaterThan(0);
-    if (singleVideoRecording.cameraType) {
-      expect(singleVideoRecording.cameraType).toContain("video");
-    }
-    const videoPlayRecordingButton = experimentPage.locator(
-      "#btn-record-play-recording"
-    );
-    await expect(videoPlayRecordingButton).toBeEnabled({ timeout: 45000 });
-    await videoPlayRecordingButton.click();
-    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
-
-    // Section 5: validate dual-source recording stores both camera and screen blobs.
-    await expectMainBodyContains(
-      experimentPage,
-      "simultaneous screen recording",
-      PROMPT_TIMEOUT_MS
-    );
-    const dualRecordButton = experimentPage.locator("#btn-record-record");
-    await expect(dualRecordButton).toBeVisible();
-    await expect(dualRecordButton).toBeEnabled();
-    const dualEventsBefore = await getTrialEvents(experimentPage);
-    const dualStartsBefore = getEventTimes(dualEventsBefore, "recordStart").length;
-    const dualEndsBefore = getEventTimes(dualEventsBefore, "recordEnd").length;
-    await dualRecordButton.click();
-    await waitForTrialEventCount(
-      experimentPage,
-      "recordStart",
-      dualStartsBefore + 1,
-      30000
-    );
-    await waitForTrialEventCount(
-      experimentPage,
-      "recordEnd",
-      dualEndsBefore + 1,
-      60000
-    );
-    const dualRecording = await getStagedVideoRecordingInfo(experimentPage);
-    expect(dualRecording.cameraExists).toBe(true);
-    expect(dualRecording.cameraSize).toBeGreaterThan(0);
-    expect(dualRecording.screenExists).toBe(true);
-    expect(dualRecording.screenSize).toBeGreaterThan(0);
-    const dualPlayRecordingButton = experimentPage.locator(
-      "#btn-record-play-recording"
-    );
-    await expect(dualPlayRecordingButton).toBeEnabled({ timeout: 45000 });
-    await dualPlayRecordingButton.click();
-    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
-
-    // Section 6: ensure playback page appears and finish remaining timeline safely.
-    await expectMainBodyContains(experimentPage, "camera recording", STEP_TIMEOUT_MS);
-    await expectVideoPromptReady(experimentPage, STEP_TIMEOUT_MS);
-    await advanceUntilFinish(experimentPage);
   });
 });

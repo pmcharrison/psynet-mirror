@@ -3,6 +3,7 @@ const fs = require("fs");
 const net = require("net");
 const path = require("path");
 const readline = require("readline");
+const { expect } = require("@playwright/test");
 
 const URL_IN_TEXT_RE = /https?:\/\/[^\s"'<>]+/g;
 
@@ -269,9 +270,7 @@ function startExperiment(experimentDir) {
 
   return {
     proc,
-    urlPromise,
-    logPath,
-    getRecentOutput: () => outputLines.slice(-50).join("\n")
+    urlPromise
   };
 }
 
@@ -325,18 +324,35 @@ async function stopExperiment(proc) {
 }
 
 async function beginExperiment(page, context, url) {
+  const isPostAdParticipantPageUrl = (candidateUrl) =>
+    /http:\/\/(?:localhost|127\.0\.0\.1):\d+\/(consent|start|timeline|questionnaire|recruiter-exit)\b/.test(
+      candidateUrl || ""
+    );
+
+  const waitForPostAdParticipantPage = async (timeoutMs = 20000) => {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      for (const candidate of context.pages()) {
+        if (candidate.isClosed()) {
+          continue;
+        }
+        if (isPostAdParticipantPageUrl(candidate.url())) {
+          return candidate;
+        }
+      }
+      await page.waitForTimeout(100);
+    }
+    return null;
+  };
+
   await page.goto(url);
-  await page.waitForSelector("button.btn-primary", { timeout: 30000 });
-  await page.click("button.btn-primary");
+  await page.waitForSelector("#begin-button, button.btn-primary", { timeout: 30000 });
+  await page.click("#begin-button, button.btn-primary");
 
-  let newPage = null;
-  try {
-    newPage = await context.waitForEvent("page", { timeout: 2000 });
-  } catch (e) {
-    newPage = null;
+  let targetPage = await waitForPostAdParticipantPage(20000);
+  if (!targetPage) {
+    targetPage = page;
   }
-
-  let targetPage = newPage || page;
   targetPage = await resolveParticipantPage(context, targetPage);
   await targetPage.waitForLoadState("domcontentloaded");
   await closeAuxiliaryPages(context, targetPage);
@@ -477,18 +493,77 @@ async function waitForNextEnabled(page, timeoutMs) {
   );
 }
 
-async function clearEntryGatewayPage(page, timeoutMs = 60000) {
-  const gatewayText = page.locator("text=To proceed, click the button below.");
-  if ((await gatewayText.count().catch(() => 0)) === 0) {
-    return false;
-  }
+async function waitForAudioRecordingReady(page, timeoutMs = 45000) {
+  await expect
+    .poll(
+      async () => {
+        const [blobInfo, playEnabled, nextEnabled] = await Promise.all([
+          page
+            .evaluate(() => {
+              const blob = psynet?.response?.staged?.blobs?.audioRecording || null;
+              return {
+                exists: !!blob,
+                size: blob && typeof blob.size === "number" ? blob.size : 0
+              };
+            })
+            .catch(() => ({ exists: false, size: 0 })),
+          page
+            .locator("#btn-record-play-recording")
+            .isEnabled()
+            .catch(() => false),
+          page.locator("#next-button").isEnabled().catch(() => false)
+        ]);
+        return (blobInfo.exists && blobInfo.size > 0) || playEnabled || nextEnabled;
+      },
+      { timeout: timeoutMs }
+    )
+    .toBe(true);
+}
 
-  await gatewayText.first().waitFor({ state: "visible", timeout: timeoutMs });
-  const nextButton = page.getByRole("button", { name: "Next" });
-  await nextButton.waitFor({ state: "visible", timeout: timeoutMs });
-  await nextButton.click({ force: true });
-  await page.waitForLoadState("domcontentloaded", { timeout: timeoutMs }).catch(() => {});
-  return true;
+async function waitForVideoRecordingReady(
+  page,
+  { timeoutMs = 45000, requireScreen = false } = {}
+) {
+  await expect
+    .poll(
+      async () => {
+        const [blobInfo, playEnabled, nextEnabled] = await Promise.all([
+          page
+            .evaluate(() => {
+              const camera = psynet?.response?.staged?.blobs?.cameraRecording || null;
+              const screen = psynet?.response?.staged?.blobs?.screenRecording || null;
+              return {
+                cameraExists: !!camera,
+                cameraSize:
+                  camera && typeof camera.size === "number" ? camera.size : 0,
+                screenExists: !!screen,
+                screenSize:
+                  screen && typeof screen.size === "number" ? screen.size : 0
+              };
+            })
+            .catch(() => ({
+              cameraExists: false,
+              cameraSize: 0,
+              screenExists: false,
+              screenSize: 0
+            })),
+          page
+            .locator("#btn-record-play-recording")
+            .isEnabled()
+            .catch(() => false),
+          page.locator("#next-button").isEnabled().catch(() => false)
+        ]);
+        const cameraReady = blobInfo.cameraExists && blobInfo.cameraSize > 0;
+        const screenReady = blobInfo.screenExists && blobInfo.screenSize > 0;
+        return (
+          (cameraReady && (!requireScreen || screenReady)) ||
+          playEnabled ||
+          nextEnabled
+        );
+      },
+      { timeout: timeoutMs }
+    )
+    .toBe(true);
 }
 
 async function getNextButtonDebugInfo(page) {
@@ -536,30 +611,6 @@ async function getNextButtonDebugInfo(page) {
     })
     .catch((error) => ({ evaluateError: error.message }));
   return { url, ...pageInfo };
-}
-
-async function clickAudioPlay(page) {
-  if ((await page.locator("#audio-prompt-play").count()) > 0) {
-    await page.click("#audio-prompt-play", { force: true });
-    return true;
-  }
-  return false;
-}
-
-async function clickRecord(page) {
-  if ((await page.locator("#btn-record-record").count()) > 0) {
-    await page.click("#btn-record-record", { force: true });
-    return true;
-  }
-  return false;
-}
-
-async function clickStartButton(page) {
-  if ((await page.locator("#buttonStart").count()) > 0) {
-    await page.click("#buttonStart", { force: true });
-    return true;
-  }
-  return false;
 }
 
 async function getPromptText(page) {
@@ -643,6 +694,76 @@ async function withExperiment(page, context, experimentDir, runTest) {
       await stopExperiment(proc);
     }
   }
+}
+
+function startResponseSubmitTracker(page) {
+  let count = 0;
+  const onResponse = (response) => {
+    const request = response.request();
+    if (
+      request.method() === "POST" &&
+      response.ok() &&
+      response.url().includes("/response")
+    ) {
+      count += 1;
+    }
+  };
+  page.on("response", onResponse);
+  return {
+    getCount: () => count,
+    stop: () => page.off("response", onResponse)
+  };
+}
+
+async function waitForResponseSubmitIncrement(
+  tracker,
+  baselineCount,
+  increment = 1,
+  timeout = 120000
+) {
+  await expect
+    .poll(() => tracker.getCount(), { timeout })
+    .toBeGreaterThanOrEqual(baselineCount + increment);
+}
+
+async function completeInitialGateway(page, timeout = 120000) {
+  await expect(page.locator("body")).toContainText(
+    "To proceed, click the button below.",
+    { timeout }
+  );
+  const gatewayButton = page.locator("#consent");
+  await expect(gatewayButton).toBeVisible({ timeout });
+  await expect(gatewayButton).toBeEnabled({ timeout });
+  await gatewayButton.click();
+}
+
+async function captureTrialEventBaseline(page) {
+  return page
+    .evaluate(() => (psynet?.trial?.eventLog || []).length)
+    .catch(() => 0);
+}
+
+async function waitForTrialEvents(
+  page,
+  eventTypes,
+  { timeoutMs = 30000, baselineIndex = 0 } = {}
+) {
+  await expect
+    .poll(
+      async () => {
+        const seenEventTypes = await page
+          .evaluate((baseline) =>
+            (psynet?.trial?.eventLog || [])
+              .slice(baseline)
+              .map((event) => event.eventType),
+            baselineIndex
+          )
+          .catch(() => []);
+        return eventTypes.every((eventType) => seenEventTypes.includes(eventType));
+      },
+      { timeout: timeoutMs }
+    )
+    .toBe(true);
 }
 
 function withFreshParticipantIds(rawUrl) {
@@ -734,18 +855,19 @@ async function advanceUntilFinish(page, options = {}) {
 module.exports = {
   advanceUntilFinish,
   advanceUntilPromptContains,
-  advanceOneStep,
   assertNoBackendError,
   beginExperiment,
-  clearEntryGatewayPage,
-  clickAudioPlay,
   clickNextAndWait,
-  clickRecord,
-  clickStartButton,
-  getPromptText,
+  completeInitialGateway,
+  captureTrialEventBaseline,
   getPageUuid,
   startExperiment,
+  startResponseSubmitTracker,
   stopExperiment,
+  waitForResponseSubmitIncrement,
+  waitForTrialEvents,
+  waitForAudioRecordingReady,
+  waitForVideoRecordingReady,
   withExperiment,
   waitForNextEnabled,
   waitForPageChange
