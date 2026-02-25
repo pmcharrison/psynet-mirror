@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import re
+import socket
 import subprocess
 import sys
 import tempfile
@@ -12,7 +13,6 @@ from functools import cached_property
 from pathlib import Path
 from urllib import parse
 
-import boto3
 import dallinger.pytest_dallinger
 import pexpect
 import pexpect.exceptions
@@ -44,6 +44,7 @@ from .command_line import (
 )
 from .data import init_db
 from .experiment import get_experiment, import_local_experiment
+from .media import get_s3_resource
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
 from .trial.main import TrialNetwork
@@ -60,6 +61,77 @@ ci_only = pytest.mark.skipif(
 local_only = pytest.mark.skipif(
     os.environ.get("CI") is not None, reason="This test only runs in local environment"
 )
+
+
+def _get_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return sock.getsockname()[1]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def moto_s3_server():
+    """
+    Start a Moto-backed S3 endpoint for tests.
+
+    This fixture sets `PSYNET_S3_ENDPOINT_URL` so boto3 targets a local S3
+    emulator instead of AWS. It temporarily uses Dallinger's `stub_config`
+    values to create the test bucket, avoiding premature config loading.
+    If a custom endpoint is already provided, it is respected and no Moto
+    server is started.
+    """
+    if os.environ.get("PSYNET_S3_ENDPOINT_URL"):
+        yield
+        return
+
+    try:
+        from moto.server import ThreadedMotoServer
+    except ImportError as exc:
+        raise RuntimeError(
+            "Moto is required for S3 tests. Install with 'pip install moto[server,s3]'."
+        ) from exc
+
+    port = _get_free_port()
+    server = ThreadedMotoServer(ip_address="127.0.0.1", port=port)
+    server.start()
+
+    os.environ["PSYNET_S3_ENDPOINT_URL"] = f"http://127.0.0.1:{port}"
+
+    from dallinger import config as dallinger_config
+    from dallinger.pytest_dallinger import stub_config
+
+    from psynet import asset as psynet_asset
+    from psynet import media as psynet_media
+
+    orig_config = dallinger_config.config
+    # This is a bit awkward: we temporarily swap in Dallinger's stub_config so
+    # the Moto bucket can be created without forcing a full config.load() early.
+    # Loading config here can pick up the wrong experiment directory and trigger
+    # SQLAlchemy re-registration warnings in CI. We tried env-based credentials
+    # and eager config loading, but both led to flaky cross-test interactions.
+    # Using stub_config keeps the behavior consistent with Dallinger's test
+    # defaults while avoiding those side effects.
+    dallinger_config.config = stub_config.__wrapped__()
+    try:
+        # Clear only the S3-related caches so these objects are rebuilt against
+        # the stub_config + Moto endpoint. This is more targeted (and safer)
+        # than clear_all_caches(), which would wipe unrelated caches across the
+        # test session.
+        psynet_media.get_aws_credentials.cache_clear()
+        psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
+
+        client = psynet_asset.get_s3_client()
+        try:
+            client.create_bucket(Bucket="psynet-tests")
+        except client.exceptions.BucketAlreadyOwnedByYou:
+            pass
+    finally:
+        dallinger_config.config = orig_config
+
+    try:
+        yield
+    finally:
+        server.stop()
 
 
 def assert_text(driver, element_id, value):
@@ -799,7 +871,7 @@ def artifact_storage(request, tmp_path):
         # Delete files in the root folder that are older than 4 hours.
         # We apply this 4-hour criterion to avoid conflicting with other tests
         # being run in parallel.
-        s3 = boto3.resource("s3")
+        s3 = get_s3_resource()
         bucket = s3.Bucket(bucket_name)
         prefix = root + "/"
         now = datetime.datetime.now(datetime.timezone.utc)
