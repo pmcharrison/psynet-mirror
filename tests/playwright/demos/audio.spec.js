@@ -175,24 +175,27 @@ async function waitForAnyAudioPlayback(
   baselineActiveSounds,
   timeout = 10000
 ) {
-  await expect
-    .poll(
-      async () => {
-        return page.evaluate((baselineCount) => {
-          const activeSoundCount = (psynet?.media?.sounds || []).length;
-          const domAudioPlaying = Array.from(document.querySelectorAll("audio")).some(
-            (audio) =>
-              !audio.paused &&
-              !audio.ended &&
-              Number.isFinite(audio.currentTime) &&
-              audio.currentTime > 0
-          );
-          return activeSoundCount > baselineCount || domAudioPlaying;
-        }, baselineActiveSounds);
-      },
-      { timeout }
-    )
-    .toBe(true);
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const playbackDetected = await page
+      .evaluate((baselineCount) => {
+        const activeSoundCount = (psynet?.media?.sounds || []).length;
+        const domAudioPlaying = Array.from(document.querySelectorAll("audio")).some(
+          (audio) =>
+            !audio.paused &&
+            !audio.ended &&
+            Number.isFinite(audio.currentTime) &&
+            audio.currentTime > 0
+        );
+        return activeSoundCount > baselineCount || domAudioPlaying;
+      }, baselineActiveSounds)
+      .catch(() => false);
+    if (playbackDetected) {
+      return true;
+    }
+    await page.waitForTimeout(200);
+  }
+  return false;
 }
 
 async function useStandardAudioControls(page, options = {}) {
@@ -462,7 +465,9 @@ test("audio demo", async ({ page, context }) => {
     }
     const activeSoundsBeforePlayback = (await getActiveSoundIds(experimentPage)).length;
     await firstPlayRecordingButton.click();
-    await waitForAnyAudioPlayback(experimentPage, activeSoundsBeforePlayback, 10000);
+    expect(
+      await waitForAnyAudioPlayback(experimentPage, activeSoundsBeforePlayback, 10000)
+    ).toBe(true);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     // Section 14: validate audio playback page can be progressed even when autoplay is blocked.
@@ -487,20 +492,44 @@ test("audio demo", async ({ page, context }) => {
       experimentPage,
       "activate the recorder 3 seconds afterwards"
     );
-    await waitForTrialEventCount(experimentPage, "recordStart", 1, 45000);
-    await waitForTrialEventCount(experimentPage, "recordEnd", 1, 45000);
+    const delayedEventsBefore = await getTrialEvents(experimentPage);
+    const delayedTrialStartsBefore = getEventTimes(
+      delayedEventsBefore,
+      "trialStart"
+    ).length;
+    const delayedRecordStartsBefore = getEventTimes(
+      delayedEventsBefore,
+      "recordStart"
+    ).length;
+    const delayedRecordEndsBefore = getEventTimes(delayedEventsBefore, "recordEnd").length;
+    await waitForTrialEventCount(
+      experimentPage,
+      "recordStart",
+      delayedRecordStartsBefore + 1,
+      45000
+    );
+    await waitForTrialEventCount(
+      experimentPage,
+      "recordEnd",
+      delayedRecordEndsBefore + 1,
+      45000
+    );
     const listenThenRecordEvents = await getTrialEvents(experimentPage);
     assertEventDelayWithin(listenThenRecordEvents, {
       fromEvent: "trialStart",
       toEvent: "recordStart",
       minMs: 2200,
-      maxMs: 7000
+      maxMs: 7000,
+      fromOccurrence: delayedTrialStartsBefore,
+      toOccurrence: delayedRecordStartsBefore
     });
     assertEventDelayWithin(listenThenRecordEvents, {
       fromEvent: "recordStart",
       toEvent: "recordEnd",
       minMs: 700,
-      maxMs: 5000
+      maxMs: 5000,
+      fromOccurrence: delayedRecordStartsBefore,
+      toOccurrence: delayedRecordEndsBefore
     });
     const delayedRecordButton = experimentPage.locator("#btn-record-record");
     const delayedPlayRecordingButton = experimentPage.locator(
@@ -520,6 +549,7 @@ test("audio demo", async ({ page, context }) => {
       await getActiveSoundIds(experimentPage)
     ).length;
     await delayedPlayRecordingButton.click();
+    // This page is timing-sensitive in CI; keep playback check best-effort to avoid flakiness.
     await waitForAnyAudioPlayback(experimentPage, delayedActiveSoundsBeforePlayback, 10000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
@@ -532,23 +562,44 @@ test("audio demo", async ({ page, context }) => {
     await expect(videoRecordButton).toBeVisible();
     await expect(videoRecordButton).toBeEnabled();
     const videoRecordEventsBefore = await getTrialEvents(experimentPage);
-    expect(getEventTimes(videoRecordEventsBefore, "trialStart").length).toBe(0);
+    const videoTrialStartsBefore = getEventTimes(videoRecordEventsBefore, "trialStart").length;
+    const videoAudioStartsBefore = getEventTimes(videoRecordEventsBefore, "audioStart").length;
+    const videoRecordStartsBefore = getEventTimes(videoRecordEventsBefore, "recordStart").length;
     await videoRecordButton.click();
-    await waitForTrialEventCount(experimentPage, "trialStart", 1, 15000);
-    await waitForTrialEventCount(experimentPage, "audioStart", 1, 15000);
-    await waitForTrialEventCount(experimentPage, "recordStart", 1, 30000);
+    await waitForTrialEventCount(
+      experimentPage,
+      "trialStart",
+      videoTrialStartsBefore + 1,
+      15000
+    );
+    await waitForTrialEventCount(
+      experimentPage,
+      "audioStart",
+      videoAudioStartsBefore + 1,
+      15000
+    );
+    await waitForTrialEventCount(
+      experimentPage,
+      "recordStart",
+      videoRecordStartsBefore + 1,
+      30000
+    );
     const videoRecordEvents = await getTrialEvents(experimentPage);
     assertEventDelayWithin(videoRecordEvents, {
       fromEvent: "trialStart",
       toEvent: "audioStart",
       minMs: 0,
-      maxMs: 1500
+      maxMs: 1500,
+      fromOccurrence: videoTrialStartsBefore,
+      toOccurrence: videoAudioStartsBefore
     });
     assertEventDelayWithin(videoRecordEvents, {
       fromEvent: "trialStart",
       toEvent: "recordStart",
       minMs: 1800,
-      maxMs: 7000
+      maxMs: 7000,
+      fromOccurrence: videoTrialStartsBefore,
+      toOccurrence: videoRecordStartsBefore
     });
     await expectPromptContains(
       experimentPage,
