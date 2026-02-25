@@ -1704,7 +1704,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         running = len(
             [p for p in bot_state["processes"].values() if p["next_start_time"] is None]
         )
-        completed = bot_state["total_bots_completed"]
+        completed = bot_state["bots_completed_during_test"]
         errors = bot_state["total_bot_errors"]
 
         # Calculate average response time from recent bot durations
