@@ -12,7 +12,7 @@ from yaspin import yaspin
 
 from psynet.log import bold
 
-# Keep this as a single source of truth for Jinja extraction keyword rules.
+# Keep this as the single source of truth for Jinja extraction keyword rules.
 # - gettext:1 means "extract the first argument as the message"
 # - pgettext:1c,2 means "first argument is context, second is the message"
 # - _:1 means "extract the first argument from _(...)"
