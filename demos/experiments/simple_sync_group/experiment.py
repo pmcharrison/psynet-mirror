@@ -114,12 +114,11 @@ class Exp(psynet.experiment.Experiment):
         for group in first_groups:
             assert group.n_active_participants == 3
             assert len(group.participants) == 3
-            ordered_participants = sorted(group.active_participants, key=lambda p: p.id)
             expected_roles = ROLE_SETS[3]
-            assigned_roles = [
-                participant.var.role for participant in ordered_participants
-            ]
-            assert sorted(assigned_roles) == sorted(expected_roles)
+            assigned_roles = {
+                participant.var.role for participant in group.active_participants
+            }
+            assert assigned_roles == set(expected_roles)
 
         for bot in bots:
             bot.take_page()
@@ -134,12 +133,11 @@ class Exp(psynet.experiment.Experiment):
         assert len(second_groups) == 3
         for group in second_groups:
             assert group.n_active_participants == 2
-            ordered_participants = sorted(group.active_participants, key=lambda p: p.id)
             expected_roles = ROLE_SETS[2]
-            assigned_roles = [
-                participant.var.role for participant in ordered_participants
-            ]
-            assert sorted(assigned_roles) == sorted(expected_roles)
+            assigned_roles = {
+                participant.var.role for participant in group.active_participants
+            }
+            assert assigned_roles == set(expected_roles)
 
         for bot in bots:
             bot.run_to_completion()
