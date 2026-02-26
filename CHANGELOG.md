@@ -3,6 +3,7 @@
 # Unreleased
 
 ## Added
+- Added a new `colour_discrimination` demo using an adaptive 2-up-1-down staircase to estimate hue discrimination thresholds, with a swatch-based 2AFC UI and bot convergence checks (author: [Peter])
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
