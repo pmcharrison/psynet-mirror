@@ -2179,7 +2179,9 @@ Experiment costs
 “\ **wage_per_hour**\ ” parameter in the config to 9 Pounds (Prolific
 recommendation).
 
-"wage_per_hour": 9
+.. code:: python
+
+   "wage_per_hour": 9
 
 2. Run psynet estimate in the terminal and note your estimated
 experiment duration and cost. You should include the cost and the
@@ -2202,15 +2204,18 @@ function, specify the duration using the
 
 - In this case, the prolific parameters must be as follows:
 
-"base_payment": 4.95
+.. code:: python
 
-"prolific_estimated_completion_minutes": 33,
+   "base_payment": 4.95
+   "prolific_estimated_completion_minutes": 33
 
 4. After calculating the base payment, you **MUST** set the
 **“wage_per_hour”** parameter to 0 for the actual Prolific deployment.
 Otherwise, it would cause problems in the payment.
 
-"wage_per_hour": 0
+.. code:: python
+
+   "wage_per_hour": 0
 
 5. Make sure all time_estimates are set appropriately such that
 the overall duration of your experiment (you get it from psynet
@@ -2269,33 +2274,21 @@ S3Storage or a LocalStorage.
 
 Add config params under class Exp(psynet.experiment.Experiment):
 
-config = {
+.. code:: python
 
-\**get_prolific_settings(),
-
-"initial_recruitment_size": 5,
-
-"title": "Put your experiment title here (Chrome browser, ~XX mins)",
-
-"description": “This is speaking experiment that needs to be done in a
-quiet place WITHOUT headphones. You will be asked to imitate rhythms.
-The task will take about 15 minutes.”(Describe the experiment here, and
-clearly mention requirements (e.g., headphones, Chrome browser,
-incognito mode, …))
-
-(You can spread your description over several lines, but check how it
-looks on Prolific, you might need to add or revisit formatting there
-(especially if you use multiple paragraphs))
-
-"Please use incognito mode.",
-
-"contact_email_on_error": "computational.audition@gmail.com",
-
-"organization_name": "Max Planck Institute for Empirical Aesthetics",
-
-"show_reward": False
-
-}
+   config = {
+       **get_prolific_settings(),
+       "initial_recruitment_size": 5,
+       "title": "Put your experiment title here (Chrome browser, ~XX mins)",
+       "description": (
+           "This is a speaking experiment that needs to be done in a quiet "
+           "place WITHOUT headphones. You will be asked to imitate rhythms. "
+           "The task will take about 15 minutes."
+       ),
+       "contact_email_on_error": "computational.audition@gmail.com",
+       "organization_name": "Max Planck Institute for Empirical Aesthetics",
+       "show_reward": False,
+   }
 
 An example for title:
 
@@ -2312,7 +2305,9 @@ min.”
 You may also want to add other config parameters that are optional,
 e.g.,
 
-“force_incognito_mode”: True
+.. code:: python
+
+   "force_incognito_mode": True
 
 Note that we actually recommend force_incognito_mode=True for most
 experiments as it makes sure participants actually use incognito. Not
@@ -2329,31 +2324,21 @@ up config parameters specifically pertaining to Prolific. Add this
 function at the top of your project (you can find
 qualification_prolific.json in the CAP-safe):
 
-def get_prolific_settings():
+.. code:: python
 
-with open("qualification_prolific_en.json", "r") as f:
+   def get_prolific_settings():
+       with open("qualification_prolific_en.json", "r") as f:
+           qualification = json.dumps(json.load(f))
 
-qualification = json.dumps(json.load(f))
-
-return {
-
-"recruiter": "prolific",
-
-"*base_payment*": <base payment in currency>, # this is based on the
-amount of minutes of your survey
-
-"prolific_estimated_completion_minutes": <estimated completion time>,
-
-"prolific_recruitment_config": qualification,
-
-"auto_recruit": False,
-
-"currency": "£",
-
-"wage_per_hour": 0 # note that we do that to make everything in base
-payment.
-
-}
+       return {
+           "recruiter": "prolific",
+           "base_payment": <base payment in currency>,  # based on survey minutes
+           "prolific_estimated_completion_minutes": <estimated completion time>,
+           "prolific_recruitment_config": qualification,
+           "auto_recruit": False,
+           "currency": "£",
+           "wage_per_hour": 0,  # use base payment only
+       }
 
 **Note:** for the time being until we change PsyNet we need to use
 wage_per_hour= 0 which means we override the bonus payment system. This
@@ -2621,7 +2606,9 @@ Experiment costs
    per country can be found at this
    `link <https://docs.google.com/spreadsheets/d/1Yl-eEsLTxFAVyZECZfRQnDlYM8ykY9xlJpnsTpi5oKQ/edit#gid=0>`__.
 
-"wage_per_hour": 6.5
+.. code:: python
+
+   "wage_per_hour": 6.5
 
 2) Make sure all time_estimates are set appropriately such that the
    overall duration of your experiment (you get from psynet estimate)
@@ -3163,7 +3150,9 @@ Experiment costs
 1) We typically pay 15 Euros per hour. So adjust the
       “\ **wage_per_hour**\ ” parameter in the config accordingly.
 
-"wage_per_hour": 15
+.. code:: python
+
+   "wage_per_hour": 15
 
 2) Make sure all time_estimates are set appropriately such that the
       overall duration of your experiment (you get from psynet estimate)
@@ -3196,27 +3185,21 @@ S3Storage or a LocalStorage.
 Add config params under class Exp(psynet.experiment.Experiment) and set
 recruiter as 'lab-recruiter':
 
-config = {
+.. code:: python
 
-“recruiter”: "lab-recruiter”,
-
-"initial_recruitment_size": 5,
-
-"title": "Put your experiment title here (Chrome browser, ~XX mins)",
-
-"description": “This is speaking experiment that needs to be done in a
-quiet place WITHOUT headphones. You will be asked to imitate rhythms.
-The task will take about 15 minutes.”(Describe the experiment here, and
-clearly mention requirements (e.g., headphones, Chrome browser,
-incognito mode, …)),
-
-"contact_email_on_error": "computational.audition@gmail.com",
-
-"organization_name": "Max Planck Institute for Empirical Aesthetics",
-
-"show_reward": False
-
-}
+   config = {
+       "recruiter": "lab-recruiter",
+       "initial_recruitment_size": 5,
+       "title": "Put your experiment title here (Chrome browser, ~XX mins)",
+       "description": (
+           "This is a speaking experiment that needs to be done in a quiet "
+           "place WITHOUT headphones. You will be asked to imitate rhythms. "
+           "The task will take about 15 minutes."
+       ),
+       "contact_email_on_error": "computational.audition@gmail.com",
+       "organization_name": "Max Planck Institute for Empirical Aesthetics",
+       "show_reward": False,
+   }
 
 An example for title:
 
