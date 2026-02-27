@@ -12,16 +12,16 @@ Configuration keys (config.txt):
 import json
 from datetime import datetime, timezone
 
-import psynet.experiment
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route
 from dallinger.experiment_server.utils import success_response
-from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.participant import Participant
 from sqlalchemy import Column, ForeignKey, Integer, String
 
+import psynet.experiment
+from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.page import InfoPage
+from psynet.participant import Participant
 from psynet.timeline import Page, PageMaker, Timeline
 
 GLOBAL_CHANNEL = "chatrooms"
@@ -57,7 +57,7 @@ class ChatroomPage(Page):
 
         super().__init__(
             label="chatroom",
-            template_path='templates/chatroom-page.html',
+            template_path="templates/chatroom-page.html",
             js_vars={
                 "chatroom_room_id": room_id,
                 "chatroom_global_channel": global_channel,
@@ -68,23 +68,31 @@ class ChatroomPage(Page):
             **kwargs,
         )
 
+    def get_bot_response(self, experiment, bot):
+        return None
 
-def _room_selection_page():
-    config = get_config()
-    return Page(
-        label="choose_chatroom",
-        time_estimate=15,
-        template_path='templates/room-selection.html',
-        js_vars={
-            "num_chatrooms": config.get("num_chatrooms", 3),
-            "max_occupancy": config.get("chatroom_max_occupancy", None),
-            "chatroom_global_channel": GLOBAL_CHANNEL,
-        },
-        # save_answer="current_room" writes the chosen value to
-        # participant.var.current_room, which the next PageMaker reads to
-        # configure ChatroomPage.
-        save_answer="current_room",
-    )
+
+class RoomSelectionPage(Page):
+
+    def __init__(self):
+        config = get_config()
+        super().__init__(
+            label="choose_chatroom",
+            time_estimate=15,
+            template_path="templates/room-selection.html",
+            js_vars={
+                "num_chatrooms": config.get("num_chatrooms", 3),
+                "max_occupancy": config.get("chatroom_max_occupancy", None),
+                "chatroom_global_channel": GLOBAL_CHANNEL,
+            },
+            # save_answer="current_room" writes the chosen value to
+            # participant.var.current_room, which the next PageMaker reads to
+            # configure ChatroomPage.
+            save_answer="current_room",
+        )
+
+    def get_bot_response(self, experiment, bot):
+        return "0"
 
 
 class Exp(psynet.experiment.Experiment):
@@ -105,12 +113,16 @@ class Exp(psynet.experiment.Experiment):
         config.register("chatroom_show_history", bool)
 
     timeline = Timeline(
-        PageMaker(_room_selection_page, time_estimate=15),
+        PageMaker(RoomSelectionPage, time_estimate=15),
         PageMaker(
             lambda experiment, participant: ChatroomPage(
                 room_id=participant.var.current_room,
                 global_channel=GLOBAL_CHANNEL,
-                room_label=f"Room {int(participant.var.current_room) + 1}" if participant.var.current_room else None,
+                room_label=(
+                    f"Room {int(participant.var.current_room) + 1}"
+                    if participant.var.current_room
+                    else None
+                ),
                 show_history=experiment.chatroom_show_history,
             ),
             time_estimate=10,
@@ -145,11 +157,13 @@ class Exp(psynet.experiment.Experiment):
         delivers client messages, but initiated server-side.
         """
         self.publish_to_subscribers(
-            json.dumps({
-                "type": "occupancy_update",
-                "rooms": self._compute_occupancy(),
-                "max_occupancy": get_config().get("chatroom_max_occupancy", None),
-            })
+            json.dumps(
+                {
+                    "type": "occupancy_update",
+                    "rooms": self._compute_occupancy(),
+                    "max_occupancy": get_config().get("chatroom_max_occupancy", None),
+                }
+            )
         )
 
     def receive_message(
@@ -207,11 +221,13 @@ class Exp(psynet.experiment.Experiment):
                     self._broadcast_occupancy()
 
             elif msg_type == "message":
-                db.session.add(ChatMessage(
-                    room_id=room_id,
-                    content=msg.get("content", ""),
-                    sender_id=participant.id,
-                ))
+                db.session.add(
+                    ChatMessage(
+                        room_id=room_id,
+                        content=msg.get("content", ""),
+                        sender_id=participant.id,
+                    )
+                )
                 db.session.commit()
 
         elif channel_name == "dallinger_control":
@@ -247,8 +263,7 @@ class Exp(psynet.experiment.Experiment):
                 "timestamp": m.creation_time.isoformat() if m.creation_time else None,
             }
             for m in (
-                ChatMessage.query
-                .filter_by(failed=False, room_id=room_id)
+                ChatMessage.query.filter_by(failed=False, room_id=room_id)
                 .order_by(ChatMessage.creation_time)
                 .all()
             )

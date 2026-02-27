@@ -3,6 +3,9 @@
 # Unreleased
 
 ## Added
+- Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
+  Dallinger's WebSocket relay, with server-side message persistence, occupancy
+  broadcasts, and a REST endpoint for chat history.
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
