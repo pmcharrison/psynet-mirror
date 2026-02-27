@@ -127,3 +127,43 @@ When you make changes to the PsyNet codebase:
    If pre-commit is not installed, install it first with `pip3 install pre-commit`.
 
 3. **Commit and push**: Commit all changes including CHANGELOG updates and any pre-commit formatting fixes.
+
+## Cursor Cloud specific instructions
+
+### Services
+
+PsyNet depends on **PostgreSQL** and **Redis** at runtime. Both must be started
+before running experiments or most tests:
+
+```bash
+sudo pg_ctlcluster 16 main start
+sudo redis-server --daemonize yes
+```
+
+The PostgreSQL database uses user `dallinger`, password `dallinger`,
+databases `dallinger` and `dallinger-import`.
+
+### Running experiments
+
+Run a demo experiment with `psynet debug local` from the experiment directory
+(see `psynet/resources/experiment_scripts/AGENTS.md` for details).
+The experiment server starts on `http://127.0.0.1:5000`.
+
+### Running tests
+
+Isolated tests (`tests/isolated/`) must be run **one file per pytest session**
+because each file loads a different experiment and SQLAlchemy state leaks
+between them. Example: `pytest tests/isolated/test_timeline.py -v`.
+The CI script `run-ci-tests.sh` handles this automatically.
+
+### Linting
+
+Run `pre-commit run --all-files` (black, isort, flake8).
+Activate `.venv` and ensure `PATH` includes `/home/ubuntu/.local/bin`.
+
+### Dallinger editable install
+
+Dallinger is cloned to `~/Dallinger` and installed in editable mode. If you
+modify Dallinger, make changes there and push via the fork (see instructions
+above). After `uv pip install -e '.[dev,slack]'`, re-run
+`uv pip install -e ~/Dallinger` to restore the editable Dallinger install.
