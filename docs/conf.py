@@ -97,10 +97,7 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 # html_theme = 'alabaster'
-html_theme = "furo"
-html_theme_path = [
-    "_themes",
-]
+html_theme = "pydata_sphinx_theme"
 
 # Theme options are theme-specific and customize the look and feel of a
 # theme further.  For a list of options available for each theme, see the
@@ -179,9 +176,15 @@ texinfo_documents = [
 # This will take the user to a web IDE where they can propose changes
 # to the documentation page.
 html_theme_options = {
-    "source_repository": "https://gitlab.com/PsyNetDev/PsyNet/",
-    "source_branch": "master",
-    "source_directory": "docs/",
+    "github_url": "https://gitlab.com/PsyNetDev/PsyNet/",
+    "use_edit_page_button": True,
+}
+
+html_context = {
+    "github_user": "PsyNetDev",
+    "github_repo": "PsyNet",
+    "github_version": "master",
+    "doc_path": "docs",
 }
 
 language_dict = get_language_dict("en")
