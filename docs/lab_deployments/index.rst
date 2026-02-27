@@ -1,9 +1,5 @@
-CAP Deploying and Running Online Experiments
+Deploying and Running Online Experiments
 =============================================
-
-.. contents:: Table of Contents
-   :local:
-   :depth: 2
 
 Getting Started
 ===============
@@ -14,29 +10,28 @@ Important Notice:
 This document provides a step-by-step guide for deploying experiments.
 To ensure a smooth deployment process, **certain sections are mandatory
 for all users**, while others are specific to the recruiter you choose
-(Prolific, CINT, or CAP Recruiter).
+(Prolific, CINT, or Lab Recruiter).
 
-**How to Use This Document**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to Use This Document
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-| 🔴 **(Must Do)** → Sections that are essential for everyone. These
-  include prerequisites, setting up servers, and general deployment
-  steps. Skipping these may lead to errors.
-| 🔹 **(Optional)** → Sections that depend on your chosen recruiter. You
-  can skip parts that do not apply to your deployment method.
+- 🛑 **Must do**: Sections that are essential for everyone. These include
+  prerequisites, setting up servers, and general deployment steps.
+  Skipping these may lead to errors.
+- 🔹 **Optional**: Sections that depend on your chosen recruiter. You can
+  skip parts that do not apply to your deployment method.
 
-**What You Should Read First**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+What You Should Read First
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  All users must complete the **prerequisites** before proceeding.
 
--  We strongly recommend reading up to the section "Recruiter-Specific
-      Deployment Steps" to fully understand the deployment process.
+-  We strongly recommend reading up to the section
+   "Recruiter-Specific Deployment Steps" to fully understand the
+   deployment process.
 
--  After that, you can Verify CINT settings such a incidence rate
-
--  continue with the recruiter-specific section that applies to your
-      experiment.
+-  After that, verify CINT settings such as incidence rate, or continue
+   with the recruiter-specific section that applies to your experiment.
 
 This guide follows the current recommended deployment mode, which
 utilizes Docker with CAP-specific AWS provisioning, primarily using
@@ -44,77 +39,72 @@ Prolific as a recruiter. However, if you are deploying via CINT or CAP
 Recruiter, you will find detailed instructions in their respective
 sections.
 
-In the future, a version of this document will be contributed to PsyNet
-documentation **(**\ `www.psynet.dev <http://www.psynet.dev>`__\ **)**
-to support broader deployment use cases. However, for now, everyone is
+In the future, a version of this document will be contributed to the
+PsyNet documentation (`www.psynet.dev <http://www.psynet.dev>`__) to
+support broader deployment use cases. However, for now, everyone is
 expected to follow the procedures outlined here to ensure consistency
 and reliability in deployments.
 
 Glossary
 --------
 
-.. image:: /_static/images/cap_deployments/image29.png
-   :width: 6.80938in
-   :height: 2.27778in
+.. image:: /_static/images/lab_deployments/image29.png
+   :width: 8.5in
 
--  **PsyNet:** PsyNet is the package we use to create online
-      experiments. It builds upon Dallinger, which is another package to
-      create online experiments.
+**PsyNet**
+   The package we use to create online experiments. It builds upon
+   Dallinger.
 
--  **Experiment hosting**: This is the *server* which hosts your
-      experiment. Not to be confused with recruiter. PsyNet now supports
-      two main types of servers for deployment: **Internal servers** and
-      **EC2 servers**. The choice of server depends on the location.
+**Experiment hosting**
+   The *server* that hosts your experiment. PsyNet supports
+   **internal servers** and **EC2 servers**. The best choice depends on
+   participant location.
 
--  **Docker**: Is a containerization software we use to run an
-      experiment in a fixed environment to avoid unexpected behaviour
-      during an experiment. It is recommended to use Docker for local
-      debugging and for deploying, see `Best
-      practices <#best-practices>`__.
+**Docker**
+   Container software used to run an experiment in a fixed environment
+   to avoid unexpected behavior. It is recommended for local debugging
+   and deployment (see `Best practices <#best-practices>`__).
 
--  **Recruiter**: This is a *service* which automatically invites and
-      pays a specified number and kind (demographic requirements) of
-      participants. Examples of recruiters are Prolific, CINT
-      (previously called Lucid) and Cap-Recruiter..
+**Recruiter**
+   A *service* that invites and pays participants with optional
+   demographic requirements. Examples include Prolific, CINT
+   (previously Lucid), and Lab Recruiter.
 
--  **Remote debug** (remote ssh): This means you psynet debug ssh to a
-      server. This should not be confused with deployment or hotair.
+**Remote debug (SSH)**
+   Running ``psynet debug ssh`` against a server. This is not the same
+   as deployment or hotair.
 
--  **Deployment**: We speak about a deployment when you run psynet
-      deploy ssh and activate a recruiter.
+**Deployment**
+   Running ``psynet deploy ssh`` and activating a recruiter.
 
--  **Hotair**: The idea is that before you deploy an experiment to the
-      recruiter, you should test it from a participant's view first.
-      This means you upload your experiment into Hotair, which is only
-      visible to you and not to real participants. This allows you to
-      test the experiment from a participant’s perspective before
-      deploying it live. It is suggested to share the hotair link with
-      the group’s members to get feedback.
+**Hotair**
+   A participant-view test mode that is visible only to you and not to
+   real participants. Use this before live deployment, and share the
+   hotair link with team members for feedback.
 
--  **Archive** (redeploy from archive): PsyNet has the possibility to
-      continue collecting data using an existing experiment. The file
-      containing the experiment database is called the “archive”.
+**Archive (redeploy from archive)**
+   Continuing data collection with an existing experiment. The archived
+   experiment database file is called an archive.
 
--  **Provisioning**: The process of setting up a server (here via EC2).
+**Provisioning**
+   Setting up a server (here, typically via EC2).
 
--  **Teardown**: The process of quitting a server (here via EC2).
+**Teardown**
+   Quitting a server (here, typically via EC2).
 
--  **initial_recruitment_size**: This is the variable set in your
-      Experiment class to set how many participants take your
-      experiment. This amount of participants will be requested
-      immediately. So you need to be careful to not invite more
-      participants than you can serve.
+**initial_recruitment_size**
+   The variable in your ``Experiment`` class that controls how many
+   participants are invited initially. Avoid inviting more participants
+   than your deployment can handle.
 
--  **Increase experiment size:** All recruitment platforms allow to
-      invite more participants. You can invite more participants
-      manually once your participants have finished the experiment. You
-      can repeat this process until all participants are collected.
+**Increase experiment size**
+   Recruit more participants manually once current participants finish.
+   Repeat until your target sample size is reached.
 
--  **Auto-recruit**: For some experiments it’s necessary to have a
-      constant number of participants taking the experiment. This means
-      initial_recruitment_size will get a new meaning. It is no longer
-      the number of participants you initially invite, but it’s the
-      constant number of participants taking the experiment.
+**Auto-recruit**
+   Maintains a constant number of active participants. In this mode,
+   ``initial_recruitment_size`` effectively becomes the desired steady
+   concurrent count.
 
 Best practices
 --------------
@@ -134,7 +124,7 @@ you might encounter more issues and cannot always be supported.**
 -  You should use Docker for local development and remote deployment.
 
 -  For now we mainly support deployment to Prolific, CINT and
-      Cap-Recruiter. Make sure your experiment complies with the
+      Lab Recruiter. Make sure your experiment complies with the
       requirements.
 
 Deployment Checklist
@@ -142,94 +132,67 @@ Deployment Checklist
 
 1. **Prerequisites**
 
-   a. Set up PsyNet and complete all required installations.
-
-   b. Ensure Docker Desktop is `installed and
-         running <#docker-desktop>`__.
-
-   c. Log in to the `Group Docker
-         registry <#log-into-the-docker-registry>`__ via GitLab.
-         (one-time)
+   - Set up PsyNet and complete all required installations.
+   - Ensure Docker Desktop is `installed and running
+     <#docker-desktop>`__.
+   - Log in to the `group Docker registry
+     <#log-into-the-docker-registry>`__ via GitLab (one-time).
 
 2. **Experiment Setup**
 
-   a. Verify that all experiments parameters are correct.
+   - Verify all experiment parameters.
+   - Confirm locale, recruiter, and PsyNet estimates (time and payment).
+   - Verify recruiter-specific settings:
 
-      i.   Make sure to use right locale if your experiment is not in
-              English.
+     - **Prolific**
 
-      ii.  Make sure to use right recruiter.
+       - Set base payment (``wage_per_hour``) to ``0`` during
+         deployment.
+       - Verify qualifications (e.g., audio, nationality, microphone).
 
-      iii. Make sure psynet estimate is correct (time and payment)
+     - **CINT**
 
-   b. Verify all recruiter parameters are correct:
+       - Verify PsyNet settings (e.g., aggressive timeout).
 
-      i.  Prolific:
-
-          1. base payment -> wage_per_hour should be set to 0 during
-                deployment.
-
-          2. qualifications -> (audio, nationality, microphone etc.)
-
-      ii. CINT:
-
-          1. Verifiy psynet settings e.g. aggressive time out etc
-
-   c. Use the appropriate storage method (S3 or LocalStorage, not
-         DebugStorage).
+   - Use an appropriate storage backend (S3 or LocalStorage, not
+     DebugStorage).
 
 3. **Provisioning (Server Setup)**
 
-   a. Choose the correct server type (Internal or EC2).
-
-   b. If using EC2, set up a server in the desired region based on
-         participant location and make sure you select the right EC2
-         type and you have sufficient local storage if you use
-         LocalStorage
+   - Choose the correct server type (internal or EC2).
+   - If using EC2, provision in the region closest to participants.
+   - Confirm the EC2 instance type and local storage are sufficient if
+     you use LocalStorage.
 
 4. **Deployment**
 
-   a. Make sure you test your experiment and it works fine (i.e. run it
-         in Docker, run it to the end, and test edge cases e.g. after
-         summarizing nodes)
-
-   b. Open Docker Desktop before deploying (make sure it is running).
-
-   c. Make sure that the requirements.txt file is correct and that
-         constraints are generated.
-
-   d. If using Prolific, ensure there is enough balance in the account.
-
-   e. Deploy to your server in PsyNet and publish the experiment in
-         Prolific/CINT (double check the demographics and technical
-         qualifications in the marketplace)
+   - Test your experiment end-to-end (including edge cases) in Docker.
+   - Open Docker Desktop before deployment and confirm it is running.
+   - Ensure ``requirements.txt`` is correct and constraints are
+     generated.
+   - If using Prolific, ensure account balance is sufficient.
+   - Deploy to your server and publish the experiment in Prolific/CINT.
+     Double-check demographics and technical qualifications in the
+     marketplace.
 
 5. **Monitoring & Management**
 
-   a. Start by recruiting 5-10 participants, then gradually increase
-         once there are completes and data looks good.
-
-   b. Monitor the dashboard to track participant progress and detect
-         errors.
-
-   c. Search for errrors in the dozzle monitor and look into the error
-         database table.
-
-   d. Monitor messages from participants or free text feedback and debug
-         problems as needed.
-
-   e. Check data quality regularly by creating an export script
+   - Start with 5-10 participants, then gradually scale once data and
+     completions look good.
+   - Monitor the dashboard to track participant progress and detect
+     errors.
+   - Check Dozzle logs and inspect the error database table.
+   - Monitor participant messages/free-text feedback and debug as
+     needed.
+   - Check data quality regularly (e.g., with an export script).
 
 6. **Export & Termination**
 
-   a. Export all collected data for analysis.
-
-   b. If using an internal server, delete the app.
-
-   c. If using an EC2 server, teardown (terminate) the server to avoid
-         unnecessary costs.
-
-   d. Deposit your export to FS Jacoby.
+   - Export all collected data for analysis.
+   - If using an internal server, delete the app.
+   - If using EC2, teardown (terminate) the server to avoid unnecessary
+     costs.
+   - Deposit your export to FS Jacoby.
 
 **Important:** Check the recruiter-specific sections for
 additional setup and monitoring details.
@@ -254,12 +217,12 @@ PsyNet Installation
 Required Software & Accounts 
 -----------------------------
 
-🔴Docker desktop 
-~~~~~~~~~~~~~~~~~
+🛑 Docker desktop 
+^^^^^^^^^^^^^^^^^
 
 Install Docker (https://www.docker.com/products/docker-desktop)
 
-🔴Log into the Docker Registry 
+🛑 Log into the Docker Registry 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Make sure you are logged into the Group Docker registry via Gitlab with
@@ -280,8 +243,8 @@ example of another group, or a global repository with your personal
 account), but this is not recommended within the group (see more
 information https://psynetdev.gitlab.io/PsyNet/deploy/ssh_server.html)
 
-🔴Pycharm
-~~~~~~~~~
+🛑 Pycharm
+~~~~~~~~~~~~~~~~~~~~
 
 Install PyCharm
 ^^^^^^^^^^^^^^^
@@ -289,8 +252,7 @@ Install PyCharm
 -  Apply for educational discount
       (https://www.jetbrains.com/shop/eform/students )
 
--  Download and install `PyCharm
-      pro <https://www.jetbrains.com/pycharm/?gclid=CjwKCAjwtuOlBhBREiwA7agf1jrkwaOF1l4Dyz-3uA-jlgFi_z5fmWl4KWHZ1hbzMEGzszolOTZtlRoCygAQAvD_BwE>`__
+-  Download and install `PyCharm Pro <https://www.jetbrains.com/pycharm/>`__.
 
 **Important**, you need Pycharm Pro to be able to use the debugger.
 
@@ -303,18 +265,16 @@ Choose your environment
 
 3. Select show all:
 
-.. image:: /_static/images/cap_deployments/image42.png
-   :width: 6.80938in
-   :height: 2.20833in
+.. image:: /_static/images/lab_deployments/image42.png
+   :width: 8.5in
 
 4. Go to plus sign
 
 5. Go to existing environments and select from the list the one that
 relates to you
 
-.. image:: /_static/images/cap_deployments/image40.png
-   :width: 5.95313in
-   :height: 2.83092in
+.. image:: /_static/images/lab_deployments/image40.png
+   :width: 8.5in
 
 6. Press OK
 
@@ -322,23 +282,20 @@ relates to you
 this case you can select it from the list on the left. However you may
 need to turn of the filter (|image1|) in order to see it:
 
-.. image:: /_static/images/cap_deployments/image17.png
-   :width: 6.5in
-   :height: 1.68056in
+.. image:: /_static/images/lab_deployments/image17.png
+   :width: 8.5in
 
 Pressing the filter icon (the one on the right from the pencil icon):
 
-.. image:: /_static/images/cap_deployments/image26.png
-   :width: 1.36607in
-   :height: 2.77604in
+.. image:: /_static/images/lab_deployments/image26.png
+   :width: 8.5in
 
 to test open the terminal in the lower part of the pycharm window, and
 go to the folder of an experiment (e.g **demos/timeline**) and type
 **psynet debug local**.
 
-.. image:: /_static/images/cap_deployments/image47.png
-   :width: 3.72396in
-   :height: 2.24989in
+.. image:: /_static/images/lab_deployments/image47.png
+   :width: 8.5in
 
 Custom keymaps
 ^^^^^^^^^^^^^^
@@ -347,9 +304,8 @@ To further customize the ability to select a code and execute it go to
 setting in python and search for “​​execute selection in python Console”
 select this option:
 
-.. image:: /_static/images/cap_deployments/image15.png
-   :width: 6.80938in
-   :height: 2.44444in
+.. image:: /_static/images/lab_deployments/image15.png
+   :width: 8.5in
 
 Add a simple shortcut for example replace this by Command+Enter. Now you
 can select a code and Command+Enter will execute it in the console.
@@ -359,9 +315,8 @@ Debugging in Pycharm
 
 1. In the top right go to here:
 
-.. image:: /_static/images/cap_deployments/image43.png
-   :width: 6.80938in
-   :height: 0.38889in
+.. image:: /_static/images/lab_deployments/image43.png
+   :width: 8.5in
 
 2. Select edit configurations:
 
@@ -373,9 +328,8 @@ locally. For Docker set the name to “Docker Debug”, set the port to
 
 5. Copy the pip install command:
 
-.. image:: /_static/images/cap_deployments/image8.png
-   :width: 6.80938in
-   :height: 2.875in
+.. image:: /_static/images/lab_deployments/image8.png
+   :width: 8.5in
 
 6. Run it in the virtual environment.
 
@@ -383,9 +337,8 @@ locally. For Docker set the name to “Docker Debug”, set the port to
 
 8. Copy this line from the console to set a breakpoint.
 
-.. image:: /_static/images/cap_deployments/image12.png
-   :width: 6.80938in
-   :height: 2.27778in
+.. image:: /_static/images/lab_deployments/image12.png
+   :width: 8.5in
 
 9. Put the breakpoint in your code
 
@@ -394,17 +347,15 @@ lines code in your console and press Command+Enter to execute the
 selection in the debugger. You can see the variables when looking into
 “Debugger”.
 
-.. image:: /_static/images/cap_deployments/image31.png
-   :width: 6.80938in
-   :height: 5.38889in
+.. image:: /_static/images/lab_deployments/image31.png
+   :width: 8.5in
 
 9. Perform the following changes to the pycharm debug settings: go to
 preferences and search for python debugger unselect “attach to
 subprocesses” and select “gevent compatible”
 
-.. image:: /_static/images/cap_deployments/image24.png
-   :width: 6.80938in
-   :height: 2.98611in
+.. image:: /_static/images/lab_deployments/image24.png
+   :width: 8.5in
 
 Setup Co-Pilot
 ^^^^^^^^^^^^^^
@@ -417,15 +368,14 @@ Website to CoPilot
 In Pycharm go to Preferences -> Plugins-> Marketplace and look for
 CoPilot
 
-.. image:: /_static/images/cap_deployments/image55.png
-   :width: 6.80938in
-   :height: 4.94444in
+.. image:: /_static/images/lab_deployments/image55.png
+   :width: 8.5in
 
 click on Install and restart PyCharm
 
 now you should see CoPilot in “Installed”
 
-🔴Git: Version control & Best Practices 
+🛑 Git: Version control & Best Practices 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Setup shh keygen for gitlab
@@ -451,9 +401,8 @@ do so:
       "Preferences" in the upper right), paste your key in the "Key" box
       and replace "Title" with whatever you want to call your machine.
 
-.. image:: /_static/images/cap_deployments/image23.png
-   :width: 6.80938in
-   :height: 3.93056in
+.. image:: /_static/images/lab_deployments/image23.png
+   :width: 8.5in
 
 4. Press "Add key." You should now be able to push and pull from gitlab
       by entering your passphrase.
@@ -561,13 +510,12 @@ How to git commit in Pycharm
       commit. Type in the message below and press “Commit” or “Commit
       and Push” if you want to push too.
 
-.. image:: /_static/images/cap_deployments/image51.png
-   :width: 4.51273in
-   :height: 3.89171in
+.. image:: /_static/images/lab_deployments/image51.png
+   :width: 8.5in
 
 .. _section-1:
 
-🔴Set credentials and cap-safe 
+🛑 Set credentials and cap-safe 
 -------------------------------
 
 You will need .dallingerconfig and cap.pem in your home directory.
@@ -584,9 +532,8 @@ To get the cap.pem follow the following instructions.
 
 2. Inside the repository there is a file called “cap_keys.zip”
 
-.. image:: /_static/images/cap_deployments/image2.png
-   :width: 6.5in
-   :height: 1.40278in
+.. image:: /_static/images/lab_deployments/image2.png
+   :width: 8.5in
 
 3. Enter the password (same as safe password)
 
@@ -666,9 +613,8 @@ Experiments follow a relatively fixed lifecycle.
       deposit your collected. **This is currently under construction the
       procedure for this would be reevaluated in the future.**
 
-.. image:: /_static/images/cap_deployments/image7.png
-   :width: 3.71354in
-   :height: 3.30166in
+.. image:: /_static/images/lab_deployments/image7.png
+   :width: 8.5in
 
 Design
 ------
@@ -707,8 +653,8 @@ Test
 
 Testing workflows
 
-🔴Testing on yourself 
-~~~~~~~~~~~~~~~~~~~~~~
+🛑 Testing on yourself 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It’s important to run the full experiment on yourself, as if you were a
 real participant. This will give you a sense of how difficult the task
@@ -732,8 +678,8 @@ with your Gitlab credentials by running the command:
 
    docker login registry.gitlab.com
 
-🔹Testing with bots 
-~~~~~~~~~~~~~~~~~~~~
+🔹 Testing with bots 
+^^^^^^^^^^^^^^^^^^^^
 
 Currently, testing with bots allows you to either run bots one at a
 time (in serial) or to run several bots concurrently (in parallel). By
@@ -785,8 +731,8 @@ Things to look out for:
 -  Does my experiment use synthesis or resource-intensive
       analysis (e.g. analyzing syllables in recordings)?
 
-🔴Testing within the group 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+🛑 Testing within the group 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
    | Let other group members take your experiment and check if it’s
      working properly. **This is an obligatory step**. It will make sure
@@ -801,9 +747,9 @@ Things to look out for:
 -  Set your ‘recruiter’ config parameter to ‘hotair’
 
 -  Remote debug your experiment by `provisioning a
-      server <#provisioning>`__, then running in the terminal from your
-      experiment folder (determine the server type according to your
-      need; see `Servers <#servers>`__):
+   server <#provisioning>`__, then running in the terminal from your
+   experiment folder (determine the server type according to your
+   need; see `Servers <#servers>`__):
 
    .. code:: bash
 
@@ -841,8 +787,7 @@ Things to look out for:
       are recordings processed correctly?)
 
 -  You can use this code later to `check the initial batch of
-      data <#sanity-checks>`__ you gather when you deploy the
-      experiment.
+   data <#sanity-checks>`__ you gather when you deploy the experiment.
 
 Since the group is not extremely large you might not encounter:
 
@@ -859,7 +804,7 @@ Since the group is not extremely large you might not encounter:
    → Therefore, also you can run `Testing with
    bots <#testing-with-bots>`__
 
-🔹Automatic Translation 
+🔹 Automatic Translation 
 ------------------------
 
 With PsyNet, it's easy to conduct experiments in different languages.
@@ -889,30 +834,30 @@ Translating your experiment is simple.
 
 1. Set the locale of your experiment, e.g.:
 
-class Exp(psynet.experiment.Experiment):
+.. code:: python
 
-config= {
-
-'locale': 'tr', # iso-2 code for Turkish
-
-}
+   class Exp(psynet.experiment.Experiment):
+       config = {
+           'locale': 'tr',  # iso-2 code for Turkish
+       }
 
 or add the following line to your config.txt
 
-locale = tr
+.. code::text
+
+   locale = tr
 
 2. Mark translations in your experiment.py
 
-from psynet.utils import get_translator
+.. code:: python
 
-\_ = get_translator()
+   from psynet.utils import get_translator
 
-page = InfoPage(
+   _ = get_translator()
 
-\_("This text will be translated to the locale you set in the
-experiment")
-
-)
+   page = InfoPage(
+       _("This text will be translated to the locale you set in the experiment")
+   )
 
 3. Now translate using psynet translate
 
@@ -920,11 +865,11 @@ Read the `whole
 tutorial <https://psynetdev.gitlab.io/PsyNet/tutorials/internationalization.html>`__
 for more information.
 
-🔴Recruiters
-------------
+🛑 Recruiters
+--------------------
 
-We currently use three recruiters: **Prolific, CINT, and CAP Recruiter
-(CR).** Please decide which one to use.
+We currently use three recruiters: **Prolific, CINT, and Lab Recruiter
+(LR).** Please decide which one to use.
 
 -  `Prolific <https://www.prolific.com/>`__ offers a high-quality,
       diverse participant pool, ideal for academic and market research.
@@ -937,7 +882,7 @@ We currently use three recruiters: **Prolific, CINT, and CAP Recruiter
       refer to the deployment steps for Prolific and CINT. Note that
       Lucid was recently acquired by CINT, a large global recruiter.
 
--  `CAP Recruiter <https://cap-recruiter.ae.mpg.de/>`__ (CR) is an
+-  `Lab Recruiter <https://recruiter.cococo-lab.cornell.edu/>`__ (LR) is an
       internally established recruitment system that offers full control
       over participant selection without third-party involvement.
       Initially designed for recruiting musicians, it is now expanding
@@ -947,7 +892,7 @@ We currently use three recruiters: **Prolific, CINT, and CAP Recruiter
 Provisioning
 ============
 
-🔴Servers 
+🛑 Servers 
 ----------
 
 You can use two types of servers for deployment: **Internal servers**
@@ -955,7 +900,7 @@ and **EC2 servers**. Each has its own use case depending on where you're
 deploying.
 
 **Internal Server**
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 This server is located at the Cornell. Using this server helps reduce
 costs, as deployments to them are free, unlike EC2 servers, which
@@ -970,19 +915,25 @@ to the server. Please follow the provided command to add the desired
 internal server. You need to change the host according to which server
 you want to use:
 
-dallinger docker-ssh servers add --host <internal_server_host> --user
-cap
+.. code:: bash
+
+   dallinger docker-ssh servers add --host <internal_server_host> --user cap
+
 
 For example:
 
-dallinger docker-ssh servers add --host cap-experiments.ae.mpg.de --user
-cap
+.. code:: bash
 
-dallinger docker-ssh servers add --host
-experiments1.cococo-lab.cornell.edu --user cap
+   dallinger docker-ssh servers add --host me.cap-experiments.com --user cap
+
+
+.. code:: bash
+
+   dallinger docker-ssh servers add --host experiments1.cococo-lab.cornell.edu --user cap
+
 
 **EC2 Servers**
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 There are several ways to set up your own remote server, and we are
 currently renting a server through Amazon Web Services (AWS). These
@@ -1018,7 +969,9 @@ Selecting the region
 First, determine in which region you want to deploy. To get a list of
 the available regions, run:
 
-dallinger ec2 list regions
+.. code:: bash
+
+   dallinger ec2 list regions
 
 For example, the US (us-east-1).
 
@@ -1031,23 +984,33 @@ Instances can have the following states: pending, running,
 shutting-down, terminated, stopping, stopped. You can list all instances
 with:
 
-dallinger ec2 list instances
+.. code:: bash
+
+   dallinger ec2 list instances
 
 To only list instances which are running, run:
 
-dallinger ec2 list instances --running
+.. code:: bash
+
+   dallinger ec2 list instances --running
 
 You can also filter instances created via cap by running:
 
-dallinger ec2 list instances --pem cap
+.. code:: bash
+
+   dallinger ec2 list instances --pem cap
 
 Also you can search only in one region:
 
-dallinger ec2 list instances --region <region>
+.. code:: bash
+
+   dallinger ec2 list instances --region <region>
 
 You can also combine them, e.g.
 
-dallinger ec2 list instances --pem cap --region <region> --running
+.. code:: bash
+
+   dallinger ec2 list instances --pem cap --region <region> --running
 
 Provision an EC2 server instance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1071,8 +1034,9 @@ Before you teardown the instance make sure:
 
 -  You can now provision an EC2 instance on-demand:
 
-dallinger ec2 provision --name <server_name> --region <region>
---dns-host <subdomain>.cap-experiments.com --type <type>
+.. code:: bash
+
+   dallinger ec2 provision --name <server_name> --region <region> --dns-host <subdomain>.cap-experiments.com --type <type>
 
 -  Pick an instance name which is easy to recognize. Please include in
       the begining of the server name clear identifier of your name (or
@@ -1085,23 +1049,25 @@ dallinger ec2 provision --name <server_name> --region <region>
 
 -  The server name thus should look like name-experiment-version
 
-dallinger ec2 provision --name elif-melody-batch2 --region
-<region> --dns-host <subdomain>.cap-experiments.com --type <type>
+.. code:: bash
+
+   dallinger ec2 provision --name elif-melody-batch2 --region <region> --dns-host <subdomain>.cap-experiments.com --type <type>
 
 -  For example, if you want to collect data in the US your command will
       include the region name for the US, like this:
 
-dallinger ec2 provision --name elif-melody-batch-2 --region
-us-west-2 --dns-host <subdomain>.cap-experiments.com --type
-<type>
+.. code:: bash
+
+   dallinger ec2 provision --name elif-melody-batch-2 --region us-west-2 --dns-host <subdomain>.cap-experiments.com --type <type>
 
 -  You should specify a custom subdomain for easier and more intuitive
       server access using recognizable domain names instead of raw IP
       addresses. The subdomain should reflect your identity, such as
       your name or a shorter version. For example:
 
-dallinger ec2 provision --name elif-melody-batch2 --region
-eu-west-3 --dns-host elif.cap-experiments.com --type <type>
+.. code:: bash
+
+   dallinger ec2 provision --name elif-melody-batch2 --region eu-west-3 --dns-host elif.cap-experiments.com --type <type>
 
 The resulting URL for the experiment will combine the subdomain and the
 experiment name. In this case, it’s slightly confusing because the
@@ -1116,8 +1082,9 @@ You should use a different instance type according to your need.
 m7i.large is recommended for debugging and m7i.xlarge is for deploying.
 For example:
 
-dallinger ec2 provision --name tapping_deployment_batch_2 --region
-eu-west-3 --dns-host elif.cap-experiments.com --type m7i.xlarge
+.. code:: bash
+
+   dallinger ec2 provision --name tapping_deployment_batch_2 --region eu-west-3 --dns-host elif.cap-experiments.com --type m7i.xlarge
 
 If you use LocalStorage and not S3 storage and large stimuli are being
 created (e.g., in iterative singing experiments or GSP experiments), you
@@ -1151,7 +1118,9 @@ You can access Dozzle, a tool that allows you to view the logs of your
 experiment and monitor the server's performance. To get the dozzle url,
 simply add logs in front of the dns hostname. For example:
 
-logs.elif.cap-experiments.com
+.. code:: bash
+
+   logs.elif.cap-experiments.com
 
 Terminate an EC2 server instance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1161,8 +1130,9 @@ avoid ongoing charges. EC2 servers incur costs as long as they are
 running, so it’s important to terminate them after your experiment is
 completed. Follow the termination command:
 
-dallinger ec2 teardown --name <server_name> --region <region> --dns-host
-<subdomain>.cap-experiments.com
+.. code:: bash
+
+   dallinger ec2 teardown --name <server_name> --region <region> --dns-host <subdomain>.cap-experiments.com
 
 Alternatively, for multi-day deployments, you can **stop the EC2
 instance overnight** to reduce costs. While you won't be charged for
@@ -1170,33 +1140,39 @@ running the server during the stopped period, you will still incur
 minimal charges for storage. So don’t forget to terminate it once your
 experiment is done. Stop instance:
 
-dallinger ec2 stop --name <server_name> --region <region> --dns-host
-<subdomain>.cap-experiments.com
+.. code:: bash
+
+   dallinger ec2 stop --name <server_name> --region <region> --dns-host <subdomain>.cap-experiments.com
 
 The next day, simply **start the instance again**. This will reboot all
 Docker containers and experiments, so it’s important to double-check
 that the experiment is still working properly after the restart. Start
 instance:
 
-dallinger ec2 start --name <server_name> --region <region> --dns-host
-<subdomain>.cap-experiments.com
+.. code:: bash
+
+   dallinger ec2 start --name <server_name> --region <region> --dns-host <subdomain>.cap-experiments.com
 
 SSH into the instance
 ---------------------
 
 To ssh to the EC2 server instance manually, use:
 
-ssh <SERVER_URL>
+.. code:: bash
+
+   ssh <SERVER_URL>
 
 For example:
 
-ssh ec2-18-170-223-29.eu-west-2.compute.amazonaws.com
+.. code:: bash
+
+   ssh ec2-18-170-223-29.eu-west-2.compute.amazonaws.com
 
 SSHing into the instance is useful if you need to restart the Docker
 container or need to access assets.
 
-🔹Advance users: create a Custom instances
-------------------------------------------
+🔹 Advance users: create a Custom instances
+------------------------------------------------------------
 
 For certain use cases, such as setting up your own synthesis server, you
 may want to programmatically configure a custom EC2 server. This is an
@@ -1260,11 +1236,11 @@ callback=callback,
 
 Note, you need to be more familiar with programming to do it.
 
-🔴Group skills
---------------
+🛑 Group skills
+--------------------
 
 How to investigate errors?
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When programming, it frequently happens that you can get stuck. It is
 okay to ask colleagues for help, but you should avoid asking questions
@@ -1286,114 +1262,51 @@ line of the trace is the error you want to look for.
 
 For example in this stack trace the last line is most relevant:
 
-INFO:root:Compiling translation file on demand
-/Users/jakobnieder/Documents/MPI-frank/colours/color-naming_proj/color-naming/locales/el/LC_MESSAGES/experiment.po.
+.. code:: text
 
-Traceback (most recent call last):
+   INFO:root:Compiling translation file on demand
+   /Users/jakobnieder/Documents/MPI-frank/colours/color-naming_proj/color-naming/locales/el/LC_MESSAGES/experiment.po.
 
-File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/bin/psynet",
-line 8, in <module>
-
-sys.exit(psynet())
-
-File
-"/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py",
-line 1157, in \__call\_\_
-
-return self.main(\*args, \**kwargs)
-
-File
-"/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py",
-line 1078, in main
-
-rv = self.invoke(ctx)
-
-File
-"/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py",
-line 1688, in invoke
-
-return \_process_result(sub_ctx.command.invoke(sub_ctx))
-
-File
-"/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py",
-line 1688, in invoke
-
-return \_process_result(sub_ctx.command.invoke(sub_ctx))
-
-File
-"/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py",
-line 1434, in invoke
-
-return ctx.invoke(self.callback, \**ctx.params)
-
-File
-"/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py",
-line 783, in invoke
-
-return \__callback(\*args, \**kwargs)
-
-File
-"/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/decorators.py",
-line 33, in new_func
-
-return f(get_current_context(), \*args, \**kwargs)
-
-File "/Users/jakobnieder/psynet/psynet/command_line.py", line 755, in
-deploy\__docker_ssh
-
-\_pre_launch(
-
-File "/Users/jakobnieder/psynet/psynet/command_line.py", line 639, in
-\_pre_launch
-
-run_pre_checks(mode, local\_, heroku, docker, app)
-
-File "/Users/jakobnieder/psynet/psynet/command_line.py", line 888, in
-run_pre_checks
-
-exp = get_experiment()
-
-File "/Users/jakobnieder/psynet/psynet/experiment.py", line 2509, in
-get_experiment
-
-return import_local_experiment()["class"](db.session)
-
-File "/Users/jakobnieder/psynet/psynet/experiment.py", line 361, in
-\__init\_\_
-
-config_initial_recruitment_size = self.get_initial_recruitment_size()
-
-File "/Users/jakobnieder/psynet/psynet/experiment.py", line 731, in
-get_initial_recruitment_size
-
-return get_and_load_config().get("initial_recruitment_size")
-
-File "/Users/jakobnieder/psynet/psynet/experiment.py", line 108, in
-get_and_load_config
-
-config.load()
-
-File "/Users/jakobnieder/Dallinger/dallinger/config.py", line 306, in
-load
-
-self.load_defaults()
-
-File "/Users/jakobnieder/Dallinger/dallinger/config.py", line 303, in
-load_defaults
-
-self.load_experiment_config_defaults()
-
-File "/Users/jakobnieder/Dallinger/dallinger/config.py", line 347, in
-load_experiment_config_defaults
-
-self.extend(exp_klass.config_defaults(), strict=True)
-
-File "/Users/jakobnieder/psynet/psynet/experiment.py", line 848, in
-config_defaults
-
-expected_type = config_types[key]
-
-KeyError: 'show_bonus'
+   Traceback (most recent call last):
+     File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/bin/psynet", line 8, in <module>
+       sys.exit(psynet())
+     File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py", line 1157, in __call__
+       return self.main(*args, **kwargs)
+     File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py", line 1078, in main
+       rv = self.invoke(ctx)
+     File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py", line 1688, in invoke
+       return _process_result(sub_ctx.command.invoke(sub_ctx))
+     File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py", line 1688, in invoke
+       return _process_result(sub_ctx.command.invoke(sub_ctx))
+     File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py", line 1434, in invoke
+       return ctx.invoke(self.callback, **ctx.params)
+     File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/core.py", line 783, in invoke
+       return __callback(*args, **kwargs)
+     File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/lib/python3.10/site-packages/click/decorators.py", line 33, in new_func
+       return f(get_current_context(), *args, **kwargs)
+     File "/Users/jakobnieder/psynet/psynet/command_line.py", line 755, in deploy__docker_ssh
+       _pre_launch(
+     File "/Users/jakobnieder/psynet/psynet/command_line.py", line 639, in _pre_launch
+       run_pre_checks(mode, local_, heroku, docker, app)
+     File "/Users/jakobnieder/psynet/psynet/command_line.py", line 888, in run_pre_checks
+       exp = get_experiment()
+     File "/Users/jakobnieder/psynet/psynet/experiment.py", line 2509, in get_experiment
+       return import_local_experiment()["class"](db.session)
+     File "/Users/jakobnieder/psynet/psynet/experiment.py", line 361, in __init__
+       config_initial_recruitment_size = self.get_initial_recruitment_size()
+     File "/Users/jakobnieder/psynet/psynet/experiment.py", line 731, in get_initial_recruitment_size
+       return get_and_load_config().get("initial_recruitment_size")
+     File "/Users/jakobnieder/psynet/psynet/experiment.py", line 108, in get_and_load_config
+       config.load()
+     File "/Users/jakobnieder/Dallinger/dallinger/config.py", line 306, in load
+       self.load_defaults()
+     File "/Users/jakobnieder/Dallinger/dallinger/config.py", line 303, in load_defaults
+       self.load_experiment_config_defaults()
+     File "/Users/jakobnieder/Dallinger/dallinger/config.py", line 347, in load_experiment_config_defaults
+       self.extend(exp_klass.config_defaults(), strict=True)
+     File "/Users/jakobnieder/psynet/psynet/experiment.py", line 848, in config_defaults
+       expected_type = config_types[key]
+   KeyError: 'show_bonus'
 
 Try searching for show_bonus and KeyError in Slack. While the first
 query show_bonus is more specific, nobody encountered the specific error
@@ -1401,9 +1314,8 @@ with this config key. The next step would be to look for the more
 generic error message KeyError in Slack. As you can see in the
 screenshot, Pol already had the same issue but with a different key.
 
-.. image:: /_static/images/cap_deployments/image37.png
-   :width: 6.80938in
-   :height: 2.94444in
+.. image:: /_static/images/lab_deployments/image37.png
+   :width: 8.5in
 
 The solution was to make sure you are on the correct psynet commit hash.
 It’s best to start searching Slack. Searching Google is particularly
@@ -1417,7 +1329,7 @@ ChatGPT for debugging, which you can if Google or Slack don’t give you
 the answer.
 
 How to ask for help?
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 Once you identified the cause of the problem, you can ask your
 colleagues.
@@ -1491,7 +1403,7 @@ section provides only the essential steps.
 
 2) Choose a Recruiter
 
-   a. **Prolific, CINT, or CAP Recruiter**—each has different setup
+   a. **Prolific, CINT, or Lab Recruiter**—each has different setup
          steps (see their
          `sections <#recruiter-specific-deployment-steps>`__).
 
@@ -1515,11 +1427,11 @@ section provides only the essential steps.
 Deploying 
 ==========
 
-🔴Sanity check 
+🛑 Sanity check 
 ---------------
 
 Version control
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 Before you deploy your experiment, you need to:
 
@@ -1531,34 +1443,44 @@ Before you deploy your experiment, you need to:
 see `Prerequisites <#prerequisites-one-time-setup>`__
 
 Updating PsyNet in Your Virtual Environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When there are new commits in the PsyNet repository, you can update your
 local installation in your virtual environment by following these steps:
 
 1. **Go to the PsyNet Directory**
 
-cd ~/psynet
+.. code:: bash
+
+   cd ~/psynet
 
 2. **Check Your Branch and Switch if Necessary**
 
 Before pulling updates, confirm which branch you're on. If you need a
 different version, check the current branch and switch accordingly:
 
-git branch # Lists branches and highlights the current one
+.. code:: bash
 
-git checkout <branch_name> # Switch to the desired branch if needed
+   git branch  # Lists branches and highlights the current one
+
+.. code:: bash
+
+   git checkout <branch_name>  # Switch to the desired branch if needed
 
 3. **Pull the Latest Changes**
 
-git pull
+.. code:: bash
+
+   git pull
 
 This command fetches and integrates the latest commits from the remote
 repository.
 
 4. **Verify the Latest Commit**
 
-git log
+.. code:: bash
+
+   git log
 
 Check the commit messages and hashes to ensure you have the most recent
 commit.
@@ -1572,7 +1494,9 @@ linked to the correct version of PsyNet.
 
 6. **Install the Updated Requirements**
 
-pip install -r requirements.txt
+.. code:: bash
+
+   pip install -r requirements.txt
 
 This command installs any new dependencies and updates existing ones as
 necessary.
@@ -1584,7 +1508,7 @@ necessary.
       psynet generate-constraints
 
 Requirements file and dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Make sure your local PsyNet (and Dallinger) version is the same as the
 version listed in requirements.txt (otherwise you will get an error when
@@ -1607,13 +1531,13 @@ Make sure your sufficiently tested your experiment, see
 `Test <#test>`__.
 
 Remote debug
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 
 Before deployment, you need to make sure your experiment runs
 successfully on a remote server. Make sure you did all types of
 `tests <#test>`__ and thus did a remote debug.
 
-🔴Actual deployment 
+🛑 Actual deployment 
 --------------------
 
 -  Set up your experiment for actual deployment, e.g., check you have
@@ -1624,7 +1548,7 @@ successfully on a remote server. Make sure you did all types of
       depending on which recruiter you are using.
 
 -  Doublecheck all settings mentioned in `recruiter-specific deployment
-      steps <#recruiter-specific-deployment-steps>`__
+   steps <#recruiter-specific-deployment-steps>`__.
 
 -  To actually deploy your experiment, run the following code from your
       experiment folder (determine the server type according to your
@@ -1644,11 +1568,11 @@ successfully on a remote server. Make sure you did all types of
 
    psynet deploy ssh --app probe-tone --dns-host elif.cap-experiments.com --server elif.cap-experiments.com
 
-**Example deployment to an internal server at the MPI:**
+**Example deployment to an internal server at the Cornell University:**
 
 .. code:: bash
 
-   psynet deploy ssh --app <app_name> --server cap-experiments3.ae.mpg.de --dns-host cap-experiments3.ae.mpg.de
+   psynet deploy ssh --app <app_name> --server experiments1.cococo-lab.cornell.edu --dns-host experiments1.cococo-lab.cornell.edu
 
 currently we are mainly using use the original cap-experiment,
 cap-experiments3 and cap-experiments4 for the experiments. See `internal
@@ -1703,16 +1627,16 @@ Massive Deployments
 (Deploying Multiple Experiments in Parallel)
 
 - This specific implementation, designed by Pol, is currently available
-only in the development version of the framework: **psynet==13.0.0rc1**.
+  only in the development version of the framework: **psynet==13.0.0rc1**.
 
 - Pin this version in your project's requirements.txt file and generate
-constraints for dependency management.
+  constraints for dependency management.
 
 **Monitoring Real-Time Experiment Data: The basic_data Endpoint**
 -----------------------------------------------------------------
 
 Overview and Utility: Why Use **get_basic_data**?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The basic_data endpoint is a powerful feature designed to provide
 **real-time access** to your experiment's data during deployment,
@@ -1747,7 +1671,7 @@ http://127.0.0.1:5000/basic_data?...).
       confirming the experiment is progressing as expected).
 
 Implementation of the Experiment Method (**get_basic_data**)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To use the /basic_data endpoint in your experiment, you need to
 implement the get_basic_data method in your experiment class. The method
@@ -1756,59 +1680,31 @@ You can make this method as complex as you need. For example, you can
 add GET parameters to the endpoint, e.g. /basic_data?sheet=participant
 which allows to switch between different data sheets.
 
-class Exp(psynet.experiment.Experiment):
+.. code:: python
 
-…
+   class Exp(psynet.experiment.Experiment):
+       ...
 
-@classmethod
+       @classmethod
+       def get_basic_data(cls, context=None, **kwargs):
+           data = {
+               "trial": [
+                   # List all trials with their answers
+                   {"id": trial.id, "answer": str(trial.answer)}
+                   for trial in Trial.query.filter_by(failed=False, finalized=True).all()
+               ],
+               "participant": [
+                   # List all participants with their last answer
+                   {"id": participant.id, "answer": str(participant.answer)}
+                   for participant in Participant.query.filter_by().all()
+               ],
+           }
 
-def get_basic_data(cls, context=None, \**kwargs, ):
+           sheet = kwargs.get("sheet", "participant")
+           if sheet not in data:
+               raise DataError("Invalid sheet parameter")
 
-data = {
-
-"trial":
-
-[
-
-# List all trials with their answers
-
-{
-
-"id": trial.id,
-
-"answer": str(trial.answer),
-
-}
-
-for trial in Trial.query.filter_by(failed=False, finalized=True).all()
-
-],
-
-"participant": [
-
-# List all participants with their last answer
-
-{
-
-"id": participant.id,
-
-"answer": str(participant.answer),
-
-}
-
-for participant in Participant.query.filter_by().all()
-
-],
-
-}
-
-sheet = kwargs.get("sheet", "participant")
-
-if sheet not in data:
-
-raise DataError("Invalid sheet parameter")
-
-return data[sheet]
+           return data[sheet]
 
 -  The data defined in your get_basic_data method is accessible
       in two ways: **via the Deployment Dashboard** and **directly via
@@ -1834,18 +1730,15 @@ return data[sheet]
 
 -  Python Example:
 
-..
+   .. code:: python
 
-   import pandas as pd
+      import pandas as pd
 
-   url =
-   "http://127.0.0.1:5000/basic_data?dashboard_user=cap&dashboard_password=capcapcap2021!"
+      url = "http://127.0.0.1:5000/basic_data?dashboard_user=cap&dashboard_password=capcapcap2021!"
+      df = pd.read_json(url)
 
-   df = pd.read_json(url)
-
-.. image:: /_static/images/cap_deployments/image25.png
-   :width: 6.5in
-   :height: 7.06944in
+.. image:: /_static/images/lab_deployments/image25.png
+   :width: 8.5in
 
 .. _section-3:
 
@@ -1861,7 +1754,7 @@ transforms complicated individual monitoring into a simple, automated
 process.
 
 **How to Use the Interface**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This monitor allows you to quickly assess the progress and
 performance of every deployment at a glance:
@@ -1892,8 +1785,8 @@ performance of every deployment at a glance:
       actions you can take:
 
    -  **URLs to data endpoint, dashboard, server (e.g., Dozzle),
-         etc.:** Direct links to monitor server logs and performance,
-         and more.
+      etc.:** Direct links to monitor server logs and performance,
+      and more.
 
    -  **Export:** A shortcut to download the latest data for that
          specific deployment.
@@ -1906,9 +1799,8 @@ information, making it simple to check the entire pipeline's status,
 troubleshoot issues, and access data without navigating away from one
 page. You can access it through the dashboard in the ‘Deployments’ tab.
 
-.. image:: /_static/images/cap_deployments/image44.png
-   :width: 6.5in
-   :height: 4.15278in
+.. image:: /_static/images/lab_deployments/image44.png
+   :width: 8.5in
 
 **Slack Integration: Real-Time Deployment Alerts** 
 ---------------------------------------------------
@@ -1919,7 +1811,7 @@ simultaneous deployments. The PsyNet Bot automatically sends crucial
 updates to the deployments channel.
 
 **Configuration Steps**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^
 
 1. **Join the Channel:** The PsyNet Bot reports to the central
       channel. Ask Elif to add you to the #deployments channel to
@@ -1935,7 +1827,7 @@ updates to the deployments channel.
    "notifier": "slack",}
 
 3. **Update ~/.dallingerconfig:** Add the following to your
-      \.dallingerconfig\` file:`
+      ``.dallingerconfig`` file:
 
 ..
 
@@ -1947,11 +1839,11 @@ updates to the deployments channel.
 
    experimenter_name = <your name>
 
-   Note: Make sure your \experimenter_name\` matches your name
-   on Slack.`
+   Note: Make sure your ``experimenter_name`` matches your name on
+   Slack.
 
 **Usage**
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^
 
 +---------+------------------------------------------------------------+
 | Event   | Benefit & Actions                                          |
@@ -2034,10 +1926,10 @@ recruitment. If you cannot do it yourself (e.g., due to time-zone
 issues), you can contact Nori or Elif for help.
 
 This section provides general guidelines, while recruiter-specific
-details (Prolific, CINT, CAP Recruiter) can be found in their respective
+details (Prolific, CINT, Lab Recruiter) can be found in their respective
 sections.
 
-🔴Using the Dashboard 
+🛑 Using the Dashboard 
 ----------------------
 
 The experiment dashboard is your main tool for tracking and managing the
@@ -2056,7 +1948,7 @@ Key Features:
 
 -  **Database Tab:** View or export data via the Export Tab.
 
-🔴Monitoring Participants & Data Collection 
+🛑 Monitoring Participants & Data Collection 
 --------------------------------------------
 
 -  Track participant progress (dropouts or errors).
@@ -2067,7 +1959,7 @@ Key Features:
 
 -  Monitor Prolific/CINT marketplaces for recruiter-specific insights.
 
-🔴Participant Issues 
+🛑 Participant Issues 
 ---------------------
 
 Participants might directly contact you in some cases of errors and
@@ -2079,7 +1971,7 @@ Where Participants May Contact You:
 
 -  **CINT:** currently not possible.
 
--  **CAP Recruiter:** Emails sent to cap-information@ae.mpg.de.
+-  **Lab Recruiter:** Emails sent to coco-experiments@cornell.edu.
 
 Messages in gmail account 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2096,7 +1988,7 @@ subfolder. Sometimes, you will see emails, which contain bills and are
 not related to your experiment. These mails should be moved to the
 “accounts” subfolder.
 
-🔴Recruitment and Payment Strategies 
+🛑 Recruitment and Payment Strategies 
 -------------------------------------
 
 -  Start with a small recruitment batch (5-10 participants) and review
@@ -2117,44 +2009,36 @@ not related to your experiment. These mails should be moved to the
 Exporting & Terminating
 =======================
 
-🔴Export Data
--------------
+🛑 Export data
+--------------------
 
 You can export the data using following command:
 
-   psynet export ssh \\
+.. code:: bash
 
-   --app <APP_NAME> \\
-
-   --server <SERVER> \\
-
-   --path <PATH_TO_STORE_YOUR_DATA>
+   psynet export ssh --app <APP_NAME> --server <SERVER> --path <PATH_TO_STORE_YOUR_DATA>
 
 For example:
 
-psynet export ssh \\
+.. code:: bash
 
-   --app color-exp \\
+   psynet export ssh --app color-exp --server elif.cap-experiments.com --path /Users/elif.celen/Experiments/color
 
-   --server elif.cap-experiments.com \\
-
-   --path /Users/elif.celen/Experiments/color
-
-🔹Export script 
+🔹 Export script 
 ----------------
 
 In the group we like to have a file called export.py which contains:
 
--  sanity checks
+-  Sanity checks
 
--  export of demographic information
+-  Export of demographic information
 
--  export of the raw results to some preprocessed format, and
+-  Export of the raw results to some preprocessed format, and
 
--  preliminary plots of the main results
+-  Preliminary plots of the main results
 
-🔴Sanity checks 
-~~~~~~~~~~~~~~~~
+🛑 Sanity checks 
+^^^^^^^^^^^^^^^^
 
 These checks are very important because it allows us to determine
 problems from early on and in case of error allows to abort the
@@ -2200,7 +2084,7 @@ Best practices
 Export regularly and run your export.py script. This way you can detect
 problems from early on.
 
-🔴Export once more 
+🛑 Export once more
 -------------------
 
 After you made sure that the experiment is completed export the data one
@@ -2211,8 +2095,8 @@ upon exporting. You will also see an automatic analysis of the log file.
 
 .. _section-5:
 
-🔹Additional manual export in case of large assets
---------------------------------------------------
+🔹 Additional manual export in case of large assets
+----------------------------------------------------------------------
 
 | In case you are experiencing trouble exporting large assets using
   psynet export, you can also try to zip and export the assets manually
@@ -2221,22 +2105,21 @@ upon exporting. You will also see an automatic analysis of the log file.
 | To do this manual export of the assets:
 
 -  ssh to the server as explained in `SSH into the
-      instance <#ssh-into-the-instance>`__
+   instance <#ssh-into-the-instance>`__
 
 -  then you create a tar.gz of the assets folder on the server, by
       running in the terminal:
 
-..
+.. code:: bash
 
    tar -czvf $HOME/namefile.tar.gz $HOME/psynet-data/assets
 
 -  leave the server, and on your local pc download this tar.gz by
       running in the terminal:
 
-..
+.. code:: bash
 
-   scp -p 22 ubuntu@<SERVER_URL>:/home/ubuntu/namefile.tar.gz
-   ~/Downloads
+   scp -p 22 ubuntu@<SERVER_URL>:/home/ubuntu/namefile.tar.gz ~/Downloads
 
    to download the tar.gz file to your local Downloads folder (replace
    <SERVER_URL> by your servers URL)
@@ -2253,13 +2136,15 @@ Remote (EC2) Server
 If you provisioned an EC2 server, once you are done with your
 experiment, you have to teardown the server:
 
-cap ec2 teardown --name <server_name> --region <region> --dns-host
-<subdomain>.\ `cap-experiments.com <http://cap-experiments.com/>`__
+.. code:: bash
+
+   cap ec2 teardown --name <server_name> --region <region> --dns-host <subdomain>.cap-experiments.com
 
 for example:
 
-cap ec2 teardown --name tapping3 --region us-west-2 --dns-host
-nori.cap-experiments.com
+.. code:: bash
+
+   cap ec2 teardown --name tapping3 --region us-west-2 --dns-host nori.cap-experiments.com
 
 **You should not forget to turn off your instance since it cost
 us money every hour!**
@@ -2268,6 +2153,8 @@ In case you would like to delete the app without tearing down the
 server, use:
 
 .. code:: bash
+
+   .. code:: bash
 
    psynet destroy ssh --app <app_name> --server <server_name>
 
@@ -2298,14 +2185,16 @@ If you used an internal server at the institute, all you need to do is
 to delete the app from the server once your experiment is done and you
 exported all your data. Here is the command:
 
-psynet destroy ssh --app <app_name> --server <server_name>
+.. code:: bash
+
+   psynet destroy ssh --app <app_name> --server <server_name>
 
 .. _section-6:
 
 Recruiter-Specific Deployment Steps
 ===================================
 
-Prolific 🔹
+Prolific 🔹 
 -----------
 
 Setting up the experiment
@@ -2328,12 +2217,12 @@ optionally headphones and microphones if needed.
 3. In the get_prolific_settings() <#experiment-script>`__
 function, specify the duration using the
 "prolific_estimated_completion_minutes" parameter and the cost using the
-"base_payment" parameter.`
+"base_payment" parameter.
 
  
 
-- For example, when you run psynet estimate, you will get a
-result like this one:
+- For example, when you run psynet estimate, you will get a result like
+  this one:
 
 ❯❯ Estimated maximum reward for participant: EUR4.95.
 
@@ -2543,16 +2432,14 @@ prolific_project = <YOUR_PROJECT_FOLDER>
 
 -  Choose workspace that you want to deploy (check account balance)
 
-.. image:: /_static/images/cap_deployments/image16.png
-   :width: 6.80938in
-   :height: 0.86111in
+.. image:: /_static/images/lab_deployments/image16.png
+   :width: 8.5in
 
 -  You should create a project folder for your experiments. Please use
       your own name. For example: ‘Elif Experiments’
 
-.. image:: /_static/images/cap_deployments/image13.png
-   :width: 6.80938in
-   :height: 1.125in
+.. image:: /_static/images/lab_deployments/image13.png
+   :width: 8.5in
 
 Deploy the experiment. Please see `deployment
 process <#actual-deployment>`__.
@@ -2569,9 +2456,8 @@ account. You can find the credential in the
 In the “Draft” tab of the “Projects” folder you will find your
 experiment:
 
-.. image:: /_static/images/cap_deployments/image14.png
-   :width: 6.41146in
-   :height: 1.53125in
+.. image:: /_static/images/lab_deployments/image14.png
+   :width: 8.5in
 
 Click on the ‘ACTION’ button and next on the ‘Move’ button to move the
 experiment to your personal experiment folder.
@@ -2604,13 +2490,11 @@ this). Once there is enough unclaimed money, post the estimate to the
 #prolific_experiment_claims channel** on Slack, and **set your
 recruitment size back to your initial recruitment size**.
 
-.. image:: /_static/images/cap_deployments/image52.png
-   :width: 8.39116in
-   :height: 2.34236in
+.. image:: /_static/images/lab_deployments/image52.png
+   :width: 8.5in
 
-.. image:: /_static/images/cap_deployments/image58.png
-   :width: 8.16667in
-   :height: 3.49048in
+.. image:: /_static/images/lab_deployments/image58.png
+   :width: 8.5in
 
 Prolific: preview
 ^^^^^^^^^^^^^^^^^
@@ -2644,9 +2528,8 @@ can increase the experiment size manually. To do so click on “Action” on
 the upper right side of the prolific dashboard and then on “increase
 places”.
 
-.. image:: /_static/images/cap_deployments/image35.png
-   :width: 2.52083in
-   :height: 2.02629in
+.. image:: /_static/images/lab_deployments/image35.png
+   :width: 8.5in
 
 The number you set here is the number of the total number of
 participants for your experiment. I.e., if you have already 5
@@ -2710,9 +2593,8 @@ can you archive messages. To do so (after you have handled the
 participants issue) click on the checkbox of the message and then click
 on “archive”.
 
-.. image:: /_static/images/cap_deployments/image32.png
-   :width: 3.86979in
-   :height: 1.70833in
+.. image:: /_static/images/lab_deployments/image32.png
+   :width: 8.5in
 
 Answering messages
 ^^^^^^^^^^^^^^^^^^
@@ -2731,9 +2613,8 @@ can do so by searching for their ID in the prolific dashboard and
 clicking on the checkmark. By doing do they will be payed the base
 payment you have set in the beginning.
 
-.. image:: /_static/images/cap_deployments/image36.png
-   :width: 6.5in
-   :height: 1.81944in
+.. image:: /_static/images/lab_deployments/image36.png
+   :width: 8.5in
 
 Termination
 ~~~~~~~~~~~
@@ -2750,13 +2631,13 @@ Termination
 
 -  Put experiment in your folder on Prolific.
 
-CINT (Lucid) 🔹
+CINT (Lucid) 🔹 
 ---------------
 
 .. _setting-up-the-experiment-1:
 
 Setting up the experiment
-~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. _experiment-costs-1:
 
@@ -2800,29 +2681,19 @@ Experiment script
 In the case of assets, make sure you are not using DebugStorage, but
 S3Storage or a LocalStorage.
 
-class Exp(psynet.experiment.Experiment):
+.. code:: python
 
-config = {
-
-\**recruiter_settings,
-
-"initial_recruitment_size": 10, # set to required numbers
-
-'language': LOCALE, # set to the ISO-2 language code (eg. ‘tr’ or ‘en’)
-
-"auto_recruit": False,
-
-"wage_per_hour": 6.5, # (set to min wage of the target country)
-
-"title": "Put your experiment title here (Chrome browser, ~XX mins)", #
-(do not add the cost of the experiment)
-
-"contact_email_on_error":
-"computational.audition+online_running@gmail.com",
-
-"organization_name": "Max Planck Institute for Empirical Aesthetics",
-
-}
+   class Exp(psynet.experiment.Experiment):
+       config = {
+           **recruiter_settings,
+           "initial_recruitment_size": 10,  # set to required numbers
+           "language": LOCALE,  # set to the ISO-2 language code (e.g. 'tr' or 'en')
+           "auto_recruit": False,
+           "wage_per_hour": 6.5,  # set to minimum wage of target country
+           "title": "Put your experiment title here (Chrome browser, ~XX mins)",
+           "contact_email_on_error": "computational.audition+online_running@gmail.com",
+           "organization_name": "Max Planck Institute for Empirical Aesthetics",
+       }
 
 CINT Recruiter Settings 
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2862,25 +2733,18 @@ Set the following parameters:
    verification pages. **It is important to verify the qualifications on
    the very first page to kick out sloppy participants.**
 
-recruiter_settings = get_lucid_settings(
+.. code:: python
 
-lucid_recruitment_config_path=LUCID_CONFIG_PATH,
-
-termination_time_in_s=120 \* 60,
-
-debug_recruiter=False,
-
-initial_response_within_s=180,
-
-bid_incidence=66,
-
-inactivity_timeout_in_s=120,
-
-no_focus_timeout_in_s=60,
-
-aggressive_no_focus_timeout_in_s=3,
-
-)
+   recruiter_settings = get_lucid_settings(
+       lucid_recruitment_config_path=LUCID_CONFIG_PATH,
+       termination_time_in_s=120 * 60,
+       debug_recruiter=False,
+       initial_response_within_s=180,
+       bid_incidence=66,
+       inactivity_timeout_in_s=120,
+       no_focus_timeout_in_s=60,
+       aggressive_no_focus_timeout_in_s=3,
+   )
 
 CINT Consent
 ^^^^^^^^^^^^
@@ -2889,11 +2753,15 @@ You need to use CINT (Lucid) consent while deploying to CINT.
 
 1) Import it from psynet.consent
 
-from psynet.consent import LucidConsent
+.. code:: python
+
+   from psynet.consent import LucidConsent
 
 2) Define the consent parameter in your experiment.py
 
-consent = LucidConsent
+.. code:: python
+
+   consent = LucidConsent
 
 3) Make sure to add consent() function to your timeline. (Please
    note that additional audiovisual consent may be needed depending on
@@ -2902,8 +2770,8 @@ consent = LucidConsent
 CINT Qualifications
 ^^^^^^^^^^^^^^^^^^^
 
-Setting Qualifications Automatically 
-'''''''''''''''''''''''''''''''''''''
+Setting Qualifications Automatically
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 CINT has a standard qualification library and you can create custom
 qualifications.
@@ -2937,58 +2805,41 @@ specific tags. You can get a list of all the available language (3
 capital letters) and country (2 capital letters) tags by running the
 following code in your terminal:
 
-psynet lucid locale
+.. code:: bash
+
+   psynet lucid locale
 
 After getting the desired locales, you can generate qualifications
 specific to each country by using a custom create_qualifications.py.
 Please find an example code below that you can adjust and add to your
 create_qualifications.py.
 
-from tqdm import tqdm
+.. code:: python
 
-from psynet.lucid.qualifications import create_lucid_recruitment_config
+   from tqdm import tqdm
+   from psynet.lucid.qualifications import create_lucid_recruitment_config
 
-country_language_tags = (
+   country_language_tags = (("DUT", "NL"),)
 
-("DUT", "NL"),
-
-)
-
-for language_tag, country_tag in tqdm(country_language_tags):
-
-config_path =
-f"qualifications/lucid/lucid-{language_tag}-{country_tag}.json"
-
-create_lucid_recruitment_config(
-
-language_tag=language_tag,
-
-country_tag=country_tag,
-
-question_answer_dict={
-
-"MONOLINGUALISM": ["I was raised with my native language only"],
-
-"HAS_AUDIO": ["Yes"],
-
-"ALLOW_VOICE_RECORDING": ["Yes"],
-
-"BORN_IN_COUNTRY": ["Yes"],
-
-"HAS_NATIONALITY": ["Yes"],
-
-"IS_NATIVE": ["Yes"],
-
-},
-
-config_path=config_path,
-
-debug=True,
-
-)
+   for language_tag, country_tag in tqdm(country_language_tags):
+       config_path = f"qualifications/lucid/lucid-{language_tag}-{country_tag}.json"
+       create_lucid_recruitment_config(
+           language_tag=language_tag,
+           country_tag=country_tag,
+           question_answer_dict={
+               "MONOLINGUALISM": ["I was raised with my native language only"],
+               "HAS_AUDIO": ["Yes"],
+               "ALLOW_VOICE_RECORDING": ["Yes"],
+               "BORN_IN_COUNTRY": ["Yes"],
+               "HAS_NATIONALITY": ["Yes"],
+               "IS_NATIVE": ["Yes"],
+           },
+           config_path=config_path,
+           debug=True,
+       )
 
 Extending the qualification to new languages
-''''''''''''''''''''''''''''''''''''''''''''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can expand an existing qualification for a new language. Go to the
 qualification page and add the question and the options. Make sure that
@@ -2998,7 +2849,7 @@ to use the English language as a reference so that the options match up.
 .. _section-11:
 
 Adding a new qualification
-''''''''''''''''''''''''''
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Go to the [`qualification overview
 page <https://www.samplicio.us/fulcrum/Questions.aspx>`__] and click the
@@ -3017,67 +2868,43 @@ right-click in Chrome on the page, and select "View Page Source". Now
 search for "QuestionID", this field is the ID of the qualification. You
 can now use this ID in your experiment:
 
-from psynet.experiment import get_and_load_config
+.. code:: python
 
-from psynet.lucid import get_lucid_service
+   from psynet.experiment import get_and_load_config
+   from psynet.lucid import get_lucid_service
+   from psynet.lucid.qualifications import create_lucid_recruitment_config
 
-from psynet.lucid.qualifications import create_lucid_recruitment_config
+   language_tag = "DUT"
+   country_tag = "NL"
+   config_path = f"qualifications/lucid/lucid-{language_tag}-{country_tag}.json"
 
-language_tag = "DUT"
+   config = get_and_load_config()
+   service = get_lucid_service(config=config)
+   custom_qualifications_dict = {
+       **service.get_qualifications_dict(),
+       "MY_NEW_QUALIFICATION": 200093,  # replace 200093 with actual ID
+   }
 
-country_tag = "NL"
-
-config_path =
-f"qualifications/lucid/lucid-{language_tag}-{country_tag}.json"
-
-config = get_and_load_config()
-
-service = get_lucid_service(config=config)
-
-custom_qualifications_dict = {
-
-\**service.get_qualifications_dict(),
-
-"MY_NEW_QUALIFICATION": 200093, *# replace 200093 with the actual ID*
-
-}
-
-create_lucid_recruitment_config(
-
-language_tag=language_tag,
-
-country_tag=country_tag,
-
-question_answer_dict={
-
-"MONOLINGUALISM": ["I was raised with my native language only"],
-
-"HAS_AUDIO": ["Yes"],
-
-"ALLOW_VOICE_RECORDING": ["Yes"],
-
-"BORN_IN_COUNTRY": ["Yes"],
-
-"HAS_NATIONALITY": ["Yes"],
-
-"IS_NATIVE": ["Yes"],
-
-},
-
-config_path=config_path,
-
-debug=True,
-
-config=config,
-
-service=service,
-
-qualifications_dict=custom_qualifications_dict,
-
-)
+   create_lucid_recruitment_config(
+       language_tag=language_tag,
+       country_tag=country_tag,
+       question_answer_dict={
+           "MONOLINGUALISM": ["I was raised with my native language only"],
+           "HAS_AUDIO": ["Yes"],
+           "ALLOW_VOICE_RECORDING": ["Yes"],
+           "BORN_IN_COUNTRY": ["Yes"],
+           "HAS_NATIONALITY": ["Yes"],
+           "IS_NATIVE": ["Yes"],
+       },
+       config_path=config_path,
+       debug=True,
+       config=config,
+       service=service,
+       qualifications_dict=custom_qualifications_dict,
+   )
 
 Front-end confirmation of qualifications
-''''''''''''''''''''''''''''''''''''''''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is recommended to let users confirm the qualifications in the
 front-end. There are multiple reasons for this:
@@ -3092,46 +2919,40 @@ front-end. There are multiple reasons for this:
 
 To do this, you can use the following code:
 
-import psynet.experiment
+.. code:: python
 
-from psynet.consent import LucidConsent
+   import psynet.experiment
+   from psynet.consent import LucidConsent
+   from psynet.timeline import Timeline
+   from psynet.page import SuccessfulEndPage
+   from psynet.lucid.qualifications import verify_lucid_qualifications
 
-from psynet.timeline import Timeline
+   LANGUAGE = "DUT"
+   COUNTRY = "NL"
+   LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
 
-from psynet.page import SuccessfulEndPage
-
-from psynet.lucid.qualifications import verify_lucid_qualifications
-
-LANGUAGE = "DUT"
-
-COUNTRY = "NL"
-
-LUCID_CONFIG_PATH =
-f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
-
-class Exp(psynet.experiment.Experiment):
-
-timeline = Timeline(
-
-verify_lucid_qualifications(LUCID_CONFIG_PATH),
-
-LucidConsent(),
-
-SuccessfulEndPage(),
-
-)
+   class Exp(psynet.experiment.Experiment):
+       timeline = Timeline(
+           verify_lucid_qualifications(LUCID_CONFIG_PATH),
+           LucidConsent(),
+           SuccessfulEndPage(),
+       )
 
 If you don't want to show all qualifications to the participants or want
 to show them in a different order, you can specify them as an additional
 argument:
 
-verify_lucid_qualifications(LUCID_CONFIG_PATH, question_names =
-["TIMEOUT", "MONOLINGUALISM"])
+.. code:: python
+
+   verify_lucid_qualifications(
+       LUCID_CONFIG_PATH,
+       question_names=["TIMEOUT", "MONOLINGUALISM"],
+   )
 
 .. _section-12:
 
 Summary Steps for Setting CINT Qualifications:
-''''''''''''''''''''''''''''''''''''''''''''''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1) Access a list of available language and country tags using the
    command psynet lucid locale.
@@ -3142,14 +2963,12 @@ Summary Steps for Setting CINT Qualifications:
 3) Be sure that you have added the following parameters to your
    experiment.py:
 
-LANGUAGE = "DUT" # lucid language code, **not ISO language code**
+.. code:: python
 
-COUNTRY = "NL" # lucid country code, **not always ISO country code**
-
-LOCALE = "nl" # ISO-2 code for language of the experiment
-
-LUCID_CONFIG_PATH =
-f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
+   LANGUAGE = "DUT"  # lucid language code, not ISO language code
+   COUNTRY = "NL"  # lucid country code, not always ISO country code
+   LOCALE = "nl"  # ISO-2 code for experiment language
+   LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
 
 4) Implement front-end confirmation of qualifications to ensure
    participant adherence to requirements and improve termination
@@ -3158,8 +2977,12 @@ f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
    confirmation code. Adjust and add the following code to your
    timeline.
 
-verify_lucid_qualifications(LUCID_CONFIG_PATH,
-question_names=["TIMEOUT", "MONOLINGUALISM"])
+.. code:: python
+
+   verify_lucid_qualifications(
+       LUCID_CONFIG_PATH,
+       question_names=["TIMEOUT", "MONOLINGUALISM"],
+   )
 
 .. _deployment-1:
 
@@ -3180,28 +3003,24 @@ the link, you will see the dashboard. Here, click on the ‘Lucid’ tab to
 access many features from the marketplace as well as the reports of the
 experiment.
 
-.. image:: /_static/images/cap_deployments/image34.png
-   :width: 6.5in
-   :height: 1.56944in
+.. image:: /_static/images/lab_deployments/image34.png
+   :width: 8.5in
 
 1) **Checking qualifications:** Here, click the “Qualifications” tab to
    check if the qualifications are set correctly. This will direct you
    to the official marketplace site.
 
-.. image:: /_static/images/cap_deployments/image30.png
-   :width: 5.96875in
-   :height: 1.57292in
+.. image:: /_static/images/lab_deployments/image30.png
+   :width: 8.5in
 
-.. image:: /_static/images/cap_deployments/image53.png
-   :width: 6.33333in
-   :height: 3.42708in
+.. image:: /_static/images/lab_deployments/image53.png
+   :width: 8.5in
 
 2) **Adjusting quota:** To manage the quota settings, go to the ‘Quota’
    tab. This will direct you to the official marketplace site.
 
-.. image:: /_static/images/cap_deployments/image10.png
-   :width: 6.07292in
-   :height: 1.57292in
+.. image:: /_static/images/lab_deployments/image10.png
+   :width: 8.5in
 
 There are two types of calculations in CINT: completed and prescreens.
 Completes are when a survey fills based on respondents that complete the
@@ -3217,9 +3036,8 @@ as 10, then gradually adjust it based on experiment progression and
 participant traffic. You can change it back to ‘Completes’ if the
 experiment pace slows down.
 
-.. image:: /_static/images/cap_deployments/image6.png
-   :width: 6.5in
-   :height: 1.34722in
+.. image:: /_static/images/lab_deployments/image6.png
+   :width: 8.5in
 
 .. _monitoring-1:
 
@@ -3233,9 +3051,8 @@ variety of ways to monitor the experiment.
    It is important to inspect ‘Termination reasons’ as it might reveal
    if something is wrong with the experiment.
 
-.. image:: /_static/images/cap_deployments/image46.png
-   :width: 6.5in
-   :height: 4.02778in
+.. image:: /_static/images/lab_deployments/image46.png
+   :width: 8.5in
 
 2. Check the vital metrics of the experiment. Note that they are usually
    not optimized at the beginning of the experiment so you need to wait
@@ -3265,34 +3082,30 @@ variety of ways to monitor the experiment.
    struggle to attract supplier traffic. Find more information
    `here <https://support.lucidhq.com/s/article/EPC-FAQ>`__.
 
-.. image:: /_static/images/cap_deployments/image49.png
-   :width: 6.5in
-   :height: 1.875in
+.. image:: /_static/images/lab_deployments/image49.png
+   :width: 8.5in
 
 3. Check how many participants enter the survey overtime on the
    ‘Respondents’ graph. If it is dying out, you may need to adjust the
    quota.
 
-.. image:: /_static/images/cap_deployments/image11.png
-   :width: 6.5in
-   :height: 3.51389in
+.. image:: /_static/images/lab_deployments/image11.png
+   :width: 8.5in
 
 4. Monitor participant status across survey pages by clicking on bars to
    access participant IDs and termination reasons. It is typical to have
    a high termination rate at the early stage of the experiment.
 
-.. image:: /_static/images/cap_deployments/image4.png
-   :width: 6.5in
-   :height: 3.47222in
+.. image:: /_static/images/lab_deployments/image4.png
+   :width: 8.5in
 
 5. Check completion LOI and termination LOI. The completion LOI should
    match your time estimate. Termination LOI should be low as much as
    possible. If it is higher than expected you should inspect for
    possible errors in your experiment.
 
-.. image:: /_static/images/cap_deployments/image56.png
-   :width: 6.5in
-   :height: 3.34375in
+.. image:: /_static/images/lab_deployments/image56.png
+   :width: 8.5in
 
 .. _section-13:
 
@@ -3306,9 +3119,8 @@ and `export <#_vlrp8nxplekx>`__ your data again. To destroy the app,
 wait until there are no more working participants left in the
 experiment.
 
-.. image:: /_static/images/cap_deployments/image9.png
-   :width: 3.48958in
-   :height: 1.30208in
+.. image:: /_static/images/lab_deployments/image9.png
+   :width: 8.5in
 
 Reconciling participants
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -3319,28 +3131,30 @@ status completed.
 
 You can compensate with the following command:
 
-psynet lucid compensate SURVEY_NUMBER RID_1 RID_2 […] RID_N
+.. code:: bash
+
+   psynet lucid compensate SURVEY_NUMBER RID_1 RID_2 […] RID_N
 
 You need to add all completed RIDs, **so also those that are already
 marked as completed! Otherwise, already completed participants are
 marked as terminated!**
 
-CAP Recruiter 🔹
+Lab Recruiter 🔹 
 ----------------
 
 The Group Manager (usually the experimenter) is responsible for setting
-up and managing participant recruitment through CAP Recruiter. The
+up and managing participant recruitment through Lab Recruiter. The
 system provides full control over participant selection, experiment
 access, and tracking.
 
 Registering to the CAP Platform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Create an Admin account
 ^^^^^^^^^^^^^^^^^^^^^^^
 
--  For now, please contact us at cap-information@ae.mpg.de to
-      have your admin account created in the CAP Recruiter app.
+-  For now, please contact us at coco-experiments@cornell.edu to
+      have your admin account created in the Lab Recruiter app.
 
 Create a Group
 ^^^^^^^^^^^^^^
@@ -3348,9 +3162,8 @@ Create a Group
 -  As the Group Manager, go to the Group tab and click **‘New**
       **Group’** to create a participant group.
 
-.. image:: /_static/images/cap_deployments/image3.png
-   :width: 6.5in
-   :height: 0.69444in
+.. image:: /_static/images/lab_deployments/image3.png
+   :width: 8.5in
 
 Set an Initial Test
 ~~~~~~~~~~~~~~~~~~~
@@ -3362,9 +3175,8 @@ Set an Initial Test
       the necessary technical standards. If your experiments have
       additional requirements, please contact us for further assistance.
 
-.. image:: /_static/images/cap_deployments/image38.png
-   :width: 6.80938in
-   :height: 1.90278in
+.. image:: /_static/images/lab_deployments/image38.png
+   :width: 8.5in
 
 .. _setting-up-the-experiment-2:
 
@@ -3410,11 +3222,11 @@ In case of assets, make sure you are not using DebugStorage, but
 S3Storage or a LocalStorage.
 
 Add config params under class Exp(psynet.experiment.Experiment) and set
-recruiter as cap-recuiter:
+recruiter as 'lab-recruiter':
 
 config = {
 
-“recruiter”: “cap-recruiter”,
+“recruiter”: "lab-recruiter”,
 
 "initial_recruitment_size": 5,
 
@@ -3449,12 +3261,11 @@ Consent
 ^^^^^^^
 
 You can choose the consent while creating the group. Currently we are
-using ‘MPIAE’. Please contact if you want to create your own consent
+using ‘Cornell University’. Please contact if you want to create your own consent
 form.
 
-.. image:: /_static/images/cap_deployments/image1.png
-   :width: 6.8125in
-   :height: 1.44519in
+.. image:: /_static/images/lab_deployments/image1.png
+   :width: 8.5in
 
 .. _deployment-2:
 
@@ -3466,12 +3277,10 @@ process <#actual-deployment>`__.
 
 -  After deploying your experiment, navigate to the Experiments tab.
 
--  Click **‘New Experiment’** to add your experiment to the
-      cap-recruiter.
+-  Click **‘New Experiment’** to add your experiment to the Lab Recruiter.
 
-.. image:: /_static/images/cap_deployments/image28.png
-   :width: 6.80938in
-   :height: 0.73611in
+.. image:: /_static/images/lab_deployments/image28.png
+   :width: 8.5in
 
 -  Here please set the required parameters.
 
@@ -3485,23 +3294,21 @@ process <#actual-deployment>`__.
          can take part.
 
    -  **URL:** This is the link provided on the console after deployment
-         (e.g., https://your-app-name.cap-experiments4.ae.mpg.de).
+         (e.g., https://your-app-name.experiments1.cococo-lab.cornell.edu).
 
 -  At the bottom of the page move your Group from “Available groups” up
       into the **‘Groups’** section to make the experiment accessible to
       all participants in that group.
 
-.. image:: /_static/images/cap_deployments/image48.png
-   :width: 6.5in
-   :height: 2.19444in
+.. image:: /_static/images/lab_deployments/image48.png
+   :width: 8.5in
 
 .. _section-14:
 
 -  You can also later edit it by click **‘Edit’** on your experiment.
 
-.. image:: /_static/images/cap_deployments/image27.png
-   :width: 6.5in
-   :height: 1.25in
+.. image:: /_static/images/lab_deployments/image27.png
+   :width: 8.5in
 
 Inviting Participants
 ~~~~~~~~~~~~~~~~~~~~~
@@ -3518,9 +3325,8 @@ Invite Participants
 -  Participants registering with this link will automatically use the
       Group Manager code for your group.
 
-.. image:: /_static/images/cap_deployments/image18.png
-   :width: 6.5in
-   :height: 1.625in
+.. image:: /_static/images/lab_deployments/image18.png
+   :width: 8.5in
 
 Send Messages 
 ^^^^^^^^^^^^^^
@@ -3529,12 +3335,11 @@ Send Messages
       each group. Simply compose your message—such as informing them
       about a new study—and choose whether to send it to all
       participants or only specific individuals from the recipients
-      list. The message is then sent from the CAP Recruiter official
+      list. The message is then sent from the Lab Recruiter official
       email account to the selected group.
 
-.. image:: /_static/images/cap_deployments/image21.png
-   :width: 6.80938in
-   :height: 1.65278in
+.. image:: /_static/images/lab_deployments/image21.png
+   :width: 8.5in
 
 Monitor and Manage Participants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3551,9 +3356,8 @@ Participant tracking
 -  Track participant progress in the Participants tab (experiments
       taken, payment status, etc.).
 
-.. image:: /_static/images/cap_deployments/image20.png
-   :width: 6.5in
-   :height: 0.93056in
+.. image:: /_static/images/lab_deployments/image20.png
+   :width: 8.5in
 
 Managing Experiment Tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -3561,9 +3365,8 @@ Managing Experiment Tasks
 -  Reset failed experiments by navigating to ‘Tasks’ and clicking the
       **‘Reset’** button.
 
-.. image:: /_static/images/cap_deployments/image39.png
-   :width: 6.5in
-   :height: 0.97222in
+.. image:: /_static/images/lab_deployments/image39.png
+   :width: 8.5in
 
 .. _termination-2:
 
@@ -3582,24 +3385,24 @@ Terminate the Experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Once you reach the desired number of participants, export your data
-      again and set it to **‘Archive’** on the cap-recruiter.
+      again and set it to **‘Archive’** on the Lab Recruiter.
 
 -  You also need to delete the experiment from the server. Please see
       `teardown <#teardown>`__.
 
-CAP-Recruiter For Participants
+Lab Recruiter For Participants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Sign Up & Verification
 
-   -  Sign up to CAP Recruiter using the unique Group Manager code
+   -  Sign up to Lab Recruiter using the unique Group Manager code
          received via email.
 
    -  Verify your email to activate your account.
 
 2. Accessing Experiments
 
-   -  Through the CAP Recruiter interface, participants can:
+   -  Through the Lab Recruiter interface, participants can:
 
       -  View available experiments.
 
@@ -3607,9 +3410,8 @@ CAP-Recruiter For Participants
 
       -  Track their payment status.
 
-.. image:: /_static/images/cap_deployments/image54.png
-   :width: 6.5in
-   :height: 2.375in
+.. image:: /_static/images/lab_deployments/image54.png
+   :width: 8.5in
 
 3. Initial Test Experiment
 
@@ -3624,7 +3426,7 @@ CAP-Recruiter For Participants
 4. Experiment Participation
 
    -  Once eligible, participants can take available experiments from
-         the cap-recruiter platform.
+         the Lab Recruiter platform.
 
 5. Completion & Payment
 
@@ -3642,21 +3444,25 @@ Troubleshooting
 **Q**: Help, I can’t access my server anymore!
 
 | **A**: Try re-adding your pem file to your ssh keygen by running:
-| ssh-add -K ~/cap.pem
+| ``ssh-add -K ~/cap.pem``
 
-**Q**: I get this error after running psynet debug|deploy ssh, what
+**Q**: I get this error after running ``psynet debug ssh`` or
+``psynet deploy ssh``. What
 should I do?
 
-docker.errors.DockerException: Error while fetching server API version:
-('Connection aborted.', ConnectionRefusedError(61, 'Connection
-refused'))
+.. code:: text
 
-**A**: You should make sure Docker desktop is running.
+   docker.errors.DockerException: Error while fetching server API version:
+   ('Connection aborted.', ConnectionRefusedError(61, 'Connection refused'))
 
-| **Q:** When debugging, I obtain the following (similar) error:
-| docker.errors.DockerException: Error while fetching server API
-  version: ('Connection aborted.', PermissionError(13, 'Permission
-  denied'))
+**A**: You should make sure Docker Desktop is running.
+
+**Q:** When debugging, I obtain the following (similar) error:
+
+.. code:: text
+
+   docker.errors.DockerException: Error while fetching server API
+   version: ('Connection aborted.', PermissionError(13, 'Permission denied'))
 
 **A**: Changing permissions to the docker socket appears to have
 resolved this issue for me.
@@ -3692,7 +3498,9 @@ reboot. Please follow these steps to reboot:
 
 2. Configure it with credentials etc: aws configure
 
-3. Find the instance ID, e.g. from the dallinger ec2 list instances
+3. Find the instance ID, e.g. from the .. code:: bash
+
+   dallinger ec2 list instances
       command
 
 4. Reboot instance: aws ec2 reboot-instances --instance-ids
@@ -3732,21 +3540,15 @@ Things to discuss
 
 .. _section-15:
 
-.. |image1| image:: /_static/images/cap_deployments/image19.png
-   :width: 0.25298in
-   :height: 0.20833in
-.. |image2| image:: /_static/images/cap_deployments/image50.png
-   :width: 5.28278in
-   :height: 4.07921in
-.. |image3| image:: /_static/images/cap_deployments/image22.png
-   :width: 6.80938in
-   :height: 0.625in
-.. |image4| image:: /_static/images/cap_deployments/image33.png
-   :width: 6.52604in
-   :height: 1.98383in
-.. |image5| image:: /_static/images/cap_deployments/image5.png
-   :width: 6.80938in
-   :height: 2.375in
-.. |image6| image:: /_static/images/cap_deployments/image45.png
-   :width: 6.5in
-   :height: 0.58333in
+.. |image1| image:: /_static/images/lab_deployments/image19.png
+   :width: 8.5in
+.. |image2| image:: /_static/images/lab_deployments/image50.png
+   :width: 8.5in
+.. |image3| image:: /_static/images/lab_deployments/image22.png
+   :width: 8.5in
+.. |image4| image:: /_static/images/lab_deployments/image33.png
+   :width: 8.5in
+.. |image5| image:: /_static/images/lab_deployments/image5.png
+   :width: 8.5in
+.. |image6| image:: /_static/images/lab_deployments/image45.png
+   :width: 8.5in
