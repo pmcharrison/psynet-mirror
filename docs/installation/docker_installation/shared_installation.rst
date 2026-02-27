@@ -127,7 +127,7 @@ run the following command, then try again:
 If you see other error messages at this point, see Troubleshooting.
 
 The project includes a pre-configured `.vscode/launch.json` file that is set up for debugging in VSCode/Cursor.
-You can use this to debug your experiment by setting breakpoints and using the debugger.]
+You can use this to debug your experiment by setting breakpoints and using the debugger.
 
 Step 6: Running the experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
