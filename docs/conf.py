@@ -211,8 +211,9 @@ html_theme_options = {
     "navbar_end": ["theme-switcher", "version-switcher", "navbar-icon-links"],
 }
 
+# Force page section navigation to appear in the left sidebar.
 html_sidebars = {
-    "**": ["search-field", "sidebar-nav-bs"],
+    "**": ["search-field", "sidebar-nav-bs", "page-toc"],
 }
 
 html_context = {
