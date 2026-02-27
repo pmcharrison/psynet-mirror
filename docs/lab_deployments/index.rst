@@ -26,9 +26,10 @@ What You Should Read First
 
 -  All users must complete the **prerequisites** before proceeding.
 
--  We strongly recommend reading up to the section
-   "Recruiter-Specific Deployment Steps" to fully understand the
-   deployment process.
+-  We strongly recommend reading up to the
+   `Recruiter-Specific Deployment Steps
+   <#recruiter-specific-deployment-steps>`__ section to fully understand
+   the deployment process.
 
 -  After that, verify CINT settings such as incidence rate, or continue
    with the recruiter-specific section that applies to your experiment.
@@ -38,12 +39,6 @@ utilizes Docker with CAP-specific AWS provisioning, primarily using
 Prolific as a recruiter. However, if you are deploying via CINT or CAP
 Recruiter, you will find detailed instructions in their respective
 sections.
-
-In the future, a version of this document will be contributed to the
-PsyNet documentation (`www.psynet.dev <http://www.psynet.dev>`__) to
-support broader deployment use cases. However, for now, everyone is
-expected to follow the procedures outlined here to ensure consistency
-and reliability in deployments.
 
 Glossary
 --------
@@ -116,9 +111,8 @@ you might encounter more issues and cannot always be supported.**
 
 -  We expect you to use a Mac.
 
--  You need to have `Docker <#docker-desktop>`__ and
-      `PyCharm <#pycharm>`__ installed, if you have a student ID or a
-      proof of teaching, we recommend setting up `Github
+-  You need to have `Docker <#docker-desktop>`__ and `PyCharm <#pycharm>`__ installed,
+      if you have a student ID or a proof of teaching, we recommend setting up `Github
       Copilot <#setup-co-pilot>`__
 
 -  You should use Docker for local development and remote deployment.
@@ -133,10 +127,8 @@ Deployment Checklist
 1. **Prerequisites**
 
    - Set up PsyNet and complete all required installations.
-   - Ensure Docker Desktop is `installed and running
-     <#docker-desktop>`__.
-   - Log in to the `group Docker registry
-     <#log-into-the-docker-registry>`__ via GitLab (one-time).
+   - Ensure Docker Desktop is `installed and running <#docker-desktop>`__.
+   - Log in to the `group Docker registry <#log-into-the-docker-registry>`__ via GitLab (one-time).
 
 2. **Experiment Setup**
 
@@ -168,8 +160,7 @@ Deployment Checklist
 
    - Test your experiment end-to-end (including edge cases) in Docker.
    - Open Docker Desktop before deployment and confirm it is running.
-   - Ensure ``requirements.txt`` is correct and constraints are
-     generated.
+   - Ensure ``requirements.txt`` is correct and constraints are generated.
    - If using Prolific, ensure account balance is sufficient.
    - Deploy to your server and publish the experiment in Prolific/CINT.
      Double-check demographics and technical qualifications in the
@@ -179,26 +170,23 @@ Deployment Checklist
 
    - Start with 5-10 participants, then gradually scale once data and
      completions look good.
-   - Monitor the dashboard to track participant progress and detect
-     errors.
+   - Monitor the dashboard to track participant progress and identify errors early.
    - Check Dozzle logs and inspect the error database table.
-   - Monitor participant messages/free-text feedback and debug as
-     needed.
+   - Monitor participant messages/free-text feedback and debug as needed.
    - Check data quality regularly (e.g., with an export script).
 
 6. **Export & Termination**
 
    - Export all collected data for analysis.
    - If using an internal server, delete the app.
-   - If using EC2, teardown (terminate) the server to avoid unnecessary
-     costs.
+   - If using EC2, teardown (terminate) the server to avoid unnecessary costs.
    - Deposit your export to FS Jacoby.
 
 **Important:** Check the recruiter-specific sections for
 additional setup and monitoring details.
 
 Prerequisites (One-time Setup) 
-===============================
+==============================
 
 This describe all the setup process that needs to run experiments in the
 main thread of the group.
@@ -1390,8 +1378,9 @@ section provides only the essential steps.
          steps (see their
          `sections <#recruiter-specific-deployment-steps>`__).
 
-   b. Configure the recruiter-specific settings after reading the
-         relevant section.
+   b. Configure the recruiter-specific settings after reading
+      `Recruiter-Specific Deployment Steps
+      <#recruiter-specific-deployment-steps>`__.
 
 3) Test Your Experiment
 
