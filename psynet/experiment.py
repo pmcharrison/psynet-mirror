@@ -1592,9 +1592,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._show_realtime_status(bot_state, time.time(), end_time, force=True)
 
         # Main monitoring loop
-        self._run_monitoring_loop(
-            n, bot_state, start_new_bot, start_time, end_time
-        )
+        self._run_monitoring_loop(n, bot_state, start_new_bot, start_time, end_time)
         self._clear_realtime_status()
 
         # Calculate and report results
