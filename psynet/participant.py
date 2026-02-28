@@ -198,6 +198,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     page_count = Column(Integer)
     aborted = Column(Boolean)
     complete = Column(Boolean)
+    pending_redirect = Column(String)
     answer = Column(PythonObject)
     answer_accumulators = Column(PythonList)
     sequences = Column(PythonList)
@@ -561,6 +562,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.client_ip_address = None
         self.branch_log = []
         self.total_wait_page_time = 0.0
+        self.pending_redirect = None
 
         db.session.add(self)
 
@@ -783,11 +785,18 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
                 group.check_numbers()
 
         if not exp.timeline.participant_is_in_end_logic(self):
-            logger.info(
-                "Redirecting participant %i to unsuccessful_end branch.",
-                self.id,
-            )
-            exp.timeline.redirect_to_branch(exp, self, "unsuccessful_end")
+            if getattr(self, "_in_advance_page", False):
+                logger.info(
+                    "Redirecting participant %i to unsuccessful_end branch.",
+                    self.id,
+                )
+                exp.timeline.redirect_to_branch(exp, self, "unsuccessful_end")
+            else:
+                logger.info(
+                    "Queuing redirect for participant %i to unsuccessful_end branch.",
+                    self.id,
+                )
+                self.pending_redirect = "unsuccessful_end"
 
 
 def get_participant(participant_id: int, for_update: bool = False) -> Participant:

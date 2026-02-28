@@ -1579,16 +1579,16 @@ class Timeline:
     def redirect_to_branch(self, experiment, participant, branch_name):
         """Redirect a participant to the start of a named branch.
 
-        When called from within ``advance_page``, the redirect is deferred
-        to the next loop iteration. When called from outside, ``advance_page``
-        is invoked to advance the participant to the first page in the branch.
+        This should only be called from within ``advance_page`` (i.e. from
+        an ``Elt.consume`` method).  For redirects originating outside the
+        page-advance loop (e.g. background tasks), set
+        ``participant.pending_redirect`` instead so that the redirect is
+        applied on the next page transition.
         """
         if branch_name not in self.elts:
             raise ValueError(f"Unknown timeline branch: {branch_name!r}")
         participant.elt_id = [branch_name, -1]
         participant.elt_id_max = []
-        if not getattr(participant, "_in_advance_page", False):
-            self.advance_page(experiment, participant)
 
     def compile_modules(self):
         modules = {}
@@ -1739,6 +1739,12 @@ class Timeline:
     def advance_page(self, experiment, participant):
         participant._in_advance_page = True
         try:
+            pending = getattr(participant, "pending_redirect", None)
+            if pending:
+                participant.pending_redirect = None
+                self.redirect_to_branch(experiment, participant, pending)
+                return
+
             finished = False
             while not finished:
                 participant.elt_id[-1] += 1
