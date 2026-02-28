@@ -186,9 +186,8 @@ html_theme_options = {
     "show_nav_level": 2,
 }
 
-# Force page section navigation to appear in the left sidebar.
 html_sidebars = {
-    "**": ["search-field", "sidebar-nav-bs", "page-toc"],
+    "**": ["search-field", "sidebar-nav-bs"],
 }
 
 html_context = {
