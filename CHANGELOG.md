@@ -3,6 +3,7 @@
 # Unreleased
 
 ## Added
+- Refactored timeline to use named branches for end logic. `Timeline` now has `successful_end`, `unsuccessful_end`, and `rejected_consent` branches. `EndPage` classes are now redirect elements instead of `PageMaker` wrappers. `participant.fail()` automatically redirects to the `unsuccessful_end` branch unless the participant is already in an end logic branch or already completed. (author: [Peter Harrison])
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.

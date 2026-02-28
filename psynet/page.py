@@ -302,7 +302,9 @@ class SuccessfulEndPage(Elt):
     time_estimate = 0.0
 
     def consume(self, experiment, participant):
-        experiment.timeline.redirect_to_branch(experiment, participant, "successful_end")
+        experiment.timeline.redirect_to_branch(
+            experiment, participant, "successful_end"
+        )
 
 
 class UnsuccessfulEndPage(Elt):

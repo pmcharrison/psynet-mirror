@@ -745,9 +745,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             return
 
         if self.complete:
-            logger.info(
-                "Participant %i already completed, not failing.", self.id
-            )
+            logger.info("Participant %i already completed, not failing.", self.id)
             return
 
         if reason is not None:

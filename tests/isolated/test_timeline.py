@@ -2,8 +2,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from psynet.end import SuccessfulEndLogic, UnsuccessfulEndLogic
-from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
+from psynet.end import UnsuccessfulEndLogic
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import (
     AsyncCodeBlock,
     CodeBlock,
