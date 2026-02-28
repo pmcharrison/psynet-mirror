@@ -784,19 +784,24 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             if isinstance(group, SimpleSyncGroup):
                 group.check_numbers()
 
-        if not exp.timeline.participant_is_in_end_logic(self):
-            if getattr(self, "_in_advance_page", False):
-                logger.info(
-                    "Redirecting participant %i to unsuccessful_end branch.",
-                    self.id,
-                )
-                exp.timeline.redirect_to_branch(exp, self, "unsuccessful_end")
-            else:
-                logger.info(
-                    "Queuing redirect for participant %i to unsuccessful_end branch.",
-                    self.id,
-                )
-                self.pending_redirect = "unsuccessful_end"
+        self._redirect_to_unsuccessful_end(exp)
+
+    def _redirect_to_unsuccessful_end(self, experiment):
+        if experiment.timeline.participant_is_in_end_logic(self):
+            return
+
+        if getattr(self, "_in_advance_page", False):
+            logger.info(
+                "Redirecting participant %i to unsuccessful_end branch.",
+                self.id,
+            )
+            experiment.timeline.redirect_to_branch(experiment, self, "unsuccessful_end")
+        else:
+            logger.info(
+                "Queuing redirect for participant %i to unsuccessful_end branch.",
+                self.id,
+            )
+            self.pending_redirect = "unsuccessful_end"
 
 
 def get_participant(participant_id: int, for_update: bool = False) -> Participant:

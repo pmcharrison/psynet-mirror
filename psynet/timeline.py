@@ -1739,10 +1739,10 @@ class Timeline:
     def advance_page(self, experiment, participant):
         participant._in_advance_page = True
         try:
-            pending = getattr(participant, "pending_redirect", None)
-            if pending:
+            if participant.pending_redirect:
+                branch = participant.pending_redirect
                 participant.pending_redirect = None
-                self.redirect_to_branch(experiment, participant, pending)
+                self.redirect_to_branch(experiment, participant, branch)
 
             finished = False
             while not finished:

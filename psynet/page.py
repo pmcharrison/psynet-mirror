@@ -296,19 +296,8 @@ def wait_while(
     )
 
 
-class SuccessfulEndPage(Elt):
-    """Redirects the participant to the successful end branch of the timeline."""
-
-    time_estimate = 0.0
-
-    def consume(self, experiment, participant):
-        experiment.timeline.redirect_to_branch(
-            experiment, participant, "successful_end"
-        )
-
-
-class UnsuccessfulEndPage(Elt):
-    """Redirects the participant to the unsuccessful end branch of the timeline.
+class EndPageRedirect(Elt):
+    """Base class for end pages that redirect to a named timeline branch.
 
     Parameters
     ----------
@@ -317,6 +306,7 @@ class UnsuccessfulEndPage(Elt):
     """
 
     time_estimate = 0.0
+    branch_name = None
 
     def __init__(self, failure_tags: Optional[List] = None, **kwargs):
         super().__init__()
@@ -328,33 +318,26 @@ class UnsuccessfulEndPage(Elt):
         if self.failure_tags:
             participant.append_failure_tags(*self.failure_tags)
         experiment.timeline.redirect_to_branch(
-            experiment, participant, "unsuccessful_end"
+            experiment, participant, self.branch_name
         )
 
 
-class RejectedConsentPage(Elt):
-    """Redirects the participant to the unsuccessful end branch after consent rejection.
+class SuccessfulEndPage(EndPageRedirect):
+    """Redirects the participant to the successful end branch."""
 
-    Parameters
-    ----------
-    failure_tags
-        Optional failure tags to append before redirecting.
-    """
+    branch_name = "successful_end"
 
-    time_estimate = 0.0
 
-    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
-        super().__init__()
-        if failure_tags is None:
-            failure_tags = []
-        self.failure_tags = failure_tags
+class UnsuccessfulEndPage(EndPageRedirect):
+    """Redirects the participant to the unsuccessful end branch."""
 
-    def consume(self, experiment, participant):
-        if self.failure_tags:
-            participant.append_failure_tags(*self.failure_tags)
-        experiment.timeline.redirect_to_branch(
-            experiment, participant, "rejected_consent"
-        )
+    branch_name = "unsuccessful_end"
+
+
+class RejectedConsentPage(EndPageRedirect):
+    """Redirects the participant to the rejected consent branch."""
+
+    branch_name = "rejected_consent"
 
 
 class DebugResponsePage(PageMaker):
