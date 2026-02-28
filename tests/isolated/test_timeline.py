@@ -218,7 +218,7 @@ def test_lambda_compiles_as_code_block_in_timeline():
         my_function,
     )
     found_lambda = None
-    for elt in timeline.elts:
+    for elt in timeline.all_elts:
         if isinstance(elt, CodeBlock):
             found_lambda = elt
             break
@@ -233,7 +233,7 @@ def test_lambda_compiles_as_code_block_in_timeline():
 
 def _make_mock_participant(elt_id=None):
     p = SimpleNamespace(
-        elt_id=elt_id if elt_id is not None else [-1],
+        elt_id=elt_id if elt_id is not None else ["main", -1],
         elt_id_max=[],
         _in_advance_page=False,
     )
@@ -243,35 +243,30 @@ def _make_mock_participant(elt_id=None):
 class TestTimelineBranches:
     def test_default_branches_exist(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        assert "main" in t._branches
-        assert "successful_end" in t._branches
-        assert "unsuccessful_end" in t._branches
-        assert "rejected_consent" in t._branches
+        assert "main" in t.elts
+        assert "successful_end" in t.elts
+        assert "unsuccessful_end" in t.elts
+        assert "rejected_consent" in t.elts
 
     def test_main_branch_ends_with_successful_end_page(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        main_end = t._branches["main"]["end"]
-        last_main_elt = t.elts[main_end - 1]
-        assert isinstance(last_main_elt, SuccessfulEndPage)
+        assert isinstance(t.elts["main"][-1], SuccessfulEndPage)
 
     def test_successful_end_branch_has_four_elements(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        branch = t._branches["successful_end"]
-        assert branch["end"] - branch["start"] == 4
+        assert len(t.elts["successful_end"]) == 4
 
     def test_unsuccessful_end_branch_has_four_elements(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        branch = t._branches["unsuccessful_end"]
-        assert branch["end"] - branch["start"] == 4
+        assert len(t.elts["unsuccessful_end"]) == 4
 
     def test_successful_end_branch_structure(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        branch = t._branches["successful_end"]
-        start = branch["start"]
-        assert isinstance(t.elts[start], CodeBlock)
-        assert isinstance(t.elts[start + 1], PageMaker)
-        assert isinstance(t.elts[start + 2], CodeBlock)
-        assert isinstance(t.elts[start + 3], PageMaker)
+        branch = t.elts["successful_end"]
+        assert isinstance(branch[0], CodeBlock)
+        assert isinstance(branch[1], PageMaker)
+        assert isinstance(branch[2], CodeBlock)
+        assert isinstance(branch[3], PageMaker)
 
     def test_custom_branch_override(self):
         custom = UnsuccessfulEndLogic()
@@ -279,71 +274,69 @@ class TestTimelineBranches:
             InfoPage("hello", time_estimate=5),
             unsuccessful_end=custom,
         )
-        assert "unsuccessful_end" in t._branches
+        assert "unsuccessful_end" in t.elts
 
     def test_get_participant_branch_initial(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        p = _make_mock_participant(elt_id=[-1])
+        p = _make_mock_participant(elt_id=["main", -1])
         assert t.get_participant_branch(p) == "main"
 
     def test_get_participant_branch_main(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        p = _make_mock_participant(elt_id=[0])
+        p = _make_mock_participant(elt_id=["main", 0])
         assert t.get_participant_branch(p) == "main"
 
     def test_get_participant_branch_successful_end(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        start = t._branches["successful_end"]["start"]
-        p = _make_mock_participant(elt_id=[start])
+        p = _make_mock_participant(elt_id=["successful_end", 0])
         assert t.get_participant_branch(p) == "successful_end"
 
     def test_get_participant_branch_unsuccessful_end(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        start = t._branches["unsuccessful_end"]["start"]
-        p = _make_mock_participant(elt_id=[start])
+        p = _make_mock_participant(elt_id=["unsuccessful_end", 0])
         assert t.get_participant_branch(p) == "unsuccessful_end"
 
     def test_participant_is_in_end_logic_false_for_main(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        p = _make_mock_participant(elt_id=[0])
+        p = _make_mock_participant(elt_id=["main", 0])
         assert not t.participant_is_in_end_logic(p)
 
     def test_participant_is_in_end_logic_false_for_initial(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        p = _make_mock_participant(elt_id=[-1])
+        p = _make_mock_participant(elt_id=["main", -1])
         assert not t.participant_is_in_end_logic(p)
 
     def test_participant_is_in_end_logic_true_for_successful_end(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        start = t._branches["successful_end"]["start"]
-        p = _make_mock_participant(elt_id=[start])
+        p = _make_mock_participant(elt_id=["successful_end", 0])
         assert t.participant_is_in_end_logic(p)
 
     def test_participant_is_in_end_logic_true_for_unsuccessful_end(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        start = t._branches["unsuccessful_end"]["start"]
-        p = _make_mock_participant(elt_id=[start])
+        p = _make_mock_participant(elt_id=["unsuccessful_end", 0])
         assert t.participant_is_in_end_logic(p)
-
-    def test_participant_is_in_end_logic_boundary(self):
-        t = Timeline(InfoPage("hello", time_estimate=5))
-        main_end = t._branches["main"]["end"]
-        p_last_main = _make_mock_participant(elt_id=[main_end - 1])
-        assert not t.participant_is_in_end_logic(p_last_main)
-        p_first_end = _make_mock_participant(elt_id=[main_end])
-        assert t.participant_is_in_end_logic(p_first_end)
 
     def test_redirect_to_branch_sets_elt_id(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        p = _make_mock_participant(elt_id=[0])
-        p.elt_id_max = [len(t.elts) - 1]
+        p = _make_mock_participant(elt_id=["main", 0])
         p._in_advance_page = True
-        start = t._branches["unsuccessful_end"]["start"]
         t.redirect_to_branch(None, p, "unsuccessful_end")
-        assert p.elt_id == [start - 1]
+        assert p.elt_id == ["unsuccessful_end", -1]
 
     def test_redirect_to_unknown_branch_raises(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
-        p = _make_mock_participant(elt_id=[0])
+        p = _make_mock_participant(elt_id=["main", 0])
         with pytest.raises(ValueError, match="Unknown timeline branch"):
             t.redirect_to_branch(None, p, "nonexistent")
+
+    def test_getitem_by_branch_name(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        assert t["main"] is t.elts["main"]
+        assert t["successful_end"] is t.elts["successful_end"]
+
+    def test_elt_ids_include_branch_name(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        first_main = t.elts["main"][0]
+        assert first_main.id == ["main", 0]
+        first_end = t.elts["successful_end"][0]
+        assert first_end.id == ["successful_end", 0]

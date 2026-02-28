@@ -1543,8 +1543,6 @@ class Timeline:
         )
         from psynet.page import SuccessfulEndPage
 
-        main_elts = join(*args, SuccessfulEndPage())
-
         default_branches = OrderedDict(
             [
                 ("successful_end", SuccessfulEndLogic()),
@@ -1554,34 +1552,29 @@ class Timeline:
         )
         default_branches.update(branch_kwargs)
 
-        self._branches = OrderedDict()
-        self.elts = list(main_elts)
-        self._branches["main"] = {"start": 0, "end": len(self.elts)}
-
+        self.elts = OrderedDict()
+        self.elts["main"] = join(*args, SuccessfulEndPage())
         for name, content in default_branches.items():
-            start = len(self.elts)
-            self.elts.extend(join(content))
-            self._branches[name] = {"start": start, "end": len(self.elts)}
+            self.elts[name] = join(content)
 
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
-        self.estimated_time_credit = CreditEstimate(self.elts)
+        self.estimated_time_credit = CreditEstimate(list(self.all_elts))
+
+    @property
+    def all_elts(self):
+        """Iterate over all elements across all branches."""
+        for branch_elts in self.elts.values():
+            yield from branch_elts
 
     def get_participant_branch(self, participant):
         """Return the name of the branch the participant is currently in."""
-        if participant.elt_id == [-1]:
-            return "main"
-        idx = participant.elt_id[0]
-        for name, info in self._branches.items():
-            if info["start"] <= idx < info["end"]:
-                return name
-        return None
+        return participant.elt_id[0]
 
     def participant_is_in_end_logic(self, participant):
         """Return True if the participant is in any end logic branch."""
-        branch = self.get_participant_branch(participant)
-        return branch is not None and branch != "main"
+        return self.get_participant_branch(participant) != "main"
 
     def redirect_to_branch(self, experiment, participant, branch_name):
         """Redirect a participant to the start of a named branch.
@@ -1590,18 +1583,17 @@ class Timeline:
         to the next loop iteration. When called from outside, ``advance_page``
         is invoked to advance the participant to the first page in the branch.
         """
-        if branch_name not in self._branches:
+        if branch_name not in self.elts:
             raise ValueError(f"Unknown timeline branch: {branch_name!r}")
-        start = self._branches[branch_name]["start"]
-        participant.elt_id = [start - 1]
-        participant.elt_id_max = [len(self.elts) - 1]
+        participant.elt_id = [branch_name, -1]
+        participant.elt_id_max = []
         if not getattr(participant, "_in_advance_page", False):
             self.advance_page(experiment, participant)
 
     def compile_modules(self):
         modules = {}
         module_list = []
-        for elt in self.elts:
+        for elt in self.all_elts:
             if isinstance(elt, StartModule):
                 module = elt.module
                 if module.id in modules:
@@ -1611,22 +1603,23 @@ class Timeline:
         return modules, module_list
 
     def check_elts(self):
-        assert isinstance(self.elts, list)
-        assert len(self.elts) > 0
+        assert isinstance(self.elts, dict)
+        assert "main" in self.elts
+        assert len(self.elts["main"]) > 0
         self.check_for_time_estimate()
         self.check_modules()
 
     def check_for_time_estimate(self):
-        for i, elt in enumerate(self.elts):
+        for elt in self.all_elts:
             if (
                 isinstance(elt, Page) or isinstance(elt, PageMaker)
             ) and elt.time_estimate is None:
                 raise ValueError(
-                    f"Element {i} of the timeline was missing a time_estimate value."
+                    f"Element {elt!r} of the timeline was missing a time_estimate value."
                 )
 
     def check_modules(self):
-        modules = [x.label for x in self.elts if isinstance(x, StartModule)]
+        modules = [x.label for x in self.all_elts if isinstance(x, StartModule)]
         counts = Counter(modules)
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
@@ -1643,7 +1636,7 @@ class Timeline:
     def consents(self):
         from .consent import Consent
 
-        return [elt for elt in self.elts if isinstance(elt, Consent)]
+        return [elt for elt in self.elts["main"] if isinstance(elt, Consent)]
 
     def check_consents(self, experiment):
         recruiter = experiment.recruiter
@@ -1659,7 +1652,7 @@ class Timeline:
     def trial_makers(self):
         return {
             e.trial_maker_id: e.trial_maker
-            for e in self.elts
+            for e in self.all_elts
             if isinstance(e, RegisterTrialMaker)
         }
 
@@ -1670,30 +1663,35 @@ class Timeline:
             raise RuntimeError(f"Couldn't find trial maker with id = {trial_maker_id}.")
 
     def add_elt_ids(self):
-        for i, elt in enumerate(self.elts):
-            if elt.id is not None and elt.id != [i]:
-                raise ValueError(
-                    f"Failed to set unique IDs for each element in the timeline "
-                    f"(the same element was reused at positions {elt.id} and {i}). "
-                    "This usually means that the same Python object instantiation is reused multiple times "
-                    "in the same timeline. This kind of reusing is not permitted, instead you should "
-                    "create a fresh instantiation of each element, e.g. by calling a function twice."
-                )
-
-            elt.id = [i]
+        for branch_name, branch_elts in self.elts.items():
+            for i, elt in enumerate(branch_elts):
+                expected_id = [branch_name, i]
+                if elt.id is not None and elt.id != expected_id:
+                    raise ValueError(
+                        f"Failed to set unique IDs for each element in the timeline "
+                        f"(the same element was reused at positions {elt.id} and {expected_id}). "
+                        "This usually means that the same Python object instantiation is reused multiple times "
+                        "in the same timeline. This kind of reusing is not permitted, instead you should "
+                        "create a fresh instantiation of each element, e.g. by calling a function twice."
+                    )
+                elt.id = expected_id
 
     def __len__(self):
-        return len(self.elts)
+        return sum(len(branch) for branch in self.elts.values())
 
     def __getitem__(self, key: Union[str, list]):
         if isinstance(key, str):
-            key = [key]
+            return self.elts[key]
 
-        selected = self.elts
-        for k in key:
-            selected = selected[k]
+        if isinstance(key, list):
+            selected = self.elts
+            for k in key:
+                selected = selected[k]
+            return selected
 
-        return selected
+        raise TypeError(
+            f"Timeline indices must be strings or lists, not {type(key).__name__}"
+        )
 
     def index(self, elt: Elt):
         if elt.id is None:
@@ -1705,48 +1703,24 @@ class Timeline:
 
     @log_time_taken
     def get_current_elt(self, experiment, participant):
-        # Remember, ``participant.elt_id`` corresponds to a list representation
-        # of the participant's position in the timeline, where the first element corresponds
-        # to the index of the participant within the timeline's underlying
-        # list representation, and successive elements (if any) represent
-        # the participant's position within (potentially nested) page makers.
-        # For example, ``[10, 3, 2]`` would mean go to
-        # element 10 in the timeline (0-indexing),
-        # which must be a page maker;
-        # go to element 3 within that page maker, which must also be a page maker;
-        # go to element 2 within that page maker.
-        #
-        # The current function gets the ``Elt`` corresponding to the participant's
-        # current ``elt_id``. It works by iterating through the ``participant.elt_id``
-        # list from first to last element, each time 'resolving' the corresponding
-        # page maker (which means computing its underlying function),
-        # taking the list of test elements that comes out,
-        # going to the corresponding element within that list,
-        # resolving it, and so on.
-        #
+        # ``participant.elt_id`` is a list where the first element is the branch
+        # name (e.g. ``"main"``), the second element is the index within that
+        # branch, and any further elements represent position within nested
+        # page makers.
+        # For example, ``["main", 10, 3, 2]`` means: go to the ``main`` branch,
+        # element 10 (which must be a page maker), element 3 within that page
+        # maker (also a page maker), element 2 within that.
         num_levels = len(participant.elt_id)
         selected = self.elts
 
         for depth, index in enumerate(participant.elt_id):
-            # Suppose ``participant.elt_id`` = ``[10, 3, 2]``
-            # then:
-            # depth: 0, 1, 2
-            # index: 10, 3, 2
             try:
-                # index_max tells us the maximum allowed elt_id at this level of the hierarchy.
-                # The top level is the number of Elts in the timeline, minus one;
-                # the next level is the number of Elts in the trialmaker minus one, and so on.
                 index_max = participant.elt_id_max[depth]
             except IndexError:
                 index_max = None
 
             if isinstance(selected, PageMaker):
                 try:
-                    # ``position`` corresponds to the page maker's location within the timeline.
-                    # For example, suppose we are on the third level of the example above, then:
-                    # depth: 2
-                    # index: 2
-                    # position: ``[10, 3]``
                     if index_max is not None and index > index_max:
                         raise IndexError
                     position = participant.elt_id[0:depth]
@@ -1754,17 +1728,7 @@ class Timeline:
                     if index_max is None:
                         participant.elt_id_max.append(len(selected) - 1)
                 except IndexError:
-                    # This occurs if the requested index goes past the number of
-                    # elements produced by the current page maker.
-                    # If this occurs in the deepest level of ``participant.elt_id``,
-                    # it's fine; it normally means that the participant has finished the
-                    # page maker that is currently under consideration, and is ready
-                    # to move to the next part of the timeline. In this case we therefore
-                    # raise a ``PageMakerFinishedError``.
-                    # However, if this happens at a higher level of ``participant.elt_id``,
-                    # something weird has happened.
                     assert depth + 1 == num_levels
-
                     raise PageMakerFinishedError
 
             selected = selected[index]

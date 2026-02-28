@@ -548,8 +548,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.progress = 0.0
         self.time_credit_fixes = []
         self.progress_fixes = []
-        self.elt_id = [-1]
-        self.elt_id_max = [len(experiment.timeline) - 1]
+        self.elt_id = ["main", -1]
+        self.elt_id_max = []
         self.answer_accumulators = []
         self.for_loops = {}
         self.failure_tags = []
