@@ -100,7 +100,7 @@ They are only present if the experimenter has implemented the ``get_basic_data``
 The **assets** correspond to heavy files (e.g. audio, video) that are associated with the experiment.
 Not all experiments use assets.
 
-The **server logs** can also be exported when exporting from an ``ssh`` server.
+The **server logs** can also be exported when exporting from an SSH server.
 These come in the form of a ``logs.jsonl`` file. Don't share these publicly
 as they may contain confidential information.
 
@@ -201,6 +201,12 @@ For example, you might exclude participant IDs or other personally identifying i
         return {
             "trial": pd.DataFrame.from_records(trials),
         }
+
+Accessing basic data via the dashboard
+=====================================
+
+You can preview the basic data in the dashboard by clicking on the 'Basic data' tab.
+
 
 Accessing basic data via HTTP
 ------------------------------
