@@ -550,19 +550,19 @@ msgstr "પ્લે"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "તમારે ઓછામાં ઓછું એક જવાબ ચકાસવો પડશે!"
+msgstr "તમારે ઓછામાં ઓછું એક જવાબ ચકાસવો જરૂરી છે!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "તમારે જવાબ પસંદ કરવો પડશે!"
+msgstr "તમારે જવાબ પસંદ કરવો જરૂરી છે!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "તમારે એક નંબર આપવો પડશે!"
+msgstr "તમારે એક નંબર આપવો જરૂરી છે!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -899,22 +899,23 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "તમારા વળતરનો વિગતવાર વિગતો માટે નીચેની માહિતી જુઓ."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "પ્રયોગ અટકાવો"
+msgstr "પ્રયોગ રદ કરો"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "ભાગ લેવા માટેની અપીલ"
+msgstr "ભાગ લેનારાઓ માટેની અપીલ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "ભાગ લેવા માટેની જરૂરીયાતો નીચે મુજબ છે"
+msgstr "ભાગ લેવા માટેની આવશ્યકતાઓ આ મુજબ છે"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -923,8 +924,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"કૃપા કરીને કાર્ય શરૂ કરવા માટે ઉપરના એમેઝોન સાઇટ પર 'Accept HIT' બટન ક્લિક "
-"કરો."
+"કૃપા કરીને ઉપરના એમેઝોન સાઇટ પર \"Accept HIT\" બટન પર ક્લિક કરો અને કાર્ય "
+"શરૂ કરો."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -936,7 +937,7 @@ msgstr "આ HIT સ્વીકારવા બદલ આભાર."
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "આ પ્રયોગમાં તમારી રુચિ બદલ આભાર."
+msgstr "આ પ્રયોગમાં તમારી રસદારી બદલ આભાર."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -945,8 +946,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"ખાનગી સંમતિ કરાર અને સંપૂર્ણ સૂચનાઓ સહિત, પ્રયોગ માટેની લિન્ક પર ક્લિક કરીને"
-" આગળ વધશો."
+"નીચેના URL લિંક પર ક્લિક કરીને, તમે પ્રયોગમાં લઈ જશો, જેમાં સંપૂર્ણ સૂચનાઓ "
+"અને જાણકારી સંમતિ કરાર શામેલ છે."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -958,18 +959,13 @@ msgstr "ચેતવણી"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "કૃપા કરીને આગળ વધતા પહેલા પોપ-અપ અવરોધકો નિષ્ક્રિય કરો."
+msgstr "કૃપા કરીને આગળ વધતા પહેલા પોપ-અપ બ્લોકર્સ અક્ષમ કરો."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "પ્રયોગ શરૂ કરો"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "પ્રયોગ રદ કરો"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3047,8 +3043,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"તમે સંભવત: <strong>Abort experiment</strong> બટન <strong>MTurk જાહેરાત પેજ "
-"પર</strong> વાપરીને પ્રયોગને અટકાવી શકો છો."
+"તમે <strong>એમટર્ક જાહેરાત પૃષ્ઠ</strong> પર<strong>પ્રયોગ રદ કરો</strong> "
+"બટનનો ઉપયોગ કરીને પ્રયોગ રદ કરી શકો છો."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3057,8 +3053,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"એકવાર અટકાવ્યા પછી, વળતર મેળવવા માટે અમારો સંપર્ક કરવાની જરૂર નથી; આ તમને "
-"સ્વયંસંચાલિત રીતે MTurk દ્વારા થોડા મિનિટોમાં મળવું જોઈએ."
+"એકવાર રદ કર્યા પછી, વળતર મેળવવા માટે અમારો સંપર્ક કરવાની જરૂર નથી; આ તમને "
+"થોડા મિનિટ પછી એમટર્ક દ્વારા આપમેળે આપવામાં આવશે."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3066,13 +3062,12 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"જો આ તથ્ય ન હોય, તો કૃપા કરીને નીચે આપેલી માહિતીનો ઉલ્લેખ કરીને અમારો "
-"%(EMAIL)s પર સંપર્ક કરો:"
+"જો આ ન હોય, તો કૃપા કરીને નીચેની માહિતી સાથે %(EMAIL)s પર અમારો સંપર્ક કરો:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Error type"
-msgstr "ભૂલ પ્રકાર"
+msgstr "ભૂલનો પ્રકાર"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

@@ -5,6 +5,7 @@ import os
 import shutil
 import tempfile
 from collections import defaultdict
+from datetime import datetime
 from typing import List, Optional
 from zipfile import ZipFile
 
@@ -190,6 +191,9 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
     if scrub_pii and hasattr(obj, "scrub_pii"):
         data = obj.scrub_pii(data)
     for key, value in data.items():
+        if isinstance(value, datetime):
+            data[key] = value.strftime("%Y-%m-%d %H:%M:%S")
+            continue
         if not is_basic_type(value):
             from .serialize import serialize
 
@@ -730,6 +734,10 @@ def init_db(drop_all=False, bind=db.engine):
     # we don't need to do this because we are using proper session handling.
     close_all_sessions()
     old_init_db(drop_all, bind)
+    from .sqlalchemy_profiling import maybe_enable_sqlalchemy_profiling
+
+    # Enable env-driven SQL profiling early so all queries are captured.
+    maybe_enable_sqlalchemy_profiling(bind)
 
     return db.session
 

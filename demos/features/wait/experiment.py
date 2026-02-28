@@ -10,7 +10,6 @@ logger = get_logger()
 
 class Exp(psynet.experiment.Experiment):
     label = "Demo for wait_while"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         CodeBlock(

@@ -7,6 +7,7 @@ import wave
 from functools import cache
 
 import boto3
+from botocore.config import Config
 from dallinger.config import get_config
 
 from .utils import get_logger
@@ -70,29 +71,59 @@ def get_aws_credentials(capitalize=False):
         "aws_secret_access_key": config.get("aws_secret_access_key"),
         "region_name": config.get("aws_region"),
     }
+    cred = {key: value for key, value in cred.items() if value}
     if capitalize:
         cred = {key.upper(): value for key, value in cred.items()}
     return cred
 
 
-def new_s3_client():
-    return boto3.client("s3", **get_aws_credentials())
+def get_s3_endpoint_url():
+    """
+    Get the custom S3 endpoint URL, if configured.
+
+    This reads `PSYNET_S3_ENDPOINT_URL` from the environment. When set, PsyNet
+    will direct boto3 to use the specified S3-compatible endpoint (for example
+    Moto, LocalStack, or MinIO) instead of AWS. This is useful for CI or local
+    testing where real S3 access is not desired.
+    """
+    return os.environ.get("PSYNET_S3_ENDPOINT_URL")
 
 
-def new_s3_resource():
-    return boto3.resource("s3", **get_aws_credentials())
+def get_s3_client_kwargs():
+    """
+    Build boto3 client/resource kwargs for custom S3 endpoints.
+
+    Returns an empty dict when no custom endpoint is configured. When a custom
+    endpoint is set, this includes `endpoint_url` and path-style addressing,
+    which improves compatibility with S3 emulators.
+    """
+    endpoint_url = get_s3_endpoint_url()
+    if not endpoint_url:
+        return {}
+    return {
+        "endpoint_url": endpoint_url,
+        "config": Config(s3={"addressing_style": "path"}),
+    }
+
+
+def get_s3_client():
+    return boto3.client("s3", **get_aws_credentials(), **get_s3_client_kwargs())
+
+
+def get_s3_resource():
+    return boto3.resource("s3", **get_aws_credentials(), **get_s3_client_kwargs())
 
 
 def get_s3_bucket(bucket_name: str):
     # pylint: disable=no-member
-    resource = new_s3_resource()
+    resource = get_s3_resource()
     return resource.Bucket(bucket_name)
 
 
 def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
     logger.info("Setting bucket CORSRules and policies...")
 
-    s3_resource = new_s3_resource()
+    s3_resource = get_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
 
     cors = bucket.Cors()
@@ -136,7 +167,7 @@ def make_bucket_public(bucket_name):
         bucket_name,
     )
 
-    s3_resource = new_s3_resource()
+    s3_resource = get_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
     bucket.Acl().put(ACL="public-read")
 

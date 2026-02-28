@@ -1,8 +1,8 @@
 import json
 import uuid
+from functools import cached_property
 from typing import List, Optional
 
-from cached_property import cached_property
 from dallinger import db
 
 from psynet.db import transaction

@@ -30,10 +30,6 @@ RUN CHROME_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testi
 
 COPY pyproject.toml pyproject.toml
 
-# Generate PsyNet constraints.txt and install it
-RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate
+# Generate PsyNet constraints.txt (including demos extras) and install it
+RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra demos
 RUN uv pip install --no-cache --system -r constraints.txt
-
-# Install demos requirements
-COPY demos/requirements.txt demo-requirements.txt
-RUN uv pip install --no-cache --system -r demo-requirements.txt

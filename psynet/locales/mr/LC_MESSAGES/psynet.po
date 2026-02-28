@@ -554,19 +554,19 @@ msgstr "प्ले"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "आपल्याला किमान एक उत्तर तपासणे आवश्यक आहे!"
+msgstr "तुम्हाला किमान एक उत्तर तपासणे आवश्यक आहे!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "आपल्याला उत्तर निवडणे आवश्यक आहे!"
+msgstr "तुम्हाला एक उत्तर निवडणे आवश्यक आहे!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "आपल्याला एक संख्या प्रदान करणे आवश्यक आहे!"
+msgstr "तुम्हाला एक संख्या प्रदान करणे आवश्यक आहे!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -903,7 +903,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "आपल्या मोबदल्याची माहिती खाली तपासा."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "प्रयोग रद्द करा"
@@ -918,7 +919,7 @@ msgstr "सहभागी होण्यासाठी आवाहन"
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "सहभाग घेण्यासाठी आवश्यकतांची यादी खालीलप्रमाणे आहे"
+msgstr "सहभागी होण्यासाठी आवश्यकतांची यादी खालीलप्रमाणे आहे"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -927,8 +928,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"कृपया वर दिलेल्या Amazon साइटवर \"Accept HIT\" बटणावर क्लिक करा आणि कार्य "
-"सुरू करा."
+"कृपया वरच्या Amazon साइटवरील \"Accept HIT\" बटणावर क्लिक करून कार्य सुरू "
+"करा."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -949,8 +950,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"खालील URL लिंकवर क्लिक केल्यास, तुम्हाला संपूर्ण सूचना आणि एक सूचित संमती "
-"करारासह प्रयोगाकडे नेले जाईल."
+"खालील URL लिंकवर क्लिक केल्यास, तुम्हाला प्रयोगाकडे नेले जाईल, ज्यामध्ये "
+"संपूर्ण सूचना आणि माहितीपूर्ण संमती करार समाविष्ट आहे."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -972,13 +973,8 @@ msgstr "प्रयोग सुरू करा"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "प्रयोग रद्द करा"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "त्रुटीच्या बाबतीत भरपाई मिळवण्यासाठी वर दिलेल्या बटणावर क्लिक करा."
+msgstr "त्रुटीच्या बाबतीत नुकसान भरपाई मिळवण्यासाठी वरील बटणावर क्लिक करा."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3062,8 +3058,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"आपण <strong>प्रयोग रद्द करा</strong> बटणाचा <strong>MTurk जाहिरात "
-"पानावर</strong> वापर करून प्रयोग रद्द करू शकता."
+"आपण <strong>MTurk जाहिरात पृष्ठावर</strong> <strong>प्रयोग रद्द करा</strong>"
+" बटण वापरून प्रयोग रद्द करू शकता."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3072,8 +3068,8 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"रद्द केल्यानंतर, नुकसान भरपाई मिळविण्यासाठी आमच्याशी संपर्क साधण्याची गरज "
-"नाही; हे आपल्याला MTurk द्वारे काही मिनिटांनंतर स्वयंचलितपणे दिले जाईल."
+"एकदा रद्द केल्यावर, मोबदला मिळवण्यासाठी आमच्याशी संपर्क साधण्याची गरज नाही; "
+"काही मिनिटांनंतर MTurk द्वारे आपोआप आपल्याला हे दिले जाईल."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3081,8 +3077,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"जर असे झाले नाही, तर कृपया खालील माहितीचा उल्लेख करून आम्हाला %(EMAIL)s येथे"
-" संपर्क साधा:"
+"जर असे नसेल, तर कृपया खालील माहिती नमूद करून आम्हाला %(EMAIL)s येथे संपर्क "
+"साधा:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

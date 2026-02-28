@@ -35,11 +35,11 @@ search box. Most objects should have a documentation entry that tells you more a
 API, for example the arguments that a function accepts and the kind of values that it returns.
 The same documentation entry will also normally contain a link to the relevant source code.
 
-An alternative way to learn more about PsyNet functions or classes is via PyCharm.
-Open the demo directory in PyCharm
+An alternative way to learn more about PsyNet functions or classes is via your IDE.
+Open the demo directory in your IDE
 (assuming you've already downloaded PsyNet from its
 `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_),
-open the repository in PyCharm, and then look around for an object you want to learn more about
+and then look around for an object you want to learn more about
 (e.g. ``InfoPage``).
 Ctrl-Click (Windows, Linux) or Cmd-Click (macOS) that object, and you should be taken to the
 part of the PsyNet source code that defines the object. The source code should often

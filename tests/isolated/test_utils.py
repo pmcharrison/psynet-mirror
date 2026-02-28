@@ -278,6 +278,24 @@ def test_check_todos_before_deployment_no_raise():
                 assert False
 
 
+def test_check_todos_before_deployment_skips_venv_and_bad_encoding():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            os.makedirs("venv/lib", exist_ok=True)
+            with open("venv/lib/ignored.py", "w") as file:
+                file.write("# TODO should be ignored")
+                file.flush()
+
+            with open("bad_encoding.py", "wb") as file:
+                file.write(b"\xb1\xff")
+                file.flush()
+
+            try:
+                check_todos_before_deployment()
+            except AssertionError:
+                assert False
+
+
 def test_get_folder_size_mb():
     with tempfile.TemporaryDirectory() as tempdir:
         subdir = os.path.join(tempdir, "subdir")

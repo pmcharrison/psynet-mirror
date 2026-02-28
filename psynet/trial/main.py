@@ -21,6 +21,7 @@ from sqlalchemy import (
     String,
     and_,
     func,
+    inspect,
     not_,
     or_,
     select,
@@ -91,17 +92,24 @@ class AssetParentMixin:
             self.add_asset(local_key, asset)
 
     def add_asset(self, local_key: str, asset: Asset):
-        if not asset.parent:
+        assert isinstance(asset, Asset)
+        asset._raise_if_detached()
+
+        if asset.parent is None:
             asset.parent = self
 
         asset.receive_node_definition(self.definition)
         asset.local_key = local_key
-        asset.set_keys()
+        if self.id is None:
+            # Ensure the trial has an ID before asset keys/depositing.
+            db.session.flush([self])
+        if asset.deposited:
+            asset.set_keys()
+        else:
+            # deposit() will call set_keys() internally.
+            asset.deposit()
 
         self.assets[local_key] = asset
-
-        if not asset.deposited:
-            asset.deposit()
 
 
 class Trial(SQLMixinDallinger, Info, AssetParentMixin):
@@ -868,8 +876,6 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     @classmethod
     def check_node_is_valid(cls, source):
-        from sqlalchemy import inspect
-
         if not inspect(source).persistent:
             raise ValueError(
                 f"The node with definition {source.definition} looks like it hasn't "

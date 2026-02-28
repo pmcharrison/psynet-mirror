@@ -917,10 +917,11 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Вижте информацията по-долу за подробности относно вашата компенсация."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Прекрати експеримента"
+msgstr "Прекратете експеримента"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -984,11 +985,6 @@ msgstr ""
 msgctxt "ad"
 msgid "Begin Experiment"
 msgstr "Започнете експеримента"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Прекратете експеримента"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
@@ -3115,9 +3111,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"След прекратяване няма нужда да се свързвате с нас, за да получите "
-"компенсацията; тя трябва да ви бъде предоставена автоматично чрез MTurk "
-"няколко минути след това."
+"След като бъде прекратен, няма нужда да се свързвате с нас, за да получите "
+"компенсацията; тя трябва да ви бъде изплатена автоматично чрез MTurk няколко"
+" минути след това."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

@@ -88,7 +88,7 @@ def debugger():
                     },
                     "pathMappings": [
                         {
-                            "localRoot": "${env:PWD}",
+                            "localRoot": "${fileDirname}",
                             "remoteRoot": "/tmp/dallinger_develop"
                         }
                     ]
@@ -98,11 +98,17 @@ def debugger():
 
     Once you have this file, you simply place ``psynet.debugger()`` in the code where you want to create a breakpoint.
     Once you run ``psynet debug local``, you should see a message in your console that says "Press F5 to start debugging".
-    Pressing F5 should start the debugger, and you should be able to debug your code as usual.
+    Pressing F5 should start the debugger. For instructions on how to use the debugger,
+    see the `VSCode documentation <https://code.visualstudio.com/docs/debugtest/debugging#_debug-actions>`_.
     """
     # 5678 is the default attach port in the VS Code debug configurations.
     # Unless a host and port are specified, host defaults to 127.0.0.1
-    debugpy.listen(5678)
-    print("Press F5 to start debugging")
-    debugpy.wait_for_client()
+    if not debugger._listening:
+        debugpy.listen(5678)
+        debugger._listening = True
+        print("Press F5 to start debugging")
+        debugpy.wait_for_client()
     debugpy.breakpoint()
+
+
+debugger._listening = False
