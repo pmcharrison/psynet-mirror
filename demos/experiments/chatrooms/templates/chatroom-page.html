@@ -134,7 +134,7 @@
             var SHOW_HISTORY = psynet.var["chatroom_show_history"];
             var MY_ID = dallinger.identity.participantId;
 
-            // ROOM_ID is absent if the participant reached this page without
+            // ROOM_ID could be absent if the participant reached this page without
             // completing room selection (e.g. via browser history navigation).
             // We wait for psynet.pageLoaded before calling nextPage because
             // nextPage requires the PsyNet timeline to be fully initialised.
@@ -260,7 +260,7 @@
             }
 
             function fetchHistory() {
-                fetch("/chatroom_history?room_id=" + ROOM_ID)
+                fetch("/chatroom_history?room_id=" + ROOM_ID + "&participant_id=" + MY_ID + "&unique_id=" + psynet.uniqueId)
                     .then(function (r) { return r.json(); })
                     .then(function (data) {
                         if (!data.messages || data.messages.length === 0) return;

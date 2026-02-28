@@ -255,6 +255,15 @@ class Exp(psynet.experiment.Experiment):
         from flask import request
 
         room_id = request.args.get("room_id", "")
+        participant_id = request.args.get("participant_id", "")
+        unique_id = request.args.get("unique_id", "")
+        participant = Participant.query.filter_by(id=participant_id).first()
+        if (
+            not participant
+            or participant.unique_id != unique_id
+            or participant.var.get("current_room") != room_id
+        ):
+            return success_response(messages=[])
         messages = [
             {
                 "type": "message",
