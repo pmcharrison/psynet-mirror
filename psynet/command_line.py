@@ -8,6 +8,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
@@ -3352,6 +3353,21 @@ class _OutputTee:
             stream.flush()
 
 
+def _drain_pexpect_output(process):
+    """Continuously read from pexpect process so logfile receives output.
+
+    If we don't do this, the server log will record very little of what actually
+    transpires, which makes debugging very difficult.
+    """
+    while process.isalive():
+        try:
+            process.read_nonblocking(size=4096, timeout=1)
+        except pexpect.TIMEOUT:
+            pass
+        except (pexpect.EOF, Exception):
+            break
+
+
 def _start_local_server_and_wait_for_ready(
     debug=False, max_wait=60, ready_phrase="Experiment launch complete!"
 ):
@@ -3398,6 +3414,12 @@ def _start_local_server_and_wait_for_ready(
             process.expect_exact(ready_phrase, timeout=max_wait)
             print(" Ready!")
             print()
+            drain_thread = threading.Thread(
+                target=_drain_pexpect_output,
+                args=(process,),
+                daemon=True,
+            )
+            drain_thread.start()
             return {
                 "process": process,
                 "tmp_log_path": tmp_log_path,
