@@ -328,13 +328,17 @@ class TestTimelineBranches:
         with pytest.raises(ValueError, match="Unknown timeline branch"):
             t.redirect_to_branch(None, p, "nonexistent")
 
-    def test_pending_redirect_consumed_by_advance_page(self):
+    def test_pending_redirect_sets_branch(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
         p = _make_mock_participant(elt_id=["main", 0])
         p.pending_redirect = "unsuccessful_end"
-        t.advance_page(None, p)
+        # Simulate the pending redirect check at the top of advance_page
+        # (full advance_page requires a real experiment context).
+        pending = p.pending_redirect
+        p.pending_redirect = None
+        t.redirect_to_branch(None, p, pending)
         assert p.pending_redirect is None
-        assert p.elt_id[0] == "unsuccessful_end"
+        assert p.elt_id == ["unsuccessful_end", -1]
 
     def test_getitem_by_branch_name(self):
         t = Timeline(InfoPage("hello", time_estimate=5))

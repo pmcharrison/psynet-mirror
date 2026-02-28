@@ -1743,7 +1743,6 @@ class Timeline:
             if pending:
                 participant.pending_redirect = None
                 self.redirect_to_branch(experiment, participant, pending)
-                return
 
             finished = False
             while not finished:
