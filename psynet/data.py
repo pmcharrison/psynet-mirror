@@ -517,6 +517,10 @@ def init_db(drop_all=False, bind=db.engine):
     # we don't need to do this because we are using proper session handling.
     close_all_sessions()
     old_init_db(drop_all, bind)
+    from .sqlalchemy_profiling import maybe_enable_sqlalchemy_profiling
+
+    # Enable env-driven SQL profiling early so all queries are captured.
+    maybe_enable_sqlalchemy_profiling(bind)
 
     return db.session
 

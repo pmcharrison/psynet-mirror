@@ -54,6 +54,7 @@ dependencies = [
     "pytest-dependency",
     "pytest-mock",
     "pytest-timeout",
+    "moto[server,s3]",
     "python-gettext",
     "rpdb",
     "slack_sdk",  # For Slack notifications
@@ -81,6 +82,17 @@ dev = [
 ]
 slack = [
     "slack_sdk",
+]
+demos = [
+    "repp @ git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp",
+    "reppextension @ git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension",
+    "sing4me @ git+https://gitlab.com/computational-audition/sing4me",
+    "music21",
+    "numpy",
+    "praat-parselmouth",
+    "scipy",
+    "soundfile",
+    "statsmodels",
 ]
 
 [project.entry-points.pytest11]
