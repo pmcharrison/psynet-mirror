@@ -147,9 +147,10 @@ In this case, the data will be saved as a set of CSV files.
 For example:
 
 .. code:: python
-
     @classmethod
     def get_basic_data(cls, context=None, **kwargs):
+        import pandas as pd
+
         trials = [
             {
                 "id": trial.id,
@@ -187,6 +188,8 @@ For example, you might exclude participant IDs or other personally identifying i
 
     @classmethod
     def get_basic_data(cls, context=None, anonymize=False, **kwargs):
+        import pandas as pd
+
         trials = [
             {
                 "id": trial.id,
@@ -214,7 +217,7 @@ You can construct the full URL using the ``basic_data_url`` property:
 .. code:: python
 
     from psynet.experiment import Experiment
-    
+
     url = Experiment.basic_data_url()
     # Returns: https://your-experiment-url.com/basic_data?dashboard_user=...&dashboard_password=...
 
