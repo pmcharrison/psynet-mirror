@@ -1522,6 +1522,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"  Average bot initialization time: {result['avg_init_time']:.1f}s"
                 )
 
+            if result.get("median_wait_page_time") is not None:
+                logger.info(
+                    f"  Wait page time (median): {result['median_wait_page_time']:.1f}s"
+                )
+                logger.info(
+                    f"  Wait page time (95th): {result['p95_wait_page_time']:.1f}s"
+                )
+                logger.info(
+                    f"  Wait page time (max): {result['max_wait_page_time']:.1f}s"
+                )
+
             if result["avg_response_time"] is not None:
                 logger.info(
                     f"  Average response time: {result['avg_response_time']:.3f}s"
@@ -2008,6 +2019,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             else:
                 bots_failed += 1
 
+        wait_page_times = [
+            b.total_wait_page_time
+            for b in bots
+            if b.total_wait_page_time is not None
+        ]
+        if wait_page_times:
+            wait_page_times_sorted = sorted(wait_page_times)
+            median_wait_page_time = wait_page_times_sorted[
+                len(wait_page_times_sorted) // 2
+            ]
+            p95_wait_page_time = wait_page_times_sorted[
+                int(len(wait_page_times_sorted) * 0.95)
+            ]
+            max_wait_page_time = wait_page_times_sorted[-1]
+        else:
+            median_wait_page_time = p95_wait_page_time = max_wait_page_time = None
+
         avg_response_time = stats.avg
         median_response_time = stats.median
         p95_response_time = stats.p95
@@ -2062,6 +2090,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "avg_bot_duration": avg_bot_duration,
             "avg_init_time": avg_init_time,
             "request_errors": request_errors,
+            "median_wait_page_time": median_wait_page_time,
+            "p95_wait_page_time": p95_wait_page_time,
+            "max_wait_page_time": max_wait_page_time,
         }
 
     def _report_test_results(
