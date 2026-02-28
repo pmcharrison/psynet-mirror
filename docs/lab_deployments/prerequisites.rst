@@ -323,8 +323,8 @@ To get the cap.pem follow the following instructions.
 
 2. Inside the repository there is a file called “cap_keys.zip”
 
-.. image:: /_static/images/lab_deployments/image2.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image2.png
+      :width: 8.5in
 
 3. Enter the password (same as safe password)
 
@@ -339,20 +339,20 @@ To get the cap.pem follow the following instructions.
 
       chmod 600 ~/.ssh/cap.pem
 
-If using windows you may also need to do this:
+   If using windows you may also need to do this:
 
-.. code:: bash
+   .. code:: bash
 
-   icacls C:\path\to\cap.pem /inheritance:r /grant:r "%USERNAME%:R"
+      icacls C:\path\to\cap.pem /inheritance:r /grant:r "%USERNAME%:R"
 
 7. Be sure that you are at the latest Dallinger version and add the
-following lines to your .dallingerconfig file:
+   following lines to your .dallingerconfig file:
 
-.. code:: ini
+   .. code:: ini
 
-   [EC2]
-   ec2_default_security_group = cap
-   ec2_default_pem = /Users/<your username>/cap
+      [EC2]
+      ec2_default_security_group = cap
+      ec2_default_pem = /Users/<your username>/cap
 
 Please be sure to type the correct username. If you do not know your
 username then you can verify it by typing in the console: whoami. You
