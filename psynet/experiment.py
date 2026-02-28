@@ -4148,9 +4148,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if participant.elt_id[1:] == [-1]:
             experiment.timeline.advance_page(experiment, participant)
 
-        if participant.pending_redirect:
-            experiment.timeline.advance_page(experiment, participant)
-
         page = experiment.timeline.get_current_elt(experiment, participant)
         page.pre_render()
 
