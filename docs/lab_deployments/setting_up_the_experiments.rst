@@ -3,8 +3,9 @@ Setting Up the Experiments
 
 Before deploying your experiment, you need to complete basic setup steps
 that apply to all deployments. Most details, including specific
-recruiter instructions, are covered in their respective sections—so this
-section provides only the essential steps.
+recruiter instructions, are covered in the
+:doc:`Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>`
+section, so this page provides only the essential steps.
 
 1) Define Experiment Configuration
 
@@ -19,9 +20,10 @@ section provides only the essential steps.
 
 2) Choose a Recruiter
 
-   a. **Prolific, CINT, or Lab Recruiter**—each has different setup
-         steps (see their
-         :doc:`sections <recruiter_specific_deployment_steps>`).
+   a. `Prolific <recruiter_specific_deployment_steps.html#prolific>`__,
+      `CINT <recruiter_specific_deployment_steps.html#cint-lucid>`__, or
+      `Lab Recruiter <recruiter_specific_deployment_steps.html#lab-recruiter>`__
+      — each has different setup steps.
 
    b. Configure the recruiter-specific settings after reading
       :doc:`Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>`.
@@ -38,4 +40,5 @@ section provides only the essential steps.
          section are followed.
 
    b. Discuss the payment strategy. Ensure you have enough balance on
-         Prolific before launching.
+      `Prolific <recruiter_specific_deployment_steps.html#prolific>`__
+      before launching.

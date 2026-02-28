@@ -7,7 +7,9 @@ Important Notice:
 This document provides a step-by-step guide for deploying experiments.
 To ensure a smooth deployment process, **certain sections are mandatory
 for all users**, while others are specific to the recruiter you choose
-(Prolific, CINT, or Lab Recruiter).
+(`Prolific <recruiter_specific_deployment_steps.html#prolific>`__,
+`CINT <recruiter_specific_deployment_steps.html#cint-lucid>`__, or
+`Lab Recruiter <recruiter_specific_deployment_steps.html#lab-recruiter>`__).
 
 How to Use This Document
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -33,9 +35,11 @@ What You Should Read First
 
 This guide follows the current recommended deployment mode, which
 utilizes Docker with AWS provisioning, primarily using
-Prolific as a recruiter. However, if you are deploying via CINT or Lab
-Recruiter, you will find detailed instructions in their respective
-sections.
+`Prolific <recruiter_specific_deployment_steps.html#prolific>`__ as a
+recruiter. However, if you are deploying via
+`CINT <recruiter_specific_deployment_steps.html#cint-lucid>`__ or
+`Lab Recruiter <recruiter_specific_deployment_steps.html#lab-recruiter>`__,
+you will find detailed instructions in their respective sections.
 
 Glossary
 --------
