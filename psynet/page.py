@@ -12,6 +12,7 @@ from .asset import CachedAsset, ExternalAsset
 from .modular_page import AudioPrompt, ModularPage
 from .timeline import (
     CodeBlock,
+    Elt,
     Event,
     Module,
     Page,
@@ -295,31 +296,65 @@ def wait_while(
     )
 
 
-# At some point we might make deprecation warnings for these classes
-class SuccessfulEndPage(PageMaker):
-    def __init__(self):
-        super().__init__(
-            lambda experiment: experiment.SuccessfulEndLogic(), time_estimate=0.0
+class SuccessfulEndPage(Elt):
+    """Redirects the participant to the successful end branch of the timeline."""
+
+    time_estimate = 0.0
+
+    def consume(self, experiment, participant):
+        experiment.timeline.redirect_to_branch(experiment, participant, "successful_end")
+
+
+class UnsuccessfulEndPage(Elt):
+    """Redirects the participant to the unsuccessful end branch of the timeline.
+
+    Parameters
+    ----------
+    failure_tags
+        Optional failure tags to append before redirecting.
+    """
+
+    time_estimate = 0.0
+
+    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
+        super().__init__()
+        if failure_tags is None:
+            failure_tags = []
+        self.failure_tags = failure_tags
+
+    def consume(self, experiment, participant):
+        if self.failure_tags:
+            participant.append_failure_tags(*self.failure_tags)
+        experiment.timeline.redirect_to_branch(
+            experiment, participant, "unsuccessful_end"
         )
 
 
-class UnsuccessfulEndPage(PageMaker):
-    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
-        super().__init__(
-            lambda experiment: experiment.UnsuccessfulEndLogic(
-                failure_tags=failure_tags, **kwargs
-            ),
-            time_estimate=0.0,
-        )
+class RejectedConsentPage(Elt):
+    """Redirects the participant to the unsuccessful end branch after consent rejection.
 
+    Parameters
+    ----------
+    failure_tags
+        Optional failure tags to append before redirecting.
+    """
 
-class RejectedConsentPage(PageMaker):
+    time_estimate = 0.0
+
     def __init__(self, failure_tags: Optional[List] = None, **kwargs):
-        super().__init__(
-            lambda experiment: experiment.RejectedConsentLogic(
-                failure_tags=failure_tags, **kwargs
-            ),
-            time_estimate=0.0,
+        super().__init__()
+        if failure_tags is None:
+            failure_tags = []
+        self.failure_tags = failure_tags
+
+    def consume(self, experiment, participant):
+        participant.append_failure_tags("RejectedConsent", *self.failure_tags)
+        if experiment.with_lucid_recruitment():
+            experiment.recruiter.terminate_participant(
+                participant=participant, reason="consent-rejected"
+            )
+        experiment.timeline.redirect_to_branch(
+            experiment, participant, "unsuccessful_end"
         )
 
 

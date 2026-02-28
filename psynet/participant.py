@@ -744,6 +744,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             logger.info("Participant %i already failed, not failing again.", self.id)
             return
 
+        if self.complete:
+            logger.info(
+                "Participant %i already completed, not failing.", self.id
+            )
+            return
+
         if reason is not None:
             self.append_failure_tags(reason)
         reason = ", ".join(self.failure_tags)
@@ -777,6 +783,13 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
             if isinstance(group, SimpleSyncGroup):
                 group.check_numbers()
+
+        if not exp.timeline.participant_is_in_end_logic(self):
+            logger.info(
+                "Redirecting participant %i to unsuccessful_end branch.",
+                self.id,
+            )
+            exp.timeline.redirect_to_branch(exp, self, "unsuccessful_end")
 
 
 def get_participant(participant_id: int, for_update: bool = False) -> Participant:

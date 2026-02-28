@@ -1533,18 +1533,65 @@ class PageMakerFinishedError(Exception):
 
 
 class Timeline:
-    def __init__(self, *args):
-        # Todo - don't add SuccessfulEndLogic if it's already there.
-        # To achieve this, we should refactor EltCollection to make
-        # it easier to test for.
-        from psynet.end import SuccessfulEndLogic
+    def __init__(self, *args, **branch_kwargs):
+        from collections import OrderedDict
 
-        self.elts = join(*args, SuccessfulEndLogic())
+        from psynet.end import SuccessfulEndLogic, UnsuccessfulEndLogic
+        from psynet.page import SuccessfulEndPage
+
+        main_elts = join(*args, SuccessfulEndPage())
+
+        default_branches = OrderedDict(
+            [
+                ("successful_end", SuccessfulEndLogic()),
+                ("unsuccessful_end", UnsuccessfulEndLogic()),
+            ]
+        )
+        default_branches.update(branch_kwargs)
+
+        self._branches = OrderedDict()
+        self.elts = list(main_elts)
+        self._branches["main"] = {"start": 0, "end": len(self.elts)}
+
+        for name, content in default_branches.items():
+            start = len(self.elts)
+            self.elts.extend(join(content))
+            self._branches[name] = {"start": start, "end": len(self.elts)}
 
         self.modules, self.module_list = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
         self.estimated_time_credit = CreditEstimate(self.elts)
+
+    def get_participant_branch(self, participant):
+        """Return the name of the branch the participant is currently in."""
+        if participant.elt_id == [-1]:
+            return "main"
+        idx = participant.elt_id[0]
+        for name, info in self._branches.items():
+            if info["start"] <= idx < info["end"]:
+                return name
+        return None
+
+    def participant_is_in_end_logic(self, participant):
+        """Return True if the participant is in any end logic branch."""
+        branch = self.get_participant_branch(participant)
+        return branch is not None and branch != "main"
+
+    def redirect_to_branch(self, experiment, participant, branch_name):
+        """Redirect a participant to the start of a named branch.
+
+        When called from within ``advance_page``, the redirect is deferred
+        to the next loop iteration. When called from outside, ``advance_page``
+        is invoked to advance the participant to the first page in the branch.
+        """
+        if branch_name not in self._branches:
+            raise ValueError(f"Unknown timeline branch: {branch_name!r}")
+        start = self._branches[branch_name]["start"]
+        participant.elt_id = [start - 1]
+        participant.elt_id_max = [len(self.elts) - 1]
+        if not getattr(participant, "_in_advance_page", False):
+            self.advance_page(experiment, participant)
 
     def compile_modules(self):
         modules = {}
@@ -1561,8 +1608,6 @@ class Timeline:
     def check_elts(self):
         assert isinstance(self.elts, list)
         assert len(self.elts) > 0
-        # We used to check that the timeline finished with an EndPage, but this is no longer necessary,
-        # as we now automatically add SuccessfulEndLogic to the main branch.
         self.check_for_time_estimate()
         self.check_modules()
 
@@ -1723,24 +1768,28 @@ class Timeline:
 
     @log_time_taken
     def advance_page(self, experiment, participant):
-        finished = False
-        while not finished:
-            participant.elt_id[-1] += 1
+        participant._in_advance_page = True
+        try:
+            finished = False
+            while not finished:
+                participant.elt_id[-1] += 1
 
-            try:
-                new_elt = self.get_current_elt(experiment, participant)
-            except PageMakerFinishedError:
-                participant.elt_id = participant.elt_id[:-1]
-                participant.elt_id_max = participant.elt_id_max[:-1]
-                continue
-            if isinstance(new_elt, PageMaker):
-                participant.elt_id.append(-1)
-                continue
+                try:
+                    new_elt = self.get_current_elt(experiment, participant)
+                except PageMakerFinishedError:
+                    participant.elt_id = participant.elt_id[:-1]
+                    participant.elt_id_max = participant.elt_id_max[:-1]
+                    continue
+                if isinstance(new_elt, PageMaker):
+                    participant.elt_id.append(-1)
+                    continue
 
-            new_elt.consume(experiment, participant)
+                new_elt.consume(experiment, participant)
 
-            if isinstance(new_elt, Page):
-                finished = True
+                if isinstance(new_elt, Page):
+                    finished = True
+        finally:
+            participant._in_advance_page = False
 
     def estimated_max_reward(self, wage_per_hour):
         return self.estimated_time_credit.get_max("reward", wage_per_hour=wage_per_hour)
