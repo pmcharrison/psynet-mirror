@@ -26,19 +26,19 @@ you want to use:
 
 .. code:: bash
 
-   dallinger docker-ssh servers add --host <internal_server_host> --user cap
+   dallinger docker-ssh servers add --host <internal_server_host> --user co3
 
 
 For example:
 
 .. code:: bash
 
-   dallinger docker-ssh servers add --host me.cap-experiments.com --user cap
+   dallinger docker-ssh servers add --host me.cap-experiments.com --user co3
 
 
 .. code:: bash
 
-   dallinger docker-ssh servers add --host experiments1.cococo-lab.cornell.edu --user cap
+   dallinger docker-ssh servers add --host experiments1.cococo-lab.cornell.edu --user co3
 
 
 **EC2 Servers**
@@ -127,7 +127,7 @@ Provision an EC2 server instance
 Once you choose an ec2 instance, you need to "rent" the server
 (`Provisioning <#provisioning>`__). Once you do that -- the clock is
 ticking and you will be charged hourly until you release it
-(`Teardown <#teardown>`__).
+(`Teardown <teardown.html#teardown>`__).
 
 Important: don't forget to export your data before you tear down the
 server. *If you don’t all data is lost and there is NO way to retrieve
@@ -346,7 +346,7 @@ real error is above.
 
 To get more insight on the issue, put a break point at the position
 where your code breaks. This usually gives you more information about
-why the error occurs. See `Debugging section <#debugging-in-pycharm>`__.
+why the error occurs. See `Debugging section <prerequisites.html#debugging-in-pycharm>`__.
 
 Once you identified where your problem is, try searching for the
 substring of error messages on Slack and on Google. Usually the last
@@ -443,7 +443,7 @@ colleagues.
       you are stuck on the same problem for more than an hour, you need
       help. But make sure you did all possible steps to look and find
       the cause of the problem, see `previous
-      section <#how-to-investigate-errors>`__.
+      section <setting_up_the_experiments.html#how-to-investigate-errors>`__.
 
 -  **Be detailed.** Make sure you have identified the location of your
       problem. Avoid making wild claims, e.g. say the error occurs in

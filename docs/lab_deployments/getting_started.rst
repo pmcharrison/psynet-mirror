@@ -46,6 +46,7 @@ Glossary
 
 .. image:: /_static/images/lab_deployments/image29.png
    :width: 8.5in
+   :class: glossary-hero
 
 **PsyNet**
    The package we use to create online experiments. It builds upon
@@ -112,9 +113,9 @@ you might encounter more issues and cannot always be supported.**
 
 -  We expect you to use a Mac.
 
--  You need to have `Docker <#docker-desktop>`__ and `PyCharm <#pycharm>`__ installed,
+-  You need to have `Docker <prerequisites.html#docker-desktop>`__ and `PyCharm <prerequisites.html#pycharm>`__ installed,
       if you have a student ID or a proof of teaching, we recommend setting up `Github
-      Copilot <#setup-co-pilot>`__
+      Copilot <prerequisites.html#setup-co-pilot>`__
 
 -  You should use Docker for local development and remote deployment.
 
@@ -128,8 +129,8 @@ Deployment Checklist
 1. **Prerequisites**
 
    - Set up PsyNet and complete all required installations.
-   - Ensure Docker Desktop is `installed and running <#docker-desktop>`__.
-   - Log in to the `group Docker registry <#log-into-the-docker-registry>`__ via GitLab (one-time).
+   - Ensure Docker Desktop is `installed and running <prerequisites.html#docker-desktop>`__.
+   - Log in to the `group Docker registry <prerequisites.html#log-into-the-docker-registry>`__ via GitLab (one-time).
 
 2. **Experiment Setup**
 

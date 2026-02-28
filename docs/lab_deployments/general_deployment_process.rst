@@ -16,29 +16,29 @@ Experiments follow a relatively fixed lifecycle.
 -  `Test <#test>`__: The next stage is to test this design automatically
       and on a small group of colleagues and friends.
 
--  `Provision <#provisioning>`__: You can use internal servers if
+-  `Provision <provisioning.html#provisioning>`__: You can use internal servers if
       deploying within Europe or you can provision a remote server (EC2)
       if deploying outside of Europe. This process of setting up a
       server is called “provisioning”.
 
--  `Deploy <#deploying>`__: Once we reach the stage of a solid
+-  `Deploy <deploying.html#deploying>`__: Once we reach the stage of a solid
       experiment, we can deploy it. This means that a group of online
       participants take your online experiment. For the first experiment
       you start with a pilot.
 
--  `Monitor <#monitoring-managing>`__\ **:** During the data collection
+-  `Monitor <monitoring_and_managing.html#monitoring-managing>`__\ **:** During the data collection
       we must monitor the experiment, we make sure we collect clean
       data, and in case in error compensate participants.
 
--  `Export & Terminate <#_7zmqxabf4x1m>`__: Once the experiment is done,
+-  `Export & Terminate <exporting_and_terminating.html>`__: Once the experiment is done,
       we export the data once more and make sure our preliminary
       analyses run through. Once this is the case you can terminate the
       experiment.
 
--  `Teardown <#_srjlldjeb78l>`__: If you use an EC2 server, you should
+-  `Teardown <teardown.html>`__: If you use an EC2 server, you should
       not forget to turn off the server when we are done.
 
--  `Report & Deposit <#report-deposit>`__: Report the details about your
+-  `Report & Deposit <report_and_deposit.html#report-deposit>`__: Report the details about your
       experiments (cost, duration, number of participants, etc.) and
       deposit your collected. **This is currently under construction the
       procedure for this would be reevaluated in the future.**
@@ -177,9 +177,9 @@ Things to look out for:
 -  Set your ‘recruiter’ config parameter to ‘hotair’
 
 -  Remote debug your experiment by `provisioning a
-   server <#provisioning>`__, then running in the terminal from your
+   server <provisioning.html#provisioning>`__, then running in the terminal from your
    experiment folder (determine the server type according to your
-   need; see `Servers <#servers>`__):
+   need; see `Servers <provisioning.html#servers>`__):
 
    .. code:: bash
 
@@ -217,7 +217,7 @@ Things to look out for:
       are recordings processed correctly?)
 
 -  You can use this code later to `check the initial batch of
-   data <#sanity-checks>`__ you gather when you deploy the experiment.
+   data <exporting_and_terminating.html#sanity-checks>`__ you gather when you deploy the experiment.
 
 Since the group is not extremely large you might not encounter:
 

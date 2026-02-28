@@ -14,7 +14,7 @@ Before you deploy your experiment, you need to:
 -  commit your changes, i.e. no staging or modified filesdefine a remote
       and push your commits to it
 
-see `Prerequisites <#prerequisites-one-time-setup>`__
+see `Prerequisites <prerequisites.html#prerequisites-one-time-setup>`__
 
 Updating PsyNet in Your Virtual Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -102,14 +102,14 @@ before trying it out on the server, to check you did not forget to add
 any dependencies in the requirements.txt file.
 
 Make sure your sufficiently tested your experiment, see
-`Test <#test>`__.
+`Test <general_deployment_process.html#test>`__.
 
 Remote debug
 ^^^^^^^^^^^^
 
 Before deployment, you need to make sure your experiment runs
 successfully on a remote server. Make sure you did all types of
-`tests <#test>`__ and thus did a remote debug.
+`tests <general_deployment_process.html#test>`__ and thus did a remote debug.
 
 🛑 Actual deployment 
 --------------------
@@ -122,11 +122,11 @@ successfully on a remote server. Make sure you did all types of
       depending on which recruiter you are using.
 
 -  Doublecheck all settings mentioned in `recruiter-specific deployment
-   steps <#recruiter-specific-deployment-steps>`__.
+   steps <recruiter_specific_deployment_steps.html#recruiter-specific-deployment-steps>`__.
 
 -  To actually deploy your experiment, run the following code from your
       experiment folder (determine the server type according to your
-      need; see `Provision <#provisioning>`__):
+      need; see `Provision <provisioning.html#provisioning>`__):
 
 
    .. code:: bash
@@ -150,7 +150,7 @@ successfully on a remote server. Make sure you did all types of
 
 currently we are mainly using use the original cap-experiment,
 cap-experiments3 and cap-experiments4 for the experiments. See `internal
-servers <#internal-server>`__ for more info.
+servers <provisioning.html#internal-server>`__ for more info.
 
 **The app will be deployed to:**
 <app_name>.<subdomain>.\ `cap-experiments.com <http://cap-experiments.com/>`__
@@ -173,7 +173,7 @@ it does not give away too much to your participants.**
    /Users/kevin.nguyen/psynet-data/launch-data/probe-tone-experiment\__mode=live\__launch=2023-10-10--14-18-12/code…
 
 Save this link to the dashboard so that you are able to
-`monitor <#monitoring-managing>`__ the dashboard during deployment.
+`monitor <monitoring_and_managing.html#monitoring-managing>`__ the dashboard during deployment.
 
 **Troubleshooting a prolonged Launching experiment**
 

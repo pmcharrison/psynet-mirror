@@ -16,7 +16,7 @@ sections.
 The experiment dashboard is your main tool for tracking and managing the
 study. It is the same for each recruiter. It is printed on the terminal
 after the deployment command (how to find the `dashboard
-link <#actual-deployment>`__).
+link <deploying.html#actual-deployment>`__).
 
 Key Features:
 
@@ -36,7 +36,7 @@ Key Features:
 
 -  Use **Dozzle logs** for real-time debugging. Regularly check for
       error messages in logs and fix critical issues immediately. (how
-      to find the `dozzle link <#provisioning>`__)
+      to find the `dozzle link <provisioning.html#provisioning>`__)
 
 -  Monitor Prolific/CINT marketplaces for recruiter-specific insights.
 

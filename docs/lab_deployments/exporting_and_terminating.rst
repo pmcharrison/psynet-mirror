@@ -97,7 +97,7 @@ upon exporting. You will also see an automatic analysis of the log file.
 | To do this manual export of the assets:
 
 -  ssh to the server as explained in `SSH into the
-   instance <#ssh-into-the-instance>`__
+   instance <provisioning.html#ssh-into-the-instance>`__
 
 -  then you create a tar.gz of the assets folder on the server, by
       running in the terminal:

@@ -4,7 +4,7 @@ Troubleshooting
 **Q**: Help, I can’t access my server anymore!
 
 | **A**: Try re-adding your pem file to your ssh keygen by running:
-| ``ssh-add -K ~/cap.pem``
+| ``ssh-add -K ~/.ssh/cap.pem``
 
 **Q**: I get this error after running ``psynet debug ssh`` or
 ``psynet deploy ssh``. What

@@ -318,12 +318,12 @@ How to git commit in Pycharm
 🛑 Set credentials and cap-safe 
 -------------------------------
 
-You will need .dallingerconfig and cap.pem in your home directory.
+You will need .dallingerconfig in your home directory and a cap.pem file
+in your ~/.ssh directory.
 
 To get the cap.pem follow the following instructions.
 
 1. Clone the group safe:
-
 
    .. code:: bash
 
@@ -346,7 +346,7 @@ To get the cap.pem follow the following instructions.
 
    .. code:: bash
 
-      chmod 600 ~/cap.pem
+      chmod 600 ~/.ssh/cap.pem
 
 If using windows you may also need to do this:
 
@@ -357,13 +357,13 @@ If using windows you may also need to do this:
 7. Be sure that you are at the latest Dallinger version and add the
 following lines to your .dallingerconfig file:
 
-[EC2]
+.. code:: ini
 
-ec2_default_security_group = cap
-
-ec2_default_pem = /Users/<your username>/cap
+   [EC2]
+   ec2_default_security_group = cap
+   ec2_default_pem = /Users/<your username>/cap
 
 Please be sure to type the correct username. If you do not know your
 username then you can verify it by typing in the console: whoami. You
 can verify that this line /Users/<your username>/cap to output of the
-following command: ls ~/cap.pem
+following command: ls ~/.ssh/cap.pem

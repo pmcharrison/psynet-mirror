@@ -186,7 +186,7 @@ qualification_prolific.json in the CAP-safe):
    time**; Prolific requires a *minimum of £6 per hour*, based on the
    median completion time across participants in your study. You can
    verify your experiment duration by `having multiple group members
-   test out your experiment <#testing-within-the-group>`__ before you
+   test out your experiment <general_deployment_process.html#testing-within-the-group>`__ before you
    deploy and checking their median completion time. Keep an eye on this
    while running the experiment with participants!
 
@@ -236,7 +236,7 @@ prolific_project = <YOUR_PROJECT_FOLDER>
    :width: 8.5in
 
 Deploy the experiment. Please see `deployment
-process <#actual-deployment>`__.
+process <deploying.html#actual-deployment>`__.
 
 Prolific: check & adapt study details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -345,7 +345,6 @@ experiment dashboard:
 .. _section-9:
 
 |image5|
---------
 
 The logic is as follows: Whenever someone completes the study, another
 spot will be automatically added. I.e., if you have currently 3 people
@@ -431,7 +430,7 @@ CINT (Lucid) 🔹
 .. _setting-up-the-experiment-1:
 
 Setting up the experiment
-^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _experiment-costs-1:
 
@@ -911,7 +910,7 @@ Termination
 ~~~~~~~~~~~
 
 Once you reach the desired number of participants, set it to ‘Complete’
-and `export <#_vlrp8nxplekx>`__ your data again. To destroy the app,
+and `export <exporting_and_terminating.html#export-data>`__ your data again. To destroy the app,
 wait until there are no more working participants left in the
 experiment.
 
@@ -944,7 +943,7 @@ system provides full control over participant selection, experiment
 access, and tracking.
 
 Registering to the CAP Platform
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create an Admin account
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -1065,7 +1064,7 @@ Deployment
 ~~~~~~~~~~
 
 Deploy the Experiment. Please see `deployment
-process <#actual-deployment>`__.
+process <deploying.html#actual-deployment>`__.
 
 -  After deploying your experiment, navigate to the Experiments tab.
 
@@ -1140,7 +1139,7 @@ Dashboard
 ^^^^^^^^^
 
 Use your experiment dashboard to monitor your experiment. See
-`dashboard <#using-the-dashboard>`__.
+`dashboard <monitoring_and_managing.html#using-the-dashboard>`__.
 
 Participant tracking
 ^^^^^^^^^^^^^^^^^^^^
@@ -1180,7 +1179,7 @@ Terminate the Experiment
       again and set it to **‘Archive’** on the Lab Recruiter.
 
 -  You also need to delete the experiment from the server. Please see
-      `teardown <#teardown>`__.
+      `teardown <teardown.html#teardown>`__.
 
 Lab Recruiter For Participants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
