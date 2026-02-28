@@ -44,8 +44,12 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
+    "sphinx_copybutton",
     "sphinx_inline_tabs",  # TODO: remove once we migrate to PyData Sphinx theme
 ]
+
+copybutton_prompt_text = r">>> |\.\.\. |\$ |# "
+copybutton_prompt_is_regexp = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
