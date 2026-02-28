@@ -1,12 +1,16 @@
+from types import SimpleNamespace
+
 import pytest
 
-from psynet.page import InfoPage
+from psynet.end import SuccessfulEndLogic, UnsuccessfulEndLogic
+from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
 from psynet.timeline import (
     AsyncCodeBlock,
     CodeBlock,
     CreditEstimate,
     Elt,
     MediaSpec,
+    PageMaker,
     Timeline,
     join,
     switch,
@@ -220,3 +224,125 @@ def test_lambda_compiles_as_code_block_in_timeline():
             break
     assert found_lambda is not None
     assert found_lambda.function == my_function
+
+
+# ---------------------------------------------------------------------------
+# Timeline branch tests
+# ---------------------------------------------------------------------------
+
+
+def _make_mock_participant(elt_id=None):
+    p = SimpleNamespace(
+        elt_id=elt_id if elt_id is not None else [-1],
+        elt_id_max=[],
+        _in_advance_page=False,
+    )
+    return p
+
+
+class TestTimelineBranches:
+    def test_default_branches_exist(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        assert "main" in t._branches
+        assert "successful_end" in t._branches
+        assert "unsuccessful_end" in t._branches
+
+    def test_main_branch_ends_with_successful_end_page(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        main_end = t._branches["main"]["end"]
+        last_main_elt = t.elts[main_end - 1]
+        assert isinstance(last_main_elt, SuccessfulEndPage)
+
+    def test_successful_end_branch_has_four_elements(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        branch = t._branches["successful_end"]
+        assert branch["end"] - branch["start"] == 4
+
+    def test_unsuccessful_end_branch_has_four_elements(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        branch = t._branches["unsuccessful_end"]
+        assert branch["end"] - branch["start"] == 4
+
+    def test_successful_end_branch_structure(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        branch = t._branches["successful_end"]
+        start = branch["start"]
+        assert isinstance(t.elts[start], CodeBlock)
+        assert isinstance(t.elts[start + 1], PageMaker)
+        assert isinstance(t.elts[start + 2], CodeBlock)
+        assert isinstance(t.elts[start + 3], PageMaker)
+
+    def test_custom_branch_override(self):
+        custom = UnsuccessfulEndLogic()
+        t = Timeline(
+            InfoPage("hello", time_estimate=5),
+            unsuccessful_end=custom,
+        )
+        assert "unsuccessful_end" in t._branches
+
+    def test_get_participant_branch_initial(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=[-1])
+        assert t.get_participant_branch(p) == "main"
+
+    def test_get_participant_branch_main(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=[0])
+        assert t.get_participant_branch(p) == "main"
+
+    def test_get_participant_branch_successful_end(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        start = t._branches["successful_end"]["start"]
+        p = _make_mock_participant(elt_id=[start])
+        assert t.get_participant_branch(p) == "successful_end"
+
+    def test_get_participant_branch_unsuccessful_end(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        start = t._branches["unsuccessful_end"]["start"]
+        p = _make_mock_participant(elt_id=[start])
+        assert t.get_participant_branch(p) == "unsuccessful_end"
+
+    def test_participant_is_in_end_logic_false_for_main(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=[0])
+        assert not t.participant_is_in_end_logic(p)
+
+    def test_participant_is_in_end_logic_false_for_initial(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=[-1])
+        assert not t.participant_is_in_end_logic(p)
+
+    def test_participant_is_in_end_logic_true_for_successful_end(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        start = t._branches["successful_end"]["start"]
+        p = _make_mock_participant(elt_id=[start])
+        assert t.participant_is_in_end_logic(p)
+
+    def test_participant_is_in_end_logic_true_for_unsuccessful_end(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        start = t._branches["unsuccessful_end"]["start"]
+        p = _make_mock_participant(elt_id=[start])
+        assert t.participant_is_in_end_logic(p)
+
+    def test_participant_is_in_end_logic_boundary(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        main_end = t._branches["main"]["end"]
+        p_last_main = _make_mock_participant(elt_id=[main_end - 1])
+        assert not t.participant_is_in_end_logic(p_last_main)
+        p_first_end = _make_mock_participant(elt_id=[main_end])
+        assert t.participant_is_in_end_logic(p_first_end)
+
+    def test_redirect_to_branch_sets_elt_id(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=[0])
+        p.elt_id_max = [len(t.elts) - 1]
+        p._in_advance_page = True
+        start = t._branches["unsuccessful_end"]["start"]
+        t.redirect_to_branch(None, p, "unsuccessful_end")
+        assert p.elt_id == [start - 1]
+
+    def test_redirect_to_unknown_branch_raises(self):
+        t = Timeline(InfoPage("hello", time_estimate=5))
+        p = _make_mock_participant(elt_id=[0])
+        with pytest.raises(ValueError, match="Unknown timeline branch"):
+            t.redirect_to_branch(None, p, "nonexistent")

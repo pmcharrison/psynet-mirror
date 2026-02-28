@@ -39,15 +39,19 @@ class Exp(psynet.experiment.Experiment):
         if bot.id == 1:
             assert not bot.failed
             assert not bot.var.fail_routine_executed
-        else:
+            assert bot.complete
+
+        elif bot.id == 2:
             assert bot.failed
             assert bot.var.fail_routine_executed
+            assert bot.failed_reason == "UnsuccessfulEndPage"
+            assert not bot.complete
 
-            if bot.id == 2:
-                assert bot.failed_reason == "UnsuccessfulEndPage"
+        elif bot.id == 3:
+            assert bot.failed
+            assert bot.var.fail_routine_executed
+            assert bot.failed_reason == "CodeBlock"
+            assert not bot.complete
 
-            elif bot.id == 3:
-                assert bot.failed_reason == "CodeBlock"
-
-            else:
-                raise ValueError(f"Unexpected bot id: {bot.id}")
+        else:
+            raise ValueError(f"Unexpected bot id: {bot.id}")
