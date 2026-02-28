@@ -1,7 +1,7 @@
 Recruiter-Specific Deployment Steps
 ===================================
 
-Prolific 🔹 
+🔹 Prolific
 -----------
 
 Setting up the experiment
@@ -424,7 +424,7 @@ Termination
 
 -  Put experiment in your folder on Prolific.
 
-CINT (Lucid) 🔹 
+🔹 CINT (Lucid)
 ---------------
 
 .. _setting-up-the-experiment-1:
@@ -934,7 +934,7 @@ You need to add all completed RIDs, **so also those that are already
 marked as completed! Otherwise, already completed participants are
 marked as terminated!**
 
-Lab Recruiter 🔹 
+🔹 Lab Recruiter
 ----------------
 
 The Group Manager (usually the experimenter) is responsible for setting

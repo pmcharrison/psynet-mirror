@@ -56,19 +56,23 @@ reboot. Please follow these steps to reboot:
 
 1. Install AWS CLI
 
-2. Configure it with credentials etc: aws configure
+2. Configure it with credentials:
 
-3. Find the instance ID, e.g. from the .. code:: bash
+   .. code:: bash
 
-   dallinger ec2 list instances
-      command
+      aws configure
 
-4. Reboot instance: aws ec2 reboot-instances --instance-ids
-      <INSTANCE_ID>
+3. Find the instance ID, e.g. from:
 
-**Q:** A
+   .. code:: bash
 
-**A:** A
+      dallinger ec2 list instances
+
+4. Reboot instance:
+
+   .. code:: bash
+
+      aws ec2 reboot-instances --instance-ids <INSTANCE_ID>
 
 Things to discuss
 -----------------

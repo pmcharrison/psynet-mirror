@@ -6,10 +6,6 @@ main thread of the group.
 
 You need to do this setup only once.
 
-.. note::
-
-   We will eventually separate this document from the deployment document.
-
 PsyNet Installation 
 --------------------
 
@@ -168,137 +164,132 @@ Website to CoPilot
 (https://plugins.jetbrains.com/plugin/17718-github-copilot )
 
 In Pycharm go to Preferences -> Plugins-> Marketplace and look for
-CoPilot
+CoPilot click on Install and restart PyCharm. Now you should see CoPilot
+in “Installed”.
 
 .. image:: /_static/images/lab_deployments/image55.png
    :width: 8.5in
-
-click on Install and restart PyCharm
-
-now you should see CoPilot in “Installed”
 
 🛑 Git: Version control & Best Practices 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Setup shh keygen for gitlab
 
-To use gitlab, you'll need to activate an SSH key. Follow these steps to
-do so:
+   To use Gitlab, you'll need to activate an SSH key. Follow these steps to do so:
 
-1. Run the following in terminal to generate an ED25519 key. When it asks 
-   for a location, press enter (sets default location in ~/.ssh). It'll 
-   then ask for a passphrase.
+   I. Run the following in terminal to generate an ED25519 key. When it asks for
+      a location, press enter (sets default location in ``~/.ssh``). It then asks
+      for a passphrase.
 
-   .. code:: bash
+      .. code:: bash
 
-      ssh-keygen -t ed25519
+         ssh-keygen -t ed25519
 
-2. Run the following to copy the SSH key to the clipboard:
+   II. Run the following to copy the SSH key to the clipboard:
 
-   .. code:: bash
+       .. code:: bash
 
-      pbcopy < ~/.ssh/id_ed25519.pub
+          pbcopy < ~/.ssh/id_ed25519.pub
 
-3. In the SSH Keys section of your gitlab account settings (look at
-      "Preferences" in the upper right), paste your key in the "Key" box
-      and replace "Title" with whatever you want to call your machine.
+   III. In the SSH Keys section of your gitlab account settings (look at
+        "Preferences" in the upper right), paste your key in the "Key" box and
+        replace "Title" with whatever you want to call your machine.
 
-.. image:: /_static/images/lab_deployments/image23.png
-   :width: 8.5in
+        .. image:: /_static/images/lab_deployments/image23.png
+           :width: 8.5in
 
-4. Press "Add key." You should now be able to push and pull from gitlab
-      by entering your passphrase.
+   IV. Press "Add key." You should now be able to push and pull from gitlab by entering your passphrase.
 
 2. Connect to Lab resources
 
-Please ask a member to add you to the Computational Audition Lab Group
-through the group account computational.audition.
+   Please ask a member to add you to the Computational Audition Lab Group
+   through the group account computational.audition.
 
-Please ask Frank to add your SSH key to the group access list.
+   Please ask Frank to add your SSH key to the group access list.
 
 3. How to use git
 
-**main** branch (used to be master branch): most stable form of the code
+   **main** branch (used to be master branch): most stable form of the code
 
-**dev** branch: constitutes the next version of the software that we are
-preparing to release
+   **dev** branch: constitutes the next version of the software that we are
+   preparing to release
 
-useful commands:
-
-.. code:: bash
-
-   git init                      # create git repository
-   git clone <url>               # clones the repository at url
-   git status                    # show working tree status
-   git add <files>               # add files
-   git commit -m "my message"    # record changes
-   git push                      # update remote
-   git checkout <branch>         # switch branches
-
-We strongly recommend using the pycharm IDE for committing.
-
-It is important to make sure you are logged in to git registry before
-deploying:
-
-.. code:: bash
-
-   docker login registry.gitlab.com
-
-4. how to create a repository in computational.audtition
-
-1. create a subgroup for the experiment series and then, go on “create project”
-
-2. then go on “create project from blank
-
-3. then you should see something like this:
-
-4. name your project, uncheck “Initialize with README” and create the project\ |image2|
-
-4. Push your local repository to computational.audition
-
-1. Go to your experiment and make it a git repository:
+   useful commands:
 
    .. code:: bash
 
-      git init
+      git init                      # create git repository
+      git clone <url>               # clones the repository at url
+      git status                    # show working tree status
+      git add <files>               # add files
+      git commit -m "my message"    # record changes
+      git push                      # update remote
+      git checkout <branch>         # switch branches
 
-2. Add the remote repository:
+   We strongly recommend using the pycharm IDE for committing.
 
-   .. code:: bash
-
-      git remote add origin <your_empty_repository>
-
-3. Verify the remote is set up correctly:
-
-   .. code:: bash
-
-      git remote -v
-
-4. Check which files are tracked or changed:
+   It is important to make sure you are logged in to git registry before
+   deploying:
 
    .. code:: bash
 
-      git status
+      docker login registry.gitlab.com
 
-   |image3|
+4. How to create a repository in computational.audtition
 
-5. Add files:
+   1. create a subgroup for the experiment series and then, go on “create project”
 
-   .. code:: bash
+   2. then go on “create project from blank
 
-      git add <files>
+   3. then you should see something like this:
 
-6. Record the changes with a message:
+   4. name your project, uncheck “Initialize with README” and create the project\ |image2|
 
-   .. code:: bash
+5. Push your local repository to computational.audition
 
-      git commit -m "your_message"
+   1. Go to your experiment and make it a git repository:
 
-7. Push to the remote:
+      .. code:: bash
 
-   .. code:: bash
+         git init
 
-      git push origin main
+   2. Add the remote repository:
+
+      .. code:: bash
+
+         git remote add origin <your_empty_repository>
+
+   3. Verify the remote is set up correctly:
+
+      .. code:: bash
+
+         git remote -v
+
+   4. Check which files are tracked or changed:
+
+      .. code:: bash
+
+         git status
+
+      |image3|
+
+   5. Add files:
+
+      .. code:: bash
+
+         git add <files>
+
+   6. Record the changes with a message:
+
+      .. code:: bash
+
+         git commit -m "your_message"
+
+   7. Push to the remote:
+
+      .. code:: bash
+
+         git push origin main
 
 How to git commit in Pycharm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
