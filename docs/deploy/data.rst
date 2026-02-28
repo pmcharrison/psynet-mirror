@@ -52,8 +52,7 @@ This can slow down data export if you have many files. You can disable this beha
     psynet export ssh --app my-app-name --assets none
 
 By default the export command will also try to export the experiment's source code.
-This feature was causing some problems in PsyNet v11.7; if you experience an error
-during source code exporting, we recommend using the ``--no-source`` argument:
+If you experience an error during source code exporting, we recommend using the ``--no-source`` argument:
 
 .. code:: bash
 
