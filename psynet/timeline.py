@@ -1536,7 +1536,11 @@ class Timeline:
     def __init__(self, *args, **branch_kwargs):
         from collections import OrderedDict
 
-        from psynet.end import SuccessfulEndLogic, UnsuccessfulEndLogic
+        from psynet.end import (
+            RejectedConsentLogic,
+            SuccessfulEndLogic,
+            UnsuccessfulEndLogic,
+        )
         from psynet.page import SuccessfulEndPage
 
         main_elts = join(*args, SuccessfulEndPage())
@@ -1545,6 +1549,7 @@ class Timeline:
             [
                 ("successful_end", SuccessfulEndLogic()),
                 ("unsuccessful_end", UnsuccessfulEndLogic()),
+                ("rejected_consent", RejectedConsentLogic()),
             ]
         )
         default_branches.update(branch_kwargs)

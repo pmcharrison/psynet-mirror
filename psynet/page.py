@@ -348,13 +348,10 @@ class RejectedConsentPage(Elt):
         self.failure_tags = failure_tags
 
     def consume(self, experiment, participant):
-        participant.append_failure_tags("RejectedConsent", *self.failure_tags)
-        if experiment.with_lucid_recruitment():
-            experiment.recruiter.terminate_participant(
-                participant=participant, reason="consent-rejected"
-            )
+        if self.failure_tags:
+            participant.append_failure_tags(*self.failure_tags)
         experiment.timeline.redirect_to_branch(
-            experiment, participant, "unsuccessful_end"
+            experiment, participant, "rejected_consent"
         )
 
 

@@ -246,6 +246,7 @@ class TestTimelineBranches:
         assert "main" in t._branches
         assert "successful_end" in t._branches
         assert "unsuccessful_end" in t._branches
+        assert "rejected_consent" in t._branches
 
     def test_main_branch_ends_with_successful_end_page(self):
         t = Timeline(InfoPage("hello", time_estimate=5))
