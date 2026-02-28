@@ -14,9 +14,10 @@
   to aid with configuring VSCode.
 - Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking (author: Cursor, reviewer: Peter Harrison)
 - Added checks to catch cases where Assets are created in the wrong place.
-- 'Basic data' is now included by default in PsyNet exports
-- Added support for CSV-format 'basic data' export.
-- Added 'basic data' export examples to the demos
+- Improved 'basic data' functionality:
+  - Basic data is now included by default in PsyNet exports.
+  - Added support for CSV-format basic data export.
+  - Added basic data export examples to the demos.
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
