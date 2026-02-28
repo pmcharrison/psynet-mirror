@@ -2357,24 +2357,14 @@ def export_(
                     "success",
                     details={"zip_path": zip_path},
                 )
-                if not no_source:
-                    try:
-                        source_code_ok = _export_source_code(
-                            app, local, server, path, username, password
-                        )
-                        status = "success" if source_code_ok else "failed"
-                        if not source_code_ok:
-                            report["success"] = False
-                        _record_export_step(report, "source_code_export", status)
-                    except Exception as e:
-                        report["success"] = False
-                        _record_export_step(
-                            report,
-                            "source_code_export",
-                            "failed",
-                            error=_format_exception(e),
-                        )
-                        log(f"WARNING: Failed to export source code: {e}")
+                _run_export_step(
+                    report,
+                    "source_code_export",
+                    lambda: _export_source_code(
+                        app, local, server, path, username, password
+                    ),
+                    skip_reason="no_source=True" if no_source else None,
+                )
                 log(f"Export complete. You can find your results at: {path}")
             else:
                 report["success"] = False
@@ -2470,116 +2460,57 @@ def _export_(
         "success": True,
     }
 
-    database_zip_path = None
-    try:
-        database_zip_path = export_database(
+    database_zip_path = _run_export_step(
+        report,
+        "database_export",
+        lambda: export_database(
             ctx, app, local, export_path, anonymize, docker_ssh, server, dns_host
-        )
-        _record_export_step(
-            report,
-            "database_export",
-            "success",
-            details={"zip_path": database_zip_path},
-        )
-    except Exception as e:
-        report["success"] = False
-        _record_export_step(
-            report, "database_export", "failed", error=_format_exception(e)
-        )
-        log(f"WARNING: Failed to export database: {e}")
+        ),
+    )
 
-    if database_zip_path is None:
-        _record_export_step(
-            report,
-            "postprocess_data",
-            "skipped",
-            details={"reason": "database export failed"},
-        )
-    else:
-        try:
-            export_data(
-                local,
-                anonymize,
-                database_zip_path,
-                export_path,
-                postprocess_method=postprocess_method,
-            )
-            _record_export_step(report, "postprocess_data", "success")
-        except Exception as e:
-            report["success"] = False
-            _record_export_step(
-                report, "postprocess_data", "failed", error=_format_exception(e)
-            )
-            log(f"WARNING: Failed to postprocess data: {e}")
+    _run_export_step(
+        report,
+        "postprocess_data",
+        lambda: export_data(
+            local,
+            anonymize,
+            database_zip_path,
+            export_path,
+            postprocess_method=postprocess_method,
+        ),
+        skip_reason="database export failed" if database_zip_path is None else None,
+    )
 
-    if assets == "none":
-        _record_export_step(
-            report, "assets_export", "skipped", details={"reason": "assets=none"}
-        )
-    else:
-        try:
-            experiment_assets_only = assets == "experiment"
-            include_on_demand_assets = assets == "all"
-            export_assets(
-                export_path,
-                anonymize,
-                experiment_assets_only,
-                include_on_demand_assets,
-                n_parallel,
-                server,
-                local,
-            )
-            _record_export_step(report, "assets_export", "success")
-        except Exception as e:
-            report["success"] = False
-            _record_export_step(
-                report, "assets_export", "failed", error=_format_exception(e)
-            )
-            log(f"WARNING: Failed to export assets: {e}")
+    _run_export_step(
+        report,
+        "assets_export",
+        lambda: export_assets(
+            export_path,
+            anonymize,
+            assets == "experiment",
+            assets == "all",
+            n_parallel,
+            server,
+            local,
+        ),
+        skip_reason="assets=none" if assets == "none" else None,
+    )
 
-    if export_source_code:
-        try:
-            source_code_ok = _export_source_code(
-                app, local, server, export_path, username, password
-            )
-            status = "success" if source_code_ok else "failed"
-            if not source_code_ok:
-                report["success"] = False
-            _record_export_step(report, "source_code_export", status)
-        except Exception as e:
-            report["success"] = False
-            _record_export_step(
-                report, "source_code_export", "failed", error=_format_exception(e)
-            )
-            log(f"WARNING: Failed to export source code: {e}")
-    else:
-        _record_export_step(
-            report,
-            "source_code_export",
-            "skipped",
-            details={"reason": "no_source=True"},
-        )
+    _run_export_step(
+        report,
+        "source_code_export",
+        lambda: _export_source_code(
+            app, local, server, export_path, username, password
+        ),
+        skip_reason="no_source=True" if not export_source_code else None,
+    )
 
-    if docker_ssh and server:
-        try:
-            logs_ok = export_logs(app, server, export_path)
-            status = "success" if logs_ok else "failed"
-            if not logs_ok:
-                report["success"] = False
-            _record_export_step(report, "logs_export", status)
-        except Exception as e:
-            report["success"] = False
-            _record_export_step(
-                report, "logs_export", "failed", error=_format_exception(e)
-            )
-            log(f"WARNING: Failed to export logs: {e}")
-    else:
-        _record_export_step(
-            report,
-            "logs_export",
-            "skipped",
-            details={"reason": "docker_ssh disabled"},
-        )
+    _run_export_step(
+        report,
+        "logs_export",
+        lambda: export_logs(app, server, export_path),
+        skip_reason="docker_ssh disabled" if not (docker_ssh and server) else None,
+    )
 
     log(f"Export complete. You can find your results at: {export_path}")
     return report
@@ -2722,6 +2653,27 @@ def _record_export_step(report, name, status, error=None, details=None):
     if details is not None:
         step["details"] = details
     report["steps"][name] = step
+
+
+def _run_export_step(report, step_name, fn, skip_reason=None):
+    if skip_reason:
+        _record_export_step(
+            report, step_name, "skipped", details={"reason": skip_reason}
+        )
+        return None
+    try:
+        result = fn()
+        if result is False:
+            report["success"] = False
+            _record_export_step(report, step_name, "failed")
+        else:
+            _record_export_step(report, step_name, "success")
+        return result
+    except Exception as e:
+        report["success"] = False
+        _record_export_step(report, step_name, "failed", error=_format_exception(e))
+        log(f"WARNING: Failed at {step_name}: {e}")
+        return None
 
 
 def _write_export_report(export_path, reports):

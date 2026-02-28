@@ -248,6 +248,15 @@ def copy_db_table_to_csv(tablename, path):
         shutil.copyfile(os.path.join(tempdir, temp_filename), path)
 
 
+def _write_class_csvs(objects_by_class, output_dir):
+    from .utils import make_parents
+
+    for cls, objects in objects_by_class.items():
+        filepath = os.path.join(output_dir, cls + ".csv")
+        with open(make_parents(filepath), "w") as f:
+            json_to_data_frame(objects).to_csv(f, index=False)
+
+
 def dump_db_to_disk(dir, scrub_pii: bool):
     """
     Exports all database objects to JSON-style dictionaries
@@ -262,15 +271,38 @@ def dump_db_to_disk(dir, scrub_pii: bool):
     scrub_pii
         Whether to remove personally identifying information.
     """
-    from .utils import make_parents
+    _write_class_csvs(_prepare_db_export(scrub_pii), dir)
 
-    objects_by_class = _prepare_db_export(scrub_pii)
 
-    for cls, objects in objects_by_class.items():
-        filename = cls + ".csv"
-        filepath = os.path.join(dir, filename)
-        with open(make_parents(filepath), "w") as file:
-            json_to_data_frame(objects).to_csv(file, index=False)
+def _coerce_int(value):
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    try:
+        return int(str(value))
+    except Exception:
+        return value
+
+
+def _to_visualization_type(cls, class_name, row):
+    if cls is None:
+        return class_name
+    from psynet.trial.chain import ChainNode
+    from psynet.trial.main import GenericTrialNode
+
+    degree = row.get("degree")
+    try:
+        degree = int(float(degree)) if degree is not None else None
+    except (TypeError, ValueError):
+        degree = None
+    if issubclass(cls, GenericTrialNode):
+        return "TrialSource"
+    if issubclass(cls, ChainNode) and degree == 0:
+        return "TrialSource"
+    return class_name
 
 
 def postprocess_database_zip(
@@ -294,8 +326,6 @@ def postprocess_database_zip(
     from jsonpickle.unpickler import loadclass
 
     from psynet.serialize import PsyNetUnpickler, serialize, unserialize
-
-    from .utils import make_parents
 
     if export_classes_to_skip is None:
         try:
@@ -358,52 +388,16 @@ def postprocess_database_zip(
         except Exception:
             return None
 
-    def coerce_int(value):
-        if value is None:
-            return None
-        if isinstance(value, int):
-            return value
-        if isinstance(value, float) and value.is_integer():
-            return int(value)
-        try:
-            return int(str(value))
-        except Exception:
-            return value
-
     def class_name_for_row(type_value, table_name):
         if isinstance(type_value, str) and type_value:
             return type_value.split(".")[-1]
         return base_classes_by_table.get(table_name, table_name)
 
-    def to_visualization_type(cls, class_name, row):
-        if cls is None:
-            return class_name
-        from psynet.trial.chain import ChainNode
-        from psynet.trial.main import GenericTrialNode
-
-        degree = row.get("degree")
-        try:
-            degree = int(float(degree)) if degree is not None else None
-        except (TypeError, ValueError):
-            degree = None
-        if issubclass(cls, GenericTrialNode):
-            return "TrialSource"
-        if issubclass(cls, ChainNode) and degree == 0:
-            return "TrialSource"
-        return class_name
-
-    def unpack_field(row, field_name):
+    def unpack_dict_field(row, field_name, skip_private=False):
         obj = decode_serialized(row.get(field_name))
         if isinstance(obj, dict):
             for key, value in obj.items():
-                if key not in row:
-                    row[key] = value
-
-    def unpack_vars(row):
-        obj = decode_serialized(row.get("vars"))
-        if isinstance(obj, dict):
-            for key, value in obj.items():
-                if str(key).startswith("_"):
+                if skip_private and str(key).startswith("_"):
                     continue
                 if key not in row:
                     row[key] = value
@@ -423,7 +417,7 @@ def postprocess_database_zip(
     grouped = defaultdict(lambda: defaultdict(list))
     for row in module_rows:
         row = {key: normalize_value(value) for key, value in row.items()}
-        participant_id = coerce_int(row.get("participant_id"))
+        participant_id = _coerce_int(row.get("participant_id"))
         module_id = row.get("module_id")
         if participant_id is None or not module_id:
             continue
@@ -453,16 +447,16 @@ def postprocess_database_zip(
                 continue
 
             if table_name == "participant":
-                participant_id = coerce_int(row.get("id"))
+                participant_id = _coerce_int(row.get("id"))
                 row.update(module_locals.get(participant_id, {}))
 
-            unpack_vars(row)
-            unpack_field(row, "definition")
-            unpack_field(row, "answer")
+            unpack_dict_field(row, "vars", skip_private=True)
+            unpack_dict_field(row, "definition")
+            unpack_dict_field(row, "answer")
 
             row["class"] = class_name
             cls = load_class(polymorphic_type)
-            row["type"] = to_visualization_type(cls, class_name, row)
+            row["type"] = _to_visualization_type(cls, class_name, row)
             row["object_type"] = base_class_name or row["type"]
 
             if scrub_pii:
@@ -482,11 +476,7 @@ def postprocess_database_zip(
 
             objects_by_class[class_name].append(row)
 
-    for cls, objects in objects_by_class.items():
-        filename = cls + ".csv"
-        filepath = os.path.join(output_dir, filename)
-        with open(make_parents(filepath), "w") as file:
-            json_to_data_frame(objects).to_csv(file, index=False)
+    _write_class_csvs(objects_by_class, output_dir)
 
 
 class InvalidDefinitionError(ValueError):
