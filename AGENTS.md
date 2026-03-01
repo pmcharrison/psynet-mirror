@@ -15,6 +15,10 @@ Use numpydoc formatting for Python docstrings.
 Whenever you complete a feature, reflect on whether it would be worth refactoring
 the code you have touched. Discuss with the user as appropriate.
 
+When completing a feature, update the CHANGELOG accordingly.
+However, do not append unnecessary additional entries when revising a PR;
+consolidate where appropriate to reflect the final result.
+
 ## Dallinger repo
 
 ### Summary
