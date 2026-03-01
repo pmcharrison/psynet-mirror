@@ -31,7 +31,7 @@ def test_export_local_continues_on_step_failures(tmp_path):
             "psynet.command_line._export_source_code", side_effect=RuntimeError("src")
         ),
         patch("psynet.command_line.export_logs", side_effect=RuntimeError("logs")),
-        patch("psynet.command_line.postprocess_database_zip"),
+        patch("psynet.command_line.postprocess_database_zip_to_csv"),
     ):
         run_export(
             ctx,

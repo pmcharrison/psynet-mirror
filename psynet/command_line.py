@@ -47,10 +47,10 @@ from psynet.version import (
 from . import deployment_info
 from .data import (
     drop_all_db_tables,
-    dump_db_to_disk,
+    export_db_to_csv,
     ingest_zip,
     init_db,
-    postprocess_database_zip,
+    postprocess_database_zip_to_csv,
 )
 from .log import bold
 from .lucid import get_lucid_service
@@ -2783,7 +2783,7 @@ def postprocess_export_data(
         from psynet.experiment import get_experiment
 
         export_classes_to_skip = get_experiment().export_classes_to_skip
-        postprocess_database_zip(
+        postprocess_database_zip_to_csv(
             database_zip_path,
             data_path,
             scrub_pii=anonymize,
@@ -2794,7 +2794,7 @@ def postprocess_export_data(
             log("Populating the local database with the downloaded data.")
             populate_db_from_zip_file(database_zip_path)
 
-        dump_db_to_disk(data_path, scrub_pii=anonymize)
+        export_db_to_csv(data_path, scrub_pii=anonymize)
     else:
         raise ValueError("postprocess_method must be either 'csv' or 'db'.")
 

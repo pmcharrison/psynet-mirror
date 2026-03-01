@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from psynet.data import postprocess_database_zip
+from psynet.data import postprocess_database_zip_to_csv
 from psynet.serialize import serialize, unserialize
 
 
@@ -104,7 +104,7 @@ def test_postprocess_database_zip_unpacks_and_scrubs(tmp_path: Path) -> None:
     zip_path = _make_database_zip(tmp_path)
     output_dir = tmp_path / "export"
 
-    postprocess_database_zip(
+    postprocess_database_zip_to_csv(
         zip_path,
         output_dir,
         scrub_pii=True,

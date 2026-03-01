@@ -240,8 +240,6 @@ def _prepare_db_export(scrub_pii: bool):
 
 
 def copy_db_table_to_csv(tablename, path):
-    # TODO - improve naming of copy_db_table_to_csv and dump_db_to_disk to clarify
-    # that the former is a Dallinger export and the latter is a PsyNet export
     with tempfile.TemporaryDirectory() as tempdir:
         dallinger.data.copy_db_to_csv(db.db_url, tempdir)
         temp_filename = f"{tablename}.csv"
@@ -257,7 +255,7 @@ def _write_class_csvs(objects_by_class, output_dir):
             json_to_data_frame(objects).to_csv(f, index=False)
 
 
-def dump_db_to_disk(dir, scrub_pii: bool):
+def export_db_to_csv(dir, scrub_pii: bool):
     """
     Exports all database objects to JSON-style dictionaries
     and writes them to CSV files, one for each class type.
@@ -305,7 +303,7 @@ def _to_visualization_type(cls, class_name, row):
     return class_name
 
 
-def postprocess_database_zip(
+def postprocess_database_zip_to_csv(
     zip_path, output_dir, scrub_pii: bool, export_classes_to_skip=None
 ):
     """
