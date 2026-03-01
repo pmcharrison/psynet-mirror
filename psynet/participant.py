@@ -178,6 +178,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # from the Dallinger Participant class.
     __extra_vars__ = {}
 
+    _in_advance_page = False
+
     elt_id = Column(PythonList)
     elt_id_max = Column(PythonList)
 
@@ -790,7 +792,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         if experiment.timeline.participant_is_in_end_logic(self):
             return
 
-        if getattr(self, "_in_advance_page", False):
+        if self._in_advance_page:
             logger.info(
                 "Redirecting participant %i to unsuccessful_end branch.",
                 self.id,
