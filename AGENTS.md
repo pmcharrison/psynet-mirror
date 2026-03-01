@@ -4,6 +4,17 @@ Start by following `psynet/resources/experiment_scripts/AGENTS.md`.
 
 Then act on the following PsyNet developer instructions:
 
+## Style
+
+Prefer top-down function ordering (callers first, helpers after).
+
+Use numpydoc formatting for Python docstrings.
+
+## Developing
+
+Whenever you complete a feature, reflect on whether it would be worth refactoring
+the code you have touched. Discuss with the user as appropriate.
+
 ## Dallinger repo
 
 ### Summary
