@@ -2696,6 +2696,8 @@ def _run_export_step(report, step_name, fn, skip_reason=None):
         if result is False:
             report["success"] = False
             _record_export_step(report, step_name, "failed")
+        elif isinstance(result, dict):
+            _record_export_step(report, step_name, "success", details=result)
         else:
             _record_export_step(report, step_name, "success")
         return result
@@ -2778,12 +2780,13 @@ def postprocess_export_data(
 ):
     subdir = "anonymous" if anonymize else "regular"
     data_path = os.path.join(export_path, subdir, "data")
+    diagnostics = None
 
     if postprocess_method == "csv":
         from psynet.experiment import get_experiment
 
         export_classes_to_skip = get_experiment().export_classes_to_skip
-        postprocess_database_zip_to_csv(
+        diagnostics = postprocess_database_zip_to_csv(
             database_zip_path,
             data_path,
             scrub_pii=anonymize,
@@ -2795,11 +2798,13 @@ def postprocess_export_data(
             populate_db_from_zip_file(database_zip_path)
 
         export_db_to_csv(data_path, scrub_pii=anonymize)
+        diagnostics = {"decode_failures": {"count": 0, "examples": []}}
     else:
         raise ValueError("postprocess_method must be either 'csv' or 'db'.")
 
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
+    return diagnostics
 
 
 def populate_db_from_zip_file(zip_path):

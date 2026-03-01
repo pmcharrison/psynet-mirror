@@ -102,3 +102,59 @@ def test_export_remote_records_dashboard_failure(tmp_path):
     report = payload["reports"][0]
     assert report["success"] is False
     assert report["steps"]["dashboard_export"]["status"] == "failed"
+
+
+def test_export_local_records_postprocess_diagnostics(tmp_path):
+    export_dir = tmp_path / "export"
+    export_dir.mkdir()
+
+    ctx = SimpleNamespace(
+        invoke=lambda *args, **kwargs: _fake_export_vars(),
+    )
+
+    config = SimpleNamespace(ready=True, load=lambda: None, get=lambda _: "value")
+    experiment_class = SimpleNamespace(label="test-label")
+    diagnostics = {
+        "decode_failures": {
+            "count": 2,
+            "examples": [
+                {
+                    "table": "participant",
+                    "field": "vars",
+                    "error_type": "ValueError",
+                    "error": "bad payload",
+                }
+            ],
+        }
+    }
+    with (
+        patch(
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch("psynet.command_line.export_database", return_value="database.zip"),
+        patch("psynet.command_line.postprocess_export_data", return_value=diagnostics),
+        patch("psynet.command_line.export_assets", return_value=True),
+        patch("psynet.command_line._export_source_code", return_value=True),
+        patch("psynet.command_line.export_logs", return_value=True),
+    ):
+        run_export(
+            ctx,
+            exp_variables=_fake_export_vars(),
+            local=True,
+            path=str(export_dir),
+            postprocess_location="local",
+            postprocess_method="csv",
+            assets="none",
+            anonymize="no",
+        )
+
+    report_path = export_dir / "export_report.json"
+    with open(report_path, "r") as report_file:
+        payload = json.load(report_file)
+
+    report = payload["reports"][0]
+    step = report["steps"]["postprocess_data"]
+    assert step["status"] == "success"
+    assert step["details"]["decode_failures"]["count"] == 2

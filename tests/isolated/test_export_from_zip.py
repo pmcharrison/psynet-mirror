@@ -104,12 +104,13 @@ def test_postprocess_database_zip_unpacks_and_scrubs(tmp_path: Path) -> None:
     zip_path = _make_database_zip(tmp_path)
     output_dir = tmp_path / "export"
 
-    postprocess_database_zip_to_csv(
+    diagnostics = postprocess_database_zip_to_csv(
         zip_path,
         output_dir,
         scrub_pii=True,
         export_classes_to_skip=[],
     )
+    assert diagnostics["decode_failures"]["count"] == 0
 
     participants = pd.read_csv(output_dir / "Participant.csv")
     assert "worker_id" not in participants.columns

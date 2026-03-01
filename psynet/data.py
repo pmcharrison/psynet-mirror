@@ -283,10 +283,13 @@ def postprocess_database_zip_to_csv(
 
     unpickler = PsyNetUnpickler()
     class_cache = {}
+    decode_failures = {"count": 0, "examples": []}
 
     tables = _read_tables_from_zip(zip_path)
 
-    module_locals = _build_module_locals(tables.get("module_state", []))
+    module_locals = _build_module_locals(
+        tables.get("module_state", []), decode_failures=decode_failures
+    )
 
     objects_by_class = defaultdict(list)
     for table_name, rows in tables.items():
@@ -301,9 +304,11 @@ def postprocess_database_zip_to_csv(
             scrub_pii,
             serialize,
             objects_by_class,
+            decode_failures=decode_failures,
         )
 
     _write_class_csvs(objects_by_class, output_dir)
+    return {"decode_failures": decode_failures}
 
 
 def _read_tables_from_zip(zip_path):
@@ -321,7 +326,7 @@ def _read_tables_from_zip(zip_path):
     return tables
 
 
-def _build_module_locals(module_rows):
+def _build_module_locals(module_rows, decode_failures=None):
     """Aggregate module state vars by participant, keyed by module_id prefix."""
     grouped = defaultdict(lambda: defaultdict(list))
     for row in module_rows:
@@ -330,7 +335,12 @@ def _build_module_locals(module_rows):
         module_id = row.get("module_id")
         if participant_id is None or not module_id:
             continue
-        vars_obj = _decode_serialized(row.get("vars"))
+        vars_obj = _decode_serialized(
+            row.get("vars"),
+            decode_failures=decode_failures,
+            table_name="module_state",
+            field_name="vars",
+        )
         if not isinstance(vars_obj, dict):
             continue
         grouped[participant_id][module_id].append((row.get("time_started"), vars_obj))
@@ -359,6 +369,7 @@ def _process_table_rows(
     scrub_pii,
     serialize,
     objects_by_class,
+    decode_failures=None,
 ):
     base_class_name = base_classes_by_table.get(table_name)
     for row in rows:
@@ -374,9 +385,22 @@ def _process_table_rows(
             participant_id = _coerce_int(row.get("id"))
             row.update(module_locals.get(participant_id, {}))
 
-        _unpack_dict_field(row, "vars", skip_private=True)
-        _unpack_dict_field(row, "definition")
-        _unpack_dict_field(row, "answer")
+        _unpack_dict_field(
+            row,
+            "vars",
+            skip_private=True,
+            decode_failures=decode_failures,
+            table_name=table_name,
+        )
+        _unpack_dict_field(
+            row,
+            "definition",
+            decode_failures=decode_failures,
+            table_name=table_name,
+        )
+        _unpack_dict_field(
+            row, "answer", decode_failures=decode_failures, table_name=table_name
+        )
 
         row["class"] = class_name
         cls = _load_class(polymorphic_type, unpickler, class_cache)
@@ -428,7 +452,7 @@ def _normalize_value(value):
     return value
 
 
-def _decode_serialized(value):
+def _decode_serialized(value, decode_failures=None, table_name=None, field_name=None):
     from psynet.serialize import unserialize
 
     if value is None:
@@ -439,12 +463,30 @@ def _decode_serialized(value):
         return None
     try:
         return unserialize(value)
-    except Exception:
+    except Exception as error:
+        if decode_failures is not None:
+            decode_failures["count"] += 1
+            if len(decode_failures["examples"]) < 5:
+                decode_failures["examples"].append(
+                    {
+                        "table": table_name,
+                        "field": field_name,
+                        "error_type": type(error).__name__,
+                        "error": str(error),
+                    }
+                )
         return None
 
 
-def _unpack_dict_field(row, field_name, skip_private=False):
-    obj = _decode_serialized(row.get(field_name))
+def _unpack_dict_field(
+    row, field_name, skip_private=False, decode_failures=None, table_name=None
+):
+    obj = _decode_serialized(
+        row.get(field_name),
+        decode_failures=decode_failures,
+        table_name=table_name,
+        field_name=field_name,
+    )
     if isinstance(obj, dict):
         for key, value in obj.items():
             if skip_private and str(key).startswith("_"):
