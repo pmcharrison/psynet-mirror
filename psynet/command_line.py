@@ -2321,87 +2321,20 @@ def run_export(
     export_reports = []
     source_code_exported = False
     if postprocess_location == "remote":
-        experiment_url = get_experiment_url(app, server)
-        params = {
-            "type": "psynet",
-            "anonymize": anonymize,
-            "assets": assets,
-        }
-        export_endpoint = f"{experiment_url}/dashboard/export/download?" + urlencode(
-            params
+        report = _run_remote_export(
+            app,
+            server,
+            config,
+            anonymize,
+            assets,
+            path,
+            no_source,
+            local,
+            username,
+            password,
+            postprocess_location,
+            postprocess_method,
         )
-        with yaspin(text="Requesting export from dashboard", color="green") as spinner:
-            response = requests.get(
-                export_endpoint,
-                auth=(config.get("dashboard_user"), config.get("dashboard_password")),
-            )
-            spinner.ok("✔")
-        os.makedirs(path, exist_ok=True)
-        zip_path = os.path.join(path, "data.zip")
-        report = {
-            "postprocess_location": postprocess_location,
-            "postprocess_method": postprocess_method,
-            "steps": {},
-            "success": True,
-        }
-        try:
-            if response.status_code == 200:
-                with open(zip_path, "wb") as f:
-                    f.write(response.content)
-                # unzip the file
-                with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                    zip_ref.extractall(path)
-                _record_export_step(
-                    report,
-                    "dashboard_export",
-                    "success",
-                    details={"zip_path": zip_path},
-                )
-                _run_export_step(
-                    report,
-                    "source_code_export",
-                    lambda: _export_source_code(
-                        app, local, server, path, username, password
-                    ),
-                    skip_reason="no_source=True" if no_source else None,
-                )
-                log(f"Export complete. You can find your results at: {path}")
-            else:
-                report["success"] = False
-                error_details = {
-                    "status_code": response.status_code,
-                    "reason": response.reason,
-                }
-                try:
-                    message = response.json().get("message")
-                    if message:
-                        error_details["message"] = message
-                        log(f"Reason: {message}.")
-                except json.JSONDecodeError as e:
-                    error_details["json_error"] = str(e)
-                    error_details["response_content"] = response.content.decode(
-                        errors="replace"
-                    )
-                    log(
-                        f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
-                        f"\nResponse content: {response.content}"
-                    )
-                _record_export_step(
-                    report, "dashboard_export", "failed", details=error_details
-                )
-                log(
-                    f"Failed to export data. Response: {response.reason} ({response.status_code})"
-                )
-                log(
-                    "You can add the --legacy flag or --postprocess-location local "
-                    "to retry the export locally."
-                )
-        except Exception as e:
-            report["success"] = False
-            _record_export_step(
-                report, "dashboard_export", "failed", error=_format_exception(e)
-            )
-            log(f"Failed to export data: {e}")
         export_reports.append(report)
     else:
         for anonymize_mode in anonymize_modes:
@@ -2432,6 +2365,101 @@ def run_export(
         report_path = _write_export_report(path, export_reports)
         if any(not report.get("success", False) for report in export_reports):
             log(f"Export completed with warnings. See {report_path} for details.")
+
+
+def _run_remote_export(
+    app,
+    server,
+    config,
+    anonymize,
+    assets,
+    path,
+    no_source,
+    local,
+    username,
+    password,
+    postprocess_location,
+    postprocess_method,
+):
+    experiment_url = get_experiment_url(app, server)
+    params = {
+        "type": "psynet",
+        "anonymize": anonymize,
+        "assets": assets,
+    }
+    export_endpoint = f"{experiment_url}/dashboard/export/download?" + urlencode(params)
+    with yaspin(text="Requesting export from dashboard", color="green") as spinner:
+        response = requests.get(
+            export_endpoint,
+            auth=(config.get("dashboard_user"), config.get("dashboard_password")),
+        )
+        spinner.ok("✔")
+    os.makedirs(path, exist_ok=True)
+    zip_path = os.path.join(path, "data.zip")
+    report = {
+        "postprocess_location": postprocess_location,
+        "postprocess_method": postprocess_method,
+        "steps": {},
+        "success": True,
+    }
+    try:
+        if response.status_code == 200:
+            with open(zip_path, "wb") as f:
+                f.write(response.content)
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                zip_ref.extractall(path)
+            _record_export_step(
+                report,
+                "dashboard_export",
+                "success",
+                details={"zip_path": zip_path},
+            )
+            _run_export_step(
+                report,
+                "source_code_export",
+                lambda: _export_source_code(
+                    app, local, server, path, username, password
+                ),
+                skip_reason="no_source=True" if no_source else None,
+            )
+            log(f"Export complete. You can find your results at: {path}")
+        else:
+            report["success"] = False
+            error_details = {
+                "status_code": response.status_code,
+                "reason": response.reason,
+            }
+            try:
+                message = response.json().get("message")
+                if message:
+                    error_details["message"] = message
+                    log(f"Reason: {message}.")
+            except json.JSONDecodeError as e:
+                error_details["json_error"] = str(e)
+                error_details["response_content"] = response.content.decode(
+                    errors="replace"
+                )
+                log(
+                    f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
+                    f"\nResponse content: {response.content}"
+                )
+            _record_export_step(
+                report, "dashboard_export", "failed", details=error_details
+            )
+            log(
+                f"Failed to export data. Response: {response.reason} ({response.status_code})"
+            )
+            log(
+                "You can add the --legacy flag or --postprocess-location local "
+                "to retry the export locally."
+            )
+    except Exception as e:
+        report["success"] = False
+        _record_export_step(
+            report, "dashboard_export", "failed", error=_format_exception(e)
+        )
+        log(f"Failed to export data: {e}")
+    return report
 
 
 def _run_local_export(
