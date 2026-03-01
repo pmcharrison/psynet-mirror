@@ -319,8 +319,8 @@ class TestExport:
             yield mock_move_snapshot_file
 
     @pytest.fixture
-    def export_data(self):
-        with patch("psynet.command_line.export_data") as mock_export_data:
+    def postprocess_export_data(self):
+        with patch("psynet.command_line.postprocess_export_data") as mock_export_data:
             yield mock_export_data
 
     def test_export_logs_success(self, tmp_path):

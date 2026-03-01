@@ -2159,7 +2159,7 @@ def export__local(ctx=None, **kwargs):
     Export the experiment locally.
     """
     exp_variables = ctx.invoke(experiment_variables, location="local")
-    export_(ctx, local=True, exp_variables=exp_variables, **kwargs)
+    run_export(ctx, local=True, exp_variables=exp_variables, **kwargs)
 
 
 @export.command("heroku")
@@ -2175,7 +2175,7 @@ def export__heroku(ctx, app, **kwargs):
     Export the experiment from Heroku.
     """
     exp_variables = ctx.invoke(experiment_variables, location="heroku", app=app)
-    export_(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
+    run_export(ctx, app=app, local=False, exp_variables=exp_variables, **kwargs)
 
 
 @export.command("ssh")
@@ -2194,7 +2194,7 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     exp_variables = ctx.invoke(
         experiment_variables, location="ssh", app=app, server=server
     )
-    export_(
+    run_export(
         ctx,
         app=app,
         local=False,
@@ -2205,7 +2205,7 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     )
 
 
-def export_(
+def run_export(
     ctx,
     exp_variables,
     app=None,
@@ -2407,7 +2407,7 @@ def export_(
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
             should_export_source_code = not (source_code_exported or no_source)
-            report = _export_(
+            report = _run_local_export(
                 ctx,
                 app,
                 local,
@@ -2434,7 +2434,7 @@ def export_(
             log(f"Export completed with warnings. See {report_path} for details.")
 
 
-def _export_(
+def _run_local_export(
     ctx,
     app,
     local,
@@ -2471,7 +2471,7 @@ def _export_(
     _run_export_step(
         report,
         "postprocess_data",
-        lambda: export_data(
+        lambda: postprocess_export_data(
             local,
             anonymize,
             database_zip_path,
@@ -2739,7 +2739,7 @@ def export_database(
     return database_zip_path
 
 
-def export_data(
+def postprocess_export_data(
     local,
     anonymize,
     database_zip_path,

@@ -2,7 +2,7 @@ import json
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from psynet.command_line import export_
+from psynet.command_line import run_export
 
 
 def _fake_export_vars(deployment_id="test-deployment", label="test-label"):
@@ -33,7 +33,7 @@ def test_export_local_continues_on_step_failures(tmp_path):
         patch("psynet.command_line.export_logs", side_effect=RuntimeError("logs")),
         patch("psynet.command_line.postprocess_database_zip"),
     ):
-        export_(
+        run_export(
             ctx,
             exp_variables=_fake_export_vars(),
             local=True,
@@ -82,7 +82,7 @@ def test_export_remote_records_dashboard_failure(tmp_path):
         patch("psynet.command_line.get_experiment_url", return_value="http://test"),
         patch("psynet.command_line.requests.get", return_value=response),
     ):
-        export_(
+        run_export(
             ctx,
             exp_variables=_fake_export_vars(),
             app="test-app",

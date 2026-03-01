@@ -41,6 +41,7 @@
 - Added explicit postprocess location/method export options (author: Peter Harrison)
 - Export now records per-step failures and continues where possible, writing `export_report.json` (author: Peter Harrison)
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
+- Renamed export helper functions for clarity: `export_` -> `run_export`, `_export_` -> `_run_local_export`, `export_data` -> `postprocess_export_data` (author: Peter Harrison)
 
 ## Fixed
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
