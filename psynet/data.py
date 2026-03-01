@@ -2,7 +2,6 @@ import contextlib
 import csv
 import io
 import os
-import shutil
 import tempfile
 from collections import defaultdict
 from datetime import datetime
@@ -237,13 +236,6 @@ def _prepare_db_export(scrub_pii: bool):
         if _cls_name not in exp.export_classes_to_skip
     }
     return obj_dict_by_cls
-
-
-def copy_db_table_to_csv(tablename, path):
-    with tempfile.TemporaryDirectory() as tempdir:
-        dallinger.data.copy_db_to_csv(db.db_url, tempdir)
-        temp_filename = f"{tablename}.csv"
-        shutil.copyfile(os.path.join(tempdir, temp_filename), path)
 
 
 def _write_class_csvs(objects_by_class, output_dir):

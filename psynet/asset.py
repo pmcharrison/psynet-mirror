@@ -3471,13 +3471,6 @@ class AssetRegistry:
 
         db.session.commit()
 
-    # def save_initial_asset_manifesto(self):
-    #     copy_db_table_to_csv("asset", self.initial_asset_manifesto_path)
-
-    # def populate_db_with_initial_assets(self):
-    #     with open(self.initial_asset_manifesto_path, "r") as file:
-    #         ingest_to_model(file, Asset)
-
 
 def threadsafe__prepare_asset_for_deployment(asset, registry):
     asset_2 = db.session.merge(asset)
