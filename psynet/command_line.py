@@ -2535,7 +2535,11 @@ def _run_local_export(
         report,
         "logs_export",
         lambda: export_logs(app, server, export_path),
-        skip_reason="docker_ssh disabled" if not (docker_ssh and server) else None,
+        skip_reason=(
+            "not exporting from a remote server"
+            if not (docker_ssh and server)
+            else None
+        ),
     )
 
     log(f"Export complete. You can find your results at: {export_path}")
