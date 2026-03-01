@@ -2092,8 +2092,8 @@ def export_arguments(func):
             type=click.Choice(["remote", "local"]),
             default=None,
             help=(
-                "Where to postprocess data; remote uses the dashboard export. "
-                "Defaults to remote."
+                "Where to postprocess data. "
+                "Defaults to remote, but local mode can be useful for debugging."
             ),
         ),
         click.option(
@@ -2101,14 +2101,14 @@ def export_arguments(func):
             type=click.Choice(["csv", "db"]),
             default=None,
             help=(
-                "How to postprocess local exports; csv uses database.zip, db uses ORM. "
-                "Defaults to csv."
+                "How to postprocess local exports; csv mode (default) is newer and faster, "
+                "but might still have some rough edges."
             ),
         ),
         click.option(
             "--assets",
             default="experiment",
-            help="Which assets to export; valid values are none, experiment, and all",
+            help="Which assets to export; valid values are none, experiment (default), and all",
         ),
         click.option(
             "--anonymize",
