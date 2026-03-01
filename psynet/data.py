@@ -272,6 +272,8 @@ def postprocess_database_zip_to_csv(
     export_classes_to_skip
         Optional list of class names to omit from the export.
     """
+    from yaspin import yaspin
+
     from psynet.serialize import PsyNetUnpickler, serialize
 
     if export_classes_to_skip is None:
@@ -286,29 +288,32 @@ def postprocess_database_zip_to_csv(
     class_cache = {}
     decode_failures = {"count": 0, "examples": []}
 
-    tables = _read_tables_from_zip(zip_path)
+    with yaspin(text="Postprocessing database.zip...", color="green") as spinner:
+        tables = _read_tables_from_zip(zip_path)
 
-    module_locals = _build_module_locals(
-        tables.get("module_state", []), decode_failures=decode_failures
-    )
-
-    objects_by_class = defaultdict(list)
-    for table_name, rows in tables.items():
-        _process_table_rows(
-            rows,
-            table_name,
-            base_classes_by_table,
-            export_classes_to_skip,
-            module_locals,
-            unpickler,
-            class_cache,
-            scrub_pii,
-            serialize,
-            objects_by_class,
-            decode_failures=decode_failures,
+        module_locals = _build_module_locals(
+            tables.get("module_state", []), decode_failures=decode_failures
         )
 
-    _write_class_csvs(objects_by_class, output_dir)
+        objects_by_class = defaultdict(list)
+        for table_name, rows in tables.items():
+            _process_table_rows(
+                rows,
+                table_name,
+                base_classes_by_table,
+                export_classes_to_skip,
+                module_locals,
+                unpickler,
+                class_cache,
+                scrub_pii,
+                serialize,
+                objects_by_class,
+                decode_failures=decode_failures,
+            )
+
+        _write_class_csvs(objects_by_class, output_dir)
+        spinner.ok("✔")
+
     return {"decode_failures": decode_failures}
 
 

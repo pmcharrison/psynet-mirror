@@ -2205,6 +2205,24 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     )
 
 
+# The export functionality could do with some substantial refactoring.
+#
+# 1. Simplification of database export logic
+# Currently there we have a lot of postprocessing logic for turning database.zip into CSV files.
+# This is slow and involves a lot of code.
+# We could fix this by reworking the database representation to look more like what we want the export
+# to look like.
+# We would want to consider the following:
+# - Don't use polymorphic types in the database, use separate database tables
+# - Don't allows vars/definition to be flexible, force users to register columns explicitly
+#
+# 2.
+#
+# 3. Simplification of asset export logic
+# Downloading assets involves iterating over asset objects and calling their export methods.
+# It would be simpler if we could just rsync a directory from the remote server.
+# To do this, we'd need to drastically simplify how remote asset paths are constructed.
+# This might a good thing anyway, as it would make it easier to reason about the paths.
 def run_export(
     ctx,
     exp_variables,
@@ -2802,8 +2820,6 @@ def postprocess_export_data(
     else:
         raise ValueError("postprocess_method must be either 'csv' or 'db'.")
 
-    with yaspin(text="Completed.", color="green") as spinner:
-        spinner.ok("✔")
     return diagnostics
 
 
