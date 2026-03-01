@@ -1,5 +1,4 @@
 import json
-import os
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -28,7 +27,9 @@ def test_export_local_continues_on_step_failures(tmp_path):
         patch("psynet.command_line.get_config", return_value=config),
         patch("psynet.command_line.export_database", side_effect=RuntimeError("db")),
         patch("psynet.command_line.export_assets", side_effect=RuntimeError("assets")),
-        patch("psynet.command_line._export_source_code", side_effect=RuntimeError("src")),
+        patch(
+            "psynet.command_line._export_source_code", side_effect=RuntimeError("src")
+        ),
         patch("psynet.command_line.export_logs", side_effect=RuntimeError("logs")),
         patch("psynet.command_line.postprocess_database_zip"),
     ):
