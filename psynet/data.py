@@ -276,6 +276,7 @@ def postprocess_database_zip_to_csv(
 
     if export_classes_to_skip is None:
         export_classes_to_skip = []
+    export_classes_to_skip = set(export_classes_to_skip)
 
     base_classes_by_table = {
         table: cls.__name__ for table, cls in sql_base_classes().items()
@@ -464,18 +465,28 @@ def _decode_serialized(value, decode_failures=None, table_name=None, field_name=
     try:
         return unserialize(value)
     except Exception as error:
-        if decode_failures is not None:
-            decode_failures["count"] += 1
-            if len(decode_failures["examples"]) < 5:
-                decode_failures["examples"].append(
-                    {
-                        "table": table_name,
-                        "field": field_name,
-                        "error_type": type(error).__name__,
-                        "error": str(error),
-                    }
-                )
+        _record_decode_failure(
+            decode_failures, table_name, field_name, type(error).__name__, str(error)
+        )
         return None
+
+
+def _record_decode_failure(
+    decode_failures, table_name, field_name, error_type, error_message
+):
+    if decode_failures is None:
+        return
+
+    decode_failures["count"] += 1
+    if len(decode_failures["examples"]) < 5:
+        decode_failures["examples"].append(
+            {
+                "table": table_name,
+                "field": field_name,
+                "error_type": error_type,
+                "error": error_message,
+            }
+        )
 
 
 def _unpack_dict_field(
