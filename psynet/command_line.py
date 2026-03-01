@@ -2513,11 +2513,11 @@ def _run_local_export(
         lambda: export_assets(
             export_path,
             anonymize,
-            assets == "experiment",
-            assets == "all",
-            n_parallel,
-            server,
-            local,
+            experiment_assets_only=assets == "experiment",
+            include_on_demand_assets=assets == "all",
+            n_parallel=n_parallel,
+            server=server,
+            local=local,
         ),
         skip_reason="assets=none" if assets == "none" else None,
     )
