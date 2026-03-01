@@ -2424,35 +2424,7 @@ def _run_remote_export(
             )
             log(f"Export complete. You can find your results at: {path}")
         else:
-            report["success"] = False
-            error_details = {
-                "status_code": response.status_code,
-                "reason": response.reason,
-            }
-            try:
-                message = response.json().get("message")
-                if message:
-                    error_details["message"] = message
-                    log(f"Reason: {message}.")
-            except json.JSONDecodeError as e:
-                error_details["json_error"] = str(e)
-                error_details["response_content"] = response.content.decode(
-                    errors="replace"
-                )
-                log(
-                    f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
-                    f"\nResponse content: {response.content}"
-                )
-            _record_export_step(
-                report, "dashboard_export", "failed", details=error_details
-            )
-            log(
-                f"Failed to export data. Response: {response.reason} ({response.status_code})"
-            )
-            log(
-                "You can add the --legacy flag or --postprocess-location local "
-                "to retry the export locally."
-            )
+            _record_dashboard_error(report, response)
     except Exception as e:
         report["success"] = False
         _record_export_step(
@@ -2460,6 +2432,32 @@ def _run_remote_export(
         )
         log(f"Failed to export data: {e}")
     return report
+
+
+def _record_dashboard_error(report, response):
+    report["success"] = False
+    error_details = {
+        "status_code": response.status_code,
+        "reason": response.reason,
+    }
+    try:
+        message = response.json().get("message")
+        if message:
+            error_details["message"] = message
+            log(f"Reason: {message}.")
+    except json.JSONDecodeError as e:
+        error_details["json_error"] = str(e)
+        error_details["response_content"] = response.content.decode(errors="replace")
+        log(
+            f"Additionally, decoding JSON data from the response failed with '{str(e)}'"
+            f"\nResponse content: {response.content}"
+        )
+    _record_export_step(report, "dashboard_export", "failed", details=error_details)
+    log(f"Failed to export data. Response: {response.reason} ({response.status_code})")
+    log(
+        "You can add the --legacy flag or --postprocess-location local "
+        "to retry the export locally."
+    )
 
 
 def _run_local_export(
