@@ -161,43 +161,21 @@ def _get_preferred_superclass_version(cls):
     return cls
 
 
-def _db_instance_to_dict(obj, scrub_pii: bool):
+def export_db_to_csv(dir, scrub_pii: bool):
     """
-    Converts an ORM-mapped instance to a JSON-style representation.
-    Complex types (e.g. lists, dicts) are serialized to strings using
-    psynet.serialize.serialize.
+    Exports all database objects to JSON-style dictionaries
+    and writes them to CSV files, one for each class type.
 
     Parameters
     ----------
-    obj
-        Object to convert.
+
+    dir
+        Directory to which the CSV files should be exported.
 
     scrub_pii
         Whether to remove personally identifying information.
-
-    Returns
-    -------
-
-    JSON-style dictionary
-
     """
-    try:
-        data = obj.to_dict()
-    except AttributeError:
-        data = obj.__json__()
-    if "class" not in data:
-        data["class"] = obj.__class__.__name__  # for the Dallinger classes
-    if scrub_pii and hasattr(obj, "scrub_pii"):
-        data = obj.scrub_pii(data)
-    for key, value in data.items():
-        if isinstance(value, datetime):
-            data[key] = value.strftime("%Y-%m-%d %H:%M:%S")
-            continue
-        if not is_basic_type(value):
-            from .serialize import serialize
-
-            data[key] = serialize(value)
-    return data
+    _write_class_csvs(_prepare_db_export(scrub_pii), dir)
 
 
 def _prepare_db_export(scrub_pii: bool):
@@ -238,6 +216,191 @@ def _prepare_db_export(scrub_pii: bool):
     return obj_dict_by_cls
 
 
+def _db_instance_to_dict(obj, scrub_pii: bool):
+    """
+    Converts an ORM-mapped instance to a JSON-style representation.
+    Complex types (e.g. lists, dicts) are serialized to strings using
+    psynet.serialize.serialize.
+
+    Parameters
+    ----------
+    obj
+        Object to convert.
+
+    scrub_pii
+        Whether to remove personally identifying information.
+
+    Returns
+    -------
+
+    JSON-style dictionary
+
+    """
+    try:
+        data = obj.to_dict()
+    except AttributeError:
+        data = obj.__json__()
+    if "class" not in data:
+        data["class"] = obj.__class__.__name__  # for the Dallinger classes
+    if scrub_pii and hasattr(obj, "scrub_pii"):
+        data = obj.scrub_pii(data)
+    for key, value in data.items():
+        if isinstance(value, datetime):
+            data[key] = value.strftime("%Y-%m-%d %H:%M:%S")
+            continue
+        if not is_basic_type(value):
+            from .serialize import serialize
+
+            data[key] = serialize(value)
+    return data
+
+
+def postprocess_database_zip_to_csv(
+    zip_path, output_dir, scrub_pii: bool, export_classes_to_skip=None
+):
+    """
+    Builds a PsyNet export from a Dallinger database.zip.
+
+    Parameters
+    ----------
+    zip_path
+        Path to the Dallinger database export zip.
+    output_dir
+        Directory to which the PsyNet CSV files should be written.
+    scrub_pii
+        Whether to remove personally identifying information.
+    export_classes_to_skip
+        Optional list of class names to omit from the export.
+    """
+    from psynet.serialize import PsyNetUnpickler, serialize
+
+    if export_classes_to_skip is None:
+        export_classes_to_skip = []
+
+    base_classes_by_table = {
+        table: cls.__name__ for table, cls in sql_base_classes().items()
+    }
+
+    unpickler = PsyNetUnpickler()
+    class_cache = {}
+
+    tables = _read_tables_from_zip(zip_path)
+
+    module_locals = _build_module_locals(tables.get("module_state", []))
+
+    objects_by_class = defaultdict(list)
+    for table_name, rows in tables.items():
+        _process_table_rows(
+            rows,
+            table_name,
+            base_classes_by_table,
+            export_classes_to_skip,
+            module_locals,
+            unpickler,
+            class_cache,
+            scrub_pii,
+            serialize,
+            objects_by_class,
+        )
+
+    _write_class_csvs(objects_by_class, output_dir)
+
+
+def _read_tables_from_zip(zip_path):
+    import pandas as pd
+
+    tables = {}
+    with ZipFile(zip_path, "r") as archive:
+        for filename in archive.namelist():
+            if not filename.startswith("data/") or not filename.endswith(".csv"):
+                continue
+            table_name = os.path.splitext(os.path.basename(filename))[0]
+            with archive.open(filename) as csv_file:
+                df = pd.read_csv(csv_file)
+            tables[table_name] = df.to_dict(orient="records")
+    return tables
+
+
+def _build_module_locals(module_rows):
+    """Aggregate module state vars by participant, keyed by module_id prefix."""
+    grouped = defaultdict(lambda: defaultdict(list))
+    for row in module_rows:
+        row = {key: _normalize_value(value) for key, value in row.items()}
+        participant_id = _coerce_int(row.get("participant_id"))
+        module_id = row.get("module_id")
+        if participant_id is None or not module_id:
+            continue
+        vars_obj = _decode_serialized(row.get("vars"))
+        if not isinstance(vars_obj, dict):
+            continue
+        grouped[participant_id][module_id].append((row.get("time_started"), vars_obj))
+
+    module_locals = defaultdict(dict)
+    for participant_id, module_groups in grouped.items():
+        for module_id, entries in module_groups.items():
+            entries.sort(key=lambda entry: str(entry[0]))
+            for index, (_, vars_obj) in enumerate(entries):
+                prefix = f"{module_id}__" if index == 0 else f"{module_id}__{index}__"
+                for key, value in vars_obj.items():
+                    if str(key).startswith("_"):
+                        continue
+                    module_locals[participant_id][prefix + key] = value
+    return module_locals
+
+
+def _process_table_rows(
+    rows,
+    table_name,
+    base_classes_by_table,
+    export_classes_to_skip,
+    module_locals,
+    unpickler,
+    class_cache,
+    scrub_pii,
+    serialize,
+    objects_by_class,
+):
+    base_class_name = base_classes_by_table.get(table_name)
+    for row in rows:
+        row = {key: _normalize_value(value) for key, value in row.items()}
+        polymorphic_type = row.get("type")
+        class_name = _class_name_for_row(
+            polymorphic_type, table_name, base_classes_by_table
+        )
+        if class_name in export_classes_to_skip:
+            continue
+
+        if table_name == "participant":
+            participant_id = _coerce_int(row.get("id"))
+            row.update(module_locals.get(participant_id, {}))
+
+        _unpack_dict_field(row, "vars", skip_private=True)
+        _unpack_dict_field(row, "definition")
+        _unpack_dict_field(row, "answer")
+
+        row["class"] = class_name
+        cls = _load_class(polymorphic_type, unpickler, class_cache)
+        row["type"] = _to_visualization_type(cls, class_name, row)
+        row["object_type"] = base_class_name or row["type"]
+
+        if scrub_pii:
+            for key in ["client_ip_address", "worker_id"]:
+                row.pop(key, None)
+
+        field.json_clean(
+            row,
+            details="details" in row,
+            contents="contents" in row,
+        )
+        field.json_format_vars(row)
+
+        for key, value in list(row.items()):
+            if not is_basic_type(value):
+                row[key] = serialize(value)
+
+        objects_by_class[class_name].append(row)
+
+
 def _write_class_csvs(objects_by_class, output_dir):
     from .utils import make_parents
 
@@ -245,54 +408,6 @@ def _write_class_csvs(objects_by_class, output_dir):
         filepath = os.path.join(output_dir, cls + ".csv")
         with open(make_parents(filepath), "w") as f:
             json_to_data_frame(objects).to_csv(f, index=False)
-
-
-def export_db_to_csv(dir, scrub_pii: bool):
-    """
-    Exports all database objects to JSON-style dictionaries
-    and writes them to CSV files, one for each class type.
-
-    Parameters
-    ----------
-
-    dir
-        Directory to which the CSV files should be exported.
-
-    scrub_pii
-        Whether to remove personally identifying information.
-    """
-    _write_class_csvs(_prepare_db_export(scrub_pii), dir)
-
-
-def _coerce_int(value):
-    if value is None:
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    try:
-        return int(str(value))
-    except Exception:
-        return value
-
-
-def _to_visualization_type(cls, class_name, row):
-    if cls is None:
-        return class_name
-    from psynet.trial.chain import ChainNode
-    from psynet.trial.main import GenericTrialNode
-
-    degree = row.get("degree")
-    try:
-        degree = int(float(degree)) if degree is not None else None
-    except (TypeError, ValueError):
-        degree = None
-    if issubclass(cls, GenericTrialNode):
-        return "TrialSource"
-    if issubclass(cls, ChainNode) and degree == 0:
-        return "TrialSource"
-    return class_name
 
 
 def _normalize_value(value):
@@ -366,150 +481,35 @@ def _load_class(type_value, unpickler, class_cache):
     return cls
 
 
-def _build_module_locals(module_rows):
-    """Aggregate module state vars by participant, keyed by module_id prefix."""
-    grouped = defaultdict(lambda: defaultdict(list))
-    for row in module_rows:
-        row = {key: _normalize_value(value) for key, value in row.items()}
-        participant_id = _coerce_int(row.get("participant_id"))
-        module_id = row.get("module_id")
-        if participant_id is None or not module_id:
-            continue
-        vars_obj = _decode_serialized(row.get("vars"))
-        if not isinstance(vars_obj, dict):
-            continue
-        grouped[participant_id][module_id].append((row.get("time_started"), vars_obj))
-
-    module_locals = defaultdict(dict)
-    for participant_id, module_groups in grouped.items():
-        for module_id, entries in module_groups.items():
-            entries.sort(key=lambda entry: str(entry[0]))
-            for index, (_, vars_obj) in enumerate(entries):
-                prefix = f"{module_id}__" if index == 0 else f"{module_id}__{index}__"
-                for key, value in vars_obj.items():
-                    if str(key).startswith("_"):
-                        continue
-                    module_locals[participant_id][prefix + key] = value
-    return module_locals
+def _coerce_int(value):
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    try:
+        return int(str(value))
+    except Exception:
+        return value
 
 
-def _read_tables_from_zip(zip_path):
-    import pandas as pd
+def _to_visualization_type(cls, class_name, row):
+    if cls is None:
+        return class_name
+    from psynet.trial.chain import ChainNode
+    from psynet.trial.main import GenericTrialNode
 
-    tables = {}
-    with ZipFile(zip_path, "r") as archive:
-        for filename in archive.namelist():
-            if not filename.startswith("data/") or not filename.endswith(".csv"):
-                continue
-            table_name = os.path.splitext(os.path.basename(filename))[0]
-            with archive.open(filename) as csv_file:
-                df = pd.read_csv(csv_file)
-            tables[table_name] = df.to_dict(orient="records")
-    return tables
-
-
-def _process_table_rows(
-    rows,
-    table_name,
-    base_classes_by_table,
-    export_classes_to_skip,
-    module_locals,
-    unpickler,
-    class_cache,
-    scrub_pii,
-    serialize,
-    objects_by_class,
-):
-    base_class_name = base_classes_by_table.get(table_name)
-    for row in rows:
-        row = {key: _normalize_value(value) for key, value in row.items()}
-        polymorphic_type = row.get("type")
-        class_name = _class_name_for_row(
-            polymorphic_type, table_name, base_classes_by_table
-        )
-        if class_name in export_classes_to_skip:
-            continue
-
-        if table_name == "participant":
-            participant_id = _coerce_int(row.get("id"))
-            row.update(module_locals.get(participant_id, {}))
-
-        _unpack_dict_field(row, "vars", skip_private=True)
-        _unpack_dict_field(row, "definition")
-        _unpack_dict_field(row, "answer")
-
-        row["class"] = class_name
-        cls = _load_class(polymorphic_type, unpickler, class_cache)
-        row["type"] = _to_visualization_type(cls, class_name, row)
-        row["object_type"] = base_class_name or row["type"]
-
-        if scrub_pii:
-            for key in ["client_ip_address", "worker_id"]:
-                row.pop(key, None)
-
-        field.json_clean(
-            row,
-            details="details" in row,
-            contents="contents" in row,
-        )
-        field.json_format_vars(row)
-
-        for key, value in list(row.items()):
-            if not is_basic_type(value):
-                row[key] = serialize(value)
-
-        objects_by_class[class_name].append(row)
-
-
-def postprocess_database_zip_to_csv(
-    zip_path, output_dir, scrub_pii: bool, export_classes_to_skip=None
-):
-    """
-    Builds a PsyNet export from a Dallinger database.zip.
-
-    Parameters
-    ----------
-    zip_path
-        Path to the Dallinger database export zip.
-    output_dir
-        Directory to which the PsyNet CSV files should be written.
-    scrub_pii
-        Whether to remove personally identifying information.
-    export_classes_to_skip
-        Optional list of class names to omit from the export.
-    """
-    from psynet.serialize import PsyNetUnpickler, serialize
-
-    if export_classes_to_skip is None:
-        export_classes_to_skip = []
-
-    base_classes_by_table = {
-        table: cls.__name__ for table, cls in sql_base_classes().items()
-    }
-
-    unpickler = PsyNetUnpickler()
-    class_cache = {}
-
-    tables = _read_tables_from_zip(zip_path)
-
-    module_locals = _build_module_locals(tables.get("module_state", []))
-
-    objects_by_class = defaultdict(list)
-    for table_name, rows in tables.items():
-        _process_table_rows(
-            rows,
-            table_name,
-            base_classes_by_table,
-            export_classes_to_skip,
-            module_locals,
-            unpickler,
-            class_cache,
-            scrub_pii,
-            serialize,
-            objects_by_class,
-        )
-
-    _write_class_csvs(objects_by_class, output_dir)
+    degree = row.get("degree")
+    try:
+        degree = int(float(degree)) if degree is not None else None
+    except (TypeError, ValueError):
+        degree = None
+    if issubclass(cls, GenericTrialNode):
+        return "TrialSource"
+    if issubclass(cls, ChainNode) and degree == 0:
+        return "TrialSource"
+    return class_name
 
 
 class InvalidDefinitionError(ValueError):
