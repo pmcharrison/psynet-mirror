@@ -2216,7 +2216,11 @@ def export__docker_ssh(ctx, app, server, **kwargs):
 # - Don't use polymorphic types in the database, use separate database tables
 # - Don't allows vars/definition to be flexible, force users to register columns explicitly
 #
-# 2.
+# 2. Simplification of dashboard export logic
+# Currently the dashboard database tab constructs tables by calling obj.__json__().
+# If one exports from this view, one will get a different CSV file to what one gets
+# from exporting normally. We should remove this discrepancy and instead just make the
+# dashboard export use the same logic as the normal export.
 #
 # 3. Simplification of asset export logic
 # Downloading assets involves iterating over asset objects and calling their export methods.
