@@ -37,6 +37,8 @@ before_script:
 
 .default_rules: &default_rules
   rules:
+    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+      when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
     - if: $CI_COMMIT_BRANCH
@@ -71,6 +73,8 @@ changelog_check:
         exit 1
       fi
   rules:
+    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+      when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
     - when: never
@@ -129,6 +133,8 @@ pages_latest:
     paths:
     - public
   rules:
+    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+      when: always
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
     - when: never
