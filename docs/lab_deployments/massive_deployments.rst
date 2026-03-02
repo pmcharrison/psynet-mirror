@@ -1,30 +1,15 @@
-Massive Deployments 
-====================
+Massive Deployments – Deploying Multiple Experiments in Parallel
+================================================================
 
-(Deploying Multiple Experiments in Parallel)
+**Monitoring Real-Time Experiment Data: The `/basic_data` Endpoint**
+--------------------------------------------------------------------
 
-- This specific implementation, designed by Pol, is currently available
-  only in the development version of the framework: **psynet==13.0.0rc1**.
+Overview and Utility: Why Use ``get_basic_data``?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Pin this version in your project's requirements.txt file and generate
-  constraints for dependency management.
+The ``/basic_data`` endpoint is a powerful feature designed to provide real-time access to your experiment's data during deployment, eliminating the need for constant manual data exports.
 
-**Monitoring Real-Time Experiment Data: The basic_data Endpoint**
------------------------------------------------------------------
-
-Overview and Utility: Why Use **get_basic_data**?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The basic_data endpoint is a powerful feature designed to provide
-**real-time access** to your experiment's data during deployment,
-eliminating the need for constant manual data exports.
-
-The core utility lies in the **get_basic_data** method you implement
-within your experiment class. When deployed, this method exposes the
-data through a dedicated, easily accessible **URL** (e.g.,
-http://127.0.0.1:5000/basic_data?...).
-
-**Key Benefits:**
+The core utility lies in the ``get_basic_data`` method you implement within your experiment class. When deployed, this method exposes the data through a dedicated, easily accessible URL (e.g., ``http://127.0.0.1:5000/basic_data?...``).
 
 -  **Real-Time Data Access:** You can access the most up-to-date
       experiment data without interrupting the deployment or running a
@@ -96,14 +81,14 @@ which allows to switch between different data sheets.
 
 -  R Example:
 
-..
+   .. code:: r
 
-   library(jsonlite)
+      library(jsonlite)
 
-   url <-
-   "http://127.0.0.1:5000/basic_data?dashboard_user=cap&dashboard_password=capcapcap2021!"
+      url <-
+      "http://127.0.0.1:5000/basic_data?dashboard_user=cap&dashboard_password=capcapcap2021!"
 
-   df <- fromJSON(url)
+      df <- fromJSON(url)
 
 -  Python Example:
 
@@ -190,21 +175,24 @@ updates to the deployments channel.
 **Configuration Steps**
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-1. **Join the Channel:** The PsyNet Bot reports to the central
-      channel. Ask Elif to add you to the #deployments channel to
-      receive notifications.
+1. **Join the Channel**
 
-2. **Update the config in experiment.py**: Add the “notifier”:
-      “slack” setting to your ‘config’,
+   The PsyNet Bot reports to the central channel. Ask Elif to add you to
+   the ``#deployments`` channel to receive notifications.
 
-..
+2. **Update the config in experiment.py**
 
-   config = {
+   Add the following setting to your ``config`` dictionary.
 
-   "notifier": "slack",}
+   .. code:: python
 
-3. **Update ~/.dallingerconfig:** Add the following to your
-   ``.dallingerconfig`` file:
+      config = {
+      "notifier": "slack",
+      }
+
+3. **Update .dallingerconfig**
+      
+   Add the following to your ``.dallingerconfig`` file:
 
    .. code:: ini
 
