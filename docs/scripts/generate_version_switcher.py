@@ -40,7 +40,7 @@ def get_master_psynet_version(default_branch):
     return parse_psynet_version(source)
 
 
-def select_recent_patch_tags(tags, max_majors=3):
+def select_recent_patch_tags(tags, max_majors=2):
     parsed = [(tag, *parse_semver(tag)) for tag in tags]
     majors = sorted({major for _, major, _, _ in parsed}, reverse=True)[:max_majors]
 
