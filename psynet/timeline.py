@@ -35,7 +35,6 @@ from .utils import (
     NoArgumentProvided,
     call_function,
     call_function_with_context,
-    dict_to_js_vars,
     format_datetime,
     get_args,
     get_language_dict,
@@ -1428,10 +1427,8 @@ class Page(Elt):
 
         all_template_args = {
             **self.template_arg,
-            "init_js_vars": Markup(dict_to_js_vars(js_vars)),
             "js_vars": js_vars,
             "page": self,
-            "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
             "time_reward": "%.2f" % participant.time_reward,
             "performance_reward": "%.2f" % participant.performance_reward,
@@ -1463,10 +1460,6 @@ class Page(Elt):
         return render_string_with_translations(
             template_string=self.template_str, **all_template_args
         )
-
-    @property
-    def define_media_requests(self):
-        return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
 
     @property
     def plain_text(self):
