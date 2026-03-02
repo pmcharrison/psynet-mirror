@@ -128,11 +128,28 @@ pages_latest:
     - git fetch --tags --force origin "$CI_DEFAULT_BRANCH"
     - python docs/scripts/generate_version_switcher.py --default-branch "$CI_DEFAULT_BRANCH" --output docs/_static/version_switcher.json
     - export HIGHEST_STABLE=$(python docs/scripts/generate_version_switcher.py --print-highest-stable)
-    - DOCS_VERSION="$HIGHEST_STABLE" sphinx-build -b html docs public
+    - export SELECTED_STABLE_TAGS=$(python docs/scripts/generate_version_switcher.py --print-selected-stable-tags)
+    - export ALPHA_VERSION=$(python docs/scripts/generate_version_switcher.py --default-branch "$CI_DEFAULT_BRANCH" --print-alpha-version)
     - |
-      for VERSION_TAG in $(python docs/scripts/generate_version_switcher.py --print-selected-stable-tags); do
-        DOCS_VERSION="$VERSION_TAG" sphinx-build -b html docs "public/$VERSION_TAG"
+      build_docs_from_ref () {
+        REF="$1"
+        OUTPUT_DIR="$2"
+        DOCS_DISPLAY_VERSION="$3"
+        WORKTREE_DIR=$(mktemp -d)
+        git worktree add --detach "$WORKTREE_DIR" "$REF"
+        mkdir -p "$WORKTREE_DIR/docs/_static"
+        cp docs/_static/version_switcher.json "$WORKTREE_DIR/docs/_static/version_switcher.json"
+        DOCS_VERSION="$DOCS_DISPLAY_VERSION" sphinx-build -D version="$DOCS_DISPLAY_VERSION" -D release="$DOCS_DISPLAY_VERSION" -b html "$WORKTREE_DIR/docs" "$OUTPUT_DIR"
+        git worktree remove --force "$WORKTREE_DIR"
+      }
+
+      build_docs_from_ref "$HIGHEST_STABLE" "public" "$HIGHEST_STABLE"
+
+      for VERSION_TAG in $SELECTED_STABLE_TAGS; do
+        build_docs_from_ref "$VERSION_TAG" "public/$VERSION_TAG" "$VERSION_TAG"
       done
+
+      build_docs_from_ref "origin/$CI_DEFAULT_BRANCH" "public/alpha" "$ALPHA_VERSION"
   pages: true
   artifacts:
     paths:

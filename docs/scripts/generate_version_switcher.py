@@ -40,7 +40,7 @@ def get_master_psynet_version(default_branch):
     return parse_psynet_version(source)
 
 
-def select_recent_patch_tags(tags, max_majors=2):
+def select_recent_patch_tags(tags, max_majors=3):
     parsed = [(tag, *parse_semver(tag)) for tag in tags]
     majors = sorted({major for _, major, _, _ in parsed}, reverse=True)[:max_majors]
 
@@ -82,7 +82,7 @@ def build_entries(base_url, tags, alpha_version):
         {
             "name": f"alpha ({alpha_version})",
             "version": alpha_version,
-            "url": f"{base_url}/",
+            "url": f"{base_url}/alpha/",
         }
     ]
     for tag in tags:
@@ -119,6 +119,11 @@ def main():
         action="store_true",
         help="Print selected stable tags (space-separated) and exit",
     )
+    parser.add_argument(
+        "--print-alpha-version",
+        action="store_true",
+        help="Print alpha version from default branch and exit",
+    )
     args = parser.parse_args()
 
     stable_tags = get_tags()
@@ -131,6 +136,10 @@ def main():
 
     if args.print_selected_stable_tags:
         print(" ".join(select_recent_patch_tags(stable_tags)))
+        return
+
+    if args.print_alpha_version:
+        print(get_master_psynet_version(args.default_branch))
         return
 
     if not args.output:
