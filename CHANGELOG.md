@@ -28,6 +28,7 @@
 - Reworked PsyNet data export to build CSVs from the Dallinger database zip using in-memory processing, substantially reducing processing time, and refactored export helpers for clarity (author: Peter Harrison)
 - Added explicit postprocess location/method export options and per-step failure diagnostics so exports continue where possible while writing `export_report.json` (author: Peter Harrison)
 - Removed `type` from PsyNet export rows in both DB and CSV modes because it largely duplicates `class`; tests now validate the streamlined schema (author: Peter Harrison)
+- Updated `psynet test local` to run a local export sanity check after tests, and added an overridable `Experiment.test_verify_export_output()` hook for custom export validation (author: [Peter Harrison])
 
 ## Fixed
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)

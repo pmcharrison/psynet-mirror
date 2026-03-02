@@ -2093,7 +2093,7 @@ def export_arguments(func):
             default=None,
             help=(
                 "Where to postprocess data. "
-                "Defaults to remote, but local mode can be useful for debugging."
+                "Defaults to local for `export local` and to remote for remote exports."
             ),
         ),
         click.option(
@@ -2158,6 +2158,8 @@ def export__local(ctx=None, **kwargs):
     """
     Export the experiment locally.
     """
+    if kwargs.get("postprocess_location") is None:
+        kwargs["postprocess_location"] = "local"
     exp_variables = ctx.invoke(experiment_variables, location="local")
     run_export(ctx, local=True, exp_variables=exp_variables, **kwargs)
 
@@ -2342,46 +2344,49 @@ def run_export(
 
     export_reports = []
     source_code_exported = False
-    if postprocess_location == "remote":
-        report = _run_remote_export(
-            app,
-            server,
-            config,
-            anonymize,
-            assets,
-            path,
-            no_source,
-            local,
-            username,
-            password,
-            postprocess_location,
-            postprocess_method,
-        )
-        export_reports.append(report)
-    else:
-        for anonymize_mode in anonymize_modes:
-            _anonymize = anonymize_mode == "yes"
-            should_export_source_code = not (source_code_exported or no_source)
-            report = _run_local_export(
-                ctx,
+    try:
+        if postprocess_location == "remote":
+            report = _run_remote_export(
                 app,
-                local,
-                path,
-                assets,
-                _anonymize,
-                should_export_source_code,
-                n_parallel,
-                docker_ssh,
                 server,
-                dns_host,
+                config,
+                anonymize,
+                assets,
+                path,
+                no_source,
+                local,
                 username,
                 password,
-                postprocess_method=postprocess_method,
+                postprocess_location,
+                postprocess_method,
             )
-            report["anonymize"] = anonymize_mode
             export_reports.append(report)
-            if should_export_source_code:
-                source_code_exported = True
+        else:
+            for anonymize_mode in anonymize_modes:
+                _anonymize = anonymize_mode == "yes"
+                should_export_source_code = not (source_code_exported or no_source)
+                report = _run_local_export(
+                    ctx,
+                    app,
+                    local,
+                    path,
+                    assets,
+                    _anonymize,
+                    should_export_source_code,
+                    n_parallel,
+                    docker_ssh,
+                    server,
+                    dns_host,
+                    username,
+                    password,
+                    postprocess_method=postprocess_method,
+                )
+                report["anonymize"] = anonymize_mode
+                export_reports.append(report)
+                if should_export_source_code:
+                    source_code_exported = True
+    except requests.exceptions.ConnectionError as error:
+        _raise_connection_refused_hint(error)
 
     if export_reports:
         report_path = _write_export_report(path, export_reports)
@@ -2724,10 +2729,20 @@ def _run_export_step(report, step_name, fn, skip_reason=None):
             _record_export_step(report, step_name, "success")
         return result
     except Exception as e:
+        if isinstance(e, requests.exceptions.ConnectionError):
+            _raise_connection_refused_hint(e)
         report["success"] = False
         _record_export_step(report, step_name, "failed", error=_format_exception(e))
         log(f"WARNING: Failed at {step_name}: {e}")
         return None
+
+
+def _raise_connection_refused_hint(error):
+    if "connection refused" in str(error).lower():
+        raise click.ClickException(
+            "Connection refused during export. Is the server still running?"
+        ) from error
+    raise error
 
 
 def _write_export_report(export_path, reports):
@@ -3287,15 +3302,31 @@ def test__local(
 
     if existing:
         exp.test_experiment()
-        return
+    else:
+        import pytest
 
-    import pytest
+        exit_code = pytest.main(["test.py"])
+        if exit_code != 0:
+            # Use sys.exit() to ensure that the exit code is propagated to the shell.
+            # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
+            sys.exit(exit_code)
 
-    exit_code = pytest.main(["test.py"])
-    if exit_code != 0:
-        # Use sys.exit() to ensure that the exit code is propagated to the shell.
-        # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
-        sys.exit(exit_code)
+    _run_and_verify_test_export()
+
+
+def _run_and_verify_test_export():
+    from psynet.experiment import get_experiment
+
+    exp = get_experiment()
+    log("Running local export verification for `psynet test local`.")
+    with tempfile.TemporaryDirectory(prefix="psynet-test-local-export-") as export_path:
+        log(f"Temporary export path: {export_path}")
+        click.get_current_context().invoke(export__local, path=export_path)
+        exp.test_verify_export_output(export_path)
+        log(
+            "Export verification passed: `regular/database.zip` contains "
+            "`data/participant.csv` with at least one row."
+        )
 
 
 @test.command("ssh")

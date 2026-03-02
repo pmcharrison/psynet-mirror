@@ -1,5 +1,7 @@
 import configparser
+import csv
 import inspect
+import io
 import json
 import os
 import re
@@ -1330,6 +1332,35 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
         self._report_request_statistics()
+
+    def test_verify_export_output(self, export_path: str):
+        """
+        Verify that the post-test export contains participant data.
+
+        Experiments can override this method to customize the export checks
+        run by `psynet test local`.
+        """
+        database_zip_path = os.path.join(export_path, "regular", "database.zip")
+        assert exists(
+            database_zip_path
+        ), f"Export verification failed: missing file `{database_zip_path}`."
+
+        with zipfile.ZipFile(database_zip_path, "r") as archive:
+            assert "data/participant.csv" in archive.namelist(), (
+                "Export verification failed: `data/participant.csv` "
+                "is missing from `regular/database.zip`."
+            )
+            with archive.open("data/participant.csv") as participant_file:
+                participant_rows = sum(
+                    1
+                    for _ in csv.DictReader(
+                        io.TextIOWrapper(participant_file, encoding="utf-8")
+                    )
+                )
+
+        assert (
+            participant_rows > 0
+        ), "Export verification failed: `data/participant.csv` has no rows."
 
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
