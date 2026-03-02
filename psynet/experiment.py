@@ -1756,9 +1756,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         errors = bot_state["total_bot_errors"]
 
         # Calculate average response time from recent bot durations
-        recent_durations = [
-            d for _, d, _ in bot_state["bot_durations"][-5:]
-        ]
+        recent_durations = [d for _, d, _ in bot_state["bot_durations"][-5:]]
         avg_duration = (
             sum(recent_durations) / len(recent_durations) if recent_durations else 0
         )
@@ -2042,9 +2040,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 bots_failed += 1
 
         wait_page_times = [
-            b.total_wait_page_time
-            for b in bots
-            if b.total_wait_page_time is not None
+            b.total_wait_page_time for b in bots if b.total_wait_page_time is not None
         ]
         if wait_page_times:
             wait_page_times_sorted = sorted(wait_page_times)
@@ -2095,9 +2091,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             else None
         )
         avg_failed_duration = (
-            sum(failed_durations) / len(failed_durations)
-            if failed_durations
-            else None
+            sum(failed_durations) / len(failed_durations) if failed_durations else None
         )
         avg_incomplete_duration = (
             sum(incomplete_durations) / len(incomplete_durations)
