@@ -1,12 +1,12 @@
 [
   {
-    "name": "latest",
-    "version": "latest",
-    "url": "https://psynetdev.gitlab.io/PsyNet/"
+    "name": "alpha",
+    "version": "alpha",
+    "url": "https://psynetdev.gitlab.io/PsyNet/alpha/"
   },
   {
-    "name": "dev",
-    "version": "dev",
-    "url": "https://psynetdev.gitlab.io/PsyNet/dev/"
+    "name": "latest stable",
+    "version": "stable",
+    "url": "https://psynetdev.gitlab.io/PsyNet/"
   }
 ]

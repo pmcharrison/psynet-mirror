@@ -126,11 +126,12 @@ pages_latest:
   script:
     - pip install -e '.[dev]'
     - pip install furo pydata-sphinx-theme
-    - git fetch --tags --force origin "$CI_DEFAULT_BRANCH"
-    - python docs/scripts/generate_version_switcher.py --default-branch "$CI_DEFAULT_BRANCH" --output docs/_static/version_switcher.json
+    - export ALPHA_REF="$CI_COMMIT_REF_NAME"
+    - git fetch --tags --force origin "$CI_DEFAULT_BRANCH" "$ALPHA_REF"
+    - python docs/scripts/generate_version_switcher.py --default-branch "$ALPHA_REF" --output docs/_static/version_switcher.json
     - export HIGHEST_STABLE=$(python docs/scripts/generate_version_switcher.py --print-highest-stable)
     - export SELECTED_STABLE_TAGS=$(python docs/scripts/generate_version_switcher.py --print-selected-stable-tags)
-    - export ALPHA_VERSION=$(python docs/scripts/generate_version_switcher.py --default-branch "$CI_DEFAULT_BRANCH" --print-alpha-version)
+    - export ALPHA_VERSION=$(python docs/scripts/generate_version_switcher.py --default-branch "$ALPHA_REF" --print-alpha-version)
     - |
       build_docs_from_ref () {
         REF="$1"
@@ -150,7 +151,7 @@ pages_latest:
         build_docs_from_ref "$VERSION_TAG" "public/$VERSION_TAG" "$VERSION_TAG"
       done
 
-      build_docs_from_ref "origin/$CI_DEFAULT_BRANCH" "public/alpha" "$ALPHA_VERSION"
+      build_docs_from_ref "origin/$ALPHA_REF" "public/alpha" "$ALPHA_VERSION"
   pages: true
   artifacts:
     paths:
