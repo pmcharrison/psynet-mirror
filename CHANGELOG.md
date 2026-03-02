@@ -3,15 +3,7 @@
 # Unreleased
 
 ## Breaking Changes
-- Updated Dallinger dependency from v11.5.x to v12.1.0. SSH deployments now require the `server_pem` configuration variable to be set with a path to an SSH key file. SSH agent-based authentication is no longer supported for deployments. PEM files should be stored in `~/.ssh/` directory (recommended best practice).
 - The `extra_var` decorator now raises an error; define explicit SQLAlchemy columns instead (author: Peter Harrison)
-#### Changed
-- Optimized experiment Dockerfiles for greater build speed. The resulting Dockerfiles no longer use a PsyNet base image.
-  To update existing experiment scripts, update PsyNet, then run `psynet update-scripts` in the experiment directory (author: Peter Harrison, reviewer: Frank Höger)
-- Removed `deploy_docker` CI job that pushed PsyNet Docker images to the GitLab registry. The `pages` job now installs PsyNet from source instead of using a pre-built Docker image. This is part of the broader deprecation of the Docker installation route.
-
-## Deprecated
-- Deprecated Docker installation route in favor of the standard virtual environment method.
 
 ## Added
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
@@ -33,15 +25,8 @@
 - Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
 - Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
-- Updated for the removal of the sqlalchemy-postgres-copy package in Dallinger 12.0.0
-- Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
-- Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
-- Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
-- Reworked PsyNet data export to build CSVs from the Dallinger database zip using in-memory processing, thereby substantially reducing processing time (author: Peter Harrison)
-- Added explicit postprocess location/method export options (author: Peter Harrison)
-- Refactored data export functions for clarity and simplicity (author: Peter Harrison)
-- Export now records per-step failures and continues where possible, writing `export_report.json` (author: Peter Harrison)
-- Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
+- Reworked PsyNet data export to build CSVs from the Dallinger database zip using in-memory processing, substantially reducing processing time, and refactored export helpers for clarity (author: Peter Harrison)
+- Added explicit postprocess location/method export options and per-step failure diagnostics so exports continue where possible while writing `export_report.json` (author: Peter Harrison)
 
 ## Fixed
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
