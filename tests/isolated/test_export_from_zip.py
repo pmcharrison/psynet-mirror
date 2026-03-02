@@ -116,6 +116,7 @@ def test_postprocess_database_zip_unpacks_and_scrubs(tmp_path: Path) -> None:
     assert diagnostics["unexpected_module_vars"]["count"] == 0
 
     participants = pd.read_csv(output_dir / "Participant.csv")
+    assert "type" not in participants.columns
     assert "worker_id" not in participants.columns
     assert "age" in participants.columns
     assert "_internal" not in participants.columns
@@ -126,6 +127,7 @@ def test_postprocess_database_zip_unpacks_and_scrubs(tmp_path: Path) -> None:
     assert participants["beta__level"].iloc[0] == 5
 
     trials = pd.read_csv(output_dir / "GibbsTrial.csv")
+    assert "type" not in trials.columns
     assert "trial_var" in trials.columns
     assert trials["trial_var"].iloc[0] == "alpha"
     assert unserialize(trials["definition"].iloc[0])["vector"] == [1, 2, 3]
@@ -137,6 +139,7 @@ def test_postprocess_database_zip_unpacks_and_scrubs(tmp_path: Path) -> None:
     assert int(trials["choice"].iloc[0]) == 2
 
     responses = pd.read_csv(output_dir / "Response.csv")
+    assert "type" not in responses.columns
     assert "client_ip_address" not in responses.columns
     assert "py/object" not in responses.columns
     assert "identifiers" not in responses.columns

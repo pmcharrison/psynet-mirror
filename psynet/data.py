@@ -243,6 +243,9 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
         data = obj.__json__()
     if "class" not in data:
         data["class"] = obj.__class__.__name__  # for the Dallinger classes
+    # `type` is generally a duplicate of `class` in PsyNet exports
+    # (or a visualization-oriented alias), so we omit it to keep the schema lean.
+    data.pop("type", None)
     if scrub_pii and hasattr(obj, "scrub_pii"):
         data = obj.scrub_pii(data)
     for key, value in data.items():
@@ -410,6 +413,9 @@ def _process_table_rows(
         )
 
         row["class"] = class_name
+        # The DB polymorphic `type` mostly duplicates the information in `class`.
+        # We keep only `class` in PsyNet exports for consistency across modes.
+        row.pop("type", None)
 
         if scrub_pii:
             for key in ["client_ip_address", "worker_id"]:

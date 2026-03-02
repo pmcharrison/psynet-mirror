@@ -270,7 +270,7 @@ class TestAssetExport:
         bots = pd.read_csv(os.path.join(path, "Bot.csv"))
 
         assert bots.shape[0] > 0
-        assert all(bots.type == "Bot")
+        assert "type" not in bots.columns
         assert "creation_time" in bots
         assert "worker_id" in bots
 
@@ -280,6 +280,6 @@ class TestAssetExport:
         bots = pd.read_csv(os.path.join(path, "Bot.csv"))
 
         assert bots.shape[0] > 0
-        assert all(bots.type == "Bot")
+        assert "type" not in bots.columns
         assert "creation_time" in bots
         assert "worker_id" not in bots  # Anonymous data has worker_id scrubbed
