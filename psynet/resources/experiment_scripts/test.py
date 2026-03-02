@@ -29,3 +29,4 @@ def test_experiment(launched_experiment):
     # or editing your PyCharm run configuration to add `--tb=short` to your additional
     # arguments. This should ensure that the full traceback is printed.
     launched_experiment.test_experiment()
+    launched_experiment.test_export()

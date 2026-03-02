@@ -3311,23 +3311,6 @@ def test__local(
             # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
             sys.exit(exit_code)
 
-    _run_and_verify_test_export()
-
-
-def _run_and_verify_test_export():
-    from psynet.experiment import get_experiment
-
-    exp = get_experiment()
-    log("Running local export verification for `psynet test local`.")
-    with tempfile.TemporaryDirectory(prefix="psynet-test-local-export-") as export_path:
-        log(f"Temporary export path: {export_path}")
-        click.get_current_context().invoke(export__local, path=export_path)
-        exp.test_verify_export_output(export_path)
-        log(
-            "Export verification passed: `regular/database.zip` contains "
-            "`data/participant.csv` with at least one row."
-        )
-
 
 @test.command("ssh")
 @click.option("--app", required=True, help="Name of the experiment app.")

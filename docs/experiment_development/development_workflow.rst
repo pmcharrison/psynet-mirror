@@ -189,11 +189,20 @@ a certain number of trials, or that a certain participant variable has been set 
 For more complete customization, you can override ``Experiment.test_experiment`` itself, and have complete control
 over the initialization of bots and the checking of their status.
 
+PsyNet also provides export hooks. By default, ``test.py`` calls
+``Experiment.test_export()`` after ``test_experiment()``; this method runs
+an export and then calls ``Experiment.test_verify_export_output(export_path)``.
+You can override either method to customize export behavior or validation.
+
 To run the experiment's tests, you can enter the following into your bash terminal:
 
 .. code:: bash
 
     psynet test local
+
+If your experiment directory was initialized with an older PsyNet version,
+run ``psynet update-scripts`` to refresh ``test.py`` and other boilerplate
+test-related files.
 
 .. warning::
 

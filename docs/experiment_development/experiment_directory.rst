@@ -105,6 +105,8 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``test.py`` is a boilerplate PsyNet file that defines generic tests for the experiment.
     You can run these tests in Docker by running ``docker/run pytest test.py``.
     If you want to customize these tests you should normally override specific methods in the Experiment class,
-    for example ``Experiment.test_experiment`` and ``Experiment.test_check_bots``.
+    for example ``Experiment.test_experiment``, ``Experiment.test_export``,
+    ``Experiment.test_verify_export_output``, and ``Experiment.test_check_bots``.
+    If this file is out of date, run ``psynet update-scripts`` from the experiment directory.
 
     ``volume_calibration.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.

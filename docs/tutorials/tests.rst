@@ -30,7 +30,8 @@ and entering the following in your command line:
 
 This command takes a few moments to start as it has to spin up a
 PsyNet local server. Once the server is ready,
-the ``Experiment.test_serial_run_bots`` method is called.
+``test.py`` calls ``Experiment.test_experiment()``, then ``Experiment.test_export()``.
+By default, ``test_experiment()`` runs ``Experiment.test_serial_run_bots()``.
 This creates one or more 'bots', or virtual participants;
 these bots progress through the experiment one page at a time.
 Once the bots all reach the end of the experiment, and all relevant
@@ -58,6 +59,12 @@ file as the bot's response in all cases.
 
     AudioRecordControl(duration=3.0, bot_response_media="example-bier.wav")
 
+.. note::
+
+    If your experiment directory was created with an older PsyNet version,
+    run ``psynet update-scripts`` to refresh ``test.py`` and pick up new
+    testing hooks such as ``test_export``.
+
 
 Custom tests
 ------------
@@ -83,6 +90,11 @@ tests. For an example of a complex test, have a look at the
 "rock, paper, scissors" demo, which has multiple bots take the experiment
 at the same time, and coordinates how they step through the experiment
 together.
+
+Another common customization point is export validation. By default,
+``Experiment.test_export()`` performs an export and then calls
+``Experiment.test_verify_export_output(export_path)``. You can override
+either method if you want to customize export behavior or validation rules.
 
 .. code-block:: python
 
