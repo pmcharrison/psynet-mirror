@@ -65,6 +65,7 @@ def _make_database_zip(tmp_path: Path) -> Path:
 
     trial_definition = {
         "vector": [1, 2, 3],
+        "pair": (1, 2),
         "initial_index": 0,
         "active_index": 1,
     }
@@ -88,6 +89,7 @@ def _make_database_zip(tmp_path: Path) -> Path:
             "participant_id": 1,
             "question": "q1",
             "answer": serialize({"value": "ok"}),
+            "vars": '{"py/object":"dallinger_experiment.CustomTrial","identifiers":{"id":5}}',
             "client_ip_address": "127.0.0.1",
         }
     ]
@@ -111,6 +113,7 @@ def test_postprocess_database_zip_unpacks_and_scrubs(tmp_path: Path) -> None:
         export_classes_to_skip=[],
     )
     assert diagnostics["decode_failures"]["count"] == 0
+    assert diagnostics["unexpected_module_vars"]["count"] == 0
 
     participants = pd.read_csv(output_dir / "Participant.csv")
     assert "worker_id" not in participants.columns
@@ -127,6 +130,7 @@ def test_postprocess_database_zip_unpacks_and_scrubs(tmp_path: Path) -> None:
     assert trials["trial_var"].iloc[0] == "alpha"
     assert unserialize(trials["definition"].iloc[0])["vector"] == [1, 2, 3]
     assert unserialize(trials["vector"].iloc[0]) == [1, 2, 3]
+    assert unserialize(trials["pair"].iloc[0]) == (1, 2)
     assert int(trials["initial_index"].iloc[0]) == 0
     assert int(trials["active_index"].iloc[0]) == 1
     assert unserialize(trials["answer"].iloc[0]) == {"choice": 2}
@@ -134,3 +138,5 @@ def test_postprocess_database_zip_unpacks_and_scrubs(tmp_path: Path) -> None:
 
     responses = pd.read_csv(output_dir / "Response.csv")
     assert "client_ip_address" not in responses.columns
+    assert "py/object" not in responses.columns
+    assert "identifiers" not in responses.columns

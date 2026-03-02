@@ -37,11 +37,11 @@
 - Updated bot sign_up method to extract participant identifier (unique_id/participant_id) from URL to comply with Dallinger v12.0.0 bot validation requirements
 - Made LabRecruiter `external_submission_url` configurable via experiment config key `lab_recruiter_external_submission_url` (author: Frank Höger, reviewer: Peter Harrison)
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
-- Reworked PsyNet data export to build CSVs from the Dallinger database zip using in-memory processing, and added stored module tracking/Gibbs export fields (author: Peter Harrison)
+- Reworked PsyNet data export to build CSVs from the Dallinger database zip using in-memory processing, thereby substantially reducing processing time (author: Peter Harrison)
 - Added explicit postprocess location/method export options (author: Peter Harrison)
+- Renamed export helper functions for clarity: `export_` -> `run_export`, `_export_` -> `_run_local_export`, `export_data` -> `postprocess_export_data` (author: Peter Harrison)
 - Export now records per-step failures and continues where possible, writing `export_report.json` (author: Peter Harrison)
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
-- Renamed export helper functions for clarity: `export_` -> `run_export`, `_export_` -> `_run_local_export`, `export_data` -> `postprocess_export_data` (author: Peter Harrison)
 
 ## Fixed
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)

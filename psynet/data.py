@@ -1,6 +1,7 @@
 import contextlib
 import csv
 import io
+import json
 import os
 import tempfile
 from collections import defaultdict
@@ -274,8 +275,6 @@ def postprocess_database_zip_to_csv(
     """
     from yaspin import yaspin
 
-    from psynet.serialize import PsyNetUnpickler, serialize
-
     if export_classes_to_skip is None:
         export_classes_to_skip = []
     export_classes_to_skip = set(export_classes_to_skip)
@@ -284,15 +283,16 @@ def postprocess_database_zip_to_csv(
         table: cls.__name__ for table, cls in sql_base_classes().items()
     }
 
-    unpickler = PsyNetUnpickler()
-    class_cache = {}
     decode_failures = {"count": 0, "examples": []}
+    unexpected_module_vars = {"count": 0, "examples": []}
 
     with yaspin(text="Postprocessing database.zip...", color="green") as spinner:
         tables = _read_tables_from_zip(zip_path)
 
         module_locals = _build_module_locals(
-            tables.get("module_state", []), decode_failures=decode_failures
+            tables.get("module_state", []),
+            decode_failures=decode_failures,
+            unexpected_module_vars=unexpected_module_vars,
         )
 
         objects_by_class = defaultdict(list)
@@ -303,10 +303,7 @@ def postprocess_database_zip_to_csv(
                 base_classes_by_table,
                 export_classes_to_skip,
                 module_locals,
-                unpickler,
-                class_cache,
                 scrub_pii,
-                serialize,
                 objects_by_class,
                 decode_failures=decode_failures,
             )
@@ -314,7 +311,10 @@ def postprocess_database_zip_to_csv(
         _write_class_csvs(objects_by_class, output_dir)
         spinner.ok("✔")
 
-    return {"decode_failures": decode_failures}
+    return {
+        "decode_failures": decode_failures,
+        "unexpected_module_vars": unexpected_module_vars,
+    }
 
 
 def _read_tables_from_zip(zip_path):
@@ -332,7 +332,9 @@ def _read_tables_from_zip(zip_path):
     return tables
 
 
-def _build_module_locals(module_rows, decode_failures=None):
+def _build_module_locals(
+    module_rows, decode_failures=None, unexpected_module_vars=None
+):
     """Aggregate module state vars by participant, keyed by module_id prefix."""
     grouped = defaultdict(lambda: defaultdict(list))
     for row in module_rows:
@@ -347,7 +349,10 @@ def _build_module_locals(module_rows, decode_failures=None):
             table_name="module_state",
             field_name="vars",
         )
-        if not isinstance(vars_obj, dict):
+        if not isinstance(vars_obj, dict) or _is_jsonpickle_marker_dict(vars_obj):
+            # This should normally be a plain payload dict; we skip incompatible
+            # shapes rather than failing export, and record diagnostics for the report.
+            _record_unexpected_module_vars(unexpected_module_vars, vars_obj)
             continue
         grouped[participant_id][module_id].append((row.get("time_started"), vars_obj))
 
@@ -370,14 +375,10 @@ def _process_table_rows(
     base_classes_by_table,
     export_classes_to_skip,
     module_locals,
-    unpickler,
-    class_cache,
     scrub_pii,
-    serialize,
     objects_by_class,
     decode_failures=None,
 ):
-    base_class_name = base_classes_by_table.get(table_name)
     for row in rows:
         row = {key: _normalize_value(value) for key, value in row.items()}
         polymorphic_type = row.get("type")
@@ -409,9 +410,6 @@ def _process_table_rows(
         )
 
         row["class"] = class_name
-        cls = _load_class(polymorphic_type, unpickler, class_cache)
-        row["type"] = _to_visualization_type(cls, class_name, row)
-        row["object_type"] = base_class_name or row["type"]
 
         if scrub_pii:
             for key in ["client_ip_address", "worker_id"]:
@@ -426,7 +424,7 @@ def _process_table_rows(
 
         for key, value in list(row.items()):
             if not is_basic_type(value):
-                row[key] = serialize(value)
+                row[key] = json.dumps(value)
 
         objects_by_class[class_name].append(row)
 
@@ -459,8 +457,6 @@ def _normalize_value(value):
 
 
 def _decode_serialized(value, decode_failures=None, table_name=None, field_name=None):
-    from psynet.serialize import unserialize
-
     if value is None:
         return None
     if isinstance(value, (dict, list)):
@@ -468,7 +464,7 @@ def _decode_serialized(value, decode_failures=None, table_name=None, field_name=
     if isinstance(value, str) and value.strip() == "":
         return None
     try:
-        return unserialize(value)
+        return json.loads(value)
     except Exception as error:
         _record_decode_failure(
             decode_failures, table_name, field_name, type(error).__name__, str(error)
@@ -494,6 +490,17 @@ def _record_decode_failure(
         )
 
 
+def _record_unexpected_module_vars(unexpected_module_vars, vars_obj):
+    if unexpected_module_vars is None or vars_obj is None:
+        return
+
+    unexpected_module_vars["count"] += 1
+    if len(unexpected_module_vars["examples"]) < 5:
+        unexpected_module_vars["examples"].append(
+            {"type": type(vars_obj).__name__, "sample": repr(vars_obj)}
+        )
+
+
 def _unpack_dict_field(
     row, field_name, skip_private=False, decode_failures=None, table_name=None
 ):
@@ -503,7 +510,7 @@ def _unpack_dict_field(
         table_name=table_name,
         field_name=field_name,
     )
-    if isinstance(obj, dict):
+    if isinstance(obj, dict) and not _is_jsonpickle_marker_dict(obj):
         for key, value in obj.items():
             if skip_private and str(key).startswith("_"):
                 continue
@@ -511,32 +518,16 @@ def _unpack_dict_field(
                 row[key] = value
 
 
+def _is_jsonpickle_marker_dict(value):
+    if not isinstance(value, dict):
+        return False
+    return any(isinstance(key, str) and key.startswith("py/") for key in value)
+
+
 def _class_name_for_row(type_value, table_name, base_classes_by_table):
     if isinstance(type_value, str) and type_value:
         return type_value.split(".")[-1]
     return base_classes_by_table.get(table_name, table_name)
-
-
-def _load_class(type_value, unpickler, class_cache):
-    from jsonpickle.unpickler import loadclass
-
-    if not type_value or not isinstance(type_value, str):
-        return None
-    if type_value in class_cache:
-        return class_cache[type_value]
-    cls = None
-    if type_value.startswith("dallinger_experiment"):
-        try:
-            cls = unpickler.get_experiment_object(type_value)
-        except Exception:
-            cls = None
-    else:
-        try:
-            cls = loadclass(type_value)
-        except Exception:
-            cls = None
-    class_cache[type_value] = cls
-    return cls
 
 
 def _coerce_int(value):
@@ -550,24 +541,6 @@ def _coerce_int(value):
         return int(str(value))
     except Exception:
         return value
-
-
-def _to_visualization_type(cls, class_name, row):
-    if cls is None:
-        return class_name
-    from psynet.trial.chain import ChainNode
-    from psynet.trial.main import GenericTrialNode
-
-    degree = row.get("degree")
-    try:
-        degree = int(float(degree)) if degree is not None else None
-    except (TypeError, ValueError):
-        degree = None
-    if issubclass(cls, GenericTrialNode):
-        return "TrialSource"
-    if issubclass(cls, ChainNode) and degree == 0:
-        return "TrialSource"
-    return class_name
 
 
 class InvalidDefinitionError(ValueError):
