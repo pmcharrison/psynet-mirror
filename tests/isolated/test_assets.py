@@ -257,6 +257,30 @@ def test_access_assets(
         assert t.assets["trial_asset"].export_path.endswith(".txt")
 
 
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
+def test_add_asset_does_not_reobfuscate_deposited_asset(trial, debug_storage):
+    with tempfile.NamedTemporaryFile("w", suffix=".txt") as f:
+        f.write("Hello!")
+        f.flush()
+
+        cached_asset = CachedAsset(
+            local_key="cached_asset",
+            input_path=f.name,
+        )
+        cached_asset.deposit(debug_storage)
+
+        original_host_path = cached_asset.host_path
+        original_url = cached_asset.url
+
+        trial.add_asset("image_left", cached_asset)
+
+        assert cached_asset.host_path == original_host_path
+        assert cached_asset.url == original_url
+
+
 # Test function asset - cached
 def placeholder_function(path, param):
     with open(path, "w") as f:

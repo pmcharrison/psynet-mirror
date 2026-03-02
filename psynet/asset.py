@@ -530,9 +530,14 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if not self.local_key and self.key_within_module:
             self.local_key = self.key_within_module
 
-        self.host_path = self.generate_host_path()
-        self.export_path = self.generate_export_path()
-        self.url = self.get_url()
+        if self.host_path is None or not self.deposited:
+            self.host_path = self.generate_host_path()
+
+        if self.export_path is None:
+            self.export_path = self.generate_export_path()
+
+        if self.url is None or not self.deposited:
+            self.url = self.get_url()
 
     def generate_key_within_experiment(self):
         if self.module_id is None:
