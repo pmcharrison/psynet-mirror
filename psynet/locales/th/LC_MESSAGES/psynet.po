@@ -891,7 +891,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "ดูข้อมูลด้านล่างสำหรับรายละเอียดของค่าตอบแทนของคุณ"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "ยกเลิกการทดลอง"
@@ -914,19 +915,19 @@ msgctxt "ad"
 msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
-msgstr "กรุณาคลิกปุ่ม \"ยอมรับ HIT\" บนเว็บไซต์ Amazon ด้านบนเพื่อเริ่มงาน"
+msgstr "กรุณาคลิกปุ่ม \"ยอมรับ HIT\" บนเว็บไซต์ Amazon ด้านบนเพื่อเริ่มงาน."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "ขอบคุณที่ยอมรับ HIT นี้"
+msgstr "ขอบคุณที่ยอมรับ HIT นี้."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "ขอบคุณที่สนใจในงานทดลองนี้"
+msgstr "ขอบคุณที่สนใจการทดลองนี้."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -935,8 +936,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"โดยการคลิกลิงก์ URL ต่อไปนี้ คุณจะเข้าสู่การทดลอง "
-"รวมถึงคำแนะนำที่สมบูรณ์และข้อตกลงยินยอมที่ได้รับการแจ้ง"
+"โดยการคลิกลิงก์ URL ต่อไปนี้ คุณจะถูกนำไปยังการทดลอง "
+"รวมถึงคำแนะนำที่สมบูรณ์และข้อตกลงยินยอมที่ได้รับการแจ้ง."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -948,7 +949,7 @@ msgstr "คำเตือน"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "กรุณาปิดการบล็อกป๊อปอัพก่อนดำเนินการต่อ"
+msgstr "กรุณาปิดการบล็อกป๊อปอัพก่อนดำเนินการต่อ."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -958,13 +959,8 @@ msgstr "เริ่มการทดลอง"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "ยกเลิกการทดลอง"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "คลิกปุ่มด้านบนเพื่อรับค่าตอบแทนในกรณีที่เกิดข้อผิดพลาด"
+msgstr "คลิกปุ่มด้านบนเพื่อรับค่าตอบแทนในกรณีที่เกิดข้อผิดพลาด."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -2992,7 +2988,7 @@ msgid ""
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
 "เมื่อยกเลิกแล้ว ไม่จำเป็นต้องติดต่อเราเพื่อรับค่าตอบแทน; "
-"ค่าตอบแทนจะถูกมอบให้คุณโดยอัตโนมัติผ่าน MTurk ภายในไม่กี่นาทีหลังจากนั้น."
+"ค่าตอบแทนจะถูกมอบให้คุณโดยอัตโนมัติผ่าน MTurk ในไม่กี่นาทีหลังจากนั้น."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format

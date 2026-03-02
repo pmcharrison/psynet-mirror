@@ -27,6 +27,7 @@ Tutorials
    payment_limits
    deploy_tokens
    introduction_to_sql_alchemy
+   sqlalchemy_profiling
    version_control_with_git
    setting_up_slack
    upgrading_to_psynet_10

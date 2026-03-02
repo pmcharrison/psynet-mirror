@@ -20,7 +20,7 @@ These demos introduce you to the basics of PsyNet experiments.
 You should approach each demo in the following way:
 
 - Copy and paste the demo from the PsyNet source code location into another location on your computer.
-- Open the demo as a new PyCharm project.
+- Open the demo as a new project in your IDE.
 - Run the demo following the standard approach (``psynet local debug``, or ``docker/psynet local debug``).
 - Read the source code in the demo and relate it to the behavior of the demo.
 - Try making some changes to the demo and see how they change the experiment. Note that minor changes will be

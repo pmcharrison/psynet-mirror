@@ -23,7 +23,7 @@ from joblib import Parallel, delayed
 
 import psynet.command_line
 from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
-from psynet.version import dallinger_recommended_version, psynet_version
+from psynet.version import psynet_version, recommended_dallinger_major_minor
 
 
 def get_latest_dallinger_patch_version(major_minor_version):
@@ -70,7 +70,7 @@ skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
 
 # Fetch the latest Dallinger patch version once, outside of parallel execution
 latest_dallinger_patch_version = get_latest_dallinger_patch_version(
-    dallinger_recommended_version
+    recommended_dallinger_major_minor
 )
 
 
@@ -207,20 +207,21 @@ def update_psynet_requirement(dir):
 
 def post_update_psynet_requirement(dir):
     with working_directory(dir):
-        with fileinput.FileInput("constraints.txt", inplace=True) as file:
-            md5sum_line = (
-                "# Compiled from a requirement\\.txt file with md5sum: [0-9a-f]{32}"
-            )
-            md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
-            for line in file:
-                print(
-                    re.sub(
-                        md5sum_line,
-                        f"# Compiled from a requirement.txt file with md5sum: {md5sum}",
-                        line,
-                    ),
-                    end="",
-                )
+        constraints_path = Path("constraints.txt")
+        md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
+        python_version = Path(".python-version").read_text().strip()
+
+        old_pattern = (
+            r"# Compiled from a requirements\.txt file with md5sum [0-9a-f]{32}.*"
+        )
+        new_line = (
+            f"# Compiled from a requirements.txt file with md5sum {md5sum} "
+            f"and a .python-version file requesting Python {python_version}"
+        )
+
+        content = constraints_path.read_text()
+        content = re.sub(old_pattern, new_line, content)
+        constraints_path.write_text(content)
 
 
 def update_scripts(dir):

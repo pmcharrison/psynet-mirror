@@ -557,19 +557,19 @@ msgstr "Bapala"
 #, fuzzy
 msgctxt "validation"
 msgid "You need to check at least one answer!"
-msgstr "U hloka ho khetha bonyane karabo e le 'ngoe!"
+msgstr "O hloka ho khetha bonyane karabo e le 'ngoe!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to select an answer!"
-msgstr "U hloka ho khetha karabo!"
+msgstr "O hloka ho khetha karabo!"
 
 #: psynet/modular_page.py
 #, fuzzy
 msgctxt "validation"
 msgid "You need to provide a number!"
-msgstr "U hloka ho fana ka nomoro!"
+msgstr "O hloka ho fana ka nomoro!"
 
 #: psynet/prescreen/__init__.py
 #, fuzzy
@@ -923,16 +923,17 @@ msgid "See the information below for details of your compensation."
 msgstr ""
 "Sheba tlhahisoleseling e ka tlase bakeng sa lintlha tsa puseletso ea hau."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "Emisa teko"
+msgstr "Kansela phuputso"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "Pitsetsa bakopi"
+msgstr "Pitsetso bakeng sa barupeluoa"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -947,8 +948,8 @@ msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
 msgstr ""
-"Ka kopo tobetsa konopo ea \"Amohela HIT\" sebakeng sa Amazon se kaholimo ho "
-"qala mosebetsi."
+"Ka kopo, tobetsa konopo ea \"Amohela HIT\" sebakeng sa Amazon se kaholimo ho"
+" qala mosebetsi."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -960,7 +961,7 @@ msgstr "Rea leboha ka ho amohela HIT ena."
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "Rea leboha ka thahasello ea hau tekong ena."
+msgstr "Rea leboha ka thahasello ea hau phuputsong ena."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -969,8 +970,8 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"Ka ho tobetsa sehokelo sa URL se latelang, u tla isoa tekong, ho kenyeletsa "
-"litaelo tse felletseng le tumellano ea tumello e tsebisitsoeng."
+"Ka ho tobetsa sehokelo sa URL se latelang, u tla isoa phuputsong, ho "
+"kenyeletsoa litaelo tse felletseng le tumellano ea tumello e tsebisitsoeng."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -982,23 +983,18 @@ msgstr "Tlhokomeliso"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "Ka kopo tima li-pop-up blockers pele u tsoela pele."
+msgstr "Ka kopo, tima li-pop-up blockers pele u tsoela pele."
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "Qala Teko"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "Emisa Teko"
+msgstr "Qala Phuputso"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "Tobetsa konopo e kaholimo ho lefshoa haeba ho na le phoso."
+msgstr "Tobetsa konopo e kaholimo ho lefshoa haeba ho ka ba le phoso."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3121,8 +3117,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"U ka khona ho emisa teko u sebelisa konopo ea <strong>Emisa teko</strong> "
-"<strong>leqepheng la papatso la MTurk</strong>."
+"O ka khona ho khaotsa teko ka ho sebelisa konopo ea <strong>Khaotsa "
+"teko</strong> <strong>leqepheng la papatso la MTurk</strong>."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -3131,9 +3127,9 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Hang ha e emisitsoe, ha ho hlokahale ho ikopanya le rona ho fumana "
-"puseletso; sena se lokela ho fanoa ka bo eona ka MTurk metsotsong e seng "
-"mekae ka mor'a moo."
+"Hang ha e khaotsoe, ha ho hlokahale hore o ikopanye le rona ho fumana "
+"puseletso; sena se lokela ho fuoa ka bo eona ka MTurk metsotso e seng mekae "
+"ka mor'a moo."
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
@@ -3141,8 +3137,8 @@ msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
 msgstr ""
-"Haeba sena se sa etsahale, ka kōpo ikopanye le rona ho %(EMAIL)s u qotsa "
-"tlhahisoleseling e latelang:"
+"Haeba sena ha se joalo, ka kopo ikopanye le rona ho %(EMAIL)s u qotsa "
+"tlhahisoleseding e latelang:"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

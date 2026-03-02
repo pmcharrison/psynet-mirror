@@ -823,13 +823,13 @@ msgstr "በአሁኑ ጊዜ ስለተጠራቀመው ሽልማትዎ መረጃ �
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Assignment ID"
-msgstr "የምደባ መታወቂያ"
+msgstr "የመደበኛ መታወቂያ"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "HIT ID"
-msgstr "የሂት መታወቂያ"
+msgstr "የHIT መታወቂያ"
 
 #: psynet/templates/abort_not_possible.html
 #: psynet/templates/abort_possible.html
@@ -870,22 +870,23 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "ስለ ማካካሻዎ ዝርዝሮች ከዚህ በታች ያለውን መረጃ ይመልከቱ።"
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
-msgstr "ሙከራን አስወግድ"
+msgstr "ሙከራውን ሰርዝ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Call for participants"
-msgstr "ለተሳታፊዎች ይደውሉ"
+msgstr "ተሳትፎ ለማካተት ጥሪ"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "The requirements to participate are as follows"
-msgstr "ለመሳተፍ የሚያስፈልጉት መስፈርቶች የሚከተሉት ናቸው።"
+msgstr "ለመሳተፍ ያስፈልጋሉት መስፈርቶች እነሆ"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -893,19 +894,20 @@ msgctxt "ad"
 msgid ""
 "Please click the \"Accept HIT\" button on the Amazon site above to begin the"
 " task."
-msgstr "እባክህ ስራውን ለመጀመር ከላይ ባለው የአማዞን ገፅ ላይ ያለውን \"HIT ተቀበል\" የሚለውን ቁልፍ ተጫን።"
+msgstr ""
+"ከላይ በነበረው የአማዞን ጣቢያ ላይ ያለውን \"Accept HIT\" አዝራር እባኮትን ጠቅ ያድርጉ እና ተግባሩን ይጀምሩ።"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for accepting this HIT."
-msgstr "ይህን HIT ስለተቀበልክ እናመሰግናለን።"
+msgstr "ስለምትቀበሉ እናመሰግናለን።"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Thanks for your interest in this experiment."
-msgstr "በዚህ ሙከራ ላይ ስላሳዩት ፍላጎት እናመሰግናለን።"
+msgstr "በዚህ ሙከራ ላይ ያላችሁ ፍላጎት እናመሰግናለን።"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -914,8 +916,7 @@ msgid ""
 "By clicking the following URL link, you will be taken to the experiment, "
 "including complete instructions and an informed consent agreement."
 msgstr ""
-"የሚከተለውን የዩአርኤል አገናኝ ጠቅ በማድረግ ሙሉ መመሪያዎችን እና በመረጃ ላይ የተመሰረተ የስምምነት ስምምነትን ጨምሮ "
-"ወደ ሙከራው ይወሰዳሉ።"
+"በቀጣዩ የአድራሻ አገናኝ ላይ በመጠቀም ወደ ሙከራው ይወሰዳሉ፣ ዝርዝር መመሪያዎችና የተረዳነ ስምምነት ማረጋገጫ ጨምሮ።"
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -927,23 +928,18 @@ msgstr "ማስጠንቀቂያ"
 #, fuzzy
 msgctxt "ad"
 msgid "Please disable pop-up blockers before continuing."
-msgstr "እባክዎ ከመቀጠልዎ በፊት ብቅ ባይ ማገጃዎችን ያሰናክሉ።"
+msgstr "እባኮትን ከመቀጠቅዎ በፊት የተነሣሣ መዝጊያ መከላከያዎችን አጥፉ።"
 
 #: psynet/templates/ad.html
 #, fuzzy
 msgctxt "ad"
 msgid "Begin Experiment"
-msgstr "ሙከራ ጀምር"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
-msgid "Abort Experiment"
-msgstr "የማቋረጥ ሙከራ"
+msgstr "ሙከራውን ጀምር"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "ስህተት ከተፈጠረ ለማካካስ ከላይ ያለውን አዝራር ጠቅ ያድርጉ።"
+msgstr "በላይ ያለውን አዝራር በመጠቀም በስህተት ሆነ ተመላሽ ለመውሰድ ይችላሉ።"
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -2890,8 +2886,8 @@ msgid ""
 "You may be able to abort the experiment using the <strong>Abort "
 "experiment</strong> button <strong>on the MTurk ad page</strong>."
 msgstr ""
-"በMTurk ማስታወቂያ ገጽ</strong> ላይ ያለውን የ<strong>Abort experiment</strong> አዝራርን "
-"በመጠቀም ሙከራውን ማቋረጥ ይችሉ ይሆናል።"
+"ሙከራውን በማቋረጥ የሚችሉትን በMTurk ማስታወቂያ ገጽ ላይ ያለውን <strong>ሙከራ ማቋረጥ</strong> አዝራር "
+"በመጠቀም ሊሆን ይችላል።"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy
@@ -2899,16 +2895,14 @@ msgctxt "mturk_error"
 msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
-msgstr ""
-"አንድ ጊዜ ፅንስ ማስወረድ, ማካካሻውን ለመቀበል እኛን ማነጋገር አያስፈልግም; ከጥቂት ደቂቃዎች በኋላ ይህ በራስ-ሰር በ"
-" MTurk በኩል ሊሰጥዎት ይገባል ።"
+msgstr "ከተቋረጠ በኋላ እኛን ለመገናኘት አያስፈልግም፤ ከጥቂት ደቂቃዎች በኋላ በMTurk በራስ ሰር ሊሰጥዎ ይገባል።"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy, python-format
 msgid ""
 "If this is not the case, please contact us at %(EMAIL)s quoting the "
 "following information:"
-msgstr "ጉዳዩ ይህ ካልሆነ፣ እባክዎ የሚከተለውን መረጃ በመጥቀስ በ%(EMAIL)s ያግኙን፡"
+msgstr "ይህ ካልሆነ እባኮትን በሚከተለው መረጃ በመጠቀም በ%(EMAIL)s ያግኙን፡፡"
 
 #: psynet/templates/psynet_error.html
 #, fuzzy

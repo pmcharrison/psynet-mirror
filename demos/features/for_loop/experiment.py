@@ -8,7 +8,6 @@ logger = get_logger()
 
 class Exp(psynet.experiment.Experiment):
     label = "For loop demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         for_loop(

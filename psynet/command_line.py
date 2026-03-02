@@ -1,3 +1,4 @@
+import functools
 import importlib
 import json
 import os
@@ -37,9 +38,9 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 from psynet.version import (
-    check_dallinger_version,
-    check_versions,
-    python_recommended_version,
+    check_core_dependency_versions_match_requirements,
+    check_installed_dallinger_version_is_recommended,
+    recommended_python_major_minor,
 )
 
 from . import deployment_info
@@ -386,18 +387,290 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
         _cleanup_exp_directory()
 
 
+def _enable_sql_profile(sql_profile_options, sql_profile_dir):
+    """
+    Enable SQL profiling for CLI commands and configure output location.
+
+    Parameters
+    ----------
+    sql_profile_options : str or None
+        Options string for ``PSYNET_SQL_PROFILE`` (e.g. ``min_ms=5,top_n=50``).
+    sql_profile_dir : str or None
+        Parent directory for SQL profile outputs. When provided, a unique run
+        subdirectory is created inside it. When ``None``, a temporary directory
+        is created.
+
+    Returns
+    -------
+    profile_dir : str
+        Directory where SQL profile JSON files will be written.
+    keep_profile_dir : bool
+        ``True`` when the directory was explicitly provided, otherwise ``False``.
+    """
+    if sql_profile_options:
+        os.environ["PSYNET_SQL_PROFILE"] = sql_profile_options
+    elif not os.getenv("PSYNET_SQL_PROFILE"):
+        os.environ["PSYNET_SQL_PROFILE"] = "1"
+
+    os.environ["PSYNET_SQL_PROFILE_SILENT"] = "1"
+
+    profile_dir, keep_profile_dir = _create_sql_profile_run_dir(sql_profile_dir)
+    os.makedirs(profile_dir, exist_ok=True)
+    os.environ["PSYNET_SQL_PROFILE_DIR"] = profile_dir
+    return profile_dir, keep_profile_dir
+
+
+def _create_sql_profile_run_dir(sql_profile_dir):
+    """Create the SQL profiling output directory for a single command run."""
+    if sql_profile_dir:
+        os.makedirs(sql_profile_dir, exist_ok=True)
+        return tempfile.mkdtemp(prefix="run-", dir=sql_profile_dir), True
+    return tempfile.mkdtemp(prefix="psynet-sql-profile-"), False
+
+
+def _is_ubuntu() -> bool:
+    """Return True if the current OS is Ubuntu (or an Ubuntu derivative)."""
+    try:
+        with open("/etc/os-release") as f:
+            return "ubuntu" in f.read().lower()
+    except Exception:
+        return False
+
+
+def _open_in_browser(url: str) -> None:
+    """Open *url* in a browser, preferring Google Chrome on Ubuntu for local files.
+
+    Snap-confined browsers (e.g. Chromium on Ubuntu) cannot read ``file://``
+    URLs outside their sandbox, so on Ubuntu we try non-snap Google Chrome
+    first.  Falls back to ``click.launch()`` and finally prints the URL for
+    the user to open manually.
+    """
+    if _is_ubuntu():
+        # On Ubuntu the default browser is often snap-confined Chromium which
+        # silently fails to read file:// URLs (ERR_FILE_NOT_FOUND).  Use
+        # non-snap Google Chrome instead.
+        for name in ("google-chrome", "google-chrome-stable"):
+            path = shutil.which(name)
+            if path:
+                try:
+                    subprocess.Popen(
+                        [path, url],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    return
+                except Exception:
+                    continue
+    else:
+        try:
+            click.launch(url)
+            return
+        except Exception:
+            pass
+
+    click.echo(
+        "Could not open the SQL profile report automatically. "
+        "Please open the file URL shown above in your browser."
+    )
+
+
+def _print_sql_profile_aggregation(profile_dir, *, formats, open_html, show_dir):
+    """
+    Print aggregated SQL profiling output for all processes.
+
+    Parameters
+    ----------
+    profile_dir : str
+        Directory containing per-process SQL profile JSON files.
+    formats : set[str]
+        Output formats to generate (e.g. ``{"html", "text"}``).
+    open_html : bool
+        Whether to attempt opening the HTML report in a browser.
+    show_dir : bool
+        Whether to print the location of the raw profile files.
+    """
+    from psynet.sqlalchemy_profiling import (
+        aggregate_sqlalchemy_profiles,
+        format_aggregated_html,
+        format_aggregated_profile,
+        parse_env_settings,
+    )
+
+    settings = parse_env_settings(os.getenv("PSYNET_SQL_PROFILE"))
+    options = settings.get("options", {})
+    top_n = int(options.get("top_n", 20))
+    commit_top_n = int(options.get("commit_top_n", top_n))
+    aggregated = aggregate_sqlalchemy_profiles(profile_dir)
+    if "text" in formats:
+        click.echo("")
+        click.echo("Aggregated SQLAlchemy profile (all processes):")
+        click.echo(
+            format_aggregated_profile(
+                aggregated, top_n=top_n, commit_top_n=commit_top_n
+            )
+        )
+    if "json" in formats:
+        json_path = os.path.join(profile_dir, "sql-profile-aggregated.json")
+        with open(json_path, "w", encoding="utf-8") as handle:
+            json.dump(aggregated, handle, indent=2, sort_keys=True)
+        click.echo(f"SQL profile JSON: {json_path}")
+    if "html" in formats:
+        html_path = os.path.join(profile_dir, "sql-profile-report.html")
+        with open(html_path, "w", encoding="utf-8") as handle:
+            handle.write(
+                format_aggregated_html(
+                    aggregated, top_n=top_n, commit_top_n=commit_top_n
+                )
+            )
+        click.echo(f"SQL profile report: {html_path}")
+        if open_html:
+            _open_in_browser(f"file://{html_path}")
+    if show_dir:
+        click.echo(f"Raw SQL profile files saved to: {profile_dir}")
+
+
+_sql_profile_options = [
+    click.option(
+        "--sql-profile",
+        is_flag=True,
+        help="Enable SQL profiling and aggregate results across processes.",
+    ),
+    click.option(
+        "--sql-profile-options",
+        default=None,
+        help="Options passed to PSYNET_SQL_PROFILE (e.g. 'min_ms=5,top_n=50').",
+    ),
+    click.option(
+        "--sql-profile-dir",
+        default=None,
+        help="Parent directory for SQL profile outputs (creates a unique run subdirectory).",
+    ),
+    click.option(
+        "--sql-profile-no-open",
+        is_flag=True,
+        help="Do not auto-open the SQL profile report in a browser.",
+    ),
+    click.option(
+        "--sql-profile-format",
+        default="html",
+        help=("Comma-separated outputs: html,text,json,none " "(default: html)."),
+    ),
+]
+
+
+def _add_sql_profile_options(func):
+    for option in reversed(_sql_profile_options):
+        func = option(func)
+    return func
+
+
+def _parse_sql_profile_formats(value: str):
+    parts = {part.strip().lower() for part in (value or "").split(",") if part}
+    if not parts:
+        parts = {"html"}
+    if "all" in parts:
+        parts = {"html", "text", "json"}
+    if "none" in parts:
+        return set()
+    unknown = parts - {"html", "text", "json"}
+    if unknown:
+        raise click.UsageError(
+            "Unknown --sql-profile-format values: " + ", ".join(sorted(unknown))
+        )
+    return parts
+
+
+def _should_open_sql_profile(no_open: bool) -> bool:
+    if no_open:
+        return False
+    if os.getenv("CI"):
+        return False
+    return sys.stdout.isatty()
+
+
+def sql_profiled_command(func):
+    """
+    Wrap a Click command to enable aggregated SQL profiling.
+
+    Parameters
+    ----------
+    func : callable
+        Command function with ``sql_profile`` keyword arguments.
+
+    Returns
+    -------
+    callable
+        Wrapped command that enables profiling and prints aggregation.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        profile_dir = None
+        keep_profile_dir = False
+        show_dir = False
+        formats = set()
+        open_html = False
+        try:
+            if kwargs.get("sql_profile"):
+                formats = _parse_sql_profile_formats(kwargs.get("sql_profile_format"))
+                profile_dir, keep_profile_dir = _enable_sql_profile(
+                    kwargs.get("sql_profile_options"), kwargs.get("sql_profile_dir")
+                )
+                show_dir = kwargs.get("sql_profile_dir") is not None
+                open_html = _should_open_sql_profile(
+                    kwargs.get("sql_profile_no_open", False)
+                )
+                if "html" not in formats:
+                    open_html = False
+                if formats.intersection({"html", "json"}):
+                    keep_profile_dir = True
+            return func(*args, **kwargs)
+        finally:
+            if profile_dir:
+                if formats:
+                    _print_sql_profile_aggregation(
+                        profile_dir,
+                        formats=formats,
+                        open_html=open_html,
+                        show_dir=show_dir,
+                    )
+                if not keep_profile_dir:
+                    shutil.rmtree(profile_dir, ignore_errors=True)
+
+    return wrapper
+
+
 @debug.command("local")
 @click.option("--docker", is_flag=True, help="Docker mode.")
 @click.option("--archive", default=None, help="Optional path to an experiment archive.")
 @click.option("--legacy", is_flag=True, help="Legacy mode.")
 @click.option("--no-browsers", is_flag=True, help="Skip opening browsers.")
+@_add_sql_profile_options
 @click.pass_context
-def debug__local(ctx, docker, archive, legacy, no_browsers):
+@sql_profiled_command
+def debug__local(
+    ctx,
+    docker,
+    archive,
+    legacy,
+    no_browsers,
+    sql_profile,
+    sql_profile_options,
+    sql_profile_dir,
+    sql_profile_format,
+    sql_profile_no_open,
+):
     """
     Debug the experiment locally (this should normally be your first choice).
     """
     _run_local(
-        ctx, docker, archive, legacy, no_browsers, mode="debug", context_group=debug
+        ctx,
+        docker,
+        archive,
+        legacy,
+        no_browsers,
+        mode="debug",
+        context_group=debug,
     )
 
 
@@ -708,8 +981,8 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
-    verify_psynet_requirement()
-    check_versions()
+    check_psynet_requirement_is_unambiguous()
+    check_core_dependency_versions_match_requirements()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -769,6 +1042,10 @@ def _pre_launch(
 
         deployment_info.write(ssh_host=ssh_host, ssh_user=ssh_user)
 
+        from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
+
+        ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+
     run_pre_checks(mode, local_, heroku, docker, app)
 
     # Always use the Dallinger version in requirements.txt, not the local editable one
@@ -786,7 +1063,7 @@ def _pre_launch(
     deployment_info.write(locale=config.get("locale", "en"))
 
     if config.get("check_dallinger_version"):
-        check_dallinger_version()
+        check_installed_dallinger_version_is_recommended()
 
     ctx.invoke(prepare, archive=archive)
 
@@ -1165,8 +1442,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
-    verify_psynet_requirement()
-    check_versions()
+    check_psynet_requirement_is_unambiguous()
+    check_core_dependency_versions_match_requirements()
 
     us_only = config.get("us_only")
 
@@ -1569,9 +1846,9 @@ def generate_constraints(ctx):
     )
 
     try:
-        # We have removed verify_psynet_requirement here because it caused problems for Docker users.
+        # We have removed check_psynet_requirement_is_unambiguous here because it caused problems for Docker users.
         # Instead, we just run this in the sandbox/deploy prechecks.
-        # verify_psynet_requirement()
+        # check_psynet_requirement_is_unambiguous()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
@@ -1592,7 +1869,7 @@ def check_constraints():
         _check_constraints(spinner)
         spinner.ok("✔")
 
-    verify_psynet_requirement()
+    check_psynet_requirement_is_unambiguous()
 
 
 def check_dockerfile():
@@ -1695,7 +1972,21 @@ def _check_constraints(spinner=None):
         )
 
 
-def verify_psynet_requirement():
+def check_psynet_requirement_is_unambiguous():
+    """
+    Validate that ``requirements.txt`` pins PsyNet unambiguously.
+
+    The check requires a deterministic PsyNet specification so deployments are
+    reproducible. Accepted formats are:
+    - ``psynet==<version>``
+    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v<version>#egg=psynet``
+    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit-hash>#egg=psynet``
+
+    Raises
+    ------
+    ValueError
+        If the PsyNet requirement is missing or ambiguous.
+    """
     environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
     if os.environ.get(environment_variable, None):
         print(
@@ -1712,7 +2003,6 @@ def verify_psynet_requirement():
             regexes = [
                 "[a-fA-F0-9]{8,40}",
                 "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
-                "master",
             ]
             file_content = file.read()
             for regex in regexes:
@@ -1742,20 +2032,27 @@ def verify_psynet_requirement():
             spinner.color = "red"
             spinner.fail("✗")
 
-        assert valid, (
-            "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+        branch_note = (
             "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
-            "or a commit hash.\n"
-            "\n"
-            "\nExamples:\n"
-            "* psynet==10.1.1\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet\n"  # Only master branch is allowed
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
-            "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
-            "in your terminal."
+            "or a commit hash."
         )
+
+        examples = [
+            "* psynet==10.1.1",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
+        ]
+
+        if not valid:
+            raise ValueError(
+                "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+                + branch_note
+                + "\n\nExamples:\n"
+                + "\n".join(examples)
+                + "\nYou can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+                "in your terminal."
+            )
 
 
 ##########
@@ -1793,7 +2090,7 @@ def export_arguments(func):
         ),
         click.option(
             "--no-source",
-            flag_value="no_source",
+            is_flag=True,
             default=False,
             help="Skip exporting the experiment's source code",
         ),
@@ -1998,6 +2295,9 @@ def export_(
             # unzip the file
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
                 zip_ref.extractall(path)
+            # Download source code unless --no-source was passed
+            if not no_source:
+                _export_source_code(app, local, server, path, username, password)
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -2015,7 +2315,7 @@ def export_(
     else:
         for anonymize_mode in anonymize_modes:
             _anonymize = anonymize_mode == "yes"
-            _export_source_code = not (source_code_exported or no_source)
+            should_export_source_code = not (source_code_exported or no_source)
             _export_(
                 ctx,
                 app,
@@ -2023,7 +2323,7 @@ def export_(
                 path,
                 assets,
                 _anonymize,
-                _export_source_code,
+                should_export_source_code,
                 n_parallel,
                 docker_ssh,
                 server,
@@ -2031,7 +2331,7 @@ def export_(
                 username,
                 password,
             )
-            if _export_source_code:
+            if should_export_source_code:
                 source_code_exported = True
 
 
@@ -2163,7 +2463,7 @@ def _export_source_code(app, local, server, export_path, username, password):
             with open(source_code_zip_path, "wb") as f:
                 f.write(response.content)
             spinner.ok("✔")
-            log(f"Experiment source code saved to {source_code_zip_path}.")
+            log(f"Experiment source code saved to {source_code_zip_path}")
             break
         elif response.status_code == 401:
             try_again = click.confirm(
@@ -2420,7 +2720,7 @@ def update_scripts_():
 
     click.echo("...updating .python-version")
     with open(".python-version", "w") as file:
-        file.write(python_recommended_version)
+        file.write(recommended_python_major_minor)
         file.write("\n")
 
     directories_to_copy = ["docker"]
@@ -2689,6 +2989,8 @@ _test_options["time_factor"] = click.option(
 @_test_options["serial"]
 @_test_options["stagger"]
 @_test_options["time_factor"]
+@_add_sql_profile_options
+@sql_profiled_command
 def test__local(
     existing=False,
     n_bots=None,
@@ -2696,6 +2998,11 @@ def test__local(
     serial=None,
     stagger=None,
     time_factor=None,
+    sql_profile=False,
+    sql_profile_options=None,
+    sql_profile_dir=None,
+    sql_profile_format=None,
+    sql_profile_no_open=False,
 ):
     """
     Test the experiment locally.
@@ -2723,14 +3030,15 @@ def test__local(
 
     if existing:
         exp.test_experiment()
-    else:
-        import pytest
+        return
 
-        exit_code = pytest.main(["test.py"])
-        if exit_code != 0:
-            # Use sys.exit() to ensure that the exit code is propagated to the shell.
-            # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
-            sys.exit(exit_code)
+    import pytest
+
+    exit_code = pytest.main(["test.py"])
+    if exit_code != 0:
+        # Use sys.exit() to ensure that the exit code is propagated to the shell.
+        # This is helpful for CI pipelines, where we want to fail the build if the tests fail.
+        sys.exit(exit_code)
 
 
 @test.command("ssh")
@@ -3078,6 +3386,42 @@ class ListOfStrings(click.ParamType):
         if value is None:
             return []
         return value.replace(",", " ").split()
+
+
+@psynet.command("locales")
+@click.option(
+    "--codes-only",
+    is_flag=True,
+    help="Output locale codes only, on a single line.",
+)
+def locales(codes_only):
+    """
+    List supported translation locales.
+
+    Example
+    -------
+
+    psynet locales
+        List all supported locales with their names.
+
+    psynet locales --codes-only
+        Output locale codes on a single line (useful for scripting).
+    """
+    from psynet.translation.languages import psynet_supported_locales
+
+    if codes_only:
+        click.echo(" ".join(sorted(psynet_supported_locales)))
+    else:
+        from psynet.utils import get_language_dict
+
+        language_dict = get_language_dict("en")
+        click.echo(bold("Supported locales:"))
+        click.echo()
+        for locale in sorted(psynet_supported_locales):
+            name = language_dict.get(locale, "Unknown")
+            click.echo(f"  {locale:6} {name}")
+        click.echo()
+        click.echo(f"Total: {len(psynet_supported_locales)} locales")
 
 
 @psynet.command("translate")

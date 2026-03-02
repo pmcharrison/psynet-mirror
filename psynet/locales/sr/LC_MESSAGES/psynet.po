@@ -910,7 +910,8 @@ msgctxt "abort_possible"
 msgid "See the information below for details of your compensation."
 msgstr "Pogledajte informacije ispod za detalje o vašoj kompenzaciji."
 
-#: psynet/templates/abort_possible.html
+#: psynet/templates/abort_possible.html psynet/templates/ad.html
+#: psynet/templates/psynet_error.html
 #, fuzzy
 msgid "Abort experiment"
 msgstr "Prekini eksperiment"
@@ -957,7 +958,7 @@ msgid ""
 "including complete instructions and an informed consent agreement."
 msgstr ""
 "Klikom na sledeći URL link, bićete preusmereni na eksperiment, uključujući "
-"kompletna uputstva i saglasnost."
+"kompletna uputstva i saglasnost za učešće."
 
 #: psynet/templates/ad.html
 #, fuzzy
@@ -979,13 +980,8 @@ msgstr "Započni eksperiment"
 
 #: psynet/templates/ad.html psynet/templates/psynet_error.html
 #, fuzzy
-msgid "Abort Experiment"
-msgstr "Prekini eksperiment"
-
-#: psynet/templates/ad.html psynet/templates/psynet_error.html
-#, fuzzy
 msgid "Click the above button to be compensated in case of an error."
-msgstr "Kliknite na dugme iznad da biste bili kompenzovani u slučaju greške."
+msgstr "Kliknite na gornje dugme da biste bili kompenzovani u slučaju greške."
 
 #: psynet/templates/consent.html
 #, fuzzy
@@ -3081,7 +3077,7 @@ msgid ""
 "Once aborted, there is no need to contact us to receive the compensation; "
 "this should be awarded to you automatically via MTurk a few minutes after."
 msgstr ""
-"Nakon prekida, nema potrebe da nas kontaktirate da biste primili naknadu; "
+"Kada se prekine, nema potrebe da nas kontaktirate da biste dobili naknadu; "
 "ona bi trebalo da vam bude automatski dodeljena putem MTurk nekoliko minuta "
 "kasnije."
 

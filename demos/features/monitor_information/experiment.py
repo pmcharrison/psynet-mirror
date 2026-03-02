@@ -1,14 +1,9 @@
 # pylint: disable=unused-import,abstract-method
 
-import logging
-
 import psynet.experiment
 from psynet.equipment import MonitorInformation
 from psynet.page import DebugResponsePage, InfoPage
 from psynet.timeline import Timeline
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
 
 
 class Exp(psynet.experiment.Experiment):

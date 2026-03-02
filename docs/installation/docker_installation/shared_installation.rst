@@ -3,28 +3,25 @@ Step 1: Install Docker Desktop
 
 .. include:: docker_desktop_installation.rst
 
-Step 2: Install PyCharm
-^^^^^^^^^^^^^^^^^^^^^^^
+Step 2: Install an IDE
+^^^^^^^^^^^^^^^^^^^^^^
 
-We recommend using PyCharm as your integrated development environment (IDE) for working with PsyNet.
-You can learn about PyCharm here: https://www.jetbrains.com/pycharm/
-For proper integration with PsyNet (especially if you are using the Docker installation route),
-you will need to use the Professional version in particular. If you are a student or academic,
-you can get a free educational license via the PyCharm website.
+We recommend using **VSCode** or **Cursor** as your integrated development environment (IDE) for working with PsyNet.
+Both are free and work well with PsyNet.
 
-.. warning::
+- **VSCode**: Download from https://code.visualstudio.com/
+- **Cursor**: Download from https://cursor.sh/
 
-    *Windows users only*: You should configure PyCharm to use Unix-style line endings (LF) by default instead
-    of Windows-style line endings (CLRF); otherwise your Docker scripts may not run.
-    To do this, follow
-    `these instructions from the JetBrains website <https://www.jetbrains.com/help/pycharm/configuring-line-endings-and-line-separators.html>`_:
+.. note::
 
-    1. Open PyCharm's settings.
-    2. Go to File | New Projects Setup | Settings (or Preferences) for New Projects | Editor | Code Style.
-    3. Set Line separator to 'Unix and macOS (\n)'.
-    4. If you are in a project already, you may wish to select the current project from the Scheme dropdown menu on this
-       same page and repeat the process of setting the line seperator.
-    5. Press OK.
+    **VSCode vs Cursor**: Cursor is built on VSCode and includes AI-assisted coding features (like AI chat and code completion).
+    For PsyNet development purposes, both work equally well. VSCode is completely free and open source, while Cursor offers
+    a free tier with some limitations and paid plans for advanced AI features. Choose VSCode if you prefer the original,
+    more established editor, or Cursor if you want AI-powered development assistance. The setup instructions and functionality
+    are largely the same for both.
+
+**PyCharm** is also supported as an alternative IDE, but note that PyCharm remote debugging is currently not working (as of February 2025).
+If you choose to use PyCharm, you will need to configure it yourself; we do not provide detailed setup instructions as they may become outdated.
 
 
 
@@ -67,7 +64,6 @@ uses GitLab. You will probably want to create an account on that website before 
     to have you password managed by ``ssh-agent``.
 
 
-
 Step 4: Download an experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -99,20 +95,16 @@ as a collaborator. You will need to use your credentials when cloning the reposi
 if you use the HTTPS link then you should be prompted for these automatically.
 
 
-Step 5: Set up PyCharm
-^^^^^^^^^^^^^^^^^^^^^^
+Step 5: Set up your IDE
+^^^^^^^^^^^^^^^^^^^^^^^
 
-The first time you open PyCharm you may need to enter some license information,
-decide to start a free trial, or something similar. Do this first.
+### Setting up your IDE
 
-Now, within PyCharm, click File > Open and open the folder that Git downloaded for you.
-This opens the experiment directory as a PyCharm 'project'.
-It may ask you to setup an 'interpreter' at this point; ignore this message and click Cancel.
-
-The first thing you should do is 'build' the experiment. The first time you build a PsyNet
+Open your IDE and use your IDE to open the downloaded folder.
+You should then 'build' the experiment. The first time you build a PsyNet
 experiment it will download PsyNet and lots of other dependencies. Make sure you have a
 good internet connection for this, it will take a few minutes.
-You build the experiment by running the following in your PyCharm terminal:
+You build the experiment by running the following in your IDE's terminal:
 
 ::
 
@@ -134,26 +126,8 @@ run the following command, then try again:
 
 If you see other error messages at this point, see Troubleshooting.
 
-Now you should configure PyCharm to use your experiment's Docker image.
-
-.. warning::
-
-    If you are not using PyCharm Professional Edition, you will probably not have the option
-    to integrate PyCharm with Docker in this way.
-
-To do this, first open the Dockertag file in your experiment's directory
-(this is simply a file with the filename 'Dockertag'),
-and copy the contents to your clipboard.
-Then look for the 'interpreter' box in the bottom-right corner of your screen;
-this would normally say 'No interpreter', but it could say something like 'Python 3.11'.
-Click on this text and click 'Add New interpreter',
-then click 'On Docker'.
-Select an option that looks like 'Pull, or perhaps 'Pull or use existing',
-then under 'Image tag' paste the contents of the Dockertag file you copied earlier.
-Click Next, and wait a while. The script will initially look for that tag on Dockerhub, which should fail;
-It should then look for that tag on your local computer, and successfully acquire the image you just built locally.
-Click Next, then select 'System Interpreter', then click 'Create'. You should have now successfully set up your
-interpreter.
+The project includes a pre-configured `.vscode/launch.json` file that is set up for debugging in VSCode/Cursor.
+You can use this to debug your experiment by setting breakpoints and using the debugger.
 
 Step 6: Running the experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -166,7 +140,7 @@ Step 6: Running the experiment
     and then untick the box labeled 'Airplay Receiver'.
 
 You should now be able to run the experiment.
-Try this by running the following command in your PyCharm terminal:
+Try this by running the following command in your IDE's terminal:
 
 ::
 

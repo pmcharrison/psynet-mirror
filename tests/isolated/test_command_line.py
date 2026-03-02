@@ -8,7 +8,13 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from psynet.command_line import _check_constraints, check_dockerfile, update_scripts_
+from psynet.command_line import (
+    _check_constraints,
+    _create_sql_profile_run_dir,
+    _enable_sql_profile,
+    check_dockerfile,
+    update_scripts_,
+)
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import working_directory
 
@@ -472,3 +478,42 @@ def test_check_dockerfile():
                 match="Your Dockerfile appears to be using an outdated format",
             ):
                 check_dockerfile()
+
+
+def test_enable_sql_profile_uses_unique_run_subdirectories(tmp_path, monkeypatch):
+    monkeypatch.delenv("PSYNET_SQL_PROFILE", raising=False)
+    monkeypatch.delenv("PSYNET_SQL_PROFILE_DIR", raising=False)
+    monkeypatch.delenv("PSYNET_SQL_PROFILE_SILENT", raising=False)
+
+    parent_dir = tmp_path / "profiles"
+    profile_dir_1, keep_dir_1 = _enable_sql_profile(None, str(parent_dir))
+    profile_dir_2, keep_dir_2 = _enable_sql_profile(None, str(parent_dir))
+
+    assert keep_dir_1 is True
+    assert keep_dir_2 is True
+    assert profile_dir_1 != profile_dir_2
+    assert Path(profile_dir_1).parent == parent_dir
+    assert Path(profile_dir_2).parent == parent_dir
+    assert Path(profile_dir_1).is_dir()
+    assert Path(profile_dir_2).is_dir()
+
+
+def test_create_sql_profile_run_dir_with_custom_parent(tmp_path):
+    parent_dir = tmp_path / "profiles"
+
+    profile_dir_1, keep_dir_1 = _create_sql_profile_run_dir(str(parent_dir))
+    profile_dir_2, keep_dir_2 = _create_sql_profile_run_dir(str(parent_dir))
+
+    assert keep_dir_1 is True
+    assert keep_dir_2 is True
+    assert profile_dir_1 != profile_dir_2
+    assert Path(profile_dir_1).parent == parent_dir
+    assert Path(profile_dir_2).parent == parent_dir
+
+
+def test_create_sql_profile_run_dir_without_custom_parent():
+    profile_dir, keep_dir = _create_sql_profile_run_dir(None)
+
+    assert keep_dir is False
+    assert Path(profile_dir).is_dir()
+    assert Path(profile_dir).name.startswith("psynet-sql-profile-")

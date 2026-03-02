@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "psynet"
-version = "13.1.0a0"
+version = "13.2.0a0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -37,7 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=12.1.1,<13",
+    "dallinger[docker]>=12.1.2,<13",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf
@@ -54,6 +54,7 @@ dependencies = [
     "pytest-dependency",
     "pytest-mock",
     "pytest-timeout",
+    "moto[server,s3]",
     "python-gettext",
     "rpdb",
     "slack_sdk",  # For Slack notifications
@@ -81,6 +82,17 @@ dev = [
 ]
 slack = [
     "slack_sdk",
+]
+demos = [
+    "repp @ git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp",
+    "reppextension @ git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension",
+    "sing4me @ git+https://gitlab.com/computational-audition/sing4me",
+    "music21",
+    "numpy",
+    "praat-parselmouth",
+    "scipy",
+    "soundfile",
+    "statsmodels",
 ]
 
 [project.entry-points.pytest11]

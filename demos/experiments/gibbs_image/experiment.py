@@ -100,7 +100,6 @@ trial_maker = CustomGibbsTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     label = "Image Gibbs sampling demo"
-    initial_recruitment_size = 1
 
     timeline = Timeline(
         trial_maker,
