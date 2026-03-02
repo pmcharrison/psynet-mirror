@@ -22,6 +22,7 @@ def test_performance_summary_handles_missing_response_metrics():
         "p95_response_time": None,
         "p99_response_time": None,
         "stddev_response_time": None,
+        "max_response_time": None,
         "avg_bot_duration": 6.3,
         "avg_init_time": 0.5,
     }
@@ -53,6 +54,7 @@ def test_performance_summary_handles_no_completed_or_failed_bots():
         "p95_response_time": 0.0,
         "p99_response_time": None,
         "stddev_response_time": None,
+        "max_response_time": None,
         "avg_bot_duration": None,
         "avg_init_time": None,
     }
