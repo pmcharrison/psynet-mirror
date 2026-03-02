@@ -179,6 +179,13 @@ texinfo_documents = [
 # This creates an 'Edit in GitLab' button on each documentation page.
 # This will take the user to a web IDE where they can propose changes
 # to the documentation page.
+version_match = os.environ.get(
+    "DOCS_VERSION", os.environ.get("CI_COMMIT_TAG", "latest")
+)
+version_switcher_json_url = os.environ.get(
+    "DOCS_VERSION_SWITCHER_JSON", "_static/version_switcher.json"
+)
+
 html_theme_options = {
     "github_url": "https://gitlab.com/PsyNetDev/PsyNet/",
     "use_edit_page_button": True,
@@ -188,6 +195,13 @@ html_theme_options = {
     "show_toc_level": 1,
     # Expand more levels in the left navigation tree.
     "show_nav_level": 2,
+    # Enable the version selector in the header for multi-version docs.
+    "switcher": {
+        "json_url": version_switcher_json_url,
+        "version_match": version_match,
+    },
+    "check_switcher": False,
+    "navbar_end": ["theme-switcher", "version-switcher", "navbar-icon-links"],
 }
 
 html_sidebars = {
