@@ -127,7 +127,12 @@ pages_latest:
     - pip install -e '.[dev]'
     - git fetch --tags --force origin "$CI_DEFAULT_BRANCH"
     - python docs/scripts/generate_version_switcher.py --default-branch "$CI_DEFAULT_BRANCH" --output docs/_static/version_switcher.json
-    - DOCS_VERSION=$(python docs/scripts/generate_version_switcher.py --print-highest-stable) sphinx-build -b html docs public
+    - export HIGHEST_STABLE=$(python docs/scripts/generate_version_switcher.py --print-highest-stable)
+    - DOCS_VERSION="$HIGHEST_STABLE" sphinx-build -b html docs public
+    - |
+      for VERSION_TAG in $(python docs/scripts/generate_version_switcher.py --print-selected-stable-tags); do
+        DOCS_VERSION="$VERSION_TAG" sphinx-build -b html docs "public/$VERSION_TAG"
+      done
   pages: true
   artifacts:
     paths:
@@ -139,21 +144,3 @@ pages_latest:
       when: always
     - when: never
 
-pages_tagged:
-  image: python:3.13
-  stage: deploy
-  before_script: []
-  script:
-    - pip install -e '.[dev]'
-    - git fetch --tags --force origin "$CI_DEFAULT_BRANCH"
-    - python docs/scripts/generate_version_switcher.py --default-branch "$CI_DEFAULT_BRANCH" --output docs/_static/version_switcher.json
-    - DOCS_VERSION=$CI_COMMIT_TAG sphinx-build -b html docs public
-  pages:
-    path_prefix: "$CI_COMMIT_TAG"
-  artifacts:
-    paths:
-      - public
-  rules:
-    - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
-      when: always
-    - when: never

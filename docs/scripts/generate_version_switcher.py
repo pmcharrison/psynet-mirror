@@ -114,6 +114,11 @@ def main():
         action="store_true",
         help="Print the highest stable release tag and exit",
     )
+    parser.add_argument(
+        "--print-selected-stable-tags",
+        action="store_true",
+        help="Print selected stable tags (space-separated) and exit",
+    )
     args = parser.parse_args()
 
     stable_tags = get_tags()
@@ -124,8 +129,12 @@ def main():
         print(highest_stable_tag)
         return
 
+    if args.print_selected_stable_tags:
+        print(" ".join(select_recent_patch_tags(stable_tags)))
+        return
+
     if not args.output:
-        raise ValueError("--output is required unless --print-highest-stable is used.")
+        raise ValueError("--output is required unless a --print-* option is used.")
 
     tags = select_recent_patch_tags(stable_tags)
     alpha_version = get_master_psynet_version(args.default_branch)
