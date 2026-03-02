@@ -39,7 +39,7 @@
 - Renamed `CapRecruiter` to `LabRecruiter`, incl. all variations thereof (author: Frank Höger, reviewer: Peter Harrison)
 - Reworked PsyNet data export to build CSVs from the Dallinger database zip using in-memory processing, thereby substantially reducing processing time (author: Peter Harrison)
 - Added explicit postprocess location/method export options (author: Peter Harrison)
-- Renamed export helper functions for clarity: `export_` -> `run_export`, `_export_` -> `_run_local_export`, `export_data` -> `postprocess_export_data` (author: Peter Harrison)
+- Refactored data export functions for clarity and simplicity (author: Peter Harrison)
 - Export now records per-step failures and continues where possible, writing `export_report.json` (author: Peter Harrison)
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 
