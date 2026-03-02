@@ -125,6 +125,7 @@ pages_latest:
   before_script: []
   script:
     - pip install -e '.[dev]'
+    - pip install furo pydata-sphinx-theme
     - git fetch --tags --force origin "$CI_DEFAULT_BRANCH"
     - python docs/scripts/generate_version_switcher.py --default-branch "$CI_DEFAULT_BRANCH" --output docs/_static/version_switcher.json
     - export HIGHEST_STABLE=$(python docs/scripts/generate_version_switcher.py --print-highest-stable)
