@@ -122,6 +122,11 @@ merge_test_results:
 pages_latest:
   image: python:3.13
   stage: deploy
+  cache:
+    key: psynet-versioned-docs-cache
+    paths:
+      - public/
+    policy: pull-push
   before_script: []
   script:
     - pip install -e '.[dev]'
@@ -145,9 +150,18 @@ pages_latest:
         git worktree remove --force "$WORKTREE_DIR"
       }
 
-      build_docs_from_ref "$HIGHEST_STABLE" "public" "$HIGHEST_STABLE"
+      mkdir -p public
+
+      ROOT_TMP_DIR=$(mktemp -d)
+      build_docs_from_ref "$HIGHEST_STABLE" "$ROOT_TMP_DIR" "$HIGHEST_STABLE"
+      cp -a "$ROOT_TMP_DIR"/. public/
+      rm -rf "$ROOT_TMP_DIR"
 
       for VERSION_TAG in $SELECTED_STABLE_TAGS; do
+        if [ -f "public/$VERSION_TAG/index.html" ]; then
+          echo "Skipping rebuild for existing version: $VERSION_TAG"
+          continue
+        fi
         build_docs_from_ref "$VERSION_TAG" "public/$VERSION_TAG" "$VERSION_TAG"
       done
 
