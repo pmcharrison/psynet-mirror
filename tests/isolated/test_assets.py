@@ -1,5 +1,9 @@
 import os
 import tempfile
+import threading
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from urllib import request
 
 import pytest
 from dallinger import db
@@ -283,6 +287,31 @@ def test_add_asset_does_not_reobfuscate_deposited_asset(trial, debug_storage):
         assert cached_asset.url == original_url
         assert cached_asset.local_key == original_local_key
         assert cached_asset.node_definition == {"marker": "original"}
+
+        db.session.commit()
+
+        with tempfile.TemporaryDirectory() as public_root:
+            static_root = os.path.join(public_root, "static")
+            os.makedirs(static_root, exist_ok=True)
+            os.symlink(
+                debug_storage.root,
+                os.path.join(static_root, debug_storage.label),
+            )
+
+            handler = partial(SimpleHTTPRequestHandler, directory=public_root)
+            server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+
+            try:
+                url = f"http://127.0.0.1:{server.server_address[1]}{cached_asset.url}"
+                with request.urlopen(url) as response:
+                    assert response.status == 200
+                    assert response.read() == b"Hello!"
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join()
 
 
 @pytest.mark.parametrize(
