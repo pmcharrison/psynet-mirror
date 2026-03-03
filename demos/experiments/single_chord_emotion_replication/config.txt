@@ -1,0 +1,9 @@
+[Config]
+title = Single-chord emotion replication (browser-based listening study)
+description = In this study you will listen to isolated chords and rate their perceived emotional qualities. Please use a modern desktop browser and set your volume to a comfortable level.
+contact_email_on_error = support@example.com
+organization_name = PsyNet demo
+
+recruiter = generic
+currency = $
+wage_per_hour = 12.0

@@ -1,0 +1,2 @@
+# Minimal constraints file for local demo checks.
+# Regenerate with `psynet generate-constraints` if you add dependencies.
