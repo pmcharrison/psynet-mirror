@@ -3,7 +3,7 @@
 # Unreleased
 
 ## Added
-- Added a close-replication demo `single_chord_emotion_replication` based on Lahdelma & Eerola (2016), with pre-rendered chord stimuli (14 chord conditions x 2 timbres), full 9-dimension emotion ratings, demographics, PANAS, and musical sophistication questionnaire flow (author: [Cursor User])
+- Added a close-replication demo `single_chord_emotion_replication` based on Lahdelma & Eerola (2016), with pre-rendered chord stimuli (14 chord conditions x 2 timbres) rendered from sampled GM patches (Acoustic Grand Piano and String Ensemble), full 9-dimension emotion ratings, demographics, PANAS, and musical sophistication questionnaire flow (author: [Cursor User])
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.

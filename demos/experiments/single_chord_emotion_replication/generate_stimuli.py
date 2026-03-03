@@ -1,14 +1,17 @@
 """
 Generate pre-rendered WAV stimuli for the single-chord emotion replication demo.
 
-This script writes 28 files:
-- 14 chord conditions
-- each rendered with two timbres (piano, strings)
+This script uses FluidSynth with the system GM SoundFont to render sampled
+instrument timbres:
+- piano: Acoustic Grand Piano (program 0)
+- strings: String Ensemble 1 (program 48)
 """
 
 from __future__ import annotations
 
-import math
+import shutil
+import subprocess
+import tempfile
 import wave
 from pathlib import Path
 
@@ -17,8 +20,11 @@ import numpy as np
 SAMPLE_RATE = 22_050
 DURATION_SEC = 4.0
 MASTER_GAIN = 0.85
+TICKS_PER_QUARTER = 480
+TEMPO_MICROSECONDS_PER_QUARTER = 500_000  # 120 BPM
 
 OUTPUT_DIR = Path("audio_file/stimuli")
+SOUNDFONT_PATH = Path("/usr/share/sounds/sf2/default-GM.sf2")
 
 CHORDS = {
     "major_root": [60, 64, 67],
@@ -37,137 +43,142 @@ CHORDS = {
     "major_seventh_third_inversion": [59, 60, 64, 67],
 }
 
-TIMBRES = ("piano", "strings")
+PROGRAM_BY_TIMBRE = {"piano": 0, "strings": 48}
 
 
-def midi_to_hz(midi_note: int) -> float:
-    return 440.0 * (2.0 ** ((midi_note - 69) / 12.0))
+def encode_vlq(value: int) -> bytes:
+    if value == 0:
+        return b"\x00"
+    chunks = [value & 0x7F]
+    value >>= 7
+    while value:
+        chunks.append((value & 0x7F) | 0x80)
+        value >>= 7
+    return bytes(reversed(chunks))
 
 
-def adsr_envelope(
-    n_samples: int,
-    attack_sec: float,
-    decay_sec: float,
-    sustain_level: float,
-    release_sec: float,
-) -> np.ndarray:
-    envelope = np.ones(n_samples, dtype=np.float64)
-    attack_n = int(SAMPLE_RATE * attack_sec)
-    decay_n = int(SAMPLE_RATE * decay_sec)
-    release_n = int(SAMPLE_RATE * release_sec)
+def build_midi_bytes(notes: list[int], program: int) -> bytes:
+    duration_ticks = int((DURATION_SEC / 0.5) * TICKS_PER_QUARTER)
+    events = [
+        encode_vlq(0)
+        + b"\xff\x51\x03"
+        + TEMPO_MICROSECONDS_PER_QUARTER.to_bytes(3, "big"),
+        encode_vlq(0) + bytes([0xC0, program]),
+    ]
 
-    if attack_n > 0:
-        envelope[:attack_n] = np.linspace(0.0, 1.0, attack_n, endpoint=False)
+    for note in notes:
+        events.append(encode_vlq(0) + bytes([0x90, note, 100]))
 
-    if decay_n > 0:
-        decay_start = attack_n
-        decay_end = min(attack_n + decay_n, n_samples)
-        envelope[decay_start:decay_end] = np.linspace(
-            1.0,
-            sustain_level,
-            max(decay_end - decay_start, 1),
-            endpoint=False,
-        )
+    first = True
+    for note in notes:
+        delta = duration_ticks if first else 0
+        events.append(encode_vlq(delta) + bytes([0x80, note, 64]))
+        first = False
 
-    sustain_start = min(attack_n + decay_n, n_samples)
-    sustain_end = max(n_samples - release_n, sustain_start)
-    envelope[sustain_start:sustain_end] = sustain_level
-
-    if release_n > 0:
-        release_start = max(n_samples - release_n, 0)
-        envelope[release_start:] = np.linspace(
-            envelope[release_start],
-            0.0,
-            max(n_samples - release_start, 1),
-            endpoint=True,
-        )
-
-    return envelope
+    events.append(encode_vlq(0) + b"\xff\x2f\x00")
+    track_data = b"".join(events)
+    track_chunk = b"MTrk" + len(track_data).to_bytes(4, "big") + track_data
+    header_chunk = (
+        b"MThd"
+        + (6).to_bytes(4, "big")
+        + (0).to_bytes(2, "big")
+        + (1).to_bytes(2, "big")
+        + TICKS_PER_QUARTER.to_bytes(2, "big")
+    )
+    return header_chunk + track_chunk
 
 
-def synthesize_note(frequency_hz: float, timbre: str, n_samples: int) -> np.ndarray:
-    time_axis = np.arange(n_samples, dtype=np.float64) / SAMPLE_RATE
-    signal = np.zeros(n_samples, dtype=np.float64)
+def render_with_fluidsynth(midi_path: Path, output_path: Path):
+    command = [
+        "fluidsynth",
+        "-ni",
+        str(SOUNDFONT_PATH),
+        str(midi_path),
+        "-F",
+        str(output_path),
+        "-r",
+        str(SAMPLE_RATE),
+        "-o",
+        "synth.reverb.active=0",
+        "-o",
+        "synth.chorus.active=0",
+    ]
+    subprocess.run(command, check=True, capture_output=True, text=True)
 
-    if timbre == "piano":
-        harmonics = (
-            (1, 1.00),
-            (2, 0.58),
-            (3, 0.36),
-            (4, 0.22),
-            (5, 0.14),
-            (6, 0.08),
-        )
-        envelope = adsr_envelope(
-            n_samples=n_samples,
-            attack_sec=0.008,
-            decay_sec=1.0,
-            sustain_level=0.26,
-            release_sec=0.9,
-        )
+
+def load_and_process_wave(path: Path) -> np.ndarray:
+    with wave.open(str(path), "rb") as wav_file:
+        n_channels = wav_file.getnchannels()
+        sample_rate = wav_file.getframerate()
+        sample_width = wav_file.getsampwidth()
+        frames = wav_file.readframes(wav_file.getnframes())
+
+    if sample_rate != SAMPLE_RATE:
+        raise ValueError(f"Unexpected sample rate {sample_rate} in {path}")
+    if sample_width != 2:
+        raise ValueError(f"Expected 16-bit audio in {path}")
+
+    samples = np.frombuffer(frames, dtype=np.int16).reshape(-1, n_channels)
+    mono = samples.mean(axis=1).astype(np.float64) / 32767.0
+
+    target_samples = int(SAMPLE_RATE * DURATION_SEC)
+    if len(mono) < target_samples:
+        mono = np.pad(mono, (0, target_samples - len(mono)))
     else:
-        harmonics = (
-            (1, 1.00),
-            (2, 0.80),
-            (3, 0.62),
-            (4, 0.48),
-            (5, 0.35),
-            (6, 0.24),
-            (7, 0.16),
-        )
-        envelope = adsr_envelope(
-            n_samples=n_samples,
-            attack_sec=0.22,
-            decay_sec=0.5,
-            sustain_level=0.84,
-            release_sec=0.75,
-        )
+        mono = mono[:target_samples]
 
-    for harmonic, amplitude in harmonics:
-        base_phase = 2.0 * math.pi * frequency_hz * harmonic * time_axis
-        if timbre == "strings":
-            vibrato = 0.0035 * np.sin(2.0 * math.pi * 5.0 * time_axis)
-            signal += amplitude * np.sin(base_phase + vibrato)
-        else:
-            signal += amplitude * np.sin(base_phase)
-
-    return signal * envelope
-
-
-def synthesize_chord(midi_notes: list[int], timbre: str) -> np.ndarray:
-    n_samples = int(SAMPLE_RATE * DURATION_SEC)
-    chord_signal = np.zeros(n_samples, dtype=np.float64)
-
-    for midi_note in midi_notes:
-        chord_signal += synthesize_note(
-            midi_to_hz(midi_note), timbre=timbre, n_samples=n_samples
-        )
-
-    peak = np.max(np.abs(chord_signal))
+    peak = np.max(np.abs(mono))
     if peak > 0:
-        chord_signal = (chord_signal / peak) * MASTER_GAIN
+        mono = (mono / peak) * MASTER_GAIN
+    return mono
 
-    return chord_signal
 
-
-def write_wav(file_path: Path, signal: np.ndarray):
-    pcm = np.int16(np.clip(signal, -1.0, 1.0) * 32_767)
-    with wave.open(str(file_path), "wb") as wav_file:
+def write_wave(path: Path, signal: np.ndarray):
+    pcm = np.int16(np.clip(signal, -1.0, 1.0) * 32767)
+    with wave.open(str(path), "wb") as wav_file:
         wav_file.setnchannels(1)
         wav_file.setsampwidth(2)
         wav_file.setframerate(SAMPLE_RATE)
         wav_file.writeframes(pcm.tobytes())
 
 
+def ensure_dependencies():
+    if shutil.which("fluidsynth") is None:
+        raise RuntimeError(
+            "fluidsynth binary not found. Install with: sudo apt-get install fluidsynth"
+        )
+    if not SOUNDFONT_PATH.exists():
+        raise RuntimeError(
+            f"SoundFont not found at {SOUNDFONT_PATH}. "
+            "Install with: sudo apt-get install fluid-soundfont-gm"
+        )
+
+
+def render_chord(chord_notes: list[int], timbre: str, output_path: Path):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        midi_path = Path(tmp_dir) / "chord.mid"
+        raw_wav_path = Path(tmp_dir) / "raw.wav"
+
+        midi_path.write_bytes(
+            build_midi_bytes(
+                notes=chord_notes,
+                program=PROGRAM_BY_TIMBRE[timbre],
+            )
+        )
+        render_with_fluidsynth(midi_path=midi_path, output_path=raw_wav_path)
+        processed = load_and_process_wave(raw_wav_path)
+        write_wave(output_path, processed)
+
+
 def main():
+    ensure_dependencies()
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     generated = 0
     for chord_id, midi_notes in CHORDS.items():
-        for timbre in TIMBRES:
-            signal = synthesize_chord(midi_notes, timbre=timbre)
+        for timbre in PROGRAM_BY_TIMBRE:
             output_path = OUTPUT_DIR / f"{chord_id}_{timbre}.wav"
-            write_wav(output_path, signal)
+            render_chord(midi_notes, timbre, output_path)
             generated += 1
             print(f"Generated: {output_path}")
 

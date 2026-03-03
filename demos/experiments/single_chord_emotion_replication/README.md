@@ -9,3 +9,7 @@ It presents 14 chord conditions with two timbres (piano, strings), and asks part
 Run the following command from this directory to regenerate the WAV files:
 
 `python generate_stimuli.py`
+
+This script requires:
+- `fluidsynth`
+- `fluid-soundfont-gm`
