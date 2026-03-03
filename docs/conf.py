@@ -127,6 +127,10 @@ html_js_files = [
     "js/custom.js",
 ]
 
+# Prevent Sphinx from wrapping scaled images in links; this avoids
+# theme link styling artifacts around inline title logos.
+html_scaled_image_link = False
+
 # -- Options for HTMLHelp output ---------------------------------------
 
 # Output file base name for HTML help builder.
