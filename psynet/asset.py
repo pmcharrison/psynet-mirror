@@ -566,7 +566,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             "participant": self.participant.id if self.participant else None,
         }
 
-    def set_keys(self):
+    def set_missing_keys(self):
         """
         Fill in missing key fields and derived paths for the asset.
 
@@ -589,6 +589,17 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         if self.url is None or not self.deposited:
             self.url = self.get_url()
+
+    def set_keys(self):
+        """
+        Deprecated. Use :meth:`set_missing_keys` instead.
+        """
+        warnings.warn(
+            "Asset.set_keys is deprecated; use Asset.set_missing_keys instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.set_missing_keys()
 
     def generate_key_within_experiment(self):
         if self.module_id is None:
@@ -639,7 +650,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def consume(self, experiment, participant):
         if not self.module_id:
             self.module_id = participant.module_id
-        self.set_keys()
+        self.set_missing_keys()
         if self.deposit_on_the_fly:
             self.deposit()
 
@@ -689,7 +700,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.deployment_id = self.registry.deployment_id
             self.content_id = self.get_content_id()
 
-            self.set_keys()
+            self.set_missing_keys()
             db.session.add(self)
 
             if self.parent:
@@ -1098,7 +1109,7 @@ class ManagedAsset(Asset):
                 "in your experiment class."
             )
 
-        self.set_keys()
+        self.set_missing_keys()
         self.storage.update_asset_metadata(self)
 
         if self._needs_depositing():
