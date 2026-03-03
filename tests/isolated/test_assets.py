@@ -1,8 +1,5 @@
 import os
 import tempfile
-import threading
-from functools import partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib import request
 
 import pytest
@@ -19,6 +16,7 @@ from psynet.asset import (
     asset,
 )
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.redis import redis_vars
 
 
 class MultiplyAsset(ExperimentAsset):
@@ -265,7 +263,7 @@ def test_access_assets(
     "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
-def test_add_asset_does_not_reobfuscate_deposited_asset(trial, debug_storage):
+def test_add_asset_does_not_reobfuscate_deposited_asset(trial, launched_experiment):
     with tempfile.NamedTemporaryFile("w", suffix=".txt") as f:
         f.write("Hello!")
         f.flush()
@@ -274,7 +272,7 @@ def test_add_asset_does_not_reobfuscate_deposited_asset(trial, debug_storage):
             local_key="cached_asset",
             input_path=f.name,
         )
-        cached_asset.deposit(debug_storage)
+        cached_asset.deposit(launched_experiment.asset_storage)
 
         original_host_path = cached_asset.host_path
         original_url = cached_asset.url
@@ -290,28 +288,12 @@ def test_add_asset_does_not_reobfuscate_deposited_asset(trial, debug_storage):
 
         db.session.commit()
 
-        with tempfile.TemporaryDirectory() as public_root:
-            static_root = os.path.join(public_root, "static")
-            os.makedirs(static_root, exist_ok=True)
-            os.symlink(
-                debug_storage.root,
-                os.path.join(static_root, debug_storage.label),
-            )
-
-            handler = partial(SimpleHTTPRequestHandler, directory=public_root)
-            server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
-            thread = threading.Thread(target=server.serve_forever, daemon=True)
-            thread.start()
-
-            try:
-                url = f"http://127.0.0.1:{server.server_address[1]}{cached_asset.url}"
-                with request.urlopen(url) as response:
-                    assert response.status == 200
-                    assert response.read() == b"Hello!"
-            finally:
-                server.shutdown()
-                server.server_close()
-                thread.join()
+        base_url = redis_vars.get("base_url")
+        assert base_url
+        url = f"{base_url}{cached_asset.url}"
+        with request.urlopen(url) as response:
+            assert response.status == 200
+            assert response.read() == b"Hello!"
 
 
 @pytest.mark.parametrize(
