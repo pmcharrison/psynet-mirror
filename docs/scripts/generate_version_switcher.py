@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -36,6 +37,10 @@ def get_master_psynet_version(default_branch):
             ["git", "show", f"origin/{default_branch}:psynet/version.py"], text=True
         )
     except subprocess.CalledProcessError:
+        if os.environ.get("CI"):
+            raise RuntimeError(
+                f"Could not read psynet/version.py from origin/{default_branch} in CI."
+            )
         source = Path("psynet/version.py").read_text()
     return parse_psynet_version(source)
 
