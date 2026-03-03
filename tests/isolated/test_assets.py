@@ -274,11 +274,37 @@ def test_add_asset_does_not_reobfuscate_deposited_asset(trial, debug_storage):
 
         original_host_path = cached_asset.host_path
         original_url = cached_asset.url
+        original_local_key = cached_asset.local_key
+        cached_asset.node_definition = {"marker": "original"}
 
         trial.add_asset("image_left", cached_asset)
 
         assert cached_asset.host_path == original_host_path
         assert cached_asset.url == original_url
+        assert cached_asset.local_key == original_local_key
+        assert cached_asset.node_definition == {"marker": "original"}
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
+def test_add_asset_sets_missing_metadata_for_new_assets(trial, debug_storage):
+    with tempfile.NamedTemporaryFile("w", suffix=".txt") as f:
+        f.write("Hello!")
+        f.flush()
+
+        new_asset = ExperimentAsset(
+            input_path=f.name,
+        )
+
+        assert new_asset.local_key is None
+        assert getattr(new_asset, "node_definition", None) is None
+
+        trial.add_asset("image_right", new_asset)
+
+        assert new_asset.local_key == "image_right"
+        assert new_asset.node_definition == trial.definition
 
 
 # Test function asset - cached

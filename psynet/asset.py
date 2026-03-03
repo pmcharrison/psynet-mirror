@@ -432,6 +432,52 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 "rather than reusing an Asset instance defined at module import time."
             )
 
+    def link_to(
+        self,
+        parent,
+        local_key: str,
+        definition: Optional[dict] = None,
+        module_id: Optional[str] = None,
+    ):
+        """
+        Link the asset to a parent and fill in missing metadata.
+
+        Parameters
+        ----------
+        parent : object
+            The parent object to which the asset is linked.
+        local_key : str
+            The key under which the asset is linked.
+        definition : dict, optional
+            Trial or node definition used to populate on-demand asset arguments.
+        module_id : str, optional
+            Module identifier to set when missing.
+
+        Returns
+        -------
+        Asset
+            The linked asset instance.
+        """
+        self._raise_if_detached()
+
+        if self.parent is None:
+            self.parent = parent
+
+        if self.local_key is None:
+            self.local_key = local_key
+
+        if module_id is not None and self.module_id is None:
+            self.module_id = module_id
+
+        if (
+            definition is not None
+            and not self.deposited
+            and getattr(self, "node_definition", None) is None
+        ):
+            self.receive_node_definition(definition)
+
+        return self
+
     @property
     def trial_maker(self):
         from psynet.experiment import get_trial_maker
@@ -521,6 +567,11 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         }
 
     def set_keys(self):
+        """
+        Fill in missing key fields and derived paths for the asset.
+
+        This method avoids re-obfuscating host paths for deposited assets.
+        """
         if self.key_within_module is None:
             self.key_within_module = self.generate_key_within_module()
 
