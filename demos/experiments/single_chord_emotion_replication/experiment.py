@@ -14,12 +14,17 @@ from psynet.asset import asset  # noqa
 from psynet.bot import Bot
 from psynet.demography.general import Age, CountryOfBirth, FormalEducation, Gender
 from psynet.demography.gmsi import GMSI
-from psynet.modular_page import AudioPrompt, ModularPage, MultiRatingControl, RatingScale
+from psynet.modular_page import (
+    AudioPrompt,
+    ModularPage,
+    MultiRatingControl,
+    RatingScale,
+)
 from psynet.page import InfoPage, VolumeCalibration
 from psynet.timeline import Event, Timeline
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
-STIMULUS_DIR = Path("data/stimuli")
+STIMULUS_DIR = Path("audio_file/stimuli")
 TIMBRES = ("piano", "strings")
 
 CHORD_CONDITIONS = (

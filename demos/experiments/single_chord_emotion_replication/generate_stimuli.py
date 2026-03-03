@@ -18,7 +18,7 @@ SAMPLE_RATE = 22_050
 DURATION_SEC = 4.0
 MASTER_GAIN = 0.85
 
-OUTPUT_DIR = Path("data/stimuli")
+OUTPUT_DIR = Path("audio_file/stimuli")
 
 CHORDS = {
     "major_root": [60, 64, 67],
@@ -139,7 +139,9 @@ def synthesize_chord(midi_notes: list[int], timbre: str) -> np.ndarray:
     chord_signal = np.zeros(n_samples, dtype=np.float64)
 
     for midi_note in midi_notes:
-        chord_signal += synthesize_note(midi_to_hz(midi_note), timbre=timbre, n_samples=n_samples)
+        chord_signal += synthesize_note(
+            midi_to_hz(midi_note), timbre=timbre, n_samples=n_samples
+        )
 
     peak = np.max(np.abs(chord_signal))
     if peak > 0:
