@@ -1,8 +1,8 @@
 .. _alternative_installation:
 .. _installation:
 
-Installation overview
-=====================
+Installation
+============
 
 Most users should follow the 'virtual environment' installation instructions below.
 The documentation also supports an alternative 'Docker' installation method, but this is now deprecated

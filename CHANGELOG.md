@@ -23,6 +23,7 @@
 - Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
+- Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
 
 ## Fixed
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
