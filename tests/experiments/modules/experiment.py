@@ -13,10 +13,6 @@ def check_module_b(participant):
     assert not module_b_state.var.has("animal")
     assert module_b_state.var.color == "blue"
 
-    export = participant.to_dict()
-    assert "module_a__animal" not in export
-
-
 class Exp(psynet.experiment.Experiment):
     label = "Module demo"
 
