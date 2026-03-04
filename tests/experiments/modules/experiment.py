@@ -13,6 +13,7 @@ def check_module_b(participant):
     assert not module_b_state.var.has("animal")
     assert module_b_state.var.color == "blue"
 
+
 class Exp(psynet.experiment.Experiment):
     label = "Module demo"
 

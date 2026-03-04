@@ -414,6 +414,23 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.module_state = candidates[0]
 
     @property
+    def globals(self):
+        raise RuntimeError(
+            "The .globals attribute has been removed, please use .var instead."
+        )
+
+    @property
+    def locals(self):
+        raise RuntimeError(
+            "The .locals attribute has been removed, please use .module_state.var instead."
+        )
+
+    def locals_to_dict(self):
+        raise RuntimeError(
+            "The .locals_to_dict() method has been removed because module-local variables are no longer flattened into participant exports."
+        )
+
+    @property
     @extra_var(__extra_vars__)
     def aborted_modules(self):
         return [
