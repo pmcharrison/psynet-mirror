@@ -4,6 +4,11 @@ Start by following `psynet/resources/experiment_scripts/AGENTS.md`.
 
 Then act on the following PsyNet developer instructions:
 
+## Sandbox reminder
+
+When running PsyNet commands from Cursor, disable sandboxing by setting
+`required_permissions: ["all"]` on the shell command.
+
 ## Dallinger repo
 
 ### Summary
