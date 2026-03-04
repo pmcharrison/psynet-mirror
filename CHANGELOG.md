@@ -18,13 +18,21 @@
   - Basic data is now included by default in PsyNet exports.
   - Added support for CSV-format basic data export.
   - Added basic data export examples to the demos.
+- Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
+- Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
 
 ## Changed
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
+- Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
+- Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
+- Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
+- Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
 
 ## Fixed
+- Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
+- Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)
 - Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
 - Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
 - Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)

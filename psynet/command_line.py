@@ -38,9 +38,9 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 from psynet.version import (
-    check_dallinger_version,
-    check_versions,
-    python_recommended_version,
+    check_core_dependency_versions_match_requirements,
+    check_installed_dallinger_version_is_recommended,
+    recommended_python_major_minor,
 )
 
 from . import deployment_info
@@ -981,8 +981,8 @@ def run_bot(ctx, time_factor=0.0, dashboard_user=None, dashboard_password=None):
 # pre deploy #
 ##############
 def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
-    verify_psynet_requirement()
-    check_versions()
+    check_psynet_requirement_is_unambiguous()
+    check_core_dependency_versions_match_requirements()
     initial_recruitment_size = exp.initial_recruitment_size
 
     if (
@@ -1063,7 +1063,7 @@ def _pre_launch(
     deployment_info.write(locale=config.get("locale", "en"))
 
     if config.get("check_dallinger_version"):
-        check_dallinger_version()
+        check_installed_dallinger_version_is_recommended()
 
     ctx.invoke(prepare, archive=archive)
 
@@ -1442,8 +1442,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
 
 
 def run_pre_checks_sandbox(exp, config, is_mturk):
-    verify_psynet_requirement()
-    check_versions()
+    check_psynet_requirement_is_unambiguous()
+    check_core_dependency_versions_match_requirements()
 
     us_only = config.get("us_only")
 
@@ -1846,9 +1846,9 @@ def generate_constraints(ctx):
     )
 
     try:
-        # We have removed verify_psynet_requirement here because it caused problems for Docker users.
+        # We have removed check_psynet_requirement_is_unambiguous here because it caused problems for Docker users.
         # Instead, we just run this in the sandbox/deploy prechecks.
-        # verify_psynet_requirement()
+        # check_psynet_requirement_is_unambiguous()
         ctx.invoke(dallinger_generate_constraints)
     finally:
         reset_console()
@@ -1869,7 +1869,7 @@ def check_constraints():
         _check_constraints(spinner)
         spinner.ok("✔")
 
-    verify_psynet_requirement()
+    check_psynet_requirement_is_unambiguous()
 
 
 def check_dockerfile():
@@ -1972,7 +1972,21 @@ def _check_constraints(spinner=None):
         )
 
 
-def verify_psynet_requirement():
+def check_psynet_requirement_is_unambiguous():
+    """
+    Validate that ``requirements.txt`` pins PsyNet unambiguously.
+
+    The check requires a deterministic PsyNet specification so deployments are
+    reproducible. Accepted formats are:
+    - ``psynet==<version>``
+    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v<version>#egg=psynet``
+    - ``psynet@git+https://gitlab.com/PsyNetDev/PsyNet@<commit-hash>#egg=psynet``
+
+    Raises
+    ------
+    ValueError
+        If the PsyNet requirement is missing or ambiguous.
+    """
     environment_variable = "SKIP_CHECK_PSYNET_VERSION_REQUIREMENT"
     if os.environ.get(environment_variable, None):
         print(
@@ -1989,7 +2003,6 @@ def verify_psynet_requirement():
             regexes = [
                 "[a-fA-F0-9]{8,40}",
                 "v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(rc\\d+)?",
-                "master",
             ]
             file_content = file.read()
             for regex in regexes:
@@ -2019,20 +2032,27 @@ def verify_psynet_requirement():
             spinner.color = "red"
             spinner.fail("✗")
 
-        assert valid, (
-            "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+        branch_note = (
             "This means you can't just give a branch name, e.g. master; you have to specify a particular version "
-            "or a commit hash.\n"
-            "\n"
-            "\nExamples:\n"
-            "* psynet==10.1.1\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet\n"  # Only master branch is allowed
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet\n"
-            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet\n"
-            "You can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
-            "in your terminal."
+            "or a commit hash."
         )
+
+        examples = [
+            "* psynet==10.1.1",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.1.1#egg=psynet",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet",
+            "* psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet",
+        ]
+
+        if not valid:
+            raise ValueError(
+                "When deploying an experiment, you need to specify PsyNet in an unambiguous way. "
+                + branch_note
+                + "\n\nExamples:\n"
+                + "\n".join(examples)
+                + "\nYou can skip this check by writing `export SKIP_CHECK_PSYNET_VERSION_REQUIREMENT=1` (without quotes) "
+                "in your terminal."
+            )
 
 
 ##########
@@ -2795,7 +2815,7 @@ def update_scripts_():
 
     click.echo("...updating .python-version")
     with open(".python-version", "w") as file:
-        file.write(python_recommended_version)
+        file.write(recommended_python_major_minor)
         file.write("\n")
 
     directories_to_copy = ["docker"]
