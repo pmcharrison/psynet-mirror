@@ -216,9 +216,9 @@ html_sidebars = {
 }
 
 html_context = {
-    "github_user": "PsyNetDev",
-    "github_repo": "PsyNet",
-    "github_version": "master",
+    "gitlab_user": "PsyNetDev",
+    "gitlab_repo": "PsyNet",
+    "gitlab_version": "master",
     "doc_path": "docs",
 }
 
