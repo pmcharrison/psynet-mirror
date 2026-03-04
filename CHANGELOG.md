@@ -1,5 +1,4 @@
 # CHANGELOG
-<!-- markdownlint-disable MD024 -->
 
 ## Unreleased
 
