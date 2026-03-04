@@ -14,6 +14,10 @@
   to aid with configuring VSCode.
 - Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking (author: Cursor, reviewer: Peter Harrison)
 - Added checks to catch cases where Assets are created in the wrong place.
+- Improved 'basic data' functionality:
+  - Basic data is now included by default in PsyNet exports.
+  - Added support for CSV-format basic data export.
+  - Added basic data export examples to the demos.
 - Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
 - Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
 
