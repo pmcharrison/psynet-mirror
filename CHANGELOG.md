@@ -87,6 +87,8 @@
 - Replaced bare `assert response.ok` in Lucid API calls with informative error messages that include the HTTP status code, URL, and response body (author: Frank Höger)
 
 ## Removed
+- Removed unused participant scope aliases (`participant.globals`, `participant.locals`) and stopped flattening module-local variables into `Participant.to_dict()` exports; module-scoped state should be accessed via `participant.module_state.var` (author: [User])
+- Removed redundant `ModuleState.var` override in favor of the shared SQL mixin `var` property (author: [User])
 - Removed redundant `logging.basicConfig(level=logging.INFO)` and root logger initialization from demo/test experiment scripts where they were unused (author: Peter Harrison)
 - Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
 - Removed unused `assert_all_variables_defined` helper from translation checks (author: Cursor, reviewer: Peter Harrison)

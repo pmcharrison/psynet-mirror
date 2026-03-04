@@ -35,7 +35,7 @@ from psynet.timeline import Page
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject, VarStore, extra_var
+from .field import PythonList, PythonObject, extra_var
 from .utils import (
     NoArgumentProvided,
     call_function_with_context,
@@ -412,36 +412,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ]
         assert len(candidates) == 1
         self.module_state = candidates[0]
-
-    @property
-    def var(self):
-        return self.globals
-
-    @property
-    def globals(self):
-        return VarStore(self)
-
-    @property
-    def locals(self):
-        return self.module_state.var
-
-    def to_dict(self):
-        x = SQLMixinDallinger.to_dict(self)
-        x.update(self.locals_to_dict())
-        return x
-
-    def locals_to_dict(self):
-        output = {}
-        for module_id, module_states in self.module_states.items():
-            module_states.sort(key=lambda x: x.time_started)
-            for i, module_state in enumerate(module_states):
-                if i == 0:
-                    prefix = f"{module_id}__"
-                else:
-                    prefix = f"{module_id}__{i}__"
-                for key, value in module_state.var.items():
-                    output[prefix + key] = value
-        return output
 
     @property
     @extra_var(__extra_vars__)

@@ -6,12 +6,15 @@ from psynet.timeline import CodeBlock, Module, PageMaker, Timeline, for_loop, jo
 
 
 def check_module_b(participant):
-    assert not participant.locals.has("animal")
-    assert participant.locals.color == "blue"
-    assert participant.module_states["module_a"].var.animal == "cat"
+    module_a_state = participant.module_states["module_a"][-1]
+    module_b_state = participant.module_states["module_b"][-1]
+
+    assert module_a_state.var.animal == "dog"
+    assert not module_b_state.var.has("animal")
+    assert module_b_state.var.color == "blue"
 
     export = participant.to_dict()
-    assert export["module_a__animal"] == "dog"
+    assert "module_a__animal" not in export
 
 
 class Exp(psynet.experiment.Experiment):
@@ -25,11 +28,13 @@ class Exp(psynet.experiment.Experiment):
                 iterate_over=lambda: ["cat", "dog"],
                 logic=lambda animal: join(
                     CodeBlock(
-                        lambda participant: participant.locals.set("animal", animal)
+                        lambda participant: participant.module_state.var.set(
+                            "animal", animal
+                        )
                     ),
                     PageMaker(
                         lambda participant: InfoPage(
-                            f"Animal = {participant.locals.animal}",
+                            f"Animal = {participant.module_state.var.animal}",
                         ),
                         time_estimate=5,
                     ),
@@ -39,12 +44,17 @@ class Exp(psynet.experiment.Experiment):
         ),
         Module(
             "module_b",
-            CodeBlock(lambda participant: participant.locals.set("color", "blue")),
+            CodeBlock(
+                lambda participant: participant.module_state.var.set("color", "blue")
+            ),
             PageMaker(
                 lambda participant: InfoPage(
-                    f"Color = {participant.locals.color}",
+                    f"Color = {participant.module_state.var.color}",
                 ),
                 time_estimate=5,
             ),
         ),
     )
+
+    def test_check_bot(self, participant, **kwargs):
+        check_module_b(participant)

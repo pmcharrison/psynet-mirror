@@ -426,13 +426,7 @@ participant variables in this way (which sets variables that are 'global' to the
 
     participant.var.custom_variable = 3
 
-and instead sets participant variables this way:
-
-.. code-block:: python
-
-    participant.locals.custom_variable = 3
-
-or equivalently:
+and instead sets participant variables on the current module state:
 
 .. code-block:: python
 
