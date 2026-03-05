@@ -1,10 +1,13 @@
 import hashlib
+import json
 import subprocess
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import click
+import pandas as pd
 import pytest
 from click.testing import CliRunner
 
@@ -403,6 +406,125 @@ class TestExport:
             mock_log.assert_called_with(
                 "Warning: Failed to export logs from /home/testuser/dallinger/test-app/logs.jsonl: Permission denied"
             )
+
+
+def _setup_basic_data_export(monkeypatch, basic_data):
+    class DummyExperiment:
+        def get_basic_data(self, context=None, **kwargs):
+            assert context == "export"
+            return basic_data
+
+    def fake_get_experiment():
+        return DummyExperiment()
+
+    @contextmanager
+    def dummy_spinner(*args, **kwargs):
+        class Spinner:
+            def ok(self, *_args, **_kwargs):
+                return None
+
+        yield Spinner()
+
+    monkeypatch.setattr("psynet.experiment.get_experiment", fake_get_experiment)
+    monkeypatch.setattr(
+        "psynet.command_line.dump_db_to_disk", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("psynet.command_line.yaspin", dummy_spinner)
+
+
+@pytest.fixture
+def run_basic_data_export(tmp_path):
+    from psynet.command_line import export_data
+
+    def _run(anonymize):
+        export_path = tmp_path / "export"
+        export_path.mkdir()
+        export_data(
+            local=True,
+            anonymize=anonymize,
+            database_zip_path=str(tmp_path / "database.zip"),
+            export_path=str(export_path),
+        )
+        return export_path
+
+    return _run
+
+
+def test_export_data_writes_basic_data_json(monkeypatch, run_basic_data_export):
+    basic_data = {"participant": [{"id": 1}]}
+    _setup_basic_data_export(monkeypatch, basic_data)
+    export_path = run_basic_data_export(anonymize=True)
+
+    basic_data_path = export_path / "anonymous" / "basic_data.json"
+    assert basic_data_path.exists()
+    with open(basic_data_path, "r") as file:
+        assert json.load(file) == basic_data
+
+
+def test_export_data_skips_basic_data_when_none(monkeypatch, run_basic_data_export):
+    _setup_basic_data_export(monkeypatch, None)
+    export_path = run_basic_data_export(anonymize=True)
+
+    basic_data_json = export_path / "anonymous" / "basic_data.json"
+    basic_data_zip = export_path / "anonymous" / "basic_data.zip"
+    assert not basic_data_json.exists()
+    assert not basic_data_zip.exists()
+
+
+def test_export_data_writes_basic_data_folder_for_dataframes(
+    monkeypatch, run_basic_data_export
+):
+    basic_data = {
+        "participant": pd.DataFrame([{"id": 1}]),
+        "trial": pd.DataFrame([{"id": 2, "answer": "ok"}]),
+    }
+    _setup_basic_data_export(monkeypatch, basic_data)
+    export_path = run_basic_data_export(anonymize=False)
+
+    basic_data_dir = export_path / "regular" / "basic_data"
+    assert basic_data_dir.exists()
+    assert sorted(path.name for path in basic_data_dir.iterdir()) == [
+        "participant.csv",
+        "trial.csv",
+    ]
+
+
+def test_export_data_sanitizes_basic_data_dataframe_keys(
+    monkeypatch, run_basic_data_export
+):
+    basic_data = {
+        "trial/results": pd.DataFrame([{"id": 1}]),
+        "trial results": pd.DataFrame([{"id": 2}]),
+    }
+    _setup_basic_data_export(monkeypatch, basic_data)
+    export_path = run_basic_data_export(anonymize=False)
+
+    basic_data_dir = export_path / "regular" / "basic_data"
+    assert basic_data_dir.exists()
+    assert sorted(path.name for path in basic_data_dir.iterdir()) == [
+        "trial_results.csv",
+        "trial_results_2.csv",
+    ]
+
+
+def test_export_data_avoids_suffix_filename_collisions(
+    monkeypatch, run_basic_data_export
+):
+    basic_data = {
+        "trial": pd.DataFrame([{"id": 1}]),
+        "trial_2": pd.DataFrame([{"id": 2}]),
+        "trial/": pd.DataFrame([{"id": 3}]),
+    }
+    _setup_basic_data_export(monkeypatch, basic_data)
+    export_path = run_basic_data_export(anonymize=False)
+
+    basic_data_dir = export_path / "regular" / "basic_data"
+    assert basic_data_dir.exists()
+    assert sorted(path.name for path in basic_data_dir.iterdir()) == [
+        "trial.csv",
+        "trial_2.csv",
+        "trial_3.csv",
+    ]
 
 
 def test_check_constraints():
