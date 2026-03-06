@@ -56,7 +56,7 @@ from dallinger.version import __version__ as dallinger_version
 from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
@@ -3865,7 +3865,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/participant_status/<participant_id>", methods=["GET"])
     @classmethod
-    @login_required
     @with_transaction
     def route_participant_status(cls, participant_id):
         """
@@ -3878,6 +3877,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         - status.json: a JSON file summarising the participant's status
         - bot_response_files/: a directory containing the files that the participant would upload as a response to the page
         """
+        config = get_config()
+        if not (
+            current_user.is_authenticated or authenticate(request.authorization, config)
+        ):
+            return jsonify({"message": "Invalid credentials"}), 401
+
         participant = Bot.query.get(participant_id)
         experiment = get_experiment()
 

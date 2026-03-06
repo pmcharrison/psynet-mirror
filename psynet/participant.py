@@ -963,8 +963,13 @@ class ParticipantDriver:
         directory : str
             Path to a directory for extracting files.
         """
-        response = self.experiment.authenticated_session.get(
-            f"{self.experiment.base_url}/participant_status/{self.id}"
+        config = get_config()
+        response = requests.get(
+            f"{self.experiment.base_url}/participant_status/{self.id}",
+            auth=(
+                config.get("dashboard_user", "admin"),
+                config.get("dashboard_password", ""),
+            ),
         )
         response.raise_for_status()
 

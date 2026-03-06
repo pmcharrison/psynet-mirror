@@ -1,4 +1,5 @@
 import pytest
+import requests
 
 from psynet.asset import Asset
 from psynet.bot import BotDriver
@@ -6,6 +7,7 @@ from psynet.experiment import Request
 from psynet.modular_page import ModularPage
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.timeline import Response
+from psynet.utils import get_config
 
 
 @pytest.mark.parametrize(
@@ -100,3 +102,24 @@ class TestRunBot:
         page = bot.get_current_page()
         assert isinstance(page, ModularPage)
         assert page.label == "favourite_colour"
+
+    def test_fetch_status_uses_basic_auth(self, monkeypatch):
+        bot = BotDriver()
+        config = get_config()
+        expected_auth = (
+            config.get("dashboard_user", "admin"),
+            config.get("dashboard_password", ""),
+        )
+        original_get = requests.get
+        seen = {}
+
+        def wrapped_get(url, *args, **kwargs):
+            seen["auth"] = kwargs.get("auth")
+            return original_get(url, *args, **kwargs)
+
+        monkeypatch.setattr(requests, "get", wrapped_get)
+
+        bot._fetch_status()
+
+        assert bot.status["status"] == "working"
+        assert seen["auth"] == expected_auth
