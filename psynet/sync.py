@@ -1,6 +1,6 @@
 import random
 from math import floor
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Literal, Optional, Union
 
 from dallinger import db
 from dallinger.models import timenow
@@ -242,6 +242,16 @@ class GroupBarrier(Barrier):
         if this time is exceeded and the participant is still not released, then the participant will be failed
         and sent to the end of the experiment.
 
+    participant_timeout
+        The maximum amount of time in seconds that a participant is allowed to reach the barrier, measured from when
+        the group collectively passed the previous barrier. If ``None`` (default), no per-participant timeout is applied.
+        Only applies from the second barrier onward (time since previous barrier pass).
+
+    participant_timeout_action
+        When a participant exceeds ``participant_timeout``: ``"kick"`` removes them from the group (so the rest can
+        proceed without them), or ``"fail"`` fails the participant and sends them to the end of the experiment.
+        Default is ``"kick"``.
+
     fix_time_credit
         If set to ``True``, then the amount of time 'credit' that the participant receives will be fixed
         according to the estimate derived from ``waiting_logic`` and ``waiting_logic_expected_repetitions``.
@@ -256,6 +266,8 @@ class GroupBarrier(Barrier):
         max_wait_time=20,
         on_release: Optional[Callable] = None,
         fix_time_credit=False,
+        participant_timeout: Optional[int] = None,
+        participant_timeout_action: Literal["kick", "fail"] = "kick",
     ):
         super().__init__(
             id_=id_,
@@ -266,19 +278,86 @@ class GroupBarrier(Barrier):
         )
         self.group_type = group_type
         self.on_release = on_release
+        self.participant_timeout = participant_timeout
+        if participant_timeout is not None and participant_timeout_action not in (
+            "kick",
+            "fail",
+        ):
+            raise ValueError(
+                "participant_timeout_action must be 'kick' or 'fail', "
+                f"got {participant_timeout_action!r}"
+            )
+        self.participant_timeout_action = participant_timeout_action
+
+    def _remove_participant_from_group(
+        self, group: "SyncGroup", participant: Participant
+    ):
+        """Remove a participant from a sync group (e.g. when kicking due to timeout)."""
+        to_remove = [
+            link
+            for link in group.participant_links
+            if link.participant_id == participant.id
+        ]
+        for link in to_remove:
+            db.session.delete(link)
+        group.check_numbers()
+        group.check_leader()
 
     def choose_who_to_release(self, waiting_participants: List[Participant]):
-        waiting_participant_ids = [p.id for p in waiting_participants]
+        waiting_participant_ids = {p.id for p in waiting_participants}
         participants_to_release = []
+
+        # Participants at the barrier but no longer in a group (e.g. kicked) are released
+        # so they can continue the timeline.
+        for participant in waiting_participants:
+            if self.group_type not in participant.active_sync_groups:
+                participants_to_release.append(participant)
 
         groups = {
             participant.active_sync_groups[
                 self.group_type
             ].id: participant.active_sync_groups[self.group_type]
             for participant in waiting_participants
+            if self.group_type in participant.active_sync_groups
         }
 
         for group in groups.values():
+            # Apply participant timeout: kick or fail participants who took too long
+            # since the group last passed a barrier (previous barrier pass time).
+            if (
+                self.participant_timeout is not None
+                and group.last_barrier_pass_time is not None
+            ):
+                elapsed_seconds = (
+                    timenow() - group.last_barrier_pass_time
+                ).total_seconds()
+                if elapsed_seconds > self.participant_timeout:
+                    missing = [
+                        p
+                        for p in group.active_participants
+                        if p.id not in waiting_participant_ids
+                    ]
+                    for participant in missing:
+                        if self.participant_timeout_action == "kick":
+                            logger.info(
+                                "GroupBarrier '%s': kicking participant %s from group %s (timeout)",
+                                self.id,
+                                participant.id,
+                                group.id,
+                            )
+                            self._remove_participant_from_group(group, participant)
+                        else:
+                            logger.info(
+                                "GroupBarrier '%s': failing participant %s (timeout)",
+                                self.id,
+                                participant.id,
+                            )
+                            participant.fail("participant timeout at barrier")
+                            if participant.current_trial is not None:
+                                participant.current_trial.fail(
+                                    reason="participant timeout at barrier"
+                                )
+
             if group.n_active_participants < group.min_group_size:
                 # If join_existing_groups is False, then the group will never be able
                 # to get to the minimum size, so we should fail all participants in the group
@@ -299,6 +378,8 @@ class GroupBarrier(Barrier):
                 group.check_leader()
                 for participant in group.active_participants:
                     participants_to_release.append(participant)
+
+                group.last_barrier_pass_time = timenow()
 
                 if self.on_release:
                     call_function_with_context(
@@ -649,6 +730,7 @@ class SyncGroup(SQLBase, SQLMixin):
     group_type = Column(String)
     active = Column(Boolean, default=True)
     end_time = Column(DateTime)
+    last_barrier_pass_time = Column(DateTime, nullable=True)
     leader_id = Column(Integer, ForeignKey("participant.id"))
 
     participant_links = relationship(
