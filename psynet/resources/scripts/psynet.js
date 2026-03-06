@@ -3,6 +3,9 @@
 
   const templateDataElement = document.getElementById("psynet-template-data");
   if (!templateDataElement) {
+    console.error(
+      "[psynet] Missing #psynet-template-data bootstrap element; skipping timeline initialization.",
+    );
     return;
   }
 
