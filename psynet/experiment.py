@@ -1,4 +1,5 @@
 import configparser
+import hashlib
 import inspect
 import json
 import os
@@ -3881,6 +3882,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not (
             current_user.is_authenticated or authenticate(request.authorization, config)
         ):
+            _log_participant_status_auth_failure(request.authorization, config)
             return jsonify({"message": "Invalid credentials"}), 401
 
         participant = Bot.query.get(participant_id)
@@ -4437,6 +4439,30 @@ def authenticate(auth, config):
         auth
         and auth.username == config.get("dashboard_user")
         and auth.password == config.get("dashboard_password")
+    )
+
+
+def _credential_preview(value):
+    if value is None:
+        return "missing"
+    if value == "":
+        return "empty"
+    digest = hashlib.sha256(str(value).encode("utf-8")).hexdigest()[:8]
+    return f"len={len(value)} sha256={digest}"
+
+
+def _log_participant_status_auth_failure(auth, config):
+    provided_user = getattr(auth, "username", None) if auth else None
+    provided_password = getattr(auth, "password", None) if auth else None
+    expected_user = config.get("dashboard_user")
+    expected_password = config.get("dashboard_password")
+    logger.warning(
+        "Participant status auth failed. provided_user=%s provided_password=%s "
+        "expected_user=%s expected_password=%s",
+        _credential_preview(provided_user),
+        _credential_preview(provided_password),
+        _credential_preview(expected_user),
+        _credential_preview(expected_password),
     )
 
 
