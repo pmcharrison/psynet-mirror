@@ -1,5 +1,5 @@
 import random
-from typing import List, Optional, Type, Union
+from typing import List, Literal, Optional, Type, Union
 
 from dallinger import db
 from dallinger.models import Vector
@@ -1232,6 +1232,14 @@ class ChainTrialMaker(NetworkTrialMaker):
         If this time is exceeded then the participant will be failed and the experiment will
         terminate early. Defaults to 45.0 seconds.
 
+    sync_group_timeout
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When set, ``participant_timeout`` is passed to sync GroupBarriers.
+        When ``None`` (default), no participant timeout is applied.
+
+    sync_group_timeout_action
+        When ``sync_group_timeout`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"kick"``.
 
     Attributes
     ----------
@@ -1309,6 +1317,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_timeout: Optional[int] = None,
+        sync_group_timeout_action: Literal["kick", "fail"] = "kick",
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1449,6 +1459,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             assets=assets,
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
+            sync_group_timeout=sync_group_timeout,
+            sync_group_timeout_action=sync_group_timeout_action,
         )
 
         self.check_initialization()

@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
@@ -270,6 +270,8 @@ class StaticTrialMaker(ChainTrialMaker):
         assets=None,
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
+        sync_group_timeout: Optional[int] = None,
+        sync_group_timeout_action: Literal["kick", "fail"] = "kick",
     ):
         # balance_across_chains = (
         #     active_balancing_across_participants or active_balancing_within_participants
@@ -354,6 +356,8 @@ class StaticTrialMaker(ChainTrialMaker):
             assets=assets,
             choose_participant_group=choose_participant_group,
             sync_group_type=sync_group_type,
+            sync_group_timeout=sync_group_timeout,
+            sync_group_timeout_action=sync_group_timeout_action,
         )
 
     def _start_nodes_param_name(self) -> str:

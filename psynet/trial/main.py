@@ -3,7 +3,7 @@
 import datetime
 import random
 from math import isnan
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import dallinger.experiment
 import dallinger.models
@@ -1217,6 +1217,15 @@ class TrialMaker(Module):
         The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
         If this time is exceeded then the participant will be failed and the experiment will
         terminate early. Defaults to 45.0 seconds.
+
+    sync_group_timeout
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When set, ``participant_timeout`` is passed to sync GroupBarriers.
+        When ``None`` (default), no participant timeout is applied.
+
+    sync_group_timeout_action
+        When ``sync_group_timeout`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"kick"``.
     """
 
     state_class = TrialMakerState
@@ -1237,6 +1246,8 @@ class TrialMaker(Module):
         assets: List,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_timeout: Optional[int] = None,
+        sync_group_timeout_action: Literal["kick", "fail"] = "kick",
     ):
         if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
@@ -1273,6 +1284,8 @@ class TrialMaker(Module):
         self.n_repeat_trials = n_repeat_trials
         self.sync_group_type = sync_group_type
         self.sync_group_max_wait_time = sync_group_max_wait_time
+        self.sync_group_timeout = sync_group_timeout
+        self.sync_group_timeout_action = sync_group_timeout_action
 
         elts = self.compile_elts()
 
@@ -1345,6 +1358,8 @@ class TrialMaker(Module):
                 group_type=self.sync_group_type,
                 max_wait_time=self.sync_group_max_wait_time,
                 on_release=self._init_participants_in_sync_group,
+                participant_timeout=self.sync_group_timeout,
+                participant_timeout_action=self.sync_group_timeout_action,
             ),
             logic_if_false=CodeBlock(self.init_participant),
             time_estimate=0.0 if self.sync_group_type is None else 3.0,
@@ -2021,6 +2036,8 @@ class TrialMaker(Module):
                         on_release=_try_to_prepare_trial__group,
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
                         max_wait_time=self.sync_group_max_wait_time,
+                        participant_timeout=self.sync_group_timeout,
+                        participant_timeout_action=self.sync_group_timeout_action,
                     )
                 ),
                 CodeBlock(_try_to_prepare_trial__solo),
@@ -2200,6 +2217,14 @@ class NetworkTrialMaker(TrialMaker):
         If this time is exceeded then the participant will be failed and the experiment will
         terminate early. Defaults to 45.0 seconds.
 
+    sync_group_timeout
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When set, ``participant_timeout`` is passed to sync GroupBarriers.
+        When ``None`` (default), no participant timeout is applied.
+
+    sync_group_timeout_action
+        When ``sync_group_timeout`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"kick"``.
 
     Attributes
     ----------
@@ -2265,6 +2290,8 @@ class NetworkTrialMaker(TrialMaker):
         assets=None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_timeout: Optional[int] = None,
+        sync_group_timeout_action: Literal["kick", "fail"] = "kick",
     ):
         performance_check_is_enabled = (
             check_performance_at_end or check_performance_every_trial
@@ -2303,6 +2330,8 @@ class NetworkTrialMaker(TrialMaker):
             assets=assets,
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
+            sync_group_timeout=sync_group_timeout,
+            sync_group_timeout_action=sync_group_timeout_action,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks

@@ -1,6 +1,6 @@
 # pylint: disable=unused-argument,abstract-method
 
-from typing import List, Optional, Type
+from typing import List, Literal, Optional, Type
 
 from dallinger import db
 from sqlalchemy import Column
@@ -323,6 +323,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
         wait_for_networks: bool = False,
         allow_revisiting_networks_in_across_chains: bool = False,
         sync_group_type: Optional[str] = None,
+        sync_group_timeout: Optional[int] = None,
+        sync_group_timeout_action: Literal["kick", "fail"] = "kick",
     ):
         if chain_type == "within":
             raise NotImplementedError  # UNCLEAR TO ME HOW TO UNITE THE ON-DEMAND CREATION OF WITHIN CHAINS AND THE PRE-DFINED GRAPH NETWORK STRUCTURE
@@ -351,6 +353,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
             wait_for_networks=wait_for_networks,
             allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
             sync_group_type=sync_group_type,
+            sync_group_timeout=sync_group_timeout,
+            sync_group_timeout_action=sync_group_timeout_action,
         )
 
     @property
