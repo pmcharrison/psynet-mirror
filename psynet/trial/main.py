@@ -1883,6 +1883,11 @@ class TrialMaker(Module):
 
     @log_time_taken
     def _prepare_trial(self, experiment, participant, leader=None):
+        if (
+            self.sync_group_type is not None
+            and self.sync_group_type not in participant.active_sync_groups
+        ):
+            return None, "exit"
         if not participant.module_state.in_repeat_phase:
             if leader is None:
                 trial, trial_status = self.prepare_trial(
@@ -2003,8 +2008,13 @@ class TrialMaker(Module):
                 )
 
         def try_to_prepare_trial():
-            if self.sync_group_type:
-                return join(
+            if not self.sync_group_type:
+                return CodeBlock(_try_to_prepare_trial__solo)
+            return conditional(
+                "prepare_trial",
+                lambda participant: self.sync_group_type
+                in participant.active_sync_groups,
+                join(
                     GroupBarrier(
                         id_="prepare_trial",
                         group_type=self.sync_group_type,
@@ -2012,9 +2022,9 @@ class TrialMaker(Module):
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
                         max_wait_time=self.sync_group_max_wait_time,
                     )
-                )
-            else:
-                return CodeBlock(_try_to_prepare_trial__solo)
+                ),
+                CodeBlock(_try_to_prepare_trial__solo),
+            )
 
         return join(
             try_to_prepare_trial(),

@@ -346,6 +346,10 @@ class GroupBarrier(Barrier):
                                 group.id,
                             )
                             self._remove_participant_from_group(group, participant)
+                            if participant.current_trial is not None:
+                                participant.current_trial.fail(
+                                    reason="participant timeout at barrier"
+                                )
                         else:
                             logger.info(
                                 "GroupBarrier '%s': failing participant %s (timeout)",
@@ -353,10 +357,6 @@ class GroupBarrier(Barrier):
                                 participant.id,
                             )
                             participant.fail("participant timeout at barrier")
-                            if participant.current_trial is not None:
-                                participant.current_trial.fail(
-                                    reason="participant timeout at barrier"
-                                )
 
             if group.n_active_participants < group.min_group_size:
                 # If join_existing_groups is False, then the group will never be able
