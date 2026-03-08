@@ -9,11 +9,11 @@ from pathlib import Path
 import pytest
 
 from psynet.asset import list_files_in_s3_bucket
-from psynet.pytest_psynet import path_to_demo_feature
+from psynet.pytest_psynet import path_to_test_experiment
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_feature("artifact_storage")], indirect=True
+    "experiment_directory", [path_to_test_experiment("artifact_storage")], indirect=True
 )
 @pytest.mark.parametrize("artifact_storage", ["s3"], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")

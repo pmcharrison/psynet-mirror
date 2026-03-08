@@ -1,12 +1,19 @@
+import os
+
 import psynet.experiment
 from psynet.artifact import S3ArtifactStorage
 from psynet.consent import LucidConsent
 from psynet.participant import Participant
 from psynet.prescreen import AntiphaseHeadphoneTest
+from psynet.test_helpers.mock_s3 import setup_mock_s3
 from psynet.timeline import (
     Timeline,
 )
 from psynet.trial import Trial
+
+mock_s3_root = os.environ.get("PSYNET_TEST_MOCK_S3_ROOT")
+if mock_s3_root:
+    setup_mock_s3(mock_s3_root)
 
 
 class Exp(psynet.experiment.Experiment):
