@@ -316,7 +316,12 @@ class GroupBarrier(Barrier):
         for link in to_remove:
             db.session.delete(link)
         group.check_numbers()
-        group.check_leader()
+        if group.n_active_participants == 0 and not getattr(
+            group, "accepts_top_ups", False
+        ):
+            group.close()
+        else:
+            group.check_leader()
 
     def _on_max_wait_timeout(self, participant: Participant):
         """Called when max_wait_time is exceeded and max_wait_action is 'kick'. Removes participant from the group."""
@@ -345,6 +350,7 @@ class GroupBarrier(Barrier):
         }
 
         for group in groups.values():
+            group.check_numbers()
             # Apply participant timeout: kick or fail participants who took too long
             # since the group last passed a barrier (previous barrier pass time).
             if (
@@ -389,6 +395,9 @@ class GroupBarrier(Barrier):
                     for participant in group.active_participants:
                         participant.fail("sync group below minimum size")
                         participants_to_release.append(participant)
+                    group.check_numbers()
+                    if group.n_active_participants == 0:
+                        group.close()
                 continue
 
             all_participants_present = all(

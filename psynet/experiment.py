@@ -654,6 +654,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "dashboard.dashboard_monitoring",
             "dashboard.dashboard_timeline",
             "dashboard.dashboard_resources",
+            "dashboard.dashboard_sync_groups",
             "dashboard.dashboard_participants",
             "dashboard.dashboard_logger",
             "dashboard.dashboard_errors",
@@ -3126,6 +3127,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         from .dashboard.lucid import report_lucid
 
         return report_lucid()
+
+    @dashboard_tab("Sync groups")
+    @classmethod
+    def dashboard_sync_groups(cls):
+        from .dashboard.sync_groups import report_sync_groups
+
+        return report_sync_groups()
 
     @dashboard_tab("Participants")
     @classmethod

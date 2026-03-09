@@ -1,0 +1,107 @@
+{% extends "psynet_dashboard.html" %}
+{% block body %}
+<h1>{{ title }}</h1>
+
+{% if grouper_progress and grouper_progress | length > 0 %}
+<h2 class="h5 mt-3">Grouper progress</h2>
+<p class="text-muted">Participants currently waiting at each grouper; groups form when the required number is reached.</p>
+<div class="table-responsive mb-4">
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Grouper</th>
+                <th>Group type</th>
+                <th>Waiting</th>
+                <th>Required</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in grouper_progress %}
+            <tr>
+                <td><code>{{ r.barrier_id }}</code></td>
+                <td>{{ r.group_type }}</td>
+                <td>
+                    <strong>{{ r.waiting_count }}</strong>
+                    <span class="text-muted">({{ r.participant_ids | join(", ") or "—" }})</span>
+                </td>
+                <td>{% if r.batch_size is not none %}{{ r.batch_size }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if groups | length == 0 %}
+    <p class="text-muted">No sync groups found. Sync groups are created when your experiment uses group barriers (e.g. SimpleGrouper, GroupBarrier).</p>
+{% else %}
+    <p class="text-muted">Showing up to 500 most recent sync groups (newest first).</p>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Participants</th>
+                    <th>Leader</th>
+                    <th>Waiting at barrier</th>
+                    {% if has_simple_groups %}
+                    <th>Min / Max size</th>
+                    {% endif %}
+                    <th>Last barrier pass</th>
+                    <th>End time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in groups %}
+                <tr>
+                    <td><code>{{ g.id }}</code></td>
+                    <td>{{ g.group_type }}</td>
+                    <td>
+                        {% if g.active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Closed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ g.n_active_participants }}</strong>
+                        <span class="text-muted">(</span>{% for p in g.participants %}<span class="{% if p.failed %}text-danger{% else %}text-success{% endif %}" title="Status: {{ p.status }}{% if p.failed_reason %} — Reason: {{ p.failed_reason }}{% endif %}">{{ p.id }}</span>{% if not loop.last %}, {% endif %}{% endfor %}<span class="text-muted">)</span>
+                    </td>
+                    <td>
+                        P{{ g.leader_id }}
+                        {% if g.leader_worker_id != "—" %}
+                        <span class="text-muted">({{ g.leader_worker_id }})</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if g.waiting_at_barriers %}
+                        {% for b in g.waiting_at_barriers %}
+                        <span><strong>{{ b.waiting_count }}</strong> at <code>{{ b.barrier_id }}</code> <span class="text-muted">({{ b.participant_ids | join(", ") }})</span></span>{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% if has_simple_groups %}
+                    <td>
+                        {% if g.min_group_size is not none %}
+                        {{ g.min_group_size }} / {{ g.max_group_size }}
+                        {% if g.initial_group_size is not none %}
+                        <span class="text-muted">(init: {{ g.initial_group_size }})</span>
+                        {% endif %}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    <td>{{ g.last_barrier_pass_time.strftime("%Y-%m-%d %H:%M:%S") if g.last_barrier_pass_time else "—" }}</td>
+                    <td>{{ g.end_time.strftime("%Y-%m-%d %H:%M:%S") if g.end_time else "—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

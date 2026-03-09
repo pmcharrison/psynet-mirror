@@ -3,6 +3,7 @@
 # Unreleased
 
 ## Added
+- Adding a synchronous group monitoring page to the Dashboard.
 - `GroupBarrier` now supports `participant_timeout` (seconds since the group passed the previous barrier) and `participant_timeout_action` (`"kick"` to remove from group or `"fail"` to fail the participant). 
 - Refactored timeline to use named branches for end logic. `Timeline.elts` is now a dict of named branches (`main`, `successful_end`, `unsuccessful_end`, `rejected_consent`). `elt_id` now starts with the branch name (e.g. `["main", 3]`). `EndPage` classes are now redirect elements instead of `PageMaker` wrappers. `participant.fail()` automatically redirects to the `unsuccessful_end` branch unless the participant is already in an end logic branch or already completed. (author: [Peter Harrison])
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
@@ -27,6 +28,7 @@
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 
 ## Fixed
+- Sync groups are now closed automatically when they have no active participants left and do not accept top-ups (e.g. after all participants are kicked or failed due to barrier timeouts) (author: Cursor)
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)
