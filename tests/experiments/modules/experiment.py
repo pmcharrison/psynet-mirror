@@ -13,6 +13,12 @@ def check_module_b(participant):
     assert not module_b_state.var.has("animal")
     assert module_b_state.var.color == "blue"
 
+    export = participant.to_dict()
+    flattened_keys = [k for k in export if k.startswith(("module_a__", "module_b__"))]
+    assert (
+        flattened_keys == []
+    ), f"participant.to_dict() should no longer contain module locals, but found: {flattened_keys}"
+
 
 class Exp(psynet.experiment.Experiment):
     label = "Module demo"
