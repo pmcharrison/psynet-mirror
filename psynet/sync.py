@@ -42,8 +42,12 @@ class Barrier(EltCollection):
 
     max_wait_time
         The maximum amount of time in seconds that the participant will be allowed to wait at the barrier;
-        if this time is exceeded and the participant is still not released, then the participant will be failed
-        and sent to the end of the experiment.
+        if this time is exceeded, the participant is either failed or kicked (see ``max_wait_action``).
+
+    max_wait_action
+        When ``max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end of the
+        experiment; ``"kick"`` (GroupBarrier only) removes them from the group and lets them continue.
+        Default is ``"fail"``.
 
     fix_time_credit
         If set to ``True``, then the amount of time 'credit' that the participant receives will be capped
@@ -56,6 +60,7 @@ class Barrier(EltCollection):
         waiting_logic=None,
         waiting_logic_expected_repetitions=3,
         max_wait_time=20,
+        max_wait_action: Literal["fail", "kick"] = "fail",
         fix_time_credit=False,
     ):
         if waiting_logic is None:
@@ -65,6 +70,7 @@ class Barrier(EltCollection):
         self.waiting_logic = waiting_logic
         self.waiting_logic_expected_repetitions = waiting_logic_expected_repetitions
         self.max_wait_time = max_wait_time
+        self.max_wait_action = max_wait_action
         self.fix_time_credit = fix_time_credit
 
     def choose_who_to_release(
@@ -100,6 +106,8 @@ class Barrier(EltCollection):
                 expected_repetitions=self.waiting_logic_expected_repetitions,
                 max_loop_time=self.max_wait_time,
                 fix_time_credit=self.fix_time_credit,
+                fail_on_timeout=(self.max_wait_action == "fail"),
+                on_timeout=getattr(self, "on_max_wait_timeout", None),
             ),
             conditional(
                 "participant_failed",
@@ -239,8 +247,11 @@ class GroupBarrier(Barrier):
 
     max_wait_time
         The maximum amount of time in seconds that the participant will be allowed to wait at the barrier;
-        if this time is exceeded and the participant is still not released, then the participant will be failed
-        and sent to the end of the experiment.
+        if this time is exceeded, the participant is either failed or kicked (see ``max_wait_action``).
+
+    max_wait_action
+        When ``max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end of the
+        experiment; ``"kick"`` removes them from the group and lets them continue. Default is ``"fail"``.
 
     participant_timeout
         The maximum amount of time in seconds that a participant is allowed to reach the barrier, measured from when
@@ -250,7 +261,7 @@ class GroupBarrier(Barrier):
     participant_timeout_action
         When a participant exceeds ``participant_timeout``: ``"kick"`` removes them from the group (so the rest can
         proceed without them), or ``"fail"`` fails the participant and sends them to the end of the experiment.
-        Default is ``"kick"``.
+        Default is ``"fail"``.
 
     fix_time_credit
         If set to ``True``, then the amount of time 'credit' that the participant receives will be fixed
@@ -264,21 +275,25 @@ class GroupBarrier(Barrier):
         waiting_logic=None,
         waiting_logic_expected_repetitions=3,
         max_wait_time=20,
+        max_wait_action: Literal["fail", "kick"] = "fail",
         on_release: Optional[Callable] = None,
         fix_time_credit=False,
         participant_timeout: Optional[int] = None,
-        participant_timeout_action: Literal["kick", "fail"] = "kick",
+        participant_timeout_action: Literal["kick", "fail"] = "fail",
     ):
         super().__init__(
             id_=id_,
             waiting_logic=waiting_logic,
             waiting_logic_expected_repetitions=waiting_logic_expected_repetitions,
             max_wait_time=max_wait_time,
+            max_wait_action=max_wait_action,
             fix_time_credit=fix_time_credit,
         )
         self.group_type = group_type
         self.on_release = on_release
         self.participant_timeout = participant_timeout
+        if max_wait_action == "kick":
+            self.on_max_wait_timeout = self._on_max_wait_timeout
         if participant_timeout is not None and participant_timeout_action not in (
             "kick",
             "fail",
@@ -302,6 +317,14 @@ class GroupBarrier(Barrier):
             db.session.delete(link)
         group.check_numbers()
         group.check_leader()
+
+    def _on_max_wait_timeout(self, participant: Participant):
+        """Called when max_wait_time is exceeded and max_wait_action is 'kick'. Removes participant from the group."""
+        if self.group_type in participant.active_sync_groups:
+            self._remove_participant_from_group(
+                participant.active_sync_groups[self.group_type],
+                participant,
+            )
 
     def choose_who_to_release(self, waiting_participants: List[Participant]):
         waiting_participant_ids = {p.id for p in waiting_participants}

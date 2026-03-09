@@ -203,8 +203,9 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
         assets=None,
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
         sync_group_timeout: Optional[int] = None,
-        sync_group_timeout_action: Literal["kick", "fail"] = "kick",
+        sync_group_timeout_action: Literal["kick", "fail"] = "fail",
     ):
         self.max_reversals_per_chain = max_reversals_per_chain
         self.min_passing_score = min_passing_score
@@ -225,6 +226,7 @@ class GeometricStaircaseTrialMaker(ChainTrialMaker):
             assets=assets,
             choose_participant_group=choose_participant_group,
             sync_group_type=sync_group_type,
+            sync_group_max_wait_action=sync_group_max_wait_action,
             sync_group_timeout=sync_group_timeout,
             sync_group_timeout_action=sync_group_timeout_action,
             max_nodes_per_chain=max_nodes_per_chain,

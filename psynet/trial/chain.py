@@ -1229,8 +1229,12 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     sync_group_max_wait_time
         The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
-        If this time is exceeded then the participant will be failed and the experiment will
-        terminate early. Defaults to 45.0 seconds.
+        If this time is exceeded, the participant is either failed or kicked (see ``sync_group_max_wait_action``).
+        Defaults to 45.0 seconds.
+
+    sync_group_max_wait_action
+        When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant; ``"kick"`` removes them
+        from the group and lets them continue. Defaults to ``"fail"``.
 
     sync_group_timeout
         Optional timeout in seconds (since the group's last barrier pass) after which a participant
@@ -1239,7 +1243,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     sync_group_timeout_action
         When ``sync_group_timeout`` is set: ``"kick"`` removes the participant from the group so
-        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"kick"``.
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
 
     Attributes
     ----------
@@ -1317,8 +1321,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
+        sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
         sync_group_timeout: Optional[int] = None,
-        sync_group_timeout_action: Literal["kick", "fail"] = "kick",
+        sync_group_timeout_action: Literal["kick", "fail"] = "fail",
     ):
         if network_class is None:
             network_class = self.default_network_class
@@ -1459,6 +1464,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             assets=assets,
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
+            sync_group_max_wait_action=sync_group_max_wait_action,
             sync_group_timeout=sync_group_timeout,
             sync_group_timeout_action=sync_group_timeout_action,
         )
