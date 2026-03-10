@@ -75,7 +75,7 @@ dev = [
     "openai",
     "pre-commit",
     "sphinx",
-    "sphinx-autodoc-typehints",
+    "sphinx-autodoc-typehints<3.0.0",
     "sphinx-copybutton",
     "sphinx-inline-tabs",
     "beautifulsoup4",

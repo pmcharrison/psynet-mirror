@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import click
 import pandas as pd
@@ -639,3 +639,80 @@ def test_create_sql_profile_run_dir_without_custom_parent():
     assert keep_dir is False
     assert Path(profile_dir).is_dir()
     assert Path(profile_dir).name.startswith("psynet-sql-profile-")
+
+
+def test_start_local_server_uses_debug_local_subprocess():
+    from psynet.command_line import _start_local_server_and_wait_for_ready, _stop_server
+
+    process = Mock()
+    process.expect_exact.return_value = None
+    process.isalive.return_value = False
+
+    with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
+        server_info = _start_local_server_and_wait_for_ready(debug=False, max_wait=5)
+
+    assert server_info["process"] is process
+    args, kwargs = spawn.call_args
+    assert args == ("psynet", ["debug", "local", "--legacy", "--no-browsers"])
+    assert kwargs["encoding"] == "utf-8"
+    assert kwargs["env"]["SKIP_DEPENDENCY_CHECK"] == "1"
+    assert kwargs["env"]["BROWSER"] == "true"
+    _stop_server(server_info)
+
+
+def test_stop_server_gracefully_stops_debug_subprocess():
+    from psynet.command_line import _stop_server
+
+    process = Mock()
+    process.isalive.return_value = True
+    process.expect_exact.return_value = None
+    log_file = Mock()
+
+    server_info = {
+        "process": process,
+        "tmp_log_path": "/tmp/psynet_server_test.log",
+        "log_file": log_file,
+    }
+
+    with patch("psynet.command_line.kill_psynet_worker_processes") as kill_workers:
+        _stop_server(server_info)
+
+    process.sendcontrol.assert_called_once_with("c")
+    process.expect_exact.assert_called()
+    process.close.assert_called_once()
+    log_file.close.assert_called_once()
+    kill_workers.assert_called_once()
+
+
+def test_run_performance_test_with_new_server_loads_runtime_server_config():
+    from psynet.command_line import _run_performance_test_with_new_server
+
+    process = Mock()
+    config = Mock()
+    config.ready = True
+    server_info = {
+        "process": process,
+        "tmp_log_path": "/tmp/psynet_server_test.log",
+        "log_file": Mock(),
+    }
+
+    with (
+        patch(
+            "psynet.command_line._start_local_server_and_wait_for_ready",
+            return_value=server_info,
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.redis_vars.get",
+            return_value="/tmp/dallinger_develop/exp",
+        ),
+        patch("psynet.command_line._run_performance_test_with_existing_server"),
+        patch("psynet.command_line._stop_server"),
+    ):
+        _run_performance_test_with_new_server(
+            n_bots="2", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
+        )
+
+    config.load_from_file.assert_called_once_with(
+        "/tmp/dallinger_develop/exp/config.txt"
+    )
