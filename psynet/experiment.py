@@ -4449,18 +4449,6 @@ def _credential_preview(value):
     return str(value)
 
 
-def _redact_password(value, prefix_len=3, suffix_len=3):
-    if value is None:
-        return "missing"
-    if value == "":
-        return "empty"
-    text = str(value)
-    if len(text) <= prefix_len + suffix_len:
-        return "*" * len(text)
-    masked = "*" * (len(text) - prefix_len - suffix_len)
-    return f"{text[:prefix_len]}{masked}{text[-suffix_len:]}"
-
-
 def _log_participant_status_auth_failure(auth, config):
     provided_user = getattr(auth, "username", None) if auth else None
     provided_password = getattr(auth, "password", None) if auth else None
@@ -4471,9 +4459,9 @@ def _log_participant_status_auth_failure(auth, config):
         "provided_password=%s expected_user=%s expected_password=%s",
         os.getpid(),
         _credential_preview(provided_user),
-        _redact_password(provided_password),
+        _credential_preview(provided_password),
         _credential_preview(expected_user),
-        _redact_password(expected_password),
+        _credential_preview(expected_password),
     )
 
 
