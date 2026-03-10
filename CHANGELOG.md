@@ -21,6 +21,7 @@
   - Added basic data export examples to the demos.
 - Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
 - Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
+- Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
 
 ### Changed
 
@@ -31,6 +32,9 @@
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 - Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
+- Improved performance-test summary table: replaced Completed/Bot Errors columns with Succeeded/Errored/Terminated, and response time columns with median/95th/max (author: Jesse Snyder)
+- Separated bot duration tracking by outcome (succeeded/failed/incomplete) in performance test results (author: Jesse Snyder)
+- Redirected bot output to dedicated logfile, keeping console output minimal during performance tests (author: Jesse Snyder)
 
 ### Fixed
 
@@ -51,6 +55,7 @@
 - Exported datetimes in database exports as readable strings to avoid jsonpickle formatting (author: Peter)
 - Fixed performance-test summary crashes for short runs by handling missing response metrics and zero-success-rate denominators gracefully (author: [Peter])
 - Fixed performance-test local startup and teardown by launching via `psynet debug local`, loading runtime server credentials, and improving subprocess shutdown behavior (author: [Peter])
+- Fixed performance-test server logs not capturing full output by draining pexpect process in background thread (author: Jesse Snyder)
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
