@@ -4457,8 +4457,9 @@ def _log_participant_status_auth_failure(auth, config):
     expected_user = config.get("dashboard_user")
     expected_password = config.get("dashboard_password")
     logger.warning(
-        "Participant status auth failed. provided_user=%s provided_password=%s "
-        "expected_user=%s expected_password=%s",
+        "Participant status auth failed (pid=%s). provided_user=%s "
+        "provided_password=%s expected_user=%s expected_password=%s",
+        os.getpid(),
         _credential_preview(provided_user),
         _credential_preview(provided_password),
         _credential_preview(expected_user),
