@@ -37,7 +37,7 @@ before_script:
 
 .default_rules: &default_rules
   rules:
-    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+    - if: $CI_COMMIT_BRANCH == "port-cap-deployment-document"
       when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
@@ -73,7 +73,7 @@ changelog_check:
         exit 1
       fi
   rules:
-    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+    - if: $CI_COMMIT_BRANCH == "port-cap-deployment-document"
       when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
@@ -171,7 +171,7 @@ pages_latest:
     paths:
     - public
   rules:
-    - if: $CI_COMMIT_BRANCH =~ "port-cap-deployment-document"
+    - if: $CI_COMMIT_BRANCH == "port-cap-deployment-document"
       when: always
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
