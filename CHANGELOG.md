@@ -29,6 +29,7 @@
 - Use basic auth for bot participant status fetches to avoid dashboard session expiry in long-running workers (author: Peter Harrison)
 - Log redacted credential previews when participant status authentication fails to aid debugging (author: Peter Harrison)
 - Include process PID in participant status auth failure logs to pinpoint mismatched workers (author: Peter Harrison)
+- Redact participant status password previews with masked plaintext while leaving usernames visible (author: Peter Harrison)
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)

@@ -1,5 +1,4 @@
 import configparser
-import hashlib
 import inspect
 import json
 import os
@@ -4447,8 +4446,19 @@ def _credential_preview(value):
         return "missing"
     if value == "":
         return "empty"
-    digest = hashlib.sha256(str(value).encode("utf-8")).hexdigest()[:8]
-    return f"len={len(value)} sha256={digest}"
+    return str(value)
+
+
+def _redact_password(value, prefix_len=3, suffix_len=3):
+    if value is None:
+        return "missing"
+    if value == "":
+        return "empty"
+    text = str(value)
+    if len(text) <= prefix_len + suffix_len:
+        return "*" * len(text)
+    masked = "*" * (len(text) - prefix_len - suffix_len)
+    return f"{text[:prefix_len]}{masked}{text[-suffix_len:]}"
 
 
 def _log_participant_status_auth_failure(auth, config):
@@ -4461,9 +4471,9 @@ def _log_participant_status_auth_failure(auth, config):
         "provided_password=%s expected_user=%s expected_password=%s",
         os.getpid(),
         _credential_preview(provided_user),
-        _credential_preview(provided_password),
+        _redact_password(provided_password),
         _credential_preview(expected_user),
-        _credential_preview(expected_password),
+        _redact_password(expected_password),
     )
 
 
