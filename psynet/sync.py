@@ -5,7 +5,6 @@ from typing import Callable, List, Literal, Optional, Union
 from dallinger import db
 from dallinger.models import timenow
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, joinedload, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
@@ -307,14 +306,10 @@ class GroupBarrier(Barrier):
     def _remove_participant_from_group(
         self, group: "SyncGroup", participant: Participant
     ):
-        """Remove a participant from a sync group (e.g. when kicking due to timeout)."""
-        to_remove = [
-            link
-            for link in group.participant_links
-            if link.participant_id == participant.id
-        ]
-        for link in to_remove:
-            db.session.delete(link)
+        """Remove a participant from a sync group (e.g. when kicking due to timeout). Sets link active to False."""
+        for link in group.participant_links:
+            if link.participant_id == participant.id:
+                link.active = False
         group.check_numbers()
         if group.n_active_participants == 0 and not getattr(
             group, "accepts_top_ups", False
@@ -389,11 +384,13 @@ class GroupBarrier(Barrier):
 
             if group.n_active_participants < group.min_group_size:
                 # If join_existing_groups is False, then the group will never be able
-                # to get to the minimum size, so we should fail all participants in the group
-                # and release them.
+                # to get to the minimum size, so we remove all participants from the group
+                # and release them. Optionally fail them (when fail_participants_below_min_size is True).
                 if not group.accepts_top_ups:
-                    for participant in group.active_participants:
-                        participant.fail("sync group below minimum size")
+                    for participant in list(group.active_participants):
+                        if getattr(group, "fail_participants_below_min_size", True):
+                            participant.fail("sync group below minimum size")
+                        self._remove_participant_from_group(group, participant)
                         participants_to_release.append(participant)
                     group.check_numbers()
                     if group.n_active_participants == 0:
@@ -453,6 +450,11 @@ class Grouper(Barrier):
         The maximum amount of time in seconds that the participant will be allowed to wait at the barrier;
         if this time is exceeded and the participant is still not released, then the participant will be failed
         and sent to the end of the experiment.
+
+    fail_participants_below_min_size
+        If ``True`` (default), participants in a group that is below minimum size and does not accept
+        top-ups are failed and released when they hit a GroupBarrier. If ``False``, they are released
+        without being failed. (Only applies to groups that have a minimum size, e.g. created by SimpleGrouper.)
     """
 
     def __init__(
@@ -462,6 +464,7 @@ class Grouper(Barrier):
         waiting_logic=None,
         waiting_logic_expected_repetitions=3,
         max_wait_time=20,
+        fail_participants_below_min_size: bool = True,
     ):
         if not id_:
             id_ = group_type + "_" + "grouper"
@@ -472,6 +475,7 @@ class Grouper(Barrier):
             max_wait_time=max_wait_time,
         )
         self.group_type = group_type
+        self.fail_participants_below_min_size = fail_participants_below_min_size
 
     def ready_to_group(self, participants: List[Participant]) -> bool:
         """
@@ -596,6 +600,10 @@ class SimpleGrouper(Grouper):
         if the participant should be allowed to join the group, and ``False`` otherwise.
         To be used in conjunction with ``join_existing_groups=True``.
 
+    fail_participants_below_min_size
+        If ``True`` (default), participants in a group below minimum size that does not accept top-ups
+        are failed and released at GroupBarriers. If ``False``, they are released without being failed.
+
     kwargs
         Further arguments to pass to Grouper.
     """
@@ -610,6 +618,7 @@ class SimpleGrouper(Grouper):
         batch_size: Union[int, str] = "initial_group_size",
         join_existing_groups: bool = False,
         join_criterion: Optional[Callable] = None,
+        fail_participants_below_min_size: bool = True,
         **kwargs,
     ):
         if "group_size" in kwargs:
@@ -643,6 +652,7 @@ class SimpleGrouper(Grouper):
         self.batch_size = batch_size
         self.join_existing_groups = join_existing_groups
         self.join_criterion = join_criterion
+        self.fail_participants_below_min_size = fail_participants_below_min_size
 
     def resolve(self):
         from .timeline import conditional, join
@@ -692,7 +702,7 @@ class SimpleGrouper(Grouper):
 
         if len(groups) > 0:
             group = groups[0]
-            group.participants.append(participant)
+            group.add_participant(participant)
             assert participant.active_sync_groups[self.group_type] == group
             group.check_numbers()
             group.check_leader()
@@ -717,11 +727,12 @@ class SimpleGrouper(Grouper):
                 min_group_size=self.min_group_size,
                 n_active_participants=len(_participants),
                 accepts_top_ups=self.join_existing_groups,
+                fail_participants_below_min_size=self.fail_participants_below_min_size,
             )
             groups.append(_group)
 
             for _participant in _participants:
-                _group.participants.append(_participant)
+                _group.add_participant(_participant)
 
             _group.leader = self.select_leader(_participants)
 
@@ -753,8 +764,8 @@ class SyncGroup(SQLBase, SQLMixin):
         The leader of the SyncGroup. This can be reassigned by logic such as ``group.leader = participant``.
 
     participants : List[Participant]
-        A list of participants in that group. Additional participants can be added by logic such as
-        ``group.participants.append(participant)``.
+        Participants currently in the group (links with ``active=True``). Use
+        ``group.add_participant(participant)`` to add a participant.
     """
 
     __tablename__ = "sync_group"
@@ -770,13 +781,22 @@ class SyncGroup(SQLBase, SQLMixin):
         cascade="all, delete-orphan",
     )
 
-    participants = association_proxy(
-        "participant_links",
-        "participant",
-        creator=lambda participant: ParticipantLinkSyncGroup(participant=participant),
-    )
-
     n_active_participants = Column(Integer)
+
+    @property
+    def participants(self) -> List[Participant]:
+        """Participants currently in the group (links with active=True)."""
+        return [
+            link.participant
+            for link in self.participant_links
+            if getattr(link, "active", True)
+        ]
+
+    def add_participant(self, participant: Participant):
+        """Add a participant to the group (creates an active link)."""
+        self.participant_links.append(
+            ParticipantLinkSyncGroup(participant=participant, active=True)
+        )
 
     @property
     def active_participants(self) -> List[Participant]:
@@ -820,6 +840,7 @@ class SimpleSyncGroup(SyncGroup):
     max_group_size = Column(Integer)
     min_group_size = Column(Integer)
     accepts_top_ups = Column(Boolean)
+    fail_participants_below_min_size = Column(Boolean, default=True)
 
 
 @register_table
@@ -827,6 +848,7 @@ class ParticipantLinkSyncGroup(SQLBase, SQLMixin):
     __tablename__ = "participant_link_sync_group"
 
     arrival_time = Column(DateTime)
+    active = Column(Boolean, default=True)
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
@@ -887,10 +909,17 @@ Participant.sync_group_links = relationship(
     cascade="all, delete-orphan",
 )
 
-Participant.sync_groups = association_proxy(
-    "sync_group_links",
-    "sync_group",
-)
+
+def _participant_sync_groups(participant) -> List["SyncGroup"]:
+    """Groups the participant is actively in (link.active=True)."""
+    return [
+        link.sync_group
+        for link in participant.sync_group_links
+        if getattr(link, "active", True)
+    ]
+
+
+Participant.sync_groups = property(lambda self: _participant_sync_groups(self))
 
 # No association proxy for barrier links because barriers aren't represented as database objects (yet)
 

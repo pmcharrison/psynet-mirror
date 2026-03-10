@@ -67,7 +67,7 @@
                     </td>
                     <td>
                         <strong>{{ g.n_active_participants }}</strong>
-                        <span class="text-muted">(</span>{% for p in g.participants %}<span class="{% if p.failed %}text-danger{% else %}text-success{% endif %}" title="Status: {{ p.status }}{% if p.failed_reason %} — Reason: {{ p.failed_reason }}{% endif %}">{{ p.id }}</span>{% if not loop.last %}, {% endif %}{% endfor %}<span class="text-muted">)</span>
+                        <span class="text-muted">(</span>{% for p in g.participants %}<span class="{% if not p.active_in_group %}text-decoration-line-through text-muted{% elif p.failed %}text-danger{% else %}text-success{% endif %}" title="{% if not p.active_in_group %}Removed from group{% endif %}{% if p.active_in_group %}Status: {{ p.status }}{% if p.failed_reason %} — Reason: {{ p.failed_reason }}{% endif %}{% endif %}">{{ p.id }}</span>{% if not loop.last %}, {% endif %}{% endfor %}<span class="text-muted">)</span>
                     </td>
                     <td>
                         P{{ g.leader_id }}

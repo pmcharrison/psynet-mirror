@@ -103,6 +103,7 @@ def report_sync_groups():
 
     group_rows = []
     for group in groups:
+        # Only active members count toward group size and waiting-at-barrier stats
         participant_ids = {p.id for p in group.participants}
         # barrier_id -> count and list of participants in this group waiting at it
         barrier_counts = {}
@@ -120,19 +121,21 @@ def report_sync_groups():
             for bid, c in sorted(barrier_counts.items())
         ]
 
+        # Include all links (active and removed) so we can show removed members striked
         participants_with_status = sorted(
             [
                 {
-                    "id": p.id,
-                    "failed": p.failed,
-                    "status": getattr(p, "status", None) or "—",
+                    "id": link.participant.id,
+                    "failed": link.participant.failed,
+                    "status": getattr(link.participant, "status", None) or "—",
                     "failed_reason": (
-                        ", ".join(p.failure_tags)
-                        if getattr(p, "failure_tags", None)
+                        ", ".join(link.participant.failure_tags)
+                        if getattr(link.participant, "failure_tags", None)
                         else None
                     ),
+                    "active_in_group": getattr(link, "active", True),
                 }
-                for p in group.participants
+                for link in group.participant_links
             ],
             key=lambda x: x["id"],
         )
