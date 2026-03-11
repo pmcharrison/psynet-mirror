@@ -97,6 +97,7 @@ from .recruiters import (  # noqa: F401
 from .redis import redis_vars
 from .serialize import serialize, unserialize
 from .timeline import (
+    WEBSOCKET_CHANNEL,
     DatabaseCheck,
     FailedValidation,
     ModuleState,
@@ -105,6 +106,7 @@ from .timeline import (
     RecruitmentCriterion,
     Response,
     Timeline,
+    WebSocketElt,
 )
 from .translation.check import check_translations
 from .translation.translate import create_pot
@@ -541,6 +543,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+        self._websocket_message_handlers = {}
 
         self.pre_deploy_routines = []
         if self.translation_checks_needed():
@@ -806,6 +809,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
+
+        if self._websocket_message_handlers:
+            from dallinger.experiment_server import sockets
+
+            for channel_name in self._websocket_message_handlers:
+                sockets.chat_backend.subscribe(self, channel_name)
+
         db.session.commit()
         redis_vars.set("launch_finished", True)
         self.notifier.on_launch()
@@ -2920,6 +2930,34 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.assets.stage(elt)
             if isinstance(elt, PreDeployRoutine):
                 self.pre_deploy_routines.append(elt)
+            if isinstance(elt, WebSocketElt) and elt.channel is not None:
+                if not self._websocket_message_handlers:
+                    # First WebSocketElt found: set the global channel so Dallinger
+                    # automatically subscribes to dallinger_control on launch.
+                    self.channel = WEBSOCKET_CHANNEL
+                self._websocket_message_handlers.setdefault(elt.channel, []).append(
+                    elt.handle_message
+                )
+
+    def receive_message(
+        self, message, channel_name=None, participant=None, node=None, receive_time=None
+    ):
+        """Dispatch incoming WebSocket messages to the ``WebSocketElt`` handlers
+        for the given channel.
+
+        This override is activated automatically when any ``WebSocketElt``
+        instances are present in the timeline. Handlers are keyed by channel
+        name, so each Elt only receives messages from its own channel.
+        """
+        for handler in self._websocket_message_handlers.get(channel_name, []):
+            handler(
+                message,
+                channel_name=channel_name,
+                participant=participant,
+                node=node,
+                receive_time=receive_time,
+                experiment=self,
+            )
 
     def pre_deploy(self, redeploying_from_archive=False):
         self.update_deployment_id()
