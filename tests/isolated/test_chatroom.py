@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -68,14 +68,16 @@ class TestHandleMessage:
 
     @staticmethod
     def _send(handler, exp, participant, payload, node=None):
+        time = datetime.now(UTC)
         handler.handle_message(
             json.dumps(payload),
             handler.channel,
             participant,
             node,
-            datetime.utcnow(),
+            time,
             exp,
         )
+        return time
 
     # -- missing room_id --
 
@@ -195,8 +197,7 @@ class TestHandleMessage:
         participant = _new_participant(experiment)
         db.session.flush()
 
-        curent_time = datetime.utcnow()
-        self._send(
+        send_time = self._send(
             handler,
             exp,
             participant,
@@ -209,9 +210,7 @@ class TestHandleMessage:
         record = records[0]
         assert record.content == "hello"
         assert record.participant_id == participant.id
-        assert record.receive_time - curent_time < timedelta(
-            seconds=5
-        )  # received within last 5 seconds
+        assert record.receive_time == send_time
 
     def test_request_state_sends_history(self, in_experiment_directory, db_session):
         handler, exp = self._handler_and_exp()
@@ -226,7 +225,7 @@ class TestHandleMessage:
                 node_id=None,
                 room_id="room_E",
                 content="prior message",
-                receive_time=datetime.utcnow(),
+                receive_time=datetime.now(UTC),
             )
         )
         db.session.commit()

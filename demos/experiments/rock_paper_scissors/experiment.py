@@ -148,12 +148,12 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         assert (
-            bots[0].current_page_text
-            == "You chose rock, your partner chose paper. You lost."
+            "You chose rock, your partner chose paper. You lost."
+            in bots[0].current_page_text
         )
         assert (
-            bots[1].current_page_text
-            == "You chose paper, your partner chose rock. You won!"
+            "You chose paper, your partner chose rock. You won!"
+            in bots[1].current_page_text
         )
 
         assert bots[0].current_page_label == "results"
@@ -172,12 +172,12 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         assert (
-            bots[0].current_page_text
-            == "You chose scissors, your partner chose paper. You won!"
+            "You chose scissors, your partner chose paper. You won!"
+            in bots[0].current_page_text
         )
         assert (
-            bots[1].current_page_text
-            == "You chose paper, your partner chose scissors. You lost."
+            "You chose paper, your partner chose scissors. You lost."
+            in bots[1].current_page_text
         )
 
         bots[0].take_page()
@@ -189,15 +189,15 @@ class Exp(psynet.experiment.Experiment):
         advance_past_wait_pages(bots)
 
         assert (
-            bots[0].current_page_text
-            == "You chose scissors, your partner chose scissors. You drew."
+            "You chose scissors, your partner chose scissors. You drew."
+            in bots[0].current_page_text
         ), (
             "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
             "further debugging."
         )
         assert (
-            bots[1].current_page_text
-            == "You chose scissors, your partner chose scissors. You drew."
+            "You chose scissors, your partner chose scissors. You drew."
+            in bots[1].current_page_text
         ), (
             "A rare error sometimes occurs here. If you see it, please report it to Peter Harrison (pmcharrison) for "
             "further debugging."

@@ -19,7 +19,7 @@ class ChatMessage(SQLBase, SQLMixin):
     )
     room_id = Column(String(128), index=True)
     content = Column(Text)
-    receive_time = Column(DateTime)
+    receive_time = Column(DateTime(timezone=True))
 
 
 class EnableChatrooms(NullElt, WebSocketElt):
