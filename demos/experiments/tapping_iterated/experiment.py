@@ -9,14 +9,15 @@ from markupsafe import Markup
 from repp.config import ConfigUpdater, sms_tapping
 
 with warnings.catch_warnings():
-    # reppextension has a deprecation warning that we don't want to worry about
+    # `repp.extensions.iterated_tapping` still imports `numpy.matlib`, which
+    # currently emits this warning on import under newer NumPy versions.
     warnings.filterwarnings(
         "ignore",
         message=r"Importing from numpy\.matlib is deprecated.*",
         category=PendingDeprecationWarning,
-        module="reppextension",
+        module=r"repp\.extensions\.iterated_tapping",
     )
-    from reppextension.iterated_tapping import (
+    from repp.extensions.iterated_tapping import (
         REPPAnalysisItap,
         REPPStimulusItap,
         make_stim_onsets_from_ioi_seed,
