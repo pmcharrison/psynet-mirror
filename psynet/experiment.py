@@ -65,6 +65,7 @@ from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 
 from psynet import __version__
+from psynet.log import bold, error, success, warning
 from psynet.artifact import LocalArtifactStorage
 from psynet.utils import (
     format_bytes,
@@ -1425,8 +1426,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         all_results = []
 
-        logger.info("=" * 80)
-        logger.info("⚡ STARTING PERFORMANCE TEST SUITE")
+        logger.info(bold("=" * 80))
+        logger.info(bold("⚡ STARTING PERFORMANCE TEST SUITE"))
         logger.info(f"Bot counts: {', '.join(str(n) for n in bot_counts)}")
         logger.info(f"Duration per test: {self.test_duration_minutes:.1f} minutes")
         logger.info(
@@ -1436,9 +1437,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         for i, n_bots in enumerate(bot_counts, 1):
             logger.info("")
-            logger.info("=" * 80)
+            logger.info(bold("=" * 80))
             logger.info(
-                f"TEST {i}/{len(bot_counts)}: Running with {n_bots:,} concurrent bots"
+                bold(f"TEST {i}/{len(bot_counts)}: Running with {n_bots:,} concurrent bots")
             )
 
             result = self._test_performance(n_bots, bot_log_file=bot_log_file)
@@ -1484,7 +1485,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ]
 
         logger.info("")
-        logger.info("CUMULATIVE PERFORMANCE TEST SUMMARY")
+        logger.info(bold("CUMULATIVE PERFORMANCE TEST SUMMARY"))
         logger.info("")
         table = tabulate(
             summary_rows, headers=summary_headers, tablefmt="simple"
@@ -2082,6 +2083,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self._report_test_results(result)
         return result
 
+    @staticmethod
+    def _colorize_success_rate(rate_str):
+        if rate_str == "N/A":
+            return rate_str
+        pct = float(rate_str.rstrip("%"))
+        if pct >= 100:
+            return success(rate_str)
+        elif pct > 0:
+            return warning(rate_str)
+        else:
+            return error(rate_str)
+
     def _report_test_results(self, result):
         """Print detailed results after a single test completes."""
 
@@ -2109,8 +2122,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             success_rate = "N/A"
 
         logger.info("")
-        logger.info("✓ Test completed")
-        logger.info(f"TEST RESULTS (n={result['n_bots']:,} bots):")
+        logger.info(success("✓ Test completed"))
+        logger.info(bold(f"TEST RESULTS (n={result['n_bots']:,} bots):"))
         logger.info("")
 
         # Bot & timing stats
@@ -2120,7 +2133,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ["Succeeded", result["bots_succeeded"]],
             ["Failed", result["bots_failed"]],
             ["Incomplete", result["bots_incomplete"]],
-            ["Success rate", success_rate],
+            ["Success rate", self._colorize_success_rate(success_rate)],
             ["Total requests", result["total_requests"]],
             ["Request errors", result["request_errors"]],
         ]
@@ -2163,7 +2176,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ["95th percentile", f"{result['p95_wait_page_time']:.1f}"],
                 ["Max", f"{result['max_wait_page_time']:.1f}"],
             ]
-            logger.info("  Wait page times (s):")
+            logger.info(bold("  Wait page times (s):"))
             _log_table(
                 wait_rows,
                 headers=[],
@@ -2180,7 +2193,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ["99th percentile", _fmt(result["p99_response_time"])],
             ["Std dev", _fmt(result["stddev_response_time"])],
         ]
-        logger.info("  Response times (s):")
+        logger.info(bold("  Response times (s):"))
         _log_table(
             resp_rows, headers=[], indent="    ", colalign=("left", "right")
         )
@@ -2188,7 +2201,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # Async process stats
         if result.get("process_stats"):
-            logger.info("  Async process times:")
+            logger.info(bold("  Async process times:"))
             proc_rows = [
                 [
                     ps["trial_maker_id"],
