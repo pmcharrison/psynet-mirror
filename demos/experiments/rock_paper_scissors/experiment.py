@@ -4,8 +4,8 @@ from dominate import tags
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
+from psynet.chatroom import ChatRoom, EnableChatrooms
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import Timeline, join
@@ -47,7 +47,6 @@ class RockPaperScissorsTrial(StaticTrial):
             ),
             time_estimate=5,
             save_answer="last_action",
-            # extras=ChatRoom(),
         )
 
     def show_feedback(self, experiment, participant):
@@ -59,16 +58,25 @@ class RockPaperScissorsTrial(StaticTrial):
         else:
             assert score == 1
             outcome = "You won!"
+        prompt = tags.div()
+        with prompt:
+            tags.h1("Round results")
+            tags.p(
+                f"You chose {participant.var.last_trial['action_self']}, "
+                + f"your partner chose {participant.var.last_trial['action_other']}. "
+                + outcome
+            )
+            tags.h2("Now chat with your partner about the round you just played!")
 
-        prompt = (
-            f"You chose {participant.var.last_trial['action_self']}, "
-            + f"your partner chose {participant.var.last_trial['action_other']}. "
-            + outcome
-        )
-
-        return InfoPage(
+        return ModularPage(
+            "results",
             prompt,
-            time_estimate=5,
+            chatroom=ChatRoom(
+                room_id=f"rps_rooom_{participant.sync_group.id}",
+                show_participants=True,
+                show_history=True,
+            ),
+            time_estimate=30,
         )
 
     def score_trial(self, participants: List[Participant]):
@@ -106,6 +114,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Rock paper scissors demo"
 
     timeline = Timeline(
+        EnableChatrooms(),
         SimpleGrouper(
             group_type="rock_paper_scissors",
             initial_group_size=2,
@@ -146,6 +155,13 @@ class Exp(psynet.experiment.Experiment):
             bots[1].current_page_text
             == "You chose paper, your partner chose rock. You won!"
         )
+
+        assert bots[0].current_page_label == "results"
+        page = bots[0].get_current_page()
+        assert isinstance(page, ModularPage)
+        assert isinstance(page.chatroom, ChatRoom)
+        assert page.chatroom.show_participants is True
+        assert page.chatroom.show_history is True
 
         bots[0].take_page()
         bots[1].take_page()
