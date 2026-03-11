@@ -4,6 +4,9 @@
 
 ### Added
 
+- Enabled chatroom to Rock, Paper, Scissors demo results page.
+- Added `ChatRoom` element for modular pages.
+- Added optional websocket support for timeline elements.
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
