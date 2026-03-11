@@ -46,6 +46,7 @@
 - Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates (author: Frank Höger)
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
+- Switched PsyNet's REPP demo dependencies from private GitLab repos to the published `repp-tapping==1.4.0b0` TestPyPI wheel, which now also bundles `reppextension` (author: Frank Höger)
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
 - Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
 - Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)

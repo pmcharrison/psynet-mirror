@@ -5,4 +5,4 @@ psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f317688af59350f9a6f3052fd73076318f2775#egg=psynet
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet
 
-repp@git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp@master#egg=repp
+repp-tapping @ https://test-files.pythonhosted.org/packages/35/53/40dd440aac7b52e4d7f4b7a6010a49e944ede0dd292942a2105731cd5f0d/repp_tapping-1.4.0b0-py3-none-any.whl
