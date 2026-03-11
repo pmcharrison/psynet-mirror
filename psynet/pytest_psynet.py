@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -34,7 +33,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
 from psynet.participant import Participant
 
-from . import media as psynet_media
+from . import asset as psynet_asset
 from .command_line import (
     clean_sys_modules,
     kill_chromedriver_processes,
@@ -45,7 +44,7 @@ from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
-from .test_helpers.mock_s3 import setup_mock_s3
+from .test_helpers.mock_s3 import setup_artifact_storage_s3_test_client
 from .trial.main import TrialNetwork
 from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from .utils import clear_all_caches, wait_until
@@ -93,15 +92,11 @@ def assert_text(driver, element_id, value):
 
 
 @pytest.fixture(scope="session")
-def mock_s3_root(env):
-    root = tempfile.mkdtemp(prefix="psynet-mock-s3-")
-    env["PSYNET_TEST_MOCK_S3_ROOT"] = root
-    setup_mock_s3(root)
-    psynet_media.get_s3_client().create_bucket(Bucket="psynet-tests")
-    try:
-        yield root
-    finally:
-        shutil.rmtree(root, ignore_errors=True)
+def artifact_storage_s3_test_root(tmp_path_factory):
+    root = str(tmp_path_factory.mktemp("psynet-artifact-storage-s3-test"))
+    setup_artifact_storage_s3_test_client(root)
+    psynet_asset.get_s3_client().create_bucket(Bucket="psynet-tests")
+    return root
 
 
 def bot_class(headless=None):
@@ -396,7 +391,6 @@ def patch_pexpect_error_reporter(p):
 def debug_experiment(
     request,
     env,
-    mock_s3_root,
     clear_workers,
     in_experiment_directory,
     db_session,
@@ -795,11 +789,11 @@ def _debug_click_interception(driver, element):
 
 
 @pytest.fixture(params=["local", "s3"])
-def artifact_storage(request, tmp_path, mock_s3_root):
+def artifact_storage(request, tmp_path, artifact_storage_s3_test_root):
     if request.param == "local":
         yield LocalArtifactStorage(str(tmp_path))
     elif request.param == "s3":
         bucket_name = "psynet-tests"
         root = f"artifacts/{uuid.uuid4()}"
-        psynet_media.get_s3_client().create_bucket(Bucket=bucket_name)
+        psynet_asset.get_s3_client().create_bucket(Bucket=bucket_name)
         yield S3ArtifactStorage(root, bucket_name)

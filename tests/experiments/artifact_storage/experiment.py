@@ -1,26 +1,24 @@
 import os
+import tempfile
 
 import psynet.experiment
-from psynet.artifact import S3ArtifactStorage
+from psynet.artifact import LocalArtifactStorage
 from psynet.consent import LucidConsent
 from psynet.participant import Participant
 from psynet.prescreen import AntiphaseHeadphoneTest
-from psynet.test_helpers.mock_s3 import setup_mock_s3
 from psynet.timeline import (
     Timeline,
 )
 from psynet.trial import Trial
-
-mock_s3_root = os.environ.get("PSYNET_TEST_MOCK_S3_ROOT")
-if mock_s3_root:
-    setup_mock_s3(mock_s3_root)
 
 
 class Exp(psynet.experiment.Experiment):
     label = "Artifact Storage demo"
     automatic_backups = True
 
-    artifact_storage = S3ArtifactStorage(root="artifacts", bucket_name="psynet-tests")
+    artifact_storage = LocalArtifactStorage(
+        root=os.path.join(tempfile.gettempdir(), "psynet-artifact-storage-test")
+    )
     config = {
         # **get_mock_lucid_recruiter(
         #     survey_number=65502067, survey_sid="2928c1b9-0a83-4765-8e03-9e0335991371"
