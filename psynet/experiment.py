@@ -85,6 +85,7 @@ from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
+from .process import AsyncProcess
 from .participant import Participant
 from .recruiters import CapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import StagingCapRecruiter  # noqa: F401; Backward compatibility alias
@@ -1625,10 +1626,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.base_url + "/request_statistics"
         ).json()
         max_request_id = db.session.query(func.max(Request.id)).scalar() or 0
+        max_process_id = db.session.query(func.max(AsyncProcess.id)).scalar() or 0
 
         return {
             "initial_requests": initial_stats["total_requests"],
             "max_request_id": max_request_id,
+            "max_process_id": max_process_id,
         }
 
     def _initialize_bot_tracking(self):
@@ -2016,6 +2019,44 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .scalar()
         )
 
+        # Async process duration stats, grouped by (trial_maker_id, label).
+        # Only includes processes created during the test (id > max_process_id)
+        # that have finished. Computes count, average, median (p50), 95th
+        # percentile, and max of time_taken for each group.
+        process_stats_rows = (
+            db.session.query(
+                AsyncProcess.trial_maker_id,
+                AsyncProcess.label,
+                func.count(AsyncProcess.id).label("count"),
+                func.avg(AsyncProcess.time_taken).label("avg"),
+                func.percentile_cont(0.5)  # median
+                .within_group(AsyncProcess.time_taken)
+                .label("median"),
+                func.percentile_cont(0.95)  # 95th percentile
+                .within_group(AsyncProcess.time_taken)
+                .label("p95"),
+                func.max(AsyncProcess.time_taken).label("max"),
+            )
+            .filter(
+                AsyncProcess.id > initial_state["max_process_id"],
+                AsyncProcess.finished == True,  # noqa: E712
+            )
+            .group_by(AsyncProcess.trial_maker_id, AsyncProcess.label)
+            .all()
+        )
+        process_stats = [
+            {
+                "trial_maker_id": row.trial_maker_id or "",
+                "label": row.label or "",
+                "count": row.count,
+                "avg": row.avg,
+                "median": row.median,
+                "p95": row.p95,
+                "max": row.max,
+            }
+            for row in process_stats_rows
+        ]
+
         bot_ids = bot_state["bot_ids"]
         bots = Bot.query.filter(Bot.id.in_(list(bot_ids))).all()
         bots_succeeded = bots_failed = bots_incomplete = 0
@@ -2136,6 +2177,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "avg_succeeded_duration": avg_succeeded_duration,
             "avg_failed_duration": avg_failed_duration,
             "avg_incomplete_duration": avg_incomplete_duration,
+            "process_stats": process_stats,
         }
 
     def _report_test_results(
