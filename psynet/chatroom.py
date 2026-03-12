@@ -131,8 +131,9 @@ class EnableChatrooms(NullElt, WebSocketElt):
         from psynet.participant import Participant
 
         return [
-            str(m.participant_id)
-            for m in ChatRoomMember.query.join(Participant)
+            str(pid)
+            for (pid,) in ChatRoomMember.query.join(Participant)
+            .with_entities(ChatRoomMember.participant_id)
             .filter(
                 ChatRoomMember.room_id == room_id,
                 ChatRoomMember.active.is_(True),
