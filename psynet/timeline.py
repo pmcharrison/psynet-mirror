@@ -238,7 +238,9 @@ class WebSocketElt(Elt):
 
             def handle_message(self, message, channel_name, participant, node,
                                receive_time, experiment):
-                import json data = json.loads(message) # ... process data ...
+                import json
+                data = json.loads(message)
+                # ... process data ...
 
     Attributes
     ----------
