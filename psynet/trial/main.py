@@ -93,7 +93,7 @@ class AssetParentMixin:
 
     def add_asset(self, local_key: str, asset: Asset):
         assert isinstance(asset, Asset)
-        asset.link_to(self, local_key, definition=self.definition)
+        asset.update_metadata(self, local_key, definition=self.definition)
         if self.id is None:
             # Ensure the trial has an ID before asset keys/depositing.
             db.session.flush([self])

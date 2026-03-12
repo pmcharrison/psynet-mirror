@@ -692,7 +692,7 @@ class ChainNode(TrialNode):
         # self.assets = {}
 
         for local_key, asset in self._staged_assets.items():
-            asset.link_to(
+            asset.update_metadata(
                 self,
                 local_key,
                 definition=self.definition,

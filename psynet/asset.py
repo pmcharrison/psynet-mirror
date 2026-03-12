@@ -432,7 +432,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 "rather than reusing an Asset instance defined at module import time."
             )
 
-    def link_to(
+    def update_metadata(
         self,
         parent,
         local_key: str,
@@ -440,7 +440,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         module_id: Optional[str] = None,
     ):
         """
-        Link the asset to a parent and fill in missing metadata.
+        Update parent-related metadata when linking an asset.
 
         Parameters
         ----------
@@ -456,7 +456,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         Returns
         -------
         Asset
-            The linked asset instance.
+            The updated asset instance.
         """
         self._raise_if_detached()
 
@@ -477,6 +477,28 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.receive_node_definition(definition)
 
         return self
+
+    def link_to(
+        self,
+        parent,
+        local_key: str,
+        definition: Optional[dict] = None,
+        module_id: Optional[str] = None,
+    ):
+        """
+        Deprecated. Use :meth:`update_metadata` instead.
+        """
+        warnings.warn(
+            "Asset.link_to is deprecated; use Asset.update_metadata instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.update_metadata(
+            parent,
+            local_key,
+            definition=definition,
+            module_id=module_id,
+        )
 
     @property
     def trial_maker(self):
