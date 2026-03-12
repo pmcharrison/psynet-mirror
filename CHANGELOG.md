@@ -4,7 +4,7 @@
 
 ### Added
 
-- Added developer documentation plus a repo-local `/review` Cursor workflow backed by the `branch-review` skill for reviewing branches against `master` (author: Frank Höger)
+- Added developer documentation plus a repo-local `/review` Cursor workflow backed by the `branch-review` skill for reviewing branches against `master` (author: [Frank Höger])
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.

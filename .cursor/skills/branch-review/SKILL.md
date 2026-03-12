@@ -17,10 +17,13 @@ Use this skill when reviewing a feature branch against `master`.
 
 ## 1) Scope the change
 
+The review scope is the committed branch diff in `master...HEAD`.
+Do not treat uncommitted local changes as part of the branch review.
+
 - `git rev-parse --abbrev-ref HEAD` — confirm you are on the feature branch, not `master`
 - `git diff --name-status master...HEAD`
 - `git diff --stat master...HEAD`
-- `git diff --name-status master`
+- `git status --short` — if non-empty, note that uncommitted work exists locally and was not included in the review
 
 ## 2) Inspect code diffs deeply
 
