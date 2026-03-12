@@ -1,5 +1,7 @@
 # Diff-To-Master Review Checklist
 
+Cursor users: run `/review` for day-to-day reviews. It uses the shared project workflow in `.cursor/skills/review-merge-request/SKILL.md`. Use this document as the reference version of the same workflow.
+
 Use this checklist when asked to review branch changes against `master`.
 
 ## Prerequisites
