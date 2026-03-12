@@ -94,7 +94,7 @@ Participant variables
 ---------------------
 
 :class:`~psynet.chatroom.EnableChatrooms` tracks room membership by writing
-two variables directly onto the :class:`~psynet.participant.Participant` object:
+two keys into the :class:`~psynet.participant.Participant` ``details`` JSONB field:
 
 ``chatroom_subscribed`` *(bool)*
     ``True`` while the participant is actively joined to a room; set to
@@ -103,16 +103,13 @@ two variables directly onto the :class:`~psynet.participant.Participant` object:
 ``chatroom_room_id`` *(str)*
     The ``room_id`` the participant is currently subscribed to.
 
-These variables are used internally to build the occupancy list broadcast to
-all room members.  You can read them in experiment code if you need to react
-to a participant's current room membership, for example::
+These values are used internally to build the occupancy list broadcast to
+all room members, and can be queried efficiently at the database level.
+You can read them in experiment code if you need to react to a participant's
+current room membership, for example::
 
-    if participant.var.get("chatroom_subscribed", False):
-        current_room = participant.var.chatroom_room_id
-
-.. note::
-    Both variables are set via ``participant.var``, so they are stored in the
-    ``ParticipantVar`` table and are included in the experiment export.
+    if participant.details.get("chatroom_subscribed", False):
+        current_room = participant.details["chatroom_room_id"]
 
 Customising the chatroom
 ------------------------

@@ -1,6 +1,7 @@
 import json
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm.attributes import flag_modified
 
 from .data import SQLBase, SQLMixin, register_table
 from .timeline import NullElt, WebSocketElt
@@ -57,12 +58,13 @@ class EnableChatrooms(NullElt, WebSocketElt):
         if msg_type == "join_room":
             if participant is not None:
                 already_here = (
-                    participant.var.get("chatroom_subscribed", False)
-                    and participant.var.get("chatroom_room_id", None) == room_id
+                    participant.details.get("chatroom_subscribed", False)
+                    and participant.details.get("chatroom_room_id") == room_id
                 )
                 if not already_here:
-                    participant.var.chatroom_subscribed = True
-                    participant.var.chatroom_room_id = room_id
+                    participant.details["chatroom_subscribed"] = True
+                    participant.details["chatroom_room_id"] = room_id
+                    flag_modified(participant, "details")
                     db.session.commit()
             self._broadcast_occupancy(experiment, room_id)
 
@@ -74,10 +76,11 @@ class EnableChatrooms(NullElt, WebSocketElt):
                 self._send_history(experiment, participant, room_id)
 
         elif msg_type == "leave_room":
-            if participant is not None and participant.var.get(
+            if participant is not None and participant.details.get(
                 "chatroom_subscribed", False
             ):
-                participant.var.chatroom_subscribed = False
+                participant.details["chatroom_subscribed"] = False
+                flag_modified(participant, "details")
                 db.session.commit()
             self._broadcast_occupancy(experiment, room_id)
 
@@ -100,9 +103,11 @@ class EnableChatrooms(NullElt, WebSocketElt):
 
         return [
             str(p.id)
-            for p in Participant.query.filter_by(failed=False).all()
-            if p.var.get("chatroom_subscribed", False)
-            and p.var.get("chatroom_room_id", None) == room_id
+            for p in Participant.query.filter(
+                Participant.failed.is_(False),
+                Participant.details["chatroom_subscribed"].as_boolean().is_(True),
+                Participant.details["chatroom_room_id"].as_string() == room_id,
+            ).all()
         ]
 
     def _broadcast_occupancy(self, experiment, room_id):
@@ -121,7 +126,7 @@ class EnableChatrooms(NullElt, WebSocketElt):
         messages = [
             {"content": m.content, "sender": str(m.participant_id)}
             for m in (
-                ChatMessage.query.filter_by(failed=False, room_id=room_id)
+                ChatMessage.query.filter_by(room_id=room_id)
                 .order_by(ChatMessage.id)
                 .all()
             )

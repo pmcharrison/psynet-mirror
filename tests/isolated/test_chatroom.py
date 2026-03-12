@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from dallinger import db
+from sqlalchemy.orm.attributes import flag_modified
 
 from psynet.chatroom import ChatMessage, EnableChatrooms
 from psynet.experiment import get_experiment
@@ -96,7 +97,7 @@ class TestHandleMessage:
 
     # -- join_room --
 
-    def test_join_room_sets_participant_vars(self, in_experiment_directory, db_session):
+    def test_join_room_persists_details(self, in_experiment_directory, db_session):
         handler, exp = self._handler_and_exp()
         experiment = get_experiment()
         participant = _new_participant(experiment)
@@ -106,9 +107,29 @@ class TestHandleMessage:
             handler, exp, participant, {"type": "join_room", "room_id": "room_A"}
         )
         db.session.commit()
+        db.session.expire(participant)
 
-        assert participant.var.get("chatroom_subscribed", False) is True
-        assert participant.var.get("chatroom_room_id") == "room_A"
+        assert participant.details.get("chatroom_subscribed") is True
+        assert participant.details.get("chatroom_room_id") == "room_A"
+
+    def test_leave_room_persists_details(self, in_experiment_directory, db_session):
+        handler, exp = self._handler_and_exp()
+        experiment = get_experiment()
+        participant = _new_participant(experiment)
+        db.session.flush()
+
+        self._send(
+            handler, exp, participant, {"type": "join_room", "room_id": "room_B"}
+        )
+        db.session.commit()
+
+        self._send(
+            handler, exp, participant, {"type": "leave_room", "room_id": "room_B"}
+        )
+        db.session.commit()
+        db.session.expire(participant)
+
+        assert participant.details.get("chatroom_subscribed") is False
 
     def test_join_room_broadcasts_occupancy(self, in_experiment_directory, db_session):
         handler, exp = self._handler_and_exp()
@@ -165,7 +186,7 @@ class TestHandleMessage:
         )
         db.session.commit()
 
-        assert participant.var.get("chatroom_subscribed", False) is False
+        assert participant.details.get("chatroom_subscribed", False) is False
 
     def test_leave_room_broadcasts_occupancy(self, in_experiment_directory, db_session):
         handler, exp = self._handler_and_exp()
@@ -277,11 +298,13 @@ class TestOccupantIds:
         p3 = _new_participant(experiment)
         db.session.flush()
 
-        p1.var.chatroom_subscribed = True
-        p1.var.chatroom_room_id = "room_X"
+        p1.details["chatroom_subscribed"] = True
+        p1.details["chatroom_room_id"] = "room_X"
+        flag_modified(p1, "details")
 
-        p2.var.chatroom_subscribed = True
-        p2.var.chatroom_room_id = "room_Y"  # different room
+        p2.details["chatroom_subscribed"] = True
+        p2.details["chatroom_room_id"] = "room_Y"  # different room
+        flag_modified(p2, "details")
 
         # p3 is not subscribed
         db.session.commit()
