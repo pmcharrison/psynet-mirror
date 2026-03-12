@@ -22,6 +22,7 @@
 - Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
 - Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
+- Added AsyncProcess duration stats (avg/median/p95/max by trial maker) to performance test results (author: Jesse Snyder)
 
 ### Changed
 
@@ -35,6 +36,7 @@
 - Improved performance-test summary table: replaced Completed/Bot Errors columns with Succeeded/Errored/Terminated, and response time columns with median/95th/max (author: Jesse Snyder)
 - Separated bot duration tracking by outcome (succeeded/failed/incomplete) in performance test results (author: Jesse Snyder)
 - Redirected bot output to dedicated logfile, keeping console output minimal during performance tests (author: Jesse Snyder)
+- Improved performance test output: tabulate-based tables, AsyncProcess duration stats, ANSI-colored headers/success rates, and reorganized per-test detail reporting (author: Jesse Snyder)
 
 ### Fixed
 
