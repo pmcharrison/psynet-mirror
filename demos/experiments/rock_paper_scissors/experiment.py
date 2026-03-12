@@ -72,7 +72,7 @@ class RockPaperScissorsTrial(StaticTrial):
             "results",
             prompt,
             chatroom=ChatRoom(
-                room_id=f"rps_rooom_{participant.sync_group.id}",
+                room_id=f"rps_room_{participant.sync_group.id}",
                 show_participants=True,
                 show_history=True,
             ),
