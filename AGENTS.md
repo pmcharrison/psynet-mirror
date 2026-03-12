@@ -116,6 +116,14 @@ GET https://gitlab.com/api/v4/projects/<project_id>/jobs/<job_id>/trace
 
 This is the preferred approach for agents when verifying CI status or logs.
 
+## Branch review command
+
+When reviewing the current PsyNet branch against `master`, prefer the repo-local
+Cursor command `/review`.
+
+- `/review` is defined in `.cursor/commands/review.md`
+- its detailed workflow lives in `.cursor/skills/branch-review/SKILL.md`
+
 ## Testing
 
 Non-trivial code changes should be tested. 
