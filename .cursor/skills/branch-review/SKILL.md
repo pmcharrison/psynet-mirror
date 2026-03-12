@@ -1,9 +1,9 @@
 ---
-name: review-merge-request
-description: Review branch changes against `master` using a diff-to-master workflow that emphasizes correctness, regressions, API breaks, side effects, and missing tests. Use when the user asks to review a merge request, review a branch against `master`, or perform code review on pending branch changes.
+name: branch-review
+description: Review branch changes against `master` using a diff-to-master workflow that emphasizes correctness, regressions, API breaks, side effects, and missing tests. Use when the user asks to review a branch against `master`, compare branch changes, perform pre-merge code review, or review a merge request.
 ---
 
-# Review Merge Request
+# Branch Review
 
 Use this skill when reviewing a feature branch against `master`.
 
