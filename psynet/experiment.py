@@ -33,7 +33,6 @@ import pexpect
 import psutil
 import rpdb
 import sqlalchemy.orm.exc
-from tabulate import tabulate
 from click import Context
 from dallinger import db
 from dallinger.config import get_config as dallinger_get_config
@@ -63,10 +62,11 @@ from flask import jsonify, redirect, render_template, request, send_file, url_fo
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import joinedload, with_polymorphic
+from tabulate import tabulate
 
 from psynet import __version__
-from psynet.log import bold, error, success, warning
 from psynet.artifact import LocalArtifactStorage
+from psynet.log import bold, error, success, warning
 from psynet.utils import (
     format_bytes,
     get_config,
@@ -86,8 +86,8 @@ from .field import ImmutableVarStore, PythonDict
 from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
-from .process import AsyncProcess
 from .participant import Participant
+from .process import AsyncProcess
 from .recruiters import CapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import StagingCapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import (  # noqa: F401
@@ -1439,7 +1439,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             logger.info("")
             logger.info(bold("=" * 80))
             logger.info(
-                bold(f"TEST {i}/{len(bot_counts)}: Running with {n_bots:,} concurrent bots")
+                bold(
+                    f"TEST {i}/{len(bot_counts)}: Running with {n_bots:,} concurrent bots"
+                )
             )
 
             result = self._test_performance(n_bots, bot_log_file=bot_log_file)
@@ -1487,9 +1489,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         logger.info("")
         logger.info(bold("CUMULATIVE PERFORMANCE TEST SUMMARY"))
         logger.info("")
-        table = tabulate(
-            summary_rows, headers=summary_headers, tablefmt="simple"
-        )
+        table = tabulate(summary_rows, headers=summary_headers, tablefmt="simple")
         for line in table.splitlines():
             logger.info(f"  {line}")
         logger.info("")
@@ -2113,9 +2113,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
         if bots_finished > 0:
-            success_rate = (
-                f"{(result['bots_succeeded'] / bots_finished) * 100:.1f}%"
-            )
+            success_rate = f"{(result['bots_succeeded'] / bots_finished) * 100:.1f}%"
         elif result["total_bots_started"] > 0:
             success_rate = "0.0%"
         else:
@@ -2163,9 +2161,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ]
             )
         if result.get("avg_init_time") is not None:
-            detail_rows.append(
-                ["Avg bot init time", f"{result['avg_init_time']:.1f}s"]
-            )
+            detail_rows.append(["Avg bot init time", f"{result['avg_init_time']:.1f}s"])
         _log_table(detail_rows, headers=[], colalign=("left", "right"))
         logger.info("")
 
@@ -2194,9 +2190,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ["Std dev", _fmt(result["stddev_response_time"])],
         ]
         logger.info(bold("  Response times (s):"))
-        _log_table(
-            resp_rows, headers=[], indent="    ", colalign=("left", "right")
-        )
+        _log_table(resp_rows, headers=[], indent="    ", colalign=("left", "right"))
         logger.info("")
 
         # Async process stats
