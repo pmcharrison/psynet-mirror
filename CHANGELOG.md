@@ -26,6 +26,7 @@
 - Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
 - Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
+- Added AsyncProcess duration stats (avg/median/p95/max by trial maker) to performance test results (author: Jesse Snyder)
 
 ### Changed
 
@@ -38,10 +39,11 @@
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 - Replaced the moto-backed S3 emulator with a minimal filesystem-backed mock for targeted S3 artifact-storage tests, while moving broader backup coverage back to a local-storage test path and removing the `moto` dependency from the test environment (author: Frank Höger)
 - Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
+- Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout (author: Frank Höger)
 - Improved performance-test summary table: replaced Completed/Bot Errors columns with Succeeded/Errored/Terminated, and response time columns with median/95th/max (author: Jesse Snyder)
 - Separated bot duration tracking by outcome (succeeded/failed/incomplete) in performance test results (author: Jesse Snyder)
 - Redirected bot output to dedicated logfile, keeping console output minimal during performance tests (author: Jesse Snyder)
-- Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout (author: Frank Höger)
+- Improved performance test output: tabulate-based tables, AsyncProcess duration stats, ANSI-colored headers/success rates, and reorganized per-test detail reporting (author: Jesse Snyder)
 
 ### Fixed
 
