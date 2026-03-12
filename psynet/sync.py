@@ -303,27 +303,11 @@ class GroupBarrier(Barrier):
             )
         self.participant_timeout_action = participant_timeout_action
 
-    def _remove_participant_from_group(
-        self, group: "SyncGroup", participant: Participant
-    ):
-        """Remove a participant from a sync group (e.g. when kicking due to timeout). Sets link active to False."""
-        for link in group.participant_links:
-            if link.participant_id == participant.id:
-                link.active = False
-        group.check_numbers()
-        if group.n_active_participants == 0 and not getattr(
-            group, "accepts_top_ups", False
-        ):
-            group.close()
-        else:
-            group.check_leader()
-
     def _on_max_wait_timeout(self, participant: Participant):
         """Called when max_wait_time is exceeded and max_wait_action is 'kick'. Removes participant from the group."""
         if self.group_type in participant.active_sync_groups:
-            self._remove_participant_from_group(
-                participant.active_sync_groups[self.group_type],
-                participant,
+            participant.active_sync_groups[self.group_type].remove_participant(
+                participant
             )
 
     def choose_who_to_release(self, waiting_participants: List[Participant]):
@@ -369,7 +353,7 @@ class GroupBarrier(Barrier):
                                 participant.id,
                                 group.id,
                             )
-                            self._remove_participant_from_group(group, participant)
+                            group.remove_participant(participant)
                             if participant.current_trial is not None:
                                 participant.current_trial.fail(
                                     reason="participant timeout at barrier"
@@ -390,7 +374,7 @@ class GroupBarrier(Barrier):
                     for participant in list(group.active_participants):
                         if getattr(group, "fail_participants_below_min_size", True):
                             participant.fail("sync group below minimum size")
-                        self._remove_participant_from_group(group, participant)
+                        group.remove_participant(participant)
                         participants_to_release.append(participant)
                     group.check_numbers()
                     if group.n_active_participants == 0:
@@ -829,6 +813,18 @@ class SyncGroup(SQLBase, SQLMixin):
 
     def check_numbers(self):
         self.n_active_participants = len(self.active_participants)
+
+    def remove_participant(self, participant: Participant):
+        for link in self.participant_links:
+            if link.participant_id == participant.id:
+                link.active = False
+        self.check_numbers()
+        if self.n_active_participants == 0 and not getattr(
+            self, "accepts_top_ups", False
+        ):
+            self.close()
+        else:
+            self.check_leader()
 
 
 class SimpleSyncGroup(SyncGroup):
