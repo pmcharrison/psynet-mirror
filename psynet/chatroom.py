@@ -1,6 +1,6 @@
 import json
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 
 from .data import SQLBase, SQLMixin, register_table
 from .timeline import NullElt, WebSocketElt
@@ -20,6 +20,20 @@ class ChatMessage(SQLBase, SQLMixin):
     room_id = Column(String(128), index=True)
     content = Column(Text)
     receive_time = Column(DateTime(timezone=True))
+
+
+@register_table
+class ChatRoomMember(SQLBase, SQLMixin):
+    """Tracks which participants are currently in which chat rooms."""
+
+    __tablename__ = "chat_room_member"
+
+    id = Column(Integer, primary_key=True)
+    participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
+    room_id = Column(String(128), index=True)
+    active = Column(Boolean, default=True, index=True)
+    join_time = Column(DateTime(timezone=True))
+    leave_time = Column(DateTime(timezone=True), nullable=True)
 
 
 class EnableChatrooms(NullElt, WebSocketElt):
@@ -56,11 +70,25 @@ class EnableChatrooms(NullElt, WebSocketElt):
 
         if msg_type == "join_room":
             if participant is not None:
-                already_here = (
-                    participant.var.get("chatroom_subscribed", False)
-                    and participant.var.get("chatroom_room_id", None) == room_id
-                )
-                if not already_here:
+                already_here = ChatRoomMember.query.filter_by(
+                    participant_id=participant.id,
+                    room_id=room_id,
+                    active=True,
+                ).first()
+                if already_here is None:
+                    # Deactivate any previous room membership.
+                    ChatRoomMember.query.filter_by(
+                        participant_id=participant.id,
+                        active=True,
+                    ).update({"active": False, "leave_time": receive_time})
+                    db.session.add(
+                        ChatRoomMember(
+                            participant_id=participant.id,
+                            room_id=room_id,
+                            active=True,
+                            join_time=receive_time,
+                        )
+                    )
                     participant.var.chatroom_subscribed = True
                     participant.var.chatroom_room_id = room_id
                     db.session.commit()
@@ -74,10 +102,14 @@ class EnableChatrooms(NullElt, WebSocketElt):
                 self._send_history(experiment, participant, room_id)
 
         elif msg_type == "leave_room":
-            if participant is not None and participant.var.get(
-                "chatroom_subscribed", False
-            ):
-                participant.var.chatroom_subscribed = False
+            if participant is not None:
+                ChatRoomMember.query.filter_by(
+                    participant_id=participant.id,
+                    room_id=room_id,
+                    active=True,
+                ).update({"active": False, "leave_time": receive_time})
+                if participant.var.get("chatroom_subscribed", False):
+                    participant.var.chatroom_subscribed = False
                 db.session.commit()
             self._broadcast_occupancy(experiment, room_id)
 
@@ -99,10 +131,14 @@ class EnableChatrooms(NullElt, WebSocketElt):
         from psynet.participant import Participant
 
         return [
-            str(p.id)
-            for p in Participant.query.filter_by(failed=False).all()
-            if p.var.get("chatroom_subscribed", False)
-            and p.var.get("chatroom_room_id", None) == room_id
+            str(m.participant_id)
+            for m in ChatRoomMember.query.join(Participant)
+            .filter(
+                ChatRoomMember.room_id == room_id,
+                ChatRoomMember.active.is_(True),
+                Participant.failed.is_(False),
+            )
+            .all()
         ]
 
     def _broadcast_occupancy(self, experiment, room_id):

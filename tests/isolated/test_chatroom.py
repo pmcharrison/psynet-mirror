@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 from dallinger import db
 
-from psynet.chatroom import ChatMessage, EnableChatrooms
+from psynet.chatroom import ChatMessage, ChatRoomMember, EnableChatrooms
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
@@ -277,12 +277,17 @@ class TestOccupantIds:
         p3 = _new_participant(experiment)
         db.session.flush()
 
-        p1.var.chatroom_subscribed = True
-        p1.var.chatroom_room_id = "room_X"
-
-        p2.var.chatroom_subscribed = True
-        p2.var.chatroom_room_id = "room_Y"  # different room
-
+        now = datetime.now(UTC)
+        db.session.add(
+            ChatRoomMember(
+                participant_id=p1.id, room_id="room_X", active=True, join_time=now
+            )
+        )
+        db.session.add(
+            ChatRoomMember(
+                participant_id=p2.id, room_id="room_Y", active=True, join_time=now
+            )
+        )
         # p3 is not subscribed
         db.session.commit()
 
