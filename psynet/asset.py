@@ -478,28 +478,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         return self
 
-    def link_to(
-        self,
-        parent,
-        local_key: str,
-        definition: Optional[dict] = None,
-        module_id: Optional[str] = None,
-    ):
-        """
-        Deprecated. Use :meth:`update_metadata` instead.
-        """
-        warnings.warn(
-            "Asset.link_to is deprecated; use Asset.update_metadata instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.update_metadata(
-            parent,
-            local_key,
-            definition=definition,
-            module_id=module_id,
-        )
-
     @property
     def trial_maker(self):
         from psynet.experiment import get_trial_maker
