@@ -3905,16 +3905,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def dashboard_errors(cls):
         error_summary = {}
-        for error in cls.get_all_error_records():
+        for err in cls.get_all_error_records():
             _error = {
-                "token": error.token,
-                "creation_time": error.creation_time.strftime("%Y-%m-%d %H:%M:%S"),
-                "traceback": error.traceback,
-                "log_line_number": error.log_line_number,
-                "ids": error.ids,
+                "token": err.token,
+                "creation_time": err.creation_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "traceback": err.traceback,
+                "log_line_number": err.log_line_number,
+                "ids": err.ids,
             }
 
-            kind, msg = error.kind, error.message
+            kind, msg = err.kind, err.message
             if kind not in error_summary:
                 error_summary[kind] = {}
             if msg not in error_summary[kind]:
