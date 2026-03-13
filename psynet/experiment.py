@@ -1508,6 +1508,36 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             logger.info(f"  {line}")
         logger.info("")
 
+        # Scaling table (only if multiple runs and baseline has a P95 value)
+        if len(results) > 1 and results[0].get("p95_response_time") is not None:
+            baseline_p95 = results[0]["p95_response_time"]
+            scaling_rows = []
+            for r in results:
+                p95 = r.get("p95_response_time")
+                if p95 is not None:
+                    vs = (
+                        f"{p95 / baseline_p95:.1f}x"
+                        if baseline_p95 > 0
+                        else "N/A"
+                    )
+                else:
+                    vs = "N/A"
+                scaling_rows.append([
+                    r["n_bots"],
+                    _fmt(p95) if p95 is not None else "N/A",
+                    vs if r is not results[0] else "\u2014",
+                ])
+            scaling_table = tabulate(
+                scaling_rows,
+                headers=["|| Bots", "Resp P95 (s)", "vs baseline"],
+                tablefmt="simple",
+            )
+            logger.info(bold("SCALING"))
+            logger.info("")
+            for line in scaling_table.splitlines():
+                logger.info(f"  {line}")
+            logger.info("")
+
     def _test_performance(self, n, bot_log_file):
         """
         Run a load test by maintaining up to n concurrent bot processes for a
