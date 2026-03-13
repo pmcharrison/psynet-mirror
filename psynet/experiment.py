@@ -1478,7 +1478,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 result["bots_succeeded"],
                 result["bots_failed"],
                 result["bots_incomplete"],
-                result.get("median_trial_count", "N/A") or "N/A",
+                result["median_trial_count_succeeded"]
+                if result.get("median_trial_count_succeeded") is not None
+                else (result.get("median_trial_count_other") or "N/A"),
                 result["total_requests"],
                 result["request_errors"],
                 _fmt(result["median_response_time"]),
@@ -2001,28 +2003,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             median_wait_page_time = p95_wait_page_time = max_wait_page_time = None
 
-        succeeded_bot_ids = [b.id for b in bots if b.status in {"approved", "submitted"}]
-        if succeeded_bot_ids:
-            trial_counts_rows = (
-                db.session.query(
-                    Trial.participant_id, func.count(Trial.id).label("n_trials")
-                )
-                .filter(
-                    Trial.participant_id.in_(succeeded_bot_ids), Trial.failed == False  # noqa: E712
-                )
-                .group_by(Trial.participant_id)
-                .all()
-            )
-            n_missing = len(succeeded_bot_ids) - len(trial_counts_rows)
-            trial_counts = sorted(
-                [0] * n_missing + [row.n_trials for row in trial_counts_rows]
-            )
-            min_trial_count = trial_counts[0]
-            median_trial_count = trial_counts[len(trial_counts) // 2]
-            max_trial_count = trial_counts[-1]
-        else:
-            min_trial_count = median_trial_count = max_trial_count = None
-
         avg_response_time = stats.avg
         median_response_time = stats.median
         p95_response_time = stats.p95
@@ -2031,6 +2011,41 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         max_response_time = stats.max
 
         succeeded_statuses = {"approved", "submitted"}
+
+        def _trial_count_stats(bot_ids):
+            if not bot_ids:
+                return None, None, None
+            rows = (
+                db.session.query(
+                    Trial.participant_id, func.count(Trial.id).label("n_trials")
+                )
+                .filter(
+                    Trial.participant_id.in_(bot_ids), Trial.failed == False  # noqa: E712
+                )
+                .group_by(Trial.participant_id)
+                .all()
+            )
+            counts = sorted(
+                [0] * (len(bot_ids) - len(rows)) + [r.n_trials for r in rows]
+            )
+            return counts[0], counts[len(counts) // 2], counts[-1]
+
+        succeeded_bot_ids = [
+            b.id for b in bots if b.status in succeeded_statuses
+        ]
+        other_bot_ids = [
+            b.id for b in bots if b.status not in succeeded_statuses
+        ]
+        (
+            min_trial_count_succeeded,
+            median_trial_count_succeeded,
+            max_trial_count_succeeded,
+        ) = _trial_count_stats(succeeded_bot_ids)
+        (
+            min_trial_count_other,
+            median_trial_count_other,
+            max_trial_count_other,
+        ) = _trial_count_stats(other_bot_ids)
         bot_status_map = {b.id: b.status for b in bots}
         succeeded_durations = [
             d
@@ -2102,9 +2117,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "avg_failed_duration": avg_failed_duration,
             "avg_incomplete_duration": avg_incomplete_duration,
             "process_stats": process_stats,
-            "min_trial_count": min_trial_count,
-            "median_trial_count": median_trial_count,
-            "max_trial_count": max_trial_count,
+            "min_trial_count_succeeded": min_trial_count_succeeded,
+            "median_trial_count_succeeded": median_trial_count_succeeded,
+            "max_trial_count_succeeded": max_trial_count_succeeded,
+            "min_trial_count_other": min_trial_count_other,
+            "median_trial_count_other": median_trial_count_other,
+            "max_trial_count_other": max_trial_count_other,
         }
 
         self._report_test_results(result)
@@ -2209,20 +2227,27 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             logger.info("")
 
         # Trial counts per participant
-        if result.get("min_trial_count") is not None:
-            trial_rows = [
-                ["Min", result["min_trial_count"]],
-                ["Median", result["median_trial_count"]],
-                ["Max", result["max_trial_count"]],
+        has_other = result.get("min_trial_count_other") is not None
+        _tc = lambda k, fallback=0: result[k] if result.get(k) is not None else fallback  # noqa: E731
+        trial_rows = [
+            ["Min (succeeded)", _tc("min_trial_count_succeeded")],
+            ["Median (succeeded)", _tc("median_trial_count_succeeded")],
+            ["Max (succeeded)", _tc("max_trial_count_succeeded")],
+        ]
+        if has_other:
+            trial_rows += [
+                ["Min (other)", result["min_trial_count_other"]],
+                ["Median (other)", result["median_trial_count_other"]],
+                ["Max (other)", result["max_trial_count_other"]],
             ]
-            logger.info(bold("  Alive trials per succeeded bot:"))
-            _log_table(
-                trial_rows,
-                headers=[],
-                indent="    ",
-                colalign=("left", "right"),
-            )
-            logger.info("")
+        logger.info(bold("  Alive trials per bot:"))
+        _log_table(
+            trial_rows,
+            headers=[],
+            indent="    ",
+            colalign=("left", "right"),
+        )
+        logger.info("")
 
         # Response time stats
         resp_rows = [
