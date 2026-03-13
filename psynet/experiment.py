@@ -1450,45 +1450,57 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         def _fmt(value):
             return f"{value:.3f}" if value is not None else "N/A"
 
+        show_scaling = (
+            len(results) > 1
+            and results[0].get("p95_response_time") is not None
+        )
+        baseline_p95 = results[0].get("p95_response_time") if show_scaling else None
+        baseline_q_p95 = results[0].get("q_delay_p95") if show_scaling else None
+
         summary_headers = [
             "|| Bots",
             "Succeeded",
-            "Failed",
-            "Timed out",
-            "Trials med",
             "Requests",
             "Req/s",
-            "Req Errors",
-            "Resp med (s)",
-            "Resp 95% (s)",
-            "Resp 99% (s)",
-            "Resp max (s)",
+            "Resp P95 (s)",
         ]
-        summary_rows = [
-            [
+        if show_scaling:
+            summary_headers.append("vs base")
+        summary_headers.append("Q.P95 all (s)")
+        if show_scaling:
+            summary_headers.append("vs base")
+
+        summary_rows = []
+        for i, result in enumerate(results):
+            p95 = result.get("p95_response_time")
+            q_p95 = result.get("q_delay_p95")
+            row = [
                 result["n_bots"],
                 result["bots_succeeded"],
-                result["bots_failed"],
-                result["bots_incomplete"],
-                (
-                    result["median_trial_count"]
-                    if result.get("median_trial_count") is not None
-                    else "N/A"
-                ),
                 result["total_requests"],
                 (
                     f"{result['requests_per_sec']:.1f}"
                     if result.get("requests_per_sec") is not None
                     else "N/A"
                 ),
-                result["request_errors"],
-                _fmt(result["median_response_time"]),
-                _fmt(result["p95_response_time"]),
-                _fmt(result["p99_response_time"]),
-                _fmt(result["max_response_time"]),
+                _fmt(p95),
             ]
-            for result in results
-        ]
+            if show_scaling:
+                if i == 0:
+                    row.append("\u2014")
+                elif p95 is not None and baseline_p95 and baseline_p95 > 0:
+                    row.append(f"{p95 / baseline_p95:.1f}x")
+                else:
+                    row.append("N/A")
+            row.append(_fmt(q_p95))
+            if show_scaling:
+                if i == 0:
+                    row.append("\u2014")
+                elif q_p95 is not None and baseline_q_p95 and baseline_q_p95 > 0:
+                    row.append(f"{q_p95 / baseline_q_p95:.1f}x")
+                else:
+                    row.append("N/A")
+            summary_rows.append(row)
 
         logger.info("")
         logger.info(bold("CUMULATIVE PERFORMANCE TEST SUMMARY"))
@@ -1497,36 +1509,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for line in table.splitlines():
             logger.info(f"  {line}")
         logger.info("")
-
-        # Scaling table (only if multiple runs and baseline has a P95 value)
-        if len(results) > 1 and results[0].get("p95_response_time") is not None:
-            baseline_p95 = results[0]["p95_response_time"]
-            scaling_rows = []
-            for r in results:
-                p95 = r.get("p95_response_time")
-                if p95 is not None:
-                    vs = (
-                        f"{p95 / baseline_p95:.1f}x"
-                        if baseline_p95 > 0
-                        else "N/A"
-                    )
-                else:
-                    vs = "N/A"
-                scaling_rows.append([
-                    r["n_bots"],
-                    _fmt(p95) if p95 is not None else "N/A",
-                    vs if r is not results[0] else "\u2014",
-                ])
-            scaling_table = tabulate(
-                scaling_rows,
-                headers=["|| Bots", "Resp P95 (s)", "vs baseline"],
-                tablefmt="simple",
-            )
-            logger.info(bold("SCALING"))
-            logger.info("")
-            for line in scaling_table.splitlines():
-                logger.info(f"  {line}")
-            logger.info("")
 
     def _test_performance(self, n, bot_log_file):
         """
@@ -1986,6 +1968,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 .within_group(AsyncProcess.time_taken)
                 .label("p95"),
                 func.max(AsyncProcess.time_taken).label("max"),
+                func.avg(AsyncProcess.queue_delay).label("q_avg"),
+                func.percentile_cont(0.95)
+                .within_group(AsyncProcess.queue_delay)
+                .label("q_p95"),
             )
             .filter(
                 AsyncProcess.id > initial_state["max_process_id"],
@@ -2003,9 +1989,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "median": row.median,
                 "p95": row.p95,
                 "max": row.max,
+                "q_avg": row.q_avg,
+                "q_p95": row.q_p95,
             }
             for row in process_stats_rows
         ]
+
+        q_delay_p95 = (
+            db.session.query(
+                func.percentile_cont(0.95).within_group(AsyncProcess.queue_delay)
+            )
+            .filter(
+                AsyncProcess.id > initial_state["max_process_id"],
+                AsyncProcess.finished == True,  # noqa: E712
+            )
+            .scalar()
+        )
 
         bot_ids = bot_state["bot_ids"]
         bots = Bot.query.filter(Bot.id.in_(list(bot_ids))).all()
@@ -2148,6 +2147,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "avg_succeeded_duration": avg_succeeded_duration,
             "avg_failed_duration": avg_failed_duration,
             "avg_incomplete_duration": avg_incomplete_duration,
+            "q_delay_p95": q_delay_p95,
             "process_stats": process_stats,
             "min_trial_count": min_trial_count,
             "median_trial_count": median_trial_count,
@@ -2326,6 +2326,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # ASYNC PROCESS TIMES
         if result.get("process_stats"):
             _section("ASYNC PROCESS TIMES")
+            _fmt = lambda v: f"{v:.3f}" if v is not None else "N/A"  # noqa: E731
             proc_rows = [
                 [
                     ps["trial_maker_id"],
@@ -2335,6 +2336,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"{ps['median']:.3f}",
                     f"{ps['p95']:.3f}",
                     f"{ps['max']:.3f}",
+                    _fmt(ps["q_avg"]),
+                    _fmt(ps["q_p95"]),
                 ]
                 for ps in result["process_stats"]
             ]
@@ -2348,12 +2351,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "Med (s)",
                     "P95 (s)",
                     "Max (s)",
+                    "Q.Avg (s)",
+                    "Q.P95 (s)",
                 ],
                 indent="    ",
                 tablefmt="simple",
                 colalign=(
                     "left",
                     "left",
+                    "right",
+                    "right",
                     "right",
                     "right",
                     "right",
