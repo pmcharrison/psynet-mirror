@@ -24,7 +24,13 @@ class ChatMessage(SQLBase, SQLMixin):
 
 @register_table
 class ChatRoomMember(SQLBase, SQLMixin):
-    """Tracks which participants are currently in which chat rooms."""
+    """Tracks room membership sessions for participants.
+
+    A new record is created each time a participant joins a room, so there may
+    be multiple records per (participant_id, room_id) pair.  ``active=True``
+    indicates the participant is currently in the room; ``leave_time`` is set
+    when they leave.
+    """
 
     __tablename__ = "chat_room_member"
 
@@ -70,29 +76,24 @@ class EnableChatrooms(NullElt, WebSocketElt):
 
         if msg_type == "join_room":
             if participant is not None:
-                already_here = ChatRoomMember.query.filter_by(
+                # Close any active session for this participant in this room,
+                # then open a new one.  This handles reconnects cleanly and
+                # preserves a full join/leave history per room.
+                ChatRoomMember.query.filter_by(
                     participant_id=participant.id,
                     room_id=room_id,
                     active=True,
-                ).first()
-                if already_here is None:
-                    # Deactivate any previous room membership.
-                    ChatRoomMember.query.filter_by(
+                ).update({"active": False, "leave_time": receive_time})
+                db.session.add(
+                    ChatRoomMember(
                         participant_id=participant.id,
+                        room_id=room_id,
                         active=True,
-                    ).update({"active": False, "leave_time": receive_time})
-                    db.session.add(
-                        ChatRoomMember(
-                            participant_id=participant.id,
-                            room_id=room_id,
-                            active=True,
-                            join_time=receive_time,
-                        )
+                        join_time=receive_time,
                     )
-                    participant.var.chatroom_subscribed = True
-                    participant.var.chatroom_room_id = room_id
-                    db.session.commit()
-            self._broadcast_occupancy(experiment, room_id)
+                )
+                db.session.commit()
+                self._broadcast_occupancy(experiment, room_id)
 
         elif msg_type == "request_state":
             # Sent once on initial connection; sends back history and
@@ -108,10 +109,8 @@ class EnableChatrooms(NullElt, WebSocketElt):
                     room_id=room_id,
                     active=True,
                 ).update({"active": False, "leave_time": receive_time})
-                if participant.var.get("chatroom_subscribed", False):
-                    participant.var.chatroom_subscribed = False
                 db.session.commit()
-            self._broadcast_occupancy(experiment, room_id)
+                self._broadcast_occupancy(experiment, room_id)
 
         elif msg_type == "message":
             current_node = participant.current_node if participant is not None else node
@@ -134,6 +133,7 @@ class EnableChatrooms(NullElt, WebSocketElt):
             str(pid)
             for (pid,) in ChatRoomMember.query.join(Participant)
             .with_entities(ChatRoomMember.participant_id)
+            .distinct()
             .filter(
                 ChatRoomMember.room_id == room_id,
                 ChatRoomMember.active.is_(True),
