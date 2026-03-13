@@ -90,29 +90,14 @@ sender's participant and node IDs, the room ID, the message content, and the
 server-side receive time.  This data is available in the exported dataset after
 the experiment completes.
 
-Participant variables
----------------------
+Room membership tracking
+------------------------
 
-:class:`~psynet.chatroom.EnableChatrooms` tracks room membership by writing
-two variables directly onto the :class:`~psynet.participant.Participant` object:
-
-``chatroom_subscribed`` *(bool)*
-    ``True`` while the participant is actively joined to a room; set to
-    ``False`` when they send a ``leave_room`` message (e.g. on page exit).
-
-``chatroom_room_id`` *(str)*
-    The ``room_id`` the participant is currently subscribed to.
-
-These variables are used internally to build the occupancy list broadcast to
-all room members.  You can read them in experiment code if you need to react
-to a participant's current room membership, for example::
-
-    if participant.var.get("chatroom_subscribed", False):
-        current_room = participant.var.chatroom_room_id
-
-.. note::
-    Both variables are set via ``participant.var``, so they are stored in the
-    ``ParticipantVar`` table and are included in the experiment export.
+Join and leave events are persisted in the
+:class:`~psynet.chatroom.ChatRoomMember` table, with timestamps and an
+``active`` flag.  This data is available in the exported dataset and can be
+used to reconstruct each participant's room history.  Participants may be
+active in more than one room at the same time.
 
 Customising the chatroom
 ------------------------

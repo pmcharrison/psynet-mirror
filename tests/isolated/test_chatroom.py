@@ -96,7 +96,7 @@ class TestHandleMessage:
 
     # -- join_room --
 
-    def test_join_room_sets_participant_vars(self, in_experiment_directory, db_session):
+    def test_join_room_creates_member_record(self, in_experiment_directory, db_session):
         handler, exp = self._handler_and_exp()
         experiment = get_experiment()
         participant = _new_participant(experiment)
@@ -107,8 +107,11 @@ class TestHandleMessage:
         )
         db.session.commit()
 
-        assert participant.var.get("chatroom_subscribed", False) is True
-        assert participant.var.get("chatroom_room_id") == "room_A"
+        record = ChatRoomMember.query.filter_by(
+            participant_id=participant.id, room_id="room_A"
+        ).one()
+        assert record.active is True
+        assert record.join_time is not None
 
     def test_join_room_broadcasts_occupancy(self, in_experiment_directory, db_session):
         handler, exp = self._handler_and_exp()
@@ -146,9 +149,66 @@ class TestHandleMessage:
 
         exp.publish_to_subscribers.assert_called_once()
 
+    def test_rejoin_room_closes_prior_session(
+        self, in_experiment_directory, db_session
+    ):
+        """Re-joining a room creates a new record and closes the previous one."""
+        handler, exp = self._handler_and_exp()
+        experiment = get_experiment()
+        participant = _new_participant(experiment)
+        db.session.flush()
+
+        self._send(
+            handler, exp, participant, {"type": "join_room", "room_id": "room_A"}
+        )
+        db.session.commit()
+
+        self._send(
+            handler, exp, participant, {"type": "join_room", "room_id": "room_A"}
+        )
+        db.session.commit()
+
+        records = (
+            ChatRoomMember.query.filter_by(
+                participant_id=participant.id, room_id="room_A"
+            )
+            .order_by(ChatRoomMember.id)
+            .all()
+        )
+        assert len(records) == 2
+        assert records[0].active is False
+        assert records[0].leave_time is not None
+        assert records[1].active is True
+
+    def test_join_multiple_rooms_simultaneously(
+        self, in_experiment_directory, db_session
+    ):
+        """A participant can be active in more than one room at the same time."""
+        handler, exp = self._handler_and_exp()
+        experiment = get_experiment()
+        participant = _new_participant(experiment)
+        db.session.flush()
+
+        self._send(
+            handler, exp, participant, {"type": "join_room", "room_id": "room_A"}
+        )
+        self._send(
+            handler, exp, participant, {"type": "join_room", "room_id": "room_B"}
+        )
+        db.session.commit()
+
+        active = ChatRoomMember.query.filter_by(
+            participant_id=participant.id, active=True
+        ).all()
+        active_rooms = {r.room_id for r in active}
+        assert "room_A" in active_rooms
+        assert "room_B" in active_rooms
+
     # -- leave_room --
 
-    def test_leave_room_clears_subscription(self, in_experiment_directory, db_session):
+    def test_leave_room_deactivates_member_record(
+        self, in_experiment_directory, db_session
+    ):
         handler, exp = self._handler_and_exp()
         experiment = get_experiment()
         participant = _new_participant(experiment)
@@ -165,7 +225,11 @@ class TestHandleMessage:
         )
         db.session.commit()
 
-        assert participant.var.get("chatroom_subscribed", False) is False
+        record = ChatRoomMember.query.filter_by(
+            participant_id=participant.id, room_id="room_B"
+        ).one()
+        assert record.active is False
+        assert record.leave_time is not None
 
     def test_leave_room_broadcasts_occupancy(self, in_experiment_directory, db_session):
         handler, exp = self._handler_and_exp()
@@ -188,6 +252,71 @@ class TestHandleMessage:
         payload = _published_payloads(exp)[0]
         assert payload["type"] == "occupancy_update"
         assert payload["room_id"] == "room_B"
+
+    def test_leave_room_does_not_affect_other_rooms(
+        self, in_experiment_directory, db_session
+    ):
+        """Leaving one room leaves other room memberships intact."""
+        handler, exp = self._handler_and_exp()
+        experiment = get_experiment()
+        participant = _new_participant(experiment)
+        db.session.flush()
+
+        self._send(
+            handler, exp, participant, {"type": "join_room", "room_id": "room_A"}
+        )
+        self._send(
+            handler, exp, participant, {"type": "join_room", "room_id": "room_B"}
+        )
+        db.session.commit()
+
+        self._send(
+            handler, exp, participant, {"type": "leave_room", "room_id": "room_B"}
+        )
+        db.session.commit()
+
+        record_a = ChatRoomMember.query.filter_by(
+            participant_id=participant.id, room_id="room_A", active=True
+        ).one_or_none()
+        assert record_a is not None
+
+    def test_join_room_null_participant_does_not_broadcast(
+        self, in_experiment_directory, db_session
+    ):
+        """join_room with participant=None skips DB writes and broadcasts."""
+        handler, exp = self._handler_and_exp()
+        db.session.flush()
+
+        handler.handle_message(
+            json.dumps({"type": "join_room", "room_id": "room_G"}),
+            handler.channel,
+            None,
+            None,
+            datetime.now(UTC),
+            exp,
+        )
+        db.session.commit()
+
+        exp.publish_to_subscribers.assert_not_called()
+
+    def test_leave_room_null_participant_does_not_broadcast(
+        self, in_experiment_directory, db_session
+    ):
+        """leave_room with participant=None skips DB writes and broadcasts."""
+        handler, exp = self._handler_and_exp()
+        db.session.flush()
+
+        handler.handle_message(
+            json.dumps({"type": "leave_room", "room_id": "room_H"}),
+            handler.channel,
+            None,
+            None,
+            datetime.now(UTC),
+            exp,
+        )
+        db.session.commit()
+
+        exp.publish_to_subscribers.assert_not_called()
 
     # -- message --
 
@@ -299,6 +428,70 @@ class TestOccupantIds:
         ids_Y = handler._occupant_ids("room_Y")
         assert str(p2.id) in ids_Y
         assert str(p1.id) not in ids_Y
+
+    def test_excludes_inactive_participants(self, in_experiment_directory, db_session):
+        """Participants with active=False are not returned."""
+        handler = EnableChatrooms()
+        experiment = get_experiment()
+        p = _new_participant(experiment)
+        db.session.flush()
+
+        now = datetime.now(UTC)
+        db.session.add(
+            ChatRoomMember(
+                participant_id=p.id,
+                room_id="room_Z",
+                active=False,
+                join_time=now,
+                leave_time=now,
+            )
+        )
+        db.session.commit()
+
+        assert handler._occupant_ids("room_Z") == []
+
+    def test_excludes_failed_participants(self, in_experiment_directory, db_session):
+        """Participants marked failed are excluded even if their record is active."""
+        handler = EnableChatrooms()
+        experiment = get_experiment()
+        p = _new_participant(experiment)
+        db.session.flush()
+
+        now = datetime.now(UTC)
+        db.session.add(
+            ChatRoomMember(
+                participant_id=p.id, room_id="room_Z2", active=True, join_time=now
+            )
+        )
+        p.failed = True
+        db.session.commit()
+
+        assert handler._occupant_ids("room_Z2") == []
+
+    def test_deduplicates_participant_with_multiple_active_records(
+        self, in_experiment_directory, db_session
+    ):
+        """A participant appearing in two active records is returned only once."""
+        handler = EnableChatrooms()
+        experiment = get_experiment()
+        p = _new_participant(experiment)
+        db.session.flush()
+
+        now = datetime.now(UTC)
+        db.session.add(
+            ChatRoomMember(
+                participant_id=p.id, room_id="room_Z3", active=True, join_time=now
+            )
+        )
+        db.session.add(
+            ChatRoomMember(
+                participant_id=p.id, room_id="room_Z3", active=True, join_time=now
+            )
+        )
+        db.session.commit()
+
+        ids = handler._occupant_ids("room_Z3")
+        assert ids.count(str(p.id)) == 1
 
     def test_returns_empty_when_no_subscribers(
         self, in_experiment_directory, db_session
