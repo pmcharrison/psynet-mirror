@@ -1427,13 +1427,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         all_results = []
 
         logger.info(bold("=" * 80))
-        logger.info(bold("⚡ STARTING PERFORMANCE TEST SUITE"))
-        logger.info(f"Bot counts: {', '.join(str(n) for n in bot_counts)}")
-        logger.info(f"Duration per test: {self.test_duration_minutes:.1f} minutes")
+        logger.info(bold("⚡ PERFORMANCE TEST SUITE"))
+        logger.info(f"Bots per test:        {', '.join(str(n) for n in bot_counts)}")
+        logger.info(f"Test duration:        {self.test_duration_minutes:.1f} min")
         logger.info(
-            f"Average stagger: {self.test_parallel_stagger_interval_s:.1f} seconds"
+            f"Bot start stagger:    ~{self.test_parallel_stagger_interval_s:.1f}s"
         )
-        logger.info(f"Average time factor: {self.test_time_factor:.1f}")
+        logger.info(f"Bot time factor:      {self.test_time_factor:.1f}")
 
         for i, n_bots in enumerate(bot_counts, 1):
             logger.info("")
@@ -1463,13 +1463,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         summary_headers = [
             "|| Bots",
             "Succeeded",
-            "Errored",
-            "Terminated",
+            "Failed",
+            "Timed out",
             "Trials med",
             "Requests",
+            "Req/s",
             "Req Errors",
             "Resp med (s)",
             "Resp 95% (s)",
+            "Resp 99% (s)",
             "Resp max (s)",
         ]
         summary_rows = [
@@ -1478,13 +1480,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 result["bots_succeeded"],
                 result["bots_failed"],
                 result["bots_incomplete"],
-                result["median_trial_count_succeeded"]
-                if result.get("median_trial_count_succeeded") is not None
-                else (result.get("median_trial_count_other") or "N/A"),
+                (
+                    result["median_trial_count_succeeded"]
+                    if result.get("median_trial_count_succeeded") is not None
+                    else (result.get("median_trial_count_other") or "N/A")
+                ),
                 result["total_requests"],
+                (
+                    f"{result['requests_per_sec']:.1f}"
+                    if result.get("requests_per_sec") is not None
+                    else "N/A"
+                ),
                 result["request_errors"],
                 _fmt(result["median_response_time"]),
                 _fmt(result["p95_response_time"]),
+                _fmt(result["p99_response_time"]),
                 _fmt(result["max_response_time"]),
             ]
             for result in results
@@ -2020,7 +2030,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     Trial.participant_id, func.count(Trial.id).label("n_trials")
                 )
                 .filter(
-                    Trial.participant_id.in_(bot_ids), Trial.failed == False  # noqa: E712
+                    Trial.participant_id.in_(bot_ids),
+                    Trial.failed == False,  # noqa: E712
                 )
                 .group_by(Trial.participant_id)
                 .all()
@@ -2030,12 +2041,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             return counts[0], counts[len(counts) // 2], counts[-1]
 
-        succeeded_bot_ids = [
-            b.id for b in bots if b.status in succeeded_statuses
-        ]
-        other_bot_ids = [
-            b.id for b in bots if b.status not in succeeded_statuses
-        ]
+        succeeded_bot_ids = [b.id for b in bots if b.status in succeeded_statuses]
+        other_bot_ids = [b.id for b in bots if b.status not in succeeded_statuses]
         (
             min_trial_count_succeeded,
             median_trial_count_succeeded,
@@ -2090,6 +2097,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             else None
         )
 
+        requests_per_sec = (
+            requests_during_test / actual_duration if actual_duration > 0 else None
+        )
+        n_wait_page_samples = len(wait_page_times) if wait_page_times else None
+        initialization_times = list(bot_state["initialization_times"])
+
         result = {
             "n_bots": n,
             "duration_minutes": duration_minutes,
@@ -2100,6 +2113,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "bots_failed": bots_failed,
             "bots_incomplete": bots_incomplete,
             "total_requests": requests_during_test,
+            "requests_per_sec": requests_per_sec,
             "bot_errors": bot_state["total_bot_errors"],
             "avg_response_time": avg_response_time,
             "median_response_time": median_response_time,
@@ -2109,10 +2123,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "max_response_time": max_response_time,
             "avg_bot_duration": avg_bot_duration,
             "avg_init_time": avg_init_time,
+            "initialization_times": initialization_times,
             "request_errors": request_errors,
             "median_wait_page_time": median_wait_page_time,
             "p95_wait_page_time": p95_wait_page_time,
             "max_wait_page_time": max_wait_page_time,
+            "n_wait_page_samples": n_wait_page_samples,
             "avg_succeeded_duration": avg_succeeded_duration,
             "avg_failed_duration": avg_failed_duration,
             "avg_incomplete_duration": avg_incomplete_duration,
@@ -2143,92 +2159,148 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _report_test_results(self, result):
         """Print detailed results after a single test completes."""
 
-        def _fmt(value):
-            return f"{value:.3f}" if value is not None else "N/A"
+        def _fmt(value, suffix=""):
+            return f"{value:.3f}{suffix}" if value is not None else "N/A"
 
-        def _log_table(rows, headers, indent="  ", **kwargs):
-            kwargs.setdefault("tablefmt", "simple")
+        def _log_table(rows, headers, indent="  ", min_label_width=28, **kwargs):
+            kwargs.setdefault("tablefmt", "plain")
+            if min_label_width and rows and not headers:
+                rows = [[r[0].ljust(min_label_width)] + r[1:] for r in rows]
             table = tabulate(rows, headers=headers, **kwargs)
             for line in table.splitlines():
                 logger.info(f"{indent}{line}")
+
+        def _section(title):
+            logger.info(bold(f"  {title}"))
+            logger.info(f"  {'-' * 36}")
 
         bots_finished = max(
             result["completed_during_test"],
             result["bots_succeeded"] + result["bots_failed"],
         )
 
-        if bots_finished > 0:
-            success_rate = f"{(result['bots_succeeded'] / bots_finished) * 100:.1f}%"
-        elif result["total_bots_started"] > 0:
-            success_rate = "0.0%"
+        total_started = result["total_bots_started"]
+        if total_started > 0:
+            completion_rate = f"{(bots_finished / total_started) * 100:.0f}%"
         else:
-            success_rate = "N/A"
+            completion_rate = "N/A"
 
         logger.info("")
         logger.info(success("✓ Test completed"))
-        logger.info(bold(f"TEST RESULTS (n={result['n_bots']:,} bots):"))
+        logger.info(bold(f"TEST RESULTS (n={result['n_bots']:,} bots)"))
         logger.info("")
 
-        # Bot & timing stats
-        detail_rows = [
+        # BOT OUTCOMES
+        _section("BOT OUTCOMES")
+        outcome_rows = [
             ["Bots started", result["total_bots_started"]],
-            ["Finished within duration", bots_finished],
-            ["Succeeded", result["bots_succeeded"]],
-            ["Failed", result["bots_failed"]],
-            ["Incomplete", result["bots_incomplete"]],
-            ["Success rate", self._colorize_success_rate(success_rate)],
-            ["Total requests", result["total_requests"]],
-            ["Request errors", result["request_errors"]],
+            ["Completed successfully", result["bots_succeeded"]],
+            ["Completed with error", result["bots_failed"]],
+            ["Timed out (still running)", result["bots_incomplete"]],
+            ["Completion rate", self._colorize_success_rate(completion_rate)],
         ]
+        _log_table(outcome_rows, headers=[], colalign=("left", "right"))
+        logger.info("")
+
+        # BOT RUNTIMES
+        _section("BOT RUNTIMES")
+        runtime_rows = []
+        if result.get("actual_duration") is not None:
+            runtime_rows.append(["Test duration", f"{result['actual_duration']:.1f}s"])
         if result.get("avg_bot_duration") is not None:
-            detail_rows.append(
-                ["Avg completion time", f"{result['avg_bot_duration']:.1f}s"]
-            )
+            runtime_rows.append(["Avg runtime", f"{result['avg_bot_duration']:.1f}s"])
         if result.get("avg_succeeded_duration") is not None:
-            detail_rows.append(
+            runtime_rows.append(
                 [
-                    "Avg completion (succeeded)",
+                    "Avg runtime (succeeded)",
                     f"{result['avg_succeeded_duration']:.1f}s",
                 ]
             )
         if result.get("avg_failed_duration") is not None:
-            detail_rows.append(
+            runtime_rows.append(
                 [
-                    "Avg completion (failed)",
+                    "Avg runtime (failed)",
                     f"{result['avg_failed_duration']:.1f}s",
                 ]
             )
         if result.get("avg_incomplete_duration") is not None:
-            detail_rows.append(
+            runtime_rows.append(
                 [
-                    "Avg completion (incomplete)",
+                    "Avg runtime (timed out)",
                     f"{result['avg_incomplete_duration']:.1f}s",
                 ]
             )
-        if result.get("avg_init_time") is not None:
-            detail_rows.append(["Avg bot init time", f"{result['avg_init_time']:.1f}s"])
-        _log_table(detail_rows, headers=[], colalign=("left", "right"))
+        if runtime_rows:
+            _log_table(runtime_rows, headers=[], colalign=("left", "right"))
         logger.info("")
 
-        # Wait page stats
-        if result.get("median_wait_page_time") is not None:
-            wait_rows = [
-                ["Median", f"{result['median_wait_page_time']:.1f}"],
-                ["95th percentile", f"{result['p95_wait_page_time']:.1f}"],
-                ["Max", f"{result['max_wait_page_time']:.1f}"],
+        # Bot initialization time distribution (sub-section)
+        init_times = result.get("initialization_times", [])
+        if init_times:
+            init_sorted = sorted(init_times)
+            init_median = init_sorted[len(init_sorted) // 2]
+            init_p95 = init_sorted[int(len(init_sorted) * 0.95)]
+            init_max = init_sorted[-1]
+            n_init = len(init_sorted)
+            logger.info(bold(f"  BOT INIT TIMES (n={n_init}):"))
+            logger.info(f"  {'-' * 36}")
+            init_rows = [
+                ["Median", f"{init_median:.3f}s"],
+                ["95th percentile", f"{init_p95:.3f}s"],
+                ["Max", f"{init_max:.3f}s"],
             ]
-            logger.info(bold("  Wait page times (s):"))
             _log_table(
-                wait_rows,
+                init_rows,
                 headers=[],
-                indent="    ",
                 colalign=("left", "right"),
             )
             logger.info("")
 
-        # Trial counts per participant
+        # REQUEST METRICS
+        _section("REQUEST METRICS")
+        request_rows = [
+            ["Total requests", result["total_requests"]],
+            ["Request errors", result["request_errors"]],
+        ]
+        if result.get("requests_per_sec") is not None:
+            request_rows.append(
+                ["Throughput", f"{result['requests_per_sec']:.2f} req/s"]
+            )
+        _log_table(request_rows, headers=[], colalign=("left", "right"))
+        logger.info("")
+
+        # RESPONSE TIMES
+        n_req = result.get("total_requests", "?")
+        _section(f"RESPONSE TIMES (n={n_req})")
+        resp_rows = [
+            ["Median", _fmt(result["median_response_time"], "s")],
+            ["95th percentile", _fmt(result["p95_response_time"], "s")],
+            ["99th percentile", _fmt(result["p99_response_time"], "s")],
+            ["Max", _fmt(result["max_response_time"], "s")],
+            ["Mean", _fmt(result["avg_response_time"], "s")],
+            ["Std dev", _fmt(result["stddev_response_time"], "s")],
+        ]
+        _log_table(resp_rows, headers=[], colalign=("left", "right"))
+        logger.info("")
+
+        # WAIT PAGE TIMES
+        if result.get("median_wait_page_time") is not None:
+            n_wait = result.get("n_wait_page_samples", "?")
+            _section(f"WAIT PAGE TIMES (n={n_wait})")
+            wait_rows = [
+                ["Median", f"{result['median_wait_page_time']:.1f}s"],
+                ["95th percentile", f"{result['p95_wait_page_time']:.1f}s"],
+                ["Max", f"{result['max_wait_page_time']:.1f}s"],
+            ]
+            _log_table(wait_rows, headers=[], colalign=("left", "right"))
+            logger.info("")
+
+        # TRIALS PER BOT
         has_other = result.get("min_trial_count_other") is not None
-        _tc = lambda k, fallback=0: result[k] if result.get(k) is not None else fallback  # noqa: E731
+        _tc = lambda k, fallback=0: (
+            result[k] if result.get(k) is not None else fallback
+        )  # noqa: E731
+        _section("TRIALS PER BOT")
         trial_rows = [
             ["Min (succeeded)", _tc("min_trial_count_succeeded")],
             ["Median (succeeded)", _tc("median_trial_count_succeeded")],
@@ -2240,30 +2312,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ["Median (other)", result["median_trial_count_other"]],
                 ["Max (other)", result["max_trial_count_other"]],
             ]
-        logger.info(bold("  Alive trials per bot:"))
-        _log_table(
-            trial_rows,
-            headers=[],
-            indent="    ",
-            colalign=("left", "right"),
-        )
+        _log_table(trial_rows, headers=[], colalign=("left", "right"))
         logger.info("")
 
-        # Response time stats
-        resp_rows = [
-            ["Average", _fmt(result["avg_response_time"])],
-            ["Median", _fmt(result["median_response_time"])],
-            ["95th percentile", _fmt(result["p95_response_time"])],
-            ["99th percentile", _fmt(result["p99_response_time"])],
-            ["Std dev", _fmt(result["stddev_response_time"])],
-        ]
-        logger.info(bold("  Response times (s):"))
-        _log_table(resp_rows, headers=[], indent="    ", colalign=("left", "right"))
-        logger.info("")
-
-        # Async process stats
+        # ASYNC PROCESS TIMES
         if result.get("process_stats"):
-            logger.info(bold("  Async process times:"))
+            _section("ASYNC PROCESS TIMES")
             proc_rows = [
                 [
                     ps["trial_maker_id"],
@@ -2288,6 +2342,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "Max (s)",
                 ],
                 indent="    ",
+                tablefmt="simple",
                 colalign=(
                     "left",
                     "left",
