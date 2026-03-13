@@ -1471,9 +1471,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 result["bots_failed"],
                 result["bots_incomplete"],
                 (
-                    result["median_trial_count_succeeded"]
-                    if result.get("median_trial_count_succeeded") is not None
-                    else (result.get("median_trial_count_other") or "N/A")
+                    result["median_trial_count"]
+                    if result.get("median_trial_count") is not None
+                    else "N/A"
                 ),
                 result["total_requests"],
                 (
@@ -1988,8 +1988,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             else:
                 bots_failed += 1
 
+        succeeded_statuses = {"approved", "submitted"}
+        succeeded_bots = [b for b in bots if b.status in succeeded_statuses]
         wait_page_times = [
-            b.total_wait_page_time for b in bots if b.total_wait_page_time is not None
+            b.total_wait_page_time
+            for b in succeeded_bots
+            if b.total_wait_page_time is not None
         ]
         if wait_page_times:
             wait_page_times_sorted = sorted(wait_page_times)
@@ -2009,8 +2013,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         p99_response_time = stats.p99
         stddev_response_time = stats.stddev
         max_response_time = stats.max
-
-        succeeded_statuses = {"approved", "submitted"}
 
         def _trial_count_stats(bot_ids):
             if not bot_ids:
@@ -2032,17 +2034,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return counts[0], counts[len(counts) // 2], counts[-1]
 
         succeeded_bot_ids = [b.id for b in bots if b.status in succeeded_statuses]
-        other_bot_ids = [b.id for b in bots if b.status not in succeeded_statuses]
         (
-            min_trial_count_succeeded,
-            median_trial_count_succeeded,
-            max_trial_count_succeeded,
+            min_trial_count,
+            median_trial_count,
+            max_trial_count,
         ) = _trial_count_stats(succeeded_bot_ids)
-        (
-            min_trial_count_other,
-            median_trial_count_other,
-            max_trial_count_other,
-        ) = _trial_count_stats(other_bot_ids)
         bot_status_map = {b.id: b.status for b in bots}
         succeeded_durations = [
             d
@@ -2123,12 +2119,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "avg_failed_duration": avg_failed_duration,
             "avg_incomplete_duration": avg_incomplete_duration,
             "process_stats": process_stats,
-            "min_trial_count_succeeded": min_trial_count_succeeded,
-            "median_trial_count_succeeded": median_trial_count_succeeded,
-            "max_trial_count_succeeded": max_trial_count_succeeded,
-            "min_trial_count_other": min_trial_count_other,
-            "median_trial_count_other": median_trial_count_other,
-            "max_trial_count_other": max_trial_count_other,
+            "min_trial_count": min_trial_count,
+            "median_trial_count": median_trial_count,
+            "max_trial_count": max_trial_count,
+            "n_succeeded_bots": len(succeeded_bot_ids),
         }
 
         self._report_test_results(result)
@@ -2286,22 +2280,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             logger.info("")
 
         # TRIALS PER BOT
-        has_other = result.get("min_trial_count_other") is not None
+        n_succeeded = result.get("n_succeeded_bots", 0)
+        _section(f"TRIALS PER BOT (n={n_succeeded} succeeded)")
         _tc = lambda k, fallback=0: (
             result[k] if result.get(k) is not None else fallback
         )  # noqa: E731
-        _section("TRIALS PER BOT")
         trial_rows = [
-            ["Min (succeeded)", _tc("min_trial_count_succeeded")],
-            ["Median (succeeded)", _tc("median_trial_count_succeeded")],
-            ["Max (succeeded)", _tc("max_trial_count_succeeded")],
+            ["Min", _tc("min_trial_count")],
+            ["Median", _tc("median_trial_count")],
+            ["Max", _tc("max_trial_count")],
         ]
-        if has_other:
-            trial_rows += [
-                ["Min (other)", result["min_trial_count_other"]],
-                ["Median (other)", result["median_trial_count_other"]],
-                ["Max (other)", result["max_trial_count_other"]],
-            ]
         _log_table(trial_rows, headers=[], colalign=("left", "right"))
         logger.info("")
 
