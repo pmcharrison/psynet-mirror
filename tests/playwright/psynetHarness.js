@@ -753,9 +753,11 @@ async function waitForTrialEvents(
       async () => {
         const seenEventTypes = await page
           .evaluate((baseline) =>
-            (psynet?.trial?.eventLog || [])
-              .slice(baseline)
-              .map((event) => event.eventType),
+            (() => {
+              const eventLog = psynet?.trial?.eventLog || [];
+              const startIndex = eventLog.length >= baseline ? baseline : 0;
+              return eventLog.slice(startIndex).map((event) => event.eventType);
+            })(),
             baselineIndex
           )
           .catch(() => []);
