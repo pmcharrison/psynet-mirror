@@ -1466,7 +1466,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ]
         if show_scaling:
             summary_headers.append("vs base")
-        summary_headers.append("Q.P95 all (s)")
+        summary_headers.append("Q P95 all (s)")
         if show_scaling:
             summary_headers.append("vs base")
 
@@ -2351,8 +2351,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "Med (s)",
                     "P95 (s)",
                     "Max (s)",
-                    "Q.Avg (s)",
-                    "Q.P95 (s)",
+                    "Q Avg (s)",
+                    "Q P95 (s)",
                 ],
                 indent="    ",
                 tablefmt="simple",
