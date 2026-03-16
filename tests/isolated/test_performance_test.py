@@ -1,63 +1,205 @@
-from unittest.mock import patch
+from psynet.perf_test import (
+    colorize_success_rate,
+    format_performance_summary,
+    format_test_results,
+)
 
-from psynet.experiment import Experiment
 
-
-def test_performance_summary_handles_missing_response_metrics():
+def _base_result(**overrides):
+    """Minimal valid result dict for format_test_results."""
     result = {
         "n_bots": 2,
         "duration_minutes": 0.1,
         "actual_duration": 6.3,
-        "total_bots_started": 1,
-        "completed_during_test": 1,
+        "total_bots_started": 2,
+        "completed_during_test": 2,
         "bot_errors": 0,
-        "bots_succeeded": 1,
+        "bots_succeeded": 2,
         "bots_failed": 0,
         "bots_incomplete": 0,
-        "total_requests": 0,
-        "successful_requests": 0,
+        "total_requests": 10,
+        "successful_requests": 10,
         "request_errors": 0,
-        "avg_response_time": None,
-        "median_response_time": None,
-        "p95_response_time": None,
-        "p99_response_time": None,
-        "stddev_response_time": None,
-        "max_response_time": None,
+        "avg_response_time": 0.05,
+        "median_response_time": 0.04,
+        "p95_response_time": 0.1,
+        "p99_response_time": 0.12,
+        "stddev_response_time": 0.02,
+        "max_response_time": 0.15,
         "avg_bot_duration": 6.3,
         "avg_init_time": 0.5,
+        "requests_per_sec": 1.6,
+        "min_trial_count": 3,
+        "median_trial_count": 4,
+        "max_trial_count": 5,
+        "n_succeeded_bots": 2,
     }
-
-    with patch("psynet.experiment.logger.info") as logger_info:
-        Experiment._print_performance_summary(None, [result])
-
-    all_messages = [call.args[0] for call in logger_info.call_args_list]
-    assert any("N/A" in message for message in all_messages)
+    result.update(overrides)
+    return result
 
 
-def test_performance_summary_handles_no_completed_or_failed_bots():
-    result = {
-        "n_bots": 2,
-        "duration_minutes": 0.1,
-        "actual_duration": 0.8,
-        "total_bots_started": 1,
-        "completed_during_test": 0,
-        "bot_errors": 0,
-        "bots_succeeded": 1,
-        "bots_failed": 0,
-        "bots_incomplete": 0,
-        "total_requests": 0,
-        "total_requests": 0,
-        "successful_requests": 0,
-        "request_errors": 0,
-        "avg_response_time": 0.0,
-        "median_response_time": None,
-        "p95_response_time": 0.0,
-        "p99_response_time": None,
-        "stddev_response_time": None,
-        "max_response_time": None,
-        "avg_bot_duration": None,
-        "avg_init_time": None,
-    }
+def _join(lines):
+    return "\n".join(lines)
 
-    with patch("psynet.experiment.logger.info"):
-        Experiment._print_performance_summary(None, [result])
+
+# --- colorize_success_rate ---
+
+
+def test_colorize_success_rate_100():
+    result = colorize_success_rate("100%")
+    assert "100%" in result
+
+
+def test_colorize_success_rate_partial():
+    result = colorize_success_rate("50%")
+    assert "50%" in result
+
+
+def test_colorize_success_rate_zero():
+    result = colorize_success_rate("0%")
+    assert "0%" in result
+
+
+def test_colorize_success_rate_na():
+    assert colorize_success_rate("N/A") == "N/A"
+
+
+# --- format_test_results ---
+
+
+def test_format_test_results_basic():
+    lines = format_test_results(_base_result())
+    text = _join(lines)
+    assert "TEST RESULTS" in text
+    assert "BOT OUTCOMES" in text
+    assert "BOT RUNTIMES" in text
+    assert "REQUEST METRICS" in text
+    assert "RESPONSE TIMES" in text
+    assert "TRIALS PER BOT" in text
+
+
+def test_format_test_results_none_response_times():
+    lines = format_test_results(
+        _base_result(
+            avg_response_time=None,
+            median_response_time=None,
+            p95_response_time=None,
+            p99_response_time=None,
+            stddev_response_time=None,
+            max_response_time=None,
+            total_requests=0,
+        )
+    )
+    text = _join(lines)
+    assert "N/A" in text
+    assert "RESPONSE TIMES" in text
+
+
+def test_format_test_results_bots_not_in_db():
+    lines = format_test_results(
+        _base_result(
+            total_bots_started=5, bots_succeeded=1, bots_failed=1, bots_incomplete=1
+        )
+    )
+    text = _join(lines)
+    assert "Never reached DB" in text
+
+
+def test_format_test_results_no_bots_started():
+    lines = format_test_results(
+        _base_result(total_bots_started=0, completed_during_test=0)
+    )
+    text = _join(lines)
+    assert "N/A" in text
+
+
+def test_format_test_results_init_times():
+    lines = format_test_results(_base_result(initialization_times=[0.1, 0.2, 0.3, 0.5]))
+    text = _join(lines)
+    assert "BOT INIT TIMES" in text
+    assert "Median" in text
+    assert "95th percentile" in text
+
+
+def test_format_test_results_wait_page_times():
+    lines = format_test_results(
+        _base_result(
+            median_wait_page_time=1.5,
+            p95_wait_page_time=3.0,
+            max_wait_page_time=5.0,
+            n_wait_page_samples=10,
+        )
+    )
+    text = _join(lines)
+    assert "WAIT PAGE TIMES" in text
+
+
+def test_format_test_results_process_stats():
+    lines = format_test_results(
+        _base_result(
+            process_stats=[
+                {
+                    "trial_maker_id": "tm1",
+                    "label": "create_trial",
+                    "count": 5,
+                    "avg": 0.1,
+                    "median": 0.09,
+                    "p95": 0.2,
+                    "max": 0.3,
+                    "q_avg": 0.01,
+                    "q_p95": 0.02,
+                    "q_share": 0.05,
+                }
+            ]
+        )
+    )
+    text = _join(lines)
+    assert "ASYNC PROCESS TIMES" in text
+    assert "tm1" in text
+    assert "create_trial" in text
+
+
+def test_format_test_results_no_process_stats():
+    lines = format_test_results(_base_result(process_stats=None))
+    text = _join(lines)
+    assert "No completed async processes" in text
+
+
+def test_format_test_results_returns_list():
+    lines = format_test_results(_base_result())
+    assert isinstance(lines, list)
+    assert all(isinstance(line, str) for line in lines)
+
+
+# --- format_performance_summary ---
+
+
+def test_format_performance_summary_single_result():
+    lines = format_performance_summary([_base_result()])
+    text = _join(lines)
+    assert "CUMULATIVE PERFORMANCE TEST SUMMARY" in text
+
+
+def test_format_performance_summary_none_metrics():
+    result = _base_result(
+        p95_response_time=None,
+        requests_per_sec=None,
+    )
+    lines = format_performance_summary([result])
+    text = _join(lines)
+    assert "N/A" in text
+
+
+def test_format_performance_summary_scaling():
+    r1 = _base_result(n_bots=1, p95_response_time=0.1, q_delay_p95=0.05)
+    r2 = _base_result(n_bots=2, p95_response_time=0.2, q_delay_p95=0.1)
+    lines = format_performance_summary([r1, r2])
+    text = _join(lines)
+    assert "2.0x" in text
+    assert "\u2014" in text  # baseline marker
+
+
+def test_format_performance_summary_returns_list():
+    lines = format_performance_summary([_base_result()])
+    assert isinstance(lines, list)
+    assert all(isinstance(line, str) for line in lines)
