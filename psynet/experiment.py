@@ -2032,15 +2032,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .scalar()
         )
 
-        n_in_flight_processes = (
-            db.session.query(func.count(AsyncProcess.id))
-            .filter(
-                AsyncProcess.id > initial_state["max_process_id"],
-                AsyncProcess.finished != True,  # noqa: E712
-            )
-            .scalar()
-        )
-
         bots = Bot.query.filter(
             Bot.id > initial_state["max_participant_id"]
         ).all()
@@ -2186,7 +2177,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "q_delay_p95": q_delay_p95,
 
             "process_stats": process_stats,
-            "n_in_flight_processes": n_in_flight_processes,
+
             "min_trial_count": min_trial_count,
             "median_trial_count": median_trial_count,
             "max_trial_count": max_trial_count,
@@ -2244,13 +2235,25 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # BOT OUTCOMES
         _section("BOT OUTCOMES")
+        bots_in_db = (
+            result["bots_succeeded"]
+            + result["bots_failed"]
+            + result["bots_incomplete"]
+        )
+        bots_not_in_db = result["total_bots_started"] - bots_in_db
         outcome_rows = [
             ["Bots started", result["total_bots_started"]],
             ["Completed successfully", result["bots_succeeded"]],
             ["Completed with error", result["bots_failed"]],
             ["Timed out (still running)", result["bots_incomplete"]],
-            ["Completion rate", self._colorize_success_rate(completion_rate)],
         ]
+        if bots_not_in_db > 0:
+            outcome_rows.append(
+                ["Never reached DB", bots_not_in_db]
+            )
+        outcome_rows.append(
+            ["Completion rate", self._colorize_success_rate(completion_rate)]
+        )
         _log_table(outcome_rows, headers=[], colalign=("left", "right"))
         logger.info("")
 
@@ -2364,9 +2367,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # ASYNC PROCESS TIMES
         if result.get("process_stats"):
             n_procs = sum(ps["count"] for ps in result["process_stats"])
-            n_in_flight = result.get("n_in_flight_processes", 0)
-            _section(f"ASYNC PROCESS TIMES (n={n_procs} completed, {n_in_flight} in-flight)")
+            _section(f"ASYNC PROCESS TIMES (n={n_procs})")
             _fmt = lambda v: f"{v:.3f}" if v is not None else "N/A"  # noqa: E731
+
+            def _color_q_share(q_share, q_p95):
+                if q_share is None or q_p95 is None:
+                    return "N/A"
+                text = f"{q_share:.0%}"
+                if q_share > 0.2 and q_p95 > 0.5:
+                    return error(text)
+                if q_share > 0.2 and q_p95 > 0.2:
+                    return warning(text)
+                return text
+
             proc_rows = [
                 [
                     ps["trial_maker_id"],
@@ -2378,7 +2391,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"{ps['max']:.3f}",
                     _fmt(ps["q_avg"]),
                     _fmt(ps["q_p95"]),
-                    f"{ps['q_share']:.0%}" if ps["q_share"] is not None else "N/A",
+                    _color_q_share(ps["q_share"], ps["q_p95"]),
                 ]
                 for ps in result["process_stats"]
             ]
@@ -2410,6 +2423,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "right",
                 ),
             )
+            logger.info("")
+        else:
+            _section("ASYNC PROCESS TIMES")
+            logger.info("  No completed async processes.")
             logger.info("")
 
     def _report_request_statistics(self) -> Optional[float]:
