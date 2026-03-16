@@ -100,7 +100,7 @@ class AssetParentMixin:
         if asset.deposited:
             asset.ensure_keys_and_paths()
         else:
-            # deposit() will call set_keys() internally.
+            # deposit() will call ensure_keys_and_paths() internally.
             asset.deposit()
 
         self.assets[local_key] = asset
