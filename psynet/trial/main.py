@@ -98,7 +98,7 @@ class AssetParentMixin:
             # Ensure the trial has an ID before asset keys/depositing.
             db.session.flush([self])
         if asset.deposited:
-            asset.set_missing_keys()
+            asset.ensure_keys_and_paths()
         else:
             # deposit() will call set_keys() internally.
             asset.deposit()
