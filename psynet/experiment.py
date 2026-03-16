@@ -1461,8 +1461,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             return f"{value:.3f}" if value is not None else "N/A"
 
         show_scaling = (
-            len(results) > 1
-            and results[0].get("p95_response_time") is not None
+            len(results) > 1 and results[0].get("p95_response_time") is not None
         )
         baseline_p95 = results[0].get("p95_response_time") if show_scaling else None
         baseline_q_p95 = results[0].get("q_delay_p95") if show_scaling else None
@@ -1479,7 +1478,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         summary_headers.append("Q P95 all (s)")
         if show_scaling:
             summary_headers.append("vs base")
-
 
         summary_rows = []
         for i, result in enumerate(results):
@@ -1570,9 +1568,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ).json()
         max_request_id = db.session.query(func.max(Request.id)).scalar() or 0
         max_process_id = db.session.query(func.max(AsyncProcess.id)).scalar() or 0
-        max_participant_id = (
-            db.session.query(func.max(Participant.id)).scalar() or 0
-        )
+        max_participant_id = db.session.query(func.max(Participant.id)).scalar() or 0
 
         return {
             "initial_requests": initial_stats["total_requests"],
@@ -2032,9 +2028,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .scalar()
         )
 
-        bots = Bot.query.filter(
-            Bot.id > initial_state["max_participant_id"]
-        ).all()
+        bots = Bot.query.filter(Bot.id > initial_state["max_participant_id"]).all()
         bots_succeeded = bots_failed = bots_incomplete = 0
         for bot in bots:
             if bot.status in {"approved", "submitted"}:
@@ -2175,9 +2169,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "avg_failed_duration": avg_failed_duration,
             "avg_incomplete_duration": avg_incomplete_duration,
             "q_delay_p95": q_delay_p95,
-
             "process_stats": process_stats,
-
             "min_trial_count": min_trial_count,
             "median_trial_count": median_trial_count,
             "max_trial_count": max_trial_count,
@@ -2236,9 +2228,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # BOT OUTCOMES
         _section("BOT OUTCOMES")
         bots_in_db = (
-            result["bots_succeeded"]
-            + result["bots_failed"]
-            + result["bots_incomplete"]
+            result["bots_succeeded"] + result["bots_failed"] + result["bots_incomplete"]
         )
         bots_not_in_db = result["total_bots_started"] - bots_in_db
         outcome_rows = [
@@ -2248,9 +2238,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ["Timed out (still running)", result["bots_incomplete"]],
         ]
         if bots_not_in_db > 0:
-            outcome_rows.append(
-                ["Never reached DB", bots_not_in_db]
-            )
+            outcome_rows.append(["Never reached DB", bots_not_in_db])
         outcome_rows.append(
             ["Completion rate", self._colorize_success_rate(completion_rate)]
         )
@@ -2353,9 +2341,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # TRIALS PER BOT
         n_succeeded = result.get("n_succeeded_bots", 0)
         _section(f"TRIALS PER BOT (n={n_succeeded} succeeded)")
-        _tc = lambda k, fallback=0: (
+        _tc = lambda k, fallback=0: (  # noqa: E731
             result[k] if result.get(k) is not None else fallback
-        )  # noqa: E731
+        )
         trial_rows = [
             ["Min", _tc("min_trial_count")],
             ["Median", _tc("median_trial_count")],
