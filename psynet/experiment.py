@@ -66,11 +66,7 @@ from sqlalchemy.orm import joinedload, with_polymorphic
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
 from psynet.log import bold
-from psynet.perf_test import (
-    colorize_success_rate,
-    format_performance_summary,
-    format_test_results,
-)
+from psynet.perf_test import format_performance_summary, format_test_results
 from psynet.utils import (
     format_bytes,
     get_config,
@@ -1448,8 +1444,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self._print_performance_summary(all_results)
 
-    _format_performance_summary = staticmethod(format_performance_summary)
-
     def _print_performance_summary(self, results):
         """Print cross-test comparison table."""
         for line in format_performance_summary(results):
@@ -2114,10 +2108,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self._report_test_results(result)
         return result
-
-    _colorize_success_rate = staticmethod(colorize_success_rate)
-
-    _format_test_results = staticmethod(format_test_results)
 
     def _report_test_results(self, result):
         """Print detailed results after a single test completes."""
