@@ -23,6 +23,12 @@
 - Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
 - Added AsyncProcess duration stats (avg/median/p95/max by trial maker) to performance test results (author: Jesse Snyder)
+- Added async process queue delay tracking (`time_enqueued`, `queue_delay` on `AsyncProcess`) with Q Share metric highlighting bottlenecks (author: Jesse Snyder)
+- Added trial count stats (min/median/max) for succeeded bots in performance test results (author: Jesse Snyder)
+- Added scaling slowdown comparison (vs baseline) in cross-test performance summary (author: Jesse Snyder)
+- Added requests/sec throughput metric to performance test results (author: Jesse Snyder)
+- Added bot initialization time distribution (median/p95/max) to per-test detail reporting (author: Jesse Snyder)
+- Added detection and reporting of bots that started but never created DB participant records (author: Jesse Snyder)
 
 ### Changed
 
@@ -58,6 +64,8 @@
 - Fixed performance-test summary crashes for short runs by handling missing response metrics and zero-success-rate denominators gracefully (author: [Peter])
 - Fixed performance-test local startup and teardown by launching via `psynet debug local`, loading runtime server credentials, and improving subprocess shutdown behavior (author: [Peter])
 - Fixed performance-test server logs not capturing full output by draining pexpect process in background thread (author: Jesse Snyder)
+- Fixed variable shadowing of builtin `error` in `dashboard_errors` method (author: Jesse Snyder)
+- Restricted wait-page time and trial count stats to succeeded bots only in performance test results (author: Jesse Snyder)
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
