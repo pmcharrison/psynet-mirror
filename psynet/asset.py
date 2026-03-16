@@ -570,7 +570,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         """
         Fill in missing key fields and derived paths for the asset.
 
-        This method avoids re-obfuscating host paths for deposited assets.
+        For deposited assets, this method preserves existing ``host_path``/``url`` values
+        (and only fills them if missing) so the storage identity does not change.
         """
         if self.key_within_module is None:
             self.key_within_module = self.generate_key_within_module()
