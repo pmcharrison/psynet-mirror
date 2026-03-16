@@ -60,7 +60,7 @@ from dominate import tags
 from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
-from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, case, func
 from sqlalchemy.orm import joinedload, with_polymorphic
 from tabulate import tabulate
 
@@ -1480,6 +1480,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if show_scaling:
             summary_headers.append("vs base")
 
+
         summary_rows = []
         for i, result in enumerate(results):
             p95 = result.get("p95_response_time")
@@ -1569,11 +1570,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ).json()
         max_request_id = db.session.query(func.max(Request.id)).scalar() or 0
         max_process_id = db.session.query(func.max(AsyncProcess.id)).scalar() or 0
+        max_participant_id = (
+            db.session.query(func.max(Participant.id)).scalar() or 0
+        )
 
         return {
             "initial_requests": initial_stats["total_requests"],
             "max_request_id": max_request_id,
             "max_process_id": max_process_id,
+            "max_participant_id": max_participant_id,
         }
 
     def _initialize_bot_tracking(self):
@@ -1982,6 +1987,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 func.percentile_cont(0.95)
                 .within_group(AsyncProcess.queue_delay)
                 .label("q_p95"),
+                func.avg(
+                    case(
+                        (
+                            (AsyncProcess.queue_delay + AsyncProcess.time_taken) > 0,
+                            AsyncProcess.queue_delay
+                            / (AsyncProcess.queue_delay + AsyncProcess.time_taken),
+                        ),
+                        else_=None,
+                    )
+                ).label("q_share"),
             )
             .filter(
                 AsyncProcess.id > initial_state["max_process_id"],
@@ -2001,6 +2016,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "max": row.max,
                 "q_avg": row.q_avg,
                 "q_p95": row.q_p95,
+                "q_share": row.q_share,
             }
             for row in process_stats_rows
         ]
@@ -2016,8 +2032,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .scalar()
         )
 
-        bot_ids = bot_state["bot_ids"]
-        bots = Bot.query.filter(Bot.id.in_(list(bot_ids))).all()
+        n_in_flight_processes = (
+            db.session.query(func.count(AsyncProcess.id))
+            .filter(
+                AsyncProcess.id > initial_state["max_process_id"],
+                AsyncProcess.finished != True,  # noqa: E712
+            )
+            .scalar()
+        )
+
+        bots = Bot.query.filter(
+            Bot.id > initial_state["max_participant_id"]
+        ).all()
         bots_succeeded = bots_failed = bots_incomplete = 0
         for bot in bots:
             if bot.status in {"approved", "submitted"}:
@@ -2158,7 +2184,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "avg_failed_duration": avg_failed_duration,
             "avg_incomplete_duration": avg_incomplete_duration,
             "q_delay_p95": q_delay_p95,
+
             "process_stats": process_stats,
+            "n_in_flight_processes": n_in_flight_processes,
             "min_trial_count": min_trial_count,
             "median_trial_count": median_trial_count,
             "max_trial_count": max_trial_count,
@@ -2335,7 +2363,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         # ASYNC PROCESS TIMES
         if result.get("process_stats"):
-            _section("ASYNC PROCESS TIMES")
+            n_procs = sum(ps["count"] for ps in result["process_stats"])
+            n_in_flight = result.get("n_in_flight_processes", 0)
+            _section(f"ASYNC PROCESS TIMES (n={n_procs} completed, {n_in_flight} in-flight)")
             _fmt = lambda v: f"{v:.3f}" if v is not None else "N/A"  # noqa: E731
             proc_rows = [
                 [
@@ -2348,6 +2378,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"{ps['max']:.3f}",
                     _fmt(ps["q_avg"]),
                     _fmt(ps["q_p95"]),
+                    f"{ps['q_share']:.0%}" if ps["q_share"] is not None else "N/A",
                 ]
                 for ps in result["process_stats"]
             ]
@@ -2363,6 +2394,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "Max (s)",
                     "Q Avg (s)",
                     "Q P95 (s)",
+                    "Q Share",
                 ],
                 indent="    ",
                 tablefmt="simple",
