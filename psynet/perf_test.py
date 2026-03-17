@@ -185,8 +185,6 @@ class PerformanceTester:
 
     def run(self, bot_counts=None, bot_log_file=None):
         """Run performance tests for one or more bot count values."""
-        os.environ["PASSTHROUGH_ERRORS"] = "True"
-
         if bot_counts is None:
             bot_counts = [self.n_bots]
 

@@ -3321,6 +3321,8 @@ def _run_performance_test_with_existing_server(
 
     from psynet.perf_test import PerformanceTester
 
+    os.environ["PASSTHROUGH_ERRORS"] = "True"
+
     # Parse n_bots - can be comma-separated list
     if n_bots:
         bot_counts = [int(x.strip()) for x in n_bots.split(",")]
