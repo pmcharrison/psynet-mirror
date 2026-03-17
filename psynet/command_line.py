@@ -3319,22 +3319,25 @@ def _run_performance_test_with_existing_server(
         )
         sys.exit(1)
 
+    from psynet.perf_test import PerformanceTester
+
     # Parse n_bots - can be comma-separated list
     if n_bots:
         bot_counts = [int(x.strip()) for x in n_bots.split(",")]
     else:
         bot_counts = [exp.test_n_bots]
 
-    if stagger:
-        exp.test_parallel_stagger_interval_s = float(stagger)
-
-    if time_factor:
-        exp.test_time_factor = time_factor
-
-    if duration_minutes:
-        exp.test_duration_minutes = duration_minutes
-
-    exp.performance_test_experiment(bot_counts=bot_counts, bot_log_file=bot_log_file)
+    tester = PerformanceTester(
+        authenticated_session=exp.authenticated_session,
+        base_url=exp.base_url,
+        n_bots=exp.test_n_bots,
+        duration_minutes=duration_minutes or exp.test_duration_minutes,
+        stagger_interval_s=(
+            float(stagger) if stagger else exp.test_parallel_stagger_interval_s
+        ),
+        time_factor=time_factor or exp.test_time_factor,
+    )
+    tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
     bot_log_file.close()
     print(f"Bot output log: {bot_log_file.name}")
 
