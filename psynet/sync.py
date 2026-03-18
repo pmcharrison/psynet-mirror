@@ -125,7 +125,6 @@ class Barrier(EltCollection):
         link = ParticipantLinkBarrier(
             participant=participant,
             barrier_id=self.id,
-            barrier_class=self.__class__,
             arrival_time=timenow(),
         )
         participant.active_barriers[self.id] = link
@@ -785,7 +784,6 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     __tablename__ = "participant_link_barrier"
 
     barrier_id = Column(String, ForeignKey("barrier.id"), index=True)
-    barrier_class = Column(PythonClass)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
         "psynet.participant.Participant",
@@ -817,9 +815,8 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
         self.released = True
 
     def get_waiting_participants(self, for_update: bool = False):
-        return self.barrier_class.get_waiting_participants_from_barrier_id(
-            self.barrier_id, for_update=for_update
-        )
+        barrier = self.get_barrier()
+        return barrier.get_waiting_participants(for_update=for_update)
 
 
 Participant.sync_group_links = relationship(
