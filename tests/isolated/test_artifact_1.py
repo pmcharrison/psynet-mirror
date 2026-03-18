@@ -74,6 +74,19 @@ def test_move_missing_file_raises(artifact_storage):
         storage.move_file("does_not_exist.txt", "target.txt")
 
 
+def test_get_modification_date(artifact_storage, tmp_path):
+    storage = artifact_storage
+    src_file = tmp_path / "source" / "timestamped.txt"
+    src_file.parent.mkdir()
+    src_file.write_text("timestamp me")
+
+    storage.upload(str(src_file), "timestamped.txt")
+
+    modified = storage.get_modification_date("timestamped.txt")
+
+    assert modified is not None
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_demo_experiment("hello_world")], indirect=True
 )

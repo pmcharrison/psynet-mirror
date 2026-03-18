@@ -3,7 +3,8 @@ Minimal S3 client mock for PsyNet's artifact-storage tests.
 
 This helper intentionally implements only the boto client surface exercised by
 the lightweight S3 artifact-storage tests: bucket creation, file
-upload/download/copy/delete, and paginator-based object listings.
+upload/download/copy/delete, object metadata lookups, and paginator-based
+object listings.
 """
 
 import shutil
@@ -99,6 +100,16 @@ class ArtifactStorageS3TestClient:
         if path.exists():
             path.unlink()
 
+    def _head_object(self, bucket_name: str, key: str):
+        path = self._object_path(bucket_name, key)
+        if not path.is_file():
+            raise _client_error("NoSuchKey", "HeadObject")
+        return {
+            "LastModified": datetime.fromtimestamp(
+                path.stat().st_mtime, tz=timezone.utc
+            )
+        }
+
     def upload_file(self, Filename: str, Bucket: str, Key: str):
         self._upload_file(Filename, Bucket, Key)
 
@@ -110,6 +121,9 @@ class ArtifactStorageS3TestClient:
 
     def delete_object(self, Bucket: str, Key: str):
         self._delete_object(Bucket, Key)
+
+    def head_object(self, Bucket: str, Key: str):
+        return self._head_object(Bucket, Key)
 
     def get_paginator(self, name: str):
         def paginate(
@@ -132,8 +146,10 @@ def get_artifact_storage_s3_test_client(root: str):
 
 
 def setup_artifact_storage_s3_test_client(root: str):
+    import psynet.artifact as artifact
     import psynet.asset as asset
 
     client = get_artifact_storage_s3_test_client(root)
     asset.get_s3_client = lambda: client
+    artifact.get_s3_client = lambda: client
     asset.list_files_in_s3_bucket__cached.cache_clear()
