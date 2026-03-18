@@ -888,6 +888,14 @@ class PerformanceTester:
             "n_succeeded_bots": len(succeeded_bot_ids),
         }
 
+        try:
+            from dallinger.db import redis_conn
+            from rq import Worker
+
+            result["n_rq_workers"] = len(Worker.all(connection=redis_conn))
+        except Exception:
+            pass
+
         self._report_test_results(result)
         return result
 
@@ -1075,7 +1083,9 @@ def format_test_results(result):
     # ASYNC PROCESS TIMES
     if result.get("process_stats"):
         n_procs = sum(ps["count"] for ps in result["process_stats"])
-        _section(f"ASYNC PROCESS TIMES (n={n_procs})")
+        n_workers = result.get("n_rq_workers")
+        worker_info = f" via {n_workers} workers" if n_workers else ""
+        _section(f"ASYNC PROCESS TIMES ({n_procs} completed{worker_info})")
         _fmt = lambda v: f"{v:.3f}" if v is not None else "N/A"  # noqa: E731
 
         def _color_q_share(q_share, q_p95):
@@ -1133,7 +1143,9 @@ def format_test_results(result):
         )
         lines.append("")
     else:
-        _section("ASYNC PROCESS TIMES")
+        n_workers = result.get("n_rq_workers")
+        worker_info = f", {n_workers} workers" if n_workers else ""
+        _section(f"ASYNC PROCESS TIMES{worker_info}")
         lines.append("  No completed async processes.")
         lines.append("")
 
