@@ -736,7 +736,12 @@ class BarrierRecord(SQLBase, SQLMixin):
             if cls.query.get(barrier_id) is not None:
                 return
 
-            values = {"id": barrier_id, "barrier_class": barrier_class}
+            values = {
+                "id": barrier_id,
+                "barrier_class": barrier_class,
+                "type": cls.__mapper_args__["polymorphic_identity"],
+                "created_at": timenow(),
+            }
             dialect = db.session.bind.dialect.name if db.session.bind else None
 
             if dialect == "postgresql":
