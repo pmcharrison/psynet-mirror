@@ -11,8 +11,10 @@ import pandas as pd
 import pytest
 import requests
 
+import psynet.artifact as psynet_artifact
+import psynet.asset as psynet_asset
 from psynet.artifact import LocalArtifactStorage
-from psynet.pytest_psynet import path_to_demo_experiment
+from psynet.pytest_psynet import artifact_storage_s3_test_root, path_to_demo_experiment
 
 
 def test_list_subfolders(artifact_storage, tmp_path):
@@ -85,6 +87,23 @@ def test_get_modification_date(artifact_storage, tmp_path):
     modified = storage.get_modification_date("timestamped.txt")
 
     assert modified is not None
+
+
+def test_artifact_storage_s3_test_root_restores_s3_globals(tmp_path):
+    original_asset_get_s3_client = psynet_asset.get_s3_client
+    original_artifact_get_s3_client = psynet_artifact.get_s3_client
+
+    fixture = artifact_storage_s3_test_root.__wrapped__(tmp_path)
+    next(fixture)
+
+    assert psynet_asset.get_s3_client is not original_asset_get_s3_client
+    assert psynet_artifact.get_s3_client is not original_artifact_get_s3_client
+
+    with pytest.raises(StopIteration):
+        next(fixture)
+
+    assert psynet_asset.get_s3_client is original_asset_get_s3_client
+    assert psynet_artifact.get_s3_client is original_artifact_get_s3_client
 
 
 @pytest.mark.parametrize(
