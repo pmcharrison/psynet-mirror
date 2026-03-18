@@ -4,7 +4,16 @@ from typing import Callable, List, Optional, Union
 
 from dallinger import db
 from dallinger.models import timenow
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, insert
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    insert,
+)
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -732,6 +741,8 @@ class BarrierRecord(SQLBase, SQLMixin):
     @classmethod
     def ensure_exists(cls, barrier_id: str, barrier_class):
         with db.session.no_autoflush:
+            if not _barrier_table_is_available():
+                return
             if cls.query.get(barrier_id) is not None:
                 return
 
@@ -762,6 +773,13 @@ class BarrierRecord(SQLBase, SQLMixin):
                 return
 
             db.session.execute(insert(cls).values(**values))
+
+
+def _barrier_table_is_available() -> bool:
+    bind = db.session.bind
+    if bind is None:
+        return False
+    return sa_inspect(bind).has_table(BarrierRecord.__tablename__)
 
 
 @register_table
