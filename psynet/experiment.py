@@ -2947,7 +2947,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"{barrier.__class__.__name__}."
             )
         self._barrier_registry[barrier.id] = barrier
-        BarrierRecord.ensure_exists(barrier.id, barrier.__class__)
+        with transaction():
+            BarrierRecord.ensure_exists(barrier.id, barrier.__class__)
 
     def get_barrier(self, barrier_id: str):
         return self._barrier_registry.get(barrier_id)

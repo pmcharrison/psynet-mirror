@@ -41,6 +41,7 @@
 
 ### Fixed
 
+- Fixed legacy launch hangs by committing barrier registry inserts during experiment setup (author: [Cursor])
 - Refactored barrier processing to register barriers in the database and claim barrier rows before locking participants, reducing deadlock risk in sync experiments (author: [Edgar Andrade])
 - Skipped autoincrement resets for tables with non-integer IDs to prevent ingest failures on custom tables (author: [Edgar Andrade])
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
