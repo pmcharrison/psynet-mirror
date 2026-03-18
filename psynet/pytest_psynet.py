@@ -5,7 +5,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import uuid
 import warnings
 from functools import cached_property
 from pathlib import Path
@@ -91,9 +90,9 @@ def assert_text(driver, element_id, value):
         )
 
 
-@pytest.fixture(scope="session")
-def artifact_storage_s3_test_root(tmp_path_factory):
-    root = str(tmp_path_factory.mktemp("psynet-artifact-storage-s3-test"))
+@pytest.fixture
+def artifact_storage_s3_test_root(tmp_path):
+    root = str(tmp_path / "psynet-artifact-storage-s3-test")
     setup_artifact_storage_s3_test_client(root)
     psynet_asset.get_s3_client().create_bucket(Bucket="psynet-tests")
     return root
@@ -794,6 +793,5 @@ def artifact_storage(request, tmp_path, artifact_storage_s3_test_root):
         yield LocalArtifactStorage(str(tmp_path))
     elif request.param == "s3":
         bucket_name = "psynet-tests"
-        root = f"artifacts/{uuid.uuid4()}"
-        psynet_asset.get_s3_client().create_bucket(Bucket=bucket_name)
+        root = "artifacts"
         yield S3ArtifactStorage(root, bucket_name)
