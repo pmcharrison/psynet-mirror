@@ -6,7 +6,7 @@ from dallinger import db
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sync import SimpleGrouper
+from psynet.sync import BarrierRecord, SimpleGrouper
 
 
 def get_random_id():
@@ -52,6 +52,7 @@ def test_group_allocator(in_experiment_directory, db_session):
     db.session.commit()
 
     assert len(grouper.get_waiting_participants()) == 1
+    assert BarrierRecord.query.get("main_grouper") is not None
     assert "main_grouper" in participants[0].active_barriers
     assert "main_grouper" not in participants[1].active_barriers
     assert not grouper.can_participant_exit(participants[0])

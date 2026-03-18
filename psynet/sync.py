@@ -4,7 +4,9 @@ from typing import Callable, List, Optional, Union
 
 from dallinger import db
 from dallinger.models import timenow
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, joinedload, relationship
 
@@ -115,6 +117,11 @@ class Barrier(EltCollection):
         return elts
 
     def receive_participant(self, participant: Participant):
+        from psynet.experiment import get_experiment
+
+        exp = get_experiment()
+        exp.register_barrier_instance(self)
+
         link = ParticipantLinkBarrier(
             participant=participant,
             barrier_id=self.id,
@@ -160,10 +167,13 @@ class Barrier(EltCollection):
                 Participant.status == "working",
             )
             .options(joinedload(ParticipantLinkBarrier.participant, innerjoin=True))
+            .order_by(Participant.id)
         )
 
         if for_update:
-            query = query.with_for_update(of=ParticipantLinkBarrier).populate_existing()
+            query = query.with_for_update(
+                of=[ParticipantLinkBarrier, Participant]
+            ).populate_existing()
 
         links = query.all()
         participants = [link.participant for link in links]
@@ -709,6 +719,48 @@ class SimpleSyncGroup(SyncGroup):
 
 
 @register_table
+class BarrierRecord(SQLBase, SQLMixin):
+    __tablename__ = "barrier"
+
+    id = Column(String, primary_key=True)
+    barrier_class = Column(PythonClass)
+    created_at = Column(DateTime, default=timenow)
+
+    participant_links = relationship(
+        "ParticipantLinkBarrier", back_populates="barrier_record"
+    )
+
+    @classmethod
+    def ensure_exists(cls, barrier_id: str, barrier_class):
+        with db.session.no_autoflush:
+            if cls.query.get(barrier_id) is not None:
+                return
+
+            values = {"id": barrier_id, "barrier_class": barrier_class}
+            dialect = db.session.bind.dialect.name if db.session.bind else None
+
+            if dialect == "postgresql":
+                stmt = (
+                    pg_insert(cls)
+                    .values(**values)
+                    .on_conflict_do_nothing(index_elements=["id"])
+                )
+                db.session.execute(stmt)
+                return
+
+            if dialect == "sqlite":
+                stmt = (
+                    sqlite_insert(cls)
+                    .values(**values)
+                    .on_conflict_do_nothing(index_elements=["id"])
+                )
+                db.session.execute(stmt)
+                return
+
+            db.session.execute(insert(cls).values(**values))
+
+
+@register_table
 class ParticipantLinkSyncGroup(SQLBase, SQLMixin):
     __tablename__ = "participant_link_sync_group"
 
@@ -727,7 +779,7 @@ class ParticipantLinkSyncGroup(SQLBase, SQLMixin):
 class ParticipantLinkBarrier(SQLBase, SQLMixin):
     __tablename__ = "participant_link_barrier"
 
-    barrier_id = Column(String, index=True)
+    barrier_id = Column(String, ForeignKey("barrier.id"), index=True)
     barrier_class = Column(PythonClass)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
     participant = relationship(
@@ -741,22 +793,19 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     departure_time = Column(DateTime)
     released = Column(Boolean, default=False)
 
+    barrier_record = relationship("BarrierRecord", back_populates="participant_links")
+
     def get_barrier(self):
         from .experiment import get_experiment
 
         exp = get_experiment()
-        timeline = exp.timeline
-
-        elt = timeline.get_current_elt(exp, self.participant)
-
-        try:
-            barrier = elt.links["barrier"]
-            assert barrier.id == self.barrier_id
+        barrier = exp.get_barrier(self.barrier_id)
+        if barrier is not None:
             return barrier
-        except (KeyError, AssertionError):
-            raise RuntimeError(
-                "The barrier can only be retrieved if the participant is currently at the barrier."
-            )
+
+        raise RuntimeError(
+            f"Barrier '{self.barrier_id}' is not registered in the experiment."
+        )
 
     def release(self):
         self.departure_time = timenow()
@@ -778,7 +827,7 @@ Participant.sync_groups = association_proxy(
     "sync_group",
 )
 
-# No association proxy for barrier links because barriers aren't represented as database objects (yet)
+# No association proxy for barrier links because barriers are not exposed as objects
 
 
 class GroupCloser(GroupBarrier):

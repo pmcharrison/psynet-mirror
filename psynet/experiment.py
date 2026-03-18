@@ -541,6 +541,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+        self._barrier_registry = {}
 
         self.pre_deploy_routines = []
         if self.translation_checks_needed():
@@ -2559,33 +2560,37 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def check_barriers():
-        from .sync import ParticipantLinkBarrier
+        from .sync import BarrierRecord, ParticipantLinkBarrier
 
-        barrier_links = (
-            ParticipantLinkBarrier.query.join(Participant)
-            .filter(
-                ~ParticipantLinkBarrier.released,
-                ~Participant.failed,
-                Participant.status == "working",
+        exp = get_experiment()
+
+        waiting_barriers = (
+            BarrierRecord.query.filter(
+                db.session.query(ParticipantLinkBarrier.id)
+                .join(Participant)
+                .filter(
+                    ParticipantLinkBarrier.barrier_id == BarrierRecord.id,
+                    ~ParticipantLinkBarrier.released,
+                    ~Participant.failed,
+                    Participant.status == "working",
+                )
+                .exists()
             )
-            # We need to lock Participant rows to prevent race conditions with participants
-            # who are currently being processed in other tasks
-            # (e.g. advancing through the timeline).
-            .with_for_update(of=[ParticipantLinkBarrier, Participant])
+            .order_by(BarrierRecord.id)
+            .with_for_update(skip_locked=True)
             .populate_existing()
             .all()
         )
 
-        # Before we used a DISTINCT clause --
-        # .distinct(ParticipantLinkBarrier.barrier_id)
-        # but DISTINCT is incompatible with FOR UPDATE in Postgres.
-        # We therefore do this filtering in Python instead.
-        processed_barriers = set()
-        for link in barrier_links:
-            if link.barrier_id not in processed_barriers:
-                barrier = link.get_barrier()
-                barrier.process_potential_releases()
-                processed_barriers.add(link.barrier_id)
+        for barrier_record in waiting_barriers:
+            barrier = exp.get_barrier(barrier_record.id)
+            if barrier is None:
+                logger.warning(
+                    "Barrier '%s' is present in the database but was not registered.",
+                    barrier_record.id,
+                )
+                continue
+            barrier.process_potential_releases()
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken
@@ -2920,6 +2925,32 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.assets.stage(elt)
             if isinstance(elt, PreDeployRoutine):
                 self.pre_deploy_routines.append(elt)
+        self.register_barriers()
+
+    def register_barriers(self):
+        seen = set()
+        for elt in self.timeline.elts:
+            barrier = elt.links.get("barrier")
+            if barrier is None or barrier.id in seen:
+                continue
+            self.register_barrier_instance(barrier)
+            seen.add(barrier.id)
+
+    def register_barrier_instance(self, barrier):
+        from .sync import BarrierRecord
+
+        existing = self._barrier_registry.get(barrier.id)
+        if existing is not None and existing.__class__ != barrier.__class__:
+            raise RuntimeError(
+                "Multiple barrier classes registered with the same barrier id "
+                f"('{barrier.id}'): {existing.__class__.__name__} vs "
+                f"{barrier.__class__.__name__}."
+            )
+        self._barrier_registry[barrier.id] = barrier
+        BarrierRecord.ensure_exists(barrier.id, barrier.__class__)
+
+    def get_barrier(self, barrier_id: str):
+        return self._barrier_registry.get(barrier_id)
 
     def pre_deploy(self, redeploying_from_archive=False):
         self.update_deployment_id()
