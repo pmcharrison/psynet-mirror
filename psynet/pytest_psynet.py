@@ -32,7 +32,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
 from psynet.participant import Participant
 
-from . import asset as psynet_asset
 from .command_line import (
     clean_sys_modules,
     kill_chromedriver_processes,
@@ -93,9 +92,12 @@ def assert_text(driver, element_id, value):
 @pytest.fixture
 def artifact_storage_s3_test_root(tmp_path):
     root = str(tmp_path / "psynet-artifact-storage-s3-test")
-    setup_artifact_storage_s3_test_client(root)
-    psynet_asset.get_s3_client().create_bucket(Bucket="psynet-tests")
-    return root
+    client, restore = setup_artifact_storage_s3_test_client(root)
+    try:
+        client.create_bucket(Bucket="psynet-tests")
+        yield root
+    finally:
+        restore()
 
 
 def bot_class(headless=None):

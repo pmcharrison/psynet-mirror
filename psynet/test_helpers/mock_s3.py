@@ -150,6 +150,26 @@ def setup_artifact_storage_s3_test_client(root: str):
     import psynet.asset as asset
 
     client = get_artifact_storage_s3_test_client(root)
+    original_asset_get_s3_client = asset.get_s3_client
+    original_artifact_get_s3_client = artifact.get_s3_client
+
     asset.get_s3_client = lambda: client
     artifact.get_s3_client = lambda: client
+    asset.list_files_in_s3_bucket__cached.cache_clear()
+    return client, lambda: _restore_s3_test_client(
+        asset,
+        artifact,
+        original_asset_get_s3_client,
+        original_artifact_get_s3_client,
+    )
+
+
+def _restore_s3_test_client(
+    asset,
+    artifact,
+    original_asset_get_s3_client,
+    original_artifact_get_s3_client,
+):
+    asset.get_s3_client = original_asset_get_s3_client
+    artifact.get_s3_client = original_artifact_get_s3_client
     asset.list_files_in_s3_bucket__cached.cache_clear()
