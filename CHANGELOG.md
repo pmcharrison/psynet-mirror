@@ -43,6 +43,7 @@
 
 ### Changed
 
+- Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates (author: Frank Höger)
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)

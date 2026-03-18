@@ -2137,17 +2137,19 @@ def while_loop(
         return f"{prefix}__{x}"
 
     if max_loop_time is not None:
-        max_loop_time_condition = (
-            lambda participant, experiment: (
+
+        def max_loop_time_condition(participant, experiment):
+            return (
                 datetime.now()
                 - unserialise_datetime(
                     participant.var.get(with_namespace("loop_start_time"))
                 )
-            ).seconds
-            > max_loop_time
-        )
+            ).seconds > max_loop_time
+
     else:
-        max_loop_time_condition = lambda participant, experiment: False  # noqa: E731
+
+        def max_loop_time_condition(participant, experiment):
+            return False
 
     from .page import UnsuccessfulEndPage
 

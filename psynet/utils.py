@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import time
+from _hashlib import HASH as Hash
 from datetime import datetime
 from functools import reduce, wraps
 from os.path import exists
@@ -22,7 +23,6 @@ import jsonpickle
 import pexpect
 import requests
 import tomlkit
-from _hashlib import HASH as Hash
 from babel.support import Translations
 from bs4 import BeautifulSoup
 from dallinger.config import experiment_available
@@ -546,9 +546,9 @@ def _render_with_translations(
 
     all_template_args["config"] = dict(get_config().as_dict().items())
 
-    assert [template_name, template_string].count(
-        None
-    ) == 1, "Only one of template_name or template_string should be provided."
+    assert [template_name, template_string].count(None) == 1, (
+        "Only one of template_name or template_string should be provided."
+    )
 
     if locale is None:
         locale = get_locale()
@@ -609,9 +609,9 @@ def get_descendent_class_by_name(parent_class, name):
             if should_overwrite:
                 by_name[id_] = cls
     klass = by_name.get(name)
-    assert (
-        klass is not None
-    ), f"Could not find class {name} in subclasses of {parent_class}"
+    assert klass is not None, (
+        f"Could not find class {name} in subclasses of {parent_class}"
+    )
     return klass
 
 
