@@ -17,7 +17,7 @@ from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, joinedload, relationship
+from sqlalchemy.orm import backref, joinedload, object_session, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonClass
@@ -130,6 +130,9 @@ class Barrier(EltCollection):
 
         exp = get_experiment()
         exp.register_barrier_instance(self)
+
+        if object_session(participant) is None:
+            db.session.add(participant)
 
         link = ParticipantLinkBarrier(
             participant=participant,
