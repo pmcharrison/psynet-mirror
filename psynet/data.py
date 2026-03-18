@@ -792,9 +792,15 @@ def ingest_to_model(
                 file, model, engine, columns=columns, format="csv", HEADER=False
             )
 
-        column_names = [x["name"] for x in inspector.get_columns(model.__table__)]
+        columns = inspector.get_columns(model.__table__)
+        column_names = [x["name"] for x in columns]
         if "id" in column_names:
-            fix_autoincrement(engine, model.__table__.name)
+            id_column = next(
+                (column for column in columns if column["name"] == "id"),
+                None,
+            )
+            if id_column and isinstance(id_column["type"], sqlalchemy.Integer):
+                fix_autoincrement(engine, model.__table__.name)
 
 
 def patch_csv(infile, outfile, clear_columns, replace_columns):
