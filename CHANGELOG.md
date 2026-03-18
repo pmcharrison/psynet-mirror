@@ -33,6 +33,7 @@
 - Added requests/sec throughput metric to performance test results (author: Jesse Snyder)
 - Added bot initialization time distribution (median/p95/max) to per-test detail reporting (author: Jesse Snyder)
 - Added detection and reporting of bots that started but never created DB participant records (author: Jesse Snyder)
+- Added RQ worker count display in async process times section for context on queue delays (author: Jesse Snyder)
 
 ### Changed
 
@@ -50,6 +51,7 @@
 - Separated bot duration tracking by outcome (succeeded/failed/incomplete) in performance test results (author: Jesse Snyder)
 - Redirected bot output to dedicated logfile, keeping console output minimal during performance tests (author: Jesse Snyder)
 - Improved performance test output: tabulate-based tables, AsyncProcess duration stats, ANSI-colored headers/success rates, and reorganized per-test detail reporting (author: Jesse Snyder)
+- Refactored performance test code from `experiment.py` into standalone `psynet/perf_test.py` module with `PerformanceTester` class (author: Jesse Snyder)
 
 ### Fixed
 
