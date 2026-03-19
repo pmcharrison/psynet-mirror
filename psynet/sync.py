@@ -140,6 +140,9 @@ class Barrier(EltCollection):
             arrival_time=timenow(),
         )
         participant.active_barriers[self.id] = link
+        # Trial-defined barriers are not registered in the clock process.
+        # Trigger release checks on arrival so waiting participants can progress.
+        self.process_potential_releases()
         self.process_potential_releases()
 
     def get_waiting_participants(self, for_update: bool = False):

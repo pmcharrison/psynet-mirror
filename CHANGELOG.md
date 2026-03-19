@@ -46,6 +46,7 @@
 - Refactored barrier processing to register barriers in the database and claim barrier rows before locking participants, reducing deadlock risk in sync experiments (author: [Edgar Andrade])
 - Skipped autoincrement resets for tables with non-integer IDs to prevent ingest failures on custom tables (author: [Edgar Andrade])
 - Reattached participants to the active session when entering barriers to avoid detached-instance errors during bot creation (author: [Edgar Andrade])
+- Triggered barrier release checks on arrival to handle trial-defined barriers without clock registry state (author: [Edgar Andrade])
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)
