@@ -116,6 +116,13 @@ GET https://gitlab.com/api/v4/projects/<project_id>/jobs/<job_id>/trace
 
 This is the preferred approach for agents when verifying CI status or logs.
 
+## Testing
+
+Non-trivial code changes should be tested. 
+Prefer red/green test-driven development, but avoid committing overly verbose tests in the final PR.
+Implement sensible unit tests where appropriate.
+Verify changes end-to-end by running `psynet test local` within a relevant demo. 
+
 ## Finishing up changes
 
 When you make changes to the PsyNet codebase:
