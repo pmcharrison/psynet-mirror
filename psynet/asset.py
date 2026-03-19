@@ -442,6 +442,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         """
         Update parent-related metadata when linking an asset.
 
+        For undeposited assets, this overwrites parent/key/module/definition metadata
+        so the asset is bound to the current owner. Deposited assets are left unchanged
+        to preserve their storage identity.
+
         Parameters
         ----------
         parent : object
@@ -460,21 +464,15 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         """
         self._raise_if_detached()
 
-        if self.parent is None:
+        if not self.deposited:
             self.parent = parent
-
-        if self.local_key is None:
             self.local_key = local_key
-
-        if module_id is not None and self.module_id is None:
-            self.module_id = module_id
-
-        if (
-            definition is not None
-            and not self.deposited
-            and getattr(self, "node_definition", None) is None
-        ):
-            self.receive_node_definition(definition)
+            if module_id is not None:
+                self.module_id = module_id
+            elif getattr(parent, "module_id", None) is not None:
+                self.module_id = parent.module_id
+            if definition is not None:
+                self.receive_node_definition(definition)
 
         return self
 

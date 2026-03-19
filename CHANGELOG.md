@@ -30,6 +30,7 @@
 - Prevented deposited assets from re-obfuscating host paths when re-linked, avoiding 404s for cached assets (author: [Peter Harrison])
 - Centralized asset linking to avoid overwriting local keys and definitions on already-deposited assets (author: [Peter Harrison])
 - Added coverage to confirm asset URLs remain accessible after linking deposited assets (author: [Peter Harrison])
+- Ensured undeposited assets adopt the current owner metadata while deposited assets avoid re-parameterization in `finalize_assets` (author: [Peter Harrison])
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)

@@ -644,8 +644,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     def finalize_assets(self):
         for _, asset in self.assets.items():
-            asset.receive_node_definition(self.definition)
             if not asset.deposited:
+                asset.receive_node_definition(self.definition)
                 asset.deposit()
 
     def show_trial(self, experiment, participant):

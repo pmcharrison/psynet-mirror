@@ -406,22 +406,46 @@ def test_add_asset_external_asset_does_not_mutate_url(trial):
     "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
-def test_add_asset_sets_missing_metadata_for_new_assets(trial, debug_storage):
+def test_add_asset_sets_missing_metadata_for_new_assets(trial, participant):
     with tempfile.NamedTemporaryFile("w", suffix=".txt") as f:
         f.write("Hello!")
         f.flush()
 
         new_asset = ExperimentAsset(
             input_path=f.name,
+            local_key="original_key",
+            parent=participant,
         )
 
-        assert new_asset.local_key is None
+        assert new_asset.local_key == "original_key"
         assert getattr(new_asset, "node_definition", None) is None
 
         trial.add_asset("image_right", new_asset)
 
         assert new_asset.local_key == "image_right"
+        assert new_asset.parent is trial
         assert new_asset.node_definition == trial.definition
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
+def test_finalize_assets_does_not_override_deposited_on_demand_asset(
+    trial, launched_experiment
+):
+    on_demand_asset = OnDemandAsset(
+        function=placeholder_function,
+        arguments={"param": "original"},
+    )
+    on_demand_asset.deposit(launched_experiment.asset_storage)
+    on_demand_asset.node_definition = {"marker": "original"}
+
+    trial.add_asset("generated", on_demand_asset)
+    trial.finalize_assets()
+
+    assert on_demand_asset.arguments["param"] == "original"
+    assert on_demand_asset.node_definition == {"marker": "original"}
 
 
 # Test function asset - cached
