@@ -1057,7 +1057,8 @@ def format_test_results(result):
     # WAIT PAGE TIMES
     if result.get("median_wait_page_time") is not None:
         n_wait = result.get("n_wait_page_samples", "?")
-        _section(f"WAIT PAGE TIMES (n={n_wait})")
+        page_word = "page" if n_wait == 1 else "pages"
+        _section(f"WAIT PAGE TIMES (n={n_wait} {page_word})")
         wait_rows = [
             ["Median", f"{result['median_wait_page_time']:.1f}s"],
             ["95th percentile", f"{result['p95_wait_page_time']:.1f}s"],
@@ -1068,7 +1069,8 @@ def format_test_results(result):
 
     # TRIALS PER BOT
     n_succeeded = result.get("n_succeeded_bots", 0)
-    _section(f"TRIALS PER BOT (n={n_succeeded} succeeded)")
+    bot_word = "bot" if n_succeeded == 1 else "bots"
+    _section(f"TRIALS PER BOT (n={n_succeeded} {bot_word} succeeded)")
     _tc = lambda k, fallback=0: (  # noqa: E731
         result[k] if result.get(k) is not None else fallback
     )
@@ -1086,6 +1088,13 @@ def format_test_results(result):
         n_workers = result.get("n_rq_workers")
         worker_info = f" via {n_workers} workers" if n_workers else ""
         _section(f"ASYNC PROCESS TIMES ({n_procs} completed{worker_info})")
+        lines.append("  Avg/Med/P95/Max — statistics on actual execution time")
+        lines.append("  Q Avg/Q P95 — statistics on queue delay (time waiting in RQ queue)")
+        lines.append("  Q Share — avg of per-process queue_delay / (queue_delay + exec_time),")
+        lines.append("    i.e. avg percentage of total time spent queuing rather than executing")
+        lines.append("  Colors: yellow = Q Share > 20% and Q P95 > 0.2s (moderate contention)")
+        lines.append("          red = Q Share > 20% and Q P95 > 0.5s (significant contention)")
+        lines.append("\n")
         _fmt = lambda v: f"{v:.3f}" if v is not None else "N/A"  # noqa: E731
 
         def _color_q_share(q_share, q_p95):
@@ -1209,7 +1218,10 @@ def format_performance_summary(results):
         summary_rows.append(row)
 
     lines.append("")
-    lines.append(bold("CUMULATIVE PERFORMANCE TEST SUMMARY"))
+    lines.append(bold("CUMULATIVE PERFORMANCE TEST SUMMARY\n"))
+    lines.append("  Resp P95 — P95 HTTP response time for key endpoints (/timeline, /response)")
+    lines.append("  Q P95 all — P95 queue delay across all async processes")
+    lines.append("  vs base — ratio to the first (lowest bot-count) row, if multiple counts are run")
     lines.append("")
     table = tabulate(summary_rows, headers=summary_headers, tablefmt="simple")
     for line in table.splitlines():
