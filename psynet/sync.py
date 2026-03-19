@@ -20,7 +20,7 @@ from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, joinedload, object_session, relationship
+from sqlalchemy.orm import backref, deferred, joinedload, object_session, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonClass, PythonDict, is_basic_type
@@ -743,7 +743,7 @@ class BarrierRecord(SQLBase, SQLMixin):
     id = Column(String, primary_key=True)
     barrier_class = Column(PythonClass)
     created_at = Column(DateTime, default=timenow)
-    spec = Column(PythonDict)
+    spec = deferred(Column(PythonDict))
 
     participant_links = relationship(
         "ParticipantLinkBarrier", back_populates="barrier_record"
@@ -754,10 +754,13 @@ class BarrierRecord(SQLBase, SQLMixin):
         with db.session.no_autoflush:
             if not _barrier_table_is_available():
                 return
+            if spec is not None and not _barrier_spec_column_is_available():
+                spec = None
             record = cls.query.get(barrier_id)
             if record is not None:
-                if spec is not None and record.spec != spec:
-                    record.spec = spec
+                if spec is not None and _barrier_spec_column_is_available():
+                    if record.spec != spec:
+                        record.spec = spec
                 return
 
             values = {
@@ -790,7 +793,7 @@ class BarrierRecord(SQLBase, SQLMixin):
             db.session.execute(insert(cls).values(**values))
 
     def instantiate_barrier(self):
-        if not self.spec:
+        if not _barrier_spec_column_is_available() or not self.spec:
             return None
         try:
             return _instantiate_barrier_from_spec(self.spec)
@@ -806,6 +809,17 @@ def _barrier_table_is_available() -> bool:
     if bind is None:
         return False
     return sa_inspect(bind).has_table(BarrierRecord.__tablename__)
+
+
+def _barrier_spec_column_is_available() -> bool:
+    bind = db.session.bind
+    if bind is None:
+        return False
+    inspector = sa_inspect(bind)
+    if not inspector.has_table(BarrierRecord.__tablename__):
+        return False
+    columns = [column["name"] for column in inspector.get_columns("barrier")]
+    return "spec" in columns
 
 
 class BarrierSpecError(ValueError):
