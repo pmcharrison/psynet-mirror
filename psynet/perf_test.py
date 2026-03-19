@@ -1089,11 +1089,21 @@ def format_test_results(result):
         worker_info = f" via {n_workers} workers" if n_workers else ""
         _section(f"ASYNC PROCESS TIMES ({n_procs} completed{worker_info})")
         lines.append("  Avg/Med/P95/Max — statistics on actual execution time")
-        lines.append("  Q Avg/Q P95 — statistics on queue delay (time waiting in RQ queue)")
-        lines.append("  Q Share — avg of per-process queue_delay / (queue_delay + exec_time),")
-        lines.append("    i.e. avg percentage of total time spent queuing rather than executing")
-        lines.append("  Colors: yellow = Q Share > 20% and Q P95 > 0.2s (moderate contention)")
-        lines.append("          red = Q Share > 20% and Q P95 > 0.5s (significant contention)")
+        lines.append(
+            "  Q Avg/Q P95 — statistics on queue delay (time waiting in RQ queue)"
+        )
+        lines.append(
+            "  Q Share — avg of per-process queue_delay / (queue_delay + exec_time),"
+        )
+        lines.append(
+            "    i.e. avg percentage of total time spent queuing rather than executing"
+        )
+        lines.append(
+            "  Colors: yellow = Q Share > 20% and Q P95 > 0.2s (moderate contention)"
+        )
+        lines.append(
+            "          red = Q Share > 20% and Q P95 > 0.5s (significant contention)"
+        )
         lines.append("\n")
         _fmt = lambda v: f"{v:.3f}" if v is not None else "N/A"  # noqa: E731
 
@@ -1219,9 +1229,13 @@ def format_performance_summary(results):
 
     lines.append("")
     lines.append(bold("CUMULATIVE PERFORMANCE TEST SUMMARY\n"))
-    lines.append("  Resp P95 — P95 HTTP response time for key endpoints (/timeline, /response)")
+    lines.append(
+        "  Resp P95 — P95 HTTP response time for key endpoints (/timeline, /response)"
+    )
     lines.append("  Q P95 all — P95 queue delay across all async processes")
-    lines.append("  vs base — ratio to the first (lowest bot-count) row, if multiple counts are run")
+    lines.append(
+        "  vs base — ratio to the first (lowest bot-count) row, if multiple counts are run"
+    )
     lines.append("")
     table = tabulate(summary_rows, headers=summary_headers, tablefmt="simple")
     for line in table.splitlines():
