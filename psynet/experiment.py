@@ -2586,11 +2586,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for barrier_record in waiting_barriers:
             barrier = exp.get_barrier(barrier_record.id)
             if barrier is None:
-                logger.warning(
-                    "Barrier '%s' is present in the database but was not registered.",
-                    barrier_record.id,
-                )
-                continue
+                barrier = barrier_record.instantiate_barrier()
+                if barrier is None:
+                    logger.debug(
+                        "Barrier '%s' is present in the database but was not registered.",
+                        barrier_record.id,
+                    )
+                    continue
+                exp.register_barrier_instance(barrier)
             barrier.process_potential_releases()
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
@@ -2938,7 +2941,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             seen.add(barrier.id)
 
     def register_barrier_instance(self, barrier):
-        from .sync import BarrierRecord
+        from .sync import BarrierRecord, BarrierSpecError, _build_barrier_spec
 
         existing = self._barrier_registry.get(barrier.id)
         if existing is not None and existing.__class__ != barrier.__class__:
@@ -2948,8 +2951,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"{barrier.__class__.__name__}."
             )
         self._barrier_registry[barrier.id] = barrier
+        spec = None
+        try:
+            spec = _build_barrier_spec(barrier)
+        except BarrierSpecError as err:
+            logger.debug("Barrier '%s' could not be serialized: %s", barrier.id, err)
         with transaction():
-            BarrierRecord.ensure_exists(barrier.id, barrier.__class__)
+            BarrierRecord.ensure_exists(barrier.id, barrier.__class__, spec=spec)
 
     def get_barrier(self, barrier_id: str):
         return self._barrier_registry.get(barrier_id)

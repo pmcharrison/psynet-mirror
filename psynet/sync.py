@@ -1,9 +1,12 @@
+import importlib
+import inspect
 import random
 from math import floor
 from typing import Callable, List, Optional, Union
 
 from dallinger import db
 from dallinger.models import timenow
+from jsonpickle.util import importable_name
 from sqlalchemy import (
     Boolean,
     Column,
@@ -20,7 +23,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, joinedload, object_session, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.field import PythonClass
+from psynet.field import PythonClass, PythonDict, is_basic_type
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock, EltCollection, conditional
@@ -740,17 +743,21 @@ class BarrierRecord(SQLBase, SQLMixin):
     id = Column(String, primary_key=True)
     barrier_class = Column(PythonClass)
     created_at = Column(DateTime, default=timenow)
+    spec = Column(PythonDict)
 
     participant_links = relationship(
         "ParticipantLinkBarrier", back_populates="barrier_record"
     )
 
     @classmethod
-    def ensure_exists(cls, barrier_id: str, barrier_class):
+    def ensure_exists(cls, barrier_id: str, barrier_class, spec=None):
         with db.session.no_autoflush:
             if not _barrier_table_is_available():
                 return
-            if cls.query.get(barrier_id) is not None:
+            record = cls.query.get(barrier_id)
+            if record is not None:
+                if spec is not None and record.spec != spec:
+                    record.spec = spec
                 return
 
             values = {
@@ -758,6 +765,7 @@ class BarrierRecord(SQLBase, SQLMixin):
                 "barrier_class": barrier_class,
                 "type": cls.__mapper_args__["polymorphic_identity"],
                 "created_at": timenow(),
+                "spec": spec,
             }
             dialect = db.session.bind.dialect.name if db.session.bind else None
 
@@ -781,12 +789,121 @@ class BarrierRecord(SQLBase, SQLMixin):
 
             db.session.execute(insert(cls).values(**values))
 
+    def instantiate_barrier(self):
+        if not self.spec:
+            return None
+        try:
+            return _instantiate_barrier_from_spec(self.spec)
+        except BarrierSpecError as err:
+            logger.debug(
+                "Failed to instantiate barrier '%s' from spec: %s", self.id, err
+            )
+            return None
+
 
 def _barrier_table_is_available() -> bool:
     bind = db.session.bind
     if bind is None:
         return False
     return sa_inspect(bind).has_table(BarrierRecord.__tablename__)
+
+
+class BarrierSpecError(ValueError):
+    pass
+
+
+def _callable_to_path(func):
+    if func is None:
+        return None
+    if inspect.ismethod(func) and func.__self__ is not None:
+        raise BarrierSpecError("Bound methods are not serializable.")
+    if getattr(func, "__name__", None) == "<lambda>":
+        raise BarrierSpecError("Lambda functions are not serializable.")
+    qualname = getattr(func, "__qualname__", "")
+    if "<locals>" in qualname:
+        raise BarrierSpecError("Nested functions are not serializable.")
+    module = getattr(func, "__module__", None)
+    if not module:
+        raise BarrierSpecError("Callable has no module.")
+    path = f"{module}.{qualname}"
+    return path
+
+
+def _callable_from_path(path):
+    module_name, qualname = path.split(".", 1)
+    module = importlib.import_module(module_name)
+    target = module
+    for attr in qualname.split("."):
+        target = getattr(target, attr)
+    return target
+
+
+def _build_barrier_spec(barrier: Barrier) -> dict:
+    barrier_class_path = importable_name(barrier.__class__)
+    callables = {}
+
+    if isinstance(barrier, SimpleGrouper):
+        init_kwargs = {
+            "id_": barrier.id,
+            "group_type": barrier.group_type,
+            "initial_group_size": barrier.initial_group_size,
+            "max_group_size": barrier.max_group_size,
+            "min_group_size": barrier.min_group_size,
+            "batch_size": barrier.batch_size,
+            "join_existing_groups": barrier.join_existing_groups,
+            "waiting_logic_expected_repetitions": barrier.waiting_logic_expected_repetitions,
+            "max_wait_time": barrier.max_wait_time,
+            "fix_time_credit": barrier.fix_time_credit,
+        }
+        if barrier.join_criterion is not None:
+            callables["join_criterion"] = _callable_to_path(barrier.join_criterion)
+    elif isinstance(barrier, GroupBarrier):
+        init_kwargs = {
+            "id_": barrier.id,
+            "group_type": barrier.group_type,
+            "waiting_logic_expected_repetitions": barrier.waiting_logic_expected_repetitions,
+            "max_wait_time": barrier.max_wait_time,
+            "fix_time_credit": barrier.fix_time_credit,
+        }
+        if barrier.on_release is not None:
+            callables["on_release"] = _callable_to_path(barrier.on_release)
+    elif isinstance(barrier, Grouper):
+        init_kwargs = {
+            "id_": barrier.id,
+            "group_type": barrier.group_type,
+            "waiting_logic_expected_repetitions": barrier.waiting_logic_expected_repetitions,
+            "max_wait_time": barrier.max_wait_time,
+            "fix_time_credit": barrier.fix_time_credit,
+        }
+    else:
+        init_kwargs = {
+            "id_": barrier.id,
+            "waiting_logic_expected_repetitions": barrier.waiting_logic_expected_repetitions,
+            "max_wait_time": barrier.max_wait_time,
+            "fix_time_credit": barrier.fix_time_credit,
+        }
+
+    for key, value in init_kwargs.items():
+        if not is_basic_type(value):
+            raise BarrierSpecError(
+                f"Barrier parameter '{key}' is not JSON-serializable."
+            )
+
+    return {
+        "version": 1,
+        "barrier_id": barrier.id,
+        "barrier_class": barrier_class_path,
+        "init_kwargs": init_kwargs,
+        "callables": callables,
+    }
+
+
+def _instantiate_barrier_from_spec(spec: dict) -> Barrier:
+    barrier_class = _callable_from_path(spec["barrier_class"])
+    kwargs = dict(spec.get("init_kwargs", {}))
+    for name, path in spec.get("callables", {}).items():
+        kwargs[name] = _callable_from_path(path)
+    return barrier_class(**kwargs)
 
 
 @register_table
