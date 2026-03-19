@@ -20,6 +20,9 @@ class TestExp:
         # Filter out known external service warnings (npm, Heroku CLI, etc.)
         external_warning_patterns = [
             r"terms of service",
+            r"Closing file descriptor \d+ on garbage collection",
+            r"\[DEP0137\].*FileHandle object on garbage collection is deprecated",
+            r"\[DEP0060\].*util\._extend.*deprecated",
         ]
         warnings = [
             w
