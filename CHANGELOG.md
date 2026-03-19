@@ -25,6 +25,7 @@
 
 ### Changed
 
+- Added barrier registry diagnostics for trial-defined barriers to debug local sync issues (author: [User])
 - Removed per-link barrier class storage in favor of barrier registry records (author: [Edgar Andrade])
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
