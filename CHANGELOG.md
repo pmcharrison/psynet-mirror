@@ -50,7 +50,7 @@
 - Fixed `CI` environment variable not being passed to Docker container in CI, causing `@local_only` tests to run incorrectly (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed `@local_only` and `@ci_only` pytest decorators by changing condition from `os.environ.get("CI")` to `os.environ.get("CI") is not None` to ensure a boolean result (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed `test_translator_with_file_path` to use `{NAME}` instead of `■0■` since `ChatGptTranslator` has `use_codebook=False` (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices) (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices and Node launch warnings) (author: Frank Höger, reviewer: Peter Harrison)
 - Standardized "Abort Experiment" to "Abort experiment" in templates for consistent capitalization and removed obsolete translation entries from PO files (author: Frank Höger, reviewer: Peter Harrison)
 - Removed prompt text from prompt metadata to avoid large export file sizes (author: Peter)
 - Suppressed forkpty DeprecationWarning in pytest configuration (author: Peter Harrison)
