@@ -132,14 +132,6 @@ from .utils import (
 
 logger = get_logger()
 
-_DEBUG_BARRIER_IDS = {"wait_for_trial", "finished_trial"}
-_DEBUG_BARRIER_MISSING_LOGGED = set()
-
-
-def _barrier_process_tag() -> str:
-    process_name = os.path.basename(sys.argv[0])
-    return f"{process_name} pid={os.getpid()}"
-
 
 database_template_path = ".deploy/database_template.zip"
 
@@ -2594,19 +2586,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for barrier_record in waiting_barriers:
             barrier = exp.get_barrier(barrier_record.id)
             if barrier is None:
-                if (
-                    barrier_record.id in _DEBUG_BARRIER_IDS
-                    and barrier_record.id not in _DEBUG_BARRIER_MISSING_LOGGED
-                ):
-                    _DEBUG_BARRIER_MISSING_LOGGED.add(barrier_record.id)
-                    logger.warning(
-                        "Barrier '%s' present in database but missing registry in "
-                        "process=%s (barrier_class=%s registry_keys=%s)",
-                        barrier_record.id,
-                        _barrier_process_tag(),
-                        barrier_record.barrier_class,
-                        sorted(exp._barrier_registry.keys()),
-                    )
                 logger.warning(
                     "Barrier '%s' is present in the database but was not registered.",
                     barrier_record.id,
@@ -2968,25 +2947,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"('{barrier.id}'): {existing.__class__.__name__} vs "
                 f"{barrier.__class__.__name__}."
             )
-        if barrier.id in _DEBUG_BARRIER_IDS:
-            logger.info(
-                "Registering barrier id=%s class=%s in process=%s "
-                "(registry_before=%s)",
-                barrier.id,
-                barrier.__class__.__name__,
-                _barrier_process_tag(),
-                sorted(self._barrier_registry.keys()),
-            )
         self._barrier_registry[barrier.id] = barrier
         with transaction():
             BarrierRecord.ensure_exists(barrier.id, barrier.__class__)
-        if barrier.id in _DEBUG_BARRIER_IDS:
-            logger.info(
-                "Registered barrier id=%s in process=%s (registry_after=%s)",
-                barrier.id,
-                _barrier_process_tag(),
-                sorted(self._barrier_registry.keys()),
-            )
 
     def get_barrier(self, barrier_id: str):
         return self._barrier_registry.get(barrier_id)

@@ -1,6 +1,4 @@
-import os
 import random
-import sys
 from math import floor
 from typing import Callable, List, Optional, Union
 
@@ -29,13 +27,6 @@ from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.utils import call_function_with_context, get_logger
 
 logger = get_logger()
-
-_DEBUG_BARRIER_IDS = {"wait_for_trial", "finished_trial"}
-
-
-def _barrier_process_tag() -> str:
-    process_name = os.path.basename(sys.argv[0])
-    return f"{process_name} pid={os.getpid()}"
 
 
 class Barrier(EltCollection):
@@ -149,6 +140,7 @@ class Barrier(EltCollection):
             arrival_time=timenow(),
         )
         participant.active_barriers[self.id] = link
+        self.process_potential_releases()
 
     def get_waiting_participants(self, for_update: bool = False):
         return self.get_waiting_participants_from_barrier_id(
@@ -756,23 +748,7 @@ class BarrierRecord(SQLBase, SQLMixin):
             if not _barrier_table_is_available():
                 return
             if cls.query.get(barrier_id) is not None:
-                if barrier_id in _DEBUG_BARRIER_IDS:
-                    class_name = getattr(barrier_class, "__name__", str(barrier_class))
-                    logger.info(
-                        "BarrierRecord already exists id=%s class=%s process=%s",
-                        barrier_id,
-                        class_name,
-                        _barrier_process_tag(),
-                    )
                 return
-            if barrier_id in _DEBUG_BARRIER_IDS:
-                class_name = getattr(barrier_class, "__name__", str(barrier_class))
-                logger.info(
-                    "Creating BarrierRecord id=%s class=%s process=%s",
-                    barrier_id,
-                    class_name,
-                    _barrier_process_tag(),
-                )
 
             values = {
                 "id": barrier_id,

@@ -24,8 +24,6 @@
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
 
 ### Changed
-
-- Added barrier registry diagnostics for trial-defined barriers to debug local sync issues (author: [User])
 - Removed per-link barrier class storage in favor of barrier registry records (author: [Edgar Andrade])
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
@@ -42,6 +40,7 @@
 
 ### Fixed
 
+- Fixed trial-defined barrier releases by processing barriers on participant arrival to avoid clock registry misses (author: [User])
 - Fixed legacy launch hangs by committing barrier registry inserts during experiment setup (author: [Cursor])
 - Avoided nested `transaction()` calls closing active sessions, fixing bot creation failures when barriers register during timeline advance (author: [Cursor])
 - Refactored barrier processing to register barriers in the database and claim barrier rows before locking participants, reducing deadlock risk in sync experiments (author: [Edgar Andrade])
