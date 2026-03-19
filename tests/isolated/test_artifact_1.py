@@ -89,11 +89,11 @@ def test_get_modification_date(artifact_storage, tmp_path):
     assert modified is not None
 
 
-def test_artifact_storage_s3_test_root_restores_s3_globals(tmp_path):
+def test_artifact_storage_s3_test_root_restores_s3_globals(tmp_path, monkeypatch):
     original_asset_get_s3_client = psynet_asset.get_s3_client
     original_artifact_get_s3_client = psynet_artifact.get_s3_client
 
-    fixture = artifact_storage_s3_test_root.__wrapped__(tmp_path)
+    fixture = artifact_storage_s3_test_root.__wrapped__(tmp_path, monkeypatch)
     next(fixture)
 
     assert psynet_asset.get_s3_client is not original_asset_get_s3_client
@@ -101,6 +101,8 @@ def test_artifact_storage_s3_test_root_restores_s3_globals(tmp_path):
 
     with pytest.raises(StopIteration):
         next(fixture)
+
+    monkeypatch.undo()
 
     assert psynet_asset.get_s3_client is original_asset_get_s3_client
     assert psynet_artifact.get_s3_client is original_artifact_get_s3_client
