@@ -16,7 +16,6 @@ from sqlalchemy import (
 )
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, deferred, joinedload, object_session, relationship
 
@@ -780,15 +779,6 @@ class BarrierRecord(SQLBase, SQLMixin):
             if dialect == "postgresql":
                 stmt = (
                     pg_insert(cls)
-                    .values(**values)
-                    .on_conflict_do_nothing(index_elements=["id"])
-                )
-                db.session.execute(stmt)
-                return
-
-            if dialect == "sqlite":
-                stmt = (
-                    sqlite_insert(cls)
                     .values(**values)
                     .on_conflict_do_nothing(index_elements=["id"])
                 )
