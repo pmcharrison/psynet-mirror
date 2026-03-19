@@ -1,5 +1,7 @@
+import importlib
 import inspect
 import pickle
+import types
 import warnings
 from functools import cached_property
 
@@ -213,6 +215,46 @@ class DominateHandler(jsonpickle.handlers.BaseHandler):
 
 
 jsonpickle.register(dominate.dom_tag.dom_tag, DominateHandler, base=True)
+
+
+def _callable_to_path(function):
+    if inspect.ismethod(function):
+        if function.__self__ is not None and not inspect.isclass(function.__self__):
+            raise TypeError("Cannot serialize bound instance methods.")
+        function = function.__func__
+
+    if getattr(function, "__name__", None) == "<lambda>":
+        raise TypeError("Cannot serialize lambda functions.")
+
+    if "<locals>" in getattr(function, "__qualname__", ""):
+        raise TypeError("Cannot serialize functions defined within other functions.")
+
+    module = getattr(function, "__module__", None)
+    if not module:
+        raise TypeError("Cannot serialize callables without a module.")
+
+    return f"{module}.{function.__qualname__}"
+
+
+def _callable_from_path(path):
+    module_name, qualname = path.split(".", 1)
+    module = importlib.import_module(module_name)
+    target = module
+    for attr in qualname.split("."):
+        target = getattr(target, attr)
+    return target
+
+
+class CallableHandler(jsonpickle.handlers.BaseHandler):
+    def flatten(self, obj, state):
+        return {"py/function": _callable_to_path(obj)}
+
+    def restore(self, state):
+        return _callable_from_path(state["py/function"])
+
+
+jsonpickle.register(types.FunctionType, CallableHandler, base=True)
+jsonpickle.register(types.MethodType, CallableHandler, base=True)
 
 
 def prepare_function_for_serialization(function, arguments):

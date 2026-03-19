@@ -2941,7 +2941,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             seen.add(barrier.id)
 
     def register_barrier_instance(self, barrier):
-        from .sync import BarrierRecord, BarrierSpecError, _build_barrier_spec
+        from .serialize import serialize
+        from .sync import BarrierRecord, _barrier_spec_column_is_available
 
         existing = self._barrier_registry.get(barrier.id)
         if existing is not None and existing.__class__ != barrier.__class__:
@@ -2952,10 +2953,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         self._barrier_registry[barrier.id] = barrier
         spec = None
-        try:
-            spec = _build_barrier_spec(barrier)
-        except BarrierSpecError as err:
-            logger.debug("Barrier '%s' could not be serialized: %s", barrier.id, err)
+        if _barrier_spec_column_is_available():
+            try:
+                spec = serialize(barrier)
+            except Exception as err:
+                logger.debug(
+                    "Barrier '%s' could not be serialized: %s", barrier.id, err
+                )
         with transaction():
             BarrierRecord.ensure_exists(barrier.id, barrier.__class__, spec=spec)
 

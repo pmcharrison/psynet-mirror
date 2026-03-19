@@ -48,6 +48,7 @@
 - Reattached participants to the active session when entering barriers to avoid detached-instance errors during bot creation (author: [Edgar Andrade])
 - Triggered barrier release checks on arrival to handle trial-defined barriers without clock registry state (author: [Edgar Andrade])
 - Stored barrier specs for reconstructing registry entries in background processes when possible (author: [Edgar Andrade])
+- Serialized importable callables in barrier specs and rejected bound or nested functions to keep barrier reconstruction deterministic (author: [Edgar Andrade])
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)
