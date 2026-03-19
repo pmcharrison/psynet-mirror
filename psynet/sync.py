@@ -11,7 +11,6 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    Text,
     insert,
 )
 from sqlalchemy import inspect as sa_inspect
@@ -20,7 +19,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, deferred, joinedload, object_session, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
-from psynet.field import PythonClass
+from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock, EltCollection, conditional
@@ -739,7 +738,7 @@ class BarrierRecord(SQLBase, SQLMixin):
     id = Column(String, primary_key=True)
     barrier_class = Column(PythonClass)
     created_at = Column(DateTime, default=timenow)
-    spec = deferred(Column(Text))
+    spec = deferred(Column(PythonObject))
 
     participant_links = relationship(
         "ParticipantLinkBarrier", back_populates="barrier_record"
@@ -791,11 +790,8 @@ class BarrierRecord(SQLBase, SQLMixin):
         if not _barrier_spec_column_is_available() or not self.spec:
             return None
         try:
-            from psynet.serialize import unserialize
-
-            barrier = unserialize(self.spec)
-            if isinstance(barrier, Barrier):
-                return barrier
+            if isinstance(self.spec, Barrier):
+                return self.spec
             return None
         except Exception as err:
             logger.debug(
