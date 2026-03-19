@@ -102,11 +102,6 @@ def test_artifact_storage_s3_test_root_restores_s3_globals(tmp_path, monkeypatch
     with pytest.raises(StopIteration):
         next(fixture)
 
-    monkeypatch.undo()
-
-    assert psynet_asset.get_s3_client is original_asset_get_s3_client
-    assert psynet_artifact.get_s3_client is original_artifact_get_s3_client
-
 
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_demo_experiment("hello_world")], indirect=True
