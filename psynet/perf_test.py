@@ -140,7 +140,7 @@ def run_parallel_test(n_bots, time_factor, stagger_interval_s, check_bots):
                         .split("\n")
                     )
                     for line in output:
-                        line.replace("INFO:root:", "")
+                        line = line.replace("INFO:root:", "")
                         logger.info(f"(Bot {bot_id}) " + line)
 
                         testing_stats.update_from_line(bot_id, line)
@@ -462,8 +462,6 @@ class PerformanceTester:
 
             # Terminate running bots once time is up to ensure consistent stats
             if current_time >= end_time and len(bot_state.get("processes", {})) > 0:
-                import time as _time
-
                 logger.debug(
                     "End time reached \u2014 terminating remaining bot processes"
                 )
@@ -491,7 +489,7 @@ class PerformanceTester:
                         logger.debug(f"Failed to terminate bot process {proc_id}: {e}")
 
                 # Give processes a short grace period to exit
-                _time.sleep(0.2)
+                time.sleep(0.2)
 
             time.sleep(0.1)
 
@@ -922,12 +920,13 @@ def colorize_success_rate(rate_str):
         return error(rate_str)
 
 
+def _fmt(value, suffix=""):
+    return f"{value:.3f}{suffix}" if value is not None else "N/A"
+
+
 def format_test_results(result):
     """Format detailed results after a single test completes. Returns list[str]."""
     lines = []
-
-    def _fmt(value, suffix=""):
-        return f"{value:.3f}{suffix}" if value is not None else "N/A"
 
     def _table_lines(rows, headers, indent="  ", min_label_width=28, **kwargs):
         kwargs.setdefault("tablefmt", "plain")
@@ -1018,9 +1017,9 @@ def format_test_results(result):
         lines.append(bold(f"  BOT INIT TIMES (n={n_init}):"))
         lines.append(f"  {'-' * 36}")
         init_rows = [
-            ["Median", f"{init_median:.3f}s"],
-            ["95th percentile", f"{init_p95:.3f}s"],
-            ["Max", f"{init_max:.3f}s"],
+            ["Median", _fmt(init_median, "s")],
+            ["95th percentile", _fmt(init_p95, "s")],
+            ["Max", _fmt(init_max, "s")],
         ]
         _table_lines(
             init_rows,
@@ -1105,7 +1104,6 @@ def format_test_results(result):
             "          red = Q Share > 20% and Q P95 > 0.5s (significant contention)"
         )
         lines.append("\n")
-        _fmt = lambda v: f"{v:.3f}" if v is not None else "N/A"  # noqa: E731
 
         def _color_q_share(q_share, q_p95):
             if q_share is None or q_p95 is None:
@@ -1122,10 +1120,10 @@ def format_test_results(result):
                 ps["trial_maker_id"],
                 ps["label"],
                 ps["count"],
-                f"{ps['avg']:.3f}",
-                f"{ps['median']:.3f}",
-                f"{ps['p95']:.3f}",
-                f"{ps['max']:.3f}",
+                _fmt(ps["avg"]),
+                _fmt(ps["median"]),
+                _fmt(ps["p95"]),
+                _fmt(ps["max"]),
                 _fmt(ps["q_avg"]),
                 _fmt(ps["q_p95"]),
                 _color_q_share(ps["q_share"], ps["q_p95"]),
@@ -1158,6 +1156,7 @@ def format_test_results(result):
                 "right",
                 "right",
                 "right",
+                "right",
             ),
         )
         lines.append("")
@@ -1174,9 +1173,6 @@ def format_test_results(result):
 def format_performance_summary(results):
     """Format cross-test comparison table. Returns list[str]."""
     lines = []
-
-    def _fmt(value):
-        return f"{value:.3f}" if value is not None else "N/A"
 
     show_scaling = len(results) > 1 and results[0].get("p95_response_time") is not None
     baseline_p95 = results[0].get("p95_response_time") if show_scaling else None
