@@ -27,6 +27,7 @@
 - Removed per-link barrier class storage in favor of barrier registry records (author: [Edgar Andrade])
 - Moved barrier registration to `on_first_launch` and use conflict-safe inserts for barrier records
 - Processed barriers in per-barrier transactions and skipped failing barriers per run
+- Refactored barrier check helpers for clarity
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)

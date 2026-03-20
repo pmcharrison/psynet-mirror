@@ -2560,62 +2560,71 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp.check_barriers()
 
     @staticmethod
-    def check_barriers():
+    def _next_waiting_barrier(excluded_ids):
         from .sync import BarrierRecord, ParticipantLinkBarrier
 
+        waiting_barrier_query = BarrierRecord.query.filter(
+            db.session.query(ParticipantLinkBarrier.id)
+            .join(Participant)
+            .filter(
+                ParticipantLinkBarrier.barrier_id == BarrierRecord.id,
+                ~ParticipantLinkBarrier.released,
+                ~Participant.failed,
+                Participant.status == "working",
+            )
+            .exists()
+        )
+        if excluded_ids:
+            waiting_barrier_query = waiting_barrier_query.filter(
+                ~BarrierRecord.id.in_(excluded_ids)
+            )
+        return (
+            waiting_barrier_query.order_by(BarrierRecord.id)
+            .with_for_update(skip_locked=True)
+            .populate_existing()
+            .first()
+        )
+
+    @staticmethod
+    def _resolve_barrier(exp, barrier_record):
+        barrier = exp.get_barrier(barrier_record.id)
+        if barrier is not None:
+            return barrier
+
+        barrier = barrier_record.instantiate_barrier()
+        if barrier is None:
+            logger.debug(
+                "Barrier '%s' is present in the database but was not registered.",
+                barrier_record.id,
+            )
+            return None
+
+        exp.register_barrier_instance(barrier)
+        return barrier
+
+    @staticmethod
+    def check_barriers():
         exp = get_experiment()
         excluded_ids = set()
 
         while True:
             barrier_id = None
-            skip_processing = False
             try:
                 with transaction():
-                    waiting_barrier_query = BarrierRecord.query.filter(
-                        db.session.query(ParticipantLinkBarrier.id)
-                        .join(Participant)
-                        .filter(
-                            ParticipantLinkBarrier.barrier_id == BarrierRecord.id,
-                            ~ParticipantLinkBarrier.released,
-                            ~Participant.failed,
-                            Participant.status == "working",
-                        )
-                        .exists()
-                    )
-                    if excluded_ids:
-                        waiting_barrier_query = waiting_barrier_query.filter(
-                            ~BarrierRecord.id.in_(excluded_ids)
-                        )
-                    barrier_record = (
-                        waiting_barrier_query.order_by(BarrierRecord.id)
-                        .with_for_update(skip_locked=True)
-                        .populate_existing()
-                        .first()
-                    )
+                    barrier_record = Experiment._next_waiting_barrier(excluded_ids)
                     if barrier_record is None:
                         return
                     barrier_id = barrier_record.id
-                    barrier = exp.get_barrier(barrier_id)
-                    if barrier is None:
-                        barrier = barrier_record.instantiate_barrier()
-                        if barrier is None:
-                            logger.debug(
-                                "Barrier '%s' is present in the database but was not registered.",
-                                barrier_id,
-                            )
-                            skip_processing = True
-                        else:
-                            exp.register_barrier_instance(barrier)
-                    if not skip_processing:
+                    barrier = Experiment._resolve_barrier(exp, barrier_record)
+                    if barrier is not None:
                         barrier.process_potential_releases()
             except Exception:
                 if barrier_id is None:
                     raise
                 logger.exception("Failed to process barrier '%s'.", barrier_id)
-                excluded_ids.add(barrier_id)
-                continue
-
-            excluded_ids.add(barrier_id)
+            finally:
+                if barrier_id is not None:
+                    excluded_ids.add(barrier_id)
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken

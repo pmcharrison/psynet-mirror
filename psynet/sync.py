@@ -730,6 +730,17 @@ class SimpleSyncGroup(SyncGroup):
     accepts_top_ups = Column(Boolean)
 
 
+def _insert_values_from_state(record) -> dict:
+    state = sa_inspect(record)
+    mapper = state.mapper
+    if mapper.polymorphic_on is not None:
+        discriminator = mapper.polymorphic_on.key
+        if getattr(record, discriminator) is None:
+            setattr(record, discriminator, mapper.polymorphic_identity)
+    column_keys = {column.key for column in mapper.columns}
+    return {key: value for key, value in state.dict.items() if key in column_keys}
+
+
 @register_table
 class BarrierRecord(SQLBase, SQLMixin):
     __tablename__ = "barrier"
@@ -758,7 +769,7 @@ class BarrierRecord(SQLBase, SQLMixin):
                 created_at=timenow(),
                 spec=spec,
             )
-            values = cls._insert_values(record)
+            values = _insert_values_from_state(record)
             stmt = (
                 pg_insert(cls)
                 .values(**values)
@@ -769,17 +780,6 @@ class BarrierRecord(SQLBase, SQLMixin):
                 record = cls.query.get(barrier_id)
                 if record is not None:
                     record.spec = spec
-
-    @staticmethod
-    def _insert_values(record) -> dict:
-        state = sa_inspect(record)
-        mapper = state.mapper
-        if mapper.polymorphic_on is not None:
-            discriminator = mapper.polymorphic_on.key
-            if getattr(record, discriminator) is None:
-                setattr(record, discriminator, mapper.polymorphic_identity)
-        column_keys = {column.key for column in mapper.columns}
-        return {key: value for key, value in state.dict.items() if key in column_keys}
 
     def instantiate_barrier(self):
         if not self.spec:
