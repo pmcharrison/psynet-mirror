@@ -13,9 +13,8 @@ from psynet.command_line import (
 logger = logging.getLogger(__name__)
 
 
-def _append_debug_log(hypothesis_id, location, message, data):
+def _append_debug_log(location, message, data):
     payload = {
-        "hypothesisId": hypothesis_id,
         "location": location,
         "message": message,
         "data": data,
@@ -100,7 +99,6 @@ def create_psynet_chrome_driver(headless):
 
     tmp_usage = shutil.disk_usage(tempfile.gettempdir())
     _append_debug_log(
-        hypothesis_id="A",
         location="psynet/testing/chrome_driver.py:create_driver:before_launch",
         message="Preparing Chrome launch",
         data={
@@ -129,7 +127,6 @@ def create_psynet_chrome_driver(headless):
                     exc_info=True,
                 )
         _append_debug_log(
-            hypothesis_id="E",
             location="psynet/testing/chrome_driver.py:create_driver:launch_exception",
             message="Chrome launch failed",
             data={
@@ -146,7 +143,6 @@ def create_psynet_chrome_driver(headless):
         raise
 
     _append_debug_log(
-        hypothesis_id="B",
         location="psynet/testing/chrome_driver.py:create_driver:launch_success",
         message="Chrome launched successfully",
         data={
@@ -180,7 +176,6 @@ def create_psynet_chrome_driver(headless):
                     except OSError:
                         pass
                 _append_debug_log(
-                    hypothesis_id="A",
                     location="psynet/testing/chrome_driver.py:create_driver:quit_cleanup",
                     message="Cleaned Chrome session artifacts",
                     data={
