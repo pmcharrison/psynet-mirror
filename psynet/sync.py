@@ -4,17 +4,7 @@ from typing import Callable, List, Optional, Union
 
 from dallinger import db
 from dallinger.models import timenow
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    insert,
-)
-from sqlalchemy import inspect as sa_inspect
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, deferred, joinedload, object_session, relationship
 
@@ -747,47 +737,22 @@ class BarrierRecord(SQLBase, SQLMixin):
     @classmethod
     def ensure_exists(cls, barrier_id: str, barrier_class, spec=None):
         with db.session.no_autoflush:
-            if not _barrier_table_is_available():
-                return
-            spec_column_available = _barrier_spec_column_is_available()
-            if spec is not None and not spec_column_available:
-                spec = None
-
-            if not spec_column_available:
-                record_exists = (
-                    db.session.query(cls.id).filter_by(id=barrier_id).first()
-                )
-                if record_exists is not None:
-                    return
-            else:
-                record = cls.query.get(barrier_id)
-                if record is not None:
-                    if spec is not None and record.spec != spec:
-                        record.spec = spec
-                    return
-
-            values = {
-                "id": barrier_id,
-                "barrier_class": barrier_class,
-                "type": cls.__mapper_args__["polymorphic_identity"],
-                "created_at": timenow(),
-                "spec": spec,
-            }
-            dialect = db.session.bind.dialect.name if db.session.bind else None
-
-            if dialect == "postgresql":
-                stmt = (
-                    pg_insert(cls)
-                    .values(**values)
-                    .on_conflict_do_nothing(index_elements=["id"])
-                )
-                db.session.execute(stmt)
+            record = cls.query.get(barrier_id)
+            if record is not None:
+                if spec is not None:
+                    record.spec = spec
                 return
 
-            db.session.execute(insert(cls).values(**values))
+            record = cls(
+                id=barrier_id,
+                barrier_class=barrier_class,
+                created_at=timenow(),
+                spec=spec,
+            )
+            db.session.add(record)
 
     def instantiate_barrier(self):
-        if not _barrier_spec_column_is_available() or not self.spec:
+        if not self.spec:
             return None
         try:
             if isinstance(self.spec, Barrier):
@@ -798,24 +763,6 @@ class BarrierRecord(SQLBase, SQLMixin):
                 "Failed to instantiate barrier '%s' from spec: %s", self.id, err
             )
             return None
-
-
-def _barrier_table_is_available() -> bool:
-    bind = db.session.bind
-    if bind is None:
-        return False
-    return sa_inspect(bind).has_table(BarrierRecord.__tablename__)
-
-
-def _barrier_spec_column_is_available() -> bool:
-    bind = db.session.bind
-    if bind is None:
-        return False
-    inspector = sa_inspect(bind)
-    if not inspector.has_table(BarrierRecord.__tablename__):
-        return False
-    columns = [column["name"] for column in inspector.get_columns("barrier")]
-    return "spec" in columns
 
 
 @register_table

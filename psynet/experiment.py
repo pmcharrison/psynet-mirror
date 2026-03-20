@@ -820,6 +820,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return redis_vars.get("creation_time")
 
     def on_first_launch(self):
+        self.register_barriers()
         for trialmaker in self.timeline.trial_makers.values():
             trialmaker.on_first_launch(self)
 
@@ -2929,7 +2930,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.assets.stage(elt)
             if isinstance(elt, PreDeployRoutine):
                 self.pre_deploy_routines.append(elt)
-        self.register_barriers()
 
     def register_barriers(self):
         seen = set()
@@ -2941,7 +2941,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             seen.add(barrier.id)
 
     def register_barrier_instance(self, barrier):
-        from .sync import BarrierRecord, _barrier_spec_column_is_available
+        from .sync import BarrierRecord
 
         existing = self._barrier_registry.get(barrier.id)
         if existing is not None and existing.__class__ != barrier.__class__:
@@ -2951,14 +2951,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"{barrier.__class__.__name__}."
             )
         self._barrier_registry[barrier.id] = barrier
-        spec = None
-        if _barrier_spec_column_is_available():
-            try:
-                spec = barrier
-            except Exception as err:
-                logger.debug(
-                    "Barrier '%s' could not be serialized: %s", barrier.id, err
-                )
+        spec = barrier
         with transaction():
             BarrierRecord.ensure_exists(barrier.id, barrier.__class__, spec=spec)
 
