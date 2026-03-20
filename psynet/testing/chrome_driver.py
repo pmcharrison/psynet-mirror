@@ -11,24 +11,29 @@ from psynet.command_line import (
 )
 
 logger = logging.getLogger(__name__)
+DEFAULT_DEBUG_LOG_PATH = "/opt/cursor/logs/debug.log"
 
 
 def _append_debug_log(hypothesis_id, location, message, data):
+    payload = {
+        "hypothesisId": hypothesis_id,
+        "location": location,
+        "message": message,
+        "data": data,
+        "timestamp": int(time.time() * 1000),
+    }
+
+    log_path = os.getenv("PSYNET_CHROME_DEBUG_LOG_PATH", DEFAULT_DEBUG_LOG_PATH)
+
+    # This logging path is best-effort only and should never perturb test flow.
     try:
-        payload = {
-            "hypothesisId": hypothesis_id,
-            "location": location,
-            "message": message,
-            "data": data,
-            "timestamp": int(time.time() * 1000),
-        }
-        with open("/opt/cursor/logs/debug.log", "a", encoding="utf-8") as f:
+        parent_dir = os.path.dirname(log_path)
+        if parent_dir:
+            os.makedirs(parent_dir, exist_ok=True)
+        with open(log_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(payload, default=str) + "\n")
-    except Exception:
-        logger.warning(
-            "Failed to append Chrome debug log entry.",
-            exc_info=True,
-        )
+    except OSError:
+        return
 
 
 def _find_chrome_binary():
