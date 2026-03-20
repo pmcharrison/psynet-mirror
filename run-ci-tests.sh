@@ -2,8 +2,41 @@ CI_NODE_TOTAL=${CI_NODE_TOTAL:=1}
 CI_NODE_INDEX=${CI_NODE_INDEX:=1}
 
 TIMEOUT_SECONDS=300
+PSYNET_CHROME_DEBUG_LOG_MAX_BYTES=${PSYNET_CHROME_DEBUG_LOG_MAX_BYTES:=5000000}
 
 echo "Running tests on node $CI_NODE_INDEX of $CI_NODE_TOTAL"
+
+prepare_chrome_debug_log() {
+  if [[ -z "${PSYNET_CHROME_DEBUG_LOG_PATH:-}" ]]; then
+    return
+  fi
+  mkdir -p "$(dirname "$PSYNET_CHROME_DEBUG_LOG_PATH")"
+  : > "$PSYNET_CHROME_DEBUG_LOG_PATH"
+}
+
+clamp_chrome_debug_log() {
+  if [[ -z "${PSYNET_CHROME_DEBUG_LOG_PATH:-}" ]]; then
+    return
+  fi
+  if [[ ! -f "$PSYNET_CHROME_DEBUG_LOG_PATH" ]]; then
+    return
+  fi
+  if [[ ! "$PSYNET_CHROME_DEBUG_LOG_MAX_BYTES" =~ ^[0-9]+$ ]]; then
+    return
+  fi
+  if (( PSYNET_CHROME_DEBUG_LOG_MAX_BYTES <= 0 )); then
+    return
+  fi
+
+  local current_size
+  current_size=$(wc -c < "$PSYNET_CHROME_DEBUG_LOG_PATH")
+  if (( current_size > PSYNET_CHROME_DEBUG_LOG_MAX_BYTES )); then
+    tail -c "$PSYNET_CHROME_DEBUG_LOG_MAX_BYTES" "$PSYNET_CHROME_DEBUG_LOG_PATH" > "${PSYNET_CHROME_DEBUG_LOG_PATH}.tmp"
+    mv "${PSYNET_CHROME_DEBUG_LOG_PATH}.tmp" "$PSYNET_CHROME_DEBUG_LOG_PATH"
+  fi
+}
+
+prepare_chrome_debug_log
 
 echo "Installing CI dependencies..."
 bash install-ci-dependencies.sh || exit 1
@@ -32,6 +65,7 @@ for file in $(psynet list-experiment-dirs --for-ci-tests --ci-node-total $CI_NOD
     -o log_cli=False \
     --chrome \
     --timeout=$TIMEOUT_SECONDS
+  clamp_chrome_debug_log
   if [ $? -ne 0 ]; then
     EXIT_CODE=1
   fi
@@ -48,6 +82,7 @@ for file in $(psynet list-isolated-tests --ci-node-total $CI_NODE_TOTAL --ci-nod
     -o log_cli=False \
     --chrome \
     --timeout=$TIMEOUT_SECONDS
+  clamp_chrome_debug_log
   if [ $? -ne 0 ]; then
     EXIT_CODE=1
   fi
