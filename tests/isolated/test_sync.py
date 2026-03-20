@@ -97,3 +97,32 @@ def test_group_allocator(in_experiment_directory, db_session):
 
     assert participants[0].sync_group is None
     grouper.receive_participant(participants[0])
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_barriers_skips_failure(in_experiment_directory, db_session):
+    exp = get_experiment()
+    bad_grouper = SimpleGrouper(group_type="a_bad", initial_group_size=2)
+    good_grouper = SimpleGrouper(group_type="b_good", initial_group_size=2)
+    participants = [new_participant(exp) for _ in range(2)]
+
+    bad_grouper.receive_participant(participants[0])
+    good_grouper.receive_participant(participants[1])
+    db.session.commit()
+
+    processed = {"good": False}
+
+    def bad_process():
+        raise RuntimeError("boom")
+
+    def good_process():
+        processed["good"] = True
+
+    bad_grouper.process_potential_releases = bad_process
+    good_grouper.process_potential_releases = good_process
+
+    exp.check_barriers()
+
+    assert processed["good"]
