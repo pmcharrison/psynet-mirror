@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import shutil
 import tempfile
@@ -8,6 +9,8 @@ from psynet.command_line import (
     list_chromedriver_processes,
     list_psynet_chrome_processes,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _append_debug_log(hypothesis_id, location, message, data):
@@ -22,7 +25,10 @@ def _append_debug_log(hypothesis_id, location, message, data):
         with open("/opt/cursor/logs/debug.log", "a", encoding="utf-8") as f:
             f.write(json.dumps(payload, default=str) + "\n")
     except Exception:
-        pass
+        logger.warning(
+            "Failed to append Chrome debug log entry.",
+            exc_info=True,
+        )
 
 
 def _find_chrome_binary():
@@ -49,6 +55,10 @@ def _count_psynet_chrome_profiles():
             [name for name in os.listdir(tmp_dir) if name.startswith("psynet-chrome-")]
         )
     except Exception:
+        logger.warning(
+            "Failed to count temporary PsyNet Chrome profiles.",
+            exc_info=True,
+        )
         return None
 
 
@@ -117,7 +127,10 @@ def create_psynet_chrome_driver(headless):
                 with open(chromedriver_log_path, "r", encoding="utf-8") as f:
                     chromedriver_log_excerpt = f.read()[-4000:]
             except Exception:
-                pass
+                logger.warning(
+                    "Failed to read chromedriver log excerpt.",
+                    exc_info=True,
+                )
         _append_debug_log(
             hypothesis_id="E",
             location="psynet/testing/chrome_driver.py:create_driver:launch_exception",
