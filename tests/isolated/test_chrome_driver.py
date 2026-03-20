@@ -131,9 +131,7 @@ def test_create_chrome_driver_preserves_log_when_configured(chrome_paths, monkey
     assert log_path.exists()
 
 
-def test_create_chrome_driver_cleans_profile_on_launch_error(
-    chrome_paths, monkeypatch
-):
+def test_create_chrome_driver_cleans_profile_on_launch_error(chrome_paths, monkeypatch):
     profile_path, log_path = chrome_paths
 
     fake_webdriver = FakeWebDriver(launch_error=RuntimeError("boom"))
