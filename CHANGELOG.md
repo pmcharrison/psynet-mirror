@@ -25,9 +25,7 @@
 
 ### Changed
 - Barrier handling now uses a database-backed registry for sync experiments.
-- GroupBarrier `on_release` callbacks now accept module-level, static/class, TrialMaker, or ORM instance methods; invalid callbacks raise clear errors.
-- Simplified callback serialization error messages by removing upgrade guidance.
-- Reverted sync demo `on_release` callbacks to trial instance methods.
+- GroupBarrier `on_release` callbacks now accept module-level, static/class, TrialMaker, or ORM instance methods with clear validation errors.
 - Simplified barrier processing by removing redundant helper lookup.
 - Barrier registry now stores a lightweight barrier copy without waiting-page templates.
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
@@ -46,7 +44,6 @@
 ### Fixed
 
 - Fixed sync barrier processing to reduce deadlocks and make trial-defined barriers release reliably across processes.
-- Fixed ORM instance callback serialization to check primary keys without requiring a jsonpickle handler context.
 - Serialized GroupBarrier `on_release` callbacks for trial/trialmaker methods, refactoring trial preparation hooks and removing lambda usage to prevent missing callback attributes across processes (author: [User])
 - Avoided ingest failures for tables with non-integer primary keys.
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
