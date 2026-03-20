@@ -1119,7 +1119,7 @@ class ManagedAsset(Asset):
                 "in your experiment class."
             )
 
-        self.ensure_keys_and_paths()
+        # ensure_keys_and_paths() is called by deposit() before _deposit().
         self.storage.update_asset_metadata(self)
 
         if self._needs_depositing():
