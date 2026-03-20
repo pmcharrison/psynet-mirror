@@ -15,6 +15,24 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
+def score_trial(participants: List[Participant]):
+    """Score a rock-paper-scissors round for two participants."""
+    assert len(participants) == 2
+    answers = [participant.var.last_action for participant in participants]
+    score_0 = RockPaperScissorsTrial.scoring_matrix[answers[0]][answers[1]]
+    score_1 = -score_0
+    participants[0].var.last_trial = {
+        "action_self": answers[0],
+        "action_other": answers[1],
+        "score": score_0,
+    }
+    participants[1].var.last_trial = {
+        "action_self": answers[1],
+        "action_other": answers[0],
+        "score": score_1,
+    }
+
+
 class RockPaperScissorsTrialMaker(StaticTrialMaker):
     pass
 
@@ -33,7 +51,7 @@ class RockPaperScissorsTrial(StaticTrial):
             GroupBarrier(
                 id_="finished_trial",
                 group_type="rock_paper_scissors",
-                on_release=self.score_trial,
+                on_release=score_trial,
             ),
         )
 
@@ -70,22 +88,6 @@ class RockPaperScissorsTrial(StaticTrial):
             prompt,
             time_estimate=5,
         )
-
-    def score_trial(self, participants: List[Participant]):
-        assert len(participants) == 2
-        answers = [participant.var.last_action for participant in participants]
-        score_0 = self.scoring_matrix[answers[0]][answers[1]]
-        score_1 = -score_0
-        participants[0].var.last_trial = {
-            "action_self": answers[0],
-            "action_other": answers[1],
-            "score": score_0,
-        }
-        participants[1].var.last_trial = {
-            "action_self": answers[1],
-            "action_other": answers[0],
-            "score": score_1,
-        }
 
     scoring_matrix = {
         "rock": {

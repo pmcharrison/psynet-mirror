@@ -73,6 +73,42 @@ from ..utils import (
 logger = get_logger()
 
 
+def _get_trial_maker_for_barrier(barrier):
+    """Return the TrialMaker associated with a barrier."""
+    from psynet.experiment import get_trial_maker
+
+    trial_maker_id = getattr(barrier, "trial_maker_id", None) if barrier else None
+    if not trial_maker_id:
+        raise RuntimeError(
+            "Barrier is missing trial_maker_id. Ensure this barrier was created by "
+            "a TrialMaker and pass a module-level on_release function."
+        )
+    return get_trial_maker(trial_maker_id)
+
+
+def init_participants_in_sync_group(
+    group: SyncGroup,
+    participants,
+    participant,
+    barrier=None,
+    experiment=None,
+):
+    """Initialize a sync group via the TrialMaker."""
+    trial_maker = _get_trial_maker_for_barrier(barrier)
+    trial_maker._init_participants_in_sync_group(group, experiment)
+
+
+def prepare_trial_group(
+    group: SyncGroup,
+    participants,
+    participant,
+    barrier=None,
+):
+    """Prepare trials for all participants in a sync group."""
+    trial_maker = _get_trial_maker_for_barrier(barrier)
+    trial_maker._try_to_prepare_trial_group(group)
+
+
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
     if x is None:
         return trial_maker_id
@@ -1331,6 +1367,16 @@ class TrialMaker(Module):
         )
 
     def _init_participant(self):
+        def init_participant_barrier():
+            barrier = GroupBarrier(
+                "init_participant",
+                group_type=self.sync_group_type,
+                max_wait_time=self.sync_group_max_wait_time,
+                on_release=init_participants_in_sync_group,
+            )
+            barrier.trial_maker_id = self.id
+            return barrier
+
         return conditional(
             "init_participant",
             # If the participant is in a sync group and the leader has not been initialized,
@@ -1340,12 +1386,7 @@ class TrialMaker(Module):
                 self.sync_group_type is not None
                 and not self._leader_is_initialized(participant)
             ),
-            logic_if_true=GroupBarrier(
-                "init_participant",
-                group_type=self.sync_group_type,
-                max_wait_time=self.sync_group_max_wait_time,
-                on_release=self._init_participants_in_sync_group,
-            ),
+            logic_if_true=init_participant_barrier(),
             logic_if_false=CodeBlock(self.init_participant),
             time_estimate=0.0 if self.sync_group_type is None else 3.0,
         )
@@ -1980,17 +2021,20 @@ class TrialMaker(Module):
         )
 
     def _wait_for_trial(self):
+        def prepare_trial_group_barrier():
+            barrier = GroupBarrier(
+                id_="prepare_trial",
+                group_type=self.sync_group_type,
+                on_release=prepare_trial_group,
+                fix_time_credit=False,  # we're already within a while loop with fixed time credit
+                max_wait_time=self.sync_group_max_wait_time,
+            )
+            barrier.trial_maker_id = self.id
+            return barrier
+
         def try_to_prepare_trial():
             if self.sync_group_type:
-                return join(
-                    GroupBarrier(
-                        id_="prepare_trial",
-                        group_type=self.sync_group_type,
-                        on_release=self._try_to_prepare_trial_group,
-                        fix_time_credit=False,  # we're already within a while loop with fixed time credit
-                        max_wait_time=self.sync_group_max_wait_time,
-                    )
-                )
+                return join(prepare_trial_group_barrier())
             else:
                 return CodeBlock(self._try_to_prepare_trial_solo)
 

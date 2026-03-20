@@ -22,10 +22,7 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
-from psynet.serialize import (
-    check_that_function_can_be_serialized,
-    prepare_function_for_serialization,
-)
+from psynet.serialize import check_that_function_can_be_serialized
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.utils import call_function_with_context, get_logger
 
@@ -143,6 +140,11 @@ class Barrier(EltCollection):
             arrival_time=timenow(),
         )
         participant.active_barriers[self.id] = link
+
+    def __setattr__(self, name, value):
+        if name.startswith("on_") and callable(value):
+            _ensure_module_level_callable(value, f"{self.__class__.__name__}.{name}")
+        super().__setattr__(name, value)
 
     def get_waiting_participants(self, for_update: bool = False):
         return self.get_waiting_participants_from_barrier_id(
@@ -266,6 +268,10 @@ class GroupBarrier(Barrier):
         if this time is exceeded and the participant is still not released, then the participant will be failed
         and sent to the end of the experiment.
 
+    on_release
+        Optional callback invoked when the barrier releases participants.
+        Must be a module-level function or a ``@staticmethod``/``@classmethod``.
+
     fix_time_credit
         If set to ``True``, then the amount of time 'credit' that the participant receives will be fixed
         according to the estimate derived from ``waiting_logic`` and ``waiting_logic_expected_repetitions``.
@@ -290,24 +296,6 @@ class GroupBarrier(Barrier):
         )
         self.group_type = group_type
         self.on_release = on_release
-        self.on_release_arguments = {}
-        if on_release is not None:
-            if inspect.ismethod(on_release) and on_release.__self__ is not None:
-                from psynet.trial.main import TrialMaker
-
-                method_self = on_release.__self__
-                if isinstance(method_self, TrialMaker):
-                    self.on_release = TrialMakerMethodReference(
-                        method_name=on_release.__name__,
-                        trial_maker_id=method_self.id,
-                    )
-                else:
-                    (
-                        self.on_release,
-                        self.on_release_arguments,
-                    ) = prepare_function_for_serialization(on_release, {})
-            else:
-                check_that_function_can_be_serialized(on_release)
 
     def choose_who_to_release(self, waiting_participants: List[Participant]):
         waiting_participant_ids = [p.id for p in waiting_participants]
@@ -343,20 +331,16 @@ class GroupBarrier(Barrier):
                     participants_to_release.append(participant)
 
                 if self.on_release:
-                    on_release_arguments = getattr(self, "on_release_arguments", {})
                     on_release_kwargs = {
-                        **on_release_arguments,
                         "group": group,
                         "participants": group.active_participants,
                         "participant": group.leader,
+                        "barrier": self,
                     }
-                    if isinstance(self.on_release, TrialMakerMethodReference):
-                        self.on_release(**on_release_kwargs)
-                    else:
-                        call_function_with_context(
-                            self.on_release,
-                            **on_release_kwargs,
-                        )
+                    call_function_with_context(
+                        self.on_release,
+                        **on_release_kwargs,
+                    )
 
         return participants_to_release
 
@@ -893,22 +877,39 @@ class GroupCloser(GroupBarrier):
         super().__init__(group_type=group_type, on_release=close_sync_group, **kwargs)
 
 
-class TrialMakerMethodReference:
-    """
-    Resolves a TrialMaker instance at call time to avoid serializing it directly.
-    """
-
-    def __init__(self, method_name: str, trial_maker_id: str):
-        self.method_name = method_name
-        self.trial_maker_id = trial_maker_id
-
-    def __call__(self, *args, **kwargs):
-        from psynet.experiment import get_trial_maker
-
-        trial_maker = get_trial_maker(self.trial_maker_id)
-        method = getattr(trial_maker, self.method_name)
-        return call_function_with_context(method, *args, **kwargs)
-
-
 def close_sync_group(group):
     group.close()
+
+
+def _ensure_module_level_callable(callback, field_name: str) -> None:
+    """Validate that a callback is a module-level callable."""
+    if inspect.ismethod(callback):
+        if callback.__self__ is not None and not inspect.isclass(callback.__self__):
+            raise ValueError(
+                f"{field_name} must be a module-level function or a @staticmethod/"
+                f"@classmethod. You provided a bound instance method "
+                f"('{callback.__qualname__}'). Define a top-level function instead, "
+                f"for example:\n\n"
+                f"    def on_release(group, participants, participant, barrier=None, "
+                f"experiment=None):\n"
+                f"        trial_maker = get_trial_maker(barrier.trial_maker_id)\n"
+                f"        ...\n\n"
+                f"    GroupBarrier(..., on_release=on_release)\n"
+            )
+        callback = callback.__func__
+
+    if inspect.isfunction(callback):
+        try:
+            check_that_function_can_be_serialized(callback)
+        except ValueError as err:
+            raise ValueError(
+                f"{field_name} must be a module-level function or a @staticmethod/"
+                f"@classmethod. {err} Define a top-level function and pass it to "
+                f"GroupBarrier."
+            ) from err
+        return
+
+    raise ValueError(
+        f"{field_name} must be a module-level function or a @staticmethod/"
+        f"@classmethod. Received {type(callback).__name__}."
+    )

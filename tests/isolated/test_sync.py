@@ -6,7 +6,7 @@ from dallinger import db
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sync import BarrierRecord, SimpleGrouper
+from psynet.sync import BarrierRecord, GroupBarrier, SimpleGrouper
 
 
 def get_random_id():
@@ -126,3 +126,14 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     exp.check_barriers()
 
     assert processed["good"]
+
+
+def test_group_barrier_rejects_bound_method():
+    class Dummy:
+        def handler(
+            self, group, participants
+        ):  # pragma: no cover - used for validation
+            return None
+
+    with pytest.raises(ValueError, match="module-level"):
+        GroupBarrier(id_="bad", group_type="group", on_release=Dummy().handler)
