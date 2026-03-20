@@ -224,6 +224,10 @@ Non-trivial code changes should be tested.
 Prefer red/green test-driven development, but avoid committing overly verbose tests in the final PR.
 Implement sensible unit tests where appropriate.
 Verify changes end-to-end by running `psynet test local` within a relevant demo.
+Prefer concise tests that exercise real/public interfaces.
+Avoid very long tests with extensive monkeypatching unless there is no practical
+alternative; if monkeypatching is necessary, keep it minimal and focused on
+observable behavior rather than internal implementation details.
 
 ## Code organization and documentation
 
