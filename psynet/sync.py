@@ -1,3 +1,4 @@
+import copy
 import random
 from math import floor
 from typing import Callable, List, Optional, Union
@@ -76,6 +77,12 @@ class Barrier(EltCollection):
         self.waiting_logic_expected_repetitions = waiting_logic_expected_repetitions
         self.max_wait_time = max_wait_time
         self.fix_time_credit = fix_time_credit
+
+    def for_registry(self):
+        """Return a registry-safe copy of the barrier."""
+        barrier = copy.copy(self)
+        barrier.waiting_logic = None
+        return barrier
 
     def __setattr__(self, name, value):
         if name.startswith("on_"):
@@ -767,6 +774,8 @@ class BarrierRecord(SQLBase, SQLMixin):
             record = cls.query.get(barrier_id)
             if record is not None:
                 if barrier is not None:
+                    if isinstance(barrier, Barrier):
+                        barrier = barrier.for_registry()
                     record.barrier = barrier
                 return
 
@@ -774,7 +783,9 @@ class BarrierRecord(SQLBase, SQLMixin):
                 id=barrier_id,
                 barrier_class=barrier_class,
                 created_at=timenow(),
-                barrier=barrier,
+                barrier=(
+                    barrier.for_registry() if isinstance(barrier, Barrier) else barrier
+                ),
             )
             values = _insert_values_from_state(record)
             stmt = (
@@ -786,6 +797,8 @@ class BarrierRecord(SQLBase, SQLMixin):
             if barrier is not None and result.rowcount == 0:
                 record = cls.query.get(barrier_id)
                 if record is not None:
+                    if isinstance(barrier, Barrier):
+                        barrier = barrier.for_registry()
                     record.barrier = barrier
 
 

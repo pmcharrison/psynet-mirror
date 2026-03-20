@@ -141,3 +141,20 @@ def test_group_barrier_rejects_bound_method():
 
     with pytest.raises(ValueError, match="module-level"):
         GroupBarrier(id_="bad", group_type="group", on_release=Dummy().handler)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_barrier_registry_strips_waiting_logic(db_session):
+    barrier = GroupBarrier(id_="strip_wait", group_type="group")
+    barrier_record = BarrierRecord(
+        id=barrier.id,
+        barrier_class=barrier.__class__,
+        barrier=barrier.for_registry(),
+    )
+    db_session.add(barrier_record)
+    db_session.commit()
+
+    loaded = BarrierRecord.query.get("strip_wait")
+    assert loaded.barrier.waiting_logic is None

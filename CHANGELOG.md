@@ -27,6 +27,7 @@
 - Barrier handling now uses a database-backed registry for sync experiments.
 - GroupBarrier `on_release` callbacks now accept module-level, static/class, TrialMaker, or ORM instance methods; invalid callbacks raise clear errors.
 - Simplified barrier processing by removing redundant helper lookup.
+- Barrier registry now stores a lightweight barrier copy without waiting-page templates.
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
