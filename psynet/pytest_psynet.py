@@ -43,8 +43,8 @@ from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
-from .testing.chrome_driver import create_psynet_chrome_driver
 from .test_helpers.mock_s3 import get_artifact_storage_s3_test_client
+from .testing.chrome_driver import create_psynet_chrome_driver
 from .trial.main import TrialNetwork
 from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from .utils import clear_all_caches, wait_until

@@ -4,7 +4,10 @@ import shutil
 import tempfile
 import time
 
-from psynet.command_line import list_chromedriver_processes, list_psynet_chrome_processes
+from psynet.command_line import (
+    list_chromedriver_processes,
+    list_psynet_chrome_processes,
+)
 
 
 def _append_debug_log(hypothesis_id, location, message, data):

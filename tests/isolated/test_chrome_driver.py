@@ -76,7 +76,9 @@ def test_create_chrome_driver_sets_options_and_cleans_artifacts(tmp_path, monkey
     monkeypatch.setattr(chrome_driver.tempfile, "mkdtemp", fake_mkdtemp)
     monkeypatch.setattr(chrome_driver.tempfile, "mkstemp", fake_mkstemp)
     monkeypatch.setattr(chrome_driver, "_find_chrome_binary", lambda: "/usr/bin/chrome")
-    monkeypatch.setattr(chrome_driver, "_append_debug_log", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        chrome_driver, "_append_debug_log", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr(chrome_driver, "_count_psynet_chrome_profiles", lambda: 0)
     monkeypatch.setattr(chrome_driver, "list_psynet_chrome_processes", lambda: [])
     monkeypatch.setattr(chrome_driver, "list_chromedriver_processes", lambda: [])
@@ -93,9 +95,7 @@ def test_create_chrome_driver_sets_options_and_cleans_artifacts(tmp_path, monkey
     assert "--disable-gpu" in fake_webdriver.last_options.arguments
     assert "--remote-debugging-pipe" in fake_webdriver.last_options.arguments
     assert "--headless=new" in fake_webdriver.last_options.arguments
-    assert (
-        f"--user-data-dir={profile_path}" in fake_webdriver.last_options.arguments
-    )
+    assert f"--user-data-dir={profile_path}" in fake_webdriver.last_options.arguments
     assert fake_webdriver.last_options.binary_location == "/usr/bin/chrome"
 
     assert fake_webdriver.last_service.log_output == str(log_path)
@@ -129,7 +129,9 @@ def test_create_chrome_driver_cleans_profile_on_launch_error(tmp_path, monkeypat
 
     monkeypatch.setattr(chrome_driver.tempfile, "mkdtemp", fake_mkdtemp)
     monkeypatch.setattr(chrome_driver.tempfile, "mkstemp", fake_mkstemp)
-    monkeypatch.setattr(chrome_driver, "_append_debug_log", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        chrome_driver, "_append_debug_log", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr(chrome_driver, "_count_psynet_chrome_profiles", lambda: 0)
     monkeypatch.setattr(chrome_driver, "list_psynet_chrome_processes", lambda: [])
     monkeypatch.setattr(chrome_driver, "list_chromedriver_processes", lambda: [])
