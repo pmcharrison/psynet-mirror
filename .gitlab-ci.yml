@@ -93,8 +93,6 @@ tests:
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       -e CI -e CI_NODE_TOTAL -e CI_NODE_INDEX
       -e CI_COMMIT_REF_NAME
-      -e PSYNET_CHROME_DEBUG_LOG_PATH=/public/chrome_debug_node_${CI_NODE_INDEX}.ndjson
-      -e PSYNET_CHROME_DEBUG_LOG_MAX_BYTES=5000000
       -e PSYNET_WORKSPACE
       -v "$PWD:$PSYNET_WORKSPACE"
       -v "$PWD/public:/public"

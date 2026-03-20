@@ -11,7 +11,6 @@ from psynet.command_line import (
 )
 
 logger = logging.getLogger(__name__)
-DEFAULT_DEBUG_LOG_PATH = "/opt/cursor/logs/debug.log"
 
 
 def _append_debug_log(hypothesis_id, location, message, data):
@@ -23,17 +22,10 @@ def _append_debug_log(hypothesis_id, location, message, data):
         "timestamp": int(time.time() * 1000),
     }
 
-    log_path = os.getenv("PSYNET_CHROME_DEBUG_LOG_PATH", DEFAULT_DEBUG_LOG_PATH)
-
-    # This logging path is best-effort only and should never perturb test flow.
     try:
-        parent_dir = os.path.dirname(log_path)
-        if parent_dir:
-            os.makedirs(parent_dir, exist_ok=True)
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(payload, default=str) + "\n")
-    except OSError:
-        return
+        print(f"PSYNET_CHROME_DEBUG {json.dumps(payload, default=str)}", flush=True)
+    except Exception:
+        logger.warning("Failed to emit Chrome debug event.", exc_info=True)
 
 
 def _find_chrome_binary():
