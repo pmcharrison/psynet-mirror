@@ -24,7 +24,7 @@
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
 
 ### Changed
-- Barrier handling now uses a database-backed registry; upgrades should start with a fresh database (no migration support).
+- Barrier handling now uses a database-backed registry for sync experiments.
 - Barrier registry serialization now requires importable module-level callables (lambdas and nested functions are rejected).
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
