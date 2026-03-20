@@ -542,7 +542,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self._barrier_registry = {}
 
         self.pre_deploy_routines = []
         if self.translation_checks_needed():
@@ -820,7 +819,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return redis_vars.get("creation_time")
 
     def on_first_launch(self):
-        self.register_barriers()
         for trialmaker in self.timeline.trial_makers.values():
             trialmaker.on_first_launch(self)
 
@@ -2587,30 +2585,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @staticmethod
-    def _resolve_barrier(exp, barrier_record):
-        """Resolve a barrier instance from the registry or record."""
+    def _resolve_barrier(barrier_record):
+        """Resolve a barrier instance from the registry record."""
         from .sync import Barrier
-
-        barrier = exp.get_barrier(barrier_record.id)
-        if barrier is None:
-            # Ensure barriers are registered in this process before falling
-            # back to the serialized record (which may omit non-serializable
-            # callables like bound methods).
-            exp.register_barriers()
-            barrier = exp.get_barrier(barrier_record.id)
-        if barrier is not None:
-            return barrier
 
         barrier = barrier_record.barrier
         if not isinstance(barrier, Barrier):
             raise RuntimeError(f"Barrier '{barrier_record.id}' is missing or invalid.")
 
-        exp.register_barrier_instance(barrier)
         return barrier
 
     @staticmethod
     def check_barriers():
-        exp = get_experiment()
         excluded_ids = set()
 
         while True:
@@ -2621,7 +2607,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     if barrier_record is None:
                         return
                     barrier_id = barrier_record.id
-                    barrier = Experiment._resolve_barrier(exp, barrier_record)
+                    barrier = Experiment._resolve_barrier(barrier_record)
                     if barrier is not None:
                         barrier.process_potential_releases()
             except Exception:
@@ -2965,34 +2951,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.assets.stage(elt)
             if isinstance(elt, PreDeployRoutine):
                 self.pre_deploy_routines.append(elt)
-
-    def register_barriers(self):
-        """Register all barriers from the timeline."""
-        seen = set()
-        for elt in self.timeline.elts:
-            barrier = elt.links.get("barrier")
-            if barrier is None or barrier.id in seen:
-                continue
-            self.register_barrier_instance(barrier)
-            seen.add(barrier.id)
-
-    def register_barrier_instance(self, barrier):
-        """Register a barrier in memory and in the database."""
-        from .sync import BarrierRecord
-
-        existing = self._barrier_registry.get(barrier.id)
-        if existing is not None and existing.__class__ != barrier.__class__:
-            raise RuntimeError(
-                "Multiple barrier classes registered with the same barrier id "
-                f"('{barrier.id}'): {existing.__class__.__name__} vs "
-                f"{barrier.__class__.__name__}."
-            )
-        self._barrier_registry[barrier.id] = barrier
-        BarrierRecord.ensure_exists(barrier.id, barrier.__class__, barrier=barrier)
-
-    def get_barrier(self, barrier_id: str):
-        """Return a registered barrier by id, if any."""
-        return self._barrier_registry.get(barrier_id)
 
     def pre_deploy(self, redeploying_from_archive=False):
         self.update_deployment_id()

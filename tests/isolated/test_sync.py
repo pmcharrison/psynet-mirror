@@ -6,7 +6,7 @@ from dallinger import db
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sync import BarrierRecord, GroupBarrier, SimpleGrouper
+from psynet.sync import Barrier, BarrierRecord, GroupBarrier, SimpleGrouper
 
 
 def get_random_id():
@@ -24,6 +24,19 @@ def new_participant(experiment):
     )
     db.session.add(participant)
     return participant
+
+
+processed_barriers = []
+
+
+class ExplodingBarrier(Barrier):
+    def process_potential_releases(self):
+        raise RuntimeError("boom")
+
+
+class RecordingBarrier(Barrier):
+    def process_potential_releases(self):
+        processed_barriers.append(self.id)
 
 
 def test_random_partition():
@@ -104,28 +117,19 @@ def test_group_allocator(in_experiment_directory, db_session):
 )
 def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     exp = get_experiment()
-    bad_grouper = SimpleGrouper(group_type="a_bad", initial_group_size=2)
-    good_grouper = SimpleGrouper(group_type="b_good", initial_group_size=2)
+    processed_barriers.clear()
+
+    bad_barrier = ExplodingBarrier(id_="a_bad")
+    good_barrier = RecordingBarrier(id_="b_good")
     participants = [new_participant(exp) for _ in range(2)]
 
-    bad_grouper.receive_participant(participants[0])
-    good_grouper.receive_participant(participants[1])
+    bad_barrier.receive_participant(participants[0])
+    good_barrier.receive_participant(participants[1])
     db.session.commit()
-
-    processed = {"good": False}
-
-    def bad_process():
-        raise RuntimeError("boom")
-
-    def good_process():
-        processed["good"] = True
-
-    bad_grouper.process_potential_releases = bad_process
-    good_grouper.process_potential_releases = good_process
 
     exp.check_barriers()
 
-    assert processed["good"]
+    assert "b_good" in processed_barriers
 
 
 def test_group_barrier_rejects_bound_method():

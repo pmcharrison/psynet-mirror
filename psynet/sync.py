@@ -126,13 +126,10 @@ class Barrier(EltCollection):
         return elts
 
     def receive_participant(self, participant: Participant):
-        from psynet.experiment import get_experiment
-
-        exp = get_experiment()
-        exp.register_barrier_instance(self)
-
         if object_session(participant) is None:
             db.session.add(participant)
+
+        BarrierRecord.ensure_exists(self.id, self.__class__, barrier=self)
 
         link = ParticipantLinkBarrier(
             participant=participant,
@@ -831,16 +828,12 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     barrier_record = relationship("BarrierRecord", back_populates="participant_links")
 
     def get_barrier(self):
-        from .experiment import get_experiment
-
-        exp = get_experiment()
-        barrier = exp.get_barrier(self.barrier_id)
-        if barrier is not None:
-            return barrier
-
-        raise RuntimeError(
-            f"Barrier '{self.barrier_id}' is not registered in the experiment."
-        )
+        barrier_record = BarrierRecord.query.get(self.barrier_id)
+        if barrier_record is None or not isinstance(barrier_record.barrier, Barrier):
+            raise RuntimeError(
+                f"Barrier '{self.barrier_id}' is missing or invalid in the registry."
+            )
+        return barrier_record.barrier
 
     def release(self):
         self.departure_time = timenow()
