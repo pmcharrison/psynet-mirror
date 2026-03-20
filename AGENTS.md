@@ -131,7 +131,7 @@ descriptive summary line is sufficient.
 
 When you make changes to the PsyNet codebase:
 
-1. **Update the CHANGELOG**: Pull requests should include corresponding changes to `CHANGELOG.md` in the "Unreleased" section. Format: `- Description`. These should summarize the overall changes made by the PR rather than the incremental process of building the PR.
+1. **Update the CHANGELOG**: Pull requests should include corresponding changes to `CHANGELOG.md` in the "Unreleased" section. Don't include author information. These should summarize the overall changes made by the PR rather than the incremental process of building the PR.
 
 2. **Run pre-commit**: Before committing, run pre-commit to ensure code formatting is correct:
 
