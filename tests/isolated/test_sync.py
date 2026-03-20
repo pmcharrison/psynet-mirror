@@ -6,6 +6,7 @@ from dallinger import db
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
+from psynet.serialize import SerializedCallback
 from psynet.sync import Barrier, BarrierRecord, GroupBarrier, SimpleGrouper
 
 
@@ -24,6 +25,15 @@ def new_participant(experiment):
     )
     db.session.add(participant)
     return participant
+
+
+def participant_on_release(
+    self, group, participants, participant=None, barrier=None, experiment=None
+):
+    return None
+
+
+Participant.participant_on_release = participant_on_release
 
 
 processed_barriers = []
@@ -141,6 +151,22 @@ def test_group_barrier_rejects_bound_method():
 
     with pytest.raises(ValueError, match="module-level"):
         GroupBarrier(id_="bad", group_type="group", on_release=Dummy().handler)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_accepts_orm_instance_method(in_experiment_directory, db_session):
+    exp = get_experiment()
+    participant = new_participant(exp)
+    db.session.flush()
+
+    barrier = GroupBarrier(
+        id_="orm_method",
+        group_type="group",
+        on_release=participant.participant_on_release,
+    )
+    assert isinstance(barrier.on_release, SerializedCallback)
 
 
 @pytest.mark.parametrize(
