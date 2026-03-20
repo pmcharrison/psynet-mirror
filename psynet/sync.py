@@ -781,19 +781,6 @@ class BarrierRecord(SQLBase, SQLMixin):
                 if record is not None:
                     record.spec = spec
 
-    def instantiate_barrier(self):
-        if not self.spec:
-            return None
-        try:
-            if isinstance(self.spec, Barrier):
-                return self.spec
-            return None
-        except Exception as err:
-            logger.debug(
-                "Failed to instantiate barrier '%s' from spec: %s", self.id, err
-            )
-            return None
-
 
 @register_table
 class ParticipantLinkSyncGroup(SQLBase, SQLMixin):

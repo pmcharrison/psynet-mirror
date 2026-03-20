@@ -2587,17 +2587,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def _resolve_barrier(exp, barrier_record):
+        from .sync import Barrier
+
         barrier = exp.get_barrier(barrier_record.id)
         if barrier is not None:
             return barrier
 
-        barrier = barrier_record.instantiate_barrier()
-        if barrier is None:
-            logger.debug(
-                "Barrier '%s' is present in the database but was not registered.",
-                barrier_record.id,
+        barrier = barrier_record.spec
+        if not isinstance(barrier, Barrier):
+            raise RuntimeError(
+                f"Barrier '{barrier_record.id}' spec is missing or invalid."
             )
-            return None
 
         exp.register_barrier_instance(barrier)
         return barrier
