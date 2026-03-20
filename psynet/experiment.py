@@ -2585,18 +2585,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
 
     @staticmethod
-    def _resolve_barrier(barrier_record):
-        """Resolve a barrier instance from the registry record."""
+    def check_barriers():
         from .sync import Barrier
 
-        barrier = barrier_record.barrier
-        if not isinstance(barrier, Barrier):
-            raise RuntimeError(f"Barrier '{barrier_record.id}' is missing or invalid.")
-
-        return barrier
-
-    @staticmethod
-    def check_barriers():
         excluded_ids = set()
 
         while True:
@@ -2607,7 +2598,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     if barrier_record is None:
                         return
                     barrier_id = barrier_record.id
-                    barrier = Experiment._resolve_barrier(barrier_record)
+                    barrier = barrier_record.barrier
+                    if not isinstance(barrier, Barrier):
+                        raise RuntimeError(
+                            f"Barrier '{barrier_record.id}' is missing or invalid."
+                        )
                     if barrier is not None:
                         barrier.process_potential_releases()
             except Exception:
