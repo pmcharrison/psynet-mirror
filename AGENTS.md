@@ -122,6 +122,11 @@ We assume PsyNet experiments are short-lived and their databases do not need
 to persist across PsyNet version upgrades. As a result, avoid complicating
 code to support database migrations or backward-compatible schema changes.
 
+## Docstrings
+
+Prefer including function docstrings. Short docstrings are fine; often a brief
+descriptive summary line is sufficient.
+
 ## Finishing up changes
 
 When you make changes to the PsyNet codebase:
