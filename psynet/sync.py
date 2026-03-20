@@ -728,6 +728,7 @@ class SimpleSyncGroup(SyncGroup):
 
 
 def _insert_values_from_state(record) -> dict:
+    """Build insert values from an ORM instance state."""
     state = sa_inspect(record)
     mapper = state.mapper
     if mapper.polymorphic_on is not None:

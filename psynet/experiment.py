@@ -2561,6 +2561,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def _next_waiting_barrier(excluded_ids):
+        """Return the next eligible barrier record, if any."""
         from .sync import BarrierRecord, ParticipantLinkBarrier
 
         waiting_barrier_query = BarrierRecord.query.filter(
@@ -2587,6 +2588,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def _resolve_barrier(exp, barrier_record):
+        """Resolve a barrier instance from the registry or record."""
         from .sync import Barrier
 
         barrier = exp.get_barrier(barrier_record.id)
@@ -2959,6 +2961,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.pre_deploy_routines.append(elt)
 
     def register_barriers(self):
+        """Register all barriers from the timeline."""
         seen = set()
         for elt in self.timeline.elts:
             barrier = elt.links.get("barrier")
@@ -2968,6 +2971,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             seen.add(barrier.id)
 
     def register_barrier_instance(self, barrier):
+        """Register a barrier in memory and in the database."""
         from .sync import BarrierRecord
 
         existing = self._barrier_registry.get(barrier.id)
@@ -2981,6 +2985,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         BarrierRecord.ensure_exists(barrier.id, barrier.__class__, barrier=barrier)
 
     def get_barrier(self, barrier_id: str):
+        """Return a registered barrier by id, if any."""
         return self._barrier_registry.get(barrier_id)
 
     def pre_deploy(self, redeploying_from_archive=False):
