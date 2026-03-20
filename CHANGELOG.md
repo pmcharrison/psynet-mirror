@@ -46,6 +46,7 @@
 ### Fixed
 
 - Fixed sync barrier processing to reduce deadlocks and make trial-defined barriers release reliably across processes.
+- Improved reliability of Docker-based builds when generating dependency constraints.
 - Serialized GroupBarrier `on_release` callbacks for trial/trialmaker methods, refactoring trial preparation hooks and removing lambda usage to prevent missing callback attributes across processes (author: [User])
 - Avoided ingest failures for tables with non-integer primary keys.
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)

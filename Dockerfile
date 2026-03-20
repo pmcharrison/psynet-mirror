@@ -31,5 +31,19 @@ RUN CHROME_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testi
 COPY pyproject.toml pyproject.toml
 
 # Generate PsyNet constraints.txt (including demos extras) and install it
-RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra demos
+RUN bash -ceu 'set -o pipefail; \
+    success=""; \
+    for attempt in 1 2 3; do \
+        if curl -fsSL https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra demos; then \
+            success="yes"; \
+            break; \
+        fi; \
+        if [ "$attempt" -eq 3 ]; then \
+            echo "Failed to generate constraints.txt after ${attempt} attempts." >&2; \
+            exit 1; \
+        fi; \
+        echo "Retrying constraints generation (attempt ${attempt}/3)..." >&2; \
+        sleep $((attempt * 5)); \
+    done; \
+    test "${success}" = "yes"'
 RUN uv pip install --no-cache --system -r constraints.txt
