@@ -442,6 +442,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         """
         Update parent-related metadata when linking an asset.
 
+        Parent-related metadata includes the asset's parent object, its link key
+        (``local_key``), the parent ``module_id`` used for key generation, and
+        any trial/node definition used to parameterize on-demand assets.
+        For example, if you reuse the same undeposited asset instance across multiple
+        trials, calling ``update_metadata`` ensures it adopts the current trial's
+        link key and definition before deposit.
+
         For undeposited assets, this overwrites parent/key/module/definition metadata
         so the asset is bound to the current owner. Deposited assets are left unchanged
         to preserve their storage identity.
