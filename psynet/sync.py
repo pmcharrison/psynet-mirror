@@ -758,13 +758,15 @@ class BarrierRecord(SQLBase, SQLMixin):
                 created_at=timenow(),
                 spec=spec,
             )
-            mapper = sa_inspect(record).mapper
+            state = sa_inspect(record)
+            mapper = state.mapper
             if mapper.polymorphic_on is not None:
                 discriminator = mapper.polymorphic_on.key
                 if getattr(record, discriminator) is None:
                     setattr(record, discriminator, mapper.polymorphic_identity)
+            column_keys = {column.key for column in mapper.columns}
             values = {
-                column.key: getattr(record, column.key) for column in mapper.columns
+                key: value for key, value in state.dict.items() if key in column_keys
             }
             stmt = (
                 pg_insert(cls)
