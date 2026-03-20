@@ -52,7 +52,8 @@ class FakeWebDriver:
         return self.driver
 
 
-def test_create_chrome_driver_sets_options_and_cleans_artifacts(tmp_path, monkeypatch):
+@pytest.fixture
+def chrome_paths(tmp_path, monkeypatch):
     profile_path = tmp_path / "profile"
     profile_path.mkdir()
     log_path = tmp_path / "chromedriver.log"
@@ -68,20 +69,19 @@ def test_create_chrome_driver_sets_options_and_cleans_artifacts(tmp_path, monkey
         fd = os.open(log_path, os.O_RDWR)
         return fd, str(log_path)
 
+    monkeypatch.setattr(chrome_driver.tempfile, "mkdtemp", fake_mkdtemp)
+    monkeypatch.setattr(chrome_driver.tempfile, "mkstemp", fake_mkstemp)
+    return profile_path, log_path
+
+
+def test_create_chrome_driver_cleans_artifacts_on_quit(chrome_paths, monkeypatch):
+    profile_path, log_path = chrome_paths
+
     fake_driver = FakeDriver()
     fake_webdriver = FakeWebDriver(driver=fake_driver)
 
     monkeypatch.setenv("PSYNET_CHROMEDRIVER_VERBOSE", "1")
     monkeypatch.delenv("PSYNET_KEEP_CHROMEDRIVER_LOGS", raising=False)
-    monkeypatch.setattr(chrome_driver.tempfile, "mkdtemp", fake_mkdtemp)
-    monkeypatch.setattr(chrome_driver.tempfile, "mkstemp", fake_mkstemp)
-    monkeypatch.setattr(chrome_driver, "_find_chrome_binary", lambda: "/usr/bin/chrome")
-    monkeypatch.setattr(
-        chrome_driver, "_append_debug_log", lambda *args, **kwargs: None
-    )
-    monkeypatch.setattr(chrome_driver, "_count_psynet_chrome_profiles", lambda: 0)
-    monkeypatch.setattr(chrome_driver, "list_psynet_chrome_processes", lambda: [])
-    monkeypatch.setattr(chrome_driver, "list_chromedriver_processes", lambda: [])
     monkeypatch.setattr(
         chrome_driver,
         "_get_chrome_dependencies",
@@ -96,8 +96,6 @@ def test_create_chrome_driver_sets_options_and_cleans_artifacts(tmp_path, monkey
     assert "--remote-debugging-pipe" in fake_webdriver.last_options.arguments
     assert "--headless=new" in fake_webdriver.last_options.arguments
     assert f"--user-data-dir={profile_path}" in fake_webdriver.last_options.arguments
-    assert fake_webdriver.last_options.binary_location == "/usr/bin/chrome"
-
     assert fake_webdriver.last_service.log_output == str(log_path)
     assert fake_webdriver.last_service.service_args == ["--verbose"]
     assert profile_path.exists()
@@ -105,36 +103,41 @@ def test_create_chrome_driver_sets_options_and_cleans_artifacts(tmp_path, monkey
     assert fake_driver.window_sizes == [(1024, 768)]
 
     driver.quit()
+    driver.quit()
 
     assert not profile_path.exists()
     assert not log_path.exists()
-    assert fake_driver.quit_calls == 1
+    assert fake_driver.quit_calls == 2
 
 
-def test_create_chrome_driver_cleans_profile_on_launch_error(tmp_path, monkeypatch):
-    profile_path = tmp_path / "profile"
-    profile_path.mkdir()
-    log_path = tmp_path / "chromedriver.log"
-    log_path.write_text("chromedriver output", encoding="utf-8")
+def test_create_chrome_driver_preserves_log_when_configured(chrome_paths, monkeypatch):
+    profile_path, log_path = chrome_paths
 
-    def fake_mkdtemp(prefix):
-        assert prefix == "psynet-chrome-"
-        return str(profile_path)
+    fake_driver = FakeDriver()
+    fake_webdriver = FakeWebDriver(driver=fake_driver)
 
-    def fake_mkstemp(prefix, suffix):
-        fd = os.open(log_path, os.O_RDWR)
-        return fd, str(log_path)
+    monkeypatch.setenv("PSYNET_CHROMEDRIVER_VERBOSE", "1")
+    monkeypatch.setenv("PSYNET_KEEP_CHROMEDRIVER_LOGS", "1")
+    monkeypatch.setattr(
+        chrome_driver,
+        "_get_chrome_dependencies",
+        lambda: (fake_webdriver, FakeOptions, FakeService),
+    )
+
+    driver = chrome_driver.create_psynet_chrome_driver(headless=False)
+    driver.quit()
+
+    assert not profile_path.exists()
+    assert log_path.exists()
+
+
+def test_create_chrome_driver_cleans_profile_on_launch_error(
+    chrome_paths, monkeypatch
+):
+    profile_path, log_path = chrome_paths
 
     fake_webdriver = FakeWebDriver(launch_error=RuntimeError("boom"))
 
-    monkeypatch.setattr(chrome_driver.tempfile, "mkdtemp", fake_mkdtemp)
-    monkeypatch.setattr(chrome_driver.tempfile, "mkstemp", fake_mkstemp)
-    monkeypatch.setattr(
-        chrome_driver, "_append_debug_log", lambda *args, **kwargs: None
-    )
-    monkeypatch.setattr(chrome_driver, "_count_psynet_chrome_profiles", lambda: 0)
-    monkeypatch.setattr(chrome_driver, "list_psynet_chrome_processes", lambda: [])
-    monkeypatch.setattr(chrome_driver, "list_chromedriver_processes", lambda: [])
     monkeypatch.setattr(
         chrome_driver,
         "_get_chrome_dependencies",
@@ -146,14 +149,3 @@ def test_create_chrome_driver_cleans_profile_on_launch_error(tmp_path, monkeypat
 
     assert not profile_path.exists()
     assert log_path.exists()
-
-
-def test_find_chrome_binary_uses_fallback_paths(monkeypatch):
-    monkeypatch.setattr(chrome_driver.shutil, "which", lambda _: None)
-    monkeypatch.setattr(
-        chrome_driver.os.path,
-        "exists",
-        lambda path: path == "/opt/chrome-linux64/chrome",
-    )
-
-    assert chrome_driver._find_chrome_binary() == "/opt/chrome-linux64/chrome"
