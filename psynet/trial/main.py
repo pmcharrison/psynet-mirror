@@ -1980,41 +1980,19 @@ class TrialMaker(Module):
         )
 
     def _wait_for_trial(self):
-        def _try_to_prepare_trial__solo(experiment, participant):
-            trial, trial_status = self._prepare_trial(experiment, participant)
-            participant.current_trial = trial
-            participant.trial_status = trial_status
-
-        def _try_to_prepare_trial__group(group: SyncGroup):
-            from ..experiment import get_experiment
-
-            experiment = get_experiment()
-
-            leader = group.leader
-
-            leader.current_trial, leader.trial_status = self._prepare_trial(
-                experiment=experiment, participant=group.leader
-            )
-            for follower in group.active_followers:
-                follower.current_trial, follower.trial_status = self._prepare_trial(
-                    experiment=experiment,
-                    participant=follower,
-                    leader=group.leader,
-                )
-
         def try_to_prepare_trial():
             if self.sync_group_type:
                 return join(
                     GroupBarrier(
                         id_="prepare_trial",
                         group_type=self.sync_group_type,
-                        on_release=_try_to_prepare_trial__group,
+                        on_release=self._try_to_prepare_trial_group,
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
                         max_wait_time=self.sync_group_max_wait_time,
                     )
                 )
             else:
-                return CodeBlock(_try_to_prepare_trial__solo)
+                return CodeBlock(self._try_to_prepare_trial_solo)
 
         return join(
             try_to_prepare_trial(),
@@ -2030,6 +2008,28 @@ class TrialMaker(Module):
                 fix_time_credit=False,
             ),
         )
+
+    def _try_to_prepare_trial_solo(self, experiment, participant):
+        trial, trial_status = self._prepare_trial(experiment, participant)
+        participant.current_trial = trial
+        participant.trial_status = trial_status
+
+    def _try_to_prepare_trial_group(self, group: SyncGroup):
+        from ..experiment import get_experiment
+
+        experiment = get_experiment()
+
+        leader = group.leader
+
+        leader.current_trial, leader.trial_status = self._prepare_trial(
+            experiment=experiment, participant=group.leader
+        )
+        for follower in group.active_followers:
+            follower.current_trial, follower.trial_status = self._prepare_trial(
+                experiment=experiment,
+                participant=follower,
+                leader=group.leader,
+            )
 
     max_time_waiting_for_trial = 60
 

@@ -1,3 +1,4 @@
+import inspect
 import random
 from math import floor
 from typing import Callable, List, Optional, Union
@@ -21,6 +22,10 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
+from psynet.serialize import (
+    check_that_function_can_be_serialized,
+    prepare_function_for_serialization,
+)
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.utils import call_function_with_context, get_logger
 
@@ -285,6 +290,24 @@ class GroupBarrier(Barrier):
         )
         self.group_type = group_type
         self.on_release = on_release
+        self.on_release_arguments = {}
+        if on_release is not None:
+            if inspect.ismethod(on_release) and on_release.__self__ is not None:
+                from psynet.trial.main import TrialMaker
+
+                method_self = on_release.__self__
+                if isinstance(method_self, TrialMaker):
+                    self.on_release = TrialMakerMethodReference(
+                        method_name=on_release.__name__,
+                        trial_maker_id=method_self.id,
+                    )
+                else:
+                    (
+                        self.on_release,
+                        self.on_release_arguments,
+                    ) = prepare_function_for_serialization(on_release, {})
+            else:
+                check_that_function_can_be_serialized(on_release)
 
     def choose_who_to_release(self, waiting_participants: List[Participant]):
         waiting_participant_ids = [p.id for p in waiting_participants]
@@ -320,11 +343,20 @@ class GroupBarrier(Barrier):
                     participants_to_release.append(participant)
 
                 if self.on_release:
-                    call_function_with_context(
-                        self.on_release,
-                        group=group,
-                        participants=group.active_participants,
-                    )
+                    on_release_arguments = getattr(self, "on_release_arguments", {})
+                    on_release_kwargs = {
+                        **on_release_arguments,
+                        "group": group,
+                        "participants": group.active_participants,
+                        "participant": group.leader,
+                    }
+                    if isinstance(self.on_release, TrialMakerMethodReference):
+                        self.on_release(**on_release_kwargs)
+                    else:
+                        call_function_with_context(
+                            self.on_release,
+                            **on_release_kwargs,
+                        )
 
         return participants_to_release
 
@@ -858,6 +890,25 @@ class GroupCloser(GroupBarrier):
         if "id_" not in kwargs:
             kwargs["id_"] = f"closer_{group_type}"
 
-        super().__init__(
-            group_type=group_type, on_release=lambda group: group.close(), **kwargs
-        )
+        super().__init__(group_type=group_type, on_release=close_sync_group, **kwargs)
+
+
+class TrialMakerMethodReference:
+    """
+    Resolves a TrialMaker instance at call time to avoid serializing it directly.
+    """
+
+    def __init__(self, method_name: str, trial_maker_id: str):
+        self.method_name = method_name
+        self.trial_maker_id = trial_maker_id
+
+    def __call__(self, *args, **kwargs):
+        from psynet.experiment import get_trial_maker
+
+        trial_maker = get_trial_maker(self.trial_maker_id)
+        method = getattr(trial_maker, self.method_name)
+        return call_function_with_context(method, *args, **kwargs)
+
+
+def close_sync_group(group):
+    group.close()
