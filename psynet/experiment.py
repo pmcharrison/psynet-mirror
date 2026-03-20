@@ -2593,11 +2593,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if barrier is not None:
             return barrier
 
-        barrier = barrier_record.spec
+        barrier = barrier_record.barrier
         if not isinstance(barrier, Barrier):
-            raise RuntimeError(
-                f"Barrier '{barrier_record.id}' spec is missing or invalid."
-            )
+            raise RuntimeError(f"Barrier '{barrier_record.id}' is missing or invalid.")
 
         exp.register_barrier_instance(barrier)
         return barrier
@@ -2980,8 +2978,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 f"{barrier.__class__.__name__}."
             )
         self._barrier_registry[barrier.id] = barrier
-        spec = barrier
-        BarrierRecord.ensure_exists(barrier.id, barrier.__class__, spec=spec)
+        BarrierRecord.ensure_exists(barrier.id, barrier.__class__, barrier=barrier)
 
     def get_barrier(self, barrier_id: str):
         return self._barrier_registry.get(barrier_id)

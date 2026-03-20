@@ -748,26 +748,26 @@ class BarrierRecord(SQLBase, SQLMixin):
     id = Column(String, primary_key=True)
     barrier_class = Column(PythonClass)
     created_at = Column(DateTime, default=timenow)
-    spec = deferred(Column(PythonObject))
+    barrier = deferred(Column(PythonObject))
 
     participant_links = relationship(
         "ParticipantLinkBarrier", back_populates="barrier_record"
     )
 
     @classmethod
-    def ensure_exists(cls, barrier_id: str, barrier_class, spec=None):
+    def ensure_exists(cls, barrier_id: str, barrier_class, barrier=None):
         with db.session.no_autoflush:
             record = cls.query.get(barrier_id)
             if record is not None:
-                if spec is not None:
-                    record.spec = spec
+                if barrier is not None:
+                    record.barrier = barrier
                 return
 
             record = cls(
                 id=barrier_id,
                 barrier_class=barrier_class,
                 created_at=timenow(),
-                spec=spec,
+                barrier=barrier,
             )
             values = _insert_values_from_state(record)
             stmt = (
@@ -776,10 +776,10 @@ class BarrierRecord(SQLBase, SQLMixin):
                 .on_conflict_do_nothing(index_elements=["id"])
             )
             result = db.session.execute(stmt)
-            if spec is not None and result.rowcount == 0:
+            if barrier is not None and result.rowcount == 0:
                 record = cls.query.get(barrier_id)
                 if record is not None:
-                    record.spec = spec
+                    record.barrier = barrier
 
 
 @register_table
