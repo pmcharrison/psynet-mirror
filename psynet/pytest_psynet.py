@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import warnings
 from functools import cached_property
 from pathlib import Path
