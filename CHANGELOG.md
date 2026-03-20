@@ -26,7 +26,6 @@
 ### Changed
 - Barrier handling now uses a database-backed registry for sync experiments.
 - Barrier registry serialization now requires importable module-level callables (lambdas and nested functions are rejected).
-- Added debug logging around barrier resolution for GroupBarrier on_release investigation (author: [User])
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
@@ -43,6 +42,7 @@
 ### Fixed
 
 - Fixed sync barrier processing to reduce deadlocks and make trial-defined barriers release reliably across processes.
+- Ensured barrier resolution registers in-process barriers before falling back to serialized records, preventing missing `on_release` callables in sync group barriers (author: [User])
 - Avoided ingest failures for tables with non-integer primary keys.
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)

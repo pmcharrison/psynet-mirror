@@ -290,36 +290,6 @@ class GroupBarrier(Barrier):
         waiting_participant_ids = [p.id for p in waiting_participants]
         participants_to_release = []
 
-        # region agent log
-        import json
-        import os
-        import time
-
-        open(os.path.expanduser("/opt/cursor/logs/debug.log"), "a").write(
-            json.dumps(
-                {
-                    "hypothesisId": "A",
-                    "location": "psynet/sync.py:293",
-                    "message": "GroupBarrier.choose_who_to_release entry",
-                    "data": {
-                        "barrier_id": self.id,
-                        "group_type": self.group_type,
-                        "waiting_participant_ids": waiting_participant_ids,
-                        "has_on_release": hasattr(self, "on_release"),
-                        "on_release_type": type(
-                            getattr(self, "on_release", None)
-                        ).__name__,
-                        "self_attrs": sorted(
-                            list(getattr(self, "__dict__", {}).keys())
-                        ),
-                    },
-                    "timestamp": int(time.time() * 1000),
-                }
-            )
-            + "\n"
-        )
-        # endregion
-
         groups = {
             participant.active_sync_groups[
                 self.group_type
@@ -348,32 +318,6 @@ class GroupBarrier(Barrier):
                 group.check_leader()
                 for participant in group.active_participants:
                     participants_to_release.append(participant)
-
-                # region agent log
-                import json
-                import os
-                import time
-
-                open(os.path.expanduser("/opt/cursor/logs/debug.log"), "a").write(
-                    json.dumps(
-                        {
-                            "hypothesisId": "A",
-                            "location": "psynet/sync.py:326",
-                            "message": "GroupBarrier before on_release check",
-                            "data": {
-                                "barrier_id": self.id,
-                                "group_id": group.id,
-                                "has_on_release": hasattr(self, "on_release"),
-                                "on_release_type": type(
-                                    getattr(self, "on_release", None)
-                                ).__name__,
-                            },
-                            "timestamp": int(time.time() * 1000),
-                        }
-                    )
-                    + "\n"
-                )
-                # endregion
 
                 if self.on_release:
                     call_function_with_context(
@@ -812,38 +756,6 @@ class BarrierRecord(SQLBase, SQLMixin):
     def ensure_exists(cls, barrier_id: str, barrier_class, barrier=None):
         with db.session.no_autoflush:
             record = cls.query.get(barrier_id)
-            # region agent log
-            import json
-            import os
-            import time
-
-            open(os.path.expanduser("/opt/cursor/logs/debug.log"), "a").write(
-                json.dumps(
-                    {
-                        "hypothesisId": "B",
-                        "location": "psynet/sync.py:759",
-                        "message": "BarrierRecord.ensure_exists",
-                        "data": {
-                            "barrier_id": barrier_id,
-                            "record_exists": record is not None,
-                            "barrier_class": getattr(
-                                barrier_class, "__name__", str(barrier_class)
-                            ),
-                            "barrier_type": (
-                                type(barrier).__name__ if barrier is not None else None
-                            ),
-                            "barrier_has_on_release": (
-                                hasattr(barrier, "on_release")
-                                if barrier is not None
-                                else None
-                            ),
-                        },
-                        "timestamp": int(time.time() * 1000),
-                    }
-                )
-                + "\n"
-            )
-            # endregion
             if record is not None:
                 if barrier is not None:
                     record.barrier = barrier

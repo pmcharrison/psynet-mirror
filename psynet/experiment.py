@@ -2592,72 +2592,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         from .sync import Barrier
 
         barrier = exp.get_barrier(barrier_record.id)
-        # region agent log
-        import json
-        import os
-        import time
-
-        open(os.path.expanduser("/opt/cursor/logs/debug.log"), "a").write(
-            json.dumps(
-                {
-                    "hypothesisId": "B",
-                    "location": "psynet/experiment.py:2594",
-                    "message": "Experiment._resolve_barrier registry lookup",
-                    "data": {
-                        "barrier_id": barrier_record.id,
-                        "registry_hit": barrier is not None,
-                        "registry_type": (
-                            type(barrier).__name__ if barrier is not None else None
-                        ),
-                    },
-                    "timestamp": int(time.time() * 1000),
-                }
-            )
-            + "\n"
-        )
-        # endregion
+        if barrier is None:
+            # Ensure barriers are registered in this process before falling
+            # back to the serialized record (which may omit non-serializable
+            # callables like bound methods).
+            exp.register_barriers()
+            barrier = exp.get_barrier(barrier_record.id)
         if barrier is not None:
             return barrier
 
         barrier = barrier_record.barrier
-        # region agent log
-        import json
-        import os
-        import time
-
-        open(os.path.expanduser("/opt/cursor/logs/debug.log"), "a").write(
-            json.dumps(
-                {
-                    "hypothesisId": "C",
-                    "location": "psynet/experiment.py:2602",
-                    "message": "Experiment._resolve_barrier from record",
-                    "data": {
-                        "barrier_id": barrier_record.id,
-                        "record_barrier_class": getattr(
-                            barrier_record.barrier_class,
-                            "__name__",
-                            str(barrier_record.barrier_class),
-                        ),
-                        "record_barrier_type": (
-                            type(barrier).__name__ if barrier is not None else None
-                        ),
-                        "record_barrier_has_on_release": (
-                            hasattr(barrier, "on_release")
-                            if barrier is not None
-                            else None
-                        ),
-                        "record_barrier_attrs": (
-                            sorted(list(getattr(barrier, "__dict__", {}).keys()))
-                            if barrier is not None
-                            else None
-                        ),
-                    },
-                    "timestamp": int(time.time() * 1000),
-                }
-            )
-            + "\n"
-        )
-        # endregion
         if not isinstance(barrier, Barrier):
             raise RuntimeError(f"Barrier '{barrier_record.id}' is missing or invalid.")
 
