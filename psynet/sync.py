@@ -4,7 +4,16 @@ from typing import Callable, List, Optional, Union
 
 from dallinger import db
 from dallinger.models import timenow
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+)
+from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, deferred, joinedload, object_session, relationship
 
@@ -749,7 +758,24 @@ class BarrierRecord(SQLBase, SQLMixin):
                 created_at=timenow(),
                 spec=spec,
             )
-            db.session.add(record)
+            mapper = sa_inspect(record).mapper
+            if mapper.polymorphic_on is not None:
+                discriminator = mapper.polymorphic_on.key
+                if getattr(record, discriminator) is None:
+                    setattr(record, discriminator, mapper.polymorphic_identity)
+            values = {
+                column.key: getattr(record, column.key) for column in mapper.columns
+            }
+            stmt = (
+                pg_insert(cls)
+                .values(**values)
+                .on_conflict_do_nothing(index_elements=["id"])
+            )
+            result = db.session.execute(stmt)
+            if spec is not None and result.rowcount == 0:
+                record = cls.query.get(barrier_id)
+                if record is not None:
+                    record.spec = spec
 
     def instantiate_barrier(self):
         if not self.spec:
