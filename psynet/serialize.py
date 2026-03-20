@@ -88,21 +88,7 @@ def _format_callback_error(context: str, detail: str) -> str:
     return (
         f"{context} must be a module-level function, a @staticmethod/@classmethod, "
         "or an instance method on a TrialMaker or ORM model with a primary key. "
-        f"{detail}\n\n"
-        "Upgrade guidance:\n"
-        "  - Prefer a module-level function:\n"
-        "        def on_release(group, participants, participant, barrier=None, experiment=None):\n"
-        "            ...\n"
-        "        GroupBarrier(..., on_release=on_release)\n"
-        "  - If you previously used a Trial instance method, the easiest upgrade is a @classmethod:\n"
-        "        class MyTrial(StaticTrial):\n"
-        "            @classmethod\n"
-        "            def on_release(cls, group, participants, participant, barrier=None, experiment=None):\n"
-        "                ...\n"
-        "        GroupBarrier(..., on_release=MyTrial.on_release)\n"
-        "  - Or use a @classmethod/@staticmethod.\n"
-        "  - For TrialMaker/ORM instance methods, ensure the instance is persistent "
-        "and has a primary key."
+        f"{detail}"
     )
 
 

@@ -26,6 +26,7 @@
 ### Changed
 - Barrier handling now uses a database-backed registry for sync experiments.
 - GroupBarrier `on_release` callbacks now accept module-level, static/class, TrialMaker, or ORM instance methods; invalid callbacks raise clear errors.
+- Simplified callback serialization error messages by removing upgrade guidance.
 - Simplified barrier processing by removing redundant helper lookup.
 - Barrier registry now stores a lightweight barrier copy without waiting-page templates.
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
