@@ -190,6 +190,8 @@ Verify changes end-to-end by running `psynet test local` within a relevant demo.
 
 When you make changes to the PsyNet codebase:
 
+0. **Keep changelog fragments current during the chat session**: Review and update `changelog.d/` as you work so stale or superseded entries don’t persist.
+
 1. **Add a changelog fragment**: Pull requests should include one or more fragment files in `changelog.d/` instead of editing `CHANGELOG.md` directly. Create a fragment with the helper command:
 
    ```bash
