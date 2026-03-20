@@ -580,13 +580,20 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if not self.local_key and self.key_within_module:
             self.local_key = self.key_within_module
 
-        if self.host_path is None or not self.deposited:
+        if not self.deposited:
+            self.host_path = self.generate_host_path()
+            self.export_path = self.generate_export_path()
+            self.url = self.get_url()
+            return
+
+        host_path_was_missing = self.host_path is None
+        if host_path_was_missing:
             self.host_path = self.generate_host_path()
 
         if self.export_path is None:
             self.export_path = self.generate_export_path()
 
-        if self.url is None or not self.deposited:
+        if self.url is None or host_path_was_missing:
             self.url = self.get_url()
 
     def set_missing_keys(self):
