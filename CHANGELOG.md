@@ -24,10 +24,9 @@
 - Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
 
-## Changed
+### Changed
 - Deprecated `Asset.set_keys` in favor of `set_missing_keys` for clarity
 - Deprecated `Asset.set_missing_keys` in favor of `ensure_keys_and_paths` for clarity
-### Changed
 
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
@@ -44,8 +43,6 @@
 - Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout (author: Frank Höger)
 
 ### Fixed
-
-## Fixed
 - Prevented deposited assets from re-obfuscating host paths when re-linked, avoiding 404s for cached assets
 - Centralized asset linking to avoid overwriting local keys and definitions on already-deposited assets
 - Added coverage to confirm asset URLs remain accessible after linking deposited assets
