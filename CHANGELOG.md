@@ -24,7 +24,7 @@
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
 
 ### Changed
-- Removed per-link barrier class storage in favor of barrier registry records (author: [Edgar Andrade])
+- Removed per-link barrier class storage in favor of barrier registry records
 - Moved barrier registration to `on_first_launch` and use conflict-safe inserts for barrier records
 - Processed barriers in per-barrier transactions and skipped failing barriers per run
 - Refactored barrier check helpers for clarity
@@ -48,15 +48,15 @@
 
 ### Fixed
 
-- Fixed trial-defined barrier releases by processing barriers on participant arrival to avoid clock registry misses (author: [User])
-- Fixed legacy launch hangs by committing barrier registry inserts during experiment setup (author: [Cursor])
-- Avoided nested `transaction()` calls closing active sessions, fixing bot creation failures when barriers register during timeline advance (author: [Cursor])
-- Refactored barrier processing to register barriers in the database and claim barrier rows before locking participants, reducing deadlock risk in sync experiments (author: [Edgar Andrade])
-- Skipped autoincrement resets for tables with non-integer IDs to prevent ingest failures on custom tables (author: [Edgar Andrade])
-- Reattached participants to the active session when entering barriers to avoid detached-instance errors during bot creation (author: [Edgar Andrade])
-- Triggered barrier release checks on arrival to handle trial-defined barriers without clock registry state (author: [Edgar Andrade])
-- Stored barrier specs for reconstructing registry entries in background processes when possible (author: [Edgar Andrade])
-- Serialized importable callables in barrier specs and rejected bound or nested functions to keep barrier reconstruction deterministic (author: [Edgar Andrade])
+- Fixed trial-defined barrier releases by processing barriers on participant arrival to avoid clock registry misses
+- Fixed legacy launch hangs by committing barrier registry inserts during experiment setup
+- Avoided nested `transaction()` calls closing active sessions, fixing bot creation failures when barriers register during timeline advance
+- Refactored barrier processing to register barriers in the database and claim barrier rows before locking participants, reducing deadlock risk in sync experiments
+- Skipped autoincrement resets for tables with non-integer IDs to prevent ingest failures on custom tables
+- Reattached participants to the active session when entering barriers to avoid detached-instance errors during bot creation
+- Triggered barrier release checks on arrival to handle trial-defined barriers without clock registry state
+- Stored barrier specs for reconstructing registry entries in background processes when possible
+- Serialized importable callables in barrier specs and rejected bound or nested functions to keep barrier reconstruction deterministic
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)
