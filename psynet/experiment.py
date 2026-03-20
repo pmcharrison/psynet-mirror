@@ -2589,7 +2589,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @staticmethod
     def _resolve_barrier(exp, barrier_record):
         """Resolve a barrier instance from the registry or record."""
-        from .sync import Barrier
+        from .sync import Barrier, GroupBarrier
 
         barrier = exp.get_barrier(barrier_record.id)
         if barrier is None:
@@ -2599,7 +2599,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             exp.register_barriers()
             barrier = exp.get_barrier(barrier_record.id)
         if barrier is not None:
-            if not hasattr(barrier, "on_release"):
+            if isinstance(barrier, GroupBarrier) and not hasattr(barrier, "on_release"):
                 logger.warning(
                     "Barrier '%s' is missing on_release; reloading from registry record.",
                     barrier_record.id,
