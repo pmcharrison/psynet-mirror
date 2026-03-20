@@ -20,19 +20,6 @@ from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 # #############################################################################
 
 
-def save_ratings(participants: List[Participant]):
-    """Store rating summaries for each participant."""
-    assert len(participants) == 3
-
-    ratings = [p.var.rate for p in participants]
-
-    for i in range(len(participants)):
-        participants[i].var.last_trial = {
-            "rating_self": ratings[i],
-            "rating_others": sorted(ratings[:i] + ratings[i + 1 :]),
-        }
-
-
 class CreateRateTrialMaker(StaticTrialMaker):
     pass
 
@@ -49,7 +36,7 @@ class CreateRateTrial(StaticTrial):
             GroupBarrier(
                 id_="finished_rating",
                 group_type="create_rate",
-                on_release=save_ratings,
+                on_release=self.save_ratings,
             ),
             PageMaker(self.show_ratings, time_estimate=5),
         )
@@ -103,6 +90,17 @@ class CreateRateTrial(StaticTrial):
             prompt,
             time_estimate=5,
         )
+
+    def save_ratings(self, participants: List[Participant]):
+        assert len(participants) == 3
+
+        ratings = [p.var.rate for p in participants]
+
+        for i in range(len(participants)):
+            participants[i].var.last_trial = {
+                "rating_self": ratings[i],
+                "rating_others": sorted(ratings[:i] + ratings[i + 1 :]),
+            }
 
 
 class Exp(psynet.experiment.Experiment):
