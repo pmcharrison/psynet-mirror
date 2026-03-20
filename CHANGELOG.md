@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added developer documentation plus a repo-local `/review` Cursor workflow backed by the `branch-review` skill for reviewing branches against `master` (author: [Frank Höger])
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
@@ -35,6 +36,7 @@
 - Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
+- Replaced the moto-backed S3 emulator with a minimal filesystem-backed mock for targeted S3 artifact-storage tests, while moving broader backup coverage back to a local-storage test path and removing the `moto` dependency from the test environment (author: Frank Höger)
 - Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
 - Improved performance-test summary table: replaced Completed/Bot Errors columns with Succeeded/Errored/Terminated, and response time columns with median/95th/max (author: Jesse Snyder)
 - Separated bot duration tracking by outcome (succeeded/failed/incomplete) in performance test results (author: Jesse Snyder)
@@ -56,7 +58,7 @@
 - Fixed `CI` environment variable not being passed to Docker container in CI, causing `@local_only` tests to run incorrectly (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed `@local_only` and `@ci_only` pytest decorators by changing condition from `os.environ.get("CI")` to `os.environ.get("CI") is not None` to ensure a boolean result (author: Frank Höger, reviewer: Peter Harrison)
 - Fixed `test_translator_with_file_path` to use `{NAME}` instead of `■0■` since `ChatGptTranslator` has `use_codebook=False` (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices) (author: Frank Höger, reviewer: Peter Harrison)
+- Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices and Node launch warnings) (author: Frank Höger, reviewer: Peter Harrison)
 - Standardized "Abort Experiment" to "Abort experiment" in templates for consistent capitalization and removed obsolete translation entries from PO files (author: Frank Höger, reviewer: Peter Harrison)
 - Removed prompt text from prompt metadata to avoid large export file sizes (author: Peter)
 - Suppressed forkpty DeprecationWarning in pytest configuration (author: Peter Harrison)

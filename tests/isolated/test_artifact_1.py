@@ -11,8 +11,10 @@ import pandas as pd
 import pytest
 import requests
 
+import psynet.artifact as psynet_artifact
+import psynet.asset as psynet_asset
 from psynet.artifact import LocalArtifactStorage
-from psynet.pytest_psynet import path_to_demo_experiment
+from psynet.pytest_psynet import artifact_storage_s3_test_root, path_to_demo_experiment
 
 
 def test_list_subfolders(artifact_storage, tmp_path):
@@ -72,6 +74,33 @@ def test_move_missing_file_raises(artifact_storage):
     storage = artifact_storage
     with pytest.raises(FileNotFoundError):
         storage.move_file("does_not_exist.txt", "target.txt")
+
+
+def test_get_modification_date(artifact_storage, tmp_path):
+    storage = artifact_storage
+    src_file = tmp_path / "source" / "timestamped.txt"
+    src_file.parent.mkdir()
+    src_file.write_text("timestamp me")
+
+    storage.upload(str(src_file), "timestamped.txt")
+
+    modified = storage.get_modification_date("timestamped.txt")
+
+    assert modified is not None
+
+
+def test_artifact_storage_s3_test_root_restores_s3_globals(tmp_path, monkeypatch):
+    original_asset_get_s3_client = psynet_asset.get_s3_client
+    original_artifact_get_s3_client = psynet_artifact.get_s3_client
+
+    fixture = artifact_storage_s3_test_root.__wrapped__(tmp_path, monkeypatch)
+    next(fixture)
+
+    assert psynet_asset.get_s3_client is not original_asset_get_s3_client
+    assert psynet_artifact.get_s3_client is not original_artifact_get_s3_client
+
+    with pytest.raises(StopIteration):
+        next(fixture)
 
 
 @pytest.mark.parametrize(
