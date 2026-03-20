@@ -3,6 +3,7 @@ import inspect
 import pickle
 import types
 import warnings
+from dataclasses import dataclass
 from functools import cached_property
 
 import dominate.tags
@@ -14,9 +15,137 @@ from jsonpickle.util import importable_name
 from markupsafe import Markup
 
 from .data import SQLBase
-from .utils import get_logger
+from .utils import call_function_with_context, get_logger
 
 logger = get_logger()
+
+
+class CallbackSerializationError(ValueError):
+    """
+    Raised when a callback cannot be serialized safely.
+    """
+
+
+@dataclass
+class SerializedCallback:
+    function: callable
+    arguments: dict
+
+    def __call__(self, **kwargs):
+        merged = {**(self.arguments or {}), **kwargs}
+        return call_function_with_context(self.function, **merged)
+
+
+def serialize_callback(callback, context: str):
+    """
+    Serialize a callback with centralized validation and error messaging.
+    """
+    if callback is None or isinstance(callback, SerializedCallback):
+        return callback
+    if not callable(callback):
+        raise CallbackSerializationError(
+            _format_callback_error(
+                context,
+                f"Received {type(callback).__name__}, which is not callable.",
+            )
+        )
+
+    if inspect.ismethod(callback) and callback.__self__ is not None:
+        method_self = callback.__self__
+        if isinstance(method_self, type):
+            function, arguments = prepare_function_for_serialization(callback, {})
+            return SerializedCallback(function=function, arguments=arguments)
+        if _is_trial_maker(method_self):
+            return SerializedCallback(
+                function=_call_trial_maker_method,
+                arguments={
+                    "trial_maker_id": method_self.id,
+                    "method_name": callback.__name__,
+                },
+            )
+        if isinstance(method_self, SQLBase):
+            _ensure_sql_primary_key(method_self, context)
+            function, arguments = prepare_function_for_serialization(callback, {})
+            return SerializedCallback(function=function, arguments=arguments)
+
+        raise CallbackSerializationError(
+            _format_callback_error(
+                context,
+                f"Provided a bound instance method ('{callback.__qualname__}').",
+            )
+        )
+
+    try:
+        function, arguments = prepare_function_for_serialization(callback, {})
+    except Exception as err:
+        raise CallbackSerializationError(
+            _format_callback_error(context, str(err))
+        ) from err
+    return SerializedCallback(function=function, arguments=arguments)
+
+
+def _format_callback_error(context: str, detail: str) -> str:
+    return (
+        f"{context} must be a module-level function, a @staticmethod/@classmethod, "
+        "or an instance method on a TrialMaker or ORM model with a primary key. "
+        f"{detail}\n\n"
+        "Upgrade guidance:\n"
+        "  - Prefer a module-level function:\n"
+        "        def on_release(group, participants, participant, barrier=None, experiment=None):\n"
+        "            ...\n"
+        "        GroupBarrier(..., on_release=on_release)\n"
+        "  - Or use a @classmethod/@staticmethod.\n"
+        "  - For TrialMaker/ORM instance methods, ensure the instance is persistent "
+        "and has a primary key."
+    )
+
+
+def _is_trial_maker(instance) -> bool:
+    from psynet.trial.main import TrialMaker
+
+    return isinstance(instance, TrialMaker)
+
+
+def _call_trial_maker_method(
+    trial_maker_id: str,
+    method_name: str,
+    group=None,
+    participants=None,
+    participant=None,
+    barrier=None,
+    experiment=None,
+):
+    from psynet.experiment import get_trial_maker
+
+    if not trial_maker_id:
+        raise CallbackSerializationError(
+            _format_callback_error(
+                "TrialMaker callback",
+                "TrialMaker is missing an id. Ensure the TrialMaker is initialized.",
+            )
+        )
+    trial_maker = get_trial_maker(trial_maker_id)
+    method = getattr(trial_maker, method_name)
+    return call_function_with_context(
+        method,
+        group=group,
+        participants=participants,
+        participant=participant,
+        barrier=barrier,
+        experiment=experiment,
+    )
+
+
+def _ensure_sql_primary_key(instance, context: str) -> None:
+    handler = SQLHandler()
+    primary_keys = handler.get_primary_keys(instance)
+    if any(key is None for key in primary_keys.values()):
+        raise CallbackSerializationError(
+            _format_callback_error(
+                context,
+                f"The ORM instance is missing a primary key: {primary_keys}.",
+            )
+        )
 
 
 # Without jsonpickle.ext.numpy.register_handlers(), numpy arrays are serialized very verbosely, e.g.
