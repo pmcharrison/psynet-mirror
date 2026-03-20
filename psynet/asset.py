@@ -469,8 +469,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.local_key = local_key
             if module_id is not None:
                 self.module_id = module_id
-            elif getattr(parent, "module_id", None) is not None:
-                self.module_id = parent.module_id
+            else:
+                self.module_id = getattr(parent, "module_id", None)
             if definition is not None:
                 self.receive_node_definition(definition)
 
@@ -596,23 +596,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if self.url is None or host_path_was_missing:
             self.url = self.get_url()
 
-    def set_missing_keys(self):
+    def set_keys(self):
         """
         Deprecated. Use :meth:`ensure_keys_and_paths` instead.
         """
         warnings.warn(
-            "Asset.set_missing_keys is deprecated; use Asset.ensure_keys_and_paths instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        self.ensure_keys_and_paths()
-
-    def set_keys(self):
-        """
-        Deprecated. Use :meth:`set_missing_keys` instead.
-        """
-        warnings.warn(
-            "Asset.set_keys is deprecated; use Asset.set_missing_keys instead.",
+            "Asset.set_keys is deprecated; use Asset.ensure_keys_and_paths instead.",
             DeprecationWarning,
             stacklevel=2,
         )

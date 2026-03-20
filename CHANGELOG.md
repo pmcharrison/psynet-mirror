@@ -25,8 +25,7 @@
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
 
 ### Changed
-- Deprecated `Asset.set_keys` in favor of `set_missing_keys` for clarity
-- Deprecated `Asset.set_missing_keys` in favor of `ensure_keys_and_paths` for clarity
+- Deprecated `Asset.set_keys` in favor of `ensure_keys_and_paths` for clarity
 
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.

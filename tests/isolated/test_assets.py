@@ -465,6 +465,31 @@ def test_chain_node_stage_assets_overwrites_undeposited_metadata(
     "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
+def test_update_metadata_clears_module_id_when_parent_missing(launched_experiment):
+    with tempfile.NamedTemporaryFile("w", suffix=".txt") as f:
+        f.write("Hello!")
+        f.flush()
+
+        staged_asset = ExperimentAsset(
+            input_path=f.name,
+            local_key="original_key",
+            module_id="stale_module",
+        )
+        node = ChainNode(
+            definition={"seed": "x"},
+            assets={"stimulus": staged_asset},
+            module_id=None,
+        )
+
+        node.stage_assets(launched_experiment)
+
+        assert staged_asset.module_id is None
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
 def test_add_asset_sets_missing_metadata_for_new_assets(trial, participant):
     with tempfile.NamedTemporaryFile("w", suffix=".txt") as f:
         f.write("Hello!")
