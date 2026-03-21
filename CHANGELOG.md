@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Fixed graph demo `generate_grid` returning `blocks` instead of `groups` for the `participant_groups` key in the network structure (author: [Peter Harrison])
+- Fixed graph demo `generate_grid` returning `blocks` instead of `groups` for the `participant_groups` key in the network structure, and added `choose_participant_group` support to `GraphChainTrialMaker` (author: [Peter Harrison])
 
 ### Added
 
