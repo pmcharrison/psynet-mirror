@@ -48,6 +48,7 @@
 - Updated `adaptive_test_catr` catR smoke test to set `R_HOME` from `R RHOME` when needed, preventing runtime failures where R is installed but `R_HOME` is missing in the process environment (author: Peter Harrison)
 - Removed the `adaptive_test_catr` experiment-specific `test_experiment()` override so CI now exercises catR through the timeline `CodeBlock` during the standard bot flow (author: Peter Harrison)
 - Updated `adaptive_test_catr` catR smoke test to run the rpy2 call in a subprocess with explicit `R_HOME`, avoiding embedded-R runtime failures in the bot-driven CI flow (author: Peter Harrison)
+- Updated custom Docker experiment CI builds to rewrite `PsyNet@master` pins to `CI_COMMIT_SHA` in temporary build contexts and fail fast on invalid PsyNet pins, ensuring these tests run against the branch under review (author: Peter Harrison)
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 - Replaced the moto-backed S3 emulator with a minimal filesystem-backed mock for targeted S3 artifact-storage tests, while moving broader backup coverage back to a local-storage test path and removing the `moto` dependency from the test environment (author: Frank Höger)
 - Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
