@@ -1,4 +1,4 @@
-"""Audit PsyNet demos against the standard lightweight demo layout."""
+"""Run the demo-audit CLI from the repository's `demos/` entry point."""
 
 from psynet.demo_audit import main
 

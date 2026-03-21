@@ -155,6 +155,7 @@ EXPERIMENT_SCAFFOLD_REMOVABLE_DIRECTORIES = [
 def _copy_experiment_template_file(
     relative_path, overwrite, treat_empty_file_as_missing=False
 ):
+    """Copy one scaffold-managed template file into the experiment directory."""
     destination = Path(relative_path)
     empty_file_needs_template = (
         treat_empty_file_as_missing
@@ -174,6 +175,7 @@ def _copy_experiment_template_file(
 
 
 def _write_experiment_generated_file(relative_path, contents, overwrite):
+    """Write one generated scaffold-managed file into the experiment directory."""
     destination = Path(relative_path)
     if destination.exists() and not overwrite:
         return False
@@ -184,6 +186,7 @@ def _write_experiment_generated_file(relative_path, contents, overwrite):
 
 
 def _remove_empty_parent_dirs(path):
+    """Remove now-empty parent directories after deleting scaffold files."""
     workspace_root = Path.cwd()
     while path != workspace_root and path.exists():
         try:
@@ -199,6 +202,7 @@ def scaffold_experiment_directory(
     include_optional_files=False,
     skip_files=None,
 ):
+    """Create or refresh the standard scaffold-managed experiment files."""
     skip_files = set(skip_files or [])
     action = "Updating" if overwrite else "Scaffolding"
     click.echo(f"{action} PsyNet scripts in ({os.getcwd()})...")
@@ -284,6 +288,7 @@ def scaffold_experiment_directory(
 
 
 def prune_experiment_scaffold(*, preserve_files=None):
+    """Remove scaffold-managed files while preserving authored experiment files."""
     preserve_files = set(preserve_files or [])
 
     generated_files = set(EXPERIMENT_SCAFFOLD_TEMPLATE_FILES)
@@ -305,6 +310,7 @@ def prune_experiment_scaffold(*, preserve_files=None):
 
 
 def _missing_scaffold_boilerplate():
+    """List scaffold-managed files that must exist before running an experiment."""
     missing = []
 
     gitignore = Path(".gitignore")

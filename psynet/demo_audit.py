@@ -1,4 +1,4 @@
-"""Audit PsyNet demos against the standard demo directory structure."""
+"""Inspect PsyNet demo directories against the standard essential-files layout."""
 
 from __future__ import annotations
 
@@ -26,19 +26,23 @@ IGNORED_ROOT_ENTRIES = {".git", "__pycache__"}
 
 
 def _hash_bytes(contents: bytes) -> str:
+    """Return a stable hash for raw file contents."""
     return sha256(contents).hexdigest()
 
 
 def _resource_hash(relative_path: str) -> str:
+    """Return the content hash of a packaged PsyNet resource file."""
     with resources.as_file(resources.files("psynet") / relative_path) as path:
         return _hash_bytes(Path(path).read_bytes())
 
 
 def _file_hash(path: Path) -> str:
+    """Return the content hash of a file on disk."""
     return _hash_bytes(path.read_bytes())
 
 
 def _build_scaffold_dir_templates() -> dict[str, dict[str, str]]:
+    """Build a hash map for scaffold-managed directory contents."""
     templates: dict[str, dict[str, str]] = {}
 
     for relative_path in EXPERIMENT_SCAFFOLD_TEMPLATE_FILES:
@@ -81,6 +85,8 @@ GENERIC_README_HASH = _resource_hash(README_TEMPLATE_PATH)
 
 @dataclass
 class DemoAuditRecord:
+    """Store the audit classification for one demo directory."""
+
     path: str
     already_minimal: bool
     generic_readme: bool
@@ -94,6 +100,7 @@ class DemoAuditRecord:
 
 
 def _uses_relative_imports(demo_dir: Path) -> bool:
+    """Report whether any top-level Python file uses explicit relative imports."""
     pattern = re.compile(r"^\s*from \.", re.MULTILINE)
     for file_path in demo_dir.glob("*.py"):
         if pattern.search(file_path.read_text()):
@@ -102,12 +109,14 @@ def _uses_relative_imports(demo_dir: Path) -> bool:
 
 
 def _expected_generated_file_contents(demo_dir: Path, filename: str) -> str:
+    """Return the expected contents of a generated scaffold-managed file."""
     if filename == "Dockertag":
         return f"{demo_dir.name}\n"
     return EXPERIMENT_SCAFFOLD_GENERATED_FILES[filename]()
 
 
 def _classify_root_dir(path: Path) -> tuple[list[str], bool]:
+    """Compare one scaffold-managed root directory against its template."""
     expected_files = SCAFFOLD_DIR_TEMPLATES[path.name]
     actual_files = {
         file_path.relative_to(path).as_posix(): _file_hash(file_path)
@@ -130,6 +139,7 @@ def _classify_root_dir(path: Path) -> tuple[list[str], bool]:
 
 
 def audit_demo_directory(demo_dir: str | Path) -> DemoAuditRecord:
+    """Classify one demo directory against the essential-files policy."""
     demo_dir = Path(demo_dir)
     preserved_root_files = []
     preserved_root_dirs = []
@@ -190,6 +200,7 @@ def audit_demo_directory(demo_dir: str | Path) -> DemoAuditRecord:
 
 
 def audit_demo_tree(demo_paths: list[str] | None = None) -> list[DemoAuditRecord]:
+    """Audit either the requested demos or the entire demos tree."""
     if demo_paths:
         directories = []
         for path in demo_paths:
@@ -206,6 +217,7 @@ def audit_demo_tree(demo_paths: list[str] | None = None) -> list[DemoAuditRecord
 
 
 def _print_text_report(records: list[DemoAuditRecord]) -> None:
+    """Print a human-readable summary of audit results."""
     total = len(records)
     already_minimal = sum(record.already_minimal for record in records)
     generic_readmes = sum(record.generic_readme for record in records)
@@ -253,6 +265,7 @@ def _print_text_report(records: list[DemoAuditRecord]) -> None:
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for the demo audit script."""
     parser = argparse.ArgumentParser(
         description="Audit PsyNet demos against the standard demo file layout."
     )
@@ -275,6 +288,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    """Run the demo audit CLI and print the requested report format."""
     args = parse_args()
     records = audit_demo_tree(args.demo)
 

@@ -76,6 +76,7 @@ latest_dallinger_patch_version = get_latest_dallinger_patch_version(
 
 
 def update_demo(dir):
+    """Refresh one demo while preserving an already-essential-only layout."""
     minimal_demo = audit_demo_directory(dir).already_minimal
     update_scripts(dir, minimal_demo=minimal_demo)
     if not skip_constraints:
@@ -89,6 +90,7 @@ def update_demo(dir):
 
 
 def generate_constraints(dir):
+    """Regenerate constraints for one demo directory."""
     subprocess.run(
         "psynet generate-constraints",
         shell=True,
@@ -98,6 +100,7 @@ def generate_constraints(dir):
 
 
 def pre_update_constraints(dir):
+    """Temporarily pin PsyNet before regenerating one demo's constraints."""
     with working_directory(dir):
         commit_hash = (
             subprocess.check_output(
@@ -128,6 +131,7 @@ def pre_update_constraints(dir):
 
 
 def post_update_constraints(dir, commit_hash_master):
+    """Normalize regenerated constraints and restore the demo requirements file."""
     with working_directory(dir):
         current_branch = current_git_branch()
 
@@ -177,6 +181,7 @@ def post_update_constraints(dir, commit_hash_master):
 
 
 def update_psynet_requirement(dir):
+    """Rewrite the demo's PsyNet requirement to the current branch version."""
     with working_directory(dir):
         current_branch = current_git_branch()
 
@@ -210,6 +215,7 @@ def update_psynet_requirement(dir):
 
 
 def post_update_psynet_requirement(dir):
+    """Refresh the generated constraints header after requirements changes."""
     with working_directory(dir):
         constraints_path = Path("constraints.txt")
         md5sum = md5(Path("requirements.txt").read_bytes()).hexdigest()
@@ -229,6 +235,7 @@ def post_update_psynet_requirement(dir):
 
 
 def update_scripts(dir, minimal_demo=False):
+    """Refresh scaffold-managed files for one demo directory."""
     with working_directory(dir):
         skip_files = {"README.md"} if minimal_demo else None
         psynet.command_line.update_scripts_(skip_files=skip_files)
@@ -244,11 +251,13 @@ def update_scripts(dir, minimal_demo=False):
 
 
 def prune_scaffold(dir):
+    """Remove scaffold-managed files from a demo after refreshing it."""
     with working_directory(dir):
         psynet.command_line.prune_experiment_scaffold(preserve_files={"README.md"})
 
 
 def update_image_tag(file):
+    """Rewrite scaffold image tags to match the current branch or release version."""
     branch_tag = "psynet:master"
     version_tag = r"psynet:v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(rc\d+|a\d+)*"
 

@@ -1,3 +1,5 @@
+"""Validate demo scaffolding and essential-files round trips on representative demos."""
+
 import hashlib
 import os
 import shutil
@@ -50,10 +52,12 @@ SCAFFOLD_REMOVABLE_ROOT_FILES.update(EXPERIMENT_SCAFFOLD_GENERATED_FILES)
 
 
 def _hash_file(path: Path) -> str:
+    """Return a stable hash for one file in a temporary demo copy."""
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _copy_demo_to_tmp(src: Path, tmp_path: Path, label: str) -> Path:
+    """Copy a demo into a temporary git repository for round-trip checks."""
     target = tmp_path / label.replace("/", "__")
     shutil.copytree(src, target)
     subprocess.run(["git", "init", "-q"], cwd=target, check=True)
@@ -61,6 +65,7 @@ def _copy_demo_to_tmp(src: Path, tmp_path: Path, label: str) -> Path:
 
 
 def _run_command(args, cwd: Path):
+    """Run a subprocess in a demo directory and capture its output."""
     return subprocess.run(
         args,
         cwd=cwd,
@@ -72,6 +77,7 @@ def _run_command(args, cwd: Path):
 
 
 def _preserved_snapshot(root: Path) -> dict[str, str]:
+    """Capture hashes for files that should survive scaffold pruning unchanged."""
     snapshot = {}
     for file_path in root.rglob("*"):
         if not file_path.is_file():
