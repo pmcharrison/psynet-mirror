@@ -1222,11 +1222,17 @@ def list_docker_build_experiment_dirs():
     return experiment_dirs
 
 
+def _normalize_directory_path(directory):
+    return str(Path(directory).resolve())
+
+
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
     test_experiments_root = get_psynet_root() / "tests/experiments"
     docker_build_experiment_dirs = (
-        set(list_docker_build_experiment_dirs()) if for_ci_tests else set()
+        {_normalize_directory_path(path) for path in list_docker_build_experiment_dirs()}
+        if for_ci_tests
+        else set()
     )
 
     dirs = sorted(
@@ -1245,7 +1251,8 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
                         or "manual_recruiter_testing" in dir_
                         # Skip experiments with custom Docker builds because they're
                         # tested in a separate CI job using their own Dockerfile.
-                        or dir_ in docker_build_experiment_dirs
+                        or _normalize_directory_path(dir_)
+                        in docker_build_experiment_dirs
                     )
                 )
             )

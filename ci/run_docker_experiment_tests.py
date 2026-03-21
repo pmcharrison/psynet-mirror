@@ -11,8 +11,30 @@ from pytest_common import build_pytest_common_args
 from run_ci_docker_command import build_docker_run_command
 
 PSYNET_URL_PREFIX = "git+https://gitlab.com/PsyNetDev/PsyNet@"
-PSYNET_URL_MASTER = f"{PSYNET_URL_PREFIX}master"
 PSYNET_NORMALIZED_PREFIX = "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@"
+
+
+def normalize_dependency_line(line):
+    return re.sub(r"\s+", "", line.lstrip())
+
+
+def extract_psynet_ref(normalized_line):
+    if not normalized_line.startswith(PSYNET_NORMALIZED_PREFIX):
+        return None
+
+    ref = normalized_line[len(PSYNET_NORMALIZED_PREFIX) :]
+    ref = ref.split("#", 1)[0]
+    ref = ref.split(";", 1)[0]
+    return ref
+
+
+def rewrite_psynet_master_pin(line, ci_commit_sha):
+    return re.sub(
+        r"git\+https://gitlab\.com/PsyNetDev/PsyNet@master",
+        f"{PSYNET_URL_PREFIX}{ci_commit_sha}",
+        line,
+        count=1,
+    )
 
 
 def discover_experiments(base_image_tag):
@@ -52,25 +74,22 @@ def rewrite_psynet_dependency_file(dependency_file, ci_commit_sha):
     rewritten_lines = []
 
     for line in dependency_file.read_text().splitlines(keepends=True):
-        trimmed = line.lstrip()
-        normalized = re.sub(r"\s+", "", trimmed)
+        normalized = normalize_dependency_line(line)
 
         if not normalized or normalized.startswith("#"):
             rewritten_lines.append(line)
             continue
 
-        if normalized.startswith(PSYNET_NORMALIZED_PREFIX):
+        ref = extract_psynet_ref(normalized)
+        if ref is not None:
             found_psynet_dependency = True
-            ref = normalized[len(PSYNET_NORMALIZED_PREFIX) :].split("#", 1)[0]
             if ref != "master":
                 raise ValueError(
                     f"Invalid PsyNet pin in {dependency_file}: {line.rstrip()}\n"
                     "Custom Docker experiments must reference PsyNet@master."
                 )
 
-            rewritten_lines.append(
-                line.replace(PSYNET_URL_MASTER, f"{PSYNET_URL_PREFIX}{ci_commit_sha}")
-            )
+            rewritten_lines.append(rewrite_psynet_master_pin(line, ci_commit_sha))
             continue
 
         if normalized.startswith("psynet@git+"):
@@ -135,13 +154,14 @@ def run_diagnostic(image_tag, experiment_dir, experiment_name, timeout_seconds):
     ]
 
     print(f"Collecting fallback diagnostics in {diagnostic_log}")
-    result = subprocess.run(
-        build_docker_run_command(
-            image_tag, "/workspace", f"/workspace/{experiment_dir}", diagnostic_cmd
-        ),
-        stdout=diagnostic_log.open("w"),
-        stderr=subprocess.STDOUT,
-    )
+    with diagnostic_log.open("w", encoding="utf-8") as diagnostic_output:
+        result = subprocess.run(
+            build_docker_run_command(
+                image_tag, "/workspace", f"/workspace/{experiment_dir}", diagnostic_cmd
+            ),
+            stdout=diagnostic_output,
+            stderr=subprocess.STDOUT,
+        )
     if result.returncode == 0:
         print("Diagnostic rerun unexpectedly succeeded.")
     else:
@@ -169,13 +189,14 @@ def run_experiment_tests(image_tag, experiment_dir, experiment_name, timeout_sec
     print(f"Running tests for {experiment_dir}")
     print(f"Writing test output to {log_file}")
 
-    result = subprocess.run(
-        build_docker_run_command(
-            image_tag, "/workspace", f"/workspace/{experiment_dir}", pytest_cmd
-        ),
-        stdout=log_file.open("w"),
-        stderr=subprocess.STDOUT,
-    )
+    with log_file.open("w", encoding="utf-8") as test_output:
+        result = subprocess.run(
+            build_docker_run_command(
+                image_tag, "/workspace", f"/workspace/{experiment_dir}", pytest_cmd
+            ),
+            stdout=test_output,
+            stderr=subprocess.STDOUT,
+        )
     if result.returncode == 0:
         return 0
 
