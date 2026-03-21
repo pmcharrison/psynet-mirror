@@ -119,6 +119,27 @@ def test_rewrite_psynet_dependency_file_rewrites_master_pin(tmp_path):
     assert "@abc123" in dependency_file.read_text()
 
 
+def test_resolve_psynet_ref_prefers_mr_source_sha(monkeypatch):
+    monkeypatch.setenv("CI_MERGE_REQUEST_SOURCE_BRANCH_SHA", "source-sha")
+    monkeypatch.setenv("CI_COMMIT_SHA", "merge-sha")
+
+    assert run_docker_experiment_tests.resolve_psynet_ref_from_env() == "source-sha"
+
+
+def test_resolve_psynet_ref_falls_back_to_ci_commit_sha(monkeypatch):
+    monkeypatch.delenv("CI_MERGE_REQUEST_SOURCE_BRANCH_SHA", raising=False)
+    monkeypatch.setenv("CI_COMMIT_SHA", "commit-sha")
+
+    assert run_docker_experiment_tests.resolve_psynet_ref_from_env() == "commit-sha"
+
+
+def test_resolve_psynet_ref_returns_none_when_unset(monkeypatch):
+    monkeypatch.delenv("CI_MERGE_REQUEST_SOURCE_BRANCH_SHA", raising=False)
+    monkeypatch.delenv("CI_COMMIT_SHA", raising=False)
+
+    assert run_docker_experiment_tests.resolve_psynet_ref_from_env() is None
+
+
 def test_regenerate_constraints_invokes_docker_when_requirements_present(
     monkeypatch, tmp_path
 ):

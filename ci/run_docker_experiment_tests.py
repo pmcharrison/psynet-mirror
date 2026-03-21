@@ -40,6 +40,18 @@ def rewrite_psynet_master_pin(line, ci_commit_sha):
     )
 
 
+def resolve_psynet_ref_from_env():
+    mr_source_branch_sha = os.environ.get("CI_MERGE_REQUEST_SOURCE_BRANCH_SHA")
+    if mr_source_branch_sha:
+        return mr_source_branch_sha
+
+    ci_commit_sha = os.environ.get("CI_COMMIT_SHA")
+    if ci_commit_sha:
+        return ci_commit_sha
+
+    return None
+
+
 def regenerate_constraints(base_image_tag, build_experiment_dir):
     requirements_file = build_experiment_dir / "requirements.txt"
     if not requirements_file.exists():
@@ -257,9 +269,13 @@ def main():
     base_image_tag = sys.argv[1]
     timeout_seconds = int(sys.argv[2]) if len(sys.argv) > 2 else 300
 
-    ci_commit_sha = os.environ.get("CI_COMMIT_SHA")
-    if not ci_commit_sha:
-        print("CI_COMMIT_SHA is required for docker experiment builds.", file=sys.stderr)
+    psynet_ref = resolve_psynet_ref_from_env()
+    if not psynet_ref:
+        print(
+            "CI_COMMIT_SHA or CI_MERGE_REQUEST_SOURCE_BRANCH_SHA is required for "
+            "docker experiment builds.",
+            file=sys.stderr,
+        )
         return 1
 
     Path("public").mkdir(parents=True, exist_ok=True)
@@ -277,11 +293,11 @@ def main():
                 Path(experiment_dir),
                 experiment_name,
                 build_context_root,
-                ci_commit_sha,
+                psynet_ref,
                 base_image_tag,
             )
 
-            print(f"Building Docker image for {experiment_dir} with PsyNet@{ci_commit_sha}")
+            print(f"Building Docker image for {experiment_dir} with PsyNet@{psynet_ref}")
             subprocess.run(
                 ["docker", "build", "--tag", image_tag, str(build_experiment_dir)],
                 check=True,
