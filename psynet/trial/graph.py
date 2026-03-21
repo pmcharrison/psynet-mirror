@@ -328,6 +328,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         n_repeat_trials: int = 0,
         wait_for_networks: bool = False,
         allow_revisiting_networks_in_across_chains: bool = False,
+        choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
     ):
         if chain_type == "within":
@@ -357,6 +358,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             n_repeat_trials=n_repeat_trials,
             wait_for_networks=wait_for_networks,
             allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
+            choose_participant_group=choose_participant_group,
             sync_group_type=sync_group_type,
         )
 

@@ -317,6 +317,7 @@ class CustomTrialMaker(GraphChainTrialMaker):
         wait_for_networks: bool = False,
         allow_revisiting_networks_in_across_chains: bool = False,
         max_trials_per_block: int = None,
+        choose_participant_group=None,
     ):
         network_structure = self.generate_grid(grid_dimension)
         super().__init__(
@@ -342,6 +343,7 @@ class CustomTrialMaker(GraphChainTrialMaker):
             wait_for_networks=wait_for_networks,
             allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
             max_trials_per_block=max_trials_per_block,
+            choose_participant_group=choose_participant_group,
         )
 
     def generate_grid(self, size):
@@ -455,6 +457,7 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="n_trials",
             target_n_participants=None,
             max_trials_per_block=1,
+            choose_participant_group=lambda participant: participant.var.participant_group,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
     )
