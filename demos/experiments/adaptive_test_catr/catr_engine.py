@@ -1,6 +1,5 @@
 import csv
 import json
-import math
 import os
 import subprocess
 import sys
@@ -66,17 +65,41 @@ _CATR_SUBPROCESS_SCRIPT = textwrap.dedent(
 )
 
 
+def _build_runtime_setup_message(problem_details):
+    return (
+        "catR runtime is not available in this environment.\n"
+        f"Details: {problem_details}\n\n"
+        "To run this demo locally, install R and the catR package (for example:\n"
+        "  sudo apt-get install -y r-base r-base-dev\n"
+        '  R -e \'install.packages("catR", repos="https://cloud.r-project.org")\'\n'
+        "  uv pip install rpy2\n"
+        ").\n"
+        "If you use Docker, ensure prepare_docker_image.sh installs R + catR."
+    )
+
+
 @lru_cache(maxsize=1)
 def infer_r_home():
     try:
         r_home = subprocess.check_output(["R", "RHOME"], text=True).strip()
+    except FileNotFoundError as error:
+        raise RuntimeError(
+            _build_runtime_setup_message(
+                "Could not execute `R RHOME` because the `R` executable was not found "
+                "on PATH."
+            )
+        ) from error
     except Exception as error:
         raise RuntimeError(
-            "R_HOME is not set and could not be inferred via `R RHOME`."
+            _build_runtime_setup_message(
+                "R_HOME is not set and could not be inferred via `R RHOME`."
+            )
         ) from error
 
     if not r_home:
-        raise RuntimeError("`R RHOME` returned an empty string.")
+        raise RuntimeError(
+            _build_runtime_setup_message("`R RHOME` returned an empty string.")
+        )
 
     return r_home
 
@@ -217,9 +240,13 @@ def _run_catr_model(item_parameter_matrix, administered_item_indices, responses,
             env=env,
         )
     except subprocess.CalledProcessError as error:
+        stderr = (error.stderr or "").strip()
+        stderr_tail = "\n".join(stderr.splitlines()[-10:]) if stderr else "No stderr."
         raise RuntimeError(
-            "Failed to execute catR via rpy2. Ensure R, catR, and rpy2 are installed "
-            "and importable."
+            _build_runtime_setup_message(
+                "Failed to execute catR via rpy2.\n"
+                f"catR subprocess stderr (last lines):\n{stderr_tail}"
+            )
         ) from error
 
     output = result.stdout.strip()

@@ -104,3 +104,22 @@ def test_register_response_and_advance_continues_when_criteria_not_met(monkeypat
     assert updated_state["done"] is False
     assert updated_state["next_item_index"] == 1
     assert updated_state["responses"] == [0]
+
+
+def test_infer_r_home_error_message_includes_setup_guidance(monkeypatch):
+    def raise_file_not_found(command, text):
+        raise FileNotFoundError("R missing")
+
+    monkeypatch.setattr(catr_engine.subprocess, "check_output", raise_file_not_found)
+    catr_engine.infer_r_home.cache_clear()
+
+    try:
+        catr_engine.infer_r_home()
+    except RuntimeError as error:
+        message = str(error)
+    else:
+        raise AssertionError("Expected RuntimeError when R executable is missing.")
+
+    assert "catR runtime is not available" in message
+    assert "install R and the catR package" in message
+    assert "prepare_docker_image.sh" in message

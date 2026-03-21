@@ -45,15 +45,21 @@ START_THETA = 0.0
 
 
 def initialize_adaptive_session(participant):
-    participant.var.set(
-        "cat_state",
-        start_cat(
+    try:
+        state = start_cat(
             item_parameter_matrix=ITEM_PARAMETER_MATRIX,
             max_items=MAX_ITEMS,
             sem_threshold=SEM_THRESHOLD,
             start_theta=START_THETA,
-        ),
-    )
+        )
+    except RuntimeError as error:
+        raise RuntimeError(
+            "Unable to initialize the adaptive test.\n"
+            "This demo requires a working R + catR + rpy2 setup.\n\n"
+            f"{error}"
+        ) from error
+
+    participant.var.set("cat_state", state)
 
 
 def _current_item(participant):
