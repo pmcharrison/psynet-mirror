@@ -17,6 +17,7 @@ That command recreates files such as `Dockerfile`, `config.txt`, `test.py`,
 Typical local workflow:
 
 ```bash
+git init
 uv venv
 source .venv/bin/activate
 uv pip install -r constraints.txt

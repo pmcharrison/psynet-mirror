@@ -25,6 +25,10 @@ We do **not** plan to migrate the remaining demos until the approach has receive
 external code review. The repository should therefore remain in a mixed state for now:
 pilot demos are minimal, the rest still keep the full boilerplate layout.
 
+The demo update tooling now detects this from the demo directory itself rather than
+from a hand-maintained pilot manifest: if a demo is already minimal, updates preserve
+that layout automatically.
+
 Target file policy
 ------------------
 
@@ -104,7 +108,8 @@ Representative round-trip validation lives in the test suite. It works by copyin
 selected demos to temporary directories, pruning scaffold-managed files from the
 copy, regenerating them with ``psynet scaffold``, and checking that authored files
 are unchanged. Selected demos are also exercised with ``psynet test local`` after
-the round trip.
+the round trip, and relative-import demos are included to ensure that removing
+``__init__.py`` from minimal demos does not change import behavior.
 
 Run the targeted validation with:
 

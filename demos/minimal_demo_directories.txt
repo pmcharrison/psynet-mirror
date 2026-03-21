@@ -1,4 +1,0 @@
-# Demo directories that intentionally keep only authored files plus README,
-# requirements, and constraints in the repository. Paths are relative to demos/.
-experiments/vocabulary_test
-features/api

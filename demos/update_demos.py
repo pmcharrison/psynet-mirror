@@ -22,6 +22,7 @@ from pathlib import Path
 from joblib import Parallel, delayed
 
 import psynet.command_line
+from demos.audit_minimal_demos import audit_demo_directory
 from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
 from psynet.version import psynet_version, recommended_dallinger_major_minor
 
@@ -73,21 +74,9 @@ latest_dallinger_patch_version = get_latest_dallinger_patch_version(
     recommended_dallinger_major_minor
 )
 
-minimal_demo_manifest = Path(__file__).with_name("minimal_demo_directories.txt")
-minimal_demo_directories = {
-    line.strip()
-    for line in minimal_demo_manifest.read_text().splitlines()
-    if line.strip() and not line.startswith("#")
-}
-
-
-def is_minimal_demo(dir):
-    relative_dir = Path(dir).resolve().relative_to(Path(__file__).parent.resolve())
-    return relative_dir.as_posix() in minimal_demo_directories
-
 
 def update_demo(dir):
-    minimal_demo = is_minimal_demo(dir)
+    minimal_demo = audit_demo_directory(dir).already_minimal
     update_scripts(dir, minimal_demo=minimal_demo)
     if not skip_constraints:
         commit_hash_master = pre_update_constraints(dir)

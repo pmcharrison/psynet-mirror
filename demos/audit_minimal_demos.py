@@ -174,7 +174,9 @@ def audit_demo_directory(demo_dir: str | Path) -> DemoAuditRecord:
             preserved_root_files.append(entry.name)
 
     readme_path = demo_dir / "README.md"
-    generic_readme = readme_path.exists() and _file_hash(readme_path) == GENERIC_README_HASH
+    generic_readme = (
+        readme_path.exists() and _file_hash(readme_path) == GENERIC_README_HASH
+    )
 
     return DemoAuditRecord(
         path=demo_dir.relative_to(ROOT).as_posix(),
@@ -225,7 +227,9 @@ def _print_text_report(records: list[DemoAuditRecord]) -> None:
     print()
 
     for record in records:
-        removable_count = len(record.removable_root_files) + len(record.removable_root_dirs)
+        removable_count = len(record.removable_root_files) + len(
+            record.removable_root_dirs
+        )
         customized_count = len(record.customized_scaffold_files) + len(
             record.customized_scaffold_dirs
         )

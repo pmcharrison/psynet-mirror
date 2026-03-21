@@ -59,6 +59,20 @@ If a user asks for the X demo, list all child directories in `demos/experiments`
 
 ## Running experiments locally
 
+If you copied a demo into a brand new directory, initialize a Git repository first:
+
+```bash
+git init
+```
+
+Some demos intentionally omit standard boilerplate files such as `Dockerfile`,
+`config.txt`, and `test.py`. In that case, run the following in the experiment
+directory before trying to debug or test it:
+
+```bash
+psynet scaffold
+```
+
 To run an experiment in debug mode:
 
 ```bash

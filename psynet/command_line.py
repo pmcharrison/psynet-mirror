@@ -304,6 +304,20 @@ def prune_experiment_scaffold(*, preserve_files=None):
             shutil.rmtree(path, ignore_errors=True)
 
 
+def _missing_scaffold_boilerplate():
+    missing = []
+
+    gitignore = Path(".gitignore")
+    if not gitignore.exists():
+        missing.append(".gitignore")
+
+    config_txt = Path("config.txt")
+    if not config_txt.exists() or config_txt.stat().st_size == 0:
+        missing.append("config.txt")
+
+    return missing
+
+
 @click.group()
 @click.version_option(
     __version__,
@@ -1504,6 +1518,15 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     from .experiment import get_experiment
     from .utils import check_todos_before_deployment
 
+    missing_boilerplate = _missing_scaffold_boilerplate()
+    if missing_boilerplate:
+        missing_paths = ", ".join(missing_boilerplate)
+        raise click.ClickException(
+            "Experiment directory is missing required PsyNet boilerplate files "
+            f"({missing_paths}). Run 'psynet scaffold' to generate them before "
+            f"running 'psynet {mode} ...'."
+        )
+
     exp = get_experiment()
     exp.check_config()
     exp.check_size()
@@ -1531,7 +1554,10 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     # We need an active git repository for Dallinger to recognize .gitignore properly
     if not git_repository_available():
         raise click.ClickException(
-            "This directory is not a git repository, or git is not installed. Please ensure git is installed and create a repository by running 'git init' if needed."
+            "This directory is not a git repository, or git is not installed. "
+            "Please ensure git is installed and create a repository by running "
+            "'git init' if needed. If you copied a demo into a new directory, "
+            "run 'git init' before 'psynet debug local' or 'psynet test local'."
         )
 
     try:

@@ -25,6 +25,12 @@ doesn't include helper files such as ``Dockerfile``, ``test.py``, or ``config.tx
 run ``psynet scaffold`` in the project directory to generate the standard PsyNet
 boilerplate before continuing.
 
+If you copied the demo into a brand new directory, initialize a Git repository there too:
+
+.. code-block:: bash
+
+    git init
+
 
 Docker mode
 -----------
@@ -108,4 +114,5 @@ boilerplate files at any time with:
 
 .. code:: bash
 
+    git init
     psynet scaffold
