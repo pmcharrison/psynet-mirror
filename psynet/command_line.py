@@ -152,9 +152,17 @@ EXPERIMENT_SCAFFOLD_REMOVABLE_DIRECTORIES = [
 ]
 
 
-def _copy_experiment_template_file(relative_path, overwrite):
+def _copy_experiment_template_file(
+    relative_path, overwrite, treat_empty_file_as_missing=False
+):
     destination = Path(relative_path)
-    if destination.exists() and not overwrite:
+    empty_file_needs_template = (
+        treat_empty_file_as_missing
+        and destination.exists()
+        and destination.is_file()
+        and destination.stat().st_size == 0
+    )
+    if destination.exists() and not overwrite and not empty_file_needs_template:
         return False
 
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -207,7 +215,11 @@ def scaffold_experiment_directory(
             skipped.append(relative_path)
             continue
 
-        if _copy_experiment_template_file(relative_path, overwrite):
+        if _copy_experiment_template_file(
+            relative_path,
+            overwrite,
+            treat_empty_file_as_missing=relative_path == "config.txt",
+        ):
             verb = "updating" if overwrite else "creating"
             click.echo(f"...{verb} {relative_path}.")
             written.append(relative_path)

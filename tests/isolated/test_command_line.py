@@ -618,6 +618,7 @@ def test_scaffold_creates_missing_files_without_overwriting_readme():
             assert result.exit_code == 0
             assert Path("README.md").read_text() == "# Custom README\n"
             assert Path("config.txt").exists()
+            assert "title = Demo experiment" in Path("config.txt").read_text()
             assert Path("Dockerfile").exists()
             assert Path("test.py").exists()
             assert Path("docker/psynet").exists()
@@ -634,6 +635,7 @@ def test_prune_experiment_scaffold_keeps_readme_only():
             Path("README.md").write_text("# Minimal demo\n")
 
             update_scripts_()
+            Path("README.md").write_text("# Minimal demo\n")
             Path("config.txt").write_text("[Config]\n")
 
             prune_experiment_scaffold(preserve_files={"README.md"})
