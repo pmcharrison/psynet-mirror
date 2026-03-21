@@ -35,11 +35,14 @@ _CATR_SUBPROCESS_SCRIPT = textwrap.dedent(
     if administered:
         r_out = IntVector([int(index) + 1 for index in administered])
         r_x = IntVector([int(value) for value in responses])
+        r_administered_item_bank = r_item_bank.rx(r_out, True)
 
         theta = float(
-            robjects.r["thetaEst"](itemBank=r_item_bank, x=r_x, out=r_out, method="EAP")[0]
+            robjects.r["thetaEst"](it=r_administered_item_bank, x=r_x, method="EAP")[0]
         )
-        sem = float(robjects.r["semTheta"](theta=theta, itemBank=r_item_bank, x=r_x, out=r_out)[0])
+        sem = float(
+            robjects.r["semTheta"](thEst=theta, it=r_administered_item_bank, x=r_x)[0]
+        )
         result["theta"] = theta
         result["sem"] = sem if math.isfinite(sem) else None
 
