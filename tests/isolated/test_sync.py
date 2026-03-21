@@ -2,7 +2,9 @@ import uuid
 
 import pytest
 from dallinger import db
+from sqlalchemy import Column, String
 
+from psynet.data import SQLBase
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
@@ -27,15 +29,6 @@ def new_participant(experiment):
     return participant
 
 
-def participant_on_release(
-    self, group, participants, participant=None, barrier=None, experiment=None
-):
-    return None
-
-
-Participant.participant_on_release = participant_on_release
-
-
 processed_barriers = []
 
 
@@ -47,6 +40,17 @@ class ExplodingBarrier(Barrier):
 class RecordingBarrier(Barrier):
     def process_potential_releases(self):
         processed_barriers.append(self.id)
+
+
+class DummyModel(SQLBase):
+    __tablename__ = "dummy_model"
+
+    id = Column(String, primary_key=True)
+
+    def on_release(
+        self, group, participants, participant=None, barrier=None, experiment=None
+    ):
+        return None
 
 
 def test_random_partition():
@@ -157,14 +161,15 @@ def test_group_barrier_rejects_bound_method():
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
 def test_group_barrier_accepts_orm_instance_method(in_experiment_directory, db_session):
-    exp = get_experiment()
-    participant = new_participant(exp)
-    db.session.flush()
+    DummyModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    instance = DummyModel(id=get_random_id())
+    db_session.add(instance)
+    db_session.flush()
 
     barrier = GroupBarrier(
         id_="orm_method",
         group_type="group",
-        on_release=participant.participant_on_release,
+        on_release=instance.on_release,
     )
     assert isinstance(barrier.on_release, SerializedCallback)
 

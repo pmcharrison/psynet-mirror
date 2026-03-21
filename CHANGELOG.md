@@ -27,6 +27,7 @@
 ### Changed
 - Barrier handling now uses a database-backed registry for sync experiments.
 - GroupBarrier `on_release` callbacks now accept module-level, static/class, TrialMaker, or ORM instance methods with clear validation errors.
+- Improved internal test coverage for ORM callback serialization.
 - Simplified barrier processing by removing redundant helper lookup.
 - Barrier registry now stores a lightweight barrier copy without waiting-page templates.
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
@@ -46,6 +47,7 @@
 ### Fixed
 
 - Fixed sync barrier processing to reduce deadlocks and make trial-defined barriers release reliably across processes.
+- Fixed ORM instance methods failing during callback serialization.
 - Improved reliability of Docker-based builds when generating dependency constraints.
 - Serialized GroupBarrier `on_release` callbacks for trial/trialmaker methods, refactoring trial preparation hooks and removing lambda usage to prevent missing callback attributes across processes (author: [User])
 - Avoided ingest failures for tables with non-integer primary keys.

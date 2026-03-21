@@ -14,7 +14,7 @@ from jsonpickle.unpickler import Unpickler, loadclass
 from jsonpickle.util import importable_name
 from markupsafe import Markup
 
-from .data import SQLBase
+from .data import SQLBase, get_primary_key_values
 from .utils import call_function_with_context, get_logger
 
 logger = get_logger()
@@ -129,10 +129,7 @@ def _call_trial_maker_method(
 
 
 def _ensure_sql_primary_key(instance, context: str) -> None:
-    primary_key_cols = [
-        column.name for column in instance.__class__.__table__.primary_key.columns
-    ]
-    primary_keys = {key: getattr(instance, key) for key in primary_key_cols}
+    primary_keys = get_primary_key_values(instance)
     if any(key is None for key in primary_keys.values()):
         raise CallbackSerializationError(
             _format_callback_error(
@@ -308,8 +305,7 @@ class SQLHandler(jsonpickle.handlers.BaseHandler):
     """
 
     def get_primary_keys(self, obj):
-        primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
-        return {key: getattr(obj, key) for key in primary_key_cols}
+        return get_primary_key_values(obj)
 
     def flatten(self, obj, state):
         primary_keys = self.get_primary_keys(obj)

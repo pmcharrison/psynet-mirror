@@ -60,6 +60,16 @@ def get_db_tables():
     return db.Base.metadata.tables
 
 
+def get_primary_key_values(instance):
+    """
+    Return primary key values for an ORM instance.
+    """
+    primary_key_cols = [
+        column.name for column in instance.__class__.__table__.primary_key.columns
+    ]
+    return {key: getattr(instance, key) for key in primary_key_cols}
+
+
 def _get_superclasses_by_table():
     """
     Returns
