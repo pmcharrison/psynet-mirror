@@ -2613,8 +2613,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                         raise RuntimeError(
                             f"Barrier '{barrier_record.id}' is missing or invalid."
                         )
-                    if barrier is not None:
-                        barrier.process_potential_releases()
+                    barrier.process_potential_releases()
             except Exception:
                 if barrier_id is None:
                     raise
