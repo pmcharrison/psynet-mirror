@@ -10,6 +10,14 @@ from pathlib import Path
 DEFAULT_START_THETA = 0.0
 DEFAULT_MAX_ITEMS = 6
 DEFAULT_SEM_THRESHOLD = 0.35
+SETUP_ERROR_PATTERNS = (
+    "no module named 'rpy2'",
+    "there is no package called 'catr'",
+    "there is no package called ‘catr’",
+    'could not find function "library"',
+    "unable to load shared object",
+    "fatal error: r home directory is not defined",
+)
 
 _CATR_SUBPROCESS_SCRIPT = textwrap.dedent(
     """
@@ -80,6 +88,41 @@ def _build_runtime_setup_message(problem_details):
         ").\n"
         "If you use Docker, ensure prepare_docker_image.sh installs R + catR."
     )
+
+
+def _build_runtime_execution_message(problem_details):
+    return (
+        "catR execution failed while processing adaptive-test responses.\n"
+        "Details: "
+        f"{problem_details}\n\n"
+        "This often indicates an item-bank or catR call configuration problem "
+        "rather than a missing runtime dependency."
+    )
+
+
+def _format_stderr_tail(stderr, max_lines=10):
+    stderr = (stderr or "").strip()
+    if not stderr:
+        return "No stderr."
+    return "\n".join(stderr.splitlines()[-max_lines:])
+
+
+def _looks_like_setup_error(stderr):
+    stderr_lower = (stderr or "").lower()
+    return any(pattern in stderr_lower for pattern in SETUP_ERROR_PATTERNS)
+
+
+def _raise_catr_subprocess_error(error):
+    stderr_tail = _format_stderr_tail(error.stderr)
+    details = (
+        "Failed to execute catR via rpy2.\n"
+        f"catR subprocess stderr (last lines):\n{stderr_tail}"
+    )
+
+    if _looks_like_setup_error(error.stderr):
+        raise RuntimeError(_build_runtime_setup_message(details)) from error
+
+    raise RuntimeError(_build_runtime_execution_message(details)) from error
 
 
 @lru_cache(maxsize=1)
@@ -244,14 +287,7 @@ def _run_catr_model(item_parameter_matrix, administered_item_indices, responses,
             env=env,
         )
     except subprocess.CalledProcessError as error:
-        stderr = (error.stderr or "").strip()
-        stderr_tail = "\n".join(stderr.splitlines()[-10:]) if stderr else "No stderr."
-        raise RuntimeError(
-            _build_runtime_setup_message(
-                "Failed to execute catR via rpy2.\n"
-                f"catR subprocess stderr (last lines):\n{stderr_tail}"
-            )
-        ) from error
+        _raise_catr_subprocess_error(error)
 
     output = result.stdout.strip()
     if not output:

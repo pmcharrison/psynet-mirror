@@ -1,5 +1,8 @@
 import sys
 from pathlib import Path
+from subprocess import CalledProcessError
+
+import pytest
 
 DEMO_DIR = Path(__file__).resolve().parents[2] / "demos/experiments/adaptive_test_catr"
 if str(DEMO_DIR) not in sys.path:
@@ -123,3 +126,29 @@ def test_infer_r_home_error_message_includes_setup_guidance(monkeypatch):
     assert "catR runtime is not available" in message
     assert "install R and the catR package" in message
     assert "prepare_docker_image.sh" in message
+
+
+def test_raise_catr_subprocess_error_setup_classification():
+    error = CalledProcessError(
+        returncode=1,
+        cmd=["python", "-c", "script"],
+        stderr="Error in library(catR) : there is no package called 'catR'",
+    )
+    with pytest.raises(RuntimeError) as raised:
+        catr_engine._raise_catr_subprocess_error(error)
+    message = str(raised.value)
+    assert "catR runtime is not available" in message
+    assert "install R and the catR package" in message
+
+
+def test_raise_catr_subprocess_error_runtime_classification():
+    error = CalledProcessError(
+        returncode=1,
+        cmd=["python", "-c", "script"],
+        stderr="Error in nextItem(...): unused arguments (itemBank = x)",
+    )
+    with pytest.raises(RuntimeError) as raised:
+        catr_engine._raise_catr_subprocess_error(error)
+    message = str(raised.value)
+    assert "catR execution failed while processing adaptive-test responses." in message
+    assert "missing runtime dependency" in message

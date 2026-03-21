@@ -5,20 +5,12 @@ from psynet.modular_page import ModularPage, Prompt, PushButtonControl
 from psynet.page import InfoPage
 from psynet.timeline import CodeBlock, PageMaker, Timeline, while_loop
 
-try:
-    from .catr_engine import (
-        build_item_parameter_matrix,
-        load_item_bank,
-        register_response_and_advance,
-        start_cat,
-    )
-except ImportError:
-    from catr_engine import (
-        build_item_parameter_matrix,
-        load_item_bank,
-        register_response_and_advance,
-        start_cat,
-    )
+from .catr_engine import (
+    build_item_parameter_matrix,
+    load_item_bank,
+    register_response_and_advance,
+    start_cat,
+)
 
 # This demo implements a simple computerised adaptive test (CAT) using catR.
 #
