@@ -29,13 +29,14 @@ _CATR_SUBPROCESS_SCRIPT = textwrap.dedent(
     robjects.r("suppressMessages(library(catR))")
     flat_parameters = [float(value) for row in item_bank for value in row]
     r_item_bank = robjects.r["matrix"](FloatVector(flat_parameters), ncol=4, byrow=True)
+    matrix_subset = robjects.r("function(it, idx) it[idx, , drop=FALSE]")
 
     result = {"theta": theta, "sem": None, "next_item_index": None}
 
     if administered:
         r_out = IntVector([int(index) + 1 for index in administered])
         r_x = IntVector([int(value) for value in responses])
-        r_administered_item_bank = r_item_bank.rx(r_out, True)
+        r_administered_item_bank = matrix_subset(r_item_bank, r_out)
 
         theta = float(
             robjects.r["thetaEst"](it=r_administered_item_bank, x=r_x, method="EAP")[0]
