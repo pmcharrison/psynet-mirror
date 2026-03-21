@@ -12,6 +12,9 @@ from run_ci_docker_command import build_docker_run_command
 
 PSYNET_URL_PREFIX = "git+https://gitlab.com/PsyNetDev/PsyNet@"
 PSYNET_NORMALIZED_PREFIX = "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@"
+DALLINGER_CONSTRAINTS_GENERATOR_URL = (
+    "https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py"
+)
 
 
 def normalize_dependency_line(line):
@@ -43,6 +46,9 @@ def regenerate_constraints(base_image_tag, build_experiment_dir):
         return
 
     print(f"Regenerating constraints for {build_experiment_dir}...")
+    regenerate_command = (
+        f'curl -s "{DALLINGER_CONSTRAINTS_GENERATOR_URL}" | uv run - generate'
+    )
     subprocess.run(
         [
             "docker",
@@ -53,8 +59,9 @@ def regenerate_constraints(base_image_tag, build_experiment_dir):
             "-w",
             "/experiment",
             base_image_tag,
-            "psynet",
-            "generate-constraints",
+            "sh",
+            "-lc",
+            regenerate_command,
         ],
         check=True,
     )

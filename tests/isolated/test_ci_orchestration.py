@@ -133,7 +133,13 @@ def test_regenerate_constraints_invokes_docker_when_requirements_present(
     monkeypatch.setattr(run_docker_experiment_tests.subprocess, "run", fake_run)
     run_docker_experiment_tests.regenerate_constraints("base-image", tmp_path)
     assert observed["command"][0:3] == ["docker", "run", "--rm"]
-    assert observed["command"][-2:] == ["psynet", "generate-constraints"]
+    assert observed["command"][-3] == "sh"
+    assert observed["command"][-2] == "-lc"
+    assert (
+        run_docker_experiment_tests.DALLINGER_CONSTRAINTS_GENERATOR_URL
+        in observed["command"][-1]
+    )
+    assert "uv run - generate" in observed["command"][-1]
     assert observed["check"] is True
 
 
