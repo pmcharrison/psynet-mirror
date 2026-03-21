@@ -11,6 +11,7 @@ Tutorials
    specifying_dependencies
    tests
    synchronization
+   chatroom
    ad_page
    modular_page
    graphics

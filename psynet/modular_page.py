@@ -12,6 +12,7 @@ from markupsafe import Markup
 
 from .asset import Asset, LocalStorage
 from .bot import BotResponse
+from .chatroom import ChatRoom  # noqa: F401
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
     NoArgumentProvided,
@@ -1836,13 +1837,14 @@ class ModularPage(Page):
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
 
-    default_layout = ["prompt", "media", "progress", "control", "buttons"]
+    default_layout = ["prompt", "media", "progress", "control", "chatroom", "buttons"]
 
     def __init__(
         self,
         label: str,
         prompt: Union[str, dom_tag, Prompt],
         control: Optional[Control] = None,
+        chatroom: Optional[ChatRoom] = None,
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
         events: Optional[dict] = None,
@@ -1872,6 +1874,7 @@ class ModularPage(Page):
 
         self.prompt = prompt
         self.control = control
+        self.chatroom = chatroom
 
         if show_start_button:
             buttons.append(StartButton())
@@ -1924,6 +1927,7 @@ class ModularPage(Page):
             template_arg={
                 "prompt_config": prompt,
                 "control_config": control,
+                "chatroom_config": chatroom,
                 "buttons": buttons,
             },
             media=all_media,
@@ -1933,6 +1937,7 @@ class ModularPage(Page):
                 "modular_page_components": {
                     "prompt": self.prompt.macro,
                     "control": self.control.macro,
+                    "chatroom": self.chatroom.macro if chatroom is not None else None,
                 },
             },
             start_trial_automatically=start_trial_automatically,
@@ -1948,6 +1953,11 @@ class ModularPage(Page):
             "control": "{{ %s(control_config) }}" % self.control_macro,
             "buttons": self.render_buttons(),
             "progress": "{{ progress.trial_progress_display(trial_progress_display_config) }}",
+            "chatroom": (
+                "{{ %s(chatroom_config) }}" % self.chatroom_macro
+                if self.chatroom is not None
+                else ""
+            ),
         }
 
     def render_layout(self, **kwargs):
@@ -1984,6 +1994,14 @@ class ModularPage(Page):
         return f"{location}.{self.control.macro}"
 
     @property
+    def chatroom_macro(self):
+        if self.chatroom.external_template is None:
+            location = "psynet_chatroom"
+        else:
+            location = "custom_chatroom"
+        return f"{location}.{self.chatroom.macro}"
+
+    @property
     def import_templates(self):
         return self.import_internal_templates + self.import_external_templates
 
@@ -2003,6 +2021,7 @@ class ModularPage(Page):
         return """
         {% import "macros/prompt.html" as psynet_prompts %}
         {% import "macros/control.html" as psynet_controls %}
+        {% import "macros/chatroom.html" as psynet_chatroom %}
         """
 
     @property
@@ -2011,8 +2030,16 @@ class ModularPage(Page):
             [
                 f'{{% import "{path}" as {name} with context %}}'
                 for path, name in zip(
-                    [self.prompt.external_template, self.control.external_template],
-                    ["custom_prompt", "custom_control"],
+                    [
+                        self.prompt.external_template,
+                        self.control.external_template,
+                        (
+                            self.chatroom.external_template
+                            if self.chatroom is not None
+                            else None
+                        ),
+                    ],
+                    ["custom_prompt", "custom_control", "custom_chatroom"],
                 )
                 if path is not None
             ]
