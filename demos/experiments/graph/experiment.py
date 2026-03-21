@@ -467,3 +467,8 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, bot: Bot, **kwargs):
         assert len(bot.alive_trials) == 3
+
+        expected_group = f"col_{bot.id % 3}"
+        assert bot.module_states["graph_demo"][-1].participant_group == expected_group
+        for trial in bot.alive_trials:
+            assert trial.participant_group == expected_group
