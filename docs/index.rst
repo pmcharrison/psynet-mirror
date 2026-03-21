@@ -1,5 +1,9 @@
-Overview
-========
+.. |psynet_logo| image:: _static/images/psynet-transparent.png
+   :height: 2.1em
+   :alt: PsyNet logo
+
+|psynet_logo| PsyNet
+====================
 
 PsyNet is a new platform for running advanced behavioral experiments
 ranging from adaptive psychophysics to simulated cultural evolution.
@@ -7,143 +11,18 @@ It builds on the virtual lab framework `Dallinger <https://dallinger.readthedocs
 Its goal is to enable researchers to implement and deploy experiments as efficiently as possible,
 while placing minimal constraints on the complexity of the experiment design.
 
-This website contains a variety of resources to help you learn more about PsyNet.
-Some particularly useful resources are highlighted below,
-but see the sidebar for a full list.
-
-- :ref:`When to use PsyNet? <applications>`: Learn about the use cases for which PsyNet is optimized.
-
-- :ref:`Demos <demos_introduction>`: See demos of different PsyNet features.
-
-- :ref:`Example experiments <example_experiments>`: See code repositories for real-world PsyNet experiments.
-
-- `GitLab repository <https://gitlab.com/PsyNetDev/PsyNet>`_: Explore PsyNet's source code.
-
-If you want to refer to PsyNet in your paper, you should for now cite the following reference:
-
-Harrison, P. M. C., Marjieh, R., Adolfi, F., van Rijn, P., Anglada-Tort, M., Tchernichovski, O., Larrouy-Maestri, P., & Jacoby, N. (2020).
-Gibbs Sampling with People. *Advances in Neural Information Processing Systems*, *33*, 10659–10671. Available at <https://proceedings.neurips.cc/paper_files/paper/2020/file/7880d7226e872b776d8b9f23975e2a3d-Paper.pdf>. Here's a BibTeX entry:
-
-Here is the citation entry::
-
-    @inproceedings{harrison2020psynet,
-      title     = {Gibbs Sampling with People},
-      booktitle = {Advances in Neural Information Processing Systems},
-      author    = {Harrison, Peter M. C. and Marjieh, Raja and Adolfi, Federico and
-                   {van Rijn}, Pol and Anglada-Tort, Manuel and Tchernichovski, Ofer and
-                   Larrouy-Maestri, Pauline and Jacoby, Nori},
-      date      = {2020},
-      volume    = {33},
-      url       = {https://arxiv.org/abs/2008.02595}
-    }
-
-
 .. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: Introduction
+   :maxdepth: 3
+   :caption: Contents
+   :titlesonly:
+   :includehidden:
 
-   self
-   introduction/applications
-   introduction/history
-   introduction/team
-   introduction/command_line
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: Getting started
-
-   Running locally <getting_started/running_locally>
-   Customizing an experiment <getting_started/customizing_an_experiment>
-   Running remotely <getting_started/running_remotely>
-   Collecting data <getting_started/collecting_data>
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: Learning
-
-   learning/how_to_learn
-   learning/prerequisites
-   learning/exercises/index
-   learning/tracks/index
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: Dependencies
-
-   dependencies/dallinger
-   dependencies/docker
-
-.. toctree::
-   :hidden:
-   :caption: INSTALLATION
-
+   introduction/index
+   getting_started/index
+   learning/index
+   dependencies/index
    installation/index
-
-.. toctree::
-   :hidden:
-   :caption: EXPERIMENT DEVELOPMENT
-
-   experiment_development/experiment_directory
-   experiment_development/development_workflow
-   experiment_development/configuration
-   experiment_development/dependencies
-   experiment_development/troubleshooting
-   demos/index
-
-.. toctree::
-   :hidden:
-
-   example_experiments/index
-
-.. toctree::
-   :hidden:
-
-   tutorials/index
-
-.. toctree::
-   :hidden:
-
-   api/index
-
-.. toctree::
-   :maxdepth: 1
-   :hidden:
-   :caption: DEPLOYING
-
-   deploy/web_servers
-   deploy/aws_automatic_provisioning
-   deploy/aws_server_setup
-   deploy/physical_server_setup
-   deploy/ssh_server
-   deploy/heroku_server
-   deploy/deploy_from_archive
-   deploy/data
-   deploy/deployment_monitor
-   deploy/errors
-   deploy/troubleshooting
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-   :caption: Contributing to PsyNet
-   :glob:
-
-   developer/workflow
-   developer/contributing_a_feature_or_bugfix
-   developer/prescreening_tasks
-   developer/updating_documentation
-   tutorials/internationalization
-   developer/running_tests
-   developer/making_a_release
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-   :caption: Dashboards
-   :glob:
-
+   experiment_development/index
+   deploy/index
+   developer/index
    dashboards/translation

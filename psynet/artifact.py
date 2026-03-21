@@ -13,7 +13,7 @@ from dominate.tags import a, div, span
 from psynet import deployment_info
 from psynet.asset import (
     S3Boto3TransferBackend,
-    get_boto3_s3_client,
+    get_s3_client,
     list_files_in_s3_bucket,
 )
 
@@ -916,9 +916,7 @@ class S3ArtifactStorage(ArtifactStorage):
         path = os.path.join(self.root, path)
 
         try:
-            response = get_boto3_s3_client().head_object(
-                Bucket=self.bucket_name, Key=path
-            )
+            response = get_s3_client().head_object(Bucket=self.bucket_name, Key=path)
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] in ("NoSuchKey", "404", "NotFound"):
                 raise FileNotFoundError

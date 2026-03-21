@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 import re
@@ -6,13 +5,11 @@ import subprocess
 import sys
 import tempfile
 import time
-import uuid
 import warnings
 from functools import cached_property
 from pathlib import Path
 from urllib import parse
 
-import boto3
 import dallinger.pytest_dallinger
 import pexpect
 import pexpect.exceptions
@@ -33,9 +30,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from psynet.artifact import LocalArtifactStorage, S3ArtifactStorage
-from psynet.asset import filter_botocore_deprecation_warnings
 from psynet.participant import Participant
 
+from . import artifact as psynet_artifact
+from . import asset as psynet_asset
 from .command_line import (
     clean_sys_modules,
     kill_chromedriver_processes,
@@ -46,6 +44,7 @@ from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
+from .test_helpers.mock_s3 import get_artifact_storage_s3_test_client
 from .trial.main import TrialNetwork
 from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from .utils import clear_all_caches, wait_until
@@ -90,6 +89,20 @@ def assert_text(driver, element_id, value):
             Found: {sanitize(element.text)}
             """
         )
+
+
+@pytest.fixture
+def artifact_storage_s3_test_root(tmp_path, monkeypatch):
+    root = str(tmp_path / "psynet-artifact-storage-s3-test")
+    client = get_artifact_storage_s3_test_client(root)
+    monkeypatch.setattr(psynet_asset, "get_s3_client", lambda: client)
+    monkeypatch.setattr(psynet_artifact, "get_s3_client", lambda: client)
+    psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
+    try:
+        client.create_bucket(Bucket="psynet-tests")
+        yield root
+    finally:
+        psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
 
 
 def bot_class(headless=None):
@@ -782,28 +795,10 @@ def _debug_click_interception(driver, element):
 
 
 @pytest.fixture(params=["local", "s3"])
-def artifact_storage(request, tmp_path):
+def artifact_storage(request, tmp_path, artifact_storage_s3_test_root):
     if request.param == "local":
         yield LocalArtifactStorage(str(tmp_path))
     elif request.param == "s3":
         bucket_name = "psynet-tests"
-
-        # We use a unique UUID for the root of the artifact storage to avoid conflicts with other tests.
-        id_ = str(uuid.uuid4())
-        root = f"artifacts/{id_}"
-        filter_botocore_deprecation_warnings()
-        storage = S3ArtifactStorage(root, bucket_name)
-        yield storage
-
-        # Clean-up:
-        # Delete files in the root folder that are older than 4 hours.
-        # We apply this 4-hour criterion to avoid conflicting with other tests
-        # being run in parallel.
-        s3 = boto3.resource("s3")
-        bucket = s3.Bucket(bucket_name)
-        prefix = root + "/"
-        now = datetime.datetime.now(datetime.timezone.utc)
-        four_hours_ago = now - datetime.timedelta(hours=4)
-        for obj in bucket.objects.filter(Prefix=prefix):
-            if obj.last_modified < four_hours_ago:
-                obj.delete()
+        root = "artifacts"
+        yield S3ArtifactStorage(root, bucket_name)
