@@ -1073,6 +1073,7 @@ def _pre_launch(
         from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
 
         ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+        _abort_if_app_exists(server, app)
 
     run_pre_checks(mode, local_, heroku, docker, app)
 
@@ -1219,8 +1220,6 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, server):
         # Ensures that the experiment is deployed with the Dallinger version specified in requirements.txt,
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
-
-        _abort_if_app_exists(server, app)
 
         _pre_launch(
             ctx,
