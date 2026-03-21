@@ -101,8 +101,7 @@ def test_dependency_line_parsing_helpers():
     line = "  psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet\n"
     normalized = run_docker_experiment_tests.normalize_dependency_line(line)
     assert (
-        normalized
-        == "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
+        normalized == "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
     )
     assert run_docker_experiment_tests.extract_psynet_ref(normalized) == "master"
 

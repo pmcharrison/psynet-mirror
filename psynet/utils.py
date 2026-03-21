@@ -1230,7 +1230,10 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
     demo_root = get_psynet_root() / "demos"
     test_experiments_root = get_psynet_root() / "tests/experiments"
     docker_build_experiment_dirs = (
-        {_normalize_directory_path(path) for path in list_docker_build_experiment_dirs()}
+        {
+            _normalize_directory_path(path)
+            for path in list_docker_build_experiment_dirs()
+        }
         if for_ci_tests
         else set()
     )
