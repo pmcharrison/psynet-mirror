@@ -22,7 +22,7 @@ from pathlib import Path
 from joblib import Parallel, delayed
 
 import psynet.command_line
-from demos.audit_minimal_demos import audit_demo_directory
+from psynet.demo_audit import audit_demo_directory
 from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
 from psynet.version import psynet_version, recommended_dallinger_major_minor
 

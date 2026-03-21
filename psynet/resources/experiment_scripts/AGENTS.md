@@ -65,9 +65,10 @@ If you copied a demo into a brand new directory, initialize a Git repository fir
 git init
 ```
 
-Some demos intentionally omit standard boilerplate files such as `Dockerfile`,
-`config.txt`, and `test.py`. In that case, run the following in the experiment
-directory before trying to debug or test it:
+The PsyNet demo directories include just the essential experiment files
+(`experiment.py`, `requirements.txt`, `constraints.txt`) together with any
+demo-specific helpers. To run a copied demo yourself, generate the additional
+boilerplate files with:
 
 ```bash
 psynet scaffold

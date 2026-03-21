@@ -3,9 +3,10 @@
 This demo shows the built-in `WikiVocab` and `BibleVocab` prescreen modules.
 Participants classify words as real or fake across multiple languages.
 
-This directory intentionally keeps only the authored demo files plus
-`requirements.txt`, `constraints.txt`, and this README. If you copy it into
-your own workspace, generate the usual PsyNet boilerplate with:
+The PsyNet demo directories include just the essential experiment files
+(`experiment.py`, `requirements.txt`, `constraints.txt`) together with any
+demo-specific helpers. If you copy this demo into your own workspace, generate
+the additional boilerplate files with:
 
 ```bash
 psynet scaffold

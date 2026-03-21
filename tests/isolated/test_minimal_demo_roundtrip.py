@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from demos.audit_minimal_demos import audit_demo_directory
 from psynet.command_line import (
     EXPERIMENT_SCAFFOLD_GENERATED_FILES,
     EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES,
@@ -15,6 +14,7 @@ from psynet.command_line import (
     prune_experiment_scaffold,
     scaffold_experiment_directory,
 )
+from psynet.demo_audit import audit_demo_directory
 from psynet.pytest_psynet import (
     local_only,
     path_to_demo_experiment,

@@ -4,9 +4,10 @@ This demo shows how to expose Python functions and page methods via
 `@expose_to_api`, then call them from front-end JavaScript in
 `custom_pages.py`.
 
-This directory intentionally keeps only the authored demo files plus
-`requirements.txt`, `constraints.txt`, and this README. If you copy it into
-your own workspace, generate the usual PsyNet boilerplate with:
+The PsyNet demo directories include just the essential experiment files
+(`experiment.py`, `requirements.txt`, `constraints.txt`) together with any
+demo-specific helpers. If you copy this demo into your own workspace, generate
+the additional boilerplate files with:
 
 ```bash
 psynet scaffold

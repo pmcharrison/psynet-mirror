@@ -108,6 +108,6 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     You can run these tests in Docker by running ``docker/run pytest test.py``.
     If you want to customize these tests you should normally override specific methods in the Experiment class,
     for example ``Experiment.test_experiment`` and ``Experiment.test_check_bots``.
-    If your experiment directory uses a minimal layout, you can regenerate this file with ``psynet scaffold``.
+    If this file is missing, you can regenerate it with ``psynet scaffold``.
 
     ``volume_calibration.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.

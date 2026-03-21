@@ -4,7 +4,7 @@
 
 ### Added
 
-- Added `psynet scaffold` to create missing experiment boilerplate without overwriting customized files, piloted smaller demo directories for `features/api` and `experiments/vocabulary_test`, taught demo-refresh tooling to preserve demos that are already minimal, and added audit/validation tooling for the planned repo-wide minimal-demo migration (author: Cursor)
+- Added `psynet scaffold` to generate missing demo boilerplate without overwriting customized files, updated the `features/api` and `experiments/vocabulary_test` demo directories to keep only their essential experiment files in the repository, taught demo-refresh tooling to preserve demos that already follow this structure, and added audit/validation tooling for the demo scaffolding workflow (author: Cursor)
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
