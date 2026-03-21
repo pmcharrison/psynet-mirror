@@ -29,7 +29,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import PythonObject, VarStore
+from .field import PythonObject
 from .serialize import is_lambda_function
 from .utils import (
     NoArgumentProvided,
@@ -2423,10 +2423,6 @@ class ModuleState(SQLBase, SQLMixin):
     # current_trial = Column(
     #     PythonObject
     # )  # Note: this can sometimes be a trial object or alternatively a string
-
-    @property
-    def var(self):
-        return VarStore(self)
 
     time_started = Column(DateTime)
     time_finished = Column(DateTime)

@@ -8,17 +8,15 @@ from pathlib import Path
 
 import pytest
 
-from psynet.asset import list_files_in_s3_bucket
-from psynet.pytest_psynet import path_to_demo_feature
+from psynet.pytest_psynet import path_to_test_experiment
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_feature("artifact_storage")], indirect=True
+    "experiment_directory", [path_to_test_experiment("artifact_storage")], indirect=True
 )
-@pytest.mark.parametrize("artifact_storage", ["s3"], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestAutomaticBackups:
-    def test_exp(self, launched_experiment, tmp_path, artifact_storage):
+    def test_exp(self, launched_experiment, tmp_path):
         assert launched_experiment.automatic_backups
 
         # Run a participant through the experiment so that we have some data to backup
@@ -27,21 +25,20 @@ class TestAutomaticBackups:
         # Experiment status and exports are generated once per minute
         time.sleep(75)
 
-        artifacts_dir_in_s3 = (
-            f"artifacts/deployments/{launched_experiment.deployment_id}"
-        )
-        artifacts = list_files_in_s3_bucket(
-            bucket_name="psynet-tests", prefix=artifacts_dir_in_s3
+        artifacts_dir = (
+            Path(launched_experiment.artifact_storage.root)
+            / "deployments"
+            / launched_experiment.deployment_id
         )
         artifact_files = [
-            str(Path(file).relative_to(artifacts_dir_in_s3)) for file in artifacts
+            path.name for path in artifacts_dir.iterdir() if path.is_file()
         ]
         assert set(artifact_files) == {
             "basic_data.json",
             "database.zip",
             "experiment_status.json",
             "recruitment_status.json",
-        }, f"The contents of {artifacts_dir_in_s3} in S3 are not as expected. Instead found: {artifact_files}"
+        }, f"The contents of {artifacts_dir} are not as expected. Instead found: {artifact_files}"
 
         experiment_status = (
             launched_experiment.artifact_storage.read_experiment_status()
