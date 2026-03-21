@@ -1013,19 +1013,11 @@ def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
         )
 
 
-def _abort_if_app_exists_via_psynet_apps(ctx, server, app):
+def _abort_if_app_exists(server, app):
     if not app:
         return
 
-    from dallinger.command_line.docker_ssh import (
-        ensure_remote_host_in_known_hosts,
-        get_apps,
-    )
-
-    server_info = CONFIGURED_HOSTS[server]
-    ssh_host = server_info["host"]
-    ssh_user = server_info.get("user")
-    ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+    from dallinger.command_line.docker_ssh import get_apps
 
     apps = get_apps(server)
     existing_apps = {entry.name for entry in apps}
@@ -1228,7 +1220,7 @@ def deploy__docker_ssh(ctx, app, archive, dns_host, server):
         # irrespective of whether a different version is installed locally.
         os.environ["DALLINGER_NO_EGG_BUILD"] = "1"
 
-        _abort_if_app_exists_via_psynet_apps(ctx, server, app)
+        _abort_if_app_exists(server, app)
 
         _pre_launch(
             ctx,
