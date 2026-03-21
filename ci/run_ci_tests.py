@@ -12,6 +12,22 @@ def list_lines(command):
     return [line.strip() for line in output.splitlines() if line.strip()]
 
 
+def install_ci_dependencies(psynet_workspace):
+    subprocess.run(
+        [
+            "uv",
+            "pip",
+            "install",
+            "--no-cache",
+            "--system",
+            "--no-deps",
+            "-e",
+            psynet_workspace,
+        ],
+        check=True,
+    )
+
+
 def run_psynet_pytest(target, timeout_seconds, junit_xml=None):
     command = ["pytest"]
     if junit_xml is not None:
@@ -40,11 +56,12 @@ def main():
     ci_node_index = int(os.environ.get("CI_NODE_INDEX", "1"))
     timeout_seconds = int(os.environ.get("TIMEOUT_SECONDS", "300"))
     ci_commit_ref_name = os.environ.get("CI_COMMIT_REF_NAME", "")
+    psynet_workspace = os.environ.get("PSYNET_WORKSPACE", "/root/workspaces/PsyNet")
 
     print(f"Running tests on node {ci_node_index} of {ci_node_total}")
 
     print("Installing CI dependencies...")
-    subprocess.run(["bash", "install-ci-dependencies.sh"], check=True)
+    install_ci_dependencies(psynet_workspace)
     maybe_run_translation(ci_commit_ref_name)
 
     exit_code = 0
