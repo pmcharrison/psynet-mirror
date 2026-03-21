@@ -22,7 +22,7 @@ def find_files():
     return sorted(map(str, python_files))
 
 
-# We no longer use this logic, and instead run the tests via run-ci-tests.sh
+# We no longer use this logic, and instead run the tests via ci/run_ci_tests.py
 #
 # @pytest.mark.parametrize("pytest_script", find_files())
 # def test_all_isolated(pytest_script):

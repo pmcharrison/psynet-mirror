@@ -11,7 +11,7 @@ def _in_experiment_directory(experiment_directory):
         yield experiment_directory
 
 
-# We no longer use this logic, and instead run the tests via run-ci-tests.sh
+# We no longer use this logic, and instead run the tests via ci/run_ci_tests.py
 #
 # @pytest.mark.usefixtures("_in_experiment_directory")
 # @pytest.mark.parametrize("experiment_directory", demos, indirect=True)

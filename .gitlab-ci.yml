@@ -29,6 +29,7 @@ variables:
   DOCKER_TLS_CERTDIR: ""
 
 before_script:
+  - apk add --no-cache python3
   - export POSTGRES_IP=$(getent ahostsv4 postgres | awk '{ print $1 }' | tail -n 1)
   - export REDIS_IP=$(getent ahostsv4 redis | awk '{ print $1 }' | tail -n 1)
   - echo $POSTGRES_IP
@@ -60,10 +61,7 @@ shellcheck:
   <<: *default_rules
   before_script: []
   script:
-    - shellcheck ci/run-ci-docker-command.sh
-    - shellcheck ci/run-docker-experiment-tests.sh
-    - shellcheck ci/run-pytest-with-common-flags.sh
-    - shellcheck run-ci-tests.sh
+    - shellcheck install-ci-dependencies.sh
 
 changelog_check:
   image:
@@ -97,7 +95,7 @@ tests:
   script:
     - mkdir -p public
     - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
-    - sh ci/run-ci-docker-command.sh "$DOCKER_LOCAL_TAG" "$PSYNET_WORKSPACE" "$PSYNET_WORKSPACE" bash -c "bash run-ci-tests.sh"
+    - python3 ci/run_ci_docker_command.py "$DOCKER_LOCAL_TAG" "$PSYNET_WORKSPACE" "$PSYNET_WORKSPACE" python3 ci/run_ci_tests.py
   artifacts:
     paths:
       - public/
@@ -107,7 +105,7 @@ test_docker_experiments:
   <<: *default_rules
   script:
     - export TIMEOUT_SECONDS=300
-    - sh ci/run-docker-experiment-tests.sh "$DOCKER_LOCAL_TAG" "$TIMEOUT_SECONDS"
+    - python3 ci/run_docker_experiment_tests.py "$DOCKER_LOCAL_TAG" "$TIMEOUT_SECONDS"
   artifacts:
     paths:
       - public/

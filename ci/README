@@ -3,12 +3,13 @@ These files are used in CI builds.
 `docker-build-experiments.txt` lists experiment directories that should be tested
 via their own Dockerfiles in CI.
 
-`run-ci-docker-command.sh` wraps the shared `docker run` arguments used by the
-main CI test job and the custom Docker experiment test job.
+`run_ci_docker_command.py` wraps the shared `docker run` arguments used by the
+main CI test job and imported by the custom Docker experiment test flow.
 
-`run-docker-experiment-tests.sh` runs the custom Docker experiment CI flow
+`run_ci_tests.py` runs the standard CI experiment + isolated pytest flow.
+
+`run_docker_experiment_tests.py` runs the custom Docker experiment CI flow
 (experiment discovery, CI-SHA dependency rewriting, image builds, pytest
 execution, and failure log tails).
 
-`run-pytest-with-common-flags.sh` centralizes shared pytest options (warnings,
-browser mode, logging mode, and timeout).
+`pytest_common.py` centralizes shared pytest warning filters and runtime options.
