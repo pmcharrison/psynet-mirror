@@ -2,11 +2,13 @@
 
 import random
 
+import pandas as pd
 from markupsafe import Markup
 
 import psynet.experiment
 from psynet.modular_page import KeyboardPushButtonControl, ModularPage
 from psynet.page import InfoPage
+from psynet.participant import Participant
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
@@ -136,6 +138,32 @@ class Exp(psynet.experiment.Experiment):
 
     def test_check_bot(self, participant):
         self.check_network_participants_relationship(participant)
+
+    @classmethod
+    def get_basic_data(cls, context=None, **kwargs):
+        trials = [
+            {
+                "id": trial.id,
+                "participant_id": trial.participant_id,
+                "animal": trial.definition.get("animal"),
+                "block": trial.block,
+                "answer": trial.answer,
+                "score": trial.score,
+            }
+            for trial in StaticTrial.query.all()
+        ]
+        participants = [
+            {
+                "id": participant.id,
+                "status": participant.status,
+                "bonus": participant.bonus,
+            }
+            for participant in Participant.query.all()
+        ]
+        return {
+            "trial": pd.DataFrame.from_records(trials),
+            "participant": pd.DataFrame.from_records(participants),
+        }
 
     def check_network_participants_relationship(self, participant):
         """

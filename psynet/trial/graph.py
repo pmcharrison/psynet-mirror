@@ -160,6 +160,7 @@ class GraphChainNode(ChainNode):
         outgoing_vertex_ids: List[int],
         participant=None,
         participant_group=None,
+        block=None,
     ):
         # pylint: disable=unused-argument
         self.vertex_id = vertex_id
@@ -173,6 +174,7 @@ class GraphChainNode(ChainNode):
             propagate_failure=propagate_failure,
             participant=participant,
             participant_group=participant_group,
+            block=block,
         )
 
     @staticmethod
@@ -295,6 +297,9 @@ class GraphChainTrialMaker(ChainTrialMaker):
         A representation of the graph structure to instantiate.
         The representation consistes of a dictionary of vertices and edges.
         E.g. {"vertices": [1,2], "edges": [{"origin": 1, "target": 2, "properties": {"type": "default"}}]}
+
+        The "blocks" and "participant_groups" keys are optional and can be used to specify the blocks and participant groups for each vertex.
+        E.g. {"vertices": [1,2], "edges": [{"origin": 1, "target": 2}], "blocks": {1: "block1", 2: "block2"], "participant_groups": {1: "group1", 2: "group2"}}
     """
 
     def __init__(
@@ -316,6 +321,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         recruit_mode: str,
         target_n_participants=Optional[int],
         max_nodes_per_chain: Optional[int] = None,
+        max_trials_per_block: Optional[int] = None,
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
         propagate_failure: bool = True,
@@ -344,6 +350,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             recruit_mode=recruit_mode,
             target_n_participants=target_n_participants,
             max_nodes_per_chain=max_nodes_per_chain,
+            max_trials_per_block=max_trials_per_block,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
@@ -368,6 +375,9 @@ class GraphChainTrialMaker(ChainTrialMaker):
     def create_networks_across(self, experiment):
         network_structure = self.network_structure
         vertices = network_structure["vertices"]
+        blocks = network_structure.get("blocks", dict())
+        groups = network_structure.get("participant_groups", dict())
+
         source_seeds = self.generate_source_seed_bundles()
         for i in range(self.chains_per_experiment):
             vertex_id = vertices[i]
@@ -392,6 +402,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
                 incoming_vertex_ids=incoming_vertex_ids,
                 outgoing_vertex_ids=outgoing_vertex_ids,
                 participant=None,
+                block=blocks.get(vertex_id, None),
+                participant_group=groups.get(vertex_id, None),
             )
             self.create_graph_network(experiment, start_node)
 
@@ -443,6 +455,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
                 network.incoming_vertex_ids,
                 network.outgoing_vertex_ids,
                 participant,
+                block=network.block,
+                participant_group=network.participant_group,
             )
             db.session.add(node)
             network.add_node(node)

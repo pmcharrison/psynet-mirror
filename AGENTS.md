@@ -4,6 +4,11 @@ Start by following `psynet/resources/experiment_scripts/AGENTS.md`.
 
 Then act on the following PsyNet developer instructions:
 
+## Sandbox reminder
+
+When running PsyNet commands from Cursor, disable sandboxing by setting
+`required_permissions: ["all"]` on the shell command.
+
 ## Dallinger repo
 
 ### Summary
@@ -91,25 +96,40 @@ When you need to check CI status for PsyNet, use the GitLab API with the
 `GITLAB_TOKEN` environment variable (project access token). This token should
 be provided automatically if you are working with the team's Cursor Cloud Agent
 setup. If not, tell the user to create a token via
-https://gitlab.com/PsyNetDev/PsyNet/-/settings/access_tokens
+<https://gitlab.com/PsyNetDev/PsyNet/-/settings/access_tokens>
 and add it as a secret in the Cloud Agent dashboard
-(https://cursor.com/dashboard?tab=cloud-agents)
+(<https://cursor.com/dashboard?tab=cloud-agents>)
 
 Fetch the latest pipeline with:
 
-```
+```http
 GET https://gitlab.com/api/v4/projects/PsyNetDev%2FPsyNet/pipelines?per_page=1
 ```
 
 Then list jobs for that pipeline and, if needed, fetch job logs via the trace
 endpoint:
 
-```
+```http
 GET https://gitlab.com/api/v4/projects/<project_id>/pipelines/<pipeline_id>/jobs
 GET https://gitlab.com/api/v4/projects/<project_id>/jobs/<job_id>/trace
 ```
 
 This is the preferred approach for agents when verifying CI status or logs.
+
+## Branch review command
+
+When reviewing the current PsyNet branch against `master`, prefer the repo-local
+Cursor command `/review`.
+
+- `/review` is defined in `.cursor/commands/review.md`
+- its detailed workflow lives in `.cursor/skills/branch-review/SKILL.md`
+
+## Testing
+
+Non-trivial code changes should be tested. 
+Prefer red/green test-driven development, but avoid committing overly verbose tests in the final PR.
+Implement sensible unit tests where appropriate.
+Verify changes end-to-end by running `psynet test local` within a relevant demo. 
 
 ## Finishing up changes
 
