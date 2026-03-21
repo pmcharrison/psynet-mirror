@@ -1,7 +1,6 @@
 import datetime
 import functools
 import importlib
-import io
 import json
 import os
 import re
@@ -12,7 +11,7 @@ import sys
 import tempfile
 import threading
 import zipfile
-from contextlib import contextmanager, redirect_stdout
+from contextlib import contextmanager
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
@@ -1014,34 +1013,27 @@ def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
         )
 
 
-def _list_remote_apps_via_psynet_apps(ctx, server):
-    from dallinger.command_line.docker_ssh import apps as dallinger_apps
-
-    buffer = io.StringIO()
-    with redirect_stdout(buffer):
-        result = ctx.invoke(dallinger_apps, server=server)
-    if not result:
-        return []
-    return result.split()
-
-
 def _abort_if_app_exists_via_psynet_apps(ctx, server, app):
     if not app:
         return
 
-    from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
+    from dallinger.command_line.docker_ssh import (
+        ensure_remote_host_in_known_hosts,
+        get_apps,
+    )
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]
     ssh_user = server_info.get("user")
     ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
 
-    apps = _list_remote_apps_via_psynet_apps(ctx, server)
-    if app in apps:
+    apps = get_apps(server)
+    existing_apps = {entry.name for entry in apps}
+    if app in existing_apps:
         click.echo(
             "\n".join(
                 [
-                    f"App with name {app} already exists: found in psynet apps list. Aborting.",
+                    f"App with name {app} already exists: found on server. Aborting.",
                     "Use a different name, destroy the current app or add --update",
                 ]
             )
