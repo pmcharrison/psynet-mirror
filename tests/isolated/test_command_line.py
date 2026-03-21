@@ -762,6 +762,47 @@ def test_create_sql_profile_run_dir_without_custom_parent():
     assert Path(profile_dir).name.startswith("psynet-sql-profile-")
 
 
+class TestSshCommandConstruction:
+    """Tests that SSH commands correctly pass all option values."""
+
+    @patch("psynet.command_line.CONFIGURED_HOSTS", {"srv": {"host": "h"}})
+    @patch("dallinger.command_line.docker_ssh.Executor")
+    def test_test_ssh_passes_stagger_value(self, MockExecutor):
+        from psynet.command_line import test__docker_ssh
+
+        ctx = click.Context(test__docker_ssh, info_name="test")
+        ctx.invoke(
+            test__docker_ssh.callback,
+            app="a",
+            server="srv",
+            stagger="0.5",
+            n_bots=None,
+            parallel=None,
+            serial=None,
+            time_factor=None,
+        )
+        cmd = MockExecutor.return_value.run_and_echo.call_args[0][0]
+        assert "--stagger 0.5" in cmd
+
+    @patch("psynet.command_line.CONFIGURED_HOSTS", {"srv": {"host": "h"}})
+    @patch("dallinger.command_line.docker_ssh.Executor")
+    def test_performance_test_ssh_passes_stagger_value(self, MockExecutor):
+        from psynet.command_line import performance_test__docker_ssh
+
+        ctx = click.Context(performance_test__docker_ssh, info_name="perf")
+        ctx.invoke(
+            performance_test__docker_ssh.callback,
+            app="a",
+            server="srv",
+            stagger="0.3",
+            n_bots=None,
+            time_factor=None,
+            duration_minutes=None,
+        )
+        cmd = MockExecutor.return_value.run_and_echo.call_args[0][0]
+        assert "--stagger 0.3" in cmd
+
+
 def test_start_local_server_uses_debug_local_subprocess():
     from psynet.command_line import _start_local_server_and_wait_for_ready, _stop_server
 

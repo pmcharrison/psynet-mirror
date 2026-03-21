@@ -3191,7 +3191,7 @@ def test__docker_ssh(
         cmd += " --serial"
 
     if stagger:
-        cmd += " --stagger"
+        cmd += f" --stagger {stagger}"
 
     if time_factor:
         cmd += f" --time-factor {time_factor}"
@@ -3676,7 +3676,7 @@ def performance_test__docker_ssh(
         cmd += f" --n-bots {n_bots}"
 
     if stagger:
-        cmd += " --stagger"
+        cmd += f" --stagger {stagger}"
 
     if time_factor:
         cmd += f" --time-factor {time_factor}"
