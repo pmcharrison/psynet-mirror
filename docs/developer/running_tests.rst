@@ -23,6 +23,24 @@ really practical on most local machines, so be warned that running the full test
 suite locally will ordinarily take a very long time. It's better instead to
 run individual tests locally and only run the full test suite on GitLab.
 
+Custom Docker experiment policy
+-------------------------------
+
+Some experiments require custom system dependencies (for example ffmpeg or R),
+so they cannot be tested in the shared base image. These experiments are listed
+in ``ci/docker-build-experiments.txt`` and are handled by a dedicated CI job.
+
+In this custom-Docker CI job:
+
+- ``constraints.txt`` is regenerated in a temporary build context before image build;
+- experiments must pin PsyNet as ``PsyNet@master`` in ``requirements.txt`` or
+  ``constraints.txt``;
+- CI rewrites ``PsyNet@master`` to ``PsyNet@CI_COMMIT_SHA`` in that temporary
+  build context so tests run against the branch under review.
+
+This keeps branch CI deterministic while avoiding committed constraints churn on
+non-release branches.
+
 Identifying which test failed
 -----------------------------
 If you see that the automatic tests have failed,

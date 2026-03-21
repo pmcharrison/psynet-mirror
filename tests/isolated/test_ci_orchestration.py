@@ -117,3 +117,33 @@ def test_rewrite_psynet_dependency_file_rewrites_master_pin(tmp_path):
     )
     assert found is True
     assert "@abc123" in dependency_file.read_text()
+
+
+def test_regenerate_constraints_invokes_docker_when_requirements_present(
+    monkeypatch, tmp_path
+):
+    (tmp_path / "requirements.txt").write_text("psynet\n")
+    observed = {}
+
+    def fake_run(command, check):
+        observed["command"] = command
+        observed["check"] = check
+        return 0
+
+    monkeypatch.setattr(run_docker_experiment_tests.subprocess, "run", fake_run)
+    run_docker_experiment_tests.regenerate_constraints("base-image", tmp_path)
+    assert observed["command"][0:3] == ["docker", "run", "--rm"]
+    assert observed["command"][-2:] == ["psynet", "generate-constraints"]
+    assert observed["check"] is True
+
+
+def test_regenerate_constraints_skips_when_requirements_missing(monkeypatch, tmp_path):
+    called = {"value": False}
+
+    def fake_run(command, check):
+        called["value"] = True
+        return 0
+
+    monkeypatch.setattr(run_docker_experiment_tests.subprocess, "run", fake_run)
+    run_docker_experiment_tests.regenerate_constraints("base-image", tmp_path)
+    assert called["value"] is False

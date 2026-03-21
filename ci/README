@@ -13,3 +13,14 @@ main CI test job and imported by the custom Docker experiment test flow.
 execution, and failure log tails).
 
 `pytest_common.py` centralizes shared pytest warning filters and runtime options.
+
+Custom Docker experiment policy:
+
+- Experiments listed in `docker-build-experiments.txt` are excluded from the
+  main CI test shards and tested in a dedicated custom-Docker job.
+- CI regenerates `constraints.txt` inside a temporary build context before
+  building each custom image.
+- Experiments must pin PsyNet as `PsyNet@master` in `requirements.txt` or
+  `constraints.txt`; CI fails fast on other PsyNet pins.
+- CI rewrites `PsyNet@master` to `PsyNet@CI_COMMIT_SHA` in the temporary build
+  context so tests run against the branch under review.

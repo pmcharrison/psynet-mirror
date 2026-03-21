@@ -52,6 +52,7 @@
 - Replaced CI shell orchestration scripts with Python (`run_ci_docker_command.py`, `run_ci_tests.py`, `run_docker_experiment_tests.py`) and centralized shared pytest options in `ci/pytest_common.py` (author: Peter Harrison)
 - Removed the remaining CI shell bootstrap script by inlining dependency installation in `ci/run_ci_tests.py`, and removed the now-unnecessary `shellcheck` CI job (author: Peter Harrison)
 - Normalized CI docker-build experiment exclusion path comparisons, refactored docker dependency-line parsing and log file handling in Python orchestration code, and added minimal isolated tests for CI orchestration helpers (author: Peter Harrison)
+- Updated custom Docker experiment CI to regenerate constraints in temporary build contexts, and documented the custom-Docker CI pinning/rewrite policy in CI and developer docs (author: Peter Harrison)
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 - Replaced the moto-backed S3 emulator with a minimal filesystem-backed mock for targeted S3 artifact-storage tests, while moving broader backup coverage back to a local-storage test path and removing the `moto` dependency from the test environment (author: Frank Höger)
 - Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)

@@ -37,6 +37,29 @@ def rewrite_psynet_master_pin(line, ci_commit_sha):
     )
 
 
+def regenerate_constraints(base_image_tag, build_experiment_dir):
+    requirements_file = build_experiment_dir / "requirements.txt"
+    if not requirements_file.exists():
+        return
+
+    print(f"Regenerating constraints for {build_experiment_dir}...")
+    subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{build_experiment_dir}:/experiment",
+            "-w",
+            "/experiment",
+            base_image_tag,
+            "psynet",
+            "generate-constraints",
+        ],
+        check=True,
+    )
+
+
 def discover_experiments(base_image_tag):
     discover_script = (
         "from pathlib import Path\n"
@@ -110,11 +133,14 @@ def rewrite_psynet_dependency_file(dependency_file, ci_commit_sha):
     return found_psynet_dependency
 
 
-def prepare_build_context(experiment_dir, experiment_name, build_context_root, ci_commit_sha):
+def prepare_build_context(
+    experiment_dir, experiment_name, build_context_root, ci_commit_sha, base_image_tag
+):
     build_experiment_dir = Path(
         tempfile.mkdtemp(prefix=f"{experiment_name}.", dir=build_context_root)
     )
     shutil.copytree(experiment_dir, build_experiment_dir, dirs_exist_ok=True)
+    regenerate_constraints(base_image_tag, build_experiment_dir)
 
     found_psynet_dependency = False
     for dependency_filename in ("requirements.txt", "constraints.txt"):
@@ -245,6 +271,7 @@ def main():
                 experiment_name,
                 build_context_root,
                 ci_commit_sha,
+                base_image_tag,
             )
 
             print(f"Building Docker image for {experiment_dir} with PsyNet@{ci_commit_sha}")
