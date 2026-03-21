@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fixed graph demo `generate_grid` returning `blocks` instead of `groups` for the `participant_groups` key in the network structure (author: [Peter Harrison])
+
 ### Added
 
 - Enabled chatroom to Rock, Paper, Scissors demo results page.

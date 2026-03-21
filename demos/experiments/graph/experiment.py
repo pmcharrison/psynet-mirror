@@ -395,7 +395,7 @@ class CustomTrialMaker(GraphChainTrialMaker):
             "vertices": vertices,
             "edges": edges,
             "blocks": blocks,
-            "groups": blocks,
+            "participant_groups": groups,
         }
 
 
