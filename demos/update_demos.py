@@ -73,15 +73,30 @@ latest_dallinger_patch_version = get_latest_dallinger_patch_version(
     recommended_dallinger_major_minor
 )
 
+minimal_demo_manifest = Path(__file__).with_name("minimal_demo_directories.txt")
+minimal_demo_directories = {
+    line.strip()
+    for line in minimal_demo_manifest.read_text().splitlines()
+    if line.strip() and not line.startswith("#")
+}
+
+
+def is_minimal_demo(dir):
+    relative_dir = Path(dir).resolve().relative_to(Path(__file__).parent.resolve())
+    return relative_dir.as_posix() in minimal_demo_directories
+
 
 def update_demo(dir):
-    update_scripts(dir)
+    minimal_demo = is_minimal_demo(dir)
+    update_scripts(dir, minimal_demo=minimal_demo)
     if not skip_constraints:
         commit_hash_master = pre_update_constraints(dir)
         generate_constraints(dir)
         post_update_constraints(dir, commit_hash_master)
         update_psynet_requirement(dir)
         post_update_psynet_requirement(dir)
+    if minimal_demo:
+        prune_scaffold(dir)
 
 
 def generate_constraints(dir):
@@ -224,17 +239,24 @@ def post_update_psynet_requirement(dir):
         constraints_path.write_text(content)
 
 
-def update_scripts(dir):
+def update_scripts(dir, minimal_demo=False):
     with working_directory(dir):
-        psynet.command_line.update_scripts_()
+        skip_files = {"README.md"} if minimal_demo else None
+        psynet.command_line.update_scripts_(skip_files=skip_files)
 
-        with resources.as_file(
-            resources.files("psynet") / "resources/experiment_scripts/config.txt"
-        ) as path:
-            shutil.copyfile(
-                path,
-                "config.txt",
-            )
+        if not minimal_demo:
+            with resources.as_file(
+                resources.files("psynet") / "resources/experiment_scripts/config.txt"
+            ) as path:
+                shutil.copyfile(
+                    path,
+                    "config.txt",
+                )
+
+
+def prune_scaffold(dir):
+    with working_directory(dir):
+        psynet.command_line.prune_experiment_scaffold(preserve_files={"README.md"})
 
 
 def update_image_tag(file):

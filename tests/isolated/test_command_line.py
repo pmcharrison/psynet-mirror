@@ -16,6 +16,8 @@ from psynet.command_line import (
     _create_sql_profile_run_dir,
     _enable_sql_profile,
     check_dockerfile,
+    prune_experiment_scaffold,
+    scaffold,
     update_scripts_,
 )
 from psynet.pytest_psynet import path_to_test_experiment
@@ -600,6 +602,49 @@ def test_check_dockerfile():
                 match="Your Dockerfile appears to be using an outdated format",
             ):
                 check_dockerfile()
+
+
+def test_scaffold_creates_missing_files_without_overwriting_readme():
+    runner = CliRunner()
+
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+            Path("requirements.txt").write_text("psynet==0.0.0\n")
+            Path("README.md").write_text("# Custom README\n")
+
+            result = runner.invoke(scaffold)
+
+            assert result.exit_code == 0
+            assert Path("README.md").read_text() == "# Custom README\n"
+            assert Path("config.txt").exists()
+            assert Path("Dockerfile").exists()
+            assert Path("test.py").exists()
+            assert Path("docker/psynet").exists()
+            assert Path(".gitignore").exists()
+            assert Path(".python-version").exists()
+
+
+def test_prune_experiment_scaffold_keeps_readme_only():
+    with tempfile.TemporaryDirectory() as dir:
+        with working_directory(dir):
+            Path("experiment.py").write_text("class Exp:\n    pass\n")
+            Path("requirements.txt").write_text("psynet==0.0.0\n")
+            Path("constraints.txt").write_text("psynet==0.0.0\n")
+            Path("README.md").write_text("# Minimal demo\n")
+
+            update_scripts_()
+            Path("config.txt").write_text("[Config]\n")
+
+            prune_experiment_scaffold(preserve_files={"README.md"})
+
+            assert Path("README.md").read_text() == "# Minimal demo\n"
+            assert Path("requirements.txt").exists()
+            assert Path("constraints.txt").exists()
+            assert Path("Dockerfile").exists() is False
+            assert Path("test.py").exists() is False
+            assert Path("config.txt").exists() is False
+            assert Path("docker").exists() is False
 
 
 def test_enable_sql_profile_uses_unique_run_subdirectories(tmp_path, monkeypatch):

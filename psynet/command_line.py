@@ -121,6 +121,177 @@ def update_docker_tag():
         file.write("\n")
 
 
+EXPERIMENT_SCAFFOLD_TEMPLATE_FILES = [
+    ".gitignore",
+    ".dockerignore",
+    "Dockerfile",
+    "README.md",
+    "__init__.py",
+    "pytest.ini",
+    "test.py",
+    ".github/workflows/test.yml",
+    ".vscode/launch.json",
+    "AGENTS.md",
+]
+
+EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES = [
+    "config.txt",
+]
+
+EXPERIMENT_SCAFFOLD_TEMPLATE_DIRECTORIES = [
+    "docker",
+]
+
+EXPERIMENT_SCAFFOLD_GENERATED_FILES = {
+    "Dockertag": lambda: f"{os.path.basename(os.getcwd())}\n",
+    ".python-version": lambda: f"{recommended_python_major_minor}\n",
+}
+
+EXPERIMENT_SCAFFOLD_REMOVABLE_DIRECTORIES = [
+    ("docs", "abfc54bbbc3ef9d5948957841727a18b"),
+]
+
+
+def _copy_experiment_template_file(relative_path, overwrite):
+    destination = Path(relative_path)
+    if destination.exists() and not overwrite:
+        return False
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with resources.as_file(
+        resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
+    ) as path:
+        shutil.copyfile(path, destination)
+    return True
+
+
+def _write_experiment_generated_file(relative_path, contents, overwrite):
+    destination = Path(relative_path)
+    if destination.exists() and not overwrite:
+        return False
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(contents)
+    return True
+
+
+def _remove_empty_parent_dirs(path):
+    workspace_root = Path.cwd()
+    while path != workspace_root and path.exists():
+        try:
+            path.rmdir()
+        except OSError:
+            return
+        path = path.parent
+
+
+def scaffold_experiment_directory(
+    *,
+    overwrite=False,
+    include_optional_files=False,
+    skip_files=None,
+):
+    skip_files = set(skip_files or [])
+    action = "Updating" if overwrite else "Scaffolding"
+    click.echo(f"{action} PsyNet scripts in ({os.getcwd()})...")
+
+    written = []
+    skipped = []
+
+    template_files = list(EXPERIMENT_SCAFFOLD_TEMPLATE_FILES)
+    if include_optional_files:
+        template_files.extend(EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES)
+
+    for relative_path in template_files:
+        if relative_path in skip_files:
+            skipped.append(relative_path)
+            continue
+
+        if _copy_experiment_template_file(relative_path, overwrite):
+            verb = "updating" if overwrite else "creating"
+            click.echo(f"...{verb} {relative_path}.")
+            written.append(relative_path)
+        else:
+            skipped.append(relative_path)
+
+    for relative_path, contents_factory in EXPERIMENT_SCAFFOLD_GENERATED_FILES.items():
+        if relative_path in skip_files:
+            skipped.append(relative_path)
+            continue
+
+        if _write_experiment_generated_file(
+            relative_path, contents_factory(), overwrite
+        ):
+            verb = "updating" if overwrite else "creating"
+            click.echo(f"...{verb} {relative_path}.")
+            written.append(relative_path)
+        else:
+            skipped.append(relative_path)
+
+    for relative_path in EXPERIMENT_SCAFFOLD_TEMPLATE_DIRECTORIES:
+        if relative_path in skip_files:
+            skipped.append(relative_path)
+            continue
+
+        destination = Path(relative_path)
+        if destination.exists() and not overwrite:
+            skipped.append(relative_path)
+            continue
+
+        verb = "updating" if overwrite else "creating"
+        click.echo(f"...{verb} {relative_path} directory.")
+        if overwrite and destination.exists():
+            shutil.rmtree(destination, ignore_errors=True)
+        with resources.as_file(
+            resources.files("psynet") / f"resources/experiment_scripts/{relative_path}"
+        ) as path:
+            shutil.copytree(
+                path,
+                destination,
+                dirs_exist_ok=True,
+            )
+        written.append(relative_path)
+
+    if Path("docker").exists():
+        os.system("chmod +x docker/*")
+
+    if overwrite:
+        # We remove no-longer-wanted directories only if we can be confident that the
+        # user hasn't edited them.
+        for directory, hash in EXPERIMENT_SCAFFOLD_REMOVABLE_DIRECTORIES:
+            if Path(directory).exists() and md5_directory(directory) == hash:
+                shutil.rmtree(directory)
+
+    if not overwrite and written:
+        click.echo(
+            "Scaffolded missing boilerplate files. Use 'psynet update-scripts' to"
+            " overwrite existing boilerplate with the latest templates."
+        )
+
+    return {"written": written, "skipped": skipped}
+
+
+def prune_experiment_scaffold(*, preserve_files=None):
+    preserve_files = set(preserve_files or [])
+
+    generated_files = set(EXPERIMENT_SCAFFOLD_TEMPLATE_FILES)
+    generated_files.update(EXPERIMENT_SCAFFOLD_OPTIONAL_TEMPLATE_FILES)
+    generated_files.update(EXPERIMENT_SCAFFOLD_GENERATED_FILES.keys())
+
+    for relative_path in sorted(generated_files - preserve_files):
+        path = Path(relative_path)
+        if path.exists():
+            path.unlink()
+            _remove_empty_parent_dirs(path.parent)
+
+    for relative_path in EXPERIMENT_SCAFFOLD_TEMPLATE_DIRECTORIES:
+        if relative_path in preserve_files:
+            continue
+        path = Path(relative_path)
+        if path.exists():
+            shutil.rmtree(path, ignore_errors=True)
+
+
 @click.group()
 @click.version_option(
     __version__,
@@ -1341,7 +1512,8 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
                 )
     except FileNotFoundError:
         raise click.ClickException(
-            f".gitignore is missing from your experiment directory ({os.getcwd()})."
+            f".gitignore is missing from your experiment directory ({os.getcwd()}). "
+            "Run 'psynet scaffold' to generate the standard boilerplate files."
         )
 
     # We need an active git repository for Dallinger to recognize .gitignore properly
@@ -1894,6 +2066,9 @@ def check_dockerfile():
 
     update_scripts_recommendation = (
         "To fix this issue, run:\n"
+        "  psynet scaffold\n\n"
+        "This creates any missing standard boilerplate files without overwriting existing ones.\n\n"
+        "If you instead want to overwrite existing boilerplate with the latest templates, run:\n"
         "  psynet update-scripts\n\n"
         "Note: This command will also update other experiment files including .gitignore, "
         "README.md, test.py, and configuration files in .vscode/ and .github/workflows/.\n\n"
@@ -2768,6 +2943,15 @@ def generate_config(ctx):
 
 @psynet.command()
 @require_exp_directory
+def scaffold():
+    """
+    Create any missing PsyNet boilerplate files for the experiment directory.
+    """
+    scaffold_experiment_directory(include_optional_files=True)
+
+
+@psynet.command()
+@require_exp_directory
 def update_scripts():
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
@@ -2776,74 +2960,12 @@ def update_scripts():
     update_scripts_()
 
 
-def update_scripts_():
+def update_scripts_(skip_files=None):
     """
     To be run in an experiment directory; updates a collection of template scripts and help files to their
     latest PsyNet versions.
     """
-    # TODO - refactor to avoid hardcoding the list of files/directories to copy
-    click.echo(f"Updating PsyNet scripts in ({os.getcwd()})...")
-
-    Path(".vscode").mkdir(exist_ok=True)
-    Path(".github/workflows").mkdir(parents=True, exist_ok=True)
-
-    files_to_copy = [
-        ".gitignore",
-        ".dockerignore",
-        "Dockerfile",
-        "README.md",
-        "__init__.py",
-        "pytest.ini",
-        "test.py",
-        ".github/workflows/test.yml",
-        ".vscode/launch.json",
-        "AGENTS.md",
-    ]
-    for file in files_to_copy:
-        click.echo(f"...updating {file}.")
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{file}"
-        ) as path:
-            shutil.copyfile(
-                path,
-                file,
-            )
-
-    # We keep Dockertag for now, but once we remove the docker directory,
-    # we should remove this too.
-    click.echo("...updating Dockertag.")
-    with open("Dockertag", "w") as file:
-        file.write(os.path.basename(os.getcwd()))
-        file.write("\n")
-
-    click.echo("...updating .python-version")
-    with open(".python-version", "w") as file:
-        file.write(recommended_python_major_minor)
-        file.write("\n")
-
-    directories_to_copy = ["docker"]
-    for dir in directories_to_copy:
-        click.echo(f"...updating {dir} directory.")
-        if Path(dir).exists():
-            shutil.rmtree(dir, ignore_errors=True)
-        with resources.as_file(
-            resources.files("psynet") / f"resources/experiment_scripts/{dir}"
-        ) as path:
-            shutil.copytree(
-                path,
-                dir,
-                dirs_exist_ok=True,
-            )
-    os.system("chmod +x docker/*")
-
-    # We remove no-longer-wanted directories only if we can be confident that the
-    # user hasn't edited them
-    directories_to_remove = [("docs", "abfc54bbbc3ef9d5948957841727a18b")]
-    for directory, hash in directories_to_remove:
-        if Path(directory).exists():
-            if md5_directory(directory) == hash:
-                # The directory is unchanged, we can remove it
-                shutil.rmtree(directory)
+    scaffold_experiment_directory(overwrite=True, skip_files=skip_files)
 
 
 @psynet.group("destroy")
@@ -3133,6 +3255,12 @@ def test__local(
         return
 
     import pytest
+
+    if not Path("test.py").exists():
+        raise click.UsageError(
+            "Experiment directory is missing test.py. "
+            "Run 'psynet scaffold' to generate the standard boilerplate files."
+        )
 
     exit_code = pytest.main(["test.py"])
     if exit_code != 0:

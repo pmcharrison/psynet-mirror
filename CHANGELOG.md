@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added `psynet scaffold` to create missing experiment boilerplate without overwriting customized files, and used it to pilot smaller demo directories for `features/api` and `experiments/vocabulary_test` (author: Cursor)
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.

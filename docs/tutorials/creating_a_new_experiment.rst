@@ -20,6 +20,11 @@ If asked, click New Window.
 The next step depends on whether you are using the Docker mode for running PsyNet,
 or whether you are using the *virtual environment* mode.
 
+Some demos now keep a deliberately small repository footprint. If the copied demo
+doesn't include helper files such as ``Dockerfile``, ``test.py``, or ``config.txt``,
+run ``psynet scaffold`` in the project directory to generate the standard PsyNet
+boilerplate before continuing.
+
 
 Docker mode
 -----------
@@ -97,3 +102,10 @@ If you have indeed increased the PsyNet version number, you need to update ``con
     psynet generate-constraints
 
 Once it is complete, you should be able to run ``psynet debug local`` as before.
+
+If your project uses a minimal demo layout, you can also regenerate the standard
+boilerplate files at any time with:
+
+.. code:: bash
+
+    psynet scaffold

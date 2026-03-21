@@ -55,6 +55,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``Dockerfile`` is used by Docker to define the experiment's Docker image. Normally you should not edit this file
     directly, but instead use the boilerplate file provided by PsyNet. You can update this file to
     their latest PsyNet versions by running ``psynet update-scripts`` within an experiment directory.
+    If the file is missing entirely, you can recreate it with ``psynet scaffold``.
 
 -   ``Dockertag`` determines the name of the Docker image that is built for the present experiment.
     It defaults to the name of the current directory.
@@ -67,7 +68,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
 -   ``carillon_samples.csv`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
 
 -   ``config.txt`` is a configuration file. It defines various important configuration parameters for when you deploy an
-    experiment online.
+    experiment online. PsyNet can generate a default version of this file with ``psynet scaffold``.
 
 -   ``constraints.txt`` stores the versions of the different Python packages that will be used when you deploy your
     experiment. It is automatically generated, don’t edit it yourself. **Note**: the role of this file is currently
@@ -82,6 +83,7 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     the experiment's Docker image. Here we use it to install a particular dependency for stimulus generation.
 
 -   ``pytest.ini`` is a boilerplate PsyNet file, you should not have to edit it yourself.
+    If it goes missing, you can recreate it with ``psynet scaffold``.
 
 -   ``questionnaire.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
 
@@ -106,5 +108,6 @@ PsyNet experiment, the `Carillon Experiment <https://github.com/pmcharrison/2022
     You can run these tests in Docker by running ``docker/run pytest test.py``.
     If you want to customize these tests you should normally override specific methods in the Experiment class,
     for example ``Experiment.test_experiment`` and ``Experiment.test_check_bots``.
+    If your experiment directory uses a minimal layout, you can regenerate this file with ``psynet scaffold``.
 
     ``volume_calibration.py`` is specific to the Carillon Experiment implementation, we don't need to worry about it now.
