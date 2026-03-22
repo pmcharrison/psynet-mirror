@@ -1,4 +1,4 @@
-"""Validate demo scaffolding and essential-files round trips on representative demos."""
+"""Validate scaffold prompts and round trips on representative demos."""
 
 import hashlib
 import os
@@ -16,7 +16,6 @@ from psynet.command_line import (
     prune_experiment_scaffold,
     scaffold_experiment_directory,
 )
-from psynet.demo_audit import audit_demo_directory
 from psynet.pytest_psynet import (
     local_only,
     path_to_demo_experiment,
@@ -96,28 +95,6 @@ def _preserved_snapshot(root: Path) -> dict[str, str]:
 
         snapshot[relative_path.as_posix()] = _hash_file(file_path)
     return snapshot
-
-
-def test_audit_identifies_full_demo():
-    record = audit_demo_directory(path_to_demo_experiment("hello_world"))
-
-    assert record.already_minimal is False
-    assert record.generic_readme is True
-    assert "Dockerfile" in record.removable_root_files
-    assert "docker" in record.removable_root_dirs
-    assert "experiment.py" in record.preserved_root_files
-
-
-def test_audit_identifies_pilot_minimal_demo():
-    record = audit_demo_directory(path_to_demo_feature("api"))
-
-    assert record.already_minimal is True
-    assert record.generic_readme is False
-    assert record.uses_relative_imports is True
-    assert not record.removable_root_files
-    assert not record.removable_root_dirs
-    assert "custom_pages.py" in record.preserved_root_files
-    assert "templates" in record.preserved_root_dirs
 
 
 def test_minimal_demo_prompts_for_scaffold_before_debug():

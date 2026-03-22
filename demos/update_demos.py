@@ -16,13 +16,11 @@ import shutil
 import subprocess
 import sys
 from hashlib import md5
-from importlib import resources
 from pathlib import Path
 
 from joblib import Parallel, delayed
 
 import psynet.command_line
-from psynet.demo_audit import audit_demo_directory
 from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
 from psynet.version import psynet_version, recommended_dallinger_major_minor
 
@@ -76,17 +74,15 @@ latest_dallinger_patch_version = get_latest_dallinger_patch_version(
 
 
 def update_demo(dir):
-    """Refresh one demo while preserving an already-essential-only layout."""
-    minimal_demo = audit_demo_directory(dir).already_minimal
-    update_scripts(dir, minimal_demo=minimal_demo)
+    """Refresh one demo and restore the standard essential-files repo layout."""
+    update_scripts(dir)
     if not skip_constraints:
         commit_hash_master = pre_update_constraints(dir)
         generate_constraints(dir)
         post_update_constraints(dir, commit_hash_master)
         update_psynet_requirement(dir)
         post_update_psynet_requirement(dir)
-    if minimal_demo:
-        prune_scaffold(dir)
+    prune_scaffold(dir)
 
 
 def generate_constraints(dir):
@@ -234,20 +230,10 @@ def post_update_psynet_requirement(dir):
         constraints_path.write_text(content)
 
 
-def update_scripts(dir, minimal_demo=False):
+def update_scripts(dir):
     """Refresh scaffold-managed files for one demo directory."""
     with working_directory(dir):
-        skip_files = {"README.md"} if minimal_demo else None
-        psynet.command_line.update_scripts_(skip_files=skip_files)
-
-        if not minimal_demo:
-            with resources.as_file(
-                resources.files("psynet") / "resources/experiment_scripts/config.txt"
-            ) as path:
-                shutil.copyfile(
-                    path,
-                    "config.txt",
-                )
+        psynet.command_line.update_scripts_(skip_files={"README.md"})
 
 
 def prune_scaffold(dir):
