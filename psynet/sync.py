@@ -21,7 +21,7 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
-from psynet.serialize import serialize_callback
+from psynet.serialize import SerializedCallback, serialize_callback
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.utils import get_logger
 
@@ -301,6 +301,14 @@ class GroupBarrier(Barrier):
         according to the estimate derived from ``waiting_logic`` and ``waiting_logic_expected_repetitions``.
     """
 
+    @staticmethod
+    def _kick_participant_after_max_wait(
+        participant: Participant, group_type: str
+    ) -> None:
+        """Remove the participant from their sync group when max wait uses action ``'kick'``."""
+        if group_type in participant.active_sync_groups:
+            participant.active_sync_groups[group_type].remove_participant(participant)
+
     def __init__(
         self,
         id_: str,
@@ -326,7 +334,10 @@ class GroupBarrier(Barrier):
         self.on_release = on_release
         self.participant_timeout = participant_timeout
         if max_wait_action == "kick":
-            self.on_max_wait_timeout = self._on_max_wait_timeout
+            self.on_max_wait_timeout = SerializedCallback(
+                function=GroupBarrier._kick_participant_after_max_wait,
+                arguments={"group_type": group_type},
+            )
         if participant_timeout is not None and participant_timeout_action not in (
             "kick",
             "fail",
@@ -336,13 +347,6 @@ class GroupBarrier(Barrier):
                 f"got {participant_timeout_action!r}"
             )
         self.participant_timeout_action = participant_timeout_action
-
-    def _on_max_wait_timeout(self, participant: Participant):
-        """Called when max_wait_time is exceeded and max_wait_action is 'kick'. Removes participant from the group."""
-        if self.group_type in participant.active_sync_groups:
-            participant.active_sync_groups[self.group_type].remove_participant(
-                participant
-            )
 
     def choose_who_to_release(self, waiting_participants: List[Participant]):
         waiting_participant_ids = {p.id for p in waiting_participants}
