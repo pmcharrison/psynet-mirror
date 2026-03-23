@@ -29,7 +29,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import PythonObject, VarStore
+from .field import PythonObject
 from .serialize import is_lambda_function
 from .utils import (
     NoArgumentProvided,
@@ -198,6 +198,90 @@ class Elt:
 
 class EltCollection:
     def resolve(self) -> Union[Elt, List[Elt]]:
+        raise NotImplementedError
+
+
+WEBSOCKET_CHANNEL = "psynet_experiment"
+"""Global Redis channel set on the experiment when any ``WebSocketElt`` is
+present.
+
+The experiment will activate a subscription to this channel and Dallinger's
+automatic ``dallinger_control`` subscription, giving the experiment visibility
+into websocket connect/disconnect/subscribe events. Experiments that want to
+send or receive messages on this channel directly may do so, but it is not used
+for ``WebSocketElt`` dispatch by default.
+"""
+
+
+class WebSocketElt(Elt):
+    """
+    A timeline element that registers a WebSocket message handler on the
+    experiment.
+
+    Adding a ``WebSocketElt`` to the timeline will:
+
+    1. Subscribe the experiment to ``WebSocketElt.channel`` at launch, enabling
+       it to receive WebSocket messages on that channel.
+    2. Register ``handle_message`` as a handler called by the experiment's
+       ``receive_message`` whenever a message arrives on that channel.
+
+    Each ``WebSocketElt`` subclass should define a unique ``channel`` name so
+    that multiple Websocket consumers in the same timeline can remain isolated
+    from one another.
+
+    Example::
+
+        from psynet.timeline import WebSocketElt
+
+        class RoundOneChatElt(WebSocketElt):
+            channel = "chat_round_one"
+
+            def handle_message(self, message, channel_name, participant, node,
+                               receive_time, experiment):
+                import json
+                data = json.loads(message)
+                # ... process data ...
+
+    Attributes
+    ----------
+    channel : str
+        The Redis channel name this Elt subscribes to. If ``None``, no
+        subscribers will be registered.
+    """
+
+    channel = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def consume(self, experiment, participant):
+        super().consume(experiment, participant)
+
+    def render(self, experiment, participant):
+        return super().render(experiment, participant)
+
+    def handle_message(
+        self, message, channel_name, participant, node, receive_time, experiment
+    ):
+        """Called when a WebSocket message arrives on this element's channel.
+
+        Subclasses must override this method.
+
+        Parameters
+        ----------
+        message : str
+            The raw message string (typically JSON).
+        channel_name : str
+            The name of the channel the message was received on.
+        participant : Participant or None
+            The participant associated with the message, if any.
+        node : Node or None
+            The node associated with the message, if any.
+        receive_time : datetime.datetime or None
+            The server time the message was received.
+        experiment : Experiment
+            The running experiment instance.
+        """
         raise NotImplementedError
 
 
@@ -2461,10 +2545,6 @@ class ModuleState(SQLBase, SQLMixin):
     # current_trial = Column(
     #     PythonObject
     # )  # Note: this can sometimes be a trial object or alternatively a string
-
-    @property
-    def var(self):
-        return VarStore(self)
 
     time_started = Column(DateTime)
     time_finished = Column(DateTime)

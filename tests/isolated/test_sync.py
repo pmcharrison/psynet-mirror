@@ -2,11 +2,14 @@ import uuid
 
 import pytest
 from dallinger import db
+from sqlalchemy import Column, String
 
+from psynet.data import SQLBase
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.sync import SimpleGrouper
+from psynet.serialize import SerializedCallback
+from psynet.sync import Barrier, BarrierRecord, GroupBarrier, SimpleGrouper
 
 
 def get_random_id():
@@ -24,6 +27,30 @@ def new_participant(experiment):
     )
     db.session.add(participant)
     return participant
+
+
+processed_barriers = []
+
+
+class ExplodingBarrier(Barrier):
+    def process_potential_releases(self):
+        raise RuntimeError("boom")
+
+
+class RecordingBarrier(Barrier):
+    def process_potential_releases(self):
+        processed_barriers.append(self.id)
+
+
+class DummyModel(SQLBase):
+    __tablename__ = "dummy_model"
+
+    id = Column(String, primary_key=True)
+
+    def on_release(
+        self, group, participants, participant=None, barrier=None, experiment=None
+    ):
+        return None
 
 
 def test_random_partition():
@@ -52,6 +79,7 @@ def test_group_allocator(in_experiment_directory, db_session):
     db.session.commit()
 
     assert len(grouper.get_waiting_participants()) == 1
+    assert BarrierRecord.query.get("main_grouper") is not None
     assert "main_grouper" in participants[0].active_barriers
     assert "main_grouper" not in participants[1].active_barriers
     assert not grouper.can_participant_exit(participants[0])
@@ -96,3 +124,68 @@ def test_group_allocator(in_experiment_directory, db_session):
 
     assert participants[0].sync_group is None
     grouper.receive_participant(participants[0])
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_barriers_skips_failure(in_experiment_directory, db_session):
+    exp = get_experiment()
+    processed_barriers.clear()
+
+    bad_barrier = ExplodingBarrier(id_="a_bad")
+    good_barrier = RecordingBarrier(id_="b_good")
+    participants = [new_participant(exp) for _ in range(2)]
+
+    bad_barrier.receive_participant(participants[0])
+    good_barrier.receive_participant(participants[1])
+    db.session.commit()
+
+    exp.check_barriers()
+
+    assert "b_good" in processed_barriers
+
+
+def test_group_barrier_rejects_bound_method():
+    class Dummy:
+        def handler(
+            self, group, participants
+        ):  # pragma: no cover - used for validation
+            return None
+
+    with pytest.raises(ValueError, match="module-level"):
+        GroupBarrier(id_="bad", group_type="group", on_release=Dummy().handler)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_accepts_orm_instance_method(in_experiment_directory, db_session):
+    DummyModel.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    instance = DummyModel(id=get_random_id())
+    db_session.add(instance)
+    db_session.flush()
+
+    barrier = GroupBarrier(
+        id_="orm_method",
+        group_type="group",
+        on_release=instance.on_release,
+    )
+    assert isinstance(barrier.on_release, SerializedCallback)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_barrier_registry_strips_waiting_logic(db_session):
+    barrier = GroupBarrier(id_="strip_wait", group_type="group")
+    barrier_record = BarrierRecord(
+        id=barrier.id,
+        barrier_class=barrier.__class__,
+        barrier=barrier.for_registry(),
+    )
+    db_session.add(barrier_record)
+    db_session.commit()
+
+    loaded = BarrierRecord.query.get("strip_wait")
+    assert loaded.barrier.waiting_logic is None

@@ -60,6 +60,16 @@ def get_db_tables():
     return db.Base.metadata.tables
 
 
+def get_primary_key_values(instance):
+    """
+    Return primary key values for an ORM instance.
+    """
+    primary_key_cols = [
+        column.name for column in instance.__class__.__table__.primary_key.columns
+    ]
+    return {key: getattr(instance, key) for key in primary_key_cols}
+
+
 def _get_superclasses_by_table():
     """
     Returns
@@ -792,9 +802,15 @@ def ingest_to_model(
                 file, model, engine, columns=columns, format="csv", HEADER=False
             )
 
-        column_names = [x["name"] for x in inspector.get_columns(model.__table__)]
+        columns = inspector.get_columns(model.__table__)
+        column_names = [x["name"] for x in columns]
         if "id" in column_names:
-            fix_autoincrement(engine, model.__table__.name)
+            id_column = next(
+                (column for column in columns if column["name"] == "id"),
+                None,
+            )
+            if id_column and isinstance(id_column["type"], sqlalchemy.Integer):
+                fix_autoincrement(engine, model.__table__.name)
 
 
 def patch_csv(infile, outfile, clear_columns, replace_columns):

@@ -54,7 +54,6 @@ dependencies = [
     "pytest-dependency",
     "pytest-mock",
     "pytest-timeout",
-    "moto[server,s3]",
     "python-gettext",
     "rpdb",
     "slack_sdk",  # For Slack notifications
@@ -69,13 +68,14 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "bump-my-version",
-    "furo",
+    "pydata-sphinx-theme",
     "google-cloud-translate",
     "isort",
     "openai",
     "pre-commit",
     "sphinx",
-    "sphinx-autodoc-typehints",
+    "sphinx-autodoc-typehints<3.0.0",
+    "sphinx-copybutton",
     "sphinx-inline-tabs",
     "beautifulsoup4",
     "pytest-test-groups",
