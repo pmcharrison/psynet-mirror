@@ -3585,6 +3585,8 @@ def asset(  # noqa: F841
         This is primarily useful when working with a stimulus set that is time-consuming to
         generate and/or upload to the web server, because the generation and/or uploading only happens once.
         Cache invalidation is done based on file hashing (for file assets) or argument hashing (for function assets).
+        For cached function assets, cache-key inputs must be explicit serializable data; SQLAlchemy objects
+        (including SQLAlchemy instance methods) are intentionally rejected to avoid identity-based cache keys.
         See :meth:`FunctionAssetMixin.get_md5_instructions` for more information.
 
     on_demand : bool, default=False

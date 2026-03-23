@@ -357,6 +357,10 @@ It's also worth knowing about a few special cases of these asset types.
   where the source is not a file on the computer, but rather a function responsible for generating
   such a file. This means that you can write your stimulus generation code transparently as part
   of your experiment code.
+  Cache keys for ``CachedFunctionAsset`` are intentionally restricted to explicit serializable data.
+  In particular, SQLAlchemy objects are not allowed in cache-key inputs (including SQLAlchemy instance
+  methods, where ``self`` would otherwise be serialized by identity). Pass the specific data that should
+  determine cache invalidation, for example ``trial.definition``.
 
 - A :class:`~psynet.asset.OnDemandAsset` is like a :class:`~psynet.asset.CachedFunctionAsset`
   but has no caching at all; instead, the file is (re)generated on demand whenever it is requested
