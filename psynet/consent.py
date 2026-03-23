@@ -27,10 +27,73 @@ class NoConsent(Consent, NullElt):
     pass
 
 
+class _ConsentPageBase(Page, Consent):
+    template_name: str = ""
+    answer_key: str = ""
+
+    def __init__(self, time_estimate: Optional[float] = 30):
+        super().__init__(
+            time_estimate=time_estimate,
+            template_str=get_template(self.template_name),
+        )
+
+    def format_answer(self, raw_answer, **kwargs):
+        return {self.answer_key: raw_answer}
+
+    def get_bot_response(self, experiment, bot):
+        return {self.answer_key: True}
+
+
+class _ConsentModuleBase(Module):
+    module_label: str = ""
+    conditional_label: str = ""
+    consent_answer_key: str = ""
+    page_class = _ConsentPageBase
+    failure_tags = None
+    participant_var_map = None
+
+    def __init__(self, time_estimate: Optional[float] = 30):
+        page = self.page_class(time_estimate=time_estimate)
+        rejection_kwargs = (
+            {}
+            if self.failure_tags is None
+            else {"failure_tags": list(self.failure_tags)}
+        )
+
+        def consent_rejected(experiment, participant):
+            return not participant.answer[self.consent_answer_key]
+
+        elts = [
+            page,
+            conditional(
+                self.conditional_label,
+                consent_rejected,
+                RejectedConsentPage(**rejection_kwargs),
+            ),
+        ]
+
+        mappings = self.participant_var_map or (
+            (self.consent_answer_key, self.consent_answer_key),
+        )
+        for participant_var_key, answer_key in mappings:
+            elts.append(
+                CodeBlock(self._build_answer_saver(participant_var_key, answer_key))
+            )
+
+        super().__init__(self.module_label, join(*elts))
+
+    @staticmethod
+    def _build_answer_saver(participant_var_key, answer_key):
+        def save_answer(participant):
+            participant.var.set(participant_var_key, participant.answer[answer_key])
+
+        return save_answer
+
+
 #################
 # Lab Recruiter #
 #################
-class LabRecruiterStandardConsent(Module):
+class LabRecruiterStandardConsent(_ConsentModuleBase):
     """
     The Lab Recruiter standard consent form.
 
@@ -41,30 +104,11 @@ class LabRecruiterStandardConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "lab-recruiter_standard_consent"
-        elts = join(
-            self.LabRecruiterStandardConsentPage(time_estimate=time_estimate),
-            conditional(
-                "lab-recruiter_standard_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["lab-recruiter_standard_consent"]
-                ),
-                RejectedConsentPage(),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "lab-recruiter_standard_consent",
-                    participant.answer["lab-recruiter_standard_consent"],
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "lab-recruiter_standard_consent"
+    conditional_label = "lab-recruiter_standard_consent_conditional"
+    consent_answer_key = "lab-recruiter_standard_consent"
 
-    class LabRecruiterStandardConsentPage(Page, Consent):
+    class LabRecruiterStandardConsentPage(_ConsentPageBase):
         """
         This page displays the Lab Recruiter standard consent page.
 
@@ -75,27 +119,13 @@ class LabRecruiterStandardConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template(
-                    "consents/cap-recruiter_standard_consent.html"
-                ),
-            )
+        template_name = "consents/cap-recruiter_standard_consent.html"
+        answer_key = "lab-recruiter_standard_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"lab-recruiter_standard_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {
-                "lab-recruiter_standard_consent": True,
-            }
+    page_class = LabRecruiterStandardConsentPage
 
 
-class LabRecruiterAudiovisualConsent(Module):
+class LabRecruiterAudiovisualConsent(_ConsentModuleBase):
     """
     The Lab Recruiter audiovisual recordings consent form.
 
@@ -106,36 +136,18 @@ class LabRecruiterAudiovisualConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "lab-recruiter_audiovisual_consent"
-        elts = join(
-            self.LabRecruiterAudiovisualConsentPage(time_estimate=time_estimate),
-            conditional(
-                "lab-recruiter_audiovisual_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["lab-recruiter_audiovisual_consent"]
-                ),
-                RejectedConsentPage(),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "lab-recruiter_audiovisual_consent",
-                    participant.answer["lab-recruiter_audiovisual_consent"],
-                )
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "lab-recruiter_demonstration_purposes_consent",
-                    participant.answer["demonstration_purposes_consent"],
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "lab-recruiter_audiovisual_consent"
+    conditional_label = "lab-recruiter_audiovisual_consent_conditional"
+    consent_answer_key = "lab-recruiter_audiovisual_consent"
+    participant_var_map = (
+        ("lab-recruiter_audiovisual_consent", "lab-recruiter_audiovisual_consent"),
+        (
+            "lab-recruiter_demonstration_purposes_consent",
+            "demonstration_purposes_consent",
+        ),
+    )
 
-    class LabRecruiterAudiovisualConsentPage(Page, Consent):
+    class LabRecruiterAudiovisualConsentPage(_ConsentPageBase):
         """
         This page displays the Lab Recruiter audiovisual consent page.
 
@@ -146,16 +158,8 @@ class LabRecruiterAudiovisualConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template(
-                    "consents/cap-recruiter_audiovisual_consent.html"
-                ),
-            )
+        template_name = "consents/cap-recruiter_audiovisual_consent.html"
+        answer_key = "lab-recruiter_audiovisual_consent"
 
         def format_answer(self, raw_answer, **kwargs):
             return {
@@ -171,6 +175,8 @@ class LabRecruiterAudiovisualConsent(Module):
                 "demonstration_purposes_consent": True,
             }
 
+    page_class = LabRecruiterAudiovisualConsentPage
+
 
 # Backward compatibility aliases
 CAPRecruiterStandardConsent = LabRecruiterStandardConsent
@@ -180,7 +186,7 @@ CAPRecruiterAudiovisualConsent = LabRecruiterAudiovisualConsent
 #########
 # Lucid #
 #########
-class LucidConsent(Module):
+class LucidConsent(_ConsentModuleBase):
     """
     The Lucid consent form.
 
@@ -191,30 +197,11 @@ class LucidConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "lucid_consent"
-        elts = join(
-            self.LucidConsentPage(time_estimate=time_estimate),
-            conditional(
-                "lucid_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["lucid_consent"]
-                ),
-                RejectedConsentPage(),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "lucid_consent",
-                    participant.answer["lucid_consent"],
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "lucid_consent"
+    conditional_label = "lucid_consent_conditional"
+    consent_answer_key = "lucid_consent"
 
-    class LucidConsentPage(Page, Consent):
+    class LucidConsentPage(_ConsentPageBase):
         """
         This page displays the Lucid consent page.
 
@@ -225,26 +212,16 @@ class LucidConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("consents/lucid_consent.html"),
-            )
+        template_name = "consents/lucid_consent.html"
+        answer_key = "lucid_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"lucid_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {"lucid_consent": True}
+    page_class = LucidConsentPage
 
 
 #############
 # Princeton #
 #############
-class PrincetonConsent(Module):
+class PrincetonConsent(_ConsentModuleBase):
     """
     The Princeton University consent form.
 
@@ -255,29 +232,11 @@ class PrincetonConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "princeton_consent"
-        elts = join(
-            self.PrincetonConsentPage(time_estimate=time_estimate),
-            conditional(
-                "princeton_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["princeton_consent"]
-                ),
-                RejectedConsentPage(),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "princeton_consent", participant.answer["princeton_consent"]
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "princeton_consent"
+    conditional_label = "princeton_consent_conditional"
+    consent_answer_key = "princeton_consent"
 
-    class PrincetonConsentPage(Page, Consent):
+    class PrincetonConsentPage(_ConsentPageBase):
         """
         This page displays the Princeton University consent page.
 
@@ -288,23 +247,13 @@ class PrincetonConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("consents/princeton_consent.html"),
-            )
+        template_name = "consents/princeton_consent.html"
+        answer_key = "princeton_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"princeton_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {"princeton_consent": True}
+    page_class = PrincetonConsentPage
 
 
-class PrincetonLabRecruiterConsent(Module):
+class PrincetonLabRecruiterConsent(_ConsentModuleBase):
     """
     The Princeton University consent form to be used in conjunction with Lab Recruiter.
 
@@ -315,30 +264,11 @@ class PrincetonLabRecruiterConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "princeton_lab_recruiter_consent"
-        elts = join(
-            self.PrincetonLabRecruiterConsentPage(time_estimate=time_estimate),
-            conditional(
-                "princeton_lab_recruiter_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["princeton_lab_recruiter_consent"]
-                ),
-                RejectedConsentPage(),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "princeton_lab_recruiter_consent",
-                    participant.answer["princeton_lab_recruiter_consent"],
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "princeton_lab_recruiter_consent"
+    conditional_label = "princeton_lab_recruiter_consent_conditional"
+    consent_answer_key = "princeton_lab_recruiter_consent"
 
-    class PrincetonLabRecruiterConsentPage(Page, Consent):
+    class PrincetonLabRecruiterConsentPage(_ConsentPageBase):
         """
         This page displays the Princeton University consent page to be used in conjunction with Lab Recruiter.
 
@@ -349,22 +279,10 @@ class PrincetonLabRecruiterConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template(
-                    "consents/princeton_lab_recruiter_consent.html"
-                ),
-            )
+        template_name = "consents/princeton_lab_recruiter_consent.html"
+        answer_key = "princeton_lab_recruiter_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"princeton_lab_recruiter_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {"princeton_lab_recruiter_consent": True}
+    page_class = PrincetonLabRecruiterConsentPage
 
 
 # Backward compatibility alias
@@ -374,7 +292,7 @@ PrincetonCAPRecruiterConsent = PrincetonLabRecruiterConsent
 ########
 # Main #
 ########
-class MainConsent(Module):
+class MainConsent(_ConsentModuleBase):
     """
     The main consent form.
 
@@ -385,29 +303,12 @@ class MainConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "main_consent"
-        elts = join(
-            self.MainConsentPage(time_estimate=time_estimate),
-            conditional(
-                "main_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["main_consent"]
-                ),
-                RejectedConsentPage(failure_tags=["main_consent_rejected"]),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "main_consent", participant.answer["main_consent"]
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "main_consent"
+    conditional_label = "main_consent_conditional"
+    consent_answer_key = "main_consent"
+    failure_tags = ("main_consent_rejected",)
 
-    class MainConsentPage(Page, Consent):
+    class MainConsentPage(_ConsentPageBase):
         """
         This page displays the main consent page.
 
@@ -418,26 +319,16 @@ class MainConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("consents/main_consent.html"),
-            )
+        template_name = "consents/main_consent.html"
+        answer_key = "main_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"main_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {"main_consent": True}
+    page_class = MainConsentPage
 
 
 ############
 # Database #
 ############
-class DatabaseConsent(Module):
+class DatabaseConsent(_ConsentModuleBase):
     """
     The database consent form.
 
@@ -448,29 +339,12 @@ class DatabaseConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "database_consent"
-        elts = join(
-            self.DatabaseConsentPage(time_estimate=time_estimate),
-            conditional(
-                "database_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["database_consent"]
-                ),
-                RejectedConsentPage(failure_tags=["database_consent_rejected"]),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "database_consent", participant.answer["database_consent"]
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "database_consent"
+    conditional_label = "database_consent_conditional"
+    consent_answer_key = "database_consent"
+    failure_tags = ("database_consent_rejected",)
 
-    class DatabaseConsentPage(Page, Consent):
+    class DatabaseConsentPage(_ConsentPageBase):
         """
         This page displays the database consent page.
 
@@ -481,26 +355,16 @@ class DatabaseConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("consents/database_consent.html"),
-            )
+        template_name = "consents/database_consent.html"
+        answer_key = "database_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"database_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {"database_consent": True}
+    page_class = DatabaseConsentPage
 
 
 ###############
 # Audiovisual #
 ###############
-class AudiovisualConsent(Module):
+class AudiovisualConsent(_ConsentModuleBase):
     """
     The audiovisual consent form.
 
@@ -511,29 +375,12 @@ class AudiovisualConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "audiovisual_consent"
-        elts = join(
-            self.AudiovisualConsentPage(time_estimate=time_estimate),
-            conditional(
-                "audiovisual_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["audiovisual_consent"]
-                ),
-                RejectedConsentPage(failure_tags=["audiovisual_consent_rejected"]),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "audiovisual_consent", participant.answer["audiovisual_consent"]
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "audiovisual_consent"
+    conditional_label = "audiovisual_consent_conditional"
+    consent_answer_key = "audiovisual_consent"
+    failure_tags = ("audiovisual_consent_rejected",)
 
-    class AudiovisualConsentPage(Page, Consent):
+    class AudiovisualConsentPage(_ConsentPageBase):
         """
         This page displays the audiovisual consent page.
 
@@ -544,26 +391,16 @@ class AudiovisualConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("consents/audiovisual_consent.html"),
-            )
+        template_name = "consents/audiovisual_consent.html"
+        answer_key = "audiovisual_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"audiovisual_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {"audiovisual_consent": True}
+    page_class = AudiovisualConsentPage
 
 
 ################
 # Open science #
 ################
-class OpenScienceConsent(Module):
+class OpenScienceConsent(_ConsentModuleBase):
     """
     The open science consent form.
 
@@ -574,29 +411,12 @@ class OpenScienceConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "open_science_consent"
-        elts = join(
-            self.OpenScienceConsentPage(time_estimate=time_estimate),
-            conditional(
-                "open_science_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["open_science_consent"]
-                ),
-                RejectedConsentPage(failure_tags=["open_science_consent_rejected"]),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "open_science_consent", participant.answer["open_science_consent"]
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "open_science_consent"
+    conditional_label = "open_science_consent_conditional"
+    consent_answer_key = "open_science_consent"
+    failure_tags = ("open_science_consent_rejected",)
 
-    class OpenScienceConsentPage(Page, Consent):
+    class OpenScienceConsentPage(_ConsentPageBase):
         """
         This page displays the open science consent page.
 
@@ -607,26 +427,16 @@ class OpenScienceConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("consents/open_science_consent.html"),
-            )
+        template_name = "consents/open_science_consent.html"
+        answer_key = "open_science_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"open_science_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {"open_science_consent": True}
+    page_class = OpenScienceConsentPage
 
 
 ################################################
 # Voluntary participation with no compensation #
 ################################################
-class VoluntaryWithNoCompensationConsent(Module):
+class VoluntaryWithNoCompensationConsent(_ConsentModuleBase):
     """
     The voluntary participation with no compensation consent form.
 
@@ -637,32 +447,12 @@ class VoluntaryWithNoCompensationConsent(Module):
         Time estimated for the page.
     """
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        label = "voluntary_with_no_compensation_consent"
-        elts = join(
-            self.VoluntaryWithNoCompensationConsentPage(time_estimate=time_estimate),
-            conditional(
-                "voluntary_with_no_compensation_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["voluntary_with_no_compensation_consent"]
-                ),
-                RejectedConsentPage(
-                    failure_tags=["voluntary_with_no_compensation_consent_rejected"]
-                ),
-            ),
-            CodeBlock(
-                lambda participant: participant.var.set(
-                    "voluntary_with_no_compensation_consent",
-                    participant.answer["voluntary_with_no_compensation_consent"],
-                )
-            ),
-        )
-        super().__init__(label, elts)
+    module_label = "voluntary_with_no_compensation_consent"
+    conditional_label = "voluntary_with_no_compensation_consent_conditional"
+    consent_answer_key = "voluntary_with_no_compensation_consent"
+    failure_tags = ("voluntary_with_no_compensation_consent_rejected",)
 
-    class VoluntaryWithNoCompensationConsentPage(Page, Consent):
+    class VoluntaryWithNoCompensationConsentPage(_ConsentPageBase):
         """
         This page displays the voluntary participation with no compensation consent page.
 
@@ -673,19 +463,7 @@ class VoluntaryWithNoCompensationConsent(Module):
             Time estimated for the page.
         """
 
-        def __init__(
-            self,
-            time_estimate: Optional[float] = 30,
-        ):
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template(
-                    "consents/voluntary_with_no_compensation_consent.html"
-                ),
-            )
+        template_name = "consents/voluntary_with_no_compensation_consent.html"
+        answer_key = "voluntary_with_no_compensation_consent"
 
-        def format_answer(self, raw_answer, **kwargs):
-            return {"voluntary_with_no_compensation_consent": raw_answer}
-
-        def get_bot_response(self, experiment, bot):
-            return {"voluntary_with_no_compensation_consent": True}
+    page_class = VoluntaryWithNoCompensationConsentPage
