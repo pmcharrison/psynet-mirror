@@ -251,7 +251,9 @@ def find_sqlalchemy_object_path(x, path="value", seen=None):
 
     if isinstance(x, dict):
         for key, value in x.items():
-            key_path = find_sqlalchemy_object_path(key, path=f"{path}.keys()", seen=seen)
+            key_path = find_sqlalchemy_object_path(
+                key, path=f"{path}.keys()", seen=seen
+            )
             if key_path:
                 return key_path
 
