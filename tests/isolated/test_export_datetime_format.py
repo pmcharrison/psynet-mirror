@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from psynet.data import _db_instance_to_dict
 from sqlalchemy.ext.mutable import MutableDict
+
+from psynet.data import _db_instance_to_dict
 
 
 class _DummyExportObject:
