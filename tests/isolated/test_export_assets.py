@@ -273,6 +273,7 @@ class TestAssetExport:
         assert all(bots.type == "Bot")
         assert "creation_time" in bots
         assert "worker_id" in bots
+        assert "client_ip_address" in bots
 
     def assert_anonymous_data(self, path):
         import pandas as pd
@@ -283,3 +284,6 @@ class TestAssetExport:
         assert all(bots.type == "Bot")
         assert "creation_time" in bots
         assert "worker_id" not in bots  # Anonymous data has worker_id scrubbed
+        assert (
+            "client_ip_address" not in bots
+        )  # Anonymous data has client_ip_address scrubbed
