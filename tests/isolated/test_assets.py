@@ -263,6 +263,16 @@ def placeholder_function(path, param):
         f.write(f"Generated content: {param}")
 
 
+def cached_key_sqlalchemy_argument_function(path, trial_):
+    _ = path
+    _ = trial_
+
+
+def cached_key_explicit_data_function(path, definition):
+    _ = path
+    _ = definition
+
+
 def test_asset_constructor():
     """Test the asset constructor function with different input types and parameters."""
     import tempfile
@@ -356,11 +366,9 @@ def test_cached_function_asset_rejects_sqlalchemy_instance_methods(trial):
 )
 @pytest.mark.usefixtures("launched_experiment")
 def test_cached_function_asset_cache_key_rejects_sqlalchemy_objects(trial):
-    def f(path, trial_):
-        _ = path
-        _ = trial_
-
-    asset = CachedFunctionAsset(function=f, arguments={"trial_": trial})
+    asset = CachedFunctionAsset(
+        function=cached_key_sqlalchemy_argument_function, arguments={"trial_": trial}
+    )
 
     with pytest.raises(
         ValueError,
@@ -370,12 +378,9 @@ def test_cached_function_asset_cache_key_rejects_sqlalchemy_objects(trial):
 
 
 def test_cached_function_asset_cache_key_allows_explicit_data():
-    def f(path, definition):
-        _ = path
-        _ = definition
-
     cache_key = CachedFunctionAsset(
-        function=f, arguments={"definition": {"stimulus_id": 123}}
+        function=cached_key_explicit_data_function,
+        arguments={"definition": {"stimulus_id": 123}},
     ).cache_key
 
     assert isinstance(cache_key, str)

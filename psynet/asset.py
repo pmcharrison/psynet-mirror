@@ -1,5 +1,5 @@
-import os.path
 import inspect as py_inspect
+import os.path
 import shutil
 import subprocess
 import tempfile
