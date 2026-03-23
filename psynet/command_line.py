@@ -1,3 +1,4 @@
+import csv
 import functools
 import importlib
 import json
@@ -2558,11 +2559,59 @@ def export_database(
                 os.path.join(tempdir, "data", f"{app}-data.zip"),
                 make_parents(database_zip_path),
             )
+            if anonymize:
+                _scrub_client_ip_address_from_database_zip(database_zip_path)
 
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
 
     return database_zip_path
+
+
+def _scrub_client_ip_address_from_database_zip(database_zip_path):
+    """
+    Remove client IP address columns from anonymized raw database exports.
+    """
+    with tempfile.TemporaryDirectory() as tempdir:
+        with zipfile.ZipFile(database_zip_path, "r") as archive:
+            archive.extractall(tempdir)
+
+        for root, _, files in os.walk(tempdir):
+            for filename in files:
+                if not filename.endswith(".csv"):
+                    continue
+
+                csv_path = os.path.join(root, filename)
+                with open(csv_path, "r", newline="", encoding="utf-8") as file:
+                    reader = csv.DictReader(file)
+                    if (
+                        reader.fieldnames is None
+                        or "client_ip_address" not in reader.fieldnames
+                    ):
+                        continue
+                    rows = list(reader)
+                    fieldnames = [
+                        name
+                        for name in reader.fieldnames
+                        if name != "client_ip_address"
+                    ]
+
+                with open(csv_path, "w", newline="", encoding="utf-8") as file:
+                    writer = csv.DictWriter(file, fieldnames=fieldnames)
+                    writer.writeheader()
+                    for row in rows:
+                        row.pop("client_ip_address", None)
+                        writer.writerow(row)
+
+        with zipfile.ZipFile(
+            database_zip_path, "w", compression=zipfile.ZIP_DEFLATED
+        ) as archive:
+            for root, _, files in os.walk(tempdir):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    archive.write(
+                        file_path, arcname=os.path.relpath(file_path, tempdir)
+                    )
 
 
 def export_data(local, anonymize, database_zip_path, export_path):

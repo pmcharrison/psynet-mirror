@@ -145,6 +145,7 @@ class TestAssetExport:
 
             self.assert_regular_data(os.path.join(tempdir, "regular", "data"))
             self.assert_anonymous_data(os.path.join(tempdir, "anonymous", "data"))
+            self.assert_no_client_ip_leakage(os.path.join(tempdir, "anonymous"))
 
     def _test_asset_export_modes(self, ctx):
         for legacy in [True, False]:
@@ -260,9 +261,14 @@ class TestAssetExport:
         with archive.open("data/participant.csv") as f:
             participant_csv = pd.read_csv(f)
 
+        with archive.open("data/response.csv") as f:
+            response_csv = pd.read_csv(f)
+
         # Worker IDs should now be scrubbed and replaced with integers counting upwards from 1
         # (so their string representation is going to be shorter than 3 characters long)
         assert all(len(str(id_)) < 3 for id_ in participant_csv.worker_id)
+        assert "client_ip_address" not in participant_csv
+        assert "client_ip_address" not in response_csv
 
     def assert_regular_data(self, path):
         import pandas as pd
@@ -287,3 +293,24 @@ class TestAssetExport:
         assert (
             "client_ip_address" not in bots
         )  # Anonymous data has client_ip_address scrubbed
+
+    def assert_no_client_ip_leakage(self, anonymous_export_path):
+        leak_token = "client_ip_address"
+
+        for root, _, files in os.walk(anonymous_export_path):
+            for filename in files:
+                path = os.path.join(root, filename)
+                if path.endswith(".zip"):
+                    with zipfile.ZipFile(path, "r") as archive:
+                        for member in archive.namelist():
+                            if member.endswith("/"):
+                                continue
+                            with archive.open(member) as f:
+                                contents = f.read().decode("utf-8", errors="ignore")
+                            assert (
+                                leak_token not in contents
+                            ), f"Found '{leak_token}' in {path}:{member}"
+                else:
+                    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                        contents = f.read()
+                    assert leak_token not in contents, f"Found '{leak_token}' in {path}"
