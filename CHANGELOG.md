@@ -130,6 +130,7 @@
 - Streamlined API documentation structure and reduced Sphinx warnings (author: Cursor, reviewer: Peter)
 - Simplified documentation navigation and reference links (author: Cursor, reviewer: Peter)
 - Documented GitLab CI status checks and token guidance for agents in AGENTS.md (author: Cursor, reviewer: Peter)
+- Reworked consent API docs to lead with custom consent patterns (InfoPage and ModularPage examples), de-emphasize institution-specific built-ins, and document explicit `NoConsent` usage (author: [Cursor])
 
 ## [13.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.1) Release - 2026-02-18
 
