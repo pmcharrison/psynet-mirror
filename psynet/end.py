@@ -35,6 +35,8 @@ class EndLogic(EltCollection):
 
         if isinstance(participant, Bot):
             participant.status = "approved"
+            if participant.bonus is None:
+                participant.bonus = max(0.0, experiment.bonus(participant))
 
     def release_participant(self, experiment, participant) -> TimelineLogic:
         try:

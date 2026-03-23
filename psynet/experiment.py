@@ -1348,6 +1348,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         self._report_request_statistics()
 
+        soft_max_experiment_payment = get_config().get(
+            "soft_max_experiment_payment", self.var.soft_max_experiment_payment
+        )
+        assert self.amount_spent() < soft_max_experiment_payment
+
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
 
