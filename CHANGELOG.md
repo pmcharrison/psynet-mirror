@@ -45,6 +45,7 @@
 
 ### Fixed
 
+- Added validation for `CachedFunctionAsset` cache keys to reject SQLAlchemy objects (including SQLAlchemy-backed instance methods such as trial instance methods), requiring explicit serializable input data instead (author: [User])
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)

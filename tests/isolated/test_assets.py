@@ -337,3 +337,45 @@ def test_asset_constructor():
         ),
     ):
         asset(placeholder_function)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
+def test_cached_function_asset_rejects_sqlalchemy_instance_methods(trial):
+    with pytest.raises(
+        ValueError,
+        match="You cannot use SQLAlchemy instance methods in CachedFunctionAsset.",
+    ):
+        CachedFunctionAsset(function=trial.show_trial)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
+def test_cached_function_asset_cache_key_rejects_sqlalchemy_objects(trial):
+    def f(path, trial_):
+        _ = path
+        _ = trial_
+
+    asset = CachedFunctionAsset(function=f, arguments={"trial_": trial})
+
+    with pytest.raises(
+        ValueError,
+        match="CachedFunctionAsset cache keys cannot be derived from SQLAlchemy objects",
+    ):
+        _ = asset.cache_key
+
+
+def test_cached_function_asset_cache_key_allows_explicit_data():
+    def f(path, definition):
+        _ = path
+        _ = definition
+
+    cache_key = CachedFunctionAsset(
+        function=f, arguments={"definition": {"stimulus_id": 123}}
+    ).cache_key
+
+    assert isinstance(cache_key, str)

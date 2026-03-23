@@ -1,4 +1,5 @@
 import os.path
+import inspect as py_inspect
 import shutil
 import subprocess
 import tempfile
@@ -52,6 +53,58 @@ from .utils import (
 )
 
 logger = get_logger()
+
+
+def _is_sqlalchemy_object(x):
+    return isinstance(x, db.Base)
+
+
+def _find_sqlalchemy_object_path(x, path="instructions", seen=None):
+    if seen is None:
+        seen = set()
+
+    if _is_sqlalchemy_object(x):
+        return path
+
+    object_id = id(x)
+    if object_id in seen:
+        return None
+    seen.add(object_id)
+
+    if isinstance(x, dict):
+        for key, value in x.items():
+            key_path = _find_sqlalchemy_object_path(
+                key, path=f"{path}.keys()", seen=seen
+            )
+            if key_path:
+                return key_path
+
+            value_path = _find_sqlalchemy_object_path(
+                value, path=f"{path}[{key!r}]", seen=seen
+            )
+            if value_path:
+                return value_path
+        return None
+
+    if isinstance(x, (list, tuple)):
+        for index, value in enumerate(x):
+            value_path = _find_sqlalchemy_object_path(
+                value, path=f"{path}[{index}]", seen=seen
+            )
+            if value_path:
+                return value_path
+        return None
+
+    if isinstance(x, (set, frozenset)):
+        for index, value in enumerate(x):
+            value_path = _find_sqlalchemy_object_path(
+                value, path=f"{path}[set_item_{index}]", seen=seen
+            )
+            if value_path:
+                return value_path
+        return None
+
+    return None
 
 
 def filter_botocore_deprecation_warnings():
@@ -2108,8 +2161,63 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
         db.session.commit()
     """
 
+    def __init__(
+        self,
+        *,
+        function,
+        local_key=None,
+        key_within_module: Optional[str] = None,
+        key_within_experiment=None,
+        arguments: Optional[dict] = None,
+        is_folder: bool = False,
+        description=None,
+        data_type=None,
+        extension=None,
+        module_id: Optional[str] = None,
+        parent=None,
+        personal=False,
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+    ):
+        if py_inspect.ismethod(function):
+            method_caller = function.__self__
+            if not isinstance(method_caller, type) and _is_sqlalchemy_object(
+                method_caller
+            ):
+                raise ValueError(
+                    "You cannot use SQLAlchemy instance methods in CachedFunctionAsset. "
+                    "Cache keys must be derived from explicit inputs, not ORM object identity. "
+                    "Please pass a top-level or class function and provide explicit data "
+                    "(e.g. `trial.definition`) in `arguments`."
+                )
+
+        super().__init__(
+            function=function,
+            local_key=local_key,
+            key_within_module=key_within_module,
+            key_within_experiment=key_within_experiment,
+            arguments=arguments,
+            is_folder=is_folder,
+            description=description,
+            data_type=data_type,
+            extension=extension,
+            module_id=module_id,
+            parent=parent,
+            personal=personal,
+            obfuscate=obfuscate,
+        )
+
+    def _validate_cache_key_inputs(self):
+        sqlalchemy_object_path = _find_sqlalchemy_object_path(self.instructions)
+        if sqlalchemy_object_path is not None:
+            raise ValueError(
+                "CachedFunctionAsset cache keys cannot be derived from SQLAlchemy objects, "
+                f"but one was found at {sqlalchemy_object_path}. "
+                "Please pass explicit, serializable data instead (e.g. `trial.definition`)."
+            )
+
     @property
     def cache_key(self):
+        self._validate_cache_key_inputs()
         return self.get_md5_instructions()
 
 
