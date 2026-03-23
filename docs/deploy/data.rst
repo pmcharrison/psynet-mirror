@@ -70,9 +70,25 @@ This can be useful if you encounter troubles with the default export method:
 Anonymization
 =============
 
-When anonymization is selected, certain personally identifying columns are removed from the exported data.
-By default, this means removing the 'worker_id' column from the participants table.
-Depending on your experiment design, you may want to anonymize other columns as well.
+When anonymization is selected, sensitive columns are removed from the exported data.
+By default, this includes ``worker_id`` and ``client_ip_address`` in PsyNet's processed data exports,
+and ``client_ip_address`` in raw ``database.zip`` exports (where ``worker_id`` remains pseudonymized by Dallinger).
+
+To customize this behavior in PsyNet's processed exports, override
+``Experiment.sensitive_export_columns`` in your experiment class:
+
+.. code:: python
+
+    class Exp(Experiment):
+        sensitive_export_columns = ["worker_id", "client_ip_address", "session_token"]
+
+To customize columns removed from anonymized raw ``database.zip`` exports, override
+``Experiment.sensitive_database_export_columns``:
+
+.. code:: python
+
+    class Exp(Experiment):
+        sensitive_database_export_columns = ["client_ip_address", "session_token"]
 
 Assets
 ======

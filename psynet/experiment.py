@@ -470,6 +470,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
     export_classes_to_skip = ["ExperimentStatus"]
+    sensitive_export_columns = ["worker_id", "client_ip_address"]
+    sensitive_database_export_columns = ["client_ip_address"]
     initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
     logos = []
     max_allowed_base_payment = 30
@@ -1259,6 +1261,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         See `artifact_storage` for an example.
         """
         return None
+
+    @classmethod
+    def get_sensitive_export_columns(cls):
+        """
+        Returns the list of column names that should be removed from anonymized exports.
+
+        Returns
+        -------
+        list[str]
+            Column names to scrub when anonymization is enabled.
+        """
+        return list(cls.sensitive_export_columns)
+
+    @classmethod
+    def get_sensitive_database_export_columns(cls):
+        """
+        Returns the list of raw database export columns to remove when anonymizing.
+
+        Returns
+        -------
+        list[str]
+            Column names to scrub from anonymized ``database.zip`` exports.
+        """
+        return list(cls.sensitive_database_export_columns)
 
     @classmethod
     def backup_basic_data(cls):

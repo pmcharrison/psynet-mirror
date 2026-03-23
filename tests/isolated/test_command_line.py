@@ -2,6 +2,7 @@ import hashlib
 import json
 import subprocess
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -525,6 +526,55 @@ def test_export_data_avoids_suffix_filename_collisions(
         "trial_2.csv",
         "trial_3.csv",
     ]
+
+
+def test_scrub_sensitive_columns_from_database_zip_uses_database_columns(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _scrub_sensitive_columns_from_database_zip
+
+    database_zip_path = tmp_path / "database.zip"
+    dataset_dir = tmp_path / "dataset" / "data"
+    dataset_dir.mkdir(parents=True)
+    response_csv = dataset_dir / "response.csv"
+    response_csv.write_text(
+        "id,client_ip_address,session_token,answer\n" "1,127.0.0.1,sekret,ok\n",
+        encoding="utf-8",
+    )
+
+    with zipfile.ZipFile(database_zip_path, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.write(response_csv, arcname="data/response.csv")
+
+    class DummyExperiment:
+        @classmethod
+        def get_sensitive_database_export_columns(cls):
+            return ["client_ip_address", "session_token"]
+
+    monkeypatch.setattr("psynet.experiment.get_experiment", lambda: DummyExperiment())
+    _scrub_sensitive_columns_from_database_zip(str(database_zip_path))
+
+    with zipfile.ZipFile(database_zip_path, "r") as archive:
+        with archive.open("data/response.csv") as f:
+            cleaned = f.read().decode("utf-8")
+    assert "client_ip_address" not in cleaned
+    assert "session_token" not in cleaned
+    assert "answer" in cleaned
+
+
+def test_experiment_get_sensitive_export_columns_returns_copy(monkeypatch):
+    class DummyExperiment:
+        sensitive_export_columns = ["client_ip_address"]
+
+        @classmethod
+        def get_sensitive_export_columns(cls):
+            from psynet.experiment import Experiment
+
+            return Experiment.get_sensitive_export_columns.__func__(cls)
+
+    columns = DummyExperiment.get_sensitive_export_columns()
+    columns.append("worker_id")
+
+    assert DummyExperiment.sensitive_export_columns == ["client_ip_address"]
 
 
 def test_check_constraints():

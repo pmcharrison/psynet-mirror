@@ -461,7 +461,9 @@ class SQLMixinDallinger(SharedMixin):
         Removes personally identifying information from the object's JSON representation.
         This is a destructive operation (it changes the input object).
         """
-        to_scrub = ["client_ip_address", "worker_id"]
+        from psynet.experiment import get_experiment
+
+        to_scrub = get_experiment().get_sensitive_export_columns()
         for key in to_scrub:
             try:
                 del json[key]

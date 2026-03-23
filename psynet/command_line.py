@@ -2560,7 +2560,7 @@ def export_database(
                 make_parents(database_zip_path),
             )
             if anonymize:
-                _scrub_client_ip_address_from_database_zip(database_zip_path)
+                _scrub_sensitive_columns_from_database_zip(database_zip_path)
 
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
@@ -2568,10 +2568,16 @@ def export_database(
     return database_zip_path
 
 
-def _scrub_client_ip_address_from_database_zip(database_zip_path):
+def _scrub_sensitive_columns_from_database_zip(database_zip_path):
     """
-    Remove client IP address columns from anonymized raw database exports.
+    Remove sensitive columns from anonymized raw database exports.
     """
+    from .experiment import get_experiment
+
+    sensitive_columns = set(get_experiment().get_sensitive_database_export_columns())
+    if not sensitive_columns:
+        return
+
     with tempfile.TemporaryDirectory() as tempdir:
         with zipfile.ZipFile(database_zip_path, "r") as archive:
             archive.extractall(tempdir)
@@ -2584,23 +2590,26 @@ def _scrub_client_ip_address_from_database_zip(database_zip_path):
                 csv_path = os.path.join(root, filename)
                 with open(csv_path, "r", newline="", encoding="utf-8") as file:
                     reader = csv.DictReader(file)
-                    if (
-                        reader.fieldnames is None
-                        or "client_ip_address" not in reader.fieldnames
-                    ):
+                    if reader.fieldnames is None:
+                        continue
+                    columns_to_remove = [
+                        name for name in reader.fieldnames if name in sensitive_columns
+                    ]
+                    if not columns_to_remove:
                         continue
                     rows = list(reader)
                     fieldnames = [
                         name
                         for name in reader.fieldnames
-                        if name != "client_ip_address"
+                        if name not in sensitive_columns
                     ]
 
                 with open(csv_path, "w", newline="", encoding="utf-8") as file:
                     writer = csv.DictWriter(file, fieldnames=fieldnames)
                     writer.writeheader()
                     for row in rows:
-                        row.pop("client_ip_address", None)
+                        for column_name in columns_to_remove:
+                            row.pop(column_name, None)
                         writer.writerow(row)
 
         with zipfile.ZipFile(
