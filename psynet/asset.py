@@ -39,7 +39,11 @@ from .media import (
     get_s3_resource,
 )
 from .process import LocalAsyncProcess
-from .serialize import prepare_function_for_serialization
+from .serialize import (
+    find_sqlalchemy_object_path,
+    is_sqlalchemy_object,
+    prepare_function_for_serialization,
+)
 from .utils import (
     get_args,
     get_extension,
@@ -53,58 +57,6 @@ from .utils import (
 )
 
 logger = get_logger()
-
-
-def _is_sqlalchemy_object(x):
-    return isinstance(x, db.Base)
-
-
-def _find_sqlalchemy_object_path(x, path="instructions", seen=None):
-    if seen is None:
-        seen = set()
-
-    if _is_sqlalchemy_object(x):
-        return path
-
-    object_id = id(x)
-    if object_id in seen:
-        return None
-    seen.add(object_id)
-
-    if isinstance(x, dict):
-        for key, value in x.items():
-            key_path = _find_sqlalchemy_object_path(
-                key, path=f"{path}.keys()", seen=seen
-            )
-            if key_path:
-                return key_path
-
-            value_path = _find_sqlalchemy_object_path(
-                value, path=f"{path}[{key!r}]", seen=seen
-            )
-            if value_path:
-                return value_path
-        return None
-
-    if isinstance(x, (list, tuple)):
-        for index, value in enumerate(x):
-            value_path = _find_sqlalchemy_object_path(
-                value, path=f"{path}[{index}]", seen=seen
-            )
-            if value_path:
-                return value_path
-        return None
-
-    if isinstance(x, (set, frozenset)):
-        for index, value in enumerate(x):
-            value_path = _find_sqlalchemy_object_path(
-                value, path=f"{path}[set_item_{index}]", seen=seen
-            )
-            if value_path:
-                return value_path
-        return None
-
-    return None
 
 
 def filter_botocore_deprecation_warnings():
@@ -2180,7 +2132,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     ):
         if py_inspect.ismethod(function):
             method_caller = function.__self__
-            if not isinstance(method_caller, type) and _is_sqlalchemy_object(
+            if not isinstance(method_caller, type) and is_sqlalchemy_object(
                 method_caller
             ):
                 raise ValueError(
@@ -2207,7 +2159,9 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
         )
 
     def _validate_cache_key_inputs(self):
-        sqlalchemy_object_path = _find_sqlalchemy_object_path(self.instructions)
+        sqlalchemy_object_path = find_sqlalchemy_object_path(
+            self.instructions, path="instructions"
+        )
         if sqlalchemy_object_path is not None:
             raise ValueError(
                 "CachedFunctionAsset cache keys cannot be derived from SQLAlchemy objects, "

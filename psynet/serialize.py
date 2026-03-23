@@ -233,6 +233,56 @@ def prepare_function_for_serialization(function, arguments):
     return function, arguments
 
 
+def is_sqlalchemy_object(x):
+    return isinstance(x, SQLBase)
+
+
+def find_sqlalchemy_object_path(x, path="value", seen=None):
+    if seen is None:
+        seen = set()
+
+    if is_sqlalchemy_object(x):
+        return path
+
+    object_id = id(x)
+    if object_id in seen:
+        return None
+    seen.add(object_id)
+
+    if isinstance(x, dict):
+        for key, value in x.items():
+            key_path = find_sqlalchemy_object_path(key, path=f"{path}.keys()", seen=seen)
+            if key_path:
+                return key_path
+
+            value_path = find_sqlalchemy_object_path(
+                value, path=f"{path}[{key!r}]", seen=seen
+            )
+            if value_path:
+                return value_path
+        return None
+
+    if isinstance(x, (list, tuple)):
+        for index, value in enumerate(x):
+            value_path = find_sqlalchemy_object_path(
+                value, path=f"{path}[{index}]", seen=seen
+            )
+            if value_path:
+                return value_path
+        return None
+
+    if isinstance(x, (set, frozenset)):
+        for index, value in enumerate(x):
+            value_path = find_sqlalchemy_object_path(
+                value, path=f"{path}[set_item_{index}]", seen=seen
+            )
+            if value_path:
+                return value_path
+        return None
+
+    return None
+
+
 def prepare_class_method_for_serialization(function, arguments):
     """
     Prepares a class method for serialization by jsonpickle.
