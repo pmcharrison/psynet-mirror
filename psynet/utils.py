@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import time
+from dataclasses import dataclass
 from datetime import datetime
 from functools import reduce, wraps
 from os.path import exists
@@ -1231,13 +1232,10 @@ def list_isolated_tests(ci_node_total=None, ci_node_index=None):
 
 
 # Check TODOs
+@dataclass(frozen=True)
 class PatternDir:
-    def __init__(self, pattern, glob_dir):
-        self.pattern = pattern
-        self.glob_dir = glob_dir
-
-    def __dict__(self):
-        return {"pattern": self.pattern, "glob_dir": self.glob_dir}
+    pattern: str
+    glob_dir: str
 
 
 def _should_skip_todo_path(path: Path) -> bool:
@@ -1266,7 +1264,9 @@ def _check_todos(pattern, glob_dir):
 def _aggregate_todos(pattern_dirs: List[PatternDir]):
     todo_count = {}
     for pattern_dir in pattern_dirs:
-        todo_count.update(_check_todos(**pattern_dir.__dict__()))
+        todo_count.update(
+            _check_todos(pattern=pattern_dir.pattern, glob_dir=pattern_dir.glob_dir)
+        )
     return todo_count
 
 
