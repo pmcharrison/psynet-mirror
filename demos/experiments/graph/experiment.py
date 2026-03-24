@@ -13,7 +13,7 @@ from psynet.consent import MainConsent
 from psynet.graphics import Circle, Frame, GraphicPrompt
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage
-from psynet.timeline import Timeline
+from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.graph import GraphChainNode, GraphChainTrial, GraphChainTrialMaker
 from psynet.utils import get_logger
 
@@ -316,6 +316,7 @@ class CustomTrialMaker(GraphChainTrialMaker):
         n_repeat_trials: int = 0,
         wait_for_networks: bool = False,
         allow_revisiting_networks_in_across_chains: bool = False,
+        max_trials_per_block: int = None,
     ):
         network_structure = self.generate_grid(grid_dimension)
         super().__init__(
@@ -340,15 +341,20 @@ class CustomTrialMaker(GraphChainTrialMaker):
             n_repeat_trials=n_repeat_trials,
             wait_for_networks=wait_for_networks,
             allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
+            max_trials_per_block=max_trials_per_block,
         )
 
     def generate_grid(self, size):
         vertices = []
         edges = []
+        blocks = dict()
+        groups = dict()
         for r in range(size):
             for c in range(size):
                 v = int(np.ravel_multi_index([r, c], [size, size]))
                 vertices.append(v)
+                blocks[v] = f"row_{r}"
+                groups[v] = f"col_{c}"
                 if r > 0:
                     upper_neighbour = int(
                         np.ravel_multi_index([r - 1, c], [size, size])
@@ -385,7 +391,12 @@ class CustomTrialMaker(GraphChainTrialMaker):
                             "properties": {"type": "default"},
                         }
                     )
-        return {"vertices": vertices, "edges": edges}
+        return {
+            "vertices": vertices,
+            "edges": edges,
+            "blocks": blocks,
+            "groups": blocks,
+        }
 
 
 class Exp(psynet.experiment.Experiment):
@@ -422,15 +433,20 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         InfoPage("Let's begin!", time_estimate=3),
+        CodeBlock(
+            lambda participant: participant.var.set(
+                "participant_group", f"col_{participant.id % 3}"
+            )
+        ),
         CustomTrialMaker(
             id_="graph_demo",
             trial_class=CustomTrial,
             node_class=CustomNode,
             grid_dimension=3,
             chain_type="across",
-            max_nodes_per_chain=5,
-            expected_trials_per_participant=9,
-            max_trials_per_participant=9,
+            max_nodes_per_chain=3,
+            expected_trials_per_participant=3,
+            max_trials_per_participant=3,
             chains_per_participant=None,
             trials_per_node=1,
             balance_across_chains=True,
@@ -438,12 +454,13 @@ class Exp(psynet.experiment.Experiment):
             check_performance_every_trial=False,
             recruit_mode="n_trials",
             target_n_participants=None,
+            max_trials_per_block=1,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
     )
 
+    test_n_bots = 9
     test_time_factor = 0.1  # allow grow_network to keep up with the bots
-    test_n_bots = 5
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        assert len(bot.alive_trials) == 9
+        assert len(bot.alive_trials) == 3
