@@ -1,7 +1,9 @@
 import uuid
+from datetime import timedelta
 
 import pytest
 from dallinger import db
+from dallinger.models import timenow
 from sqlalchemy import Column, String
 
 from psynet.data import SQLBase
@@ -9,7 +11,13 @@ from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallback
-from psynet.sync import Barrier, BarrierRecord, GroupBarrier, SimpleGrouper
+from psynet.sync import (
+    Barrier,
+    BarrierRecord,
+    GroupBarrier,
+    SimpleGrouper,
+    SimpleSyncGroup,
+)
 
 
 def get_random_id():
@@ -189,3 +197,166 @@ def test_barrier_registry_strips_waiting_logic(db_session):
 
     loaded = BarrierRecord.query.get("strip_wait")
     assert loaded.barrier.waiting_logic is None
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_participant_timeout_kick_missing_participants(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    barrier = GroupBarrier(
+        id_="participant_timeout_kick",
+        group_type="main",
+        participant_timeout=5,
+        participant_timeout_action="kick",
+    )
+
+    # Create 3 participants in the same sync group, but only 2 "reach" this barrier.
+    participants = [new_participant(exp) for _ in range(3)]
+    for p in participants:
+        p.status = "working"
+    waiting_participants = participants[:2]
+    missing_participant = participants[2]
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=3,
+        max_group_size=3,
+        min_group_size=2,
+        n_active_participants=3,
+        accepts_top_ups=False,
+        fail_participants_below_min_size=True,
+    )
+    group.last_barrier_pass_time = timenow() - timedelta(seconds=10)
+    db_session.add(group)
+    for p in participants:
+        group.add_participant(p)
+    db_session.commit()
+
+    released = barrier.choose_who_to_release(waiting_participants)
+
+    assert missing_participant not in group.active_participants
+    assert missing_participant not in released
+    assert set(released) == set(waiting_participants)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_participant_timeout_fail_missing_participants(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    barrier = GroupBarrier(
+        id_="participant_timeout_fail",
+        group_type="main",
+        participant_timeout=5,
+        participant_timeout_action="fail",
+    )
+
+    participants = [new_participant(exp) for _ in range(3)]
+    for p in participants:
+        p.status = "working"
+    waiting_participants = participants[:2]
+    missing_participant = participants[2]
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=3,
+        max_group_size=3,
+        min_group_size=2,
+        n_active_participants=3,
+        accepts_top_ups=False,
+        fail_participants_below_min_size=True,
+    )
+    group.last_barrier_pass_time = timenow() - timedelta(seconds=10)
+    db_session.add(group)
+    for p in participants:
+        group.add_participant(p)
+    db_session.commit()
+
+    released = barrier.choose_who_to_release(waiting_participants)
+
+    assert missing_participant.failed is True
+    assert missing_participant not in group.active_participants
+    assert set(released) == set(waiting_participants)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+@pytest.mark.parametrize("fail_below_min_size", [True, False])
+def test_group_barrier_fail_participants_below_min_size(
+    in_experiment_directory, db_session, fail_below_min_size
+):
+    exp = get_experiment()
+    barrier = GroupBarrier(
+        id_="fail_participants_below_min_size",
+        group_type="main",
+    )
+
+    participants = [new_participant(exp) for _ in range(2)]
+    for p in participants:
+        p.status = "working"
+
+    # Configure group so it's below min size and doesn't accept top-ups.
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=3,
+        max_group_size=3,
+        min_group_size=3,
+        n_active_participants=2,
+        accepts_top_ups=False,
+        fail_participants_below_min_size=fail_below_min_size,
+    )
+    group.last_barrier_pass_time = timenow()
+    db_session.add(group)
+    for p in participants:
+        group.add_participant(p)
+    db_session.commit()
+
+    released = barrier.choose_who_to_release(waiting_participants=participants)
+
+    assert set(released) == set(participants)
+    assert group.active_participants == []
+    assert all(p.active_sync_groups.get("main") is None for p in participants)
+    assert all(p.failed == fail_below_min_size for p in participants)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_participant_kick(in_experiment_directory, db_session):
+    participant = Participant(
+        experiment=get_experiment(),
+        recruiter_id="hotair",
+        worker_id=str(uuid.uuid4()),
+        hit_id="XYZ",
+        assignment_id=str(uuid.uuid4()),
+        mode="debug",
+    )
+    participant.status = "working"
+    db_session.add(participant)
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=1,
+        max_group_size=1,
+        min_group_size=1,
+        n_active_participants=1,
+        accepts_top_ups=False,
+        fail_participants_below_min_size=True,
+    )
+    db_session.add(group)
+    group.add_participant(participant)
+    db_session.commit()
+
+    assert "main" in participant.active_sync_groups
+    GroupBarrier._kick_participant_after_max_wait(
+        participant=participant, group_type="main"
+    )
+    db_session.commit()
+
+    assert participant.active_sync_groups.get("main") is None
