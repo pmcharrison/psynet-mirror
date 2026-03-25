@@ -126,21 +126,10 @@ Cursor command `/review`.
 
 ## Testing
 
-Non-trivial code changes should be tested.
+Non-trivial code changes should be tested. 
 Prefer red/green test-driven development, but avoid committing overly verbose tests in the final PR.
 Implement sensible unit tests where appropriate.
-Verify changes end-to-end by running `psynet test local` within a relevant demo.
-
-## Database migrations
-
-We assume PsyNet experiments are short-lived and their databases do not need
-to persist across PsyNet version upgrades. As a result, avoid complicating
-code to support database migrations or backward-compatible schema changes.
-
-## Docstrings
-
-Prefer including function docstrings. Short docstrings are fine; often a brief
-descriptive summary line is sufficient.
+Verify changes end-to-end by running `psynet test local` within a relevant demo. 
 
 ## Finishing up changes
 

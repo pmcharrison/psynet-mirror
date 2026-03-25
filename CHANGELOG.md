@@ -2,12 +2,10 @@
 
 ## Unreleased
 
-## Added
+### Added
 - Adding a synchronous group monitoring page to the Dashboard.
 - `GroupBarrier` now supports `participant_timeout` (seconds since the group passed the previous barrier) and `participant_timeout_action` (`"kick"` to remove from group or `"fail"` to fail the participant). 
 - Refactored timeline to use named branches for end logic. `Timeline.elts` is now a dict of named branches (`main`, `successful_end`, `unsuccessful_end`, `rejected_consent`). `elt_id` now starts with the branch name (e.g. `["main", 3]`). `EndPage` classes are now redirect elements instead of `PageMaker` wrappers. `participant.fail()` automatically redirects to the `unsuccessful_end` branch unless the participant is already in an end logic branch or already completed. (author: [Peter Harrison])
-### Added
-
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
@@ -53,9 +51,7 @@
 - Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout (author: Frank Höger)
 
 ## Fixed
-- Sync groups are now closed automatically when they have no active participants left and do not accept top-ups (e.g. after all participants are kicked or failed due to barrier timeouts) (author: Cursor)
-### Fixed
-
+- Sync groups are now closed automatically when they have no active participants left and do not accept top-ups
 - Fixed sync barrier processing to reduce deadlocks and make trial-defined barriers release reliably across processes.
 - Fixed ORM instance methods failing during callback serialization.
 - Improved reliability of Docker-based builds when generating dependency constraints.
