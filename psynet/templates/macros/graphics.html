@@ -44,12 +44,14 @@
             svg.removeAttribute("width");
             svg.removeAttribute("height");
 
-            function getCursorLocation(event) {
-                let mouseLoc = [event.pageX, event.pageY];
+            let cursorLocation = null;
+
+            window.addEventListener("mousemove", function(e) {
+                let mouseLoc = [e.pageX, e.pageY];
                 let paperLoc = [paperHtml.offset().left, paperHtml.offset().top];
                 let paperDim = [paperHtml.width(), paperHtml.height()];
-                return [0, 1].map(i => blueprintDim[i] * (mouseLoc[i] - paperLoc[i]) / paperDim[i]);
-            }
+                cursorLocation = [0, 1].map(i => blueprintDim[i] * (mouseLoc[i] - paperLoc[i]) / paperDim[i]);
+            });
 
             function submitAnswer(clickedObject, clickCoordinates) {
                 psynet.nextPage({
@@ -94,14 +96,9 @@
                                     this.raphael.attr({{ object.attributes | tojson }});
 
                                     {% if object.click_to_answer %}
-                                        this.raphael.click(function (e) {
+                                        this.raphael.click(function () {
                                             let clickedObject = object.id;
-                                            let clickCoordinates = getCursorLocation(e);
-                                            // Throw an error if clickCoordinates is not an array
-                                            if (!clickCoordinates || clickCoordinates.length !== 2) {
-                                                throw new Error("clickCoordinates must be an array of length 2");
-                                            }
-                                            submitAnswer(clickedObject, clickCoordinates);
+                                            submitAnswer(clickedObject, cursorLocation);
                                         })
                                     {% endif %}
 

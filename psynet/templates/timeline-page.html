@@ -758,16 +758,31 @@
                         resumeButton.click(async function () {
                             resumeModal.css("display", "none");
                             $("#js-psych").trigger("focus");
+                            psynet.media.userClicked = true;
                             await psynet.media.init();
                             resolve();
                         });
                     });
                 };
 
+
+                psynet.media.userClicked = false;
+                psynet.media.hasMedia = function (type) {
+                    return Object.keys(psynet.media.requests[type]).length > 0;
+                }
+
                 psynet.media.init = async function () {
                     psynet.media.initAudioContext();
 
-                    if (psynet.media.audioContext.state == "suspended") {
+                    if (
+                        (
+                            psynet.media.hasMedia("audio") ||
+                            psynet.media.hasMedia("video")
+                        )
+                        &&
+                        psynet.media.audioContext.state == "suspended" &&
+                        !psynet.media.userClicked
+                    ) {
                         psynet.log.info(
                             "Audio context is suspended, and can only be resumed " +
                             "after a user interaction. Waiting for the participant to click 'Resume'."
