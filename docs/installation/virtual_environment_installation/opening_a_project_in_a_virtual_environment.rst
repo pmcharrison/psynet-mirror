@@ -1,31 +1,21 @@
-To open a project in PyCharm (e.g. a demo), click 'Open' in the PyCharm welcome screen,
-then navigate to the directory containing the project, select the project, and click 'Open'.
-Alternatively, if you already have a PyCharm project open, click 'File' > 'Open', find the directory,
-select it, and click 'Open'.
+To open a project in your IDE (e.g. a demo), click 'File' > 'Open Folder',
+then navigate to the directory containing the project, select the project folder, and click 'Open'.
 
-When you open a new project in PyCharm, you should see a dialogue box that says something like
-"File requirements.txt contains project dependencies. Would you like to create a virtual environment using it?".
-In the dependencies field you should see a path ending in requirements.txt. Replace "requirements.txt"
-with "constraints.txt" and then click "OK". PyCharm will then create a virtual environment for you
-and install all the required packages.
+You can create a virtual environment and install the required packages by running the following commands:
+
+.. code-block:: bash
+
+    uv venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    uv pip install -r requirements.txt -c constraints.txt
 
 .. note::
 
     This workflow creates an isolated virtual environment for each project.
-    PyCharm remembers which virtual environment to use for each project, and will load it automatically
-    when you open the project.
-
-.. note::
-
-    If you are not using PyCharm, you can create a virtual environment and install the required packages
-    by running the following command:
-
-    .. code-block:: bash
-
-        uv venv
-        source .venv/bin/activate
-        uv pip install -r constraints.txt
-
+    Your IDE will typically detect the virtual environment automatically when you open the project.
+    If it doesn't, you may need to manually select the virtual environment's Python interpreter in your IDE's settings.
+    In most IDEs, you can do this by looking for an interpreter or Python environment selector (often in the bottom-right corner
+    or in settings/preferences), and selecting the Python executable from the ``.venv`` folder you just created.
 
 .. note::
 
@@ -40,13 +30,6 @@ and install all the required packages.
     come to run the experiment, they will be able to install exactly the same versions of the packages
     that we originally used.
 
-If you do not see this PyCharm dialogue box, you can instead create the virtual environment by
-clicking the interpreter box in the bottom right corner of the screen (it might say something like
-'No interpreter selected' or 'Python 3.X'), then clicking 'Add new interpreter' > 'Add local interpreter'.
-Select 'Virtualenv environment', select 'New', make sure that the correct version of Python is selected,
-then press OK. PyCharm will spend some time processing this selection, but then when you open a new terminal tab it should load
-your virtual environment automatically.
-
 If you are working as a PsyNet developer, now is the moment to install PsyNet and Dallinger in development mode.
 To do this, run the following commands (assuming you have installed PsyNet and Dallinger in the default locations):
 
@@ -59,12 +42,12 @@ Whenever you develop or deploy an experiment using PsyNet (assuming you are not 
 make sure you are in the appropriate virtual environment.
 You can confirm that you are in the correct virtual environment by looking at the start of your terminal prompt.
 It should look something like this: ``(my-project) your-name@your-computer-name ~ %``.
-If you have only just created your new virtual environment in PyCharm, you might need to open
+If you have only just created your new virtual environment, you might need to open
 a new terminal window for your virtual environment to be loaded.
-Your virtual environment should activate automatically when you open your project in PyCharm;
-if it does not, you can select it by clicking the interpreter box in the bottom right corner of the screen.
+Your virtual environment should activate automatically when you open your project in your IDE;
+if it does not (and you are using PyCharm), you can select it by clicking the interpreter box in the bottom right corner of the screen.
 
-Once PyCharm has finished installing the required packages, you should be able to run the experiment
+Once the required packages have been installed, you should be able to run the experiment
 with the following command:
 
 .. code-block:: bash

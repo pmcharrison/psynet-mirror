@@ -37,6 +37,8 @@ before_script:
 
 .default_rules: &default_rules
   rules:
+    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+      when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
     - if: $CI_COMMIT_BRANCH
@@ -71,6 +73,8 @@ changelog_check:
         exit 1
       fi
   rules:
+    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+      when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
     - when: never
@@ -97,12 +101,37 @@ tests:
     paths:
       - public/
 
+playwright_e2e:
+  stage: test
+  <<: *default_rules
+  script:
+    - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
+    - mkdir -p public test-results
+    - docker run
+      --add-host=postgres:$POSTGRES_IP
+      --add-host=redis:$REDIS_IP
+      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
+      -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
+      -e PLAYWRIGHT_JUNIT_OUTPUT_NAME=public/playwright-junit.xml
+      -e PSYNET_WORKSPACE
+      -v "$PWD:$PSYNET_WORKSPACE"
+      -w $PSYNET_WORKSPACE
+      $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright install --with-deps chromium && npx playwright test tests/playwright/demos --reporter=line,junit,html"
+  artifacts:
+    when: always
+    paths:
+      - public/
+      - test-results/
+      - playwright-report/
+    reports:
+      junit: public/playwright-junit.xml
+
 merge_test_results:
   image: python:3.13-alpine
   stage: test
   <<: *default_rules
-  needs: ["tests"]
-  dependencies: ["tests"]
+  needs: ["tests", "playwright_e2e"]
+  dependencies: ["tests", "playwright_e2e"]
   when: always
   before_script:
     - pip install -q junitparser
@@ -115,17 +144,61 @@ merge_test_results:
 
 # To do:
 # - Skip tests if the changes are only in the docs directory
-pages:
+pages_latest:
   image: python:3.13
   stage: deploy
+  cache:
+    key: psynet-versioned-docs-cache
+    paths:
+      - public/
+    policy: pull-push
   before_script: []
   script:
     - pip install -e '.[dev]'
-    - sphinx-build -b html docs public
+    - pip install furo pydata-sphinx-theme
+    - export ALPHA_REF="$CI_DEFAULT_BRANCH"
+    - git fetch --tags --force origin "$CI_DEFAULT_BRANCH" "$ALPHA_REF"
+    - python docs/scripts/generate_version_switcher.py --default-branch "$ALPHA_REF" --output docs/_static/version_switcher.json
+    - export HIGHEST_STABLE=$(python docs/scripts/generate_version_switcher.py --print-highest-stable)
+    - export SELECTED_STABLE_TAGS=$(python docs/scripts/generate_version_switcher.py --print-selected-stable-tags)
+    - export ALPHA_VERSION=$(python docs/scripts/generate_version_switcher.py --default-branch "$ALPHA_REF" --print-alpha-version)
+    - |
+      build_docs_from_ref () {
+        REF="$1"
+        OUTPUT_DIR="$2"
+        DOCS_DISPLAY_VERSION="$3"
+        WORKTREE_DIR=$(mktemp -d)
+        git worktree add --detach "$WORKTREE_DIR" "$REF"
+        mkdir -p "$WORKTREE_DIR/docs/_static"
+        cp docs/_static/version_switcher.json "$WORKTREE_DIR/docs/_static/version_switcher.json"
+        DOCS_VERSION="$DOCS_DISPLAY_VERSION" sphinx-build -D version="$DOCS_DISPLAY_VERSION" -D release="$DOCS_DISPLAY_VERSION" -b html "$WORKTREE_DIR/docs" "$OUTPUT_DIR"
+        git worktree remove --force "$WORKTREE_DIR"
+      }
+
+      mkdir -p public
+
+      ROOT_TMP_DIR=$(mktemp -d)
+      build_docs_from_ref "$HIGHEST_STABLE" "$ROOT_TMP_DIR" "$HIGHEST_STABLE"
+      cp -a "$ROOT_TMP_DIR"/. public/
+      rm -rf "$ROOT_TMP_DIR"
+
+      for VERSION_TAG in $SELECTED_STABLE_TAGS; do
+        if [ -f "public/$VERSION_TAG/index.html" ]; then
+          echo "Skipping rebuild for existing version: $VERSION_TAG"
+          continue
+        fi
+        build_docs_from_ref "$VERSION_TAG" "public/$VERSION_TAG" "$VERSION_TAG"
+      done
+
+      build_docs_from_ref "origin/$ALPHA_REF" "public/alpha" "$ALPHA_VERSION"
+  pages: true
   artifacts:
     paths:
     - public
   rules:
-    - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+      when: always
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
     - when: never
+

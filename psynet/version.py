@@ -9,7 +9,7 @@ from yaspin import yaspin
 psynet_version = "13.2.0a0"
 
 # Specify Dallinger MAJOR.MINOR version to allow any patch in that series
-recommended_dallinger_major_minor = "12.1"
+recommended_dallinger_major_minor = "12.2"
 
 recommended_python_major_minor = "3.13"
 

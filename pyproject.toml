@@ -37,7 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=12.1.2,<13",
+    "dallinger[docker]>=12.2.0,<13",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf
@@ -54,10 +54,10 @@ dependencies = [
     "pytest-dependency",
     "pytest-mock",
     "pytest-timeout",
-    "moto[server,s3]",
     "python-gettext",
     "rpdb",
     "slack_sdk",  # For Slack notifications
+    "tabulate",
     "tenacity",
     "tomlkit",
     "tqdm",
@@ -69,13 +69,14 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "bump-my-version",
-    "furo",
+    "pydata-sphinx-theme",
     "google-cloud-translate",
     "isort",
     "openai",
     "pre-commit",
     "sphinx",
-    "sphinx-autodoc-typehints",
+    "sphinx-autodoc-typehints<3.0.0",
+    "sphinx-copybutton",
     "sphinx-inline-tabs",
     "beautifulsoup4",
     "pytest-test-groups",

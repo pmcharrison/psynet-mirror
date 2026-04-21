@@ -20,25 +20,36 @@ see `version control with Git <../tutorials/version_control_with_git.html>`_
 for a PsyNet-oriented introduction to Git.
 
 
-PyCharm as an IDE
-^^^^^^^^^^^^^^^^^
+IDE Setup
+^^^^^^^^^
 
 Interactive development environments (IDE)
-help you to manage and run your source files. We particularly recommend PyCharm Professional,
-which integrates well with the development requirements of PsyNet.
-It is possible to get free educational licenses for PyCharm Professional,
-see online for details.
+help you to manage and run your source files. We recommend using **VSCode** or **Cursor** for PsyNet development.
+Both are free and work well with PsyNet.
 
-PsyNet demos come with instructions about how to configure your PyCharm IDE.
-The most important steps are (a) opening the experiment directory as a project (File > Open in PyCharm),
-and (b) configuring your Python interpreter. The instructions for the latter depend on whether you are using
-Docker or not. See ``docs/INSTALL.md`` in your PsyNet demo for these instructions.
+**PyCharm** is also supported as an alternative IDE, but note that PyCharm remote debugging is currently not working (as of February 2025).
+If you choose to use PyCharm, you will need to configure it yourself; we do not provide detailed setup instructions as they may become outdated.
 
-Once you've set up your PyCharm interpreter, you will be able to see your experiment's source files
-by clicking on the File navigator on the left side of the screen.
-You will be able to interact with a bash console by clicking on the ``Terminal`` tab on the bottom of the screen,
-and with a Python console by clicking on the ``Python Console`` tab on the bottom of the screen.
-When you are writing PsyNet commands, you will probably be interacting directly with the ``Terminal`` tab.
+Setting up your IDE generally involves two steps.
+First, you should open the experiment directory as a project in your IDE.
+Second, you should configure your Python interpreter.
+This should involve creating a virtual environment for your project (typically installed in the ``.venv`` directory),
+and then install the experiment's dependencies into this virtual environment.
+This list of dependencies is stored in the ``requirements.txt`` and ``constraints.txt`` files.
+
+To create the environment and install the dependencies, run the following in your terminal:
+
+.. code-block:: bash
+
+    uv venv  # you can specify a particular Python version if you want, e.g. uv venv --python 3.13
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    uv pip install -r requirements.txt -c constraints.txt
+
+.. note::
+
+    If you haven't got uv installed, you can install it by running ``pip install uv``.
+
+Once the uv command has completed, you should be able to use ``psynet`` commands in your terminal.
 See `Command line <../introduction/command_line.html>`_ for an overview of PsyNet commands.
 
 
@@ -51,17 +62,9 @@ The most important PsyNet command for local development is the following:
 
     psynet debug local
 
-The latter executes a bash script that builds a Docker image for your experiment,
-creates a Docker container from that image, and executes the PsyNet command within that container.
-
 This ``psynet debug local`` command creates a local development server that you can use
 to prototype your experiment. This server recreates all the services (web nodes, worker nodes,
-clock nodes, database) that would be running in a real experiment. If you run it via Docker,
-then this is all done using the exact same virtualized environments that you would use
-for your real experiment. This introduces some setup overhead, as all these environments and
-processes need to be spun up, but it means that you have a very good approximation of the
-'real' deployment environment right from the beginning, which is very helpful for avoiding
-bugs later on.
+clock nodes, database) that would be running in a real experiment.
 
 The local development server should take about 10-15 seconds to spin up.
 Once it has spun up, you should see in your console a link to the experiment dashboard.
@@ -95,8 +98,8 @@ in simple Python scripts. This is because PsyNet makes heavy use of subprocesses
 which cannot easily be accessed using standard IDE breakpoints.
 Nonetheless, with a little of extra work, we can achieve the same functionality.
 
-If you are using VSCode/Cursor, we recommend using the ``psynet.debugger()`` function,
-documented below:
+For debugging, we recommend using the ``psynet.debugger()`` function,
+which works with VSCode and Cursor. This is documented below:
 
 .. autofunction:: psynet.debugger
 
