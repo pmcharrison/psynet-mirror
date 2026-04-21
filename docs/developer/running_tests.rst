@@ -170,7 +170,7 @@ To view them in GitLab:
 
 1. Open the pipeline.
 2. Open the ``playwright_e2e`` job.
-3. In the **Job artifacts ** section on the right sidebar you can download or browse uploaded artifacts.
+3. In the **Job artifacts** section on the right sidebar you can download or browse uploaded artifacts.
 
 Uploaded artifacts include:
 
