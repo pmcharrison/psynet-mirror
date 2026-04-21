@@ -1,7 +1,9 @@
 """Multi-chatroom demo experiment.
 
 Participants choose one of N configurable chatrooms and chat in real time.
-Messages are persisted to the database as ChatMessage records.
+Messages are persisted to the database as ChatroomDemoMessage records.
+(The demo defines its own table rather than reusing ``psynet.chatroom`` so
+it can illustrate a low-level, custom chatroom implementation.)
 
 Configuration keys (config.txt):
     num_chatrooms (int, default 3):         Number of parallel chatrooms.
@@ -28,8 +30,10 @@ GLOBAL_CHANNEL = "chatrooms"
 
 
 @register_table
-class ChatMessage(SQLBase, SQLMixin):
-    __tablename__ = "chat_message"
+class ChatroomDemoMessage(SQLBase, SQLMixin):
+    # The table name is prefixed to avoid clashing with ``psynet.chatroom``,
+    # which defines its own ``chat_message`` table for ``ModularPage`` chatrooms.
+    __tablename__ = "chatroom_demo_message"
 
     room_id = Column(String, index=True)
     content = Column(String)
@@ -222,7 +226,7 @@ class Exp(psynet.experiment.Experiment):
 
             elif msg_type == "message":
                 db.session.add(
-                    ChatMessage(
+                    ChatroomDemoMessage(
                         room_id=room_id,
                         content=msg.get("content", ""),
                         sender_id=participant.id,
@@ -272,8 +276,8 @@ class Exp(psynet.experiment.Experiment):
                 "timestamp": m.creation_time.isoformat() if m.creation_time else None,
             }
             for m in (
-                ChatMessage.query.filter_by(failed=False, room_id=room_id)
-                .order_by(ChatMessage.creation_time)
+                ChatroomDemoMessage.query.filter_by(failed=False, room_id=room_id)
+                .order_by(ChatroomDemoMessage.creation_time)
                 .all()
             )
         ]
