@@ -4,7 +4,6 @@ import glob
 import hashlib
 import importlib
 import inspect
-import json
 import logging
 import os
 import re
@@ -77,11 +76,6 @@ def sql_sample_one(x):
     from sqlalchemy.sql import func
 
     return x.order_by(func.random()).first()
-
-
-def dict_to_js_vars(x):
-    y = [f"var {key} = {json.dumps(value)}; " for key, value in x.items()]
-    return "".join(y)
 
 
 def call_function(function, *args, **kwargs):

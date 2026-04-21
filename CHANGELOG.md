@@ -44,6 +44,7 @@
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
 - Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
 - Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
+- Refactored timeline page JavaScript into standalone `psynet.js` with template-driven JSON bootstrap data, preserving initialization order for prompt/control scripts and Lucid termination hooks (author: Marco)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
 - Expanded Playwright demo coverage to perform real UI interactions (controls, recording, playback, event-log assertions) across audio, graphics, imitation_chain_video, static_audio, and video_feature demos (author: Marco).
 - Added Playwright failure diagnostics and artifacts (screenshots, traces, videos, JUnit/HTML reports) and stabilized visual snapshots for the audio demo (author: Peter).
@@ -140,6 +141,7 @@
 - Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
 - Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
 - Removed the PgBadger CI job and related reporting scripts (author: Cursor, reviewer: Peter Harrison)
+- Removed `dict_to_js_vars` as it is no longer used anywhere in code (author: Marco)
 
 ### Documentation
 

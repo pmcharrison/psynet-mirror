@@ -2583,6 +2583,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/d3-visualizations.js",
                 ),
                 (
+                    resources.files("psynet") / "resources/scripts/psynet.js",
+                    "/static/scripts/psynet.js",
+                ),
+                (
                     resources.files("psynet")
                     / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
