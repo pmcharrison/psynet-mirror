@@ -19,6 +19,8 @@
   to aid with configuring VSCode.
 - Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking (author: Cursor, reviewer: Peter Harrison)
 - Added checks to catch cases where Assets are created in the wrong place.
+- Added Playwright (JS) end-to-end tests for audio, graphics, imitation_chain_video, and static_audio demos, plus the video feature demo (author: Marco).
+- Added a dedicated `playwright_e2e` GitLab CI job to run Playwright demo tests and publish JUnit, Playwright HTML report, and backend logs as artifacts (author: Marco).
 - Improved 'basic data' functionality:
   - Basic data is now included by default in PsyNet exports.
   - Added support for CSV-format basic data export.
@@ -43,6 +45,8 @@
 - Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
 - Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
 - Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
+- Expanded Playwright demo coverage to perform real UI interactions (controls, recording, playback, event-log assertions) across audio, graphics, imitation_chain_video, static_audio, and video_feature demos (author: Marco).
+- Added Playwright failure diagnostics and artifacts (screenshots, traces, videos, JUnit/HTML reports) and stabilized visual snapshots for the audio demo (author: Peter).
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 - Replaced the moto-backed S3 emulator with a minimal filesystem-backed mock for targeted S3 artifact-storage tests, while moving broader backup coverage back to a local-storage test path and removing the `moto` dependency from the test environment (author: Frank Höger)
 - Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
@@ -79,6 +83,9 @@
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
 - Added validation to ensure `ChainTrialMaker` start nodes are instances of `node_class`, preventing silent fallback to base-class behavior when subclasses are expected (author: Cursor; reviewer: Peter Harrison)
+- Fixed Playwright harness experiment lifecycle and teardown to reduce stale-process/port conflicts, while keeping legacy mode optional via environment flag (author: Peter).
+- Fixed SliderControl to re-register minimal-interaction gating on `trialPrepare`, so pages that call `psynet.trial.restart()` can re-enable submit/next correctly after slider interaction (author: Peter).
+- Added richer Playwright next-button timeout diagnostics (prompt text, event tail, control state) to speed up CI failure triage (author: Peter).
 - Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
 - Fixed `join` to accept list/tuple inputs so `join(pages)` works when assembling timeline components such as `AsyncCodeBlock` (author: Cursor, reviewer: Peter Harrison)
 - Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
@@ -114,6 +121,7 @@
 - Fixed translation validation to report missing entries before variable-mismatch checks (author: Cursor, reviewer: Peter Harrison)
 - Fixed `S3Storage.list` to honor `top` and `extension` filters (author: Cursor, reviewer: Peter Harrison)
 - Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
+- Hardened Playwright demo tests against flaky timeline transitions by replacing brittle exact-count/transient-text assertions with event/baseline waits and tolerant auto-advance handling across audio, graphics, static_audio, imitation_chain_video, and video_feature specs (author: Marco)
 - Replaced bare `assert response.ok` in Lucid API calls with informative error messages that include the HTTP status code, URL, and response body (author: Frank Höger)
 
 ### Removed
@@ -137,6 +145,7 @@
 
 - Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
 - Clarified AGENTS setup for Dallinger auth and local environment bootstrapping (author: Cursor, reviewer: Peter Harrison)
+- Added Playwright anti-flakiness guardrails to `AGENTS.md` so future E2E tests use stable selectors/events and auto-advance-safe assertions (author: Marco)
 - Clarified Dallinger fork workflow steps around auth, upstream sync, and pg_config failures (author: Cursor, reviewer: Peter Harrison)
 - Clarified system dependency checks and PostgreSQL password guidance in experiment scripts AGENTS.md (author: Cursor, reviewer: Peter)
 - Streamlined API documentation structure and reduced Sphinx warnings (author: Cursor, reviewer: Peter)

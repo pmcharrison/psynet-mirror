@@ -23,7 +23,6 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-
 # def make_js_fade_string(fade_duration):
 #     return "{fade_in: %s, fade_out: %s}" % (fade_duration, fade_duration)
 
