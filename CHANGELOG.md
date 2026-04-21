@@ -26,6 +26,14 @@
 - Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
 - Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
 - Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
+- Added AsyncProcess duration stats (avg/median/p95/max by trial maker) to performance test results (author: Jesse Snyder)
+- Added async process queue delay tracking (`time_enqueued`, `queue_delay` on `AsyncProcess`) with Q Share metric highlighting bottlenecks (author: Jesse Snyder)
+- Added trial count stats (min/median/max) for succeeded bots in performance test results (author: Jesse Snyder)
+- Added scaling slowdown comparison (vs baseline) in cross-test performance summary (author: Jesse Snyder)
+- Added requests/sec throughput metric to performance test results (author: Jesse Snyder)
+- Added bot initialization time distribution (median/p95/max) to per-test detail reporting (author: Jesse Snyder)
+- Added detection and reporting of bots that started but never created DB participant records (author: Jesse Snyder)
+- Added RQ worker count display in async process times section for context on queue delays (author: Jesse Snyder)
 
 ### Changed
 
@@ -38,10 +46,12 @@
 - Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
 - Replaced the moto-backed S3 emulator with a minimal filesystem-backed mock for targeted S3 artifact-storage tests, while moving broader backup coverage back to a local-storage test path and removing the `moto` dependency from the test environment (author: Frank Höger)
 - Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
+- Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout (author: Frank Höger)
 - Improved performance-test summary table: replaced Completed/Bot Errors columns with Succeeded/Errored/Terminated, and response time columns with median/95th/max (author: Jesse Snyder)
 - Separated bot duration tracking by outcome (succeeded/failed/incomplete) in performance test results (author: Jesse Snyder)
 - Redirected bot output to dedicated logfile, keeping console output minimal during performance tests (author: Jesse Snyder)
-- Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout (author: Frank Höger)
+- Improved performance test output: tabulate-based tables, AsyncProcess duration stats, ANSI-colored headers/success rates, and reorganized per-test detail reporting (author: Jesse Snyder)
+- Refactored performance test code from `experiment.py` into standalone `psynet/perf_test.py` module with `PerformanceTester` class (author: Jesse Snyder)
 
 ### Fixed
 
@@ -63,6 +73,8 @@
 - Fixed performance-test summary crashes for short runs by handling missing response metrics and zero-success-rate denominators gracefully (author: [Peter])
 - Fixed performance-test local startup and teardown by launching via `psynet debug local`, loading runtime server credentials, and improving subprocess shutdown behavior (author: [Peter])
 - Fixed performance-test server logs not capturing full output by draining pexpect process in background thread (author: Jesse Snyder)
+- Fixed variable shadowing of builtin `error` in `dashboard_errors` method (author: Jesse Snyder)
+- Restricted wait-page time and trial count stats to succeeded bots only in performance test results (author: Jesse Snyder)
 - Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
 - Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
 - Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
