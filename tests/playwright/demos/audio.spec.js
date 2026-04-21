@@ -5,7 +5,9 @@ const {
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
+  getPageUuid,
   startResponseSubmitTracker,
+  waitForPageChange,
   waitForResponseSubmitIncrement,
   waitForAudioRecordingReady,
   waitForNextEnabled,
@@ -73,7 +75,12 @@ async function clickConsentButton(page, timeout = STEP_TIMEOUT_MS) {
   const consentButton = page.locator("#consent");
   await expect(consentButton).toBeVisible({ timeout });
   await expect(consentButton).toBeEnabled({ timeout });
+  // Capture the pre-click page UUID and wait for it to change after clicking so
+  // subsequent DOM assertions can't accidentally match the outgoing consent
+  // page (e.g. MainConsent's body mentions "voice or video recording" too).
+  const oldUuid = await getPageUuid(page);
   await consentButton.click();
+  await waitForPageChange(page, oldUuid, timeout);
 }
 
 async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
@@ -84,9 +91,12 @@ async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
   await expectMainBodyContains(page, "We need your consent to proceed", timeout);
   await clickConsentButton(page, timeout);
 
+  // Use a phrase that only appears on the AudiovisualConsent page ("In this
+  // experiment, ...") rather than the overlapping procedure wording shared
+  // with MainConsent ("in some experiments ...").
   await expectMainBodyContains(
     page,
-    "you may be asked to make a voice or video recording",
+    "In this experiment, you may be asked to make a voice or video recording",
     timeout
   );
   await clickConsentButton(page, timeout);
