@@ -71,9 +71,9 @@ dev = [
     "bump-my-version",
     "pydata-sphinx-theme",
     "google-cloud-translate",
-    "isort",
     "openai",
     "pre-commit",
+    "ruff",
     "sphinx",
     "sphinx-autodoc-typehints<3.0.0",
     "sphinx-copybutton",
@@ -125,19 +125,27 @@ exclude = [
     "/tests",
 ]
 
-[tool.black]
+[tool.ruff]
 line-length = 88
-target-version = ["py313"]
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | docs/_build
-  | dist
-)/
-'''
+target-version = "py310"
+builtins = ["_"]
+extend-exclude = [
+    ".cache",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "bin",
+    "build",
+    "dist",
+    "docs/_build",
+    "lib",
+    "src",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E203", "E501"]

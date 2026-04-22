@@ -82,13 +82,13 @@ from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
 from .participant import Participant
-from .recruiters import CapRecruiter  # noqa: F401; Backward compatibility alias
-from .recruiters import StagingCapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
+    CapRecruiter,  # noqa: F401; Backward compatibility alias
     DevLucidRecruiter,
     LabRecruiter,
     LucidRecruiter,
+    StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
     StagingLabRecruiter,
 )
 from .redis import redis_vars
@@ -462,6 +462,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     session:
         The experiment's connection to the database.
     """
+
     # Introduced this as a hotfix for a compatibility problem with macOS 10.13:
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
@@ -519,7 +520,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assert not (
             initial_recruitment_size_config_changed
             and initial_recruitment_size_experiment_changed
-        ), "You have set the initial recruitment size in both the config file and in your experiment class."
+        ), (
+            "You have set the initial recruitment size in both the config file and in your experiment class."
+        )
 
         if initial_recruitment_size_config_changed:
             self.initial_recruitment_size = config_initial_recruitment_size
@@ -751,9 +754,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assert os.path.exists(po_path), f"Could not find po file at {po_path}"
                 compile_mo(po_path)
         else:
-            assert self.supported_locales == [
-                "en"
-            ], "No translations are needed, so the supported locales should be ['en']"
+            assert self.supported_locales == ["en"], (
+                "No translations are needed, so the supported locales should be ['en']"
+            )
 
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(
@@ -1530,10 +1533,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     _p("mturk_error", "Please also quote the following information:")
                 )
                 tags.ul(
-                    tags.li(f'{_("Error type")}: {error_type}'),
-                    tags.li(f'{_("HIT ID")}: {hit_id}'),
-                    tags.li(f'{_("Assignment ID")}: {assignment_id}'),
-                    tags.li(f'{_("Worker ID")}: {worker_id}'),
+                    tags.li(f"{_('Error type')}: {error_type}"),
+                    tags.li(f"{_('HIT ID')}: {hit_id}"),
+                    tags.li(f"{_('Assignment ID')}: {assignment_id}"),
+                    tags.li(f"{_('Worker ID')}: {worker_id}"),
                 )
 
             return html
@@ -1947,7 +1950,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 We estimate that the task should take approximately <span style="font-weight: bold;">{round(self.estimated_duration_in_minutes)} minutes</span>. Upon completion of the full task,
                 <br>
                 you should receive a reward of approximately
-                <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_reward_in_dollars)}</span> depending on the
+                <span style="font-weight: bold;">${"{:.2f}".format(self.estimated_reward_in_dollars)}</span> depending on the
                 amount of work done.
                 <br>
                 In some cases, the experiment may finish early: this is not an error, and there is no need to write to us.
@@ -2783,9 +2786,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             for locale in json.loads(value):
                 if locale == "en":
                     continue
-                assert (
-                    locale in psynet_supported_locales
-                ), f"Locale {locale} not available in PsyNet."
+                assert locale in psynet_supported_locales, (
+                    f"Locale {locale} not available in PsyNet."
+                )
 
         config.register(
             "supported_locales", str, validators=[is_valid_json, is_valid_locale]
@@ -4416,9 +4419,9 @@ def pre_deploy_constant(key, func: callable):
     # You could place this in your experiment.py file to list the files in the ``data`` directory.
     >>> data_files = pre_deploy_constant("data_files", sorted(os.listdir("data")))
     """
-    assert callable(
-        func
-    ), "The func argument must be a callable (e.g. lambda: os.listdir('data'))."
+    assert callable(func), (
+        "The func argument must be a callable (e.g. lambda: os.listdir('data'))."
+    )
     key = serialize(key)
 
     try:

@@ -221,9 +221,11 @@ video_pages = join(
         progress_display=ProgressDisplay([ProgressStage(time=5.0)]),
     ),
     wait_while(
-        lambda participant: not (
-            participant.assets["video_record_page_camera"].deposited
-            and participant.assets["video_record_page_screen"].deposited
+        lambda participant: (
+            not (
+                participant.assets["video_record_page_camera"].deposited
+                and participant.assets["video_record_page_screen"].deposited
+            )
         ),
         expected_wait=5.0,
         log_message="Waiting for video recordings to be deposited",

@@ -190,7 +190,9 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                     ),
                     conditional(
                         label="assignment_return_result",
-                        condition=lambda participant: participant.var.assignment_returned,
+                        condition=lambda participant: (
+                            participant.var.assignment_returned
+                        ),
                         logic_if_true=join(
                             CodeBlock(self.reward_and_set_bonus),
                             InfoPage(
@@ -1142,7 +1144,7 @@ class BaseLucidRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.CLIRecruiter
         lucid_url = (
             f"https://marketplace.samplicio.us/fulcrum/next/surveys/{survey_id}/quotas"
         )
-        message = f"Lucid survey {survey_id} created successfully. " f"URL: {lucid_url}"
+        message = f"Lucid survey {survey_id} created successfully. URL: {lucid_url}"
 
         return {
             "items": [url],

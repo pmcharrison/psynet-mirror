@@ -252,9 +252,7 @@ class GraphChainNode(ChainNode):
     outgoing_vertex_ids = Column(PythonList)
 
     def _ready_to_spawn(self):
-        incoming_nodes = (
-            self.get_incoming_nodes()
-        )  # These are incoming nodes from the same layer, to be passed to the next layer
+        incoming_nodes = self.get_incoming_nodes()  # These are incoming nodes from the same layer, to be passed to the next layer
         if len(incoming_nodes) == len(
             self.incoming_vertex_ids
         ):  # Make sure all incoming nodes exist

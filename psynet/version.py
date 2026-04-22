@@ -57,8 +57,8 @@ def check_core_dependency_versions_match_requirements():
 
                     raise ValueError(
                         f"The {package_name} versions installed on your local computer and specified in requirements.txt do not match.\n"
-                        f'\nVersion installed locally: {version_infos["installed"]}'
-                        f'\nVersion specified in requirements.txt: {version_infos["specified"]}'
+                        f"\nVersion installed locally: {version_infos['installed']}"
+                        f"\nVersion specified in requirements.txt: {version_infos['specified']}"
                         "\n\nYou can skip this check by writing `export SKIP_VERSION_CHECK=1` (without quotes) in your terminal."
                     )
 

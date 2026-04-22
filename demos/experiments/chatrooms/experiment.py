@@ -77,7 +77,6 @@ class ChatroomPage(Page):
 
 
 class RoomSelectionPage(Page):
-
     def __init__(self):
         config = get_config()
         super().__init__(
