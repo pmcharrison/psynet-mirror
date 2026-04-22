@@ -18,4 +18,5 @@ Demos
    imitation_chains
    tapping_imitation_chain
    mcmcp
+   chatrooms
 
