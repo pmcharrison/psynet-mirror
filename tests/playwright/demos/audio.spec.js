@@ -5,9 +5,7 @@ const {
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
-  getPageUuid,
   startResponseSubmitTracker,
-  waitForPageChange,
   waitForResponseSubmitIncrement,
   waitForAudioRecordingReady,
   waitForNextEnabled,
@@ -75,12 +73,7 @@ async function clickConsentButton(page, timeout = STEP_TIMEOUT_MS) {
   const consentButton = page.locator("#consent");
   await expect(consentButton).toBeVisible({ timeout });
   await expect(consentButton).toBeEnabled({ timeout });
-  // Capture the pre-click page UUID and wait for it to change after clicking so
-  // subsequent DOM assertions can't accidentally match the outgoing consent
-  // page (e.g. MainConsent's body mentions "voice or video recording" too).
-  const oldUuid = await getPageUuid(page);
   await consentButton.click();
-  await waitForPageChange(page, oldUuid, timeout);
 }
 
 async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
@@ -91,9 +84,14 @@ async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
   await expectMainBodyContains(page, "We need your consent to proceed", timeout);
   await clickConsentButton(page, timeout);
 
-  // Use a phrase that only appears on the AudiovisualConsent page ("In this
-  // experiment, ...") rather than the overlapping procedure wording shared
-  // with MainConsent ("in some experiments ...").
+  // Wait for text that is unique to the AudiovisualConsent page. The
+  // MainConsent page's "Procedure" section also contains the phrase
+  // "you may be asked to make a voice or video recording" (prefixed with
+  // "in some experiments"), so matching on that alone lets the assertion
+  // pass against the still-rendered MainConsent DOM when psynet.nextPage()
+  // performs an in-place DOM swap (same session_id). AudiovisualConsent's
+  // title uses the wording "In this experiment, ...", which only appears
+  // on that page.
   await expectMainBodyContains(
     page,
     "In this experiment, you may be asked to make a voice or video recording",
