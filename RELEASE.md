@@ -96,8 +96,9 @@ git tag v13.1.1
 git push origin release-13.1 v13.1.1
 ```
 
-This triggers the GitLab CI `pages` job which deploys documentation when a
-tag matching `^v[0-9]+\.[0-9]+\.[0-9]+$` is pushed.
+Pushing the tag triggers the CI test pipeline for the tagged commit.
+Documentation is deployed separately via the `pages_latest` CI job when
+changes land on the default branch (see step 10).
 
 ### 7. Wait for CI to pass
 
