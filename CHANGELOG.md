@@ -2,12 +2,13 @@
 
 ## Unreleased
 
-## Added
+## [13.2.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0) Release candidate - 2026-04-27
+
+### Added
+
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
-### Added
-
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
