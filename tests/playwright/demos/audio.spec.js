@@ -84,14 +84,8 @@ async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
   await expectMainBodyContains(page, "We need your consent to proceed", timeout);
   await clickConsentButton(page, timeout);
 
-  // Wait for text that is unique to the AudiovisualConsent page. The
-  // MainConsent page's "Procedure" section also contains the phrase
-  // "you may be asked to make a voice or video recording" (prefixed with
-  // "in some experiments"), so matching on that alone lets the assertion
-  // pass against the still-rendered MainConsent DOM when psynet.nextPage()
-  // performs an in-place DOM swap (same session_id). AudiovisualConsent's
-  // title uses the wording "In this experiment, ...", which only appears
-  // on that page.
+  // Match text unique to AudiovisualConsent ("In this experiment, ...")
+  // to avoid false-matching the similar phrase on MainConsent.
   await expectMainBodyContains(
     page,
     "In this experiment, you may be asked to make a voice or video recording",

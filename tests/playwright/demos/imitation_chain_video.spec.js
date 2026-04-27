@@ -136,17 +136,10 @@ test("imitation_chain_video demo", async ({ page, context }) => {
       await expect(nonSeedRecordButton).toBeVisible();
       await expect(nonSeedRecordButton).toBeEnabled();
 
-      // Wait for the page's automatic initial recording cycle
-      // (trialStart -> responseEnable -> recordStart -> recordEnd after
-      // `duration` seconds) to finish before clicking "Record from start".
-      // The click calls psynet.trial.restart(); clicking mid-cycle can leave
-      // the trial in a state where responseEnable (once=True) never re-fires
-      // and no new recordStart is emitted, so waitForVideoRecordingReady
-      // then times out.
+      // Let the auto-recording cycle finish before clicking "Record from start".
       await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
         timeoutMs: 45000
       });
-
       const nonSeedRecordEventBaseline = await captureTrialEventBaseline(
         experimentPage
       );
