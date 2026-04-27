@@ -67,6 +67,7 @@
 
 ### Fixed
 
+- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
 - Stabilised flaky Playwright demo tests `audio.spec.js` and `imitation_chain_video.spec.js` (author: Frank Höger)
 - Stabilised flaky Playwright `video_feature.spec.js` demo by waiting for the initial auto-recording cycle to finish before clicking "Record from start" (author: Frank Höger)
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
