@@ -144,9 +144,26 @@ merge_test_results:
 
 # To do:
 # - Skip tests if the changes are only in the docs directory
-pages_latest:
+# Build and publish the multi-version docs site to GitLab Pages. Runs in
+# two modes:
+# - Default-branch (or migration-branch) pipeline: full rebuild of the
+#   site — highest stable to public/, selected (major,minor) tags to
+#   public/<tag>/, and master HEAD to public/alpha/.
+# - Prerelease tag pipeline (vX.Y.Z(rc|a)N): adds a single subdirectory
+#   at public/rc/<tag>/ for the tagged docs.
+# Both modes end by syncing the latest version_switcher.json into every
+# public/**/_static/version_switcher.json so cached subdirs whose HTML
+# predates the absolute-URL switch still pick up new entries.
+pages:
   image: python:3.13
   stage: deploy
+  variables:
+    # Single absolute URL so every versioned subdir loads the same JSON.
+    # Without this, each subdir's HTML embeds a relative
+    # `_static/version_switcher.json` reference and a per-subdir copy
+    # of the file, so updating the switcher would require rewriting
+    # every subdir.
+    DOCS_VERSION_SWITCHER_JSON: "https://psynetdev.gitlab.io/PsyNet/_static/version_switcher.json"
   cache:
     key: psynet-versioned-docs-cache
     paths:
@@ -157,11 +174,8 @@ pages_latest:
     - pip install -e '.[dev]'
     - pip install furo pydata-sphinx-theme
     - export ALPHA_REF="$CI_DEFAULT_BRANCH"
-    - git fetch --tags --force origin "$CI_DEFAULT_BRANCH" "$ALPHA_REF"
+    - git fetch --tags --force origin "$CI_DEFAULT_BRANCH"
     - python docs/scripts/generate_version_switcher.py --default-branch "$ALPHA_REF" --output docs/_static/version_switcher.json
-    - export HIGHEST_STABLE=$(python docs/scripts/generate_version_switcher.py --print-highest-stable)
-    - export SELECTED_STABLE_TAGS=$(python docs/scripts/generate_version_switcher.py --print-selected-stable-tags)
-    - export ALPHA_VERSION=$(python docs/scripts/generate_version_switcher.py --default-branch "$ALPHA_REF" --print-alpha-version)
     - |
       build_docs_from_ref () {
         REF="$1"
@@ -177,28 +191,56 @@ pages_latest:
 
       mkdir -p public
 
-      ROOT_TMP_DIR=$(mktemp -d)
-      build_docs_from_ref "$HIGHEST_STABLE" "$ROOT_TMP_DIR" "$HIGHEST_STABLE"
-      cp -a "$ROOT_TMP_DIR"/. public/
-      rm -rf "$ROOT_TMP_DIR"
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        # Prerelease tag pipeline: build only the tagged docs into a
+        # new public/rc/<tag>/ subdirectory, leaving the cached site
+        # (root, alpha, stable subdirs) untouched.
+        build_docs_from_ref "$CI_COMMIT_TAG" "public/rc/$CI_COMMIT_TAG" "$CI_COMMIT_TAG"
+      else
+        # Branch pipeline: full rebuild of stable + alpha.
+        export HIGHEST_STABLE=$(python docs/scripts/generate_version_switcher.py --print-highest-stable)
+        export SELECTED_STABLE_TAGS=$(python docs/scripts/generate_version_switcher.py --print-selected-stable-tags)
+        export ALPHA_VERSION=$(python docs/scripts/generate_version_switcher.py --default-branch "$ALPHA_REF" --print-alpha-version)
 
-      for VERSION_TAG in $SELECTED_STABLE_TAGS; do
-        if [ -f "public/$VERSION_TAG/index.html" ]; then
-          echo "Skipping rebuild for existing version: $VERSION_TAG"
-          continue
-        fi
-        build_docs_from_ref "$VERSION_TAG" "public/$VERSION_TAG" "$VERSION_TAG"
-      done
+        ROOT_TMP_DIR=$(mktemp -d)
+        build_docs_from_ref "$HIGHEST_STABLE" "$ROOT_TMP_DIR" "$HIGHEST_STABLE"
+        cp -a "$ROOT_TMP_DIR"/. public/
+        rm -rf "$ROOT_TMP_DIR"
 
-      build_docs_from_ref "origin/$ALPHA_REF" "public/alpha" "$ALPHA_VERSION"
+        for VERSION_TAG in $SELECTED_STABLE_TAGS; do
+          if [ -f "public/$VERSION_TAG/index.html" ]; then
+            echo "Skipping rebuild for existing version: $VERSION_TAG"
+            continue
+          fi
+          build_docs_from_ref "$VERSION_TAG" "public/$VERSION_TAG" "$VERSION_TAG"
+        done
+
+        build_docs_from_ref "origin/$ALPHA_REF" "public/alpha" "$ALPHA_VERSION"
+      fi
+
+      # Sync the latest version_switcher.json into every existing
+      # _static directory under public/. Handles cached subdirs whose
+      # HTML was built before the absolute-URL switch (and so still
+      # references a relative path), plus belt-and-suspenders for
+      # fresh builds. Uses `\;` (one cp per match) instead of `+`,
+      # because `+` collapses all matches into a single
+      # `cp src match1 match2 ... matchN` invocation, which cp would
+      # interpret as "copy src and match1..matchN-1 *into* matchN as
+      # a directory" and fail with "Not a directory" once more than
+      # one match exists.
+      mkdir -p public/_static
+      cp docs/_static/version_switcher.json public/_static/version_switcher.json
+      find public -path '*/_static/version_switcher.json' -exec cp docs/_static/version_switcher.json {} \;
   pages: true
   artifacts:
     paths:
-    - public
+      - public
   rules:
     - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
       when: always
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(rc|a)\d+$/
       when: always
     - when: never
 
