@@ -61,7 +61,7 @@ git commit -m "Update demo and test experiments for PsyNet 13.1.1"
 
 Edit `CHANGELOG.md`:
 
-1. Replace the `[Unreleased]` header (if present) or insert a new release
+1. Replace the `## Unreleased` header (if present) or insert a new release
    header at the top of the file:
 
    ```
