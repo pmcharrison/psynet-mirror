@@ -68,7 +68,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "bump-my-version",
     "pydata-sphinx-theme",
     "google-cloud-translate",
     "openai",
