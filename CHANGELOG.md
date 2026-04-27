@@ -150,6 +150,7 @@
 - Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
 - Removed the PgBadger CI job and related reporting scripts (author: Cursor, reviewer: Peter Harrison)
 - Removed `dict_to_js_vars` as it is no longer used anywhere in code (author: Marco)
+- Removed the unused `bump-my-version` dev dependency and the corresponding `.bumpversion.toml` config; the release process edits the three version files manually (author: Cursor, reviewer: Frank Höger)
 
 ### Documentation
 
