@@ -66,7 +66,7 @@
 ### Fixed
 
 - Stabilised flaky Playwright demo tests `audio.spec.js` and `imitation_chain_video.spec.js` (author: Frank Höger)
-- Stabilised flaky Playwright `video_feature.spec.js` demo by waiting for the page's automatic initial recording cycle (`trialStart -> responseEnable -> recordStart -> recordEnd`) to complete before clicking "Record from start" in the audio and dual-source recording sections; clicking mid-cycle could call `psynet.trial.restart()` and leave `responseEnable` (`once=True`) without a re-trigger so no new `recordStart` was emitted, causing `waitForTrialEvents` to time out. The single-camera section is skipped because its page overrides `trialPrepare` to `is_triggered_by=None`, so no auto-cycle exists there to wait for (author: Frank Höger)
+- Stabilised flaky Playwright `video_feature.spec.js` demo by waiting for the initial auto-recording cycle to finish before clicking "Record from start" (author: Frank Höger)
 - Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
 - Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
 - Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)
