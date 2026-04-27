@@ -77,16 +77,6 @@ Edit `CHANGELOG.md`:
    - Description of the change (author: Name, reviewer: Name)
    ```
 
-3. Cross-check against merged MRs since the last release tag to make sure
-   nothing is missing:
-
-   ```bash
-   git log --oneline v13.1.0..HEAD --merges
-   ```
-
-4. Close associated GitLab issues with a comment linking them to the MR:
-   "Implemented in !ABC".
-
 Then commit:
 
 ```bash
