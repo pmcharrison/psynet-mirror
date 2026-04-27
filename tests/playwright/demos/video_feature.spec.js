@@ -153,6 +153,11 @@ test("video feature demo", async ({ page, context }) => {
       );
       await expect(audioRecordButton).toBeVisible();
       await expect(audioRecordButton).toBeEnabled();
+
+      // Let the auto-recording cycle finish before clicking "Record from start".
+      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+        timeoutMs: 45000
+      });
       const audioRecordEventBaseline = await captureTrialEventBaseline(experimentPage);
       await audioRecordButton.click();
       await waitForAudioRecordingReady(experimentPage, 45000);
@@ -195,6 +200,8 @@ test("video feature demo", async ({ page, context }) => {
       const singlePlayRecordingButton = experimentPage.locator(
         "#btn-record-play-recording"
       );
+
+      // No auto-recording cycle here (trialPrepare is_triggered_by=None).
       const singleVideoEventBaseline = await captureTrialEventBaseline(experimentPage);
       await videoRecordButton.click();
       await waitForVideoRecordingReady(experimentPage, { timeoutMs: 45000 });
@@ -231,6 +238,11 @@ test("video feature demo", async ({ page, context }) => {
       const dualPlayRecordingButton = experimentPage.locator(
         "#btn-record-play-recording"
       );
+
+      // Let the auto-recording cycle finish before clicking "Record from start".
+      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+        timeoutMs: 60000
+      });
       const dualVideoEventBaseline = await captureTrialEventBaseline(experimentPage);
       await dualRecordButton.click();
       await waitForVideoRecordingReady(experimentPage, {
