@@ -6,6 +6,7 @@
 
 ### Added
 
+- Added documentation builds for release-candidate / alpha tags, published at `/rc/<tag>/`, with the new RC visible in the version switcher from every deployed subdir (author: Cursor, reviewer: Frank Höger)
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
