@@ -208,13 +208,11 @@ test("video feature demo", async ({ page, context }) => {
         "#btn-record-play-recording"
       );
 
-      // Wait for the page's automatic initial recording cycle to finish
-      // before clicking "Record from start" (see comment in section 3 for
-      // background on why mid-cycle clicks can break the trial state).
-      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
-        timeoutMs: 45000
-      });
-
+      // Note: this page (`video_prompt_plus_video_record`) overrides
+      // `trialPrepare` to `is_triggered_by=None`, so there is NO automatic
+      // initial recording cycle to wait for here. The first `recordStart` /
+      // `recordEnd` are emitted only after we click "Record from start"
+      // (which calls `psynet.trial.restart()`).
       const singleVideoEventBaseline = await captureTrialEventBaseline(experimentPage);
       await videoRecordButton.click();
       await waitForVideoRecordingReady(experimentPage, { timeoutMs: 45000 });
