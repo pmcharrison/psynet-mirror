@@ -187,22 +187,23 @@ Once CI passes, build the package and upload it to PyPI:
 
 ```bash
 git checkout v13.2.0
+rm -rf dist/ build/ *.egg-info
 python -m build
-twine upload dist/psynet-13.2.0*
+twine upload dist/psynet-13.2.0.tar.gz dist/psynet-13.2.0-*.whl
+rm -rf dist/ build/ *.egg-info
 ```
 
 This builds both the sdist (`.tar.gz`) and wheel (`.whl`) into the `dist/`
-directory, then uploads them to PyPI. You will be prompted for PyPI
-credentials unless you have a `~/.pypirc` file or a `TWINE_USERNAME` /
-`TWINE_PASSWORD` / `TWINE_API_KEY` environment variable configured.
+directory, then uploads them to PyPI. The pre-build `rm -rf` ensures we
+start from a clean slate; the upload glob is intentionally narrow because
+`dist/psynet-13.2.0*` would also match leftover RC artifacts such as
+`psynet-13.2.0rc0*`. The post-upload `rm -rf` removes generated files.
 
-Verify the release is live at <https://pypi.org/project/psynet/13.2.0/>
+You will be prompted for PyPI credentials unless you have a `~/.pypirc`
+file or a `TWINE_USERNAME` / `TWINE_PASSWORD` / `TWINE_API_KEY`
+environment variable configured.
 
-Clean up build artifacts afterwards:
-
-```bash
-rm -rf dist/ build/ *.egg-info
-```
+Verify the release is live at <https://pypi.org/project/psynet/13.2.0/>.
 
 ### 11. Create the GitLab release
 
@@ -335,10 +336,14 @@ Wait for the tag pipeline to pass on GitLab.
 
 ```bash
 git checkout v13.2.0rc0
+rm -rf dist/ build/ *.egg-info
 python -m build
 twine upload dist/psynet-13.2.0rc0*
 rm -rf dist/ build/ *.egg-info
 ```
+
+The pre-build `rm -rf` ensures we start from a clean `dist/` so the
+upload glob can only match this RC's artifacts.
 
 Verify at <https://pypi.org/project/psynet/13.2.0rc0/>. RCs are not marked
 as the latest release on PyPI, so users must opt in with
