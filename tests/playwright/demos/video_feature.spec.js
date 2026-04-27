@@ -153,6 +153,18 @@ test("video feature demo", async ({ page, context }) => {
       );
       await expect(audioRecordButton).toBeVisible();
       await expect(audioRecordButton).toBeEnabled();
+
+      // Wait for the page's automatic initial recording cycle
+      // (trialStart -> responseEnable -> recordStart -> recordEnd after
+      // `duration` seconds) to finish before clicking "Record from start".
+      // The click calls psynet.trial.restart(); clicking mid-cycle can leave
+      // the trial in a state where responseEnable (once=True) never re-fires
+      // and no new recordStart is emitted, so waitForTrialEvents then times
+      // out.
+      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+        timeoutMs: 45000
+      });
+
       const audioRecordEventBaseline = await captureTrialEventBaseline(experimentPage);
       await audioRecordButton.click();
       await waitForAudioRecordingReady(experimentPage, 45000);
@@ -195,6 +207,14 @@ test("video feature demo", async ({ page, context }) => {
       const singlePlayRecordingButton = experimentPage.locator(
         "#btn-record-play-recording"
       );
+
+      // Wait for the page's automatic initial recording cycle to finish
+      // before clicking "Record from start" (see comment in section 3 for
+      // background on why mid-cycle clicks can break the trial state).
+      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+        timeoutMs: 45000
+      });
+
       const singleVideoEventBaseline = await captureTrialEventBaseline(experimentPage);
       await videoRecordButton.click();
       await waitForVideoRecordingReady(experimentPage, { timeoutMs: 45000 });
@@ -231,6 +251,14 @@ test("video feature demo", async ({ page, context }) => {
       const dualPlayRecordingButton = experimentPage.locator(
         "#btn-record-play-recording"
       );
+
+      // Wait for the page's automatic initial recording cycle to finish
+      // before clicking "Record from start" (see comment in section 3 for
+      // background on why mid-cycle clicks can break the trial state).
+      await waitForTrialEvents(experimentPage, ["recordStart", "recordEnd"], {
+        timeoutMs: 60000
+      });
+
       const dualVideoEventBaseline = await captureTrialEventBaseline(experimentPage);
       await dualRecordButton.click();
       await waitForVideoRecordingReady(experimentPage, {
