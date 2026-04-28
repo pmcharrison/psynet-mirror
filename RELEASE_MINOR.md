@@ -211,8 +211,55 @@ Verify the release is live at <https://pypi.org/project/psynet/13.2.0/>.
 > for this version. The release manager must approve the release notes
 > before publishing.
 
-Go to <https://gitlab.com/PsyNetDev/PsyNet/-/releases/new> and create a release
-from the `v13.2.0` tag, or use the GitLab API / `glab` CLI.
+#### Release-notes template
+
+Compose a release-notes file (e.g. `release-notes-13.2.0.md`) that
+mirrors the corresponding section of `CHANGELOG.md` and points at the
+freshly published artifacts. The body should be short — it is meant to
+re-state the CHANGELOG, not duplicate it:
+
+```markdown
+## What's new in PsyNet 13.2.0
+
+<paste the body of the `# [13.2.0] Release - YYYY-MM-DD` section from
+CHANGELOG.md verbatim, keeping the `## Added` / `## Changed` /
+`## Fixed` / `## Removed` / `## Documentation` subheadings>
+
+## Links
+
+- PyPI: <https://pypi.org/project/psynet/13.2.0/>
+- Documentation: <https://psynetdev.gitlab.io/PsyNet/>
+- Full CHANGELOG: <https://gitlab.com/PsyNetDev/PsyNet/-/blob/v13.2.0/CHANGELOG.md>
+```
+
+The "Documentation" link points at the docs root because the highest
+stable release is always served from there. Once the next minor ships,
+the v13.2.0 docs will additionally be archived at
+`https://psynetdev.gitlab.io/PsyNet/v13.2.0/` — at which point you can
+update older release entries to point at that permanent URL.
+
+#### Option A: GitLab UI
+
+1. Open <https://gitlab.com/PsyNetDev/PsyNet/-/releases/new>.
+2. Select the `v13.2.0` tag.
+3. Set the release title to `v13.2.0`.
+4. Paste the contents of `release-notes-13.2.0.md` into the
+   description box.
+5. Leave the **pre-release** flag **unticked** (this is a final
+   release, not an RC).
+6. Click **Create release**.
+
+#### Option B: `glab` CLI
+
+```bash
+glab release create v13.2.0 \
+  --name "v13.2.0" \
+  --notes-file release-notes-13.2.0.md \
+  --ref v13.2.0
+```
+
+Verify the release is live at
+<https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0>.
 
 ### 12. Bump master to the next alpha
 
@@ -354,10 +401,59 @@ as the latest release on PyPI, so users must opt in with
 > **Human checkpoint:** the GitLab pre-release is publicly visible. The
 > release manager must approve the pre-release notes before publishing.
 
-Create a release entry from the `v13.2.0rc0` tag at
-<https://gitlab.com/PsyNetDev/PsyNet/-/releases/new> and tick the
-**pre-release** flag. Announce the RC to the team / users you want
-feedback from.
+##### Release-notes template
+
+Compose a release-notes file (e.g. `release-notes-13.2.0rc0.md`) that
+mirrors the RC section of `CHANGELOG.md` and points at the artifacts
+specific to this candidate. **Use the `/rc/<tag>/` URL** for docs so
+the link is stable across future releases:
+
+```markdown
+## What's new in PsyNet 13.2.0rc0
+
+<paste the body of the `# [13.2.0rc0] Release candidate - YYYY-MM-DD`
+section from CHANGELOG.md verbatim, keeping the `## Added` /
+`## Changed` / `## Fixed` / `## Removed` / `## Documentation`
+subheadings>
+
+This is a **release candidate**. It is not the latest release on PyPI;
+opt in explicitly with `pip install psynet==13.2.0rc0`. Please test
+against your studies and report any regressions before the final
+13.2.0 tag.
+
+## Links
+
+- PyPI: <https://pypi.org/project/psynet/13.2.0rc0/>
+- RC documentation: <https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc0/>
+- Full CHANGELOG: <https://gitlab.com/PsyNetDev/PsyNet/-/blob/v13.2.0rc0/CHANGELOG.md>
+```
+
+##### Option A: GitLab UI
+
+1. Open <https://gitlab.com/PsyNetDev/PsyNet/-/releases/new>.
+2. Select the `v13.2.0rc0` tag.
+3. Set the release title to `v13.2.0rc0 (Release candidate)`.
+4. Paste the contents of `release-notes-13.2.0rc0.md` into the
+   description box.
+5. **Tick the pre-release flag.** This is critical — it prevents the
+   RC from showing up as the project's "latest release" and signals to
+   users that the artifact is for testing only.
+6. Click **Create release**.
+
+##### Option B: `glab` CLI
+
+```bash
+glab release create v13.2.0rc0 \
+  --name "v13.2.0rc0 (Release candidate)" \
+  --notes-file release-notes-13.2.0rc0.md \
+  --ref v13.2.0rc0
+```
+
+`glab release create` does not currently expose a flag for the
+pre-release checkbox. After running the command, open
+<https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0/edit> and
+**tick the pre-release flag manually**. Then announce the RC to the
+team and users you want feedback from.
 
 ### Iterate: RC1, RC2, …
 
