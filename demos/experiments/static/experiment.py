@@ -10,6 +10,7 @@ from psynet.page import InfoPage
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticNetwork, StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
+from psynet.consent import NoConsent, Consent
 
 logger = get_logger("experiment")
 
@@ -132,6 +133,7 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 2
 
     timeline = Timeline(
+        NoConsent(),
         trial_maker,
     )
 
