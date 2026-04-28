@@ -83,6 +83,13 @@ dev = [
 slack = [
     "slack_sdk",
 ]
+# Note: repp, reppextension, and sing4me are NOT listed here because PyPI
+# rejects distributions whose published metadata declares "direct URL"
+# dependencies (e.g. `pkg @ git+https://...`). They are private GitLab
+# packages, so users who need them install them via the per-demo
+# requirements.txt files (e.g. demos/experiments/tapping_iterated/
+# requirements.txt). pip accepts direct URLs in requirements files;
+# the restriction is only on distribution metadata.
 demos = [
     "music21",
     "numpy",
