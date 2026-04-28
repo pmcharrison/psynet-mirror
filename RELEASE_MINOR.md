@@ -34,13 +34,17 @@ The mandatory human checkpoints are:
    permanent.
 6. **Before creating the GitLab release** (step 11). This is a public
    announcement.
-7. **Before merging the post-release `bump-master-post-release` MR**
-   (step 12).
+7. **Before posting the Slack announcement** to `#psynet-support`
+   (step 12). The message is broadcast and cannot be unsent (only
+   edited or deleted).
+8. **Before merging the post-release `bump-master-post-release` MR**
+   (step 13).
 
 The same checkpoints apply at the equivalent points in the
 [Release candidates (optional)](#release-candidates-optional) flow:
 pushing the release branch, pushing the RC tag, uploading the RC to
-PyPI, and creating the GitLab pre-release.
+PyPI, creating the GitLab pre-release, and posting the Slack
+announcement.
 
 Each step below that requires approval is marked with a
 **Human checkpoint** callout. Stop and wait for the release manager's
@@ -261,7 +265,42 @@ glab release create v13.2.0 \
 Verify the release is live at
 <https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0>.
 
-### 12. Bump master to the next alpha
+### 12. Announce the release on Slack
+
+> **Human checkpoint:** the Slack post is broadcast to
+> `#psynet-support` and cannot be unsent. The release manager must
+> approve the message body before posting.
+
+Use the `docs/scripts/announce_release.py` helper. It composes the
+message from a single version argument and posts it to
+`#psynet-support` using the `[slack]` extra (already installed via the
+prerequisites). Set `SLACK_BOT_TOKEN` to a bot token that has
+`chat:write` access to the channel, then preview and post:
+
+```bash
+python docs/scripts/announce_release.py 13.2.0 --dry-run
+python docs/scripts/announce_release.py 13.2.0
+```
+
+The dry run prints the exact body that would be posted; the second
+command posts it. The final-release template uses Slack `mrkdwn`
+syntax (single `*` for bold, `<URL|label>` for inline links) and
+looks like:
+
+```text
+*:tada: PsyNet 13.2.0 is out*
+
+• <https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0|Release notes>
+• <https://pypi.org/project/psynet/13.2.0/|PyPI>
+• <https://psynetdev.gitlab.io/PsyNet/|Documentation>
+
+Upgrade with `pip install --upgrade psynet`.
+```
+
+If you would rather post by hand, copy the dry-run output verbatim
+into a message in `#psynet-support`.
+
+### 13. Bump master to the next alpha
 
 After the release is published, bump `master` to the next development version:
 
@@ -452,8 +491,40 @@ glab release create v13.2.0rc0 \
 `glab release create` does not currently expose a flag for the
 pre-release checkbox. After running the command, open
 <https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0/edit> and
-**tick the pre-release flag manually**. Then announce the RC to the
-team and users you want feedback from.
+**tick the pre-release flag manually**.
+
+#### 7. Announce the RC on Slack
+
+> **Human checkpoint:** the Slack post is broadcast to
+> `#psynet-support` and cannot be unsent. The release manager must
+> approve the message body before posting.
+
+Use the same `docs/scripts/announce_release.py` helper as for final
+releases — it auto-detects the `rc` segment and generates an
+RC-flavoured message with the `/rc/<tag>/` docs URL and the opt-in
+`pip install psynet==13.2.0rc0` instruction:
+
+```bash
+python docs/scripts/announce_release.py 13.2.0rc0 --dry-run
+python docs/scripts/announce_release.py 13.2.0rc0
+```
+
+The RC template uses Slack `mrkdwn` syntax (single `*` for bold,
+`<URL|label>` for inline links) and looks like:
+
+```text
+*:test_tube: PsyNet 13.2.0rc0 (release candidate) is out*
+
+• <https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0|Release notes>
+• <https://pypi.org/project/psynet/13.2.0rc0/|PyPI>
+• <https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc0/|Documentation>
+
+Opt in with `pip install psynet==13.2.0rc0`. Please test against your
+studies and report any regressions before the final tag.
+```
+
+Tag any specific people whose feedback you need on a thread under the
+post rather than `@channel`-ing the whole channel.
 
 ### Iterate: RC1, RC2, …
 
@@ -505,11 +576,11 @@ RC by repeating the same four-commit sequence with the next RC number
    ```
 
 4. Push the branch, tag `v13.2.0rc1`, push the tag, build and upload to
-   PyPI, and create the GitLab pre-release as before.
+   PyPI, create the GitLab pre-release, and announce on Slack as before.
 
    > **Human checkpoint:** apply the same approvals as for RC0 — push
-   > of branch and tag, PyPI upload, and GitLab pre-release each
-   > require explicit release-manager approval.
+   > of branch and tag, PyPI upload, GitLab pre-release, and the Slack
+   > announcement each require explicit release-manager approval.
 
 Repeat for `rc2`, `rc3`, etc. until you are confident the release is
 ready.
@@ -539,8 +610,8 @@ Once the latest RC has been validated and no further changes are needed:
 
 5. Resume the main release flow from
    [step 6 (Create a merge request)](#6-create-a-merge-request) onwards
-   to merge the release branch into `master`, tag `v13.2.0`, and publish
-   to PyPI.
+   to merge the release branch into `master`, tag `v13.2.0`, publish
+   to PyPI, create the GitLab release, and announce on Slack.
 
 ## Dallinger version considerations
 
