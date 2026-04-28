@@ -30,6 +30,24 @@ RUN CHROME_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testi
 
 COPY pyproject.toml pyproject.toml
 
-# Generate PsyNet constraints.txt (including demos extras) and install it
+# Generate PsyNet constraints.txt (PyPI deps from the [demos] extra) and install it
 RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra demos
 RUN uv pip install --no-cache --system -r constraints.txt
+
+# Install private demo dependencies (repp / reppextension / sing4me).
+# These cannot live in pyproject.toml's [demos] extra because PyPI
+# rejects "direct URL" dependencies in published distribution metadata.
+# Instead we harvest their `pkg@git+https://...` URL lines directly from
+# the demo-level requirements.txt files (which remain the single source
+# of truth for what each demo needs).
+COPY demos/experiments/tapping_iterated/requirements.txt    /tmp/req-iterated.txt
+COPY demos/experiments/tapping_memory/requirements.txt      /tmp/req-memory.txt
+COPY demos/experiments/tapping_static/requirements.txt      /tmp/req-static.txt
+COPY demos/experiments/repp_prescreen/requirements.txt      /tmp/req-prescreen.txt
+COPY demos/features/rhythm_slider/requirements.txt          /tmp/req-rhythm.txt
+COPY demos/experiments/vertical_processing/requirements.txt /tmp/req-vertical.txt
+RUN grep -hE '^(repp|reppextension|sing4me)@' /tmp/req-*.txt \
+    | sort -u > /tmp/private-deps.txt && \
+    echo "Installing private demo deps:" && cat /tmp/private-deps.txt && \
+    uv pip install --no-cache --system -r /tmp/private-deps.txt && \
+    rm -f /tmp/req-*.txt /tmp/private-deps.txt
