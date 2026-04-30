@@ -258,18 +258,23 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
     pypi_url = f"https://pypi.org/project/psynet/{version}/"
 
     if is_prerelease(version):
+        final_version = PRERELEASE_RE.sub("", version)
         title = f":test_tube: PsyNet {version} — Release Candidate :test_tube:"
         subtitle = "A new release candidate is ready for testing!"
         docs_url = f"https://psynetdev.gitlab.io/PsyNet/rc/v{version}/"
-        install = (
-            f"Opt in with `pip install psynet=={version}`. "
+        notice = (
+            ":warning: *This is a release candidate.* "
+            "It is not the latest release on PyPI; "
+            f"opt in explicitly with `pip install psynet=={version}`. "
             "Please test against your studies and report any regressions "
-            "before the final tag."
+            f"before the final `{final_version}` tag."
         )
+        install = None
     else:
         title = f":tada: PsyNet {version} is out! :rocket:"
         subtitle = "A new stable release is now available."
         docs_url = "https://psynetdev.gitlab.io/PsyNet/"
+        notice = None
         install = "Upgrade with `pip install --upgrade psynet`."
 
     links = f"*PyPI*: {pypi_url}\n*Documentation*: {docs_url}"
@@ -285,6 +290,9 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
         _mrkdwn_block(f"_{subtitle}_"),
     ]
 
+    if notice:
+        blocks.append(_mrkdwn_block(notice))
+
     if summary:
         blocks.append({"type": "divider"})
         blocks.append(
@@ -299,7 +307,8 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
         )
 
     blocks.append({"type": "divider"})
-    blocks.append(_mrkdwn_block(install))
+    if install:
+        blocks.append(_mrkdwn_block(install))
     blocks.append(_mrkdwn_block(links))
 
     fallback = f"{title} — {release_url}"
