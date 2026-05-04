@@ -1846,6 +1846,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
+            "inplace_timeline_transitions": False,
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -2588,6 +2589,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/psynet.js",
                 ),
                 (
+                    resources.files("psynet") / "resources/scripts/htmx.min.js",
+                    "/static/scripts/htmx.min.js",
+                ),
+                (
+                    resources.files("psynet") / "resources/scripts/stimulus.umd.js",
+                    "/static/scripts/stimulus.umd.js",
+                ),
+                (
+                    resources.files("psynet")
+                    / "resources/scripts/stimulus-timeline.js",
+                    "/static/scripts/stimulus-timeline.js",
+                ),
+                (
                     resources.files("psynet")
                     / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
@@ -2770,6 +2784,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("show_footer", bool)
         config.register("show_progress_bar", bool)
         config.register("show_reward", bool)
+        config.register("inplace_timeline_transitions", bool)
         config.register("wage_per_hour", float)
         config.register("window_height", int)
         config.register("window_width", int)
@@ -4086,6 +4101,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def serialize_page(cls, page, experiment, participant, mode):
         if mode == "json":
             return jsonify(page.__json__(participant))
+        if mode == "partial":
+            return page.render(experiment, participant, partial_mode=True)
         else:
             return page.render(experiment, participant)
 
@@ -4440,7 +4457,10 @@ def pre_deploy_constant(key, func: callable):
 
 
 def _read_pre_deploy_constant_registry():
-    with open(".deploy/pre_deploy_constant_registry.json", "r") as f:
+    registry_path = ".deploy/pre_deploy_constant_registry.json"
+    if not os.path.exists(registry_path):
+        return {}
+    with open(registry_path, "r") as f:
         return unserialize(f.read())
 
 

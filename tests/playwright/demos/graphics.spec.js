@@ -2,6 +2,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
+  assertExpectedTimelinePathActive,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
@@ -135,6 +136,7 @@ test("graphics demo", async ({ page, context }) => {
     try {
     // Section 0: complete deterministic gateway step.
     await completeInitialGateway(experimentPage);
+    await assertExpectedTimelinePathActive(experimentPage, 20000);
 
     // Section 1: smoke-check intro page and move into graphics-specific pages.
     await expectMainBodyContains(experimentPage, "Graphic components");

@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 import inspect
 import json
 import random
+import re
 import time
 from collections import Counter
 from datetime import datetime
@@ -1429,7 +1430,7 @@ class Page(Elt):
         """
         pass
 
-    def render(self, experiment, participant):
+    def render(self, experiment, participant, partial_mode=False):
         from .utils import get_config
 
         internal_js_vars = {
@@ -1441,6 +1442,12 @@ class Page(Elt):
         language_dict = get_language_dict(locale)
         config = get_config()
         js_vars = {**self.js_vars, **internal_js_vars}
+        if partial_mode:
+            timeline_transition_mode = "fragment"
+        elif config.get("inplace_timeline_transitions"):
+            timeline_transition_mode = "page"
+        else:
+            timeline_transition_mode = "disabled"
 
         all_template_args = {
             **self.template_arg,
@@ -1470,13 +1477,67 @@ class Page(Elt):
                 iso: language_dict[iso] for iso in experiment.supported_locales
             },
             "locale": locale,
+            "timeline_transition_mode": timeline_transition_mode,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_termination_button": self.show_termination_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,
         }
-        return render_string_with_translations(
+        rendered = render_string_with_translations(
             template_string=self.template_str, **all_template_args
         )
+        if partial_mode:
+            rendered = self._defer_executable_scripts(rendered)
+            rendered = self._extract_partial_body(rendered)
+        return rendered
+
+    @staticmethod
+    def _defer_executable_scripts(rendered_html):
+        script_tag = re.compile(r"<script\b(?P<attrs>(?:(?!>).)*)>", re.IGNORECASE)
+
+        def replace(match):
+            attrs = match.group("attrs")
+            attrs_lower = attrs.lower()
+            if (
+                'type="application/json"' in attrs_lower
+                or "type='application/json'" in attrs_lower
+                or 'type="text/psynet-script"' in attrs_lower
+                or "type='text/psynet-script'" in attrs_lower
+            ):
+                return match.group(0)
+            return f'<script type="text/psynet-script"{attrs}>'
+
+        return script_tag.sub(replace, rendered_html)
+
+    @staticmethod
+    def _extract_partial_body(rendered_html):
+        start_candidates = [
+            '<div id="timeline-header"',
+            '<div id="main-body"',
+        ]
+        start_index = -1
+        for candidate in start_candidates:
+            start_index = rendered_html.find(candidate)
+            if start_index != -1:
+                break
+
+        if start_index == -1:
+            raise ValueError(
+                "Failed to extract partial timeline body: could not find fragment root."
+            )
+
+        template_end = rendered_html.rfind("</template>")
+        if template_end != -1:
+            return rendered_html[start_index : template_end + len("</template>")]
+
+        spinner_index = rendered_html.find('<div id="spinner"', start_index)
+        if spinner_index != -1:
+            return rendered_html[start_index:spinner_index]
+
+        body_end = rendered_html.rfind("</body>")
+        if body_end != -1:
+            return rendered_html[start_index:body_end]
+
+        return rendered_html[start_index:]
 
     @property
     def plain_text(self):

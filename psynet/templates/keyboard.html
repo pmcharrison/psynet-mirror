@@ -68,9 +68,9 @@
 
     const isSubset = (array1, array2) => array2.every(element => array1.includes(element));
 
-    function retrieveResponse() {
+    psynet.setRetrieveResponseHandler(function() {
         return { 'rawAnswer': keyboardIDs.val() };
-    }
+    })
 
     function disableButton() {
         $("#next-button").prop("disabled", true);

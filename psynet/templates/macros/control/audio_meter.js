@@ -57,6 +57,9 @@ audioMeterControl.init = function(json) {
     psynet.trial.onEvent("trialConstruct",function() {
         audioMeterControl.canvasContext = document.getElementById("audio-meter").getContext("2d");
         audioMeterControl.audioContext = psynet.media.audioContext;
+        psynet.trial.setTimer(function() {
+            audioMeterControl.audioMeterText.style.display = "block";
+        }, 1000);
         return new Promise((resolve) => {
             navigator.mediaDevices.getUserMedia({ audio: {
             echoCancellation: false,
@@ -70,9 +73,9 @@ audioMeterControl.init = function(json) {
             });
         });
     });
-    setTimeout(function() {
-        audioMeterControl.audioMeterText.style.display = "block";
-    }, 1000);
+    psynet.trial.onEvent("trialStop", function() {
+        audioMeterControl.stopLevelChangeLoop();
+    });
 }
 
 audioMeterControl.onMicrophoneDenied = function() {
@@ -120,9 +123,16 @@ audioMeterControl.onMicrophoneGranted = async function(stream) {
 
     // kick off the visual updating
     var audioMeterControl = this;
-    window.requestAnimationFrame(function(time) {
+    this.rafID = window.requestAnimationFrame(function(time) {
         audioMeterControl.onLevelChange(time);
     });
+}
+
+audioMeterControl.stopLevelChangeLoop = function() {
+    if (this.rafID !== null) {
+        cancelAnimationFrame(this.rafID);
+        this.rafID = null;
+    }
 }
 
 audioMeterControl.showMessage = function(message, color) {
@@ -133,7 +143,7 @@ audioMeterControl.showMessage = function(message, color) {
     clearTimeout(this.messageTimer);
 
     var self = this;
-    setTimeout(function() {
+    this.messageTimer = psynet.trial.setTimer(function() {
         self.resetMessage();
     }, self.msgDuration * 2000);
 }

@@ -12,9 +12,22 @@
   const psynetTemplateData = JSON.parse(templateDataElement.textContent);
   window.psynetTemplateData = psynetTemplateData;
 
-  Object.entries(psynetTemplateData.jsVars || {}).forEach(([key, value]) => {
-    window[key] = value;
-  });
+  let activeJsVarKeys = new Set();
+
+  let syncJsVars = function () {
+    let jsVars = psynetTemplateData.jsVars || {};
+    activeJsVarKeys.forEach((key) => {
+      if (!(key in jsVars)) {
+        delete window[key];
+      }
+    });
+    Object.entries(jsVars).forEach(([key, value]) => {
+      window[key] = value;
+    });
+    activeJsVarKeys = new Set(Object.keys(jsVars));
+  };
+
+  syncJsVars();
 
   $(document).on("change", "#iso-language", function () {
     const locale = $(this).val();
@@ -111,6 +124,353 @@
       window.removeEventListener("beforeunload", beforeunloadFunction);
     };
 
+    psynet.refreshTemplateData = function () {
+      const refreshedTemplateDataElement = document.getElementById(
+        "psynet-template-data",
+      );
+      if (!refreshedTemplateDataElement) {
+        throw new Error("Missing refreshed psynet template data.");
+      }
+      const refreshedTemplateData = JSON.parse(
+        refreshedTemplateDataElement.textContent,
+      );
+      Object.keys(psynetTemplateData).forEach((key) => {
+        delete psynetTemplateData[key];
+      });
+      Object.assign(psynetTemplateData, refreshedTemplateData);
+      window.psynetTemplateData = psynetTemplateData;
+      syncJsVars();
+      psynet.var = psynetTemplateData.jsVars || {};
+      psynet.media.requests = psynetTemplateData.mediaRequests || {};
+    };
+
+    psynet.pageReady = false;
+
+    psynet.updatePageReadyMarker = function () {
+      let mainBody = document.getElementById("main-body");
+      if (!mainBody) {
+        return;
+      }
+      mainBody.setAttribute(
+        "data-page-ready",
+        psynet.pageReady ? "true" : "false",
+      );
+    };
+
+    psynet.setPageReady = function (isReady) {
+      psynet.pageReady = isReady;
+      psynet.updatePageReadyMarker();
+      if (isReady) {
+        window.dispatchEvent(new CustomEvent("timelinePageReady"));
+      }
+    };
+
+    psynet.runWhenDocumentReady = function (callback) {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", callback, { once: true });
+        return;
+      }
+      callback();
+    };
+
+    psynet.page.response = {
+      retrieveResponse: undefined,
+      stageResponse: null,
+    };
+
+    psynet.setRetrieveResponseHandler = function (handler) {
+      psynet.page.response.retrieveResponse = handler;
+    };
+
+    psynet.getRetrieveResponseHandler = function () {
+      return psynet.page.response.retrieveResponse;
+    };
+
+    psynet.clearRetrieveResponseHandler = function () {
+      psynet.page.response.retrieveResponse = undefined;
+    };
+
+    psynet.setStageResponseHandler = function (handler) {
+      psynet.page.response.stageResponse = handler;
+      psynet.stageResponse = handler;
+    };
+
+    psynet.getStageResponseHandler = function () {
+      return psynet.page.response.stageResponse || psynet.stageResponse;
+    };
+
+    psynet.clearStageResponseHandler = function () {
+      psynet.page.response.stageResponse = null;
+      psynet.stageResponse = null;
+    };
+
+    Object.defineProperty(window, "retrieveResponse", {
+      configurable: true,
+      get() {
+        return psynet.getRetrieveResponseHandler();
+      },
+      set(handler) {
+        psynet.setRetrieveResponseHandler(handler);
+      },
+    });
+
+    psynet.pageEventListeners = [];
+
+    psynet.addPageEventListener = function (
+      target,
+      eventName,
+      handler,
+      options,
+    ) {
+      target.addEventListener(eventName, handler, options);
+      psynet.pageEventListeners.push({
+        target: target,
+        eventName: eventName,
+        handler: handler,
+        options: options,
+      });
+    };
+
+    psynet.clearPageEventListeners = function () {
+      psynet.pageEventListeners.forEach(function (listener) {
+        listener.target.removeEventListener(
+          listener.eventName,
+          listener.handler,
+          listener.options,
+        );
+      });
+      psynet.pageEventListeners = [];
+    };
+
+    psynet.resetPageState = function () {
+      psynet.clearPageEventListeners();
+      psynet.comments = [];
+      psynet.page = {
+        prompt: {},
+        control: {},
+        response: {
+          retrieveResponse: undefined,
+          stageResponse: null,
+        },
+      };
+      psynet.setPageReady(false);
+      psynet.pageLoaded = false;
+      psynet.nextPagePending = false;
+      psynet.clearStageResponseHandler();
+      psynet.response.staged = {
+        rawAnswer: null,
+        metadata: {},
+        blobs: {},
+      };
+      psynet.clearRetrieveResponseHandler();
+    };
+
+    psynet.executeInlineScript = function (code) {
+      let script = document.createElement("script");
+      script.textContent = code;
+      document.body.appendChild(script);
+      script.remove();
+    };
+
+    psynet.loadExternalScriptOnce = function (src) {
+      let normalizedSrc = new URL(src, window.location.href).href;
+      if (
+        Array.from(document.scripts).some(
+          (script) =>
+            script.src === normalizedSrc &&
+            script.type !== "text/psynet-script",
+        )
+      ) {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve, reject) => {
+        let script = document.createElement("script");
+        script.src = normalizedSrc;
+        script.async = false;
+        script.onload = resolve;
+        script.onerror = () =>
+          reject(new Error("Could not load script " + normalizedSrc + "."));
+        document.head.appendChild(script);
+      });
+    };
+
+    psynet.executeScriptSequence = async function (scriptElements) {
+      let inlineBuffer = [];
+
+      let flushInlineBuffer = async function () {
+        if (inlineBuffer.length === 0) {
+          return;
+        }
+        psynet.executeInlineScript(
+          "(function(){\n" + inlineBuffer.join("\n") + "\n})();",
+        );
+        inlineBuffer = [];
+      };
+
+      for (let script of scriptElements) {
+        if (script.type === "application/json") {
+          continue;
+        }
+        if (script.src) {
+          await flushInlineBuffer();
+          await psynet.loadExternalScriptOnce(script.src);
+        } else if (script.textContent.trim() !== "") {
+          inlineBuffer.push(script.textContent);
+        }
+      }
+
+      await flushInlineBuffer();
+    };
+
+    psynet.getMainBodyScripts = function () {
+      let mainBody = document.getElementById("main-body");
+      if (!mainBody) {
+        return [];
+      }
+      return Array.from(
+        mainBody.querySelectorAll(
+          'script[type="text/psynet-script"]:not([data-psynet-script-scope])',
+        ),
+      );
+    };
+
+    psynet.getDeferredPageScripts = function () {
+      let scriptContainer = document.getElementById("psynet-page-scripts");
+      if (!scriptContainer) {
+        return [];
+      }
+      let query = 'script[type="text/psynet-script"][data-psynet-script-scope="deferred"]';
+      if (scriptContainer.content) {
+        return Array.from(scriptContainer.content.querySelectorAll(query));
+      }
+      return Array.from(scriptContainer.querySelectorAll(query));
+    };
+
+    psynet.getPageJsLinkScripts = function () {
+      let scriptContainer = document.getElementById("psynet-page-js-links");
+      if (!scriptContainer) {
+        return [];
+      }
+      let query = 'script[type="text/psynet-script"][data-psynet-script-scope="js-link"]';
+      if (scriptContainer.content) {
+        return Array.from(scriptContainer.content.querySelectorAll(query));
+      }
+      return Array.from(scriptContainer.querySelectorAll(query));
+    };
+
+    psynet.getPageCssLinks = function () {
+      let cssTemplate = document.getElementById("psynet-page-css-links");
+      if (!cssTemplate) {
+        return [];
+      }
+      if (cssTemplate.content) {
+        return Array.from(
+          cssTemplate.content.querySelectorAll("link[rel='stylesheet']"),
+        );
+      }
+      return Array.from(cssTemplate.querySelectorAll("link[rel='stylesheet']"));
+    };
+
+    psynet.ensureStylesheetLinks = function () {
+      for (let link of psynet.getPageCssLinks()) {
+        let href = new URL(link.href, window.location.href).href;
+        let alreadyPresent = Array.from(
+          document.querySelectorAll("link[rel='stylesheet']"),
+        ).some((existingLink) => existingLink.href === href);
+        if (!alreadyPresent) {
+          let newLink = document.createElement("link");
+          newLink.rel = "stylesheet";
+          newLink.href = href;
+          document.head.appendChild(newLink);
+        }
+      }
+    };
+
+    psynet.hydrateFragmentAssets = async function () {
+      psynet.ensureStylesheetLinks();
+      await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
+    };
+
+    psynet.runFragmentScripts = async function (scriptElements) {
+      await psynet.executeScriptSequence(scriptElements);
+    };
+
+    psynet.setTimelineTransitionBusy = function (isBusy) {
+      document.body.classList.toggle("timeline-transition-pending", isBusy);
+      let mainBody = document.getElementById("main-body");
+      if (mainBody) {
+        mainBody.setAttribute("aria-busy", isBusy ? "true" : "false");
+      }
+    };
+
+    psynet.finalizePageReady = async function () {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      psynet.setPageReady(true);
+    };
+
+    psynet.initActivatedPage = async function () {
+      psynet.trialProgress = createTrialProgress();
+      psynet.initLucidTermination();
+      await psynet.initPage();
+    };
+
+    psynet.activateSwappedTimelinePage = async function () {
+      psynet.log.warn(
+        "activateSwappedTimelinePage() is deprecated; sequence activation through explicit primitives instead.",
+      );
+      psynet.clearLucidTermination();
+      psynet.resetPageState();
+      psynet.refreshTemplateData();
+      await psynet.hydrateFragmentAssets();
+      await psynet.rebuildTrial();
+      await psynet.runFragmentScripts(psynet.getMainBodyScripts());
+      await psynet.initActivatedPage();
+      await psynet.runFragmentScripts(psynet.getDeferredPageScripts());
+      await psynet.finalizePageReady();
+      psynet.nextPagePending = false;
+      psynet.setTimelineTransitionBusy(false);
+      psynet.log.info("Swapped timeline page activation complete.");
+    };
+
+    psynet.pendingTimelineTransition = null;
+
+    psynet.loadNextTimelinePageWithHtmx = function () {
+      if (typeof htmx === "undefined") {
+        let error = new Error("Missing htmx transition prerequisites.");
+        return psynet.handleTimelineTransitionFailure(error).then(() => {
+          throw error;
+        });
+      }
+
+      return new Promise((resolve, reject) => {
+        psynet.log.info("Requesting next timeline fragment via htmx.");
+        psynet.setPageReady(false);
+        psynet.setTimelineTransitionBusy(true);
+        psynet.pendingTimelineTransition = { resolve, reject };
+        htmx.ajax(
+          "GET",
+          "/timeline?unique_id=" + psynet.uniqueId + "&mode=partial",
+          {
+            target: "#main-body",
+            swap: "outerHTML",
+          },
+        );
+      });
+    };
+
+    psynet.handleTimelineTransitionFailure = async function (error) {
+      psynet.setPageReady(false);
+      psynet.nextPagePending = false;
+      psynet.setTimelineTransitionBusy(false);
+      psynet.response.enable();
+      psynet.submit.enable();
+      psynet.log.error(error.stack || String(error));
+      await psynet.alert(
+        "The next timeline page could not be loaded. Please refresh the page and try again.",
+      );
+    };
+
     psynet.waitForEventListener = async function (target, type) {
       await new Promise((resolve) => {
         target.addEventListener(type, () => resolve(), { once: true });
@@ -182,6 +542,7 @@
         state: null,
         events: {},
         timers: [],
+        intervals: [],
         eventLog: [],
         inProgress: false,
         stopping: false,
@@ -279,8 +640,19 @@
 
           for (const handler of handlers) {
             trial.pendingEventHandlers.add(id);
-            await handler.func(info);
-            trial.pendingEventHandlers.remove(id);
+            try {
+              await handler.func(info);
+            } catch (error) {
+              psynet.log.error(
+                "Error in trial handler for event " +
+                  id +
+                  ": " +
+                  (error && error.stack ? error.stack : String(error)),
+              );
+              throw error;
+            } finally {
+              trial.pendingEventHandlers.remove(id);
+            }
           }
         };
 
@@ -317,11 +689,20 @@
       trial.initEvents();
 
       trial.setTimer = function (handler, timeout) {
-        trial.timers.push(setTimeout(handler, timeout));
+        let timer = setTimeout(handler, timeout);
+        trial.timers.push(timer);
+        return timer;
+      };
+
+      trial.setRepeatingTimer = function (handler, interval) {
+        trial.intervals.push(setInterval(handler, interval));
       };
 
       trial.clearTimers = function () {
         trial.timers.forEach((timer) => clearTimeout(timer));
+        trial.intervals.forEach((interval) => clearInterval(interval));
+        trial.timers = [];
+        trial.intervals = [];
       };
 
       trial.pendingEventHandlers = (() => {
@@ -368,10 +749,12 @@
                   } else {
                     timer += options.pollInterval;
                     if (timer >= options.timeOut) {
+                      let pendingHandlers = Object.keys(data);
                       reject();
                       clearInterval(poller);
                       throw new Error(
-                        "Timed out when waiting for event handlers to complete.",
+                        "Timed out when waiting for event handlers to complete. Pending handlers: " +
+                          pendingHandlers.join(", "),
                       );
                     }
                   }
@@ -408,6 +791,21 @@
 
         trial.state = id;
         trial.logEvent(id, options.info);
+        if (
+          [
+            "trialPrepare",
+            "trialStart",
+            "promptStart",
+            "promptEnd",
+            "trialFinish",
+            "trialStop",
+            "trialStopped",
+            "responseEnable",
+            "submitEnable",
+          ].includes(id)
+        ) {
+          psynet.log.info("Registered trial event: " + id + ".");
+        }
 
         if (event !== undefined) {
           event.happened = true;
@@ -486,24 +884,27 @@
       return trial;
     };
 
-    psynet.trial = Trial();
+    let registerCoreTrialHandlers = function (trial) {
+      trial.onEvent("trialConstruct", async function () {
+        await psynet.media.init();
+        $(".wait-for-media-load").removeAttr("disabled");
+      });
 
-    psynet.trial.onEvent("trialConstruct", async function () {
-      await psynet.media.init();
-      $(".wait-for-media-load").removeAttr("disabled");
-    });
+      trial.onEvent("trialPrepare", function () {
+        trial.inProgress = true;
+      });
 
-    psynet.trial.onEvent("trialPrepare", function () {
-      psynet.trial.inProgress = true;
-    });
+      trial.onEvent("trialFinished", function () {
+        trial.inProgress = false;
+      });
 
-    psynet.trial.onEvent("trialFinished", function () {
-      psynet.trial.inProgress = false;
-    });
+      trial.onEvent("trialStopped", function () {
+        trial.inProgress = false;
+      });
 
-    psynet.trial.onEvent("trialStopped", function () {
-      psynet.trial.inProgress = false;
-    });
+      trial.onEvent("responseEnable", psynet.response.enable);
+      trial.onEvent("submitEnable", psynet.submit.enable);
+    };
 
     psynet.submit = {
       // .sd-navigation__complete-btn is the complete button in SurveyJS
@@ -523,8 +924,16 @@
       disable: () => $(".response").attr("disabled", "disabled"),
     };
 
-    psynet.trial.onEvent("responseEnable", psynet.response.enable);
-    psynet.trial.onEvent("submitEnable", psynet.submit.enable);
+    psynet.rebuildTrial = async function () {
+      if (psynet.trial) {
+        await psynet.trial.stop();
+      }
+      psynet.trial = Trial();
+      registerCoreTrialHandlers(psynet.trial);
+    };
+
+    psynet.trial = Trial();
+    registerCoreTrialHandlers(psynet.trial);
 
     psynet.media.types = ["audio", "image", "html", "video"];
     psynet.media.data = {};
@@ -532,6 +941,8 @@
     psynet.media.sounds = [];
 
     psynet.media.loaded = false;
+
+    psynet.media.objectUrls = new Set();
 
     psynet.media.downloadProgress = {
       byFile: {},
@@ -575,6 +986,17 @@
       }
     };
 
+    psynet.media.downloadProgress.reset = function () {
+      psynet.media.types.forEach(function (mediaType) {
+        psynet.media.downloadProgress.byFile[mediaType] = {};
+      });
+      let bar = psynet.media.downloadProgress.bar();
+      if (bar !== null) {
+        bar.style.width = "0%";
+        bar.classList.remove("colorfadeanim");
+      }
+    };
+
     // The last thing we expect of the user is that the resources, that need to be loaded, are dumped as a json:
     // For example here, we request a batch file that contains three files and we request a single file
     // As we can see each file has a ID and a url where the file is stored
@@ -600,6 +1022,77 @@
           x.stop();
         });
       }
+    };
+
+    psynet.media.registerObjectUrl = function (url) {
+      if (typeof url === "string" && url.startsWith("blob:")) {
+        psynet.media.objectUrls.add(url);
+      }
+      return url;
+    };
+
+    psynet.media.revokeObjectUrl = function (url) {
+      if (!(typeof url === "string" && url.startsWith("blob:"))) {
+        return;
+      }
+      try {
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        psynet.log.warn(
+          "Failed to revoke object URL: " + (error && error.message ? error.message : String(error)),
+        );
+      } finally {
+        psynet.media.objectUrls.delete(url);
+      }
+    };
+
+    psynet.cleanupPageResources = async function () {
+      psynet.log.info("Cleaning page resources before swapped-page activation.");
+      psynet.media.stopAllAudio();
+
+      let clearPlayer = function (player) {
+        if (!player) {
+          return;
+        }
+        if (player.tagName === "VIDEO") {
+          try {
+            player.pause();
+          } catch (error) {}
+          player.removeAttribute("src");
+          if (typeof player.load === "function") {
+            player.load();
+          }
+        } else if (player.tagName === "IMG") {
+          player.removeAttribute("src");
+        }
+      };
+
+      Object.values(psynet.media.data).forEach(function (entries) {
+        Object.values(entries || {}).forEach(function (entry) {
+          if (!entry) {
+            return;
+          }
+          if (entry.objectUrl) {
+            psynet.media.revokeObjectUrl(entry.objectUrl);
+          }
+          if (entry.url) {
+            psynet.media.revokeObjectUrl(entry.url);
+          }
+          clearPlayer(entry.player);
+        });
+      });
+
+      Array.from(psynet.media.objectUrls).forEach(function (url) {
+        psynet.media.revokeObjectUrl(url);
+      });
+
+      psynet.media.types.forEach(function (mediaType) {
+        psynet.media.data[mediaType] = {};
+        psynet[mediaType] = psynet.media.data[mediaType];
+      });
+      psynet.media.sounds = [];
+      psynet.media.loaded = false;
+      psynet.media.downloadProgress.reset();
     };
 
     psynet.media.getMicrophoneMetadataFromAudioStream = function (stream) {
@@ -1098,10 +1591,11 @@
         data = new Blob([data], { type: mimeType });
       }
 
-      player.src = URL.createObjectURL(data);
+      player.src = psynet.media.registerObjectUrl(URL.createObjectURL(data));
 
       let out = psynet.media.data[mediaType][stimulusId];
       out.player = player;
+      out.objectUrl = player.src;
 
       let url = player.src;
       let metadata = await getImageMetadataFromURL(url);
@@ -1130,7 +1624,7 @@
             "' with the player of the same name.'",
         );
         data = new Blob([data]); // convert to blob
-        player.src = URL.createObjectURL(data);
+        player.src = psynet.media.registerObjectUrl(URL.createObjectURL(data));
         player.classList.remove("loader");
         player.load();
         await psynet.waitForEventListener(player, "canplaythrough");
@@ -1138,6 +1632,9 @@
 
       let out = psynet.media.data[mediaType][stimulusId];
       out.player = player;
+      if (player != null && player.src) {
+        out.objectUrl = player.src;
+      }
       out.loaded = true;
 
       psynet.media.downloadProgress.set(mediaType, fileId, 100);
@@ -1259,7 +1756,9 @@
         };
       }
 
-      $("#send-comment").click(function () {
+      $("#send-comment")
+        .off("click.psynetComment")
+        .on("click.psynetComment", function () {
         var text = $("#comment-text");
         var textValue = text.val();
 
@@ -1268,7 +1767,7 @@
           text.val("");
           psynet.alert(psynetTemplateData.strings.commentStored);
         }
-      });
+        });
     };
 
     psynet.estimateDownloadSpeed = function () {
@@ -1287,9 +1786,9 @@
 
     psynet.pageLoaded = false;
 
-    let waitForPageLoad = function () {
+    let waitForDocumentReady = function () {
       return new Promise((resolve) => {
-        window.addEventListener("load", () => resolve());
+        psynet.runWhenDocumentReady(resolve);
       });
     };
 
@@ -1307,8 +1806,7 @@
       psynet.submit.disable();
       $(".wait-for-media-load").attr("disabled", "disabled");
 
-      await waitForPageLoad();
-      let correctBrowser = await waitForBrowserCheck();
+      await waitForDocumentReady();
 
       psynet.pageLoadTime = new Date();
       psynet.pageLoaded = true;
@@ -1316,10 +1814,13 @@
       psynet.participantId = psynetTemplateData.participantId;
       psynet.uniqueId = psynetTemplateData.uniqueId;
 
+      let correctBrowser = await waitForBrowserCheck();
+
       updateProgressAndReward();
 
       if (correctBrowser) {
-        setTimeout(() => psynet.trial.init(), 25);
+        await new Promise((resolve) => setTimeout(resolve, 25));
+        await psynet.trial.init();
       }
     };
 
@@ -1353,30 +1854,35 @@
 
     psynet.compileResponse = async function () {
       let response = {};
+      let retrieveResponseHandler = psynet.getRetrieveResponseHandler();
+      let stageResponseHandler = psynet.getStageResponseHandler();
 
-      if (typeof retrieveResponse == "undefined") {
-        if (psynet.stageResponse) {
-          await psynet.stageResponse();
+      if (typeof retrieveResponseHandler == "undefined") {
+        if (stageResponseHandler) {
+          await stageResponseHandler();
         }
         response = psynet.response.staged;
       } else {
-        response = retrieveResponse();
+        response = retrieveResponseHandler();
       }
 
       return response;
     };
 
     psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
-      if (!psynet.pageLoaded) {
+      if (!psynet.pageReady) {
+        psynet.log.info("Blocked nextPage because pageReady is false.");
         psynet.alert(psynetTemplateData.strings.pageLoadNotReady);
         return false;
       }
       if (psynet.nextPagePending) {
+        psynet.log.info("Blocked nextPage because nextPagePending is true.");
         psynet.log.debug(
           "Skipping nextPage request as nextPage is already pending.",
         );
         return false;
       }
+      psynet.log.info("Submitting response via nextPage.");
       psynet.nextPagePending = true;
       // rawAnswer, metadata, and blobs default to psynet.response.staged if they
       // are not provided explicitly.
@@ -1423,7 +1929,7 @@
       });
     };
 
-    let onSuccessResponse = function (request, onRejection) {
+    let onSuccessResponse = async function (request, onRejection) {
       let response = JSON.parse(request.response);
       let passedValidation;
       if (response.submission === "approved") {
@@ -1435,7 +1941,11 @@
             psynet.page.attributes.session_id
         );
         if (shouldRefreshPage) {
-          window.location = "/timeline?unique_id=" + psynet.uniqueId;
+          if (psynetTemplateData.flags.inplaceTimelineTransitions) {
+            await psynet.loadNextTimelinePageWithHtmx();
+          } else {
+            window.location = "/timeline?unique_id=" + psynet.uniqueId;
+          }
         } else {
           psynet.page = response.page;
           psynet.trial.registerEvent("pageUpdated");
@@ -1543,12 +2053,12 @@
 
       return new Promise((resolve) => {
         let request = new XMLHttpRequest();
-        request.onreadystatechange = function () {
+        request.onreadystatechange = async function () {
           if (request.readyState === 4) {
             let passedValidation;
             if (request.status === 200) {
               psynet.log.debug("Response was successfully received.");
-              passedValidation = onSuccessResponse(request, onRejection);
+              passedValidation = await onSuccessResponse(request, onRejection);
             } else {
               psynet.log.debug("Something went wrong.");
               onErrorResponse(request);
@@ -1562,7 +2072,7 @@
       });
     };
 
-    psynet.trialProgress = (() => {
+    let createTrialProgress = function () {
       let config = psynetTemplateData.trialProgressDisplayConfig;
       let opacities = { light: 0.25, medium: 0.6, dark: 1.0 };
 
@@ -1597,7 +2107,10 @@
             }
           };
         });
-        setInterval(update, 5);
+        if (psynet.trialProgressIntervalId) {
+          clearInterval(psynet.trialProgressIntervalId);
+        }
+        psynet.trialProgressIntervalId = setInterval(update, 5);
       };
 
       let bound = function (x, min, max) {
@@ -1680,7 +2193,9 @@
         start: start,
         stop: stop,
       };
-    })();
+    };
+
+    psynet.trialProgress = createTrialProgress();
 
     psynet.audio = psynet.media.data.audio;
     psynet.image = psynet.media.data.image;
@@ -1764,7 +2279,27 @@
 
   window.psynet = psynet;
 
+  psynet.clearLucidTermination = function () {
+    psynet.removeBeforeUnloadEventListener();
+    $(document).off(".psynetLucidTermination");
+
+    if (psynet.lucidTerminationIntervalIds) {
+      psynet.lucidTerminationIntervalIds.forEach((id) => clearInterval(id));
+    }
+    psynet.lucidTerminationIntervalIds = [];
+
+    if (psynet.lucidTerminationEvents && psynet.lucidTerminationResetHandler) {
+      psynet.lucidTerminationEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, psynet.lucidTerminationResetHandler);
+      });
+    }
+    psynet.lucidTerminationEvents = [];
+    psynet.lucidTerminationResetHandler = null;
+  };
+
   psynet.initLucidTermination = function () {
+    psynet.clearLucidTermination();
+
     if (!psynetTemplateData.flags.lucidRecruitment) {
       return;
     }
@@ -1856,13 +2391,22 @@
     );
     const clockIntervalID = setInterval(updateClocks, POLLING_INTERVAL);
 
-    $(document).on("click", ".btn, .sd-btn", function () {
+    psynet.lucidTerminationIntervalIds = [
+      checkTriedToLeaveIntervalID,
+      clockIntervalID,
+    ];
+
+    $(document).on("click.psynetLucidTermination", ".btn, .sd-btn", function () {
       psynet.removeBeforeUnloadEventListener();
     });
 
-    $(document).on("click", "#terminate-button", function () {
+    $(document).on(
+      "click.psynetLucidTermination",
+      "#terminate-button",
+      function () {
       terminateParticipant("terminate-button");
-    });
+      },
+    );
 
     const events = [
       "click",
@@ -1872,10 +2416,12 @@
       "mousemove",
       "touchstart",
     ];
-    events.forEach((eventName) => {
-      window.addEventListener(eventName, function () {
+    psynet.lucidTerminationEvents = events;
+    psynet.lucidTerminationResetHandler = function () {
         noActivitySince = 0;
-      });
+    };
+    events.forEach((eventName) => {
+      window.addEventListener(eventName, psynet.lucidTerminationResetHandler);
     });
   };
 })();

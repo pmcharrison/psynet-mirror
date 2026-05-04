@@ -128,7 +128,10 @@
                     clearTimeout(buttonTimers[id]);
                 }
                 highlightButton(button);
-                buttonTimers[id] = setTimeout(unhighlightButton, buttonHighlightDuration * 1000, button);
+                buttonTimers[id] = psynet.trial.setTimer(
+                    () => unhighlightButton(button),
+                    buttonHighlightDuration * 1000,
+                );
             {% else %}
                 psynet.response.disable();
                 psynet.submit.disable();
@@ -152,19 +155,21 @@
     {{ push_buttons(params) }}
     <script>
         const keyCodeIdx = JSON.parse(`{{ params.keys | tojson }}`);
-        document.addEventListener("keydown", function(event) {
-            let keyCode = event.code;
-            // keyCode in keyCodeIdx
-            if (keyCodeIdx.includes(keyCode)) {
-                let buttonIdx = keyCodeIdx.indexOf(keyCode);
-                let buttons = document.getElementsByClassName("push-button");
-                let button = buttons[buttonIdx];
-                if (button.disabled) {
-                    psynet.alert("Cannot select the button because it is disabled.");
-                } else {
-                    clickedButton(button, button.id);
+        psynet.trial.onEvent("trialConstruct", function() {
+            psynet.addPageEventListener(document, "keydown", function(event) {
+                let keyCode = event.code;
+                // keyCode in keyCodeIdx
+                if (keyCodeIdx.includes(keyCode)) {
+                    let buttonIdx = keyCodeIdx.indexOf(keyCode);
+                    let buttons = document.getElementsByClassName("push-button");
+                    let button = buttons[buttonIdx];
+                    if (button.disabled) {
+                        psynet.alert("Cannot select the button because it is disabled.");
+                    } else {
+                        clickedButton(button, button.id);
+                    }
                 }
-            }
+            });
         });
     </script>
 {% endmacro %}
@@ -206,7 +211,7 @@
             psynet.nextPage(id);
         }
 
-        retrieveResponse = function() {
+        psynet.setRetrieveResponseHandler(function() {
             let elements = document.getElementsByName('{{ params.name }}')
             checkedValues = Array.from(elements).map(function(element, i) {
                 if (element.checked) {return element.id}
@@ -216,7 +221,7 @@
             return {
                 rawAnswer: checkedValues
             }
-        }
+        })
     </script>
 {% endmacro %}
 
@@ -267,7 +272,7 @@
         });
         {% endif %}
 
-        retrieveResponse = function() {
+        psynet.setRetrieveResponseHandler(function() {
             let element = document.querySelector('input[name="{{ params.name }}"]:checked')
             var rawAnswer = (element != null) ? element.id : null;
 
@@ -277,7 +282,7 @@
             }
             {% endif %}
             return {rawAnswer: rawAnswer}
-        }
+        })
     </script>
 {% endmacro %}
 
@@ -310,12 +315,12 @@
             psynet.nextPage(id);
         }
 
-        retrieveResponse = function() {
+        psynet.setRetrieveResponseHandler(function() {
             let element = document.getElementById("{{ params.name }}");
             return {
                 rawAnswer: (element != null) ? element.value : null
             }
-        }
+        })
     </script>
 {% endmacro %}
 
@@ -378,7 +383,12 @@
                 psynet.media.stopAllAudio();
                 psynet.log.debug('Playing sound with ID = ' + id);
                 disableSlider();
-                sound.play().source.addEventListener("ended", enableSlider);
+                psynet.addPageEventListener(
+                    sound.play().source,
+                    "ended",
+                    enableSlider,
+                    { once: true },
+                );
             }
         };
 
@@ -425,7 +435,7 @@
             psynet.log.debug('Showing image with ID = ' + id);
             image.setAttribute("src", content.player.src);
             image.style.visibility='visible';
-            setTimeout(enableSlider, disableDuration * 1000);
+            psynet.trial.setTimer(enableSlider, disableDuration * 1000);
         };
 
         onSliderEvent = function (eventType) {
@@ -470,7 +480,7 @@
             var show = document.getElementById('slider-current-stimulus');
             // get image, parse source text, and insert text into html
             show.innerHTML = html.player.innerHTML;
-            setTimeout(enableSlider, disableDuration * 1000);
+            psynet.trial.setTimer(enableSlider, disableDuration * 1000);
         };
 
         onSliderEvent = function (eventType) {
@@ -517,9 +527,9 @@
             video.player.currentTime = 0;
             video.player.play();
             if (disableDuration == 0) {
-                setTimeout(enableSlider, video.player.duration * 1000)
+                psynet.trial.setTimer(enableSlider, video.player.duration * 1000)
             } else {
-                setTimeout(enableSlider, disableDuration * 1000);
+                psynet.trial.setTimer(enableSlider, disableDuration * 1000);
             }
         };
 
@@ -564,7 +574,9 @@
             document.body.style.backgroundColor = hex;
         };
 
-        document.addEventListener("load", onSliderEvent);
+        psynet.trial.onEvent("trialConstruct", function () {
+            onSliderEvent("initialise");
+        });
     </script>
 {% endmacro %}
 
@@ -885,14 +897,13 @@
             });
         }
 
-        slider.addEventListener("input", sliderOnInput, false);
-        slider.addEventListener("change", sliderOnChange, false);
-
         psynet.trial.onEvent("trialConstruct", () => {
+            psynet.addPageEventListener(slider, "input", sliderOnInput, false);
+            psynet.addPageEventListener(slider, "change", sliderOnChange, false);
             checkMinimalInteractions();
         });
 
-        retrieveResponse = function() {
+        psynet.setRetrieveResponseHandler(function() {
             let outputValue = parseFloat(slider.getAttribute("output-value"));
             let rawAnswer = outputValue;
             let metadata = {
@@ -904,7 +915,7 @@
                 rawAnswer: rawAnswer,
                 metadata: metadata
             }
-        };
+        });
     </script>
     {% if params.template_filename %}
         {% include params.template_filename %}
@@ -958,7 +969,7 @@
                 });
             });
         };
-        window.addEventListener("load", initSliders);
+        psynet.trial.onEvent("trialConstruct", initSliders);
     </script>
 
     <div class="slider-collection">
@@ -1062,7 +1073,12 @@
     </div>
 
     <script>
-        setInterval(() => audioMeterControl.updateFromSliders(), 50);
+        psynet.trial.onEvent("trialConstruct", function () {
+            audioMeterControl.updateFromSliders();
+            psynet.trial.setRepeatingTimer(function () {
+                audioMeterControl.updateFromSliders();
+            }, 50);
+        });
     </script>
 {% endmacro %}
 
@@ -1120,10 +1136,12 @@
     {% endif %}
 
     <script>
-        $(document).ready(function() {
+        psynet.trial.onEvent("trialConstruct", function() {
             $(".auto-reset").on("click", function() {
                 this.disabled = true;
-                setTimeout(() => this.disabled = false, 500);
+                psynet.trial.setTimer(() => {
+                    this.disabled = false;
+                }, 500);
             });
 
             $("#btn-record-record").on("click", function() {
@@ -1390,7 +1408,12 @@
             psynet.page.control.playRecording = async function() {
                 await loadRecordedVideo();
                 videoPreviewPlayer.play();
-                videoPreviewPlayer.addEventListener("ended", loadCameraPreview, {once: true});
+                psynet.addPageEventListener(
+                    videoPreviewPlayer,
+                    "ended",
+                    loadCameraPreview,
+                    { once: true },
+                );
             };
 
             psynet.page.control.stopRecordingPlayback = async function() {
@@ -1523,11 +1546,11 @@
     <p class="vspace"></p>
 
     <script>
-        retrieveResponse = function() {
+        psynet.setRetrieveResponseHandler(function() {
             return {
                 rawAnswer: $("#text-input").get(0).value
             }
-        }
+        })
 
         psynet.trial.onEvent("responseEnable", function() {
             document.getElementById('text-input').focus();
@@ -1556,11 +1579,11 @@
     <p class="vspace"></p>
 
     <script>
-        retrieveResponse = function() {
+        psynet.setRetrieveResponseHandler(function() {
             return {
                 rawAnswer: $("#number-input").get(0).value
             }
-        }
+        })
 
         psynet.trial.onEvent("responseEnable", function() {
             document.getElementById('number-input').focus();
@@ -1632,24 +1655,35 @@
     </div>
 
     <script>
+        let sliderVideoAnimationFrame = null;
+
         function updateVideoFromSlider() {
             let slider_value = document.getElementById("slider").value;
             let video = document.getElementById("slider-video");
 
             video.currentTime = slider_value * video.duration;
-            window.requestAnimationFrame(updateVideoFromSlider);
+            sliderVideoAnimationFrame = window.requestAnimationFrame(updateVideoFromSlider);
         };
 
         psynet.trial.onEvent("responseEnable", function() {
             $("#slider-video").css("visibility", "visible");
-            updateVideoFromSlider()
+            if (sliderVideoAnimationFrame === null) {
+                updateVideoFromSlider();
+            }
         });
 
-        retrieveResponse = function() {
+        psynet.trial.onEvent("trialStop", function() {
+            if (sliderVideoAnimationFrame !== null) {
+                cancelAnimationFrame(sliderVideoAnimationFrame);
+                sliderVideoAnimationFrame = null;
+            }
+        });
+
+        psynet.setRetrieveResponseHandler(function() {
             return {
                 rawAnswer: parseFloat($("#slider").get(0).value)
             }
-        }
+        })
     </script>
 {% endmacro %}
 
@@ -1684,7 +1718,7 @@
         // survey.showCompleteButton = false; // only available in SurveyJS v2.0.0
         survey.showNavigationButtons = false;
 
-        psynet.stageResponse = () => {
+        psynet.setStageResponseHandler(() => {
             // This will actually do more than stage the response,
             // it'll trigger the full submission.
             let success = survey.completeLastPage()
@@ -1693,7 +1727,7 @@
                     "The participant failed SurveyJS's validation checks (e.g. because they forgot to answer a question). They will be asked to try again."
                 );
             }
-        }
+        })
 
         {% endif %}
 
@@ -1733,12 +1767,10 @@
         });
         survey.onCompleting.add(handleSurveyCompletion);
 
-        $(function() {
-            $("#surveyContainer").Survey({ model: survey });
-        });
+        $("#surveyContainer").Survey({ model: survey });
     }
 
-    document.addEventListener("DOMContentLoaded", initSurvey);
+    psynet.trial.onEvent("trialConstruct", initSurvey);
 
     </script>
 
@@ -1821,8 +1853,8 @@
     }
 
 
-    psynet.stageResponse = async function (){
+    psynet.setStageResponseHandler(async function (){
         psynet.response.staged.rawAnswer = await getMonitorInformation()
-    }
+    })
 </script>
 {% endmacro %}
