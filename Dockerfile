@@ -34,19 +34,17 @@ COPY pyproject.toml pyproject.toml
 RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra demos
 RUN uv pip install --no-cache --system -r constraints.txt
 
-# Install private demo dependencies (repp / reppextension / sing4me).
-# These cannot live in pyproject.toml's [demos] extra because PyPI
-# rejects "direct URL" dependencies in published distribution metadata.
-# Instead we harvest their `pkg@git+https://...` URL lines directly from
-# the demo-level requirements.txt files (which remain the single source
-# of truth for what each demo needs).
-COPY demos/experiments/tapping_iterated/requirements.txt    /tmp/req-iterated.txt
-COPY demos/experiments/tapping_memory/requirements.txt      /tmp/req-memory.txt
-COPY demos/experiments/tapping_static/requirements.txt      /tmp/req-static.txt
-COPY demos/experiments/repp_prescreen/requirements.txt      /tmp/req-prescreen.txt
-COPY demos/features/rhythm_slider/requirements.txt          /tmp/req-rhythm.txt
+# Install the one remaining private demo dependency (sing4me). It cannot
+# live in pyproject.toml's [demos] extra because PyPI rejects distributions
+# whose published metadata declares "direct URL" dependencies (e.g.
+# `pkg @ git+https://...`). Instead we harvest its `pkg@git+https://...`
+# URL line directly from the demo-level requirements.txt file (which
+# remains the single source of truth for what each demo needs). repp and
+# reppextension are now installed via the published `repp-tapping` PyPI
+# distribution declared in the [demos] extra above (the latter as a
+# deprecated compatibility shim).
 COPY demos/experiments/vertical_processing/requirements.txt /tmp/req-vertical.txt
-RUN grep -hE '^(repp|reppextension|sing4me)@' /tmp/req-*.txt \
+RUN grep -hE '^sing4me@' /tmp/req-*.txt \
     | sort -u > /tmp/private-deps.txt && \
     echo "Installing private demo deps:" && cat /tmp/private-deps.txt && \
     uv pip install --no-cache --system -r /tmp/private-deps.txt && \

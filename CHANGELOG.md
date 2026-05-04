@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Switched from the private `repp` and `reppextension` GitLab git URLs to the public `repp-tapping==1.4.0rc0` PyPI release, which now bundles the former `reppextension` package as a deprecated compatibility shim. The `[demos]` extra in `pyproject.toml` declares `repp-tapping` directly, the per-demo `requirements.txt` files no longer reference either private repo, and the Dockerfile only needs to install `sing4me` from a private GitLab repo. The `tapping_iterated` and `tapping_memory` demos now import from the canonical `repp.extensions.iterated_tapping` namespace and keep a `warnings.catch_warnings()` block to silence the `numpy.matlib` `PendingDeprecationWarning` that the upstream module triggers at import time (author: Frank Höger).
+
 ## [13.2.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0) Release candidate - 2026-04-27
 
 ### Added
