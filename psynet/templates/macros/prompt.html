@@ -35,11 +35,16 @@
             Object.assign(options, providedOptions);
 
             let sound = psynet.audio.prompt.play(options);
-            sound.source.addEventListener("ended", function() {
-                if (!sound.manuallyStopped) {
-                    psynet.trial.registerEvent("promptEnd");
-                }
-            });
+            psynet.addPageEventListener(
+                sound.source,
+                "ended",
+                function() {
+                    if (!sound.manuallyStopped) {
+                        psynet.trial.registerEvent("promptEnd");
+                    }
+                },
+                { once: true },
+            );
         };
 
         psynet.page.prompt.stop = function(providedOptions) {
@@ -92,7 +97,9 @@
         {% endif %}
     </div>
     <script>
-    $(document).ready(function() {
+    psynet.trial.onEvent("trialStop", psynet.media.stopAllAudio);
+
+    psynet.trial.onEvent("trialConstruct", function() {
         $("#audio-prompt-play").on("click", function() {
             psynet.trial.restart();
         });
@@ -102,10 +109,6 @@
         $("#audio-prompt-loop-input").on("change", function(event) {
             loop = event.target.checked;
         });
-        psynet.trial.onEvent("trialStop", psynet.media.stopAllAudio);
-    });
-
-    psynet.trial.onEvent("trialConstruct", function() {
         $(".audio-prompt-button").prop("disabled", false)
     });
     </script>
@@ -166,14 +169,18 @@
             if (endAt !== null) {
                 console.assert(startAt !== null);
                 let duration = endAt - startAt
-                videoStopTimer = setTimeout(
+                videoStopTimer = psynet.trial.setTimer(
                     () => psynet.page.prompt.stop({manual: false}),
                     duration * 1000
                 );
             }
         };
 
-        videoPlayer.addEventListener("ended", () => psynet.page.prompt.stop({manual: false}));
+        psynet.addPageEventListener(
+            videoPlayer,
+            "ended",
+            () => psynet.page.prompt.stop({manual: false}),
+        );
 
         psynet.page.prompt.stop = function(providedOptions) {
             let options = {
@@ -275,7 +282,7 @@
         let stimulus = {{ params.stimulus | tojson }};
         let options = {{ params.options | tojson }};
 
-        var DEFAULT_PARAMS = { // Default parameters to use if not otherwise specified by backend.
+        window.DEFAULT_PARAMS = { // Default parameters to use if not otherwise specified by backend.
             "attack": 0.2, // Attack phase duration in seconds
             "decay": 0.1, // Decay phase duration in seconds
             "sustain_amp": 0.8, // Amplitude fraction to decay to relative to max amplitude
@@ -299,12 +306,12 @@
         DEFAULT_PARAMS.max_num_octave_transpositions = options.max_num_octave_transpositions;
         DEFAULT_PARAMS.max_num_pitches = options.max_num_pitches;
 
-        let LOADED_INSTRUMENTS = {};
-        let ACTIVE_NODES;
+        window.LOADED_INSTRUMENTS = {};
+        window.ACTIVE_NODES = undefined;
 
         let sleep = async function(time) {
             await new Promise((resolve) => {
-                setTimeout(() => resolve(), time * 1000);
+                psynet.trial.setTimer(resolve, time * 1000);
             });
         }
 

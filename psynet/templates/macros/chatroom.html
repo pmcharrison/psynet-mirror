@@ -92,6 +92,9 @@
 </div>
 
 <script>
+    // TODO: This widget still relies on a page-load style initialization path.
+    // It should be migrated to the activation-safe timeline lifecycle before
+    // it is treated as part of the in-place transition compatibility surface.
     document.addEventListener("DOMContentLoaded", function () {
         var ROOM_ID      = {{ config.room_id | tojson }};
         var GLOBAL_CH    = {{ config.channel | tojson }};

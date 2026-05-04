@@ -10,6 +10,7 @@ const {
   waitForResponseSubmitIncrement,
   waitForAudioRecordingReady,
   waitForNextEnabled,
+  waitForTimelinePageReady,
   waitForTrialEvents,
   withExperiment
 } = require("../psynetHarness");
@@ -184,12 +185,28 @@ test("audio demo", async ({ page, context }) => {
       // Section 1: complete deterministic startup sequence (gateway + two consents).
       await reachInitialAudioPrompt(experimentPage, STEP_TIMEOUT_MS);
 
-      // Section 2: validate default JS synth controls (play, stop, loop toggle).
+      await expect
+        .poll(() =>
+          experimentPage.evaluate(
+            () =>
+              window.psynetTemplateData?.flags?.inplaceTimelineTransitions ??
+              null
+          )
+        )
+        .toBe(true);
+      await expect
+        .poll(() => experimentPage.evaluate(() => typeof window.htmx))
+        .toBe("object");
+
+      // Section 2: validate default JS synth controls (play + loop toggle).
       await expectPromptContains(
         experimentPage,
         "harmonic complex tone as the timbre"
       );
-      await useStandardAudioControls(experimentPage, { toggleLoop: true });
+      await useStandardAudioControls(experimentPage, {
+        stopAfterPlay: false,
+        toggleLoop: true
+      });
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     // Section 3: validate an instrument page without explicit controls still progresses correctly.
@@ -278,7 +295,7 @@ test("audio demo", async ({ page, context }) => {
 
     // Section 11: validate play-window prompt is interactive via standard audio controls.
     await expectPromptContains(experimentPage, "play window");
-    await useStandardAudioControls(experimentPage);
+    await useStandardAudioControls(experimentPage, { stopAfterPlay: false });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     // Section 12: validate audio meter page renders the meter UI.

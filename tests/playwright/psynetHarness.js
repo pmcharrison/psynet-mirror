@@ -442,7 +442,86 @@ async function waitForPageChange(page, oldUuid, timeoutMs) {
   throw new Error(`Timed out waiting for page change after ${timeoutMs}ms.`);
 }
 
+async function waitForTimelinePageReady(page, timeoutMs = 30000) {
+  await expect
+    .poll(
+      async () => {
+        await assertNoBackendError(page);
+        return page
+          .evaluate(() => ({
+            readyFlag: !!window.psynet?.pageReady,
+            readyMarker:
+              document.getElementById("main-body")?.getAttribute("data-page-ready") ||
+              null
+          }))
+          .catch(() => ({ readyFlag: false, readyMarker: null }));
+      },
+      { timeout: timeoutMs }
+    )
+    .toEqual({
+      readyFlag: true,
+      readyMarker: "true"
+    });
+}
+
+async function assertInplaceTimelinePathActive(page, timeoutMs = 10000) {
+  await waitForTimelinePageReady(page, Math.max(timeoutMs, 5000));
+  await expect
+    .poll(
+      async () => {
+        await assertNoBackendError(page);
+        return page
+          .evaluate(() => ({
+            flag:
+              window.psynetTemplateData?.flags?.inplaceTimelineTransitions ?? null,
+            htmxType: typeof window.htmx
+          }))
+          .catch(() => ({ flag: null, htmxType: "undefined" }));
+      },
+      { timeout: timeoutMs }
+    )
+    .toEqual({
+      flag: true,
+      htmxType: "object"
+    });
+}
+
+async function assertLegacyTimelinePathActive(page, timeoutMs = 10000) {
+  await waitForTimelinePageReady(page, Math.max(timeoutMs, 5000));
+  await expect
+    .poll(
+      async () => {
+        await assertNoBackendError(page);
+        return page
+          .evaluate(() => ({
+            flag:
+              window.psynetTemplateData?.flags?.inplaceTimelineTransitions ?? null,
+            htmxType: typeof window.htmx
+          }))
+          .catch(() => ({ flag: null, htmxType: "undefined" }));
+      },
+      { timeout: timeoutMs }
+    )
+    .toEqual({
+      flag: false,
+      htmxType: "undefined"
+    });
+}
+
+function isInplaceTimelineModeEnabled() {
+  return parseBoolEnv("inplace_timeline_transitions");
+}
+
+async function assertExpectedTimelinePathActive(page, timeoutMs = 10000) {
+  if (isInplaceTimelineModeEnabled()) {
+    await assertInplaceTimelinePathActive(page, timeoutMs);
+    return;
+  }
+  await assertLegacyTimelinePathActive(page, timeoutMs);
+}
+
 async function kickoffTrial(page) {
+  await waitForTimelinePageReady(page, 30000);
   if ((await page.locator("#audio-prompt-play").count()) > 0) {
     if (await page.locator("#audio-prompt-play").isEnabled()) {
       await page.click("#audio-prompt-play", { force: true }).catch(() => {});
@@ -878,7 +957,11 @@ module.exports = {
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
+  assertExpectedTimelinePathActive,
+  assertInplaceTimelinePathActive,
+  assertLegacyTimelinePathActive,
   getPageUuid,
+  isInplaceTimelineModeEnabled,
   startExperiment,
   startResponseSubmitTracker,
   stopExperiment,
@@ -886,6 +969,7 @@ module.exports = {
   waitForTrialEvents,
   waitForAudioRecordingReady,
   waitForVideoRecordingReady,
+  waitForTimelinePageReady,
   withExperiment,
   withFreshParticipantIds,
   waitForNextEnabled,
