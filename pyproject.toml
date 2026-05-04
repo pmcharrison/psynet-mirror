@@ -83,21 +83,13 @@ dev = [
 slack = [
     "slack_sdk",
 ]
-# Note: `sing4me` is NOT listed here because PyPI rejects distributions whose
-# published metadata declares "direct URL" dependencies (e.g.
-# `pkg @ git+https://...`). It is a private GitLab package, so users who need
-# it install it via the per-demo requirements.txt file (see
-# demos/experiments/vertical_processing/requirements.txt). pip accepts direct
-# URLs in requirements files; the restriction is only on distribution
-# metadata. `repp-tapping` is the public PyPI release of repp (which now also
-# ships the former `reppextension` package as a deprecated compatibility
-# shim) and lives here as a normal dependency.
 demos = [
     "music21",
     "numpy",
     "praat-parselmouth",
     "repp-tapping==1.4.0rc0",
     "scipy",
+    "sing4me==1.4.0rc0",
     "soundfile",
     "statsmodels",
 ]
