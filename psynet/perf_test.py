@@ -183,8 +183,12 @@ class PerformanceTester:
         self.stagger_interval_s = stagger_interval_s
         self.time_factor = time_factor
 
-    def run(self, bot_counts=None, bot_log_file=None):
-        """Run performance tests for one or more bot count values."""
+    def run(self, bot_counts=None, bot_log_file=None, collect_results=None):
+        """Run performance tests for one or more bot count values.
+
+        If collect_results is a list, results are appended to it and the
+        summary is skipped (caller is responsible for printing it).
+        """
         if bot_counts is None:
             bot_counts = [self.n_bots]
 
@@ -214,7 +218,10 @@ class PerformanceTester:
                 logger.debug("Waiting 5 seconds before next test...")
                 time.sleep(5)
 
-        self._print_performance_summary(all_results)
+        if collect_results is not None:
+            collect_results.extend(all_results)
+        else:
+            self._print_performance_summary(all_results)
 
     def _print_performance_summary(self, results):
         """Print cross-test comparison table."""
@@ -267,9 +274,27 @@ class PerformanceTester:
         from psynet.participant import Participant
         from psynet.process import AsyncProcess
 
-        initial_stats = self.authenticated_session.get(
-            self.base_url + "/request_statistics"
-        ).json()
+        url = self.base_url + "/request_statistics"
+        resp = self.authenticated_session.get(url)
+        if resp.status_code != 200:
+            raise RuntimeError(
+                f"GET {url} returned status {resp.status_code}: {resp.text[:200]}"
+            )
+        try:
+            initial_stats = resp.json()
+        except Exception:
+            raise RuntimeError(
+                f"GET {url} returned non-JSON (status {resp.status_code}): "
+                f"{resp.text[:200]}"
+            )
+
+        # Ensure fresh DB connection (previous may have been terminated by server restart)
+        try:
+            db.session.remove()
+        except Exception:
+            db.session.registry.clear()
+        db.engine.dispose()
+
         max_request_id = db.session.query(func.max(Request.id)).scalar() or 0
         max_process_id = db.session.query(func.max(AsyncProcess.id)).scalar() or 0
         max_participant_id = db.session.query(func.max(Participant.id)).scalar() or 0
@@ -355,6 +380,9 @@ class PerformanceTester:
                 env = os.environ.copy()
                 # Disable colors in log output, so it can be read with any tool
                 env["PYTHON_COLORS"] = "0"
+                # Ensure venv bin dir is on PATH so psynet is found
+                bin_dir = os.path.dirname(sys.executable)
+                env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
                 p = pexpect.spawn(cmd, timeout=None, cwd=None, env=env)
                 bot_state["processes"][process_id] = {
                     "process": p,

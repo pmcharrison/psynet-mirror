@@ -714,3 +714,146 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
     config.load_from_file.assert_called_once_with(
         "/tmp/dallinger_develop/exp/config.txt"
     )
+
+
+def _make_server_info():
+    return {
+        "process": Mock(),
+        "tmp_log_path": "/tmp/psynet_server_test.log",
+        "log_file": Mock(),
+    }
+
+
+def test_new_server_restarts_between_stages_for_multiple_bot_counts():
+    """Each bot count should get its own fresh server."""
+    from psynet.command_line import _run_performance_test_with_new_server
+
+    config = Mock()
+    config.ready = True
+
+    with (
+        patch(
+            "psynet.command_line._start_local_server_and_wait_for_ready",
+            side_effect=lambda **kw: _make_server_info(),
+        ) as mock_start,
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.redis_vars.get",
+            return_value="/tmp/dallinger_develop/exp",
+        ),
+        patch(
+            "psynet.command_line._run_performance_test_with_existing_server"
+        ) as mock_run_existing,
+        patch("psynet.command_line._stop_server") as mock_stop,
+        patch("psynet.command_line.format_performance_summary", return_value=[]),
+    ):
+        _run_performance_test_with_new_server(
+            n_bots="5,10", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
+        )
+
+    assert mock_start.call_count == 2
+    assert mock_stop.call_count == 2
+    assert mock_run_existing.call_count == 2
+    # Each call should get a single bot count
+    calls = mock_run_existing.call_args_list
+    assert calls[0].kwargs["n_bots"] == "5"
+    assert calls[1].kwargs["n_bots"] == "10"
+
+
+def test_new_server_single_bot_count_one_start_stop():
+    """Single bot count should still start/stop once."""
+    from psynet.command_line import _run_performance_test_with_new_server
+
+    config = Mock()
+    config.ready = True
+
+    with (
+        patch(
+            "psynet.command_line._start_local_server_and_wait_for_ready",
+            return_value=_make_server_info(),
+        ) as mock_start,
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.redis_vars.get",
+            return_value="/tmp/dallinger_develop/exp",
+        ),
+        patch(
+            "psynet.command_line._run_performance_test_with_existing_server"
+        ) as mock_run_existing,
+        patch("psynet.command_line._stop_server") as mock_stop,
+    ):
+        _run_performance_test_with_new_server(
+            n_bots="5", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
+        )
+
+    assert mock_start.call_count == 1
+    assert mock_stop.call_count == 1
+
+
+def test_new_server_stops_even_on_stage_failure():
+    """Server must be stopped in finally block even if stage raises."""
+    from psynet.command_line import _run_performance_test_with_new_server
+
+    config = Mock()
+    config.ready = True
+
+    with (
+        patch(
+            "psynet.command_line._start_local_server_and_wait_for_ready",
+            return_value=_make_server_info(),
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.redis_vars.get",
+            return_value="/tmp/dallinger_develop/exp",
+        ),
+        patch(
+            "psynet.command_line._run_performance_test_with_existing_server",
+            side_effect=RuntimeError("stage failed"),
+        ),
+        patch("psynet.command_line._stop_server") as mock_stop,
+    ):
+        with pytest.raises(RuntimeError, match="stage failed"):
+            _run_performance_test_with_new_server(
+                n_bots="5", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
+            )
+
+    mock_stop.assert_called_once()
+
+
+def test_new_server_prints_summary_after_all_stages():
+    """Cross-test summary should aggregate results from all stages."""
+    from psynet.command_line import _run_performance_test_with_new_server
+
+    config = Mock()
+    config.ready = True
+
+    fake_result = {"n_bots": 5, "bots_succeeded": 5, "total_requests": 100}
+
+    def fake_run_existing(**kwargs):
+        kwargs["collect_results"].append(fake_result)
+
+    with (
+        patch(
+            "psynet.command_line._start_local_server_and_wait_for_ready",
+            side_effect=lambda **kw: _make_server_info(),
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.redis_vars.get",
+            return_value="/tmp/dallinger_develop/exp",
+        ),
+        patch(
+            "psynet.command_line._run_performance_test_with_existing_server",
+            side_effect=fake_run_existing,
+        ),
+        patch("psynet.command_line._stop_server"),
+        patch("psynet.command_line.format_performance_summary", return_value=["summary"]) as mock_summary,
+    ):
+        _run_performance_test_with_new_server(
+            n_bots="5,10", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
+        )
+
+    mock_summary.assert_called_once()
+    results_arg = mock_summary.call_args[0][0]
+    assert len(results_arg) == 2

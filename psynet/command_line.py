@@ -8,6 +8,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 import threading
 import zipfile
 from contextlib import contextmanager
@@ -40,6 +41,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.perf_test import format_performance_summary
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
@@ -844,9 +846,14 @@ patch_dallinger_develop()
 
 def safely_kill_process(p):
     try:
+        name = p.name()
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        name = "unknown"
+    try:
         p.kill()
+        log(f"Killed process {p.pid} ({name})")
     except psutil.NoSuchProcess:
-        pass
+        log(f"Process {p.pid} ({name}) already gone")
 
 
 def kill_psynet_worker_processes():
@@ -3283,13 +3290,20 @@ def performance_test__local(
 
 
 def _run_performance_test_with_existing_server(
-    n_bots, stagger, time_factor, duration_minutes, debug
+    n_bots,
+    stagger,
+    time_factor,
+    duration_minutes,
+    debug,
+    collect_results=None,
+    base_url=None,
 ):
     """Run performance test connecting to an already-running server."""
     import logging
     import sys
 
     from psynet.experiment import get_experiment
+    from psynet.utils import get_authenticated_session
 
     # Configure logging to output to console
     root_logger = logging.getLogger()
@@ -3332,9 +3346,12 @@ def _run_performance_test_with_existing_server(
     else:
         bot_counts = [exp.test_n_bots]
 
+    effective_base_url = base_url or exp.base_url
+    authenticated_session = get_authenticated_session(effective_base_url)
+
     tester = PerformanceTester(
-        authenticated_session=exp.authenticated_session,
-        base_url=exp.base_url,
+        authenticated_session=authenticated_session,
+        base_url=effective_base_url,
         n_bots=exp.test_n_bots,
         duration_minutes=duration_minutes or exp.test_duration_minutes,
         stagger_interval_s=(
@@ -3342,7 +3359,9 @@ def _run_performance_test_with_existing_server(
         ),
         time_factor=time_factor or exp.test_time_factor,
     )
-    tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
+    tester.run(
+        bot_counts=bot_counts, bot_log_file=bot_log_file, collect_results=collect_results
+    )
     bot_log_file.close()
     print(f"Bot output log: {bot_log_file.name}")
 
@@ -3394,6 +3413,12 @@ def _start_local_server_and_wait_for_ready(
     env = os.environ.copy()
     env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
     env.setdefault("BROWSER", "true")
+    env.setdefault("EXP_MAX_SIZE_MB", "4096")
+
+    # Ensure the current Python's bin dir is on PATH so psynet is found
+    # even when invoked from a virtualenv without PATH activation.
+    bin_dir = os.path.dirname(sys.executable)
+    env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
 
     start_commands = [
         ["debug", "local", "--legacy", "--no-browsers"],
@@ -3428,10 +3453,24 @@ def _start_local_server_and_wait_for_ready(
                 daemon=True,
             )
             drain_thread.start()
+
+            # Extract base_url from server output
+            base_url = None
+            server_output = process.before or ""
+            for line in server_output.splitlines():
+                if "Server is running on" in line:
+                    import re as _re
+
+                    match = _re.search(r"(https?://\S+?)[\.\s]", line)
+                    if match:
+                        base_url = match.group(1)
+                        break
+
             return {
                 "process": process,
                 "tmp_log_path": tmp_log_path,
                 "log_file": log_file,
+                "base_url": base_url,
             }
         except (pexpect.TIMEOUT, pexpect.EOF):
             recent_output = (process.before or "").splitlines()[-50:]
@@ -3531,27 +3570,49 @@ def _stop_server(server_info):
 def _run_performance_test_with_new_server(
     n_bots, stagger, time_factor, duration_minutes, debug
 ):
-    """Run performance test after starting a new experiment server"""
-    server_info = _start_local_server_and_wait_for_ready(debug=debug)
+    """Run performance test after starting a new experiment server.
 
-    try:
-        config = get_config()
-        if not config.ready:
-            config.load()
+    For multiple bot counts (comma-separated), starts a fresh server per stage
+    so each stage gets a clean database.
+    """
+    bot_counts = [int(x.strip()) for x in n_bots.split(",")]
+    all_results = []
 
-        # Load runtime server config so dashboard credentials and URL settings
-        # match the launched debug instance.
-        server_working_directory = redis_vars.get("server_working_directory")
-        if server_working_directory:
-            config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+    for count in bot_counts:
+        server_info = _start_local_server_and_wait_for_ready(debug=debug)
+        try:
+            config = get_config()
+            if not config.ready:
+                config.load()
 
-        _run_performance_test_with_existing_server(
-            n_bots, stagger, time_factor, duration_minutes, debug
-        )
-        print("✓ Performance test completed")
+            # Load runtime server config so dashboard credentials and URL
+            # settings match the launched debug instance.
+            server_working_directory = redis_vars.get("server_working_directory")
+            if server_working_directory:
+                config.load_from_file(
+                    os.path.join(server_working_directory, "config.txt")
+                )
 
-    finally:
-        _stop_server(server_info)
+            _run_performance_test_with_existing_server(
+                n_bots=str(count),
+                stagger=stagger,
+                time_factor=time_factor,
+                duration_minutes=duration_minutes,
+                debug=debug,
+                collect_results=all_results,
+                base_url=server_info.get("base_url")
+                or redis_vars.get("base_url"),
+            )
+        finally:
+            _stop_server(server_info)
+            # Allow OS to release ports/connections before next server start.
+            time.sleep(2)
+
+    if len(all_results) > 1:
+        for line in format_performance_summary(all_results):
+            print(line)
+
+    print("✓ Performance test completed")
 
 
 @performance_test.command("ssh")
