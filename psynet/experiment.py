@@ -4450,10 +4450,7 @@ def pre_deploy_constant(key, func: callable):
 
 
 def _read_pre_deploy_constant_registry():
-    registry_path = ".deploy/pre_deploy_constant_registry.json"
-    if not os.path.exists(registry_path):
-        return {}
-    with open(registry_path, "r") as f:
+    with open(".deploy/pre_deploy_constant_registry.json", "r") as f:
         return unserialize(f.read())
 
 

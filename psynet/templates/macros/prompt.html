@@ -312,7 +312,7 @@
 
         let sleep = async function(time) {
             await new Promise((resolve) => {
-                psynet.trial.setTimer(resolve, time * 1000);
+                setTimeout(resolve, time * 1000);
             });
         }
 

@@ -227,10 +227,7 @@ class ShepardTimbre(ADSRTimbre):
     ):
         super().__init__(**kwargs)
 
-        self.num_harmonics = 1
         self["num_harmonics"] = 1
-        self["max_num_harmonics"] = 1
-        self["type"] = "harmonic"
         self.num_octave_transpositions = num_octave_transpositions
         self["num_octave_transpositions"] = num_octave_transpositions
         self.shepard_center = shepard_center
