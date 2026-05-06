@@ -954,6 +954,7 @@ module.exports = {
   assertNoBackendError,
   beginExperiment,
   clickConsentButton,
+  clickFinish,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,

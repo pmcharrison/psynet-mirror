@@ -11,10 +11,10 @@
         </div>
     {% endif %}
     <script>
-        let loop = {{ params.loop | tojson }};
+        psynet.page.prompt.loop = {{ params.loop | tojson }};
 
         psynet.trial.onEvent("trialFinished", function() {
-            if (loop) {
+            if (psynet.page.prompt.loop) {
                 psynet.trial.restart();
             }
         });
@@ -107,7 +107,7 @@
             psynet.trial.stop();
         });
         $("#audio-prompt-loop-input").on("change", function(event) {
-            loop = event.target.checked;
+            psynet.page.prompt.loop = event.target.checked;
         });
         $(".audio-prompt-button").prop("disabled", false)
     });
@@ -281,8 +281,9 @@
     <script>
         let stimulus = {{ params.stimulus | tojson }};
         let options = {{ params.options | tojson }};
+        let jsSynthState = psynet.getJsSynthState();
 
-        window.DEFAULT_PARAMS = { // Default parameters to use if not otherwise specified by backend.
+        jsSynthState.defaultParams = { // Default parameters to use if not otherwise specified by backend.
             "attack": 0.2, // Attack phase duration in seconds
             "decay": 0.1, // Decay phase duration in seconds
             "sustain_amp": 0.8, // Amplitude fraction to decay to relative to max amplitude
@@ -306,13 +307,50 @@
         DEFAULT_PARAMS.max_num_octave_transpositions = options.max_num_octave_transpositions;
         DEFAULT_PARAMS.max_num_pitches = options.max_num_pitches;
 
-        window.LOADED_INSTRUMENTS = {};
-        window.ACTIVE_NODES = undefined;
+        jsSynthState.loadedInstruments = {};
+        jsSynthState.activeNodes = undefined;
 
         let sleep = async function(time) {
             await new Promise((resolve) => {
                 psynet.trial.setTimer(resolve, time * 1000);
             });
+        }
+
+        let cleanupJsSynthState = function() {
+            if (typeof stop_all_tonejs_audio === "function") {
+                stop_all_tonejs_audio();
+            }
+
+            let activeNodes = jsSynthState.activeNodes;
+            if (activeNodes) {
+                if (activeNodes.envelope && typeof activeNodes.envelope.dispose === "function") {
+                    activeNodes.envelope.dispose();
+                }
+                for (const key in activeNodes) {
+                    if (!key.startsWith("complex_")) {
+                        continue;
+                    }
+                    for (const row of activeNodes[key]) {
+                        for (const cell of row) {
+                            cell.forEach(function(node) {
+                                if (node && typeof node.dispose === "function") {
+                                    node.dispose();
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            Object.values(jsSynthState.loadedInstruments || {}).forEach(function(instrument) {
+                if (instrument && typeof instrument.dispose === "function") {
+                    instrument.dispose();
+                }
+            });
+
+            jsSynthState.loadedInstruments = {};
+            jsSynthState.activeNodes = undefined;
+            jsSynthState.defaultParams = undefined;
         }
 
         psynet.trial.onEvent("trialPrepare", async function() {
@@ -333,6 +371,7 @@
         });
 
         psynet.trial.onEvent("promptStart", () => play_stimulus(stimulus));
+        psynet.trial.onEvent("trialStop", cleanupJsSynthState);
     </script>
 {% endmacro %}
 

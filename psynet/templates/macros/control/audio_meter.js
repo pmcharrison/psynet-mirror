@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-var audioMeterControl = {}
+const audioMeterControl = (psynet.page.control.audioMeter = {});
 
 audioMeterControl.init = function(json) {
-    config = JSON.parse(json);
+    let config = JSON.parse(json);
 
     this.displayRange = config.display_range;
     this.decay = config.decay;
@@ -74,7 +74,7 @@ audioMeterControl.init = function(json) {
         });
     });
     psynet.trial.onEvent("trialStop", function() {
-        audioMeterControl.stopLevelChangeLoop();
+        audioMeterControl.destroy();
     });
 }
 
@@ -132,6 +132,18 @@ audioMeterControl.stopLevelChangeLoop = function() {
     if (this.rafID !== null) {
         cancelAnimationFrame(this.rafID);
         this.rafID = null;
+    }
+}
+
+audioMeterControl.destroy = function() {
+    this.stopLevelChangeLoop();
+    if (this.audioMeter && typeof this.audioMeter.shutdown === "function") {
+        this.audioMeter.shutdown();
+    }
+    this.audioMeter = null;
+    if (this.messageTimer !== null) {
+        clearTimeout(this.messageTimer);
+        this.messageTimer = null;
     }
 }
 
