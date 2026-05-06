@@ -89,7 +89,7 @@ demos = [
     "praat-parselmouth",
     "repp-tapping==1.4.0rc0",
     "scipy",
-    "sing4me==1.4.0rc0",
+    "sing4me==2.0.0rc0",
     "soundfile",
     "statsmodels",
 ]
