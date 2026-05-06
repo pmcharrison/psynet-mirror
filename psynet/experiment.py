@@ -803,7 +803,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # Dallinger's `get_base_url` only returns an accurate value when called within the context
         # of an HTTP request. We know that `on_launch` is called within the context of an HTTP request,
         # so we take this opportunity to save the base URL to Redis.
-        redis_vars.set("base_url", dallinger_get_base_url())
+        actual_base_url = dallinger_get_base_url()
+        redis_vars.set("base_url", actual_base_url)
 
         super().on_launch()
         if not deployment_info.read("redeploying_from_archive"):

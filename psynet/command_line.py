@@ -3331,6 +3331,7 @@ def _run_performance_test_with_existing_server(
     debug,
     collect_results=None,
     base_url=None,
+    bot_log_file=None,
 ):
     """Run performance test connecting to an already-running server."""
     import logging
@@ -3355,10 +3356,12 @@ def _run_performance_test_with_existing_server(
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
 
-    bot_log_file = tempfile.NamedTemporaryFile(
-        delete=False, prefix="psynet_bots_", suffix=".log"
-    )
-    print(f"Bot output log: {bot_log_file.name}")
+    externally_managed_bot_log = bot_log_file is not None
+    if not externally_managed_bot_log:
+        bot_log_file = tempfile.NamedTemporaryFile(
+            delete=False, prefix="psynet_bots_", suffix=".log"
+        )
+        print(f"Bot output log: {bot_log_file.name}")
 
     try:
         exp = get_experiment()
@@ -3396,8 +3399,9 @@ def _run_performance_test_with_existing_server(
     tester.run(
         bot_counts=bot_counts, bot_log_file=bot_log_file, collect_results=collect_results
     )
-    bot_log_file.close()
-    print(f"Bot output log: {bot_log_file.name}")
+    if not externally_managed_bot_log:
+        bot_log_file.close()
+        print(f"Bot output log: {bot_log_file.name}")
 
 
 class _OutputTee:
@@ -3429,20 +3433,104 @@ def _drain_pexpect_output(process):
             break
 
 
+def _diagnose_launch_failure(recent_output):
+    """Check server output for launch failure patterns and print guidance."""
+    import re as _re
+
+    try:
+        launch_error_port = None
+        listening_ports = []
+        launch_error_idx = None
+        first_listening_idx = None
+        server_not_ready = None
+
+        for i, line in enumerate(recent_output):
+            m = _re.search(r"Error accessing https?://\S+?:(\d+)/launch", line)
+            if m and launch_error_idx is None:
+                launch_error_port = int(m.group(1))
+                launch_error_idx = i
+
+            m = _re.search(r"Listening at: https?://\S+?:(\d+)", line)
+            if m:
+                listening_ports.append(int(m.group(1)))
+                if first_listening_idx is None:
+                    first_listening_idx = i
+
+            m = _re.search(r"did not become ready", line)
+            if m:
+                server_not_ready = line.strip()
+
+        if server_not_ready:
+            # Surface the Dallinger-side error that's buried in the log
+            print(f"\n⚠ {server_not_ready}", file=sys.stderr)
+
+        if launch_error_port is None:
+            return
+
+        if (
+            launch_error_port in listening_ports
+            and launch_error_idx is not None
+            and first_listening_idx is not None
+            and launch_error_idx < first_listening_idx
+        ):
+            print(
+                f"\n⚠ LAUNCH RACE CONDITION: launch request to port "
+                f"{launch_error_port} was sent before the web dyno was "
+                f"accepting connections.",
+                file=sys.stderr,
+            )
+            print(
+                f"  The dyno did start listening on port {launch_error_port}, "
+                f"but only after the launch request had already failed.",
+                file=sys.stderr,
+            )
+        elif launch_error_port not in listening_ports and listening_ports:
+            print(
+                f"\n⚠ PORT MISMATCH: launch targeted port "
+                f"{launch_error_port} but no dyno is listening there "
+                f"(listening on {listening_ports}).",
+                file=sys.stderr,
+            )
+            print(
+                "  Dallinger's get_base_url() picked a port via "
+                "random.randrange(base_port, base_port + num_dynos_web) "
+                "that has no corresponding web process.",
+                file=sys.stderr,
+            )
+    except Exception:
+        pass
+
+
 def _start_local_server_and_wait_for_ready(
-    debug=False, max_wait=60, ready_phrase="Experiment launch complete!"
+    debug=False, max_wait=60, ready_phrase="Experiment launch complete!", log_file=None
 ):
-    """Start ``psynet debug local`` and wait for launch completion."""
+    """Start ``psynet debug local`` and wait for launch completion.
+
+    If *log_file* is supplied the caller owns the file handle; this function
+    will not create or close it.
+    """
     print("▶ Starting experiment server...")
 
-    tmp_log = tempfile.NamedTemporaryFile(
-        delete=False, prefix="psynet_server_", suffix=".log"
-    )
-    tmp_log_path = tmp_log.name
-    tmp_log.close()
-    print(f"Server log: {tmp_log_path}")
+    config = get_config()
+    if not config.ready:
+        config.load()
+    base_port = config.get("base_port")
+    num_dynos = config.get("num_dynos_web")
+    expected_ports = list(range(base_port, base_port + num_dynos))
+    print(f"  num_dynos_web = {num_dynos}, expected ports: {expected_ports}")
 
-    log_file = open(tmp_log_path, "a", encoding="utf-8")
+    externally_managed_log = log_file is not None
+
+    if externally_managed_log:
+        tmp_log_path = log_file.name
+    else:
+        tmp_log = tempfile.NamedTemporaryFile(
+            delete=False, prefix="psynet_server_", suffix=".log"
+        )
+        tmp_log_path = tmp_log.name
+        tmp_log.close()
+        print(f"Server log: {tmp_log_path}")
+        log_file = open(tmp_log_path, "a", encoding="utf-8")
     logfile = _OutputTee(sys.stdout, log_file) if debug else log_file
     env = os.environ.copy()
     env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
@@ -3471,7 +3559,8 @@ def _start_local_server_and_wait_for_ready(
                 timeout=max_wait,
             )
         except Exception:
-            log_file.close()
+            if not externally_managed_log:
+                log_file.close()
             raise click.ClickException("Failed to start experiment server process.")
 
         process.logfile = logfile
@@ -3505,9 +3594,10 @@ def _start_local_server_and_wait_for_ready(
                 "tmp_log_path": tmp_log_path,
                 "log_file": log_file,
                 "base_url": base_url,
+                "externally_managed_log": externally_managed_log,
             }
         except (pexpect.TIMEOUT, pexpect.EOF):
-            recent_output = (process.before or "").splitlines()[-50:]
+            recent_output = (process.before or "").splitlines()[-200:]
             _terminate_server_process(process)
 
             if command_args == start_commands[0] and any(
@@ -3522,11 +3612,13 @@ def _start_local_server_and_wait_for_ready(
                 f"\n❌ Server failed to start within {max_wait} seconds",
                 file=sys.stderr,
             )
+            _diagnose_launch_failure(recent_output)
             if recent_output:
                 print("Last server output:", file=sys.stderr)
                 for line in recent_output:
                     print(line, file=sys.stderr)
-            log_file.close()
+            if not externally_managed_log:
+                log_file.close()
             raise click.ClickException("Failed to start experiment server.")
 
 
@@ -3584,6 +3676,7 @@ def _stop_server(server_info):
     process = server_info["process"]
     tmp_log_path = server_info["tmp_log_path"]
     log_file = server_info["log_file"]
+    externally_managed = server_info.get("externally_managed_log", False)
     try:
         _terminate_server_process(process)
     finally:
@@ -3592,13 +3685,17 @@ def _stop_server(server_info):
         except Exception:
             pass
 
-        try:
-            log_file.close()
-        except Exception:
-            pass
+        if not externally_managed:
+            try:
+                log_file.close()
+            except Exception:
+                pass
 
     kill_psynet_worker_processes()
-    print(f"✓ Server stopped (log: {tmp_log_path})")
+    if externally_managed:
+        print("✓ Server stopped")
+    else:
+        print(f"✓ Server stopped (log: {tmp_log_path})")
 
 
 def _run_performance_test_with_new_server(
@@ -3607,45 +3704,78 @@ def _run_performance_test_with_new_server(
     """Run performance test after starting a new experiment server.
 
     For multiple bot counts (comma-separated), starts a fresh server per stage
-    so each stage gets a clean database.
+    so each stage gets a clean database.  A single shared log file is used
+    across all stages with demarcation lines between them.
     """
     bot_counts = [int(x.strip()) for x in n_bots.split(",")]
     all_results = []
 
-    for count in bot_counts:
-        server_info = _start_local_server_and_wait_for_ready(debug=debug)
-        try:
-            config = get_config()
-            if not config.ready:
-                config.load()
+    # Create single shared log files for all stages.
+    tmp_log = tempfile.NamedTemporaryFile(
+        delete=False, prefix="psynet_server_", suffix=".log"
+    )
+    tmp_log_path = tmp_log.name
+    tmp_log.close()
+    shared_server_log = open(tmp_log_path, "a", encoding="utf-8")
+    print(f"Server log: {tmp_log_path}")
 
-            # Load runtime server config so dashboard credentials and URL
-            # settings match the launched debug instance.
-            server_working_directory = redis_vars.get("server_working_directory")
-            if server_working_directory:
-                config.load_from_file(
-                    os.path.join(server_working_directory, "config.txt")
-                )
+    shared_bot_log = tempfile.NamedTemporaryFile(
+        delete=False, prefix="psynet_bots_", suffix=".log"
+    )
+    bot_log_path = shared_bot_log.name
+    print(f"Bot output log: {bot_log_path}")
 
-            _run_performance_test_with_existing_server(
-                n_bots=str(count),
-                stagger=stagger,
-                time_factor=time_factor,
-                duration_minutes=duration_minutes,
-                debug=debug,
-                collect_results=all_results,
-                base_url=server_info.get("base_url")
-                or redis_vars.get("base_url"),
+    try:
+        for count in bot_counts:
+            demarcation = f"\n========== STAGE: n_bots={count} ==========\n\n"
+            shared_server_log.write(demarcation)
+            shared_server_log.flush()
+            shared_bot_log.write(demarcation.encode())
+            shared_bot_log.flush()
+
+            server_info = _start_local_server_and_wait_for_ready(
+                debug=debug, log_file=shared_server_log
             )
-        finally:
-            _stop_server(server_info)
-            # Allow OS to release ports/connections before next server start.
-            time.sleep(2)
+            try:
+                config = get_config()
+                if not config.ready:
+                    config.load()
+
+                # Load runtime server config so dashboard credentials and URL
+                # settings match the launched debug instance.
+                server_working_directory = redis_vars.get(
+                    "server_working_directory"
+                )
+                if server_working_directory:
+                    config.load_from_file(
+                        os.path.join(server_working_directory, "config.txt")
+                    )
+
+                _run_performance_test_with_existing_server(
+                    n_bots=str(count),
+                    stagger=stagger,
+                    time_factor=time_factor,
+                    duration_minutes=duration_minutes,
+                    debug=debug,
+                    collect_results=all_results,
+                    base_url=server_info.get("base_url")
+                    or redis_vars.get("base_url"),
+                    bot_log_file=shared_bot_log,
+                )
+            finally:
+                _stop_server(server_info)
+                # Allow OS to release ports/connections before next server start.
+                time.sleep(2)
+    finally:
+        shared_server_log.close()
+        shared_bot_log.close()
 
     if len(all_results) > 1:
         for line in format_performance_summary(all_results):
             print(line)
 
+    print(f"Server log: {tmp_log_path}")
+    print(f"Bot output log: {bot_log_path}")
     print("✓ Performance test completed")
 
 
