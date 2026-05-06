@@ -107,12 +107,12 @@ class Exp(psynet.experiment.Experiment):
         route = bot.var.get("route")
 
         if bot.id == 1:
-            assert (
-                route == "bonus_awarded"
-            ), f"Expected route 'bonus_awarded', got '{route}'"
-            assert (
-                bot.status == "approved"
-            ), f"Expected status for bot ID {bot.id} to be 'approved', but got '{bot.status}'"
+            assert route == "bonus_awarded", (
+                f"Expected route 'bonus_awarded', got '{route}'"
+            )
+            assert bot.status == "approved", (
+                f"Expected status for bot ID {bot.id} to be 'approved', but got '{bot.status}'"
+            )
             # Ensure the status is committed and refresh the bot object to get the latest status
             from psynet.experiment import db
 
@@ -121,36 +121,40 @@ class Exp(psynet.experiment.Experiment):
 
             assert self.base_payment == 1.0
 
-            assert (
-                self.bonus(bot) == BONUS
-            ), f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)} (status: {bot.status}, time_reward: {bot.time_reward}, performance_reward: {bot.performance_reward}, bot.bonus: {bot.bonus})"
+            assert self.bonus(bot) == BONUS, (
+                f"Expected bonus for bot ID {bot.id} to be 3.5, but got {self.bonus(bot)} (status: {bot.status}, time_reward: {bot.time_reward}, performance_reward: {bot.performance_reward}, bot.bonus: {bot.bonus})"
+            )
         elif bot.id == 2:
-            assert (
-                route == "screened_out"
-            ), f"Expected route 'screened_out', got '{route}'"
-            assert (
-                bot.status == "screened_out"
-            ), f"Expected status for bot ID {bot.id} to be 'screened_out', but got '{bot.status}'"
+            assert route == "screened_out", (
+                f"Expected route 'screened_out', got '{route}'"
+            )
+            assert bot.status == "screened_out", (
+                f"Expected status for bot ID {bot.id} to be 'screened_out', but got '{bot.status}'"
+            )
             assert self.bonus(bot) in (
                 0.17,
                 0.18,
-            ), f"Expected bonus for bot ID {bot.id} to be either 0.17 or 0.18, but got {self.bonus(bot)}"
+            ), (
+                f"Expected bonus for bot ID {bot.id} to be either 0.17 or 0.18, but got {self.bonus(bot)}"
+            )
         elif bot.id == 3:
-            assert (
-                route == "returned_and_screened_out"
-            ), f"Expected route 'returned_and_screened_out', got '{route}'"
+            assert route == "returned_and_screened_out", (
+                f"Expected route 'returned_and_screened_out', got '{route}'"
+            )
             # Simulate the participant returning their assignment
             self.assignment_returned(bot)
             # Explicitly set the status to "returned" for testing
             # In a real Prolific environment, this would be set by run_recruiter_checks scheduled_task
             bot.status = "returned"
             bot.failed = True
-            assert (
-                bot.status == "returned"
-            ), f"Expected status for bot ID {bot.id} to be 'returned', but got '{bot.status}'"
+            assert bot.status == "returned", (
+                f"Expected status for bot ID {bot.id} to be 'returned', but got '{bot.status}'"
+            )
             assert self.bonus(bot) in (
                 0.17,
                 0.18,
-            ), f"Expected bonus for bot ID {bot.id} to be either 0.17 or 0.18, but got {self.bonus(bot)}"
+            ), (
+                f"Expected bonus for bot ID {bot.id} to be either 0.17 or 0.18, but got {self.bonus(bot)}"
+            )
         else:
             raise ValueError(f"Unexpected bot id: {bot.id}")

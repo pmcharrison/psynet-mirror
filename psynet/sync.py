@@ -120,8 +120,8 @@ class Barrier(EltCollection):
             CodeBlock(lambda participant: self.receive_participant(participant)),
             while_loop(
                 label=f"barrier:{self.id}",
-                condition=lambda participant: not self.can_participant_exit(
-                    participant
+                condition=lambda participant: (
+                    not self.can_participant_exit(participant)
                 ),
                 logic=self.waiting_logic,
                 expected_repetitions=self.waiting_logic_expected_repetitions,
@@ -684,8 +684,9 @@ class SimpleGrouper(Grouper):
             CodeBlock(self._join_existing_groups),
             conditional(
                 "joined_an_existing_group",
-                condition=lambda participant: self.group_type
-                in participant.active_sync_groups,
+                condition=lambda participant: (
+                    self.group_type in participant.active_sync_groups
+                ),
                 logic_if_true=[],
                 logic_if_false=super().resolve(),
             ),

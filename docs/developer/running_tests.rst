@@ -79,9 +79,9 @@ and run the test by clicking 'Run pytest in ...', or alternatively
 
 In rare cases, tests only fail when several tests are run in a particular sequence.
 This is usually due to some kind of caching issue.
-To reproduce such errors locally, look at the Jobs list in GitLab and work out 
+To reproduce such errors locally, look at the Jobs list in GitLab and work out
 (a) how many parallel test groups there are (at the time of writing there are 10)
-and (b) what's the number of the test group  you want to reproduce locally 
+and (b) what's the number of the test group  you want to reproduce locally
 (e.g. Job 4/10 is number 4).
 Install the ``pytest-test-groups`` in your local Python environment if you don't have it already
 (``pip3 install pytest-test-groups``), then run a command like the following:
@@ -92,20 +92,106 @@ Install the ``pytest-test-groups`` in your local Python environment if you don't
 
 setting the values of ``--test-group-count`` and ``--test-group`` as appropriate.
 
+Playwright UI tests
+-------------------
+
+PsyNet includes Playwright tests under ``tests/playwright``. These can be run
+using Playwright's UI mode during development:
+
+.. code-block:: shell
+
+    npm install
+    npx playwright install chromium
+    HEADLESS=false npx playwright test --ui
+
+These tests launch demo experiments locally, so you still need PostgreSQL and
+Redis running (same as for the pytest-driven e2e tests).
+
+Faster local iteration for Playwright tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+During local test development, startup and teardown of ``psynet debug local`` can
+dominate the runtime. You can avoid this by running the backend once and reusing
+its recruitment URL across repeated Playwright runs.
+
+1. In one terminal, start the demo backend once:
+
+.. code-block:: shell
+
+    cd demos/experiments/graphics
+    psynet debug local
+
+2. Copy the recruitment URL printed in the logs (it looks like
+   ``http://127.0.0.1:5000/ad?...&mode=debug``).
+
+3. In a second terminal, run Playwright with ``PSYNET_RECRUITMENT_URL``:
+
+.. code-block:: shell
+
+    PSYNET_RECRUITMENT_URL="http://127.0.0.1:5000/ad?recruiter=hotair&assignmentId=...&hitId=...&workerId=...&mode=debug" \
+    npx playwright test tests/playwright/demos/graphics.spec.js --reporter=line
+
+When this environment variable is set, the Playwright harness attaches to the
+already running backend and skips backend spawn/teardown for each test run.
+This can significantly speed up iterative debugging.
+
+If you change Python experiment code, restart ``psynet debug local`` before the
+next test run so your changes are loaded.
+
+Playwright harness startup options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Playwright harness launches experiments with ``psynet debug local`` by default
+and does not force legacy mode.
+
+Optional environment variables:
+
+- ``PSYNET_USE_LEGACY_DEBUG=1``: add ``--legacy`` to the debug command.
+- ``PSYNET_DEBUG_EXTRA_FLAGS="..."``: append extra flags to the debug command
+  (for local troubleshooting).
+- ``PSYNET_USE_UV_RUN=1``: launch via ``uv run`` instead of invoking ``psynet``
+  directly (useful when ``psynet`` resolves to the wrong Python environment).
+- ``PSYNET_UV_RUN_TARGET="..."``: optional override for the command target used
+  with ``uv run`` (defaults to the resolved ``psynet`` command path).
+
+Example using uv-backed startup for a single Playwright test:
+
+.. code-block:: shell
+
+    PSYNET_USE_UV_RUN=1 \
+    npx playwright test tests/playwright/demos/graphics.spec.js --reporter=line
+
+Finding Playwright CI artifacts in GitLab
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Playwright artifacts are uploaded by the ``playwright_e2e`` job.
+
+To view them in GitLab:
+
+1. Open the pipeline.
+2. Open the ``playwright_e2e`` job.
+3. In the **Job artifacts** section on the right sidebar you can download or browse uploaded artifacts.
+
+Uploaded artifacts include:
+
+- ``playwright-report/``: Playwright HTML report (open ``playwright-report/index.html``).
+- ``test-results/``: per-test failure assets (screenshots, traces, videos).
+- ``public/playwright-junit.xml``: JUnit XML used for test report integration.
+
 
 Debugging tests via Docker
 --------------------------
 
-If you are making changes to the ``Dockerfile`` in your merge request, 
-then these changes may not be reflected in the tests you run, because the 
-tests by default pull the PsyNet master Docker base image. 
-In order to make these tests work properly, you need to run the tests on 
+If you are making changes to the ``Dockerfile`` in your merge request,
+then these changes may not be reflected in the tests you run, because the
+tests by default pull the PsyNet master Docker base image.
+In order to make these tests work properly, you need to run the tests on
 a Docker image built from your branch. To do this, do the following.
 
 First, go to your PsyNet source code directory and run the following
 (make sure you are not within a demo directory):
 
-:: 
+::
 
     docker build -t registry.gitlab.com/psynetdev/psynet:master .
 
@@ -118,7 +204,7 @@ If you now want to run a demo test, then you should be able to do so as follows:
 
     docker/run pytest test.py
 
-Note that this does not quite match the Docker environment that the CI tests are using, 
+Note that this does not quite match the Docker environment that the CI tests are using,
 but it should be close enough. We might document alternative approaches later.
 
 
@@ -133,7 +219,7 @@ This can be done with a script like the following:
 
     while psynet test local; do :; done
 
-Sporadic test failures typically involve race conditions where two separate processes try to 
+Sporadic test failures typically involve race conditions where two separate processes try to
 operate on the same database objects simultaneously. This can cause inconsistent object states
 and apparent logic errors. Processes to consider include:
 
@@ -142,8 +228,8 @@ and apparent logic errors. Processes to consider include:
 - 'Worker' processes (e.g. asynchronous processing of an audio recording)
 
 The best way to avoid such errors is typically to add some database locking.
-In SQLAlchemy this is achieved using the ``.for_update`` method, which tells 
-the database that certain rows should be left alone by other processes until the current 
+In SQLAlchemy this is achieved using the ``.for_update`` method, which tells
+the database that certain rows should be left alone by other processes until the current
 process calls ``commit()``. For example, in the ``grow_network`` method we have the following:
 
 ::
@@ -154,8 +240,8 @@ process calls ``commit()``. For example, in the ``grow_network`` method we have 
         .get(network_id)
     )
 
-This logic means that noone can touch the selected network or its head node until 
+This logic means that noone can touch the selected network or its head node until
 the next ``commit()`` call.
 
-Note that we almost always combine ``with_for_update`` with ``.populate_existing``; 
+Note that we almost always combine ``with_for_update`` with ``.populate_existing``;
 the latter is important for ensuring that object attributes are updated to their latest values.

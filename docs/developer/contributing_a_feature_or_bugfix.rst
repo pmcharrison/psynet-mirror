@@ -125,7 +125,7 @@ It turns out that ``TrialNetwork.source`` isn't defined yet either. Let's define
 
 We commit our changes as usual using git commit.
 
-Something to note here is that PsyNet contains pre-commit hooks that run various automated processes including *flake8* and *black*. These pre-commit hooks run every time we make a commit in Git. They are designed to check the code for certain errors and enforce standardized formatting. If a given commit fails then this is usually due to one of the pre-commit routines. Often simply restaging the files and retrying the commit will work, because the restaging will now include the standardized formatting enforced by *black*. In other cases (e.g. *flake8* errors) simple retrying will not work. In this case the next step is to run the ``git commit`` command in the terminal (instead of a Git GUI) and study the error message that comes out.
+Something to note here is that PsyNet contains pre-commit hooks that run various automated processes including `ruff <https://docs.astral.sh/ruff/>`__. These pre-commit hooks run every time we make a commit in Git. They are designed to check the code for certain errors, sort imports, and enforce standardized formatting. If a given commit fails then this is usually due to one of the pre-commit routines. Often simply restaging the files and retrying the commit will work, because the restaging will now include the standardized formatting enforced by *ruff format*. In other cases (e.g. lint errors) simple retrying will not work. In this case the next step is to run the ``git commit`` command in the terminal (instead of a Git GUI) and study the error message that comes out.
 
 Step 4: Adding documentation
 ++++++++++++++++++++++++++++

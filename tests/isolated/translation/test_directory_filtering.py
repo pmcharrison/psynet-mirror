@@ -33,9 +33,9 @@ def test_skip_hidden_directories():
         # Verify no entries from hidden directory
         for entry in entries:
             for occurrence_path, _ in entry.occurrences:
-                assert (
-                    ".hidden_venv" not in occurrence_path
-                ), "Should not extract from hidden directories"
+                assert ".hidden_venv" not in occurrence_path, (
+                    "Should not extract from hidden directories"
+                )
 
 
 def test_skip_common_venv_names():
@@ -62,9 +62,9 @@ def test_skip_common_venv_names():
         for entry in entries:
             for occurrence_path, _ in entry.occurrences:
                 for venv_name in venv_names:
-                    assert (
-                        venv_name not in occurrence_path
-                    ), f"Should not extract from {venv_name} directory"
+                    assert venv_name not in occurrence_path, (
+                        f"Should not extract from {venv_name} directory"
+                    )
 
 
 def test_skip_ide_and_build_directories():
@@ -91,9 +91,9 @@ def test_skip_ide_and_build_directories():
         for entry in entries:
             for occurrence_path, _ in entry.occurrences:
                 for skip_dir in skip_dirs:
-                    assert (
-                        skip_dir not in occurrence_path
-                    ), f"Should not extract from {skip_dir} directory"
+                    assert skip_dir not in occurrence_path, (
+                        f"Should not extract from {skip_dir} directory"
+                    )
 
 
 def test_normal_directories_still_processed():
@@ -123,9 +123,9 @@ def test_normal_directories_still_processed():
                 all_paths.append(occurrence_path)
 
         assert any("main.py" in p for p in all_paths), "Should extract from main.py"
-        assert any(
-            "sub.py" in p for p in all_paths
-        ), "Should extract from submodule/sub.py"
+        assert any("sub.py" in p for p in all_paths), (
+            "Should extract from submodule/sub.py"
+        )
 
 
 def test_performance_with_large_venv():

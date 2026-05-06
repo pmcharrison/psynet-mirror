@@ -1000,7 +1000,9 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
             ),
             logic_if_true=join(
                 wait_while(
-                    lambda participant: not participant.current_trial.ready_for_feedback,
+                    lambda participant: (
+                        not participant.current_trial.ready_for_feedback
+                    ),
                     expected_wait=0,
                     log_message="Waiting for feedback to be ready.",
                     check_interval=1.0,
@@ -2012,8 +2014,9 @@ class TrialMaker(Module):
                 return CodeBlock(self._try_to_prepare_trial_solo)
             return conditional(
                 "prepare_trial",
-                lambda participant: self.sync_group_type
-                in participant.active_sync_groups,
+                lambda participant: (
+                    self.sync_group_type in participant.active_sync_groups
+                ),
                 join(
                     GroupBarrier(
                         id_="prepare_trial",

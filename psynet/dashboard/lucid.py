@@ -226,9 +226,9 @@ def report_lucid():
 
     items = entrant_info_to_status_items(entrant_info)
 
-    items[
-        0
-    ] += "<br>The total number of working participants or participants who dropped out (e.g., close window)."
+    items[0] += (
+        "<br>The total number of working participants or participants who dropped out (e.g., close window)."
+    )
     items[1] += "<br>The total number of respondents send to termination by PsyNet."
     items[2] += "<br>The total number of complete participants."
 
@@ -275,9 +275,9 @@ def report_lucid():
 
     items[0] += "<br>The total number of respondents clicking on the survey link."
     items[1] += "<br>The total number of respondents who passed the qualifications."
-    items[
-        2
-    ] += "<br>The total number of respondents who are marked as complete by Lucid."
+    items[2] += (
+        "<br>The total number of respondents who are marked as complete by Lucid."
+    )
 
     params["lucid_responent_activity"] = {
         "title": "Respondent activity",
@@ -313,12 +313,12 @@ def report_lucid():
         "<br>The total number of respondents who are doing the experiment or were not returned to the marketplace "
         "(e.g., closing the window)."
     )
-    items[
-        2
-    ] += "<br>The total number of respondents who are marked as terminated in Lucid."
-    items[
-        3
-    ] += "<br>The total number of respondents who are marked as complete in Lucid."
+    items[2] += (
+        "<br>The total number of respondents who are marked as terminated in Lucid."
+    )
+    items[3] += (
+        "<br>The total number of respondents who are marked as complete in Lucid."
+    )
     n_psynet_working = len(entry_df.query("psynet_status == 'Working'"))
     n_lucid_working = len(lucid_entry_df.query("lucid_status == @in_survey_status"))
     if n_lucid_working != n_psynet_working:

@@ -35,7 +35,6 @@ from .utils import (
     NoArgumentProvided,
     call_function,
     call_function_with_context,
-    dict_to_js_vars,
     format_datetime,
     get_args,
     get_language_dict,
@@ -1428,10 +1427,8 @@ class Page(Elt):
 
         all_template_args = {
             **self.template_arg,
-            "init_js_vars": Markup(dict_to_js_vars(js_vars)),
             "js_vars": js_vars,
             "page": self,
-            "define_media_requests": Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
             "time_reward": "%.2f" % participant.time_reward,
             "performance_reward": "%.2f" % participant.performance_reward,
@@ -1463,10 +1460,6 @@ class Page(Elt):
         return render_string_with_translations(
             template_string=self.template_str, **all_template_args
         )
-
-    @property
-    def define_media_requests(self):
-        return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
 
     @property
     def plain_text(self):
@@ -2172,17 +2165,19 @@ def while_loop(
         return f"{prefix}__{x}"
 
     if max_loop_time is not None:
-        max_loop_time_condition = (
-            lambda participant, experiment: (
+
+        def max_loop_time_condition(participant, experiment):
+            return (
                 datetime.now()
                 - unserialise_datetime(
                     participant.var.get(with_namespace("loop_start_time"))
                 )
-            ).seconds
-            > max_loop_time
-        )
+            ).seconds > max_loop_time
+
     else:
-        max_loop_time_condition = lambda participant, experiment: False  # noqa: E731
+
+        def max_loop_time_condition(participant, experiment):
+            return False
 
     from .page import UnsuccessfulEndPage
 

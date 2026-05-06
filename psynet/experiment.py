@@ -1,10 +1,7 @@
 import configparser
 import inspect
 import json
-import logging
-import math
 import os
-import random
 import re
 import shutil
 import signal
@@ -23,13 +20,12 @@ from os.path import join as join_path
 from pathlib import Path
 from platform import python_version
 from smtplib import SMTPAuthenticationError
-from statistics import mean, median
+from statistics import median
 from typing import List, Optional, Type, Union
 
 import dallinger.experiment
 import dallinger.models
 import flask
-import pexpect
 import psutil
 import rpdb
 import sqlalchemy.orm.exc
@@ -65,6 +61,7 @@ from sqlalchemy.orm import joinedload, with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
+from psynet.perf_test import run_parallel_test
 from psynet.utils import (
     format_bytes,
     get_config,
@@ -85,13 +82,13 @@ from .graphics import PsyNetLogo
 from .notifier import Notifier
 from .page import InfoPage
 from .participant import Participant
-from .recruiters import CapRecruiter  # noqa: F401; Backward compatibility alias
-from .recruiters import StagingCapRecruiter  # noqa: F401; Backward compatibility alias
 from .recruiters import (  # noqa: F401
     BaseLucidRecruiter,
+    CapRecruiter,  # noqa: F401; Backward compatibility alias
     DevLucidRecruiter,
     LabRecruiter,
     LucidRecruiter,
+    StagingCapRecruiter,  # noqa: F401; Backward compatibility alias
     StagingLabRecruiter,
 )
 from .redis import redis_vars
@@ -466,6 +463,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     session:
         The experiment's connection to the database.
     """
+
     # Introduced this as a hotfix for a compatibility problem with macOS 10.13:
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
@@ -523,7 +521,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         assert not (
             initial_recruitment_size_config_changed
             and initial_recruitment_size_experiment_changed
-        ), "You have set the initial recruitment size in both the config file and in your experiment class."
+        ), (
+            "You have set the initial recruitment size in both the config file and in your experiment class."
+        )
 
         if initial_recruitment_size_config_changed:
             self.initial_recruitment_size = config_initial_recruitment_size
@@ -756,9 +756,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 assert os.path.exists(po_path), f"Could not find po file at {po_path}"
                 compile_mo(po_path)
         else:
-            assert self.supported_locales == [
-                "en"
-            ], "No translations are needed, so the supported locales should be ['en']"
+            assert self.supported_locales == ["en"], (
+                "No translations are needed, so the supported locales should be ['en']"
+            )
 
     def compile_psynet_translations_if_necessary(self):
         self.compile_translations_if_necessary(
@@ -1344,7 +1344,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if self.test_mode == "serial" or self.test_n_bots == 1:
             self._test_experiment_serial()
         elif self.test_mode == "parallel":
-            self._test_experiment_parallel()
+            run_parallel_test(
+                n_bots=self.test_n_bots,
+                time_factor=self.test_time_factor,
+                stagger_interval_s=self.test_parallel_stagger_interval_s,
+                check_bots=self.test_check_bots,
+            )
         else:
             raise ValueError(f"Invalid test mode: {self.test_mode}")
 
@@ -1353,865 +1358,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # This is how many seconds to wait between invoking parallel bots
     test_parallel_stagger_interval_s = 0.1
 
-    def _test_experiment_parallel(self):
-        # Start N subprocesses, and in each one call `psynet run-bot`
-        logger.info(f"Testing experiment with {self.test_n_bots} parallel bots...")
-
-        config = get_config()
-        dashboard_user = config.get("dashboard_user")
-        dashboard_password = config.get("dashboard_password")
-
-        n_processes = self.test_n_bots
-
-        processes = []
-        process_ids = list(range(n_processes))
-        bot_ids = [process_id + 1 for process_id in process_ids]
-
-        cmd = f"psynet run-bot --dashboard-user {dashboard_user} --dashboard-password {dashboard_password}"
-        cmd += f" --time-factor {self.test_time_factor}"
-
-        for bot_id in bot_ids:
-            if bot_id > 0:
-                time.sleep(self.test_parallel_stagger_interval_s)
-
-            logger.info(f"Creating and running bot {bot_id}...")
-            p = pexpect.spawn(cmd, timeout=None, cwd=None)
-            processes.append(p)
-
-        waiting_for_processes = True
-        finished_processes = set()
-
-        testing_stats = self.TestingStats(self.testing_stat_definitions)
-
-        while waiting_for_processes:
-            for process, process_id, bot_id in zip(processes, process_ids, bot_ids):
-                try:
-                    while True:
-                        output = (
-                            process.read_nonblocking(size=100000, timeout=0)
-                            .decode()
-                            .strip()
-                            .split("\n")
-                        )
-                        for line in output:
-                            line.replace("INFO:root:", "")
-                            logger.info(f"(Bot {bot_id}) " + line)
-
-                            testing_stats.update_from_line(bot_id, line)
-
-                        time.sleep(0.01)
-                except pexpect.TIMEOUT:
-                    pass
-                except pexpect.EOF:
-                    assert process.exitstatus == 0
-                    finished_processes.add(process_id)
-
-            if len(finished_processes) == n_processes:
-                waiting_for_processes = False
-
-        bots = Bot.query.all()
-        self.test_check_bots(bots)
-
-        testing_stats.report()
-
     test_duration_minutes = 1
-
-    def performance_test_experiment(self, bot_counts=None, bot_log_file=None):
-        """Run performance tests for one or more bot count values."""
-        os.environ["PASSTHROUGH_ERRORS"] = "True"
-
-        if bot_counts is None:
-            bot_counts = [self.test_n_bots]
-
-        all_results = []
-
-        logger.info("=" * 80)
-        logger.info("⚡ STARTING PERFORMANCE TEST SUITE")
-        logger.info(f"Bot counts: {', '.join(str(n) for n in bot_counts)}")
-        logger.info(f"Duration per test: {self.test_duration_minutes:.1f} minutes")
-        logger.info(
-            f"Average stagger: {self.test_parallel_stagger_interval_s:.1f} seconds"
-        )
-        logger.info(f"Average time factor: {self.test_time_factor:.1f}")
-
-        for i, n_bots in enumerate(bot_counts, 1):
-            logger.info("")
-            logger.info("=" * 80)
-            logger.info(
-                f"TEST {i}/{len(bot_counts)}: Running with {n_bots:,} concurrent bots"
-            )
-
-            result = self._test_performance(n_bots, bot_log_file=bot_log_file)
-            all_results.append(result)
-
-            if i < len(bot_counts):
-                logger.debug("")
-                logger.debug("Waiting 5 seconds before next test...")
-                time.sleep(5)
-
-        self._print_performance_summary(all_results)
-
-    def _print_performance_summary(self, results):
-        """Print a comprehensive summary of all performance test results."""
-
-        def _format_response_metric(value):
-            return f"{value:.3f}" if value is not None else "N/A"
-
-        # Summary table
-        columns = {
-            "∥ Bots": 6,
-            "Succeeded": 9,
-            "Errored": 7,
-            "Terminated": 10,
-            "Requests": 10,
-            "Req Errors": 10,
-            "Resp med (s)": 12,
-            "Resp 95% (s)": 12,
-            "Resp max (s)": 12,
-        }
-        row_fmt = "│" + "".join(f" {{:>{w}}} │" for w in columns.values())
-        table_width = sum(w + 3 for w in columns.values()) - 1
-        header_width = table_width + 2
-
-        logger.info("")
-        logger.info("=" * header_width)
-        logger.info("📊 PERFORMANCE TEST SUMMARY")
-        logger.info("=" * header_width)
-        logger.info("")
-        logger.info("┌" + "─" * table_width + "┐")
-        logger.info(row_fmt.format(*columns.keys()))
-        logger.info("├" + "─" * table_width + "┤")
-
-        for result in results:
-            median_resp = _format_response_metric(result["median_response_time"])
-            p95_resp = _format_response_metric(result["p95_response_time"])
-            max_resp = _format_response_metric(result["max_response_time"])
-
-            logger.info(
-                row_fmt.format(
-                    result["n_bots"],
-                    result["bots_succeeded"],
-                    result["bots_failed"],
-                    result["bots_incomplete"],
-                    result["total_requests"],
-                    result["request_errors"],
-                    median_resp,
-                    p95_resp,
-                    max_resp,
-                )
-            )
-
-        logger.info("└" + "─" * table_width + "┘")
-        logger.info("")
-
-        # Detailed results
-        for idx, result in enumerate(results, 1):
-
-            bots_finished = max(
-                result["completed_during_test"],
-                result["bots_succeeded"] + result["bots_failed"],
-            )
-
-            logger.info(f"Test {idx} Details (n={result['n_bots']:,} bots):")
-            logger.info(f"  Total bots started: {result['total_bots_started']:,}")
-            logger.info(f"  Finished within duration: {bots_finished:,}")
-            logger.info(f"  Successful experiments: {result['bots_succeeded']:,}")
-            logger.info(f"  Failed experiments: {result['bots_failed']:,}")
-            logger.info(f"  Incomplete experiments: {result['bots_incomplete']:,}")
-
-            if bots_finished > 0:
-                success_rate = (result["bots_succeeded"] / bots_finished) * 100
-                logger.info(f"  Success rate: {success_rate:.1f}%")
-            elif result["total_bots_started"] > 0:
-                logger.info("  Success rate: 0.0%")
-            else:
-                logger.info("  Success rate: N/A")
-
-            logger.info(f"  Total requests: {result['total_requests']:,}")
-            logger.info(f"  Error responses: {result['request_errors']:,}")
-            if result.get("avg_bot_duration") is not None:
-                logger.info(
-                    f"  Average time to complete: {result['avg_bot_duration']:.1f}s"
-                )
-            if result.get("avg_succeeded_duration") is not None:
-                logger.info(
-                    f"  Avg time to complete (succeeded): {result['avg_succeeded_duration']:.1f}s"
-                )
-            if result.get("avg_failed_duration") is not None:
-                logger.info(
-                    f"  Avg time to complete (failed): {result['avg_failed_duration']:.1f}s"
-                )
-            if result.get("avg_incomplete_duration") is not None:
-                logger.info(
-                    f"  Avg time to complete (incomplete): {result['avg_incomplete_duration']:.1f}s"
-                )
-
-            if result.get("avg_init_time") is not None:
-                logger.info(
-                    f"  Average bot initialization time: {result['avg_init_time']:.1f}s"
-                )
-
-            if result.get("median_wait_page_time") is not None:
-                logger.info(
-                    f"  Wait page time (median): {result['median_wait_page_time']:.1f}s"
-                )
-                logger.info(
-                    f"  Wait page time (95th): {result['p95_wait_page_time']:.1f}s"
-                )
-                logger.info(
-                    f"  Wait page time (max): {result['max_wait_page_time']:.1f}s"
-                )
-
-            if result["avg_response_time"] is not None:
-                logger.info(
-                    f"  Average response time: {result['avg_response_time']:.3f}s"
-                )
-            else:
-                logger.info("  Average response time: N/A")
-
-            if result["median_response_time"] is not None:
-                logger.info(
-                    f"  Median response time: {result['median_response_time']:.3f}s"
-                )
-            else:
-                logger.info("  Median response time: N/A")
-
-            if result["p95_response_time"] is not None:
-                logger.info(
-                    f"  95th percentile responses: {result['p95_response_time']:.3f}s"
-                )
-            else:
-                logger.info("  95th percentile responses: N/A")
-
-            if result["p99_response_time"] is not None:
-                logger.info(
-                    f"  99th percentile responses: {result['p99_response_time']:.3f}s"
-                )
-            else:
-                logger.info("  99th percentile responses: N/A")
-
-            if result["stddev_response_time"] is not None:
-                logger.info(
-                    f"  Standard deviation: {result['stddev_response_time']:.3f}s"
-                )
-            else:
-                logger.info("  Standard deviation: N/A")
-
-            logger.info("")
-
-        logger.info("=" * header_width)
-
-    def _test_performance(self, n, bot_log_file):
-        """
-        Run a load test by maintaining up to n concurrent bot processes for a
-        specified duration.
-
-        Returns a dictionary with performance metrics.
-        """
-        duration_minutes = self.test_duration_minutes
-        logger.info("")
-        logger.info(
-            "▶ Starting load test with {n:,} concurrent bots for {duration_minutes} minutes...".format(
-                n=n, duration_minutes=duration_minutes
-            )
-        )
-
-        # Setup
-        initial_state = self._capture_initial_state()
-        bot_state = self._initialize_bot_tracking()
-        bot_state["bot_log_file"] = bot_log_file
-        start_time = time.time()
-        end_time = start_time + (duration_minutes * 60)
-
-        # Create bot launcher
-        start_new_bot = self._create_bot_launcher(bot_state)
-
-        # Launch first bot and wait for initialization
-        logger.debug("Launching first bot and waiting for initialization...")
-        start_new_bot()
-
-        # Show initial status immediately
-        self._show_realtime_status(bot_state, time.time(), end_time, force=True)
-
-        # Main monitoring loop
-        self._run_monitoring_loop(n, bot_state, start_new_bot, start_time, end_time)
-        self._clear_realtime_status()
-
-        # Calculate and report results
-        actual_duration = time.time() - start_time
-        return self._calculate_and_report_results(
-            n, duration_minutes, actual_duration, initial_state, bot_state
-        )
-
-    def _capture_initial_state(self):
-        """Capture initial database state before test."""
-        initial_stats = self.authenticated_session.get(
-            self.base_url + "/request_statistics"
-        ).json()
-        max_request_id = db.session.query(func.max(Request.id)).scalar() or 0
-
-        return {
-            "initial_requests": initial_stats["total_requests"],
-            "max_request_id": max_request_id,
-        }
-
-    def _initialize_bot_tracking(self):
-        """Initialize tracking structures for bots."""
-        return {
-            "processes": {},
-            "next_bot_id": 1,
-            "next_process_id": 0,
-            "total_bots_started": 0,
-            "total_bots_completed": 0,
-            "bots_completed_during_test": 0,
-            "total_bot_errors": 0,
-            "bot_durations": [],
-            "initialization_times": [],
-            "bot_exit_failures": {},
-            "bot_monitor_errors": {},
-            "first_bot_initialized": False,
-            "bots_to_launch": 0,
-            "testing_stats": self.TestingStats(self.testing_stat_definitions),
-            "last_status_update": time.time(),
-            "status_line_length": 0,
-            "bot_ids": set(),
-            "bot_log_file": None,
-        }
-
-    @staticmethod
-    def _bounded_random_multiplier(max_multiplier=3.0):
-        """Bounded lognormal distribution for user completion times"""
-        sigma = 0.6
-        mu = -0.5 * sigma * sigma
-        while True:
-            x = math.exp(random.gauss(mu, sigma))
-            if x <= max_multiplier:
-                return x
-
-    def _bounded_random_stagger(self, max_multiplier=5.0):
-        """Bounded gamma distribution for bot stagger"""
-        k = 3.0
-        theta = self.test_parallel_stagger_interval_s / k
-        if not theta:
-            return 0.0
-        while True:
-            x = random.gammavariate(k, theta)
-            if x <= max_multiplier:
-                return x
-
-    def _create_bot_launcher(self, bot_state):
-        """Create a function to launch new bot processes."""
-        config = get_config()
-        dashboard_user = config.get("dashboard_user")
-        dashboard_password = config.get("dashboard_password")
-        time_factor = self.test_time_factor
-
-        def start_new_bot():
-            bot_id = bot_state["next_bot_id"]
-            process_id = bot_state["next_process_id"]
-            bot_state["next_bot_id"] += 1
-            bot_state["next_process_id"] += 1
-
-            randomized_time_factor = time_factor * self._bounded_random_multiplier()
-            cmd = (
-                f"psynet run-bot --dashboard-user {dashboard_user} "
-                f"--dashboard-password {dashboard_password} "
-                f"--time-factor {randomized_time_factor}"
-            )
-
-            logger.debug(
-                f"Starting bot {bot_id} (time_factor={randomized_time_factor:.2f})..."
-            )
-
-            try:
-                env = os.environ.copy()
-                # Disable colors in log output, so it can be read with any tool
-                env["PYTHON_COLORS"] = "0"
-                p = pexpect.spawn(cmd, timeout=None, cwd=None, env=env)
-                bot_state["processes"][process_id] = {
-                    "process": p,
-                    "bot_id": bot_id,
-                    "spawn_time": time.time(),
-                    "start_time": None,
-                    "next_start_time": None,
-                    "recent_output": [],
-                }
-                if bot_state["bot_log_file"]:
-                    p.logfile_read = bot_state["bot_log_file"]
-                bot_state["total_bots_started"] += 1
-                bot_state["bot_ids"].add(bot_id)
-
-                return True
-            except Exception as e:
-                logger.error(f"Failed to start bot {bot_id}: {e}")
-                return False
-
-        return start_new_bot
-
-    def _show_realtime_status(self, bot_state, current_time, end_time, force=False):
-        """Show real-time status update if not in debug mode and enough time has passed."""
-        is_debug = logger.getEffectiveLevel() <= logging.DEBUG
-        if is_debug:
-            return
-
-        # Update every 2 seconds, or immediately if forced
-        if not force and current_time - bot_state["last_status_update"] < 2:
-            return
-
-        bot_state["last_status_update"] = current_time
-
-        # Calculate stats
-        running = len(
-            [p for p in bot_state["processes"].values() if p["next_start_time"] is None]
-        )
-        completed = bot_state["bots_completed_during_test"]
-        errors = bot_state["total_bot_errors"]
-
-        # Calculate average response time from recent bot durations
-        recent_durations = [d for _, d, _ in bot_state["bot_durations"][-5:]]
-        avg_duration = (
-            sum(recent_durations) / len(recent_durations) if recent_durations else 0
-        )
-
-        # Time remaining
-        time_left = max(0, end_time - current_time)
-        mins_left = int(time_left / 60)
-        secs_left = int(time_left % 60)
-
-        # Build status line
-        status = f"🤖 Running: {running} | ✓ Completed: {completed:,} | ✗ Errors: {errors} | ⏱ Avg: {avg_duration:.1f}s | ⏳ {mins_left}:{secs_left:02d} left"
-
-        # Clear previous line and print new status
-        sys.stdout.write("\r" + " " * bot_state["status_line_length"] + "\r")
-        sys.stdout.write(status)
-        sys.stdout.flush()
-        bot_state["status_line_length"] = len(status)
-
-    def _clear_realtime_status(self):
-        """Clear the status line when progress is complete."""
-        is_debug = logger.getEffectiveLevel() <= logging.DEBUG
-        if not is_debug:
-            sys.stdout.write("\r" + " " * 150 + "\r")
-            sys.stdout.flush()
-
-    def _run_monitoring_loop(self, n, bot_state, start_new_bot, start_time, end_time):
-        """Main loop to monitor bot processes."""
-        while time.time() < end_time or len(bot_state["processes"]) > 0:
-            current_time = time.time()
-
-            # Show real-time status update
-            self._show_realtime_status(bot_state, current_time, end_time)
-
-            # Start new bots after bots have completed
-            if self._start_scheduled_bots(
-                bot_state, start_new_bot, current_time, end_time
-            ):
-                # Force status update after starting a bot
-                self._show_realtime_status(
-                    bot_state, current_time, end_time, force=True
-                )
-
-            # Launch n-1 bots after first one initializes
-            if bot_state["first_bot_initialized"] and bot_state["bots_to_launch"] > 0:
-                logger.debug(
-                    f"First bot initialized. Launching remaining {bot_state['bots_to_launch']} bots..."
-                )
-                for i in range(bot_state["bots_to_launch"]):
-                    if i > 0:
-                        random_stagger = self._bounded_random_stagger()
-                        logger.debug(
-                            f"Waiting {random_stagger:.2f}s before launching next bot..."
-                        )
-                        time.sleep(random_stagger)
-                    start_new_bot()
-                    # Force status update after each bot
-                    self._show_realtime_status(
-                        bot_state, time.time(), end_time, force=True
-                    )
-                bot_state["bots_to_launch"] = 0
-
-            self._monitor_all_processes(bot_state, current_time, end_time, n)
-
-            # Terminate running bots once time is up to ensure consistent stats
-            if current_time >= end_time and len(bot_state.get("processes", {})) > 0:
-                import os
-                import signal
-                import time as _time
-
-                logger.debug("End time reached — terminating remaining bot processes")
-                for proc_id, proc_info in list(bot_state.get("processes", {}).items()):
-                    # Only target running processes
-                    if proc_info.get("next_start_time") is not None:
-                        continue
-                    proc_info["terminated_by_test"] = True
-                    p = proc_info.get("process")
-                    if p is None:
-                        continue
-                    pidnum = getattr(p, "pid", None)
-                    try:
-                        if pidnum:
-                            os.kill(pidnum, signal.SIGTERM)
-                        else:
-                            try:
-                                p.kill(signal.SIGTERM)
-                            except Exception:
-                                try:
-                                    p.close(force=True)
-                                except Exception:
-                                    pass
-                    except Exception as e:
-                        logger.debug(f"Failed to terminate bot process {proc_id}: {e}")
-
-                # Give processes a short grace period to exit
-                _time.sleep(0.2)
-
-            time.sleep(0.1)
-
-    def _start_scheduled_bots(self, bot_state, start_new_bot, current_time, end_time):
-        """Start bots that are scheduled to start. Returns True if any bots were started."""
-        to_start = [
-            pid
-            for pid, info in list(bot_state["processes"].items())
-            if info["next_start_time"] is not None
-            and current_time >= info["next_start_time"]
-        ]
-
-        for process_id in to_start:
-            del bot_state["processes"][process_id]
-            if current_time < end_time:
-                start_new_bot()
-
-        return len(to_start) > 0
-
-    def _monitor_all_processes(self, bot_state, current_time, end_time, n):
-        """Monitor all running bot processes."""
-        for process_id, process_info in list(bot_state["processes"].items()):
-            if process_info["next_start_time"] is not None:
-                continue  # Wait to start
-
-            self._monitor_single_process(
-                bot_state, process_id, process_info, current_time, end_time, n
-            )
-
-    def _monitor_single_process(
-        self, bot_state, process_id, process_info, current_time, end_time, n
-    ):
-        """Monitor a single bot process."""
-        p = process_info["process"]
-        bot_id = process_info["bot_id"]
-
-        try:
-            while True:
-                output = (
-                    p.read_nonblocking(size=100000, timeout=0)
-                    .decode()
-                    .strip()
-                    .split("\n")
-                )
-                for line in output:
-                    line = line.replace("INFO:root:", "")
-                    logger.debug(f"(Bot {bot_id}) " + line)
-                    bot_state["testing_stats"].update_from_line(bot_id, line)
-                    recent = process_info["recent_output"]
-                    recent.append(line)
-                    # Keep just the most recent 10 lines. Remove overflow from
-                    # the front of the list
-                    recent[:] = recent[-10:]
-
-                    # Detect bot initialization
-                    if process_info["start_time"] is None and "Initializing" in line:
-                        process_info["start_time"] = time.time()
-                        init_time = (
-                            process_info["start_time"] - process_info["spawn_time"]
-                        )
-                        logger.debug(f"Bot {bot_id} initialized in {init_time:.1f}s")
-
-                        bot_state["initialization_times"].append(init_time)
-
-                        if not bot_state["first_bot_initialized"]:
-                            bot_state["first_bot_initialized"] = True
-                            bot_state["bots_to_launch"] = n - 1
-
-                time.sleep(0.01)
-
-        except pexpect.TIMEOUT:
-            pass
-        except pexpect.EOF:
-            self._handle_bot_completion(
-                bot_state, process_info, process_id, current_time, end_time
-            )
-        except Exception as e:
-            self._handle_bot_error(
-                bot_state, process_info, process_id, e, current_time, end_time
-            )
-
-    def _handle_bot_completion(
-        self, bot_state, process_info, process_id, current_time, end_time
-    ):
-        """Handle a bot process completion."""
-        p = process_info["process"]
-        bot_id = process_info["bot_id"]
-
-        # Calculate duration
-        if process_info["start_time"] is not None:
-            bot_duration = current_time - process_info["start_time"]
-        else:
-            bot_duration = current_time - process_info["spawn_time"]
-
-        # Record duration for all exits
-        terminated = process_info.get("terminated_by_test", False)
-        if process_info["start_time"] is not None:
-            bot_state["bot_durations"].append((bot_id, bot_duration, terminated))
-
-        if p.exitstatus == 0:
-            logger.debug(f"Bot {bot_id} completed successfully in {bot_duration:.1f}s")
-            if current_time < end_time:
-                bot_state["bots_completed_during_test"] += 1
-        else:
-            if p.exitstatus is not None:
-                bot_state["bot_exit_failures"][bot_id] = {
-                    "exitstatus": p.exitstatus,
-                    "output": process_info["recent_output"],
-                }
-                bot_state["total_bot_errors"] += 1
-
-        # Schedule bot replacement or cleanup
-        if current_time < end_time:
-            random_delay = self._bounded_random_stagger()
-            process_info["next_start_time"] = current_time + random_delay
-            logger.debug(f"Will start replacement bot in {random_delay:.2f} seconds")
-        else:
-            del bot_state["processes"][process_id]
-
-    def _handle_bot_error(
-        self, bot_state, process_info, process_id, error, current_time, end_time
-    ):
-        """Handle a bot process error."""
-        bot_id = process_info["bot_id"]
-        bot_state["bot_monitor_errors"][bot_id] = error
-        bot_state["total_bot_errors"] += 1
-
-        if current_time < end_time:
-            random_delay = self._bounded_random_stagger()
-            process_info["next_start_time"] = current_time + random_delay
-            logger.debug(f"Will start replacement bot in {random_delay:.2f} seconds")
-        else:
-            del bot_state["processes"][process_id]
-
-    def _calculate_and_report_results(
-        self, n, duration_minutes, actual_duration, initial_state, bot_state
-    ):
-        """Calculate final metrics and report results."""
-        # Get final request state from DB
-        final_stats = self.authenticated_session.get(
-            self.base_url + "/request_statistics"
-        ).json()
-        final_requests = final_stats["total_requests"]
-
-        requests_during_test = final_requests - initial_state["initial_requests"]
-
-        key_endpoints = ["/timeline", "/response"]
-
-        stats = (
-            db.session.query(
-                func.avg(Request.duration).label("avg"),
-                func.percentile_cont(0.5)
-                .within_group(Request.duration)
-                .label("median"),
-                func.percentile_cont(0.95).within_group(Request.duration).label("p95"),
-                func.percentile_cont(0.99).within_group(Request.duration).label("p99"),
-                func.stddev_samp(Request.duration).label("stddev"),
-                func.max(Request.duration).label("max"),
-            )
-            .filter(
-                Request.id > initial_state["max_request_id"],
-                Request.endpoint.in_(key_endpoints),
-            )
-            .one()
-        )
-
-        request_errors = (
-            db.session.query(func.count(Request.id))
-            .filter(
-                Request.id > initial_state["max_request_id"],
-                Request.endpoint.in_(key_endpoints),
-                Request.status_code >= 400,
-            )
-            .scalar()
-        )
-
-        bot_ids = bot_state["bot_ids"]
-        bots = Bot.query.filter(Bot.id.in_(list(bot_ids))).all()
-        bots_succeeded = bots_failed = bots_incomplete = 0
-        for bot in bots:
-            if bot.status in {"approved", "submitted"}:
-                bots_succeeded += 1
-            elif bot.status == "working":
-                bots_incomplete += 1
-            else:
-                bots_failed += 1
-
-        wait_page_times = [
-            b.total_wait_page_time for b in bots if b.total_wait_page_time is not None
-        ]
-        if wait_page_times:
-            wait_page_times_sorted = sorted(wait_page_times)
-            median_wait_page_time = wait_page_times_sorted[
-                len(wait_page_times_sorted) // 2
-            ]
-            p95_wait_page_time = wait_page_times_sorted[
-                int(len(wait_page_times_sorted) * 0.95)
-            ]
-            max_wait_page_time = wait_page_times_sorted[-1]
-        else:
-            median_wait_page_time = p95_wait_page_time = max_wait_page_time = None
-
-        avg_response_time = stats.avg
-        median_response_time = stats.median
-        p95_response_time = stats.p95
-        p99_response_time = stats.p99
-        stddev_response_time = stats.stddev
-        max_response_time = stats.max
-
-        succeeded_statuses = {"approved", "submitted"}
-        bot_status_map = {b.id: b.status for b in bots}
-        succeeded_durations = [
-            d
-            for bot_id, d, terminated in bot_state["bot_durations"]
-            if not terminated and bot_status_map.get(bot_id) in succeeded_statuses
-        ]
-        failed_durations = [
-            d
-            for bot_id, d, terminated in bot_state["bot_durations"]
-            if not terminated
-            and bot_status_map.get(bot_id) not in succeeded_statuses
-            and bot_status_map.get(bot_id) != "working"
-        ]
-        incomplete_durations = [
-            d
-            for bot_id, d, terminated in bot_state["bot_durations"]
-            if terminated or bot_status_map.get(bot_id) == "working"
-        ]
-        all_durations = [d for _, d, _ in bot_state["bot_durations"]]
-
-        avg_bot_duration = (
-            sum(all_durations) / len(all_durations) if all_durations else None
-        )
-        avg_succeeded_duration = (
-            sum(succeeded_durations) / len(succeeded_durations)
-            if succeeded_durations
-            else None
-        )
-        avg_failed_duration = (
-            sum(failed_durations) / len(failed_durations) if failed_durations else None
-        )
-        avg_incomplete_duration = (
-            sum(incomplete_durations) / len(incomplete_durations)
-            if incomplete_durations
-            else None
-        )
-
-        avg_init_time = (
-            sum(bot_state["initialization_times"])
-            / len(bot_state["initialization_times"])
-            if bot_state["initialization_times"]
-            else None
-        )
-
-        self._report_test_results(
-            n,
-            duration_minutes,
-            actual_duration,
-            bot_state["total_bots_started"],
-            bot_state["bots_completed_during_test"],
-            bot_state["total_bot_errors"],
-            bots_succeeded,
-            bots_failed,
-            bots_incomplete,
-            avg_bot_duration,
-            avg_init_time,
-            requests_during_test,
-            avg_response_time,
-        )
-
-        return {
-            "n_bots": n,
-            "duration_minutes": duration_minutes,
-            "actual_duration": actual_duration,
-            "total_bots_started": bot_state["total_bots_started"],
-            "completed_during_test": bot_state["bots_completed_during_test"],
-            "bots_succeeded": bots_succeeded,
-            "bots_failed": bots_failed,
-            "bots_incomplete": bots_incomplete,
-            "total_requests": requests_during_test,
-            "bot_errors": bot_state["total_bot_errors"],
-            "avg_response_time": avg_response_time,
-            "median_response_time": median_response_time,
-            "p95_response_time": p95_response_time,
-            "p99_response_time": p99_response_time,
-            "stddev_response_time": stddev_response_time,
-            "max_response_time": max_response_time,
-            "avg_bot_duration": avg_bot_duration,
-            "avg_init_time": avg_init_time,
-            "request_errors": request_errors,
-            "median_wait_page_time": median_wait_page_time,
-            "p95_wait_page_time": p95_wait_page_time,
-            "max_wait_page_time": max_wait_page_time,
-            "avg_succeeded_duration": avg_succeeded_duration,
-            "avg_failed_duration": avg_failed_duration,
-            "avg_incomplete_duration": avg_incomplete_duration,
-        }
-
-    def _report_test_results(
-        self,
-        n,
-        duration_minutes,
-        actual_duration,
-        total_started,
-        completed_during_test,
-        total_errors,
-        bots_succeeded,
-        bots_failed,
-        bots_incomplete,
-        avg_bot_duration,
-        avg_init_time,
-        requests_during_test,
-        avg_response_time,
-    ):
-        """Print test results. Mostly in debug mode, to prevent duplication with end summary"""
-        logger.info("✓ Test completed")
-        logger.info(f"TEST RESULTS (n={n:,} bots):")
-        logger.info(f"Target duration: {duration_minutes} minutes")
-
-        if avg_init_time is not None:
-            logger.info(f"Average bot initialization time: {avg_init_time:.1f}s")
-
-        bots_finished = max(completed_during_test, bots_succeeded + bots_failed)
-
-        logger.info(f"Total bots started: {total_started:,}")
-        logger.info(f"Bots completed during duration: {bots_finished:,}")
-        logger.info(f"Successful experiments: {bots_succeeded:,}")
-        logger.info(f"Failed experiments: {bots_failed:,}")
-        logger.info(f"Incomplete experiments: {bots_incomplete:,}")
-        logger.info(f"Bot errors: {total_errors:,}")
-
-        if bots_finished > 0:
-            success_rate = (bots_succeeded / bots_finished) * 100
-            logger.info(f"Success rate: {success_rate:.1f}%")
-        elif total_started > 0:
-            logger.info("Success rate: 0.0%")
-        else:
-            logger.info("Success rate: N/A")
-
-        if avg_bot_duration is not None:
-            logger.info(f"Average time to complete: {avg_bot_duration:.1f}s")
-
-        logger.info(f"Requests during test: {requests_during_test:,}")
-
-        if avg_response_time is not None:
-            logger.info(f"Average response time: {avg_response_time:.3f}s")
-        else:
-            logger.info("Average response time: N/A")
 
     def _report_request_statistics(self) -> Optional[float]:
         response = self.authenticated_session.get(self.base_url + "/request_statistics")
@@ -2243,74 +1390,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "mean_duration": mean_duration,
             "total_requests": total_requests,
         }
-
-    class TestingStats:
-        def __init__(self, stat_definitions):
-            self.stat_definitions = stat_definitions
-            self.data = {
-                stat_definition.key: {} for stat_definition in stat_definitions
-            }
-
-        def update_from_line(self, bot_id, line):
-            for stat_definition in self.stat_definitions:
-                stat = stat_definition.extract_stat(line)
-                if stat is not None:
-                    self.update_from_stat(stat_definition.key, bot_id, stat)
-
-        def update_from_stat(self, stat_key, bot_id, value):
-            self.data[stat_key][bot_id] = value
-
-        def report(self):
-            logger.info("BOT TESTING STATISTICS:")
-            for stat_definition in self.stat_definitions:
-                values = self.data[stat_definition.key].values()
-                stat_definition.report(values)
-
-    class TestingStatDefinition:
-        def __init__(self, key, label, regex, suffix, decimal_places=3):
-            self.key = key
-            self.label = label
-            self.regex = regex
-            self.suffix = suffix
-            self.decimal_places = decimal_places
-
-        def extract_stat(self, line):
-            match = re.search(self.regex, line)
-            if match:
-                return float(match.group(1))
-
-        def report(self, values):
-            values_not_none = [value for value in values if value is not None]
-
-            if len(values_not_none) > 0:
-                _mean = mean(values_not_none)
-                template = f"Mean %s = %.{self.decimal_places}f%s"
-                logger.info(template % (self.label, _mean, self.suffix))
-            else:
-                logger.info(f"Didn't find any values for {self.label} to report.")
-
-    testing_stat_definitions = [
-        TestingStatDefinition(
-            "progress",
-            label="progress through experiment",
-            regex="progress = ([0-9]*)%",
-            suffix="%",
-            decimal_places=0,
-        ),
-        TestingStatDefinition(
-            "total_wait_page_time",
-            label="total wait page time per bot",
-            regex="total WaitPage time = ([0-9]*\\.[0-9]*) seconds",
-            suffix=" seconds",
-            decimal_places=2,
-        ),
-        TestingStatDefinition(
-            "total_experiment_time",
-            label="time taken to complete experiment",
-            regex="total experiment time = ([0-9]*\\.[0-9]*) seconds",
-            suffix=" seconds",
-        ),
-    ]
 
     def _test_experiment_serial(self):
         logger.info(f"Testing experiment with {self.test_n_bots} serial bot(s)...")
@@ -2456,10 +1535,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     _p("mturk_error", "Please also quote the following information:")
                 )
                 tags.ul(
-                    tags.li(f'{_("Error type")}: {error_type}'),
-                    tags.li(f'{_("HIT ID")}: {hit_id}'),
-                    tags.li(f'{_("Assignment ID")}: {assignment_id}'),
-                    tags.li(f'{_("Worker ID")}: {worker_id}'),
+                    tags.li(f"{_('Error type')}: {error_type}"),
+                    tags.li(f"{_('HIT ID')}: {hit_id}"),
+                    tags.li(f"{_('Assignment ID')}: {assignment_id}"),
+                    tags.li(f"{_('Worker ID')}: {worker_id}"),
                 )
 
             return html
@@ -2897,7 +1976,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 We estimate that the task should take approximately <span style="font-weight: bold;">{round(self.estimated_duration_in_minutes)} minutes</span>. Upon completion of the full task,
                 <br>
                 you should receive a reward of approximately
-                <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_reward_in_dollars)}</span> depending on the
+                <span style="font-weight: bold;">${"{:.2f}".format(self.estimated_reward_in_dollars)}</span> depending on the
                 amount of work done.
                 <br>
                 In some cases, the experiment may finish early: this is not an error, and there is no need to write to us.
@@ -3533,6 +2612,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "/static/scripts/d3-visualizations.js",
                 ),
                 (
+                    resources.files("psynet") / "resources/scripts/psynet.js",
+                    "/static/scripts/psynet.js",
+                ),
+                (
                     resources.files("psynet")
                     / "resources/libraries/bootstrap/bootstrap.min.css",
                     "/static/css/bootstrap.min.css",
@@ -3729,9 +2812,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             for locale in json.loads(value):
                 if locale == "en":
                     continue
-                assert (
-                    locale in psynet_supported_locales
-                ), f"Locale {locale} not available in PsyNet."
+                assert locale in psynet_supported_locales, (
+                    f"Locale {locale} not available in PsyNet."
+                )
 
         config.register(
             "supported_locales", str, validators=[is_valid_json, is_valid_locale]
@@ -3948,16 +3031,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def dashboard_errors(cls):
         error_summary = {}
-        for error in cls.get_all_error_records():
+        for err in cls.get_all_error_records():
             _error = {
-                "token": error.token,
-                "creation_time": error.creation_time.strftime("%Y-%m-%d %H:%M:%S"),
-                "traceback": error.traceback,
-                "log_line_number": error.log_line_number,
-                "ids": error.ids,
+                "token": err.token,
+                "creation_time": err.creation_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "traceback": err.traceback,
+                "log_line_number": err.log_line_number,
+                "ids": err.ids,
             }
 
-            kind, msg = error.kind, error.message
+            kind, msg = err.kind, err.message
             if kind not in error_summary:
                 error_summary[kind] = {}
             if msg not in error_summary[kind]:
@@ -5369,9 +4452,9 @@ def pre_deploy_constant(key, func: callable):
     # You could place this in your experiment.py file to list the files in the ``data`` directory.
     >>> data_files = pre_deploy_constant("data_files", sorted(os.listdir("data")))
     """
-    assert callable(
-        func
-    ), "The func argument must be a callable (e.g. lambda: os.listdir('data'))."
+    assert callable(func), (
+        "The func argument must be a callable (e.g. lambda: os.listdir('data'))."
+    )
     key = serialize(key)
 
     try:

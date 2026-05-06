@@ -190,9 +190,9 @@ def create_lucid_recruitment_config(
         question_id = qualifications_dict[question_name]
         english_option_df = service.get_answer_options(question_id)
         option_df = english_option_df.query("text in @options")
-        assert (
-            len(option_df) > 0
-        ), f"Question {question_name} does not have specified options: {options}. Make sure to pick from: {english_option_df.text.tolist()}."
+        assert len(option_df) > 0, (
+            f"Question {question_name} does not have specified options: {options}. Make sure to pick from: {english_option_df.text.tolist()}."
+        )
         precodes = option_df.precode.tolist()
 
         foreign_locale = f"{language_tag}_{country_tag}"
@@ -209,9 +209,9 @@ def create_lucid_recruitment_config(
 
         foreign_selected_option_df = foreign_option_df.query("precode in @precodes")
         english_selected_option_df = english_option_df.query("precode in @precodes")
-        assert len(foreign_selected_option_df) == len(
-            english_selected_option_df
-        ), f"Foreign options for question {question_name} do not match English options. English: {english_selected_option_df.text.tolist()} -> Foreign: {foreign_selected_option_df.text.tolist()}"
+        assert len(foreign_selected_option_df) == len(english_selected_option_df), (
+            f"Foreign options for question {question_name} do not match English options. English: {english_selected_option_df.text.tolist()} -> Foreign: {foreign_selected_option_df.text.tolist()}"
+        )
         foreign_question = service.get_question_name(question_id, foreign_locale)
 
         english_question = service.get_question_name(question_id)
@@ -298,7 +298,9 @@ class LucidTerminateControl(Control):
                 all([char.islower() or char == "-" for char in choice])
                 for choice in choices
             ]
-        ), "All choices must be lowercase letters. Special characters are not allowed except '-'."
+        ), (
+            "All choices must be lowercase letters. Special characters are not allowed except '-'."
+        )
         self.items = [
             {
                 "label": labels[i],
@@ -370,15 +372,15 @@ class LucidTwoForcedChoiceQualification(LucidScreeningQuestion):
             choices = ["yes", "no"]
             css_class_per_option = ["btn-success", "btn-danger"]
 
-        assert (
-            css_class_per_option is not None
-        ), "If you provide custom choices, you must also provide custom css classes"
+        assert css_class_per_option is not None, (
+            "If you provide custom choices, you must also provide custom css classes"
+        )
 
         if allowed is None:
             allowed = ["yes"]
-        assert all(
-            [choice in choices for choice in allowed]
-        ), f"Allowed choices must be in {choices}"
+        assert all([choice in choices for choice in allowed]), (
+            f"Allowed choices must be in {choices}"
+        )
         super().__init__(
             label=label,
             question=question,
@@ -409,9 +411,9 @@ def verify_lucid_qualifications(config_path: str, question_names: List[str] = No
         qualification = name2question[question_name]
         question = qualification["QuestionTranslation"]
         option_dict = qualification["OptionsTranslationDict"]
-        assert (
-            len(option_dict) == 2
-        ), f"Question {question_name} must have exactly 2 options."
+        assert len(option_dict) == 2, (
+            f"Question {question_name} must have exactly 2 options."
+        )
 
         choices = ["yes", "no"]
         allowed_choices = [
