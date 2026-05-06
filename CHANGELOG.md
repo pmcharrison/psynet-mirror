@@ -5,9 +5,9 @@
 ### Changed
 
 - Switched all audio-tooling demo dependencies from private GitLab git URLs to public PyPI releases (author: Frank Höger):
-    - `repp` and `reppextension` are now installed via `repp-tapping==1.4.0rc0`, which bundles the former `reppextension` package as a deprecated compatibility shim. The `tapping_iterated` and `tapping_memory` demos now import from the canonical `repp.extensions.iterated_tapping` namespace and keep a `warnings.catch_warnings()` block to silence the `numpy.matlib` `PendingDeprecationWarning` that the upstream module triggers at import time.
-    - `sing4me` is now installed via the published `sing4me==1.4.0rc0` PyPI release.
-    - The `[demos]` extra in `pyproject.toml` declares both `repp-tapping` and `sing4me` directly, the per-demo `requirements.txt` files no longer reference either private repo, and the Dockerfile no longer needs to harvest any `pkg @ git+https://…` URLs from per-demo requirements files (the dedicated private-deps install block has been removed).
+  - `repp` and `reppextension` are now installed via `repp-tapping==1.4.0rc0`, which bundles the former `reppextension` package as a deprecated compatibility shim. The `tapping_iterated` and `tapping_memory` demos now import from the canonical `repp.extensions.iterated_tapping` namespace and keep a `warnings.catch_warnings()` block to silence the `numpy.matlib` `PendingDeprecationWarning` that the upstream module triggers at import time.
+  - `sing4me` is now installed via the published `sing4me==2.0.0rc0` PyPI release. (Previously the bundled release was `1.4.0rc0`, which was uploaded from the older private repository and inadvertently shipped the internal `sing_experiments/` subpackage; that release has since been yanked from PyPI and replaced by `2.0.0rc0`, which contains only the public `sing4me` package. The `vertical_processing` demo is unaffected because it only imports `sing4me.singing_extract` and bakes its own `SING4ME_CONFIG` into `singing_analysis.py`.)
+  - The `[demos]` extra in `pyproject.toml` declares both `repp-tapping` and `sing4me` directly, the per-demo `requirements.txt` files no longer reference either private repo, and the Dockerfile no longer needs to harvest any `pkg @ git+https://…` URLs from per-demo requirements files (the dedicated private-deps install block has been removed).
 
 ## [13.2.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0) Release candidate - 2026-04-27
 
