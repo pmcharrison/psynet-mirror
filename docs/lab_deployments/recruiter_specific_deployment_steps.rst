@@ -1,8 +1,8 @@
 Recruiter-Specific Deployment Steps
 ===================================
 
-🔹 Prolific
------------
+Prolific
+--------
 
 Setting up the experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,14 +28,13 @@ function, specify the duration using the
 "prolific_estimated_completion_minutes" parameter and the cost using the
 "base_payment" parameter.
 
- 
+- For example, when you run ``psynet estimate``, you will get a result
+  like this:
 
-- For example, when you run psynet estimate, you will get a result like
-  this one:
+  .. code:: text
 
-❯❯ Estimated maximum reward for participant: EUR4.95.
-
-❯❯ Estimated time to complete experiment: 33 min.
+     Estimated maximum reward for participant: EUR4.95.
+     Estimated time to complete experiment: 33 min.
 
 - In this case, the prolific parameters must be as follows:
 
@@ -44,19 +43,11 @@ function, specify the duration using the
    "base_payment": 4.95
    "prolific_estimated_completion_minutes": 33
 
-4. After calculating the base payment, you **MUST** set the
-**“wage_per_hour”** parameter to 0 for the actual Prolific deployment.
-Otherwise, it would cause problems in the payment.
+4. Make sure all ``time_estimate`` values are set appropriately so
+that the overall duration from ``psynet estimate`` matches your
+expectation.
 
-.. code:: python
-
-   "wage_per_hour": 0
-
-5. Make sure all time_estimates are set appropriately such that
-the overall duration of your experiment (you get it from psynet
-estimate) matches your expectation.
-
-6. Check that the experiment costs are right:
+5. Check that the experiment costs are right:
 
 -  Use your own data (and possibly but not mandatory the group
    data) to estimate how long it takes for each trial, pre-screeners,
@@ -71,35 +62,6 @@ estimate) matches your expectation.
 
 
 
-
-Example of adapting the consent form to say 9 pounds per hour
-while wage_per_hour in config is set to 0:
-\*
-customconsent.py <https://gitlab.com/computational-audition-lab/octa_projects-elinevg/octa_gibbs1/-/blob/main/customconsent.py?ref_type=heads>`__`
-
-\*
-templates/custom_main_consent.html <https://gitlab.com/computational-audition-lab/octa_projects-elinevg/octa_gibbs1/-/blob/main/templates/custom_main_consent.html?ref_type=heads>`__`
-
-Payment strategy
-^^^^^^^^^^^^^^^^
-
-Nori- write this down.
-
--  Experiments with minimal pre-screening (e.g static experiments)
-
--  Experiments that needs some pre-screening (e.g GSP and chain
-   experiments) 25% Traffic -> this is a classical use case to
-   explicitly test; if you get 10 people, ~7-8 people should pass
-
--  Experiments with “technical” pre-screening.
-
--  Experiments with high percentage of filtered people (more 25% and
-   particularly more than 50%). → separate experiment for prescreener
-   and then whitelist participants who succeed prescreen experiment
-
-.. _section-7:
-
-.. _section-8:
 
 Experiment script
 ^^^^^^^^^^^^^^^^^
@@ -120,8 +82,8 @@ Add config params under class Exp(psynet.experiment.Experiment):
            "place WITHOUT headphones. You will be asked to imitate rhythms. "
            "The task will take about 15 minutes."
        ),
-       "contact_email_on_error": "computational.audition@gmail.com",
-       "organization_name": "Max Planck Institute for Empirical Aesthetics",
+       "contact_email_on_error": "<your-lab-contact-email>",
+       "organization_name": "<your-institution>",
        "show_reward": False,
    }
 
@@ -202,7 +164,7 @@ Prolific qualifications
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Add the qualification_prolific_en.json file to your experiment folder
-(You can find it in the cap-safe). This currently specifies
+Your lab administrator should provide this file. It currently specifies
 qualifications for collecting data from **English speaking participants
 in the UK**. This file will also specify important parameters for
 Prolific, such as country of recruitment, participant demographics, etc.
@@ -230,7 +192,7 @@ prolific_project = <YOUR_PROJECT_FOLDER>
    :width: 8.5in
 
 -  You should create a project folder for your experiments. Please use
-      your own name. For example: ‘Elif Experiments’
+   your own name. For example: ‘Elif Experiments’
 
 .. image:: /_static/images/lab_deployments/image13.png
    :width: 8.5in
@@ -242,10 +204,10 @@ Prolific: check & adapt study details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before participants can take part in your experiment, you will have to
-confirm some settings on Prolific first. For that go to
-`prolific.com <https://www.prolific.com/>`__ and login to the group's
-account. You can find the credential in the
-`cap-safe <https://gitlab.com/computational-audition-lab/cap-safe>`__.
+confirm some settings on Prolific first. Go to
+`prolific.com <https://www.prolific.com/>`__ and log in to your lab's
+Prolific account. Your lab administrator should provide you with login
+credentials.
 
 In the “Draft” tab of the “Projects” folder you will find your
 experiment:
@@ -342,8 +304,6 @@ Auto-recruit is a functionality in psynet that automatically increases
 places in your experiment. You can change this parameter from the
 experiment dashboard:
 
-.. _section-9:
-
 |image5|
 
 The logic is as follows: Whenever someone completes the study, another
@@ -368,8 +328,6 @@ make sure to consider following points:
 -  **Really make sure that auto-recruit is off, when stopping the
    experiment. Clicking on “stop” in the prolific dashboard is not
    enough.**
-
-.. _section-10:
 
 Messages in Prolific
 ^^^^^^^^^^^^^^^^^^^^
@@ -424,8 +382,8 @@ Termination
 
 -  Put experiment in your folder on Prolific.
 
-🔹 CINT (Lucid)
----------------
+CINT (Lucid)
+------------
 
 .. _setting-up-the-experiment-1:
 
@@ -486,8 +444,8 @@ S3Storage or a LocalStorage.
            "auto_recruit": False,
            "wage_per_hour": 6.5,  # set to minimum wage of target country
            "title": "Put your experiment title here (Chrome browser, ~XX mins)",
-           "contact_email_on_error": "computational.audition+online_running@gmail.com",
-           "organization_name": "Max Planck Institute for Empirical Aesthetics",
+           "contact_email_on_error": "<your-lab-contact-email>",
+           "organization_name": "<your-institution>",
        }
 
 CINT Recruiter Settings 
@@ -641,8 +599,6 @@ qualification page and add the question and the options. Make sure that
 the options are in the same order as in the original. It is recommended
 to use the English language as a reference so that the options match up.
 
-.. _section-11:
-
 Adding a new qualification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -744,8 +700,6 @@ argument:
        question_names=["TIMEOUT", "MONOLINGUALISM"],
    )
 
-.. _section-12:
-
 Summary Steps for Setting CINT Qualifications:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -789,8 +743,8 @@ CINT: check & adjust quota
 
 After you deploy, go to `CINT
 marketplace <https://auth.lucidhq.com/u/login/identifier?state=hKFo2SBEOHYxNU9ac25wQ3Y1ajlZSUhJX0gxcnF3eS1jSjFUU6Fur3VuaXZlcnNhbC1sb2dpbqN0aWTZIHBoMGRGTFdKMEoyQU9rRjAtaGtPWHRJMXdwQ2V2M3Zio2NpZNkgdFZ2aUpIUUc2VUV6dkw4Z3hwQVBoNG9jNWg5ajl6Z2o>`__
-and log in to the group's account. You can find the credentials in the
-`cap-safe <https://gitlab.com/computational-audition-lab/cap-safe>`__.
+and log in to your lab's CINT account. Your lab administrator should
+provide you with login credentials.
 
 Also, save and open the link provided in the terminal after successful
 deployment to `monitor <#monitoring-1>`__ the experiment. When you open
@@ -902,8 +856,6 @@ variety of ways to monitor the experiment.
 .. image:: /_static/images/lab_deployments/image56.png
    :width: 8.5in
 
-.. _section-13:
-
 .. _termination-1:
 
 Termination
@@ -934,28 +886,28 @@ You need to add all completed RIDs, **so also those that are already
 marked as completed! Otherwise, already completed participants are
 marked as terminated!**
 
-🔹 Lab Recruiter
-----------------
+Lab Recruiter
+-------------
 
 The Group Manager (usually the experimenter) is responsible for setting
 up and managing participant recruitment through Lab Recruiter. The
 system provides full control over participant selection, experiment
 access, and tracking.
 
-Registering to the CAP Platform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Registering to the Lab Recruiter Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create an Admin account
 ^^^^^^^^^^^^^^^^^^^^^^^
 
--  For now, please contact us at coco-experiments@cornell.edu to
-      have your admin account created in the Lab Recruiter app.
+-  For now, please contact your Lab Recruiter administrator to have your admin
+   account created in the Lab Recruiter app.
 
 Create a Group
 ^^^^^^^^^^^^^^
 
 -  As the Group Manager, go to the Group tab and click **‘New**
-      **Group’** to create a participant group.
+   **Group’** to create a participant group.
 
 .. image:: /_static/images/lab_deployments/image3.png
    :width: 8.5in
@@ -964,11 +916,11 @@ Set an Initial Test
 ~~~~~~~~~~~~~~~~~~~
 
 -  In your group settings, you can enable an "Initial Test Experiment"
-      designed to verify device compatibility—including headphone
-      functionality and audio quality. Participants must complete this
-      test before accessing any actual experiments, ensuring they meet
-      the necessary technical standards. If your experiments have
-      additional requirements, please contact us for further assistance.
+   designed to verify device compatibility—including headphone
+   functionality and audio quality. Participants must complete this
+   test before accessing any actual experiments, ensuring they meet
+   the necessary technical standards. If your experiments have
+   additional requirements, please contact us for further assistance.
 
 .. image:: /_static/images/lab_deployments/image38.png
    :width: 8.5in
@@ -1032,8 +984,8 @@ recruiter as 'lab-recruiter':
            "place WITHOUT headphones. You will be asked to imitate rhythms. "
            "The task will take about 15 minutes."
        ),
-       "contact_email_on_error": "computational.audition@gmail.com",
-       "organization_name": "Max Planck Institute for Empirical Aesthetics",
+       "contact_email_on_error": "<your-lab-contact-email>",
+       "organization_name": "<your-institution>",
        "show_reward": False,
    }
 
@@ -1076,25 +1028,23 @@ process <deploying.html#actual-deployment>`__.
 -  Here please set the required parameters.
 
    -  **Estimated Duration:** This is the predicted duration of the
-         experiment.
+      experiment.
 
    -  **Maximum Duration:** This is the total time participants are
-         allowed to remain in the experiment before being timed out.
+      allowed to remain in the experiment before being timed out.
 
    -  **Batches:** This specifies the number of times each participant
-         can take part.
+      can take part.
 
    -  **URL:** This is the link provided on the console after deployment
-         (e.g., https://your-app-name.experiments1.cococo-lab.cornell.edu).
+      (e.g., ``https://<app-name>.<your-server-hostname>``)
 
 -  At the bottom of the page move your Group from “Available groups” up
-      into the **‘Groups’** section to make the experiment accessible to
-      all participants in that group.
+   into the **‘Groups’** section to make the experiment accessible to
+   all participants in that group.
 
 .. image:: /_static/images/lab_deployments/image48.png
    :width: 8.5in
-
-.. _section-14:
 
 -  You can also later edit it by click **‘Edit’** on your experiment.
 
@@ -1114,7 +1064,7 @@ Invite Participants
 -  Send this link to participants via email.
 
 -  Participants registering with this link will automatically use the
-      Group Manager code for your group.
+   Group Manager code for your group.
 
 .. image:: /_static/images/lab_deployments/image18.png
    :width: 8.5in
@@ -1123,11 +1073,11 @@ Send Messages
 ^^^^^^^^^^^^^^
 
 -  Using the messages option, you can send emails to participants in
-      each group. Simply compose your message—such as informing them
-      about a new study—and choose whether to send it to all
-      participants or only specific individuals from the recipients
-      list. The message is then sent from the Lab Recruiter official
-      email account to the selected group.
+   each group. Simply compose your message—such as informing them
+   about a new study—and choose whether to send it to all
+   participants or only specific individuals from the recipients
+   list. The message is then sent from the Lab Recruiter official
+   email account to the selected group.
 
 .. image:: /_static/images/lab_deployments/image21.png
    :width: 8.5in
@@ -1145,7 +1095,7 @@ Participant tracking
 ^^^^^^^^^^^^^^^^^^^^
 
 -  Track participant progress in the Participants tab (experiments
-      taken, payment status, etc.).
+   taken, payment status, etc.).
 
 .. image:: /_static/images/lab_deployments/image20.png
    :width: 8.5in
@@ -1154,7 +1104,7 @@ Managing Experiment Tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Reset failed experiments by navigating to ‘Tasks’ and clicking the
-      **‘Reset’** button.
+   **‘Reset’** button.
 
 .. image:: /_static/images/lab_deployments/image39.png
    :width: 8.5in
@@ -1168,18 +1118,18 @@ Experiment Completion
 ^^^^^^^^^^^^^^^^^^^^^
 
 -  Upon completion or failure, experiment status, time tracking, and
-      payment records are updated. Payments are processed externally by
-      the lab team so please **DO NOT** press the ‘\ **Payment Done**\ ’
-      button for the completed participants.
+   payment records are updated. Payments are processed externally by
+   the lab team so please **DO NOT** press the ‘\ **Payment Done**\ ’
+   button for the completed participants.
 
 Terminate the Experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Once you reach the desired number of participants, export your data
-      again and set it to **‘Archive’** on the Lab Recruiter.
+   again and set it to **‘Archive’** on the Lab Recruiter.
 
 -  You also need to delete the experiment from the server. Please see
-      `teardown <teardown.html#teardown>`__.
+   `teardown <teardown.html#teardown>`__.
 
 Lab Recruiter For Participants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1187,7 +1137,7 @@ Lab Recruiter For Participants
 1. Sign Up & Verification
 
    -  Sign up to Lab Recruiter using the unique Group Manager code
-         received via email.
+      received via email.
 
    -  Verify your email to activate your account.
 
@@ -1207,19 +1157,26 @@ Lab Recruiter For Participants
 3. Initial Test Experiment
 
    -  Participants complete an initial test experiment to verify device
-         compatibility:
+      compatibility:
 
       -  Successful participants gain access to real experiments.
 
       -  Unsuccessful participants can retry the test if the experiment
-            resets their attempt.
+         resets their attempt.
 
 4. Experiment Participation
 
    -  Once eligible, participants can take available experiments from
-         the Lab Recruiter platform.
+      the Lab Recruiter platform.
 
 5. Completion & Payment
 
    -  Experiment status is updated automatically, and payment is
-         processed externally by the lab team regularly every two weeks.
+      processed externally by the lab team regularly every two weeks.
+
+.. |image4| image:: /_static/images/lab_deployments/image33.png
+   :width: 8.5in
+.. |image5| image:: /_static/images/lab_deployments/image5.png
+   :width: 8.5in
+.. |image6| image:: /_static/images/lab_deployments/image45.png
+   :width: 8.5in

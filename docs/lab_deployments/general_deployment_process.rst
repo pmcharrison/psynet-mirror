@@ -6,42 +6,37 @@ Experiment lifecycle
 
 Experiments follow a relatively fixed lifecycle.
 
--  `Design <#design>`__: Each experiment starts with a question to
-      answer and requires an appropriate experiment design to address
-      this. After some discussions with group members you can start
-      implementing your experiment. If you get stuck designing your
-      experiment you can get help from the group on Slack in
-      #online-experiments.
+-  `Design <#design>`__: Start with a research question and design an
+   experiment that can answer it. Discuss the design with collaborators,
+   group members, or ``#online-experiments`` on Slack before
+   implementation.
 
--  `Test <#test>`__: The next stage is to test this design automatically
-      and on a small group of colleagues and friends.
+-  `Test <#test>`__: Test the experiment automatically, on yourself, and
+   with a small group of colleagues or friends.
 
--  `Provision <provisioning.html#provisioning>`__: You can use internal servers if
-      deploying within Europe or you can provision a remote server (EC2)
-      if deploying outside of Europe. This process of setting up a
-      server is called “provisioning”.
+-  `Provision <provisioning.html#provisioning>`__: Prepare the server
+   that will host the experiment. Use an internal server when appropriate
+   or provision an EC2 server when participant location or capacity
+   requires it.
 
--  `Deploy <deploying.html#deploying>`__: Once we reach the stage of a solid
-      experiment, we can deploy it. This means that a group of online
-      participants take your online experiment. For the first experiment
-      you start with a pilot.
+-  `Deploy <deploying.html#deploying>`__: Launch the experiment for real
+   participants. For a first deployment, start with a pilot.
 
--  `Monitor <monitoring_and_managing.html#monitoring-managing>`__\ **:** During the data collection
-      we must monitor the experiment, we make sure we collect clean
-      data, and in case in error compensate participants.
+-  `Monitor <monitoring_and_managing.html#monitoring-managing>`__: Watch
+   the experiment during data collection, check for errors, review data
+   quality, and compensate participants when needed.
 
--  `Export & Terminate <exporting_and_terminating.html>`__: Once the experiment is done,
-      we export the data once more and make sure our preliminary
-      analyses run through. Once this is the case you can terminate the
-      experiment.
+-  `Export & Terminate <exporting_and_terminating.html>`__: Export the
+   data, run preliminary checks, and terminate the experiment once data
+   collection is complete.
 
--  `Teardown <teardown.html>`__: If you use an EC2 server, you should
-      not forget to turn off the server when we are done.
+-  `Teardown <teardown.html>`__: If you used an EC2 server, turn it off
+   when you are done.
 
--  `Report & Deposit <report_and_deposit.html#report-deposit>`__: Report the details about your
-      experiments (cost, duration, number of participants, etc.) and
-      deposit your collected. **This is currently under construction the
-      procedure for this would be reevaluated in the future.**
+-  `Report & Deposit <report_and_deposit.html#report-deposit>`__: Report
+   experiment details such as cost, duration, and participant count, then
+   deposit the collected data. This procedure is still under
+   construction and may change.
 
 .. image:: /_static/images/lab_deployments/image7.png
    :width: 8.5in
@@ -57,34 +52,31 @@ it’s trivial to collect the data on participants.
 
 We recommend the following procedure:
 
--  Think about the question you want to address, design an experiment
-      that addresses this question
+-  Define the question you want to answer and design an experiment that
+   addresses it.
 
--  Get feedback on it from collaborators, group members and Nori
+-  Get feedback from collaborators, group members, and Nori.
 
--  Once you settle on an idea, think about a psynet demo which
-      implements parts of those ideas. Potentially you also need
-      ‘building blocks’ from multiple demos. In some cases, you might
-      even need to add custom functionality to psynet.
+-  Once you settle on an idea, look for a PsyNet demo that implements
+   some of the relevant components. You may need building blocks from
+   multiple demos, or in some cases custom PsyNet functionality.
 
--  A central philosophy of the group is to unstuck each other. This
-      means if you encounter a technical or design problem and thought
-      about it yourself enough (say up to multiple hours), you should
-      ask for help. The group provides two ways to get help:
+-  A central philosophy of the group is to help each other get unstuck.
+   If you encounter a technical or design problem and have already spent
+   a reasonable amount of time on it, ask for help:
 
-   -  Via Slack, post your technical problem in #psynet-support or your
-         design issue in #online-experiments. Your group members will
-         reply.
+   -  Post technical problems in ``#psynet-support`` or design questions
+      in ``#online-experiments`` on Slack.
 
-   -  Raise it during standing
+   -  Raise the issue during standing.
 
 Test
 ----
 
 Testing workflows
 
-🛑 Testing on yourself 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Testing on yourself
+^^^^^^^^^^^^^^^^^^^
 
 It’s important to run the full experiment on yourself, as if you were a
 real participant. This will give you a sense of how difficult the task
@@ -92,24 +84,26 @@ is, what the appropriate ``time_estimate`` of your task is, etc. Try to
 catch edge cases, e.g. when you summarize nodes. One way to achieve this
 is by running a smaller number of networks.
 
-The easiest way to test on yourself is to debug on your local server by
-running:
+The easiest way to test on yourself is to run the experiment locally
+from your experiment folder. For a virtual-environment installation:
 
 .. code:: bash
 
-   docker/psynet debug local
+   psynet debug local
 
-from your experiment folder.
+For a Docker installation, see the
+`Docker installation guide <https://psynetdev.gitlab.io/PsyNet/installation/docker_installation/index.html>`__
+for the equivalent command.
 
-⚠︎ Make sure you are logged into the Group Docker registry via Gitlab
-with your Gitlab credentials by running the command:
+If you are using a group Docker registry, make sure you are logged in
+before running any Docker-based commands:
 
 .. code:: bash
 
    docker login registry.gitlab.com
 
-🔹 Testing with bots 
-^^^^^^^^^^^^^^^^^^^^
+Testing with bots
+^^^^^^^^^^^^^^^^^
 
 Currently, testing with bots allows you to either run bots one at a
 time (in serial) or to run several bots concurrently (in parallel). By
@@ -149,135 +143,88 @@ Things to look out for:
    -  Possible causes and solutions include:
 
       -  Insufficient hardware: Reassess how much hardware you
-            need and take 1.5x
+         need and take 1.5x
 
       -  Inefficient code: Avoid large list comprehension (e.g.
-            on all trials), check that custom synthesis code does not
-            contain unneeded parts or slow code (for example creating
-            high resolution visualization)
+         on all trials), check that custom synthesis code does not
+         contain unneeded parts or slow code (for example creating
+         high resolution visualization)
 
 -  How many parallel participants can I serve?
 
 -  Does my experiment use synthesis or resource-intensive
-      analysis (e.g. analyzing syllables in recordings)?
+   analysis (e.g. analyzing syllables in recordings)?
 
-🛑 Testing within the group 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Pilot testing with colleagues
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   | Let other group members take your experiment and check if it’s
-     working properly. **This is an obligatory step**. It will make sure
-     your experiment runs remotely and it will give you qualitative
-     feedback on your experiment.
-   | Once you think your experiment is ready for remote
-     debugging/testing:
+Before publishing your experiment to real participants, it is strongly
+recommended that colleagues or collaborators take the experiment in
+hotair mode so you can get qualitative feedback:
 
--  Set up your experiment code for testing. Often, this means making a
-      short version of the experiment with fewer trials and/or networks.
+-  Set up a shortened test version of the experiment if needed.
 
--  Set your ‘recruiter’ config parameter to ‘hotair’
+-  Set your ``recruiter`` config parameter to ``hotair``.
 
--  Remote debug your experiment by `provisioning a
-   server <provisioning.html#provisioning>`__, then running in the terminal from your
-   experiment folder (determine the server type according to your
-   need; see `Servers <provisioning.html#servers>`__):
+-  `Provision a server <provisioning.html#provisioning>`__ and run
+   a remote debug session from your experiment directory:
 
    .. code:: bash
 
-      psynet debug ssh --app <app_name> --dns-host <subdomain>.cap-experiments.com --server <subdomain>.cap-experiments.com
+      psynet debug ssh --app <app_name> --dns-host <your-subdomain>.<your-domain> --server <your-subdomain>.<your-domain>
 
-   Example:
+   This command produces a single recruitment link. Save it.
 
-   .. code:: bash
+-  Try the experiment yourself on the remote server to confirm it works
+   end-to-end before sharing the link.
 
-      psynet debug ssh --app probe-tone --dns-host elif.cap-experiments.com --server elif.cap-experiments.com
+-  Share the link with colleagues and ask them to take the experiment.
+   Note any aspects you would like specific feedback on.
 
-   This command will produce a **single recruitment link, make sure to
-   save this link.**
+-  Once you have data, use it to write or verify your analysis code.
+   Check that data are processed correctly and that edge cases behave
+   as expected.
 
--  Before sharing the link with the lab, try the experiment yourself
-      again to check no new issues occur now that you are running on the
-      server instead of locally. Run the remote experiment yourself and
-      check whether it is working as expected (e.g., can you get to the
-      end without errors, is the data saved, … ?). If you need to make
-      changes to your experiment, make them on your computer and then
-      rerun the previous command from your experiment folder. The remote
-      app will then be stopped and re-created.
+Since pilot groups are typically small, you may not surface issues that
+appear with many simultaneous participants or late in a long-running
+experiment. This is why `Testing with bots <#testing-with-bots>`__ is
+a complementary step.
 
--  To share your remote debug app with pilot participants from the lab,
-      use the **‘single recruitment link’** that is printed in the
-      terminal once the app is launched on the server.
+Automatic Translation
+---------------------
 
--  In #online_experiments on Slack, post a message including the single
-      recruitment link. It’s also nice to list specific aspects of the
-      experiment you would like feedback on.
+PsyNet supports automatic machine translation so you can run your
+experiment in different languages. PsyNet currently supports two
+translation backends:
 
--  Once you have data from the group, use that to write analysis code
-      for your experiment. Check that your data were processed correctly
-      (e.g., in GSP, does the synthesis work properly? In recordings,
-      are recordings processed correctly?)
+- **OpenAI ChatGPT** (default): requires an OpenAI API key.
+- **Google Translator**: requires a Google Cloud service account JSON
+  file.
 
--  You can use this code later to `check the initial batch of
-   data <exporting_and_terminating.html#sanity-checks>`__ you gather when you deploy the experiment.
-
-Since the group is not extremely large you might not encounter:
-
--  issues that occur when many people take the experiment
-      simultaneously, or
-
--  issues that occur late in the experiment (e.g. after the first node
-      is ready and a new one is created or slowness in the experiment
-      caused by list comprehension on very large list that grow over the
-      course of the experiment, such as all trials in an experiment)
-
-..
-
-   → Therefore, also you can run `Testing with
-   bots <#testing-with-bots>`__
-
-🔹 Automatic Translation 
-------------------------
-
-With PsyNet, it's easy to conduct experiments in different languages.
-You can automatically translate your experiment into different languages
-in no time.
-
-The first step is to add this to your .dallingerconfig:
-
-.. code:: ini
-
-   [Google Translate]
-   google_translate_json_path = ~/psynet-gtrans.json
-
-   [OpenAI]
-   openai_api_key = <see cap-safe>
-
-Also, put the psynet-gtrans.json (find it in cap-safe) into your home
-directory (~).
-
-Ensure your psynet version is beyond commit hash
-02a1cdded737d9fae294b789f7d5a5c288d59580 ("Autotranslation"). This is
-the case for the latest master or the next Psynet release.
+For full setup instructions for each backend, see the
+`Internationalization tutorial <https://psynetdev.gitlab.io/PsyNet/tutorials/internationalization.html>`__.
 
 Usage
+^^^^^
 
-Translating your experiment is simple.
+Translating your experiment is straightforward:
 
-1. Set the locale of your experiment, e.g.:
+1. Set the locale of your experiment. In ``experiment.py``:
 
-.. code:: python
+   .. code:: python
 
-   class Exp(psynet.experiment.Experiment):
-       config = {
-           'locale': 'tr',  # iso-2 code for Turkish
-       }
+      class Exp(psynet.experiment.Experiment):
+          config = {
+              'locale': 'tr',  # ISO 639-1 code, e.g. 'tr' for Turkish
+          }
 
-or add the following line to your config.txt
+   Or add the following line to your ``config.txt``:
 
-.. code::text
+   .. code:: text
 
-   locale = tr
+      locale = tr
 
-2. Mark translations in your experiment.py
+2. Mark strings for translation in your ``experiment.py``:
 
 .. code:: python
 
@@ -289,32 +236,34 @@ or add the following line to your config.txt
        _("This text will be translated to the locale you set in the experiment")
    )
 
-3. Now translate using psynet translate
+3. Run translation from the experiment directory:
 
-Read the `whole
-tutorial <https://psynetdev.gitlab.io/PsyNet/tutorials/internationalization.html>`__
-for more information.
+   .. code:: bash
 
-🛑 Recruiters
---------------------
+      psynet translate
+
+Read the `full internationalization tutorial <https://psynetdev.gitlab.io/PsyNet/tutorials/internationalization.html>`__
+for information on configuring backends, reviewing translations with
+POedit, and handling multi-locale experiments.
+
+Recruiters
+----------
 
 We currently use three recruiters: **Prolific, CINT, and Lab Recruiter
 (LR).** Please decide which one to use.
 
 -  `Prolific <https://www.prolific.com/>`__ offers a high-quality,
-      diverse participant pool, ideal for academic and market research.
+   diverse participant pool, ideal for academic and market research.
 
 -  `CINT <https://www.cint.com/>`__ provides access to a larger
-      participant pool, making it particularly useful for recruiting
-      participants across different countries and languages, allowing
-      for more culturally diverse studies. The provisioning steps for
-      both platforms are identical. For detailed instructions, please
-      refer to the deployment steps for Prolific and CINT. Note that
-      Lucid was recently acquired by CINT, a large global recruiter.
+   participant pool, making it particularly useful for recruiting
+   participants across different countries and languages, allowing
+   for more culturally diverse studies. The provisioning steps for
+   both platforms are identical. For detailed instructions, please
+   refer to the deployment steps for Prolific and CINT. Note that
+   Lucid was recently acquired by CINT, a large global recruiter.
 
--  `Lab Recruiter <https://recruiter.cococo-lab.cornell.edu/>`__ (LR) is an
-      internally established recruitment system that offers full control
-      over participant selection without third-party involvement.
-      Initially designed for recruiting musicians, it is now expanding
-      to accommodate a broader range of participants tailored to the
-      specific needs of experiments.
+-  **Lab Recruiter** (LR) is an internally established recruitment
+   system that offers full control over participant selection without
+   third-party involvement. Labs that run their own Lab Recruiter
+   instance can use it to recruit from their own participant pool.

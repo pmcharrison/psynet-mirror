@@ -10,18 +10,18 @@ parallelize these processes, making massive deployments manageable.
 Example Python scripts:
 
 -  **Provisioning:** The batch_provision.py script automatically
-      creates multiple EC2 instances (servers) across different AWS
-      regions in parallel.
+   creates multiple EC2 instances (servers) across different AWS
+   regions in parallel.
 
 -  **Deployment:** The batch_deploy.py script iterates through a
-      list of configurations, dynamically generating a unique config.py
-      for each variant before deploying it to a specific server. This
-      ensures every experiment is launched with consistent, correct
-      parameters.
+   list of configurations, dynamically generating a unique config.py
+   for each variant before deploying it to a specific server. This
+   ensures every experiment is launched with consistent, correct
+   parameters.
 
 -  **Destroying:** The batch_destroy.py script allows for the
-      quick and safe termination of multiple deployed applications
-      across a host.
+   quick and safe termination of multiple deployed applications
+   across a host.
 
 **Important: Adaptation is Required!**
 

@@ -1,45 +1,37 @@
 Getting Started
 ===============
 
-Important Notice:
------------------
+This section is a practical guide for deploying PsyNet experiments in the
+lab workflow. It covers the common steps that everyone needs, then points
+you to recruiter-specific instructions for
+`Prolific <recruiter_specific_deployment_steps.html#prolific>`__,
+`CINT <recruiter_specific_deployment_steps.html#cint-lucid>`__, and
+`Lab Recruiter <recruiter_specific_deployment_steps.html#lab-recruiter>`__.
 
-This document provides a step-by-step guide for deploying experiments.
-To ensure a smooth deployment process, **certain sections are mandatory
-for all users**, while others are specific to the recruiter you choose
-(`Prolific <recruiter_specific_deployment_steps.html#prolific>`__,
-`CINT <recruiter_specific_deployment_steps.html#cint-lucid>`__, or
-`Lab Recruiter <recruiter_specific_deployment_steps.html#lab-recruiter>`__).
+How to use this guide
+---------------------
 
-How to Use This Document
-^^^^^^^^^^^^^^^^^^^^^^^^
+Read the pages in order the first time you deploy an experiment:
 
-- 🛑 **Must do**: Sections that are essential for everyone. These include
-  prerequisites, setting up servers, and general deployment steps.
-  Skipping these may lead to errors.
-- 🔹 **Optional**: Sections that depend on your chosen recruiter. You can
-  skip parts that do not apply to your deployment method.
+1. :doc:`Prerequisites <prerequisites>`: complete one-time software,
+   account, credential, and Git setup.
+2. :doc:`General Deployment Process <general_deployment_process>`:
+   understand the full experiment lifecycle, from design through testing
+   and deployment.
+3. :doc:`Provisioning <provisioning>`: choose and prepare the server that
+   will host your experiment.
+4. :doc:`Setting Up the Experiments <setting_up_the_experiments>`:
+   configure your experiment, recruiter, storage, and pre-deployment
+   checks.
+5. :doc:`Deploying <deploying>`: run the deployment command and save the
+   dashboard and log URLs.
+6. :doc:`Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>`:
+   confirm any extra Prolific, CINT, or Lab Recruiter requirements.
 
-What You Should Read First
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
--  All users must complete the :doc:`prerequisites <prerequisites>`
-   before proceeding.
-
--  We strongly recommend reading up to the
-   :doc:`recruiter-specific deployment steps <recruiter_specific_deployment_steps>`
-   section to fully understand the deployment process.
-
--  After that, verify CINT settings such as incidence rate, or continue
-   with the recruiter-specific section that applies to your experiment.
-
-This guide follows the current recommended deployment mode, which
-utilizes Docker with AWS provisioning, primarily using
-`Prolific <recruiter_specific_deployment_steps.html#prolific>`__ as a
-recruiter. However, if you are deploying via
-`CINT <recruiter_specific_deployment_steps.html#cint-lucid>`__ or
-`Lab Recruiter <recruiter_specific_deployment_steps.html#lab-recruiter>`__,
-you will find detailed instructions in their respective sections.
+The current recommended workflow uses Docker and either an internal lab
+server or an EC2 server. Prolific is used as the main example, but the
+same general process also applies to CINT and Lab Recruiter deployments
+unless a recruiter-specific page says otherwise.
 
 Glossary
 --------
@@ -106,29 +98,24 @@ Glossary
 Best practices
 --------------
 
-One powerful way to reduce error is to streamline and unify the whole
-process of running online experiments. We therefore make the following
-recommendations. You can deviate from it, **but you must be aware that
-you might encounter more issues and cannot always be supported.**
+We recommend a shared workflow because it makes problems easier to
+diagnose and support:
 
--  We expect you to use a Mac.
-
--  You need to have `Docker <prerequisites.html#docker-desktop>`__ and `PyCharm <prerequisites.html#pycharm>`__ installed,
-      if you have a student ID or a proof of teaching, we recommend setting up `Github
-      Copilot <prerequisites.html#setup-co-pilot>`__
-
--  You should use Docker for local development and remote deployment.
-
--  For now we mainly support deployment to Prolific, CINT and
-      Lab Recruiter. Make sure your experiment complies with the
-      requirements.
+- Use macOS where possible.
+- Install `Docker <prerequisites.html#docker-desktop>`__ and an IDE such as
+  `PyCharm Professional <prerequisites.html#pycharm>`__ or Cursor.
+- Use Docker for both local development and remote deployment.
+- Use one of the currently supported recruiters: Prolific, CINT, or Lab
+  Recruiter.
+- Check that your experiment satisfies the requirements of the recruiter
+  you choose before you launch.
 
 Deployment Checklist
 --------------------
 
 1. **Prerequisites**
 
-   - Set up PsyNet and complete all required installations.
+   - Set up PsyNet and complete the required installations.
    - Ensure Docker Desktop is `installed and running <prerequisites.html#docker-desktop>`__.
    - Log in to the `group Docker registry <prerequisites.html#log-into-the-docker-registry>`__ via GitLab (one-time).
 
@@ -136,17 +123,10 @@ Deployment Checklist
 
    - Verify all experiment parameters.
    - Confirm locale, recruiter, and PsyNet estimates (time and payment).
-   - Verify recruiter-specific settings:
-
-     - **Prolific**
-
-       - Set base payment (``wage_per_hour``) to ``0`` during
-         deployment.
-       - Verify qualifications (e.g., audio, nationality, microphone).
-
-     - **CINT**
-
-       - Verify PsyNet settings (e.g., aggressive timeout).
+   - Verify recruiter-specific settings, such as payment parameters,
+     participant qualifications, demographic requirements, and any
+     recruiter-specific configuration. See
+     :doc:`Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>`.
 
    - Use an appropriate storage backend (S3 or LocalStorage, not
      DebugStorage).
@@ -182,7 +162,7 @@ Deployment Checklist
    - Export all collected data for analysis.
    - If using an internal server, delete the app.
    - If using EC2, teardown (terminate) the server to avoid unnecessary costs.
-   - Deposit your export to FS Jacoby.
+   - Deposit your export to your lab's designated data repository.
 
 **Important:** Check the recruiter-specific sections for
 additional setup and monitoring details.

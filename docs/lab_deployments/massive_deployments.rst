@@ -12,25 +12,25 @@ The ``/basic_data`` endpoint is a powerful feature designed to provide real-time
 The core utility lies in the ``get_basic_data`` method you implement within your experiment class. When deployed, this method exposes the data through a dedicated, easily accessible URL (e.g., ``http://127.0.0.1:5000/basic_data?...``).
 
 -  **Real-Time Data Access:** You can access the most up-to-date
-      experiment data without interrupting the deployment or running a
-      separate export process.
+   experiment data without interrupting the deployment or running a
+   separate export process.
 
 -  **Easy Data Loading:** The URL allows you to load the experiment data
-      directly into your analysis environment (like **Pandas** in Python
-      or a **dataframe** in R) using standard library functions
-      (pd.read_json, jsonlite::fromJSON).
+   directly into your analysis environment (like **Pandas** in Python
+   or a **dataframe** in R) using standard library functions
+   (pd.read_json, jsonlite::fromJSON).
 
 -  **Monitoring:** This is especially useful when dealing with
-      **multiple batches**. By leveraging **GET parameters** in the URL,
-      you can easily switch between different views or batches of data
-      (e.g., checking data for Batch A vs. Batch B) using the same
-      framework.
+   **multiple batches**. By leveraging **GET parameters** in the URL,
+   you can easily switch between different views or batches of data
+   (e.g., checking data for Batch A vs. Batch B) using the same
+   framework.
 
 -  **Custom Sanity Checks:** The accessible URL enables you to write
-      your own automated scripts to continuously load the data and
-      perform **sanity checks** (e.g., monitoring data quality, checking
-      response distributions, looking for suspicious activity, or
-      confirming the experiment is progressing as expected).
+   your own automated scripts to continuously load the data and
+   perform **sanity checks** (e.g., monitoring data quality, checking
+   response distributions, looking for suspicious activity, or
+   confirming the experiment is progressing as expected).
 
 Implementation of the Experiment Method (**get_basic_data**)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -69,15 +69,15 @@ which allows to switch between different data sheets.
            return data[sheet]
 
 -  The data defined in your get_basic_data method is accessible
-      in two ways: **via the Deployment Dashboard** and **directly via
-      the Data URL**. When your experiment is running, you can easily
-      view the structure and content of the exposed data by navigating
-      to the **"Basic data"** tab on the dashboard. This page provides a
-      Data URL and a Data preview pane, letting you instantly inspect
-      the returned data and test different parameters. For automated
-      monitoring, you can use the Data URL directly in analysis scripts
-      (like pd.read_json(url)) to load the live data into a dataframe
-      and run your custom sanity checks.
+   in two ways: **via the Deployment Dashboard** and **directly via
+   the Data URL**. When your experiment is running, you can easily
+   view the structure and content of the exposed data by navigating
+   to the **"Basic data"** tab on the dashboard. This page provides a
+   Data URL and a Data preview pane, letting you instantly inspect
+   the returned data and test different parameters. For automated
+   monitoring, you can use the Data URL directly in analysis scripts
+   (like pd.read_json(url)) to load the live data into a dataframe
+   and run your custom sanity checks.
 
 -  R Example:
 
@@ -102,10 +102,6 @@ which allows to switch between different data sheets.
 .. image:: /_static/images/lab_deployments/image25.png
    :width: 8.5in
 
-.. _section-3:
-
-.. _section-4:
-
 **Monitoring All Experiments at Once: Deployment Monitor**
 ----------------------------------------------------------
 
@@ -125,16 +121,16 @@ performance of every deployment at a glance:
       immediately see essential statistics, including:
 
    -  **Recruitment Status:** Whether the experiment is actively
-         recruiting.
+      recruiting.
 
    -  **Runtime & Duration:** How long the experiment has been
-         running and its estimated completion time.
+      running and its estimated completion time.
 
    -  **Cost & Compensation:** The financial metrics associated
-         with participant recruitment.
+      with participant recruitment.
 
    -  **Participants & Errors:** The number of participants
-         recruited and any recorded server errors.
+      recruited and any recorded server errors.
 
 2. **Filtering Deployments:** You can easily manage the
       complexity of multiple deployments using the filter menus at the
@@ -151,10 +147,10 @@ performance of every deployment at a glance:
       and more.
 
    -  **Export:** A shortcut to download the latest data for that
-         specific deployment.
+      specific deployment.
 
    -  **Notes:** An easy way to add, edit, or view important
-         contextual notes about that deployment.
+      contextual notes about that deployment.
 
 In short, the deployment monitor centralizes all deployment
 information, making it simple to check the entire pipeline's status,

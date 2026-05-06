@@ -1,20 +1,27 @@
-Deploying 
-==========
+Deploying
+=========
 
-🛑 Sanity check 
----------------
+Sanity check
+------------
 
 Version control
 ^^^^^^^^^^^^^^^
 
 Before you deploy your experiment, you need to:
 
--  have a git repository, if you haven’t create one by typing git init
+-  Have a Git repository. If the experiment is not yet in Git, create a
+   repository with:
 
--  commit your changes, i.e. no staging or modified filesdefine a remote
-      and push your commits to it
+   .. code:: bash
 
-see `Prerequisites <prerequisites.html#prerequisites-one-time-setup>`__
+      git init
+
+-  Commit all changes. There should be no staged or modified files when
+   you deploy.
+
+-  Define a remote repository and push your commits to it.
+
+See :doc:`Prerequisites <prerequisites>` for Git setup instructions.
 
 Updating PsyNet in Your Virtual Environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -59,12 +66,12 @@ repository.
 Check the commit messages and hashes to ensure you have the most recent
 commit.
 
-5. **Update Your requirements.txt**
+5. **Update your requirements.txt**
 
-Once you’ve confirmed the latest commit, update the version (or commit
-hash) reference in your requirements.txt file if you are pointing to a
-specific commit or branch. This ensures your virtual environment is
-linked to the correct version of PsyNet.
+Once you have confirmed the latest commit, update the version or commit
+hash reference in ``requirements.txt`` if the experiment points to a
+specific PsyNet commit or branch. This keeps the deployment environment
+aligned with the version you tested locally.
 
 6. **Install the Updated Requirements**
 
@@ -81,27 +88,34 @@ necessary.
 
       psynet generate-constraints
 
-Requirements file and dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Requirements and dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Make sure your local PsyNet (and Dallinger) version is the same as the
-version listed in requirements.txt (otherwise you will get an error when
-you try to deploy later).
+version listed in ``requirements.txt`` (otherwise you will get an error
+when you try to deploy later). Usually, updating PsyNet to the latest
+version used by your experiment helps deployment run smoothly.
 
 Also, generate the constraints using ``psynet generate-constraints``.
 Remember to run this command again if you make any changes to
-requirements.txt.
+``requirements.txt``.
 
-Also try out your experiment via the Docker installation:
+Also test your experiment locally before trying it on the server. This
+helps catch dependencies that are missing from ``requirements.txt``.
+For a virtual-environment installation:
 
 .. code:: bash
 
-   docker/psynet debug local
+   psynet debug local
 
-before trying it out on the server, to check you did not forget to add 
-any dependencies in the requirements.txt file.
+For a Docker installation (see the
+`Docker installation guide <https://psynetdev.gitlab.io/PsyNet/installation/docker_installation/index.html>`__):
 
-Make sure your sufficiently tested your experiment, see
+.. code:: bash
+
+   bash docker/psynet debug local
+
+Make sure the experiment has been sufficiently tested. See
 `Test <general_deployment_process.html#test>`__.
 
 Remote debug
@@ -111,63 +125,57 @@ Before deployment, you need to make sure your experiment runs
 successfully on a remote server. Make sure you did all types of
 `tests <general_deployment_process.html#test>`__ and thus did a remote debug.
 
-🛑 Actual deployment 
---------------------
+Actual deployment
+-----------------
 
--  Set up your experiment for actual deployment, e.g., check you have
-      the actual number of trials and/or networks (you may have changed
-      this during hotair deployment).
+-  Set up the experiment for live deployment. For example, restore the
+   production number of trials or networks if you reduced them during
+   hotair testing.
 
--  Set your ‘recruiter’ config parameter to ‘prolific’ or ‘lucid’ again
-      depending on which recruiter you are using.
+-  Set the ``recruiter`` config parameter to the intended live recruiter,
+   for example ``prolific`` or ``lucid``. Note: PsyNet still uses the
+   name ``lucid`` internally for CINT deployments; consult the
+   :doc:`recruiter-specific steps <recruiter_specific_deployment_steps>`
+   for the correct value for your recruiter.
 
--  Doublecheck all settings mentioned in `recruiter-specific deployment
+-  Double-check all settings mentioned in `recruiter-specific deployment
    steps <recruiter_specific_deployment_steps.html#recruiter-specific-deployment-steps>`__.
 
--  To actually deploy your experiment, run the following code from your
-      experiment folder (determine the server type according to your
-      need; see `Provision <provisioning.html#provisioning>`__):
-
+-  To deploy the experiment, run the following command from the
+   experiment directory. Choose the server according to your deployment
+   needs; see `Provisioning <provisioning.html#provisioning>`__.
 
    .. code:: bash
 
-      psynet deploy ssh --app <app_name> --dns-host <subdomain>.cap-experiments.com --server <subdomain>.cap-experiments.com
+      psynet deploy ssh --app <app_name> --dns-host <your-subdomain>.<your-domain> --server <your-subdomain>.<your-domain>
 
--  You must not use a "\_" character in the <app_name>. This would lead
-      to an error during the deployment process.
+-  Do not use an underscore character (``_``) in ``<app_name>``. It can
+   cause an error during deployment.
 
-**Example deployment to an EC2 server:**
-
-.. code:: bash
-
-   psynet deploy ssh --app probe-tone --dns-host elif.cap-experiments.com --server elif.cap-experiments.com
-
-**Example deployment to an internal server at the Cornell University:**
+**Example deployment:**
 
 .. code:: bash
 
-   psynet deploy ssh --app <app_name> --server experiments1.cococo-lab.cornell.edu --dns-host experiments1.cococo-lab.cornell.edu
-
-currently we are mainly using use the original cap-experiment,
-cap-experiments3 and cap-experiments4 for the experiments. See `internal
-servers <provisioning.html#internal-server>`__ for more info.
+   psynet deploy ssh --app my-experiment --dns-host alice.<your-domain> --server alice.<your-domain>
 
 **The app will be deployed to:**
-<app_name>.<subdomain>.\ `cap-experiments.com <http://cap-experiments.com/>`__
+``<app_name>.<your-subdomain>.<your-domain>``
 
 **The logs will be available under:**
-logs.<subdomain>.\ `cap-experiments.com <http://cap-experiments.com/>`__
+``logs.<your-subdomain>.<your-domain>``
 
 **Note that the app name will be visible to participants, as it’s used
 in the experiment URL. You can make it meaningful to you, but make sure
 it does not give away too much to your participants.**
 
-| When the experiment is successfully deployed, you will see this
-  message printed in the terminal with the information to access the
-  dashboard!
-| You can now log in to the console at
-  https://admin:XXX@probe-tone.18.170.62.137.nip.io/dashboard (user =
-  admin, password = XXX)
+When the experiment is successfully deployed, the terminal prints the
+dashboard URL and login credentials. It will look similar to this:
+
+.. code:: text
+
+   You can now log in to the console at
+   https://admin:XXX@probe-tone.18.170.62.137.nip.io/dashboard
+   (user = admin, password = XXX)
 
    ✔ Saving a snapshot of the code to
    /Users/kevin.nguyen/psynet-data/launch-data/probe-tone-experiment\__mode=live\__launch=2023-10-10--14-18-12/code…
@@ -175,22 +183,22 @@ it does not give away too much to your participants.**
 Save this link to the dashboard so that you are able to
 `monitor <monitoring_and_managing.html#monitoring-managing>`__ the dashboard during deployment.
 
-**Troubleshooting a prolonged Launching experiment**
+Troubleshooting a prolonged launch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Sometimes you would see the experiment get “stuck” for a prolonged
-duration (more than a few minutes) on the “Launching experiment” stage.
-A very good way to understand what is happening, is to have a look in
-the dozzle logs (http server) for errors, as explained here:
-​​\ https://psynetdev.gitlab.io/PsyNet/deploy/ssh_server.html#deploying-experiments-via-ssh
+Sometimes the experiment appears to be stuck for more than a few minutes
+at the "Launching experiment" stage. The best first step is to inspect
+the Dozzle logs for HTTP server errors:
+https://psynetdev.gitlab.io/PsyNet/deploy/ssh_server.html#deploying-experiments-via-ssh
 
-There is a known issue with nips.io refusing to give a https address due
-to quota constraints. In addition, there are a few other errors that may
-occur, such as a server name or incorrect prolific parameters. In the
-event that a direct error does not appear in the console, an informative
-error message in the dozzle logs may assist in identifying the problem.
+There is a known issue where ``nip.io`` refuses to provide an HTTPS
+address because of quota constraints. Other common causes include an
+invalid server name or incorrect Prolific parameters. If the terminal
+does not show a clear error, the Dozzle logs often contain a more useful
+message.
 
 Redeployment from archive
 -------------------------
 
-If you want to redeploy from archive, you can check this page:
+If you need to redeploy from an archive, see:
 https://psynetdev.gitlab.io/PsyNet/deploy/deploy_from_archive.html

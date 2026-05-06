@@ -8,7 +8,7 @@ Lab Deployments
    Prerequisites (One-time Setup) <prerequisites>
    General Deployment Process <general_deployment_process>
    Provisioning <provisioning>
-   Setting Up the Experiments <setting_up_the_experiments>
+   Pre-Deployment Setup Overview <setting_up_the_experiments>
    Deploying <deploying>
    Massive Deployments <massive_deployments>
    Batch Automation for Massive Deployments <batch_automation>

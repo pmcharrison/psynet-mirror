@@ -1,108 +1,105 @@
 Troubleshooting
 ===============
 
-**Q**: Help, I can’t access my server anymore!
+**Q**: I cannot access my server anymore.
 
-| **A**: Try re-adding your pem file to your ssh keygen by running:
-| ``ssh-add -K ~/.ssh/cap.pem``
+**A**: Try re-adding your PEM key to your SSH agent by running:
+
+.. code:: bash
+
+   ssh-add -K ~/.ssh/<your-key-name>.pem
+
+Replace ``<your-key-name>`` with the name of your PEM file (e.g., the
+file configured in your ``~/.dallingerconfig``).
+
+----
 
 **Q**: I get this error after running ``psynet debug ssh`` or
-``psynet deploy ssh``. What
-should I do?
+``psynet deploy ssh``. What should I do?
 
 .. code:: text
 
    docker.errors.DockerException: Error while fetching server API version:
    ('Connection aborted.', ConnectionRefusedError(61, 'Connection refused'))
 
-**A**: You should make sure Docker Desktop is running.
+**A**: Make sure Docker Desktop is running.
 
-**Q:** When debugging, I obtain the following (similar) error:
+----
+
+**Q**: When debugging, I get the following error:
 
 .. code:: text
 
    docker.errors.DockerException: Error while fetching server API
    version: ('Connection aborted.', PermissionError(13, 'Permission denied'))
 
-**A**: Changing permissions to the docker socket appears to have
-resolved this issue for me.
+**A**: Changing permissions to the Docker socket has resolved this issue
+in the past.
 
-**Q:** Port 5000 is already used
+----
 
-**A:** Disable Airdrop receiver
+**Q**: Port 5000 is already in use.
 
-Alternatively stop another experiment that is running in another window
-or pycharm project window. To kill all running python you can write
-*killall Python* or *killall python* in the terminal window.
+**A**: Disable AirDrop receiver on macOS. Alternatively, stop any other
+experiment running in another terminal or PyCharm window. To kill all
+running Python processes you can run:
 
-**Q:** My server restarted and my experiment is not running anymore.
+.. code:: bash
 
-**A:** All experiments are stored under ~/dallinger. You can cd into
-this directory and cd into the experiment folder. You can now run docker
-compose which will restart your experiment docker container.
+   killall python
 
-**Q:** How to compensate a participant who was timed out by Prolific and
-is complaining?
+or
 
-**A:** cap prolific approve <study_id> <participant_id>
+.. code:: bash
 
-**Q:** I'm unable to connect to my AWS EC2 instance via SSH; the
-connection times out. How can I resolve this issue and regain access to
-my server?
+   killall Python
 
-A: The timeout error you're receiving often indicates a networking or
-internal system issue on the instance that can be resolved with a
-reboot. Please follow these steps to reboot:
+----
 
-1. Install AWS CLI
+**Q**: My server restarted and my experiment is no longer running.
 
-2. Configure it with credentials:
+**A**: All experiments are stored under ``~/dallinger``. SSH into the
+server, navigate to the experiment directory, and run
+``docker compose up`` to restart the experiment containers.
+
+----
+
+**Q**: I am unable to connect to my AWS EC2 instance via SSH; the
+connection times out.
+
+**A**: A timeout often indicates a networking or internal system issue
+that can be resolved with a reboot. Steps:
+
+1. Install the AWS CLI.
+
+2. Configure it with your credentials:
 
    .. code:: bash
 
       aws configure
 
-3. Find the instance ID, e.g. from:
+3. Find the instance ID:
 
    .. code:: bash
 
       dallinger ec2 list instances
 
-4. Reboot instance:
+4. Reboot the instance:
 
    .. code:: bash
 
       aws ec2 reboot-instances --instance-ids <INSTANCE_ID>
 
-Things to discuss
------------------
+----
 
--  Which server should be used?
+**Q**: The launch appears stuck at "Launching experiment" for more than
+a few minutes.
 
--  How many participants should take the experiment at the same time?
-
--  [STRIKEOUT:Why are we not using prolific version of auto recruit?]
-
--  [STRIKEOUT:What are the important config params?]
-
--  [STRIKEOUT:Where to get the prolific_qualifications_en.json ?]
-
--  How to safely transfer cap.pem and dallingerconfig to new lab
-      members?
-
--  What is our payment strategy?
-
--  How to use dozzle? How to interpret total CPU usage? Is it ok if it
-      spikes above 100%? What are the containers?
-
--  naming conventions of server, app
-
--  [STRIKEOUT:reporting of experiment. Will this be automated?]
-
--  [STRIKEOUT:exporting data while participants are still taking the
-      experiment may cause errors [?]]
-
-.. _section-15:
+**A**: Inspect the Dozzle logs for HTTP server errors. A common cause
+is that ``nip.io`` has hit a quota limit and is refusing to provide an
+HTTPS address. Other common causes include an invalid server name or
+incorrect recruiter parameters. If the terminal does not show a clear
+error, the Dozzle logs usually contain a more useful message.
 
 .. |image1| image:: /_static/images/lab_deployments/image19.png
    :width: 2.5in

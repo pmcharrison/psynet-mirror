@@ -1,58 +1,56 @@
 Prerequisites (One-time Setup)
 ==============================
 
-This describe all the setup process that needs to run experiments in the
-main thread of the group.
+This page describes the one-time setup required to run experiments using
+the lab deployment workflow. You only need to complete this setup once.
 
-You need to do this setup only once.
-
-PsyNet Installation 
---------------------
+PsyNet installation
+-------------------
 
 For detailed installation instructions on macOS, please refer to the
 `official installation guide <https://psynetdev.gitlab.io/PsyNet/installation/index.html>`__.
 
-Required Software & Accounts 
------------------------------
+Required software and accounts
+------------------------------
 
-🛑 Docker desktop 
-^^^^^^^^^^^^^^^^^
+Docker Desktop
+^^^^^^^^^^^^^^
 
-Install Docker (https://www.docker.com/products/docker-desktop)
+Install Docker Desktop:
+https://www.docker.com/products/docker-desktop
 
-🛑 Log into the Docker Registry 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Log into the Docker registry
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Make sure you are logged into the Group Docker registry via Gitlab with
-your Gitlab credentials by running the command:
+Make sure you are logged into the group Docker registry through GitLab:
 
 .. code:: bash
 
    docker login registry.gitlab.com
 
-Set up docker account
+Set up a Docker account:
 
-1. Download docker
+1. Download Docker.
 
-2. Create an account in docker.io: https://www.docker.com/
+2. Create an account on Docker Hub: https://www.docker.com/
 
 Note that it is possible to use another Docker registry in general (for
 example of another group, or a global repository with your personal
 account), but this is not recommended within the group (see more
 information https://psynetdev.gitlab.io/PsyNet/deploy/ssh_server.html)
 
-🛑 Pycharm
-~~~~~~~~~~~~~~~~~~~~
+PyCharm
+~~~~~~~
 
 Install PyCharm
 ^^^^^^^^^^^^^^^
 
 -  Apply for educational discount
-      (https://www.jetbrains.com/shop/eform/students )
+   (https://www.jetbrains.com/shop/eform/students )
 
 -  Download and install `PyCharm Pro <https://www.jetbrains.com/pycharm/>`__.
 
-**Important**, you need Pycharm Pro to be able to use the debugger.
+**Important:** you need PyCharm Professional to use the debugger.
 
 Choose your environment
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,9 +74,9 @@ relates to you
 
 6. Press OK
 
-7. Optional: Sometimes you already added the virtual environment, in
-this case you can select it from the list on the left. However you may
-need to turn of the filter (|image1|) in order to see it:
+7. Optional: Sometimes you already added the virtual environment. In
+this case, you can select it from the list on the left. You may need to
+turn off the filter in order to see it:
 
 .. image:: /_static/images/lab_deployments/image17.png
    :width: 8.5in
@@ -108,7 +106,7 @@ select this option:
 Add a simple shortcut for example replace this by Command+Enter. Now you
 can select a code and Command+Enter will execute it in the console.
 
-Debugging in Pycharm
+Debugging in PyCharm
 ^^^^^^^^^^^^^^^^^^^^
 
 1. In the top right go to here:
@@ -155,27 +153,27 @@ subprocesses” and select “gevent compatible”
 .. image:: /_static/images/lab_deployments/image24.png
    :width: 8.5in
 
-Setup Co-Pilot
+Set up Copilot
 ^^^^^^^^^^^^^^
 
 Copilot gives you autocomplete-suggestions for programming
 
-Website to CoPilot
+Website for Copilot
 (https://plugins.jetbrains.com/plugin/17718-github-copilot )
 
-In Pycharm go to Preferences -> Plugins-> Marketplace and look for
-CoPilot click on Install and restart PyCharm. Now you should see CoPilot
+In PyCharm, go to Preferences -> Plugins -> Marketplace and search for
+Copilot. Click Install and restart PyCharm. You should now see Copilot
 in “Installed”.
 
 .. image:: /_static/images/lab_deployments/image55.png
    :width: 8.5in
 
-🛑 Git: Version control & Best Practices 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Git: version control and best practices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Setup shh keygen for gitlab
+1. Set up an SSH key for GitLab
 
-   To use Gitlab, you'll need to activate an SSH key. Follow these steps to do so:
+   To use GitLab, you need to activate an SSH key. Follow these steps:
 
    I. Run the following in terminal to generate an ED25519 key. When it asks for
       a location, press enter (sets default location in ``~/.ssh``). It then asks
@@ -200,12 +198,10 @@ in “Installed”.
 
    IV. Press "Add key." You should now be able to push and pull from gitlab by entering your passphrase.
 
-2. Connect to Lab resources
+2. Connect to lab resources
 
-   Please ask a member to add you to the Computational Audition Lab Group
-   through the group account computational.audition.
-
-   Please ask Frank to add your SSH key to the group access list.
+   Ask your lab administrator to add you to the lab's GitLab group and
+   to add your SSH key to the group access list.
 
 3. How to use git
 
@@ -226,7 +222,7 @@ in “Installed”.
       git push                      # update remote
       git checkout <branch>         # switch branches
 
-   We strongly recommend using the pycharm IDE for committing.
+   We strongly recommend using PyCharm or Cursor for committing.
 
    It is important to make sure you are logged in to git registry before
    deploying:
@@ -235,7 +231,7 @@ in “Installed”.
 
       docker login registry.gitlab.com
 
-4. How to create a repository in computational.audtition
+4. How to create a repository in your lab's GitLab account
 
    1. create a subgroup for the experiment series and then, go on “create project”
 
@@ -243,9 +239,9 @@ in “Installed”.
 
    3. then you should see something like this:
 
-   4. name your project, uncheck “Initialize with README” and create the project\ |image2|
+   4. Name your project, uncheck “Initialize with README”, and create the project.
 
-5. Push your local repository to computational.audition
+5. Push your local repository to your lab's GitLab account
 
    1. Go to your experiment and make it a git repository:
 
@@ -271,8 +267,6 @@ in “Installed”.
 
          git status
 
-      |image3|
-
    5. Add files:
 
       .. code:: bash
@@ -291,70 +285,72 @@ in “Installed”.
 
          git push origin main
 
-How to git commit in Pycharm
+How to commit in PyCharm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Instead of using git commit -m “<your message>”, you can also commit
-      via Pycharm.
+   via PyCharm.
 
--  Go to “Commit” on the left side and chak the files you want to
-      commit. Type in the message below and press “Commit” or “Commit
-      and Push” if you want to push too.
+-  Go to “Commit” on the left side and check the files you want to
+   commit. Type the message below and press “Commit”, or “Commit and
+   Push” if you also want to push.
 
 .. image:: /_static/images/lab_deployments/image51.png
    :width: 8.5in
 
-.. _section-1:
+Set credentials and server access keys
+--------------------------------------
 
-🛑 Set credentials and cap-safe 
--------------------------------
+You will need a ``.dallingerconfig`` file in your home directory and a
+PEM key file in your ``~/.ssh`` directory to access your lab's servers.
 
-You will need .dallingerconfig in your home directory and a cap.pem file
-in your ~/.ssh directory.
+Your lab administrator should provide these files through a secure
+channel (for example, an encrypted archive in a private credential
+repository). The steps below assume your lab provides a credential
+archive containing both files.
 
-To get the cap.pem follow the following instructions.
+1. Obtain the credential archive from your lab administrator (e.g.,
+   clone a private credential repository or download an encrypted
+   archive).
 
-1. Clone the group safe:
-
-   .. code:: bash
-
-      git clone https://gitlab.com/computational-audition-lab/cap-safe.git
-
-
-2. Inside the repository there is a file called “cap_keys.zip”
+2. Inside the archive there will be an encrypted file containing your
+   credentials:
 
    .. image:: /_static/images/lab_deployments/image2.png
       :width: 8.5in
 
-3. Enter the password (same as safe password)
+3. Enter the password provided by your lab administrator to decrypt the
+   archive.
 
-4. Inside you can find .dallingerconfig and cap.pem
+4. Inside you will find ``.dallingerconfig`` and a PEM key file (e.g.
+   ``your-key.pem``).
 
-5. Move it to your home directory
+5. Place ``.dallingerconfig`` in your home directory and ``your-key.pem``
+   in your ``~/.ssh`` directory.
 
-6. Set the proper permissions on the pem file. Go to the command line 
-   terminal and type:
-
-   .. code:: bash
-
-      chmod 600 ~/.ssh/cap.pem
-
-   If using windows you may also need to do this:
+6. Set the correct permissions on the PEM file:
 
    .. code:: bash
 
-      icacls C:\path\to\cap.pem /inheritance:r /grant:r "%USERNAME%:R"
+      chmod 600 ~/.ssh/your-key.pem
 
-7. Be sure that you are at the latest Dallinger version and add the
-   following lines to your .dallingerconfig file:
+   On Windows you may also need to run:
+
+   .. code:: bash
+
+      icacls C:\path\to\your-key.pem /inheritance:r /grant:r "%USERNAME%:R"
+
+7. Add the following lines to your ``~/.dallingerconfig``, replacing the
+   values with those provided by your lab administrator:
 
    .. code:: ini
 
       [EC2]
-      ec2_default_security_group = cap
-      ec2_default_pem = /Users/<your username>/cap
+      ec2_default_security_group = <your-security-group>
+      ec2_default_pem = ~/.ssh/your-key
 
-Please be sure to type the correct username. If you do not know your
-username then you can verify it by typing in the console: whoami. You
-can verify that this line /Users/<your username>/cap to output of the
-following command: ls ~/.ssh/cap.pem
+   You can verify the PEM file is in the right place by running:
+
+   .. code:: bash
+
+      ls ~/.ssh/your-key.pem
