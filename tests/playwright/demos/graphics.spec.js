@@ -3,6 +3,7 @@ const { test, expect } = require("@playwright/test");
 
 const {
   assertExpectedTimelinePathActive,
+  clickFinish,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
@@ -274,11 +275,7 @@ test("graphics demo", async ({ page, context }) => {
     // Section 9: verify normal experiment termination route remains intact after assertions above.
     const finishButton = experimentPage.locator("#Finish");
     await expect(finishButton).toBeVisible({ timeout: STEP_TIMEOUT_MS });
-    await finishButton.first().click();
-    await experimentPage.waitForURL(
-      (url) => url.toString().includes("recruiter-exit"),
-      { timeout: STEP_TIMEOUT_MS }
-    );
+    await clickFinish(experimentPage, STEP_TIMEOUT_MS);
     } finally {
       submitTracker.stop();
     }

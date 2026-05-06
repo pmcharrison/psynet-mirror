@@ -3,6 +3,7 @@ const { test, expect } = require("@playwright/test");
 
 const {
   clickConsentButton,
+  clickFinish,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
@@ -467,11 +468,7 @@ test("audio demo", async ({ page, context }) => {
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     const finishButton = experimentPage.locator("#Finish");
     await expect(finishButton).toBeVisible({ timeout: STEP_TIMEOUT_MS });
-    await finishButton.first().click();
-    await experimentPage.waitForURL(
-      (url) => url.toString().includes("recruiter-exit"),
-      { timeout: STEP_TIMEOUT_MS }
-    );
+    await clickFinish(experimentPage, STEP_TIMEOUT_MS);
     } finally {
       submitTracker.stop();
     }

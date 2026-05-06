@@ -173,6 +173,17 @@
       callback();
     };
 
+    psynet.getJsSynthState = function () {
+      if (!psynet.page.prompt.jsSynth) {
+        psynet.page.prompt.jsSynth = {
+          defaultParams: undefined,
+          loadedInstruments: {},
+          activeNodes: undefined,
+        };
+      }
+      return psynet.page.prompt.jsSynth;
+    };
+
     psynet.page.response = {
       retrieveResponse: undefined,
       stageResponse: null,
@@ -211,6 +222,36 @@
       },
       set(handler) {
         psynet.setRetrieveResponseHandler(handler);
+      },
+    });
+
+    Object.defineProperty(window, "DEFAULT_PARAMS", {
+      configurable: true,
+      get() {
+        return psynet.getJsSynthState().defaultParams;
+      },
+      set(value) {
+        psynet.getJsSynthState().defaultParams = value;
+      },
+    });
+
+    Object.defineProperty(window, "LOADED_INSTRUMENTS", {
+      configurable: true,
+      get() {
+        return psynet.getJsSynthState().loadedInstruments;
+      },
+      set(value) {
+        psynet.getJsSynthState().loadedInstruments = value;
+      },
+    });
+
+    Object.defineProperty(window, "ACTIVE_NODES", {
+      configurable: true,
+      get() {
+        return psynet.getJsSynthState().activeNodes;
+      },
+      set(value) {
+        psynet.getJsSynthState().activeNodes = value;
       },
     });
 
@@ -413,24 +454,6 @@
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();
       await psynet.initPage();
-    };
-
-    psynet.activateSwappedTimelinePage = async function () {
-      psynet.log.warn(
-        "activateSwappedTimelinePage() is deprecated; sequence activation through explicit primitives instead.",
-      );
-      psynet.clearLucidTermination();
-      psynet.resetPageState();
-      psynet.refreshTemplateData();
-      await psynet.hydrateFragmentAssets();
-      await psynet.rebuildTrial();
-      await psynet.runFragmentScripts(psynet.getMainBodyScripts());
-      await psynet.initActivatedPage();
-      await psynet.runFragmentScripts(psynet.getDeferredPageScripts());
-      await psynet.finalizePageReady();
-      psynet.nextPagePending = false;
-      psynet.setTimelineTransitionBusy(false);
-      psynet.log.info("Swapped timeline page activation complete.");
     };
 
     psynet.pendingTimelineTransition = null;
