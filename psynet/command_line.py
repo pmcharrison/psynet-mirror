@@ -33,6 +33,7 @@ from dallinger.command_line.docker_ssh import (
 )
 from dallinger.command_line.utils import verify_id as dallinger_verify_id
 from dallinger.config import experiment_available, get_config
+from dallinger.utils import port_is_open
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
 from dallinger.version import __version__ as dallinger_version
@@ -50,7 +51,7 @@ from psynet.version import (
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
-from .log import bold
+from .log import bold, error
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
 from .redis import redis_vars
@@ -375,6 +376,7 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
 
     _pre_launch(ctx, mode=mode, archive=archive, local_=True, docker=docker, app=None)
     _cleanup_before_debug()
+    _check_port_available()
 
     try:
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
@@ -715,6 +717,38 @@ def _cleanup_exp_directory():
             shutil.rmtree(dir)
         except FileNotFoundError:
             pass
+
+
+def _check_port_available():
+    """Warn and identify culprit if configured base_port is already in use."""
+    config = get_config()
+    if not config.ready:
+        config.load()
+    port = config.get("base_port")
+
+    if not port_is_open(port):
+        return
+
+    # Port is occupied — gather diagnostics
+    msg = error(f"Port {port} is already in use.")
+
+    if sys.platform in ("darwin", "linux"):
+        lsof_cmd = f"lsof -i :{port} -P -n"
+        try:
+            result = subprocess.run(
+                ["lsof", "-i", f":{port}", "-P", "-n"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            lsof_out = result.stdout.strip()
+            if lsof_out:
+                msg += f"\n\nlsof output:\n{lsof_out}"
+        except Exception:
+            pass
+        msg += f"\n\nTo investigate, run: {lsof_cmd}"
+
+    raise click.ClickException(msg)
 
 
 def run_pre_auto_reload_checks():
