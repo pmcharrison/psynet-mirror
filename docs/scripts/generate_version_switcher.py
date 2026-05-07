@@ -32,19 +32,49 @@ def parse_prerelease(tag):
     )
 
 
-def get_tags():
-    output = subprocess.check_output(
-        ["git", "tag", "--list", "--sort=-version:refname"], text=True
-    )
-    tags = [tag.strip() for tag in output.splitlines() if SEMVER_TAG.match(tag.strip())]
-    return tags
+def list_local_tags():
+    """Return all local git tags, sorted descending by ``version:refname``.
 
-
-def get_all_local_tags():
+    Single source of truth for tag enumeration. Callers that only want stable
+    semver tags should filter with ``SEMVER_TAG.match`` themselves.
+    """
     output = subprocess.check_output(
         ["git", "tag", "--list", "--sort=-version:refname"], text=True
     )
     return [tag.strip() for tag in output.splitlines() if tag.strip()]
+
+
+def _highest_stable_base(all_tags):
+    """Return the highest stable ``(major, minor, patch)`` tuple, or ``(-1, -1, -1)``.
+
+    ``all_tags`` is sorted descending by ``--sort=-version:refname``, but rely
+    on ``parse_semver`` for an explicit ordering in case the sort heuristic
+    ever disagrees with semver.
+    """
+    stable_tags = [tag for tag in all_tags if SEMVER_TAG.match(tag)]
+    if not stable_tags:
+        return (-1, -1, -1)
+    return max(parse_semver(tag) for tag in stable_tags)
+
+
+def _iter_active_prereleases(all_tags, highest_stable_base):
+    """Yield ``(base, kind_rank, num, tag)`` for active prereleases.
+
+    "Active" means the prerelease's base ``(major, minor, patch)`` is strictly
+    greater than ``highest_stable_base`` (i.e. that base has not yet shipped
+    stable). The tuple sorts ``rc`` above ``a`` for the same base, so sorting
+    descending picks the most recent active prerelease.
+    """
+    kind_order = {"a": 0, "rc": 1}
+    for tag in all_tags:
+        parsed = parse_prerelease(tag)
+        if parsed is None:
+            continue
+        major, minor, patch, kind, num = parsed
+        base = (major, minor, patch)
+        if base <= highest_stable_base:
+            continue
+        yield (base, kind_order[kind], num, tag)
 
 
 def get_latest_active_prerelease_tag():
@@ -54,34 +84,13 @@ def get_latest_active_prerelease_tag():
     "Active" means the prerelease still has a future release we're working
     towards, i.e. its base ``X.Y.Z`` has not yet shipped as stable.
     """
-    all_tags = get_all_local_tags()
-    stable_tags = [tag for tag in all_tags if SEMVER_TAG.match(tag)]
-    if stable_tags:
-        # ``stable_tags`` is already sorted descending by ``--sort=-version:refname``,
-        # but rely on parse_semver for an explicit ordering, in case the sort
-        # heuristic ever disagrees with semver.
-        highest_stable_base = max(parse_semver(tag) for tag in stable_tags)
-    else:
-        highest_stable_base = (-1, -1, -1)
-
-    # Sort ``rc`` above ``a`` so that, e.g., ``v13.2.0rc0`` is treated as more
-    # recent than ``v13.2.0a3`` for the same base version.
-    kind_order = {"a": 0, "rc": 1}
-
-    candidates = []
-    for tag in all_tags:
-        parsed = parse_prerelease(tag)
-        if parsed is None:
-            continue
-        major, minor, patch, kind, num = parsed
-        base = (major, minor, patch)
-        if base <= highest_stable_base:
-            continue
-        candidates.append((base, kind_order[kind], num, tag))
-
+    all_tags = list_local_tags()
+    candidates = sorted(
+        _iter_active_prereleases(all_tags, _highest_stable_base(all_tags)),
+        reverse=True,
+    )
     if not candidates:
         return None
-    candidates.sort(reverse=True)
     return candidates[0][3]
 
 
@@ -212,7 +221,7 @@ def main():
     )
     args = parser.parse_args()
 
-    stable_tags = get_tags()
+    stable_tags = [tag for tag in list_local_tags() if SEMVER_TAG.match(tag)]
     if args.print_highest_stable:
         highest_stable_tag = get_highest_stable_tag(stable_tags)
         if highest_stable_tag is None:
