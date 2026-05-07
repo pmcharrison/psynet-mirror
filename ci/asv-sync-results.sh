@@ -79,6 +79,7 @@ fi
 trap detach_worktree EXIT
 attach_worktree
 
+asv machine --yes --machine "${ASV_MACHINE_NAME:-$(hostname)}"
 asv run "$@"
 
 cd "$RESULTS_DIR"
