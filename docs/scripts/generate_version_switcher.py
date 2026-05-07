@@ -154,6 +154,16 @@ def _strip_v_prefix(value):
 
 
 def build_entries(base_url, tags, alpha_version, latest_rc_tag=None):
+    """Build the version_switcher.json entry list.
+
+    ``tags`` is expected to be sorted descending by ``(major, minor)`` (as
+    returned by :func:`select_recent_patch_tags`), so ``tags[0]`` is the
+    highest stable release. That entry gets ``preferred: true``, which
+    pydata-sphinx-theme treats as the canonical/recommended version: the
+    switcher highlights it as the default stable, and pages on alpha, rc,
+    or older stable subdirs render a "you're not on the latest stable,
+    switch to vX.Y" banner pointing back at it.
+    """
     base_url = base_url.rstrip("/")
 
     entries = [
@@ -171,14 +181,15 @@ def build_entries(base_url, tags, alpha_version, latest_rc_tag=None):
                 "url": f"{base_url}/rc/{latest_rc_tag}/",
             }
         )
-    for tag in tags:
-        entries.append(
-            {
-                "name": _strip_v_prefix(tag),
-                "version": tag,
-                "url": f"{base_url}/{tag}/",
-            }
-        )
+    for index, tag in enumerate(tags):
+        entry = {
+            "name": _strip_v_prefix(tag),
+            "version": tag,
+            "url": f"{base_url}/{tag}/",
+        }
+        if index == 0:
+            entry["preferred"] = True
+        entries.append(entry)
     return entries
 
 
