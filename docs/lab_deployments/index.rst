@@ -18,3 +18,4 @@ Lab Deployments
    Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>
    Report & Deposit <report_and_deposit>
    Troubleshooting <troubleshooting>
+   CAP Lab Configuration <lab_specific_configuration>
