@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Added `RELEASE_MINOR.md` and `RELEASE_PATCH.md` for agent-assisted PsyNet releases, plus `docs/scripts/announce_release.py` for posting Slack announcements with auto-summarised changelogs (author: Frank Höger)
+
 ## [13.2.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc1) Release candidate - 2026-05-07
 
 ### Changed
