@@ -767,11 +767,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             )
 
         super().fail(reason=reason)
-        for group in self.active_sync_groups.values():
-            from .sync import SimpleSyncGroup
 
-            if isinstance(group, SimpleSyncGroup):
-                group.check_numbers()
+        for group in list(self.active_sync_groups.values()):
+            group.remove_participant(self)
 
         self._redirect_to_unsuccessful_end(exp)
 

@@ -1388,7 +1388,7 @@ class TrialMaker(Module):
 
     def _init_participants_in_sync_group(self, group: SyncGroup, experiment):
         self.init_participant(experiment, group.leader)
-        for participant in group.participants:
+        for participant in group.active_participants:
             if participant != group.leader and not self._is_initialized(participant):
                 self.init_participant(experiment, participant)
 
