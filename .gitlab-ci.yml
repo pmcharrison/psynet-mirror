@@ -152,6 +152,45 @@ merge_test_results:
     reports:
       junit: junit.xml
 
+asv_benchmarks:
+  stage: test
+  resource_group: benchmark-results
+  cache:
+    key:
+      files:
+        - pyproject.toml
+        - asv.conf.json
+    paths:
+      - .asv/env/
+  script:
+    - apk add --no-cache git
+    - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
+    - export ASV_RESULTS_REMOTE="https://oauth2:${BENCHMARK_RESULTS_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+    - git config user.email "ci@psynet.dev"
+    - git config user.name "PsyNet CI"
+    - docker run
+      --add-host=postgres:$POSTGRES_IP
+      --add-host=redis:$REDIS_IP
+      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
+      -e CI -e CI_COMMIT_REF_NAME
+      -e PSYNET_WORKSPACE
+      -v "$PWD:$PSYNET_WORKSPACE"
+      -w $PSYNET_WORKSPACE
+      $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && uv pip install --no-cache --system asv virtualenv && bash ci/asv-sync-results.sh"
+    - git push "$ASV_RESULTS_REMOTE" benchmark-results
+  artifacts:
+    when: always
+    paths:
+      - .asv/results/
+  rules:
+    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - if: $CI_COMMIT_BRANCH == "issues/9123-performance-benchmark-site"
+      when: always
+    - when: never
+
 # To do:
 # - Skip tests if the changes are only in the docs directory
 pages_latest:
@@ -201,6 +240,18 @@ pages_latest:
       done
 
       build_docs_from_ref "origin/$ALPHA_REF" "public/alpha" "$ALPHA_VERSION"
+    - export ASV_RESULTS_REMOTE="https://oauth2:${BENCHMARK_RESULTS_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+    - |
+      if git ls-remote --exit-code --heads "$ASV_RESULTS_REMOTE" benchmark-results >/dev/null 2>&1; then
+        git fetch "$ASV_RESULTS_REMOTE" benchmark-results:benchmark-results
+        git worktree add .asv/results benchmark-results
+        asv publish
+        mkdir -p public/benchmarks
+        cp -a .asv/html/. public/benchmarks/
+        git worktree remove --force .asv/results
+      else
+        echo "benchmark-results branch not on remote yet; skipping asv publish"
+      fi
   pages: true
   artifacts:
     paths:
