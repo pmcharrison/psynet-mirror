@@ -1,0 +1,12 @@
+{
+    "version": 1,
+    "project": "psynet",
+    "project_url": "https://gitlab.com/PsyNetDev/PsyNet",
+    "repo": ".",
+    "environment_type": "existing",
+    "pythons": ["same"],
+    "benchmark_dir": "benchmarks",
+    "env_dir": ".asv/env",
+    "results_dir": ".asv/results",
+    "html_dir": ".asv/html"
+}

@@ -160,3 +160,6 @@ deployment-info_*
 source_code.zip
 .deploy
 **/static/assets
+
+# ASV benchmark artifacts
+.asv/
