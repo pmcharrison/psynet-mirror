@@ -87,9 +87,9 @@ demos = [
     "music21",
     "numpy",
     "praat-parselmouth",
-    "repp-tapping==1.4.0rc0",
+    "repp-tapping",
     "scipy",
-    "sing4me==2.0.0rc0",
+    "sing4me",
     "soundfile",
     "statsmodels",
 ]

@@ -6,4 +6,4 @@ psynet==13.2.0rc0
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@45f31768#egg=psynet
 
 music21==9.1.0
-sing4me==2.0.0rc0
+sing4me==2.0.0
