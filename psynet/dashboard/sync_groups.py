@@ -25,9 +25,7 @@ def _get_grouper_progress():
     except Exception:
         return [], {}
 
-    groupers = (
-        {}
-    )  # barrier_id -> {barrier_id, group_type, batch_size?, initial_group_size?}
+    groupers = {}  # barrier_id -> {barrier_id, group_type, batch_size?, initial_group_size?}
 
     def visit(elts):
         if elts is None:
