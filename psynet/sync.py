@@ -198,7 +198,8 @@ class Barrier(EltCollection):
 
         if for_update:
             query = query.with_for_update(
-                of=[ParticipantLinkBarrier, Participant]
+                of=[ParticipantLinkBarrier, Participant],
+                skip_locked=True,
             ).populate_existing()
 
         links = query.all()
