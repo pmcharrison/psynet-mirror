@@ -190,7 +190,7 @@ Verify changes end-to-end by running `psynet test local` within a relevant demo.
 
 When you make changes to the PsyNet codebase:
 
-1. **Add a changelog fragment**: Pull requests should include one or more fragment files in `changelog.d/` instead of editing `CHANGELOG.md` directly. Use the filename format `changelog.d/<MR>.<category>.md` where `<category>` is one of `breaking`, `added`, `changed`, `updated`, `deprecated`, `removed`, `fixed`, or `documentation`. The fragment content should be a single changelog entry in markdown without a leading `-`, for example: `Added support for X (author: [Name])`. These entries should summarize the overall user-facing changes made by the PR rather than the incremental process of building it. Regenerate `CHANGELOG.md` with `python docs/scripts/build_changelog.py`. To cut a release, run `python docs/scripts/build_changelog.py --release <version> <date>`.
+1. **Add a changelog fragment**: Pull requests should include one or more fragment files in `changelog.d/` instead of editing `CHANGELOG.md` directly. Use the filename format `changelog.d/<MR>.<category>.md` where `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The fragment content should be a single changelog entry in markdown without a leading `-`, for example: `Added support for X (author: [Name])`. These entries should summarize the overall user-facing changes made by the PR rather than the incremental process of building it. Regenerate `CHANGELOG.md` with `python docs/scripts/build_changelog.py`. To cut a release, run `python docs/scripts/build_changelog.py --release <version> <date>`.
 
 2. **Run pre-commit**: Before committing, run pre-commit to ensure code formatting is correct:
 

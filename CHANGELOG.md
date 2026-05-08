@@ -62,6 +62,7 @@
 ### Changed
 
 - Refactored chain network growth to use live readiness queries instead of the cached `ready_to_spawn` flag, added non-blocking polling for within-chain growth, and normalized graph-chain topology into SQL vertex/edge tables (author: [Peter Harrison])
+- Switched the changelog workflow to per-MR fragments under `changelog.d/` to avoid merge conflicts on `CHANGELOG.md`. Contributors now drop a single fragment file per MR (e.g. `<MR>.fixed.md`) covering one of `breaking`, `added`, `changed`, `updated`, `deprecated`, `removed`, `fixed`, or `documentation`; `CHANGELOG.md` is regenerated from those fragments via `docs/scripts/build_changelog.py`, and a release is cut with `--release <version> <date>` which consumes the fragments and inserts a versioned section. CI's `changelog_check` now enforces the presence of a fragment in each MR. (author: [Frank Höger])
 - Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates (author: Frank Höger)
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.

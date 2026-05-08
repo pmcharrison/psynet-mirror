@@ -17,10 +17,10 @@ SECTION_ORDER = [
     ("breaking", "Breaking Changes"),
     ("added", "Added"),
     ("changed", "Changed"),
-    ("updated", "Updated"),
     ("deprecated", "Deprecated"),
     ("removed", "Removed"),
     ("fixed", "Fixed"),
+    ("updated", "Updated"),
     ("documentation", "Documentation"),
 ]
 SECTION_KEYS = {key for key, _title in SECTION_ORDER}
