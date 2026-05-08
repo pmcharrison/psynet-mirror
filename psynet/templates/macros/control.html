@@ -673,15 +673,15 @@
     >
 
     <script>
-        let enableSlider = function() {
-            if (disableWhilePlaying){
+        let enableSlider = function(force = false) {
+            if (disableWhilePlaying || force){
                 slider.disabled=false;
                 psynet.log.debug('Horizontal slider is enabled');
             }
         };
 
-        let disableSlider = function() {
-            if (disableWhilePlaying){
+        let disableSlider = function(force = false) {
+            if (disableWhilePlaying || force){
                 slider.disabled=true;
                 psynet.log.debug('Horizontal slider is disabled');
             }
@@ -760,15 +760,15 @@
 
         psynet.trial.onEvent("trialConstruct", () => $(".knob-container").css("visibility", "visible"));
 
-        let enableSlider = function() { // TODO: add transparent div to disable circular slider instead of hid it
-            if (disableWhilePlaying){
+        let enableSlider = function(force = false) { // TODO: add transparent div to disable circular slider instead of hid it
+            if (disableWhilePlaying || force){
                 $(".knob-container").css("visibility", "visible");
                 psynet.log.debug('Circular slider is enabled');
             }
         };
 
-        let disableSlider = function() {
-            if (disableWhilePlaying){
+        let disableSlider = function(force = false) {
+            if (disableWhilePlaying || force){
                 $(".knob-container").css("visibility", "hidden");
                 psynet.log.debug('Circular slider is disabled');
             }
@@ -791,6 +791,7 @@
         var snapValues = {% if params.js_vars.snap_values is none %}null{% else %}{{ params.js_vars.snap_values }}{% endif %};
         var minimalInteractions = {% if params.js_vars.minimal_interactions is none %}null{% else %}{{ params.js_vars.minimal_interactions }}{% endif %};
         var continuousUpdates = {% if params.js_vars.continuous_updates is not defined or params.js_vars.continuous_updates is none %}null{% else %}{{ params.js_vars.continuous_updates | lower }}{% endif %};
+        var disableWhilePlaying = typeof disableWhilePlaying === "undefined" ? false : disableWhilePlaying;
         var sliderId = '{{ params.slider_id }}';
         var randomWrap = {{ params.random_wrap | lower }}; // Decide whether to add to js_vars
         var minVal = {{ params.min_value }}; // Decide whether to add to js_vars
@@ -888,6 +889,7 @@
         };
 
         psynet.trial.onEvent("trialPrepare", () => {
+            disableSlider(true);
             let phase;
             if (randomWrap) {
                 phase = sampleSliderPhase();
@@ -903,6 +905,10 @@
             slider.updateLog();
             hadMinimalInteractions = false;
             checkMinimalInteractions();
+        });
+
+        psynet.trial.onEvent("responseEnable", () => {
+            enableSlider(true);
         });
 
         let hadMinimalInteractions = false;
