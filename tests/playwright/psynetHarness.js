@@ -474,15 +474,16 @@ async function assertInplaceTimelinePathActive(page, timeoutMs = 10000) {
           .evaluate(() => ({
             flag:
               window.psynetTemplateData?.flags?.inplaceTimelineTransitions ?? null,
-            htmxType: typeof window.htmx
+            directFragmentTransport:
+              typeof window.psynet?.loadNextTimelinePageFromResponse === "function"
           }))
-          .catch(() => ({ flag: null, htmxType: "undefined" }));
+          .catch(() => ({ flag: null, directFragmentTransport: false }));
       },
       { timeout: timeoutMs }
     )
     .toEqual({
       flag: true,
-      htmxType: "object"
+      directFragmentTransport: true
     });
 }
 
@@ -495,16 +496,14 @@ async function assertLegacyTimelinePathActive(page, timeoutMs = 10000) {
         return page
           .evaluate(() => ({
             flag:
-              window.psynetTemplateData?.flags?.inplaceTimelineTransitions ?? null,
-            htmxType: typeof window.htmx
+              window.psynetTemplateData?.flags?.inplaceTimelineTransitions ?? null
           }))
-          .catch(() => ({ flag: null, htmxType: "undefined" }));
+          .catch(() => ({ flag: null }));
       },
       { timeout: timeoutMs }
     )
     .toEqual({
-      flag: false,
-      htmxType: "undefined"
+      flag: false
     });
 }
 
@@ -751,6 +750,39 @@ async function advanceUntilPromptContains(page, text, options = {}) {
   throw new Error(`Did not reach prompt containing "${text}" within ${maxSteps} steps.`);
 }
 
+async function waitForPromptContains(page, text, timeout = 90000) {
+  await expect
+    .poll(
+      () =>
+        page
+          .evaluate((expectedText) => {
+            const promptText = document.getElementById("prompt-text")?.innerText || "";
+            const mainBodyText = document.getElementById("main-body")?.innerText || "";
+            return (
+              promptText.includes(expectedText) || mainBodyText.includes(expectedText)
+            );
+          }, text)
+          .catch(() => false),
+      { timeout }
+    )
+    .toBe(true);
+}
+
+async function waitForMainBodyContains(page, text, timeout = 90000) {
+  await expect
+    .poll(
+      () =>
+        page
+          .evaluate((expectedText) => {
+            const mainBodyText = document.getElementById("main-body")?.innerText || "";
+            return mainBodyText.includes(expectedText);
+          }, text)
+          .catch(() => false),
+      { timeout }
+    )
+    .toBe(true);
+}
+
 async function withExperiment(page, context, experimentDir, runTest) {
   const reuseRecruitmentUrl = process.env.PSYNET_RECRUITMENT_URL || null;
   const usingExistingBackend = !!reuseRecruitmentUrl;
@@ -967,6 +999,8 @@ module.exports = {
   startResponseSubmitTracker,
   stopExperiment,
   waitForResponseSubmitIncrement,
+  waitForMainBodyContains,
+  waitForPromptContains,
   waitForTrialEvents,
   waitForAudioRecordingReady,
   waitForVideoRecordingReady,
