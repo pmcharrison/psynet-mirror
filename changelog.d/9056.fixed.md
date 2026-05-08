@@ -1,0 +1,1 @@
+Fixed `@local_only` and `@ci_only` pytest decorators by changing condition from `os.environ.get("CI")` to `os.environ.get("CI") is not None` to ensure a boolean result (author: Frank Höger, reviewer: Peter Harrison)

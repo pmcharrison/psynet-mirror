@@ -1,0 +1,1 @@
+Fixed SliderControl to re-register minimal-interaction gating on `trialPrepare`, so pages that call `psynet.trial.restart()` can re-enable submit/next correctly after slider interaction (author: Peter).
