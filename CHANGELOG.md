@@ -162,6 +162,7 @@
 
 ### Documentation
 
+- Documented the fragment naming convention and the date-based fallback (`YYYYMMDD.<category>.md`) for direct pushes to `master`, which the CI `changelog_check` job cannot enforce since it only runs on MRs (author: [Frank Höger])
 - Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
 - Clarified AGENTS setup for Dallinger auth and local environment bootstrapping (author: Cursor, reviewer: Peter Harrison)
 - Added Playwright anti-flakiness guardrails to `AGENTS.md` so future E2E tests use stable selectors/events and auto-advance-safe assertions (author: Marco)
