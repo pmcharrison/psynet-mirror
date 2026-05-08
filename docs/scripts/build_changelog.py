@@ -59,7 +59,7 @@ def list_fragment_paths() -> list[Path]:
     paths: list[Path] = []
     invalid_files: list[str] = []
 
-    for path in sorted(FRAGMENTS_DIR.iterdir()):
+    for path in FRAGMENTS_DIR.iterdir():
         if not path.is_file() or path.name == "README.md" or path.name.startswith("."):
             continue
 
@@ -72,10 +72,11 @@ def list_fragment_paths() -> list[Path]:
     if invalid_files:
         raise ValueError(
             "Invalid changelog fragment filename(s): "
-            + ", ".join(invalid_files)
-            + ". Expected <MR>.(added|changed|fixed|removed|documentation).md"
+            + ", ".join(sorted(invalid_files))
+            + f". Expected <id>.({SECTION_PATTERN}).md"
         )
 
+    paths.sort(key=lambda p: (int(FILENAME_RE.match(p.name)["mr"]), p.name))
     return paths
 
 
