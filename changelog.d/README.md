@@ -9,10 +9,10 @@ Supported categories (rendered in this order):
 - `breaking` → **Breaking Changes**
 - `added` → **Added**
 - `changed` → **Changed**
-- `updated` → **Updated**
 - `deprecated` → **Deprecated**
 - `removed` → **Removed**
 - `fixed` → **Fixed**
+- `updated` → **Updated**
 - `documentation` → **Documentation**
 
 Fragment contents should be a single changelog entry in markdown without a leading `-`.
