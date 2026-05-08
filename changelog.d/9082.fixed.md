@@ -1,0 +1,1 @@
+Fixed resource type mismatch in `Notifier` where `"memory"` was used instead of `"ram"`, causing worker process info to be missing from RAM usage notifications (author: Cursor, reviewer: Peter Harrison)

@@ -1,0 +1,1 @@
+Fixed incorrect Sphinx cross-references in `AudioImitationChainTrial` and `CameraImitationChainTrial` docstrings pointing to non-existent `audio_imitation_chain` and `video_imitation_chain` modules (author: Cursor, reviewer: Peter Harrison)

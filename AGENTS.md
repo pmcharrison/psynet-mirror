@@ -159,17 +159,17 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
    - Treat mismatches as test failures, not as recoverable branches.
 
 10. **Separate page-type handling explicitly**:
-   - Gateway/ad pages, consent pages, and timeline pages have different DOM/state behavior.
-   - Use page-specific assertions/selectors for each type; do not assume timeline containers (e.g. `#main-body`) exist everywhere.
+    - Gateway/ad pages, consent pages, and timeline pages have different DOM/state behavior.
+    - Use page-specific assertions/selectors for each type; do not assume timeline containers (e.g. `#main-body`) exist everywhere.
 
 11. **Use fail-fast synchronization tied to the expected transition**:
-   - After each action, wait for the exact intended effect (expected text, expected control state, expected URL/page transition).
-   - Prefer short bounded waits on deterministic invariants over long generic polls.
+    - After each action, wait for the exact intended effect (expected text, expected control state, expected URL/page transition).
+    - Prefer short bounded waits on deterministic invariants over long generic polls.
 
 12. **Assert playback/recording via the actual implementation path**:
-   - For `AudioPrompt`, verify PsyNet sound-state/event transitions instead of DOM `<audio>` elements.
-   - For `VideoPrompt`, verify `video#prompt` playback behavior.
-   - Align assertions with how that step is implemented in experiment/template code.
+    - For `AudioPrompt`, verify PsyNet sound-state/event transitions instead of DOM `<audio>` elements.
+    - For `VideoPrompt`, verify `video#prompt` playback behavior.
+    - Align assertions with how that step is implemented in experiment/template code.
 
 ## Branch review command
 
@@ -190,7 +190,7 @@ Verify changes end-to-end by running `psynet test local` within a relevant demo.
 
 When you make changes to the PsyNet codebase:
 
-1. **Update the CHANGELOG**: Pull requests should include corresponding changes to `CHANGELOG.md` in the "Unreleased" section. Format: `- Description (author: [Name])` where `[Name]` is the person who invoked the agent (typically found in user context or Slack messages). These should summarize the overall changes made by the PR rather than the incremental process of building the PR.
+1. **Add a changelog fragment**: Pull requests should include one or more fragment files in `changelog.d/` instead of editing `CHANGELOG.md` directly. Use the filename format `changelog.d/<MR>.<category>.md` where `<category>` is one of `breaking`, `added`, `changed`, `updated`, `deprecated`, `removed`, `fixed`, or `documentation`. The fragment content should be a single changelog entry in markdown without a leading `-`, for example: `Added support for X (author: [Name])`. These entries should summarize the overall user-facing changes made by the PR rather than the incremental process of building it. Regenerate `CHANGELOG.md` with `python docs/scripts/build_changelog.py`. To cut a release, run `python docs/scripts/build_changelog.py --release <version> <date>`.
 
 2. **Run pre-commit**: Before committing, run pre-commit to ensure code formatting is correct:
 
@@ -201,4 +201,4 @@ When you make changes to the PsyNet codebase:
 
    If pre-commit is not installed, install it first with `pip3 install pre-commit`.
 
-3. **Commit and push**: Commit all changes including CHANGELOG updates and any pre-commit formatting fixes.
+3. **Commit and push**: Commit all changes including changelog fragments and any pre-commit formatting fixes.
