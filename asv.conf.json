@@ -3,7 +3,7 @@
     "project": "psynet",
     "project_url": "https://gitlab.com/PsyNetDev/PsyNet",
     "repo": ".",
-    "branches": ["issues/9123-performance-benchmark-site"],
+    "branches": ["master"],
     "environment_type": "virtualenv",
     "pythons": ["3.13"],
     "matrix": {},

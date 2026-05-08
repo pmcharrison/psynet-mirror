@@ -168,6 +168,8 @@ asv_benchmarks:
     - export ASV_RESULTS_REMOTE="https://oauth2:${BENCHMARK_RESULTS_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
     - git config user.email "ci@psynet.dev"
     - git config user.name "PsyNet CI"
+    - git branch -f "$CI_COMMIT_REF_NAME" HEAD
+    - 'sed -i "s|\"branches\": \[[^]]*\]|\"branches\": [\"$CI_COMMIT_REF_NAME\"]|" asv.conf.json'
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
@@ -245,6 +247,8 @@ pages_latest:
     - |
       if git ls-remote --exit-code --heads "$ASV_RESULTS_REMOTE" benchmark-results >/dev/null 2>&1; then
         git fetch "$ASV_RESULTS_REMOTE" benchmark-results:benchmark-results
+        git branch -f "$CI_COMMIT_REF_NAME" HEAD
+        sed -i "s|\"branches\": \[[^]]*\]|\"branches\": [\"$CI_COMMIT_REF_NAME\"]|" asv.conf.json
         git worktree add .asv/results benchmark-results
         asv publish
         mkdir -p public/benchmarks
