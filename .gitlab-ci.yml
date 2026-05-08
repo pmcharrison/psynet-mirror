@@ -182,7 +182,7 @@ asv_benchmarks:
       $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && uv pip install --no-cache --system asv virtualenv && bash ci/asv-sync-results.sh"
     - git push "$ASV_RESULTS_REMOTE" benchmark-results
   artifacts:
-    when: always
+    when: on_failure
     paths:
       - .asv/results/
   rules:

@@ -15,6 +15,9 @@ BRANCH="benchmark-results"
 REMOTE="${ASV_RESULTS_REMOTE:-origin}"
 ATTACHED=0
 
+# shellcheck source=ci/asv-worktree-lib.sh
+source "$(dirname "$0")/asv-worktree-lib.sh"
+
 cd "$REPO_ROOT"
 
 git config user.email >/dev/null || { echo "git user.email not set" >&2; exit 1; }
@@ -34,39 +37,6 @@ ensure_branch() {
     commit=$(git commit-tree -m "Initialize $BRANCH for ASV results" "$tree")
     git branch "$BRANCH" "$commit"
     echo "Created local orphan branch $BRANCH"
-}
-
-attach_worktree() {
-    if [ -e "$RESULTS_DIR/.git" ]; then
-        local current
-        current=$(git -C "$RESULTS_DIR" rev-parse --abbrev-ref HEAD)
-        if [ "$current" = "HEAD" ]; then
-            echo "Error: $RESULTS_DIR is in detached-HEAD state, expected branch '$BRANCH'" >&2
-            exit 1
-        fi
-        if [ "$current" != "$BRANCH" ]; then
-            echo "Error: $RESULTS_DIR is checked out to '$current', expected '$BRANCH'" >&2
-            exit 1
-        fi
-        ATTACHED=1
-        return
-    fi
-    if [ -e "$RESULTS_DIR" ]; then
-        rm -rf "$RESULTS_DIR"
-    fi
-    mkdir -p "$(dirname "$RESULTS_DIR")"
-    git worktree add "$RESULTS_DIR" "$BRANCH"
-    ATTACHED=1
-}
-
-detach_worktree() {
-    [ "$ATTACHED" = "1" ] || return
-    if [ -e "$RESULTS_DIR/.git" ]; then
-        if ! git worktree remove "$RESULTS_DIR" 2>/dev/null; then
-            echo "Worktree at $RESULTS_DIR has uncommitted changes; leaving in place" >&2
-            echo "Inspect with: git -C $RESULTS_DIR status" >&2
-        fi
-    fi
 }
 
 ensure_branch

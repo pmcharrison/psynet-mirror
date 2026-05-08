@@ -15,6 +15,9 @@ RESULTS_DIR="$REPO_ROOT/.asv/results"
 BRANCH="benchmark-results"
 ATTACHED=0
 
+# shellcheck source=ci/asv-worktree-lib.sh
+source "$(dirname "$0")/asv-worktree-lib.sh"
+
 MACHINE=""
 COMMITS=()
 DRY_RUN=0
@@ -66,39 +69,6 @@ if ! git show-ref --verify --quiet "refs/heads/$BRANCH"; then
     echo "Error: local branch '$BRANCH' does not exist (run ci/asv-sync-results.sh --init-only first)" >&2
     exit 1
 fi
-
-attach_worktree() {
-    if [ -e "$RESULTS_DIR/.git" ]; then
-        local current
-        current=$(git -C "$RESULTS_DIR" rev-parse --abbrev-ref HEAD)
-        if [ "$current" = "HEAD" ]; then
-            echo "Error: $RESULTS_DIR is in detached-HEAD state, expected branch '$BRANCH'" >&2
-            exit 1
-        fi
-        if [ "$current" != "$BRANCH" ]; then
-            echo "Error: $RESULTS_DIR is checked out to '$current', expected '$BRANCH'" >&2
-            exit 1
-        fi
-        ATTACHED=1
-        return
-    fi
-    if [ -e "$RESULTS_DIR" ]; then
-        rm -rf "$RESULTS_DIR"
-    fi
-    mkdir -p "$(dirname "$RESULTS_DIR")"
-    git worktree add "$RESULTS_DIR" "$BRANCH"
-    ATTACHED=1
-}
-
-detach_worktree() {
-    [ "$ATTACHED" = "1" ] || return
-    if [ -e "$RESULTS_DIR/.git" ]; then
-        if ! git worktree remove "$RESULTS_DIR" 2>/dev/null; then
-            echo "Worktree at $RESULTS_DIR has uncommitted changes; leaving in place" >&2
-            echo "Inspect with: git -C $RESULTS_DIR status" >&2
-        fi
-    fi
-}
 
 trap detach_worktree EXIT
 attach_worktree
