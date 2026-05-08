@@ -26,6 +26,18 @@ Examples:
 - `1865.updated.md`
 - `1870.deprecated.md`
 
+## Direct pushes to `master`
+
+The `changelog_check` CI job only runs on merge requests, so it cannot
+catch missing fragments on direct pushes to `master`. Even a one-commit
+change should go through an MR so CI can verify the fragment.
+
+If you absolutely must push directly to `master`, add a fragment in the
+same commit using a date-based identifier (`YYYYMMDD.<category>.md`),
+for example `20260507.fixed.md`. 8-digit dates start at `20260000+`,
+well clear of real MR numbers and the synthetic `9xxx` migration IDs,
+so collisions are effectively impossible.
+
 Regenerate `CHANGELOG.md` with:
 
 ```bash
