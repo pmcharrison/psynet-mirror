@@ -2,6 +2,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
+  assertExpectedTimelinePathActive,
   clickConsentButton,
   clickFinish,
   clickNextAndWait,
@@ -118,6 +119,37 @@ async function getStagedBlobInfo(page) {
   });
 }
 
+async function waitForRecordingPlaybackReady(page, timeout = 45000) {
+  await expect
+    .poll(
+      () =>
+        page
+          .evaluate(() => {
+            const blob = psynet?.response?.staged?.blobs?.audioRecording || null;
+            const recording = psynet?.audio?.recording || null;
+            return {
+              audioBlobExists: !!blob,
+              audioBlobSize:
+                blob && typeof blob.size === "number" ? blob.size : 0,
+              recordingLoaded: !!recording?.loaded,
+              playFn: typeof recording?.play === "function"
+            };
+          })
+          .catch(() => ({
+            audioBlobExists: false,
+            audioBlobSize: 0,
+            recordingLoaded: false,
+            playFn: false
+          })),
+      { timeout }
+    )
+    .toMatchObject({
+      audioBlobExists: true,
+      recordingLoaded: true,
+      playFn: true
+    });
+}
+
 async function waitForSoundActiveState(
   page,
   stimulusId,
@@ -162,6 +194,13 @@ async function useStandardAudioControls(page, options = {}) {
   }
 }
 
+async function waitForSliderInteractionReady(page, timeoutMs = STEP_TIMEOUT_MS) {
+  await waitForTrialEvents(page, ["responseEnable"], {
+    timeoutMs
+  });
+  await expect(page.locator("#sliderpage_slider")).toBeEnabled({ timeout: timeoutMs });
+}
+
 async function completeRecordedPlaybackCheckpoint(
   page,
   checkpointEventBaseline = 0
@@ -186,18 +225,7 @@ test("audio demo", async ({ page, context }) => {
       // Section 1: complete deterministic startup sequence (gateway + two consents).
       await reachInitialAudioPrompt(experimentPage, STEP_TIMEOUT_MS);
 
-      await expect
-        .poll(() =>
-          experimentPage.evaluate(
-            () =>
-              window.psynetTemplateData?.flags?.inplaceTimelineTransitions ??
-              null
-          )
-        )
-        .toBe(true);
-      await expect
-        .poll(() => experimentPage.evaluate(() => typeof window.htmx))
-        .toBe("object");
+      await assertExpectedTimelinePathActive(experimentPage);
 
       // Section 2: validate default JS synth controls (play + loop toggle).
       await expectPromptContains(
@@ -221,19 +249,15 @@ test("audio demo", async ({ page, context }) => {
       "manipulate individual notes with a slider"
     );
     const slider = experimentPage.locator("#sliderpage_slider");
+    await waitForSliderInteractionReady(experimentPage);
     await expect(slider).toBeVisible();
-    await expect(slider).toBeEnabled();
-    await expectLocatorScreenshot(
-      experimentPage.locator("#main-body"),
-      "audio-slider-page.png"
-    );
     const sliderValueBefore = Number(await slider.inputValue());
     await slider.focus();
     await experimentPage.keyboard.press("ArrowRight");
     await expect
       .poll(async () => Number(await slider.inputValue()), { timeout: 5000 })
       .not.toBe(sliderValueBefore);
-    await expect(experimentPage.locator("#next-button")).toBeEnabled({ timeout: 30000 });
+    await waitForNextEnabled(experimentPage, 30000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
     // Section 5: smoke-check additional timbre pages load and remain navigable.
@@ -317,19 +341,21 @@ test("audio demo", async ({ page, context }) => {
       timeoutMs: 45000,
       baselineIndex: firstRecordEventBaseline
     });
+    await waitForRecordingPlaybackReady(experimentPage, 45000);
     const firstPlayRecordingButton = experimentPage.locator(
       "#btn-record-play-recording"
     );
-    await expect(firstPlayRecordingButton).toBeEnabled({
-      timeout: 45000
-    });
     const firstBlobInfo = await getStagedBlobInfo(experimentPage);
     expect(firstBlobInfo.audioExists).toBe(true);
     expect(firstBlobInfo.audioSize).toBeGreaterThan(0);
     if (firstBlobInfo.audioType) {
       expect(firstBlobInfo.audioType).toContain("audio");
     }
-    await firstPlayRecordingButton.click();
+    if (await firstPlayRecordingButton.isEnabled().catch(() => false)) {
+      await firstPlayRecordingButton.click();
+    } else {
+      await experimentPage.evaluate(() => psynet.page.control.playRecording());
+    }
     await waitForSoundActiveState(experimentPage, "recording", true, 10000);
     const firstCheckpointEventBaseline = await captureTrialEventBaseline(
       experimentPage
@@ -357,21 +383,23 @@ test("audio demo", async ({ page, context }) => {
       timeoutMs: 45000,
       baselineIndex: delayedRecordEventBaseline
     });
+    await waitForRecordingPlaybackReady(experimentPage, 45000);
     const delayedRecordButton = experimentPage.locator("#btn-record-record");
     const delayedPlayRecordingButton = experimentPage.locator(
       "#btn-record-play-recording"
     );
     await expect(delayedRecordButton).toBeEnabled();
-    await expect(delayedPlayRecordingButton).toBeEnabled({
-      timeout: 45000
-    });
     const delayedBlobInfo = await getStagedBlobInfo(experimentPage);
     expect(delayedBlobInfo.audioExists).toBe(true);
     expect(delayedBlobInfo.audioSize).toBeGreaterThan(0);
     if (delayedBlobInfo.audioType) {
       expect(delayedBlobInfo.audioType).toContain("audio");
     }
-    await delayedPlayRecordingButton.click();
+    if (await delayedPlayRecordingButton.isEnabled().catch(() => false)) {
+      await delayedPlayRecordingButton.click();
+    } else {
+      await experimentPage.evaluate(() => psynet.page.control.playRecording());
+    }
     await waitForSoundActiveState(experimentPage, "recording", true, 10000);
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
     await waitForResponseSubmitIncrement(

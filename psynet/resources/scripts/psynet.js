@@ -1422,6 +1422,29 @@
               onEnd: null,
             };
 
+            let completionTimer = null;
+            let completed = false;
+
+            let completeSound = function () {
+              if (completed) {
+                return;
+              }
+              completed = true;
+              clearTimeout(stopTimer);
+              if (completionTimer !== null) {
+                clearTimeout(completionTimer);
+              }
+              psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
+              psynet.media.sounds = psynet.media.sounds.filter(
+                (s) => s !== sound,
+              );
+              psynet.trial.registerEvent("audioFinished: " + sound.stimulusId);
+              if (sound.options.loop && !sound.manuallyStopped) {
+                psynet.log.debug("Looping sound with ID = " + out.stimulusId);
+                out.play(sound.options);
+              }
+            };
+
             sound.source.buffer = buffer;
 
             sound.source.connect(sound.gainNode);
@@ -1448,6 +1471,15 @@
                 1000 * (options.startDelay + sound.duration - options.fadeOut),
               );
             }
+
+            completionTimer = setTimeout(() => {
+              psynet.log.warn(
+                "Audio ended event did not fire for " +
+                  sound.stimulusId +
+                  "; using timed fallback completion.",
+              );
+              completeSound();
+            }, 1000 * (options.startDelay + sound.duration + 0.1));
 
             sound.stop = function (providedOptions) {
               let options = {
@@ -1483,16 +1515,7 @@
             };
 
             sound.source.addEventListener("ended", function () {
-              clearTimeout(stopTimer);
-              psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
-              psynet.media.sounds = psynet.media.sounds.filter(
-                (s) => s !== sound,
-              );
-              psynet.trial.registerEvent("audioFinished: " + sound.stimulusId);
-              if (sound.options.loop && !sound.manuallyStopped) {
-                psynet.log.debug("Looping sound with ID = " + out.stimulusId);
-                out.play(sound.options);
-              }
+              completeSound();
             });
 
             psynet.media.sounds.push(sound);
