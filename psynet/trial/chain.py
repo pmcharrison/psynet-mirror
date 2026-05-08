@@ -23,7 +23,6 @@ from ..data import SQLMixinDallinger
 from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..participant import Participant
-from ..process import WorkerAsyncProcess
 from ..sync import SyncGroup
 from ..timeline import is_list_of
 from ..utils import (
@@ -1028,18 +1027,18 @@ class ChainTrial(Trial):
 
     def on_finalized(self):
         super().on_finalized()
+        if self.trial_maker and self.trial_maker.chain_type == "within":
+            # Serialize concurrent update_status() calls from participants in the same
+            # sync group by acquiring an exclusive row lock on this node. Once acquired,
+            # expire the node so all attributes (including the all_trials relationship)
+            # are re-read from the DB, seeing all trials committed by earlier threads.
+            db.session.query(ChainNode).filter_by(
+                id=self.node.id
+            ).with_for_update().one()
+            db.session.expire(self.node)
         self.node.update_status()
         if self.trial_maker and self.trial_maker.chain_type == "within":
-            # Defer the grow_network check to the next database transaction so that
-            # all concurrent finalizations from other participants in the sync group
-            # are visible before we decide whether to spawn a new node.
-            WorkerAsyncProcess(self._grow_within_network_after_finalize, trial=self)
-
-    def _grow_within_network_after_finalize(self):
-        # Re-run update_status in a fresh transaction where all finalizations are
-        # committed, then call grow_network if the node is truly ready to spawn.
-        self.node.update_status()
-        self.trial_maker.call_grow_network(network=self.network)
+            self.trial_maker.call_grow_network(network=self.network)
 
 
 class ChainTrialMakerState(NetworkTrialMakerState):

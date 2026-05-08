@@ -30,8 +30,6 @@ from .utils import get_logger
 
 logger = get_logger()
 
-_thread_local = threading.local()
-
 
 @register_table
 class AsyncProcess(SQLBase, SQLMixin):
@@ -78,11 +76,11 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     errors = relationship("ErrorRecord")
 
+    launch_queue = []
+
     def add_to_launch_queue(self):
-        if not hasattr(_thread_local, "launch_queue"):
-            _thread_local.launch_queue = []
         self.time_enqueued = datetime.datetime.now()
-        _thread_local.launch_queue.append(self.get_launch_spec())
+        self.launch_queue.append(self.get_launch_spec())
 
     def get_launch_spec(self) -> dict:
         db.session.flush([self])
@@ -94,9 +92,8 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     @classmethod
     def launch_all(cls):
-        queue = getattr(_thread_local, "launch_queue", [])
-        while queue:
-            process = queue.pop(0)
+        while cls.launch_queue:
+            process = cls.launch_queue.pop(0)
             assert process["obj"].id is not None
             logger.info("Launching async process %s...", process["id"])
             process["class"].launch(process)
