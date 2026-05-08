@@ -1,3 +1,18 @@
+"""
+ASV benchmarks for end-to-end experiment performance.
+
+ASV discovers benchmark classes in this module via ``benchmark_dir`` in
+``asv.conf.json``, and calls two kinds of methods:
+
+- ``setup_cache()``: called once per class, runs all parameter combinations
+  and returns a dict of results. ASV passes this dict as the first argument
+  to every ``track_*`` call.
+- ``track_*(data, *param_values)``: called once per parameter combination,
+  extracts a single scalar metric from the cached results.
+
+See https://asv.readthedocs.io/en/stable/writing_benchmarks.html
+"""
+
 import itertools
 import json
 import subprocess
