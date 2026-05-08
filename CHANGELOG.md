@@ -10,12 +10,12 @@
 - Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners) (author: [Frank Höger])
 - Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
 
-## Added
+### Added
+
+- Added ASV performance benchmark suite (demo experiment performance tests and serialize/deserialize micro-benchmarks) with a CI job that publishes rendered graphs to GitLab Pages alongside the docs.
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
-### Added
-
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.

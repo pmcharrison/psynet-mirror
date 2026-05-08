@@ -4,12 +4,27 @@
 # The caller must set:
 #     RESULTS_DIR — absolute path where the worktree should live
 #     BRANCH      — branch name to check out (typically "benchmark-results")
+#     REMOTE      — remote name for ``fetch_branch`` (typically "origin")
 #
 # After ``attach_worktree``, ATTACHED=1 means this caller attached (or
 # adopted) the worktree and is responsible for releasing it via
 # ``detach_worktree``. ``detach_worktree`` runs ``git worktree remove``,
 # which preserves the worktree if it has uncommitted changes (so failed
 # benchmark runs leave their state behind for inspection).
+#
+# ``fetch_branch`` force-updates the local branch ref from the remote
+# (the orphan branch is append-only in normal use, but ``+`` is defensive
+# against history rewrites). Returns 0 if a fetch happened, 1 if the
+# remote does not have the branch.
+
+fetch_branch() {
+    if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
+        echo "Fetching latest $BRANCH from $REMOTE..."
+        git fetch "$REMOTE" "+$BRANCH:$BRANCH"
+        return 0
+    fi
+    return 1
+}
 
 attach_worktree() {
     git worktree prune

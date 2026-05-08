@@ -24,11 +24,8 @@ git config user.email >/dev/null || { echo "git user.email not set" >&2; exit 1;
 git config user.name >/dev/null || { echo "git user.name not set" >&2; exit 1; }
 
 ensure_branch() {
+    fetch_branch && return
     if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
-        return
-    fi
-    if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
-        git fetch "$REMOTE" "$BRANCH:$BRANCH"
         return
     fi
     local blob tree commit

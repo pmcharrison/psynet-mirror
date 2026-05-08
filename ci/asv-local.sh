@@ -31,15 +31,17 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if ! git show-ref --verify --quiet "refs/heads/$BRANCH"; then
-    if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
-        echo "Fetching $BRANCH from $REMOTE..."
-        git fetch "$REMOTE" "$BRANCH:$BRANCH"
-    else
-        echo "Error: $BRANCH branch not found locally or on $REMOTE" >&2
-        echo "Push at least one CI run to populate it before running this script." >&2
-        exit 1
-    fi
+# Detach any pre-existing worktree so we can force-update the branch ref
+# below. Anything inside the worktree is regenerable (asv publish only
+# reads from it), so a force remove is safe.
+if [ -e "$RESULTS_DIR/.git" ]; then
+    git worktree remove --force "$RESULTS_DIR" 2>/dev/null || true
+fi
+
+if ! fetch_branch && ! git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+    echo "Error: $BRANCH branch not found locally or on $REMOTE" >&2
+    echo "Push at least one CI run to populate it before running this script." >&2
+    exit 1
 fi
 
 attach_worktree
