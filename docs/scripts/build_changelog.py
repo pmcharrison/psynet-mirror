@@ -339,7 +339,12 @@ def release_command(version: str, date: str) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build and manage PsyNet changelog fragments."
+        description=(
+            "Build and manage PsyNet changelog fragments. Contributors commit "
+            "only fragments in their MRs (never a regenerated CHANGELOG.md); "
+            "the rendered Unreleased block is refreshed by maintainers at "
+            "release time via --release."
+        )
     )
     parser.add_argument(
         "--migrate-unreleased",

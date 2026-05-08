@@ -190,7 +190,11 @@ Verify changes end-to-end by running `psynet test local` within a relevant demo.
 
 When you make changes to the PsyNet codebase:
 
-1. **Add a changelog fragment**: Pull requests should include one or more fragment files in `changelog.d/` instead of editing `CHANGELOG.md` directly. Use the filename format `changelog.d/<MR>.<category>.md` where `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The fragment content should be a single changelog entry in markdown without a leading `-`, for example: `Added support for X (author: [Name])`. These entries should summarize the overall user-facing changes made by the PR rather than the incremental process of building it. Regenerate `CHANGELOG.md` with `python docs/scripts/build_changelog.py`. To cut a release, run `python docs/scripts/build_changelog.py --release <version> <date>`. Even one-commit changes should go through an MR so CI can verify the fragment; if you absolutely must push directly to `master`, add a fragment with a date-based identifier (e.g. `20260507.fixed.md`) in the same commit.
+1. **Add a changelog fragment**: Pull requests should include one or more fragment files in `changelog.d/` instead of editing `CHANGELOG.md` directly. Use the filename format `changelog.d/<MR>.<category>.md` where `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The fragment content should be a single changelog entry in markdown without a leading `-`, for example: `Added support for X (author: [Name])`. These entries should summarize the overall user-facing changes made by the PR rather than the incremental process of building it.
+
+   Do **not** commit a regenerated `CHANGELOG.md` from your MR — `CHANGELOG.md` is a generated artifact, rebuilt by the maintainer at release time. Committing fragments only avoids merge conflicts on `CHANGELOG.md` between MRs. Run `python docs/scripts/build_changelog.py` locally if you want to preview how the rendered `## Unreleased` section will look, but discard those changes before pushing. Maintainers cut a release with `python docs/scripts/build_changelog.py --release <version> <date>`, which consumes all fragments and inserts a versioned section.
+
+   Even one-commit changes should go through an MR so CI can verify the fragment; if you absolutely must push directly to `master`, add a fragment with a date-based identifier (e.g. `20260507.fixed.md`) in the same commit.
 
 2. **Run pre-commit**: Before committing, run pre-commit to ensure code formatting is correct:
 
@@ -201,4 +205,4 @@ When you make changes to the PsyNet codebase:
 
    If pre-commit is not installed, install it first with `pip3 install pre-commit`.
 
-3. **Commit and push**: Commit all changes including changelog fragments and any pre-commit formatting fixes.
+3. **Commit and push**: Commit all changes including changelog fragments (but not a regenerated `CHANGELOG.md`) and any pre-commit formatting fixes.
