@@ -1,11 +1,48 @@
 {% extends "macros.html" %}
 {% include "macros/browser-detect.html" %}
 
+{% macro template_data_script() %}
+    <script id="psynet-template-data" type="application/json">
+        {{ {
+            "jsVars": js_vars,
+            "events": events,
+            "mediaRequests": page.media.data,
+            "trialProgressDisplayConfig": trial_progress_display_config,
+            "assignmentId": participant.assignment_id,
+            "participantId": participant.id,
+            "uniqueId": participant.unique_id,
+            "routes": {
+                "setLocaleParticipant": "/set_locale_participant/" ~ participant.id,
+                "participantOpenedDevtools": "/participant_opened_devtools/" ~ unique_id
+            },
+            "flags": {
+                "dynamicallyUpdateProgressBarAndReward": js_vars["dynamicallyUpdateProgressBarAndReward"],
+                "checkParticipantOpenedDevtools": config.check_participant_opened_devtools,
+                "lucidRecruitment": experiment.with_lucid_recruitment(),
+                "inplaceTimelineTransitions": inplace_timeline_transitions
+            },
+            "strings": {
+                "commentStored": pgettext("timeline_problem", "Comment stored."),
+                "pageLoadNotReady": pgettext("timeline_problem", "Please wait for the page to load.") ~ " " ~ pgettext("timeline_problem", "Try again in a couple of seconds.")
+            },
+            "lucid": {
+                "noFocusTimeoutMs": ((experiment.recruiter.aggressive_no_focus_timeout_in_s if aggressive_termination_on_no_focus else experiment.recruiter.no_focus_timeout_in_s) * 1000) if experiment.with_lucid_recruitment() else 0,
+                "noFocusTimeoutReason": ("aggressive-no-focus-timeout-" if aggressive_termination_on_no_focus else "no-focus-timeout-") if experiment.with_lucid_recruitment() else "",
+                "overallTimeoutS": experiment.recruiter.termination_time_in_s if experiment.with_lucid_recruitment() else 0,
+                "secondsLeft": experiment.recruiter.time_until_termination_in_s(participant.assignment_id) if experiment.with_lucid_recruitment() else 0,
+                "inactivityTimeoutS": experiment.recruiter.inactivity_timeout_in_s if experiment.with_lucid_recruitment() else 0,
+                "inactivityTimeoutMs": (experiment.recruiter.inactivity_timeout_in_s * 1000) if experiment.with_lucid_recruitment() else 0,
+                "shouldWarnOnBeforeUnload": (not page.is_unity_page and not page.skip_beforeunload) if experiment.with_lucid_recruitment() else false
+            }
+        } | tojson }}
+    </script>
+{% endmacro %}
+
 {% block stylesheets %}
     {{ super() }}
     {% include "theme.html" %}
 
-    {% if timeline_transition_mode != "disabled" %}
+    {% if inplace_timeline_transitions %}
         <style>
             body.timeline-transition-pending #main-body {
                 pointer-events: none;
@@ -26,9 +63,8 @@
 {% endblock %}
 
 {% block body %}
-    {% macro timeline_header(oob=false) %}
-        <div id="timeline-header" class="header"
-             {% if oob %}hx-swap-oob="true"{% endif %}>
+    {% macro timeline_header() %}
+        <div id="timeline-header" class="header">
             {% if config.show_progress_bar %}
                 <div class="progress">
                     <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
@@ -49,7 +85,7 @@
 
             <span id="psynet-event-listener"></span>
 
-            {% if timeline_transition_mode == "fragment" %}
+            {% if partial_mode %}
                 <div id="psynet-fragment-assets" style="display: none;">
                     <div id="psynet-page-js-links">
                         {% for x in js_links %}
@@ -67,13 +103,14 @@
                                 {{ x }}
                             </script>
                         {% endfor %}
+                        {{ self.scripts() }}
                     </div>
                 </div>
             {% endif %}
         </div>
     {% endmacro %}
 
-    {% macro timeline_footer(oob=false) %}
+    {% macro timeline_footer() %}
         <style>
             #footer {
                 background-color: rgb(49, 124, 246);
@@ -97,8 +134,7 @@
 
         </style>
 
-        <nav id="footer" class="navbar fixed-bottom"
-             {% if oob %}hx-swap-oob="true"{% endif %}>
+        <nav id="footer" class="navbar fixed-bottom">
             <div id="media-download-progress-bar"></div>
                 <div class="container py-2">
                     {% if config.show_reward %}
@@ -130,16 +166,12 @@
         </nav>
     {% endmacro %}
 
-    {% if timeline_transition_mode == "fragment" %}
-        {{ timeline_header(true) }}
+    {% if partial_mode %}
+        {{ timeline_header() }}
         {{ timeline_main_body() }}
-        {{ timeline_footer(true) }}
+        {{ timeline_footer() }}
     {% else %}
-        <div id="timeline-root"
-             {% if timeline_transition_mode != "disabled" %}
-                 data-controller="timeline"
-                 data-action="htmx:afterSettle->timeline#afterSettle htmx:sendError->timeline#requestFailed htmx:responseError->timeline#requestFailed"
-             {% endif %}>
+        <div id="timeline-root">
             {{ timeline_header() }}
             {{ timeline_main_body() }}
 
@@ -191,41 +223,8 @@
         </div>
     {% endif %}
 
-    {% if timeline_transition_mode == "fragment" %}
-        <script id="psynet-template-data" type="application/json" hx-swap-oob="true">
-            {{ {
-                "jsVars": js_vars,
-                "events": events,
-                "mediaRequests": page.media.data,
-                "trialProgressDisplayConfig": trial_progress_display_config,
-                "assignmentId": participant.assignment_id,
-                "participantId": participant.id,
-                "uniqueId": participant.unique_id,
-                "routes": {
-                    "setLocaleParticipant": "/set_locale_participant/" ~ participant.id,
-                    "participantOpenedDevtools": "/participant_opened_devtools/" ~ unique_id
-                },
-                "flags": {
-                    "dynamicallyUpdateProgressBarAndReward": js_vars["dynamicallyUpdateProgressBarAndReward"],
-                    "checkParticipantOpenedDevtools": config.check_participant_opened_devtools,
-                    "lucidRecruitment": experiment.with_lucid_recruitment(),
-                    "inplaceTimelineTransitions": config.inplace_timeline_transitions
-                },
-                "strings": {
-                    "commentStored": pgettext("timeline_problem", "Comment stored."),
-                    "pageLoadNotReady": pgettext("timeline_problem", "Please wait for the page to load.") ~ " " ~ pgettext("timeline_problem", "Try again in a couple of seconds.")
-                },
-                "lucid": {
-                    "noFocusTimeoutMs": ((experiment.recruiter.aggressive_no_focus_timeout_in_s if aggressive_termination_on_no_focus else experiment.recruiter.no_focus_timeout_in_s) * 1000) if experiment.with_lucid_recruitment() else 0,
-                    "noFocusTimeoutReason": ("aggressive-no-focus-timeout-" if aggressive_termination_on_no_focus else "no-focus-timeout-") if experiment.with_lucid_recruitment() else "",
-                    "overallTimeoutS": experiment.recruiter.termination_time_in_s if experiment.with_lucid_recruitment() else 0,
-                    "secondsLeft": experiment.recruiter.time_until_termination_in_s(participant.assignment_id) if experiment.with_lucid_recruitment() else 0,
-                    "inactivityTimeoutS": experiment.recruiter.inactivity_timeout_in_s if experiment.with_lucid_recruitment() else 0,
-                    "inactivityTimeoutMs": (experiment.recruiter.inactivity_timeout_in_s * 1000) if experiment.with_lucid_recruitment() else 0,
-                    "shouldWarnOnBeforeUnload": (not page.is_unity_page and not page.skip_beforeunload) if experiment.with_lucid_recruitment() else false
-                }
-            } | tojson }}
-        </script>
+    {% if partial_mode %}
+        {{ template_data_script() }}
     {% endif %}
 {% endblock %}
 
@@ -234,54 +233,14 @@
 
     <script src="/static/scripts/jquery-3.7.1.min.js"></script>
     <script src="/static/scripts/JSZip/jszip.min.js"></script>
-    {% if timeline_transition_mode != "disabled" %}
-        <script src="{{ url_for('static', filename='scripts/htmx.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='scripts/stimulus.umd.js') }}"></script>
-    {% endif %}
 
     {% for x in js_links %}
         <script src="{{ x }}"></script>
     {% endfor %}
-    {% if timeline_transition_mode != "fragment" %}
-        <script id="psynet-template-data" type="application/json">
-            {{ {
-                "jsVars": js_vars,
-                "events": events,
-                "mediaRequests": page.media.data,
-                "trialProgressDisplayConfig": trial_progress_display_config,
-                "assignmentId": participant.assignment_id,
-                "participantId": participant.id,
-                "uniqueId": participant.unique_id,
-                "routes": {
-                    "setLocaleParticipant": "/set_locale_participant/" ~ participant.id,
-                    "participantOpenedDevtools": "/participant_opened_devtools/" ~ unique_id
-                },
-                "flags": {
-                    "dynamicallyUpdateProgressBarAndReward": js_vars["dynamicallyUpdateProgressBarAndReward"],
-                    "checkParticipantOpenedDevtools": config.check_participant_opened_devtools,
-                    "lucidRecruitment": experiment.with_lucid_recruitment(),
-                    "inplaceTimelineTransitions": config.inplace_timeline_transitions
-                },
-                "strings": {
-                    "commentStored": pgettext("timeline_problem", "Comment stored."),
-                    "pageLoadNotReady": pgettext("timeline_problem", "Please wait for the page to load.") ~ " " ~ pgettext("timeline_problem", "Try again in a couple of seconds.")
-                },
-                "lucid": {
-                    "noFocusTimeoutMs": ((experiment.recruiter.aggressive_no_focus_timeout_in_s if aggressive_termination_on_no_focus else experiment.recruiter.no_focus_timeout_in_s) * 1000) if experiment.with_lucid_recruitment() else 0,
-                    "noFocusTimeoutReason": ("aggressive-no-focus-timeout-" if aggressive_termination_on_no_focus else "no-focus-timeout-") if experiment.with_lucid_recruitment() else "",
-                    "overallTimeoutS": experiment.recruiter.termination_time_in_s if experiment.with_lucid_recruitment() else 0,
-                    "secondsLeft": experiment.recruiter.time_until_termination_in_s(participant.assignment_id) if experiment.with_lucid_recruitment() else 0,
-                    "inactivityTimeoutS": experiment.recruiter.inactivity_timeout_in_s if experiment.with_lucid_recruitment() else 0,
-                    "inactivityTimeoutMs": (experiment.recruiter.inactivity_timeout_in_s * 1000) if experiment.with_lucid_recruitment() else 0,
-                    "shouldWarnOnBeforeUnload": (not page.is_unity_page and not page.skip_beforeunload) if experiment.with_lucid_recruitment() else false
-                }
-            } | tojson }}
-        </script>
+    {% if not partial_mode %}
+        {{ template_data_script() }}
     {% endif %}
     <script src="{{ url_for('static', filename='scripts/psynet.js') }}"></script>
-    {% if timeline_transition_mode != "disabled" %}
-        <script src="{{ url_for('static', filename='scripts/stimulus-timeline.js') }}"></script>
-    {% endif %}
 
 
 {% endblock %}
@@ -293,7 +252,7 @@
 {% endblock %}
 
 {% block scripts %}
-    {% if timeline_transition_mode != "fragment" %}
+    {% if not partial_mode %}
         {{ super() }}
 
         <script>

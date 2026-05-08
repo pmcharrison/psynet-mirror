@@ -92,9 +92,12 @@
 </div>
 
 <script>
-    // TODO: This widget still relies on a page-load style initialization path.
-    // It should be migrated to the activation-safe timeline lifecycle before
-    // it is treated as part of the in-place transition compatibility surface.
+    // TODO: This widget is not yet verified for inplace_timeline_transitions=true.
+    // It initializes only from DOMContentLoaded, so after an in-place timeline
+    // fragment swap its websocket connection and DOM event handlers are not
+    // guaranteed to be recreated. If we want chatroom pages to be supported in
+    // the inplace timeline mode, this initialization needs to be moved onto the
+    // activation-safe page lifecycle used by other timeline components.
     document.addEventListener("DOMContentLoaded", function () {
         var ROOM_ID      = {{ config.room_id | tojson }};
         var GLOBAL_CH    = {{ config.channel | tojson }};

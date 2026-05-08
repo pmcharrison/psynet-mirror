@@ -456,30 +456,64 @@
       await psynet.initPage();
     };
 
-    psynet.pendingTimelineTransition = null;
-
-    psynet.loadNextTimelinePageWithHtmx = function () {
-      if (typeof htmx === "undefined") {
-        let error = new Error("Missing htmx transition prerequisites.");
-        return psynet.handleTimelineTransitionFailure(error).then(() => {
-          throw error;
-        });
+    psynet.applyTimelineFragmentPayload = function (payload) {
+      if (!payload || typeof payload.html !== "string" || payload.html === "") {
+        throw new Error("Missing timeline fragment HTML payload.");
       }
 
-      return new Promise((resolve, reject) => {
-        psynet.log.info("Requesting next timeline fragment via htmx.");
-        psynet.setPageReady(false);
-        psynet.setTimelineTransitionBusy(true);
-        psynet.pendingTimelineTransition = { resolve, reject };
-        htmx.ajax(
-          "GET",
-          "/timeline?unique_id=" + psynet.uniqueId + "&mode=partial",
-          {
-            target: "#main-body",
-            swap: "outerHTML",
-          },
-        );
+      let template = document.createElement("template");
+      template.innerHTML = payload.html.trim();
+
+      let requiredIds = [
+        "timeline-header",
+        "main-body",
+        "footer",
+        "psynet-template-data",
+      ];
+
+      requiredIds.forEach((id) => {
+        let nextElement = template.content.querySelector("#" + id);
+        let currentElement = document.getElementById(id);
+        if (!nextElement || !currentElement) {
+          throw new Error(
+            "Failed to apply timeline fragment payload: missing element #" + id + ".",
+          );
+        }
+        currentElement.replaceWith(nextElement);
       });
+
+      if (payload.page_uuid !== undefined) {
+        window.pageUuid = payload.page_uuid;
+      }
+    };
+
+    psynet.activateTimelineFragmentLifecycle = async function () {
+      await psynet.cleanupPageResources();
+      psynet.clearLucidTermination();
+      psynet.resetPageState();
+      psynet.refreshTemplateData();
+      await psynet.hydrateFragmentAssets();
+      await psynet.rebuildTrial();
+      await psynet.runFragmentScripts(psynet.getMainBodyScripts());
+      await psynet.initActivatedPage();
+      await psynet.runFragmentScripts(psynet.getDeferredPageScripts());
+      await psynet.finalizePageReady();
+      psynet.nextPagePending = false;
+      psynet.setTimelineTransitionBusy(false);
+      psynet.log.info("Timeline fragment activation complete.");
+    };
+
+    psynet.loadNextTimelinePageFromResponse = async function (payload) {
+      psynet.log.info("Applying next timeline fragment directly from /response.");
+      psynet.setPageReady(false);
+      psynet.setTimelineTransitionBusy(true);
+      try {
+        psynet.applyTimelineFragmentPayload(payload);
+        await psynet.activateTimelineFragmentLifecycle();
+      } catch (error) {
+        await psynet.handleTimelineTransitionFailure(error);
+        throw error;
+      }
     };
 
     psynet.handleTimelineTransitionFailure = async function (error) {
@@ -1975,20 +2009,34 @@
       });
     };
 
+    psynet.requireTimelineFragmentPayload = function (response) {
+      if (response && response.timeline_fragment) {
+        return response.timeline_fragment;
+      }
+      throw new Error(
+        "Missing timeline_fragment in approved /response while inplace timeline transitions are enabled.",
+      );
+    };
+
     let onSuccessResponse = async function (request, onRejection) {
       let response = JSON.parse(request.response);
       let passedValidation;
       if (response.submission === "approved") {
         psynet.log.debug("Response received successfully.");
-        let shouldRefreshPage = !(
-          response.page.attributes &&
-          psynet.page.attributes &&
-          response.page.attributes.session_id ==
-            psynet.page.attributes.session_id
-        );
+        let nextSessionId = response.page.attributes?.session_id;
+        let currentSessionId = psynet.page.attributes?.session_id;
+        let sameSessionUpdate =
+          nextSessionId !== undefined &&
+          nextSessionId !== null &&
+          currentSessionId !== undefined &&
+          currentSessionId !== null &&
+          nextSessionId === currentSessionId;
+        let shouldRefreshPage = !sameSessionUpdate;
         if (shouldRefreshPage) {
           if (psynetTemplateData.flags.inplaceTimelineTransitions) {
-            await psynet.loadNextTimelinePageWithHtmx();
+            await psynet.loadNextTimelinePageFromResponse(
+              psynet.requireTimelineFragmentPayload(response),
+            );
           } else {
             window.location = "/timeline?unique_id=" + psynet.uniqueId;
           }

@@ -9,6 +9,7 @@ const {
   completeInitialGateway,
   startResponseSubmitTracker,
   waitForResponseSubmitIncrement,
+  waitForPromptContains,
   waitForTrialEvents,
   waitForVideoRecordingReady,
   withExperiment
@@ -35,10 +36,6 @@ Intentionally not covered:
 
 async function expectMainBodyContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
   await expect(page.locator("#main-body")).toContainText(text, { timeout });
-}
-
-async function expectPromptContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
-  await expect(page.locator("#prompt-text")).toContainText(text, { timeout });
 }
 
 async function getStagedCameraRecordingInfo(page) {
@@ -86,7 +83,7 @@ test("imitation_chain_video demo", async ({ page, context }) => {
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
       // Section 2: verify actual webcam recording flow from UI to submit.
-      await expectPromptContains(experimentPage, "Please trace out a");
+      await waitForPromptContains(experimentPage, "Please trace out a");
       await expect(experimentPage.locator("#video-control")).toBeVisible({
         timeout: PROMPT_TIMEOUT_MS
       });

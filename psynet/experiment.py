@@ -2491,7 +2491,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def response_approved(self, participant):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
-        return success_response(submission="approved", page=page.__json__(participant))
+        payload = {
+            "submission": "approved",
+            "page": page.__json__(participant),
+        }
+        config = get_config()
+        if config.get("inplace_timeline_transitions"):
+            payload["timeline_fragment"] = self.render_partial_timeline_payload(
+                page, self, participant
+            )
+        return success_response(**payload)
 
     def response_rejected(self, message):
         logger.warning(
@@ -2587,19 +2596,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 (
                     resources.files("psynet") / "resources/scripts/psynet.js",
                     "/static/scripts/psynet.js",
-                ),
-                (
-                    resources.files("psynet") / "resources/scripts/htmx.min.js",
-                    "/static/scripts/htmx.min.js",
-                ),
-                (
-                    resources.files("psynet") / "resources/scripts/stimulus.umd.js",
-                    "/static/scripts/stimulus.umd.js",
-                ),
-                (
-                    resources.files("psynet")
-                    / "resources/scripts/stimulus-timeline.js",
-                    "/static/scripts/stimulus-timeline.js",
                 ),
                 (
                     resources.files("psynet")
@@ -3890,7 +3886,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if not isinstance(participant, Bot):
                 participant.client_ip_address = cls.get_client_ip_address()
             page = cls.get_current_page(experiment, participant)
-            return cls.serialize_page(page, experiment, participant, mode)
+            if mode == "json":
+                return jsonify(page.__json__(participant))
+            if mode is not None:
+                raise ValueError(
+                    f"Unsupported /timeline mode '{mode}'. "
+                    "Only mode=json remains supported on this route."
+                )
+            return page.render(experiment, participant)
         except cls.HandledError as err:
             return err.error_page()
         except Exception as err:
@@ -4098,13 +4101,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return page
 
     @classmethod
-    def serialize_page(cls, page, experiment, participant, mode):
-        if mode == "json":
-            return jsonify(page.__json__(participant))
-        if mode == "partial":
-            return page.render(experiment, participant, partial_mode=True)
-        else:
-            return page.render(experiment, participant)
+    def render_partial_timeline_payload(cls, page, experiment, participant):
+        """
+        Render the current timeline page as the partial inplace fragment payload.
+
+        This helper is the shared render authority for inplace fragment output
+        returned directly from /response.
+        """
+        return {
+            "html": page.render(experiment, participant, partial_mode=True),
+            "page_uuid": participant.page_uuid,
+        }
 
     @classmethod
     def check_unique_id(cls, participant, unique_id):

@@ -1442,12 +1442,7 @@ class Page(Elt):
         language_dict = get_language_dict(locale)
         config = get_config()
         js_vars = {**self.js_vars, **internal_js_vars}
-        if partial_mode:
-            timeline_transition_mode = "fragment"
-        elif config.get("inplace_timeline_transitions"):
-            timeline_transition_mode = "page"
-        else:
-            timeline_transition_mode = "disabled"
+        inplace_timeline_transitions = config.get("inplace_timeline_transitions")
 
         all_template_args = {
             **self.template_arg,
@@ -1477,7 +1472,8 @@ class Page(Elt):
                 iso: language_dict[iso] for iso in experiment.supported_locales
             },
             "locale": locale,
-            "timeline_transition_mode": timeline_transition_mode,
+            "partial_mode": partial_mode,
+            "inplace_timeline_transitions": inplace_timeline_transitions,
             "start_experiment_in_popup_window": experiment.start_experiment_in_popup_window,
             "show_termination_button": self.show_termination_button,
             "aggressive_termination_on_no_focus": self.aggressive_termination_on_no_focus,

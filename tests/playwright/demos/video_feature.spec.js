@@ -9,6 +9,7 @@ const {
   startResponseSubmitTracker,
   waitForResponseSubmitIncrement,
   waitForAudioRecordingReady,
+  waitForMainBodyContains,
   waitForTrialEvents,
   waitForVideoRecordingReady,
   withExperiment
@@ -270,7 +271,11 @@ test("video feature demo", async ({ page, context }) => {
       );
 
       // Section 6: ensure playback page appears and finish remaining timeline safely.
-      await expectMainBodyContains(experimentPage, "camera recording", STEP_TIMEOUT_MS);
+      await waitForMainBodyContains(
+        experimentPage,
+        "camera recording",
+        STEP_TIMEOUT_MS
+      );
       await expectVideoPromptReady(experimentPage, STEP_TIMEOUT_MS);
       await advanceUntilFinish(experimentPage);
     } finally {
