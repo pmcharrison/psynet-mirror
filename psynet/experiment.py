@@ -1610,13 +1610,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         networks = (
             ChainNetwork.query.filter(
                 ChainNetwork.ready_to_spawn,
-                ChainNetwork.trial_maker.centralize_grow_network,  # participants are responsible for growing within-networks
             )
             .with_for_update()
             .populate_existing()
             .options(joinedload(ChainNetwork.head, innerjoin=True))
             .all()
         )
+        # trial_maker is a Python @property (not a SQLAlchemy relationship), so
+        # centralize_grow_network cannot be used as a SQL filter expression; filter in Python instead.
+        # get_trial_maker() is @cache-decorated, so this lookup has no DB overhead.
+        networks = [
+            n
+            for n in networks
+            if n.trial_maker and n.trial_maker.centralize_grow_network
+        ]
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
             exp = get_experiment()
