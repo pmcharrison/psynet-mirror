@@ -1610,7 +1610,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         networks = (
             ChainNetwork.query.filter(
                 ChainNetwork.ready_to_spawn,
-                ChainNetwork.centralize_grow_network,  # participants are responsible for growing within-networks
+                ChainNetwork.trial_maker.centralize_grow_network,  # participants are responsible for growing within-networks
             )
             .with_for_update()
             .populate_existing()
