@@ -800,7 +800,19 @@ class ChainNode(TrialNode):
         self.check_ready_to_spawn()
 
     def check_ready_to_spawn(self):
-        self.ready_to_spawn = self._ready_to_spawn()
+        new_value = self._ready_to_spawn()
+        if new_value != self.ready_to_spawn:
+            logger.info(
+                "ChainNode %s (network %s): ready_to_spawn %s -> %s "
+                "(n_completed=%d, pending=%d)",
+                self.id,
+                self.network_id,
+                self.ready_to_spawn,
+                new_value,
+                self.n_completed_and_processed_trials,
+                len(self.pending_trials),
+            )
+        self.ready_to_spawn = new_value
 
     def _ready_to_spawn(self):
         return self.reached_target_n_trials and len(self.pending_trials) == 0
