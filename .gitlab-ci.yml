@@ -116,7 +116,6 @@ playwright_e2e_legacy:
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       -e PLAYWRIGHT_JUNIT_OUTPUT_NAME=public/playwright-junit-legacy.xml
       -e PSYNET_WORKSPACE
-      -e PSYNET_USE_UV_RUN=1
       -e inplace_timeline_transitions=false
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE
@@ -143,7 +142,6 @@ playwright_e2e_inplace:
       -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION -e AWS_SECRET_ACCESS_KEY
       -e PLAYWRIGHT_JUNIT_OUTPUT_NAME=public/playwright-junit-inplace.xml
       -e PSYNET_WORKSPACE
-      -e PSYNET_USE_UV_RUN=1
       -e inplace_timeline_transitions=true
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE

@@ -24,32 +24,100 @@ async function expectMainBodyContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
 }
 
 async function answerSingleRating(page, value) {
-  const item = page.locator(".sd-rating__item").nth(value - 1);
-  await expect(item).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
-  await item.click();
+  const question = page.locator(".sd-question").first();
+  await expect(question).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
+
+  const ratingItems = question.locator(".sd-rating__item");
+  if ((await ratingItems.count()) > 0) {
+    const item = ratingItems.nth(value - 1);
+    await expect(item).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
+    await item.click();
+    return;
+  }
+
+  const select = question.locator("select").first();
+  if ((await select.count()) > 0) {
+    await select.selectOption(String(value));
+    return;
+  }
+
+  const dropdown = question.locator(".sd-dropdown, input[role='combobox']").first();
+  if ((await dropdown.count()) > 0) {
+    await dropdown.click();
+    const option = page.locator(
+      `.sv-popup:visible .sd-item__control-label:has-text("${value}"), ` +
+        `.sv-popup:visible .sd-list__item:has-text("${value}"), ` +
+        `.sv-popup:visible [role="option"]:has-text("${value}")`,
+    ).first();
+    await expect(option).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
+    await option.click();
+    return;
+  }
+
+  throw new Error("Could not find a supported single-rating input.");
 }
 
 async function answerMultiRating(page, answers) {
   const questions = page.locator(".sd-question");
   await expect(questions).toHaveCount(2, { timeout: PROMPT_TIMEOUT_MS });
   for (const [index, value] of answers.entries()) {
-    const item = questions
-      .nth(index)
-      .locator(".sd-rating__item")
-      .nth(value - 1);
-    await item.click();
+    const question = questions.nth(index);
+    const ratingItems = question.locator(".sd-rating__item");
+    if ((await ratingItems.count()) > 0) {
+      await ratingItems.nth(value - 1).click();
+      continue;
+    }
+
+    const select = question.locator("select").first();
+    if ((await select.count()) > 0) {
+      await select.selectOption(String(value));
+      continue;
+    }
+
+    const dropdown = question.locator(".sd-dropdown, input[role='combobox']").first();
+    if ((await dropdown.count()) > 0) {
+      await dropdown.click();
+      const option = page.locator(
+        `.sv-popup:visible .sd-item__control-label:has-text("${value}"), ` +
+          `.sv-popup:visible .sd-list__item:has-text("${value}"), ` +
+          `.sv-popup:visible [role="option"]:has-text("${value}")`,
+      ).first();
+      await expect(option).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
+      await option.click();
+      continue;
+    }
+
+    throw new Error(`Could not find a supported rating input for question ${index}.`);
   }
 }
 
 async function nudgeSlider(page, selector) {
-  await page.locator(selector).evaluate((element) => {
-    const slider = element;
-    const current = Number.parseFloat(slider.value);
-    const step = Number.parseFloat(slider.step || "1") || 1;
-    slider.value = String(current + step);
-    slider.dispatchEvent(new Event("input", { bubbles: true }));
-    slider.dispatchEvent(new Event("change", { bubbles: true }));
+  const slider = page.locator(selector);
+  await expect(slider).toBeVisible({ timeout: PROMPT_TIMEOUT_MS });
+  const changeResult = await slider.evaluate((element) => {
+    const before = Number(element.value);
+    const min = Number(element.min);
+    const max = Number(element.max);
+    const candidates = [min, max].filter(
+      (candidate) => Number.isFinite(candidate) && candidate !== before
+    );
+
+    for (const candidate of candidates) {
+      element.value = String(candidate);
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+      const after = Number(element.value);
+      if (after !== before) {
+        return { before, after };
+      }
+    }
+
+    return null;
   });
+
+  if (!changeResult) {
+    throw new Error(`Could not change slider value for ${selector}.`);
+  }
 }
 
 test("modular_page feature demo", async ({ page, context }) => {
@@ -136,6 +204,9 @@ test("modular_page feature demo", async ({ page, context }) => {
         "video slider page",
         PROMPT_TIMEOUT_MS
       );
+      await expect(experimentPage.locator("#sliderpage_slider")).toBeEnabled({
+        timeout: STEP_TIMEOUT_MS
+      });
       await nudgeSlider(experimentPage, "#sliderpage_slider");
       await waitForNextEnabled(experimentPage, STEP_TIMEOUT_MS);
       await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
