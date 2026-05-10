@@ -97,7 +97,9 @@ def create_chain_network(trial_maker, experiment, *, network_class=ChainNetwork)
     return network
 
 
-def add_trial(trial_class, node, participant, *, answer=1, finalized=True, failed=False):
+def add_trial(
+    trial_class, node, participant, *, answer=1, finalized=True, failed=False
+):
     trial = trial_class(
         experiment=get_experiment(),
         node=node,
