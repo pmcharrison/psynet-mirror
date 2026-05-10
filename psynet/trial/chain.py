@@ -1042,10 +1042,10 @@ class ChainTrial(Trial):
     def on_finalized(self):
         super().on_finalized()
         self.node.update_status()
-        if self.trial_maker and self.trial_maker.chain_type == "within":
-            # This is a latency fast path for within-chain participants. The
-            # scheduled growth poller is still responsible for eventual growth
-            # correctness if this callback is missed or races with other work.
+        if self.trial_maker:
+            # This is a latency fast path. The scheduled growth poller is still
+            # responsible for eventual growth correctness if this callback is
+            # missed or races with other work.
             self.trial_maker.call_grow_network(network=self.network)
 
 
