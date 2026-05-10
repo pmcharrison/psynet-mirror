@@ -46,6 +46,7 @@
 
 ### Changed
 
+- Refactored chain network growth to use live readiness queries instead of the cached `ready_to_spawn` flag, added non-blocking polling for within-chain growth, and normalized graph-chain topology into SQL vertex/edge tables (author: [Peter Harrison])
 - Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates (author: Frank Höger)
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
