@@ -178,6 +178,7 @@ function resolvePsynetLaunch() {
   };
 }
 
+// ---- Backend process lifecycle ---------------------------------------------
 function startExperiment(experimentDir) {
   const launch = resolvePsynetLaunch();
   if (!launch || !launch.cmd) {
@@ -323,6 +324,7 @@ async function stopExperiment(proc) {
   }
 }
 
+// ---- Browser page selection / backend error detection ----------------------
 async function beginExperiment(page, context, url) {
   const isPostAdParticipantPageUrl = (candidateUrl) =>
     /http:\/\/(?:localhost|127\.0\.0\.1):\d+\/(consent|start|timeline|questionnaire|recruiter-exit)\b/.test(
@@ -423,6 +425,7 @@ async function getPageUuid(page) {
   }
 }
 
+// ---- Timeline interaction helpers ------------------------------------------
 async function waitForPageChange(page, oldUuid, timeoutMs) {
   if (!oldUuid) {
     await page.waitForTimeout(500);
