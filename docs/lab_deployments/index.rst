@@ -10,11 +10,15 @@ Lab Deployments
    Provisioning <provisioning>
    Pre-Deployment Setup Overview <setting_up_the_experiments>
    Deploying <deploying>
-   Massive Deployments <massive_deployments>
-   Batch Automation for Massive Deployments <batch_automation>
    Monitoring & Managing <monitoring_and_managing>
    Exporting & Terminating <exporting_and_terminating>
    Teardown <teardown>
    Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>
    Troubleshooting <troubleshooting>
    CAP Lab Configuration <lab_specific_configuration>
+   Group Skills <group_skills>
+
+..
+   Massive Deployments <massive_deployments>
+   Batch Automation for Massive Deployments <batch_automation>
+

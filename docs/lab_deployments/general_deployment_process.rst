@@ -226,15 +226,15 @@ Translating your experiment is straightforward:
 
 2. Mark strings for translation in your ``experiment.py``:
 
-.. code:: python
+    .. code:: python
 
-   from psynet.utils import get_translator
+       from psynet.utils import get_translator
 
-   _ = get_translator()
+       _ = get_translator()
 
-   page = InfoPage(
-       _("This text will be translated to the locale you set in the experiment")
-   )
+       page = InfoPage(
+           _("This text will be translated to the locale you set in the experiment")
+       )
 
 3. Run translation from the experiment directory:
 

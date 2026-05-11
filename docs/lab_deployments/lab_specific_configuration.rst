@@ -236,7 +236,7 @@ When writing experiment scripts, use these standard CAP lab values:
 
    config = {
        "contact_email_on_error": "computational.audition@gmail.com",
-       "organization_name": "Max Planck Institute for Empirical Aesthetics",
+       "organization_name": "Cornell Computational Cognition Lab",
        ...
    }
 
@@ -247,6 +247,68 @@ For CINT experiments, use the running-specific email:
    "contact_email_on_error": "computational.audition+online_running@gmail.com"
 
 ----
+
+
+
+CINT Custom Qualifications (Lab-Specific Only)
+-----------------------------------------
+
+The following qualifications are specific to the lab's CINT configuration and may not be available outside our account setup.
+Currently, we have the following custom qualifications:
+
+-  [\`\ `TIMEOUT <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=187e22aa-8a67-45c9-8a7c-481eeeaddfb0>`__\ \`]:
+   warning participants they can't leave the page as they might be
+   kicked out otherwise (set automatically)
+
+-  [\`\ `MONOLINGUALISM <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=08a162fe-4c14-48c7-b850-1d09f95527a1>`__\ \`]:
+   asking participants if they are monolingual
+
+-  [\`\ `HAS_AUDIO <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=25434891-030a-405a-9616-e43961d674fa>`__\ \`]:
+   asking participants if they can play audio
+
+-  [\`\ `ALLOW_VOICE_RECORDING <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=9242d802-f6d6-4786-8049-50490dcd5179>`__\ \`]:
+   asking participants if they can record their voice
+
+-  [\`\ `BORN_IN_COUNTRY <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=2a6d41c7-c38c-4a69-ad12-2cca5074d98f>`__\ \`]:
+   asking participants if they were born in the country
+
+-  [\`\ `HAS_NATIONALITY <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=f91c6b4f-7167-4e30-95ab-9efb408f0537>`__\ \`]:
+   asking participants
+
+-  [\`\ `IS_NATIVE <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=c0833d98-be26-46df-8e01-1abbb740cda6>`__\ \`]:
+   asking participants if they are native speakers
+
+If another lab requires similar logic, these should be recreated independently within their own CINT account.
+
+
+**Extending Qualifications to New Languages**
+
+To extend an existing qualification to a new language:
+
+- Add the question in the CINT interface
+- Ensure answer options remain in the same order as the original
+- Use English as a reference to maintain consistency across locales
+
+-----------------------------------
+
+**Adding a New Qualification (CINT UI)**
+
+1. Go to the CINT qualification page
+2. Click "Add Qualification"
+3. Configure:
+   - Name: use uppercase with underscores (e.g. HAS_AUDIO)
+   - Type: "Conditional List – Single Punch"
+   - Minimum Displayed Conditions: 2
+   - Maximum Displayed Conditions: 2
+4. Add question text for each language
+5. Upload answer options using "Mass Upload"
+6. Save changes
+
+.. note::
+
+   New qualifications may take some time to propagate within CINT.
+   To retrieve the QuestionID, inspect the page source after creation.
+
 
 Pilot Testing Convention
 -------------------------
@@ -262,20 +324,20 @@ deployment.
 
 ----
 
-CAP Recruiter
+Co3lab Recruiter
 --------------
 
 The lab runs its own recruitment platform at
-`cap-recruiter.ae.mpg.de <https://cap-recruiter.ae.mpg.de/>`__.
+`recruiter.cococo-lab.cornell.edu <https://recruiter.cococo-lab.cornell.edu/accounts/login/>`__.
 
 - To create an admin account, contact: cap-information@ae.mpg.de
 - Payment rate: typically **15 EUR/hour** (set ``wage_per_hour: 15``)
-- Set ``recruiter: "cap-recruiter"`` in your experiment config
-- After deploying, go to the Experiments tab in the CAP Recruiter,
+- Set ``recruiter: "lab-recruiter"`` in your experiment config
+- After deploying, go to the Experiments tab in the LAB Recruiter,
   click **New Experiment**, and set the URL to the link printed in
   the terminal after deployment
-  (e.g., ``https://<app-name>.cap-experiments4.ae.mpg.de``)
-- Consent form: currently using ``MPIAE`` — contact the team if you
+  (e.g., ``https://<app-name>.experiments1.cococo-lab.cornell.edu``)
+- Consent form: Contact the team if you
   need a custom consent form
 
 For full recruiter-specific deployment steps, see
@@ -310,7 +372,7 @@ Lab Support Contacts
      - ``#programming`` on Slack
    * - cap-safe access / credentials
      - Ask Frank or a senior lab member
-   * - CAP Recruiter admin account
+   * - LAB Recruiter admin account
      - cap-information@ae.mpg.de
    * - Lab server access
      - Ask Frank to add your SSH key

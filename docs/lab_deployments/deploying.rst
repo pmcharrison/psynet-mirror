@@ -84,9 +84,9 @@ necessary.
 
 7. **Generate Constraints**
 
-   .. code:: bash
+.. code:: bash
 
-      psynet generate-constraints
+    psynet generate-constraints
 
 Requirements and dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

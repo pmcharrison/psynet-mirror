@@ -31,10 +31,10 @@ function, specify the duration using the
 - For example, when you run ``psynet estimate``, you will get a result
   like this:
 
-  .. code:: text
+.. code:: text
 
-     Estimated maximum reward for participant: EUR4.95.
-     Estimated time to complete experiment: 33 min.
+ Estimated maximum reward for participant: EUR4.95.
+ Estimated time to complete experiment: 33 min.
 
 - In this case, the prolific parameters must be as follows:
 
@@ -134,15 +134,8 @@ qualification_prolific.json in the CAP-safe):
            "prolific_recruitment_config": qualification,
            "auto_recruit": False,
            "currency": "£",
-           "wage_per_hour": 0,  # use base payment only
        }
 
-.. note::
-
-   For the time being, until we change PsyNet, you need to use
-   ``wage_per_hour = 0``. This overrides the bonus payment system.
-   Currently, variable payment is not allowed in Prolific, so everything
-   is paid as base payment.
 
 -  **Make sure your payment is in line with the estimated completion
    time**; Prolific requires a *minimum of £6 per hour*, based on the
@@ -152,13 +145,6 @@ qualification_prolific.json in the CAP-safe):
    deploy and checking their median completion time. Keep an eye on this
    while running the experiment with participants!
 
--  **Do NOT set a value for the ‘id’ parameter in the config**. We do
-   not set it to a meaningful name through the config parameters because
-   it is shown to participants on the first page of the experiment (in
-   the left top corner after ‘Application ID’). If you do not set an
-   ‘id’ parameter in config, PsyNet will generate a random hash string
-   as ID. In Prolific this ID will show as the internal name of the
-   experiment.
 
 Prolific qualifications
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -177,7 +163,7 @@ Prolific, such as country of recruitment, participant demographics, etc.
 Deployment
 ~~~~~~~~~~
 
-**IMPORTANT NOTE:** In **PsyNet 11.9.0** you should add
+**IMPORTANT NOTE:** In **PsyNet 11.9.0** or higher you should add
 following settings to .dallingerconfig:
 
 [Prolific]
@@ -215,8 +201,7 @@ experiment:
 .. image:: /_static/images/lab_deployments/image14.png
    :width: 8.5in
 
-Click on the ‘ACTION’ button and next on the ‘Move’ button to move the
-experiment to your personal experiment folder.
+Your deployed experiment will be found as a draft in the prolific_project you specified.
 
 Then click on the name of your experiment. This will lead you to a page
 where you can check and adjust some of your experiment parameters. Make
@@ -241,10 +226,8 @@ the recruitment size to the total number of participants you are looking
 to recruit (plus a few more to be safe, if you have a prescreener) and
 scrolling down to the “Study Cost” section and finding the total. This
 includes the Prolific service fee. **Check whether there is enough
-unclaimed money in the Prolific account (if not, contact Nori about
-this). Once there is enough unclaimed money, post the estimate to the
-#prolific_experiment_claims channel** on Slack, and **set your
-recruitment size back to your initial recruitment size**.
+unclaimed money in the Prolific account (if not, contact to the responsible person about
+this).
 
 .. image:: /_static/images/lab_deployments/image52.png
    :width: 8.5in
@@ -287,10 +270,9 @@ places”.
 .. image:: /_static/images/lab_deployments/image35.png
    :width: 8.5in
 
-The number you set here is the number of the total number of
-participants for your experiment. I.e., if you have already 5
-participants and you want to get 5 additional participants, this number
-has to be 10. Make sure that you do not have too many participants
+The number you set here is the additional number of participants you wish to add to your experiment.
+For example, if you already have 5 participants and want to recruit 5 more, you should enter 5.
+Make sure that you do not have too many participants
 taking your experiment at once, because this could overload the server
 and cause errors and slow-downs.
 
@@ -488,6 +470,8 @@ Set the following parameters:
 
 .. code:: python
 
+from psynet.recruiters import get_lucid_settings
+
    recruiter_settings = get_lucid_settings(
        lucid_recruitment_config_path=LUCID_CONFIG_PATH,
        termination_time_in_s=120 * 60,
@@ -502,23 +486,7 @@ Set the following parameters:
 CINT Consent
 ^^^^^^^^^^^^
 
-You need to use CINT (Lucid) consent while deploying to CINT.
-
-1) Import it from psynet.consent
-
-.. code:: python
-
-   from psynet.consent import LucidConsent
-
-2) Define the consent parameter in your experiment.py
-
-.. code:: python
-
-   consent = LucidConsent
-
-3) Make sure to add consent() function to your timeline. (Please
-   note that additional audiovisual consent may be needed depending on
-   your experiment.)
+Please ensure that you use the correct consent for the CINT platform. Please advise if you are unsure.
 
 CINT Qualifications
 ^^^^^^^^^^^^^^^^^^^
@@ -526,32 +494,24 @@ CINT Qualifications
 Setting Qualifications Automatically
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-CINT has a standard qualification library and you can create custom
-qualifications.
 
-Currently, we have the following custom qualifications:
+CINT provides a standard qualification library and also supports custom qualifications.
+However, custom qualifications are specific to each CINT account and may not be available across deployments
+(Please check CAP Lab Configuration for lab-specific qualifications).
 
--  [\`\ `TIMEOUT <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=187e22aa-8a67-45c9-8a7c-481eeeaddfb0>`__\ \`]:
-   warning participants they can't leave the page as they might be
-   kicked out otherwise (set automatically)
+Standard CINT Qualifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  [\`\ `MONOLINGUALISM <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=08a162fe-4c14-48c7-b850-1d09f95527a1>`__\ \`]:
-   asking participants if they are monolingual
+These qualifications are available for all accounts. Example:
 
--  [\`\ `HAS_AUDIO <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=25434891-030a-405a-9616-e43961d674fa>`__\ \`]:
-   asking participants if they can play audio
+- **HAS_AUDIO**
+  Checks whether participants are able to play audio during the experiment.
 
--  [\`\ `ALLOW_VOICE_RECORDING <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=9242d802-f6d6-4786-8049-50490dcd5179>`__\ \`]:
-   asking participants if they can record their voice
 
--  [\`\ `BORN_IN_COUNTRY <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=2a6d41c7-c38c-4a69-ad12-2cca5074d98f>`__\ \`]:
-   asking participants if they were born in the country
+-----------------------------------
 
--  [\`\ `HAS_NATIONALITY <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=f91c6b4f-7167-4e30-95ab-9efb408f0537>`__\ \`]:
-   asking participants
-
--  [\`\ `IS_NATIVE <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=c0833d98-be26-46df-8e01-1abbb740cda6>`__\ \`]:
-   asking participants if they are native speakers
+Working with Languages and Countries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are a variety of languages and countries available on CINT with
 specific tags. You can get a list of all the available language (3
@@ -562,10 +522,18 @@ following code in your terminal:
 
    psynet lucid locale
 
+-----------------------------------
+
+Creating Qualification Configs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 After getting the desired locales, you can generate qualifications
-specific to each country by using a custom create_qualifications.py.
-Please find an example code below that you can adjust and add to your
-create_qualifications.py.
+specific to each country by using a custom code.
+
+This step will create a JSON file, which is necessary during deployment
+for setting up CINT qualifications for your experiment.
+
+Please find an example code below that you can adjust and create a qualifications JSON file:
 
 .. code:: python
 
@@ -576,99 +544,43 @@ create_qualifications.py.
 
    for language_tag, country_tag in tqdm(country_language_tags):
        config_path = f"qualifications/lucid/lucid-{language_tag}-{country_tag}.json"
+
        create_lucid_recruitment_config(
            language_tag=language_tag,
            country_tag=country_tag,
            question_answer_dict={
-               "MONOLINGUALISM": ["I was raised with my native language only"],
                "HAS_AUDIO": ["Yes"],
-               "ALLOW_VOICE_RECORDING": ["Yes"],
-               "BORN_IN_COUNTRY": ["Yes"],
-               "HAS_NATIONALITY": ["Yes"],
-               "IS_NATIVE": ["Yes"],
            },
            config_path=config_path,
            debug=True,
        )
 
-Extending the qualification to new languages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You need to specify the language, country, and the path
+to the generated JSON configuration. This path is then used in
+``experiment.py`` to load the correct qualification setup during runtime.
 
-You can expand an existing qualification for a new language. Go to the
-qualification page and add the question and the options. Make sure that
-the options are in the same order as in the original. It is recommended
-to use the English language as a reference so that the options match up.
-
-Adding a new qualification
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Go to the [`qualification overview
-page <https://www.samplicio.us/fulcrum/Questions.aspx>`__] and click the
-button "Add Qualification". Now set the Qualification Name. It is
-recommended to use only capital letters and underscores
-(e.g.`HAS_AUDIO\`). For the Qualification Type, select "Conditional List
-– Single Punch". Set Minimum Displayed Conditions and Maximum Displayed
-Conditions to 2. Now click "Save". Move down to "Step 2: Questions".
-Click "Add Question Text". Select the language country pair you want to
-add. Add the question text. Now add the options with line breaks in
-"Mass Upload" and select the right language pair. Click "Save".
-
-It takes some time for CINT to register new custom qualifications. If
-you want to use it in your experiment, go to your qualification page,
-right-click in Chrome on the page, and select "View Page Source". Now
-search for "QuestionID", this field is the ID of the qualification. You
-can now use this ID in your experiment:
+Please find an example below that should be added to your
+``experiment.py``:
 
 .. code:: python
 
-   from psynet.experiment import get_and_load_config
-   from psynet.lucid import get_lucid_service
-   from psynet.lucid.qualifications import create_lucid_recruitment_config
+   LANGUAGE = "DUT"
+   COUNTRY = "NL"
+   LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
 
-   language_tag = "DUT"
-   country_tag = "NL"
-   config_path = f"qualifications/lucid/lucid-{language_tag}-{country_tag}.json"
+-----------------------------------
 
-   config = get_and_load_config()
-   service = get_lucid_service(config=config)
-   custom_qualifications_dict = {
-       **service.get_qualifications_dict(),
-       "MY_NEW_QUALIFICATION": 200093,  # replace 200093 with actual ID
-   }
-
-   create_lucid_recruitment_config(
-       language_tag=language_tag,
-       country_tag=country_tag,
-       question_answer_dict={
-           "MONOLINGUALISM": ["I was raised with my native language only"],
-           "HAS_AUDIO": ["Yes"],
-           "ALLOW_VOICE_RECORDING": ["Yes"],
-           "BORN_IN_COUNTRY": ["Yes"],
-           "HAS_NATIONALITY": ["Yes"],
-           "IS_NATIVE": ["Yes"],
-       },
-       config_path=config_path,
-       debug=True,
-       config=config,
-       service=service,
-       qualifications_dict=custom_qualifications_dict,
-   )
-
-Front-end confirmation of qualifications
+Front-end Confirmation of Qualifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is recommended to let users confirm the qualifications in the
-front-end. There are multiple reasons for this:
+It is recommended to confirm key qualifications in the experiment frontend.
 
--  First, on the qualification pages, we have strict rules concerning
-   how long they can leave the page. Since the majority of participants
-   leave the experiment on the first page, this is a good way to
-   terminate them here. Also, since this is fairly fast, it will reduce
-   the termination LOI.
+Reasons:
+-  Reduces early participant drop-off due to qualification issues
+-  Ensures participants meet required criteria
+-  Improves data quality and reduces invalid completions
 
--  Second, it is good to double-check the requirements.
-
-To do this, you can use the following code:
+Example implementation:
 
 .. code:: python
 
@@ -689,27 +601,23 @@ To do this, you can use the following code:
            SuccessfulEndPage(),
        )
 
-If you don't want to show all qualifications to the participants or want
-to show them in a different order, you can specify them as an additional
-argument:
+You can optionally restrict which qualifications are shown:
 
 .. code:: python
 
    verify_lucid_qualifications(
        LUCID_CONFIG_PATH,
-       question_names=["TIMEOUT", "MONOLINGUALISM"],
+       question_names=["HAS_AUDIO"],
    )
 
+-----------------------------------
+
 Summary Steps for Setting CINT Qualifications:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
 
-1) Access a list of available language and country tags using the
-   command psynet lucid locale.
-
-2) Use the provided Python script to create predefined qualifications
-   (e.g.`HAS_AUDIO\`) specific to each country.
-
-3) Be sure that you have added the following parameters to your
+1. Use ``psynet lucid locale`` to retrieve available language/country tags
+2. Create a JSON qualification file that, for example, includes the ``HAS_AUDIO`` qualification.
+3. Be sure that you have added the following parameters to your
    experiment.py:
 
 .. code:: python
@@ -718,20 +626,8 @@ Summary Steps for Setting CINT Qualifications:
    COUNTRY = "NL"  # lucid country code, not always ISO country code
    LOCALE = "nl"  # ISO-2 code for experiment language
    LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
+4. Implement front-end verification for participant validation if necessary
 
-4) Implement front-end confirmation of qualifications to ensure
-   participant adherence to requirements and improve termination
-   efficiency. Optionally, you can specify which qualifications to
-   display and their order using additional arguments in the front-end
-   confirmation code. Adjust and add the following code to your
-   timeline.
-
-.. code:: python
-
-   verify_lucid_qualifications(
-       LUCID_CONFIG_PATH,
-       question_names=["TIMEOUT", "MONOLINGUALISM"],
-   )
 
 .. _deployment-1:
 
