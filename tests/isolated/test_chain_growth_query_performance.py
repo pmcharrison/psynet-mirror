@@ -12,7 +12,6 @@ from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMa
 from psynet.trial.graph import GraphChainNetwork, GraphChainNode, GraphChainTrialMaker
 from psynet.trial.static import StaticNetwork
 
-
 N_NETWORKS = 1000
 N_REPEATS = 3
 
@@ -80,10 +79,7 @@ def make_graph_trial_maker(id_):
         trial_class=BenchmarkTrial,
         network_structure={
             "vertices": vertices,
-            "edges": [
-                {"origin": i, "target": (i + 1) % N_NETWORKS}
-                for i in vertices
-            ],
+            "edges": [{"origin": i, "target": (i + 1) % N_NETWORKS} for i in vertices],
         },
         chain_type="across",
         expected_trials_per_participant=1,
@@ -132,9 +128,7 @@ def add_trial(node, participant, *, finalized):
 def create_chain_scenario(trial_maker, participant, *, finalized, network_class):
     exp = get_experiment()
     for _ in range(N_NETWORKS):
-        network = create_chain_network(
-            trial_maker, exp, network_class=network_class
-        )
+        network = create_chain_network(trial_maker, exp, network_class=network_class)
         add_trial(network.head, participant, finalized=finalized)
     db.session.commit()
 
