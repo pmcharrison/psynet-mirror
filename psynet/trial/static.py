@@ -367,7 +367,7 @@ class StaticTrialMaker(ChainTrialMaker):
 
 
 class StaticNetwork(ChainNetwork):
-    pass
+    nodes_can_spawn = False
 
 
 class StaticNode(ChainNode):

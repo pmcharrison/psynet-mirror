@@ -57,7 +57,7 @@ from flask import g as flask_app_globals
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, func
-from sqlalchemy.orm import joinedload, with_polymorphic
+from sqlalchemy.orm import with_polymorphic
 
 from psynet import __version__
 from psynet.artifact import LocalArtifactStorage
@@ -1600,36 +1600,28 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def grow_networks():
-        # A bit of a hack that we only grow ChainNetworks here, we might need to extend this to
-        # cover other types of networks in the future.
-        from psynet.trial.chain import ChainNetwork
+        from psynet.trial.chain import ChainTrialMaker
 
-        # This query could be further optimized by identifying which network classes are present in the table
-        # and making queries specific to these. This would allow subclass-specific attributes to be loaded
-        # in the initial query rather than being lazily loaded.
-        networks = (
-            ChainNetwork.query.filter(
-                ChainNetwork.ready_to_spawn,
-            )
-            .with_for_update()
-            .populate_existing()
-            .options(joinedload(ChainNetwork.head, innerjoin=True))
-            .all()
-        )
-        # trial_maker is a Python @property (not a SQLAlchemy relationship), so
-        # centralize_grow_network cannot be used as a SQL filter expression; filter in Python instead.
-        # get_trial_maker() is @cache-decorated, so this lookup has no DB overhead.
-        networks = [
-            n
-            for n in networks
-            if n.trial_maker and n.trial_maker.centralize_grow_network
-        ]
+        # The poller is the authoritative growth backstop for both across- and
+        # within-chain networks. Within-chain trial finalization still attempts
+        # immediate growth to reduce participant latency, but correctness does
+        # not depend on that callback running. The readiness helpers use
+        # ``skip_locked=True`` so maintenance can grow other networks rather
+        # than waiting behind rows locked by participant requests or manual
+        # grow calls.
+        networks = []
+        exp = get_experiment()
+        for trial_maker in exp.timeline.trial_makers.values():
+            if isinstance(trial_maker, ChainTrialMaker):
+                networks.extend(trial_maker.get_networks_ready_to_grow())
+
         if len(networks) > 0:
             logger.info("Growing %i networks...", len(networks))
-            exp = get_experiment()
             for network in networks:
                 try:
-                    network.grow(experiment=exp)
+                    network.trial_maker.call_grow_network(
+                        network, check_readiness=False
+                    )
                 except Exception as err:
                     if not isinstance(err, exp.HandledError):
                         exp.handle_error(
