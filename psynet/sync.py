@@ -442,6 +442,41 @@ class GroupBarrier(Barrier):
 
         return participants_to_release
 
+    def release(self, participant: Participant):
+        link = participant.active_barriers.get(self.id, None)
+        if link is None:
+            self._repair_participant_missing_barrier_link(participant)
+            return
+
+        link.release()
+
+    def _repair_participant_missing_barrier_link(self, participant: Participant):
+        group = participant.active_sync_groups.get(self.group_type)
+        group_id = group.id if group is not None else None
+        reason = "sync_group_missing_barrier_link"
+
+        logger.warning(
+            "GroupBarrier '%s' selected participant %s for release, but the "
+            "participant has no active barrier link. Removing them from sync "
+            "group %s and preventing the barrier scheduler from retrying this "
+            "invalid release.",
+            self.id,
+            participant.id,
+            group_id,
+        )
+
+        should_fail_participant = (
+            participant.status == "working"
+            and not participant.failed
+            and not participant.complete
+            and not participant.aborted
+        )
+
+        if should_fail_participant:
+            participant.fail(reason)
+        elif group is not None:
+            group.remove_participant(participant)
+
 
 class Grouper(Barrier):
     """
