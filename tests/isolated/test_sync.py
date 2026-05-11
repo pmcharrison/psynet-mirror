@@ -50,6 +50,17 @@ class RecordingBarrier(Barrier):
         processed_barriers.append(self.id)
 
 
+class BrokenGroupBarrier(GroupBarrier):
+    def choose_who_to_release(self, waiting_participants):
+        participants_to_release = list(waiting_participants)
+        for participant in waiting_participants:
+            group = participant.active_sync_groups[self.group_type]
+            for group_participant in group.active_participants:
+                if group_participant not in participants_to_release:
+                    participants_to_release.append(group_participant)
+        return participants_to_release
+
+
 class DummyModel(SQLBase):
     __tablename__ = "dummy_model"
 
@@ -152,6 +163,53 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     exp.check_barriers()
 
     assert "b_good" in processed_barriers
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_repairs_missing_barrier_link(
+    in_experiment_directory, db_session, caplog
+):
+    exp = get_experiment()
+    barrier = BrokenGroupBarrier(
+        id_="missing_barrier_link",
+        group_type="main",
+    )
+
+    waiting_participant = new_participant(exp)
+    missing_link_participant = new_participant(exp)
+    for participant in [waiting_participant, missing_link_participant]:
+        participant.status = "working"
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=2,
+        max_group_size=2,
+        min_group_size=1,
+        n_active_participants=2,
+        accepts_top_ups=False,
+        fail_participants_below_min_size=True,
+    )
+    db_session.add(group)
+    group.add_participant(waiting_participant)
+    group.add_participant(missing_link_participant)
+
+    barrier.receive_participant(waiting_participant)
+    db_session.commit()
+
+    assert "missing_barrier_link" in waiting_participant.active_barriers
+    assert "missing_barrier_link" not in missing_link_participant.active_barriers
+
+    barrier.process_potential_releases()
+    db_session.commit()
+
+    assert barrier.can_participant_exit(waiting_participant)
+    assert missing_link_participant not in group.active_participants
+    assert missing_link_participant.active_sync_groups.get("main") is None
+    assert missing_link_participant.failed is True
+    assert "sync_group_missing_barrier_link" in missing_link_participant.failure_tags
+    assert "no active barrier link" in caplog.text
 
 
 def test_group_barrier_rejects_bound_method():
