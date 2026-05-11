@@ -2474,6 +2474,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "page": page.__json__(participant),
         }
         config = get_config()
+        # In inplace mode, the same /response round-trip both advances the
+        # participant state and returns the next timeline fragment.
         if config.get("inplace_timeline_transitions"):
             payload["timeline_fragment"] = self.render_partial_timeline_payload(
                 page, self, participant
@@ -3885,6 +3887,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     f"Unsupported /timeline mode '{mode}'. "
                     "Only mode=json remains supported on this route."
                 )
+            # Full timeline renders still happen here for initial page loads and
+            # for the legacy reload-based mode. Inplace fragment rendering is an
+            # internal helper reached from /response instead.
             return page.render(experiment, participant)
         except cls.HandledError as err:
             return err.error_page()
@@ -4095,7 +4100,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def render_partial_timeline_payload(cls, page, experiment, participant):
         """
-        Render the current timeline page as the partial inplace fragment payload.
+        Render the current timeline page as the internal inplace fragment payload.
 
         This helper is the shared render authority for inplace fragment output
         returned directly from /response.

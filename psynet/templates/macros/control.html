@@ -788,6 +788,7 @@
 
     <script>
         {% autoescape off %}
+        // ---- Slider configuration -------------------------------------------
         var snapValues = {% if params.js_vars.snap_values is none %}null{% else %}{{ params.js_vars.snap_values }}{% endif %};
         var minimalInteractions = {% if params.js_vars.minimal_interactions is none %}null{% else %}{{ params.js_vars.minimal_interactions }}{% endif %};
         var continuousUpdates = {% if params.js_vars.continuous_updates is not defined or params.js_vars.continuous_updates is none %}null{% else %}{{ params.js_vars.continuous_updates | lower }}{% endif %};
@@ -828,11 +829,12 @@
 
         slider.interactionCount = 0;
 
+        // ---- Slider value formatting / snapping -----------------------------
         let setSliderValue = function(val) {
             {% if params.input_type == "HTML5_range_slider" %}
                 slider.value = val;
             {% elif params.input_type == "circular_slider" %}
-                throw Error("Programmatically seting the slider value is not supported yet");
+                throw Error("Programmatically setting the slider value is not supported yet");
                 $(".circular-slider").val(val).trigger("change");
             {% endif %}
         }
@@ -888,7 +890,10 @@
             return a - (n * Math.floor(a/n));
         };
 
+        // ---- Trial lifecycle wiring -----------------------------------------
         psynet.trial.onEvent("trialPrepare", () => {
+            // Disable the slider during trialPrepare so a participant cannot
+            // interact before the page reaches its response-ready state.
             disableSlider(true);
             let phase;
             if (randomWrap) {
@@ -954,6 +959,8 @@
         });
 
         psynet.setRetrieveResponseHandler(function() {
+            // Slider responses preserve both the snapped output value and the
+            // raw slider state so analyses can recover either interpretation.
             let outputValue = parseFloat(slider.getAttribute("output-value"));
             let rawAnswer = outputValue;
             let metadata = {

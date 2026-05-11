@@ -2,6 +2,7 @@
 {% include "macros/browser-detect.html" %}
 
 {% macro template_data_script() %}
+    {# Shared bootstrap payload for both full-page loads and inplace fragment swaps. #}
     <script id="psynet-template-data" type="application/json">
         {{ {
             "jsVars": js_vars,
@@ -86,6 +87,9 @@
             <span id="psynet-event-listener"></span>
 
             {% if partial_mode %}
+                {# In partial_mode we keep page-local assets and deferred scripts in a
+                   hidden container so psynet.js can replay the old "fresh page load"
+                   lifecycle after swapping the fragment into the persistent document. #}
                 <div id="psynet-fragment-assets" style="display: none;">
                     <div id="psynet-page-js-links">
                         {% for x in js_links %}
@@ -103,6 +107,8 @@
                                 {{ x }}
                             </script>
                         {% endfor %}
+                        {# Child templates may inject scripts through block scripts rather
+                           than via page.scripts. Keep both sources in the deferred bundle. #}
                         {{ self.scripts() }}
                     </div>
                 </div>
@@ -167,10 +173,12 @@
     {% endmacro %}
 
     {% if partial_mode %}
+        {# Fragment response used only by inplace transitions. #}
         {{ timeline_header() }}
         {{ timeline_main_body() }}
         {{ timeline_footer() }}
     {% else %}
+        {# Full-page render used for initial loads and for the legacy reload path. #}
         <div id="timeline-root">
             {{ timeline_header() }}
             {{ timeline_main_body() }}

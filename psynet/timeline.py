@@ -1465,6 +1465,9 @@ class Page(Elt):
     def render(self, experiment, participant, partial_mode=False):
         from .utils import get_config
 
+        # `partial_mode` is an internal render shape used for inplace
+        # transitions. The public timeline route now serves full pages (plus
+        # mode=json), while /response embeds this fragment payload directly.
         internal_js_vars = {
             "uniqueId": participant.unique_id,
             "pageUuid": participant.page_uuid,

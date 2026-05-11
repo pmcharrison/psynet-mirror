@@ -12,6 +12,8 @@
   const psynetTemplateData = JSON.parse(templateDataElement.textContent);
   window.psynetTemplateData = psynetTemplateData;
 
+  // Keep template-provided JS variables mirrored onto `window` so that
+  // page scripts can continue using the historical global contract.
   let activeJsVarKeys = new Set();
 
   let syncJsVars = function () {
@@ -124,6 +126,10 @@
       window.removeEventListener("beforeunload", beforeunloadFunction);
     };
 
+    // ---- Template data bootstrap / refresh ---------------------------------
+    // In inplace mode we keep one persistent document and replace only the
+    // timeline fragment. After each swap we must refresh the bootstrap payload
+    // explicitly, because a browser reload is no longer doing that for us.
     psynet.refreshTemplateData = function () {
       const refreshedTemplateDataElement = document.getElementById(
         "psynet-template-data",
@@ -146,6 +152,7 @@
 
     psynet.pageReady = false;
 
+    // ---- Page readiness -----------------------------------------------------
     psynet.updatePageReadyMarker = function () {
       let mainBody = document.getElementById("main-body");
       if (!mainBody) {
@@ -189,6 +196,7 @@
       stageResponse: null,
     };
 
+    // ---- Response handler registration -------------------------------------
     psynet.setRetrieveResponseHandler = function (handler) {
       psynet.page.response.retrieveResponse = handler;
     };
@@ -255,6 +263,7 @@
       },
     });
 
+    // ---- Page-scoped listeners / resources ---------------------------------
     psynet.pageEventListeners = [];
 
     psynet.addPageEventListener = function (
@@ -437,6 +446,7 @@
       await psynet.executeScriptSequence(scriptElements);
     };
 
+    // ---- Timeline fragment transitions -------------------------------------
     psynet.setTimelineTransitionBusy = function (isBusy) {
       document.body.classList.toggle("timeline-transition-pending", isBusy);
       let mainBody = document.getElementById("main-body");
@@ -488,6 +498,9 @@
     };
 
     psynet.activateTimelineFragmentLifecycle = async function () {
+      // A full page reload used to clear old handlers, globals, and transient
+      // page state automatically. In inplace mode we must recreate that
+      // lifecycle explicitly before we can mark the new page as ready.
       await psynet.cleanupPageResources();
       psynet.clearLucidTermination();
       psynet.resetPageState();
@@ -1949,6 +1962,7 @@
       return response;
     };
 
+    // ---- Response submission / handling ------------------------------------
     psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
       if (!psynet.pageReady) {
         psynet.log.info("Blocked nextPage because pageReady is false.");
@@ -2018,47 +2032,59 @@
       );
     };
 
+    psynet.isSameSessionPageUpdate = function (response) {
+      let nextSessionId = response.page.attributes?.session_id;
+      let currentSessionId = psynet.page.attributes?.session_id;
+      return (
+        nextSessionId !== undefined &&
+        nextSessionId !== null &&
+        currentSessionId !== undefined &&
+        currentSessionId !== null &&
+        nextSessionId === currentSessionId
+      );
+    };
+
+    psynet.handleApprovedResponse = async function (response) {
+      psynet.log.debug("Response received successfully.");
+
+      if (psynet.isSameSessionPageUpdate(response)) {
+        psynet.page = response.page;
+        psynet.trial.registerEvent("pageUpdated");
+        psynet.nextPagePending = false;
+        return true;
+      }
+
+      if (psynetTemplateData.flags.inplaceTimelineTransitions) {
+        await psynet.loadNextTimelinePageFromResponse(
+          psynet.requireTimelineFragmentPayload(response),
+        );
+      } else {
+        window.location = "/timeline?unique_id=" + psynet.uniqueId;
+      }
+
+      return true;
+    };
+
+    psynet.handleRejectedResponse = async function (response, onRejection) {
+      psynet.log.debug("Response rejected.");
+      psynet.alert(response.message);
+      psynet.response.enable();
+      psynet.submit.enable();
+      if (onRejection) {
+        onRejection(response);
+      }
+      return false;
+    };
+
     let onSuccessResponse = async function (request, onRejection) {
       let response = JSON.parse(request.response);
-      let passedValidation;
       if (response.submission === "approved") {
-        psynet.log.debug("Response received successfully.");
-        let nextSessionId = response.page.attributes?.session_id;
-        let currentSessionId = psynet.page.attributes?.session_id;
-        let sameSessionUpdate =
-          nextSessionId !== undefined &&
-          nextSessionId !== null &&
-          currentSessionId !== undefined &&
-          currentSessionId !== null &&
-          nextSessionId === currentSessionId;
-        let shouldRefreshPage = !sameSessionUpdate;
-        if (shouldRefreshPage) {
-          if (psynetTemplateData.flags.inplaceTimelineTransitions) {
-            await psynet.loadNextTimelinePageFromResponse(
-              psynet.requireTimelineFragmentPayload(response),
-            );
-          } else {
-            window.location = "/timeline?unique_id=" + psynet.uniqueId;
-          }
-        } else {
-          psynet.page = response.page;
-          psynet.trial.registerEvent("pageUpdated");
-          psynet.nextPagePending = false;
-        }
-        passedValidation = true;
-      } else if (response.submission === "rejected") {
-        psynet.log.debug("Response rejected.");
-        psynet.alert(response.message);
-        psynet.response.enable();
-        psynet.submit.enable();
-        if (onRejection) {
-          onRejection(response);
-        }
-        passedValidation = false;
-      } else {
-        throw Error("Received a malformed response.");
+        return await psynet.handleApprovedResponse(response);
       }
-      return passedValidation;
+      if (response.submission === "rejected") {
+        return await psynet.handleRejectedResponse(response, onRejection);
+      }
+      throw Error("Received a malformed response.");
     };
 
     let onPageUpdated = function (event) {
