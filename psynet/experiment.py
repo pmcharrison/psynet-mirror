@@ -1607,7 +1607,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         # This query could be further optimized by identifying which network classes are present in the table
         # and making queries specific to these. This would allow subclass-specific attributes to be loaded
         # in the initial query rather than being lazily loaded.
-        t0 = time.time()
         networks = (
             ChainNetwork.query.filter(
                 ChainNetwork.ready_to_spawn,
@@ -1617,17 +1616,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             .options(joinedload(ChainNetwork.head, innerjoin=True))
             .all()
         )
-        query_time = time.time() - t0
-        logger.info(
-            "_grow_networks: lock query took %.3fs, found %d ready_to_spawn networks",
-            query_time,
-            len(networks),
-        )
-        if query_time > 1.0:
-            logger.warning(
-                "_grow_networks: query was likely blocked by a lock (took %.3fs)",
-                query_time,
-            )
         # trial_maker is a Python @property (not a SQLAlchemy relationship), so
         # centralize_grow_network cannot be used as a SQL filter expression; filter in Python instead.
         # get_trial_maker() is @cache-decorated, so this lookup has no DB overhead.
@@ -1655,45 +1643,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                             trial.fail()
 
             logger.info("Finished growing networks.")
-
-    @scheduled_task("interval", seconds=10, max_instances=1)
-    @staticmethod
-    def _warn_on_lock_waits():
-        """Warn if any DB sessions are waiting for row-level locks."""
-        from dallinger import db
-        from sqlalchemy import text
-
-        with db.engine.connect() as conn:
-            result = conn.execute(
-                text("""
-                    SELECT
-                        blocked.pid AS blocked_pid,
-                        now() - blocked.query_start AS wait_time,
-                        blocked.query AS blocked_query,
-                        blocking.pid AS blocking_pid,
-                        blocking.query AS blocking_query
-                    FROM pg_stat_activity AS blocked
-                    JOIN pg_locks AS bl
-                        ON bl.pid = blocked.pid AND NOT bl.granted
-                    JOIN pg_locks AS kl
-                        ON kl.relation = bl.relation
-                        AND kl.granted
-                        AND kl.pid != bl.pid
-                    JOIN pg_stat_activity AS blocking
-                        ON blocking.pid = kl.pid
-                    WHERE now() - blocked.query_start > interval '1 second'
-                """)
-            )
-            for row in result:
-                logger.warning(
-                    "Lock wait! blocked_pid=%s (waiting %.1fs) blocked_query=%s | "
-                    "blocking_pid=%s blocking_query=%s",
-                    row.blocked_pid,
-                    row.wait_time.total_seconds(),
-                    row.blocked_query[:300],
-                    row.blocking_pid,
-                    row.blocking_query[:300],
-                )
 
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
