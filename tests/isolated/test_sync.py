@@ -1,5 +1,6 @@
 import uuid
 from datetime import timedelta
+from types import SimpleNamespace
 
 import pytest
 from dallinger import db
@@ -22,6 +23,7 @@ from psynet.sync import (
     SimpleGrouper,
     SimpleSyncGroup,
 )
+from psynet.trial.main import TrialMaker, TrialMakerState
 
 
 def get_random_id():
@@ -249,6 +251,45 @@ def test_manual_sync_group_participant_kick_dissolves_group_below_min_size(
     assert participants[1].failed == fail_below_min_size
     assert participants[2].failed == fail_below_min_size
     assert group.n_active_participants == 0
+    assert not group.active
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_sync_group_closes_when_last_member_finishes_trial_maker(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    participants = [new_participant(exp) for _ in range(2)]
+    for participant in participants:
+        participant.status = "working"
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=2,
+        max_group_size=2,
+        min_group_size=1,
+        n_active_participants=2,
+        accepts_top_ups=False,
+    )
+    db_session.add(group)
+    for participant in participants:
+        group.add_participant(participant)
+    group.leader = participants[0]
+
+    module = SimpleNamespace(id="sync_trial_maker", state_class=TrialMakerState)
+    trial_maker = SimpleNamespace(id=module.id, sync_group_type="main")
+    for participant in participants:
+        participant.start_module(module)
+    db_session.commit()
+
+    TrialMaker._close_sync_group_if_finished(trial_maker, participants[0])
+    assert group.active
+
+    participants[0].end_module(module)
+    TrialMaker._close_sync_group_if_finished(trial_maker, participants[1])
+
     assert not group.active
 
 
