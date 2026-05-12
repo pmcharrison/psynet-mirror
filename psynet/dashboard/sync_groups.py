@@ -1,3 +1,4 @@
+from dallinger.experiment_server.utils import error_response, success_response
 from flask import render_template
 from sqlalchemy.orm import joinedload
 
@@ -11,6 +12,8 @@ from psynet.sync import (
 )
 
 TEMPLATE_NAME = "dashboard_sync_groups.html"
+MANUAL_FAILURE_REASON = "manual_failure"
+MANUAL_KICK_REASON = "manual_kick"
 
 
 def _get_grouper_progress():
@@ -67,6 +70,81 @@ def _get_waiting_by_participant_and_barrier():
         )
         .all()
     )
+
+
+def manual_fail_sync_group_participant(
+    participant_id, fail_reason=MANUAL_FAILURE_REASON
+):
+    try:
+        participant = _fail_sync_group_participant(participant_id, fail_reason)
+    except ValueError as err:
+        return error_response(str(err))
+
+    return success_response(participant_id=participant.id)
+
+
+def manual_kick_sync_group_participant(participant_id, kick_reason=MANUAL_KICK_REASON):
+    try:
+        participant = _kick_sync_group_participant(participant_id, kick_reason)
+    except ValueError as err:
+        return error_response(str(err))
+
+    return success_response(participant_id=participant.id)
+
+
+def _fail_sync_group_participant(participant_id, fail_reason):
+    if fail_reason != MANUAL_FAILURE_REASON:
+        raise ValueError(f"Invalid fail reason: {fail_reason}")
+
+    participant, _ = _get_active_sync_group_participant_link(participant_id)
+
+    if participant.failed or participant.status != "working":
+        raise ValueError("Only active working participants can be failed manually.")
+
+    participant.fail(MANUAL_FAILURE_REASON)
+    return participant
+
+
+def _kick_sync_group_participant(participant_id, kick_reason):
+    if kick_reason != MANUAL_KICK_REASON:
+        raise ValueError(f"Invalid kick reason: {kick_reason}")
+
+    participant, active_group_link = _get_active_sync_group_participant_link(
+        participant_id
+    )
+
+    if participant.failed or participant.status != "working":
+        raise ValueError("Only active working participants can be kicked manually.")
+
+    active_group_link.sync_group.remove_participant(participant)
+    return participant
+
+
+def _get_active_sync_group_participant_link(participant_id):
+    participant = (
+        Participant.query.with_for_update(of=Participant)
+        .populate_existing()
+        .get(participant_id)
+    )
+    if participant is None:
+        raise ValueError(f"No participant found with ID {participant_id}.")
+
+    active_group_link = (
+        ParticipantLinkSyncGroup.query.join(SyncGroup)
+        .filter(
+            ParticipantLinkSyncGroup.participant_id == participant_id,
+            ParticipantLinkSyncGroup.active,
+            SyncGroup.active,
+        )
+        .with_for_update(of=[ParticipantLinkSyncGroup, SyncGroup])
+        .first()
+    )
+    if active_group_link is None:
+        raise ValueError(
+            "This participant is not currently active in an active sync group."
+        )
+
+    return participant, active_group_link
 
 
 def report_sync_groups():
@@ -132,6 +210,12 @@ def report_sync_groups():
                         else None
                     ),
                     "active_in_group": getattr(link, "active", True),
+                    "can_fail_manually": (
+                        getattr(link, "active", True)
+                        and not link.participant.failed
+                        and link.participant.status == "working"
+                        and group.active
+                    ),
                 }
                 for link in group.participant_links
             ],

@@ -913,6 +913,33 @@ class SimpleSyncGroup(SyncGroup):
     accepts_top_ups = Column(Boolean)
     fail_participants_below_min_size = Column(Boolean, default=True)
 
+    def remove_participant(self, participant: Participant):
+        super().remove_participant(participant)
+        self.dissolve_if_below_min_size()
+
+    def dissolve_if_below_min_size(self):
+        if (
+            getattr(self, "_dissolving_below_min_size", False)
+            or self.accepts_top_ups
+            or self.n_active_participants >= self.min_group_size
+        ):
+            return
+
+        self._dissolving_below_min_size = True
+        try:
+            remaining_participants = list(self.active_participants)
+            for participant in remaining_participants:
+                if self.fail_participants_below_min_size:
+                    participant.fail("sync group below minimum size")
+                else:
+                    super().remove_participant(participant)
+
+            self.check_numbers()
+            if self.n_active_participants == 0:
+                self.close()
+        finally:
+            self._dissolving_below_min_size = False
+
 
 def _insert_values_from_state(record) -> dict:
     """Build insert values from an ORM instance state."""

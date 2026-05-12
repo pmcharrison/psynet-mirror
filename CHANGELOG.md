@@ -11,6 +11,7 @@
   broadcasts, and a REST endpoint for chat history.
 ### Added
 - Adding a synchronous group monitoring page to the Dashboard.
+- Added manual participant kick/failure controls to the synchronous group Dashboard.
 - `GroupBarrier` now supports `participant_timeout` (seconds since the group passed the previous barrier) and `participant_timeout_action` (`"kick"` to remove from group or `"fail"` to fail the participant). 
 - Refactored timeline to use named branches for end logic. `Timeline.elts` is now a dict of named branches (`main`, `successful_end`, `unsuccessful_end`, `rejected_consent`). `elt_id` now starts with the branch name (e.g. `["main", 3]`). `EndPage` classes are now redirect elements instead of `PageMaker` wrappers. `participant.fail()` automatically redirects to the `unsuccessful_end` branch unless the participant is already in an end logic branch or already completed. (author: [Peter Harrison])
 - Enabled chatroom to Rock, Paper, Scissors demo results page.

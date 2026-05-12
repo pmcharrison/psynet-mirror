@@ -3089,6 +3089,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return report_sync_groups()
 
+    @dashboard.route(
+        "/sync-groups/participant/<int:participant_id>/fail",
+        methods=["POST"],
+    )
+    @with_transaction
+    def manual_fail_sync_group_participant(participant_id):  # noqa F811
+        from .dashboard.sync_groups import manual_fail_sync_group_participant
+
+        return manual_fail_sync_group_participant(
+            participant_id, fail_reason=request.form.get("fail_reason")
+        )
+
+    @dashboard.route(
+        "/sync-groups/participant/<int:participant_id>/kick",
+        methods=["POST"],
+    )
+    @with_transaction
+    def manual_kick_sync_group_participant(participant_id):  # noqa F811
+        from .dashboard.sync_groups import manual_kick_sync_group_participant
+
+        return manual_kick_sync_group_participant(
+            participant_id, kick_reason=request.form.get("kick_reason")
+        )
+
     @dashboard_tab("Participants")
     @classmethod
     def dashboard_participants(cls):

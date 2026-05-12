@@ -6,6 +6,10 @@ from dallinger import db
 from dallinger.models import timenow
 from sqlalchemy import Column, String
 
+from psynet.dashboard.sync_groups import (
+    _fail_sync_group_participant,
+    _kick_sync_group_participant,
+)
 from psynet.data import SQLBase
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
@@ -143,6 +147,173 @@ def test_group_allocator(in_experiment_directory, db_session):
 
     assert participants[0].sync_group is None
     grouper.receive_participant(participants[0])
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_manual_sync_group_participant_failure(in_experiment_directory, db_session):
+    exp = get_experiment()
+    participants = [new_participant(exp) for _ in range(2)]
+    for participant in participants:
+        participant.status = "working"
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=2,
+        max_group_size=2,
+        min_group_size=1,
+        n_active_participants=2,
+        accepts_top_ups=False,
+    )
+    db_session.add(group)
+    for participant in participants:
+        group.add_participant(participant)
+    group.leader = participants[0]
+    db_session.commit()
+
+    failed_participant = _fail_sync_group_participant(
+        participants[0].id, "manual_failure"
+    )
+
+    assert failed_participant.failed
+    assert "manual_failure" in failed_participant.failure_tags
+    assert participants[0] not in group.active_participants
+    assert participants[1] in group.active_participants
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_manual_sync_group_participant_kick(in_experiment_directory, db_session):
+    exp = get_experiment()
+    participants = [new_participant(exp) for _ in range(2)]
+    for participant in participants:
+        participant.status = "working"
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=2,
+        max_group_size=2,
+        min_group_size=1,
+        n_active_participants=2,
+        accepts_top_ups=False,
+    )
+    db_session.add(group)
+    for participant in participants:
+        group.add_participant(participant)
+    group.leader = participants[0]
+    db_session.commit()
+
+    kicked_participant = _kick_sync_group_participant(participants[0].id, "manual_kick")
+
+    assert not kicked_participant.failed
+    assert "manual_failure" not in kicked_participant.failure_tags
+    assert participants[0] not in group.active_participants
+    assert participants[1] in group.active_participants
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+@pytest.mark.parametrize("fail_below_min_size", [True, False])
+def test_manual_sync_group_participant_kick_dissolves_group_below_min_size(
+    in_experiment_directory, db_session, fail_below_min_size
+):
+    exp = get_experiment()
+    participants = [new_participant(exp) for _ in range(3)]
+    for participant in participants:
+        participant.status = "working"
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=3,
+        max_group_size=3,
+        min_group_size=3,
+        n_active_participants=3,
+        accepts_top_ups=False,
+        fail_participants_below_min_size=fail_below_min_size,
+    )
+    db_session.add(group)
+    for participant in participants:
+        group.add_participant(participant)
+    group.leader = participants[0]
+    db_session.commit()
+
+    kicked_participant = _kick_sync_group_participant(participants[0].id, "manual_kick")
+
+    assert not kicked_participant.failed
+    assert participants[0] not in group.active_participants
+    assert participants[1] not in group.active_participants
+    assert participants[2] not in group.active_participants
+    assert participants[1].failed == fail_below_min_size
+    assert participants[2].failed == fail_below_min_size
+    assert group.n_active_participants == 0
+    assert not group.active
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+@pytest.mark.parametrize("participant_status", ["approved", "returned"])
+def test_manual_sync_group_participant_failure_rejects_non_working_participants(
+    in_experiment_directory, db_session, participant_status
+):
+    exp = get_experiment()
+    participant = new_participant(exp)
+    participant.status = participant_status
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=1,
+        max_group_size=1,
+        min_group_size=1,
+        n_active_participants=1,
+        accepts_top_ups=False,
+    )
+    db_session.add(group)
+    group.add_participant(participant)
+    group.leader = participant
+    db_session.commit()
+
+    with pytest.raises(
+        ValueError, match="Only active working participants can be failed manually."
+    ):
+        _fail_sync_group_participant(participant.id, "manual_failure")
+
+    assert not participant.failed
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_manual_sync_group_participant_failure_rejects_inactive_group_member(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    participant = new_participant(exp)
+    participant.status = "working"
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=1,
+        max_group_size=1,
+        min_group_size=1,
+        n_active_participants=1,
+        accepts_top_ups=False,
+    )
+    db_session.add(group)
+    group.add_participant(participant)
+    group.participant_links[0].active = False
+    group.leader = participant
+    db_session.commit()
+
+    with pytest.raises(
+        ValueError, match="not currently active in an active sync group"
+    ):
+        _fail_sync_group_participant(participant.id, "manual_failure")
+
+    assert not participant.failed
 
 
 @pytest.mark.parametrize(
