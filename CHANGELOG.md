@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Updated `@playwright/test` from 1.58.2 to 1.60.0 (Chromium 148.0.7778.96) (author: [Frank Höger])
+
 ### Fixed
 - Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
 
