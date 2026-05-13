@@ -387,10 +387,27 @@ class AsyncCodeBlock(EltCollection):
     def initiate(self, participant):
         from psynet.process import WorkerAsyncProcess
 
-        if participant.awaited_async_code_block_process is not None:
-            raise RuntimeError(
-                "Participant already has an async code block process pending, this shouldn't happen."
+        stale = participant.awaited_async_code_block_process
+        if stale is not None:
+            if stale.pending and not stale.failed:
+                raise RuntimeError(
+                    "Participant already has an async code block process pending, this shouldn't happen."
+                )
+            # The previous process finished (successfully or with failure) but its
+            # ``wrap_up`` was never executed -- e.g. the participant was rerouted
+            # off the wait page (back button, dashboard force_advance, recruiter
+            # rejection flow re-entering an AsyncCodeBlock, ...). Rather than
+            # leaving the participant permanently stuck, clear the stale
+            # reference and start a fresh process.
+            logger.warning(
+                "Participant %s already had a %s async code block process "
+                "(id=%s) attached when initiating a new one; clearing the "
+                "stale reference and continuing.",
+                participant.id,
+                "failed" if stale.failed else "finished",
+                stale.id,
             )
+            participant.awaited_async_code_block_process = None
 
         participant.awaited_async_code_block_process = WorkerAsyncProcess(
             call_function_with_context,
