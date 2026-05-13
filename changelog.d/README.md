@@ -1,8 +1,25 @@
 # Changelog Fragments
 
-Add one changelog fragment per merge request in this directory.
+Add one changelog fragment per change in this directory. The recommended
+way to create one is:
 
-Filename format: `<merge-request-number>.<category>.md`
+```bash
+python docs/scripts/build_changelog.py --new <category> "<short description>"
+```
+
+This writes a uniquely-named fragment file containing your description as a
+stub, which you then edit to the final entry.
+
+## Filename format
+
+`<id>.<category>.md`
+
+Where `<id>` is any alphanumeric token (with `_` or `-`) that uniquely
+identifies the fragment. The `--new` helper generates IDs of the form
+`<YYYYMMDDHHMMSS>-<slug>` so collisions across MRs (and direct pushes)
+are effectively impossible. Hand-rolled IDs (numbers, branch slugs,
+plain descriptive slugs, etc.) are also valid as long as they are
+unique within `changelog.d/`.
 
 Supported categories (rendered in this order):
 
@@ -15,16 +32,14 @@ Supported categories (rendered in this order):
 - `updated` → **Updated**
 - `documentation` → **Documentation**
 
-Fragment contents should be a single changelog entry in markdown without a leading `-`.
+Fragment contents should be a single changelog entry in markdown without a
+leading `-`.
 
 Examples:
 
-- `1842.added.md`
-- `1849.fixed.md`
-- `1851.documentation.md`
-- `1860.breaking.md`
-- `1865.updated.md`
-- `1870.deprecated.md`
+- `20260513183100-add-chatroom-demo.added.md`
+- `20260513183500-fix-selenium-flake.fixed.md`
+- `20260514091200-deprecate-old-helper.deprecated.md`
 
 ## Workflow
 
@@ -55,10 +70,20 @@ deletes the consumed fragments.
 
 The `changelog_check` CI job only runs on merge requests, so it cannot
 catch missing fragments on direct pushes to `master`. Even a one-commit
-change should go through an MR so CI can verify the fragment.
+change should go through an MR so CI can verify the fragment. If you
+absolutely must push directly to `master`, just use the `--new` helper
+the same way — its timestamp-prefixed filenames are unique regardless
+of how the change reaches `master`.
 
-If you absolutely must push directly to `master`, add a fragment in the
-same commit using a date-based identifier (`YYYYMMDD.<category>.md`),
-for example `20260507.fixed.md`. 8-digit dates start at `20260000+`,
-well clear of real MR numbers and the synthetic `9xxx` migration IDs,
-so collisions are effectively impossible.
+## Legacy IDs
+
+The directory currently also contains fragments with bare numeric IDs:
+
+- `9xxx.<category>.md` — one-shot synthetic IDs created by
+  `--migrate-unreleased` when the historical `## Unreleased` block was
+  migrated into fragments.
+- `<MR-number>.<category>.md` — older MR-numbered fragments from before
+  the slug-based convention.
+
+These remain valid and will be consumed at the next release. Please use
+the `--new` helper for all new fragments going forward.

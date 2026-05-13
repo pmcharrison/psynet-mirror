@@ -190,11 +190,17 @@ Verify changes end-to-end by running `psynet test local` within a relevant demo.
 
 When you make changes to the PsyNet codebase:
 
-1. **Add a changelog fragment**: Pull requests should include one or more fragment files in `changelog.d/` instead of editing `CHANGELOG.md` directly. Use the filename format `changelog.d/<MR>.<category>.md` where `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The fragment content should be a single changelog entry in markdown without a leading `-`, for example: `Added support for X (author: [Name])`. These entries should summarize the overall user-facing changes made by the PR rather than the incremental process of building it.
+1. **Add a changelog fragment**: Pull requests should include one or more fragment files in `changelog.d/` instead of editing `CHANGELOG.md` directly. Create a fragment with the helper command:
+
+   ```bash
+   python docs/scripts/build_changelog.py --new <category> "<short description>"
+   ```
+
+   `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The helper writes a uniquely-named fragment `changelog.d/<YYYYMMDDHHMMSS>-<slug>.<category>.md` containing your description as a stub, which you then edit to the final entry (e.g. `Added support for X (author: [Name])`). The timestamp prefix guarantees collision-free filenames across MRs and direct pushes alike. Each entry should summarize the overall user-facing change rather than the incremental process of building it.
 
    Do **not** commit a regenerated `CHANGELOG.md` from your MR — `CHANGELOG.md` is a generated artifact, rebuilt by the maintainer at release time. Committing fragments only avoids merge conflicts on `CHANGELOG.md` between MRs. Run `python docs/scripts/build_changelog.py` locally if you want to preview how the rendered `## Unreleased` section will look, but discard those changes before pushing. Maintainers cut a release with `python docs/scripts/build_changelog.py --release <version> <date>`, which consumes all fragments and inserts a versioned section.
 
-   Even one-commit changes should go through an MR so CI can verify the fragment; if you absolutely must push directly to `master`, add a fragment with a date-based identifier (e.g. `20260507.fixed.md`) in the same commit.
+   Even one-commit changes should go through an MR so CI can verify the fragment is present.
 
 2. **Run pre-commit**: Before committing, run pre-commit to ensure code formatting is correct:
 
