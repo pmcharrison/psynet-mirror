@@ -107,6 +107,7 @@ playwright_e2e:
   script:
     - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
     - mkdir -p public test-results
+    - docker build --build-arg BASE_IMAGE=$DOCKER_LOCAL_TAG --tag $DOCKER_LOCAL_TAG-playwright -f Dockerfile.playwright .
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
@@ -116,7 +117,7 @@ playwright_e2e:
       -e PSYNET_WORKSPACE
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright install --with-deps chromium && npx playwright test tests/playwright/demos --reporter=line,junit,html"
+      $DOCKER_LOCAL_TAG-playwright bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && npm ci && npx playwright test tests/playwright/demos --reporter=line,junit,html"
   artifacts:
     when: always
     paths:
