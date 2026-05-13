@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import time
+import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FRAGMENTS_DIR = ROOT / "changelog.d"
 CHANGELOG_PATH = ROOT / "CHANGELOG.md"
 MIGRATION_START_ID = 9001
+MAX_SLUG_LENGTH = 60
 
 SECTION_ORDER = [
     ("breaking", "Breaking Changes"),
@@ -27,7 +30,22 @@ SECTION_KEYS = {key for key, _title in SECTION_ORDER}
 HEADER_TO_SECTION = {title: key for key, title in SECTION_ORDER}
 SECTION_PATTERN = "|".join(key for key, _title in SECTION_ORDER)
 
-FILENAME_RE = re.compile(rf"^(?P<mr>\d+)\.(?P<section>{SECTION_PATTERN})\.md$")
+FILENAME_RE = re.compile(
+    rf"^(?P<id>[A-Za-z0-9][A-Za-z0-9_-]*)\.(?P<section>{SECTION_PATTERN})\.md$"
+)
+
+
+def fragment_sort_key(name: str) -> tuple:
+    """Sort all-numeric IDs first (numerically), then slug IDs (lexicographically)."""
+    match = FILENAME_RE.match(name)
+    if match is None:
+        return (2, name)
+    fragment_id = match["id"]
+    if fragment_id.isdigit():
+        return (0, int(fragment_id), name)
+    return (1, fragment_id, name)
+
+
 UNRELEASED_RE = re.compile(r"(?ms)^## Unreleased\n.*?(?=^## |\Z)")
 MANAGED_BLOCK_RE = re.compile(
     r"(?ms)^<!-- changelog\.d:start -->\n.*?^<!-- changelog\.d:end -->\n?"
@@ -76,7 +94,7 @@ def list_fragment_paths() -> list[Path]:
             + f". Expected <id>.({SECTION_PATTERN}).md"
         )
 
-    paths.sort(key=lambda p: (int(FILENAME_RE.match(p.name)["mr"]), p.name))
+    paths.sort(key=lambda p: fragment_sort_key(p.name))
     return paths
 
 
@@ -212,7 +230,9 @@ def next_migration_id() -> int:
     for path in list_fragment_paths():
         match = FILENAME_RE.match(path.name)
         assert match is not None
-        max_id = max(max_id, int(match.group("mr")))
+        fragment_id = match["id"]
+        if fragment_id.isdigit():
+            max_id = max(max_id, int(fragment_id))
     return max_id + 1
 
 
@@ -337,6 +357,39 @@ def release_command(version: str, date: str) -> int:
     return 0
 
 
+def slugify(text: str) -> str:
+    """Convert free-form text into a kebab-case ASCII slug."""
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    text = re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-").lower()
+    if not text:
+        raise ValueError(
+            "Description must contain at least one alphanumeric character."
+        )
+    if len(text) > MAX_SLUG_LENGTH:
+        text = text[:MAX_SLUG_LENGTH].rstrip("-")
+    return text
+
+
+def new_command(category: str, description: str) -> int:
+    if category not in SECTION_KEYS:
+        raise ValueError(
+            f"Unknown category {category!r}. Must be one of: "
+            + ", ".join(key for key, _title in SECTION_ORDER)
+        )
+
+    slug = slugify(description)
+    timestamp = time.strftime("%Y%m%d%H%M%S")
+    FRAGMENTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    path = FRAGMENTS_DIR / f"{timestamp}-{slug}.{category}.md"
+    if path.exists():
+        raise ValueError(f"Fragment {path} already exists.")
+
+    path.write_text(f"{description.strip()} (author: [Your Name])\n", encoding="utf-8")
+    print(path)
+    return 0
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -345,6 +398,15 @@ def parse_args() -> argparse.Namespace:
             "the rendered Unreleased block is refreshed by maintainers at "
             "release time via --release."
         )
+    )
+    parser.add_argument(
+        "--new",
+        nargs=2,
+        metavar=("CATEGORY", "DESCRIPTION"),
+        help=(
+            "Create a new fragment file with a timestamped slug filename "
+            "(e.g. --new fixed 'fix Selenium flake')."
+        ),
     )
     parser.add_argument(
         "--migrate-unreleased",
@@ -361,14 +423,20 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    if not CHANGELOG_PATH.exists():
-        print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
-        return 1
-
     try:
         args = parse_args()
-        if args.migrate_unreleased and args.release:
-            raise ValueError("Use either --migrate-unreleased or --release, not both.")
+        modes = sum(1 for x in (args.new, args.migrate_unreleased, args.release) if x)
+        if modes > 1:
+            raise ValueError("Use only one of --new, --migrate-unreleased, --release.")
+
+        if args.new:
+            category, description = args.new
+            return new_command(category, description)
+
+        if not CHANGELOG_PATH.exists():
+            print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
+            return 1
+
         if args.migrate_unreleased:
             return migrate_command()
         if args.release:
