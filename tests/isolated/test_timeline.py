@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from psynet.page import InfoPage
@@ -220,3 +222,69 @@ def test_lambda_compiles_as_code_block_in_timeline():
             break
     assert found_lambda is not None
     assert found_lambda.function == my_function
+
+
+def _async_target(participant):
+    return None
+
+
+def _make_participant(stale_process=None):
+    participant = MagicMock()
+    participant.id = 42
+    participant.awaited_async_code_block_process = stale_process
+    return participant
+
+
+def test_async_code_block_initiate__no_stale_process():
+    block = AsyncCodeBlock(_async_target, wait=False)
+    participant = _make_participant(stale_process=None)
+    new_process = MagicMock(name="new_process")
+
+    with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
+        block.initiate(participant)
+
+    ctor.assert_called_once()
+    assert participant.awaited_async_code_block_process is new_process
+
+
+def test_async_code_block_initiate__raises_when_previous_process_still_pending():
+    block = AsyncCodeBlock(_async_target, wait=False)
+    stale = MagicMock(name="stale_process")
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with pytest.raises(RuntimeError, match="already has an async code block"):
+            block.initiate(participant)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+
+
+@pytest.mark.parametrize(
+    "stale_state",
+    [
+        {"pending": False, "finished": True, "failed": False},
+        {"pending": False, "finished": False, "failed": True},
+    ],
+    ids=["finished", "failed"],
+)
+def test_async_code_block_initiate__clears_stale_finished_or_failed_process(
+    stale_state, caplog
+):
+    block = AsyncCodeBlock(_async_target, wait=False)
+    stale = MagicMock(name="stale_process", id=99, **stale_state)
+    participant = _make_participant(stale_process=stale)
+    new_process = MagicMock(name="new_process")
+
+    with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
+        with caplog.at_level("WARNING"):
+            block.initiate(participant)
+
+    ctor.assert_called_once()
+    assert participant.awaited_async_code_block_process is new_process
+    assert any("stale reference" in record.message for record in caplog.records), (
+        f"Expected a stale-reference warning, got: {[r.message for r in caplog.records]}"
+    )
