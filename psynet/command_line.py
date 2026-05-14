@@ -3447,73 +3447,6 @@ def _drain_pexpect_output(process):
             break
 
 
-def _diagnose_launch_failure(recent_output):
-    """Check server output for launch failure patterns and print guidance."""
-    import re as _re
-
-    try:
-        launch_error_port = None
-        listening_ports = []
-        launch_error_idx = None
-        first_listening_idx = None
-        server_not_ready = None
-
-        for i, line in enumerate(recent_output):
-            m = _re.search(r"Error accessing https?://\S+?:(\d+)/launch", line)
-            if m and launch_error_idx is None:
-                launch_error_port = int(m.group(1))
-                launch_error_idx = i
-
-            m = _re.search(r"Listening at: https?://\S+?:(\d+)", line)
-            if m:
-                listening_ports.append(int(m.group(1)))
-                if first_listening_idx is None:
-                    first_listening_idx = i
-
-            m = _re.search(r"did not become ready", line)
-            if m:
-                server_not_ready = line.strip()
-
-        if server_not_ready:
-            # Surface the Dallinger-side error that's buried in the log
-            print(f"\n⚠ {server_not_ready}", file=sys.stderr)
-
-        if launch_error_port is None:
-            return
-
-        if (
-            launch_error_port in listening_ports
-            and launch_error_idx is not None
-            and first_listening_idx is not None
-            and launch_error_idx < first_listening_idx
-        ):
-            print(
-                f"\n⚠ LAUNCH RACE CONDITION: launch request to port "
-                f"{launch_error_port} was sent before the web dyno was "
-                f"accepting connections.",
-                file=sys.stderr,
-            )
-            print(
-                f"  The dyno did start listening on port {launch_error_port}, "
-                f"but only after the launch request had already failed.",
-                file=sys.stderr,
-            )
-        elif launch_error_port not in listening_ports and listening_ports:
-            print(
-                f"\n⚠ PORT MISMATCH: launch targeted port "
-                f"{launch_error_port} but no dyno is listening there "
-                f"(listening on {listening_ports}).",
-                file=sys.stderr,
-            )
-            print(
-                "  Dallinger's get_base_url() picked a port via "
-                "random.randrange(base_port, base_port + num_dynos_web) "
-                "that has no corresponding web process.",
-                file=sys.stderr,
-            )
-    except Exception:
-        pass
-
 
 def _start_local_server_and_wait_for_ready(
     debug=False, max_wait=60, ready_phrase="Experiment launch complete!", log_file=None
@@ -3626,7 +3559,6 @@ def _start_local_server_and_wait_for_ready(
                 f"\n❌ Server failed to start within {max_wait} seconds",
                 file=sys.stderr,
             )
-            _diagnose_launch_failure(recent_output)
             if recent_output:
                 print("Last server output:", file=sys.stderr)
                 for line in recent_output:
