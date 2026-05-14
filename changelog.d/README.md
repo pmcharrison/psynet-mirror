@@ -71,11 +71,11 @@ deletes the consumed fragments.
 ## Direct pushes to `master`
 
 The `changelog_check` CI job only runs on merge requests, so it cannot
-catch missing fragments on direct pushes to `master`. Even a one-commit
-change should go through an MR so CI can verify the fragment. If you
-absolutely must push directly to `master`, just use the `--new` helper
-the same way — its date-prefixed filenames stay unique as long as
-slugs differ on the same day.
+catch missing fragments on direct pushes to `master`. If you push
+directly to `master` (bypassing an MR), please still create a fragment
+with the `--new` helper so the change appears in the next release notes.
+Its date-prefixed filenames stay unique as long as slugs differ on the
+same day.
 
 ## Legacy IDs
 
