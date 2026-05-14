@@ -857,3 +857,112 @@ def test_new_server_prints_summary_after_all_stages():
     mock_summary.assert_called_once()
     results_arg = mock_summary.call_args[0][0]
     assert len(results_arg) == 2
+
+
+# --- _time_export tests ---
+
+
+def test_time_export_success():
+    from psynet.command_line import _time_export
+
+    def fake_run(cmd, **kw):
+        return subprocess.CompletedProcess(cmd, 0)
+
+    duration, error = _time_export(_run=fake_run)
+    assert isinstance(duration, float)
+    assert error is None
+
+
+def test_time_export_failure():
+    from psynet.command_line import _time_export
+
+    def fake_run(cmd, **kw):
+        return subprocess.CompletedProcess(cmd, 1, stderr="oops")
+
+    duration, error = _time_export(_run=fake_run)
+    assert isinstance(duration, float)
+    assert "Exit code 1" in error
+
+
+def test_time_export_timeout():
+    from psynet.command_line import _time_export
+
+    def fake_run(cmd, **kw):
+        raise subprocess.TimeoutExpired(cmd, 600)
+
+    duration, error = _time_export(_run=fake_run)
+    assert isinstance(duration, float)
+    assert "timed out" in error.lower()
+
+
+def test_new_server_passes_do_export_per_stage():
+    """do_export=True is forwarded to _run_performance_test_with_existing_server."""
+    from psynet.command_line import _run_performance_test_with_new_server
+
+    config = Mock()
+    config.ready = True
+
+    with (
+        patch(
+            "psynet.command_line._start_local_server_and_wait_for_ready",
+            side_effect=lambda **kw: _make_server_info(),
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.redis_vars.get",
+            return_value="/tmp/dallinger_develop/exp",
+        ),
+        patch(
+            "psynet.command_line._run_performance_test_with_existing_server"
+        ) as mock_run_existing,
+        patch("psynet.command_line._stop_server"),
+        patch(
+            "psynet.command_line.format_performance_summary", return_value=[]
+        ),
+    ):
+        _run_performance_test_with_new_server(
+            n_bots="5,10",
+            stagger=0.1,
+            time_factor=1.0,
+            duration_minutes=0.5,
+            debug=False,
+            do_export=True,
+        )
+
+    assert mock_run_existing.call_count == 2
+    for call in mock_run_existing.call_args_list:
+        assert call.kwargs["do_export"] is True
+
+
+def test_new_server_skips_export_when_disabled():
+    """do_export=False is forwarded to _run_performance_test_with_existing_server."""
+    from psynet.command_line import _run_performance_test_with_new_server
+
+    config = Mock()
+    config.ready = True
+
+    with (
+        patch(
+            "psynet.command_line._start_local_server_and_wait_for_ready",
+            return_value=_make_server_info(),
+        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch(
+            "psynet.command_line.redis_vars.get",
+            return_value="/tmp/dallinger_develop/exp",
+        ),
+        patch(
+            "psynet.command_line._run_performance_test_with_existing_server"
+        ) as mock_run_existing,
+        patch("psynet.command_line._stop_server"),
+    ):
+        _run_performance_test_with_new_server(
+            n_bots="5",
+            stagger=0.1,
+            time_factor=1.0,
+            duration_minutes=0.5,
+            debug=False,
+            do_export=False,
+        )
+
+    assert mock_run_existing.call_args.kwargs["do_export"] is False

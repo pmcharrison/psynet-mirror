@@ -1195,6 +1195,17 @@ def format_test_results(result):
         lines.append("  No completed async processes.")
         lines.append("")
 
+    # EXPORT
+    if result.get("export_duration_s") is not None:
+        _section("EXPORT")
+        export_rows = [
+            ["Duration", f"{result['export_duration_s']:.1f}s"],
+        ]
+        if result.get("export_error"):
+            export_rows.append(["Error", result["export_error"]])
+        _table_lines(export_rows, headers=[], colalign=("left", "right"))
+        lines.append("")
+
     return lines
 
 
@@ -1205,6 +1216,9 @@ def format_performance_summary(results):
     show_scaling = len(results) > 1 and results[0].get("p95_response_time") is not None
     baseline_p95 = results[0].get("p95_response_time") if show_scaling else None
     baseline_q_p95 = results[0].get("q_delay_p95") if show_scaling else None
+
+    has_export = any(r.get("export_duration_s") is not None for r in results)
+    baseline_export = results[0].get("export_duration_s") if show_scaling else None
 
     summary_headers = [
         "|| Bots",
@@ -1218,6 +1232,10 @@ def format_performance_summary(results):
     summary_headers.append("Q P95 all (s)")
     if show_scaling:
         summary_headers.append("vs base")
+    if has_export:
+        summary_headers.append("Export (s)")
+        if show_scaling:
+            summary_headers.append("vs base")
 
     summary_rows = []
     for i, result in enumerate(results):
@@ -1249,6 +1267,20 @@ def format_performance_summary(results):
                 row.append(f"{q_p95 / baseline_q_p95:.1f}x")
             else:
                 row.append("N/A")
+        if has_export:
+            export_dur = result.get("export_duration_s")
+            row.append(_fmt(export_dur))
+            if show_scaling:
+                if i == 0:
+                    row.append("\u2014")
+                elif (
+                    export_dur is not None
+                    and baseline_export
+                    and baseline_export > 0
+                ):
+                    row.append(f"{export_dur / baseline_export:.1f}x")
+                else:
+                    row.append("N/A")
         summary_rows.append(row)
 
     lines.append("")
@@ -1257,6 +1289,8 @@ def format_performance_summary(results):
         "  Resp P95 — P95 HTTP response time for key endpoints (/timeline, /response)"
     )
     lines.append("  Q P95 all — P95 queue delay across all async processes")
+    if has_export:
+        lines.append("  Export — time to run psynet export local")
     lines.append(
         "  vs base — ratio to the first (lowest bot-count) row, if multiple counts are run"
     )

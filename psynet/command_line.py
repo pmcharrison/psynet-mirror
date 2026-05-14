@@ -3295,6 +3295,11 @@ def performance_test(ctx):
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
+@click.option(
+    "--no-export",
+    is_flag=True,
+    help="Skip export timing after each test stage",
+)
 def performance_test__local(
     existing=False,
     n_bots=None,
@@ -3302,6 +3307,7 @@ def performance_test__local(
     time_factor=None,
     duration_minutes=None,
     debug=False,
+    no_export=False,
 ):
     """
     Run a performance test of the experiment locally.
@@ -3313,13 +3319,16 @@ def performance_test__local(
     By default, this command starts a new experiment server automatically.
     Use --existing to connect to an already-running server instead.
     """
+    do_export = not no_export
     if existing:
         _run_performance_test_with_existing_server(
-            n_bots, stagger, time_factor, duration_minutes, debug
+            n_bots, stagger, time_factor, duration_minutes, debug,
+            do_export=do_export,
         )
     else:
         _run_performance_test_with_new_server(
-            n_bots, stagger, time_factor, duration_minutes, debug
+            n_bots, stagger, time_factor, duration_minutes, debug,
+            do_export=do_export,
         )
 
 
@@ -3332,6 +3341,7 @@ def _run_performance_test_with_existing_server(
     collect_results=None,
     base_url=None,
     bot_log_file=None,
+    do_export=True,
 ):
     """Run performance test connecting to an already-running server."""
     import logging
@@ -3399,6 +3409,10 @@ def _run_performance_test_with_existing_server(
     tester.run(
         bot_counts=bot_counts, bot_log_file=bot_log_file, collect_results=collect_results
     )
+    if do_export and collect_results is not None and collect_results:
+        export_duration, export_error = _time_export()
+        collect_results[-1]["export_duration_s"] = export_duration
+        collect_results[-1]["export_error"] = export_error
     if not externally_managed_bot_log:
         bot_log_file.close()
         print(f"Bot output log: {bot_log_file.name}")
@@ -3698,8 +3712,50 @@ def _stop_server(server_info):
         print(f"✓ Server stopped (log: {tmp_log_path})")
 
 
+def _time_export(_run=subprocess.run):
+    """Run psynet export local as subprocess, return (duration_s, error_or_None)."""
+    cmd = [
+        "psynet",
+        "export",
+        "local",
+        "--legacy",
+        "--anonymize",
+        "no",
+        "--assets",
+        "none",
+        "--no-source",
+    ]
+    print("\n▶ Running export...")
+    start = time.time()
+    try:
+        with tempfile.TemporaryDirectory(prefix="psynet_export_") as tmpdir:
+            result = _run(
+                cmd + ["--path", tmpdir],
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
+        duration = time.time() - start
+        if result.returncode != 0:
+            err = f"Exit code {result.returncode}"
+            print(f"⚠ Export finished with error in {duration:.1f}s: {err}")
+            return duration, err
+        print(f"✓ Export completed in {duration:.1f}s")
+        return duration, None
+    except subprocess.TimeoutExpired:
+        duration = time.time() - start
+        err = "Export timed out (600s)"
+        print(f"⚠ {err}")
+        return duration, err
+    except Exception as e:
+        duration = time.time() - start
+        err = str(e)
+        print(f"⚠ Export failed in {duration:.1f}s: {err}")
+        return duration, err
+
+
 def _run_performance_test_with_new_server(
-    n_bots, stagger, time_factor, duration_minutes, debug
+    n_bots, stagger, time_factor, duration_minutes, debug, do_export=True
 ):
     """Run performance test after starting a new experiment server.
 
@@ -3761,6 +3817,7 @@ def _run_performance_test_with_new_server(
                     base_url=server_info.get("base_url")
                     or redis_vars.get("base_url"),
                     bot_log_file=shared_bot_log,
+                    do_export=do_export,
                 )
             finally:
                 _stop_server(server_info)
@@ -3786,6 +3843,11 @@ def _run_performance_test_with_new_server(
 @_test_options["performance_stagger"]
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
+@click.option(
+    "--no-export",
+    is_flag=True,
+    help="Skip export timing after each test stage",
+)
 @click.pass_context
 def performance_test__docker_ssh(
     ctx,
@@ -3795,6 +3857,7 @@ def performance_test__docker_ssh(
     stagger=None,
     time_factor=None,
     duration_minutes=None,
+    no_export=False,
 ):
     """
     Runs performance tests on the remote server. Assumes that the app has
@@ -3822,6 +3885,9 @@ def performance_test__docker_ssh(
 
     if duration_minutes:
         cmd += f" --duration-minutes {duration_minutes}"
+
+    if no_export:
+        cmd += " --no-export"
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]
