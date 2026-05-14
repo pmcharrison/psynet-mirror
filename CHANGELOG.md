@@ -4,6 +4,7 @@
 
 ### Changed
 - Updated `@playwright/test` from 1.58.2 to 1.60.0 (Chromium 148.0.7778.96) (author: [Frank Höger])
+- Avoid duplicate GitLab CI pipelines on branches with an open MR by adding a `workflow:rules` block that suppresses the branch pipeline in that case; branch pipelines still run when no MR is open, and master/tag pipelines are unaffected (author: [Frank Höger])
 
 ### Fixed
 - Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners) (author: [Frank Höger])
