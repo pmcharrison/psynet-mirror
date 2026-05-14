@@ -196,11 +196,11 @@ When you make changes to the PsyNet codebase:
    python docs/scripts/build_changelog.py --new <category> "<short description>"
    ```
 
-   `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The helper writes a uniquely-named fragment `changelog.d/<YYYYMMDDHHMMSS>-<slug>.<category>.md` containing your description as a stub, which you then edit to the final entry (e.g. `Added support for X (author: [Name])`). The timestamp prefix guarantees collision-free filenames across MRs and direct pushes alike. Each entry should summarize the overall user-facing change rather than the incremental process of building it.
+   `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The helper writes a fragment `changelog.d/<YYYYMMDD>-<slug>.<category>.md` containing your description as a stub, which you then edit to the final entry (e.g. `Added support for X (author: [Name])`). The date prefix keeps fragments roughly chronological and the slug makes them descriptive at a glance; same-day collisions are caught by the helper, in which case use a more specific description. Each entry should summarize the overall user-facing change rather than the incremental process of building it.
 
    Do **not** commit a regenerated `CHANGELOG.md` from your MR — `CHANGELOG.md` is a generated artifact, rebuilt by the maintainer at release time. Committing fragments only avoids merge conflicts on `CHANGELOG.md` between MRs. Run `python docs/scripts/build_changelog.py` locally if you want to preview how the rendered `## Unreleased` section will look, but discard those changes before pushing. Maintainers cut a release with `python docs/scripts/build_changelog.py --release <version> <date>`, which consumes all fragments and inserts a versioned section.
 
-   Even one-commit changes should go through an MR so CI can verify the fragment is present.
+   If you push directly to `master` (bypassing an MR), CI won't check for a fragment — but please still create one with the `--new` helper so the change appears in the next release notes.
 
 2. **Run pre-commit**: Before committing, run pre-commit to ensure code formatting is correct:
 

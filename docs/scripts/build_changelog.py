@@ -378,12 +378,16 @@ def new_command(category: str, description: str) -> int:
         )
 
     slug = slugify(description)
-    timestamp = time.strftime("%Y%m%d%H%M%S")
+    date = time.strftime("%Y%m%d")
     FRAGMENTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    path = FRAGMENTS_DIR / f"{timestamp}-{slug}.{category}.md"
+    path = FRAGMENTS_DIR / f"{date}-{slug}.{category}.md"
     if path.exists():
-        raise ValueError(f"Fragment {path} already exists.")
+        raise ValueError(
+            f"Fragment {path} already exists. "
+            "Use a more specific description (the slug must be unique within "
+            "the day) or rename the existing fragment."
+        )
 
     path.write_text(f"{description.strip()} (author: [Your Name])\n", encoding="utf-8")
     print(path)
@@ -404,7 +408,7 @@ def parse_args() -> argparse.Namespace:
         nargs=2,
         metavar=("CATEGORY", "DESCRIPTION"),
         help=(
-            "Create a new fragment file with a timestamped slug filename "
+            "Create a new fragment file with a date-prefixed slug filename "
             "(e.g. --new fixed 'fix Selenium flake')."
         ),
     )

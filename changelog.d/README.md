@@ -16,10 +16,12 @@ stub, which you then edit to the final entry.
 
 Where `<id>` is any alphanumeric token (with `_` or `-`) that uniquely
 identifies the fragment. The `--new` helper generates IDs of the form
-`<YYYYMMDDHHMMSS>-<slug>` so collisions across MRs (and direct pushes)
-are effectively impossible. Hand-rolled IDs (numbers, branch slugs,
-plain descriptive slugs, etc.) are also valid as long as they are
-unique within `changelog.d/`.
+`<YYYYMMDD>-<slug>`. The date prefix keeps fragments roughly
+chronological and the slug differentiates same-day fragments;
+the helper refuses to overwrite an existing file, so use a more
+specific description if it complains. Hand-rolled IDs (numbers,
+branch slugs, plain descriptive slugs, etc.) are also valid as long
+as they are unique within `changelog.d/`.
 
 Supported categories (rendered in this order):
 
@@ -37,9 +39,9 @@ leading `-`.
 
 Examples:
 
-- `20260513183100-add-chatroom-demo.added.md`
-- `20260513183500-fix-selenium-flake.fixed.md`
-- `20260514091200-deprecate-old-helper.deprecated.md`
+- `20260513-add-chatroom-demo.added.md`
+- `20260513-fix-selenium-flake.fixed.md`
+- `20260514-deprecate-old-helper.deprecated.md`
 
 ## Workflow
 
@@ -72,8 +74,8 @@ The `changelog_check` CI job only runs on merge requests, so it cannot
 catch missing fragments on direct pushes to `master`. Even a one-commit
 change should go through an MR so CI can verify the fragment. If you
 absolutely must push directly to `master`, just use the `--new` helper
-the same way — its timestamp-prefixed filenames are unique regardless
-of how the change reaches `master`.
+the same way — its date-prefixed filenames stay unique as long as
+slugs differ on the same day.
 
 ## Legacy IDs
 
