@@ -2,7 +2,7 @@
   "name": "psynet-playwright-tests",
   "private": true,
   "devDependencies": {
-    "@playwright/test": "1.58.2"
+    "@playwright/test": "1.60.0"
   },
   "scripts": {
     "playwright:test": "playwright test",
