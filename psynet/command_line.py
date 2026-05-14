@@ -3686,8 +3686,29 @@ def _time_export(_run=subprocess.run):
         return duration, err
 
 
+def _load_server_url(server_info):
+    """Load config from running server's working dir; return base_url for that server."""
+    config = get_config()
+    if not config.ready:
+        config.load()
+    working_dir = redis_vars.get("server_working_directory")
+    if working_dir:
+        config.load_from_file(os.path.join(working_dir, "config.txt"))
+    return server_info.get("base_url") or redis_vars.get("base_url")
+
+
 def _run_performance_test_with_new_server(
-    n_bots, stagger, time_factor, duration_minutes, debug, do_export=True
+    n_bots,
+    stagger,
+    time_factor,
+    duration_minutes,
+    debug,
+    do_export=True,
+    _start_server=_start_local_server_and_wait_for_ready,
+    _stop_server_fn=_stop_server,
+    _run_stage=_run_performance_test_with_existing_server,
+    _base_url=None,
+    _sleep=time.sleep,
 ):
     """Run performance test after starting a new experiment server.
 
@@ -3721,40 +3742,24 @@ def _run_performance_test_with_new_server(
             shared_bot_log.write(demarcation.encode())
             shared_bot_log.flush()
 
-            server_info = _start_local_server_and_wait_for_ready(
-                debug=debug, log_file=shared_server_log
-            )
+            server_info = _start_server(debug=debug, log_file=shared_server_log)
             try:
-                config = get_config()
-                if not config.ready:
-                    config.load()
-
-                # Load runtime server config so dashboard credentials and URL
-                # settings match the launched debug instance.
-                server_working_directory = redis_vars.get(
-                    "server_working_directory"
-                )
-                if server_working_directory:
-                    config.load_from_file(
-                        os.path.join(server_working_directory, "config.txt")
-                    )
-
-                _run_performance_test_with_existing_server(
+                base_url = _base_url or _load_server_url(server_info)
+                _run_stage(
                     n_bots=str(count),
                     stagger=stagger,
                     time_factor=time_factor,
                     duration_minutes=duration_minutes,
                     debug=debug,
                     collect_results=all_results,
-                    base_url=server_info.get("base_url")
-                    or redis_vars.get("base_url"),
+                    base_url=base_url,
                     bot_log_file=shared_bot_log,
                     do_export=do_export,
                 )
             finally:
-                _stop_server(server_info)
+                _stop_server_fn(server_info)
                 # Allow OS to release ports/connections before next server start.
-                time.sleep(2)
+                _sleep(2)
     finally:
         shared_server_log.close()
         shared_bot_log.close()
