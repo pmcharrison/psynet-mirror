@@ -20,9 +20,8 @@ from psynet.timeline import (
     ProgressStage,
     join,
 )
-from psynet.trial import Node
 from psynet.trial.audio import AudioRecordTrial
-from psynet.trial.static import StaticTrial, StaticTrialMaker
+from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
 
 from .repp_utils import NumpySerializer
@@ -543,7 +542,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
 
     def get_nodes(self, duration_rec_sec: float, min_num_detected_taps: int):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "duration_rec_sec": duration_rec_sec,
                     "min_num_detected_taps": min_num_detected_taps,
@@ -750,7 +749,7 @@ class REPPMarkersTest(StaticTrialMaker):
 
     def get_nodes(self):
         return [
-            Node(
+            StaticNode(
                 definition={
                     "stim_name": f"audio{i + 1}.wav",
                     "markers_onsets": [
