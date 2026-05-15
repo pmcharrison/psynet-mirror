@@ -51,16 +51,17 @@ class _BaseExperiment:
     params : list[list]
         ASV-style sweep, one inner list per axis. ``asv`` benchmarks every
         combination, producing one row per combination per ``track_*`` method.
-        Defaults to a single bot-count point: ``[[25]]``. To sweep multiple bot
-        counts: ``[[10, 25, 50]]``. To also sweep duration: ``[[25], [1.0,
-        2.0]]`` (with ``param_names = ["n_bots", "duration_minutes"]``).
+        Defaults to a single a 5-minute test with a bot-count of 25: ``[[25],
+        [5.0]]``. To sweep multiple bot counts: ``[[10, 25, 50], [5.0]]``. To also
+        sweep duration: ``[[25], [1.0, 2.0]]`` (with ``param_names = ["n_bots",
+        "duration_minutes"]``).
 
     param_names : list[str]
         Names for each axis of ``params``, in matching order. Each name is
         passed through to the corresponding ``psynet performance-test local``
-        CLI flag (underscores → dashes). Defaults to ``["n_bots"]``. Track
-        methods receive the per-combination values positionally via
-        ``*param_values`` after the cached data.
+        CLI flag (underscores → dashes). Defaults to ``["n_bots",
+        "duration_minutes"]``. Track methods receive the per-combination values
+        positionally via ``*param_values`` after the cached data.
 
     timeout : int
         Hard upper bound (seconds) for ``setup_cache`` before asv kills the run.
@@ -70,8 +71,8 @@ class _BaseExperiment:
 
     demo_name: str | None = None
     demo_root = "demos/experiments"
-    params = [[25]]
-    param_names = ["n_bots"]
+    params = [[25], [5.0]]
+    param_names = ["n_bots", "duration_minutes"]
     timeout = 1800
 
     def setup_cache(self):
