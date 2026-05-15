@@ -1,6 +1,6 @@
 {
     "experiment_performance.Static.track_bots_succeeded": {
-        "code": "class _BaseExperiment:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class Static:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Static.track_bots_succeeded",
         "param_names": [
             "n_bots",
@@ -11,17 +11,18 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "static Bots Succeeded",
+        "setup_cache_key": "experiment_performance:190",
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "9033f457fd5a6052d4404f79a4407dc4e61fb562eb8bce6db3952c647a0ae53e"
+        "version": "08ef3f97dc48650098975d568efdb53a321071e93a5d4b869860195e7ae1c9b9"
     },
     "experiment_performance.Static.track_p95_response_time_ms": {
-        "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class Static:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Static.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
@@ -32,17 +33,18 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "static P95 Response Time",
+        "setup_cache_key": "experiment_performance:190",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "a1f463454c195ba20aacfef7d2bebe7467353879d1c4acf7d3a76d57321c4f8a"
+        "version": "60954d5bd5ebe0867ad5e8be95b9f65ead6a2d540aa54675292b1a4ff4635137"
     },
     "experiment_performance.Static.track_requests_per_sec": {
-        "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class Static:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Static.track_requests_per_sec",
         "param_names": [
             "n_bots",
@@ -53,17 +55,18 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "static Requests/sec",
+        "setup_cache_key": "experiment_performance:190",
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "c0f55ebd4ad7601f6d2379f5b526d45c2e5bfeffbab823f853c0b0f30e72459d"
+        "version": "c61e55eb99f8c0e577e0ef03009038bf76f07dd233215111035f62eed2c26c7b"
     },
     "experiment_performance.StaticBig.track_bots_succeeded": {
-        "code": "class _BaseExperiment:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class StaticBig:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.StaticBig.track_bots_succeeded",
         "param_names": [
             "n_bots",
@@ -74,17 +77,18 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "static_big Bots Succeeded",
+        "setup_cache_key": "experiment_performance:198",
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "9033f457fd5a6052d4404f79a4407dc4e61fb562eb8bce6db3952c647a0ae53e"
+        "version": "4d794b2fcf3b81ea5dec6e5833b3465a3fb4ef1af1fb8687ef7ffb114895e5bf"
     },
     "experiment_performance.StaticBig.track_p95_response_time_ms": {
-        "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class StaticBig:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.StaticBig.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
@@ -95,17 +99,18 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "static_big P95 Response Time",
+        "setup_cache_key": "experiment_performance:198",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "a1f463454c195ba20aacfef7d2bebe7467353879d1c4acf7d3a76d57321c4f8a"
+        "version": "3fbd78a14005e666deb0ca84138cc02f740f3943285a50041e728917e40d2816"
     },
     "experiment_performance.StaticBig.track_requests_per_sec": {
-        "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class StaticBig:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.StaticBig.track_requests_per_sec",
         "param_names": [
             "n_bots",
@@ -116,17 +121,18 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "static_big Requests/sec",
+        "setup_cache_key": "experiment_performance:198",
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "c0f55ebd4ad7601f6d2379f5b526d45c2e5bfeffbab823f853c0b0f30e72459d"
+        "version": "c296c048b01ede1bd2c3b8e6cc0a6ae43061b84c62135159b28f8e774222f5c0"
     },
     "experiment_performance.Timeline.track_bots_succeeded": {
-        "code": "class _BaseExperiment:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class Timeline:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Timeline.track_bots_succeeded",
         "param_names": [
             "n_bots",
@@ -137,17 +143,18 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "timeline Bots Succeeded",
+        "setup_cache_key": "experiment_performance:183",
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "9033f457fd5a6052d4404f79a4407dc4e61fb562eb8bce6db3952c647a0ae53e"
+        "version": "e8df7be374709213363b1cedae95fee4d9b12c0003af90da7dc3dbf9687936c5"
     },
     "experiment_performance.Timeline.track_p95_response_time_ms": {
-        "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class Timeline:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Timeline.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
@@ -158,17 +165,18 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "timeline P95 Response Time",
+        "setup_cache_key": "experiment_performance:183",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "a1f463454c195ba20aacfef7d2bebe7467353879d1c4acf7d3a76d57321c4f8a"
+        "version": "20982d152f0d4b2d7f3c5f714d7ffed74a6be9dd2dd5211baed1f4a984bcb567"
     },
     "experiment_performance.Timeline.track_requests_per_sec": {
-        "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        if self.demo_name is None:\n            raise NotImplementedError(\"subclass must set demo_name\")\n    \n        repo_root = Path(__file__).parent.parent\n        demo_dir = repo_root / self.demo_root / self.demo_name\n    \n        results = {}\n        for combo in itertools.product(*self.params):\n            flags = []\n            for name, value in zip(self.param_names, combo):\n                flags += [f\"--{name.replace('_', '-')}\", str(value)]\n    \n            with tempfile.NamedTemporaryFile(suffix=\".json\", delete=False) as f:\n                json_path = f.name\n    \n            try:\n                subprocess.run(\n                    [\n                        \"psynet\",\n                        \"performance-test\",\n                        \"local\",\n                        *flags,\n                        \"--json-output\",\n                        str(json_path),\n                    ],\n                    cwd=demo_dir,\n                    check=True,\n                )\n                with open(json_path) as fh:\n                    output = json.load(fh)\n            finally:\n                Path(json_path).unlink(missing_ok=True)\n    \n            results[combo] = output[\"results\"][0]\n    \n        return results",
+        "code": "class Timeline:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Timeline.track_requests_per_sec",
         "param_names": [
             "n_bots",
@@ -179,14 +187,15 @@
                 "25"
             ],
             [
-                "5.0"
+                "2.0"
             ]
         ],
-        "setup_cache_key": "experiment_performance:78",
+        "pretty_name": "timeline Requests/sec",
+        "setup_cache_key": "experiment_performance:183",
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "c0f55ebd4ad7601f6d2379f5b526d45c2e5bfeffbab823f853c0b0f30e72459d"
+        "version": "ac17122d8c9283f4be00f3270d9a5c3fb628b87b549d072bbf8b4208134a9901"
     },
     "function_benchmarks.SerializeRoundtrip.time_serialize": {
         "code": "class SerializeRoundtrip:\n    def time_serialize(self, cache):\n        serialize(cache[\"obj\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
