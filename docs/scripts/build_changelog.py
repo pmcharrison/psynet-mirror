@@ -275,9 +275,9 @@ def classify_release(version: str) -> str:
     lowered = version.lower()
     if "rc" in lowered:
         return "Release candidate"
-    if "alpha" in lowered or re.search(r"\ba\d+\b", lowered):
+    if "alpha" in lowered or re.search(r"(?<=[0-9._-])a\d+\b", lowered):
         return "Alpha"
-    if "beta" in lowered or re.search(r"\bb\d+\b", lowered):
+    if "beta" in lowered or re.search(r"(?<=[0-9._-])b\d+\b", lowered):
         return "Beta"
     return "Release"
 
