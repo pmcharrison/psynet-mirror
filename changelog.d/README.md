@@ -81,9 +81,8 @@ same day.
 
 The directory currently also contains fragments with bare numeric IDs:
 
-- `9xxx.<category>.md` — one-shot synthetic IDs created by
-  `--migrate-unreleased` when the historical `## Unreleased` block was
-  migrated into fragments.
+- `9xxx.<category>.md` — one-shot synthetic IDs used when the
+  historical `## Unreleased` block was migrated into fragments.
 - `<MR-number>.<category>.md` — older MR-numbered fragments from before
   the slug-based convention.
 

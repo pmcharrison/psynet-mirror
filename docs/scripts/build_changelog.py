@@ -13,7 +13,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 FRAGMENTS_DIR = ROOT / "changelog.d"
 CHANGELOG_PATH = ROOT / "CHANGELOG.md"
-MIGRATION_START_ID = 9001
 MAX_SLUG_LENGTH = 60
 
 SECTION_ORDER = [
@@ -27,7 +26,6 @@ SECTION_ORDER = [
     ("documentation", "Documentation"),
 ]
 SECTION_KEYS = {key for key, _title in SECTION_ORDER}
-HEADER_TO_SECTION = {title: key for key, title in SECTION_ORDER}
 SECTION_PATTERN = "|".join(key for key, _title in SECTION_ORDER)
 
 FILENAME_RE = re.compile(
@@ -47,10 +45,6 @@ def fragment_sort_key(name: str) -> tuple:
 
 
 UNRELEASED_RE = re.compile(r"(?ms)^## Unreleased\n.*?(?=^## |\Z)")
-MANAGED_BLOCK_RE = re.compile(
-    r"(?ms)^<!-- changelog\.d:start -->\n.*?^<!-- changelog\.d:end -->\n?"
-)
-SECTION_HEADER_RE = re.compile(r"^### (?P<title>[A-Za-z][A-Za-z ]*?)\n", re.MULTILINE)
 
 
 @dataclass(frozen=True)
@@ -152,111 +146,11 @@ def render_managed_block(entries: dict[str, list[str]]) -> str:
     return "\n".join(body)
 
 
-def parse_section_entries(body: str) -> list[str]:
-    entries: list[list[str]] = []
-
-    for line in body.splitlines():
-        if line.startswith("- "):
-            entries.append([line[2:]])
-            continue
-
-        if not entries:
-            if line.strip():
-                raise ValueError(
-                    f"Unexpected content before first changelog bullet: {line!r}"
-                )
-            continue
-
-        if line.startswith("  "):
-            entries[-1].append(line[2:])
-        elif not line.strip():
-            entries[-1].append("")
-        else:
-            raise ValueError(f"Unexpected changelog line format: {line!r}")
-
-    return [
-        "\n".join(entry).strip()
-        for entry in entries
-        if any(part.strip() for part in entry)
-    ]
-
-
 def get_unreleased_section(changelog: str) -> re.Match[str]:
     match = UNRELEASED_RE.search(changelog)
     if not match:
         raise ValueError("Could not find '## Unreleased' section in CHANGELOG.md")
     return match
-
-
-def get_unreleased_unmanaged_body(changelog: str) -> str:
-    unreleased = get_unreleased_section(changelog).group(0)
-    return (
-        MANAGED_BLOCK_RE.sub("", unreleased).replace("## Unreleased\n", "", 1).strip()
-    )
-
-
-def parse_unreleased_entries(changelog: str) -> dict[str, list[str]]:
-    body = get_unreleased_unmanaged_body(changelog)
-    if not body:
-        return defaultdict(list)
-
-    matches = list(SECTION_HEADER_RE.finditer(body))
-    if not matches:
-        raise ValueError(
-            "Could not find changelog subsection headings under '## Unreleased'"
-        )
-
-    entries: dict[str, list[str]] = defaultdict(list)
-    for index, match in enumerate(matches):
-        title = match.group("title").strip()
-        if title not in HEADER_TO_SECTION:
-            raise ValueError(
-                f"Unsupported changelog subsection under Unreleased: {title}"
-            )
-
-        start = match.end()
-        end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
-        section_body = body[start:end].strip()
-        if section_body:
-            entries[HEADER_TO_SECTION[title]].extend(
-                parse_section_entries(section_body)
-            )
-
-    return entries
-
-
-def next_migration_id() -> int:
-    max_id = MIGRATION_START_ID - 1
-    for path in list_fragment_paths():
-        match = FILENAME_RE.match(path.name)
-        assert match is not None
-        fragment_id = match["id"]
-        if fragment_id.isdigit():
-            max_id = max(max_id, int(fragment_id))
-    return max_id + 1
-
-
-def write_migrated_fragments(entries: dict[str, list[str]]) -> int:
-    FRAGMENTS_DIR.mkdir(parents=True, exist_ok=True)
-
-    existing = list_fragment_paths()
-    if existing:
-        raise ValueError(
-            "Refusing to migrate unreleased changelog entries because changelog.d already "
-            "contains fragment files."
-        )
-
-    next_id = next_migration_id()
-    written = 0
-
-    for key, _title in SECTION_ORDER:
-        for entry in entries.get(key, []):
-            path = FRAGMENTS_DIR / f"{next_id}.{key}.md"
-            path.write_text(entry + "\n", encoding="utf-8")
-            next_id += 1
-            written += 1
-
-    return written
 
 
 def replace_unreleased_with_managed_block(changelog: str, managed_block: str) -> str:
@@ -319,19 +213,6 @@ def build_command() -> int:
     updated = rebuild_unreleased(changelog, entries)
     CHANGELOG_PATH.write_text(updated, encoding="utf-8")
     print(f"Updated {CHANGELOG_PATH} from fragments in {FRAGMENTS_DIR}")
-    return 0
-
-
-def migrate_command() -> int:
-    changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
-    entries = parse_unreleased_entries(changelog)
-    written = write_migrated_fragments(entries)
-    updated = rebuild_unreleased(changelog, entries)
-    CHANGELOG_PATH.write_text(updated, encoding="utf-8")
-    print(
-        f"Migrated {written} changelog entries into {FRAGMENTS_DIR} and updated "
-        f"{CHANGELOG_PATH}"
-    )
     return 0
 
 
@@ -413,11 +294,6 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--migrate-unreleased",
-        action="store_true",
-        help="Migrate the current manual Unreleased section into fragment files.",
-    )
-    parser.add_argument(
         "--release",
         nargs=2,
         metavar=("VERSION", "DATE"),
@@ -429,9 +305,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     try:
         args = parse_args()
-        modes = sum(1 for x in (args.new, args.migrate_unreleased, args.release) if x)
+        modes = sum(1 for x in (args.new, args.release) if x)
         if modes > 1:
-            raise ValueError("Use only one of --new, --migrate-unreleased, --release.")
+            raise ValueError("Use only one of --new, --release.")
 
         if args.new:
             category, description = args.new
@@ -441,8 +317,6 @@ def main() -> int:
             print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
             return 1
 
-        if args.migrate_unreleased:
-            return migrate_command()
         if args.release:
             version, date = args.release
             return release_command(version, date)
