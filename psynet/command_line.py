@@ -3458,14 +3458,6 @@ def _start_local_server_and_wait_for_ready(
     """
     print("▶ Starting experiment server...")
 
-    config = get_config()
-    if not config.ready:
-        config.load()
-    base_port = config.get("base_port")
-    num_dynos = config.get("num_dynos_web")
-    expected_ports = list(range(base_port, base_port + num_dynos))
-    print(f"  num_dynos_web = {num_dynos}, expected ports: {expected_ports}")
-
     externally_managed_log = log_file is not None
 
     if externally_managed_log:
