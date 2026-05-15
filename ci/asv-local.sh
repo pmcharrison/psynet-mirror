@@ -46,15 +46,11 @@ fi
 
 attach_worktree
 
-CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-BRANCHES_JSON="\"$CURRENT_BRANCH\""
-
 # Temp config must live in REPO_ROOT so the relative paths in
 # asv.conf.json (`repo: "."`, `env_dir`, `results_dir`, `html_dir`) all
 # still resolve to the same directories the committed config uses.
 TMP_CONF="$REPO_ROOT/.asv-local.conf.json"
-sed "s|\"branches\": \[[^]]*\]|\"branches\": [$BRANCHES_JSON]|" \
-    asv.conf.json > "$TMP_CONF"
+make_current_branch_config "$TMP_CONF"
 
 asv --config "$TMP_CONF" publish
 echo

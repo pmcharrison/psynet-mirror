@@ -6,7 +6,10 @@ ASV discovers benchmark classes in this module via ``benchmark_dir`` in
 
 - ``setup_cache()``: called once per class, runs all parameter combinations
   and returns a dict of results. ASV passes this dict as the first argument
-  to every ``track_*`` call.
+  to every ``track_*`` call. Each subclass must define its own ``setup_cache``
+  (even as a one-line ``return super().setup_cache()``); ASV keys the cache
+  by ``(module, source line of the method)``, so an inherited method causes
+  ASV to share one cached result across every subclass.
 - ``track_*(data, *param_values)``: called once per parameter combination,
   extracts a single scalar metric from the cached results.
 
@@ -17,6 +20,7 @@ import itertools
 import json
 import subprocess
 import tempfile
+import types
 from pathlib import Path
 
 
@@ -51,8 +55,8 @@ class _BaseExperiment:
     params : list[list]
         ASV-style sweep, one inner list per axis. ``asv`` benchmarks every
         combination, producing one row per combination per ``track_*`` method.
-        Defaults to a single a 5-minute test with a bot-count of 25: ``[[25],
-        [5.0]]``. To sweep multiple bot counts: ``[[10, 25, 50], [5.0]]``. To also
+        Defaults to a single a 2-minute test with a bot-count of 25: ``[[25],
+        [2.0]]``. To sweep multiple bot counts: ``[[10, 25, 50], [2.0]]``. To also
         sweep duration: ``[[25], [1.0, 2.0]]`` (with ``param_names = ["n_bots",
         "duration_minutes"]``).
 
@@ -71,9 +75,36 @@ class _BaseExperiment:
 
     demo_name: str | None = None
     demo_root = "demos/experiments"
-    params = [[25], [5.0]]
+    params = [[25], [2.0]]
     param_names = ["n_bots", "duration_minutes"]
     timeout = 1800
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        # Prefix each base-class track_* method's pretty_name with demo_name so
+        # the rendered ASV table distinguishes per-demo rows at a glance. Only
+        # base methods with a pretty_name get a prefixed clone; if a subclass
+        # overrides a track_* itself, leave its method alone.
+        for attr in dir(cls):
+            if not attr.startswith("track_"):
+                continue
+            if attr in cls.__dict__:
+                continue
+            base_method = getattr(_BaseExperiment, attr, None)
+            base_pretty = getattr(base_method, "pretty_name", None)
+            if base_pretty is None:
+                continue
+            clone = types.FunctionType(
+                base_method.__code__,
+                base_method.__globals__,
+                base_method.__name__,
+                base_method.__defaults__,
+                base_method.__closure__,
+            )
+            clone.__dict__.update(base_method.__dict__)
+            clone.__qualname__ = f"{cls.__name__}.{base_method.__name__}"
+            clone.pretty_name = f"{cls.demo_name} {base_pretty}"
+            setattr(cls, attr, clone)
 
     def setup_cache(self):
         if self.demo_name is None:
@@ -104,12 +135,20 @@ class _BaseExperiment:
                     cwd=demo_dir,
                     check=True,
                 )
-                with open(json_path) as fh:
-                    output = json.load(fh)
+                try:
+                    with open(json_path) as fh:
+                        output = json.load(fh)
+                    result = output["results"][0]
+                except (OSError, json.JSONDecodeError, KeyError, IndexError) as exc:
+                    raise RuntimeError(
+                        f"failed to read psynet performance-test output for "
+                        f"demo={self.demo_name!r} combo={combo!r} "
+                        f"json_path={json_path!r}: {exc}"
+                    ) from exc
             finally:
                 Path(json_path).unlink(missing_ok=True)
 
-            results[combo] = output["results"][0]
+            results[combo] = result
 
         return results
 
@@ -121,26 +160,40 @@ class _BaseExperiment:
         return self._result_for(data, *param_values)["requests_per_sec"]
 
     track_requests_per_sec.unit = "req/s"
+    track_requests_per_sec.pretty_name = "Requests/sec"
 
     def track_p95_response_time_ms(self, data, *param_values):
         return self._result_for(data, *param_values)["p95_response_time"] * 1000.0
 
     track_p95_response_time_ms.unit = "ms"
+    track_p95_response_time_ms.pretty_name = "P95 Response Time"
 
     def track_bots_succeeded(self, data, *param_values):
         return self._result_for(data, *param_values)["bots_succeeded"]
 
     track_bots_succeeded.unit = "count"
+    track_bots_succeeded.pretty_name = "Bots Succeeded"
 
 
 class Timeline(_BaseExperiment):
     demo_name = "timeline"
 
+    # See `_BaseExperiment.setup_cache` for why each subclass must redefine
+    # this method (ASV cache-key collision on inherited methods).
+    def setup_cache(self):
+        return super().setup_cache()
+
 
 class Static(_BaseExperiment):
     demo_name = "static"
+
+    def setup_cache(self):
+        return super().setup_cache()
 
 
 class StaticBig(_BaseExperiment):
     demo_name = "static_big"
     demo_root = "tests/experiments"
+
+    def setup_cache(self):
+        return super().setup_cache()

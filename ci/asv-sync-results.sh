@@ -5,7 +5,14 @@
 # `.asv/results/`, runs `asv run` (forwarding any arguments), commits any
 # new result files back to the branch, then detaches the worktree.
 #
-# Pass `--init-only` to just ensure the branch exists and exit.
+# Flags:
+#   --init-only         Ensure the branch exists, then exit.
+#   --current-branch    Run benchmarks against the currently checked-out
+#                       branch instead of the branch list pinned in
+#                       `asv.conf.json` (typically `master`). Generated
+#                       results are NOT committed to `benchmark-results`
+#                       in this mode — use it for local iteration only.
+#
 # Push manually after running: `git push <remote> benchmark-results`.
 set -euo pipefail
 
@@ -14,9 +21,39 @@ RESULTS_DIR="$REPO_ROOT/.asv/results"
 BRANCH="benchmark-results"
 REMOTE="${ASV_RESULTS_REMOTE:-origin}"
 ATTACHED=0
+TMP_CONF=""
+USE_CURRENT_BRANCH=0
+INIT_ONLY=0
 
 # shellcheck source=ci/asv-worktree-lib.sh
 source "$(dirname "$0")/asv-worktree-lib.sh"
+
+# Parse our own flags; everything else is forwarded to `asv run`.
+ASV_RUN_ARGS=()
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --init-only)
+            INIT_ONLY=1
+            shift
+            ;;
+        --current-branch)
+            USE_CURRENT_BRANCH=1
+            shift
+            ;;
+        *)
+            ASV_RUN_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+cleanup() {
+    detach_worktree
+    if [ -n "$TMP_CONF" ]; then
+        rm -f "$TMP_CONF"
+    fi
+}
+trap cleanup EXIT
 
 cd "$REPO_ROOT"
 
@@ -38,16 +75,29 @@ ensure_branch() {
 
 ensure_branch
 
-if [ "${1:-}" = "--init-only" ]; then
+if [ "$INIT_ONLY" = "1" ]; then
     echo "Branch $BRANCH ready"
     exit 0
 fi
 
-trap detach_worktree EXIT
 attach_worktree
 
-asv machine --yes --machine "${ASV_MACHINE_NAME:-$(hostname)}"
-asv run "$@"
+ASV_CONF_ARGS=()
+if [ "$USE_CURRENT_BRANCH" = "1" ]; then
+    TMP_CONF="$REPO_ROOT/.asv-sync.conf.json"
+    make_current_branch_config "$TMP_CONF"
+    ASV_CONF_ARGS=(--config "$TMP_CONF")
+    echo "--current-branch: running against $(git rev-parse --abbrev-ref HEAD); results will NOT be committed"
+fi
+
+asv "${ASV_CONF_ARGS[@]}" machine --yes --machine "${ASV_MACHINE_NAME:-$(hostname)}"
+asv "${ASV_CONF_ARGS[@]}" run "${ASV_RUN_ARGS[@]}"
+
+if [ "$USE_CURRENT_BRANCH" = "1" ]; then
+    echo "Skipping commit (--current-branch). Result files were written under $RESULTS_DIR but will not be committed."
+    echo "The worktree can only be cleanly removed once those files are deleted; otherwise it will be left in place with a warning."
+    exit 0
+fi
 
 cd "$RESULTS_DIR"
 if [ -n "$(git status --porcelain)" ]; then

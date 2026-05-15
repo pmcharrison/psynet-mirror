@@ -163,4 +163,5 @@ source_code.zip
 
 # ASV benchmark artifacts
 .asv/
+.asv-sync.conf.json
 .asv-local.conf.json

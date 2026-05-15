@@ -59,3 +59,23 @@ detach_worktree() {
         fi
     fi
 }
+
+# Write a temp asv config to ``$1`` whose ``branches`` field contains only
+# the current branch. Used by callers that want ``asv run`` / ``asv publish``
+# to operate on the current branch instead of whatever ``asv.conf.json``
+# pins (typically ``master``). Caller is responsible for cleaning up the
+# temp file. Must be invoked from REPO_ROOT (where ``asv.conf.json`` lives).
+make_current_branch_config() {
+    local out_path="$1"
+    local current_branch
+    current_branch="$(git rev-parse --abbrev-ref HEAD)"
+    # Guard against asv.conf.json being reformatted to a multi-line
+    # `branches` array, which would silently leave the sed below as a no-op
+    # and emit a config still pinned to whatever asv.conf.json declares.
+    if ! grep -qE '"branches": \[[^]]*\]' asv.conf.json; then
+        echo "Error: asv.conf.json does not contain a single-line 'branches' array; make_current_branch_config cannot patch it" >&2
+        return 1
+    fi
+    sed "s|\"branches\": \[[^]]*\]|\"branches\": [\"$current_branch\"]|" \
+        asv.conf.json > "$out_path"
+}
