@@ -16,6 +16,11 @@
 # (the orphan branch is append-only in normal use, but ``+`` is defensive
 # against history rewrites). Returns 0 if a fetch happened, 1 if the
 # remote does not have the branch.
+#
+# ``make_current_branch_config`` writes a temp asv config pinned to the
+# current branch, for callers that want asv to operate on it instead of
+# the branch list committed in ``asv.conf.json``. Unrelated to the
+# worktree helpers but shared by the same callers; see its own comment.
 
 fetch_branch() {
     if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
