@@ -26,6 +26,7 @@ SECTION_ORDER = [
     ("documentation", "Documentation"),
 ]
 SECTION_KEYS = {key for key, _title in SECTION_ORDER}
+SECTION_TITLE_TO_KEY = {title: key for key, title in SECTION_ORDER}
 SECTION_PATTERN = "|".join(key for key, _title in SECTION_ORDER)
 
 FILENAME_RE = re.compile(
@@ -45,6 +46,8 @@ def fragment_sort_key(name: str) -> tuple:
 
 
 UNRELEASED_RE = re.compile(r"(?ms)^## Unreleased\n.*?(?=^## |\Z)")
+RELEASE_HEADING_RE = re.compile(r"^## \[(?P<version>[^\]]+)\].*$", re.MULTILINE)
+SECTION_HEADER_RE = re.compile(r"^### (?P<title>[A-Za-z][A-Za-z ]*?)\n", re.MULTILINE)
 
 
 @dataclass(frozen=True)
@@ -146,6 +149,63 @@ def render_managed_block(entries: dict[str, list[str]]) -> str:
     return "\n".join(body)
 
 
+def parse_section_entries(body: str) -> list[str]:
+    entries: list[list[str]] = []
+
+    for line in body.splitlines():
+        if line.startswith("- "):
+            entries.append([line[2:]])
+            continue
+
+        if not entries:
+            if line.strip():
+                raise ValueError(
+                    f"Unexpected content before first changelog bullet: {line!r}"
+                )
+            continue
+
+        if line.startswith("  "):
+            entries[-1].append(line[2:])
+        elif not line.strip():
+            entries[-1].append("")
+        else:
+            raise ValueError(f"Unexpected changelog line format: {line!r}")
+
+    return [
+        "\n".join(entry).strip()
+        for entry in entries
+        if any(part.strip() for part in entry)
+    ]
+
+
+def parse_sectioned_entries(body: str) -> dict[str, list[str]]:
+    entries: dict[str, list[str]] = defaultdict(list)
+    matches = list(SECTION_HEADER_RE.finditer(body))
+
+    for index, match in enumerate(matches):
+        title = match.group("title").strip()
+        if title not in SECTION_TITLE_TO_KEY:
+            raise ValueError(f"Unsupported changelog subsection: {title}")
+
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
+        section_body = body[start:end].strip()
+        if section_body:
+            entries[SECTION_TITLE_TO_KEY[title]].extend(
+                parse_section_entries(section_body)
+            )
+
+    return entries
+
+
+def add_entries(
+    target: dict[str, list[str]], source: dict[str, list[str]]
+) -> dict[str, list[str]]:
+    for key, _title in SECTION_ORDER:
+        target[key].extend(source.get(key, []))
+    return target
+
+
 def get_unreleased_section(changelog: str) -> re.Match[str]:
     match = UNRELEASED_RE.search(changelog)
     if not match:
@@ -174,6 +234,42 @@ def classify_release(version: str) -> str:
     if "beta" in lowered or re.search(r"(?<=[0-9._-])b\d+\b", lowered):
         return "Beta"
     return "Release"
+
+
+def matching_release_candidate_sections(
+    changelog: str, version: str
+) -> list[tuple[int, int, int, dict[str, list[str]]]]:
+    sections: list[tuple[int, int, int, dict[str, list[str]]]] = []
+    headings = list(RELEASE_HEADING_RE.finditer(changelog))
+    rc_version_re = re.compile(rf"^{re.escape(version)}rc(?P<number>\d+)$")
+
+    for index, heading in enumerate(headings):
+        match = rc_version_re.match(heading.group("version"))
+        if match is None:
+            continue
+
+        body_start = heading.end()
+        end = (
+            headings[index + 1].start() if index + 1 < len(headings) else len(changelog)
+        )
+        sections.append(
+            (
+                int(match.group("number")),
+                heading.start(),
+                end,
+                parse_sectioned_entries(changelog[body_start:end]),
+            )
+        )
+
+    return sorted(sections, key=lambda item: item[0])
+
+
+def remove_spans(text: str, spans: list[tuple[int, int]]) -> str:
+    for start, end in sorted(spans, reverse=True):
+        prefix = text[:start].rstrip("\n")
+        suffix = text[end:].lstrip("\n")
+        text = f"{prefix}\n\n{suffix}" if suffix else f"{prefix}\n"
+    return text
 
 
 def render_release_heading(version: str, date: str) -> str:
@@ -223,10 +319,21 @@ def release_command(version: str, date: str) -> int:
 
     changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
     fragments = load_fragments()
-    if not fragments:
-        raise ValueError("No changelog fragments found to release.")
+    fragment_entries = group_entries(fragments)
+    entries: dict[str, list[str]] = defaultdict(list)
+    remove_release_candidate_spans: list[tuple[int, int]] = []
+    if classify_release(version) == "Release":
+        for _rc_number, start, end, rc_entries in matching_release_candidate_sections(
+            changelog, version
+        ):
+            add_entries(entries, rc_entries)
+            remove_release_candidate_spans.append((start, end))
+    add_entries(entries, fragment_entries)
 
-    entries = group_entries(fragments)
+    if not any(entries.values()):
+        raise ValueError("No changelog fragments or matching release candidates found.")
+
+    changelog = remove_spans(changelog, remove_release_candidate_spans)
     rebuilt = rebuild_unreleased(changelog, defaultdict(list))
     release_section = build_release_section(version, date, entries)
     updated = insert_release_section(rebuilt, release_section)
