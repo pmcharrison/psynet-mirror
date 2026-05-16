@@ -3,10 +3,13 @@
 #
 # Fetches the `benchmark-results` orphan branch from `origin` if not
 # already present, mounts it as a git worktree at `.asv/results/`,
-# generates a temp asv config that adds the current branch to the
-# rendered set (the committed config tracks `master` only), then runs
-# `asv publish` and serves the rendered HTML at http://127.0.0.1:8080.
-# Detaches the worktree on exit.
+# generates a temp asv config that pins the rendered set to the current
+# branch (the committed config tracks `master`), then runs `asv publish`
+# and serves the rendered HTML at http://127.0.0.1:8080. Detaches the
+# worktree on exit.
+#
+# Note: CI commits results keyed to the commits it ran on, so this only
+# renders data when run from the branch those results live on.
 #
 # Usage: bash ci/asv-local.sh
 set -euo pipefail

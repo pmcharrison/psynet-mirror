@@ -82,27 +82,20 @@ class _BaseExperiment:
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # Prefix each base-class track_* method's pretty_name with demo_name so
-        # the rendered ASV table distinguishes per-demo rows at a glance. Only
-        # base methods with a pretty_name get a prefixed clone; if a subclass
-        # overrides a track_* itself, leave its method alone.
-        for attr in dir(cls):
-            if not attr.startswith("track_"):
+        # the rendered ASV table distinguishes per-demo rows at a glance. The
+        # base track_* methods are shared function objects, so the prefix has
+        # to go on a per-subclass clone — mutating the shared object in place
+        # would clobber the other subclasses. A track_* the subclass defines
+        # itself is left alone (its own pretty_name stands), as is any base
+        # track_* without a pretty_name (ASV falls back to its name).
+        for attr, base_method in vars(_BaseExperiment).items():
+            if not attr.startswith("track_") or attr in cls.__dict__:
                 continue
-            if attr in cls.__dict__:
-                continue
-            base_method = getattr(_BaseExperiment, attr, None)
             base_pretty = getattr(base_method, "pretty_name", None)
             if base_pretty is None:
                 continue
-            clone = types.FunctionType(
-                base_method.__code__,
-                base_method.__globals__,
-                base_method.__name__,
-                base_method.__defaults__,
-                base_method.__closure__,
-            )
+            clone = types.FunctionType(base_method.__code__, base_method.__globals__)
             clone.__dict__.update(base_method.__dict__)
-            clone.__qualname__ = f"{cls.__name__}.{base_method.__name__}"
             clone.pretty_name = f"{cls.demo_name} {base_pretty}"
             setattr(cls, attr, clone)
 
