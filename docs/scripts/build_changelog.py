@@ -219,6 +219,13 @@ def replace_unreleased_with_managed_block(changelog: str, managed_block: str) ->
     return changelog[: match.start()] + replacement + changelog[match.end() :]
 
 
+def remove_unreleased_section(changelog: str) -> str:
+    match = get_unreleased_section(changelog)
+    prefix = changelog[: match.start()].rstrip("\n")
+    suffix = changelog[match.end() :].lstrip("\n")
+    return f"{prefix}\n\n{suffix}" if suffix else f"{prefix}\n"
+
+
 def rebuild_unreleased(changelog: str, entries: dict[str, list[str]]) -> str:
     return replace_unreleased_with_managed_block(
         changelog, render_managed_block(entries)
@@ -292,8 +299,8 @@ def build_release_section(
 
 
 def insert_release_section(changelog: str, release_section: str) -> str:
-    match = get_unreleased_section(changelog)
-    insertion_point = match.end()
+    match = RELEASE_HEADING_RE.search(changelog)
+    insertion_point = match.start() if match else len(changelog)
     prefix = changelog[:insertion_point].rstrip("\n")
     suffix = changelog[insertion_point:].lstrip("\n")
     section = release_section.strip()
@@ -311,7 +318,8 @@ def build_command() -> int:
 
 
 def release_command(version: str, date: str) -> int:
-    if classify_release(version) == "Alpha":
+    release_type = classify_release(version)
+    if release_type == "Alpha":
         raise ValueError(
             "Alpha versions do not get changelog release sections. Keep fragments "
             "in changelog.d until the first release candidate or stable release."
@@ -322,7 +330,7 @@ def release_command(version: str, date: str) -> int:
     fragment_entries = group_entries(fragments)
     entries: dict[str, list[str]] = defaultdict(list)
     remove_release_candidate_spans: list[tuple[int, int]] = []
-    if classify_release(version) == "Release":
+    if release_type == "Release":
         for _rc_number, start, end, rc_entries in matching_release_candidate_sections(
             changelog, version
         ):
@@ -334,7 +342,10 @@ def release_command(version: str, date: str) -> int:
         raise ValueError("No changelog fragments or matching release candidates found.")
 
     changelog = remove_spans(changelog, remove_release_candidate_spans)
-    rebuilt = rebuild_unreleased(changelog, defaultdict(list))
+    if release_type == "Release":
+        rebuilt = remove_unreleased_section(changelog)
+    else:
+        rebuilt = rebuild_unreleased(changelog, defaultdict(list))
     release_section = build_release_section(version, date, entries)
     updated = insert_release_section(rebuilt, release_section)
     CHANGELOG_PATH.write_text(updated, encoding="utf-8")
