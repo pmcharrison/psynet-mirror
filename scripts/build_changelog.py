@@ -10,7 +10,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 FRAGMENTS_DIR = ROOT / "changelog.d"
 CHANGELOG_PATH = ROOT / "CHANGELOG.md"
 MAX_SLUG_LENGTH = 60
@@ -141,7 +141,7 @@ def render_managed_block(entries: dict[str, list[str]]) -> str:
     sections = render_sections(entries)
     body = [
         "<!-- changelog.d:start -->",
-        "<!-- Generated from changelog.d fragments by docs/scripts/build_changelog.py -->",
+        "<!-- Generated from changelog.d fragments by scripts/build_changelog.py -->",
     ]
     if sections:
         body.extend(["", sections.rstrip(), ""])
