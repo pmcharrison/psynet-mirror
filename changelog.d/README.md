@@ -66,7 +66,7 @@ python scripts/build_changelog.py --release 13.2.0 2026-03-13
 ```
 
 This inserts a new `## [13.2.0]` section and deletes the consumed
-fragments. Release candidates keep an empty managed `## Unreleased`
+fragments. Release candidates keep an empty `## Unreleased`
 section so more fragments can accumulate before the next candidate or
 stable release. Alpha versions (e.g. `13.2.0a0`) do not get changelog
 release sections; keep fragments until the first release candidate or
