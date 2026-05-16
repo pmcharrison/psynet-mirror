@@ -137,16 +137,8 @@ def render_sections(entries: dict[str, list[str]]) -> str:
     return "\n".join(parts).rstrip() + "\n"
 
 
-def render_managed_block(entries: dict[str, list[str]]) -> str:
-    sections = render_sections(entries)
-    body = [
-        "<!-- changelog.d:start -->",
-        "<!-- Generated from changelog.d fragments by scripts/build_changelog.py -->",
-    ]
-    if sections:
-        body.extend(["", sections.rstrip(), ""])
-    body.extend(["<!-- changelog.d:end -->", ""])
-    return "\n".join(body)
+def render_unreleased_body(entries: dict[str, list[str]]) -> str:
+    return render_sections(entries)
 
 
 def parse_section_entries(body: str) -> list[str]:
@@ -213,9 +205,11 @@ def get_unreleased_section(changelog: str) -> re.Match[str]:
     return match
 
 
-def replace_unreleased_with_managed_block(changelog: str, managed_block: str) -> str:
+def replace_unreleased_body(changelog: str, body: str) -> str:
     match = get_unreleased_section(changelog)
-    replacement = f"## Unreleased\n\n{managed_block}\n"
+    replacement = f"## Unreleased\n\n{body}"
+    if body:
+        replacement += "\n"
     return changelog[: match.start()] + replacement + changelog[match.end() :]
 
 
@@ -227,9 +221,7 @@ def remove_unreleased_section(changelog: str) -> str:
 
 
 def rebuild_unreleased(changelog: str, entries: dict[str, list[str]]) -> str:
-    return replace_unreleased_with_managed_block(
-        changelog, render_managed_block(entries)
-    )
+    return replace_unreleased_body(changelog, render_unreleased_body(entries))
 
 
 def classify_release(version: str) -> str:

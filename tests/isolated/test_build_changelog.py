@@ -10,10 +10,6 @@ BASE_CHANGELOG = """# CHANGELOG
 
 ## Unreleased
 
-<!-- changelog.d:start -->
-<!-- Generated from changelog.d fragments by scripts/build_changelog.py -->
-<!-- changelog.d:end -->
-
 ## [13.1.1](url) Release - 2026-02-18
 """
 
@@ -96,8 +92,7 @@ def test_release_candidate_consumes_fragments_and_keeps_unreleased_block(
     assert build_changelog.release_command("13.2.0rc1", "2026-05-16") == 0
 
     text = read_changelog(build_changelog)
-    assert text.startswith("# CHANGELOG\n\n## Unreleased\n\n<!-- changelog.d:start -->")
-    assert "<!-- changelog.d:end -->\n\n## [13.2.0rc1]" in text
+    assert text.startswith("# CHANGELOG\n\n## Unreleased\n\n## [13.2.0rc1]")
     assert "Release candidate - 2026-05-16" in text
     assert "- RC fixed entry" in text
     assert not fragment.exists()
@@ -108,10 +103,6 @@ def test_stable_release_consumes_rc_sections_and_remaining_fragments(build_chang
         """# CHANGELOG
 
 ## Unreleased
-
-<!-- changelog.d:start -->
-<!-- Generated from changelog.d fragments by scripts/build_changelog.py -->
-<!-- changelog.d:end -->
 
 ## [13.2.0rc1](url) Release candidate - 2026-05-07
 
@@ -145,7 +136,6 @@ def test_stable_release_consumes_rc_sections_and_remaining_fragments(build_chang
     text = read_changelog(build_changelog)
     assert text.startswith("# CHANGELOG\n\n## [13.2.0]")
     assert "## Unreleased" not in text
-    assert "<!-- changelog.d:" not in text
     assert "## [13.2.0rc1]" not in text
     assert "## [13.2.0rc0]" not in text
     assert "## [13.1.1]" in text
