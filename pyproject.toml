@@ -123,6 +123,7 @@ exclude = [
     "/ci",
     "/demos",
     "/docs",
+    "/scripts",
     "/tests",
 ]
 

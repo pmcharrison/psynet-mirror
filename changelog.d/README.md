@@ -4,7 +4,7 @@ Add one changelog fragment per change in this directory. The recommended
 way to create one is:
 
 ```bash
-python docs/scripts/build_changelog.py --new <category> "<short description>"
+python scripts/build_changelog.py --new <category> "<short description>"
 ```
 
 This writes a uniquely-named fragment file containing your description as a
@@ -55,14 +55,14 @@ If you want to preview how your fragment will render, run the script
 locally and discard the resulting `CHANGELOG.md` change before pushing:
 
 ```bash
-python docs/scripts/build_changelog.py
+python scripts/build_changelog.py
 git restore CHANGELOG.md
 ```
 
 Maintainers cut a release from the current fragments with:
 
 ```bash
-python docs/scripts/build_changelog.py --release 13.2.0 2026-03-13
+python scripts/build_changelog.py --release 13.2.0 2026-03-13
 ```
 
 This inserts a new `## [13.2.0]` section and deletes the consumed
