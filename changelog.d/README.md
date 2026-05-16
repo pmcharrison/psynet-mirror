@@ -65,12 +65,14 @@ Maintainers cut a release from the current fragments with:
 python docs/scripts/build_changelog.py --release 13.2.0 2026-03-13
 ```
 
-This inserts a new `## [13.2.0]` section, clears `## Unreleased`, and
-deletes the consumed fragments. Alpha versions (e.g. `13.2.0a0`) do not
-get changelog release sections; keep fragments until the first release
-candidate or stable release. Stable releases consume all matching
-release-candidate sections (e.g. `13.2.0rc0`, `13.2.0rc1`) plus any
-remaining fragments so the final release notes are complete.
+This inserts a new `## [13.2.0]` section and deletes the consumed
+fragments. Release candidates keep an empty managed `## Unreleased`
+section so more fragments can accumulate before the next candidate or
+stable release. Alpha versions (e.g. `13.2.0a0`) do not get changelog
+release sections; keep fragments until the first release candidate or
+stable release. Stable releases remove `## Unreleased` and consume all
+matching release-candidate sections (e.g. `13.2.0rc0`, `13.2.0rc1`) plus
+any remaining fragments so the final release notes are complete.
 
 ## Direct pushes to `master`
 
