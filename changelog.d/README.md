@@ -66,7 +66,9 @@ python docs/scripts/build_changelog.py --release 13.2.0 2026-03-13
 ```
 
 This inserts a new `## [13.2.0]` section, clears `## Unreleased`, and
-deletes the consumed fragments.
+deletes the consumed fragments. Alpha versions (e.g. `13.2.0a0`) do not
+get changelog release sections; keep fragments until the first release
+candidate or stable release.
 
 ## Direct pushes to `master`
 

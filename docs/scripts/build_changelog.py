@@ -187,14 +187,12 @@ def render_release_heading(version: str, date: str) -> str:
 def build_release_section(
     version: str, date: str, entries: dict[str, list[str]]
 ) -> str:
-    return "\n".join(
-        [
-            render_release_heading(version, date).rstrip(),
-            "",
-            render_sections(entries).rstrip(),
-            "",
-        ]
-    )
+    parts = [render_release_heading(version, date).rstrip()]
+    sections = render_sections(entries).rstrip()
+    if sections:
+        parts.extend(["", sections])
+    parts.append("")
+    return "\n".join(parts)
 
 
 def insert_release_section(changelog: str, release_section: str) -> str:
@@ -217,6 +215,12 @@ def build_command() -> int:
 
 
 def release_command(version: str, date: str) -> int:
+    if classify_release(version) == "Alpha":
+        raise ValueError(
+            "Alpha versions do not get changelog release sections. Keep fragments "
+            "in changelog.d until the first release candidate or stable release."
+        )
+
     changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
     fragments = load_fragments()
     if not fragments:
