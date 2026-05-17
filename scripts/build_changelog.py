@@ -33,9 +33,6 @@ SECTION_PATTERN = "|".join(key for key, _title in SECTION_ORDER)
 FILENAME_RE = re.compile(
     rf"^\d{{8}}-[A-Za-z0-9][A-Za-z0-9_-]*\.(?P<section>{SECTION_PATTERN})\.md$"
 )
-
-
-UNRELEASED_RE = re.compile(r"(?ms)^## Unreleased\n.*?(?=^## |\Z)")
 RELEASE_HEADING_RE = re.compile(r"^## \[(?P<version>[^\]]+)\].*$", re.MULTILINE)
 SECTION_HEADER_RE = re.compile(r"^### (?P<title>[A-Za-z][A-Za-z ]*?)\n", re.MULTILINE)
 
@@ -127,10 +124,6 @@ def render_sections(entries: dict[str, list[str]]) -> str:
     return "\n".join(parts).rstrip() + "\n"
 
 
-def render_unreleased_body(entries: dict[str, list[str]]) -> str:
-    return render_sections(entries)
-
-
 def parse_section_entries(body: str) -> list[str]:
     entries: list[list[str]] = []
 
@@ -186,50 +179,6 @@ def add_entries(
     for key, _title in SECTION_ORDER:
         target[key].extend(source.get(key, []))
     return target
-
-
-def get_unreleased_section(changelog: str) -> re.Match[str]:
-    match = UNRELEASED_RE.search(changelog)
-    if not match:
-        raise ValueError("Could not find '## Unreleased' section in CHANGELOG.md")
-    return match
-
-
-def replace_unreleased_body(changelog: str, body: str) -> str:
-    match = get_unreleased_section(changelog)
-    replacement = f"## Unreleased\n\n{body}"
-    if body:
-        replacement += "\n"
-    return changelog[: match.start()] + replacement + changelog[match.end() :]
-
-
-def remove_unreleased_section(changelog: str) -> str:
-    match = get_unreleased_section(changelog)
-    prefix = changelog[: match.start()].rstrip("\n")
-    suffix = changelog[match.end() :].lstrip("\n")
-    return f"{prefix}\n\n{suffix}" if suffix else f"{prefix}\n"
-
-
-def rebuild_unreleased(changelog: str, entries: dict[str, list[str]]) -> str:
-    return replace_unreleased_body(changelog, render_unreleased_body(entries))
-
-
-def assert_unreleased_is_empty(changelog: str) -> None:
-    match = UNRELEASED_RE.search(changelog)
-    if not match:
-        return
-
-    body = match.group(0).split("\n", 1)[1]
-    manual_lines = [
-        line
-        for line in body.splitlines()
-        if line.strip() and not line.strip().startswith("<!--")
-    ]
-    if manual_lines:
-        raise ValueError(
-            "## Unreleased must be empty because CHANGELOG.md is generated from "
-            "changelog fragments."
-        )
 
 
 def classify_release(version: str) -> str:
@@ -312,12 +261,13 @@ def insert_release_section(changelog: str, release_section: str) -> str:
 
 
 def build_command() -> int:
-    changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
     fragments = load_fragments()
     entries = group_entries(fragments)
-    updated = rebuild_unreleased(changelog, entries)
-    CHANGELOG_PATH.write_text(updated, encoding="utf-8")
-    print(f"Updated {CHANGELOG_PATH} from fragments in {FRAGMENTS_DIR}")
+    preview = render_sections(entries).rstrip()
+    if preview:
+        print(preview)
+    else:
+        print(f"No changelog fragments found in {FRAGMENTS_DIR}.")
     return 0
 
 
@@ -346,7 +296,6 @@ def check_mr_command(base: str, head: str) -> int:
         )
 
     load_fragments()
-    assert_unreleased_is_empty(CHANGELOG_PATH.read_text(encoding="utf-8"))
     print("Changelog MR check passed.")
     return 0
 
@@ -377,11 +326,7 @@ def release_command(version: str, date: str) -> int:
             "No changelog fragments or matching prerelease sections found."
         )
 
-    changelog = remove_spans(changelog, remove_prerelease_spans)
-    if release_type == "Release":
-        rebuilt = remove_unreleased_section(changelog)
-    else:
-        rebuilt = rebuild_unreleased(changelog, defaultdict(list))
+    rebuilt = remove_spans(changelog, remove_prerelease_spans)
     release_section = build_release_section(version, date, entries)
     updated = insert_release_section(rebuilt, release_section)
     CHANGELOG_PATH.write_text(updated, encoding="utf-8")
@@ -438,8 +383,7 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Build and manage PsyNet changelog fragments. Contributors commit "
             "only fragments in their MRs (never a regenerated CHANGELOG.md); "
-            "the rendered Unreleased block is refreshed by maintainers at "
-            "release time via --release."
+            "release notes are generated from fragments via --release."
         )
     )
     parser.add_argument(
@@ -455,7 +399,7 @@ def parse_args() -> argparse.Namespace:
         "--release",
         nargs=2,
         metavar=("VERSION", "DATE"),
-        help="Create a release section from current fragments and clear Unreleased.",
+        help="Create a release section from current fragments.",
     )
     parser.add_argument(
         "--check-mr",
@@ -477,15 +421,14 @@ def main() -> int:
             category, description = args.new
             return new_command(category, description)
 
-        if not CHANGELOG_PATH.exists():
-            print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
-            return 1
-
         if args.check_mr:
             base, head = args.check_mr
             return check_mr_command(base, head)
 
         if args.release:
+            if not CHANGELOG_PATH.exists():
+                print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
+                return 1
             version, date = args.release
             return release_command(version, date)
         return build_command()
