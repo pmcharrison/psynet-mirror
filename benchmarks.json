@@ -19,7 +19,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "98e98b56510b390b20ec3d8397bdd8d6f96993e7b4a37f69b61d74780af3c76c"
+        "version": "3"
     },
     "experiment_performance.Static.track_p95_response_time_ms": {
         "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
@@ -41,7 +41,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "17fd206d5e84af7fa2ff4f4f0a968c963ed75d495e40adc7c98607f8bd0416b8"
+        "version": "3"
     },
     "experiment_performance.Static.track_requests_per_sec": {
         "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
@@ -63,7 +63,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "4a65d026283eb6a4a1886e9e19c3d591d41185aa45e0071852fabff71dc0822f"
+        "version": "3"
     },
     "experiment_performance.StaticBig.track_bots_succeeded": {
         "code": "class _BaseExperiment:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
@@ -85,7 +85,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "b8b4dad96834c17edb3b1833d079276096df20d14bb8a2a00bb2f9701a06d412"
+        "version": "3"
     },
     "experiment_performance.StaticBig.track_p95_response_time_ms": {
         "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
@@ -107,7 +107,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "327a06984b15c4c6687ef687a52e32ab8961f0202f24cddc6814a6d4e4589fdc"
+        "version": "3"
     },
     "experiment_performance.StaticBig.track_requests_per_sec": {
         "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
@@ -129,7 +129,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "7a636d4e16925482e0f1ca3cbc3307e398c59129927df73acf706e5d1812e219"
+        "version": "3"
     },
     "experiment_performance.Timeline.track_bots_succeeded": {
         "code": "class _BaseExperiment:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
@@ -151,7 +151,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "a1433531c84490d6f712f4d03f6f3915881833e2235b0f02281a12983d06c369"
+        "version": "3"
     },
     "experiment_performance.Timeline.track_p95_response_time_ms": {
         "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
@@ -173,7 +173,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "2175a802db2bc618f212829fe620700d4c52d06bc3ece6c383addb095da32772"
+        "version": "3"
     },
     "experiment_performance.Timeline.track_requests_per_sec": {
         "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
@@ -195,7 +195,7 @@
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "8b312be093f8a372c051844c013df7de0a15c2a0c0fb87c79f0d5aaf419bf549"
+        "version": "3"
     },
     "function_benchmarks.SerializeRoundtrip.time_serialize": {
         "code": "class SerializeRoundtrip:\n    def time_serialize(self, cache):\n        serialize(cache[\"obj\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
@@ -211,7 +211,7 @@
         "timeout": 120,
         "type": "time",
         "unit": "seconds",
-        "version": "4e516127150b984ab3590b90ca6edcda0d6f26fd3b5e27a967b214607465e5fc",
+        "version": "1",
         "warmup_time": -1
     },
     "function_benchmarks.SerializeRoundtrip.time_unserialize": {
@@ -228,7 +228,7 @@
         "timeout": 120,
         "type": "time",
         "unit": "seconds",
-        "version": "c1d909b7332459f0f9d66982488a635374ed431da26dfaf5a87e9cce6122813c",
+        "version": "1",
         "warmup_time": -1
     },
     "function_benchmarks.SerializeRoundtrip.track_encoded_size": {
@@ -240,7 +240,7 @@
         "timeout": 120,
         "type": "track",
         "unit": "bytes",
-        "version": "355346aab097864d0f5423b6c56b3ba0765be81a0199e463020a8550c7129eb5"
+        "version": "1"
     },
     "version": 2
 }
