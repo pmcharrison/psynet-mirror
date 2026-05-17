@@ -30,16 +30,8 @@ SECTION_TITLE_TO_KEY = {title: key for key, title in SECTION_ORDER}
 SECTION_PATTERN = "|".join(key for key, _title in SECTION_ORDER)
 
 FILENAME_RE = re.compile(
-    rf"^(?P<id>\d{{8}}-[A-Za-z0-9][A-Za-z0-9_-]*)\.(?P<section>{SECTION_PATTERN})\.md$"
+    rf"^\d{{8}}-[A-Za-z0-9][A-Za-z0-9_-]*\.(?P<section>{SECTION_PATTERN})\.md$"
 )
-
-
-def fragment_sort_key(name: str) -> tuple:
-    """Sort date-prefixed fragment filenames lexicographically."""
-    match = FILENAME_RE.match(name)
-    if match is None:
-        return (1, name)
-    return (0, match["id"], name)
 
 
 UNRELEASED_RE = re.compile(r"(?ms)^## Unreleased\n.*?(?=^## |\Z)")
@@ -88,7 +80,7 @@ def list_fragment_paths() -> list[Path]:
             + f". Expected <YYYYMMDD-slug>.({SECTION_PATTERN}).md"
         )
 
-    paths.sort(key=lambda p: fragment_sort_key(p.name))
+    paths.sort(key=lambda p: p.name)
     return paths
 
 
