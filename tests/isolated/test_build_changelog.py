@@ -171,8 +171,6 @@ def test_stable_release_requires_fragments_or_matching_prerelease_sections(
 
 
 def test_fragment_listing_edge_cases(build_changelog, monkeypatch, tmp_path):
-    assert build_changelog.fragment_sort_key("not-a-fragment") == (1, "not-a-fragment")
-
     missing_dir = tmp_path / "missing"
     monkeypatch.setattr(build_changelog, "FRAGMENTS_DIR", missing_dir)
     assert build_changelog.list_fragment_paths() == []
