@@ -41,8 +41,8 @@ def test_root_points_to_repository_root(build_changelog):
 
 
 def test_build_command_renders_fragments_without_consuming_them(build_changelog):
-    added = build_changelog.FRAGMENTS_DIR / "10.added.md"
-    fixed = build_changelog.FRAGMENTS_DIR / "2.fixed.md"
+    added = build_changelog.FRAGMENTS_DIR / "20260513-added-alpha.added.md"
+    fixed = build_changelog.FRAGMENTS_DIR / "20260513-fixed-beta.fixed.md"
     added.write_text("Added alpha\n", encoding="utf-8")
     fixed.write_text("Fixed beta\n", encoding="utf-8")
 
@@ -171,7 +171,7 @@ def test_stable_release_requires_fragments_or_matching_prerelease_sections(
 
 
 def test_fragment_listing_edge_cases(build_changelog, monkeypatch, tmp_path):
-    assert build_changelog.fragment_sort_key("not-a-fragment") == (2, "not-a-fragment")
+    assert build_changelog.fragment_sort_key("not-a-fragment") == (1, "not-a-fragment")
 
     missing_dir = tmp_path / "missing"
     monkeypatch.setattr(build_changelog, "FRAGMENTS_DIR", missing_dir)
@@ -183,11 +183,11 @@ def test_fragment_listing_edge_cases(build_changelog, monkeypatch, tmp_path):
     (fragments_dir / "README.md").write_text("docs\n", encoding="utf-8")
     (fragments_dir / ".ignored.md").write_text("hidden\n", encoding="utf-8")
     (fragments_dir / "subdir").mkdir()
-    valid = fragments_dir / "1.fixed.md"
+    valid = fragments_dir / "20260516-valid.fixed.md"
     valid.write_text("Fixed bug\n", encoding="utf-8")
     assert build_changelog.list_fragment_paths() == [valid]
 
-    (fragments_dir / "bad.fragment").write_text("bad\n", encoding="utf-8")
+    (fragments_dir / "1.fixed.md").write_text("bad\n", encoding="utf-8")
     with pytest.raises(ValueError, match="Invalid changelog fragment filename"):
         build_changelog.list_fragment_paths()
 

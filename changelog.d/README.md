@@ -12,16 +12,13 @@ stub, which you then edit to the final entry.
 
 ## Filename format
 
-`<id>.<category>.md`
+`<YYYYMMDD-slug>.<category>.md`
 
-Where `<id>` is any alphanumeric token (with `_` or `-`) that uniquely
-identifies the fragment. The `--new` helper generates IDs of the form
-`<YYYYMMDD>-<slug>`. The date prefix keeps fragments roughly
-chronological and the slug differentiates same-day fragments;
-the helper refuses to overwrite an existing file, so use a more
-specific description if it complains. Hand-rolled IDs (numbers,
-branch slugs, plain descriptive slugs, etc.) are also valid as long
-as they are unique within `changelog.d/`.
+The date prefix keeps fragments roughly chronological and the slug
+differentiates same-day fragments. The `--new` helper creates this
+format automatically and refuses to overwrite an existing file, so use a
+more specific description if it complains. Hand-rolled fragment names
+are valid only if they follow the same date-prefixed format.
 
 Supported categories (rendered in this order):
 
@@ -84,14 +81,9 @@ with the `--new` helper so the change appears in the next release notes.
 Its date-prefixed filenames stay unique as long as slugs differ on the
 same day.
 
-## Legacy IDs
+## Migrated fragments
 
-The directory currently also contains fragments with bare numeric IDs:
-
-- `9xxx.<category>.md` — one-shot synthetic IDs used when the
-  historical `## Unreleased` block was migrated into fragments.
-- `<MR-number>.<category>.md` — older MR-numbered fragments from before
-  the slug-based convention.
-
-These remain valid and will be consumed at the next release. Please use
-the `--new` helper for all new fragments going forward.
+The historical `## Unreleased` block was migrated into date-prefixed
+fragments using commit-history dates and descriptive slugs. These remain
+valid and will be consumed at the next release. Please use the `--new`
+helper for all new fragments going forward.
