@@ -9,8 +9,6 @@ import pytest
 SCRIPT_PATH = Path(__file__).parents[2] / "scripts" / "build_changelog.py"
 BASE_CHANGELOG = """# CHANGELOG
 
-## Unreleased
-
 ## [13.1.1](url) Release - 2026-02-18
 """
 
@@ -41,7 +39,9 @@ def test_root_points_to_repository_root(build_changelog):
     assert build_changelog.ROOT == Path(__file__).parents[2]
 
 
-def test_build_command_renders_fragments_without_consuming_them(build_changelog):
+def test_build_command_previews_fragments_without_consuming_them(
+    build_changelog, capsys
+):
     added = build_changelog.FRAGMENTS_DIR / "20260513-added-alpha.added.md"
     fixed = build_changelog.FRAGMENTS_DIR / "20260513-fixed-beta.fixed.md"
     added.write_text("Added alpha\n", encoding="utf-8")
@@ -49,12 +49,19 @@ def test_build_command_renders_fragments_without_consuming_them(build_changelog)
 
     assert build_changelog.build_command() == 0
 
-    rendered = read_changelog(build_changelog)
+    rendered = capsys.readouterr().out
     assert "### Added\n\n- Added alpha" in rendered
     assert "### Fixed\n\n- Fixed beta" in rendered
     assert rendered.index("Added alpha") < rendered.index("Fixed beta")
+    assert "Added alpha" not in read_changelog(build_changelog)
     assert added.exists()
     assert fixed.exists()
+
+
+def test_build_command_reports_when_there_are_no_fragments(build_changelog, capsys):
+    assert build_changelog.build_command() == 0
+
+    assert "No changelog fragments found" in capsys.readouterr().out
 
 
 def test_new_command_creates_date_prefixed_slug_and_detects_collisions(
@@ -84,7 +91,7 @@ def test_alpha_release_is_rejected_and_keeps_fragments(build_changelog):
     assert fragment.exists()
 
 
-def test_release_candidate_consumes_fragments_and_keeps_unreleased_block(
+def test_release_candidate_consumes_fragments_without_placeholder_block(
     build_changelog,
 ):
     fragment = build_changelog.FRAGMENTS_DIR / "20260516-rc-fragment.fixed.md"
@@ -93,7 +100,8 @@ def test_release_candidate_consumes_fragments_and_keeps_unreleased_block(
     assert build_changelog.release_command("13.2.0rc1", "2026-05-16") == 0
 
     text = read_changelog(build_changelog)
-    assert text.startswith("# CHANGELOG\n\n## Unreleased\n\n## [13.2.0rc1]")
+    assert text.startswith("# CHANGELOG\n\n## [13.2.0rc1]")
+    assert text.count("\n## ") == 2
     assert "Release candidate - 2026-05-16" in text
     assert "- RC fixed entry" in text
     assert not fragment.exists()
@@ -104,8 +112,6 @@ def test_stable_release_consumes_prerelease_sections_and_remaining_fragments(
 ):
     build_changelog.CHANGELOG_PATH.write_text(
         """# CHANGELOG
-
-## Unreleased
 
 ## [13.2.0rc1](url) Release candidate - 2026-05-07
 
@@ -144,7 +150,6 @@ def test_stable_release_consumes_prerelease_sections_and_remaining_fragments(
 
     text = read_changelog(build_changelog)
     assert text.startswith("# CHANGELOG\n\n## [13.2.0]")
-    assert "## Unreleased" not in text
     assert "## [13.2.0b0]" not in text
     assert "## [13.2.0rc1]" not in text
     assert "## [13.2.0rc0]" not in text
@@ -216,16 +221,10 @@ def test_section_entry_parsing_edge_cases(build_changelog):
         build_changelog.parse_sectioned_entries("### Security\n\n- Secret fix\n")
 
 
-def test_changelog_section_helpers_raise_for_missing_unreleased(build_changelog):
-    changelog = "# CHANGELOG\n\n## [1.0.0](url) Release - 2026-01-01\n"
-    with pytest.raises(ValueError, match="Could not find '## Unreleased'"):
-        build_changelog.get_unreleased_section(changelog)
-
-
 def test_release_labels_and_insertion_without_existing_release(build_changelog):
     assert build_changelog.classify_release("13.2.0b1") == "Beta"
 
-    changelog = "# CHANGELOG\n\n## Unreleased\n\n"
+    changelog = "# CHANGELOG\n"
     inserted = build_changelog.insert_release_section(
         changelog,
         build_changelog.build_release_section(
@@ -270,7 +269,9 @@ def test_main_dispatches_to_modes_and_errors(build_changelog, monkeypatch, capsy
     assert "Use only one of" in capsys.readouterr().err
 
     build_changelog.CHANGELOG_PATH.unlink()
-    monkeypatch.setattr(sys, "argv", ["build_changelog.py"])
+    monkeypatch.setattr(
+        sys, "argv", ["build_changelog.py", "--release", "13.2.0", "2026-05-16"]
+    )
     assert build_changelog.main() == 1
     assert "Missing" in capsys.readouterr().err
 
@@ -280,7 +281,7 @@ def test_changed_files_uses_git_diff(build_changelog, monkeypatch):
 
     def fake_run(args, **kwargs):
         calls.append((args, kwargs))
-        return subprocess.CompletedProcess(args, 0, stdout="a.py\nb.py\n")
+        return subprocess.CompletedProcess(args, 0, stdout="a.py\n\nb.py\n")
 
     monkeypatch.setattr(build_changelog.subprocess, "run", fake_run)
 
@@ -344,24 +345,7 @@ def test_check_mr_command_rejects_invalid_extra_fragment(build_changelog, monkey
         build_changelog.check_mr_command("base", "head")
 
 
-def test_check_mr_command_rejects_manual_unreleased(build_changelog, monkeypatch):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
-    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
-    build_changelog.CHANGELOG_PATH.write_text(
-        "# CHANGELOG\n\n## Unreleased\n\n- Manual entry\n\n## [13.1.1](url)\n",
-        encoding="utf-8",
-    )
-    monkeypatch.setattr(
-        build_changelog,
-        "changed_files",
-        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
-    )
-
-    with pytest.raises(ValueError, match="## Unreleased must be empty"):
-        build_changelog.check_mr_command("base", "head")
-
-
-def test_check_mr_command_allows_missing_unreleased_for_release_mrs(
+def test_check_mr_command_allows_changelog_with_only_releases(
     build_changelog, monkeypatch
 ):
     fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
@@ -377,6 +361,32 @@ def test_check_mr_command_allows_missing_unreleased_for_release_mrs(
     )
 
     assert build_changelog.check_mr_command("base", "head") == 0
+
+
+def test_build_command_previews_fragments_when_changelog_has_releases(
+    build_changelog, capsys
+):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    build_changelog.CHANGELOG_PATH.write_text(
+        "# CHANGELOG\n\n## [13.2.0](url)\n",
+        encoding="utf-8",
+    )
+
+    assert build_changelog.build_command() == 0
+
+    assert capsys.readouterr().out == "### Fixed\n\n- Fixed valid thing\n"
+    assert read_changelog(build_changelog) == "# CHANGELOG\n\n## [13.2.0](url)\n"
+
+
+def test_build_command_previews_fragments_without_changelog(build_changelog, capsys):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    build_changelog.CHANGELOG_PATH.unlink()
+
+    assert build_changelog.build_command() == 0
+
+    assert capsys.readouterr().out == "### Fixed\n\n- Fixed valid thing\n"
 
 
 def test_main_dispatches_to_check_mr(build_changelog, monkeypatch):
@@ -414,7 +424,6 @@ def test_main_defaults_to_build_command(build_changelog, monkeypatch):
     monkeypatch.setattr(sys, "argv", ["build_changelog.py"])
 
     assert build_changelog.main() == 0
-    assert "Default build fix" in read_changelog(build_changelog)
     assert fragment.exists()
 
 

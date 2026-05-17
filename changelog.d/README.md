@@ -44,16 +44,16 @@ Examples:
 
 Contributors commit **only** the fragment file in their MR, never a
 regenerated `CHANGELOG.md`. `CHANGELOG.md` is a generated artifact and
-its `## Unreleased` block is rebuilt by the maintainer at release time;
+contains released sections only;
 committing it from MRs would re-introduce the merge-conflict problem
 that fragments are designed to prevent.
 
 If you want to preview how your fragment will render, run the script
-locally and discard the resulting `CHANGELOG.md` change before pushing:
+locally. It prints the rendered fragment sections to stdout and leaves
+`CHANGELOG.md` unchanged:
 
 ```bash
 python scripts/build_changelog.py
-git restore CHANGELOG.md
 ```
 
 Maintainers cut a release from the current fragments with:
@@ -63,14 +63,12 @@ python scripts/build_changelog.py --release 13.2.0 2026-03-13
 ```
 
 This inserts a new `## [13.2.0]` section and deletes the consumed
-fragments. Release candidates keep an empty `## Unreleased`
-section so more fragments can accumulate before the next candidate or
-stable release. Alpha versions (e.g. `13.2.0a0`) do not get changelog
-release sections; keep fragments until the first release candidate or
-stable release. Stable releases remove `## Unreleased` and consume all
-matching beta and release-candidate sections (e.g. `13.2.0b0`,
-`13.2.0rc1`) plus any remaining fragments so the final release notes are
-complete.
+fragments. Beta and release-candidate versions also insert normal
+versioned sections. Alpha versions (e.g. `13.2.0a0`) do not get
+changelog release sections; keep fragments until the first release
+candidate or stable release. Stable releases consume all matching beta
+and release-candidate sections (e.g. `13.2.0b0`, `13.2.0rc1`) plus any
+remaining fragments so the final release notes are complete.
 
 ## Direct pushes to `master`
 
@@ -83,7 +81,7 @@ same day.
 
 ## Migrated fragments
 
-The historical `## Unreleased` block was migrated into date-prefixed
+The historical in-progress changelog block was migrated into date-prefixed
 fragments using commit-history dates and descriptive slugs. These remain
 valid and will be consumed at the next release. Please use the `--new`
 helper for all new fragments going forward.
