@@ -281,6 +281,16 @@ def changed_files(base: str, head: str) -> list[str]:
     return [line for line in result.stdout.splitlines() if line]
 
 
+def changelog_diff(base: str, head: str) -> str:
+    result = subprocess.run(
+        ["git", "diff", "--unified=0", base, head, "--", "CHANGELOG.md"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout
+
+
 def is_fragment_path(path: str) -> bool:
     return (
         path.startswith("changelog.d/")
@@ -288,10 +298,43 @@ def is_fragment_path(path: str) -> bool:
     )
 
 
+def prerelease_base_version(version: str) -> str | None:
+    match = re.match(r"^(?P<base>.+?)(?:b|rc)\d+$", version)
+    return match.group("base") if match else None
+
+
+def is_stable_release_changelog_diff(diff: str) -> bool:
+    added_stable_versions: set[str] = set()
+    removed_prerelease_bases: set[str] = set()
+
+    for line in diff.splitlines():
+        if not line.startswith(("+", "-")) or line.startswith(("+++", "---")):
+            continue
+
+        heading = RELEASE_HEADING_RE.match(line[1:])
+        if heading is None:
+            continue
+
+        version = heading.group("version")
+        if line.startswith("+") and classify_release(version) == "Release":
+            added_stable_versions.add(version)
+        elif line.startswith("-"):
+            base_version = prerelease_base_version(version)
+            if base_version is not None:
+                removed_prerelease_bases.add(base_version)
+
+    return bool(added_stable_versions & removed_prerelease_bases)
+
+
 def check_mr_command(base: str, head: str) -> int:
-    if not any(is_fragment_path(path) for path in changed_files(base, head)):
+    changes = changed_files(base, head)
+    if not any(is_fragment_path(path) for path in changes) and not (
+        "CHANGELOG.md" in changes
+        and is_stable_release_changelog_diff(changelog_diff(base, head))
+    ):
         raise ValueError(
-            "MR must add or delete a changelog fragment. "
+            "MR must add or delete a changelog fragment, unless it folds beta/RC "
+            "changelog sections into a stable release. "
             'Run: python scripts/build_changelog.py --new <category> "<description>"'
         )
 

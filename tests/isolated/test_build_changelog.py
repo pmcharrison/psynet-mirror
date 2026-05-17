@@ -294,6 +294,45 @@ def test_changed_files_uses_git_diff(build_changelog, monkeypatch):
     ]
 
 
+def test_changelog_diff_uses_git_diff(build_changelog, monkeypatch):
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append((args, kwargs))
+        return subprocess.CompletedProcess(args, 0, stdout="diff")
+
+    monkeypatch.setattr(build_changelog.subprocess, "run", fake_run)
+
+    assert build_changelog.changelog_diff("base", "head") == "diff"
+    assert calls == [
+        (
+            ["git", "diff", "--unified=0", "base", "head", "--", "CHANGELOG.md"],
+            {"check": True, "capture_output": True, "text": True},
+        )
+    ]
+
+
+def test_stable_release_changelog_diff_detection(build_changelog):
+    assert build_changelog.prerelease_base_version("13.2.0b0") == "13.2.0"
+    assert build_changelog.prerelease_base_version("13.2.0rc1") == "13.2.0"
+    assert build_changelog.prerelease_base_version("13.2.0") is None
+    assert build_changelog.is_stable_release_changelog_diff(
+        "\n".join(
+            [
+                "diff --git a/CHANGELOG.md b/CHANGELOG.md",
+                "--- a/CHANGELOG.md",
+                "+++ b/CHANGELOG.md",
+                "+not a release heading",
+                "-## [13.2.0rc1](url) Release candidate - 2026-05-07",
+                "+## [13.2.0](url) Release - 2026-05-16",
+            ]
+        )
+    )
+    assert not build_changelog.is_stable_release_changelog_diff(
+        "+## [13.2.0b1](url) Beta - 2026-05-16"
+    )
+
+
 def test_check_mr_command_validates_current_fragments(build_changelog, monkeypatch):
     fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
     fragment.write_text("Fixed valid thing\n", encoding="utf-8")
@@ -312,6 +351,7 @@ def test_check_mr_command_requires_fragment_path(build_changelog, monkeypatch):
         "changed_files",
         lambda _base, _head: ["psynet/module.py"],
     )
+    monkeypatch.setattr(build_changelog, "changelog_diff", lambda _base, _head: "")
 
     with pytest.raises(ValueError, match="MR must add or delete a changelog fragment"):
         build_changelog.check_mr_command("base", "head")
@@ -358,6 +398,26 @@ def test_check_mr_command_allows_changelog_with_only_releases(
         build_changelog,
         "changed_files",
         lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
+    )
+
+    assert build_changelog.check_mr_command("base", "head") == 0
+
+
+def test_check_mr_command_allows_stable_release_changelog_fold(
+    build_changelog, monkeypatch
+):
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["CHANGELOG.md"],
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "changelog_diff",
+        lambda _base, _head: (
+            "-## [13.2.0rc1](url) Release candidate - 2026-05-07\n"
+            "+## [13.2.0](url) Release - 2026-05-16\n"
+        ),
     )
 
     assert build_changelog.check_mr_command("base", "head") == 0
