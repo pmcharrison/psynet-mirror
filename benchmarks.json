@@ -1,6 +1,6 @@
 {
     "experiment_performance.Static.track_bots_succeeded": {
-        "code": "class Static:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Static.track_bots_succeeded",
         "param_names": [
             "n_bots",
@@ -15,14 +15,14 @@
             ]
         ],
         "pretty_name": "static Bots Succeeded",
-        "setup_cache_key": "experiment_performance:190",
+        "setup_cache_key": "experiment_performance:183",
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "08ef3f97dc48650098975d568efdb53a321071e93a5d4b869860195e7ae1c9b9"
+        "version": "98e98b56510b390b20ec3d8397bdd8d6f96993e7b4a37f69b61d74780af3c76c"
     },
     "experiment_performance.Static.track_p95_response_time_ms": {
-        "code": "class Static:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Static.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
@@ -37,14 +37,14 @@
             ]
         ],
         "pretty_name": "static P95 Response Time",
-        "setup_cache_key": "experiment_performance:190",
+        "setup_cache_key": "experiment_performance:183",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "60954d5bd5ebe0867ad5e8be95b9f65ead6a2d540aa54675292b1a4ff4635137"
+        "version": "17fd206d5e84af7fa2ff4f4f0a968c963ed75d495e40adc7c98607f8bd0416b8"
     },
     "experiment_performance.Static.track_requests_per_sec": {
-        "code": "class Static:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Static.track_requests_per_sec",
         "param_names": [
             "n_bots",
@@ -59,14 +59,14 @@
             ]
         ],
         "pretty_name": "static Requests/sec",
-        "setup_cache_key": "experiment_performance:190",
+        "setup_cache_key": "experiment_performance:183",
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "c61e55eb99f8c0e577e0ef03009038bf76f07dd233215111035f62eed2c26c7b"
+        "version": "4a65d026283eb6a4a1886e9e19c3d591d41185aa45e0071852fabff71dc0822f"
     },
     "experiment_performance.StaticBig.track_bots_succeeded": {
-        "code": "class StaticBig:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.StaticBig.track_bots_succeeded",
         "param_names": [
             "n_bots",
@@ -81,14 +81,14 @@
             ]
         ],
         "pretty_name": "static_big Bots Succeeded",
-        "setup_cache_key": "experiment_performance:198",
+        "setup_cache_key": "experiment_performance:191",
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "4d794b2fcf3b81ea5dec6e5833b3465a3fb4ef1af1fb8687ef7ffb114895e5bf"
+        "version": "b8b4dad96834c17edb3b1833d079276096df20d14bb8a2a00bb2f9701a06d412"
     },
     "experiment_performance.StaticBig.track_p95_response_time_ms": {
-        "code": "class StaticBig:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.StaticBig.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
@@ -103,14 +103,14 @@
             ]
         ],
         "pretty_name": "static_big P95 Response Time",
-        "setup_cache_key": "experiment_performance:198",
+        "setup_cache_key": "experiment_performance:191",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "3fbd78a14005e666deb0ca84138cc02f740f3943285a50041e728917e40d2816"
+        "version": "327a06984b15c4c6687ef687a52e32ab8961f0202f24cddc6814a6d4e4589fdc"
     },
     "experiment_performance.StaticBig.track_requests_per_sec": {
-        "code": "class StaticBig:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.StaticBig.track_requests_per_sec",
         "param_names": [
             "n_bots",
@@ -125,14 +125,14 @@
             ]
         ],
         "pretty_name": "static_big Requests/sec",
-        "setup_cache_key": "experiment_performance:198",
+        "setup_cache_key": "experiment_performance:191",
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "c296c048b01ede1bd2c3b8e6cc0a6ae43061b84c62135159b28f8e774222f5c0"
+        "version": "7a636d4e16925482e0f1ca3cbc3307e398c59129927df73acf706e5d1812e219"
     },
     "experiment_performance.Timeline.track_bots_succeeded": {
-        "code": "class Timeline:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_bots_succeeded(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"bots_succeeded\"]\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Timeline.track_bots_succeeded",
         "param_names": [
             "n_bots",
@@ -147,14 +147,14 @@
             ]
         ],
         "pretty_name": "timeline Bots Succeeded",
-        "setup_cache_key": "experiment_performance:183",
+        "setup_cache_key": "experiment_performance:176",
         "timeout": 1800,
         "type": "track",
         "unit": "count",
-        "version": "e8df7be374709213363b1cedae95fee4d9b12c0003af90da7dc3dbf9687936c5"
+        "version": "a1433531c84490d6f712f4d03f6f3915881833e2235b0f02281a12983d06c369"
     },
     "experiment_performance.Timeline.track_p95_response_time_ms": {
-        "code": "class Timeline:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Timeline.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
@@ -169,14 +169,14 @@
             ]
         ],
         "pretty_name": "timeline P95 Response Time",
-        "setup_cache_key": "experiment_performance:183",
+        "setup_cache_key": "experiment_performance:176",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
-        "version": "20982d152f0d4b2d7f3c5f714d7ffed74a6be9dd2dd5211baed1f4a984bcb567"
+        "version": "2175a802db2bc618f212829fe620700d4c52d06bc3ece6c383addb095da32772"
     },
     "experiment_performance.Timeline.track_requests_per_sec": {
-        "code": "class Timeline:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\n    def setup_cache(self):\n        return super().setup_cache()",
+        "code": "class _BaseExperiment:\n    def track_requests_per_sec(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"requests_per_sec\"]\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
         "name": "experiment_performance.Timeline.track_requests_per_sec",
         "param_names": [
             "n_bots",
@@ -191,11 +191,11 @@
             ]
         ],
         "pretty_name": "timeline Requests/sec",
-        "setup_cache_key": "experiment_performance:183",
+        "setup_cache_key": "experiment_performance:176",
         "timeout": 1800,
         "type": "track",
         "unit": "req/s",
-        "version": "ac17122d8c9283f4be00f3270d9a5c3fb628b87b549d072bbf8b4208134a9901"
+        "version": "8b312be093f8a372c051844c013df7de0a15c2a0c0fb87c79f0d5aaf419bf549"
     },
     "function_benchmarks.SerializeRoundtrip.time_serialize": {
         "code": "class SerializeRoundtrip:\n    def time_serialize(self, cache):\n        serialize(cache[\"obj\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
