@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 import time
 import unicodedata
@@ -213,6 +214,24 @@ def rebuild_unreleased(changelog: str, entries: dict[str, list[str]]) -> str:
     return replace_unreleased_body(changelog, render_unreleased_body(entries))
 
 
+def assert_unreleased_is_empty(changelog: str) -> None:
+    match = UNRELEASED_RE.search(changelog)
+    if not match:
+        return
+
+    body = match.group(0).split("\n", 1)[1]
+    manual_lines = [
+        line
+        for line in body.splitlines()
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    if manual_lines:
+        raise ValueError(
+            "## Unreleased must be empty because CHANGELOG.md is generated from "
+            "changelog fragments."
+        )
+
+
 def classify_release(version: str) -> str:
     lowered = version.lower()
     if "rc" in lowered:
@@ -299,6 +318,36 @@ def build_command() -> int:
     updated = rebuild_unreleased(changelog, entries)
     CHANGELOG_PATH.write_text(updated, encoding="utf-8")
     print(f"Updated {CHANGELOG_PATH} from fragments in {FRAGMENTS_DIR}")
+    return 0
+
+
+def changed_files(base: str, head: str) -> list[str]:
+    result = subprocess.run(
+        ["git", "diff", "--name-only", base, head],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [line for line in result.stdout.splitlines() if line]
+
+
+def is_fragment_path(path: str) -> bool:
+    return (
+        path.startswith("changelog.d/")
+        and FILENAME_RE.match(Path(path).name) is not None
+    )
+
+
+def check_mr_command(base: str, head: str) -> int:
+    if not any(is_fragment_path(path) for path in changed_files(base, head)):
+        raise ValueError(
+            "MR must add or delete a changelog fragment. "
+            'Run: python scripts/build_changelog.py --new <category> "<description>"'
+        )
+
+    load_fragments()
+    assert_unreleased_is_empty(CHANGELOG_PATH.read_text(encoding="utf-8"))
+    print("Changelog MR check passed.")
     return 0
 
 
@@ -408,15 +457,21 @@ def parse_args() -> argparse.Namespace:
         metavar=("VERSION", "DATE"),
         help="Create a release section from current fragments and clear Unreleased.",
     )
+    parser.add_argument(
+        "--check-mr",
+        nargs=2,
+        metavar=("BASE", "HEAD"),
+        help="Validate changelog fragment requirements for an MR diff.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     try:
         args = parse_args()
-        modes = sum(1 for x in (args.new, args.release) if x)
+        modes = sum(1 for x in (args.new, args.release, args.check_mr) if x)
         if modes > 1:
-            raise ValueError("Use only one of --new, --release.")
+            raise ValueError("Use only one of --new, --release, --check-mr.")
 
         if args.new:
             category, description = args.new
@@ -425,6 +480,10 @@ def main() -> int:
         if not CHANGELOG_PATH.exists():
             print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
             return 1
+
+        if args.check_mr:
+            base, head = args.check_mr
+            return check_mr_command(base, head)
 
         if args.release:
             version, date = args.release
