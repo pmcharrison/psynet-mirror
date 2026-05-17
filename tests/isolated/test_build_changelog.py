@@ -98,7 +98,9 @@ def test_release_candidate_consumes_fragments_and_keeps_unreleased_block(
     assert not fragment.exists()
 
 
-def test_stable_release_consumes_rc_sections_and_remaining_fragments(build_changelog):
+def test_stable_release_consumes_prerelease_sections_and_remaining_fragments(
+    build_changelog,
+):
     build_changelog.CHANGELOG_PATH.write_text(
         """# CHANGELOG
 
@@ -124,6 +126,12 @@ def test_stable_release_consumes_rc_sections_and_remaining_fragments(build_chang
 
 - RC0 fixed entry
 
+## [13.2.0b0](url) Beta - 2026-04-20
+
+### Added
+
+- Beta0 added entry
+
 ## [13.1.1](url) Release - 2026-02-18
 """,
         encoding="utf-8",
@@ -136,23 +144,28 @@ def test_stable_release_consumes_rc_sections_and_remaining_fragments(build_chang
     text = read_changelog(build_changelog)
     assert text.startswith("# CHANGELOG\n\n## [13.2.0]")
     assert "## Unreleased" not in text
+    assert "## [13.2.0b0]" not in text
     assert "## [13.2.0rc1]" not in text
     assert "## [13.2.0rc0]" not in text
     assert "## [13.1.1]" in text
 
     final_section = text.split("## [13.2.0]", 1)[1].split("## [13.1.1]", 1)[0]
+    assert "Beta0 added entry" in final_section
     assert "RC0 added entry" in final_section
     assert (
-        final_section.index("RC0 fixed entry")
+        final_section.index("Beta0 added entry")
+        < final_section.index("RC0 fixed entry")
         < final_section.index("RC1 fixed entry")
         < final_section.index("Final leftover fixed entry")
     )
     assert not fragment.exists()
 
 
-def test_stable_release_requires_fragments_or_matching_rc_sections(build_changelog):
+def test_stable_release_requires_fragments_or_matching_prerelease_sections(
+    build_changelog,
+):
     with pytest.raises(
-        ValueError, match="No changelog fragments or matching release candidates found"
+        ValueError, match="No changelog fragments or matching prerelease sections found"
     ):
         build_changelog.release_command("13.2.0", "2026-05-16")
 
@@ -212,7 +225,6 @@ def test_changelog_section_helpers_raise_for_missing_unreleased(build_changelog)
 
 def test_release_labels_and_insertion_without_existing_release(build_changelog):
     assert build_changelog.classify_release("13.2.0b1") == "Beta"
-    assert build_changelog.classify_release("13.2.0-beta.1") == "Beta"
 
     changelog = "# CHANGELOG\n\n## Unreleased\n\n"
     inserted = build_changelog.insert_release_section(

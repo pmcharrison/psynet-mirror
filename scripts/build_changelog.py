@@ -228,32 +228,36 @@ def classify_release(version: str) -> str:
     lowered = version.lower()
     if "rc" in lowered:
         return "Release candidate"
-    if "alpha" in lowered or re.search(r"(?<=[0-9._-])a\d+\b", lowered):
+    if re.search(r"(?<=[0-9._-])a\d+\b", lowered):
         return "Alpha"
-    if "beta" in lowered or re.search(r"(?<=[0-9._-])b\d+\b", lowered):
+    if re.search(r"(?<=[0-9._-])b\d+\b", lowered):
         return "Beta"
     return "Release"
 
 
-def matching_release_candidate_sections(
+def matching_prerelease_sections(
     changelog: str, version: str
-) -> list[tuple[int, int, int, dict[str, list[str]]]]:
-    sections: list[tuple[int, int, int, dict[str, list[str]]]] = []
+) -> list[tuple[tuple[int, int], int, int, dict[str, list[str]]]]:
+    sections: list[tuple[tuple[int, int], int, int, dict[str, list[str]]]] = []
     headings = list(RELEASE_HEADING_RE.finditer(changelog))
-    rc_version_re = re.compile(rf"^{re.escape(version)}rc(?P<number>\d+)$")
+    prerelease_version_re = re.compile(
+        rf"^{re.escape(version)}(?P<label>b|rc)(?P<number>\d+)$"
+    )
 
     for index, heading in enumerate(headings):
-        match = rc_version_re.match(heading.group("version"))
+        match = prerelease_version_re.match(heading.group("version"))
         if match is None:
             continue
 
+        label = match.group("label")
+        prerelease_order = 0 if label == "b" else 1
         body_start = heading.end()
         end = (
             headings[index + 1].start() if index + 1 < len(headings) else len(changelog)
         )
         sections.append(
             (
-                int(match.group("number")),
+                (prerelease_order, int(match.group("number"))),
                 heading.start(),
                 end,
                 parse_sectioned_entries(changelog[body_start:end]),
@@ -321,19 +325,21 @@ def release_command(version: str, date: str) -> int:
     fragments = load_fragments()
     fragment_entries = group_entries(fragments)
     entries: dict[str, list[str]] = defaultdict(list)
-    remove_release_candidate_spans: list[tuple[int, int]] = []
+    remove_prerelease_spans: list[tuple[int, int]] = []
     if release_type == "Release":
-        for _rc_number, start, end, rc_entries in matching_release_candidate_sections(
+        for _sort_key, start, end, prerelease_entries in matching_prerelease_sections(
             changelog, version
         ):
-            add_entries(entries, rc_entries)
-            remove_release_candidate_spans.append((start, end))
+            add_entries(entries, prerelease_entries)
+            remove_prerelease_spans.append((start, end))
     add_entries(entries, fragment_entries)
 
     if not any(entries.values()):
-        raise ValueError("No changelog fragments or matching release candidates found.")
+        raise ValueError(
+            "No changelog fragments or matching prerelease sections found."
+        )
 
-    changelog = remove_spans(changelog, remove_release_candidate_spans)
+    changelog = remove_spans(changelog, remove_prerelease_spans)
     if release_type == "Release":
         rebuilt = remove_unreleased_section(changelog)
     else:
