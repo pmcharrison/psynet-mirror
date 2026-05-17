@@ -74,7 +74,7 @@ changelog_check:
       git fetch --unshallow origin || git fetch --depth=100 origin
       git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       MERGE_BASE=$(git merge-base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD)
-      FRAG_RE='^changelog\.d/[A-Za-z0-9][A-Za-z0-9_-]*\.(breaking|added|changed|deprecated|removed|fixed|updated|documentation)\.md$'
+      FRAG_RE='^changelog\.d/[0-9]{8}-[A-Za-z0-9][A-Za-z0-9_-]*\.(breaking|added|changed|deprecated|removed|fixed|updated|documentation)\.md$'
       HINT='Run: python scripts/build_changelog.py --new <category> "<description>"'
       git diff --name-only $MERGE_BASE HEAD > /tmp/changed_files.txt
       grep -Eq "$FRAG_RE" /tmp/changed_files.txt \

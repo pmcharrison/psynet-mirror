@@ -30,19 +30,16 @@ SECTION_TITLE_TO_KEY = {title: key for key, title in SECTION_ORDER}
 SECTION_PATTERN = "|".join(key for key, _title in SECTION_ORDER)
 
 FILENAME_RE = re.compile(
-    rf"^(?P<id>[A-Za-z0-9][A-Za-z0-9_-]*)\.(?P<section>{SECTION_PATTERN})\.md$"
+    rf"^(?P<id>\d{{8}}-[A-Za-z0-9][A-Za-z0-9_-]*)\.(?P<section>{SECTION_PATTERN})\.md$"
 )
 
 
 def fragment_sort_key(name: str) -> tuple:
-    """Sort all-numeric IDs first (numerically), then slug IDs (lexicographically)."""
+    """Sort date-prefixed fragment filenames lexicographically."""
     match = FILENAME_RE.match(name)
     if match is None:
-        return (2, name)
-    fragment_id = match["id"]
-    if fragment_id.isdigit():
-        return (0, int(fragment_id), name)
-    return (1, fragment_id, name)
+        return (1, name)
+    return (0, match["id"], name)
 
 
 UNRELEASED_RE = re.compile(r"(?ms)^## Unreleased\n.*?(?=^## |\Z)")
@@ -88,7 +85,7 @@ def list_fragment_paths() -> list[Path]:
         raise ValueError(
             "Invalid changelog fragment filename(s): "
             + ", ".join(sorted(invalid_files))
-            + f". Expected <id>.({SECTION_PATTERN}).md"
+            + f". Expected <YYYYMMDD-slug>.({SECTION_PATTERN}).md"
         )
 
     paths.sort(key=lambda p: fragment_sort_key(p.name))
