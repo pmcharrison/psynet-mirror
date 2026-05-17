@@ -1,5 +1,6 @@
 import importlib.util
 import runpy
+import subprocess
 import sys
 from pathlib import Path
 
@@ -272,6 +273,125 @@ def test_main_dispatches_to_modes_and_errors(build_changelog, monkeypatch, capsy
     monkeypatch.setattr(sys, "argv", ["build_changelog.py"])
     assert build_changelog.main() == 1
     assert "Missing" in capsys.readouterr().err
+
+
+def test_changed_files_uses_git_diff(build_changelog, monkeypatch):
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append((args, kwargs))
+        return subprocess.CompletedProcess(args, 0, stdout="a.py\nb.py\n")
+
+    monkeypatch.setattr(build_changelog.subprocess, "run", fake_run)
+
+    assert build_changelog.changed_files("base", "head") == ["a.py", "b.py"]
+    assert calls == [
+        (
+            ["git", "diff", "--name-only", "base", "head"],
+            {"check": True, "capture_output": True, "text": True},
+        )
+    ]
+
+
+def test_check_mr_command_validates_current_fragments(build_changelog, monkeypatch):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
+    )
+
+    assert build_changelog.check_mr_command("base", "head") == 0
+
+
+def test_check_mr_command_requires_fragment_path(build_changelog, monkeypatch):
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["psynet/module.py"],
+    )
+
+    with pytest.raises(ValueError, match="MR must add or delete a changelog fragment"):
+        build_changelog.check_mr_command("base", "head")
+
+
+def test_check_mr_command_rejects_empty_fragment(build_changelog, monkeypatch):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-empty.fixed.md"
+    fragment.write_text("\n", encoding="utf-8")
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["changelog.d/20260516-empty.fixed.md"],
+    )
+
+    with pytest.raises(ValueError, match="is empty"):
+        build_changelog.check_mr_command("base", "head")
+
+
+def test_check_mr_command_rejects_invalid_extra_fragment(build_changelog, monkeypatch):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    invalid = build_changelog.FRAGMENTS_DIR / "invalid.fixed.md"
+    invalid.write_text("Fixed invalid thing\n", encoding="utf-8")
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
+    )
+
+    with pytest.raises(ValueError, match="Invalid changelog fragment filename"):
+        build_changelog.check_mr_command("base", "head")
+
+
+def test_check_mr_command_rejects_manual_unreleased(build_changelog, monkeypatch):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    build_changelog.CHANGELOG_PATH.write_text(
+        "# CHANGELOG\n\n## Unreleased\n\n- Manual entry\n\n## [13.1.1](url)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
+    )
+
+    with pytest.raises(ValueError, match="## Unreleased must be empty"):
+        build_changelog.check_mr_command("base", "head")
+
+
+def test_check_mr_command_allows_missing_unreleased_for_release_mrs(
+    build_changelog, monkeypatch
+):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    build_changelog.CHANGELOG_PATH.write_text(
+        "# CHANGELOG\n\n## [13.2.0](url)\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
+    )
+
+    assert build_changelog.check_mr_command("base", "head") == 0
+
+
+def test_main_dispatches_to_check_mr(build_changelog, monkeypatch):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
+    )
+    monkeypatch.setattr(
+        sys, "argv", ["build_changelog.py", "--check-mr", "base", "head"]
+    )
+
+    assert build_changelog.main() == 0
 
 
 def test_main_dispatches_to_release(build_changelog, monkeypatch):

@@ -68,21 +68,14 @@ changelog_check:
     name: alpine/git
     entrypoint: ["/bin/sh", "-c"]
   stage: test
-  before_script: []
+  before_script:
+    - apk add --no-cache python3
   script:
     - |
       git fetch --unshallow origin || git fetch --depth=100 origin
       git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       MERGE_BASE=$(git merge-base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD)
-      FRAG_RE='^changelog\.d/[0-9]{8}-[A-Za-z0-9][A-Za-z0-9_-]*\.(breaking|added|changed|deprecated|removed|fixed|updated|documentation)\.md$'
-      HINT='Run: python scripts/build_changelog.py --new <category> "<description>"'
-      git diff --name-only $MERGE_BASE HEAD > /tmp/changed_files.txt
-      grep -Eq "$FRAG_RE" /tmp/changed_files.txt \
-        || { echo "ERROR: MR must add a changelog fragment. $HINT"; exit 1; }
-      MANUAL=$(awk '/^## Unreleased/{f=1;next} /^## \[/{f=0} f' CHANGELOG.md \
-        | grep -Ev '^[[:space:]]*$|^<!--.*-->[[:space:]]*$' || true)
-      [ -z "$MANUAL" ] \
-        || { echo "ERROR: ## Unreleased must be empty (CHANGELOG.md is generated). $HINT"; exit 1; }
+      python scripts/build_changelog.py --check-mr $MERGE_BASE HEAD
   rules:
     - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
       when: never
