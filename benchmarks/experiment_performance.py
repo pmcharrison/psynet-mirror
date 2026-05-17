@@ -79,6 +79,13 @@ class _BaseExperiment:
     param_names = ["n_bots", "duration_minutes"]
     timeout = 1800
 
+    # Explicit benchmark version. Without this ASV uses a hash of the benchmark
+    # source, and silently drops historical results whose stored hash no longer
+    # matches — so cosmetic changes wipe the history. Pins version to allow
+    # refactors that shouldn't impact performance. Bump this integer when a
+    # benchmark change makes new results incomparable to old ones.
+    version = 3
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         # Prefix each base-class track_* method's pretty_name with demo_name so
