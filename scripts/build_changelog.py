@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Thin CI wrapper for the source-checkout changelog builder.
 
-The real implementation lives in `psynet/dev/build_changelog.py` and powers the
+The real implementation lives in `dev/build_changelog.py` and powers the
 developer-facing `psynet dev build-changelog` command. This wrapper exists so
 the lightweight GitLab `changelog_check` job can run the same logic with only
 `python3` available, without installing PsyNet and its dependencies.
@@ -13,9 +13,7 @@ from pathlib import Path
 
 
 def _load_build_changelog_module():
-    module_path = (
-        Path(__file__).resolve().parents[1] / "psynet" / "dev" / "build_changelog.py"
-    )
+    module_path = Path(__file__).resolve().parents[1] / "dev" / "build_changelog.py"
     spec = importlib.util.spec_from_file_location("psynet_build_changelog", module_path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Could not load changelog builder from {module_path}.")

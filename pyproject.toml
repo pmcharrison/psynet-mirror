@@ -112,7 +112,6 @@ Repository = "https://gitlab.com/PsyNetDev/PsyNet/"
 
 [tool.hatch.build.targets.wheel]
 include = ["/psynet"]
-exclude = ["/psynet/dev"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
@@ -123,8 +122,8 @@ exclude = [
     "/.venv*",
     "/ci",
     "/demos",
+    "/dev",
     "/docs",
-    "/psynet/dev",
     "/scripts",
     "/tests",
 ]

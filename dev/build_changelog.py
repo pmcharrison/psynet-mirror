@@ -26,7 +26,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 FRAGMENTS_DIR = ROOT / "changelog.d"
 CHANGELOG_PATH = ROOT / "CHANGELOG.md"
 MAX_SLUG_LENGTH = 60
