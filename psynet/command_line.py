@@ -1,6 +1,7 @@
 import functools
 import importlib
 import json
+import logging
 import os
 import re
 import shutil
@@ -151,8 +152,6 @@ def reset_console():
     #
     # However, the following cheeky hack seems to work quite nicely.
     # The 'read' command is a UNIX command that takes an arbitrary input from the user.
-    import subprocess
-
     try:
         # It seems that the timeout must be at least 1.0 s for this to work reliably
         subprocess.call("read NULL", timeout=1.0, shell=True)
@@ -1620,9 +1619,6 @@ def install_autocomplete():
     This command automatically detects your shell (bash or zsh) and adds the appropriate
     completion setup to your shell configuration file.
     """
-    import os
-    import subprocess
-
     # Get the directory where this script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
     psynet_root = os.path.dirname(script_dir)
@@ -3319,6 +3315,16 @@ def performance_test__local(
     By default, this command starts a new experiment server automatically.
     Use --existing to connect to an already-running server instead.
     """
+    log_level = logging.DEBUG if debug else logging.INFO
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(log_level)
+    console_handler.setFormatter(logging.Formatter("%(message)s"))
+    root_logger.addHandler(console_handler)
+
     do_export = not no_export
     if existing:
         _run_performance_test_with_existing_server(
@@ -3352,27 +3358,8 @@ def _run_performance_test_with_existing_server(
     do_export=True,
 ):
     """Run performance test connecting to an already-running server."""
-    import logging
-    import sys
-
     from psynet.experiment import get_experiment
     from psynet.utils import get_authenticated_session
-
-    # Configure logging to output to console
-    root_logger = logging.getLogger()
-    log_level = logging.DEBUG if debug else logging.INFO
-    root_logger.setLevel(log_level)
-
-    # Remove any existing handlers
-    for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
-
-    # Add console handler with clean format (no prefixes)
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(log_level)
-    formatter = logging.Formatter("%(message)s")
-    console_handler.setFormatter(formatter)
-    root_logger.addHandler(console_handler)
 
     externally_managed_bot_log = bot_log_file is not None
     if not externally_managed_bot_log:
@@ -3426,7 +3413,7 @@ def _run_performance_test_with_existing_server(
         collect_results.extend(results)
     else:
         for line in format_performance_summary(results):
-            print(line)
+            logger.info(line)
     if not externally_managed_bot_log:
         bot_log_file.close()
         print(f"Bot output log: {bot_log_file.name}")
@@ -3534,9 +3521,7 @@ def _start_local_server_and_wait_for_ready(
             server_output = process.before or ""
             for line in server_output.splitlines():
                 if "Server is running on" in line:
-                    import re as _re
-
-                    match = _re.search(r"(https?://\S+?)[\.\s]", line)
+                    match = re.search(r"(https?://\S+?)[\.\s]", line)
                     if match:
                         base_url = match.group(1)
                         break
@@ -3777,7 +3762,7 @@ def _run_performance_test_with_new_server(
 
     if len(all_results) > 1:
         for line in format_performance_summary(all_results):
-            print(line)
+            logger.info(line)
 
     print(f"Server log: {tmp_log_path}")
     print(f"Bot output log: {bot_log_path}")
