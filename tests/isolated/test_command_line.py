@@ -61,7 +61,7 @@ class TestCommandLine(object):
         )
         fake_builder.CHANGELOG_PATH.write_text("# CHANGELOG\n", encoding="utf-8")
         monkeypatch.setattr(
-            "psynet.command_line._load_build_changelog_module",
+            "psynet_dev_command_line._load_build_changelog_module",
             lambda: fake_builder,
         )
 
