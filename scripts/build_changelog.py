@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""Thin CI wrapper for the source-checkout changelog builder.
+
+The real implementation lives in `psynet/dev/build_changelog.py` and powers the
+developer-facing `psynet dev build-changelog` command. This wrapper exists so
+the lightweight GitLab `changelog_check` job can run the same logic with only
+`python3` available, without installing PsyNet and its dependencies.
+"""
 
 import importlib.util
 import sys

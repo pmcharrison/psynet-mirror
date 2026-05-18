@@ -1,3 +1,19 @@
+"""Build and validate PsyNet changelog fragments.
+
+This module is intentionally source-checkout-only. It powers the developer CLI
+(`psynet dev build-changelog`) and the lightweight CI wrapper at
+`scripts/build_changelog.py`.
+
+Workflow summary:
+- Contributors add one Markdown fragment in `changelog.d/` per user-facing
+  change.
+- `CHANGELOG.md` contains released sections only, not an in-progress section.
+- Maintainers cut beta/RC/stable releases by folding fragments into a versioned
+  changelog section.
+- Stable releases also fold matching beta/RC sections into the final release
+  section.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -38,12 +54,22 @@ SECTION_HEADER_RE = re.compile(r"^### (?P<title>[A-Za-z][A-Za-z ]*?)\n", re.MULT
 
 @dataclass(frozen=True)
 class Fragment:
+    """A validated changelog fragment ready to render into a section."""
+
     path: Path
     section: str
     entry: str
 
 
+# Fragment loading and rendering
+
+
 def format_entry(text: str) -> str:
+    """Normalize fragment text into one Markdown bullet entry.
+
+    Fragment files are written without a leading `-`; this function adds it and
+    indents continuation lines so multiline entries stay valid Markdown bullets.
+    """
     lines = [line.rstrip() for line in text.strip().splitlines()]
     if not lines:
         raise ValueError("Fragment is empty.")
@@ -54,6 +80,7 @@ def format_entry(text: str) -> str:
 
 
 def list_fragment_paths() -> list[Path]:
+    """Return changelog fragment paths and reject malformed fragment files."""
     if not FRAGMENTS_DIR.exists():
         return []
 
@@ -82,6 +109,7 @@ def list_fragment_paths() -> list[Path]:
 
 
 def load_fragments() -> list[Fragment]:
+    """Load and validate every fragment currently present in `changelog.d/`."""
     fragments: list[Fragment] = []
 
     for path in list_fragment_paths():
@@ -104,6 +132,7 @@ def load_fragments() -> list[Fragment]:
 
 
 def group_entries(fragments: list[Fragment]) -> dict[str, list[str]]:
+    """Group formatted fragment entries by changelog section key."""
     entries: dict[str, list[str]] = defaultdict(list)
     for fragment in fragments:
         entries[fragment.section].append(fragment.entry)
@@ -111,6 +140,7 @@ def group_entries(fragments: list[Fragment]) -> dict[str, list[str]]:
 
 
 def render_sections(entries: dict[str, list[str]]) -> str:
+    """Render grouped entries in the configured Keep a Changelog order."""
     parts: list[str] = []
 
     for key, title in SECTION_ORDER:
@@ -123,7 +153,11 @@ def render_sections(entries: dict[str, list[str]]) -> str:
     return "\n".join(parts).rstrip() + "\n"
 
 
+# Existing changelog parsing
+
+
 def parse_section_entries(body: str) -> list[str]:
+    """Parse bullet entries from a rendered changelog subsection body."""
     entries: list[list[str]] = []
 
     for line in body.splitlines():
@@ -153,6 +187,7 @@ def parse_section_entries(body: str) -> list[str]:
 
 
 def parse_sectioned_entries(body: str) -> dict[str, list[str]]:
+    """Parse a release body into entries keyed by supported section name."""
     entries: dict[str, list[str]] = defaultdict(list)
     matches = list(SECTION_HEADER_RE.finditer(body))
 
@@ -175,12 +210,17 @@ def parse_sectioned_entries(body: str) -> dict[str, list[str]]:
 def add_entries(
     target: dict[str, list[str]], source: dict[str, list[str]]
 ) -> dict[str, list[str]]:
+    """Append entries from `source` into `target` in canonical section order."""
     for key, _title in SECTION_ORDER:
         target[key].extend(source.get(key, []))
     return target
 
 
+# Release rendering
+
+
 def classify_release(version: str) -> str:
+    """Classify the release type from PsyNet's compact prerelease notation."""
     lowered = version.lower()
     if "rc" in lowered:
         return "Release candidate"
@@ -194,6 +234,7 @@ def classify_release(version: str) -> str:
 def matching_prerelease_sections(
     changelog: str, version: str
 ) -> list[tuple[tuple[int, int], int, int, dict[str, list[str]]]]:
+    """Find beta/RC changelog sections that should fold into a stable release."""
     sections: list[tuple[tuple[int, int], int, int, dict[str, list[str]]]] = []
     headings = list(RELEASE_HEADING_RE.finditer(changelog))
     prerelease_version_re = re.compile(
@@ -224,6 +265,7 @@ def matching_prerelease_sections(
 
 
 def remove_spans(text: str, spans: list[tuple[int, int]]) -> str:
+    """Remove character spans from `text` while preserving clean blank lines."""
     for start, end in sorted(spans, reverse=True):
         prefix = text[:start].rstrip("\n")
         suffix = text[end:].lstrip("\n")
@@ -232,6 +274,7 @@ def remove_spans(text: str, spans: list[tuple[int, int]]) -> str:
 
 
 def render_release_heading(version: str, date: str) -> str:
+    """Render the canonical PsyNet release heading for a version/date pair."""
     label = classify_release(version)
     return (
         f"## [{version}]"
@@ -242,6 +285,7 @@ def render_release_heading(version: str, date: str) -> str:
 def build_release_section(
     version: str, date: str, entries: dict[str, list[str]]
 ) -> str:
+    """Build one complete versioned release section from grouped entries."""
     parts = [render_release_heading(version, date).rstrip()]
     sections = render_sections(entries).rstrip()
     if sections:
@@ -251,6 +295,7 @@ def build_release_section(
 
 
 def insert_release_section(changelog: str, release_section: str) -> str:
+    """Insert a new release section before the first existing release heading."""
     match = RELEASE_HEADING_RE.search(changelog)
     insertion_point = match.start() if match else len(changelog)
     prefix = changelog[:insertion_point].rstrip("\n")
@@ -260,6 +305,7 @@ def insert_release_section(changelog: str, release_section: str) -> str:
 
 
 def build_command() -> int:
+    """Print a preview of current fragments without modifying `CHANGELOG.md`."""
     fragments = load_fragments()
     entries = group_entries(fragments)
     preview = render_sections(entries).rstrip()
@@ -270,7 +316,11 @@ def build_command() -> int:
     return 0
 
 
+# MR validation
+
+
 def changed_files(base: str, head: str) -> list[str]:
+    """Return paths changed between two git revisions."""
     result = subprocess.run(
         ["git", "diff", "--name-only", base, head],
         check=True,
@@ -281,6 +331,7 @@ def changed_files(base: str, head: str) -> list[str]:
 
 
 def changelog_diff(base: str, head: str) -> str:
+    """Return a zero-context diff for `CHANGELOG.md` between two revisions."""
     result = subprocess.run(
         ["git", "diff", "--unified=0", base, head, "--", "CHANGELOG.md"],
         check=True,
@@ -291,6 +342,7 @@ def changelog_diff(base: str, head: str) -> str:
 
 
 def is_fragment_path(path: str) -> bool:
+    """Return whether a changed path is a valid changelog fragment path."""
     return (
         path.startswith("changelog.d/")
         and FILENAME_RE.match(Path(path).name) is not None
@@ -298,11 +350,13 @@ def is_fragment_path(path: str) -> bool:
 
 
 def prerelease_base_version(version: str) -> str | None:
+    """Return the stable base version for compact beta/RC versions."""
     match = re.match(r"^(?P<base>.+?)(?:b|rc)\d+$", version)
     return match.group("base") if match else None
 
 
 def is_stable_release_changelog_diff(diff: str) -> bool:
+    """Detect a changelog diff that folds beta/RC sections into stable."""
     added_stable_versions: set[str] = set()
     removed_prerelease_bases: set[str] = set()
 
@@ -326,6 +380,7 @@ def is_stable_release_changelog_diff(diff: str) -> bool:
 
 
 def check_mr_command(base: str, head: str) -> int:
+    """Validate changelog requirements for a merge-request diff."""
     changes = changed_files(base, head)
     if not any(is_fragment_path(path) for path in changes) and not (
         "CHANGELOG.md" in changes
@@ -342,7 +397,11 @@ def check_mr_command(base: str, head: str) -> int:
     return 0
 
 
+# Commands that mutate files
+
+
 def release_command(version: str, date: str) -> int:
+    """Consume fragments into a versioned changelog release section."""
     release_type = classify_release(version)
     if release_type == "Alpha":
         raise ValueError(
@@ -397,6 +456,7 @@ def slugify(text: str) -> str:
 
 
 def new_command(category: str, description: str) -> int:
+    """Create a new date-prefixed fragment stub."""
     if category not in SECTION_KEYS:
         raise ValueError(
             f"Unknown category {category!r}. Must be one of: "
@@ -420,7 +480,11 @@ def new_command(category: str, description: str) -> int:
     return 0
 
 
+# CLI parsing
+
+
 def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for the thin script wrapper."""
     parser = argparse.ArgumentParser(
         description=(
             "Build and manage PsyNet changelog fragments. Contributors commit "
@@ -454,6 +518,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    """Run the argparse-based entry point used by CI."""
     try:
         args = parse_args()
         modes = sum(1 for x in (args.new, args.release, args.check_mr) if x)
