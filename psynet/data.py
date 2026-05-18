@@ -531,21 +531,6 @@ def init_db(drop_all=False, bind=db.engine):
 dallinger.db.init_db = init_db
 
 
-def _terminate_other_db_connections(engine):
-    """Terminate other backends connected to the same database so DROP TABLE won't block."""
-    from sqlalchemy import text
-
-    db_name = engine.url.database
-    with engine.begin() as con:
-        con.execute(
-            text(
-                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
-                "WHERE datname = :db AND pid != pg_backend_pid()"
-            ),
-            {"db": db_name},
-        )
-
-
 def drop_all_db_tables(bind=db.engine):
     """
     Drops all tables from the Postgres database.
@@ -558,7 +543,6 @@ def drop_all_db_tables(bind=db.engine):
 
     engine = bind
 
-    _terminate_other_db_connections(engine)
     db.session.remove()
     engine.dispose()
 

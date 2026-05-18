@@ -219,7 +219,6 @@ class PerformanceTester:
 
         return all_results
 
-
     def _test_performance(self, n, bot_log_file):
         """Run a load test with n concurrent bots for configured duration."""
         duration_minutes = self.duration_minutes
