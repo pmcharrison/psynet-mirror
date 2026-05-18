@@ -139,9 +139,7 @@ def dev():
 
 
 def _load_build_changelog_module():
-    script_path = (
-        Path(__file__).resolve().parents[1] / "psynet" / "dev" / "build_changelog.py"
-    )
+    script_path = Path(__file__).resolve().parents[1] / "dev" / "build_changelog.py"
     if not script_path.exists():
         raise click.ClickException(
             f"Could not find changelog builder script at {script_path}. "
