@@ -335,7 +335,7 @@ def check_mr_command(base: str, head: str) -> int:
         raise ValueError(
             "MR must add or delete a changelog fragment, unless it folds beta/RC "
             "changelog sections into a stable release. "
-            'Run: python scripts/build_changelog.py --new <category> "<description>"'
+            'Run: psynet dev build-changelog --new <category> "<description>"'
         )
 
     load_fragments()
@@ -426,7 +426,8 @@ def parse_args() -> argparse.Namespace:
         description=(
             "Build and manage PsyNet changelog fragments. Contributors commit "
             "only fragments in their MRs (never a regenerated CHANGELOG.md); "
-            "release notes are generated from fragments via --release."
+            "release notes are generated from fragments via "
+            "psynet dev build-changelog --release."
         )
     )
     parser.add_argument(
