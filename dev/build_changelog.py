@@ -382,10 +382,19 @@ def is_stable_release_changelog_diff(diff: str) -> bool:
 def check_mr_command(base: str, head: str) -> int:
     """Validate changelog requirements for a merge-request diff."""
     changes = changed_files(base, head)
-    if not any(is_fragment_path(path) for path in changes) and not (
-        "CHANGELOG.md" in changes
-        and is_stable_release_changelog_diff(changelog_diff(base, head))
-    ):
+    has_fragment = any(is_fragment_path(path) for path in changes)
+    changes_changelog = "CHANGELOG.md" in changes
+    is_stable_fold = changes_changelog and is_stable_release_changelog_diff(
+        changelog_diff(base, head)
+    )
+
+    if changes_changelog and not is_stable_fold:
+        raise ValueError(
+            "MRs must not edit CHANGELOG.md directly. Add a changelog fragment "
+            "instead; CHANGELOG.md is regenerated at release time."
+        )
+
+    if not has_fragment and not is_stable_fold:
         raise ValueError(
             "MR must add or delete a changelog fragment, unless it folds beta/RC "
             "changelog sections into a stable release. "

@@ -403,6 +403,29 @@ def test_check_mr_command_allows_changelog_with_only_releases(
     assert build_changelog.check_mr_command("base", "head") == 0
 
 
+def test_check_mr_command_rejects_changelog_edit_even_with_fragment(
+    build_changelog, monkeypatch
+):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: [
+            "CHANGELOG.md",
+            "changelog.d/20260516-valid.fixed.md",
+        ],
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "changelog_diff",
+        lambda _base, _head: "+## [13.2.0](url) Release - 2026-05-16\n",
+    )
+
+    with pytest.raises(ValueError, match="must not edit CHANGELOG.md directly"):
+        build_changelog.check_mr_command("base", "head")
+
+
 def test_check_mr_command_allows_stable_release_changelog_fold(
     build_changelog, monkeypatch
 ):
@@ -410,6 +433,31 @@ def test_check_mr_command_allows_stable_release_changelog_fold(
         build_changelog,
         "changed_files",
         lambda _base, _head: ["CHANGELOG.md"],
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "changelog_diff",
+        lambda _base, _head: (
+            "-## [13.2.0rc1](url) Release candidate - 2026-05-07\n"
+            "+## [13.2.0](url) Release - 2026-05-16\n"
+        ),
+    )
+
+    assert build_changelog.check_mr_command("base", "head") == 0
+
+
+def test_check_mr_command_allows_stable_release_fold_with_fragment(
+    build_changelog, monkeypatch
+):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: [
+            "CHANGELOG.md",
+            "changelog.d/20260516-valid.fixed.md",
+        ],
     )
     monkeypatch.setattr(
         build_changelog,
