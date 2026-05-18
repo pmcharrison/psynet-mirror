@@ -15,7 +15,6 @@ Lab Deployments
    Teardown <teardown>
    Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>
    Troubleshooting <troubleshooting>
-   CAP Lab Configuration <lab_specific_configuration>
    Group Skills <group_skills>
 
 ..
