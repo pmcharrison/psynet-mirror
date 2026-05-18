@@ -186,11 +186,7 @@ asv_benchmarks:
     paths:
       - .asv/results/
   rules:
-    - if: $CI_COMMIT_REF_NAME == "969-migrate-docs-to-pydata-theme"
-      when: never
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-      when: always
-    - if: $CI_COMMIT_REF_NAME == "issues/9123-performance-benchmark-site"
       when: always
     - when: never
 
