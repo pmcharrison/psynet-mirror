@@ -316,20 +316,34 @@ def test_stable_release_changelog_diff_detection(build_changelog):
     assert build_changelog.prerelease_base_version("13.2.0b0") == "13.2.0"
     assert build_changelog.prerelease_base_version("13.2.0rc1") == "13.2.0"
     assert build_changelog.prerelease_base_version("13.2.0") is None
+    assert build_changelog.is_section_header("### Fixed")
+    assert not build_changelog.is_section_header("### Security")
     assert build_changelog.is_stable_release_changelog_diff(
         "\n".join(
             [
                 "diff --git a/CHANGELOG.md b/CHANGELOG.md",
                 "--- a/CHANGELOG.md",
                 "+++ b/CHANGELOG.md",
-                "+not a release heading",
                 "-## [13.2.0rc1](url) Release candidate - 2026-05-07",
+                "-### Fixed",
+                "-- Fixed thing",
                 "+## [13.2.0](url) Release - 2026-05-16",
+                "+### Fixed",
+                "+- Fixed thing",
             ]
         )
     )
     assert not build_changelog.is_stable_release_changelog_diff(
         "+## [13.2.0b1](url) Beta - 2026-05-16"
+    )
+    assert not build_changelog.is_stable_release_changelog_diff(
+        "\n".join(
+            [
+                "-## [13.2.0rc1](url) Release candidate - 2026-05-07",
+                "+## [13.2.0](url) Release - 2026-05-16",
+                "+Unrelated manual changelog edit",
+            ]
+        )
     )
 
 
@@ -439,11 +453,35 @@ def test_check_mr_command_allows_stable_release_changelog_fold(
         "changelog_diff",
         lambda _base, _head: (
             "-## [13.2.0rc1](url) Release candidate - 2026-05-07\n"
+            "-- Fixed valid thing\n"
             "+## [13.2.0](url) Release - 2026-05-16\n"
+            "+- Fixed valid thing\n"
         ),
     )
 
     assert build_changelog.check_mr_command("base", "head") == 0
+
+
+def test_check_mr_command_rejects_stable_fold_with_unrelated_changelog_edit(
+    build_changelog, monkeypatch
+):
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: ["CHANGELOG.md"],
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "changelog_diff",
+        lambda _base, _head: (
+            "-## [13.2.0rc1](url) Release candidate - 2026-05-07\n"
+            "+## [13.2.0](url) Release - 2026-05-16\n"
+            "+Unrelated manual changelog edit\n"
+        ),
+    )
+
+    with pytest.raises(ValueError, match="must not edit CHANGELOG.md directly"):
+        build_changelog.check_mr_command("base", "head")
 
 
 def test_check_mr_command_allows_stable_release_fold_with_fragment(
@@ -464,7 +502,9 @@ def test_check_mr_command_allows_stable_release_fold_with_fragment(
         "changelog_diff",
         lambda _base, _head: (
             "-## [13.2.0rc1](url) Release candidate - 2026-05-07\n"
+            "-- Fixed valid thing\n"
             "+## [13.2.0](url) Release - 2026-05-16\n"
+            "+- Fixed valid thing\n"
         ),
     )
 
