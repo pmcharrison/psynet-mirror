@@ -22,7 +22,7 @@ import subprocess
 import sys
 import time
 import unicodedata
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -355,17 +355,32 @@ def prerelease_base_version(version: str) -> str | None:
     return match.group("base") if match else None
 
 
+def is_section_header(line: str) -> bool:
+    """Return whether a changed changelog line is a supported subsection header."""
+    if not line.startswith("### "):
+        return False
+    return line[4:].strip() in SECTION_TITLE_TO_KEY
+
+
 def is_stable_release_changelog_diff(diff: str) -> bool:
     """Detect a changelog diff that folds beta/RC sections into stable."""
     added_stable_versions: set[str] = set()
     removed_prerelease_bases: set[str] = set()
+    added_content: Counter[str] = Counter()
+    removed_content: Counter[str] = Counter()
 
     for line in diff.splitlines():
         if not line.startswith(("+", "-")) or line.startswith(("+++", "---")):
             continue
 
-        heading = RELEASE_HEADING_RE.match(line[1:])
+        content = line[1:]
+        heading = RELEASE_HEADING_RE.match(content)
         if heading is None:
+            if content.strip() and not is_section_header(content):
+                if line.startswith("+"):
+                    added_content[content] += 1
+                else:
+                    removed_content[content] += 1
             continue
 
         version = heading.group("version")
@@ -376,7 +391,9 @@ def is_stable_release_changelog_diff(diff: str) -> bool:
             if base_version is not None:
                 removed_prerelease_bases.add(base_version)
 
-    return bool(added_stable_versions & removed_prerelease_bases)
+    return bool(added_stable_versions & removed_prerelease_bases) and (
+        added_content == removed_content
+    )
 
 
 def check_mr_command(base: str, head: str) -> int:
