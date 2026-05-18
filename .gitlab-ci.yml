@@ -81,7 +81,7 @@ changelog_check:
       when: never
     # Temporary bootstrap exception: this migration MR intentionally edits
     # CHANGELOG.md while introducing fragments-only enforcement. Remove after merge.
-    - if: $CI_COMMIT_BRANCH == "1039-propose-and-implement-new-changelog-system-in-psynet"
+    - if: $CI_COMMIT_BRANCH == "1039-propose-and-implement-new-changelog-system-in-psynet" || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "1039-propose-and-implement-new-changelog-system-in-psynet"
       when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
