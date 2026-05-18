@@ -4,7 +4,7 @@ Add one changelog fragment per change in this directory. The recommended
 way to create one is:
 
 ```bash
-python scripts/build_changelog.py --new <category> "<short description>"
+psynet dev build-changelog --new <category> "<short description>"
 ```
 
 This writes a uniquely-named fragment file containing your description as a
@@ -53,13 +53,13 @@ locally. It prints the rendered fragment sections to stdout and leaves
 `CHANGELOG.md` unchanged:
 
 ```bash
-python scripts/build_changelog.py
+psynet dev build-changelog
 ```
 
 Maintainers cut a release from the current fragments with:
 
 ```bash
-python scripts/build_changelog.py --release 13.2.0 2026-03-13
+psynet dev build-changelog --release 13.2.0 2026-03-13
 ```
 
 This inserts a new `## [13.2.0]` section and deletes the consumed

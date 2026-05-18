@@ -2,6 +2,7 @@ import hashlib
 import json
 import subprocess
 import tempfile
+import types
 from contextlib import contextmanager
 from datetime import date, datetime
 from decimal import Decimal
@@ -39,6 +40,56 @@ class TestCommandLine(object):
         output = subprocess.check_output(["psynet", "--help"])
         assert b"Options:" in output
         assert b"Commands:" in output
+
+    def test_dev_build_changelog_dispatches_to_builder(self, monkeypatch, tmp_path):
+        from psynet.command_line import psynet
+
+        calls = []
+
+        fake_builder = types.SimpleNamespace(
+            CHANGELOG_PATH=tmp_path / "CHANGELOG.md",
+            new_command=lambda category, description: (
+                calls.append(("new", category, description)) or 0
+            ),
+            check_mr_command=lambda base, head: (
+                calls.append(("check_mr", base, head)) or 0
+            ),
+            release_command=lambda version, date: (
+                calls.append(("release", version, date)) or 0
+            ),
+            build_command=lambda: calls.append(("build",)) or 0,
+        )
+        fake_builder.CHANGELOG_PATH.write_text("# CHANGELOG\n", encoding="utf-8")
+        monkeypatch.setattr(
+            "psynet.command_line._load_build_changelog_module",
+            lambda: fake_builder,
+        )
+
+        runner = CliRunner()
+
+        result = runner.invoke(
+            psynet, ["dev", "build-changelog", "--new", "fixed", "Fix thing"]
+        )
+        assert result.exit_code == 0
+        assert calls == [("new", "fixed", "Fix thing")]
+
+        result = runner.invoke(
+            psynet,
+            ["dev", "build-changelog", "--check-mr", "base", "head"],
+        )
+        assert result.exit_code == 0
+        assert calls[-1] == ("check_mr", "base", "head")
+
+        result = runner.invoke(
+            psynet,
+            ["dev", "build-changelog", "--release", "13.2.0", "2026-03-13"],
+        )
+        assert result.exit_code == 0
+        assert calls[-1] == ("release", "13.2.0", "2026-03-13")
+
+        result = runner.invoke(psynet, ["dev", "build-changelog"])
+        assert result.exit_code == 0
+        assert calls[-1] == ("build",)
 
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
