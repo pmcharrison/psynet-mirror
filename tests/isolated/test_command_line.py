@@ -645,6 +645,7 @@ def test_start_local_server_uses_debug_local_subprocess():
     process = Mock()
     process.expect_exact.return_value = None
     process.isalive.return_value = False
+    process.before = ""
 
     with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
         server_info = _start_local_server_and_wait_for_ready(debug=False, max_wait=5)
@@ -735,7 +736,6 @@ class TestRunPerformanceTestWithNewServer:
         kwargs.setdefault("_stop_server_fn", Mock())
         kwargs.setdefault("_run_stage", Mock())
         kwargs.setdefault("_base_url", "http://localhost:5000")
-        kwargs.setdefault("_sleep", Mock())
         _run_performance_test_with_new_server(**kwargs)
 
     def test_restarts_between_stages_for_multiple_bot_counts(self):

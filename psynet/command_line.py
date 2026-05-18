@@ -725,8 +725,8 @@ def _check_port_available():
     if not config.ready:
         config.load()
     port = config.get("base_port")
-
-    if not port_is_open(port):
+    port_in_use = port_is_open(port)
+    if not port_in_use:
         return
 
     # Port is occupied — gather diagnostics
@@ -887,7 +887,7 @@ def safely_kill_process(p):
         p.kill()
         log(f"Killed process {p.pid} ({name})")
     except psutil.NoSuchProcess:
-        log(f"Process {p.pid} ({name}) already gone")
+        pass
 
 
 def kill_psynet_worker_processes():
@@ -3414,15 +3414,19 @@ def _run_performance_test_with_existing_server(
         ),
         time_factor=time_factor or exp.test_time_factor,
     )
-    tester.run(
+    results = tester.run(
         bot_counts=bot_counts,
         bot_log_file=bot_log_file,
-        collect_results=collect_results,
     )
-    if do_export and collect_results is not None and collect_results:
+    if do_export and results:
         export_duration, export_error = _time_export()
-        collect_results[-1]["export_duration_s"] = export_duration
-        collect_results[-1]["export_error"] = export_error
+        results[-1]["export_duration_s"] = export_duration
+        results[-1]["export_error"] = export_error
+    if collect_results is not None:
+        collect_results.extend(results)
+    else:
+        for line in format_performance_summary(results):
+            print(line)
     if not externally_managed_bot_log:
         bot_log_file.close()
         print(f"Bot output log: {bot_log_file.name}")
@@ -3639,6 +3643,15 @@ def _stop_server(server_info):
                 pass
 
     kill_psynet_worker_processes()
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+    base_port = config.get("base_port")
+    deadline = time.monotonic() + 10
+    while port_is_open(base_port) and time.monotonic() < deadline:
+        time.sleep(0.2)
+
     if externally_managed:
         print("✓ Server stopped")
     else:
@@ -3709,7 +3722,6 @@ def _run_performance_test_with_new_server(
     _stop_server_fn=_stop_server,
     _run_stage=_run_performance_test_with_existing_server,
     _base_url=None,
-    _sleep=time.sleep,
 ):
     """Run performance test after starting a new experiment server.
 
@@ -3759,8 +3771,6 @@ def _run_performance_test_with_new_server(
                 )
             finally:
                 _stop_server_fn(server_info)
-                # Allow OS to release ports/connections before next server start.
-                _sleep(2)
     finally:
         shared_server_log.close()
         shared_bot_log.close()

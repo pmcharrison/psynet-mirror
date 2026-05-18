@@ -183,11 +183,10 @@ class PerformanceTester:
         self.stagger_interval_s = stagger_interval_s
         self.time_factor = time_factor
 
-    def run(self, bot_counts=None, bot_log_file=None, collect_results=None):
+    def run(self, bot_counts=None, bot_log_file=None):
         """Run performance tests for one or more bot count values.
 
-        If collect_results is a list, results are appended to it and the
-        summary is skipped (caller is responsible for printing it).
+        Returns a list of result dicts, one per bot count.
         """
         if bot_counts is None:
             bot_counts = [self.n_bots]
@@ -218,15 +217,8 @@ class PerformanceTester:
                 logger.debug("Waiting 5 seconds before next test...")
                 time.sleep(5)
 
-        if collect_results is not None:
-            collect_results.extend(all_results)
-        else:
-            self._print_performance_summary(all_results)
+        return all_results
 
-    def _print_performance_summary(self, results):
-        """Print cross-test comparison table."""
-        for line in format_performance_summary(results):
-            logger.info(line)
 
     def _test_performance(self, n, bot_log_file):
         """Run a load test with n concurrent bots for configured duration."""
