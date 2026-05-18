@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-### Fixed
-
 ### Changed
 - Updated `@playwright/test` from 1.58.2 to 1.60.0 (Chromium 148.0.7778.96) (author: [Frank Höger])
 - Avoid duplicate GitLab CI pipelines on branches with an open MR by adding a `workflow:rules` block that suppresses the branch pipeline in that case; branch pipelines still run when no MR is open, and master/tag pipelines are unaffected (author: Frank Höger)
@@ -12,8 +10,9 @@
 - Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners) (author: [Frank Höger])
 - Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
 - Fixed graph demo `generate_grid` returning `blocks` instead of `groups` for the `participant_groups` key in the network structure, and added `choose_participant_group` support to `GraphChainTrialMaker` (author: [Peter Harrison])
+- Fixed `AsyncCodeBlock` raising `RuntimeError: Participant already has an async code block process pending, this shouldn't happen.` when a participant re-entered an `AsyncCodeBlock` while a previously finished or failed process was still attached. `AsyncCodeBlock.initiate` now logs a warning and clears the stale reference instead of crashing, so participants no longer get stuck (e.g. inside the Prolific failed-participant `wait_for_assignment_return` loop) (author: [Frank Höger])
 
-## Added
+### Added
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
