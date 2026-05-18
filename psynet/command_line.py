@@ -143,7 +143,8 @@ def _load_build_changelog_module():
     script_path = Path(__file__).resolve().parents[1] / "scripts" / "build_changelog.py"
     if not script_path.exists():
         raise click.ClickException(
-            f"Could not find changelog builder script at {script_path}."
+            f"Could not find changelog builder script at {script_path}. "
+            "Run this command from a PsyNet source checkout."
         )
 
     spec = importlib.util.spec_from_file_location("psynet_build_changelog", script_path)
@@ -178,7 +179,7 @@ def _load_build_changelog_module():
 )
 @click.pass_context
 def build_changelog(ctx, new, release, check_mr):
-    """Build and manage PsyNet changelog fragments."""
+    """Build and manage changelog fragments from a PsyNet source checkout."""
     modes = sum(1 for mode in (new, release, check_mr) if mode)
     if modes > 1:
         raise click.UsageError("Use only one of --new, --release, --check-mr.")
