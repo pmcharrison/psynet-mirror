@@ -349,7 +349,6 @@ class TestExport:
             patch("psynet.command_line.log") as mock_log,
             patch("psynet.command_line.yaspin") as mock_yaspin,
         ):
-
             mock_yaspin.return_value.__enter__.return_value = mock_spinner
             mock_executor.run.return_value.strip.return_value = "/home/testuser"
 
@@ -397,7 +396,6 @@ class TestExport:
             ),
             patch("psynet.command_line.log") as mock_log,
         ):
-
             mock_executor.run.return_value.strip.return_value = "/home/testuser"
 
             export_logs("test-app", "test-server", str(tmp_path))

@@ -489,9 +489,9 @@ class JSSynth(BaseAudioPrompt):
 
         if uses_panning:
             for t in timbre.values():
-                assert isinstance(
-                    t, ADSRTimbre
-                ), "Currently panning is only supported for ADSR timbres"
+                assert isinstance(t, ADSRTimbre), (
+                    "Currently panning is only supported for ADSR timbres"
+                )
 
         options = dict(
             max_num_pitches=0,

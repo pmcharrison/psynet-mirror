@@ -1,0 +1,14 @@
+# Extends the main PsyNet build image with pre-installed Playwright browsers.
+# cdn.playwright.dev is unreachable from CI runners, so we copy the browser
+# cache from the official Playwright Docker image instead of running
+# `npx playwright install` at test time.
+#
+# The Playwright image tag must match @playwright/test in package.json.
+ARG DOCKER_PLATFORM=linux/amd64
+ARG BASE_IMAGE=psynet-build
+
+FROM --platform=${DOCKER_PLATFORM} mcr.microsoft.com/playwright:v1.60.0-jammy AS playwright-browsers
+
+FROM ${BASE_IMAGE}
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+COPY --from=playwright-browsers /ms-playwright /ms-playwright

@@ -556,7 +556,7 @@ _sql_profile_options = [
     click.option(
         "--sql-profile-format",
         default="html",
-        help=("Comma-separated outputs: html,text,json,none " "(default: html)."),
+        help=("Comma-separated outputs: html,text,json,none (default: html)."),
     ),
 ]
 
@@ -1310,9 +1310,9 @@ def check_prolific_payment(experiment, config):
     base_payment = config.get("base_payment")
     minutes = config.get("prolific_estimated_completion_minutes")
     wage_per_hour = get_config().get("wage_per_hour")
-    assert (
-        wage_per_hour * minutes / 60 == base_payment
-    ), "Wage per hour does not match Prolific reward"
+    assert wage_per_hour * minutes / 60 == base_payment, (
+        "Wage per hour does not match Prolific reward"
+    )
 
 
 def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
@@ -1353,10 +1353,13 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     try:
         with open("requirements.txt", "r") as f:
             for line in f.readlines():
-                if "computational-audition-lab/psynet" in line.lower() and not user_confirms(
-                    "It looks like you're using an old version of PsyNet in requirements.txt "
-                    "(computational-audition-lab/psynet); "
-                    "the up-to-date version is located at PsyNetDev/PsyNet. Are you sure you want to continue?"
+                if (
+                    "computational-audition-lab/psynet" in line.lower()
+                    and not user_confirms(
+                        "It looks like you're using an old version of PsyNet in requirements.txt "
+                        "(computational-audition-lab/psynet); "
+                        "the up-to-date version is located at PsyNetDev/PsyNet. Are you sure you want to continue?"
+                    )
                 ):
                     raise click.Abort
     except FileNotFoundError:
@@ -1748,7 +1751,7 @@ def update(dallinger_version, psynet_version, verbose):
         )
         spinner.ok("✔")
 
-    log(f'Updated PsyNet to version {get_version("psynet")}')
+    log(f"Updated PsyNet to version {get_version('psynet')}")
 
 
 def dallinger_dir():
@@ -3319,22 +3322,27 @@ def _run_performance_test_with_existing_server(
         )
         sys.exit(1)
 
+    from psynet.perf_test import PerformanceTester
+
+    os.environ["PASSTHROUGH_ERRORS"] = "True"
+
     # Parse n_bots - can be comma-separated list
     if n_bots:
         bot_counts = [int(x.strip()) for x in n_bots.split(",")]
     else:
         bot_counts = [exp.test_n_bots]
 
-    if stagger:
-        exp.test_parallel_stagger_interval_s = float(stagger)
-
-    if time_factor:
-        exp.test_time_factor = time_factor
-
-    if duration_minutes:
-        exp.test_duration_minutes = duration_minutes
-
-    exp.performance_test_experiment(bot_counts=bot_counts, bot_log_file=bot_log_file)
+    tester = PerformanceTester(
+        authenticated_session=exp.authenticated_session,
+        base_url=exp.base_url,
+        n_bots=exp.test_n_bots,
+        duration_minutes=duration_minutes or exp.test_duration_minutes,
+        stagger_interval_s=(
+            float(stagger) if stagger else exp.test_parallel_stagger_interval_s
+        ),
+        time_factor=time_factor or exp.test_time_factor,
+    )
+    tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
     bot_log_file.close()
     print(f"Bot output log: {bot_log_file.name}")
 
@@ -3773,9 +3781,9 @@ def lucid__status(ctx, survey_number, status):
     Change the status of a Lucid survey.
     """
     available_statuses = ["live", "paused", "completed", "archived", "pending"]
-    assert (
-        status in available_statuses
-    ), f"Invalid status: {status}, pick from: {available_statuses}"
+    assert status in available_statuses, (
+        f"Invalid status: {status}, pick from: {available_statuses}"
+    )
     if status == "completed":
         status = "complete"
     get_lucid_service().change_status(survey_number, status)

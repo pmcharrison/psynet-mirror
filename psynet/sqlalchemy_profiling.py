@@ -1130,7 +1130,7 @@ def format_aggregated_html(
         </tr>
       </thead>
       <tbody>
-        {''.join(rows) if rows else '<tr><td colspan="6">No queries captured.</td></tr>'}
+        {"".join(rows) if rows else '<tr><td colspan="6">No queries captured.</td></tr>'}
       </tbody>
     </table>
   </div>
@@ -1149,7 +1149,7 @@ def format_aggregated_html(
         </tr>
       </thead>
       <tbody>
-        {''.join(commit_rows) if commit_rows else '<tr><td colspan="6">No commits captured.</td></tr>'}
+        {"".join(commit_rows) if commit_rows else '<tr><td colspan="6">No commits captured.</td></tr>'}
       </tbody>
     </table>
   </div>

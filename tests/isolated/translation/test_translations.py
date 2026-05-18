@@ -18,11 +18,9 @@ import pytest
 
 from psynet.translation.check import (
     assert_variable_names_match,
-)
-from psynet.translation.check import check_translations as check_translations_internal
-from psynet.translation.check import (
     translation_contains_same_variables,
 )
+from psynet.translation.check import check_translations as check_translations_internal
 from psynet.translation.translate import check_translations
 from psynet.utils import get_psynet_root, working_directory
 

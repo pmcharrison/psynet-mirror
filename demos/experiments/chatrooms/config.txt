@@ -1,0 +1,26 @@
+[Config]
+title = Multi-chatroom demo
+description = Real-time chatroom experiment where participants can chat with each other in one of several rooms.
+contact_email_on_error = demo@example.com
+organization_name = Demo
+
+mode = debug
+
+# Number of parallel chatrooms available to participants.
+num_chatrooms = 3
+
+# Maximum participants per room (comment out to remove limit).
+chatroom_max_occupancy = 5
+
+# Show message history to participants when they first join a room.
+chatroom_show_history = true
+
+recruiter = generic
+currency = $
+wage_per_hour = 12.0
+
+[Prolific]
+# recruiter = prolific
+auto_recruit = false
+prolific_estimated_completion_minutes = 10
+base_payment = 2.00

@@ -319,7 +319,7 @@ class MediaGibbsNode(GibbsNode):
                     "identifying the legal range of the corresponding parameter in the vector."
                 )
 
-        if not ((isinstance(self.granularity, int) and self.granularity > 0)):
+        if not (isinstance(self.granularity, int) and self.granularity > 0):
             raise ValueError("<granularity> must be a positive integer.")
 
     def random_sample(self, i):
