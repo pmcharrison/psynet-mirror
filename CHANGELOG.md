@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+### Fixed
+
 ### Changed
 - Updated `@playwright/test` from 1.58.2 to 1.60.0 (Chromium 148.0.7778.96) (author: [Frank Höger])
 - Avoid duplicate GitLab CI pipelines on branches with an open MR by adding a `workflow:rules` block that suppresses the branch pipeline in that case; branch pipelines still run when no MR is open, and master/tag pipelines are unaffected (author: Frank Höger)
@@ -9,13 +11,12 @@
 ### Fixed
 - Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners) (author: [Frank Höger])
 - Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
+- Fixed graph demo `generate_grid` returning `blocks` instead of `groups` for the `participant_groups` key in the network structure, and added `choose_participant_group` support to `GraphChainTrialMaker` (author: [Peter Harrison])
 
 ## Added
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
-### Added
-
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
