@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT_PATH = Path(__file__).parents[2] / "scripts" / "build_changelog.py"
+SCRIPT_PATH = Path(__file__).parents[2] / "psynet" / "dev" / "build_changelog.py"
 BASE_CHANGELOG = """# CHANGELOG
 
 ## [13.1.1](url) Release - 2026-02-18
