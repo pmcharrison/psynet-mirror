@@ -48,15 +48,16 @@ contains released sections only;
 committing it from MRs would re-introduce the merge-conflict problem
 that fragments are designed to prevent.
 
-If you want to preview how your fragment will render, run the script
-locally. It prints the rendered fragment sections to stdout and leaves
-`CHANGELOG.md` unchanged:
+If you want to preview how your fragment will render, run the command
+from a PsyNet source checkout. It prints the rendered fragment sections
+to stdout and leaves `CHANGELOG.md` unchanged:
 
 ```bash
 psynet dev build-changelog
 ```
 
-Maintainers cut a release from the current fragments with:
+Maintainers cut a release from the current fragments from a PsyNet source
+checkout with:
 
 ```bash
 psynet dev build-changelog --release 13.2.0 2026-03-13
