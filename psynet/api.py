@@ -30,9 +30,9 @@ def expose_to_api(endpoint):
                 "API function must be staticmethod or regular function, but it cannot be a regular method of a class or a classmethod"
             )
         if endpoint in EXPOSED_FUNCTIONS:
-            assert test_function_equality(
-                EXPOSED_FUNCTIONS[endpoint], f
-            ), "Endpoint already registered"
+            assert test_function_equality(EXPOSED_FUNCTIONS[endpoint], f), (
+                "Endpoint already registered"
+            )
         EXPOSED_FUNCTIONS[endpoint] = f
 
         @wraps(f)

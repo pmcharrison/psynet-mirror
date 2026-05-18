@@ -37,7 +37,7 @@ classifiers = [
 
 dependencies = [
     "babel",
-    "dallinger[docker]>=12.1.2,<13",
+    "dallinger[docker]>=12.2.0,<13",
     # Unpin dominate once a new version is released which includes the following
     # fix for the Python 3.12 event loop warning:
     # https://github.com/Knio/dominate/commit/bdbdb8e5ddcf3213518dba0c7d054f14933460bf
@@ -57,6 +57,7 @@ dependencies = [
     "python-gettext",
     "rpdb",
     "slack_sdk",  # For Slack notifications
+    "tabulate",
     "tenacity",
     "tomlkit",
     "tqdm",
@@ -70,9 +71,9 @@ dev = [
     "bump-my-version",
     "pydata-sphinx-theme",
     "google-cloud-translate",
-    "isort",
     "openai",
     "pre-commit",
+    "ruff",
     "sphinx",
     "sphinx-autodoc-typehints<3.0.0",
     "sphinx-copybutton",
@@ -84,13 +85,12 @@ slack = [
     "slack_sdk",
 ]
 demos = [
-    "repp @ git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition/repp",
-    "reppextension @ git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension",
-    "sing4me @ git+https://gitlab.com/computational-audition/sing4me",
     "music21",
     "numpy",
     "praat-parselmouth",
+    "repp-tapping",
     "scipy",
+    "sing4me",
     "soundfile",
     "statsmodels",
 ]
@@ -124,19 +124,27 @@ exclude = [
     "/tests",
 ]
 
-[tool.black]
+[tool.ruff]
 line-length = 88
-target-version = ["py313"]
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | docs/_build
-  | dist
-)/
-'''
+target-version = "py310"
+builtins = ["_"]
+extend-exclude = [
+    ".cache",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "bin",
+    "build",
+    "dist",
+    "docs/_build",
+    "lib",
+    "src",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E203", "E501"]

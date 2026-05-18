@@ -116,6 +116,61 @@ GET https://gitlab.com/api/v4/projects/<project_id>/jobs/<job_id>/trace
 
 This is the preferred approach for agents when verifying CI status or logs.
 
+## Playwright flakiness guardrails
+
+When adding or updating Playwright E2E tests, follow these rules to reduce CI flakiness:
+
+1. **Prefer stable signals over transient text**:
+   - Avoid asserting countdown text or short-lived status labels (e.g. `3`, `2`, `1`, `Uploading...`).
+   - Prefer durable prompts, control visibility/enabled state, URL changes, or trial events.
+
+2. **Avoid overly strict DOM shape assumptions**:
+   - Do not rely on exact element counts/styles unless they are guaranteed by the experiment contract.
+   - Prefer `at least one`, role-based selectors, IDs, and semantic assertions.
+
+3. **Use event evidence in stable ways**:
+   - Avoid live polling of `psynet.trial.eventLog` with strict timing windows in E2E tests; this is prone to CI timing variance.
+   - Prefer durable submit-time evidence: assert successful `POST /response` increments after key actions.
+   - If event assertions are needed, read them from submitted `metadata.event_log` payloads at submit boundaries and check coarse presence/order only.
+
+4. **Treat auto-advance pages as optional checkpoints**:
+   - If a page can auto-advance quickly, verify it only if present.
+   - If already advanced, continue by advancing to the next stable prompt instead of failing.
+
+5. **Do not use force-click unless strictly necessary**:
+   - Use normal `click()` with visibility/enabled checks first.
+   - Use forced clicks only for known framework overlays or non-actionability edge cases.
+
+6. **Keep media assertions resilient**:
+   - For playback, detect either active PsyNet sounds or real DOM media playback.
+   - For staged blobs, assert strongly only when lifecycle guarantees availability; otherwise use best-effort checks and rely on downstream UI/event evidence.
+
+7. **Centralize shared navigation logic in harness helpers**:
+   - Reuse `psynetHarness` helpers for gateway-page clearing, next-button waits, and prompt advancement.
+   - Add new shared helpers when a robust pattern appears in multiple specs.
+
+8. **When fixing flakes, update both test comments and docs**:
+   - Keep per-test section comments aligned with what is actually asserted.
+   - Document new anti-flakiness patterns in dev docs/AGENTS when they become standard practice.
+
+9. **Prefer deterministic step-by-step flows when the timeline is fixed**:
+   - If experiment steps are known in advance, encode the exact sequence of expected prompts/actions.
+   - Avoid heuristic navigation (`try-next`, broad fallback selectors, generic loops) for deterministic demos.
+   - Treat mismatches as test failures, not as recoverable branches.
+
+10. **Separate page-type handling explicitly**:
+   - Gateway/ad pages, consent pages, and timeline pages have different DOM/state behavior.
+   - Use page-specific assertions/selectors for each type; do not assume timeline containers (e.g. `#main-body`) exist everywhere.
+
+11. **Use fail-fast synchronization tied to the expected transition**:
+   - After each action, wait for the exact intended effect (expected text, expected control state, expected URL/page transition).
+   - Prefer short bounded waits on deterministic invariants over long generic polls.
+
+12. **Assert playback/recording via the actual implementation path**:
+   - For `AudioPrompt`, verify PsyNet sound-state/event transitions instead of DOM `<audio>` elements.
+   - For `VideoPrompt`, verify `video#prompt` playback behavior.
+   - Align assertions with how that step is implemented in experiment/template code.
+
 ## Branch review command
 
 When reviewing the current PsyNet branch against `master`, prefer the repo-local
@@ -126,10 +181,10 @@ Cursor command `/review`.
 
 ## Testing
 
-Non-trivial code changes should be tested. 
+Non-trivial code changes should be tested.
 Prefer red/green test-driven development, but avoid committing overly verbose tests in the final PR.
 Implement sensible unit tests where appropriate.
-Verify changes end-to-end by running `psynet test local` within a relevant demo. 
+Verify changes end-to-end by running `psynet test local` within a relevant demo.
 
 ## Finishing up changes
 

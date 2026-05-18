@@ -2058,12 +2058,12 @@ class ModularPage(Page):
         )
         with div:
             if prompt != "":
-                tags.h3("Prompt"),
+                (tags.h3("Prompt"),)
                 tags.div(raw(prompt), id="prompt-visualization", style=div_style)
             if prompt != "" and response != "":
                 tags.br()
             if response != "":
-                tags.h3("Response"),
+                (tags.h3("Response"),)
                 tags.div(raw(response), id="response-visualization", style=div_style)
         return div.render()
 
@@ -2625,7 +2625,9 @@ class MediaSliderControl(SliderControl):
             elif isinstance(slider_media[key], str):
                 assert any(
                     [value.lower().endswith(ext) for ext in EXTENSIONS[modality]]
-                ), f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
+                ), (
+                    f"Unsupported file extension: {value} (available extensions for {modality}: {EXTENSIONS[modality]})"
+                )
                 IDs_media.append(key)
             else:
                 raise NotImplementedError(

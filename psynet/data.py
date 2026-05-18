@@ -17,16 +17,19 @@ from dallinger.command_line.docker_ssh import CONFIGURED_HOSTS
 from dallinger.data import fix_autoincrement
 from dallinger.db import Base as SQLBase  # noqa
 from dallinger.experiment_server import dashboard
-from dallinger.models import Info  # noqa
-from dallinger.models import Network  # noqa
-from dallinger.models import Node  # noqa
-from dallinger.models import Notification  # noqa
-from dallinger.models import Question  # noqa
-from dallinger.models import Recruitment  # noqa
-from dallinger.models import Transformation  # noqa
-from dallinger.models import Transmission  # noqa
-from dallinger.models import Vector  # noqa
-from dallinger.models import SharedMixin, timenow  # noqa
+from dallinger.models import (  # noqa
+    Info,  # noqa
+    Network,  # noqa
+    Node,  # noqa
+    Notification,  # noqa
+    Question,  # noqa
+    Recruitment,  # noqa
+    SharedMixin,
+    Transformation,  # noqa
+    Transmission,  # noqa
+    Vector,  # noqa
+    timenow,
+)
 from dallinger.postgres_copy import copy_from as postgres_copy_from
 from dallinger.utils import classproperty
 from jsonpickle.util import importable_name
@@ -736,9 +739,9 @@ def update_dashboard_models():
                 "Transmission",
                 "Notification",
                 "Recruitment",
-            }
-            .union({cls.__name__ for cls in _sql_psynet_base_classes.values()})
-            .difference({"_Response"})
+            }.union(
+                {cls.__name__ for cls in _sql_psynet_base_classes.values()}
+            ).difference({"_Response"})
         )
     )
 

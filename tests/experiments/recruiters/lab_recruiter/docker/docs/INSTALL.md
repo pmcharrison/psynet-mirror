@@ -13,7 +13,7 @@ There are four main prerequisites:
 
 - WSL Ubuntu (only required for Windows)
 - Docker
-- PyCharm (optional)
+- IDE (VSCode or Cursor recommended; PyCharm is an alternative)
 - Git (optional)
 
 All are free and can be downloaded via the Internet. We will detail how to install each of these in turn.
@@ -72,24 +72,15 @@ then you should go to the General tab and tick the box that says
 If you don't tick this box PsyNet will run very slowly.
 
 
-### Installing PyCharm
+### Installing an IDE
 
 Writing code usually benefits from an integrated development environment (IDE).
-We recommend using PyCharm for PsyNet experiments, specifically the Professional Edition.
-This is paid but academics can get an educational license for free.
-Download PyCharm from [this link](https://www.jetbrains.com/help/pycharm/installation-guide.html).
+We recommend using **VSCode** or **Cursor** for PsyNet experiments. Both are free and work well with PsyNet.
 
-*Windows users only*: You should configure PyCharm to use Unix-style line endings (LF) by default instead
-of Windows-style line endings (CLRF); otherwise your Docker scripts may not run.
-To do this, follow
-[these instructions from the JetBrains website](https://www.jetbrains.com/help/pycharm/configuring-line-endings-and-line-separators.html>):
+- **VSCode**: Download from [https://code.visualstudio.com/](https://code.visualstudio.com/)
+- **Cursor**: Download from [https://cursor.sh/](https://cursor.sh/)
 
-  1. Open PyCharm's settings.
-  2. Go to File | New Projects Setup | Settings (or Preferences) for New Projects | Editor | Code Style.
-  3. Set Line separator to 'Unix and macOS (\n)'.
-  4. If you are in a project already, you may wish to select the current project from the Scheme dropdown menu on this
-     same page and repeat the process of setting the line seperator.
-  5. Press OK.
+**PyCharm** is also supported as an alternative IDE, but note that PyCharm remote debugging is currently not working (as of February 2025). If you choose to use PyCharm, you will need to configure it yourself; we do not provide detailed setup instructions as they may become outdated.
 
 ### Git
 
@@ -138,19 +129,17 @@ If the experiment is a private repository then someone should have added you alr
 as a collaborator. You will need to use your credentials when cloning the repository;
 if you use the HTTPS link then you should be prompted for these automatically.
 
-## Setting up PyCharm
+## Setting up your IDE
 
-The first time you open PyCharm you may need to enter some license information,
-decide to start a free trial, or something similar. Do this first.
+### VSCode or Cursor
 
-Now, within PyCharm, click File > Open and open the folder that Git downloaded for you.
-This opens the experiment directory as a PyCharm 'project'.
-It may ask you to setup an 'interpreter' at this point; ignore this message and click Cancel.
+Open your IDE (VSCode or Cursor) and click File > Open Folder (or File > Open in VSCode).
+Select the folder that Git downloaded for you. This opens the experiment directory as a project.
 
 The first thing you should do is 'build' the experiment. The first time you build a PsyNet
 experiment it will download PsyNet and lots of other dependencies. Make sure you have a
 good internet connection for this, it will take a few minutes.
-You build the experiment by running the following in your PyCharm terminal:
+You build the experiment by running the following in your IDE's terminal:
 
 ```shell
 bash docker/build
@@ -170,21 +159,21 @@ chmod +x docker/*
 
 If you see other error messages at this point, see Troubleshooting.
 
-Now you should configure PyCharm to use your experiment's Docker image.
-To do this, first open the Dockertag file in your experiment's directory, and copy the contents to your clipboard.
-Then look for a box in the bottom-right corner of your screen that says 'No interpreter'.
-Click on this text and click 'Add New interpreter'.
-Click 'Pull or use existing', then under 'Image tag' paste the contents of the Dockertag file you copied earlier.
-Click Next, and wait a while. The script will initially look for that tag on Dockerhub, which should fail;
-It should then look for that tag on your local computer, and successfully acquire the image you just built locally.
-Click Next, then select 'System Interpreter', then click 'Create'. You should have now successfully set up your
-interpreter.
+The project includes a pre-configured `.vscode/launch.json` file that is set up for debugging.
+You can use this to debug your experiment by setting breakpoints and using the debugger.
+
+### PyCharm (alternative)
+
+If you prefer to use PyCharm, you can open the project in PyCharm. However, note that:
+- PyCharm remote debugging is currently not working (as of February 2025)
+- We do not provide detailed PyCharm setup instructions as they may become outdated
+- You will need to configure PyCharm's Docker interpreter yourself if you want to use Docker integration
 
 
 ## Running the experiment
 
 If all has gone well, you should now be able to run the experiment.
-Try this by running the following command in your PyCharm terminal:
+Try this by running the following command in your IDE's terminal:
 
 ```shell
 bash docker/psynet debug local
@@ -235,9 +224,10 @@ The problem is probably that your project has the wrong line endings;
 on Windows, if you are not configured correctly, then your files may end up
 with Windows-style line endings (CRLF) instead of Unix-style line endings (LF).
 To fix this, first follow the line-endings instructions described above for
-setting up Git and PyCharm in Windows.
-Then select your project folder in the project pane,
-and from the task bar select File | File Properties | Line Separators | LF - Unix and MacOS.
+setting up Git in Windows.
+Then configure your IDE to use Unix-style line endings (LF). In VSCode/Cursor, you can
+set this in the bottom-right corner status bar, or in settings. In PyCharm, you can
+set this via File | File Properties | Line Separators | LF - Unix and MacOS.
 Your command should now run without the error.
 
 #### A timeout occurred

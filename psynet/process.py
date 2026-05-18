@@ -41,9 +41,11 @@ class AsyncProcess(SQLBase, SQLMixin):
     arguments = deferred(Column(PythonDict))
     pending = Column(Boolean)
     finished = Column(Boolean, default=False)
+    time_enqueued = Column(DateTime)
     time_started = Column(DateTime)
     time_finished = Column(DateTime)
     time_taken = Column(Float)
+    queue_delay = Column(Float)
     _unique_key = Column(PythonDict, unique=True)
 
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
@@ -77,6 +79,7 @@ class AsyncProcess(SQLBase, SQLMixin):
     launch_queue = []
 
     def add_to_launch_queue(self):
+        self.time_enqueued = datetime.datetime.now()
         self.launch_queue.append(self.get_launch_spec())
 
     def get_launch_spec(self) -> dict:
@@ -248,6 +251,10 @@ class AsyncProcess(SQLBase, SQLMixin):
 
             timer = time.monotonic()
             process.time_started = datetime.datetime.now()
+            if process.time_enqueued:
+                process.queue_delay = (
+                    process.time_started - process.time_enqueued
+                ).total_seconds()
             db.session.commit()
 
             function(**arguments)
