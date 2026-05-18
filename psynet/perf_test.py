@@ -1273,11 +1273,7 @@ def format_performance_summary(results):
             if show_scaling:
                 if i == 0:
                     row.append("\u2014")
-                elif (
-                    export_dur is not None
-                    and baseline_export
-                    and baseline_export > 0
-                ):
+                elif export_dur is not None and baseline_export and baseline_export > 0:
                     row.append(f"{export_dur / baseline_export:.1f}x")
                 else:
                     row.append("N/A")

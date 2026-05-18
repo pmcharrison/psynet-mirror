@@ -8,8 +8,8 @@ import signal
 import subprocess
 import sys
 import tempfile
-import time
 import threading
+import time
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
@@ -33,9 +33,9 @@ from dallinger.command_line.docker_ssh import (
 )
 from dallinger.command_line.utils import verify_id as dallinger_verify_id
 from dallinger.config import experiment_available, get_config
-from dallinger.utils import port_is_open
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
+from dallinger.utils import port_is_open
 from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
@@ -3322,12 +3322,20 @@ def performance_test__local(
     do_export = not no_export
     if existing:
         _run_performance_test_with_existing_server(
-            n_bots, stagger, time_factor, duration_minutes, debug,
+            n_bots,
+            stagger,
+            time_factor,
+            duration_minutes,
+            debug,
             do_export=do_export,
         )
     else:
         _run_performance_test_with_new_server(
-            n_bots, stagger, time_factor, duration_minutes, debug,
+            n_bots,
+            stagger,
+            time_factor,
+            duration_minutes,
+            debug,
             do_export=do_export,
         )
 
@@ -3407,7 +3415,9 @@ def _run_performance_test_with_existing_server(
         time_factor=time_factor or exp.test_time_factor,
     )
     tester.run(
-        bot_counts=bot_counts, bot_log_file=bot_log_file, collect_results=collect_results
+        bot_counts=bot_counts,
+        bot_log_file=bot_log_file,
+        collect_results=collect_results,
     )
     if do_export and collect_results is not None and collect_results:
         export_duration, export_error = _time_export()
@@ -3445,7 +3455,6 @@ def _drain_pexpect_output(process):
             pass
         except (pexpect.EOF, Exception):
             break
-
 
 
 def _start_local_server_and_wait_for_ready(

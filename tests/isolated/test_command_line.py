@@ -719,6 +719,7 @@ class TestRunPerformanceTestWithNewServer:
     """Isolation tests are maybe not super valuable here, but at least
     they're fast, and they follow the patterns of the project.
     """
+
     def subject(self, **kwargs):
         from psynet.command_line import _run_performance_test_with_new_server
 
@@ -728,7 +729,9 @@ class TestRunPerformanceTestWithNewServer:
         kwargs.setdefault("duration_minutes", 0.5)
         kwargs.setdefault("debug", False)
         kwargs.setdefault("do_export", True)
-        kwargs.setdefault("_start_server", Mock(side_effect=lambda **kw: _make_server_info()))
+        kwargs.setdefault(
+            "_start_server", Mock(side_effect=lambda **kw: _make_server_info())
+        )
         kwargs.setdefault("_stop_server_fn", Mock())
         kwargs.setdefault("_run_stage", Mock())
         kwargs.setdefault("_base_url", "http://localhost:5000")
