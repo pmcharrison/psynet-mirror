@@ -457,7 +457,9 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="n_trials",
             target_n_participants=None,
             max_trials_per_block=1,
-            choose_participant_group=lambda participant: participant.var.participant_group,
+            choose_participant_group=lambda participant: (
+                participant.var.participant_group
+            ),
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
     )
