@@ -44,7 +44,12 @@ def dev():
     """Developer utilities for PsyNet source checkouts."""
 
 
-@dev.command("update-demos")
+@dev.group("demos")
+def demos():
+    """Manage bundled demos from a PsyNet source checkout."""
+
+
+@demos.command("update")
 @click.option(
     "--jobs",
     "n_jobs",

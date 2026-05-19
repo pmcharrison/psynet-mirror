@@ -94,7 +94,7 @@ class TestCommandLine(object):
         )
 
         result = CliRunner().invoke(
-            psynet, ["dev", "update-demos", "--jobs", "3", "--skip-constraints"]
+            psynet, ["dev", "demos", "update", "--jobs", "3", "--skip-constraints"]
         )
 
         assert result.exit_code == 0

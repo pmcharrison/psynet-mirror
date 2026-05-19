@@ -1,4 +1,4 @@
-# Run me as follows: psynet dev update-demos
+# Run me as follows: psynet dev demos update
 #
 # Warning: the chosen constraints will depend on the version of Dallinger that you currently have installed.
 # In general, you want to make sure you have installed the version of Dallinger stated in PsyNet's `psynet/version.py`.
@@ -7,7 +7,7 @@
 # We plan to remove these constraints.txt files in due course from PsyNet, but currently they are required for
 # Dallinger back-compatibility.
 # In the meantime, if you want to skip generating constraints and only update other demo files,
-# run the following instead: psynet dev update-demos --skip-constraints
+# run the following instead: psynet dev demos update --skip-constraints
 
 import fileinput
 import os

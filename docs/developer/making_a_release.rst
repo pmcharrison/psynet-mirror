@@ -58,7 +58,7 @@ Commit the changes with
 
 .. code-block:: console
 
-    python3 demos/update_demos.py
+    psynet dev demos update
 
 from inside PsyNet's root directory. This could take a while depending on the processing power of your system.
 
