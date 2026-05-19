@@ -20,7 +20,7 @@ Info pages
 ----------
 
 The :class:`~psynet.page.InfoPage` is the simplest type of page.
-It's used to display text snippets to the user without recording any response.
+It's used to display text snippets to the participant without recording any response.
 Here's an example:
 
 .. code-block:: python
@@ -63,7 +63,7 @@ Modular pages
 
 More complex pages can be designed using :class:`~psynet.modular_page.ModularPage` objects.
 Modular pages work by combining together a *prompt*, which defines some kind of content that
-is presented to the participant, and a *control*, which defines how the user responds to that content.
+is presented to the participant, and a *control*, which defines how the participant responds to that content.
 PsyNet provides a library of built-in prompts and controls which in combination support
 a great variety of experimental interfaces without the need to write custom HTML or JS.
 

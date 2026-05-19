@@ -30,7 +30,7 @@ Here's a list of those pipelines:
 - ``demos/pipelines/timed_push_buttons`` -- Participants press buttons at interesting moments
   in audio stimuli.
 
-All these pipelines work in the same way: the user specifies a directory of audio stimuli
+All these pipelines work in the same way: you specify a directory of audio stimuli,
 and the pipeline takes care of the rest.
 Typically the directory is specified with some code like this:
 
