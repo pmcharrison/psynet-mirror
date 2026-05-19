@@ -437,9 +437,13 @@ def is_stable_release_changelog_diff(
             if base_version is not None:
                 removed_prerelease_bases.add(base_version)
 
-    return bool(added_stable_versions & removed_prerelease_bases) and (
-        added_content == removed_content + allowed_added_content
-    )
+    matching_prerelease_bases = added_stable_versions & removed_prerelease_bases
+    if removed_prerelease_bases and not matching_prerelease_bases:
+        return False
+
+    return bool(added_stable_versions) and (
+        bool(matching_prerelease_bases) or bool(allowed_added_content)
+    ) and (added_content == removed_content + allowed_added_content)
 
 
 def check_mr_command(base: str, head: str) -> int:
