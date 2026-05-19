@@ -1,4 +1,4 @@
-# Run me as follows: python3 demos/update_demos.py
+# Run me as follows: psynet dev update-demos
 #
 # Warning: the chosen constraints will depend on the version of Dallinger that you currently have installed.
 # In general, you want to make sure you have installed the version of Dallinger stated in PsyNet's `psynet/version.py`.
@@ -7,7 +7,7 @@
 # We plan to remove these constraints.txt files in due course from PsyNet, but currently they are required for
 # Dallinger back-compatibility.
 # In the meantime, if you want to skip generating constraints and only update other demo files,
-# run the following instead: SKIP_CONSTRAINTS=1 python3 demos/update_demos.py
+# run the following instead: psynet dev update-demos --skip-constraints
 
 import fileinput
 import os
@@ -66,12 +66,8 @@ def get_latest_dallinger_patch_version(major_minor_version):
         return f"{major_minor_version}.0"
 
 
-skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
-
-# Fetch the latest Dallinger patch version once, outside of parallel execution
-latest_dallinger_patch_version = get_latest_dallinger_patch_version(
-    recommended_dallinger_major_minor
-)
+skip_constraints = False
+latest_dallinger_patch_version = None
 
 
 def update_demo(dir):
@@ -253,16 +249,35 @@ def update_image_tag(file):
                 print(line, end="")
 
 
-# Update PsyNet Docker image version
-for path in [
-    "psynet/resources/experiment_scripts/Dockerfile",
-    "psynet/resources/experiment_scripts/docker/generate-constraints",
-]:
-    with fileinput.FileInput(path, inplace=True) as file:
-        update_image_tag(file)
+def main(n_jobs=8, skip_constraints_=None):
+    global latest_dallinger_patch_version, skip_constraints
 
-# Update demos
-n_jobs = int(sys.argv[1]) if len(sys.argv) > 1 else 8
-Parallel(verbose=10, n_jobs=n_jobs)(
-    delayed(update_demo)(_dir) for _dir in list_experiment_dirs()
-)
+    skip_constraints = (
+        bool(os.getenv("SKIP_CONSTRAINTS"))
+        if skip_constraints_ is None
+        else skip_constraints_
+    )
+
+    # Fetch the latest Dallinger patch version once, outside of parallel execution.
+    latest_dallinger_patch_version = get_latest_dallinger_patch_version(
+        recommended_dallinger_major_minor
+    )
+
+    # Update PsyNet Docker image version.
+    for path in [
+        "psynet/resources/experiment_scripts/Dockerfile",
+        "psynet/resources/experiment_scripts/docker/generate-constraints",
+    ]:
+        with fileinput.FileInput(path, inplace=True) as file:
+            update_image_tag(file)
+
+    # Update demos.
+    Parallel(verbose=10, n_jobs=n_jobs)(
+        delayed(update_demo)(_dir) for _dir in list_experiment_dirs()
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    n_jobs = int(sys.argv[1]) if len(sys.argv) > 1 else 8
+    raise SystemExit(main(n_jobs=n_jobs))

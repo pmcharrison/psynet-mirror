@@ -23,9 +23,55 @@ def _load_changelog_module():
     return module
 
 
+def _load_update_demos_module():
+    script_path = Path(__file__).resolve().parents[1] / "demos" / "update_demos.py"
+    if not script_path.exists():
+        raise click.ClickException(
+            f"Could not find demo updater script at {script_path}. "
+            "Run this command from a PsyNet source checkout."
+        )
+
+    spec = importlib.util.spec_from_file_location("psynet_update_demos", script_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 @click.group("dev")
 def dev():
     """Developer utilities for PsyNet source checkouts."""
+
+
+@dev.command("update-demos")
+@click.option(
+    "--jobs",
+    "n_jobs",
+    default=8,
+    show_default=True,
+    type=int,
+    help="Number of parallel jobs to use when updating demos.",
+)
+@click.option(
+    "--skip-constraints",
+    is_flag=True,
+    help="Update demo files without regenerating constraints.txt files.",
+)
+@click.pass_context
+def update_demos(ctx, n_jobs, skip_constraints):
+    """Update bundled demo files from the current PsyNet source checkout."""
+    module = _load_update_demos_module()
+    try:
+        exit_code = module.main(
+            n_jobs=n_jobs,
+            skip_constraints_=True if skip_constraints else None,
+        )
+    except ValueError as exc:
+        click.echo(str(exc), err=True)
+        ctx.exit(1)
+
+    ctx.exit(exit_code)
 
 
 @dev.group("changelog")

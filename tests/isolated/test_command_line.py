@@ -79,6 +79,27 @@ class TestCommandLine(object):
         assert result.exit_code == 0
         assert calls[-1] == ("build",)
 
+    def test_dev_update_demos_dispatches_to_script(self, monkeypatch):
+        from psynet.command_line import psynet
+
+        calls = []
+        fake_updater = types.SimpleNamespace(
+            main=lambda n_jobs, skip_constraints_: (
+                calls.append((n_jobs, skip_constraints_)) or 0
+            )
+        )
+        monkeypatch.setattr(
+            "psynet_dev_command_line._load_update_demos_module",
+            lambda: fake_updater,
+        )
+
+        result = CliRunner().invoke(
+            psynet, ["dev", "update-demos", "--jobs", "3", "--skip-constraints"]
+        )
+
+        assert result.exit_code == 0
+        assert calls == [(3, True)]
+
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
         output = subprocess.check_output(
