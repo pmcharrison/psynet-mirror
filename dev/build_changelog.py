@@ -341,6 +341,22 @@ def changelog_diff(base: str, head: str) -> str:
     return result.stdout
 
 
+def deleted_fragment_paths(base: str, head: str) -> list[str]:
+    """Return valid changelog fragments deleted between two git revisions."""
+    result = subprocess.run(
+        ["git", "diff", "--name-status", base, head, "--", "changelog.d"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    paths: list[str] = []
+    for line in result.stdout.splitlines():
+        status, _separator, path = line.partition("\t")
+        if status == "D" and is_fragment_path(path):
+            paths.append(path)
+    return paths
+
+
 def is_fragment_path(path: str) -> bool:
     """Return whether a changed path is a valid changelog fragment path."""
     return (
@@ -362,12 +378,42 @@ def is_section_header(line: str) -> bool:
     return line[4:].strip() in SECTION_TITLE_TO_KEY
 
 
-def is_stable_release_changelog_diff(diff: str) -> bool:
+def fragment_entries_from_revision(revision: str, paths: list[str]) -> list[str]:
+    """Return formatted fragment entries as they existed at a git revision."""
+    entries: list[str] = []
+    for path in paths:
+        result = subprocess.run(
+            ["git", "show", f"{revision}:{path}"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        content = result.stdout.strip()
+        if not content:
+            raise ValueError(f"{path} is empty.")
+        entries.append(format_entry(content))
+    return entries
+
+
+def entry_line_counter(entries: list[str]) -> Counter[str]:
+    """Count non-empty rendered entry lines."""
+    counter: Counter[str] = Counter()
+    for entry in entries:
+        for line in entry.splitlines():
+            if line.strip():
+                counter[line] += 1
+    return counter
+
+
+def is_stable_release_changelog_diff(
+    diff: str, allowed_added_entries: list[str] | None = None
+) -> bool:
     """Detect a changelog diff that folds beta/RC sections into stable."""
     added_stable_versions: set[str] = set()
     removed_prerelease_bases: set[str] = set()
     added_content: Counter[str] = Counter()
     removed_content: Counter[str] = Counter()
+    allowed_added_content = entry_line_counter(allowed_added_entries or [])
 
     for line in diff.splitlines():
         if not line.startswith(("+", "-")) or line.startswith(("+++", "---")):
@@ -392,7 +438,7 @@ def is_stable_release_changelog_diff(diff: str) -> bool:
                 removed_prerelease_bases.add(base_version)
 
     return bool(added_stable_versions & removed_prerelease_bases) and (
-        added_content == removed_content
+        added_content == removed_content + allowed_added_content
     )
 
 
@@ -401,9 +447,15 @@ def check_mr_command(base: str, head: str) -> int:
     changes = changed_files(base, head)
     has_fragment = any(is_fragment_path(path) for path in changes)
     changes_changelog = "CHANGELOG.md" in changes
-    is_stable_fold = changes_changelog and is_stable_release_changelog_diff(
-        changelog_diff(base, head)
-    )
+    is_stable_fold = False
+    if changes_changelog:
+        diff = changelog_diff(base, head)
+        is_stable_fold = is_stable_release_changelog_diff(diff)
+        if not is_stable_fold and has_fragment:
+            consumed_entries = fragment_entries_from_revision(
+                base, deleted_fragment_paths(base, head)
+            )
+            is_stable_fold = is_stable_release_changelog_diff(diff, consumed_entries)
 
     if changes_changelog and not is_stable_fold:
         raise ValueError(

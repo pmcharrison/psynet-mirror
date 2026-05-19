@@ -312,6 +312,54 @@ def test_changelog_diff_uses_git_diff(build_changelog, monkeypatch):
     ]
 
 
+def test_deleted_fragment_paths_uses_git_diff_name_status(build_changelog, monkeypatch):
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append((args, kwargs))
+        return subprocess.CompletedProcess(
+            args,
+            0,
+            stdout=(
+                "D\tchangelog.d/20260516-valid.fixed.md\n"
+                "A\tchangelog.d/20260516-added.fixed.md\n"
+                "D\tchangelog.d/invalid.fixed.md\n"
+            ),
+        )
+
+    monkeypatch.setattr(build_changelog.subprocess, "run", fake_run)
+
+    assert build_changelog.deleted_fragment_paths("base", "head") == [
+        "changelog.d/20260516-valid.fixed.md"
+    ]
+    assert calls == [
+        (
+            ["git", "diff", "--name-status", "base", "head", "--", "changelog.d"],
+            {"check": True, "capture_output": True, "text": True},
+        )
+    ]
+
+
+def test_fragment_entries_from_revision_uses_git_show(build_changelog, monkeypatch):
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append((args, kwargs))
+        return subprocess.CompletedProcess(args, 0, stdout="Fixed valid thing\n")
+
+    monkeypatch.setattr(build_changelog.subprocess, "run", fake_run)
+
+    assert build_changelog.fragment_entries_from_revision(
+        "base", ["changelog.d/20260516-valid.fixed.md"]
+    ) == ["- Fixed valid thing"]
+    assert calls == [
+        (
+            ["git", "show", "base:changelog.d/20260516-valid.fixed.md"],
+            {"check": True, "capture_output": True, "text": True},
+        )
+    ]
+
+
 def test_stable_release_changelog_diff_detection(build_changelog):
     assert build_changelog.prerelease_base_version("13.2.0b0") == "13.2.0"
     assert build_changelog.prerelease_base_version("13.2.0rc1") == "13.2.0"
@@ -332,6 +380,18 @@ def test_stable_release_changelog_diff_detection(build_changelog):
                 "+- Fixed thing",
             ]
         )
+    )
+    assert build_changelog.is_stable_release_changelog_diff(
+        "\n".join(
+            [
+                "-## [13.2.0rc1](url) Release candidate - 2026-05-07",
+                "-- Fixed thing",
+                "+## [13.2.0](url) Release - 2026-05-16",
+                "+- Fixed thing",
+                "+- Fixed valid thing",
+            ]
+        ),
+        ["- Fixed valid thing"],
     )
     assert not build_changelog.is_stable_release_changelog_diff(
         "+## [13.2.0b1](url) Beta - 2026-05-16"
@@ -435,6 +495,7 @@ def test_check_mr_command_rejects_changelog_edit_even_with_fragment(
         "changelog_diff",
         lambda _base, _head: "+## [13.2.0](url) Release - 2026-05-16\n",
     )
+    monkeypatch.setattr(build_changelog, "deleted_fragment_paths", lambda *_args: [])
 
     with pytest.raises(ValueError, match="must not edit CHANGELOG.md directly"):
         build_changelog.check_mr_command("base", "head")
@@ -502,10 +563,21 @@ def test_check_mr_command_allows_stable_release_fold_with_fragment(
         "changelog_diff",
         lambda _base, _head: (
             "-## [13.2.0rc1](url) Release candidate - 2026-05-07\n"
-            "-- Fixed valid thing\n"
+            "-- RC fixed thing\n"
             "+## [13.2.0](url) Release - 2026-05-16\n"
+            "+- RC fixed thing\n"
             "+- Fixed valid thing\n"
         ),
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "deleted_fragment_paths",
+        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "fragment_entries_from_revision",
+        lambda _revision, _paths: ["- Fixed valid thing"],
     )
 
     assert build_changelog.check_mr_command("base", "head") == 0
