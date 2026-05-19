@@ -84,5 +84,5 @@ differ on the same day.
 
 The historical in-progress changelog block was migrated into date-prefixed
 fragments using commit-history dates and descriptive slugs. These remain
-valid and will be consumed at the next release. Please use the `--new`
-helper for all new fragments going forward.
+valid and will be consumed at the next release. Please use
+`psynet dev changelog new` for all new fragments going forward.
