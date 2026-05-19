@@ -84,7 +84,7 @@ class _BaseExperiment:
     # matches — so cosmetic changes wipe the history. Pins version to allow
     # refactors that shouldn't impact performance. Bump this integer when a
     # benchmark change makes new results incomparable to old ones.
-    version = 3
+    version = 4
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -156,11 +156,21 @@ class _BaseExperiment:
     def _result_for(data, *param_values):
         return data[tuple(param_values)]
 
-    def track_requests_per_sec(self, data, *param_values):
-        return self._result_for(data, *param_values)["requests_per_sec"]
+    # All track_* metrics below are oriented so that lower is better. Throughput
+    # metrics can not be used directly to track regressions
 
-    track_requests_per_sec.unit = "req/s"
-    track_requests_per_sec.pretty_name = "Requests/sec"
+    def track_ms_per_request(self, data, *param_values):
+        # Inverse of requests/sec: milliseconds of wall-clock per request. A run
+        # that served zero requests is a broken run, not a 0 ms result -- raise
+        # so ASV records the benchmark as failed (which the regression gate
+        # treats as worsened) rather than dividing by zero with a cryptic error.
+        requests_per_sec = self._result_for(data, *param_values)["requests_per_sec"]
+        if not requests_per_sec:
+            raise RuntimeError("performance test recorded 0 requests/sec")
+        return 1000.0 / requests_per_sec
+
+    track_ms_per_request.unit = "ms"
+    track_ms_per_request.pretty_name = "Time/request"
 
     def track_p95_response_time_ms(self, data, *param_values):
         return self._result_for(data, *param_values)["p95_response_time"] * 1000.0
@@ -168,11 +178,41 @@ class _BaseExperiment:
     track_p95_response_time_ms.unit = "ms"
     track_p95_response_time_ms.pretty_name = "P95 Response Time"
 
-    def track_bots_succeeded(self, data, *param_values):
-        return self._result_for(data, *param_values)["bots_succeeded"]
+    def track_sec_per_bot(self, data, *param_values):
+        # Bot (succeeded or failed) throughput per second. A failed bot
+        # finished within the time budget, so it counts toward throughput.
+        # Incomplete bots are excluded.
+        result = self._result_for(data, *param_values)
+        params = dict(zip(self.param_names, param_values))
+        # 1.0 = psynet performance-test --duration-minutes default, used when
+        # duration is not a swept axis.
+        duration_minutes = params.get("duration_minutes", 1.0)
+        completed = result["bots_succeeded"] + result["bots_failed"]
+        return (duration_minutes * 60.0) / max(completed, 1)
 
-    track_bots_succeeded.unit = "count"
-    track_bots_succeeded.pretty_name = "Bots Succeeded"
+    track_sec_per_bot.unit = "s"
+    track_sec_per_bot.pretty_name = "Bot throughput (s/bot)"
+
+    def track_failure_rate(self, data, *param_values):
+        # Percent of bots that failed. The denominator is completed bots
+        # (succeeded + failed). This should not be affected by how many bots a
+        # slow run left incomplete.
+        result = self._result_for(data, *param_values)
+        completed = result["bots_succeeded"] + result["bots_failed"]
+        return 100 * result["bots_failed"] / max(completed, 1)
+
+    track_failure_rate.unit = "%"
+    track_failure_rate.pretty_name = "Failure rate"
+
+    def track_incomplete_rate(self, data, *param_values):
+        # Percent of bots that were started and didn't complete during the
+        # duration. Denominator is total bots started so an increase in bots
+        # launched is not flagged as a regression.
+        result = self._result_for(data, *param_values)
+        return 100 * result["bots_incomplete"] / max(result["total_bots_started"], 1)
+
+    track_incomplete_rate.unit = "%"
+    track_incomplete_rate.pretty_name = "Incomplete rate"
 
 
 class Timeline(_BaseExperiment):

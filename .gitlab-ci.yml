@@ -190,6 +190,58 @@ asv_benchmarks:
       when: always
     - when: never
 
+# Gate merge requests on benchmark regressions. Runs `asv continuous`, which
+# builds and benchmarks both commits back-to-back on the same runner (so
+# runner-to-runner noise cancels out) and exits non-zero if any benchmark
+# regressed past --factor. The base is the MR's merge base with the target
+# branch (CI_MERGE_REQUEST_DIFF_BASE_SHA), and the head is the source branch
+# tip -- comparing those two real commits isolates exactly the MR's own
+# changes, independent of how far master has moved. Results are not committed
+# to the benchmark-results branch; this job is a gate only.
+asv_regression:
+  stage: test
+  resource_group: benchmark-results
+  # Runs the full benchmark suite twice (base + head); generous enough to
+  # absorb a cold .asv/env cache and a slow shared runner without flaking.
+  timeout: 90m
+  variables:
+    # Full clone: the merge base can be far back in the target branch's
+    # history and is otherwise unreachable in the default shallow clone.
+    GIT_DEPTH: "0"
+  cache:
+    key:
+      files:
+        - pyproject.toml
+        - asv.conf.json
+    paths:
+      - .asv/env/
+  script:
+    - apk add --no-cache git
+    - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
+    # The full clone above already has the source tip and the merge base;
+    # fetch the target branch as a defensive backstop. Fetching the source
+    # branch by name is avoided -- it fails for fork-originated merge requests.
+    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - export ASV_BASE="$CI_MERGE_REQUEST_DIFF_BASE_SHA"
+    # SOURCE_BRANCH_SHA is set in merged-results pipelines; in a standard MR
+    # pipeline it is empty and CI_COMMIT_SHA is itself the source branch tip.
+    - export ASV_HEAD="${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}"
+    - echo "Comparing benchmark base $ASV_BASE -> head $ASV_HEAD"
+    - docker run
+      --add-host=postgres:$POSTGRES_IP
+      --add-host=redis:$REDIS_IP
+      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
+      -e CI
+      -e PSYNET_WORKSPACE
+      -e ASV_MACHINE_NAME=gitlab-ci
+      -v "$PWD:$PSYNET_WORKSPACE"
+      -w $PSYNET_WORKSPACE
+      $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && uv pip install --no-cache --system asv virtualenv && asv machine --yes --machine gitlab-ci && asv continuous --factor 1.25 --split --show-stderr $ASV_BASE $ASV_HEAD"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - when: never
+
 # To do:
 # - Skip tests if the changes are only in the docs directory
 pages_latest:
