@@ -15,6 +15,7 @@ GitHub-flavoured Markdown table per input file to stdout.
 
 import json
 import sys
+from pathlib import Path
 
 from tabulate import tabulate
 
@@ -77,8 +78,10 @@ def print_report(path):
     with open(path) as handle:
         payload = json.load(handle)
 
-    label = payload.get("experiment_label", "?")
-    print(f"\n### {label}  (`{path}`)\n")
+    # Identify each demo by its file's stem -- `experiment_label` is not unique
+    # across demos (e.g. static and static_big share one).
+    name = Path(path).stem.removeprefix("sweep-")
+    print(f"\n### {name}  (`{path}`)\n")
     rows = [_row(result) for result in payload["results"]]
     # `github` tablefmt keeps the artifact (sweep-report.md) valid Markdown;
     # perf_test.py uses `simple` because its output is terminal-only.

@@ -226,6 +226,9 @@ class Timeline(_BaseExperiment):
 
 class Static(_BaseExperiment):
     demo_name = "static"
+    # n_bots set to the throughput knee located by the load sweep on GitLab
+    # runners (benchmark_load_sweep CI job).
+    params = [[5], [2.0]]
 
     def setup_cache(self):
         return super().setup_cache()
@@ -234,6 +237,9 @@ class Static(_BaseExperiment):
 class StaticBig(_BaseExperiment):
     demo_name = "static_big"
     demo_root = "tests/experiments"
+    # n_bots set to the throughput knee located by the load sweep on GitLab
+    # runners (benchmark_load_sweep CI job).
+    params = [[5], [2.0]]
 
     def setup_cache(self):
         return super().setup_cache()

@@ -264,7 +264,7 @@ benchmark_load_sweep:
       -e PSYNET_WORKSPACE
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG bash -c 'uv pip install --no-cache --system --no-deps -e "$PSYNET_WORKSPACE" && for demo in demos/experiments/static demos/experiments/timeline tests/experiments/static_big; do name=$(basename "$demo"); echo "=== load sweep $name ==="; ( cd "$demo" && psynet performance-test local --n-bots "3,5,8,12" --duration-minutes 2.0 --json-output "$PSYNET_WORKSPACE/public/sweep-$name.json" ); done && python3 ci/perf-sweep-report.py public/sweep-*.json | tee public/sweep-report.md'
+      $DOCKER_LOCAL_TAG bash -c 'uv pip install --no-cache --system --no-deps -e "$PSYNET_WORKSPACE" && sweep() { echo "=== load sweep $2 ==="; ( cd "$1" && psynet performance-test local --n-bots "$3" --duration-minutes "$4" --json-output "$PSYNET_WORKSPACE/public/sweep-$2.json" ); } && sweep demos/experiments/static static "5,6,7" 2.0 && sweep demos/experiments/timeline timeline "8,12,16,24" 5.0 && sweep tests/experiments/static_big static_big "5,6" 2.0 && python3 ci/perf-sweep-report.py public/sweep-*.json | tee public/sweep-report.md'
   artifacts:
     when: always
     paths:
