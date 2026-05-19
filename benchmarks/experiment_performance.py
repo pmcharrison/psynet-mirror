@@ -217,6 +217,10 @@ class _BaseExperiment:
 
 class Timeline(_BaseExperiment):
     demo_name = "timeline"
+    # n_bots set to the throughput knee from the load sweep (benchmark_load_sweep
+    # CI job). Longer duration than the other demos: Timeline's bots are slow,
+    # so a short run completes too few for a stable sec_per_bot / incomplete_rate.
+    params = [[12], [8.0]]
 
     # See `_BaseExperiment.setup_cache` for why each subclass must redefine
     # this method (ASV cache-key collision on inherited methods).
