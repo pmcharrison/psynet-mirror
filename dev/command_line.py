@@ -28,51 +28,80 @@ def dev():
     """Developer utilities for PsyNet source checkouts."""
 
 
-@dev.command("build-changelog")
-@click.option(
-    "--new",
-    nargs=2,
-    metavar="CATEGORY DESCRIPTION",
-    help=(
-        "Create a new fragment file with a date-prefixed slug filename "
-        "(e.g. --new fixed 'fix Selenium flake')."
-    ),
-)
-@click.option(
-    "--release",
-    nargs=2,
-    metavar="VERSION DATE",
-    help="Create a release section from current fragments.",
-)
-@click.option(
-    "--check-mr",
-    nargs=2,
-    metavar="BASE HEAD",
-    help="Validate changelog fragment requirements for an MR diff.",
-)
-@click.pass_context
-def build_changelog(ctx, new, release, check_mr):
-    """Build and manage changelog fragments from a PsyNet source checkout."""
-    modes = sum(1 for mode in (new, release, check_mr) if mode)
-    if modes > 1:
-        raise click.UsageError("Use only one of --new, --release, --check-mr.")
+@dev.group("changelog")
+def changelog():
+    """Manage changelog fragments from a PsyNet source checkout."""
 
+
+@changelog.command("preview")
+@click.pass_context
+def changelog_preview(ctx):
+    """Preview rendered changelog fragments without changing files."""
     module = _load_build_changelog_module()
     try:
-        if new:
-            category, description = new
-            exit_code = module.new_command(category, description)
-        elif check_mr:
-            base, head = check_mr
-            exit_code = module.check_mr_command(base, head)
-        elif release:
-            if not module.CHANGELOG_PATH.exists():
-                click.echo(f"Missing {module.CHANGELOG_PATH}", err=True)
-                ctx.exit(1)
-            version, date = release
-            exit_code = module.release_command(version, date)
-        else:
-            exit_code = module.build_command()
+        exit_code = module.build_command()
+    except ValueError as exc:
+        click.echo(str(exc), err=True)
+        ctx.exit(1)
+
+    ctx.exit(exit_code)
+
+
+CHANGELOG_CATEGORIES = (
+    "breaking",
+    "added",
+    "changed",
+    "deprecated",
+    "removed",
+    "fixed",
+    "updated",
+    "documentation",
+)
+
+
+@changelog.command("new")
+@click.argument("category", type=click.Choice(CHANGELOG_CATEGORIES), metavar="CATEGORY")
+@click.argument("description")
+@click.pass_context
+def changelog_new(ctx, category, description):
+    """Create a new date-prefixed changelog fragment.
+
+    CATEGORY must be one of: breaking, added, changed, deprecated, removed,
+    fixed, updated, documentation.
+
+    Example:
+
+        psynet dev changelog new fixed "Fixed login timeout"
+    """
+    module = _load_build_changelog_module()
+    try:
+        exit_code = module.new_command(category, description)
+    except ValueError as exc:
+        click.echo(str(exc), err=True)
+        ctx.exit(1)
+
+    ctx.exit(exit_code)
+
+
+@changelog.command("release")
+@click.argument("version", metavar="VERSION")
+@click.argument("date", metavar="DATE")
+@click.pass_context
+def changelog_release(ctx, version, date):
+    """Create a release section from current fragments.
+
+    VERSION is the PsyNet release version. DATE should use YYYY-MM-DD format.
+
+    Example:
+
+        psynet dev changelog release 13.2.0 2026-05-18
+    """
+    module = _load_build_changelog_module()
+    try:
+        if not module.CHANGELOG_PATH.exists():
+            click.echo(f"Missing {module.CHANGELOG_PATH}", err=True)
+            ctx.exit(1)
+        exit_code = module.release_command(version, date)
     except ValueError as exc:
         click.echo(str(exc), err=True)
         ctx.exit(1)

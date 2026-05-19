@@ -1,7 +1,7 @@
 """Build and validate PsyNet changelog fragments.
 
 This module is intentionally source-checkout-only. It powers the developer CLI
-(`psynet dev build-changelog`) and the lightweight CI wrapper at
+(`psynet dev changelog`) and the lightweight CI wrapper at
 `scripts/build_changelog.py`.
 
 Workflow summary:
@@ -471,7 +471,7 @@ def check_mr_command(base: str, head: str) -> int:
         raise ValueError(
             "MR must add or delete a changelog fragment, unless it folds beta/RC "
             "changelog sections into a stable release. "
-            'Run: psynet dev build-changelog --new <category> "<description>"'
+            'Run: psynet dev changelog new <category> "<description>"'
         )
 
     load_fragments()
@@ -572,7 +572,7 @@ def parse_args() -> argparse.Namespace:
             "Build and manage PsyNet changelog fragments. Contributors commit "
             "only fragments in their MRs (never a regenerated CHANGELOG.md); "
             "release notes are generated from fragments via "
-            "psynet dev build-changelog --release."
+            "psynet dev changelog release."
         )
     )
     parser.add_argument(
