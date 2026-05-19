@@ -22,7 +22,7 @@ import subprocess
 import sys
 import time
 import unicodedata
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -330,33 +330,6 @@ def changed_files(base: str, head: str) -> list[str]:
     return [line for line in result.stdout.splitlines() if line]
 
 
-def changelog_diff(base: str, head: str) -> str:
-    """Return a zero-context diff for `CHANGELOG.md` between two revisions."""
-    result = subprocess.run(
-        ["git", "diff", "--unified=0", base, head, "--", "CHANGELOG.md"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout
-
-
-def deleted_fragment_paths(base: str, head: str) -> list[str]:
-    """Return valid changelog fragments deleted between two git revisions."""
-    result = subprocess.run(
-        ["git", "diff", "--name-status", base, head, "--", "changelog.d"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    paths: list[str] = []
-    for line in result.stdout.splitlines():
-        status, _separator, path = line.partition("\t")
-        if status == "D" and is_fragment_path(path):
-            paths.append(path)
-    return paths
-
-
 def is_fragment_path(path: str) -> bool:
     """Return whether a changed path is a valid changelog fragment path."""
     return (
@@ -365,112 +338,22 @@ def is_fragment_path(path: str) -> bool:
     )
 
 
-def prerelease_base_version(version: str) -> str | None:
-    """Return the stable base version for compact beta/RC versions."""
-    match = re.match(r"^(?P<base>.+?)(?:b|rc)\d+$", version)
-    return match.group("base") if match else None
-
-
-def is_section_header(line: str) -> bool:
-    """Return whether a changed changelog line is a supported subsection header."""
-    if not line.startswith("### "):
-        return False
-    return line[4:].strip() in SECTION_TITLE_TO_KEY
-
-
-def fragment_entries_from_revision(revision: str, paths: list[str]) -> list[str]:
-    """Return formatted fragment entries as they existed at a git revision."""
-    entries: list[str] = []
-    for path in paths:
-        result = subprocess.run(
-            ["git", "show", f"{revision}:{path}"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        content = result.stdout.strip()
-        if not content:
-            raise ValueError(f"{path} is empty.")
-        entries.append(format_entry(content))
-    return entries
-
-
-def entry_line_counter(entries: list[str]) -> Counter[str]:
-    """Count non-empty rendered entry lines."""
-    counter: Counter[str] = Counter()
-    for entry in entries:
-        for line in entry.splitlines():
-            if line.strip():
-                counter[line] += 1
-    return counter
-
-
-def is_stable_release_changelog_diff(
-    diff: str, allowed_added_entries: list[str] | None = None
-) -> bool:
-    """Detect a changelog diff that folds beta/RC sections into stable."""
-    added_stable_versions: set[str] = set()
-    removed_prerelease_bases: set[str] = set()
-    added_content: Counter[str] = Counter()
-    removed_content: Counter[str] = Counter()
-    allowed_added_content = entry_line_counter(allowed_added_entries or [])
-
-    for line in diff.splitlines():
-        if not line.startswith(("+", "-")) or line.startswith(("+++", "---")):
-            continue
-
-        content = line[1:]
-        heading = RELEASE_HEADING_RE.match(content)
-        if heading is None:
-            if content.strip() and not is_section_header(content):
-                if line.startswith("+"):
-                    added_content[content] += 1
-                else:
-                    removed_content[content] += 1
-            continue
-
-        version = heading.group("version")
-        if line.startswith("+") and classify_release(version) == "Release":
-            added_stable_versions.add(version)
-        elif line.startswith("-"):
-            base_version = prerelease_base_version(version)
-            if base_version is not None:
-                removed_prerelease_bases.add(base_version)
-
-    matching_prerelease_bases = added_stable_versions & removed_prerelease_bases
-    if removed_prerelease_bases and not matching_prerelease_bases:
-        return False
-
-    return bool(added_stable_versions) and (
-        bool(matching_prerelease_bases) or bool(allowed_added_content)
-    ) and (added_content == removed_content + allowed_added_content)
-
-
 def check_mr_command(base: str, head: str) -> int:
     """Validate changelog requirements for a merge-request diff."""
     changes = changed_files(base, head)
     has_fragment = any(is_fragment_path(path) for path in changes)
     changes_changelog = "CHANGELOG.md" in changes
-    is_stable_fold = False
-    if changes_changelog:
-        diff = changelog_diff(base, head)
-        is_stable_fold = is_stable_release_changelog_diff(diff)
-        if not is_stable_fold and has_fragment:
-            consumed_entries = fragment_entries_from_revision(
-                base, deleted_fragment_paths(base, head)
-            )
-            is_stable_fold = is_stable_release_changelog_diff(diff, consumed_entries)
 
-    if changes_changelog and not is_stable_fold:
+    if changes_changelog:
         raise ValueError(
             "MRs must not edit CHANGELOG.md directly. Add a changelog fragment "
-            "instead; CHANGELOG.md is regenerated at release time."
+            "instead; release branches are exempt from this CI check and regenerate "
+            "CHANGELOG.md at release time."
         )
 
-    if not has_fragment and not is_stable_fold:
+    if not has_fragment:
         raise ValueError(
-            "MR must add or delete a changelog fragment, unless it folds beta/RC "
-            "changelog sections into a stable release. "
+            "MR must add or delete a changelog fragment. "
             'Run: psynet dev changelog new <category> "<description>"'
         )
 
