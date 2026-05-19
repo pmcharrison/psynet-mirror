@@ -61,7 +61,178 @@ class Fragment:
     entry: str
 
 
-# Fragment loading and rendering
+# CLI entry point
+
+
+def main() -> int:
+    """Run the argparse-based entry point used by CI."""
+    try:
+        args = parse_args()
+        modes = sum(1 for x in (args.new, args.release, args.check_mr) if x)
+        if modes > 1:
+            raise ValueError("Use only one of --new, --release, --check-mr.")
+
+        if args.new:
+            category, description = args.new
+            return new_command(category, description)
+
+        if args.check_mr:
+            base, head = args.check_mr
+            return check_mr_command(base, head)
+
+        if args.release:
+            if not CHANGELOG_PATH.exists():
+                print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
+                return 1
+            version, date = args.release
+            return release_command(version, date)
+        return build_command()
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for the thin script wrapper."""
+    parser = argparse.ArgumentParser(
+        description=(
+            "Build and manage PsyNet changelog fragments. Contributors commit "
+            "only fragments in their MRs (never a regenerated CHANGELOG.md); "
+            "release notes are generated from fragments via "
+            "psynet dev changelog release."
+        )
+    )
+    parser.add_argument(
+        "--new",
+        nargs=2,
+        metavar=("CATEGORY", "DESCRIPTION"),
+        help=(
+            "Create a new fragment file with a date-prefixed slug filename "
+            "(e.g. --new fixed 'fix Selenium flake')."
+        ),
+    )
+    parser.add_argument(
+        "--release",
+        nargs=2,
+        metavar=("VERSION", "DATE"),
+        help="Create a release section from current fragments.",
+    )
+    parser.add_argument(
+        "--check-mr",
+        nargs=2,
+        metavar=("BASE", "HEAD"),
+        help="Validate changelog fragment requirements for an MR diff.",
+    )
+    return parser.parse_args()
+
+
+# Command implementations
+
+
+def build_command() -> int:
+    """Print a preview of current fragments without modifying `CHANGELOG.md`."""
+    fragments = load_fragments()
+    entries = group_entries(fragments)
+    preview = render_sections(entries).rstrip()
+    if preview:
+        print(preview)
+    else:
+        print(f"No changelog fragments found in {FRAGMENTS_DIR}.")
+    return 0
+
+
+def new_command(category: str, description: str) -> int:
+    """Create a new date-prefixed fragment stub."""
+    if category not in SECTION_KEYS:
+        raise ValueError(
+            f"Unknown category {category!r}. Must be one of: "
+            + ", ".join(key for key, _title in SECTION_ORDER)
+        )
+
+    slug = slugify(description)
+    date = time.strftime("%Y%m%d")
+    FRAGMENTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    path = FRAGMENTS_DIR / f"{date}-{slug}.{category}.md"
+    if path.exists():
+        raise ValueError(
+            f"Fragment {path} already exists. "
+            "Use a more specific description (the slug must be unique within "
+            "the day) or rename the existing fragment."
+        )
+
+    path.write_text(f"{description.strip()} (author: [Your Name])\n", encoding="utf-8")
+    print(path)
+    return 0
+
+
+def release_command(version: str, date: str) -> int:
+    """Consume fragments into a versioned changelog release section."""
+    release_type = classify_release(version)
+    if release_type == "Alpha":
+        raise ValueError(
+            "Alpha versions do not get changelog release sections. Keep fragments "
+            "in changelog.d until the first release candidate or stable release."
+        )
+
+    changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
+    fragments = load_fragments()
+    fragment_entries = group_entries(fragments)
+    entries: dict[str, list[str]] = defaultdict(list)
+    remove_prerelease_spans: list[tuple[int, int]] = []
+    if release_type == "Release":
+        for _sort_key, start, end, prerelease_entries in matching_prerelease_sections(
+            changelog, version
+        ):
+            add_entries(entries, prerelease_entries)
+            remove_prerelease_spans.append((start, end))
+    add_entries(entries, fragment_entries)
+
+    if not any(entries.values()):
+        raise ValueError(
+            "No changelog fragments or matching prerelease sections found."
+        )
+
+    rebuilt = remove_spans(changelog, remove_prerelease_spans)
+    release_section = build_release_section(version, date, entries)
+    updated = insert_release_section(rebuilt, release_section)
+    CHANGELOG_PATH.write_text(updated, encoding="utf-8")
+
+    for fragment in fragments:
+        fragment.path.unlink()
+
+    print(
+        f"Released {len(fragments)} changelog fragments into {CHANGELOG_PATH} as "
+        f"{version} and cleared {FRAGMENTS_DIR}"
+    )
+    return 0
+
+
+def check_mr_command(base: str, head: str) -> int:
+    """Validate changelog requirements for a merge-request diff."""
+    changes = changed_files(base, head)
+    has_fragment = any(is_fragment_path(path) for path in changes)
+    changes_changelog = "CHANGELOG.md" in changes
+
+    if changes_changelog:
+        raise ValueError(
+            "MRs must not edit CHANGELOG.md directly. Add a changelog fragment "
+            "instead; release branches are exempt from this CI check and regenerate "
+            "CHANGELOG.md at release time."
+        )
+
+    if not has_fragment:
+        raise ValueError(
+            "MR must add or delete a changelog fragment. "
+            'Run: psynet dev changelog new <category> "<description>"'
+        )
+
+    load_fragments()
+    print("Changelog MR check passed.")
+    return 0
+
+
+# Fragment loading and rendering helpers
 
 
 def format_entry(text: str) -> str:
@@ -153,7 +324,90 @@ def render_sections(entries: dict[str, list[str]]) -> str:
     return "\n".join(parts).rstrip() + "\n"
 
 
-# Existing changelog parsing
+# Fragment creation helpers
+
+
+def slugify(text: str) -> str:
+    """Convert free-form text into a kebab-case ASCII slug."""
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    text = re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-").lower()
+    if not text:
+        raise ValueError(
+            "Description must contain at least one alphanumeric character."
+        )
+    if len(text) > MAX_SLUG_LENGTH:
+        text = text[:MAX_SLUG_LENGTH].rstrip("-")
+    return text
+
+
+# MR validation helpers
+
+
+def changed_files(base: str, head: str) -> list[str]:
+    """Return paths changed between two git revisions."""
+    result = subprocess.run(
+        ["git", "diff", "--name-only", base, head],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [line for line in result.stdout.splitlines() if line]
+
+
+def is_fragment_path(path: str) -> bool:
+    """Return whether a changed path is a valid changelog fragment path."""
+    return (
+        path.startswith("changelog.d/")
+        and FILENAME_RE.match(Path(path).name) is not None
+    )
+
+
+# Release rendering helpers
+
+
+def classify_release(version: str) -> str:
+    """Classify the release type from PsyNet's compact prerelease notation."""
+    lowered = version.lower()
+    if "rc" in lowered:
+        return "Release candidate"
+    if re.search(r"(?<=[0-9._-])a\d+\b", lowered):
+        return "Alpha"
+    if re.search(r"(?<=[0-9._-])b\d+\b", lowered):
+        return "Beta"
+    return "Release"
+
+
+def matching_prerelease_sections(
+    changelog: str, version: str
+) -> list[tuple[tuple[int, int], int, int, dict[str, list[str]]]]:
+    """Find beta/RC changelog sections that should fold into a stable release."""
+    sections: list[tuple[tuple[int, int], int, int, dict[str, list[str]]]] = []
+    headings = list(RELEASE_HEADING_RE.finditer(changelog))
+    prerelease_version_re = re.compile(
+        rf"^{re.escape(version)}(?P<label>b|rc)(?P<number>\d+)$"
+    )
+
+    for index, heading in enumerate(headings):
+        match = prerelease_version_re.match(heading.group("version"))
+        if match is None:
+            continue
+
+        label = match.group("label")
+        prerelease_order = 0 if label == "b" else 1
+        body_start = heading.end()
+        end = (
+            headings[index + 1].start() if index + 1 < len(headings) else len(changelog)
+        )
+        sections.append(
+            (
+                (prerelease_order, int(match.group("number"))),
+                heading.start(),
+                end,
+                parse_sectioned_entries(changelog[body_start:end]),
+            )
+        )
+
+    return sorted(sections, key=lambda item: item[0])
 
 
 def parse_section_entries(body: str) -> list[str]:
@@ -216,54 +470,6 @@ def add_entries(
     return target
 
 
-# Release rendering
-
-
-def classify_release(version: str) -> str:
-    """Classify the release type from PsyNet's compact prerelease notation."""
-    lowered = version.lower()
-    if "rc" in lowered:
-        return "Release candidate"
-    if re.search(r"(?<=[0-9._-])a\d+\b", lowered):
-        return "Alpha"
-    if re.search(r"(?<=[0-9._-])b\d+\b", lowered):
-        return "Beta"
-    return "Release"
-
-
-def matching_prerelease_sections(
-    changelog: str, version: str
-) -> list[tuple[tuple[int, int], int, int, dict[str, list[str]]]]:
-    """Find beta/RC changelog sections that should fold into a stable release."""
-    sections: list[tuple[tuple[int, int], int, int, dict[str, list[str]]]] = []
-    headings = list(RELEASE_HEADING_RE.finditer(changelog))
-    prerelease_version_re = re.compile(
-        rf"^{re.escape(version)}(?P<label>b|rc)(?P<number>\d+)$"
-    )
-
-    for index, heading in enumerate(headings):
-        match = prerelease_version_re.match(heading.group("version"))
-        if match is None:
-            continue
-
-        label = match.group("label")
-        prerelease_order = 0 if label == "b" else 1
-        body_start = heading.end()
-        end = (
-            headings[index + 1].start() if index + 1 < len(headings) else len(changelog)
-        )
-        sections.append(
-            (
-                (prerelease_order, int(match.group("number"))),
-                heading.start(),
-                end,
-                parse_sectioned_entries(changelog[body_start:end]),
-            )
-        )
-
-    return sorted(sections, key=lambda item: item[0])
-
-
 def remove_spans(text: str, spans: list[tuple[int, int]]) -> str:
     """Remove character spans from `text` while preserving clean blank lines."""
     for start, end in sorted(spans, reverse=True):
@@ -302,212 +508,6 @@ def insert_release_section(changelog: str, release_section: str) -> str:
     suffix = changelog[insertion_point:].lstrip("\n")
     section = release_section.strip()
     return f"{prefix}\n\n{section}\n\n{suffix}"
-
-
-def build_command() -> int:
-    """Print a preview of current fragments without modifying `CHANGELOG.md`."""
-    fragments = load_fragments()
-    entries = group_entries(fragments)
-    preview = render_sections(entries).rstrip()
-    if preview:
-        print(preview)
-    else:
-        print(f"No changelog fragments found in {FRAGMENTS_DIR}.")
-    return 0
-
-
-# MR validation
-
-
-def changed_files(base: str, head: str) -> list[str]:
-    """Return paths changed between two git revisions."""
-    result = subprocess.run(
-        ["git", "diff", "--name-only", base, head],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return [line for line in result.stdout.splitlines() if line]
-
-
-def is_fragment_path(path: str) -> bool:
-    """Return whether a changed path is a valid changelog fragment path."""
-    return (
-        path.startswith("changelog.d/")
-        and FILENAME_RE.match(Path(path).name) is not None
-    )
-
-
-def check_mr_command(base: str, head: str) -> int:
-    """Validate changelog requirements for a merge-request diff."""
-    changes = changed_files(base, head)
-    has_fragment = any(is_fragment_path(path) for path in changes)
-    changes_changelog = "CHANGELOG.md" in changes
-
-    if changes_changelog:
-        raise ValueError(
-            "MRs must not edit CHANGELOG.md directly. Add a changelog fragment "
-            "instead; release branches are exempt from this CI check and regenerate "
-            "CHANGELOG.md at release time."
-        )
-
-    if not has_fragment:
-        raise ValueError(
-            "MR must add or delete a changelog fragment. "
-            'Run: psynet dev changelog new <category> "<description>"'
-        )
-
-    load_fragments()
-    print("Changelog MR check passed.")
-    return 0
-
-
-# Commands that mutate files
-
-
-def release_command(version: str, date: str) -> int:
-    """Consume fragments into a versioned changelog release section."""
-    release_type = classify_release(version)
-    if release_type == "Alpha":
-        raise ValueError(
-            "Alpha versions do not get changelog release sections. Keep fragments "
-            "in changelog.d until the first release candidate or stable release."
-        )
-
-    changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
-    fragments = load_fragments()
-    fragment_entries = group_entries(fragments)
-    entries: dict[str, list[str]] = defaultdict(list)
-    remove_prerelease_spans: list[tuple[int, int]] = []
-    if release_type == "Release":
-        for _sort_key, start, end, prerelease_entries in matching_prerelease_sections(
-            changelog, version
-        ):
-            add_entries(entries, prerelease_entries)
-            remove_prerelease_spans.append((start, end))
-    add_entries(entries, fragment_entries)
-
-    if not any(entries.values()):
-        raise ValueError(
-            "No changelog fragments or matching prerelease sections found."
-        )
-
-    rebuilt = remove_spans(changelog, remove_prerelease_spans)
-    release_section = build_release_section(version, date, entries)
-    updated = insert_release_section(rebuilt, release_section)
-    CHANGELOG_PATH.write_text(updated, encoding="utf-8")
-
-    for fragment in fragments:
-        fragment.path.unlink()
-
-    print(
-        f"Released {len(fragments)} changelog fragments into {CHANGELOG_PATH} as "
-        f"{version} and cleared {FRAGMENTS_DIR}"
-    )
-    return 0
-
-
-def slugify(text: str) -> str:
-    """Convert free-form text into a kebab-case ASCII slug."""
-    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
-    text = re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-").lower()
-    if not text:
-        raise ValueError(
-            "Description must contain at least one alphanumeric character."
-        )
-    if len(text) > MAX_SLUG_LENGTH:
-        text = text[:MAX_SLUG_LENGTH].rstrip("-")
-    return text
-
-
-def new_command(category: str, description: str) -> int:
-    """Create a new date-prefixed fragment stub."""
-    if category not in SECTION_KEYS:
-        raise ValueError(
-            f"Unknown category {category!r}. Must be one of: "
-            + ", ".join(key for key, _title in SECTION_ORDER)
-        )
-
-    slug = slugify(description)
-    date = time.strftime("%Y%m%d")
-    FRAGMENTS_DIR.mkdir(parents=True, exist_ok=True)
-
-    path = FRAGMENTS_DIR / f"{date}-{slug}.{category}.md"
-    if path.exists():
-        raise ValueError(
-            f"Fragment {path} already exists. "
-            "Use a more specific description (the slug must be unique within "
-            "the day) or rename the existing fragment."
-        )
-
-    path.write_text(f"{description.strip()} (author: [Your Name])\n", encoding="utf-8")
-    print(path)
-    return 0
-
-
-# CLI parsing
-
-
-def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments for the thin script wrapper."""
-    parser = argparse.ArgumentParser(
-        description=(
-            "Build and manage PsyNet changelog fragments. Contributors commit "
-            "only fragments in their MRs (never a regenerated CHANGELOG.md); "
-            "release notes are generated from fragments via "
-            "psynet dev changelog release."
-        )
-    )
-    parser.add_argument(
-        "--new",
-        nargs=2,
-        metavar=("CATEGORY", "DESCRIPTION"),
-        help=(
-            "Create a new fragment file with a date-prefixed slug filename "
-            "(e.g. --new fixed 'fix Selenium flake')."
-        ),
-    )
-    parser.add_argument(
-        "--release",
-        nargs=2,
-        metavar=("VERSION", "DATE"),
-        help="Create a release section from current fragments.",
-    )
-    parser.add_argument(
-        "--check-mr",
-        nargs=2,
-        metavar=("BASE", "HEAD"),
-        help="Validate changelog fragment requirements for an MR diff.",
-    )
-    return parser.parse_args()
-
-
-def main() -> int:
-    """Run the argparse-based entry point used by CI."""
-    try:
-        args = parse_args()
-        modes = sum(1 for x in (args.new, args.release, args.check_mr) if x)
-        if modes > 1:
-            raise ValueError("Use only one of --new, --release, --check-mr.")
-
-        if args.new:
-            category, description = args.new
-            return new_command(category, description)
-
-        if args.check_mr:
-            base, head = args.check_mr
-            return check_mr_command(base, head)
-
-        if args.release:
-            if not CHANGELOG_PATH.exists():
-                print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
-                return 1
-            version, date = args.release
-            return release_command(version, date)
-        return build_command()
-    except ValueError as exc:
-        print(str(exc), file=sys.stderr)
-        return 1
 
 
 if __name__ == "__main__":
