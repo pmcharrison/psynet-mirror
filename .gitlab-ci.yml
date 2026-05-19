@@ -244,6 +244,36 @@ asv_regression:
       when: always
     - when: never
 
+# Manual, on-demand load sweep. Runs `psynet performance-test` across a range of
+# concurrency levels for each benchmarked demo to locate the throughput "knee"
+# on GitLab runner hardware -- the data needed to tune the n_bots and duration
+# of the ASV experiment benchmarks. It is offered on every pipeline as a
+# manual job.
+benchmark_load_sweep:
+  stage: test
+  resource_group: benchmark-results
+  timeout: 90m
+  script:
+    - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
+    - mkdir -p public
+    - docker run
+      --add-host=postgres:$POSTGRES_IP
+      --add-host=redis:$REDIS_IP
+      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
+      -e CI
+      -e PSYNET_WORKSPACE
+      -v "$PWD:$PSYNET_WORKSPACE"
+      -w $PSYNET_WORKSPACE
+      $DOCKER_LOCAL_TAG bash -c 'uv pip install --no-cache --system --no-deps -e "$PSYNET_WORKSPACE" && for demo in demos/experiments/static demos/experiments/timeline tests/experiments/static_big; do name=$(basename "$demo"); echo "=== load sweep $name ==="; ( cd "$demo" && psynet performance-test local --n-bots "3,5,8,12" --duration-minutes 2.0 --json-output "$PSYNET_WORKSPACE/public/sweep-$name.json" ); done && python3 ci/perf-sweep-report.py public/sweep-*.json | tee public/sweep-report.md'
+  artifacts:
+    when: always
+    paths:
+      - public/sweep-*.json
+      - public/sweep-report.md
+  rules:
+    - when: manual
+      allow_failure: true
+
 # To do:
 # - Skip tests if the changes are only in the docs directory
 pages_latest:
