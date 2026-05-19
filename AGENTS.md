@@ -200,7 +200,7 @@ When you make changes to the PsyNet codebase:
 
    Do **not** commit a regenerated `CHANGELOG.md` from your MR — `CHANGELOG.md` is a generated artifact, rebuilt by the maintainer at release time. Committing fragments only avoids merge conflicts on `CHANGELOG.md` between MRs. Run `psynet dev changelog preview` locally from a PsyNet source checkout if you want to preview how the fragments will render; it prints the preview to stdout and leaves `CHANGELOG.md` unchanged. Maintainers cut a release from a PsyNet source checkout with `psynet dev changelog release <version> <date>`, which consumes fragments and inserts a versioned section. Alpha versions do not get changelog release sections. Stable releases consume matching beta/release-candidate sections plus any remaining fragments.
 
-   If you push directly to `master` (bypassing an MR), CI won't check for a fragment — but please still create one with the `--new` helper so the change appears in the next release notes.
+   If you push directly to `master` (bypassing an MR), CI won't check for a fragment — but please still create one with `psynet dev changelog new` so the change appears in the next release notes.
 
 2. **Run pre-commit**: Before committing, run pre-commit to ensure code formatting is correct:
 
