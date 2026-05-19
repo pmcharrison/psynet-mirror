@@ -75,7 +75,7 @@ class _BaseExperiment:
 
     demo_name: str | None = None
     demo_root = "demos/experiments"
-    params = [[25], [2.0]]
+    params = [[10], [2.0]]
     param_names = ["n_bots", "duration_minutes"]
     timeout = 1800
 
