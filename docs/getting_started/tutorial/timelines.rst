@@ -533,7 +533,7 @@ Combining elements
 ------------------
 
 We normally define our timelines by defining a ``get_timeline`` function in ``experiment.py``
-and then saving the output of this function in our ``Experiment`` class.
+and then saving the output of this function in our experiment class (typically named ``Exp``).
 
 .. code-block:: python
 
