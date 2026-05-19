@@ -6,6 +6,16 @@ at a given point in the experiment.
 These ``Page`` objects are Python objects, all inheriting from the same ``Page`` base class.
 We will talk through a few examples now.
 
+.. admonition:: Recommended starting demo
+   :class: tip
+
+   The companion demo for this chapter lives at ``demos/features/pages/``.
+   It is one of the most important demos for getting comfortable with PsyNet:
+   it walks through ``InfoPage``, ``ModularPage`` with push buttons, image and audio
+   prompts, and audio recording with a progress display, all in a single short experiment.
+   Run it with ``cd demos/features/pages && psynet debug local`` and keep
+   ``experiment.py`` open as you read this chapter.
+
 Info pages
 ----------
 
@@ -243,9 +253,9 @@ For the full API reference and screenshots, see :doc:`/tutorials/modular_page` a
 Exercises
 ---------
 
-1. Pick one of the pipeline demos in ``demos/pipelines/``.
-   Run it with ``psynet debug local``, and go through each page one at a time,
-   relating the code in ``experiment.py`` to the user experience.
+1. Run the companion demo at ``demos/features/pages/`` with ``psynet debug local``.
+   Step through each page in turn and relate the code in ``experiment.py`` to what you see
+   in the browser.
 2. Go through the same demo once more, but this time find the source code for the prompts/controls
    being called (you can do this in VSCode/Cursor/PyCharm by selecting e.g.
    :class:`~psynet.modular_page.AudioPrompt` and pressing F12). The source code will contain a
@@ -265,6 +275,8 @@ Exercises
     shortcut).
 
 3. Try creating a new modular page that combines a prompt and a control from the list above.
+   Add it to ``demos/features/pages/experiment.py`` and verify that it shows up in the
+   timeline.
 
 Further reading
 ---------------
@@ -427,7 +439,7 @@ Defining custom prompts works in a similar way, except you don't need ``retrieve
 ``format_answer``, or ``get_bot_response``.
 
 **Exercise**: think of an interesting prompt or control that is not listed above.
-Implement it yourself using a custom template, and add it to one of the pipeline demos.
+Implement it yourself using a custom template, and add it to ``demos/features/pages/``.
 
 Event management
 ^^^^^^^^^^^^^^^^

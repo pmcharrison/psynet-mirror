@@ -1,6 +1,18 @@
 Timelines
 =========
 
+.. admonition:: Recommended starting demo
+   :class: tip
+
+   The companion demo for this chapter lives at ``demos/features/timeline/``.
+   Together with ``demos/features/pages/`` it forms one of the most important
+   pairs of demos for understanding the core of PsyNet: it shows how to chain
+   pages, store state on the participant, branch with ``switch`` and
+   ``conditional``, and iterate with ``while_loop`` and ``for_loop``, all in a
+   single short experiment. Run it with
+   ``cd demos/features/timeline && psynet debug local`` and keep
+   ``experiment.py`` open alongside this chapter.
+
 The timeline determines the sequential logic of the experiment.
 A timeline comprises a series of *timeline elements* that, by default, are
 presented sequentially. For example, the following code displays a welcome
@@ -607,7 +619,8 @@ As naive as this test may be, it does catch a lot of basic implementation errors
 and it can do so much faster than running ``psynet debug local`` and manually clicking through the
 experiment. Note however that it only tests the back-end logic, not the front-end.
 
-**Exercise**: run ``psynet test local`` on one of the pipeline demos
+**Exercise**: run ``psynet test local`` on the companion demo at
+``demos/features/timeline/``, and then try it on one of the larger pipeline demos
 (e.g. ``demos/pipelines/simple_rating``).
 
 .. hint::

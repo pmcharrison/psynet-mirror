@@ -14,14 +14,28 @@ Launch a PsyNet demo
 --------------------
 
 PsyNet contains many demo experiments in the ``demos`` directory.
-These are organized into two main subdirectories: ``demos/experiments`` and ``demos/features``.
+These are organized into three main subdirectories:
+
+* ``demos/features/`` - focused demos that each illustrate a single building block of PsyNet.
+* ``demos/pipelines/`` - end-to-end experiment pipelines for common paradigms.
+* ``demos/experiments/`` - more complete example experiments.
+
+.. admonition:: Two demos to start with
+   :class: tip
+
+   If you are new to PsyNet, the two most useful demos to read and run first are
+   ``demos/features/pages/`` and ``demos/features/timeline/``. Together they cover
+   the core building blocks (info pages, modular pages, prompts, controls,
+   page makers, code blocks, conditional logic, loops). They are also the
+   companion demos for the :doc:`Pages <tutorial/pages>` and
+   :doc:`Timelines <tutorial/timelines>` chapters of the tutorial.
 
 To run a demo, you first need to navigate to it in the terminal.
 The following code navigates to the 'timeline' demo:
 
 .. code-block:: bash
 
-    cd demos/timeline
+    cd demos/features/timeline
 
 Now you can launch the demo using the following command:
 
