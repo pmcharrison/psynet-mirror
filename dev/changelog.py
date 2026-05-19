@@ -1,8 +1,7 @@
 """Build and validate PsyNet changelog fragments.
 
 This module is intentionally source-checkout-only. It powers the developer CLI
-(`psynet dev changelog`) and the lightweight CI wrapper at
-`scripts/changelog.py`.
+(`psynet dev changelog`) and the lightweight CI wrapper at `ci/changelog.py`.
 
 Workflow summary:
 - Contributors add one Markdown fragment in `changelog.d/` per user-facing
