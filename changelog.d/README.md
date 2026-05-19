@@ -15,10 +15,10 @@ stub, which you then edit to the final entry.
 `<YYYYMMDD-slug>.<category>.md`
 
 The date prefix keeps fragments roughly chronological and the slug
-differentiates same-day fragments. The `--new` helper creates this
-format automatically and refuses to overwrite an existing file, so use a
-more specific description if it complains. Hand-rolled fragment names
-are valid only if they follow the same date-prefixed format.
+differentiates same-day fragments. `psynet dev changelog new` creates
+this format automatically and refuses to overwrite an existing file, so
+use a more specific description if it complains. Hand-rolled fragment
+names are valid only if they follow the same date-prefixed format.
 
 Supported categories (rendered in this order):
 
@@ -76,9 +76,9 @@ remaining fragments so the final release notes are complete.
 The `changelog_check` CI job only runs on merge requests, so it cannot
 catch missing fragments on direct pushes to `master`. If you push
 directly to `master` (bypassing an MR), please still create a fragment
-with the `--new` helper so the change appears in the next release notes.
-Its date-prefixed filenames stay unique as long as slugs differ on the
-same day.
+with `psynet dev changelog new` so the change appears in the next
+release notes. Its date-prefixed filenames stay unique as long as slugs
+differ on the same day.
 
 ## Migrated fragments
 

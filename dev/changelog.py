@@ -106,7 +106,7 @@ def parse_args() -> argparse.Namespace:
         metavar=("CATEGORY", "DESCRIPTION"),
         help=(
             "Create a new fragment file with a date-prefixed slug filename "
-            "(e.g. --new fixed 'fix Selenium flake')."
+            "(normally via: psynet dev changelog new fixed 'Fix example bug')."
         ),
     )
     parser.add_argument(
