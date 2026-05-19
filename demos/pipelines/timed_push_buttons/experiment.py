@@ -97,5 +97,5 @@ class AudioTimedButtonTrial(StaticTrial):
         ]
 
 
-class Experiment(psynet.experiment.Experiment):
+class Exp(psynet.experiment.Experiment):
     timeline = get_timeline()
