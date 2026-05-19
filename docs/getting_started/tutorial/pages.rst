@@ -42,7 +42,7 @@ Here's an example:
     These estimates are used for constructing progress bars as well as (optionally) determining
     participant payments.
 
-Arbitrary HTML content can be specified using ``Markup``:
+Arbitrary HTML content can be specified using ``markupsafe.Markup``:
 
 .. code-block:: python
 

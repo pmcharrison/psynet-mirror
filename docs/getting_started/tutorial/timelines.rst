@@ -1,18 +1,6 @@
 Timelines
 =========
 
-.. admonition:: Recommended starting demo
-   :class: tip
-
-   The companion demo for this chapter lives at ``demos/features/timeline/``.
-   Together with ``demos/features/pages/`` it forms one of the most important
-   pairs of demos for understanding the core of PsyNet: it shows how to chain
-   pages, store state on the participant, branch with ``switch`` and
-   ``conditional``, and iterate with ``while_loop`` and ``for_loop``, all in a
-   single short experiment. Run it with
-   ``cd demos/features/timeline && psynet debug local`` and keep
-   ``experiment.py`` open alongside this chapter.
-
 The timeline determines the sequential logic of the experiment.
 A timeline comprises a series of *timeline elements* that, by default, are
 presented sequentially. For example, the following code displays a welcome
@@ -41,6 +29,18 @@ message to the participant, then displays them a randomly generated number:
     )
 
 We will now go through these different kinds of components in turn.
+
+.. admonition:: Recommended starting demo
+   :class: tip
+
+   The companion demo for this chapter lives at ``demos/features/timeline/``.
+   Together with ``demos/features/pages/`` it forms one of the most important
+   pairs of demos for understanding the core of PsyNet: it shows how to chain
+   pages, store state on the participant, branch with ``switch`` and
+   ``conditional``, and iterate with ``while_loop`` and ``for_loop``, all in a
+   single short experiment. Run it with
+   ``cd demos/features/timeline && psynet debug local`` and keep
+   ``experiment.py`` open alongside this chapter.
 
 Timeline elements
 -----------------

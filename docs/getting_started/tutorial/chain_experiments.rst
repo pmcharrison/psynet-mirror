@@ -222,7 +222,7 @@ Their transcription should then define the melody that the next participant hear
 Hints
 ~~~~~
 
-- :class:`psynet.js_synth.JSSynth` provides a simple way to play melodies in the browser.
+- :class:`~psynet.js_synth.JSSynth` provides a simple way to play melodies in the browser.
   Alternatively, you could generate an audio file yourself in Python.
 - As an initial implementation, you could have the participant write down the melody as MIDI note
   numbers. For a more advanced implementation, you could accept letter names (e.g. C, D, E)

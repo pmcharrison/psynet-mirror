@@ -21,13 +21,14 @@ For this tutorial we have prepared a collection of pipelines designed expressly 
 However, it is perfectly possible to design analogous pipelines for images, videos, or other
 kinds of content.
 
-Here's a list of those pipelines, all located under ``demos/pipelines/``:
+Here's a list of those pipelines:
 
-- ``simple_rating``: Participants rate audio stimuli on multiple scales.
-- ``tapping``: Participants tap to the beat of musical stimuli.
-- ``step_tag``: Participants collaboratively generate tags for audio stimuli.
-- ``similarity``: Participants rate the similarity of pairs of audio stimuli.
-- ``timed_push_buttons``: Participants press buttons at interesting moments in audio stimuli.
+- ``demos/pipelines/simple_rating`` -- Participants rate audio stimuli on multiple scales.
+- ``demos/pipelines/tapping`` -- Participants tap to the beat of musical stimuli.
+- ``demos/pipelines/step_tag`` -- Participants collaboratively generate tags for audio stimuli.
+- ``demos/pipelines/similarity`` -- Participants rate the similarity of pairs of audio stimuli.
+- ``demos/pipelines/timed_push_buttons`` -- Participants press buttons at interesting moments
+  in audio stimuli.
 
 All these pipelines work in the same way: the user specifies a directory of audio stimuli
 and the pipeline takes care of the rest.
