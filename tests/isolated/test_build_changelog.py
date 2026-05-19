@@ -583,6 +583,40 @@ def test_check_mr_command_allows_stable_release_fold_with_fragment(
     assert build_changelog.check_mr_command("base", "head") == 0
 
 
+def test_check_mr_command_allows_stable_release_from_fragments(
+    build_changelog, monkeypatch
+):
+    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
+    monkeypatch.setattr(
+        build_changelog,
+        "changed_files",
+        lambda _base, _head: [
+            "CHANGELOG.md",
+            "changelog.d/20260516-valid.fixed.md",
+        ],
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "changelog_diff",
+        lambda _base, _head: (
+            "+## [13.2.0](url) Release - 2026-05-16\n+- Fixed valid thing\n"
+        ),
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "deleted_fragment_paths",
+        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
+    )
+    monkeypatch.setattr(
+        build_changelog,
+        "fragment_entries_from_revision",
+        lambda _revision, _paths: ["- Fixed valid thing"],
+    )
+
+    assert build_changelog.check_mr_command("base", "head") == 0
+
+
 def test_build_command_previews_fragments_when_changelog_has_releases(
     build_changelog, capsys
 ):
