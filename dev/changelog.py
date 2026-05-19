@@ -414,7 +414,7 @@ def parse_section_entries(body: str) -> list[str]:
 
     for line in body.splitlines():
         if line.startswith("- "):
-            entries.append([line[2:]])
+            entries.append([line])
             continue
 
         if not entries:
@@ -425,7 +425,7 @@ def parse_section_entries(body: str) -> list[str]:
             continue
 
         if line.startswith("  "):
-            entries[-1].append(line[2:])
+            entries[-1].append(line)
         elif not line.strip():
             entries[-1].append("")
         else:
