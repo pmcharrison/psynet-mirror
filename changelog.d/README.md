@@ -4,7 +4,7 @@ Add one changelog fragment per change in this directory. The recommended
 way to create one is:
 
 ```bash
-psynet dev build-changelog --new <category> "<short description>"
+psynet dev changelog new <category> "<short description>"
 ```
 
 This writes a uniquely-named fragment file containing your description as a
@@ -53,14 +53,14 @@ from a PsyNet source checkout. It prints the rendered fragment sections
 to stdout and leaves `CHANGELOG.md` unchanged:
 
 ```bash
-psynet dev build-changelog
+psynet dev changelog preview
 ```
 
 Maintainers cut a release from the current fragments from a PsyNet source
 checkout with:
 
 ```bash
-psynet dev build-changelog --release 13.2.0 2026-03-13
+psynet dev changelog release 13.2.0 2026-03-13
 ```
 
 This inserts a new `## [13.2.0]` section and deletes the consumed

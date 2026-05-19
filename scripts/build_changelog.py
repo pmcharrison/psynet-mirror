@@ -2,7 +2,7 @@
 """Thin CI wrapper for the source-checkout changelog builder.
 
 The real implementation lives in `dev/build_changelog.py` and powers the
-developer-facing `psynet dev build-changelog` command. This wrapper exists so
+developer-facing `psynet dev changelog` command. This wrapper exists so
 the lightweight GitLab `changelog_check` job can run the same logic with only
 `python3` available, without installing PsyNet and its dependencies.
 """
