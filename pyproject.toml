@@ -124,7 +124,6 @@ exclude = [
     "/demos",
     "/dev",
     "/docs",
-    "/scripts",
     "/tests",
 ]
 
