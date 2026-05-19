@@ -154,13 +154,16 @@ def test_stable_release_consumes_prerelease_sections_and_remaining_fragments(
     assert "## [13.1.1]" in text
 
     final_section = text.split("## [13.2.0]", 1)[1].split("## [13.1.1]", 1)[0]
-    assert "Beta0 added entry" in final_section
-    assert "RC0 added entry" in final_section
+    assert "- Beta0 added entry" in final_section
+    assert "- RC0 added entry" in final_section
+    assert "- RC0 fixed entry" in final_section
+    assert "- RC1 fixed entry" in final_section
+    assert "- Final leftover fixed entry" in final_section
     assert (
-        final_section.index("Beta0 added entry")
-        < final_section.index("RC0 fixed entry")
-        < final_section.index("RC1 fixed entry")
-        < final_section.index("Final leftover fixed entry")
+        final_section.index("- Beta0 added entry")
+        < final_section.index("- RC0 fixed entry")
+        < final_section.index("- RC1 fixed entry")
+        < final_section.index("- Final leftover fixed entry")
     )
     assert not fragment.exists()
 
@@ -207,7 +210,7 @@ def test_empty_fragment_and_empty_entry_errors(changelog):
 def test_section_entry_parsing_edge_cases(changelog):
     assert changelog.parse_section_entries(
         "\n- First line\n  continuation\n\n- Second line\n"
-    ) == ["First line\ncontinuation", "Second line"]
+    ) == ["- First line\n  continuation", "- Second line"]
 
     with pytest.raises(ValueError, match="Unexpected content before first"):
         changelog.parse_section_entries("not a bullet")
