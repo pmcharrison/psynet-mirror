@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT_PATH = Path(__file__).parents[2] / "dev" / "build_changelog.py"
+SCRIPT_PATH = Path(__file__).parents[2] / "dev" / "changelog.py"
 BASE_CHANGELOG = """# CHANGELOG
 
 ## [13.1.1](url) Release - 2026-02-18
@@ -14,8 +14,8 @@ BASE_CHANGELOG = """# CHANGELOG
 
 
 @pytest.fixture
-def build_changelog(tmp_path, monkeypatch):
-    spec = importlib.util.spec_from_file_location("build_changelog_test", SCRIPT_PATH)
+def changelog(tmp_path, monkeypatch):
+    spec = importlib.util.spec_from_file_location("changelog_test", SCRIPT_PATH)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     sys.modules[spec.name] = module
@@ -31,75 +31,73 @@ def build_changelog(tmp_path, monkeypatch):
     return module
 
 
-def read_changelog(build_changelog):
-    return build_changelog.CHANGELOG_PATH.read_text(encoding="utf-8")
+def read_changelog(changelog):
+    return changelog.CHANGELOG_PATH.read_text(encoding="utf-8")
 
 
-def test_root_points_to_repository_root(build_changelog):
-    assert build_changelog.ROOT == Path(__file__).parents[2]
+def test_root_points_to_repository_root(changelog):
+    assert changelog.ROOT == Path(__file__).parents[2]
 
 
-def test_build_command_previews_fragments_without_consuming_them(
-    build_changelog, capsys
-):
-    added = build_changelog.FRAGMENTS_DIR / "20260513-added-alpha.added.md"
-    fixed = build_changelog.FRAGMENTS_DIR / "20260513-fixed-beta.fixed.md"
+def test_build_command_previews_fragments_without_consuming_them(changelog, capsys):
+    added = changelog.FRAGMENTS_DIR / "20260513-added-alpha.added.md"
+    fixed = changelog.FRAGMENTS_DIR / "20260513-fixed-beta.fixed.md"
     added.write_text("Added alpha\n", encoding="utf-8")
     fixed.write_text("Fixed beta\n", encoding="utf-8")
 
-    assert build_changelog.build_command() == 0
+    assert changelog.build_command() == 0
 
     rendered = capsys.readouterr().out
     assert "### Added\n\n- Added alpha" in rendered
     assert "### Fixed\n\n- Fixed beta" in rendered
     assert rendered.index("Added alpha") < rendered.index("Fixed beta")
-    assert "Added alpha" not in read_changelog(build_changelog)
+    assert "Added alpha" not in read_changelog(changelog)
     assert added.exists()
     assert fixed.exists()
 
 
-def test_build_command_reports_when_there_are_no_fragments(build_changelog, capsys):
-    assert build_changelog.build_command() == 0
+def test_build_command_reports_when_there_are_no_fragments(changelog, capsys):
+    assert changelog.build_command() == 0
 
     assert "No changelog fragments found" in capsys.readouterr().out
 
 
 def test_new_command_creates_date_prefixed_slug_and_detects_collisions(
-    build_changelog, monkeypatch
+    changelog, monkeypatch
 ):
-    monkeypatch.setattr(build_changelog.time, "strftime", lambda _format: "20260516")
+    monkeypatch.setattr(changelog.time, "strftime", lambda _format: "20260516")
 
-    assert build_changelog.new_command("fixed", "Fix Selenium flake!") == 0
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-fix-selenium-flake.fixed.md"
+    assert changelog.new_command("fixed", "Fix Selenium flake!") == 0
+    fragment = changelog.FRAGMENTS_DIR / "20260516-fix-selenium-flake.fixed.md"
     assert fragment.read_text(encoding="utf-8") == (
         "Fix Selenium flake! (author: [Your Name])\n"
     )
 
     with pytest.raises(ValueError, match="already exists"):
-        build_changelog.new_command("fixed", "Fix Selenium flake!")
+        changelog.new_command("fixed", "Fix Selenium flake!")
 
 
-def test_alpha_release_is_rejected_and_keeps_fragments(build_changelog):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-keep-until-rc.fixed.md"
+def test_alpha_release_is_rejected_and_keeps_fragments(changelog):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-keep-until-rc.fixed.md"
     fragment.write_text("Fixed later thing\n", encoding="utf-8")
-    before = read_changelog(build_changelog)
+    before = read_changelog(changelog)
 
     with pytest.raises(ValueError, match="Alpha versions do not get changelog"):
-        build_changelog.release_command("13.2.0a0", "2026-05-16")
+        changelog.release_command("13.2.0a0", "2026-05-16")
 
-    assert read_changelog(build_changelog) == before
+    assert read_changelog(changelog) == before
     assert fragment.exists()
 
 
 def test_release_candidate_consumes_fragments_without_placeholder_block(
-    build_changelog,
+    changelog,
 ):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-rc-fragment.fixed.md"
+    fragment = changelog.FRAGMENTS_DIR / "20260516-rc-fragment.fixed.md"
     fragment.write_text("RC fixed entry\n", encoding="utf-8")
 
-    assert build_changelog.release_command("13.2.0rc1", "2026-05-16") == 0
+    assert changelog.release_command("13.2.0rc1", "2026-05-16") == 0
 
-    text = read_changelog(build_changelog)
+    text = read_changelog(changelog)
     assert text.startswith("# CHANGELOG\n\n## [13.2.0rc1]")
     assert text.count("\n## ") == 2
     assert "Release candidate - 2026-05-16" in text
@@ -108,9 +106,9 @@ def test_release_candidate_consumes_fragments_without_placeholder_block(
 
 
 def test_stable_release_consumes_prerelease_sections_and_remaining_fragments(
-    build_changelog,
+    changelog,
 ):
-    build_changelog.CHANGELOG_PATH.write_text(
+    changelog.CHANGELOG_PATH.write_text(
         """# CHANGELOG
 
 ## [13.2.0rc1](url) Release candidate - 2026-05-07
@@ -143,12 +141,12 @@ def test_stable_release_consumes_prerelease_sections_and_remaining_fragments(
 """,
         encoding="utf-8",
     )
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-final-leftover.fixed.md"
+    fragment = changelog.FRAGMENTS_DIR / "20260516-final-leftover.fixed.md"
     fragment.write_text("Final leftover fixed entry\n", encoding="utf-8")
 
-    assert build_changelog.release_command("13.2.0", "2026-05-16") == 0
+    assert changelog.release_command("13.2.0", "2026-05-16") == 0
 
-    text = read_changelog(build_changelog)
+    text = read_changelog(changelog)
     assert text.startswith("# CHANGELOG\n\n## [13.2.0]")
     assert "## [13.2.0b0]" not in text
     assert "## [13.2.0rc1]" not in text
@@ -168,95 +166,93 @@ def test_stable_release_consumes_prerelease_sections_and_remaining_fragments(
 
 
 def test_stable_release_requires_fragments_or_matching_prerelease_sections(
-    build_changelog,
+    changelog,
 ):
     with pytest.raises(
         ValueError, match="No changelog fragments or matching prerelease sections found"
     ):
-        build_changelog.release_command("13.2.0", "2026-05-16")
+        changelog.release_command("13.2.0", "2026-05-16")
 
 
-def test_fragment_listing_edge_cases(build_changelog, monkeypatch, tmp_path):
+def test_fragment_listing_edge_cases(changelog, monkeypatch, tmp_path):
     missing_dir = tmp_path / "missing"
-    monkeypatch.setattr(build_changelog, "FRAGMENTS_DIR", missing_dir)
-    assert build_changelog.list_fragment_paths() == []
+    monkeypatch.setattr(changelog, "FRAGMENTS_DIR", missing_dir)
+    assert changelog.list_fragment_paths() == []
 
     fragments_dir = tmp_path / "fragments"
     fragments_dir.mkdir()
-    monkeypatch.setattr(build_changelog, "FRAGMENTS_DIR", fragments_dir)
+    monkeypatch.setattr(changelog, "FRAGMENTS_DIR", fragments_dir)
     (fragments_dir / "README.md").write_text("docs\n", encoding="utf-8")
     (fragments_dir / ".ignored.md").write_text("hidden\n", encoding="utf-8")
     (fragments_dir / "subdir").mkdir()
     valid = fragments_dir / "20260516-valid.fixed.md"
     valid.write_text("Fixed bug\n", encoding="utf-8")
-    assert build_changelog.list_fragment_paths() == [valid]
+    assert changelog.list_fragment_paths() == [valid]
 
     (fragments_dir / "1.fixed.md").write_text("bad\n", encoding="utf-8")
     with pytest.raises(ValueError, match="Invalid changelog fragment filename"):
-        build_changelog.list_fragment_paths()
+        changelog.list_fragment_paths()
 
 
-def test_empty_fragment_and_empty_entry_errors(build_changelog):
+def test_empty_fragment_and_empty_entry_errors(changelog):
     with pytest.raises(ValueError, match="Fragment is empty"):
-        build_changelog.format_entry("")
+        changelog.format_entry("")
 
-    empty = build_changelog.FRAGMENTS_DIR / "20260516-empty.fixed.md"
+    empty = changelog.FRAGMENTS_DIR / "20260516-empty.fixed.md"
     empty.write_text("\n", encoding="utf-8")
     with pytest.raises(ValueError, match="is empty"):
-        build_changelog.load_fragments()
+        changelog.load_fragments()
 
 
-def test_section_entry_parsing_edge_cases(build_changelog):
-    assert build_changelog.parse_section_entries(
+def test_section_entry_parsing_edge_cases(changelog):
+    assert changelog.parse_section_entries(
         "\n- First line\n  continuation\n\n- Second line\n"
     ) == ["First line\ncontinuation", "Second line"]
 
     with pytest.raises(ValueError, match="Unexpected content before first"):
-        build_changelog.parse_section_entries("not a bullet")
+        changelog.parse_section_entries("not a bullet")
 
     with pytest.raises(ValueError, match="Unexpected changelog line format"):
-        build_changelog.parse_section_entries("- First\nbad continuation")
+        changelog.parse_section_entries("- First\nbad continuation")
 
     with pytest.raises(ValueError, match="Unsupported changelog subsection"):
-        build_changelog.parse_sectioned_entries("### Security\n\n- Secret fix\n")
+        changelog.parse_sectioned_entries("### Security\n\n- Secret fix\n")
 
 
-def test_release_labels_and_insertion_without_existing_release(build_changelog):
-    assert build_changelog.classify_release("13.2.0b1") == "Beta"
+def test_release_labels_and_insertion_without_existing_release(changelog):
+    assert changelog.classify_release("13.2.0b1") == "Beta"
 
-    changelog = "# CHANGELOG\n"
-    inserted = build_changelog.insert_release_section(
-        changelog,
-        build_changelog.build_release_section(
+    changelog_text = "# CHANGELOG\n"
+    inserted = changelog.insert_release_section(
+        changelog_text,
+        changelog.build_release_section(
             "13.2.0b1", "2026-05-16", {"fixed": ["- Fixed beta"]}
         ),
     )
     assert inserted.endswith("### Fixed\n\n- Fixed beta\n\n")
 
 
-def test_slugify_and_new_command_validation(build_changelog):
+def test_slugify_and_new_command_validation(changelog):
     with pytest.raises(ValueError, match="at least one alphanumeric"):
-        build_changelog.slugify("!!!")
+        changelog.slugify("!!!")
 
-    long_slug = build_changelog.slugify("a" * 80)
-    assert long_slug == "a" * build_changelog.MAX_SLUG_LENGTH
+    long_slug = changelog.slugify("a" * 80)
+    assert long_slug == "a" * changelog.MAX_SLUG_LENGTH
 
     with pytest.raises(ValueError, match="Unknown category"):
-        build_changelog.new_command("security", "Fix issue")
+        changelog.new_command("security", "Fix issue")
 
 
-def test_main_dispatches_to_modes_and_errors(build_changelog, monkeypatch, capsys):
-    monkeypatch.setattr(
-        sys, "argv", ["build_changelog.py", "--new", "fixed", "CLI fix"]
-    )
-    assert build_changelog.main() == 0
-    assert any(build_changelog.FRAGMENTS_DIR.glob("*-cli-fix.fixed.md"))
+def test_main_dispatches_to_modes_and_errors(changelog, monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["changelog.py", "--new", "fixed", "CLI fix"])
+    assert changelog.main() == 0
+    assert any(changelog.FRAGMENTS_DIR.glob("*-cli-fix.fixed.md"))
 
     monkeypatch.setattr(
         sys,
         "argv",
         [
-            "build_changelog.py",
+            "changelog.py",
             "--new",
             "fixed",
             "x",
@@ -265,27 +261,27 @@ def test_main_dispatches_to_modes_and_errors(build_changelog, monkeypatch, capsy
             "2026-05-16",
         ],
     )
-    assert build_changelog.main() == 1
+    assert changelog.main() == 1
     assert "Use only one of" in capsys.readouterr().err
 
-    build_changelog.CHANGELOG_PATH.unlink()
+    changelog.CHANGELOG_PATH.unlink()
     monkeypatch.setattr(
-        sys, "argv", ["build_changelog.py", "--release", "13.2.0", "2026-05-16"]
+        sys, "argv", ["changelog.py", "--release", "13.2.0", "2026-05-16"]
     )
-    assert build_changelog.main() == 1
+    assert changelog.main() == 1
     assert "Missing" in capsys.readouterr().err
 
 
-def test_changed_files_uses_git_diff(build_changelog, monkeypatch):
+def test_changed_files_uses_git_diff(changelog, monkeypatch):
     calls = []
 
     def fake_run(args, **kwargs):
         calls.append((args, kwargs))
         return subprocess.CompletedProcess(args, 0, stdout="a.py\n\nb.py\n")
 
-    monkeypatch.setattr(build_changelog.subprocess, "run", fake_run)
+    monkeypatch.setattr(changelog.subprocess, "run", fake_run)
 
-    assert build_changelog.changed_files("base", "head") == ["a.py", "b.py"]
+    assert changelog.changed_files("base", "head") == ["a.py", "b.py"]
     assert calls == [
         (
             ["git", "diff", "--name-only", "base", "head"],
@@ -294,82 +290,80 @@ def test_changed_files_uses_git_diff(build_changelog, monkeypatch):
     ]
 
 
-def test_check_mr_command_validates_current_fragments(build_changelog, monkeypatch):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+def test_check_mr_command_validates_current_fragments(changelog, monkeypatch):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
     fragment.write_text("Fixed valid thing\n", encoding="utf-8")
     monkeypatch.setattr(
-        build_changelog,
+        changelog,
         "changed_files",
         lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
     )
 
-    assert build_changelog.check_mr_command("base", "head") == 0
+    assert changelog.check_mr_command("base", "head") == 0
 
 
-def test_check_mr_command_requires_fragment_path(build_changelog, monkeypatch):
+def test_check_mr_command_requires_fragment_path(changelog, monkeypatch):
     monkeypatch.setattr(
-        build_changelog,
+        changelog,
         "changed_files",
         lambda _base, _head: ["psynet/module.py"],
     )
 
     with pytest.raises(ValueError, match="MR must add or delete a changelog fragment"):
-        build_changelog.check_mr_command("base", "head")
+        changelog.check_mr_command("base", "head")
 
 
-def test_check_mr_command_rejects_empty_fragment(build_changelog, monkeypatch):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-empty.fixed.md"
+def test_check_mr_command_rejects_empty_fragment(changelog, monkeypatch):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-empty.fixed.md"
     fragment.write_text("\n", encoding="utf-8")
     monkeypatch.setattr(
-        build_changelog,
+        changelog,
         "changed_files",
         lambda _base, _head: ["changelog.d/20260516-empty.fixed.md"],
     )
 
     with pytest.raises(ValueError, match="is empty"):
-        build_changelog.check_mr_command("base", "head")
+        changelog.check_mr_command("base", "head")
 
 
-def test_check_mr_command_rejects_invalid_extra_fragment(build_changelog, monkeypatch):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+def test_check_mr_command_rejects_invalid_extra_fragment(changelog, monkeypatch):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
     fragment.write_text("Fixed valid thing\n", encoding="utf-8")
-    invalid = build_changelog.FRAGMENTS_DIR / "invalid.fixed.md"
+    invalid = changelog.FRAGMENTS_DIR / "invalid.fixed.md"
     invalid.write_text("Fixed invalid thing\n", encoding="utf-8")
     monkeypatch.setattr(
-        build_changelog,
+        changelog,
         "changed_files",
         lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
     )
 
     with pytest.raises(ValueError, match="Invalid changelog fragment filename"):
-        build_changelog.check_mr_command("base", "head")
+        changelog.check_mr_command("base", "head")
 
 
-def test_check_mr_command_allows_changelog_with_only_releases(
-    build_changelog, monkeypatch
-):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+def test_check_mr_command_allows_changelog_with_only_releases(changelog, monkeypatch):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
     fragment.write_text("Fixed valid thing\n", encoding="utf-8")
-    build_changelog.CHANGELOG_PATH.write_text(
+    changelog.CHANGELOG_PATH.write_text(
         "# CHANGELOG\n\n## [13.2.0](url)\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        build_changelog,
+        changelog,
         "changed_files",
         lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
     )
 
-    assert build_changelog.check_mr_command("base", "head") == 0
+    assert changelog.check_mr_command("base", "head") == 0
 
 
 def test_check_mr_command_rejects_changelog_edit_even_with_fragment(
-    build_changelog, monkeypatch
+    changelog, monkeypatch
 ):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment = changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
     fragment.write_text("Fixed valid thing\n", encoding="utf-8")
     monkeypatch.setattr(
-        build_changelog,
+        changelog,
         "changed_files",
         lambda _base, _head: [
             "CHANGELOG.md",
@@ -378,70 +372,68 @@ def test_check_mr_command_rejects_changelog_edit_even_with_fragment(
     )
 
     with pytest.raises(ValueError, match="must not edit CHANGELOG.md directly"):
-        build_changelog.check_mr_command("base", "head")
+        changelog.check_mr_command("base", "head")
 
 
 def test_build_command_previews_fragments_when_changelog_has_releases(
-    build_changelog, capsys
+    changelog, capsys
 ):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+    fragment = changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
     fragment.write_text("Fixed valid thing\n", encoding="utf-8")
-    build_changelog.CHANGELOG_PATH.write_text(
+    changelog.CHANGELOG_PATH.write_text(
         "# CHANGELOG\n\n## [13.2.0](url)\n",
         encoding="utf-8",
     )
 
-    assert build_changelog.build_command() == 0
+    assert changelog.build_command() == 0
 
     assert capsys.readouterr().out == "### Fixed\n\n- Fixed valid thing\n"
-    assert read_changelog(build_changelog) == "# CHANGELOG\n\n## [13.2.0](url)\n"
+    assert read_changelog(changelog) == "# CHANGELOG\n\n## [13.2.0](url)\n"
 
 
-def test_build_command_previews_fragments_without_changelog(build_changelog, capsys):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+def test_build_command_previews_fragments_without_changelog(changelog, capsys):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
     fragment.write_text("Fixed valid thing\n", encoding="utf-8")
-    build_changelog.CHANGELOG_PATH.unlink()
+    changelog.CHANGELOG_PATH.unlink()
 
-    assert build_changelog.build_command() == 0
+    assert changelog.build_command() == 0
 
     assert capsys.readouterr().out == "### Fixed\n\n- Fixed valid thing\n"
 
 
-def test_main_dispatches_to_check_mr(build_changelog, monkeypatch):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
+def test_main_dispatches_to_check_mr(changelog, monkeypatch):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
     fragment.write_text("Fixed valid thing\n", encoding="utf-8")
     monkeypatch.setattr(
-        build_changelog,
+        changelog,
         "changed_files",
         lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
     )
-    monkeypatch.setattr(
-        sys, "argv", ["build_changelog.py", "--check-mr", "base", "head"]
-    )
+    monkeypatch.setattr(sys, "argv", ["changelog.py", "--check-mr", "base", "head"])
 
-    assert build_changelog.main() == 0
+    assert changelog.main() == 0
 
 
-def test_main_dispatches_to_release(build_changelog, monkeypatch):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-cli-release.fixed.md"
+def test_main_dispatches_to_release(changelog, monkeypatch):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-cli-release.fixed.md"
     fragment.write_text("CLI release fix\n", encoding="utf-8")
     monkeypatch.setattr(
         sys,
         "argv",
-        ["build_changelog.py", "--release", "13.2.0rc1", "2026-05-16"],
+        ["changelog.py", "--release", "13.2.0rc1", "2026-05-16"],
     )
 
-    assert build_changelog.main() == 0
-    assert "## [13.2.0rc1]" in read_changelog(build_changelog)
+    assert changelog.main() == 0
+    assert "## [13.2.0rc1]" in read_changelog(changelog)
     assert not fragment.exists()
 
 
-def test_main_defaults_to_build_command(build_changelog, monkeypatch):
-    fragment = build_changelog.FRAGMENTS_DIR / "20260516-default-build.fixed.md"
+def test_main_defaults_to_build_command(changelog, monkeypatch):
+    fragment = changelog.FRAGMENTS_DIR / "20260516-default-build.fixed.md"
     fragment.write_text("Default build fix\n", encoding="utf-8")
-    monkeypatch.setattr(sys, "argv", ["build_changelog.py"])
+    monkeypatch.setattr(sys, "argv", ["changelog.py"])
 
-    assert build_changelog.main() == 0
+    assert changelog.main() == 0
     assert fragment.exists()
 
 

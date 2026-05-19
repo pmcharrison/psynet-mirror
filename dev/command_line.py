@@ -7,15 +7,15 @@ from pathlib import Path
 import click
 
 
-def _load_build_changelog_module():
-    script_path = Path(__file__).resolve().parent / "build_changelog.py"
+def _load_changelog_module():
+    script_path = Path(__file__).resolve().parent / "changelog.py"
     if not script_path.exists():
         raise click.ClickException(
             f"Could not find changelog builder script at {script_path}. "
             "Run this command from a PsyNet source checkout."
         )
 
-    spec = importlib.util.spec_from_file_location("psynet_build_changelog", script_path)
+    spec = importlib.util.spec_from_file_location("psynet_changelog", script_path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     sys.modules[spec.name] = module
@@ -37,7 +37,7 @@ def changelog():
 @click.pass_context
 def changelog_preview(ctx):
     """Preview rendered changelog fragments without changing files."""
-    module = _load_build_changelog_module()
+    module = _load_changelog_module()
     try:
         exit_code = module.build_command()
     except ValueError as exc:
@@ -73,7 +73,7 @@ def changelog_new(ctx, category, description):
 
         psynet dev changelog new fixed "Fixed login timeout"
     """
-    module = _load_build_changelog_module()
+    module = _load_changelog_module()
     try:
         exit_code = module.new_command(category, description)
     except ValueError as exc:
@@ -96,7 +96,7 @@ def changelog_release(ctx, version, date):
 
         psynet dev changelog release 13.2.0 2026-05-18
     """
-    module = _load_build_changelog_module()
+    module = _load_changelog_module()
     try:
         if not module.CHANGELOG_PATH.exists():
             click.echo(f"Missing {module.CHANGELOG_PATH}", err=True)
