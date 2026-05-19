@@ -73,6 +73,10 @@ async function clickConsentButton(page, timeout = STEP_TIMEOUT_MS) {
   const consentButton = page.locator("#consent");
   await expect(consentButton).toBeVisible({ timeout });
   await expect(consentButton).toBeEnabled({ timeout });
+  // psynet.nextPage silently no-ops until pageLoaded (window.load + browser check).
+  // Wait for it before clicking to avoid the race where the click fires before
+  // initPage resolves, leaving the consent page stuck forever.
+  await page.waitForFunction(() => window.psynet?.pageLoaded === true, { timeout });
   await consentButton.click();
 }
 
