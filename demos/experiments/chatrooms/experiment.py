@@ -34,6 +34,7 @@ class ChatroomDemoMessage(SQLBase, SQLMixin):
     # The table name is prefixed to avoid clashing with ``psynet.chatroom``,
     # which defines its own ``chat_message`` table for ``ModularPage`` chatrooms.
     __tablename__ = "chatroom_demo_message"
+    __mapper_args__ = {"polymorphic_identity": "ChatroomDemoMessage"}
 
     room_id = Column(String, index=True)
     content = Column(String)
