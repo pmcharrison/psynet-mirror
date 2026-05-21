@@ -2,19 +2,34 @@
 
 ## Unreleased
 
+<<<<<<< HEAD
 ### Fixed
 - Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
 - Fixed `AsyncCodeBlock` raising `RuntimeError: Participant already has an async code block process pending, this shouldn't happen.` when a participant re-entered an `AsyncCodeBlock` while a previously finished or failed process was still attached. `AsyncCodeBlock.initiate` now logs a warning and clears the stale reference instead of crashing, so participants no longer get stuck (e.g. inside the Prolific failed-participant `wait_for_assignment_return` loop) (author: [Frank Höger])
+=======
+### Changed
+- Updated `@playwright/test` from 1.58.2 to 1.60.0 (Chromium 148.0.7778.96) (author: [Frank Höger])
+- Avoid duplicate GitLab CI pipelines on branches with an open MR by adding a `workflow:rules` block that suppresses the branch pipeline in that case; branch pipelines still run when no MR is open, and master/tag pipelines are unaffected (author: Frank Höger)
+>>>>>>> master
 
-## Added
+### Fixed
+- Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners) (author: [Frank Höger])
+- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
+- Fixed graph demo `generate_grid` returning `blocks` instead of `groups` for the `participant_groups` key in the network structure, and added `choose_participant_group` support to `GraphChainTrialMaker` (author: [Peter Harrison])
+- Fixed `AsyncCodeBlock` raising `RuntimeError: Participant already has an async code block process pending, this shouldn't happen.` when a participant re-entered an `AsyncCodeBlock` while a previously finished or failed process was still attached. `AsyncCodeBlock.initiate` now logs a warning and clears the stale reference instead of crashing, so participants no longer get stuck (e.g. inside the Prolific failed-participant `wait_for_assignment_return` loop) (author: [Frank Höger])
+
+### Added
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
+<<<<<<< HEAD
 ### Added
 - Adding a synchronous group monitoring page to the Dashboard.
 - Added manual participant kick/failure controls to the synchronous group Dashboard.
 - `GroupBarrier` now supports `participant_timeout` (seconds since the group passed the previous barrier) and `participant_timeout_action` (`"kick"` to remove from group or `"fail"` to fail the participant). 
 - Refactored timeline to use named branches for end logic. `Timeline.elts` is now a dict of named branches (`main`, `successful_end`, `unsuccessful_end`, `rejected_consent`). `elt_id` now starts with the branch name (e.g. `["main", 3]`). `EndPage` classes are now redirect elements instead of `PageMaker` wrappers. `participant.fail()` automatically redirects to the `unsuccessful_end` branch unless the participant is already in an end logic branch or already completed. (author: [Peter Harrison])
+=======
+>>>>>>> master
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
@@ -49,18 +64,14 @@
 - Added RQ worker count display in async process times section for context on queue delays (author: Jesse Snyder)
 
 ### Changed
-<<<<<<< HEAD
 - Barrier handling now uses a database-backed registry for sync experiments.
 - GroupBarrier `on_release` callbacks now accept module-level, static/class, TrialMaker, or ORM instance methods with clear validation errors.
 - Improved internal test coverage for ORM callback serialization.
 - Simplified barrier processing by removing a redundant conditional.
 - Simplified barrier processing by removing redundant helper lookup.
 - Barrier registry now stores a lightweight barrier copy without waiting-page templates.
-=======
-
 - Refactored chain network growth to use live readiness queries instead of the cached `ready_to_spawn` flag, added non-blocking polling for within-chain growth, and normalized graph-chain topology into SQL vertex/edge tables (author: [Peter Harrison])
 - Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates (author: Frank Höger)
->>>>>>> master
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
 - Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
