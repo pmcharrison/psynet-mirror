@@ -6,9 +6,9 @@ class CustomTableWithImportableNameLongerThanFiftyCharacters(SQLBase, SQLMixin):
 
 
 def test_sqlmixin_type_column_supports_long_importable_names():
-    polymorphic_identity = (
-        CustomTableWithImportableNameLongerThanFiftyCharacters.__mapper__.polymorphic_identity
-    )
+    polymorphic_identity = CustomTableWithImportableNameLongerThanFiftyCharacters.__mapper__.polymorphic_identity
 
     assert len(polymorphic_identity) > 50
-    assert CustomTableWithImportableNameLongerThanFiftyCharacters.type.type.length is None
+    assert (
+        CustomTableWithImportableNameLongerThanFiftyCharacters.type.type.length is None
+    )
