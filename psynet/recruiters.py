@@ -17,6 +17,7 @@ from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
+from dallinger.prolific import ProlificServiceException
 from dallinger.recruiters import (
     DevRecruiter,
     MockRecruiter,
@@ -323,9 +324,19 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         logger.info(
             f"Checking Prolific submission status for assignment {participant.assignment_id}"
         )
-        submission = recruiter.prolificservice.get_participant_submission(
-            participant.assignment_id
-        )
+        try:
+            submission = recruiter.prolificservice.get_participant_submission(
+                participant.assignment_id
+            )
+        except ProlificServiceException:
+            logger.warning(
+                "Could not check Prolific submission status for assignment %s. "
+                "Treating the assignment as not returned yet.",
+                participant.assignment_id,
+                exc_info=True,
+            )
+            participant.var.assignment_returned = False
+            return False
         logger.info(
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )

@@ -51,6 +51,7 @@
 - Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout (author: Frank Höger)
 
 ## Fixed
+- Fixed Prolific return-for-bonus checks so API lookup failures no longer send participants to an error page (author: Frank Höger).
 - Sync groups are now closed automatically when they have no active participants left and do not accept top-ups
 - Fixed sync barrier processing to reduce deadlocks and make trial-defined barriers release reliably across processes.
 - Fixed ORM instance methods failing during callback serialization.
