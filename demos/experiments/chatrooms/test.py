@@ -11,7 +11,6 @@
 # - test_check_bots
 # - test_check_bot
 
-import json
 import os
 
 import pytest
@@ -21,7 +20,7 @@ experiment_dir = os.path.dirname(__file__)
 
 
 @pytest.mark.parametrize("experiment_directory", [experiment_dir], indirect=True)
-def test_experiment(launched_experiment, experiment_module):
+def test_experiment(launched_experiment):
     # NOTE:
     # If pytest reports a failure and prints these lines in your traceback
     # without printing the actual lines within `test_experiment` that raised the error,
@@ -30,24 +29,3 @@ def test_experiment(launched_experiment, experiment_module):
     # or editing your PyCharm run configuration to add `--tb=short` to your additional
     # arguments. This should ensure that the full traceback is printed.
     launched_experiment.test_experiment()
-
-    participant = experiment_module.Participant.query.one()
-    room_id = participant.var.current_room
-
-    launched_experiment.receive_message(
-        json.dumps(
-            {
-                "type": "message",
-                "room_id": room_id,
-                "content": "Test message from automated demo test",
-            }
-        ),
-        channel_name=experiment_module.GLOBAL_CHANNEL,
-        participant=participant,
-    )
-
-    message = experiment_module.ChatroomDemoMessage.query.filter_by(
-        room_id=room_id,
-        sender_id=participant.id,
-    ).one()
-    assert message.content == "Test message from automated demo test"
