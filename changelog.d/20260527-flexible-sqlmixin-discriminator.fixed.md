@@ -1,0 +1,1 @@
+Fixed PsyNet custom SQL table polymorphic discriminator columns to use flexible string lengths, avoiding truncation errors for fully qualified polymorphic identities longer than 50 characters (author: [Peter Harrison])
