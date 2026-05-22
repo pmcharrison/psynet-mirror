@@ -47,6 +47,22 @@ def changelog_preview(ctx):
     ctx.exit(exit_code)
 
 
+@changelog.command("check-mr", hidden=True)
+@click.argument("base", metavar="BASE")
+@click.argument("head", metavar="HEAD")
+@click.pass_context
+def changelog_check_mr(ctx, base, head):
+    """Validate changelog requirements for a merge-request diff."""
+    module = _load_changelog_module()
+    try:
+        exit_code = module.check_mr_command(base, head)
+    except ValueError as exc:
+        click.echo(str(exc), err=True)
+        ctx.exit(1)
+
+    ctx.exit(exit_code)
+
+
 CHANGELOG_CATEGORIES = (
     "breaking",
     "added",

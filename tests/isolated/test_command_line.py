@@ -55,6 +55,9 @@ class TestCommandLine(object):
                 calls.append(("release", version, date)) or 0
             ),
             build_command=lambda: calls.append(("build",)) or 0,
+            check_mr_command=lambda base, head: (
+                calls.append(("check-mr", base, head)) or 0
+            ),
         )
         fake_builder.CHANGELOG_PATH.write_text("# CHANGELOG\n", encoding="utf-8")
         monkeypatch.setattr(
@@ -80,6 +83,10 @@ class TestCommandLine(object):
         result = runner.invoke(psynet, ["dev", "changelog", "preview"])
         assert result.exit_code == 0
         assert calls[-1] == ("build",)
+
+        result = runner.invoke(psynet, ["dev", "changelog", "check-mr", "base", "head"])
+        assert result.exit_code == 0
+        assert calls[-1] == ("check-mr", "base", "head")
 
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""

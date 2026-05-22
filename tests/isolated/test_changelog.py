@@ -1,5 +1,4 @@
 import importlib.util
-import runpy
 import subprocess
 import sys
 from pathlib import Path
@@ -246,35 +245,6 @@ def test_slugify_and_new_command_validation(changelog):
         changelog.new_command("security", "Fix issue")
 
 
-def test_main_dispatches_to_modes_and_errors(changelog, monkeypatch, capsys):
-    monkeypatch.setattr(sys, "argv", ["changelog.py", "--new", "fixed", "CLI fix"])
-    assert changelog.main() == 0
-    assert any(changelog.FRAGMENTS_DIR.glob("*-cli-fix.fixed.md"))
-
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        [
-            "changelog.py",
-            "--new",
-            "fixed",
-            "x",
-            "--release",
-            "13.2.0",
-            "2026-05-16",
-        ],
-    )
-    assert changelog.main() == 1
-    assert "Use only one of" in capsys.readouterr().err
-
-    changelog.CHANGELOG_PATH.unlink()
-    monkeypatch.setattr(
-        sys, "argv", ["changelog.py", "--release", "13.2.0", "2026-05-16"]
-    )
-    assert changelog.main() == 1
-    assert "Missing" in capsys.readouterr().err
-
-
 def test_changed_files_uses_git_diff(changelog, monkeypatch):
     calls = []
 
@@ -402,46 +372,3 @@ def test_build_command_previews_fragments_without_changelog(changelog, capsys):
     assert changelog.build_command() == 0
 
     assert capsys.readouterr().out == "### Fixed\n\n- Fixed valid thing\n"
-
-
-def test_main_dispatches_to_check_mr(changelog, monkeypatch):
-    fragment = changelog.FRAGMENTS_DIR / "20260516-valid.fixed.md"
-    fragment.write_text("Fixed valid thing\n", encoding="utf-8")
-    monkeypatch.setattr(
-        changelog,
-        "changed_files",
-        lambda _base, _head: ["changelog.d/20260516-valid.fixed.md"],
-    )
-    monkeypatch.setattr(sys, "argv", ["changelog.py", "--check-mr", "base", "head"])
-
-    assert changelog.main() == 0
-
-
-def test_main_dispatches_to_release(changelog, monkeypatch):
-    fragment = changelog.FRAGMENTS_DIR / "20260516-cli-release.fixed.md"
-    fragment.write_text("CLI release fix\n", encoding="utf-8")
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["changelog.py", "--release", "13.2.0rc1", "2026-05-16"],
-    )
-
-    assert changelog.main() == 0
-    assert "## [13.2.0rc1]" in read_changelog(changelog)
-    assert not fragment.exists()
-
-
-def test_main_defaults_to_build_command(changelog, monkeypatch):
-    fragment = changelog.FRAGMENTS_DIR / "20260516-default-build.fixed.md"
-    fragment.write_text("Default build fix\n", encoding="utf-8")
-    monkeypatch.setattr(sys, "argv", ["changelog.py"])
-
-    assert changelog.main() == 0
-    assert fragment.exists()
-
-
-def test_module_main_help_path(monkeypatch):
-    monkeypatch.setattr(sys, "argv", [str(SCRIPT_PATH), "--help"])
-    with pytest.raises(SystemExit) as exc_info:
-        runpy.run_path(str(SCRIPT_PATH), run_name="__main__")
-    assert exc_info.value.code == 0

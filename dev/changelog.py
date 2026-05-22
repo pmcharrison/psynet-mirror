@@ -1,7 +1,7 @@
 """Build and validate PsyNet changelog fragments.
 
 This module is intentionally source-checkout-only. It powers the developer CLI
-(`psynet dev changelog`) and the lightweight CI wrapper at `ci/changelog.py`.
+(`psynet dev changelog`).
 
 Workflow summary:
 - Contributors add one Markdown fragment in `changelog.d/` per user-facing
@@ -13,10 +13,8 @@ Workflow summary:
   section.
 """
 
-import argparse
 import re
 import subprocess
-import sys
 import time
 import unicodedata
 from collections import defaultdict
@@ -56,71 +54,6 @@ class Fragment:
     path: Path
     section: str
     entry: str
-
-
-# CLI entry point
-
-
-def main() -> int:
-    """Run the argparse-based entry point used by CI."""
-    try:
-        args = parse_args()
-        modes = sum(1 for x in (args.new, args.release, args.check_mr) if x)
-        if modes > 1:
-            raise ValueError("Use only one of --new, --release, --check-mr.")
-
-        if args.new:
-            category, description = args.new
-            return new_command(category, description)
-
-        if args.check_mr:
-            base, head = args.check_mr
-            return check_mr_command(base, head)
-
-        if args.release:
-            if not CHANGELOG_PATH.exists():
-                print(f"Missing {CHANGELOG_PATH}", file=sys.stderr)
-                return 1
-            version, date = args.release
-            return release_command(version, date)
-        return build_command()
-    except ValueError as exc:
-        print(str(exc), file=sys.stderr)
-        return 1
-
-
-def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments for the thin script wrapper."""
-    parser = argparse.ArgumentParser(
-        description=(
-            "Build and manage PsyNet changelog fragments. Contributors commit "
-            "only fragments in their MRs (never a regenerated CHANGELOG.md); "
-            "release notes are generated from fragments via "
-            "psynet dev changelog release."
-        )
-    )
-    parser.add_argument(
-        "--new",
-        nargs=2,
-        metavar=("CATEGORY", "DESCRIPTION"),
-        help=(
-            "Create a new fragment file with a date-prefixed slug filename "
-            "(normally via: psynet dev changelog new fixed 'Fix example bug')."
-        ),
-    )
-    parser.add_argument(
-        "--release",
-        nargs=2,
-        metavar=("VERSION", "DATE"),
-        help="Create a release section from current fragments.",
-    )
-    parser.add_argument(
-        "--check-mr",
-        nargs=2,
-        metavar=("BASE", "HEAD"),
-        help="Validate changelog fragment requirements for an MR diff.",
-    )
-    return parser.parse_args()
 
 
 # Command implementations
@@ -506,6 +439,3 @@ def insert_release_section(changelog: str, release_section: str) -> str:
     section = release_section.strip()
     return f"{prefix}\n\n{section}\n\n{suffix}"
 
-
-if __name__ == "__main__":
-    raise SystemExit(main())
