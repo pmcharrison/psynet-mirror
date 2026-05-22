@@ -83,7 +83,7 @@ cryptography==46.0.7
 dallinger==12.2.0
     # via
     #   psynet
-    #   step
+    #   psynet-step
 debugpy==1.8.20
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v12.2.0/dev-requirements.txt
@@ -245,7 +245,7 @@ psycopg2==2.9.11
 psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@76d0e671b2abd1f97c0ff23c8f9124bf56aa386f#egg=psynet
     # via
     #   -r requirements.txt
-    #   step
+    #   psynet-step
 ptyprocess==0.7.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v12.2.0/dev-requirements.txt
@@ -369,7 +369,7 @@ sshtunnel==0.4.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v12.2.0/dev-requirements.txt
     #   dallinger
-step @ git+https://github.com/pmcharrison/STEP.git@55573271e6e9e67081bd795c80ee3aafe72edbe8#egg=step
+psynet-step==0.1.0rc0
     # via -r requirements.txt
 tabulate==0.10.0
     # via

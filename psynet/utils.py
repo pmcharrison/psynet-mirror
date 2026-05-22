@@ -1183,9 +1183,6 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
                         # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
                         # in the CI environment
                         or dir_.endswith("/gibbs_video")
-                        # Skip step_tag demo because it depends on the 'step' package
-                        # which is not installed in the CI image
-                        or dir_.endswith("/pipelines/step_tag")
                     )
                 )
             )
