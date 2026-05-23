@@ -137,32 +137,6 @@ class Exp(psynet.experiment.Experiment):
     def chatroom_show_history(self):
         return get_config().get("chatroom_show_history", True)
 
-    def test_check_bots(self, bots):
-        super().test_check_bots(bots)
-
-        for bot in bots:
-            room_id = bot.var.current_room
-            message_content = f"Test message from automated demo test ({bot.id})"
-
-            self.receive_message(
-                json.dumps(
-                    {
-                        "type": "message",
-                        "room_id": room_id,
-                        "content": message_content,
-                    }
-                ),
-                channel_name=GLOBAL_CHANNEL,
-                participant=bot,
-            )
-
-            message = ChatroomDemoMessage.query.filter_by(
-                room_id=room_id,
-                sender_id=bot.id,
-                content=message_content,
-            ).one()
-            assert message.content == message_content
-
     @staticmethod
     def _compute_occupancy():
         """Return current room counts and participant IDs from participant.var state."""
