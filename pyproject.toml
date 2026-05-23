@@ -68,18 +68,20 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "asv",
+    "beautifulsoup4",
     "bump-my-version",
-    "pydata-sphinx-theme",
     "google-cloud-translate",
     "openai",
     "pre-commit",
+    "pydata-sphinx-theme",
+    "pytest-test-groups",
     "ruff",
     "sphinx",
     "sphinx-autodoc-typehints<3.0.0",
     "sphinx-copybutton",
     "sphinx-inline-tabs",
-    "beautifulsoup4",
-    "pytest-test-groups",
+    "virtualenv",
 ]
 slack = [
     "slack_sdk",

@@ -13,6 +13,11 @@
 - Fixed `AsyncCodeBlock` raising `RuntimeError: Participant already has an async code block process pending, this shouldn't happen.` when a participant re-entered an `AsyncCodeBlock` while a previously finished or failed process was still attached. `AsyncCodeBlock.initiate` now logs a warning and clears the stale reference instead of crashing, so participants no longer get stuck (e.g. inside the Prolific failed-participant `wait_for_assignment_return` loop) (author: [Frank Höger])
 
 ### Added
+- Added an ASV performance benchmark suite (demo experiment performance tests
+  and serialize/deserialize micro-benchmarks). A CI job publishes rendered
+  graphs to GitLab Pages alongside the docs, and an `asv_regression` job fails a
+  merge request when `asv continuous` finds a significant regression between its
+  merge base and branch tip.
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
