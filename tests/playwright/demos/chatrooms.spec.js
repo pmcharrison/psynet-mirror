@@ -6,7 +6,8 @@ const {
   beginExperiment,
   completeInitialGateway,
   startExperiment,
-  stopExperiment
+  stopExperiment,
+  withFreshParticipantIds
 } = require("../psynetHarness");
 
 const STEP_TIMEOUT_MS = 120000;
@@ -25,15 +26,6 @@ Intentionally not covered:
 - Exact occupancy timing for every transient join/leave update.
 - Multi-room isolation beyond both participants sharing the same room.
 */
-
-function withFreshParticipantIds(rawUrl, label) {
-  const url = new URL(rawUrl);
-  const suffix = `${label}_${Math.random().toString(36).slice(2, 10)}`;
-  url.searchParams.set("assignmentId", `a_${suffix}`);
-  url.searchParams.set("hitId", `h_${suffix}`);
-  url.searchParams.set("workerId", `w_${suffix}`);
-  return url.toString();
-}
 
 async function waitForRoomSelectionOrConsent(page) {
   const roomButtons = page.locator("#room-buttons button");
