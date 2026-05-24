@@ -2,6 +2,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
+  clickPsyNetConsentButton,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
@@ -69,20 +70,13 @@ async function expectLocatorScreenshot(locator, snapshotName, options = SNAPSHOT
   await expect(locator).toHaveScreenshot(snapshotName, options);
 }
 
-async function clickConsentButton(page, timeout = STEP_TIMEOUT_MS) {
-  const consentButton = page.locator("#consent");
-  await expect(consentButton).toBeVisible({ timeout });
-  await expect(consentButton).toBeEnabled({ timeout });
-  await consentButton.click();
-}
-
 async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
   // Explicit deterministic startup sequence for audio demo:
   // 1) gateway page, 2) main consent, 3) audiovisual consent, 4) first prompt page.
   await completeInitialGateway(page, timeout);
 
   await expectMainBodyContains(page, "We need your consent to proceed", timeout);
-  await clickConsentButton(page, timeout);
+  await clickPsyNetConsentButton(page, timeout);
 
   // Match text unique to AudiovisualConsent ("In this experiment, ...")
   // to avoid false-matching the similar phrase on MainConsent.
@@ -91,7 +85,7 @@ async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
     "In this experiment, you may be asked to make a voice or video recording",
     timeout
   );
-  await clickConsentButton(page, timeout);
+  await clickPsyNetConsentButton(page, timeout);
 
   await expectPromptContains(page, "harmonic complex tone as the timbre", timeout);
 }
