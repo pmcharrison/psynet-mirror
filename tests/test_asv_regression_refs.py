@@ -3,7 +3,6 @@ import shlex
 import subprocess
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ASV_REFS_SCRIPT = REPO_ROOT / "ci" / "asv-regression-refs.sh"
 
