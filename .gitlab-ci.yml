@@ -193,11 +193,9 @@ asv_benchmarks:
 # Gate merge requests on benchmark regressions. Runs `asv continuous`, which
 # builds and benchmarks both commits back-to-back on the same runner (so
 # runner-to-runner noise cancels out) and exits non-zero if any benchmark
-# regressed past --factor. The base is the MR's merge base with the target
-# branch (CI_MERGE_REQUEST_DIFF_BASE_SHA), and the head is the source branch
-# tip -- comparing those two real commits isolates exactly the MR's own
-# changes, independent of how far master has moved. Results are not committed
-# to the benchmark-results branch; this job is a gate only.
+# regressed past --factor. The base is the current target branch tip, and the
+# head is the proposed merge commit. Results are not committed to the
+# benchmark-results branch; this job is a gate only.
 asv_regression:
   stage: test
   resource_group: benchmark-results
@@ -218,15 +216,10 @@ asv_regression:
   script:
     - apk add --no-cache git
     - export PSYNET_WORKSPACE=/root/workspaces/PsyNet
-    # The full clone above already has the source tip and the merge base;
-    # fetch the target branch as a defensive backstop. Fetching the source
-    # branch by name is avoided -- it fails for fork-originated merge requests.
-    - git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
-    - export ASV_BASE="$CI_MERGE_REQUEST_DIFF_BASE_SHA"
-    # SOURCE_BRANCH_SHA is set in merged-results pipelines; in a standard MR
-    # pipeline it is empty and CI_COMMIT_SHA is itself the source branch tip.
-    - export ASV_HEAD="${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}"
-    - echo "Comparing benchmark base $ASV_BASE -> head $ASV_HEAD"
+    # Fetching the source branch by name is avoided -- it fails for
+    # fork-originated merge requests. The helper uses the checked-out commit
+    # when GitLab has not already provided a merged-results commit.
+    - . ci/asv-regression-refs.sh
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
