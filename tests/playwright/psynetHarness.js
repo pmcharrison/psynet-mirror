@@ -726,7 +726,7 @@ async function waitForResponseSubmitIncrement(
     .toBeGreaterThanOrEqual(baselineCount + increment);
 }
 
-async function waitForPsyNetPageLoaded(page, timeoutMs = 120000) {
+async function waitForPageLoaded(page, timeoutMs = 120000) {
   await page.waitForFunction(() => window.psynet?.pageLoaded === true, {
     timeout: timeoutMs
   });
@@ -743,11 +743,11 @@ async function completeInitialGateway(page, timeout = 120000) {
   await gatewayButton.click();
 }
 
-async function clickPsyNetConsentButton(page, timeout = 120000) {
+async function clickConsentButton(page, timeout = 120000) {
   const consentButton = page.locator("#consent");
   await expect(consentButton).toBeVisible({ timeout });
   await expect(consentButton).toBeEnabled({ timeout });
-  await waitForPsyNetPageLoaded(page, timeout);
+  await waitForPageLoaded(page, timeout);
   await consentButton.click();
 }
 
@@ -873,8 +873,8 @@ module.exports = {
   advanceUntilPromptContains,
   assertNoBackendError,
   beginExperiment,
+  clickConsentButton,
   clickNextAndWait,
-  clickPsyNetConsentButton,
   completeInitialGateway,
   captureTrialEventBaseline,
   getPageUuid,
@@ -887,6 +887,5 @@ module.exports = {
   waitForVideoRecordingReady,
   withExperiment,
   waitForNextEnabled,
-  waitForPageChange,
-  waitForPsyNetPageLoaded
+  waitForPageChange
 };

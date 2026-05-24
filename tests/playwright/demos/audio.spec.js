@@ -2,7 +2,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
-  clickPsyNetConsentButton,
+  clickConsentButton,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
@@ -76,7 +76,7 @@ async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
   await completeInitialGateway(page, timeout);
 
   await expectMainBodyContains(page, "We need your consent to proceed", timeout);
-  await clickPsyNetConsentButton(page, timeout);
+  await clickConsentButton(page, timeout);
 
   // Match text unique to AudiovisualConsent ("In this experiment, ...")
   // to avoid false-matching the similar phrase on MainConsent.
@@ -85,7 +85,7 @@ async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
     "In this experiment, you may be asked to make a voice or video recording",
     timeout
   );
-  await clickPsyNetConsentButton(page, timeout);
+  await clickConsentButton(page, timeout);
 
   await expectPromptContains(page, "harmonic complex tone as the timbre", timeout);
 }
