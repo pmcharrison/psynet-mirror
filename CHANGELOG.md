@@ -9,7 +9,7 @@
 ### Fixed
 - Fixed the ASV merge-request regression gate to compare the current `master`
   commit against the proposed merge commit instead of the merge base against the
-  source branch tip (author: [Cursor])
+  source branch tip (author: [Peter Harrison])
 - Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners) (author: [Frank Höger])
 - Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
 - Fixed graph demo `generate_grid` returning `blocks` instead of `groups` for the `participant_groups` key in the network structure, and added `choose_participant_group` support to `GraphChainTrialMaker` (author: [Peter Harrison])
