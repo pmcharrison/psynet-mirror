@@ -14,6 +14,9 @@ ASV_MERGE_BRANCH="${ASV_MERGE_BRANCH:-asv-proposed-merge}"
 
 git fetch "$ASV_TARGET_REMOTE" "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
 
+# Prefer GitLab's target-branch SHA when present so the comparison matches the
+# MR pipeline snapshot. Fall back to FETCH_HEAD for CI contexts that only give
+# us the fetched target branch.
 if [ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_SHA:-}" ]; then
     ASV_BASE="$CI_MERGE_REQUEST_TARGET_BRANCH_SHA"
 else
@@ -21,6 +24,9 @@ else
 fi
 git rev-parse --verify "$ASV_BASE^{commit}" >/dev/null
 
+# Merged-result and merge-train pipelines are already checked out at GitLab's
+# proposed merge commit. Detached MR pipelines are checked out at the source
+# branch tip, so synthesize the proposed merge commit locally from ASV_BASE.
 case "${CI_MERGE_REQUEST_EVENT_TYPE:-detached}" in
     merged_result | merge_train)
         ASV_HEAD="$CI_COMMIT_SHA"
