@@ -161,3 +161,8 @@ source_code.zip
 .deploy
 **/static/assets
 dump.rdb
+
+# ASV benchmark artifacts
+.asv/
+.asv-sync.conf.json
+.asv-local.conf.json

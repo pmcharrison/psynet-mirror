@@ -3,6 +3,8 @@ import json
 import subprocess
 import tempfile
 from contextlib import contextmanager
+from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -714,3 +716,131 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
     config.load_from_file.assert_called_once_with(
         "/tmp/dallinger_develop/exp/config.txt"
     )
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (None, None),
+        (True, True),
+        (False, False),
+        (42, 42),
+        ("hello", "hello"),
+        (3.14, 3.14),
+        (0.0, 0.0),
+        (float("nan"), None),
+        (float("inf"), None),
+        (float("-inf"), None),
+        (Decimal("1.5"), 1.5),
+        (datetime(2025, 5, 7, 12, 30, 45), "2025-05-07T12:30:45"),
+        (date(2025, 5, 7), "2025-05-07"),
+        ((1, 2, 3), [1, 2, 3]),
+    ],
+)
+def test_to_json_safe_scalars_and_simple_collections(value, expected):
+    from psynet.perf_test import _to_json_safe
+
+    assert _to_json_safe(value) == expected
+
+
+def test_to_json_safe_decimal_returns_float_type():
+    # `Decimal == float` compares by value; pin the type explicitly.
+    from psynet.perf_test import _to_json_safe
+
+    assert isinstance(_to_json_safe(Decimal("1.5")), float)
+
+
+def test_to_json_safe_set_and_frozenset_are_sorted_lists():
+    # Output must be deterministic so repeated runs produce identical JSON
+    # (otherwise git diffs of stored results are noisy).
+    from psynet.perf_test import _to_json_safe
+
+    assert _to_json_safe({3, 1, 2}) == [1, 2, 3]
+    assert _to_json_safe(frozenset({"b", "a", "c"})) == ["a", "b", "c"]
+
+
+def test_to_json_safe_mixed_type_set_falls_back_to_unsorted_list():
+    # Heterogeneous sets aren't sortable across types; the helper must still
+    # return a list rather than raising.
+    from psynet.perf_test import _to_json_safe
+
+    result = _to_json_safe({1, "a", None})
+    assert isinstance(result, list)
+    assert set(result) == {1, "a", None}
+
+
+def test_to_json_safe_recurses_through_nested_dict_and_list():
+    from psynet.perf_test import _to_json_safe
+
+    nested = {
+        "rows": [
+            {"value": Decimal("0.5"), "missing": float("nan")},
+            {"value": Decimal("0.75"), "missing": None},
+        ],
+    }
+    assert _to_json_safe(nested) == {
+        "rows": [
+            {"value": 0.5, "missing": None},
+            {"value": 0.75, "missing": None},
+        ],
+    }
+
+
+def test_collect_run_metadata_includes_environment_fields():
+    from psynet.command_line import _collect_run_metadata
+
+    metadata = _collect_run_metadata("my-experiment")
+    assert metadata["experiment_label"] == "my-experiment"
+    for key in ("psynet_version", "dallinger_version", "python_version", "platform"):
+        assert isinstance(metadata[key], str) and metadata[key]
+
+
+def test_write_json_results_emits_expected_schema_with_coerced_values(tmp_path):
+    from psynet.command_line import _write_json_results
+
+    json_output = str(tmp_path / "results.json")
+    metadata = {
+        "psynet_version": "13.2.0a0",
+        "dallinger_version": "12.2.0",
+        "python_version": "3.13.9",
+        "platform": "Linux-test",
+        "experiment_label": "static_big",
+        "started_at": "2026-05-07T14:23:11",
+        "finished_at": "2026-05-07T14:25:42",
+    }
+    options = {
+        "n_bots_sweep": [1, 2],
+        "duration_minutes": 1.5,
+        "stagger_interval_s": 0.1,
+        "time_factor": 1.0,
+    }
+    all_results = [
+        {
+            "n_bots": 1,
+            "avg_latency": Decimal("0.5"),
+            "nan_value": float("nan"),
+            "inf_value": float("inf"),
+            "process_stats": [{"avg": Decimal("0.001"), "max": float("nan")}],
+        },
+        {"n_bots": 2, "avg_latency": Decimal("0.6")},
+    ]
+
+    _write_json_results(
+        json_output, metadata=metadata, options=options, all_results=all_results
+    )
+
+    with open(json_output) as f:
+        payload = json.load(f)
+
+    assert payload["schema_version"] == 1
+    for key, expected in metadata.items():
+        assert payload[key] == expected
+    assert payload["options"] == options
+    assert len(payload["results"]) == 2
+
+    first = payload["results"][0]
+    assert first["avg_latency"] == 0.5
+    assert first["nan_value"] is None
+    assert first["inf_value"] is None
+    assert first["process_stats"][0]["avg"] == 0.001
+    assert first["process_stats"][0]["max"] is None

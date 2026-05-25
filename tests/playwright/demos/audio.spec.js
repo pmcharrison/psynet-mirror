@@ -2,6 +2,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
+  clickConsentButton,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
@@ -67,13 +68,6 @@ async function expectMainBodyContains(page, text, timeout = PROMPT_TIMEOUT_MS) {
 
 async function expectLocatorScreenshot(locator, snapshotName, options = SNAPSHOT_OPTIONS) {
   await expect(locator).toHaveScreenshot(snapshotName, options);
-}
-
-async function clickConsentButton(page, timeout = STEP_TIMEOUT_MS) {
-  const consentButton = page.locator("#consent");
-  await expect(consentButton).toBeVisible({ timeout });
-  await expect(consentButton).toBeEnabled({ timeout });
-  await consentButton.click();
 }
 
 async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
