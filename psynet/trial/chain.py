@@ -10,6 +10,7 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
+    and_,
     func,
     or_,
 )
@@ -157,6 +158,7 @@ class ChainNetwork(TrialNetwork):
     """
 
     # pylint: disable=abstract-method
+    nodes_can_spawn = True
 
     chain_type = Column(String)
     head_id = Column(Integer, ForeignKey("node.id"))
@@ -349,6 +351,9 @@ class ChainNetwork(TrialNetwork):
 
     def add_node(self, node):
         node.set_network(self)
+        # ``can_spawn`` is structural: it says whether this node is ever allowed
+        # to create a child. Dynamic readiness is computed live from trials.
+        node.can_spawn = self.nodes_can_spawn and node.degree < self.max_size
         if node.degree == 0:
             self.context = node.context
         if node.degree > 0:
@@ -376,14 +381,18 @@ class ChainNetwork(TrialNetwork):
 
     @hybrid_property
     def ready_to_spawn(self):
-        return self.head.ready_to_spawn
+        raise AttributeError(
+            "ChainNetwork.ready_to_spawn has been removed. Network growth now "
+            "uses live readiness queries; use the trial maker's "
+            "ready_to_grow_network_query() helper instead."
+        )
 
     @ready_to_spawn.expression
     def ready_to_spawn(cls):
-        return (
-            select(ChainNode.ready_to_spawn)
-            .where(ChainNode.id == cls.head_id)
-            .scalar_subquery()
+        raise AttributeError(
+            "ChainNetwork.ready_to_spawn has been removed. Network growth now "
+            "uses live readiness queries; use the trial maker's "
+            "ready_to_grow_network_query() helper instead."
         )
 
     @hybrid_property
@@ -490,9 +499,9 @@ class ChainNode(TrialNode):
         The target number of trials for the node,
         set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
 
-    ready_to_spawn
-        Returns ``True`` if the node is ready to spawn a child.
-        Not intended for overriding.
+    can_spawn
+        Returns ``True`` if the node is structurally allowed to spawn a child.
+        Dynamic readiness is computed live from trial state.
 
     complete_and_processed_trials
         Returns all completed trials associated with the node,
@@ -526,7 +535,7 @@ class ChainNode(TrialNode):
     key = Column(String, index=True)
     degree = Column(Integer)
     target_n_trials = Column(Integer)
-    ready_to_spawn = Column(Boolean)
+    can_spawn = Column(Boolean, default=False, index=True)
     child_id = Column(Integer, ForeignKey("node.id"), index=True)
     parent_id = Column(Integer, ForeignKey("node.id"), index=True)
     seed = Column(PythonObject, default=lambda: {})
@@ -602,7 +611,7 @@ class ChainNode(TrialNode):
                 degree = 0
 
         self.degree = degree
-        self.ready_to_spawn = False
+        self.can_spawn = False
 
         if module_id is None:
             if parent:
@@ -797,13 +806,18 @@ class ChainNode(TrialNode):
 
     def update_status(self):
         super().update_status()
-        self.check_ready_to_spawn()
 
     def check_ready_to_spawn(self):
-        self.ready_to_spawn = self._ready_to_spawn()
+        raise AttributeError(
+            "ChainNode.check_ready_to_spawn() has been removed. Node readiness "
+            "is computed live by ChainTrialMaker.ready_to_grow_network_query()."
+        )
 
     def _ready_to_spawn(self):
-        return self.reached_target_n_trials and len(self.pending_trials) == 0
+        raise AttributeError(
+            "ChainNode._ready_to_spawn() has been removed. Node readiness is "
+            "computed live by ChainTrialMaker.ready_to_grow_network_query()."
+        )
 
     @property
     def viable_trials(self):
@@ -1028,7 +1042,10 @@ class ChainTrial(Trial):
     def on_finalized(self):
         super().on_finalized()
         self.node.update_status()
-        if self.trial_maker and self.trial_maker.chain_type == "within":
+        if self.trial_maker:
+            # This is a latency fast path. The scheduled growth poller is still
+            # responsible for eventual growth correctness if this callback is
+            # missed or races with other work.
             self.trial_maker.call_grow_network(network=self.network)
 
 
@@ -1982,12 +1999,135 @@ class ChainTrialMaker(NetworkTrialMaker):
         # )
         return query
 
+    @staticmethod
+    def _completed_trial_count_for_node(node_cls):
+        trial_table = Trial.__table__
+        return (
+            select(func.count(trial_table.c.id))
+            .select_from(trial_table)
+            .where(
+                trial_table.c.node_id == node_cls.id,
+                trial_table.c.complete.is_(True),
+                trial_table.c.finalized.is_(True),
+                trial_table.c.failed.is_(False),
+                trial_table.c.is_repeat_trial.is_(False),
+            )
+            .correlate_except(trial_table)
+            .scalar_subquery()
+        )
+
+    @staticmethod
+    def _has_pending_trials_for_node(node_cls):
+        trial_table = Trial.__table__
+        return (
+            select(trial_table.c.id)
+            .select_from(trial_table)
+            .where(
+                trial_table.c.node_id == node_cls.id,
+                trial_table.c.failed.is_(False),
+                trial_table.c.finalized.is_(False),
+            )
+            .correlate_except(trial_table)
+            .exists()
+        )
+
+    def local_head_ready_condition(self, node_cls=None):
+        """
+        SQL expression for the standard chain readiness condition.
+
+        This is the live replacement for the old ``ready_to_spawn`` cache:
+        the head must be structurally able to spawn, have enough finalized
+        non-repeat trials, and have no alive unfinished trials.
+        """
+        if node_cls is None:
+            node_cls = self.node_class
+        completed_count = self._completed_trial_count_for_node(node_cls)
+        return and_(
+            node_cls.can_spawn.is_(True),
+            node_cls.target_n_trials.is_not(None),
+            completed_count >= node_cls.target_n_trials,
+            ~self._has_pending_trials_for_node(node_cls),
+            node_cls.async_on_deploy_pending.is_(False),
+        )
+
+    def network_ready_to_grow_condition(self, network_cls=None, node_cls=None):
+        if network_cls is None:
+            network_cls = self.network_class
+        if node_cls is None:
+            node_cls = self.node_class
+        return and_(
+            network_cls.failed.is_(False),
+            network_cls.full.is_(False),
+            network_cls.async_post_grow_network_pending.is_(False),
+            self.local_head_ready_condition(node_cls),
+        )
+
+    def ready_to_grow_network_id_select(self):
+        return (
+            select(self.network_class.id)
+            .select_from(self.network_class)
+            .join(self.node_class, self.network_class.head_id == self.node_class.id)
+            .where(self.network_class.trial_maker_id == self.id)
+            .where(self.network_ready_to_grow_condition())
+        )
+
+    def ready_to_grow_network_query(self):
+        """
+        Return a query for networks that are ready to grow.
+
+        The scheduler uses the corresponding ID select as the authoritative
+        growth check for both within- and across-chain networks.
+        """
+        return self.network_class.query.filter(
+            self.network_class.id.in_(self.ready_to_grow_network_id_select())
+        ).populate_existing()
+
+    def get_networks_ready_to_grow(self):
+        # Lock only the network IDs first. Loading full polymorphic network
+        # objects can introduce DISTINCT clauses, which PostgreSQL does not
+        # allow with FOR UPDATE. ``skip_locked`` keeps the poller non-blocking.
+        id_rows = db.session.execute(
+            self.ready_to_grow_network_id_select().with_for_update(
+                of=self.network_class, skip_locked=True
+            )
+        ).all()
+        network_ids = [row[0] for row in id_rows]
+        if not network_ids:
+            return []
+        return (
+            self.network_class.query.filter(self.network_class.id.in_(network_ids))
+            .populate_existing()
+            .all()
+        )
+
+    def network_is_ready_to_grow(self, network):
+        head = network.head
+        return (
+            not network.failed
+            and not network.full
+            and not network.async_post_grow_network_pending
+            and head is not None
+            and head.can_spawn
+            and not head.async_on_deploy_pending
+            and head.reached_target_n_trials
+            and len(head.pending_trials) == 0
+        )
+
+    def call_grow_network(self, network, check_readiness=True):
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
+        grown = self.grow_network(network, experiment, check_readiness=check_readiness)
+        assert isinstance(grown, bool)
+        if grown:
+            self._check_run_async_post_grow_network(network)
+
     @log_time_taken
-    def grow_network(self, network, experiment):
+    def grow_network(self, network, experiment, check_readiness=True):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.
         participant = None
-        if network.ready_to_spawn:
+        if not check_readiness or self.network_is_ready_to_grow(network):
             head = network.head
 
             if is_method_overridden(head, ChainNode, "make_next_definition"):
