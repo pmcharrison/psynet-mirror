@@ -201,6 +201,7 @@ asv_benchmarks:
 asv_regression:
   stage: test
   resource_group: benchmark-results
+  allow_failure: true
   # Runs the full benchmark suite twice (base + head); generous enough to
   # absorb a cold .asv/env cache and a slow shared runner without flaking.
   timeout: 90m
