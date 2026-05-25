@@ -503,6 +503,38 @@ class GraphChainTrialMaker(ChainTrialMaker):
         outgoing_vertex_ids = [e["target"] for e in edges if e["origin"] == source]
         return outgoing_vertex_ids
 
+    def get_candidate_network_ids_after_finalized_node(self, finalized_node):
+        """
+        Return graph networks that can be newly unlocked by a finalized node.
+
+        A graph node at vertex ``u`` and degree ``d`` can only affect target
+        networks ``v`` with an edge ``u -> v`` whose current head is also at
+        degree ``d``. The full readiness predicate is applied by the caller.
+        """
+        network = finalized_node.network
+        if network is None:
+            return []
+
+        rows = db.session.execute(
+            select(self.network_class.id)
+            .select_from(GraphChainEdge)
+            .join(
+                self.network_class,
+                and_(
+                    self.network_class.trial_maker_id
+                    == GraphChainEdge.trial_maker_id,
+                    self.network_class.vertex_id == GraphChainEdge.target_vertex_id,
+                ),
+            )
+            .join(self.node_class, self.network_class.head_id == self.node_class.id)
+            .where(
+                GraphChainEdge.trial_maker_id == self.id,
+                GraphChainEdge.origin_vertex_id == network.vertex_id,
+                self.node_class.degree == finalized_node.degree,
+            )
+        ).all()
+        return [row[0] for row in rows]
+
     def grow_network(self, network, experiment, check_readiness=True):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.

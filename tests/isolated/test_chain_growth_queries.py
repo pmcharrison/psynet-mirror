@@ -264,6 +264,59 @@ def test_graph_readiness_waits_for_all_incoming_heads(db_session, participant):
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
+def test_graph_finalization_fast_path_is_scoped(
+    db_session, participant, monkeypatch
+):
+    trial_maker = make_graph_trial_maker(
+        {
+            "vertices": [1, 2, 3, 4],
+            "edges": [
+                {"origin": 1, "target": 2},
+                {"origin": 1, "target": 3},
+                {"origin": 4, "target": 3},
+            ],
+        }
+    )
+    trial_maker.create_networks_across(get_experiment())
+    networks = {
+        n.vertex_id: n
+        for n in GraphChainNetwork.query.filter_by(trial_maker_id=trial_maker.id).all()
+    }
+    trial = add_trial(
+        GrowthQueryGraphTrial, networks[1].head, participant, finalized=False
+    )
+    trial.answer = 1
+    trial.complete = True
+
+    checked_network_ids = []
+    grow_calls = []
+
+    def fake_get_networks_ready_to_grow(self, network_ids=None):
+        checked_network_ids.append(set(network_ids))
+        return []
+
+    def fake_call_grow_network(self, network, check_readiness=True):
+        grow_calls.append((network.id, check_readiness))
+
+    monkeypatch.setattr(
+        GrowthQueryGraphTrialMaker,
+        "get_networks_ready_to_grow",
+        fake_get_networks_ready_to_grow,
+    )
+    monkeypatch.setattr(
+        GrowthQueryGraphTrialMaker, "call_grow_network", fake_call_grow_network
+    )
+
+    trial.on_finalized()
+
+    assert grow_calls == [(networks[1].id, True)]
+    assert checked_network_ids == [{networks[2].id, networks[3].id}]
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
+@pytest.mark.usefixtures("in_experiment_directory")
 def test_graph_growth_processes_ready_cycle_as_one_wave(db_session, participant):
     trial_maker = make_graph_trial_maker(
         {
