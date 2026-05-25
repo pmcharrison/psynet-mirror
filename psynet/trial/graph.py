@@ -3,7 +3,7 @@
 from typing import Optional, Type
 
 from dallinger import db
-from sqlalchemy import Column, String, UniqueConstraint, and_, select
+from sqlalchemy import Column, Index, String, UniqueConstraint, and_, select
 from sqlalchemy.orm import aliased
 
 from ..data import SQLBase, SQLMixin, register_table
@@ -60,6 +60,12 @@ class GraphChainEdge(SQLBase, SQLMixin):
             "origin_vertex_id",
             "target_vertex_id",
             name="unique_graph_chain_edge",
+        ),
+        Index(
+            "ix_graph_chain_edge_trial_target_origin",
+            "trial_maker_id",
+            "target_vertex_id",
+            "origin_vertex_id",
         ),
     )
 
@@ -133,6 +139,13 @@ class GraphChainNetwork(ChainNetwork):
             .order_by(GraphChainEdge.target_vertex_id)
             .all()
         ]
+
+
+Index(
+    "ix_graph_chain_network_trial_maker_vertex",
+    GraphChainNetwork.trial_maker_id,
+    GraphChainNetwork.vertex_id,
+)
 
 
 class GraphChainTrial(ChainTrial):
@@ -332,6 +345,13 @@ class GraphChainNode(ChainNode):
             )
             .all()
         )
+
+
+Index(
+    "ix_graph_chain_node_network_degree",
+    GraphChainNode.network_id,
+    GraphChainNode.degree,
+)
 
 
 class GraphChainTrialMaker(ChainTrialMaker):
