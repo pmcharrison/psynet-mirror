@@ -1400,45 +1400,7 @@ class TrialMaker(Module):
 
     @property
     def _wrapup_core(self):
-        return join(
-            CodeBlock(self.on_complete),
-            CodeBlock(self._close_sync_group_if_finished),
-        )
-
-    def _close_sync_group_if_finished(self, participant):
-        if self.sync_group_type is None:
-            return
-
-        group = participant.active_sync_groups.get(self.sync_group_type)
-        if group is None:
-            return
-
-        group = (
-            SyncGroup.query.with_for_update(of=SyncGroup)
-            .populate_existing()
-            .get(group.id)
-        )
-        if group is None or not group.active:
-            return
-
-        active_participant_ids = [p.id for p in group.active_participants]
-        if not active_participant_ids:
-            group.close()
-            return
-
-        current_module_state_id = getattr(participant.module_state, "id", None)
-        unfinished_query = ModuleState.query.filter(
-            ModuleState.module_id == self.id,
-            ModuleState.participant_id.in_(active_participant_ids),
-            ~ModuleState.finished,
-        )
-        if current_module_state_id is not None:
-            unfinished_query = unfinished_query.filter(
-                ModuleState.id != current_module_state_id
-            )
-
-        if unfinished_query.first() is None:
-            group.close()
+        return join(CodeBlock(self.on_complete))
 
     @property
     def n_complete_participants(self):
