@@ -726,6 +726,12 @@ async function waitForResponseSubmitIncrement(
     .toBeGreaterThanOrEqual(baselineCount + increment);
 }
 
+async function waitForPageLoaded(page, timeoutMs = 120000) {
+  await page.waitForFunction(() => window.psynet?.pageLoaded === true, {
+    timeout: timeoutMs
+  });
+}
+
 async function completeInitialGateway(page, timeout = 120000) {
   await expect(page.locator("body")).toContainText(
     "To proceed, click the button below.",
@@ -735,6 +741,14 @@ async function completeInitialGateway(page, timeout = 120000) {
   await expect(gatewayButton).toBeVisible({ timeout });
   await expect(gatewayButton).toBeEnabled({ timeout });
   await gatewayButton.click();
+}
+
+async function clickConsentButton(page, timeout = 120000) {
+  const consentButton = page.locator("#consent");
+  await expect(consentButton).toBeVisible({ timeout });
+  await expect(consentButton).toBeEnabled({ timeout });
+  await waitForPageLoaded(page, timeout);
+  await consentButton.click();
 }
 
 async function captureTrialEventBaseline(page) {
@@ -859,6 +873,7 @@ module.exports = {
   advanceUntilPromptContains,
   assertNoBackendError,
   beginExperiment,
+  clickConsentButton,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
