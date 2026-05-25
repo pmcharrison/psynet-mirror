@@ -264,9 +264,7 @@ def test_graph_readiness_waits_for_all_incoming_heads(db_session, participant):
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
 @pytest.mark.usefixtures("in_experiment_directory")
-def test_graph_finalization_fast_path_is_scoped(
-    db_session, participant, monkeypatch
-):
+def test_graph_finalization_fast_path_is_scoped(db_session, participant, monkeypatch):
     trial_maker = make_graph_trial_maker(
         {
             "vertices": [1, 2, 3, 4],
@@ -277,6 +275,7 @@ def test_graph_finalization_fast_path_is_scoped(
             ],
         }
     )
+    get_experiment().timeline.trial_makers[trial_maker.id] = trial_maker
     trial_maker.create_networks_across(get_experiment())
     networks = {
         n.vertex_id: n

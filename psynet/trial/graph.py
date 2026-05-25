@@ -167,11 +167,16 @@ class GraphChainTrial(ChainTrial):
     def on_finalized(self):
         super().on_finalized()
         # Graph chains have cross-network dependencies, so a finalized trial can
-        # make several graph vertices growable. Run the same live readiness query
-        # immediately as a latency fast path; the scheduled poller remains the
-        # correctness backstop.
+        # make outgoing graph vertices growable. Keep this request-path fast by
+        # checking only targets that depend on this finalized node's vertex and
+        # degree; the scheduled poller remains the correctness backstop.
+        if not self.trial_maker:
+            return
         db.session.flush()
-        for network in self.trial_maker.get_networks_ready_to_grow():
+        network_ids = self.trial_maker.get_candidate_network_ids_after_finalized_node(
+            self.node
+        )
+        for network in self.trial_maker.get_networks_ready_to_grow(network_ids):
             self.trial_maker.call_grow_network(network, check_readiness=False)
 
 
@@ -521,8 +526,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             .join(
                 self.network_class,
                 and_(
-                    self.network_class.trial_maker_id
-                    == GraphChainEdge.trial_maker_id,
+                    self.network_class.trial_maker_id == GraphChainEdge.trial_maker_id,
                     self.network_class.vertex_id == GraphChainEdge.target_vertex_id,
                 ),
             )

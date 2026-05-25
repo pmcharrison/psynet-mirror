@@ -2062,7 +2062,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             self.local_head_ready_condition(node_cls),
         )
 
-    def ready_to_grow_network_id_select(self, network_ids: Optional[Iterable[int]] = None):
+    def ready_to_grow_network_id_select(
+        self, network_ids: Optional[Iterable[int]] = None
+    ):
         query = (
             select(self.network_class.id)
             .select_from(self.network_class)
