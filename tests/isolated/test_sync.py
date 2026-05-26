@@ -9,6 +9,7 @@ from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallback
+from psynet.sqlalchemy_profiling import sqlalchemy_profile
 from psynet.sync import Barrier, BarrierRecord, GroupBarrier, SimpleGrouper
 
 
@@ -40,6 +41,12 @@ class ExplodingBarrier(Barrier):
 class RecordingBarrier(Barrier):
     def process_potential_releases(self):
         processed_barriers.append(self.id)
+
+
+class AutoReleaseBarrier(Barrier):
+    def choose_who_to_release(self, waiting_participants):
+        processed_barriers.append(self.id)
+        return waiting_participants
 
 
 class DummyModel(SQLBase):
@@ -144,6 +151,51 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     exp.check_barriers()
 
     assert "b_good" in processed_barriers
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_barriers_query_count_ignores_inactive_registry_size(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+
+    def profile_check_barriers(prefix, inactive_barrier_count):
+        processed_barriers.clear()
+
+        for i in range(inactive_barrier_count):
+            barrier = AutoReleaseBarrier(id_=f"{prefix}_inactive_{i}")
+            BarrierRecord.ensure_exists(
+                barrier.id,
+                barrier.__class__,
+                barrier=barrier,
+            )
+
+        expected_barrier_ids = [f"{prefix}_waiting_{i}" for i in range(2)]
+        for barrier_id in expected_barrier_ids:
+            barrier = AutoReleaseBarrier(id_=barrier_id)
+            barrier.receive_participant(new_participant(exp))
+
+        db.session.commit()
+        db.session.expire_all()
+
+        with sqlalchemy_profile(
+            db_session.get_bind(),
+            capture_callsite=False,
+        ) as profiler:
+            exp.check_barriers()
+
+        assert sorted(processed_barriers) == expected_barrier_ids
+        return profiler.total_count
+
+    baseline_query_count = profile_check_barriers("baseline", inactive_barrier_count=0)
+    inactive_query_count = profile_check_barriers(
+        "inactive",
+        inactive_barrier_count=50,
+    )
+
+    assert inactive_query_count <= baseline_query_count + 2
 
 
 def test_group_barrier_rejects_bound_method():
