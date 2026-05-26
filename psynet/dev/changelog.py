@@ -1,7 +1,8 @@
 """Build and validate PsyNet changelog fragments.
 
-This module is intentionally source-checkout-only. It powers the developer CLI
-(`psynet dev changelog`).
+This module powers the source-checkout-only `psynet dev changelog` command
+group. Paths are resolved relative to the current working directory, so
+contributors must run the commands from the PsyNet repository root.
 
 Workflow summary:
 - Contributors add one Markdown fragment in `changelog.d/` per user-facing
@@ -21,9 +22,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-FRAGMENTS_DIR = ROOT / "changelog.d"
-CHANGELOG_PATH = ROOT / "CHANGELOG.md"
+FRAGMENTS_DIR = Path("changelog.d")
+CHANGELOG_PATH = Path("CHANGELOG.md")
 MAX_SLUG_LENGTH = 60
 
 SECTION_ORDER = [
@@ -438,4 +438,3 @@ def insert_release_section(changelog: str, release_section: str) -> str:
     suffix = changelog[insertion_point:].lstrip("\n")
     section = release_section.strip()
     return f"{prefix}\n\n{section}\n\n{suffix}"
-

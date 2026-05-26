@@ -1,11 +1,9 @@
-import importlib.util
 import subprocess
-import sys
-from pathlib import Path
 
 import pytest
 
-SCRIPT_PATH = Path(__file__).parents[2] / "dev" / "changelog.py"
+from psynet.dev import changelog as changelog_module
+
 BASE_CHANGELOG = """# CHANGELOG
 
 ## [13.1.1](url) Release - 2026-02-18
@@ -14,28 +12,18 @@ BASE_CHANGELOG = """# CHANGELOG
 
 @pytest.fixture
 def changelog(tmp_path, monkeypatch):
-    spec = importlib.util.spec_from_file_location("changelog_test", SCRIPT_PATH)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-
     fragments_dir = tmp_path / "changelog.d"
     fragments_dir.mkdir()
     changelog_path = tmp_path / "CHANGELOG.md"
     changelog_path.write_text(BASE_CHANGELOG, encoding="utf-8")
 
-    monkeypatch.setattr(module, "FRAGMENTS_DIR", fragments_dir)
-    monkeypatch.setattr(module, "CHANGELOG_PATH", changelog_path)
-    return module
+    monkeypatch.setattr(changelog_module, "FRAGMENTS_DIR", fragments_dir)
+    monkeypatch.setattr(changelog_module, "CHANGELOG_PATH", changelog_path)
+    return changelog_module
 
 
 def read_changelog(changelog):
     return changelog.CHANGELOG_PATH.read_text(encoding="utf-8")
-
-
-def test_root_points_to_repository_root(changelog):
-    assert changelog.ROOT == Path(__file__).parents[2]
 
 
 def test_build_command_previews_fragments_without_consuming_them(changelog, capsys):

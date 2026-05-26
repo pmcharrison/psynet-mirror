@@ -1,26 +1,36 @@
-"""Source-checkout-only developer commands for PsyNet."""
+"""Click commands for `psynet dev`.
 
-import importlib.util
-import sys
-from pathlib import Path
+These commands are part of the installed package but only function from a
+PsyNet source checkout, where `CHANGELOG.md` and `changelog.d/` are present.
+"""
 
 import click
 
+from psynet.dev import changelog as changelog_module
 
-def _load_changelog_module():
-    script_path = Path(__file__).resolve().parent / "changelog.py"
-    if not script_path.exists():
-        raise click.ClickException(
-            f"Could not find changelog builder script at {script_path}. "
-            "Run this command from a PsyNet source checkout."
+CHANGELOG_CATEGORIES = (
+    "breaking",
+    "added",
+    "changed",
+    "deprecated",
+    "removed",
+    "fixed",
+    "updated",
+    "documentation",
+)
+
+
+def assert_changelog_available() -> None:
+    """Fail fast when not running from a PsyNet source checkout."""
+    if (
+        not changelog_module.CHANGELOG_PATH.exists()
+        or not changelog_module.FRAGMENTS_DIR.exists()
+    ):
+        raise click.UsageError(
+            "Run from a PsyNet source checkout: "
+            f"{changelog_module.CHANGELOG_PATH} and {changelog_module.FRAGMENTS_DIR} "
+            "must exist in the current directory."
         )
-
-    spec = importlib.util.spec_from_file_location("psynet_changelog", script_path)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
 
 
 @click.group("dev")
@@ -37,14 +47,12 @@ def changelog():
 @click.pass_context
 def changelog_preview(ctx):
     """Preview rendered changelog fragments without changing files."""
-    module = _load_changelog_module()
+    assert_changelog_available()
     try:
-        exit_code = module.build_command()
+        ctx.exit(changelog_module.build_command())
     except ValueError as exc:
         click.echo(str(exc), err=True)
         ctx.exit(1)
-
-    ctx.exit(exit_code)
 
 
 @changelog.command("check-mr", hidden=True)
@@ -53,26 +61,12 @@ def changelog_preview(ctx):
 @click.pass_context
 def changelog_check_mr(ctx, base, head):
     """Validate changelog requirements for a merge-request diff."""
-    module = _load_changelog_module()
+    assert_changelog_available()
     try:
-        exit_code = module.check_mr_command(base, head)
+        ctx.exit(changelog_module.check_mr_command(base, head))
     except ValueError as exc:
         click.echo(str(exc), err=True)
         ctx.exit(1)
-
-    ctx.exit(exit_code)
-
-
-CHANGELOG_CATEGORIES = (
-    "breaking",
-    "added",
-    "changed",
-    "deprecated",
-    "removed",
-    "fixed",
-    "updated",
-    "documentation",
-)
 
 
 @changelog.command("new")
@@ -89,14 +83,12 @@ def changelog_new(ctx, category, description):
 
         psynet dev changelog new fixed "Fixed login timeout"
     """
-    module = _load_changelog_module()
+    assert_changelog_available()
     try:
-        exit_code = module.new_command(category, description)
+        ctx.exit(changelog_module.new_command(category, description))
     except ValueError as exc:
         click.echo(str(exc), err=True)
         ctx.exit(1)
-
-    ctx.exit(exit_code)
 
 
 @changelog.command("release")
@@ -112,14 +104,9 @@ def changelog_release(ctx, version, date):
 
         psynet dev changelog release 13.2.0 2026-05-18
     """
-    module = _load_changelog_module()
+    assert_changelog_available()
     try:
-        if not module.CHANGELOG_PATH.exists():
-            click.echo(f"Missing {module.CHANGELOG_PATH}", err=True)
-            ctx.exit(1)
-        exit_code = module.release_command(version, date)
+        ctx.exit(changelog_module.release_command(version, date))
     except ValueError as exc:
         click.echo(str(exc), err=True)
         ctx.exit(1)
-
-    ctx.exit(exit_code)

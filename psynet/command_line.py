@@ -1,7 +1,6 @@
 import datetime
 import functools
 import importlib
-import importlib.util
 import json
 import os
 import re
@@ -42,6 +41,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.dev.command_line import dev as _dev_command_group
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
@@ -134,27 +134,7 @@ def psynet():
     pass
 
 
-def _register_dev_commands_from_source_checkout():
-    """Register repo-only developer commands when running from a source checkout."""
-    source_checkout_root = Path(__file__).resolve().parents[1]
-    dev_cli_path = source_checkout_root / "dev" / "command_line.py"
-    pyproject_path = source_checkout_root / "pyproject.toml"
-    if not dev_cli_path.exists() or not pyproject_path.exists():
-        return
-
-    spec = importlib.util.spec_from_file_location(
-        "psynet_dev_command_line", dev_cli_path
-    )
-    if spec is None or spec.loader is None:
-        return
-
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    psynet.add_command(module.dev)
-
-
-_register_dev_commands_from_source_checkout()
+psynet.add_command(_dev_command_group)
 
 
 def reset_console():
