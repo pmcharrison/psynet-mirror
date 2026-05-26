@@ -178,6 +178,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     # from the Dallinger Participant class.
     __extra_vars__ = {}
 
+    _in_advance_page = False
+
     elt_id = Column(PythonList)
     elt_id_max = Column(PythonList)
 
@@ -198,6 +200,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     page_count = Column(Integer)
     aborted = Column(Boolean)
     complete = Column(Boolean)
+    pending_redirect = Column(String)
     answer = Column(PythonObject)
     answer_accumulators = Column(PythonList)
     sequences = Column(PythonList)
@@ -535,8 +538,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.progress = 0.0
         self.time_credit_fixes = []
         self.progress_fixes = []
-        self.elt_id = [-1]
-        self.elt_id_max = [len(experiment.timeline) - 1]
+        self.elt_id = ["main", -1]
+        self.elt_id_max = []
         self.answer_accumulators = []
         self.for_loops = {}
         self.failure_tags = []
@@ -548,6 +551,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.client_ip_address = None
         self.branch_log = []
         self.total_wait_page_time = 0.0
+        self.pending_redirect = None
 
         db.session.add(self)
 
@@ -731,6 +735,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             logger.info("Participant %i already failed, not failing again.", self.id)
             return
 
+        if self.complete:
+            logger.info("Participant %i already completed, not failing.", self.id)
+            return
+
         if reason is not None:
             self.append_failure_tags(reason)
         reason = ", ".join(self.failure_tags)
@@ -764,6 +772,25 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
             if isinstance(group, SimpleSyncGroup):
                 group.check_numbers()
+
+        self._redirect_to_unsuccessful_end(exp)
+
+    def _redirect_to_unsuccessful_end(self, experiment):
+        if experiment.timeline.participant_is_in_end_logic(self):
+            return
+
+        if self._in_advance_page:
+            logger.info(
+                "Redirecting participant %i to unsuccessful_end branch.",
+                self.id,
+            )
+            experiment.timeline.redirect_to_branch(experiment, self, "unsuccessful_end")
+        else:
+            logger.info(
+                "Queuing redirect for participant %i to unsuccessful_end branch.",
+                self.id,
+            )
+            self.pending_redirect = "unsuccessful_end"
 
 
 def get_participant(participant_id: int, for_update: bool = False) -> Participant:

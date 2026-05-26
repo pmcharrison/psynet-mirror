@@ -15,6 +15,8 @@
 - Fixed `AsyncCodeBlock` raising `RuntimeError: Participant already has an async code block process pending, this shouldn't happen.` when a participant re-entered an `AsyncCodeBlock` while a previously finished or failed process was still attached. `AsyncCodeBlock.initiate` now logs a warning and clears the stale reference instead of crashing, so participants no longer get stuck (e.g. inside the Prolific failed-participant `wait_for_assignment_return` loop) (author: [Frank Höger])
 
 ### Added
+
+- Refactored timeline to use named branches for end logic. `Timeline.elts` is now a dict of named branches (`main`, `successful_end`, `unsuccessful_end`, `rejected_consent`). `elt_id` now starts with the branch name (e.g. `["main", 3]`). `EndPage` classes are now redirect elements instead of `PageMaker` wrappers. `participant.fail()` automatically redirects to the `unsuccessful_end` branch unless the participant is already in an end logic branch or already completed. (author: [Peter Harrison])
 - Added an ASV performance benchmark suite (demo experiment performance tests
   and serialize/deserialize micro-benchmarks). A CI job publishes rendered
   graphs to GitLab Pages alongside the docs, and an `asv_regression` job fails a

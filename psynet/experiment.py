@@ -1995,7 +1995,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     #     db.session.commit()
 
     def process_timeline(self):
-        for elt in self.timeline.elts:
+        for elt in self.timeline.all_elts:
             if isinstance(elt, DatabaseCheck):
                 self.register_database_check(elt)
             if isinstance(elt, ParticipantFailRoutine):
@@ -4074,7 +4074,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     @log_time_taken
     def get_current_page(cls, experiment, participant):
-        if participant.elt_id == [-1]:
+        if participant.elt_id[1:] == [-1]:
             experiment.timeline.advance_page(experiment, participant)
 
         page = experiment.timeline.get_current_elt(experiment, participant)

@@ -12,6 +12,7 @@ from .asset import CachedAsset, ExternalAsset
 from .modular_page import AudioPrompt, ModularPage
 from .timeline import (
     CodeBlock,
+    Elt,
     Event,
     Module,
     Page,
@@ -295,32 +296,48 @@ def wait_while(
     )
 
 
-# At some point we might make deprecation warnings for these classes
-class SuccessfulEndPage(PageMaker):
-    def __init__(self):
-        super().__init__(
-            lambda experiment: experiment.SuccessfulEndLogic(), time_estimate=0.0
-        )
+class EndPageRedirect(Elt):
+    """Base class for end pages that redirect to a named timeline branch.
 
+    Parameters
+    ----------
+    failure_tags
+        Optional failure tags to append before redirecting.
+    """
 
-class UnsuccessfulEndPage(PageMaker):
+    time_estimate = 0.0
+    branch_name = None
+
     def __init__(self, failure_tags: Optional[List] = None, **kwargs):
-        super().__init__(
-            lambda experiment: experiment.UnsuccessfulEndLogic(
-                failure_tags=failure_tags, **kwargs
-            ),
-            time_estimate=0.0,
+        super().__init__()
+        if failure_tags is None:
+            failure_tags = []
+        self.failure_tags = failure_tags
+
+    def consume(self, experiment, participant):
+        if self.failure_tags:
+            participant.append_failure_tags(*self.failure_tags)
+        experiment.timeline.redirect_to_branch(
+            experiment, participant, self.branch_name
         )
 
 
-class RejectedConsentPage(PageMaker):
-    def __init__(self, failure_tags: Optional[List] = None, **kwargs):
-        super().__init__(
-            lambda experiment: experiment.RejectedConsentLogic(
-                failure_tags=failure_tags, **kwargs
-            ),
-            time_estimate=0.0,
-        )
+class SuccessfulEndPage(EndPageRedirect):
+    """Redirects the participant to the successful end branch."""
+
+    branch_name = "successful_end"
+
+
+class UnsuccessfulEndPage(EndPageRedirect):
+    """Redirects the participant to the unsuccessful end branch."""
+
+    branch_name = "unsuccessful_end"
+
+
+class RejectedConsentPage(EndPageRedirect):
+    """Redirects the participant to the rejected consent branch."""
+
+    branch_name = "rejected_consent"
 
 
 class DebugResponsePage(PageMaker):
