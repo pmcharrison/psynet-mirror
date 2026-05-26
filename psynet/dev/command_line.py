@@ -44,36 +44,31 @@ def changelog():
 
 
 @changelog.command("preview")
-@click.pass_context
-def changelog_preview(ctx):
+def changelog_preview():
     """Preview rendered changelog fragments without changing files."""
     assert_changelog_available()
     try:
-        ctx.exit(changelog_module.build_command())
+        changelog_module.build_command()
     except ValueError as exc:
-        click.echo(str(exc), err=True)
-        ctx.exit(1)
+        raise click.ClickException(str(exc)) from exc
 
 
 @changelog.command("check-mr", hidden=True)
 @click.argument("base", metavar="BASE")
 @click.argument("head", metavar="HEAD")
-@click.pass_context
-def changelog_check_mr(ctx, base, head):
+def changelog_check_mr(base, head):
     """Validate changelog requirements for a merge-request diff."""
     assert_changelog_available()
     try:
-        ctx.exit(changelog_module.check_mr_command(base, head))
+        changelog_module.check_mr_command(base, head)
     except ValueError as exc:
-        click.echo(str(exc), err=True)
-        ctx.exit(1)
+        raise click.ClickException(str(exc)) from exc
 
 
 @changelog.command("new")
 @click.argument("category", type=click.Choice(CHANGELOG_CATEGORIES), metavar="CATEGORY")
 @click.argument("description")
-@click.pass_context
-def changelog_new(ctx, category, description):
+def changelog_new(category, description):
     """Create a new date-prefixed changelog fragment.
 
     CATEGORY must be one of: breaking, added, changed, deprecated, removed,
@@ -85,17 +80,15 @@ def changelog_new(ctx, category, description):
     """
     assert_changelog_available()
     try:
-        ctx.exit(changelog_module.new_command(category, description))
+        changelog_module.new_command(category, description)
     except ValueError as exc:
-        click.echo(str(exc), err=True)
-        ctx.exit(1)
+        raise click.ClickException(str(exc)) from exc
 
 
 @changelog.command("release")
 @click.argument("version", metavar="VERSION")
 @click.argument("date", metavar="DATE")
-@click.pass_context
-def changelog_release(ctx, version, date):
+def changelog_release(version, date):
     """Create a release section from current fragments.
 
     VERSION is the PsyNet release version. DATE should use YYYY-MM-DD format.
@@ -106,7 +99,6 @@ def changelog_release(ctx, version, date):
     """
     assert_changelog_available()
     try:
-        ctx.exit(changelog_module.release_command(version, date))
+        changelog_module.release_command(version, date)
     except ValueError as exc:
-        click.echo(str(exc), err=True)
-        ctx.exit(1)
+        raise click.ClickException(str(exc)) from exc
