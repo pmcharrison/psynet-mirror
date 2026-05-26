@@ -271,7 +271,8 @@ def test_check_barriers_benchmark_reports_metrics(in_experiment_directory, db_se
     )
     print(benchmark_summary)
 
-    assert sorted(processed_barriers) == waiting_barrier_ids
+    assert len(processed_barriers) == waiting_barrier_count
+    assert set(processed_barriers) == set(waiting_barrier_ids)
 
 
 def test_group_barrier_rejects_bound_method():
