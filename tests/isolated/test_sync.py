@@ -1,3 +1,5 @@
+import os
+import time
 import uuid
 
 import pytest
@@ -11,6 +13,8 @@ from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallback
 from psynet.sqlalchemy_profiling import sqlalchemy_profile
 from psynet.sync import Barrier, BarrierRecord, GroupBarrier, SimpleGrouper
+
+RUN_SYNC_BENCHMARK = os.environ.get("PSYNET_RUN_SYNC_BENCHMARK") == "1"
 
 
 def get_random_id():
@@ -197,6 +201,77 @@ def test_check_barriers_query_count_ignores_inactive_registry_size(
     )
 
     assert inactive_query_count <= baseline_query_count + 2
+
+
+@pytest.mark.skipif(
+    not RUN_SYNC_BENCHMARK,
+    reason="Set PSYNET_RUN_SYNC_BENCHMARK=1 to run the sync barrier benchmark.",
+)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_check_barriers_benchmark_reports_metrics(in_experiment_directory, db_session):
+    """Report barrier-processing metrics without enforcing wall-clock limits."""
+    exp = get_experiment()
+    processed_barriers.clear()
+
+    prefix = f"benchmark_{uuid.uuid4().hex}"
+    barrier_count = 100
+    participants_per_barrier = 10
+    waiting_barrier_count = 40
+    released_barrier_count = 30
+    waiting_barrier_ids = []
+
+    for barrier_index in range(barrier_count):
+        barrier = AutoReleaseBarrier(id_=f"{prefix}_{barrier_index}")
+        is_waiting_barrier = barrier_index < waiting_barrier_count
+        is_released_barrier = (
+            waiting_barrier_count
+            <= barrier_index
+            < waiting_barrier_count + released_barrier_count
+        )
+
+        for _ in range(participants_per_barrier):
+            participant = new_participant(exp)
+            barrier.receive_participant(participant)
+            db.session.flush()
+            if is_released_barrier:
+                barrier.release(participant)
+            elif not is_waiting_barrier:
+                participant.failed = True
+
+        if is_waiting_barrier:
+            waiting_barrier_ids.append(barrier.id)
+
+    db.session.commit()
+    db.session.expire_all()
+
+    start = time.perf_counter()
+    with sqlalchemy_profile(
+        db_session.get_bind(),
+        capture_callsite=False,
+    ) as profiler:
+        exp.check_barriers()
+    elapsed_seconds = time.perf_counter() - start
+
+    processed_barriers_per_second = len(processed_barriers) / elapsed_seconds
+    max_query_duration_ms = max(
+        [stat.max_ms for stat in profiler.get_stats()] or [0.0]
+    )
+    benchmark_summary = (
+        "sync barrier benchmark: "
+        f"barriers={barrier_count}, "
+        f"participant_links={barrier_count * participants_per_barrier}, "
+        f"check_barriers_calls=1, "
+        f"processed_barriers={len(processed_barriers)}, "
+        f"elapsed_seconds={elapsed_seconds:.3f}, "
+        f"queries={profiler.total_count}, "
+        f"max_query_duration_ms={max_query_duration_ms:.3f}, "
+        f"processed_barriers_per_second={processed_barriers_per_second:.1f}"
+    )
+    print(benchmark_summary)
+
+    assert sorted(processed_barriers) == waiting_barrier_ids
 
 
 def test_group_barrier_rejects_bound_method():
