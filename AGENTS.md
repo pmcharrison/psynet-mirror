@@ -141,6 +141,8 @@ code to support database migrations or backward-compatible schema changes.
 
 Prefer including function docstrings. Short docstrings are fine; often a brief
 descriptive summary line is sufficient.
+For non-trivial test functions, include a short docstring explaining the test's
+logic or the regression it protects against.
 
 ## Finishing up changes
 

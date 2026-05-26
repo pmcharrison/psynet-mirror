@@ -159,6 +159,7 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
 def test_check_barriers_query_count_ignores_inactive_registry_size(
     in_experiment_directory, db_session
 ):
+    """Ensure barrier checks scale with waiting barriers, not registry size."""
     exp = get_experiment()
 
     def profile_check_barriers(prefix, inactive_barrier_count):
