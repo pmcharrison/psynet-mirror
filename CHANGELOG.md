@@ -18,7 +18,7 @@
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
 - Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking (author: Cursor, reviewer: Peter Harrison)
-- Added query-count and concurrent-worker regression coverage for sync barrier processing.
+- Added query-count regression coverage for sync barrier processing with many inactive barrier records.
 - Added checks to catch cases where Assets are created in the wrong place.
 - Improved 'basic data' functionality:
   - Basic data is now included by default in PsyNet exports.

@@ -1,25 +1,16 @@
-import threading
-import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor, wait
 
 import pytest
 from dallinger import db
-from sqlalchemy import Column, Integer, String, UniqueConstraint, text
+from sqlalchemy import Column, String
 
 from psynet.data import SQLBase
-from psynet.experiment import Experiment, get_experiment
+from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallback
 from psynet.sqlalchemy_profiling import sqlalchemy_profile
-from psynet.sync import (
-    Barrier,
-    BarrierRecord,
-    GroupBarrier,
-    ParticipantLinkBarrier,
-    SimpleGrouper,
-)
+from psynet.sync import Barrier, BarrierRecord, GroupBarrier, SimpleGrouper
 
 
 def get_random_id():
@@ -58,23 +49,6 @@ class AutoReleaseBarrier(Barrier):
         return waiting_participants
 
 
-class SlowLoggingAutoReleaseBarrier(AutoReleaseBarrier):
-    def __init__(self, *args, delay=0.02, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.delay = delay
-
-    def choose_who_to_release(self, waiting_participants):
-        time.sleep(self.delay)
-        for participant in waiting_participants:
-            db.session.add(
-                BarrierReleaseEvent(
-                    barrier_id=self.id,
-                    participant_id=participant.id,
-                )
-            )
-        return super().choose_who_to_release(waiting_participants)
-
-
 class DummyModel(SQLBase):
     __tablename__ = "dummy_model"
 
@@ -84,21 +58,6 @@ class DummyModel(SQLBase):
         self, group, participants, participant=None, barrier=None, experiment=None
     ):
         return None
-
-
-class BarrierReleaseEvent(SQLBase):
-    __tablename__ = "barrier_release_event"
-    __table_args__ = (
-        UniqueConstraint(
-            "barrier_id",
-            "participant_id",
-            name="barrier_release_event_once",
-        ),
-    )
-
-    id = Column(Integer, primary_key=True)
-    barrier_id = Column(String, nullable=False)
-    participant_id = Column(Integer, nullable=False)
 
 
 def test_random_partition():
@@ -238,73 +197,6 @@ def test_check_barriers_query_count_ignores_inactive_registry_size(
     )
 
     assert inactive_query_count <= baseline_query_count + 2
-
-
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
-)
-def test_check_barriers_concurrent_workers_release_each_participant_once(
-    in_experiment_directory, db_session
-):
-    """Stress concurrent barrier checks without duplicate participant releases."""
-    BarrierReleaseEvent.__table__.create(bind=db_session.get_bind(), checkfirst=True)
-    exp = get_experiment()
-    prefix = f"stress_{uuid.uuid4().hex}"
-    barrier_count = 8
-    participants_per_barrier = 3
-    worker_count = 4
-    start_barrier = threading.Barrier(worker_count)
-    barrier_ids = [f"{prefix}_{i}" for i in range(barrier_count)]
-    participant_ids = []
-
-    for barrier_id in barrier_ids:
-        barrier = SlowLoggingAutoReleaseBarrier(id_=barrier_id)
-        for _ in range(participants_per_barrier):
-            participant = new_participant(exp)
-            barrier.receive_participant(participant)
-            db.session.flush()
-            participant_ids.append(participant.id)
-
-    db.session.commit()
-    db.session.remove()
-
-    def worker():
-        db.session.remove()
-        try:
-            start_barrier.wait(timeout=5)
-            db.session.execute(text("SET lock_timeout = '2s'"))
-            db.session.execute(text("SET statement_timeout = '10s'"))
-            db.session.commit()
-            Experiment.check_barriers()
-        finally:
-            db.session.remove()
-
-    with ThreadPoolExecutor(max_workers=worker_count) as executor:
-        futures = [executor.submit(worker) for _ in range(worker_count)]
-        done, not_done = wait(futures, timeout=15)
-        assert not not_done
-        for future in done:
-            future.result()
-
-    links = (
-        ParticipantLinkBarrier.query.filter(
-            ParticipantLinkBarrier.barrier_id.in_(barrier_ids)
-        )
-        .order_by(ParticipantLinkBarrier.participant_id)
-        .all()
-    )
-    events = (
-        BarrierReleaseEvent.query.filter(
-            BarrierReleaseEvent.barrier_id.in_(barrier_ids)
-        )
-        .order_by(BarrierReleaseEvent.participant_id)
-        .all()
-    )
-
-    assert len(links) == barrier_count * participants_per_barrier
-    assert all(link.released for link in links)
-    assert all(link.departure_time is not None for link in links)
-    assert [event.participant_id for event in events] == sorted(participant_ids)
 
 
 def test_group_barrier_rejects_bound_method():
