@@ -154,6 +154,11 @@ class Barrier(EltCollection):
             self.id, for_update=for_update
         )
 
+    def get_waiting_participant_links(self, for_update: bool = False):
+        return self.get_waiting_participant_links_from_barrier_id(
+            self.id, for_update=for_update
+        )
+
     @classmethod
     def get_waiting_participants_from_barrier_id(
         cls, barrier_id: str, for_update: bool = False
@@ -177,6 +182,16 @@ class Barrier(EltCollection):
         A list of waiting participants. Note that this only includes currently active participants
         (not participants who failed and left the experiment).
         """
+        links = cls.get_waiting_participant_links_from_barrier_id(
+            barrier_id, for_update=for_update
+        )
+        return [link.participant for link in links]
+
+    @classmethod
+    def get_waiting_participant_links_from_barrier_id(
+        cls, barrier_id: str, for_update: bool = False
+    ) -> List["ParticipantLinkBarrier"]:
+        """Get unreleased participant-barrier links for a barrier."""
         query = (
             ParticipantLinkBarrier.query.join(Participant)
             .filter(
@@ -195,9 +210,7 @@ class Barrier(EltCollection):
             ).populate_existing()
 
         links = query.all()
-        participants = [link.participant for link in links]
-
-        return participants
+        return links
 
     def release(self, participant: Participant):
         link = participant.active_barriers.get(self.id, None)
@@ -213,7 +226,9 @@ class Barrier(EltCollection):
         return not barrier_is_active
 
     def process_potential_releases(self):
-        waiting_participants = self.get_waiting_participants(for_update=True)
+        waiting_links = self.get_waiting_participant_links(for_update=True)
+        waiting_links.sort(key=lambda link: link.participant.id)
+        waiting_participants = [link.participant for link in waiting_links]
         waiting_participants.sort(key=lambda p: p.id)
 
         logger.info(
@@ -234,8 +249,17 @@ class Barrier(EltCollection):
                 ", ".join([str(p.id) for p in participants_to_release]),
             )
 
+            waiting_links_by_participant_id = {
+                link.participant.id: link for link in waiting_links
+            }
             for participant in participants_to_release:
-                self.release(participant)
+                link = waiting_links_by_participant_id.get(participant.id)
+                if link is None:
+                    raise RuntimeError(
+                        "Could not find an appropriate barrier link to release the participant from "
+                        f"(participant_id = {participant.id}, barrier_id = '{self.id}')."
+                    )
+                link.release()
 
 
 class GroupBarrier(Barrier):
