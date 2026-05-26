@@ -255,9 +255,7 @@ def test_check_barriers_benchmark_reports_metrics(in_experiment_directory, db_se
     elapsed_seconds = time.perf_counter() - start
 
     processed_barriers_per_second = len(processed_barriers) / elapsed_seconds
-    max_query_duration_ms = max(
-        [stat.max_ms for stat in profiler.get_stats()] or [0.0]
-    )
+    max_query_duration_ms = max([stat.max_ms for stat in profiler.get_stats()] or [0.0])
     benchmark_summary = (
         "sync barrier benchmark: "
         f"barriers={barrier_count}, "
