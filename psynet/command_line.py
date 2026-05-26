@@ -134,7 +134,7 @@ def psynet():
     pass
 
 
-def _register_source_checkout_dev_commands():
+def _register_dev_commands_from_source_checkout():
     """Register repo-only developer commands when running from a source checkout."""
     source_checkout_root = Path(__file__).resolve().parents[1]
     dev_cli_path = source_checkout_root / "dev" / "command_line.py"
@@ -154,7 +154,7 @@ def _register_source_checkout_dev_commands():
     psynet.add_command(module.dev)
 
 
-_register_source_checkout_dev_commands()
+_register_dev_commands_from_source_checkout()
 
 
 def reset_console():
