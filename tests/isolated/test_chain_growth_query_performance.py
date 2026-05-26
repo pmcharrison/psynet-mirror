@@ -198,7 +198,7 @@ def test_growth_readiness_query_performance(db_session):
             "trial_maker": make_graph_trial_maker("graph_sparse"),
             "setup": lambda tm: create_graph_scenario(tm, participant),
             "expected_ready": N_NETWORKS,
-            "threshold_ms": 3000,
+            "threshold_ms": 1000,
             "n_edges": N_NETWORKS,
         },
     ]
