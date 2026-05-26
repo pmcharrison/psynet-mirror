@@ -457,6 +457,24 @@ Note that the module's assets can then be accessed by the :class:`~psynet.timeli
     so well to large stimulus sets.
 
 
+Ending a participant's experiment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:class:`~psynet.page.SuccessfulEndPage` and
+:class:`~psynet.page.UnsuccessfulEndPage`
+are special page types that end a participant's experiment.
+They redirect the participant to a dedicated end-of-experiment branch
+(see `Timeline branches`_ below).
+The difference between them is twofold:
+:class:`~psynet.page.SuccessfulEndPage` marks the participant
+with ``complete=True`` and ``failed=False``,
+whereas :class:`~psynet.page.UnsuccessfulEndPage` marks the participant
+with ``complete=False`` and ``failed=True``.
+In both cases the participant will be paid the amount that they have accumulated so far;
+however, :class:`~psynet.page.UnsuccessfulEndPage` is typically used to terminate an experiment early,
+when the participant has yet to accumulate much payment.
+
+
 Timeline branches
 ~~~~~~~~~~~~~~~~~
 
