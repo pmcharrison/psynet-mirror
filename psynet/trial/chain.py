@@ -1,5 +1,5 @@
 import random
-from typing import List, Literal, Optional, Type, Union
+from typing import Iterable, List, Literal, Optional, Type, Union
 
 from dallinger import db
 from dallinger.models import Vector
@@ -2085,16 +2085,21 @@ class ChainTrialMaker(NetworkTrialMaker):
             self.local_head_ready_condition(node_cls),
         )
 
-    def ready_to_grow_network_id_select(self):
-        return (
+    def ready_to_grow_network_id_select(
+        self, network_ids: Optional[Iterable[int]] = None
+    ):
+        query = (
             select(self.network_class.id)
             .select_from(self.network_class)
             .join(self.node_class, self.network_class.head_id == self.node_class.id)
             .where(self.network_class.trial_maker_id == self.id)
             .where(self.network_ready_to_grow_condition())
         )
+        if network_ids is not None:
+            query = query.where(self.network_class.id.in_(list(network_ids)))
+        return query
 
-    def ready_to_grow_network_query(self):
+    def ready_to_grow_network_query(self, network_ids: Optional[Iterable[int]] = None):
         """
         Return a query for networks that are ready to grow.
 
@@ -2102,15 +2107,15 @@ class ChainTrialMaker(NetworkTrialMaker):
         growth check for both within- and across-chain networks.
         """
         return self.network_class.query.filter(
-            self.network_class.id.in_(self.ready_to_grow_network_id_select())
+            self.network_class.id.in_(self.ready_to_grow_network_id_select(network_ids))
         ).populate_existing()
 
-    def get_networks_ready_to_grow(self):
+    def get_networks_ready_to_grow(self, network_ids: Optional[Iterable[int]] = None):
         # Lock only the network IDs first. Loading full polymorphic network
         # objects can introduce DISTINCT clauses, which PostgreSQL does not
         # allow with FOR UPDATE. ``skip_locked`` keeps the poller non-blocking.
         id_rows = db.session.execute(
-            self.ready_to_grow_network_id_select().with_for_update(
+            self.ready_to_grow_network_id_select(network_ids).with_for_update(
                 of=self.network_class, skip_locked=True
             )
         ).all()

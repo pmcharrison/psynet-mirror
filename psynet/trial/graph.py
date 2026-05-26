@@ -3,7 +3,7 @@
 from typing import Literal, Optional, Type
 
 from dallinger import db
-from sqlalchemy import Column, String, UniqueConstraint, and_, select
+from sqlalchemy import Column, Index, String, UniqueConstraint, and_, select
 from sqlalchemy.orm import aliased
 
 from ..data import SQLBase, SQLMixin, register_table
@@ -60,6 +60,12 @@ class GraphChainEdge(SQLBase, SQLMixin):
             "origin_vertex_id",
             "target_vertex_id",
             name="unique_graph_chain_edge",
+        ),
+        Index(
+            "ix_graph_chain_edge_trial_target_origin",
+            "trial_maker_id",
+            "target_vertex_id",
+            "origin_vertex_id",
         ),
     )
 
@@ -135,6 +141,13 @@ class GraphChainNetwork(ChainNetwork):
         ]
 
 
+Index(
+    "ix_graph_chain_network_trial_maker_vertex",
+    GraphChainNetwork.trial_maker_id,
+    GraphChainNetwork.vertex_id,
+)
+
+
 class GraphChainTrial(ChainTrial):
     """
     A Trial class for graph chains.
@@ -167,11 +180,16 @@ class GraphChainTrial(ChainTrial):
     def on_finalized(self):
         super().on_finalized()
         # Graph chains have cross-network dependencies, so a finalized trial can
-        # make several graph vertices growable. Run the same live readiness query
-        # immediately as a latency fast path; the scheduled poller remains the
-        # correctness backstop.
+        # make outgoing graph vertices growable. Keep this request-path fast by
+        # checking only targets that depend on this finalized node's vertex and
+        # degree; the scheduled poller remains the correctness backstop.
+        if not self.trial_maker:
+            return
         db.session.flush()
-        for network in self.trial_maker.get_networks_ready_to_grow():
+        network_ids = self.trial_maker.get_candidate_network_ids_after_finalized_node(
+            self.node
+        )
+        for network in self.trial_maker.get_networks_ready_to_grow(network_ids):
             self.trial_maker.call_grow_network(network, check_readiness=False)
 
 
@@ -327,6 +345,13 @@ class GraphChainNode(ChainNode):
             )
             .all()
         )
+
+
+Index(
+    "ix_graph_chain_node_network_degree",
+    GraphChainNode.network_id,
+    GraphChainNode.degree,
+)
 
 
 class GraphChainTrialMaker(ChainTrialMaker):
@@ -508,6 +533,37 @@ class GraphChainTrialMaker(ChainTrialMaker):
         edges = network_structure["edges"]
         outgoing_vertex_ids = [e["target"] for e in edges if e["origin"] == source]
         return outgoing_vertex_ids
+
+    def get_candidate_network_ids_after_finalized_node(self, finalized_node):
+        """
+        Return graph networks that can be newly unlocked by a finalized node.
+
+        A graph node at vertex ``u`` and degree ``d`` can only affect target
+        networks ``v`` with an edge ``u -> v`` whose current head is also at
+        degree ``d``. The full readiness predicate is applied by the caller.
+        """
+        network = finalized_node.network
+        if network is None:
+            return []
+
+        rows = db.session.execute(
+            select(self.network_class.id)
+            .select_from(GraphChainEdge)
+            .join(
+                self.network_class,
+                and_(
+                    self.network_class.trial_maker_id == GraphChainEdge.trial_maker_id,
+                    self.network_class.vertex_id == GraphChainEdge.target_vertex_id,
+                ),
+            )
+            .join(self.node_class, self.network_class.head_id == self.node_class.id)
+            .where(
+                GraphChainEdge.trial_maker_id == self.id,
+                GraphChainEdge.origin_vertex_id == network.vertex_id,
+                self.node_class.degree == finalized_node.degree,
+            )
+        ).all()
+        return [row[0] for row in rows]
 
     def grow_network(self, network, experiment, check_readiness=True):
         # We set participant = None because of Dallinger's constraint of not allowing participants
