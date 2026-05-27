@@ -265,6 +265,7 @@
 
     // ---- Page-scoped listeners / resources ---------------------------------
     psynet.pageEventListeners = [];
+    psynet.pageCleanupCallbacks = [];
 
     psynet.addPageEventListener = function (
       target,
@@ -281,6 +282,24 @@
       });
     };
 
+    psynet.addPageCleanupCallback = function (callback) {
+      psynet.pageCleanupCallbacks.push(callback);
+    };
+
+    psynet.runPageCleanupCallbacks = function () {
+      psynet.pageCleanupCallbacks.forEach(function (callback) {
+        try {
+          callback();
+        } catch (error) {
+          psynet.log.warn(
+            "Page cleanup callback failed: " +
+              (error && error.message ? error.message : String(error)),
+          );
+        }
+      });
+      psynet.pageCleanupCallbacks = [];
+    };
+
     psynet.clearPageEventListeners = function () {
       psynet.pageEventListeners.forEach(function (listener) {
         listener.target.removeEventListener(
@@ -293,6 +312,7 @@
     };
 
     psynet.resetPageState = function () {
+      psynet.runPageCleanupCallbacks();
       psynet.clearPageEventListeners();
       psynet.comments = [];
       psynet.page = {
