@@ -6,7 +6,7 @@ import click
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
-psynet_version = "13.2.0rc1"
+psynet_version = "13.2.0"
 
 # Specify Dallinger MAJOR.MINOR version to allow any patch in that series
 recommended_dallinger_major_minor = "12.2"
