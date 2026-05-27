@@ -6,6 +6,14 @@
 # arguments), commits any new result files back to the branch, then detaches
 # the worktree.
 #
+# ASV command modes:
+#   - `asv run` benchmarks the selected commit(s) and records their results.
+#     In CI we use this for result publishing when we only need fresh data.
+#   - `asv continuous BASE HEAD` benchmarks BASE and HEAD back-to-back on the
+#     same runner, compares the results, and exits non-zero if HEAD regresses.
+#     In CI we use this when benchmark results should both be published and act
+#     as a regression gate.
+#
 # Flags:
 #   --init-only         Ensure the branch exists, then exit.
 #   --current-branch    Run benchmarks against the currently checked-out
