@@ -2176,15 +2176,21 @@
         request.onreadystatechange = async function () {
           if (request.readyState === 4) {
             let passedValidation;
-            if (request.status === 200) {
-              psynet.log.debug("Response was successfully received.");
-              passedValidation = await onSuccessResponse(request, onRejection);
-            } else {
-              psynet.log.debug("Something went wrong.");
-              onErrorResponse(request);
+            try {
+              if (request.status === 200) {
+                psynet.log.debug("Response was successfully received.");
+                passedValidation = await onSuccessResponse(request, onRejection);
+              } else {
+                psynet.log.debug("Something went wrong.");
+                onErrorResponse(request);
+                passedValidation = false;
+              }
+            } catch (error) {
+              await psynet.handleTimelineTransitionFailure(error);
               passedValidation = false;
+            } finally {
+              resolve(passedValidation);
             }
-            resolve(passedValidation);
           }
         };
         request.open("POST", "/response");
