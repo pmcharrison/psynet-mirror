@@ -38,6 +38,82 @@ class TestCommandLine(object):
         assert b"Options:" in output
         assert b"Commands:" in output
 
+    def test_dev_changelog_dispatches_to_builder(self, monkeypatch, tmp_path):
+        from psynet.command_line import psynet
+        from psynet.dev import changelog as changelog_module
+
+        calls = []
+
+        fragments_dir = tmp_path / "changelog.d"
+        fragments_dir.mkdir()
+        changelog_path = tmp_path / "CHANGELOG.md"
+        changelog_path.write_text("# CHANGELOG\n", encoding="utf-8")
+
+        monkeypatch.setattr(changelog_module, "FRAGMENTS_DIR", fragments_dir)
+        monkeypatch.setattr(changelog_module, "CHANGELOG_PATH", changelog_path)
+        monkeypatch.setattr(
+            changelog_module,
+            "new_command",
+            lambda c, d: calls.append(("new", c, d)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "release_command",
+            lambda v, d: calls.append(("release", v, d)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "build_command",
+            lambda: calls.append(("build",)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "check_mr_command",
+            lambda b, h: calls.append(("check-mr", b, h)) or 0,
+        )
+
+        runner = CliRunner()
+
+        result = runner.invoke(
+            psynet, ["dev", "changelog", "new", "fixed", "Fix thing"]
+        )
+        assert result.exit_code == 0, result.output
+        assert calls == [("new", "fixed", "Fix thing")]
+
+        result = runner.invoke(
+            psynet,
+            ["dev", "changelog", "release", "13.2.0", "2026-03-13"],
+        )
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("release", "13.2.0", "2026-03-13")
+
+        result = runner.invoke(psynet, ["dev", "changelog", "preview"])
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("build",)
+
+        result = runner.invoke(psynet, ["dev", "changelog", "check-mr", "base", "head"])
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("check-mr", "base", "head")
+
+    def test_dev_changelog_check_mr_is_hidden_from_help(self):
+        result = subprocess.run(
+            ["psynet", "dev", "changelog", "--help"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert "check-mr" not in result.stdout
+
+    def test_dev_changelog_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(psynet, ["dev", "changelog", "preview"])
+
+        assert result.exit_code != 0
+        assert "Run from a PsyNet source checkout" in result.output
+
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
         output = subprocess.check_output(

@@ -40,6 +40,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.dev.command_line import dev as _dev_command_group
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
@@ -130,6 +131,9 @@ def update_docker_tag():
 )
 def psynet():
     pass
+
+
+psynet.add_command(_dev_command_group)
 
 
 def reset_console():
