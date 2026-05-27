@@ -1,1 +1,1 @@
-Documented the preference to use Click for new and refactored command-line interfaces, and updated the ASV regression checker CLI accordingly (author: Cursor).
+Documented contributor guidance for using Click in command-line interfaces and writing changelog fragments that summarize only the final merge-request result, and updated the ASV regression checker CLI accordingly (author: Cursor).
