@@ -1,1 +1,1 @@
-Changed ASV CI so merge requests run only benchmarks under `benchmarks/fast/` as the regression gate, while slow experiment benchmarks under `benchmarks/slow/` remain part of default-branch result publishing (author: Cursor).
+Changed ASV CI so merge requests run only benchmarks under `benchmarks/fast/` as the regression gate, while slow experiment benchmarks under `benchmarks/slow/` remain part of default-branch result publishing and fail default-branch CI when they regress (author: Cursor).

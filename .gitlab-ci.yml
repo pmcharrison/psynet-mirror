@@ -149,6 +149,12 @@ merge_test_results:
 asv_benchmarks:
   stage: test
   resource_group: benchmark-results
+  variables:
+    # Full clone: the previous default-branch commit may be unreachable in the
+    # default shallow clone, but we need it as the slow-regression baseline.
+    GIT_DEPTH: "0"
+    ASV_SLOW_BENCHMARKS: "^slow\\."
+    ASV_REGRESSION_FACTOR: "1.25"
   cache:
     key:
       files:
@@ -164,17 +170,33 @@ asv_benchmarks:
     - git config user.name "PsyNet CI"
     - git branch -f "$CI_COMMIT_REF_NAME" HEAD
     - 'sed -i "s|\"branches\": \[[^]]*\]|\"branches\": [\"$CI_COMMIT_REF_NAME\"]|" asv.conf.json'
-    - docker run
-      --add-host=postgres:$POSTGRES_IP
-      --add-host=redis:$REDIS_IP
-      -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD
-      -e CI -e CI_COMMIT_REF_NAME
-      -e PSYNET_WORKSPACE
-      -e ASV_MACHINE_NAME=gitlab-ci
-      -v "$PWD:$PSYNET_WORKSPACE"
-      -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && uv pip install --no-cache --system asv virtualenv && bash ci/asv-sync-results.sh"
+    - export ASV_REGRESSION_BASE="$(git rev-parse HEAD^1)"
+    - export ASV_REGRESSION_HEAD="$CI_COMMIT_SHA"
+    - export ASV_REGRESSION_BENCH_REGEX="$ASV_SLOW_BENCHMARKS"
+    - 'echo "Checking slow ASV benchmark selector: $ASV_REGRESSION_BENCH_REGEX"'
+    - rm -f .asv/slow-regression-failed
+    - |
+      set +e
+      docker run \
+        --add-host=postgres:$POSTGRES_IP \
+        --add-host=redis:$REDIS_IP \
+        -e HEADLESS=TRUE -e REDIS_URL -e DATABASE_URL -e POSTGRES_DB -e POSTGRES_USER -e POSTGRES_PASSWORD \
+        -e CI -e CI_COMMIT_REF_NAME \
+        -e PSYNET_WORKSPACE \
+        -e ASV_MACHINE_NAME=gitlab-ci \
+        -e ASV_REGRESSION_BASE -e ASV_REGRESSION_HEAD -e ASV_REGRESSION_BENCH_REGEX -e ASV_REGRESSION_FACTOR \
+        -v "$PWD:$PSYNET_WORKSPACE" \
+        -w $PSYNET_WORKSPACE \
+        $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && uv pip install --no-cache --system asv virtualenv && bash ci/asv-sync-results.sh"
+      status=$?
+      set -e
+      if [ "$status" -eq 2 ]; then
+        touch .asv/slow-regression-failed
+      else
+        exit "$status"
+      fi
     - git push "$ASV_RESULTS_REMOTE" benchmark-results
+    - test ! -f .asv/slow-regression-failed
   artifacts:
     when: on_failure
     paths:

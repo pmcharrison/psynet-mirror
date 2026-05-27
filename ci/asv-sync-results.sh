@@ -13,6 +13,12 @@
 #                       results are NOT committed to `benchmark-results`
 #                       in this mode — use it for local iteration only.
 #
+# Environment:
+#   ASV_REGRESSION_BASE        Optional baseline commit for post-run regression check.
+#   ASV_REGRESSION_HEAD        Optional candidate commit for post-run regression check.
+#   ASV_REGRESSION_BENCH_REGEX Optional benchmark-name regex for the check.
+#   ASV_REGRESSION_FACTOR      Optional regression factor threshold.
+#
 # Push manually after running: `git push <remote> benchmark-results`.
 set -euo pipefail
 
@@ -93,10 +99,23 @@ fi
 asv "${ASV_CONF_ARGS[@]}" machine --yes --machine "${ASV_MACHINE_NAME:-$(hostname)}"
 asv "${ASV_CONF_ARGS[@]}" run "${ASV_RUN_ARGS[@]}"
 
+REGRESSION_STATUS=0
+if [ -n "${ASV_REGRESSION_BASE:-}" ] && [ -n "${ASV_REGRESSION_HEAD:-}" ]; then
+    python3 ci/asv-check-regressions.py \
+        --machine "${ASV_MACHINE_NAME:-$(hostname)}" \
+        --bench "${ASV_REGRESSION_BENCH_REGEX:-.*}" \
+        --factor "${ASV_REGRESSION_FACTOR:-1.25}" \
+        "$ASV_REGRESSION_BASE" \
+        "$ASV_REGRESSION_HEAD" || REGRESSION_STATUS=$?
+    if [ "$REGRESSION_STATUS" != "0" ] && [ "$REGRESSION_STATUS" != "2" ]; then
+        exit "$REGRESSION_STATUS"
+    fi
+fi
+
 if [ "$USE_CURRENT_BRANCH" = "1" ]; then
     echo "Skipping commit (--current-branch). Result files were written under $RESULTS_DIR but will not be committed."
     echo "The worktree can only be cleanly removed once those files are deleted; otherwise it will be left in place with a warning."
-    exit 0
+    exit "$REGRESSION_STATUS"
 fi
 
 cd "$RESULTS_DIR"
@@ -107,3 +126,5 @@ if [ -n "$(git status --porcelain)" ]; then
 else
     echo "No new results to commit"
 fi
+
+exit "$REGRESSION_STATUS"
