@@ -53,7 +53,7 @@
     {% endif %}
 
     {% for x in css %}
-        <style>
+        <style data-psynet-fragment-style="true">
             {{ x }}
         </style>
     {% endfor %}
@@ -99,6 +99,13 @@
                     <div id="psynet-page-css-links">
                         {% for x in css_links %}
                             <link rel="stylesheet" href="{{ x }}">
+                        {% endfor %}
+                    </div>
+                    <div id="psynet-page-css">
+                        {% for x in css %}
+                            <style>
+                                {{ x }}
+                            </style>
                         {% endfor %}
                     </div>
                     <div id="psynet-page-scripts">
@@ -174,9 +181,12 @@
 
     {% if partial_mode %}
         {# Fragment response used only by inplace transitions. #}
-        {{ timeline_header() }}
-        {{ timeline_main_body() }}
-        {{ timeline_footer() }}
+        <div id="psynet-timeline-fragment">
+            {{ timeline_header() }}
+            {{ timeline_main_body() }}
+            {{ timeline_footer() }}
+            {{ template_data_script() }}
+        </div>
     {% else %}
         {# Full-page render used for initial loads and for the legacy reload path. #}
         <div id="timeline-root">
@@ -231,9 +241,6 @@
         </div>
     {% endif %}
 
-    {% if partial_mode %}
-        {{ template_data_script() }}
-    {% endif %}
 {% endblock %}
 
 {% block head %}

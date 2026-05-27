@@ -11,6 +11,7 @@ from psynet.timeline import (
     CreditEstimate,
     Elt,
     MediaSpec,
+    Page,
     PageMaker,
     Timeline,
     join,
@@ -58,6 +59,57 @@ def test_merge_media_spec():
             }
         ).data
     )
+
+
+def test_partial_script_deferral_replaces_existing_type_attribute():
+    html = """
+    <div id="psynet-timeline-fragment">
+      <script type="module" data-example="1">window.example = true;</script>
+      <script type="application/json">{"example": true}</script>
+      <script type="text/html"><div>template</div></script>
+      <script type="text/psynet-script">window.deferred = true;</script>
+    </div>
+    """
+    deferred = Page._defer_executable_scripts(html)
+
+    assert deferred.count('type="text/psynet-script"') == 2
+    assert 'type="module"' not in deferred
+    assert 'data-example="1"' in deferred
+    assert 'type="application/json"' in deferred
+    assert 'type="text/html"' in deferred
+    assert deferred.count("type=") == 4
+
+
+def test_partial_body_extraction_uses_named_fragment_wrapper():
+    html = """
+    <html>
+      <body>
+        <template><div>outside fragment</div></template>
+        <div id="psynet-timeline-fragment">
+          <div id="timeline-header"></div>
+          <div id="main-body">
+            <template><div>inside fragment</div></template>
+          </div>
+          <nav id="footer"></nav>
+          <script id="psynet-template-data" type="application/json">{}</script>
+        </div>
+        <div id="spinner"></div>
+      </body>
+    </html>
+    """
+
+    fragment = Page._extract_partial_body(html)
+
+    assert "timeline-header" in fragment
+    assert "inside fragment" in fragment
+    assert "psynet-template-data" in fragment
+    assert "outside fragment" not in fragment
+    assert "spinner" not in fragment
+
+
+def test_partial_body_extraction_requires_named_fragment_wrapper():
+    with pytest.raises(ValueError, match="could not find fragment root"):
+        Page._extract_partial_body("<div id='main-body'></div>")
 
 
 class CustomTrial(ChainTrial):

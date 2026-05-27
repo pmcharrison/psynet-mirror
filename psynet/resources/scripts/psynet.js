@@ -422,6 +422,17 @@
       return Array.from(cssTemplate.querySelectorAll("link[rel='stylesheet']"));
     };
 
+    psynet.getPageStyles = function () {
+      let cssTemplate = document.getElementById("psynet-page-css");
+      if (!cssTemplate) {
+        return [];
+      }
+      if (cssTemplate.content) {
+        return Array.from(cssTemplate.content.querySelectorAll("style"));
+      }
+      return Array.from(cssTemplate.querySelectorAll("style"));
+    };
+
     psynet.ensureStylesheetLinks = function () {
       for (let link of psynet.getPageCssLinks()) {
         let href = new URL(link.href, window.location.href).href;
@@ -437,8 +448,22 @@
       }
     };
 
+    psynet.applyInlinePageStyles = function () {
+      document
+        .querySelectorAll("style[data-psynet-fragment-style]")
+        .forEach((style) => style.remove());
+
+      for (let style of psynet.getPageStyles()) {
+        let newStyle = document.createElement("style");
+        newStyle.setAttribute("data-psynet-fragment-style", "true");
+        newStyle.textContent = style.textContent;
+        document.head.appendChild(newStyle);
+      }
+    };
+
     psynet.hydrateFragmentAssets = async function () {
       psynet.ensureStylesheetLinks();
+      psynet.applyInlinePageStyles();
       await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
     };
 

@@ -37,9 +37,17 @@ class Exp(psynet.experiment.Experiment):
                 >
                     trialConstruct handler has not run
                 </p>
+                <p id="deferred-css-marker">Inline partial CSS marker</p>
                 """
             ),
             time_estimate=1,
             scripts=[DEFERRED_SCRIPT],
+            css=[
+                """
+                #deferred-css-marker {
+                    color: rgb(12, 34, 56);
+                }
+                """
+            ],
         ),
     )
