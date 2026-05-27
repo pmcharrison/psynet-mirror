@@ -223,6 +223,14 @@ impact, and the evidence that the change works.
 Use Click for new and refactored command-line interfaces, following the
 project's existing command patterns.
 
+## Simplification and refactoring
+
+When a change seems to require adding substantial new code, pause to consider
+whether package functionality or behavior can be simplified instead. Prefer
+solutions that avoid unnecessary code growth, remove obsolete code, or reuse
+existing abstractions, and call out promising refactoring opportunities to the
+user when they are relevant.
+
 ## Testing
 
 Non-trivial code changes should be tested.
