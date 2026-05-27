@@ -1,1 +1,1 @@
-Documented contributor guidance for using Click in command-line interfaces, seeking simplifications before adding substantial code, and writing changelog fragments without author attributions that summarize only the final merge-request result.
+Documented contributor guidance for using Click in command-line interfaces, seeking simplifications before adding substantial code, writing changelog fragments without author attributions that summarize only the final merge-request result, and understanding the ASV performance-testing setup.
