@@ -1,27 +1,17 @@
 # CHANGELOG
 
-## Unreleased
-
-## [13.2.0rc1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc1) Release candidate - 2026-05-07
-
-### Changed
-
-- Switched audio-tooling demo dependencies from private GitLab git URLs to public PyPI releases: `repp` + `reppextension` are now installed via `repp-tapping==1.4.0` (which bundles `reppextension` as a deprecated compatibility shim) and `sing4me` via `sing4me==2.0.0`. The `[demos]` extra declares both directly and the Dockerfile no longer needs the private-deps install step (author: Frank Höger).
-- Refactored the docs `pages:` GitLab CI job: extracted the inline shell into `docs/scripts/build_pages.sh` (the CI job is now a thin wrapper) and tidied `docs/scripts/generate_version_switcher.py`. The branch pipeline now also rebuilds the latest active prerelease into `public/rc/<tag>/` and prunes stale `public/rc/` subdirs once their base ships stable, so the site only ever advertises a currently-pending release candidate (author: Frank Höger).
-- Marked the highest stable release as `"preferred": true` in the version switcher, so pydata-sphinx-theme preselects it as the canonical version and renders a "switch to vX.Y" banner on alpha, rc, and older stable subdirs (author: Frank Höger).
-
-## [13.2.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0) Release candidate - 2026-04-27
+## [13.2.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0) Release - 2026-05-26
 
 ### Added
 
-- Added documentation builds for release-candidate / alpha tags, published at `/rc/<tag>/`, with the new RC visible in the version switcher from every deployed subdir (author: Cursor, reviewer: Frank Höger)
+- Added documentation builds for release-candidate / alpha tags, published at `/rc/<tag>/`, with the new RC visible in the version switcher from every deployed subdir.
 - Added ``demos/experiments/chatrooms`` demo: real-time multi-room chat using
   Dallinger's WebSocket relay, with server-side message persistence, occupancy
   broadcasts, and a REST endpoint for chat history.
 - Enabled chatroom to Rock, Paper, Scissors demo results page.
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
-- Added developer documentation plus a repo-local `/review` Cursor workflow backed by the `branch-review` skill for reviewing branches against `master` (author: [Frank Höger])
+- Added developer documentation plus a repo-local `/review` Cursor workflow backed by the `branch-review` skill for reviewing branches against `master`.
 - Added ``make_next_definition`` method to streamline the implementation of chain experiments.
   We have done this in a back-compatible manner and left existing dependencies unchanged for now.
   We have added a demo of the new approach called `chain_trial_maker`.
@@ -31,150 +21,160 @@
 - Added 'getting started' section to documentation.
 - Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
   to aid with configuring VSCode.
-- Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking (author: Cursor, reviewer: Peter Harrison)
+- Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking.
 - Added checks to catch cases where Assets are created in the wrong place.
-- Added Playwright (JS) end-to-end tests for audio, graphics, imitation_chain_video, and static_audio demos, plus the video feature demo (author: Marco).
-- Added a dedicated `playwright_e2e` GitLab CI job to run Playwright demo tests and publish JUnit, Playwright HTML report, and backend logs as artifacts (author: Marco).
+- Added Playwright (JS) end-to-end tests for audio, graphics, imitation_chain_video, and static_audio demos, plus the video feature demo.
+- Added a dedicated `playwright_e2e` GitLab CI job to run Playwright demo tests and publish JUnit, Playwright HTML report, and backend logs as artifacts.
 - Improved 'basic data' functionality:
   - Basic data is now included by default in PsyNet exports.
   - Added support for CSV-format basic data export.
   - Added basic data export examples to the demos.
-- Added regression test to ensure Jinja gettext extraction is captured (author: Peter Harrison)
-- Added demo/docs example for random sync group role assignment after sorting participants (author: [Peter Harrison])
-- Added WaitPage time stats (median/95th/max) to performance test results (author: Jesse Snyder)
-- Added AsyncProcess duration stats (avg/median/p95/max by trial maker) to performance test results (author: Jesse Snyder)
-- Added async process queue delay tracking (`time_enqueued`, `queue_delay` on `AsyncProcess`) with Q Share metric highlighting bottlenecks (author: Jesse Snyder)
-- Added trial count stats (min/median/max) for succeeded bots in performance test results (author: Jesse Snyder)
-- Added scaling slowdown comparison (vs baseline) in cross-test performance summary (author: Jesse Snyder)
-- Added requests/sec throughput metric to performance test results (author: Jesse Snyder)
-- Added bot initialization time distribution (median/p95/max) to per-test detail reporting (author: Jesse Snyder)
-- Added detection and reporting of bots that started but never created DB participant records (author: Jesse Snyder)
-- Added RQ worker count display in async process times section for context on queue delays (author: Jesse Snyder)
+- Added regression test to ensure Jinja gettext extraction is captured.
+- Added demo/docs example for random sync group role assignment after sorting participants.
+- Added WaitPage time stats (median/95th/max) to performance test results.
+- Added AsyncProcess duration stats (avg/median/p95/max by trial maker) to performance test results.
+- Added async process queue delay tracking (`time_enqueued`, `queue_delay` on `AsyncProcess`) with Q Share metric highlighting bottlenecks.
+- Added trial count stats (min/median/max) for succeeded bots in performance test results.
+- Added scaling slowdown comparison (vs baseline) in cross-test performance summary.
+- Added requests/sec throughput metric to performance test results.
+- Added bot initialization time distribution (median/p95/max) to per-test detail reporting.
+- Added detection and reporting of bots that started but never created DB participant records.
+- Added RQ worker count display in async process times section for context on queue delays.
 
 ### Changed
 
-- Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates (author: Frank Höger)
+- Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates.
 - `GraphChainTrialMaker` now accepts vertex-based blocks and participant groups via the `network_structure` argument.
 - Reformatted CHANGELOG and configured CHANGELOG linter.
-- Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
-- Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
-- Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
-- Refactored timeline page JavaScript into standalone `psynet.js` with template-driven JSON bootstrap data, preserving initialization order for prompt/control scripts and Lucid termination hooks (author: Marco)
-- Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
-- Expanded Playwright demo coverage to perform real UI interactions (controls, recording, playback, event-log assertions) across audio, graphics, imitation_chain_video, static_audio, and video_feature demos (author: Marco).
-- Added Playwright failure diagnostics and artifacts (screenshots, traces, videos, JUnit/HTML reports) and stabilized visual snapshots for the audio demo (author: Peter).
-- Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
-- Replaced the moto-backed S3 emulator with a minimal filesystem-backed mock for targeted S3 artifact-storage tests, while moving broader backup coverage back to a local-storage test path and removing the `moto` dependency from the test environment (author: Frank Höger)
-- Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
-- Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout (author: Frank Höger)
-- Improved performance-test summary table: replaced Completed/Bot Errors columns with Succeeded/Errored/Terminated, and response time columns with median/95th/max (author: Jesse Snyder)
-- Separated bot duration tracking by outcome (succeeded/failed/incomplete) in performance test results (author: Jesse Snyder)
-- Redirected bot output to dedicated logfile, keeping console output minimal during performance tests (author: Jesse Snyder)
-- Improved performance test output: tabulate-based tables, AsyncProcess duration stats, ANSI-colored headers/success rates, and reorganized per-test detail reporting (author: Jesse Snyder)
-- Refactored performance test code from `experiment.py` into standalone `psynet/perf_test.py` module with `PerformanceTester` class (author: Jesse Snyder)
-- Updated `@playwright/test` from 1.58.2 to 1.60.0 (Chromium 148.0.7778.96) (author: [Frank Höger])
-
-### Fixed
-
-- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
-- Stabilised flaky Playwright demo tests `audio.spec.js` and `imitation_chain_video.spec.js` (author: Frank Höger)
-- Stabilised flaky Playwright `video_feature.spec.js` demo by waiting for the initial auto-recording cycle to finish before clicking "Record from start" (author: Frank Höger)
-- Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+ (author: Peter Harrison)
-- Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages (author: Peter Harrison)
-- Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages (author: Peter Harrison)
-- Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies (author: Frank Höger)
-- Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep) (author: Frank Höger)
-- Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test (author: Frank Höger, reviewer: Peter Harrison)
-- Included `tests/isolated/translation/` directory in CI test runs (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed `CI` environment variable not being passed to Docker container in CI, causing `@local_only` tests to run incorrectly (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed `@local_only` and `@ci_only` pytest decorators by changing condition from `os.environ.get("CI")` to `os.environ.get("CI") is not None` to ensure a boolean result (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed `test_translator_with_file_path` to use `{NAME}` instead of `■0■` since `ChatGptTranslator` has `use_codebook=False` (author: Frank Höger, reviewer: Peter Harrison)
-- Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices and Node launch warnings) (author: Frank Höger, reviewer: Peter Harrison)
-- Standardized "Abort Experiment" to "Abort experiment" in templates for consistent capitalization and removed obsolete translation entries from PO files (author: Frank Höger, reviewer: Peter Harrison)
-- Removed prompt text from prompt metadata to avoid large export file sizes (author: Peter)
-- Suppressed forkpty DeprecationWarning in pytest configuration (author: Peter Harrison)
-- Exported datetimes in database exports as readable strings to avoid jsonpickle formatting (author: Peter)
-- Fixed performance-test summary crashes for short runs by handling missing response metrics and zero-success-rate denominators gracefully (author: [Peter])
-- Fixed performance-test local startup and teardown by launching via `psynet debug local`, loading runtime server credentials, and improving subprocess shutdown behavior (author: [Peter])
-- Fixed performance-test server logs not capturing full output by draining pexpect process in background thread (author: Jesse Snyder)
-- Fixed variable shadowing of builtin `error` in `dashboard_errors` method (author: Jesse Snyder)
-- Restricted wait-page time and trial count stats to succeeded bots only in performance test results (author: Jesse Snyder)
-- Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps (author: Cursor, reviewer: Peter Harrison)
-- Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings (author: Cursor, reviewer: Peter Harrison)
-- Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates (author: Cursor; reviewer: Peter Harrison)
-- Added validation to ensure `ChainTrialMaker` start nodes are instances of `node_class`, preventing silent fallback to base-class behavior when subclasses are expected (author: Cursor; reviewer: Peter Harrison)
-- Fixed Playwright harness experiment lifecycle and teardown to reduce stale-process/port conflicts, while keeping legacy mode optional via environment flag (author: Peter).
-- Fixed SliderControl to re-register minimal-interaction gating on `trialPrepare`, so pages that call `psynet.trial.restart()` can re-enable submit/next correctly after slider interaction (author: Peter).
-- Added richer Playwright next-button timeout diagnostics (prompt text, event tail, control state) to speed up CI failure triage (author: Peter).
-- Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default (author: Cursor, reviewer: Peter Harrison)
-- Fixed `join` to accept list/tuple inputs so `join(pages)` works when assembling timeline components such as `AsyncCodeBlock` (author: Cursor, reviewer: Peter Harrison)
-- Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`) (author: Cursor, reviewer: Peter Harrison)
-- Fixed incorrect Sphinx cross-reference in `MediaImitationChainTrial` docstring missing the `record` module in the path (author: Cursor, reviewer: Peter Harrison)
-- Fixed incorrect Sphinx cross-references in `AudioImitationChainTrial` and `CameraImitationChainTrial` docstrings pointing to non-existent `audio_imitation_chain` and `video_imitation_chain` modules (author: Cursor, reviewer: Peter Harrison)
-- Fixed incorrect type hint `mode: bool` in `deployment_info.init` that should be `mode: str` since mode values are strings like "debug", "sandbox", "live" (author: Cursor, reviewer: Peter Harrison)
-- Fixed incorrect property name `self.job` in `WorkerAsyncProcess.cancel` that should be `self.redis_job`, which would cause an `AttributeError` when trying to cancel an async process (author: Cursor, reviewer: Peter Harrison)
-- Fixed resource type mismatch in `Notifier` where `"memory"` was used instead of `"ram"`, causing worker process info to be missing from RAM usage notifications (author: Cursor, reviewer: Peter Harrison)
-- Fixed indentation bug in `GroupBarrier.choose_who_to_release` where only the last participant was added to release list instead of all participants when group is below minimum size (author: Cursor, reviewer: Peter Harrison)
-- Fixed incorrect octave ratio in `StretchedTimbre` docstring: should be 2.1 rather than 2.0, not 2.0 rather than 1.9 (author: Cursor, reviewer: Peter Harrison)
-- Fixed missing f-string prefix in `LucidService.remove_default_qualifications_from_survey` error message, causing literal `{response.status_code}` instead of actual values (author: Cursor, reviewer: Peter Harrison)
-- Fixed incorrect Sphinx cross-references in `MediaImitationChainNode` and `CameraImitationChainNode` docstrings pointing to wrong module paths (author: Cursor, reviewer: Peter Harrison)
-- Fixed incorrect `super().encode()` call in `NumpySerializer.default` for `np.bool_` types; should return `bool(obj)` like other numpy types (author: Cursor, reviewer: Peter Harrison)
-- Fixed `Participant.fail` passing wrong argument to fail routines where `experiment=self` should have been `experiment=exp` (author: Cursor, reviewer: Peter Harrison)
-- Fixed quote escaping issue in `SVGLogo.html` where nested double quotes in `onclick` handler produced invalid HTML (author: Cursor, reviewer: Peter Harrison)
-- Fixed incorrect use of `os.path.remove` instead of `os.remove` in `RecordTrial.async_post_trial` (author: Cursor, reviewer: Peter Harrison)
-- Fixed Unicode typo in `UnityPage` docstring where `Ín` used an accented character instead of ASCII `In` (author: Cursor, reviewer: Peter Harrison)
-- Fixed Unicode typo in `HouseholdIncomePerYear` demography page where `ĺess_than_10000` used a special character instead of ASCII `less_than_10000` (author: Cursor, reviewer: Peter Harrison)
-- Fixed missing `@classmethod` decorator on `_PythonList.serialize` and `_PythonDict.serialize` methods in `psynet/field.py` (author: Cursor, reviewer: Peter Harrison)
-- Fixed `get_package_name` to read metadata from the provided path (author: Cursor, reviewer: Peter Harrison)
-- Fixed bug in `VocabTrial.show_feedback` where `self.show_feedback` (the method) was checked instead of `self.trial_maker.show_feedback` (the boolean attribute), causing feedback to be shown even when disabled (author: Cursor, reviewer: Peter Harrison).
-- Fixed `Trial.cue` asset registration to deposit assets before generating keys, preventing missing `deployment_id` errors (author: Cursor; reviewer: Peter Harrison)
-- Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.
-- Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
-- Fixed `linspace` to handle single-length requests without division by zero (author: Cursor Agent, reviewer: Peter Harrison).
-- Fixed `dict_to_js_vars` to serialize quotes safely and handle empty inputs (author: Cursor Agent, reviewer: Peter Harrison).
-- Fixed `format_timedelta` to return meaningful output for zero and negative durations (author: Cursor, reviewer: Peter Harrison)
-- Fixed `get_fitting_font_size` to return the last size that fits within bounds rather than the first size that overflows (author: Cursor, reviewer: Peter Harrison)
-- Fixed `get_package_source_directory` to handle setuptools `where` lists in pyproject files (author: Cursor, reviewer: Peter Harrison)
-- Fixed `get_locales_dir_from_path` to resolve locales relative to the provided path rather than the current working directory (author: Cursor, reviewer: Peter Harrison)
-- Fixed `get_package_source_directory` to resolve paths relative to the provided package root (author: Cursor, reviewer: Peter Harrison)
-- Fixed `check_translations` to resolve the package namespace from the provided path (author: Cursor, reviewer: Peter Harrison)
-- Fixed translation validation to report missing entries before variable-mismatch checks (author: Cursor, reviewer: Peter Harrison)
-- Fixed `S3Storage.list` to honor `top` and `extension` filters (author: Cursor, reviewer: Peter Harrison)
-- Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute (author: Cursor, reviewer: Peter Harrison)
-- Hardened Playwright demo tests against flaky timeline transitions by replacing brittle exact-count/transient-text assertions with event/baseline waits and tolerant auto-advance handling across audio, graphics, static_audio, imitation_chain_video, and video_feature specs (author: Marco)
-- Replaced bare `assert response.ok` in Lucid API calls with informative error messages that include the HTTP status code, URL, and response body (author: Frank Höger)
-- Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners) (author: [Frank Höger])
-- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization (author: [Frank Höger])
+- Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead.
+- Renamed version-checking helpers in `psynet/version.py` for clearer intent.
+- Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles.
+- Refactored timeline page JavaScript into standalone `psynet.js` with template-driven JSON bootstrap data, preserving initialization order for prompt/control scripts and Lucid termination hooks.
+- Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline.
+- Expanded Playwright demo coverage to perform real UI interactions (controls, recording, playback, event-log assertions) across audio, graphics, imitation_chain_video, static_audio, and video_feature demos.
+- Added Playwright failure diagnostics and artifacts (screenshots, traces, videos, JUnit/HTML reports) and stabilized visual snapshots for the audio demo.
+- Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes.
+- Replaced the moto-backed S3 emulator with a minimal filesystem-backed mock for targeted S3 artifact-storage tests, while moving broader backup coverage back to a local-storage test path and removing the `moto` dependency from the test environment.
+- Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref.
+- Updated `docs/scripts/generate_version_switcher.py` to always read the alpha version from `origin/<default_branch>` instead of falling back to the local checkout.
+- Improved performance-test summary table: replaced Completed/Bot Errors columns with Succeeded/Errored/Terminated, and response time columns with median/95th/max.
+- Separated bot duration tracking by outcome (succeeded/failed/incomplete) in performance test results.
+- Redirected bot output to dedicated logfile, keeping console output minimal during performance tests.
+- Improved performance test output: tabulate-based tables, AsyncProcess duration stats, ANSI-colored headers/success rates, and reorganized per-test detail reporting.
+- Refactored performance test code from `experiment.py` into standalone `psynet/perf_test.py` module with `PerformanceTester` class.
+- Updated `@playwright/test` from 1.58.2 to 1.60.0 (Chromium 148.0.7778.96).
+- Switched audio-tooling demo dependencies from private GitLab git URLs to public PyPI releases: `repp` + `reppextension` are now installed via `repp-tapping==1.4.0` (which bundles `reppextension` as a deprecated compatibility shim) and `sing4me` via `sing4me==2.0.0`. The `[demos]` extra declares both directly and the Dockerfile no longer needs the private-deps install step.
+- Refactored the docs `pages:` GitLab CI job: extracted the inline shell into `docs/scripts/build_pages.sh` (the CI job is now a thin wrapper) and tidied `docs/scripts/generate_version_switcher.py`. The branch pipeline now also rebuilds the latest active prerelease into `public/rc/<tag>/` and prunes stale `public/rc/` subdirs once their base ships stable, so the site only ever advertises a currently-pending release candidate.
+- Marked the highest stable release as `"preferred": true` in the version switcher, so pydata-sphinx-theme preselects it as the canonical version and renders a "switch to vX.Y" banner on alpha, rc, and older stable subdirs.
+- Introduced a changelog-fragments workflow under `changelog.d/` to eliminate `CHANGELOG.md` merge conflicts between MRs. Each change now ships as a small markdown fragment, and `CHANGELOG.md` is generated from those fragments at release time. Highlights:
+  - Added the source-checkout-only `psynet dev changelog` command group, with `preview` to render fragments without changing files, `new <category> "<description>"` to create a date-prefixed fragment, and `release <version> <date>` to fold fragments into a versioned `CHANGELOG.md` section.
+  - Wired GitLab's merge-request changelog check through the installed `psynet dev changelog check-mr` command so CI validates fragments through the same source-checkout command path as maintainers.
+  - Supported categories follow Keep a Changelog ordering: `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, `documentation`. Empty sections are skipped in the rendered output.
+  - Removed the in-progress `## Unreleased` section from `CHANGELOG.md` so future MRs don't conflict on it.
+  - Tightened the GitLab `changelog_check` CI job to enforce two rules on normal MRs: (1) the diff must touch a date-prefixed fragment file, and (2) `CHANGELOG.md` must not be edited directly. Release branches are exempt because they regenerate `CHANGELOG.md` from fragments.
+  - Documented the workflow, contributor expectations (commit only fragments, never a regenerated `CHANGELOG.md`), and the date-prefixed fragment convention in `AGENTS.md` and `changelog.d/README.md`.
 
 ### Removed
 
-- Removed unused participant scope aliases (`participant.globals`, `participant.locals`) and stopped flattening module-local variables into `Participant.to_dict()` exports; these removed APIs now raise explicit runtime errors with replacement guidance to use `participant.var` or `participant.module_state.var`
-- Removed redundant `ModuleState.var` override in favor of the shared SQL mixin `var` property
-- Removed redundant `logging.basicConfig(level=logging.INFO)` and root logger initialization from demo/test experiment scripts where they were unused (author: Peter Harrison)
-- Removed unused `remove_unused_translations_po` helper from translation utilities (author: Cursor, reviewer: Peter Harrison)
-- Removed unused `assert_all_variables_defined` helper from translation checks (author: Cursor, reviewer: Peter Harrison)
-- Removed unused `import_module` helper from utils (author: Cursor, reviewer: Peter Harrison)
-- Removed unused `get_package_locales_directory` helper from utils (author: Cursor, reviewer: Peter Harrison)
-- Removed unused `pretty_log_dict` and `query_yes_no` helpers from utils (author: Cursor, reviewer: Peter Harrison)
-- Removed unused `DisableLogger` helper from utils (author: Cursor, reviewer: Peter Harrison)
-- Removed unused `LANGUAGES_WITHOUT_CAPITALIZATION` constant from translation checks (author: Cursor, reviewer: Peter Harrison)
-- Removed unused `format_hash` and `hash_object` helpers from utils (author: Cursor, reviewer: Peter Harrison)
-- Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage (author: Cursor, reviewer: Peter Harrison)
-- Removed unreachable code after error raises in asset/serialization helpers (author: Cursor, reviewer: Peter Harrison)
-- Removed the PgBadger CI job and related reporting scripts (author: Cursor, reviewer: Peter Harrison)
-- Removed `dict_to_js_vars` as it is no longer used anywhere in code (author: Marco)
-- Removed the unused `bump-my-version` dev dependency and the corresponding `.bumpversion.toml` config; the release process edits the three version files manually (author: Cursor, reviewer: Frank Höger)
+- Removed unused participant scope aliases (`participant.globals`, `participant.locals`) and stopped flattening module-local variables into `Participant.to_dict()` exports; these removed APIs now raise explicit runtime errors with replacement guidance to use `participant.var` or `participant.module_state.var`.
+- Removed redundant `ModuleState.var` override in favor of the shared SQL mixin `var` property.
+- Removed redundant `logging.basicConfig(level=logging.INFO)` and root logger initialization from demo/test experiment scripts where they were unused.
+- Removed unused `remove_unused_translations_po` helper from translation utilities.
+- Removed unused `assert_all_variables_defined` helper from translation checks.
+- Removed unused `import_module` helper from utils.
+- Removed unused `get_package_locales_directory` helper from utils.
+- Removed unused `pretty_log_dict` and `query_yes_no` helpers from utils.
+- Removed unused `DisableLogger` helper from utils.
+- Removed unused `LANGUAGES_WITHOUT_CAPITALIZATION` constant from translation checks.
+- Removed unused `format_hash` and `hash_object` helpers from utils.
+- Removed `strip_url_parameters` and custom `cache` helpers from utils in favor of standard library usage.
+- Removed unreachable code after error raises in asset/serialization helpers.
+- Removed the PgBadger CI job and related reporting scripts.
+- Removed `dict_to_js_vars` as it is no longer used anywhere in code.
+- Removed the unused `bump-my-version` dev dependency and the corresponding `.bumpversion.toml` config; the release process edits the three version files manually.
+
+### Fixed
+
+- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization.
+- Stabilised flaky Playwright demo tests `audio.spec.js` and `imitation_chain_video.spec.js`.
+- Stabilised flaky Playwright `video_feature.spec.js` demo by waiting for the initial auto-recording cycle to finish before clicking "Record from start".
+- Corrected pybabel Jinja keyword config so gettext and pgettext extraction works on Babel 2.18+.
+- Installed demo dependencies via the `demos` extra and Dallinger constraints extras (Docker/CI), avoiding RequestsDependencyWarning from unpinned transitive packages.
+- Disallow PsyNet requirements pinned to master in deployment prechecks, and clarify version-check failures with explicit ValueError messages.
+- Replaced third-party `cached_property` package with Python's built-in `functools.cached_property`, fixing a `ModuleNotFoundError` on Python 3.13 after Dallinger removed the package from its dependencies.
+- Fixed `changelog_check` CI job failing on merge requests (SIGPIPE when piping to grep).
+- Added CI test to verify translations are up-to-date on release branches without calling translation APIs; duplicate translation warnings are printed but don't fail the test.
+- Included `tests/isolated/translation/` directory in CI test runs.
+- Fixed `CI` environment variable not being passed to Docker container in CI, causing `@local_only` tests to run incorrectly.
+- Fixed `@local_only` and `@ci_only` pytest decorators by changing condition from `os.environ.get("CI")` to `os.environ.get("CI") is not None` to ensure a boolean result.
+- Fixed `test_translator_with_file_path` to use `{NAME}` instead of `■0■` since `ChatGptTranslator` has `use_codebook=False`.
+- Fixed `test_warnings` to filter out external service warnings (e.g., Heroku CLI terms of service notices and Node launch warnings).
+- Standardized "Abort Experiment" to "Abort experiment" in templates for consistent capitalization and removed obsolete translation entries from PO files.
+- Removed prompt text from prompt metadata to avoid large export file sizes.
+- Suppressed forkpty DeprecationWarning in pytest configuration.
+- Exported datetimes in database exports as readable strings to avoid jsonpickle formatting.
+- Fixed performance-test summary crashes for short runs by handling missing response metrics and zero-success-rate denominators gracefully.
+- Fixed performance-test local startup and teardown by launching via `psynet debug local`, loading runtime server credentials, and improving subprocess shutdown behavior.
+- Fixed performance-test server logs not capturing full output by draining pexpect process in background thread.
+- Fixed variable shadowing of builtin `error` in `dashboard_errors` method.
+- Restricted wait-page time and trial count stats to succeeded bots only in performance test results.
+- Renamed the experiment status payload key to `launch_time` to avoid overwriting row timestamps.
+- Added automatic check during Docker deployment to detect missing or outdated Dockerfile format. Dockerfiles are now mandatory for all Docker deployments, and error messages guide users to run `psynet update-scripts` with appropriate warnings.
+- Fixed chain trial makers to keep block state consistent when advancing blocks after depletion, consolidating block-state updates.
+- Added validation to ensure `ChainTrialMaker` start nodes are instances of `node_class`, preventing silent fallback to base-class behavior when subclasses are expected.
+- Fixed Playwright harness experiment lifecycle and teardown to reduce stale-process/port conflicts, while keeping legacy mode optional via environment flag.
+- Fixed SliderControl to re-register minimal-interaction gating on `trialPrepare`, so pages that call `psynet.trial.restart()` can re-enable submit/next correctly after slider interaction.
+- Added richer Playwright next-button timeout diagnostics (prompt text, event tail, control state) to speed up CI failure triage.
+- Fixed `generate_text_file` to write the provided text argument instead of a hardcoded default.
+- Fixed `join` to accept list/tuple inputs so `join(pages)` works when assembling timeline components such as `AsyncCodeBlock`.
+- Fixed malformed Sphinx cross-reference in `SliderCopyTrial` docstring with extra backticks and wrong module path (should be `dense` not `main`).
+- Fixed incorrect Sphinx cross-reference in `MediaImitationChainTrial` docstring missing the `record` module in the path.
+- Fixed incorrect Sphinx cross-references in `AudioImitationChainTrial` and `CameraImitationChainTrial` docstrings pointing to non-existent `audio_imitation_chain` and `video_imitation_chain` modules.
+- Fixed incorrect type hint `mode: bool` in `deployment_info.init` that should be `mode: str` since mode values are strings like "debug", "sandbox", "live".
+- Fixed incorrect property name `self.job` in `WorkerAsyncProcess.cancel` that should be `self.redis_job`, which would cause an `AttributeError` when trying to cancel an async process.
+- Fixed resource type mismatch in `Notifier` where `"memory"` was used instead of `"ram"`, causing worker process info to be missing from RAM usage notifications.
+- Fixed indentation bug in `GroupBarrier.choose_who_to_release` where only the last participant was added to release list instead of all participants when group is below minimum size.
+- Fixed incorrect octave ratio in `StretchedTimbre` docstring: should be 2.1 rather than 2.0, not 2.0 rather than 1.9.
+- Fixed missing f-string prefix in `LucidService.remove_default_qualifications_from_survey` error message, causing literal `{response.status_code}` instead of actual values.
+- Fixed incorrect Sphinx cross-references in `MediaImitationChainNode` and `CameraImitationChainNode` docstrings pointing to wrong module paths.
+- Fixed incorrect `super().encode()` call in `NumpySerializer.default` for `np.bool_` types; should return `bool(obj)` like other numpy types.
+- Fixed `Participant.fail` passing wrong argument to fail routines where `experiment=self` should have been `experiment=exp`.
+- Fixed quote escaping issue in `SVGLogo.html` where nested double quotes in `onclick` handler produced invalid HTML.
+- Fixed incorrect use of `os.path.remove` instead of `os.remove` in `RecordTrial.async_post_trial`.
+- Fixed Unicode typo in `UnityPage` docstring where `Ín` used an accented character instead of ASCII `In`.
+- Fixed Unicode typo in `HouseholdIncomePerYear` demography page where `ĺess_than_10000` used a special character instead of ASCII `less_than_10000`.
+- Fixed missing `@classmethod` decorator on `_PythonList.serialize` and `_PythonDict.serialize` methods in `psynet/field.py`.
+- Fixed `get_package_name` to read metadata from the provided path.
+- Fixed bug in `VocabTrial.show_feedback` where `self.show_feedback` (the method) was checked instead of `self.trial_maker.show_feedback` (the boolean attribute), causing feedback to be shown even when disabled.
+- Fixed `Trial.cue` asset registration to deposit assets before generating keys, preventing missing `deployment_id` errors.
+- Fixed bug in `translation_contains_same_variables` where only the first variable check (Jinja pattern) was evaluated due to an early return inside the loop, causing f-string, format string, and HTML tag checks to be skipped.
+- Fixed potential `UnboundLocalError` in `_experiment_variables` when cursor creation fails.
+- Fixed `linspace` to handle single-length requests without division by zero.
+- Fixed `dict_to_js_vars` to serialize quotes safely and handle empty inputs.
+- Fixed `format_timedelta` to return meaningful output for zero and negative durations.
+- Fixed `get_fitting_font_size` to return the last size that fits within bounds rather than the first size that overflows.
+- Fixed `get_package_source_directory` to handle setuptools `where` lists in pyproject files.
+- Fixed `get_locales_dir_from_path` to resolve locales relative to the provided path rather than the current working directory.
+- Fixed `get_package_source_directory` to resolve paths relative to the provided package root.
+- Fixed `check_translations` to resolve the package namespace from the provided path.
+- Fixed translation validation to report missing entries before variable-mismatch checks.
+- Fixed `S3Storage.list` to honor `top` and `extension` filters.
+- Fixed `pretty_format_seconds` to avoid rounding to 60 seconds instead of rolling into the next minute.
+- Hardened Playwright demo tests against flaky timeline transitions by replacing brittle exact-count/transient-text assertions with event/baseline waits and tolerant auto-advance handling across audio, graphics, static_audio, imitation_chain_video, and video_feature specs.
+- Replaced bare `assert response.ok` in Lucid API calls with informative error messages that include the HTTP status code, URL, and response body.
+- Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners).
+- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization.
 
 ### Documentation
 
-- Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide (author: Cursor, reviewer: Peter Harrison)
-- Clarified AGENTS setup for Dallinger auth and local environment bootstrapping (author: Cursor, reviewer: Peter Harrison)
-- Added Playwright anti-flakiness guardrails to `AGENTS.md` so future E2E tests use stable selectors/events and auto-advance-safe assertions (author: Marco)
-- Clarified Dallinger fork workflow steps around auth, upstream sync, and pg_config failures (author: Cursor, reviewer: Peter Harrison)
-- Clarified system dependency checks and PostgreSQL password guidance in experiment scripts AGENTS.md (author: Cursor, reviewer: Peter)
-- Streamlined API documentation structure and reduced Sphinx warnings (author: Cursor, reviewer: Peter)
-- Simplified documentation navigation and reference links (author: Cursor, reviewer: Peter)
-- Documented GitLab CI status checks and token guidance for agents in AGENTS.md (author: Cursor, reviewer: Peter)
+- Expanded Windows/WSL installation guidance with quick-start steps, WSL notes, and audio troubleshooting based on Haoyu Hu's guide.
+- Clarified AGENTS setup for Dallinger auth and local environment bootstrapping.
+- Added Playwright anti-flakiness guardrails to `AGENTS.md` so future E2E tests use stable selectors/events and auto-advance-safe assertions.
+- Clarified Dallinger fork workflow steps around auth, upstream sync, and pg_config failures.
+- Clarified system dependency checks and PostgreSQL password guidance in experiment scripts AGENTS.md.
+- Streamlined API documentation structure and reduced Sphinx warnings.
+- Simplified documentation navigation and reference links.
+- Documented GitLab CI status checks and token guidance for agents in AGENTS.md.
 
 ## [13.1.1](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.1.1) Release - 2026-02-18
 
