@@ -9,7 +9,6 @@ if TYPE_CHECKING:
 import inspect
 import json
 import random
-import re
 import time
 from collections import Counter
 from datetime import datetime
@@ -20,6 +19,7 @@ from types import FunctionType
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
 from dallinger import db
+from bs4 import BeautifulSoup
 from dominate import tags
 from jsonpickle.util import importable_name
 from markupsafe import Markup
@@ -1523,52 +1523,31 @@ class Page(Elt):
 
     @staticmethod
     def _defer_executable_scripts(rendered_html):
-        script_tag = re.compile(r"<script\b(?P<attrs>(?:(?!>).)*)>", re.IGNORECASE)
-
-        def replace(match):
-            attrs = match.group("attrs")
-            attrs_lower = attrs.lower()
-            if (
-                'type="application/json"' in attrs_lower
-                or "type='application/json'" in attrs_lower
-                or 'type="text/psynet-script"' in attrs_lower
-                or "type='text/psynet-script'" in attrs_lower
-            ):
-                return match.group(0)
-            return f'<script type="text/psynet-script"{attrs}>'
-
-        return script_tag.sub(replace, rendered_html)
+        executable_script_types = {
+            "",
+            "application/ecmascript",
+            "application/javascript",
+            "module",
+            "text/ecmascript",
+            "text/javascript",
+        }
+        soup = BeautifulSoup(rendered_html, "html.parser")
+        for script in soup.find_all("script"):
+            script_type = (script.get("type") or "").strip().lower()
+            if script_type not in executable_script_types:
+                continue
+            script["type"] = "text/psynet-script"
+        return str(soup)
 
     @staticmethod
     def _extract_partial_body(rendered_html):
-        start_candidates = [
-            '<div id="timeline-header"',
-            '<div id="main-body"',
-        ]
-        start_index = -1
-        for candidate in start_candidates:
-            start_index = rendered_html.find(candidate)
-            if start_index != -1:
-                break
-
-        if start_index == -1:
+        soup = BeautifulSoup(rendered_html, "html.parser")
+        fragment = soup.find(id="psynet-timeline-fragment")
+        if fragment is None:
             raise ValueError(
                 "Failed to extract partial timeline body: could not find fragment root."
             )
-
-        template_end = rendered_html.rfind("</template>")
-        if template_end != -1:
-            return rendered_html[start_index : template_end + len("</template>")]
-
-        spinner_index = rendered_html.find('<div id="spinner"', start_index)
-        if spinner_index != -1:
-            return rendered_html[start_index:spinner_index]
-
-        body_end = rendered_html.rfind("</body>")
-        if body_end != -1:
-            return rendered_html[start_index:body_end]
-
-        return rendered_html[start_index:]
+        return fragment.decode_contents()
 
     @property
     def plain_text(self):

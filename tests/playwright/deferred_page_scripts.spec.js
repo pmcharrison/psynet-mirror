@@ -36,6 +36,11 @@ test("deferred page scripts register trialConstruct handlers before partial page
     );
     await expect(marker).toContainText("trialConstruct handler ran");
 
+    await expect(experimentPage.locator("#deferred-css-marker")).toHaveCSS(
+      "color",
+      "rgb(12, 34, 56)"
+    );
+
     await expect
       .poll(
         () =>
