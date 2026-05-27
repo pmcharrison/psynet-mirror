@@ -204,7 +204,7 @@ asv_regression:
     # Full clone: the merge base can be far back in the target branch's
     # history and is otherwise unreachable in the default shallow clone.
     GIT_DEPTH: "0"
-    ASV_FAST_BENCHMARKS: "function_benchmarks"
+    ASV_FAST_BENCHMARKS: "^fast\\."
   cache:
     key:
       files:
