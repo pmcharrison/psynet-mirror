@@ -508,8 +508,8 @@
       await psynet.hydrateFragmentAssets();
       await psynet.rebuildTrial();
       await psynet.runFragmentScripts(psynet.getMainBodyScripts());
-      await psynet.initActivatedPage();
       await psynet.runFragmentScripts(psynet.getDeferredPageScripts());
+      await psynet.initActivatedPage();
       await psynet.finalizePageReady();
       psynet.nextPagePending = false;
       psynet.setTimelineTransitionBusy(false);
