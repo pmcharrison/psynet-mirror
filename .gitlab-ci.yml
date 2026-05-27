@@ -224,7 +224,7 @@ asv_regression:
     # pipeline it is empty and CI_COMMIT_SHA is itself the source branch tip.
     - export ASV_HEAD="${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}"
     - echo "Comparing benchmark base $ASV_BASE -> head $ASV_HEAD"
-    - echo "Running fast ASV benchmark selector: $ASV_FAST_BENCHMARKS"
+    - 'echo "Running fast ASV benchmark selector: $ASV_FAST_BENCHMARKS"'
     - docker run
       --add-host=postgres:$POSTGRES_IP
       --add-host=redis:$REDIS_IP
