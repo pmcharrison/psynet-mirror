@@ -1198,6 +1198,16 @@
     };
 
     psynet.media.initAudioContext = function () {
+      if (
+        psynet.media.audioContext &&
+        psynet.media.audioContext.state !== "closed"
+      ) {
+        if (psynet.media.audioContext.state === "suspended") {
+          psynet.media.audioContext.resume();
+        }
+        return;
+      }
+
       let context = null;
       if ("webkitAudioContext" in window) context = new webkitAudioContext();
       if ("AudioContext" in window) context = new AudioContext();
