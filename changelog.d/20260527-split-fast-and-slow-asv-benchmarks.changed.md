@@ -1,1 +1,1 @@
-Changed ASV CI so merge requests run only benchmarks under `benchmarks/fast/` as the regression gate, while default-branch CI runs the full benchmark suite with `asv continuous` before publishing results (author: Cursor).
+Changed ASV CI so merge requests run only benchmarks under `benchmarks/fast/` as the regression gate, while default-branch CI runs the full benchmark suite with `asv continuous` before publishing results.
