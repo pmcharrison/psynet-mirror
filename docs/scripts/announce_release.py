@@ -26,151 +26,28 @@ import json
 import os
 import re
 import sys
+from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 CHANNEL = "psynet-support"
 ROOT = Path(__file__).resolve().parents[2]
 CHANGELOG_PATH = ROOT / "CHANGELOG.md"
+ANNOUNCEMENT_GUIDANCE_PATH = ROOT / "SLACK_ANNOUNCEMENT.md"
 
 PRERELEASE_RE = re.compile(r"(rc|a|b)\d+$", re.IGNORECASE)
 RELEASE_HEADING_RE = re.compile(r"^#{1,2} \[.*?\].*$", re.MULTILINE)
 SECTION_HEADING_RE = re.compile(r"^#{2,3} (\w+)$", re.MULTILINE)
 
-INTERNAL_RE = re.compile(
-    "|".join(
-        [
-            # CI / testing / developer tooling
-            r"AGENTS\.md",
-            r"CI[ _]job",
-            r"CI[ _]test",
-            r"CI[ _]config",
-            r"pre-commit",
-            r"Playwright",
-            r"Sphinx",
-            r"GitLab CI",
-            r"Ruff",
-            r"PgBadger",
-            r"pytest",
-            r"bot WebDriver",
-            r"moto",
-            r"S3 emulator",
-            r"performance.test",
-            r"Cursor workflow",
-            r"branch-review",
-            r"CHANGELOG",
-            r"perf_test",
-            r"PerformanceTester",
-            r"demo coverage",
-            r"failure diagnostics",
-            r"bump-my-version",
-            r"\.bumpversion",
-            r"formatting from black",
-            # internal code cleanup / docstrings / types
-            r"docstring",
-            r"type hint",
-            r"@classmethod",
-            r"unreachable code",
-            r"variable shadowing",
-            r"f-string prefix",
-            r"super\(\)",
-            r"quote escaping",
-            r"Unicode typo",
-            r"Removed unused(?! participant)",
-            r"Removed redundant",
-            r"Removed unreachable",
-            r"regression test",
-            r"test code",
-            r"test failure",
-            r"`test_",
-            r"version-checking helper",
-            r"Reformatted",
-            # performance test internals
-            r"WaitPage time",
-            r"AsyncProcess duration",
-            r"trial count stats",
-            r"scaling slowdown",
-            r"requests/sec",
-            r"bot initialization",
-            r"detection and reporting of bots",
-            r"RQ worker count",
-            r"performance-test",
-            r"bot duration",
-            r"bot output",
-            r"tabulate-based",
-            r"ANSI-colored",
-            r"Refactored performance",
-            r"Separated bot",
-            r"Redirected bot",
-            r"Improved performance",
-            # internal utility / helper fixes
-            r"`_Py",
-            r"`get_package",
-            r"`get_locales",
-            r"`check_translations",
-            r"`linspace",
-            r"`format_timedelta",
-            r"`get_fitting_font",
-            r"`pretty_format",
-            r"`S3Storage",
-            r"`NumpySerializer",
-            r"`SVGLogo",
-            r"`os\.path\.remove",
-            r"translation validation",
-            r"translation_contains",
-            r"_experiment_variables",
-            r"pybabel",
-            r"Installed demo dependencies",
-            r"`@local_only",
-            r"`@ci_only",
-            r"docs/scripts",
-            r"documentation navigation",
-            r"documentation builds for",
-            r"strip_url_parameters",
-            r"custom `cache`",
-            r"dict_to_js_vars",
-            # minor cosmetic / wording / docs-only
-            r"Standardized.*capitalization",
-            r"IDE recommendations",
-            r"experiment scripts where they were unused",
-            r"generate_version_switcher",
-            r"Refactored timeline page",
-            r"Updated S3 test",
-            r"Replaced.*S3 emulator",
-            r"Switched docs deployment",
-            r"auto-cancel redundant",
-            r"Expanded Playwright",
-            r"stabilized visual snapshots",
-            r"Disallow PsyNet requirements pinned to master",
-            r"Exported datetimes",
-            r"Suppressed.*DeprecationWarning",
-            r"`CI` environment variable",
-            r"StretchedTimbre",
-            r"Lucid.*error message",
-            r"incorrect Sphinx",
-            r"malformed Sphinx",
-            r"experiment status payload",
-            r"chatroom to Rock",
-            r"websocket support",
-            r"getting started.*section",
-            r"\.vscode",
-            r"demo/docs example",
-            r"async process queue delay",
-            r"Removed.*\bCI\b",
-            r"Removed `dict_to_js_vars`",
-            r"Removed the PgBadger",
-            # internal bugfixes unlikely to affect experiment code
-            r"`generate_text_file`",
-            r"`WorkerAsyncProcess",
-            r"`Notifier`.*memory",
-            r"`Participant\.fail`.*wrong argument",
-            r"resource type mismatch",
-            r"incorrect property name",
-        ]
-    ),
-    re.IGNORECASE,
-)
 
-MAX_ITEMS_PER_SECTION = 10
+@dataclass(frozen=True)
+class AnnouncementGuidance:
+    stable_release_description: str
+    experimenter_summary_intro: str
+    stable_upgrade_instructions: str
+    category_order: list[str]
+    include_re: re.Pattern[str]
+    exclude_re: re.Pattern[str]
 
 
 def is_prerelease(version: str) -> bool:
@@ -179,10 +56,19 @@ def is_prerelease(version: str) -> bool:
 
 def extract_changelog_section(version: str) -> str | None:
     """Return the body of the CHANGELOG section for *version*, or None."""
-    if not CHANGELOG_PATH.exists():
-        return None
+    try:
+        import subprocess
 
-    changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
+        changelog = subprocess.check_output(
+            ["git", "show", f"v{version}:CHANGELOG.md"],
+            cwd=ROOT,
+            text=True,
+        )
+    except Exception:
+        if not CHANGELOG_PATH.exists():
+            return None
+        changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
+
     headings = list(RELEASE_HEADING_RE.finditer(changelog))
 
     for i, match in enumerate(headings):
@@ -209,8 +95,118 @@ def _concise(text: str) -> str:
     return line
 
 
+@lru_cache(maxsize=1)
+def load_announcement_guidance() -> AnnouncementGuidance:
+    """Read Slack summary guidance from ``SLACK_ANNOUNCEMENT.md``."""
+    if not ANNOUNCEMENT_GUIDANCE_PATH.exists():
+        raise FileNotFoundError(
+            f"Missing announcement guidance: {ANNOUNCEMENT_GUIDANCE_PATH}"
+        )
+
+    markdown = ANNOUNCEMENT_GUIDANCE_PATH.read_text(encoding="utf-8")
+    stable_release_description = _markdown_section_text(
+        markdown, "Stable Release Description"
+    )
+    experimenter_summary_intro = _markdown_section_text(
+        markdown, "Experimenter Summary Intro"
+    )
+    stable_upgrade_instructions = _markdown_section_message(
+        markdown, "Stable Upgrade Instructions"
+    )
+    category_order = _markdown_section_items(markdown, "Category Order")
+    include_patterns = _markdown_section_patterns(markdown, "Include Patterns")
+    exclude_patterns = _markdown_section_patterns(markdown, "Exclude Patterns")
+
+    if not include_patterns:
+        raise ValueError("SLACK_ANNOUNCEMENT.md must define include patterns.")
+    if not exclude_patterns:
+        raise ValueError("SLACK_ANNOUNCEMENT.md must define exclude patterns.")
+    if not stable_release_description:
+        raise ValueError(
+            "SLACK_ANNOUNCEMENT.md must define a stable release description."
+        )
+    if not experimenter_summary_intro:
+        raise ValueError(
+            "SLACK_ANNOUNCEMENT.md must define an experimenter summary intro."
+        )
+    if not stable_upgrade_instructions:
+        raise ValueError(
+            "SLACK_ANNOUNCEMENT.md must define stable upgrade instructions."
+        )
+    if not category_order:
+        raise ValueError("SLACK_ANNOUNCEMENT.md must define a category order.")
+
+    return AnnouncementGuidance(
+        stable_release_description=stable_release_description,
+        experimenter_summary_intro=experimenter_summary_intro,
+        stable_upgrade_instructions=stable_upgrade_instructions,
+        category_order=category_order,
+        include_re=_compile_announcement_patterns(include_patterns),
+        exclude_re=_compile_announcement_patterns(exclude_patterns),
+    )
+
+
+def _markdown_section_text(markdown: str, heading: str) -> str:
+    section = _markdown_section(markdown, heading)
+    lines = [
+        line.strip()
+        for line in section.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    return " ".join(lines)
+
+
+def _markdown_section_message(markdown: str, heading: str) -> str:
+    section = _markdown_section(markdown, heading)
+    lines = [
+        line.rstrip()
+        for line in section.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    return "\n".join(lines)
+
+
+def _markdown_section_patterns(markdown: str, heading: str) -> list[str]:
+    section = _markdown_section(markdown, heading)
+    patterns: list[str] = []
+    for line in section.splitlines():
+        match = re.match(r"^-\s+`(.+)`\s*$", line.strip())
+        if match:
+            patterns.append(match.group(1))
+    return patterns
+
+
+def _markdown_section_items(markdown: str, heading: str) -> list[str]:
+    section = _markdown_section(markdown, heading)
+    items: list[str] = []
+    for line in section.splitlines():
+        match = re.match(r"^-\s+(.+?)\s*$", line.strip())
+        if match:
+            items.append(match.group(1))
+    return items
+
+
+def _markdown_section(markdown: str, heading: str) -> str:
+    pattern = re.compile(rf"^## {re.escape(heading)}\s*$", re.MULTILINE)
+    match = pattern.search(markdown)
+    if not match:
+        return ""
+
+    next_heading = re.search(r"^##\s+", markdown[match.end() :], re.MULTILINE)
+    end = match.end() + next_heading.start() if next_heading else len(markdown)
+    return markdown[match.end() : end].strip()
+
+
+def _compile_announcement_patterns(patterns: list[str]) -> re.Pattern[str]:
+    return re.compile(
+        "|".join(f"(?:{pattern})" for pattern in patterns),
+        re.IGNORECASE,
+    )
+
+
 def summarize_for_experimenters(section_body: str) -> str:
     """Condense a CHANGELOG section into experimenter-facing highlights."""
+    guidance = load_announcement_guidance()
     categories: dict[str, list[str]] = {}
     current_category: str | None = None
 
@@ -223,7 +219,9 @@ def summarize_for_experimenters(section_body: str) -> str:
         if current_category and line.startswith("- "):
             entry = line[2:].strip()
             entry = re.sub(r"\s*\(author:.*?\)\.?", "", entry)
-            if not INTERNAL_RE.search(entry):
+            if guidance.include_re.search(entry) and not guidance.exclude_re.search(
+                entry
+            ):
                 categories.setdefault(current_category, []).append(entry)
         elif (
             current_category
@@ -231,29 +229,27 @@ def summarize_for_experimenters(section_body: str) -> str:
             and categories.get(current_category)
         ):
             sub = line.strip()
-            if sub and not sub.startswith("- "):
+            if sub.startswith("- "):
+                sub = sub[2:].strip()
+            if sub:
                 sub = re.sub(r"\s*\(author:.*?\)\.?", "", sub)
                 categories[current_category][-1] += " " + sub
 
-    display_order = ["Added", "Changed", "Fixed", "Removed"]
     parts: list[str] = []
-    for cat in display_order:
+    for cat in guidance.category_order:
         entries = categories.get(cat, [])
         if not entries:
             continue
         parts.append(f"\n*{cat}*")
-        shown = entries[:MAX_ITEMS_PER_SECTION]
-        for entry in shown:
+        for entry in entries:
             parts.append(f"• {_concise(entry)}")
-        remaining = len(entries) - len(shown)
-        if remaining > 0:
-            parts.append(f"_…and {remaining} more in the release notes_")
 
     return "\n".join(parts).strip()
 
 
 def build_blocks(version: str) -> tuple[list[dict], str]:
     """Return (blocks, fallback_text) for a Slack message."""
+    guidance = load_announcement_guidance()
     release_url = f"https://gitlab.com/PsyNetDev/PsyNet/-/releases/v{version}"
     pypi_url = f"https://pypi.org/project/psynet/{version}/"
 
@@ -272,12 +268,15 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
         install = None
     else:
         title = f":tada: PsyNet {version} is out! :rocket:"
-        subtitle = "A new stable release is now available."
+        subtitle = guidance.stable_release_description
         docs_url = "https://psynetdev.gitlab.io/PsyNet/"
+        versioned_docs_url = f"https://psynetdev.gitlab.io/PsyNet/v{version}/"
         notice = None
-        install = "Upgrade with `pip install --upgrade psynet`."
+        install = guidance.stable_upgrade_instructions.format(version=version)
 
     links = f"*PyPI*: {pypi_url}\n*Documentation*: {docs_url}"
+    if not is_prerelease(version):
+        links += f"\n*Versioned documentation*: {versioned_docs_url}"
 
     section = extract_changelog_section(version)
     summary = summarize_for_experimenters(section) if section else ""
@@ -296,9 +295,7 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
     if summary:
         blocks.append({"type": "divider"})
         blocks.append(
-            _mrkdwn_block(
-                f"Here are the key changes relevant for experimenters:\n\n{summary}"
-            )
+            _mrkdwn_block(f"{guidance.experimenter_summary_intro}\n\n{summary}")
         )
         blocks.append(
             _mrkdwn_block(
