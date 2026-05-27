@@ -1918,7 +1918,11 @@ class ModularPage(Page):
 
         css = self.prompt.get_css() + self.control.get_css()
         if "css" in kwargs:
-            css.append(kwargs.pop("css"))
+            extra_css = kwargs.pop("css")
+            if isinstance(extra_css, list):
+                css.extend(extra_css)
+            else:
+                css.append(extra_css)
 
         super().__init__(
             label=label,
