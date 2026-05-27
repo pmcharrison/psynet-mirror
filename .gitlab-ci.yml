@@ -144,16 +144,17 @@ merge_test_results:
     reports:
       junit: junit.xml
 
-# Full ASV suite for default-branch result publishing. This includes slow
-# end-to-end experiment benchmarks because only these runs feed the web log.
+# Full ASV suite for default-branch result publishing and regression checking.
+# Runs `asv continuous` so the previous and current default-branch commits are
+# benchmarked back-to-back on the same runner. Result files are still pushed to
+# the benchmark-results branch before the job propagates any regression failure.
 asv_benchmarks:
   stage: test
   resource_group: benchmark-results
   variables:
     # Full clone: the previous default-branch commit may be unreachable in the
-    # default shallow clone, but we need it as the slow-regression baseline.
+    # default shallow clone, but we need it as the regression baseline.
     GIT_DEPTH: "0"
-    ASV_SLOW_BENCHMARKS: "^slow\\."
     ASV_REGRESSION_FACTOR: "1.25"
   cache:
     key:
@@ -170,11 +171,10 @@ asv_benchmarks:
     - git config user.name "PsyNet CI"
     - git branch -f "$CI_COMMIT_REF_NAME" HEAD
     - 'sed -i "s|\"branches\": \[[^]]*\]|\"branches\": [\"$CI_COMMIT_REF_NAME\"]|" asv.conf.json'
-    - export ASV_REGRESSION_BASE="$(git rev-parse HEAD^1)"
-    - export ASV_REGRESSION_HEAD="$CI_COMMIT_SHA"
-    - export ASV_REGRESSION_BENCH_REGEX="$ASV_SLOW_BENCHMARKS"
-    - 'echo "Checking slow ASV benchmark selector: $ASV_REGRESSION_BENCH_REGEX"'
-    - rm -f .asv/slow-regression-failed
+    - export ASV_BASE="$(git rev-parse HEAD^1)"
+    - export ASV_HEAD="$CI_COMMIT_SHA"
+    - echo "Comparing full ASV benchmark suite $ASV_BASE -> $ASV_HEAD"
+    - rm -f .asv/asv-benchmarks-status
     - |
       set +e
       docker run \
@@ -184,19 +184,14 @@ asv_benchmarks:
         -e CI -e CI_COMMIT_REF_NAME \
         -e PSYNET_WORKSPACE \
         -e ASV_MACHINE_NAME=gitlab-ci \
-        -e ASV_REGRESSION_BASE -e ASV_REGRESSION_HEAD -e ASV_REGRESSION_BENCH_REGEX -e ASV_REGRESSION_FACTOR \
         -v "$PWD:$PSYNET_WORKSPACE" \
         -w $PSYNET_WORKSPACE \
-        $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && uv pip install --no-cache --system asv virtualenv && bash ci/asv-sync-results.sh"
+        $DOCKER_LOCAL_TAG bash -c "uv pip install --no-cache --system --no-deps -e \"$PSYNET_WORKSPACE\" && uv pip install --no-cache --system asv virtualenv && bash ci/asv-sync-results.sh --continuous --factor \"$ASV_REGRESSION_FACTOR\" --split --show-stderr \"$ASV_BASE\" \"$ASV_HEAD\""
       status=$?
       set -e
-      if [ "$status" -eq 2 ]; then
-        touch .asv/slow-regression-failed
-      else
-        exit "$status"
-      fi
+      echo "$status" > .asv/asv-benchmarks-status
     - git push "$ASV_RESULTS_REMOTE" benchmark-results
-    - test ! -f .asv/slow-regression-failed
+    - exit "$(cat .asv/asv-benchmarks-status)"
   artifacts:
     when: on_failure
     paths:

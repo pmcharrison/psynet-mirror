@@ -2,8 +2,9 @@
 # Sync ASV benchmark results with the `benchmark-results` orphan branch.
 #
 # Bootstraps the branch on first run, attaches it as a git worktree at
-# `.asv/results/`, runs `asv run` (forwarding any arguments), commits any
-# new result files back to the branch, then detaches the worktree.
+# `.asv/results/`, runs an ASV command (default: `asv run`, forwarding any
+# arguments), commits any new result files back to the branch, then detaches
+# the worktree.
 #
 # Flags:
 #   --init-only         Ensure the branch exists, then exit.
@@ -12,12 +13,9 @@
 #                       `asv.conf.json` (typically `master`). Generated
 #                       results are NOT committed to `benchmark-results`
 #                       in this mode — use it for local iteration only.
-#
-# Environment:
-#   ASV_REGRESSION_BASE        Optional baseline commit for post-run regression check.
-#   ASV_REGRESSION_HEAD        Optional candidate commit for post-run regression check.
-#   ASV_REGRESSION_BENCH_REGEX Optional benchmark-name regex for the check.
-#   ASV_REGRESSION_FACTOR      Optional regression factor threshold.
+#   --continuous        Run `asv continuous` instead of `asv run`. The ASV exit
+#                       status is preserved, but result files are committed
+#                       before the script exits.
 #
 # Push manually after running: `git push <remote> benchmark-results`.
 set -euo pipefail
@@ -30,11 +28,12 @@ ATTACHED=0
 TMP_CONF=""
 USE_CURRENT_BRANCH=0
 INIT_ONLY=0
+ASV_COMMAND="run"
 
 # shellcheck source=ci/asv-worktree-lib.sh
 source "$(dirname "$0")/asv-worktree-lib.sh"
 
-# Parse our own flags; everything else is forwarded to `asv run`.
+# Parse our own flags; everything else is forwarded to the selected ASV command.
 ASV_RUN_ARGS=()
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -44,6 +43,10 @@ while [ $# -gt 0 ]; do
             ;;
         --current-branch)
             USE_CURRENT_BRANCH=1
+            shift
+            ;;
+        --continuous)
+            ASV_COMMAND="continuous"
             shift
             ;;
         *)
@@ -97,25 +100,13 @@ if [ "$USE_CURRENT_BRANCH" = "1" ]; then
 fi
 
 asv "${ASV_CONF_ARGS[@]}" machine --yes --machine "${ASV_MACHINE_NAME:-$(hostname)}"
-asv "${ASV_CONF_ARGS[@]}" run "${ASV_RUN_ARGS[@]}"
-
-REGRESSION_STATUS=0
-if [ -n "${ASV_REGRESSION_BASE:-}" ] && [ -n "${ASV_REGRESSION_HEAD:-}" ]; then
-    python3 ci/asv-check-regressions.py \
-        --machine "${ASV_MACHINE_NAME:-$(hostname)}" \
-        --bench "${ASV_REGRESSION_BENCH_REGEX:-.*}" \
-        --factor "${ASV_REGRESSION_FACTOR:-1.25}" \
-        "$ASV_REGRESSION_BASE" \
-        "$ASV_REGRESSION_HEAD" || REGRESSION_STATUS=$?
-    if [ "$REGRESSION_STATUS" != "0" ] && [ "$REGRESSION_STATUS" != "2" ]; then
-        exit "$REGRESSION_STATUS"
-    fi
-fi
+ASV_STATUS=0
+asv "${ASV_CONF_ARGS[@]}" "$ASV_COMMAND" "${ASV_RUN_ARGS[@]}" || ASV_STATUS=$?
 
 if [ "$USE_CURRENT_BRANCH" = "1" ]; then
     echo "Skipping commit (--current-branch). Result files were written under $RESULTS_DIR but will not be committed."
     echo "The worktree can only be cleanly removed once those files are deleted; otherwise it will be left in place with a warning."
-    exit "$REGRESSION_STATUS"
+    exit "$ASV_STATUS"
 fi
 
 cd "$RESULTS_DIR"
@@ -127,4 +118,4 @@ else
     echo "No new results to commit"
 fi
 
-exit "$REGRESSION_STATUS"
+exit "$ASV_STATUS"
