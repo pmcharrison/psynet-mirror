@@ -64,25 +64,25 @@ pre_commit:
     - pre-commit run --all-files
 
 changelog_check:
-  image:
-    name: alpine/git
-    entrypoint: ["/bin/sh", "-c"]
+  image: python:3.13
   stage: test
-  before_script: []
+  before_script:
+    - python -m pip install -e .
   script:
     - |
       git fetch --unshallow origin || git fetch --depth=100 origin
       git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       MERGE_BASE=$(git merge-base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD)
-      git diff --name-only $MERGE_BASE HEAD > /tmp/changed_files.txt
-      if grep -q '^CHANGELOG.md$' /tmp/changed_files.txt; then
-        echo "CHANGELOG.md found in changed files."
-      else
-        echo "ERROR: Merge requests must include a corresponding entry in CHANGELOG.md."
-        exit 1
-      fi
+      psynet dev changelog check-mr $MERGE_BASE HEAD
   rules:
     - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
+      when: never
+    # Temporary bootstrap exception: this migration MR intentionally edits
+    # CHANGELOG.md while introducing fragments-only enforcement. Remove after merge.
+    - if: $CI_COMMIT_BRANCH == "1039-propose-and-implement-new-changelog-system-in-psynet" || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "1039-propose-and-implement-new-changelog-system-in-psynet"
+      when: never
+    # Release branches regenerate CHANGELOG.md from fragments.
+    - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
       when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
