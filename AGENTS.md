@@ -218,6 +218,11 @@ Keep the description concise, but include enough context for a reviewer to
 understand the original motivation, the implemented approach, the user-facing
 impact, and the evidence that the change works.
 
+## CLI development
+
+Use Click for new and refactored command-line interfaces, following the
+project's existing command patterns.
+
 ## Testing
 
 Non-trivial code changes should be tested.
