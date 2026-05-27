@@ -1,0 +1,1 @@
+Fixed indentation bug in `GroupBarrier.choose_who_to_release` where only the last participant was added to release list instead of all participants when group is below minimum size (author: Cursor, reviewer: Peter Harrison)
