@@ -4,7 +4,6 @@ import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import Timeline
 
-
 DEFERRED_SCRIPT = """
 window.__psynetDeferredPageScript = {
     scriptExecuted: true,

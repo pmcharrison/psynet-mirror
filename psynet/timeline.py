@@ -19,8 +19,8 @@ from statistics import median
 from types import FunctionType
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Union
 
-from dallinger import db
 from bs4 import BeautifulSoup
+from dallinger import db
 from dominate import tags
 from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
