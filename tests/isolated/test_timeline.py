@@ -83,12 +83,21 @@ def test_partial_script_deferral_replaces_existing_type_attribute():
 def test_partial_body_extraction_uses_named_fragment_wrapper():
     html = """
     <html>
+      <head>
+        <style>.custom-template-style { color: rgb(1, 2, 3); }</style>
+        <style data-psynet-fragment-style="true">.page-api-style { color: rgb(4, 5, 6); }</style>
+        <link rel="stylesheet" href="/static/custom-template.css">
+      </head>
       <body>
         <template><div>outside fragment</div></template>
         <div id="psynet-timeline-fragment">
           <div id="timeline-header"></div>
           <div id="main-body">
             <template><div>inside fragment</div></template>
+            <div id="psynet-fragment-assets">
+              <div id="psynet-page-css-links"></div>
+              <div id="psynet-page-css"></div>
+            </div>
           </div>
           <nav id="footer"></nav>
           <script id="psynet-template-data" type="application/json">{}</script>
@@ -103,6 +112,9 @@ def test_partial_body_extraction_uses_named_fragment_wrapper():
     assert "timeline-header" in fragment
     assert "inside fragment" in fragment
     assert "psynet-template-data" in fragment
+    assert ".custom-template-style" in fragment
+    assert "/static/custom-template.css" in fragment
+    assert ".page-api-style" not in fragment
     assert "outside fragment" not in fragment
     assert "spinner" not in fragment
 

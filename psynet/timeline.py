@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from psynet.asset import Asset
     from psynet.trial.main import TrialNode
 
+import copy
 import inspect
 import json
 import random
@@ -1547,7 +1548,28 @@ class Page(Elt):
             raise ValueError(
                 "Failed to extract partial timeline body: could not find fragment root."
             )
+        Page._copy_head_stylesheet_assets_to_fragment(soup, fragment)
         return fragment.decode_contents()
+
+    @staticmethod
+    def _copy_head_stylesheet_assets_to_fragment(soup, fragment):
+        head = soup.find("head")
+        if head is None:
+            return
+
+        css_container = fragment.find(id="psynet-page-css")
+        if css_container is not None:
+            for style in head.find_all("style", recursive=False):
+                if style.has_attr("data-psynet-fragment-style"):
+                    continue
+                css_container.append(copy.copy(style))
+
+        css_link_container = fragment.find(id="psynet-page-css-links")
+        if css_link_container is not None:
+            for link in head.find_all(
+                "link", rel=lambda value: value and "stylesheet" in value
+            ):
+                css_link_container.append(copy.copy(link))
 
     @property
     def plain_text(self):
