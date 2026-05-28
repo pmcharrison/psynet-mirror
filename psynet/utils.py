@@ -57,7 +57,7 @@ class NoArgumentProvided:
 
 def deep_copy(x):
     try:
-        return jsonpickle.decode(jsonpickle.encode(x))
+        return jsonpickle.decode(jsonpickle.encode(x, keys=True), keys=True)
     except Exception:
         logger.error(f"Failed to copy the following object: {x}")
         raise
