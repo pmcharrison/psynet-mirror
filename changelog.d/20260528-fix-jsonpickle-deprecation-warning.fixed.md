@@ -1,1 +1,1 @@
-Fixed `deep_copy` to pass the `jsonpickle` `keys` option explicitly, avoiding a deprecation warning that could fail tests when warnings are treated as errors.
+Fixed PsyNet's `jsonpickle` usage to pass the `keys` option explicitly, avoiding deprecation warnings that could fail tests when warnings are treated as errors.

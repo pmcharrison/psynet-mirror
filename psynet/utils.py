@@ -338,7 +338,7 @@ def corr(x: list, y: list, method="pearson"):
 
 
 def md5_object(x):
-    string = jsonpickle.encode(x).encode("utf-8")
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
     hashed = hashlib.md5(string)
     return str(hashed.hexdigest())
 
