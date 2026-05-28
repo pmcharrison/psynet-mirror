@@ -5,12 +5,13 @@ const {
   assertInplaceTimelinePathActive,
   clickNextAndWait,
   completeInitialGateway,
+  waitForMainBodyContains,
   withExperiment
 } = require("./psynetHarness");
 
 const STEP_TIMEOUT_MS = 120000;
 
-test("deferred page scripts register trialConstruct handlers before partial page init", async ({
+test("in-place timeline transitions replay page scripts and hydrate page styles", async ({
   page,
   context
 }) => {
@@ -28,13 +29,15 @@ test("deferred page scripts register trialConstruct handlers before partial page
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
-    const marker = experimentPage.locator("#deferred-trial-construct-marker");
-    await expect(marker).toHaveAttribute(
+    const deferredMarker = experimentPage.locator(
+      "#deferred-trial-construct-marker"
+    );
+    await expect(deferredMarker).toHaveAttribute(
       "data-trial-construct-handler-ran",
       "true",
       { timeout: STEP_TIMEOUT_MS }
     );
-    await expect(marker).toContainText("trialConstruct handler ran");
+    await expect(deferredMarker).toContainText("trialConstruct handler ran");
 
     await expect(experimentPage.locator("#deferred-css-marker")).toHaveCSS(
       "color",
@@ -52,5 +55,25 @@ test("deferred page scripts register trialConstruct handlers before partial page
         { timeout: STEP_TIMEOUT_MS }
       )
       .toBe(true);
+
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
+    const stylesheetMarker = experimentPage.locator("#custom-stylesheet-marker");
+    await expect(stylesheetMarker).toContainText("Styled custom template page", {
+      timeout: STEP_TIMEOUT_MS
+    });
+    await expect(stylesheetMarker).toHaveCSS("color", "rgb(12, 34, 56)");
+    await expect(stylesheetMarker).toHaveCSS("border-left-width", "7px");
+    await expect(stylesheetMarker).toHaveCSS("padding-left", "13px");
+
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
+    await waitForMainBodyContains(experimentPage, "Cleanup page", STEP_TIMEOUT_MS);
+    await expect(stylesheetMarker).toContainText("Unstyled cleanup marker", {
+      timeout: STEP_TIMEOUT_MS
+    });
+    await expect(stylesheetMarker).not.toHaveCSS("color", "rgb(12, 34, 56)");
+    await expect(stylesheetMarker).not.toHaveCSS("border-left-width", "7px");
   });
 });
+
