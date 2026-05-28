@@ -1,0 +1,1 @@
+Hardened Playwright demo tests against flaky timeline transitions by replacing brittle exact-count/transient-text assertions with event/baseline waits and tolerant auto-advance handling across audio, graphics, static_audio, imitation_chain_video, and video_feature specs (author: Marco)

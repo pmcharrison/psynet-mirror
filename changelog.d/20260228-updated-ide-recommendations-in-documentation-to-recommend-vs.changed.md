@@ -1,0 +1,1 @@
+Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)

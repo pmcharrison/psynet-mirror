@@ -1,0 +1,1 @@
+Removed unused participant scope aliases (`participant.globals`, `participant.locals`) and stopped flattening module-local variables into `Participant.to_dict()` exports; these removed APIs now raise explicit runtime errors with replacement guidance to use `participant.var` or `participant.module_state.var`

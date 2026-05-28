@@ -1,0 +1,1 @@
+Avoid duplicate GitLab CI pipelines on branches with an open MR by adding a `workflow:rules` block that suppresses the branch pipeline in that case; branch pipelines still run when no MR is open, and master/tag pipelines are unaffected (author: Frank Höger)
