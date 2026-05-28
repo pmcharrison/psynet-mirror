@@ -1,1 +1,0 @@
-Fixed incorrect property name `self.job` in `WorkerAsyncProcess.cancel` that should be `self.redis_job`, which would cause an `AttributeError` when trying to cancel an async process (author: Cursor, reviewer: Peter Harrison)

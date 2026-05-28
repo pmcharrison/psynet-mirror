@@ -1,1 +1,0 @@
-Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
