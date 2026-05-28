@@ -200,7 +200,7 @@ mdurl==0.1.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v12.2.0/dev-requirements.txt
     #   markdown-it-py
-more-itertools==11.1.0
+more-itertools==10.7.0
     # via music21
 music21==9.1.0
     # via -r requirements.txt
@@ -261,7 +261,7 @@ pluggy==1.6.0
     #   pytest
 polib==1.2.0
     # via psynet
-praat-parselmouth==0.4.7
+praat-parselmouth==0.4.6
     # via sing4me
 progress==1.6.1
     # via psynet
