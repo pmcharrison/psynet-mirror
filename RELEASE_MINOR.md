@@ -91,11 +91,10 @@ git commit -m "Update CHANGELOG for version 13.2.0"
 
 ### 3. Bump the version
 
-Update the version string in three files:
+Update the version string in two files:
 
 | File | Field |
 | --- | --- |
-| `.bumpversion.toml` | `current_version` |
 | `psynet/version.py` | `psynet_version` |
 | `pyproject.toml` | `version` |
 
@@ -103,7 +102,7 @@ Change all occurrences from the alpha version (e.g. `13.2.0a0`) to the
 release version (e.g. `13.2.0`). Then commit:
 
 ```bash
-git add .bumpversion.toml psynet/version.py pyproject.toml
+git add psynet/version.py pyproject.toml
 git commit -m "Bump version to 13.2.0"
 ```
 
@@ -320,13 +319,20 @@ git pull origin master
 git checkout -b bump-master-post-release
 ```
 
-Update the version in three files from `13.2.0` to `13.3.0a0`. New changes
-on `master` should be recorded as fragments in `changelog.d/`.
-
-Then commit and open a MR:
+Update the version in both version files from `13.2.0` to `13.3.0a0`.
+Then regenerate demo and test experiment files so `master` demos track the
+current alpha version:
 
 ```bash
-git add .bumpversion.toml psynet/version.py pyproject.toml
+python3 demos/update_demos.py
+```
+
+New changes on `master` should be recorded as fragments in `changelog.d/`.
+
+Then commit the version bump and generated demo/test updates, and open a MR:
+
+```bash
+git add -A
 git commit -m "Bump version to 13.3.0a0"
 git push --set-upstream origin bump-master-post-release
 ```
@@ -335,7 +341,7 @@ git push --set-upstream origin bump-master-post-release
 > `bump-master-post-release` MR before it is merged.
 
 Merge this MR promptly before any new feature branches land, so the version
-on `master` stays aligned with the CHANGELOG.
+and generated demo/test files on `master` stay aligned with the CHANGELOG.
 
 ## Release candidates (optional)
 
@@ -380,11 +386,11 @@ git commit -m "Update CHANGELOG for version 13.2.0rc0"
 
 #### 2. Bump the version to `13.2.0rc0`
 
-Update `.bumpversion.toml`, `psynet/version.py`, and `pyproject.toml` from
-`13.2.0a0` to `13.2.0rc0`. Then commit:
+Update `psynet/version.py` and `pyproject.toml` from `13.2.0a0` to
+`13.2.0rc0`. Then commit:
 
 ```bash
-git add .bumpversion.toml psynet/version.py pyproject.toml
+git add psynet/version.py pyproject.toml
 git commit -m "Bump version to 13.2.0rc0"
 ```
 
@@ -560,10 +566,10 @@ RC by repeating the same four-commit sequence with the next RC number
    git commit -m "Update CHANGELOG for version 13.2.0rc1"
    ```
 
-2. Bump version to `13.2.0rc1` in the three version files.
+2. Bump version to `13.2.0rc1` in both version files.
 
    ```bash
-   git add .bumpversion.toml psynet/version.py pyproject.toml
+   git add psynet/version.py pyproject.toml
    git commit -m "Bump version to 13.2.0rc1"
    ```
 
@@ -600,8 +606,8 @@ Once the latest RC has been validated and no further changes are needed:
    Then review the generated/folded section and remove any now-empty
    intermediate RC headings.
 
-2. Bump the version from `13.2.0rcN` to `13.2.0` in `.bumpversion.toml`,
-   `psynet/version.py`, and `pyproject.toml`.
+2. Bump the version from `13.2.0rcN` to `13.2.0` in `psynet/version.py`
+   and `pyproject.toml`.
 
 3. Run `python3 demos/update_demos.py`.
 
@@ -628,9 +634,8 @@ If this release upgrades the Dallinger dependency:
 
 ## Version files reference
 
-The version is tracked in three files, all updated together:
+The version is tracked in two files, both updated together:
 
-- **`.bumpversion.toml`** — `current_version` field
 - **`psynet/version.py`** — `psynet_version` variable
 - **`pyproject.toml`** — `version` field under `[project]`
 
@@ -643,3 +648,4 @@ The version is tracked in three files, all updated together:
   - `Update CHANGELOG for version X.Y.Z`
   - `Bump version to X.Y.Z`
   - `Update demo and test experiments for PsyNet X.Y.Z`
+
