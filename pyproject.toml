@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "psynet"
-version = "13.2.0a0"
+version = "13.2.0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -70,7 +70,6 @@ dependencies = [
 dev = [
     "asv",
     "beautifulsoup4",
-    "bump-my-version",
     "google-cloud-translate",
     "openai",
     "pre-commit",
