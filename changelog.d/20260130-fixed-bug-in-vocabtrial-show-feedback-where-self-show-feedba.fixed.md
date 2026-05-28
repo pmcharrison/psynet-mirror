@@ -1,1 +1,0 @@
-Fixed bug in `VocabTrial.show_feedback` where `self.show_feedback` (the method) was checked instead of `self.trial_maker.show_feedback` (the boolean attribute), causing feedback to be shown even when disabled (author: Cursor, reviewer: Peter Harrison).

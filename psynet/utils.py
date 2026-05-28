@@ -57,7 +57,7 @@ class NoArgumentProvided:
 
 def deep_copy(x):
     try:
-        return jsonpickle.decode(jsonpickle.encode(x))
+        return jsonpickle.decode(jsonpickle.encode(x, keys=True), keys=True)
     except Exception:
         logger.error(f"Failed to copy the following object: {x}")
         raise
@@ -338,7 +338,7 @@ def corr(x: list, y: list, method="pearson"):
 
 
 def md5_object(x):
-    string = jsonpickle.encode(x).encode("utf-8")
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
     hashed = hashlib.md5(string)
     return str(hashed.hexdigest())
 

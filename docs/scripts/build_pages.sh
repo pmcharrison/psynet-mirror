@@ -2,30 +2,31 @@
 # Build the multi-version PsyNet docs site for GitLab Pages publishing.
 #
 # Modes (selected by CI environment):
-# - Branch pipeline (no $CI_COMMIT_TAG): full rebuild — highest stable to
-#   public/, selected (major,minor) tags to public/<tag>/, master HEAD to
-#   public/alpha/, and the latest active prerelease (an rc/a tag whose
-#   base version has not yet shipped stable) to public/rc/<tag>/. Stale
-#   public/rc/<other>/ subdirs are removed so the site never advertises
-#   a release candidate whose base version has since shipped as a final
-#   release.
-# - Prerelease tag pipeline ($CI_COMMIT_TAG matches vX.Y.Z(rc|a)N): adds
-#   a single subdirectory at public/rc/<tag>/ for the tagged docs.
+# - Default-branch pipeline (no $CI_COMMIT_TAG): rebuild default-branch HEAD to
+#   public/alpha/.
+# - Prerelease tag pipeline ($CI_COMMIT_TAG matches vX.Y.Z(rc|a)N): adds a
+#   single subdirectory at public/rc/<tag>/ for the tagged docs and removes
+#   older prerelease docs for the same base version.
+# - Stable tag pipeline ($CI_COMMIT_TAG matches vX.Y.Z): builds the tagged
+#   release into public/<tag>/, updates public/ when the tag is the highest
+#   stable release, and removes stale prerelease docs for that base.
 #
-# Both modes end by syncing the latest version_switcher.json into every
+# All modes end by syncing the latest version_switcher.json into every
 # public/**/_static/version_switcher.json so cached subdirs whose HTML
 # predates the absolute-URL switch still pick up new entries.
 #
 # Required environment:
 #   CI_DEFAULT_BRANCH  (default: master)
 # Optional environment:
-#   CI_COMMIT_TAG      (when set to vX.Y.Z(rc|a)N, switches to tag mode)
+#   CI_COMMIT_TAG      (when set to vX.Y.Z or vX.Y.Z(rc|a)N, switches to tag mode)
 
 set -euo pipefail
 
 ALPHA_REF="${CI_DEFAULT_BRANCH:-master}"
 SWITCHER_JSON="docs/_static/version_switcher.json"
 SCRIPT="docs/scripts/generate_version_switcher.py"
+STABLE_TAG_RE='^v[0-9]+\.[0-9]+\.[0-9]+$'
+PRERELEASE_TAG_RE='^v[0-9]+\.[0-9]+\.[0-9]+(rc|a)[0-9]+$'
 
 pip install -e '.[dev]'
 pip install furo pydata-sphinx-theme
@@ -47,51 +48,81 @@ build_docs_from_ref() {
     git worktree remove --force "$worktree_dir"
 }
 
+build_alpha_docs() {
+    local alpha_version
+    alpha_version=$(python "$SCRIPT" --default-branch "$ALPHA_REF" --print-alpha-version)
+    build_docs_from_ref "origin/$ALPHA_REF" "public/alpha" "$alpha_version"
+}
+
+build_stable_tag_docs() {
+    local tag="$1"
+    local highest_stable
+    highest_stable=$(python "$SCRIPT" --print-highest-stable)
+
+    rm -rf "public/$tag"
+    build_docs_from_ref "$tag" "public/$tag" "$tag"
+
+    if [ "$tag" = "$highest_stable" ]; then
+        cp -a "public/$tag"/. public/
+    fi
+}
+
+prerelease_base_tag() {
+    local tag="$1"
+    if [[ "$tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)(rc|a)[0-9]+$ ]]; then
+        echo "${BASH_REMATCH[1]}"
+    else
+        echo "$tag"
+    fi
+}
+
+remove_prerelease_docs_for_base() {
+    local base_tag="$1"
+    local keep_tag="${2:-}"
+    local rc_dir
+
+    if [ ! -d public/rc ]; then
+        return
+    fi
+
+    for rc_dir in public/rc/"$base_tag"rc* public/rc/"$base_tag"a*; do
+        if [ ! -d "$rc_dir" ]; then
+            continue
+        fi
+        if [ -n "$keep_tag" ] && [ "$(basename "$rc_dir")" = "$keep_tag" ]; then
+            continue
+        fi
+        rm -rf "$rc_dir"
+    done
+}
+
 mkdir -p public
 
-if [ -n "${CI_COMMIT_TAG:-}" ]; then
-    # Prerelease tag pipeline: build only the tagged docs.
+if [[ "${CI_COMMIT_TAG:-}" =~ $PRERELEASE_TAG_RE ]]; then
+    # Prerelease tag pipeline: build the tagged RC docs.
+    latest_rc=$(python "$SCRIPT" --print-latest-rc-tag)
+    if [ "$CI_COMMIT_TAG" != "$latest_rc" ]; then
+        echo "Skipping stale prerelease docs tag: $CI_COMMIT_TAG (latest active: ${latest_rc:-none})"
+        exit 0
+    fi
+    remove_prerelease_docs_for_base "$(prerelease_base_tag "$CI_COMMIT_TAG")" "$CI_COMMIT_TAG"
     build_docs_from_ref \
         "$CI_COMMIT_TAG" \
         "public/rc/$CI_COMMIT_TAG" \
         "$CI_COMMIT_TAG"
+elif [[ "${CI_COMMIT_TAG:-}" =~ $STABLE_TAG_RE ]]; then
+    # Stable tag pipeline: build the tagged stable docs.
+    build_stable_tag_docs "$CI_COMMIT_TAG"
+    remove_prerelease_docs_for_base "$CI_COMMIT_TAG"
+elif [ -n "${CI_COMMIT_TAG:-}" ]; then
+    echo "Unsupported docs tag format: $CI_COMMIT_TAG" >&2
+    exit 1
+elif [ "${CI_COMMIT_BRANCH:-}" = "$ALPHA_REF" ]; then
+    # Default-branch pipeline: rebuild alpha docs from the default branch only.
+    build_alpha_docs
 else
-    # Branch pipeline: full rebuild of stable + alpha.
-    HIGHEST_STABLE=$(python "$SCRIPT" --print-highest-stable)
-    SELECTED_STABLE_TAGS=$(python "$SCRIPT" --print-selected-stable-tags)
-    ALPHA_VERSION=$(python "$SCRIPT" --default-branch "$ALPHA_REF" --print-alpha-version)
-
-    root_tmp_dir=$(mktemp -d)
-    build_docs_from_ref "$HIGHEST_STABLE" "$root_tmp_dir" "$HIGHEST_STABLE"
-    cp -a "$root_tmp_dir"/. public/
-    rm -rf "$root_tmp_dir"
-
-    for version_tag in $SELECTED_STABLE_TAGS; do
-        if [ -f "public/$version_tag/index.html" ]; then
-            echo "Skipping rebuild for existing version: $version_tag"
-            continue
-        fi
-        build_docs_from_ref "$version_tag" "public/$version_tag" "$version_tag"
-    done
-
-    # Latest active prerelease (empty if every prerelease's base version
-    # has already shipped as stable). Build it into public/rc/<tag>/, and
-    # drop any stale public/rc/<other>/ subdirs left in the cache so the
-    # site only ever advertises a currently-pending release candidate.
-    LATEST_RC=$(python "$SCRIPT" --print-latest-rc-tag)
-    if [ -d public/rc ]; then
-        if [ -z "$LATEST_RC" ]; then
-            rm -rf public/rc
-        else
-            find public/rc -mindepth 1 -maxdepth 1 -type d \
-                ! -name "$LATEST_RC" -exec rm -rf {} +
-        fi
-    fi
-    if [ -n "$LATEST_RC" ] && [ ! -f "public/rc/$LATEST_RC/index.html" ]; then
-        build_docs_from_ref "$LATEST_RC" "public/rc/$LATEST_RC" "$LATEST_RC"
-    fi
-
-    build_docs_from_ref "origin/$ALPHA_REF" "public/alpha" "$ALPHA_VERSION"
+    echo "Unsupported docs branch: ${CI_COMMIT_BRANCH:-<unset>}" >&2
+    exit 1
 fi
 
 # Sync version_switcher.json into every existing _static directory.
