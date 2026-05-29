@@ -198,10 +198,6 @@ class RejectedConsentLogic(UnsuccessfulEndLogic):
                 participant=participant, reason="consent-rejected"
             )
 
-    def after_debrief(self, experiment, participant):
-        super().after_debrief(experiment, participant)
-        participant.fail()
-
     def debrief_participant(self, experiment, participant) -> TimelineLogic:
         _ = get_translator()
         _p = get_translator(context=True)

@@ -2,6 +2,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 
 const {
+  clickConsentButton,
   clickNextAndWait,
   completeInitialGateway,
   captureTrialEventBaseline,
@@ -79,6 +80,7 @@ async function clickConsentButton(page, timeout = STEP_TIMEOUT_MS) {
   await page.waitForFunction(() => window.psynet?.pageLoaded === true, { timeout });
   await consentButton.click();
 }
+
 
 async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
   // Explicit deterministic startup sequence for audio demo:
