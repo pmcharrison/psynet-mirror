@@ -79,24 +79,28 @@ which allows to switch between different data sheets.
    (like pd.read_json(url)) to load the live data into a dataframe
    and run your custom sanity checks.
 
+   Treat the generated Data URL as sensitive if it contains dashboard
+   credentials. Do not commit it to your repository or share it in Slack,
+   notebooks, or logs. One safer pattern is to store it temporarily in an
+   environment variable while running your local analysis script.
+
 -  R Example:
 
    .. code:: r
 
       library(jsonlite)
 
-      url <-
-      "http://127.0.0.1:5000/basic_data?dashboard_user=cap&dashboard_password=capcapcap2021!"
-
+      url <- Sys.getenv("PSYNET_BASIC_DATA_URL")
       df <- fromJSON(url)
 
 -  Python Example:
 
    .. code:: python
 
+      import os
       import pandas as pd
 
-      url = "http://127.0.0.1:5000/basic_data?dashboard_user=cap&dashboard_password=capcapcap2021!"
+      url = os.environ["PSYNET_BASIC_DATA_URL"]
       df = pd.read_json(url)
 
 .. image:: /_static/images/lab_deployments/image25.png

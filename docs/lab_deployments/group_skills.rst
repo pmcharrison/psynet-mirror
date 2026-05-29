@@ -3,7 +3,7 @@ Group Skills
 
 
 How to investigate errors?
-------------
+--------------------------
 
 When programming, it frequently happens that you can get stuck. It is
 okay to ask colleagues for help, but you should avoid asking questions
@@ -112,9 +112,9 @@ colleagues.
    However, it’s a thin balance between wasting group members time
    and being stuck on a problem for too long. As a rule of thumb, if
    you are stuck on the same problem for more than an hour, you need
-   help. But make sure you did all possible steps to look and find
-   the cause of the problem, see `previous
-   section <setting_up_the_experiments.html#how-to-investigate-errors>`__.
+   help. But make sure you did all possible steps to look for and
+   identify the cause of the problem, as described in the previous
+   section above.
 
 -  **Be detailed.** Make sure you have identified the location of your
    problem. Avoid making wild claims, e.g. say the error occurs in

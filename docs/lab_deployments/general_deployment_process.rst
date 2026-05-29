@@ -33,11 +33,6 @@ Experiments follow a relatively fixed lifecycle.
 -  `Teardown <teardown.html>`__: If you used an EC2 server, turn it off
    when you are done.
 
--  `Report & Deposit <report_and_deposit.html#report-deposit>`__: Report
-   experiment details such as cost, duration, and participant count, then
-   deposit the collected data. This procedure is still under
-   construction and may change.
-
 .. image:: /_static/images/lab_deployments/image7.png
    :width: 8.5in
 

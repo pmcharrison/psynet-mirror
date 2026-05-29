@@ -109,7 +109,8 @@ Additional manual export (large assets)
 
 .. code:: bash
 
-   scp -p 22 ubuntu@<SERVER_URL>:/home/ubuntu/namefile.tar.gz ~/Downloads
+   scp -P 22 ubuntu@<SERVER_URL>:/home/ubuntu/namefile.tar.gz ~/Downloads
 
-   to download the tar.gz file to your local Downloads folder (replace
-   <SERVER_URL> by your servers URL)
+This downloads the ``.tar.gz`` file to your local ``Downloads`` folder.
+Replace ``<SERVER_URL>`` with your server's URL. If your server uses
+the default SSH port, you can omit ``-P 22``.

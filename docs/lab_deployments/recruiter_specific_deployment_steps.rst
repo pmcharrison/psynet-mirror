@@ -16,17 +16,18 @@ recommendation).
 
 .. code:: python
 
-   "wage_per_hour": 9
+   config = {
+       "wage_per_hour": 9,
+   }
 
 2. Run psynet estimate in the terminal and note your estimated
 experiment duration and cost. You should include the cost and the
-duration in your experiment’s title Also, say people need Chrome and
+duration in your experiment’s title. Also, say people need Chrome and
 optionally headphones and microphones if needed.
 
-3. In the get_prolific_settings() <#experiment-script>`__
-function, specify the duration using the
-"prolific_estimated_completion_minutes" parameter and the cost using the
-"base_payment" parameter.
+3. In the ``get_prolific_settings()`` function, specify the duration
+   using the ``prolific_estimated_completion_minutes`` parameter and
+   the cost using the ``base_payment`` parameter.
 
 - For example, when you run ``psynet estimate``, you will get a result
   like this:
@@ -40,8 +41,10 @@ function, specify the duration using the
 
 .. code:: python
 
-   "base_payment": 4.95
-   "prolific_estimated_completion_minutes": 33
+   config = {
+       "base_payment": 4.95,
+       "prolific_estimated_completion_minutes": 33,
+   }
 
 4. Make sure all ``time_estimate`` values are set appropriately so
 that the overall duration from ``psynet estimate`` matches your
@@ -118,10 +121,13 @@ https://psynetdev.gitlab.io/PsyNet/experiment_development/configuration.html
 
 Then, you will need to add the function get_prolific_settings() to set
 up config parameters specifically pertaining to Prolific. Add this
-function at the top of your project (you can find
-qualification_prolific.json in the CAP-safe):
+function at the top of your project. Your lab administrator should
+provide the Prolific qualification JSON file:
 
 .. code:: python
+
+   import json
+
 
    def get_prolific_settings():
        with open("qualification_prolific_en.json", "r") as f:
@@ -129,8 +135,8 @@ qualification_prolific.json in the CAP-safe):
 
        return {
            "recruiter": "prolific",
-           "base_payment": <base payment in currency>,  # based on survey minutes
-           "prolific_estimated_completion_minutes": <estimated completion time>,
+           "base_payment": 4.95,  # based on survey minutes
+           "prolific_estimated_completion_minutes": 33,
            "prolific_recruitment_config": qualification,
            "auto_recruit": False,
            "currency": "£",
@@ -470,7 +476,7 @@ Set the following parameters:
 
 .. code:: python
 
-from psynet.recruiters import get_lucid_settings
+   from psynet.recruiters import get_lucid_settings
 
    recruiter_settings = get_lucid_settings(
        lucid_recruitment_config_path=LUCID_CONFIG_PATH,
