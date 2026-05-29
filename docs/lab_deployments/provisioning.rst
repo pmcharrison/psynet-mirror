@@ -264,44 +264,7 @@ Advanced users: create custom instances
 
 For certain use cases, such as setting up your own synthesis server, you
 may want to programmatically configure a custom EC2 server. This is an
-advanced feature and is typically not necessary for most users. Below,
-we provide an initial guide on how to implement this:
-
-.. code:: python
-
-   from cap.docker.ec2 import prepare_instance
-   import argparse
-
-   parser = argparse.ArgumentParser(description="Synthesize a stimulus")
-   parser.add_argument("--name", type=str, help="Instance name", required=True)
-   parser.add_argument("--region", type=str, help="Region name", default="eu-central-1")
-   parser.add_argument("--type", type=str, help="Instance type", default="m5.2xlarge")
-   parser.add_argument("--storage", type=int, help="Storage in GB", default=32)
-   parser.add_argument("--key", type=str, help="Key name", default="cap")
-   parser.add_argument(
-       "--image",
-       type=str,
-       help="Image name",
-       default="ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20230516",
-   )
-   parser.add_argument("--security", type=str, help="Security group name", default="cap")
-
-   args = parser.parse_args()
-
-   def callback(host, user, ip_address, executor):
-       # TODO implement what you want to do with the instance
-       pass
-
-   prepare_instance(
-       instance_name=args.name,
-       region_name=args.region,
-       instance_type=args.type,
-       storage_in_gb=args.storage,
-       key_name=args.key,
-       image_name=args.image,
-       security_group_name=args.security,
-       callback=callback,
-   )
-
-This advanced workflow requires more programming and infrastructure
-experience than the standard provisioning command.
+advanced workflow that depends on your lab's infrastructure and should
+be documented in your lab's internal deployment documentation. Most
+experiments should use the standard provisioning command described
+above.

@@ -1,3 +1,5 @@
+:orphan:
+
 **Batch Automation for Massive Deployments**
 ============================================
 
@@ -31,4 +33,4 @@ variables found within each Python file before running them. Please
 check each file for details.
 
 These example scripts can be found and downloaded from the repo
-cococo-shared-files <https://gitlab.com/cococo-shared/cococo-shared-files/-/tree/master/deployment/massive_deployment?ref_type=heads>`__.`
+your lab's shared deployment repository.

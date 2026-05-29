@@ -184,7 +184,7 @@ prolific_project = <YOUR_PROJECT_FOLDER>
    :width: 8.5in
 
 -  You should create a project folder for your experiments. Please use
-   your own name. For example: ‘Elif Experiments’
+   your own name. For example: ``Your Name Experiments``.
 
 .. image:: /_static/images/lab_deployments/image13.png
    :width: 8.5in
@@ -232,8 +232,8 @@ the recruitment size to the total number of participants you are looking
 to recruit (plus a few more to be safe, if you have a prescreener) and
 scrolling down to the “Study Cost” section and finding the total. This
 includes the Prolific service fee. **Check whether there is enough
-unclaimed money in the Prolific account (if not, contact to the responsible person about
-this).
+unclaimed money in the Prolific account. If not, contact the responsible person about
+this.**
 
 .. image:: /_static/images/lab_deployments/image52.png
    :width: 8.5in
@@ -502,8 +502,8 @@ Setting Qualifications Automatically
 
 
 CINT provides a standard qualification library and also supports custom qualifications.
-However, custom qualifications are specific to each CINT account and may not be available across deployments
-(Please check CAP Lab Configuration for lab-specific qualifications).
+However, custom qualifications are specific to each CINT account and may not be available across deployments.
+Check your lab's internal deployment documentation for any account-specific custom qualifications.
 
 Standard CINT Qualifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -619,7 +619,7 @@ You can optionally restrict which qualifications are shown:
 -----------------------------------
 
 Summary Steps for Setting CINT Qualifications:
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. Use ``psynet lucid locale`` to retrieve available language/country tags
 2. Create a JSON qualification file that, for example, includes the ``HAS_AUDIO`` qualification.
@@ -632,6 +632,7 @@ Summary Steps for Setting CINT Qualifications:
    COUNTRY = "NL"  # lucid country code, not always ISO country code
    LOCALE = "nl"  # ISO-2 code for experiment language
    LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
+
 4. Implement front-end verification for participant validation if necessary
 
 
@@ -905,9 +906,8 @@ min.”
 Consent
 ^^^^^^^
 
-You can choose the consent while creating the group. Currently we are
-using ‘Cornell University’. Please contact if you want to create your own consent
-form.
+You can choose the consent while creating the group. Contact your lab
+administrator if you want to create or use a custom consent form.
 
 .. image:: /_static/images/lab_deployments/image1.png
    :width: 8.5in

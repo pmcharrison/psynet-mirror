@@ -28,7 +28,7 @@ For example in this stack trace the last line is most relevant:
 .. code:: text
 
    INFO:root:Compiling translation file on demand
-   /Users/jakobnieder/Documents/MPI-frank/colours/color-naming_proj/color-naming/locales/el/LC_MESSAGES/experiment.po.
+   /Users/experimenter/Documents/projects/color-naming/locales/el/LC_MESSAGES/experiment.po.
 
    Traceback (most recent call last):
      File "/opt/homebrew/Caskroom/miniforge/base/envs/psynet/bin/psynet", line 8, in <module>
@@ -99,7 +99,7 @@ colleagues.
 
 -  **Make sure you write in a public channel** i.e. #psynet-support if
    it concerns psynet, #online-experiments if it considers online
-   experiments (including CAP, internal package), or #programming if
+   experiments (including internal deployment tooling), or #programming if
    it is a general question. *Do not send direct messages to people
    to ask for help.* Your replies and solutions cannot be found by
    other group members. Also, this will allow all group members to

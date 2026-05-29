@@ -1,3 +1,5 @@
+:orphan:
+
 Massive Deployments – Deploying Multiple Experiments in Parallel
 ================================================================
 
@@ -177,8 +179,9 @@ updates to the deployments channel.
 
 1. **Join the Channel**
 
-   The PsyNet Bot reports to the central channel. Ask Elif to add you to
-   the ``#deployments`` channel to receive notifications.
+   The PsyNet Bot reports to the central channel. Ask your lab
+   administrator to add you to the ``#deployments`` channel to receive
+   notifications.
 
 2. **Update the config in experiment.py**
 
@@ -198,7 +201,7 @@ updates to the deployments channel.
 
       [Slack]
       slack_channel_name = deployments
-      slack_bot_token = <see cap safe>
+      slack_bot_token = <your-slack-bot-token>
       experimenter_name = <your name>
 
    .. note::

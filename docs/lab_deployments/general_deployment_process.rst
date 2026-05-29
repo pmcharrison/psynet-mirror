@@ -50,7 +50,7 @@ We recommend the following procedure:
 -  Define the question you want to answer and design an experiment that
    addresses it.
 
--  Get feedback from collaborators, group members, and Nori.
+-  Get feedback from collaborators and group members.
 
 -  Once you settle on an idea, look for a PsyNet demo that implements
    some of the relevant components. You may need building blocks from
