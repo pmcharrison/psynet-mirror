@@ -20,6 +20,12 @@ from joblib import Parallel, delayed
 from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
 from psynet.version import psynet_version, recommended_dallinger_major_minor
 
+SOURCE_CHECKOUT_PATHS = (
+    Path("psynet/resources/experiment_scripts/Dockerfile"),
+    Path("psynet/resources/experiment_scripts/docker/generate-constraints"),
+    Path("demos"),
+)
+
 
 def main() -> int:
     """Run the argparse-based entry point used by the compatibility wrapper."""
@@ -60,6 +66,7 @@ def parse_args() -> argparse.Namespace:
 
 def update_command(n_jobs=8, skip_constraints_=None) -> int:
     """Update bundled demo files from the current PsyNet source checkout."""
+    assert_demos_available()
     skip_constraints = (
         bool(os.getenv("SKIP_CONSTRAINTS"))
         if skip_constraints_ is None
@@ -86,6 +93,17 @@ def update_command(n_jobs=8, skip_constraints_=None) -> int:
         for _dir in list_experiment_dirs()
     )
     return 0
+
+
+def assert_demos_available() -> None:
+    """Fail fast when not running from a PsyNet source checkout."""
+    missing_paths = [path for path in SOURCE_CHECKOUT_PATHS if not path.exists()]
+    if missing_paths:
+        raise ValueError(
+            "Run from a PsyNet source checkout: "
+            + ", ".join(str(path) for path in missing_paths)
+            + " must exist in the current directory."
+        )
 
 
 def get_latest_dallinger_patch_version(major_minor_version):

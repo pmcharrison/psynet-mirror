@@ -145,6 +145,18 @@ class TestCommandLine(object):
         assert "--skip-constraints" in result.output
         assert "--jobs" in result.output
 
+    def test_dev_update_demos_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(
+                psynet, ["dev", "demos", "update", "--skip-constraints"]
+            )
+
+        assert result.exit_code != 0
+        assert "Run from a PsyNet source checkout" in result.output
+
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
         output = subprocess.check_output(
