@@ -14,7 +14,7 @@ For example:
 
 .. code:: bash
 
-   psynet export ssh --app color-exp --server <your-subdomain>.<your-domain> --path /Users/elif.celen/Experiments/color
+   psynet export ssh --app color-exp --server <your-subdomain>.<your-domain> --path ~/Experiments/color
 
 Export script
 -------------

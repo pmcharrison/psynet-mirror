@@ -216,7 +216,7 @@ payment parameters! Also check whether the formatting of the description
 is as intended.
 
 Here, you should set the internal name to “<your name> -
-<keyword/phrase>” (e.g. “ofer - coin game”). This is not visible to
+<keyword/phrase>” (e.g. “your-name - short-experiment-name”). This is not visible to
 participants. This will help us identify who each study belongs to,
 especially when sorting through messages from participants.
 
