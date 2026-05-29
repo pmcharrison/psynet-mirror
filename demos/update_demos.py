@@ -70,6 +70,14 @@ skip_constraints = False
 latest_dallinger_patch_version = None
 
 
+def use_master_psynet_reference():
+    """Use the master branch for demos that should track unreleased alpha code."""
+    return (
+        current_git_branch() == "master"
+        or re.search(r"a[0-9]+$", psynet_version) is not None
+    )
+
+
 def update_demo(dir):
     update_scripts(dir)
     if not skip_constraints:
@@ -103,7 +111,7 @@ def pre_update_constraints(dir):
                 r"psynet==([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
             )
             replacement_requirement = f"psynet@git+https://gitlab.com/PsyNetDev/PsyNet@{commit_hash}#egg=psynet"
-            if current_git_branch() == "master":
+            if use_master_psynet_reference():
                 replacement_requirement = (
                     "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
                 )
@@ -121,10 +129,8 @@ def pre_update_constraints(dir):
 
 def post_update_constraints(dir, commit_hash_master):
     with working_directory(dir):
-        current_branch = current_git_branch()
-
         # Determine the correct psynet requirement for constraints.txt based on branch
-        if current_branch == "master":
+        if use_master_psynet_reference():
             psynet_constraint = (
                 "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master"
             )
@@ -145,7 +151,7 @@ def post_update_constraints(dir, commit_hash_master):
                 # Matches e.g. "psynet==13.0.0rc2"
                 updated_line = re.sub(
                     r"^psynet==[^\s]+",
-                    f"psynet=={psynet_version}",
+                    psynet_constraint,
                     updated_line,
                 )
 
@@ -170,11 +176,9 @@ def post_update_constraints(dir, commit_hash_master):
 
 def update_psynet_requirement(dir):
     with working_directory(dir):
-        current_branch = current_git_branch()
-
         # Determine the correct psynet requirement based on branch
-        if current_branch == "master":
-            # On master branch, keep the git reference that was set in pre_update_constraints
+        if use_master_psynet_reference():
+            # Keep the git reference that was set in pre_update_constraints.
             return  # Don't override the git reference
 
         with open("requirements.txt", "r") as orig_file:
@@ -238,7 +242,7 @@ def update_image_tag(file):
     version_tag = r"psynet:v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(rc\d+|a\d+)*"
 
     for line in file:
-        if current_git_branch() == "master":
+        if use_master_psynet_reference():
             print(re.sub(version_tag, "psynet:master", line), end="")
         else:
             if re.search(version_tag, line):

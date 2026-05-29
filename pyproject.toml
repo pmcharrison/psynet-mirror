@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "psynet"
-version = "13.2.0a0"
+version = "13.3.0a0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -68,18 +68,19 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "bump-my-version",
-    "pydata-sphinx-theme",
+    "asv",
+    "beautifulsoup4",
     "google-cloud-translate",
     "openai",
     "pre-commit",
+    "pydata-sphinx-theme",
+    "pytest-test-groups",
     "ruff",
     "sphinx",
     "sphinx-autodoc-typehints<3.0.0",
     "sphinx-copybutton",
     "sphinx-inline-tabs",
-    "beautifulsoup4",
-    "pytest-test-groups",
+    "virtualenv",
 ]
 slack = [
     "slack_sdk",

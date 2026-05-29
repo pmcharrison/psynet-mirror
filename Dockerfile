@@ -30,6 +30,9 @@ RUN CHROME_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testi
 
 COPY pyproject.toml pyproject.toml
 
-# Generate PsyNet constraints.txt (including demos extras) and install it
+# Generate PsyNet constraints.txt (PyPI deps from the [demos] extra) and install it.
+# All audio-tooling demo dependencies (repp-tapping, sing4me) are now public PyPI
+# packages and live in pyproject.toml's [demos] extra, so no further private-URL
+# harvesting from per-demo requirements.txt files is needed here.
 RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra demos
 RUN uv pip install --no-cache --system -r constraints.txt

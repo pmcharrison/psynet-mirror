@@ -83,15 +83,13 @@ See the documentation of individual classes for more guidance, for example:
 
 :class:`~psynet.page.SuccessfulEndPage` and
 :class:`~psynet.page.UnsuccessfulEndPage`
-are special page types
-used to complete a timeline; upon reaching one of these pages, the experiment will
-terminate and the participant will receive their payment. The difference
-between
-:class:`~psynet.page.SuccessfulEndPage` and
-:class:`~psynet.page.UnsuccessfulEndPage` is twofold:
-in the former case, the participant will be marked in the database
+are special page types that end a participant's experiment.
+They redirect the participant to a dedicated end-of-experiment branch
+(see `Timeline branches`_ below).
+The difference between them is twofold:
+:class:`~psynet.page.SuccessfulEndPage` marks the participant
 with ``complete=True`` and ``failed=False``,
-whereas in the latter case the participant will be marked
+whereas :class:`~psynet.page.UnsuccessfulEndPage` marks the participant
 with ``complete=False`` and ``failed=True``.
 In both cases the participant will be paid the amount that they have accumulated so far;
 however, :class:`~psynet.page.UnsuccessfulEndPage` is typically used to terminate an experiment early,
@@ -198,6 +196,58 @@ the following control constructs for this purpose:
 Note that these constructs are functions, not classes:
 when called, they resolve to a sequence of elements
 that performs the desired logic.
+
+Timeline branches
+-----------------
+
+The timeline is organised into named **branches**. The ``main`` branch is what
+you define when you create a :class:`~psynet.timeline.Timeline`; the remaining
+branches are created automatically and handle end-of-experiment logic:
+
+* ``main`` — the participant's normal path through the experiment.
+* ``successful_end`` — shown when the participant completes the experiment
+  successfully (via :class:`~psynet.end.SuccessfulEndLogic`).
+* ``unsuccessful_end`` — shown when the participant fails
+  (via :class:`~psynet.end.UnsuccessfulEndLogic`).
+* ``rejected_consent`` — shown when the participant rejects a consent form
+  (via :class:`~psynet.end.RejectedConsentLogic`).
+
+A :class:`~psynet.page.SuccessfulEndPage` is automatically appended to the
+end of the ``main`` branch, so participants who complete the experiment
+normally are redirected to the ``successful_end`` branch.
+You can also place :class:`~psynet.page.UnsuccessfulEndPage` or
+:class:`~psynet.page.RejectedConsentPage` elements anywhere in the ``main``
+branch; these redirect the participant to the corresponding end branch.
+
+You can customise the end branches by passing keyword arguments to
+:class:`~psynet.timeline.Timeline`::
+
+    from psynet.timeline import Timeline
+
+    Timeline(
+        ...,
+        unsuccessful_end=MyCustomEndLogic(),
+    )
+
+Participant failure
+~~~~~~~~~~~~~~~~~~~
+
+When :meth:`~psynet.participant.Participant.fail` is called on a participant,
+PsyNet automatically redirects them to the ``unsuccessful_end`` branch. This
+ensures that failed participants always see an appropriate end page, regardless
+of where they are in the timeline.
+
+The redirect works differently depending on context:
+
+* **From within the page-advance loop** (e.g. from a
+  :class:`~psynet.timeline.CodeBlock`): the redirect happens immediately.
+* **From a background process** (e.g. a timeout or admin action): the redirect
+  is queued via ``participant.pending_redirect`` and applied the next time the
+  participant submits a response. This preserves the participant's response to
+  the page they are currently viewing.
+
+The redirect is skipped if the participant is already in an end branch or has
+already completed the experiment.
 
 Time estimate
 -------------

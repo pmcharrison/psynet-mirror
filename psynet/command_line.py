@@ -1,6 +1,6 @@
+import datetime
 import functools
 import importlib
-import importlib.util
 import json
 import os
 import re
@@ -41,6 +41,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.dev.command_line import dev as _dev_command_group
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
@@ -133,27 +134,7 @@ def psynet():
     pass
 
 
-def _register_source_checkout_dev_commands():
-    """Register repo-only developer commands when running from a source checkout."""
-    source_checkout_root = Path(__file__).resolve().parents[1]
-    dev_cli_path = source_checkout_root / "dev" / "command_line.py"
-    pyproject_path = source_checkout_root / "pyproject.toml"
-    if not dev_cli_path.exists() or not pyproject_path.exists():
-        return
-
-    spec = importlib.util.spec_from_file_location(
-        "psynet_dev_command_line", dev_cli_path
-    )
-    if spec is None or spec.loader is None:
-        return
-
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    psynet.add_command(module.dev)
-
-
-_register_source_checkout_dev_commands()
+psynet.add_command(_dev_command_group)
 
 
 def reset_console():
@@ -3260,6 +3241,20 @@ _test_options["duration_minutes"] = click.option(
     Default: 1 minute""",
 )
 
+_test_options["performance_json_output"] = click.option(
+    "--json-output",
+    type=click.Path(dir_okay=False, writable=True),
+    default=None,
+    help="""
+    If provided, write performance test results to this path as JSON.
+    The file will contain a top-level object with: schema_version, psynet_version,
+    dallinger_version, python_version, platform, experiment_label,
+    started_at / finished_at (ISO timestamps), options (n_bots_sweep,
+    duration_minutes, stagger_interval_s, time_factor), and results
+    (one entry per bot count tested, with all metrics).
+    Useful for downstream consumption (e.g. benchmarking tools like asv).""",
+)
+
 
 @psynet.group("performance-test")
 @click.pass_context
@@ -3277,6 +3272,7 @@ def performance_test(ctx):
 @_test_options["performance_stagger"]
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
+@_test_options["performance_json_output"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
 def performance_test__local(
     existing=False,
@@ -3284,6 +3280,7 @@ def performance_test__local(
     stagger=None,
     time_factor=None,
     duration_minutes=None,
+    json_output=None,
     debug=False,
 ):
     """
@@ -3298,16 +3295,47 @@ def performance_test__local(
     """
     if existing:
         _run_performance_test_with_existing_server(
-            n_bots, stagger, time_factor, duration_minutes, debug
+            n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
     else:
         _run_performance_test_with_new_server(
-            n_bots, stagger, time_factor, duration_minutes, debug
+            n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
 
 
+def _collect_run_metadata(experiment_label):
+    """Capture environment metadata that makes a results file self-describing."""
+    import platform as _platform
+
+    import dallinger.version
+
+    import psynet
+
+    return {
+        "psynet_version": psynet.__version__,
+        "dallinger_version": dallinger.version.__version__,
+        "python_version": _platform.python_version(),
+        "platform": _platform.platform(),
+        "experiment_label": experiment_label,
+    }
+
+
+def _write_json_results(json_output, *, metadata, options, all_results):
+    """Write performance test results plus the metadata that produced them to JSON."""
+    from psynet.perf_test import _to_json_safe
+
+    payload = {
+        "schema_version": 1,
+        **metadata,
+        "options": _to_json_safe(options),
+        "results": [_to_json_safe(r) for r in all_results],
+    }
+    with open(json_output, "w") as f:
+        json.dump(payload, f, indent=2, allow_nan=False)
+
+
 def _run_performance_test_with_existing_server(
-    n_bots, stagger, time_factor, duration_minutes, debug
+    n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
 ):
     """Run performance test connecting to an already-running server."""
     import logging
@@ -3366,9 +3394,31 @@ def _run_performance_test_with_existing_server(
         ),
         time_factor=time_factor or exp.test_time_factor,
     )
-    tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
+    started_at = datetime.datetime.now().isoformat(timespec="seconds")
+    all_results = tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
+    finished_at = datetime.datetime.now().isoformat(timespec="seconds")
     bot_log_file.close()
     print(f"Bot output log: {bot_log_file.name}")
+
+    if json_output:
+        metadata = {
+            **_collect_run_metadata(exp.label),
+            "started_at": started_at,
+            "finished_at": finished_at,
+        }
+        options = {
+            "n_bots_sweep": bot_counts,
+            "duration_minutes": tester.duration_minutes,
+            "stagger_interval_s": tester.stagger_interval_s,
+            "time_factor": tester.time_factor,
+        }
+        _write_json_results(
+            json_output,
+            metadata=metadata,
+            options=options,
+            all_results=all_results,
+        )
+        print(f"Performance results (JSON): {json_output}")
 
 
 class _OutputTee:
@@ -3553,7 +3603,7 @@ def _stop_server(server_info):
 
 
 def _run_performance_test_with_new_server(
-    n_bots, stagger, time_factor, duration_minutes, debug
+    n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
 ):
     """Run performance test after starting a new experiment server"""
     server_info = _start_local_server_and_wait_for_ready(debug=debug)
@@ -3570,7 +3620,7 @@ def _run_performance_test_with_new_server(
             config.load_from_file(os.path.join(server_working_directory, "config.txt"))
 
         _run_performance_test_with_existing_server(
-            n_bots, stagger, time_factor, duration_minutes, debug
+            n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )
         print("✓ Performance test completed")
 
@@ -3585,6 +3635,7 @@ def _run_performance_test_with_new_server(
 @_test_options["performance_stagger"]
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
+@_test_options["performance_json_output"]
 @click.pass_context
 def performance_test__docker_ssh(
     ctx,
@@ -3594,6 +3645,7 @@ def performance_test__docker_ssh(
     stagger=None,
     time_factor=None,
     duration_minutes=None,
+    json_output=None,
 ):
     """
     Runs performance tests on the remote server. Assumes that the app has
@@ -3605,7 +3657,17 @@ def performance_test__docker_ssh(
 
     If the app is in use during the performance test, results may not be
     reliable.
+
+    Note: The --json-output option is not yet supported for remote SSH execution.
+    For JSON output, run ``psynet performance-test local --json-output`` instead.
     """
+    if json_output:
+        print(
+            "Warning: --json-output is not yet implemented for SSH mode. "
+            "Use 'psynet performance-test local --json-output' instead.",
+            file=sys.stderr,
+        )
+
     from dallinger.command_line.docker_ssh import Executor
 
     cmd = "psynet performance-test local --existing"

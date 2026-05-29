@@ -1,3 +1,4 @@
+import datetime
 import logging
 import math
 import os
@@ -6,6 +7,7 @@ import re
 import signal
 import sys
 import time
+from decimal import Decimal
 from statistics import mean
 
 import pexpect
@@ -14,6 +16,53 @@ from tabulate import tabulate
 from psynet.log import bold, error, success, warning
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# JSON serialization helpers
+# ---------------------------------------------------------------------------
+
+
+def _to_json_safe(value):
+    """
+    Recursively convert a value to a JSON-safe form.
+
+    Handles Decimal, datetime, NaN/Inf, sets/frozensets, tuples, dicts, and lists.
+    Sets are emitted in sorted order so output is deterministic across runs.
+    """
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        # Check bool before int since bool is a subclass of int
+        return value
+    if isinstance(value, (int, str)):
+        return value
+    if isinstance(value, float):
+        if value != value or value == float("inf") or value == float("-inf"):
+            # NaN or Inf -> None (JSON doesn't support these)
+            return None
+        return value
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (datetime.datetime, datetime.date)):
+        return value.isoformat()
+    if isinstance(value, (set, frozenset)):
+        # Sort for deterministic JSON output — sets have no native order,
+        # which would produce noisy diffs when results are stored in git.
+        # Fall back to insertion order if items are mutually incomparable.
+        items = [_to_json_safe(item) for item in value]
+        try:
+            return sorted(items, key=lambda x: (x is None, str(type(x)), x))
+        except TypeError:
+            return items
+    if isinstance(value, tuple):
+        return [_to_json_safe(item) for item in value]
+    if isinstance(value, list):
+        return [_to_json_safe(item) for item in value]
+    if isinstance(value, dict):
+        return {k: _to_json_safe(v) for k, v in value.items()}
+    # Fallback for unknown types
+    return str(value)
 
 
 # ---------------------------------------------------------------------------
@@ -215,6 +264,7 @@ class PerformanceTester:
                 time.sleep(5)
 
         self._print_performance_summary(all_results)
+        return all_results
 
     def _print_performance_summary(self, results):
         """Print cross-test comparison table."""
