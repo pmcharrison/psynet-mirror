@@ -543,6 +543,8 @@ def drop_all_db_tables(bind=db.engine):
 
     engine = bind
 
+    # Close session and pool before dropping. Lingering connections hold locks
+    # that block DROP TABLE, and commit() is not enough.
     db.session.remove()
     engine.dispose()
 
