@@ -70,6 +70,18 @@ async function expectLocatorScreenshot(locator, snapshotName, options = SNAPSHOT
   await expect(locator).toHaveScreenshot(snapshotName, options);
 }
 
+async function clickConsentButton(page, timeout = STEP_TIMEOUT_MS) {
+  const consentButton = page.locator("#consent");
+  await expect(consentButton).toBeVisible({ timeout });
+  await expect(consentButton).toBeEnabled({ timeout });
+  // psynet.nextPage silently no-ops until pageLoaded (window.load + browser check).
+  // Wait for it before clicking to avoid the race where the click fires before
+  // initPage resolves, leaving the consent page stuck forever.
+  await page.waitForFunction(() => window.psynet?.pageLoaded === true, { timeout });
+  await consentButton.click();
+}
+
+
 async function reachInitialAudioPrompt(page, timeout = STEP_TIMEOUT_MS) {
   // Explicit deterministic startup sequence for audio demo:
   // 1) gateway page, 2) main consent, 3) audiovisual consent, 4) first prompt page.

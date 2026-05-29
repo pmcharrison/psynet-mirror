@@ -543,7 +543,8 @@ def drop_all_db_tables(bind=db.engine):
 
     engine = bind
 
-    db.session.commit()
+    db.session.remove()
+    engine.dispose()
 
     con = engine.connect()
     trans = con.begin()

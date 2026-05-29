@@ -233,7 +233,10 @@ class PerformanceTester:
         self.time_factor = time_factor
 
     def run(self, bot_counts=None, bot_log_file=None):
-        """Run performance tests for one or more bot count values."""
+        """Run performance tests for one or more bot count values.
+
+        Returns a list of result dicts, one per bot count.
+        """
         if bot_counts is None:
             bot_counts = [self.n_bots]
 
@@ -263,13 +266,7 @@ class PerformanceTester:
                 logger.debug("Waiting 5 seconds before next test...")
                 time.sleep(5)
 
-        self._print_performance_summary(all_results)
         return all_results
-
-    def _print_performance_summary(self, results):
-        """Print cross-test comparison table."""
-        for line in format_performance_summary(results):
-            logger.info(line)
 
     def _test_performance(self, n, bot_log_file):
         """Run a load test with n concurrent bots for configured duration."""
@@ -317,9 +314,27 @@ class PerformanceTester:
         from psynet.participant import Participant
         from psynet.process import AsyncProcess
 
-        initial_stats = self.authenticated_session.get(
-            self.base_url + "/request_statistics"
-        ).json()
+        url = self.base_url + "/request_statistics"
+        resp = self.authenticated_session.get(url)
+        if resp.status_code != 200:
+            raise RuntimeError(
+                f"GET {url} returned status {resp.status_code}: {resp.text[:200]}"
+            )
+        try:
+            initial_stats = resp.json()
+        except Exception:
+            raise RuntimeError(
+                f"GET {url} returned non-JSON (status {resp.status_code}): "
+                f"{resp.text[:200]}"
+            )
+
+        # Ensure fresh DB connection (previous may have been terminated by server restart)
+        try:
+            db.session.remove()
+        except Exception:
+            db.session.registry.clear()
+        db.engine.dispose()
+
         max_request_id = db.session.query(func.max(Request.id)).scalar() or 0
         max_process_id = db.session.query(func.max(AsyncProcess.id)).scalar() or 0
         max_participant_id = db.session.query(func.max(Participant.id)).scalar() or 0
@@ -405,6 +420,9 @@ class PerformanceTester:
                 env = os.environ.copy()
                 # Disable colors in log output, so it can be read with any tool
                 env["PYTHON_COLORS"] = "0"
+                # Ensure venv bin dir is on PATH so psynet is found
+                bin_dir = os.path.dirname(sys.executable)
+                env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
                 p = pexpect.spawn(cmd, timeout=None, cwd=None, env=env)
                 bot_state["processes"][process_id] = {
                     "process": p,
@@ -1217,6 +1235,17 @@ def format_test_results(result):
         lines.append("  No completed async processes.")
         lines.append("")
 
+    # EXPORT
+    if result.get("export_duration_s") is not None:
+        _section("EXPORT")
+        export_rows = [
+            ["Duration", f"{result['export_duration_s']:.1f}s"],
+        ]
+        if result.get("export_error"):
+            export_rows.append(["Error", result["export_error"]])
+        _table_lines(export_rows, headers=[], colalign=("left", "right"))
+        lines.append("")
+
     return lines
 
 
@@ -1227,6 +1256,9 @@ def format_performance_summary(results):
     show_scaling = len(results) > 1 and results[0].get("p95_response_time") is not None
     baseline_p95 = results[0].get("p95_response_time") if show_scaling else None
     baseline_q_p95 = results[0].get("q_delay_p95") if show_scaling else None
+
+    has_export = any(r.get("export_duration_s") is not None for r in results)
+    baseline_export = results[0].get("export_duration_s") if show_scaling else None
 
     summary_headers = [
         "|| Bots",
@@ -1240,6 +1272,10 @@ def format_performance_summary(results):
     summary_headers.append("Q P95 all (s)")
     if show_scaling:
         summary_headers.append("vs base")
+    if has_export:
+        summary_headers.append("Export (s)")
+        if show_scaling:
+            summary_headers.append("vs base")
 
     summary_rows = []
     for i, result in enumerate(results):
@@ -1271,6 +1307,16 @@ def format_performance_summary(results):
                 row.append(f"{q_p95 / baseline_q_p95:.1f}x")
             else:
                 row.append("N/A")
+        if has_export:
+            export_dur = result.get("export_duration_s")
+            row.append(_fmt(export_dur))
+            if show_scaling:
+                if i == 0:
+                    row.append("\u2014")
+                elif export_dur is not None and baseline_export and baseline_export > 0:
+                    row.append(f"{export_dur / baseline_export:.1f}x")
+                else:
+                    row.append("N/A")
         summary_rows.append(row)
 
     lines.append("")
@@ -1279,6 +1325,8 @@ def format_performance_summary(results):
         "  Resp P95 — P95 HTTP response time for key endpoints (/timeline, /response)"
     )
     lines.append("  Q P95 all — P95 queue delay across all async processes")
+    if has_export:
+        lines.append("  Export — time to run psynet export local")
     lines.append(
         "  vs base — ratio to the first (lowest bot-count) row, if multiple counts are run"
     )

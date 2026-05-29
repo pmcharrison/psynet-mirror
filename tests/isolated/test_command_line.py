@@ -723,6 +723,7 @@ def test_start_local_server_uses_debug_local_subprocess():
     process = Mock()
     process.expect_exact.return_value = None
     process.isalive.return_value = False
+    process.before = ""
 
     with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
         server_info = _start_local_server_and_wait_for_ready(debug=False, max_wait=5)
@@ -760,38 +761,152 @@ def test_stop_server_gracefully_stops_debug_subprocess():
     kill_workers.assert_called_once()
 
 
-def test_run_performance_test_with_new_server_loads_runtime_server_config():
-    from psynet.command_line import _run_performance_test_with_new_server
-
-    process = Mock()
-    config = Mock()
-    config.ready = True
-    server_info = {
-        "process": process,
+def _make_server_info():
+    return {
+        "process": Mock(),
         "tmp_log_path": "/tmp/psynet_server_test.log",
         "log_file": Mock(),
     }
 
-    with (
-        patch(
-            "psynet.command_line._start_local_server_and_wait_for_ready",
-            return_value=server_info,
-        ),
-        patch("psynet.command_line.get_config", return_value=config),
-        patch(
-            "psynet.command_line.redis_vars.get",
-            return_value="/tmp/dallinger_develop/exp",
-        ),
-        patch("psynet.command_line._run_performance_test_with_existing_server"),
-        patch("psynet.command_line._stop_server"),
-    ):
-        _run_performance_test_with_new_server(
-            n_bots="2", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
-        )
 
-    config.load_from_file.assert_called_once_with(
-        "/tmp/dallinger_develop/exp/config.txt"
-    )
+class TestLoadServerUrl:
+    @pytest.fixture
+    def subject(self):
+        from psynet.command_line import _load_server_url
+
+        return _load_server_url
+
+    def test_loads_config_from_working_directory(self, subject):
+        config = Mock()
+        config.ready = True
+        with (
+            patch("psynet.command_line.get_config", return_value=config),
+            patch(
+                "psynet.command_line.redis_vars.get",
+                side_effect=lambda key: {
+                    "server_working_directory": "/tmp/exp",
+                    "base_url": "http://localhost:5000",
+                }.get(key),
+            ),
+        ):
+            base_url = subject({})
+        config.load_from_file.assert_called_once_with("/tmp/exp/config.txt")
+        assert base_url == "http://localhost:5000"
+
+
+class TestRunPerformanceTestWithNewServer:
+    """Isolation tests are maybe not super valuable here, but at least
+    they're fast, and they follow the patterns of the project.
+    """
+
+    def subject(self, **kwargs):
+        from psynet.command_line import _run_performance_test_with_new_server
+
+        kwargs.setdefault("n_bots", "5")
+        kwargs.setdefault("stagger", 0.1)
+        kwargs.setdefault("time_factor", 1.0)
+        kwargs.setdefault("duration_minutes", 0.5)
+        kwargs.setdefault("debug", False)
+        kwargs.setdefault("do_export", True)
+        kwargs.setdefault(
+            "_start_server", Mock(side_effect=lambda **kw: _make_server_info())
+        )
+        kwargs.setdefault("_stop_server_fn", Mock())
+        kwargs.setdefault("_run_stage", Mock())
+        kwargs.setdefault("_base_url", "http://localhost:5000")
+        _run_performance_test_with_new_server(**kwargs)
+
+    def test_restarts_between_stages_for_multiple_bot_counts(self):
+        """Each bot count should get its own fresh server."""
+        mock_start = Mock(side_effect=lambda **kw: _make_server_info())
+        mock_stop = Mock()
+        mock_run = Mock()
+        self.subject(
+            n_bots="5,10",
+            _start_server=mock_start,
+            _stop_server_fn=mock_stop,
+            _run_stage=mock_run,
+        )
+        assert mock_start.call_count == 2
+        assert mock_stop.call_count == 2
+        assert mock_run.call_count == 2
+        assert mock_run.call_args_list[0].kwargs["n_bots"] == "5"
+        assert mock_run.call_args_list[1].kwargs["n_bots"] == "10"
+
+    def test_single_bot_count_one_start_stop(self):
+        """Single bot count should start/stop once."""
+        mock_start = Mock(side_effect=lambda **kw: _make_server_info())
+        mock_stop = Mock()
+        self.subject(_start_server=mock_start, _stop_server_fn=mock_stop)
+        assert mock_start.call_count == 1
+        assert mock_stop.call_count == 1
+
+    def test_stops_even_on_stage_failure(self):
+        """Server must be stopped in finally block even if stage raises."""
+        mock_stop = Mock()
+        with pytest.raises(RuntimeError, match="stage failed"):
+            self.subject(
+                _stop_server_fn=mock_stop,
+                _run_stage=Mock(side_effect=RuntimeError("stage failed")),
+            )
+        mock_stop.assert_called_once()
+
+    def test_collects_results_from_all_stages(self):
+        """Both stages share the same collect_results list."""
+        mock_run = Mock()
+        self.subject(n_bots="5,10", _run_stage=mock_run)
+        list_1 = mock_run.call_args_list[0].kwargs["collect_results"]
+        list_2 = mock_run.call_args_list[1].kwargs["collect_results"]
+        assert list_1 is list_2
+
+    def test_passes_do_export_per_stage(self):
+        """do_export=True is forwarded to each stage."""
+        mock_run = Mock()
+        self.subject(n_bots="5,10", do_export=True, _run_stage=mock_run)
+        for call in mock_run.call_args_list:
+            assert call.kwargs["do_export"] is True
+
+    def test_skips_export_when_disabled(self):
+        """do_export=False is forwarded to each stage."""
+        mock_run = Mock()
+        self.subject(do_export=False, _run_stage=mock_run)
+        assert mock_run.call_args.kwargs["do_export"] is False
+
+
+# --- _time_export tests ---
+
+
+def test_time_export_success():
+    from psynet.command_line import _time_export
+
+    def fake_run(cmd, **kw):
+        return subprocess.CompletedProcess(cmd, 0)
+
+    duration, error = _time_export(_run=fake_run)
+    assert isinstance(duration, float)
+    assert error is None
+
+
+def test_time_export_failure():
+    from psynet.command_line import _time_export
+
+    def fake_run(cmd, **kw):
+        return subprocess.CompletedProcess(cmd, 1, stderr="oops")
+
+    duration, error = _time_export(_run=fake_run)
+    assert isinstance(duration, float)
+    assert "Exit code 1" in error
+
+
+def test_time_export_timeout():
+    from psynet.command_line import _time_export
+
+    def fake_run(cmd, **kw):
+        raise subprocess.TimeoutExpired(cmd, 600)
+
+    duration, error = _time_export(_run=fake_run)
+    assert isinstance(duration, float)
+    assert "timed out" in error.lower()
 
 
 @pytest.mark.parametrize(

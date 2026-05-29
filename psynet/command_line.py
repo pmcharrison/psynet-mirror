@@ -2,6 +2,7 @@ import datetime
 import functools
 import importlib
 import json
+import logging
 import os
 import re
 import shutil
@@ -10,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
@@ -35,6 +37,7 @@ from dallinger.command_line.utils import verify_id as dallinger_verify_id
 from dallinger.config import experiment_available, get_config
 from dallinger.heroku.tools import HerokuApp
 from dallinger.recruiters import ProlificRecruiter
+from dallinger.utils import port_is_open
 from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
@@ -42,6 +45,7 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 from psynet.dev.command_line import dev as _dev_command_group
+from psynet.perf_test import format_performance_summary
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
@@ -50,7 +54,7 @@ from psynet.version import (
 
 from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
-from .log import bold
+from .log import bold, error
 from .lucid import get_lucid_service
 from .recruiters import BaseLucidRecruiter, HotAirRecruiter
 from .redis import redis_vars
@@ -153,8 +157,6 @@ def reset_console():
     #
     # However, the following cheeky hack seems to work quite nicely.
     # The 'read' command is a UNIX command that takes an arbitrary input from the user.
-    import subprocess
-
     try:
         # It seems that the timeout must be at least 1.0 s for this to work reliably
         subprocess.call("read NULL", timeout=1.0, shell=True)
@@ -378,6 +380,7 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
 
     _pre_launch(ctx, mode=mode, archive=archive, local_=True, docker=docker, app=None)
     _cleanup_before_debug()
+    _check_port_available()
 
     try:
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
@@ -720,6 +723,38 @@ def _cleanup_exp_directory():
             pass
 
 
+def _check_port_available():
+    """Warn and identify culprit if configured base_port is already in use."""
+    config = get_config()
+    if not config.ready:
+        config.load()
+    port = config.get("base_port")
+    port_in_use = port_is_open(port)
+    if not port_in_use:
+        return
+
+    # Port is occupied — gather diagnostics
+    msg = error(f"Port {port} is already in use.")
+
+    if sys.platform in ("darwin", "linux"):
+        lsof_cmd = f"lsof -i :{port} -P -n"
+        try:
+            result = subprocess.run(
+                ["lsof", "-i", f":{port}", "-P", "-n"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            lsof_out = result.stdout.strip()
+            if lsof_out:
+                msg += f"\n\nlsof output:\n{lsof_out}"
+        except Exception:
+            pass
+        msg += f"\n\nTo investigate, run: {lsof_cmd}"
+
+    raise click.ClickException(msg)
+
+
 def run_pre_auto_reload_checks():
     config = get_config()
     if not config.ready:
@@ -849,7 +884,12 @@ patch_dallinger_develop()
 
 def safely_kill_process(p):
     try:
+        name = p.name()
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        name = "unknown"
+    try:
         p.kill()
+        log(f"Killed process {p.pid} ({name})")
     except psutil.NoSuchProcess:
         pass
 
@@ -1584,9 +1624,6 @@ def install_autocomplete():
     This command automatically detects your shell (bash or zsh) and adds the appropriate
     completion setup to your shell configuration file.
     """
-    import os
-    import subprocess
-
     # Get the directory where this script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
     psynet_root = os.path.dirname(script_dir)
@@ -3274,6 +3311,11 @@ def performance_test(ctx):
 @_test_options["duration_minutes"]
 @_test_options["performance_json_output"]
 @click.option("--debug", is_flag=True, help="Enable debug logging for verbose output")
+@click.option(
+    "--no-export",
+    is_flag=True,
+    help="Skip export timing after each test stage",
+)
 def performance_test__local(
     existing=False,
     n_bots=None,
@@ -3282,6 +3324,7 @@ def performance_test__local(
     duration_minutes=None,
     json_output=None,
     debug=False,
+    no_export=False,
 ):
     """
     Run a performance test of the experiment locally.
@@ -3293,13 +3336,36 @@ def performance_test__local(
     By default, this command starts a new experiment server automatically.
     Use --existing to connect to an already-running server instead.
     """
+    log_level = logging.DEBUG if debug else logging.INFO
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(log_level)
+    console_handler.setFormatter(logging.Formatter("%(message)s"))
+    root_logger.addHandler(console_handler)
+
+    do_export = not no_export
     if existing:
         _run_performance_test_with_existing_server(
-            n_bots, stagger, time_factor, duration_minutes, debug, json_output
+            n_bots,
+            stagger,
+            time_factor,
+            duration_minutes,
+            debug,
+            do_export=do_export,
+            json_output=json_output,
         )
     else:
         _run_performance_test_with_new_server(
-            n_bots, stagger, time_factor, duration_minutes, debug, json_output
+            n_bots,
+            stagger,
+            time_factor,
+            duration_minutes,
+            debug,
+            do_export=do_export,
+            json_output=json_output,
         )
 
 
@@ -3335,34 +3401,27 @@ def _write_json_results(json_output, *, metadata, options, all_results):
 
 
 def _run_performance_test_with_existing_server(
-    n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
+    n_bots,
+    stagger,
+    time_factor,
+    duration_minutes,
+    debug,
+    collect_results=None,
+    base_url=None,
+    bot_log_file=None,
+    do_export=True,
+    json_output=None,
 ):
     """Run performance test connecting to an already-running server."""
-    import logging
-    import sys
-
     from psynet.experiment import get_experiment
+    from psynet.utils import get_authenticated_session
 
-    # Configure logging to output to console
-    root_logger = logging.getLogger()
-    log_level = logging.DEBUG if debug else logging.INFO
-    root_logger.setLevel(log_level)
-
-    # Remove any existing handlers
-    for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
-
-    # Add console handler with clean format (no prefixes)
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(log_level)
-    formatter = logging.Formatter("%(message)s")
-    console_handler.setFormatter(formatter)
-    root_logger.addHandler(console_handler)
-
-    bot_log_file = tempfile.NamedTemporaryFile(
-        delete=False, prefix="psynet_bots_", suffix=".log"
-    )
-    print(f"Bot output log: {bot_log_file.name}")
+    externally_managed_bot_log = bot_log_file is not None
+    if not externally_managed_bot_log:
+        bot_log_file = tempfile.NamedTemporaryFile(
+            delete=False, prefix="psynet_bots_", suffix=".log"
+        )
+        print(f"Bot output log: {bot_log_file.name}")
 
     try:
         exp = get_experiment()
@@ -3384,9 +3443,12 @@ def _run_performance_test_with_existing_server(
     else:
         bot_counts = [exp.test_n_bots]
 
+    effective_base_url = base_url or exp.base_url
+    authenticated_session = get_authenticated_session(effective_base_url)
+
     tester = PerformanceTester(
-        authenticated_session=exp.authenticated_session,
-        base_url=exp.base_url,
+        authenticated_session=authenticated_session,
+        base_url=effective_base_url,
         n_bots=exp.test_n_bots,
         duration_minutes=duration_minutes or exp.test_duration_minutes,
         stagger_interval_s=(
@@ -3395,30 +3457,45 @@ def _run_performance_test_with_existing_server(
         time_factor=time_factor or exp.test_time_factor,
     )
     started_at = datetime.datetime.now().isoformat(timespec="seconds")
-    all_results = tester.run(bot_counts=bot_counts, bot_log_file=bot_log_file)
+    results = tester.run(
+        bot_counts=bot_counts,
+        bot_log_file=bot_log_file,
+    )
     finished_at = datetime.datetime.now().isoformat(timespec="seconds")
-    bot_log_file.close()
-    print(f"Bot output log: {bot_log_file.name}")
 
-    if json_output:
-        metadata = {
-            **_collect_run_metadata(exp.label),
-            "started_at": started_at,
-            "finished_at": finished_at,
-        }
-        options = {
-            "n_bots_sweep": bot_counts,
-            "duration_minutes": tester.duration_minutes,
-            "stagger_interval_s": tester.stagger_interval_s,
-            "time_factor": tester.time_factor,
-        }
-        _write_json_results(
-            json_output,
-            metadata=metadata,
-            options=options,
-            all_results=all_results,
-        )
-        print(f"Performance results (JSON): {json_output}")
+    if do_export and results:
+        export_duration, export_error = _time_export()
+        results[-1]["export_duration_s"] = export_duration
+        results[-1]["export_error"] = export_error
+
+    if collect_results is not None:
+        collect_results.extend(results)
+    else:
+        for line in format_performance_summary(results):
+            logger.info(line)
+        if json_output:
+            metadata = {
+                **_collect_run_metadata(exp.label),
+                "started_at": started_at,
+                "finished_at": finished_at,
+            }
+            options = {
+                "n_bots_sweep": bot_counts,
+                "duration_minutes": tester.duration_minutes,
+                "stagger_interval_s": tester.stagger_interval_s,
+                "time_factor": tester.time_factor,
+            }
+            _write_json_results(
+                json_output,
+                metadata=metadata,
+                options=options,
+                all_results=results,
+            )
+            print(f"Performance results (JSON): {json_output}")
+
+    if not externally_managed_bot_log:
+        bot_log_file.close()
+        print(f"Bot output log: {bot_log_file.name}")
 
 
 class _OutputTee:
@@ -3451,23 +3528,37 @@ def _drain_pexpect_output(process):
 
 
 def _start_local_server_and_wait_for_ready(
-    debug=False, max_wait=60, ready_phrase="Experiment launch complete!"
+    debug=False, max_wait=60, ready_phrase="Experiment launch complete!", log_file=None
 ):
-    """Start ``psynet debug local`` and wait for launch completion."""
+    """Start ``psynet debug local`` and wait for launch completion.
+
+    If *log_file* is supplied the caller owns the file handle; this function
+    will not create or close it.
+    """
     print("▶ Starting experiment server...")
 
-    tmp_log = tempfile.NamedTemporaryFile(
-        delete=False, prefix="psynet_server_", suffix=".log"
-    )
-    tmp_log_path = tmp_log.name
-    tmp_log.close()
-    print(f"Server log: {tmp_log_path}")
+    externally_managed_log = log_file is not None
 
-    log_file = open(tmp_log_path, "a", encoding="utf-8")
+    if externally_managed_log:
+        tmp_log_path = log_file.name
+    else:
+        tmp_log = tempfile.NamedTemporaryFile(
+            delete=False, prefix="psynet_server_", suffix=".log"
+        )
+        tmp_log_path = tmp_log.name
+        tmp_log.close()
+        print(f"Server log: {tmp_log_path}")
+        log_file = open(tmp_log_path, "a", encoding="utf-8")
     logfile = _OutputTee(sys.stdout, log_file) if debug else log_file
     env = os.environ.copy()
     env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
     env.setdefault("BROWSER", "true")
+    env.setdefault("EXP_MAX_SIZE_MB", "4096")
+
+    # Ensure the current Python's bin dir is on PATH so psynet is found
+    # even when invoked from a virtualenv without PATH activation.
+    bin_dir = os.path.dirname(sys.executable)
+    env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
 
     start_commands = [
         ["debug", "local", "--legacy", "--no-browsers"],
@@ -3486,7 +3577,8 @@ def _start_local_server_and_wait_for_ready(
                 timeout=max_wait,
             )
         except Exception:
-            log_file.close()
+            if not externally_managed_log:
+                log_file.close()
             raise click.ClickException("Failed to start experiment server process.")
 
         process.logfile = logfile
@@ -3502,13 +3594,26 @@ def _start_local_server_and_wait_for_ready(
                 daemon=True,
             )
             drain_thread.start()
+
+            # Extract base_url from server output
+            base_url = None
+            server_output = process.before or ""
+            for line in server_output.splitlines():
+                if "Server is running on" in line:
+                    match = re.search(r"(https?://\S+?)[\.\s]", line)
+                    if match:
+                        base_url = match.group(1)
+                        break
+
             return {
                 "process": process,
                 "tmp_log_path": tmp_log_path,
                 "log_file": log_file,
+                "base_url": base_url,
+                "externally_managed_log": externally_managed_log,
             }
         except (pexpect.TIMEOUT, pexpect.EOF):
-            recent_output = (process.before or "").splitlines()[-50:]
+            recent_output = (process.before or "").splitlines()[-200:]
             _terminate_server_process(process)
 
             if command_args == start_commands[0] and any(
@@ -3527,7 +3632,8 @@ def _start_local_server_and_wait_for_ready(
                 print("Last server output:", file=sys.stderr)
                 for line in recent_output:
                     print(line, file=sys.stderr)
-            log_file.close()
+            if not externally_managed_log:
+                log_file.close()
             raise click.ClickException("Failed to start experiment server.")
 
 
@@ -3585,6 +3691,7 @@ def _stop_server(server_info):
     process = server_info["process"]
     tmp_log_path = server_info["tmp_log_path"]
     log_file = server_info["log_file"]
+    externally_managed = server_info.get("externally_managed_log", False)
     try:
         _terminate_server_process(process)
     finally:
@@ -3593,39 +3700,176 @@ def _stop_server(server_info):
         except Exception:
             pass
 
-        try:
-            log_file.close()
-        except Exception:
-            pass
+        if not externally_managed:
+            try:
+                log_file.close()
+            except Exception:
+                pass
 
     kill_psynet_worker_processes()
-    print(f"✓ Server stopped (log: {tmp_log_path})")
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+    base_port = config.get("base_port")
+    deadline = time.monotonic() + 10
+    while port_is_open(base_port) and time.monotonic() < deadline:
+        time.sleep(0.2)
+
+    if externally_managed:
+        print("✓ Server stopped")
+    else:
+        print(f"✓ Server stopped (log: {tmp_log_path})")
+
+
+def _time_export(_run=subprocess.run):
+    """Run psynet export local as subprocess, return (duration_s, error_or_None)."""
+    cmd = [
+        "psynet",
+        "export",
+        "local",
+        "--legacy",
+        "--anonymize",
+        "no",
+        "--assets",
+        "none",
+        "--no-source",
+    ]
+    print("\n▶ Running export...")
+    start = time.time()
+    try:
+        with tempfile.TemporaryDirectory(prefix="psynet_export_") as tmpdir:
+            result = _run(
+                cmd + ["--path", tmpdir],
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
+        duration = time.time() - start
+        if result.returncode != 0:
+            err = f"Exit code {result.returncode}"
+            print(f"⚠ Export finished with error in {duration:.1f}s: {err}")
+            return duration, err
+        print(f"✓ Export completed in {duration:.1f}s")
+        return duration, None
+    except subprocess.TimeoutExpired:
+        duration = time.time() - start
+        err = "Export timed out (600s)"
+        print(f"⚠ {err}")
+        return duration, err
+    except Exception as e:
+        duration = time.time() - start
+        err = str(e)
+        print(f"⚠ Export failed in {duration:.1f}s: {err}")
+        return duration, err
+
+
+def _load_server_url(server_info):
+    """Load config from running server's working dir; return base_url for that server."""
+    config = get_config()
+    if not config.ready:
+        config.load()
+    working_dir = redis_vars.get("server_working_directory")
+    if working_dir:
+        config.load_from_file(os.path.join(working_dir, "config.txt"))
+    return server_info.get("base_url") or redis_vars.get("base_url")
 
 
 def _run_performance_test_with_new_server(
-    n_bots, stagger, time_factor, duration_minutes, debug, json_output=None
+    n_bots,
+    stagger,
+    time_factor,
+    duration_minutes,
+    debug,
+    do_export=True,
+    json_output=None,
+    _start_server=_start_local_server_and_wait_for_ready,
+    _stop_server_fn=_stop_server,
+    _run_stage=_run_performance_test_with_existing_server,
+    _base_url=None,
 ):
-    """Run performance test after starting a new experiment server"""
-    server_info = _start_local_server_and_wait_for_ready(debug=debug)
+    """Run performance test after starting a new experiment server.
+
+    For multiple bot counts (comma-separated), starts a fresh server per stage
+    so each stage gets a clean database.  A single shared log file is used
+    across all stages with demarcation lines between them.
+    """
+    bot_counts = [int(x.strip()) for x in n_bots.split(",")]
+    all_results = []
+    started_at = datetime.datetime.now().isoformat(timespec="seconds")
+
+    # Create single shared log files for all stages.
+    tmp_log = tempfile.NamedTemporaryFile(
+        delete=False, prefix="psynet_server_", suffix=".log"
+    )
+    tmp_log_path = tmp_log.name
+    tmp_log.close()
+    shared_server_log = open(tmp_log_path, "a", encoding="utf-8")
+    print(f"Server log: {tmp_log_path}")
+
+    shared_bot_log = tempfile.NamedTemporaryFile(
+        delete=False, prefix="psynet_bots_", suffix=".log"
+    )
+    bot_log_path = shared_bot_log.name
+    print(f"Bot output log: {bot_log_path}")
 
     try:
-        config = get_config()
-        if not config.ready:
-            config.load()
+        for count in bot_counts:
+            demarcation = f"\n========== STAGE: n_bots={count} ==========\n\n"
+            shared_server_log.write(demarcation)
+            shared_server_log.flush()
+            shared_bot_log.write(demarcation.encode())
+            shared_bot_log.flush()
 
-        # Load runtime server config so dashboard credentials and URL settings
-        # match the launched debug instance.
-        server_working_directory = redis_vars.get("server_working_directory")
-        if server_working_directory:
-            config.load_from_file(os.path.join(server_working_directory, "config.txt"))
-
-        _run_performance_test_with_existing_server(
-            n_bots, stagger, time_factor, duration_minutes, debug, json_output
-        )
-        print("✓ Performance test completed")
-
+            server_info = _start_server(debug=debug, log_file=shared_server_log)
+            try:
+                base_url = _base_url or _load_server_url(server_info)
+                _run_stage(
+                    n_bots=str(count),
+                    stagger=stagger,
+                    time_factor=time_factor,
+                    duration_minutes=duration_minutes,
+                    debug=debug,
+                    collect_results=all_results,
+                    base_url=base_url,
+                    bot_log_file=shared_bot_log,
+                    do_export=do_export,
+                )
+            finally:
+                _stop_server_fn(server_info)
     finally:
-        _stop_server(server_info)
+        shared_server_log.close()
+        shared_bot_log.close()
+
+    finished_at = datetime.datetime.now().isoformat(timespec="seconds")
+
+    if len(all_results) > 1:
+        for line in format_performance_summary(all_results):
+            logger.info(line)
+
+    if json_output and all_results:
+        metadata = {
+            **_collect_run_metadata(None),
+            "started_at": started_at,
+            "finished_at": finished_at,
+        }
+        options = {
+            "n_bots_sweep": bot_counts,
+            "duration_minutes": duration_minutes,
+            "stagger_interval_s": float(stagger) if stagger else None,
+            "time_factor": time_factor,
+        }
+        _write_json_results(
+            json_output,
+            metadata=metadata,
+            options=options,
+            all_results=all_results,
+        )
+        print(f"Performance results (JSON): {json_output}")
+
+    print(f"Server log: {tmp_log_path}")
+    print(f"Bot output log: {bot_log_path}")
+    print("✓ Performance test completed")
 
 
 @performance_test.command("ssh")
@@ -3635,6 +3879,11 @@ def _run_performance_test_with_new_server(
 @_test_options["performance_stagger"]
 @_test_options["performance_time_factor"]
 @_test_options["duration_minutes"]
+@click.option(
+    "--no-export",
+    is_flag=True,
+    help="Skip export timing after each test stage",
+)
 @_test_options["performance_json_output"]
 @click.pass_context
 def performance_test__docker_ssh(
@@ -3645,6 +3894,7 @@ def performance_test__docker_ssh(
     stagger=None,
     time_factor=None,
     duration_minutes=None,
+    no_export=False,
     json_output=None,
 ):
     """
@@ -3683,6 +3933,9 @@ def performance_test__docker_ssh(
 
     if duration_minutes:
         cmd += f" --duration-minutes {duration_minutes}"
+
+    if no_export:
+        cmd += " --no-export"
 
     server_info = CONFIGURED_HOSTS[server]
     ssh_host = server_info["host"]
