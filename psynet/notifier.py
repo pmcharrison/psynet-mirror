@@ -76,10 +76,10 @@ class Notifier:
         if self.deployment_information["is_local_deployment"]:
             msg = f"{msg} locally"
         elif self.deployment_information["is_ssh_deployment"]:
-            msg = f'{msg} to {self.deployment_information["server"]} with app name `{self.deployment_information["app"]}`'
+            msg = f"{msg} to {self.deployment_information['server']} with app name `{self.deployment_information['app']}`"
         else:
             msg = (
-                f'{msg} to Heroku with app name `{self.deployment_information["app"]}`'
+                f"{msg} to Heroku with app name `{self.deployment_information['app']}`"
             )
         return msg
 

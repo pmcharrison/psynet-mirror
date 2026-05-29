@@ -138,9 +138,9 @@ class Exp(psynet.experiment.Experiment):
         super().test_experiment()
         all_requests = Request.query.all()
         assert len(all_requests) > 0
-        assert all(
-            [request.duration < 1 for request in all_requests]
-        ), "Some pages took more than 1 second to load."
+        assert all([request.duration < 1 for request in all_requests]), (
+            "Some pages took more than 1 second to load."
+        )
         # The status reports only get logged every 70 seconds, so we need to wait a bit.
         time.sleep(62.5)
 

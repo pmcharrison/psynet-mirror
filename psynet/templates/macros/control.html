@@ -845,6 +845,8 @@
             formatSliderValue();
             onSliderEvent("initialise");
             slider.updateLog();
+            hadMinimalInteractions = false;
+            checkMinimalInteractions();
         });
 
         let hadMinimalInteractions = false;

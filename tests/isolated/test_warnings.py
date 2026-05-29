@@ -20,6 +20,13 @@ class TestExp:
         # Filter out known external service warnings (npm, Heroku CLI, etc.)
         external_warning_patterns = [
             r"terms of service",
+            # PsyNet's legacy local-debug path goes through the Heroku CLI and can emit
+            # external Node warnings (for example with Heroku CLI v11) that are not caused
+            # by PsyNet.
+            r"Closing file descriptor .* on garbage collection",
+            r"DeprecationWarning:",
+            r"\[DEP0137\].*FileHandle object on garbage collection is deprecated",
+            r"\[DEP0060\].*util\._extend.*deprecated",
         ]
         warnings = [
             w

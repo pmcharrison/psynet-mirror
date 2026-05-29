@@ -154,13 +154,13 @@ With the virtual environment still activated:
    pip3 install pre-commit
    pre-commit install
 
-This will install the pre-commit hooks defined in ``.pre-commit-config.yaml`` to check for `flake8` violations,
-sort and group ``import`` statements using `isort`, and enforce a standard Python source code format via `black`.
-You can run the black code formatter and flake8 checks manually at any time by running:
+This will install the pre-commit hooks defined in ``.pre-commit-config.yaml`` to lint, sort imports,
+and format Python code using `ruff <https://docs.astral.sh/ruff/>`__.
+You can run the Ruff checks manually at any time by running:
 
 .. code-block:: bash
 
    pre-commit run --all-files
 
-You may also want to install a black plugin for your own code editor, though this is not strictly necessary,
-since the pre-commit hook will run black for you on commit.
+You may also want to install Ruff support for your own code editor, though this is not strictly necessary,
+since the pre-commit hook will run Ruff for you on commit.

@@ -299,7 +299,5 @@ def compile_mo(po_path):
     po = load_po(po_path)
     mo_path = po_path.replace(".po", ".mo")
     for entry in po:
-        entry.flags = (
-            []
-        )  # Make sure fuzzy entries are excluded, this will lead to the translation not being recognized
+        entry.flags = []  # Make sure fuzzy entries are excluded, this will lead to the translation not being recognized
     po.save_as_mofile(mo_path)

@@ -183,22 +183,24 @@ example_preloading = PageMaker(
             of your browser.
             Note how the buttons only become enabled once the audio has finished loading.
         </p>
-        <ul>
-            <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.bier.play();">Play 'bier'.</button></li>
-            <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.bier.stop();">Stop 'bier'.</button></li>
-        </ul>
-        <ul>
-            <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.funk_game_loop.play();">Play 'funk_game_loop'.</button></li>
-            <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.funk_game_loop.stop();">Stop 'funk_game_loop'.</button></li>
-        </ul>
-        <ul>
-            <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.honey_bee.play();">Play 'honey_bee'.</button></li>
-            <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.honey_bee.stop();">Stop 'honey_bee'.</button></li>
-        </ul>
-        <ul>
-            <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.there_it_is.play();">Play 'there_it_is'.</button></li>
-            <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.there_it_is.stop();">Stop 'there_it_is'.</button></li>
-        </ul>
+        <div id="audio-preloading-controls">
+            <ul>
+                <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.bier.play();">Play 'bier'.</button></li>
+                <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.bier.stop();">Stop 'bier'.</button></li>
+            </ul>
+            <ul>
+                <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.funk_game_loop.play();">Play 'funk_game_loop'.</button></li>
+                <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.funk_game_loop.stop();">Stop 'funk_game_loop'.</button></li>
+            </ul>
+            <ul>
+                <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.honey_bee.play();">Play 'honey_bee'.</button></li>
+                <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.honey_bee.stop();">Stop 'honey_bee'.</button></li>
+            </ul>
+            <ul>
+                <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.there_it_is.play();">Play 'there_it_is'.</button></li>
+                <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.there_it_is.stop();">Stop 'there_it_is'.</button></li>
+            </ul>
+        </div>
         """
         ),
         media=MediaSpec(
@@ -213,6 +215,56 @@ example_preloading = PageMaker(
         ),
         css=[
             """
+        @font-face {
+            font-family: "SnapshotInter";
+            src: url("/static/css/fonts/font-files/Inter-Regular.woff2") format("woff2");
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+        }
+
+        @font-face {
+            font-family: "SnapshotInter";
+            src: url("/static/css/fonts/font-files/Inter-Medium.woff2") format("woff2");
+            font-style: normal;
+            font-weight: 500;
+            font-display: block;
+        }
+
+        @font-face {
+            font-family: "SnapshotInter";
+            src: url("/static/css/fonts/font-files/Inter-Bold.woff2") format("woff2");
+            font-style: normal;
+            font-weight: 700;
+            font-display: block;
+        }
+
+        #main-body {
+            font-family: "SnapshotInter", sans-serif !important;
+            letter-spacing: 0 !important;
+            font-kerning: none !important;
+            font-variant-ligatures: none !important;
+            font-feature-settings: "kern" 0, "liga" 0, "calt" 0 !important;
+            font-synthesis: none !important;
+            text-rendering: geometricPrecision !important;
+            -webkit-font-smoothing: antialiased !important;
+        }
+
+        #main-body .btn {
+            font-family: "SnapshotInter", sans-serif !important;
+            letter-spacing: 0 !important;
+            font-kerning: none !important;
+            font-variant-ligatures: none !important;
+            font-feature-settings: "kern" 0, "liga" 0, "calt" 0 !important;
+            font-synthesis: none !important;
+            text-rendering: geometricPrecision !important;
+            -webkit-font-smoothing: antialiased !important;
+        }
+
+        #audio-preloading-controls {
+            width: fit-content;
+        }
+
         .btn {
             margin: 2px
         }

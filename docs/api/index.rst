@@ -7,6 +7,7 @@ API Documentation
    overview
    asset
    audio_mixer
+   chatroom
    bot
    command_line
    consent
