@@ -46,8 +46,6 @@ before_script:
 
 .default_rules: &default_rules
   rules:
-    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
-      when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
     - if: $CI_COMMIT_BRANCH
@@ -75,8 +73,6 @@ changelog_check:
       MERGE_BASE=$(git merge-base origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD)
       psynet dev changelog check-mr $MERGE_BASE HEAD
   rules:
-    - if: $CI_COMMIT_BRANCH == "969-migrate-docs-to-pydata-theme"
-      when: never
     # Release branches regenerate CHANGELOG.md from fragments.
     - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
       when: never
