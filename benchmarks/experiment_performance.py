@@ -84,7 +84,7 @@ class _BaseExperiment:
     # matches — so cosmetic changes wipe the history. Pins version to allow
     # refactors that shouldn't impact performance. Bump this integer when a
     # benchmark change makes new results incomparable to old ones.
-    version = 4
+    version = 5
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -213,6 +213,18 @@ class _BaseExperiment:
 
     track_incomplete_rate.unit = "%"
     track_incomplete_rate.pretty_name = "Incomplete rate"
+
+    def track_export_time_s(self, data, *param_values):
+        result = self._result_for(data, *param_values)
+        duration = result.get("export_duration_s")
+        if duration is None:
+            raise RuntimeError(
+                "export_duration_s not in result — was --no-export passed?"
+            )
+        return duration
+
+    track_export_time_s.unit = "s"
+    track_export_time_s.pretty_name = "Export time"
 
 
 class Timeline(_BaseExperiment):
