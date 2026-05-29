@@ -5,7 +5,6 @@ group. Paths are resolved relative to the current working directory, so
 contributors must run the commands from the PsyNet repository root.
 """
 
-import argparse
 import fileinput
 import os
 import re
@@ -25,43 +24,6 @@ SOURCE_CHECKOUT_PATHS = (
     Path("psynet/resources/experiment_scripts/docker/generate-constraints"),
     Path("demos"),
 )
-
-
-def main() -> int:
-    """Run the argparse-based entry point used by the compatibility wrapper."""
-    args = parse_args()
-    return update_command(
-        n_jobs=args.legacy_jobs if args.legacy_jobs is not None else args.jobs,
-        skip_constraints_=args.skip_constraints,
-    )
-
-
-def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments for direct script execution."""
-    parser = argparse.ArgumentParser(
-        description=(
-            "Update PsyNet's bundled demo and test experiment files. "
-            "Normally run via: psynet dev demos update."
-        )
-    )
-    parser.add_argument(
-        "--jobs",
-        default=8,
-        type=int,
-        help="Number of parallel jobs to use when updating demos.",
-    )
-    parser.add_argument(
-        "--skip-constraints",
-        action="store_true",
-        help="Update demo files without regenerating constraints.txt files.",
-    )
-    parser.add_argument(
-        "legacy_jobs",
-        nargs="?",
-        type=int,
-        help=argparse.SUPPRESS,
-    )
-    return parser.parse_args()
 
 
 def update_command(n_jobs=8, skip_constraints_=None) -> int:
@@ -316,7 +278,3 @@ def update_image_tag(file):
                 print(re.sub(branch_tag, f"psynet:v{psynet_version}", line), end="")
             else:
                 print(line, end="")
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
