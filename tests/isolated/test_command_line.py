@@ -2,7 +2,6 @@ import hashlib
 import json
 import subprocess
 import tempfile
-import types
 from contextlib import contextmanager
 from datetime import date, datetime
 from decimal import Decimal
@@ -119,16 +118,15 @@ class TestCommandLine(object):
 
     def test_dev_update_demos_dispatches_to_script(self, monkeypatch):
         from psynet.command_line import psynet
+        from psynet.dev import demos as demos_module
 
         calls = []
-        fake_updater = types.SimpleNamespace(
-            main=lambda n_jobs, skip_constraints_: (
-                calls.append((n_jobs, skip_constraints_)) or 0
-            )
-        )
         monkeypatch.setattr(
-            "psynet_dev_command_line._load_update_demos_module",
-            lambda: fake_updater,
+            demos_module,
+            "update_command",
+            lambda n_jobs, skip_constraints_: (
+                calls.append((n_jobs, skip_constraints_)) or 0
+            ),
         )
 
         result = CliRunner().invoke(
@@ -137,6 +135,15 @@ class TestCommandLine(object):
 
         assert result.exit_code == 0
         assert calls == [(3, True)]
+
+    def test_dev_update_demos_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "demos", "update", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--skip-constraints" in result.output
+        assert "--jobs" in result.output
 
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""

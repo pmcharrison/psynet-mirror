@@ -1,35 +1,96 @@
-# Run me as follows: psynet dev demos update
-#
-# Warning: the chosen constraints will depend on the version of Dallinger that you currently have installed.
-# In general, you want to make sure you have installed the version of Dallinger stated in PsyNet's `psynet/version.py`.
-#
-# Warning: this command currently takes several minutes to complete because generating constraints.txt files is slow.
-# We plan to remove these constraints.txt files in due course from PsyNet, but currently they are required for
-# Dallinger back-compatibility.
-# In the meantime, if you want to skip generating constraints and only update other demo files,
-# run the following instead: psynet dev demos update --skip-constraints
+"""Update PsyNet's bundled demo and test experiment files.
 
+This module powers the source-checkout-only `psynet dev demos update` command
+group. Paths are resolved relative to the current working directory, so
+contributors must run the commands from the PsyNet repository root.
+"""
+
+import argparse
 import fileinput
 import os
 import re
 import shutil
 import subprocess
-import sys
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
 
 from joblib import Parallel, delayed
 
-import psynet.command_line
 from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
 from psynet.version import psynet_version, recommended_dallinger_major_minor
+
+
+def main() -> int:
+    """Run the argparse-based entry point used by the compatibility wrapper."""
+    args = parse_args()
+    return update_command(
+        n_jobs=args.legacy_jobs if args.legacy_jobs is not None else args.jobs,
+        skip_constraints_=args.skip_constraints,
+    )
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse command-line arguments for direct script execution."""
+    parser = argparse.ArgumentParser(
+        description=(
+            "Update PsyNet's bundled demo and test experiment files. "
+            "Normally run via: psynet dev demos update."
+        )
+    )
+    parser.add_argument(
+        "--jobs",
+        default=8,
+        type=int,
+        help="Number of parallel jobs to use when updating demos.",
+    )
+    parser.add_argument(
+        "--skip-constraints",
+        action="store_true",
+        help="Update demo files without regenerating constraints.txt files.",
+    )
+    parser.add_argument(
+        "legacy_jobs",
+        nargs="?",
+        type=int,
+        help=argparse.SUPPRESS,
+    )
+    return parser.parse_args()
+
+
+def update_command(n_jobs=8, skip_constraints_=None) -> int:
+    """Update bundled demo files from the current PsyNet source checkout."""
+    skip_constraints = (
+        bool(os.getenv("SKIP_CONSTRAINTS"))
+        if skip_constraints_ is None
+        else skip_constraints_
+    )
+
+    # Fetch the latest Dallinger patch version once, outside of parallel execution.
+    latest_dallinger_patch_version = get_latest_dallinger_patch_version(
+        recommended_dallinger_major_minor
+    )
+
+    # Update PsyNet Docker image version.
+    for path in [
+        "psynet/resources/experiment_scripts/Dockerfile",
+        "psynet/resources/experiment_scripts/docker/generate-constraints",
+    ]:
+        with fileinput.FileInput(path, inplace=True) as file:
+            update_image_tag(file)
+
+    # Use importable package functions for Joblib workers. Dynamically loaded
+    # modules cannot be imported by Loky child processes during unpickling.
+    Parallel(verbose=10, n_jobs=n_jobs)(
+        delayed(update_demo)(_dir, skip_constraints, latest_dallinger_patch_version)
+        for _dir in list_experiment_dirs()
+    )
+    return 0
 
 
 def get_latest_dallinger_patch_version(major_minor_version):
     """Get the latest patch version for a given major.minor version of Dallinger."""
     try:
-        # Use pip index to get available versions
         result = subprocess.run(
             ["pip", "index", "versions", "dallinger"],
             capture_output=True,
@@ -37,37 +98,27 @@ def get_latest_dallinger_patch_version(major_minor_version):
             check=True,
         )
 
-        # Parse the output to find versions matching the major.minor pattern
         lines = result.stdout.split("\n")
         versions = []
 
         for line in lines:
             if "Available versions:" in line:
-                # Extract version numbers from this line
                 version_part = line.split("Available versions:")[1].strip()
                 versions = [v.strip() for v in version_part.split(",")]
                 break
 
-        # Filter versions that start with the major.minor version
         matching_versions = [
             v for v in versions if v.startswith(f"{major_minor_version}.")
         ]
 
         if matching_versions:
-            # Sort versions and return the latest
             matching_versions.sort(key=lambda x: tuple(map(int, x.split(".")[2:])))
             return matching_versions[-1]
-        else:
-            # Fallback to the major.minor version with .0
-            return f"{major_minor_version}.0"
 
-    except (subprocess.CalledProcessError, Exception):
-        # Fallback to the major.minor version with .0 if we can't fetch
         return f"{major_minor_version}.0"
 
-
-skip_constraints = False
-latest_dallinger_patch_version = None
+    except (subprocess.CalledProcessError, Exception):
+        return f"{major_minor_version}.0"
 
 
 def use_master_psynet_reference():
@@ -78,12 +129,16 @@ def use_master_psynet_reference():
     )
 
 
-def update_demo(dir):
+def update_demo(dir, skip_constraints, latest_dallinger_patch_version):
     update_scripts(dir)
     if not skip_constraints:
         commit_hash_master = pre_update_constraints(dir)
         generate_constraints(dir)
-        post_update_constraints(dir, commit_hash_master)
+        post_update_constraints(
+            dir,
+            commit_hash_master,
+            latest_dallinger_patch_version,
+        )
         update_psynet_requirement(dir)
         post_update_psynet_requirement(dir)
 
@@ -127,9 +182,8 @@ def pre_update_constraints(dir):
         return commit_hash
 
 
-def post_update_constraints(dir, commit_hash_master):
+def post_update_constraints(dir, commit_hash_master, latest_dallinger_patch_version):
     with working_directory(dir):
-        # Determine the correct psynet requirement for constraints.txt based on branch
         if use_master_psynet_reference():
             psynet_constraint = (
                 "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master"
@@ -141,22 +195,17 @@ def post_update_constraints(dir, commit_hash_master):
             for line in file:
                 updated_line = line
 
-                # Replace any psynet git reference with the version number
                 if "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@" in updated_line:
                     updated_line = updated_line.replace(
                         updated_line.strip(), psynet_constraint
                     )
 
-                # Replace any existing psynet version with the current version
-                # Matches e.g. "psynet==13.0.0rc2"
                 updated_line = re.sub(
                     r"^psynet==[^\s]+",
                     psynet_constraint,
                     updated_line,
                 )
 
-                # Ensure Dallinger is pinned to the latest patch version
-                # Matches e.g. "dallinger==11.5.2"
                 updated_line = re.sub(
                     r"^dallinger==[^\s]+",
                     f"dallinger=={latest_dallinger_patch_version}",
@@ -176,23 +225,19 @@ def post_update_constraints(dir, commit_hash_master):
 
 def update_psynet_requirement(dir):
     with working_directory(dir):
-        # Determine the correct psynet requirement based on branch
         if use_master_psynet_reference():
-            # Keep the git reference that was set in pre_update_constraints.
-            return  # Don't override the git reference
+            return
 
         with open("requirements.txt", "r") as orig_file:
             with open("updated_requirements.txt", "w") as updated_file:
                 version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
                 for line in orig_file:
-                    # Handle psynet==X.Y.Z format
                     match = re.search(
                         r"^psynet(\s?)==(\s?)" + version + "$",
                         line,
                     )
                     if match is not None:
                         updated_file.write(re.sub(version, f"{psynet_version}", line))
-                    # Handle psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet format
                     elif (
                         "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
                         in line
@@ -226,7 +271,9 @@ def post_update_psynet_requirement(dir):
 
 def update_scripts(dir):
     with working_directory(dir):
-        psynet.command_line.update_scripts_()
+        from psynet.command_line import update_scripts_
+
+        update_scripts_()
 
         with resources.as_file(
             resources.files("psynet") / "resources/experiment_scripts/config.txt"
@@ -253,35 +300,5 @@ def update_image_tag(file):
                 print(line, end="")
 
 
-def main(n_jobs=8, skip_constraints_=None):
-    global latest_dallinger_patch_version, skip_constraints
-
-    skip_constraints = (
-        bool(os.getenv("SKIP_CONSTRAINTS"))
-        if skip_constraints_ is None
-        else skip_constraints_
-    )
-
-    # Fetch the latest Dallinger patch version once, outside of parallel execution.
-    latest_dallinger_patch_version = get_latest_dallinger_patch_version(
-        recommended_dallinger_major_minor
-    )
-
-    # Update PsyNet Docker image version.
-    for path in [
-        "psynet/resources/experiment_scripts/Dockerfile",
-        "psynet/resources/experiment_scripts/docker/generate-constraints",
-    ]:
-        with fileinput.FileInput(path, inplace=True) as file:
-            update_image_tag(file)
-
-    # Update demos.
-    Parallel(verbose=10, n_jobs=n_jobs)(
-        delayed(update_demo)(_dir) for _dir in list_experiment_dirs()
-    )
-    return 0
-
-
 if __name__ == "__main__":
-    n_jobs = int(sys.argv[1]) if len(sys.argv) > 1 else 8
-    raise SystemExit(main(n_jobs=n_jobs))
+    raise SystemExit(main())
