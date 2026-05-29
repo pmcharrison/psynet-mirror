@@ -40,9 +40,6 @@
 - Added bot initialization time distribution (median/p95/max) to per-test detail reporting.
 - Added detection and reporting of bots that started but never created DB participant records.
 - Added RQ worker count display in async process times section for context on queue delays.
-- `psynet performance-test local` now starts and tears down a fresh app server for each bot-count stage, giving each stage a clean database and isolated results.
-- Added export timing to `psynet performance-test local`: each stage runs `psynet export local` and reports the duration; use `--no-export` to skip.
-- Added early port-conflict detection to `psynet performance-test local` with `lsof` diagnostics.
 
 ### Changed
 
