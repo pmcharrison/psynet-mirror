@@ -86,7 +86,6 @@
 
 ### Fixed
 
-- Exported request parameters as plain JSON-like dict/list values to avoid jsonpickle `py/object` payloads in database exports (author: [Peter Harrison])
 - Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization.
 - Stabilised flaky Playwright demo tests `audio.spec.js` and `imitation_chain_video.spec.js`.
 - Stabilised flaky Playwright `video_feature.spec.js` demo by waiting for the initial auto-recording cycle to finish before clicking "Record from start".
