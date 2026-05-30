@@ -3335,14 +3335,23 @@ def performance_test__local(
     do_export = not no_export
     started_at = datetime.datetime.now().isoformat(timespec="seconds")
     if existing:
-        results = _run_performance_test_with_existing_server(
-            n_bots,
-            stagger,
-            time_factor,
-            duration_minutes,
-            debug,
-            do_export=do_export,
+        bot_log = tempfile.NamedTemporaryFile(
+            delete=False, prefix="psynet_bots_", suffix=".log"
         )
+        print(f"Bot output log: {bot_log.name}")
+        try:
+            results = _run_performance_test_with_existing_server(
+                n_bots,
+                stagger,
+                time_factor,
+                duration_minutes,
+                debug,
+                bot_log_file=bot_log,
+                do_export=do_export,
+            )
+        finally:
+            bot_log.close()
+        print(f"Bot output log: {bot_log.name}")
     else:
         results = _run_performance_test_with_new_server(
             n_bots,
@@ -3419,20 +3428,13 @@ def _run_performance_test_with_existing_server(
     time_factor,
     duration_minutes,
     debug,
+    bot_log_file,
     base_url=None,
-    bot_log_file=None,
     do_export=True,
 ):
     """Run performance test connecting to an already-running server. Returns results list."""
     from psynet.experiment import get_experiment
     from psynet.utils import get_authenticated_session
-
-    externally_managed_bot_log = bot_log_file is not None
-    if not externally_managed_bot_log:
-        bot_log_file = tempfile.NamedTemporaryFile(
-            delete=False, prefix="psynet_bots_", suffix=".log"
-        )
-        print(f"Bot output log: {bot_log_file.name}")
 
     try:
         exp = get_experiment()
@@ -3474,10 +3476,6 @@ def _run_performance_test_with_existing_server(
         export_duration, export_error = _time_export()
         results[-1]["export_duration_s"] = export_duration
         results[-1]["export_error"] = export_error
-
-    if not externally_managed_bot_log:
-        bot_log_file.close()
-        print(f"Bot output log: {bot_log_file.name}")
 
     return results
 
