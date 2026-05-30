@@ -11,6 +11,7 @@ from decimal import Decimal
 from statistics import mean
 
 import pexpect
+from sqlalchemy.exc import SQLAlchemyError
 from tabulate import tabulate
 
 from psynet.log import bold, error, success, warning
@@ -331,7 +332,7 @@ class PerformanceTester:
         # Ensure fresh DB connection (previous may have been terminated by server restart)
         try:
             db.session.remove()
-        except Exception:
+        except SQLAlchemyError:
             db.session.registry.clear()
         db.engine.dispose()
 

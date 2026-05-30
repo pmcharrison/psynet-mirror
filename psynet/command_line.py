@@ -45,7 +45,7 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 from psynet.dev.command_line import dev as _dev_command_group
-from psynet.perf_test import format_performance_summary
+from psynet.perf_test import PerformanceTester, format_performance_summary
 from psynet.version import (
     check_core_dependency_versions_match_requirements,
     check_installed_dallinger_version_is_recommended,
@@ -724,10 +724,8 @@ def _cleanup_exp_directory():
 
 
 def _check_port_available():
-    """Warn and identify culprit if configured base_port is already in use."""
-    config = get_config()
-    if not config.ready:
-        config.load()
+    """Raise ClickException if configured base_port is already in use."""
+    config = get_config(load=True)
     port = config.get("base_port")
     port_in_use = port_is_open(port)
     if not port_in_use:
@@ -737,10 +735,10 @@ def _check_port_available():
     msg = error(f"Port {port} is already in use.")
 
     if sys.platform in ("darwin", "linux"):
-        lsof_cmd = f"lsof -i :{port} -P -n"
+        lsof_args = ["lsof", "-i", f":{port}", "-P", "-n"]
         try:
             result = subprocess.run(
-                ["lsof", "-i", f":{port}", "-P", "-n"],
+                lsof_args,
                 capture_output=True,
                 text=True,
                 timeout=5,
@@ -750,15 +748,13 @@ def _check_port_available():
                 msg += f"\n\nlsof output:\n{lsof_out}"
         except Exception:
             pass
-        msg += f"\n\nTo investigate, run: {lsof_cmd}"
+        msg += f"\n\nTo investigate, run: {' '.join(lsof_args)}"
 
     raise click.ClickException(msg)
 
 
 def run_pre_auto_reload_checks():
-    config = get_config()
-    if not config.ready:
-        config.load()
+    config = get_config(load=True)
 
     from dallinger.utils import develop_target_path
 
@@ -987,9 +983,7 @@ def _run_bot(time_factor, dashboard_user, dashboard_password):
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    config = get_config()
-    if not config.ready:
-        config.load()
+    config = get_config(load=True)
 
     config.set("dashboard_user", dashboard_user)
     config.set("dashboard_password", dashboard_password)
@@ -1438,9 +1432,7 @@ def run_pre_checks(mode, local_, heroku=False, docker=False, app=None):
     if not local_:
         init_db(drop_all=True)
 
-        config = get_config()
-        if not config.ready:
-            config.load()
+        config = get_config(load=True)
         check_todos_before_deployment()
 
         if docker:
@@ -1835,8 +1827,6 @@ def _estimate(mode):
     wage_per_hour = get_config().get("wage_per_hour")
 
     config = get_config()
-    if not config.ready:
-        config.load()
 
     if mode in ["reward", "both"]:
         max_reward = experiment_class.estimated_max_reward(wage_per_hour)
@@ -2296,9 +2286,7 @@ def export_(
         ):
             raise click.Abort
 
-    config = get_config()
-    if not config.ready:
-        config.load()
+    config = get_config(load=True)
 
     if path is None:
         path = experiment_class.export_path(deployment_id)
@@ -2466,9 +2454,7 @@ def export_logs(app, server, export_path):
 def _export_source_code(app, local, server, export_path, username, password):
     import requests
 
-    config = get_config()
-    if not config.ready:
-        config.load()
+    config = get_config(load=True)
 
     username = username or config.get("dashboard_user", None)
     password = password or config.get("dashboard_password", None)
@@ -3433,8 +3419,6 @@ def _run_performance_test_with_existing_server(
         )
         sys.exit(1)
 
-    from psynet.perf_test import PerformanceTester
-
     os.environ["PASSTHROUGH_ERRORS"] = "True"
 
     # Parse n_bots - can be comma-separated list
@@ -3553,8 +3537,6 @@ def _start_local_server_and_wait_for_ready(
     env = os.environ.copy()
     env.setdefault("SKIP_DEPENDENCY_CHECK", "1")
     env.setdefault("BROWSER", "true")
-    env.setdefault("EXP_MAX_SIZE_MB", "4096")
-
     # Ensure the current Python's bin dir is on PATH so psynet is found
     # even when invoked from a virtualenv without PATH activation.
     bin_dir = os.path.dirname(sys.executable)
@@ -3708,13 +3690,15 @@ def _stop_server(server_info):
 
     kill_psynet_worker_processes()
 
-    config = get_config()
-    if not config.ready:
-        config.load()
+    config = get_config(load=True)
     base_port = config.get("base_port")
     deadline = time.monotonic() + 10
     while port_is_open(base_port) and time.monotonic() < deadline:
         time.sleep(0.2)
+    if port_is_open(base_port):
+        print(
+            f"⚠ Port {base_port} still in use after server stop — next stage may fail to start"
+        )
 
     if externally_managed:
         print("✓ Server stopped")
@@ -3728,7 +3712,7 @@ def _time_export(_run=subprocess.run):
         "psynet",
         "export",
         "local",
-        "--legacy",
+        "--legacy",  # performance tests run a legacy-mode server, so export must match
         "--anonymize",
         "no",
         "--assets",
@@ -3766,9 +3750,7 @@ def _time_export(_run=subprocess.run):
 
 def _load_server_url(server_info):
     """Load config from running server's working dir; return base_url for that server."""
-    config = get_config()
-    if not config.ready:
-        config.load()
+    config = get_config(load=True)
     working_dir = redis_vars.get("server_working_directory")
     if working_dir:
         config.load_from_file(os.path.join(working_dir, "config.txt"))
@@ -3794,6 +3776,8 @@ def _run_performance_test_with_new_server(
     so each stage gets a clean database.  A single shared log file is used
     across all stages with demarcation lines between them.
     """
+    experiment_label = get_config(load=True).get("label")
+
     bot_counts = [int(x.strip()) for x in n_bots.split(",")]
     all_results = []
     started_at = datetime.datetime.now().isoformat(timespec="seconds")
@@ -3843,13 +3827,12 @@ def _run_performance_test_with_new_server(
 
     finished_at = datetime.datetime.now().isoformat(timespec="seconds")
 
-    if len(all_results) > 1:
-        for line in format_performance_summary(all_results):
-            logger.info(line)
+    for line in format_performance_summary(all_results):
+        logger.info(line)
 
     if json_output and all_results:
         metadata = {
-            **_collect_run_metadata(None),
+            **_collect_run_metadata(experiment_label),
             "started_at": started_at,
             "finished_at": finished_at,
         }

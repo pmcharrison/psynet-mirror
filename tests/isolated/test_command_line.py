@@ -795,9 +795,7 @@ class TestLoadServerUrl:
 
 
 class TestRunPerformanceTestWithNewServer:
-    """Isolation tests are maybe not super valuable here, but at least
-    they're fast, and they follow the patterns of the project.
-    """
+    """Tests for multi-stage server orchestration in _run_performance_test_with_new_server."""
 
     def subject(self, **kwargs):
         from psynet.command_line import _run_performance_test_with_new_server
