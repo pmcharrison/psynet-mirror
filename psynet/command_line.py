@@ -880,12 +880,7 @@ patch_dallinger_develop()
 
 def safely_kill_process(p):
     try:
-        name = p.name()
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
-        name = "unknown"
-    try:
         p.kill()
-        log(f"Killed process {p.pid} ({name})")
     except psutil.NoSuchProcess:
         pass
 
