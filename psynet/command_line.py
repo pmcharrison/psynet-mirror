@@ -3333,26 +3333,53 @@ def performance_test__local(
     root_logger.addHandler(console_handler)
 
     do_export = not no_export
+    started_at = datetime.datetime.now().isoformat(timespec="seconds")
     if existing:
-        _run_performance_test_with_existing_server(
+        results = _run_performance_test_with_existing_server(
             n_bots,
             stagger,
             time_factor,
             duration_minutes,
             debug,
             do_export=do_export,
-            json_output=json_output,
         )
     else:
-        _run_performance_test_with_new_server(
+        results = _run_performance_test_with_new_server(
             n_bots,
             stagger,
             time_factor,
             duration_minutes,
             debug,
             do_export=do_export,
-            json_output=json_output,
         )
+    finished_at = datetime.datetime.now().isoformat(timespec="seconds")
+
+    for line in format_performance_summary(results):
+        logger.info(line)
+
+    if json_output and results:
+        experiment_label = get_config(load=True).get("label")
+        bot_counts = [r["n_bots"] for r in results]
+        metadata = {
+            **_collect_run_metadata(experiment_label),
+            "started_at": started_at,
+            "finished_at": finished_at,
+        }
+        options = {
+            "n_bots_sweep": bot_counts,
+            "duration_minutes": duration_minutes,
+            "stagger_interval_s": float(stagger) if stagger else None,
+            "time_factor": time_factor,
+        }
+        _write_json_results(
+            json_output,
+            metadata=metadata,
+            options=options,
+            all_results=results,
+        )
+        print(f"Performance results (JSON): {json_output}")
+
+    print("✓ Performance test completed")
 
 
 def _collect_run_metadata(experiment_label):
@@ -3392,13 +3419,11 @@ def _run_performance_test_with_existing_server(
     time_factor,
     duration_minutes,
     debug,
-    collect_results=None,
     base_url=None,
     bot_log_file=None,
     do_export=True,
-    json_output=None,
 ):
-    """Run performance test connecting to an already-running server."""
+    """Run performance test connecting to an already-running server. Returns results list."""
     from psynet.experiment import get_experiment
     from psynet.utils import get_authenticated_session
 
@@ -3440,46 +3465,21 @@ def _run_performance_test_with_existing_server(
         ),
         time_factor=time_factor or exp.test_time_factor,
     )
-    started_at = datetime.datetime.now().isoformat(timespec="seconds")
     results = tester.run(
         bot_counts=bot_counts,
         bot_log_file=bot_log_file,
     )
-    finished_at = datetime.datetime.now().isoformat(timespec="seconds")
 
     if do_export and results:
         export_duration, export_error = _time_export()
         results[-1]["export_duration_s"] = export_duration
         results[-1]["export_error"] = export_error
 
-    if collect_results is not None:
-        collect_results.extend(results)
-    else:
-        for line in format_performance_summary(results):
-            logger.info(line)
-        if json_output:
-            metadata = {
-                **_collect_run_metadata(exp.label),
-                "started_at": started_at,
-                "finished_at": finished_at,
-            }
-            options = {
-                "n_bots_sweep": bot_counts,
-                "duration_minutes": tester.duration_minutes,
-                "stagger_interval_s": tester.stagger_interval_s,
-                "time_factor": tester.time_factor,
-            }
-            _write_json_results(
-                json_output,
-                metadata=metadata,
-                options=options,
-                all_results=results,
-            )
-            print(f"Performance results (JSON): {json_output}")
-
     if not externally_managed_bot_log:
         bot_log_file.close()
         print(f"Bot output log: {bot_log_file.name}")
+
+    return results
 
 
 class _OutputTee:
@@ -3764,23 +3764,19 @@ def _run_performance_test_with_new_server(
     duration_minutes,
     debug,
     do_export=True,
-    json_output=None,
     _start_server=_start_local_server_and_wait_for_ready,
     _stop_server_fn=_stop_server,
     _run_stage=_run_performance_test_with_existing_server,
     _base_url=None,
 ):
-    """Run performance test after starting a new experiment server.
+    """Run performance test after starting a new experiment server. Returns results list.
 
     For multiple bot counts (comma-separated), starts a fresh server per stage
     so each stage gets a clean database.  A single shared log file is used
     across all stages with demarcation lines between them.
     """
-    experiment_label = get_config(load=True).get("label")
-
     bot_counts = [int(x.strip()) for x in n_bots.split(",")]
     all_results = []
-    started_at = datetime.datetime.now().isoformat(timespec="seconds")
 
     # Create single shared log files for all stages.
     tmp_log = tempfile.NamedTemporaryFile(
@@ -3808,51 +3804,26 @@ def _run_performance_test_with_new_server(
             server_info = _start_server(debug=debug, log_file=shared_server_log)
             try:
                 base_url = _base_url or _load_server_url(server_info)
-                _run_stage(
+                stage_results = _run_stage(
                     n_bots=str(count),
                     stagger=stagger,
                     time_factor=time_factor,
                     duration_minutes=duration_minutes,
                     debug=debug,
-                    collect_results=all_results,
                     base_url=base_url,
                     bot_log_file=shared_bot_log,
                     do_export=do_export,
                 )
+                all_results.extend(stage_results)
             finally:
                 _stop_server_fn(server_info)
     finally:
         shared_server_log.close()
         shared_bot_log.close()
 
-    finished_at = datetime.datetime.now().isoformat(timespec="seconds")
-
-    for line in format_performance_summary(all_results):
-        logger.info(line)
-
-    if json_output and all_results:
-        metadata = {
-            **_collect_run_metadata(experiment_label),
-            "started_at": started_at,
-            "finished_at": finished_at,
-        }
-        options = {
-            "n_bots_sweep": bot_counts,
-            "duration_minutes": duration_minutes,
-            "stagger_interval_s": float(stagger) if stagger else None,
-            "time_factor": time_factor,
-        }
-        _write_json_results(
-            json_output,
-            metadata=metadata,
-            options=options,
-            all_results=all_results,
-        )
-        print(f"Performance results (JSON): {json_output}")
-
     print(f"Server log: {tmp_log_path}")
     print(f"Bot output log: {bot_log_path}")
-    print("✓ Performance test completed")
+    return all_results
 
 
 @performance_test.command("ssh")

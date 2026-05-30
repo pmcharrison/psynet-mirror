@@ -810,15 +810,15 @@ class TestRunPerformanceTestWithNewServer:
             "_start_server", Mock(side_effect=lambda **kw: _make_server_info())
         )
         kwargs.setdefault("_stop_server_fn", Mock())
-        kwargs.setdefault("_run_stage", Mock())
+        kwargs.setdefault("_run_stage", Mock(return_value=[]))
         kwargs.setdefault("_base_url", "http://localhost:5000")
-        _run_performance_test_with_new_server(**kwargs)
+        return _run_performance_test_with_new_server(**kwargs)
 
     def test_restarts_between_stages_for_multiple_bot_counts(self):
         """Each bot count should get its own fresh server."""
         mock_start = Mock(side_effect=lambda **kw: _make_server_info())
         mock_stop = Mock()
-        mock_run = Mock()
+        mock_run = Mock(return_value=[])
         self.subject(
             n_bots="5,10",
             _start_server=mock_start,
@@ -850,23 +850,21 @@ class TestRunPerformanceTestWithNewServer:
         mock_stop.assert_called_once()
 
     def test_collects_results_from_all_stages(self):
-        """Both stages share the same collect_results list."""
-        mock_run = Mock()
-        self.subject(n_bots="5,10", _run_stage=mock_run)
-        list_1 = mock_run.call_args_list[0].kwargs["collect_results"]
-        list_2 = mock_run.call_args_list[1].kwargs["collect_results"]
-        assert list_1 is list_2
+        """Results returned by each stage are accumulated into the final list."""
+        mock_run = Mock(return_value=[{"n_bots": 1}])
+        results = self.subject(n_bots="5,10", _run_stage=mock_run)
+        assert len(results) == 2
 
     def test_passes_do_export_per_stage(self):
         """do_export=True is forwarded to each stage."""
-        mock_run = Mock()
+        mock_run = Mock(return_value=[])
         self.subject(n_bots="5,10", do_export=True, _run_stage=mock_run)
         for call in mock_run.call_args_list:
             assert call.kwargs["do_export"] is True
 
     def test_skips_export_when_disabled(self):
         """do_export=False is forwarded to each stage."""
-        mock_run = Mock()
+        mock_run = Mock(return_value=[])
         self.subject(do_export=False, _run_stage=mock_run)
         assert mock_run.call_args.kwargs["do_export"] is False
 
