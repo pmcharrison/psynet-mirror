@@ -3345,7 +3345,6 @@ def performance_test__local(
                 stagger,
                 time_factor,
                 duration_minutes,
-                debug,
                 bot_log_file=bot_log,
                 do_export=do_export,
             )
@@ -3427,7 +3426,6 @@ def _run_performance_test_with_existing_server(
     stagger,
     time_factor,
     duration_minutes,
-    debug,
     bot_log_file,
     base_url=None,
     do_export=True,
@@ -3807,7 +3805,6 @@ def _run_performance_test_with_new_server(
                     stagger=stagger,
                     time_factor=time_factor,
                     duration_minutes=duration_minutes,
-                    debug=debug,
                     base_url=base_url,
                     bot_log_file=shared_bot_log,
                     do_export=do_export,
