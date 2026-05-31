@@ -318,8 +318,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         Returns:
             bool: True if assignment is returned, False otherwise
         """
-        from dallinger.prolific import ProlificServiceException
-
         from psynet.experiment import get_experiment
 
         experiment = get_experiment()
@@ -327,46 +325,15 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         logger.info(
             f"Checking Prolific submission status for assignment {participant.assignment_id}"
         )
-        try:
-            submission = recruiter.prolificservice.get_participant_submission(
-                participant.assignment_id
-            )
-        except ProlificServiceException as e:
-            if not PsyNetProlificRecruiterMixin._prolific_submission_not_found(e):
-                raise
-            logger.info(
-                "Prolific submission for assignment %s was not found; "
-                "treating it as not returned.",
-                participant.assignment_id,
-            )
-            participant.var.assignment_returned = False
-            return False
+        submission = recruiter.prolificservice.get_participant_submission(
+            participant.assignment_id
+        )
         logger.info(
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )
-        is_returned = bool(submission and submission.get("status") == "RETURNED")
+        is_returned = submission and submission.get("status") == "RETURNED"
         participant.var.assignment_returned = is_returned
         return is_returned
-
-    @staticmethod
-    def _prolific_submission_not_found(exception) -> bool:
-        for arg in exception.args:
-            if isinstance(arg, str):
-                try:
-                    arg = json.loads(arg)
-                except json.JSONDecodeError:
-                    pass
-
-            if isinstance(arg, dict):
-                response = arg.get("response", {})
-                error = response.get("error") or response.get("detail")
-            else:
-                error = arg
-
-            if "not found" in str(error).lower():
-                return True
-
-        return False
 
     @staticmethod
     def reward_and_set_bonus(participant):
