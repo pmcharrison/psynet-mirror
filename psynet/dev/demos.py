@@ -34,7 +34,8 @@ def update_command(n_jobs=8, skip_constraints_=None) -> int:
         else skip_constraints_
     )
 
-    # Fetch the latest Dallinger patch version once, outside of parallel execution.
+    # Constraint regeneration can pull a lower patch release unless we pin the latest
+    # available Dallinger patch for PsyNet's recommended major/minor version.
     latest_dallinger_patch_version = get_latest_dallinger_patch_version(
         recommended_dallinger_major_minor
     )
@@ -67,6 +68,7 @@ def assert_running_from_source_checkout_root() -> None:
 def get_latest_dallinger_patch_version(major_minor_version):
     """Get the latest patch version for a given major.minor version of Dallinger."""
     try:
+        # Use pip index to get available versions.
         result = subprocess.run(
             ["pip", "index", "versions", "dallinger"],
             capture_output=True,
@@ -74,26 +76,32 @@ def get_latest_dallinger_patch_version(major_minor_version):
             check=True,
         )
 
+        # Parse the output to find versions matching the major.minor pattern.
         lines = result.stdout.split("\n")
         versions = []
 
         for line in lines:
             if "Available versions:" in line:
+                # Extract version numbers from this line.
                 version_part = line.split("Available versions:")[1].strip()
                 versions = [v.strip() for v in version_part.split(",")]
                 break
 
+        # Filter versions that start with the major.minor version.
         matching_versions = [
             v for v in versions if v.startswith(f"{major_minor_version}.")
         ]
 
         if matching_versions:
+            # Sort versions and return the latest patch release.
             matching_versions.sort(key=lambda x: tuple(map(int, x.split(".")[2:])))
             return matching_versions[-1]
 
+        # Fallback to the major.minor version with .0.
         return f"{major_minor_version}.0"
 
     except Exception:
+        # Fallback to the major.minor version with .0 if we can't fetch versions.
         return f"{major_minor_version}.0"
 
 
@@ -160,6 +168,7 @@ def pre_update_constraints(dir):
 
 def post_update_constraints(dir, commit_hash_master, latest_dallinger_patch_version):
     with working_directory(dir):
+        # Determine the correct psynet requirement for constraints.txt.
         if use_master_psynet_reference():
             psynet_constraint = (
                 "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master"
@@ -171,17 +180,20 @@ def post_update_constraints(dir, commit_hash_master, latest_dallinger_patch_vers
             for line in file:
                 updated_line = line
 
+                # Replace any psynet git reference with the correct constraint.
                 if "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@" in updated_line:
                     updated_line = updated_line.replace(
                         updated_line.strip(), psynet_constraint
                     )
 
+                # Replace any existing psynet version with the current constraint.
                 updated_line = re.sub(
                     r"^psynet==[^\s]+",
                     psynet_constraint,
                     updated_line,
                 )
 
+                # Ensure Dallinger is pinned to the latest patch version.
                 updated_line = re.sub(
                     r"^dallinger==[^\s]+",
                     f"dallinger=={latest_dallinger_patch_version}",
@@ -201,6 +213,7 @@ def post_update_constraints(dir, commit_hash_master, latest_dallinger_patch_vers
 
 def update_psynet_requirement(dir):
     with working_directory(dir):
+        # Keep the git reference that was set in pre_update_constraints.
         if use_master_psynet_reference():
             return
 
@@ -208,12 +221,14 @@ def update_psynet_requirement(dir):
             with open("updated_requirements.txt", "w") as updated_file:
                 version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
                 for line in orig_file:
+                    # Handle psynet==X.Y.Z format.
                     match = re.search(
                         r"^psynet(\s?)==(\s?)" + version + "$",
                         line,
                     )
                     if match is not None:
                         updated_file.write(re.sub(version, f"{psynet_version}", line))
+                    # Handle master git references left by older generated files.
                     elif (
                         "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
                         in line
