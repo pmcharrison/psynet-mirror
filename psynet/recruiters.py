@@ -170,6 +170,11 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             CodeBlock(
                 lambda participant: participant.var.set("assignment_returned", False)
             ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "assignment_return_unverifiable", False
+                )
+            ),
             InfoPage(
                 _p(
                     "return_assignment_instructions",
@@ -180,7 +185,10 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             ),
             while_loop(
                 "wait_for_assignment_return",
-                condition=lambda participant: not participant.var.assignment_returned,
+                condition=lambda participant: (
+                    not participant.var.assignment_returned
+                    and not participant.var.assignment_return_unverifiable
+                ),
                 logic=join(
                     AsyncCodeBlock(
                         self.check_assignment_return_status,
@@ -205,14 +213,21 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                                 time_estimate=0.0,
                             ),
                         ),
-                        logic_if_false=InfoPage(
-                            _p(
-                                "assignment_return_retry",
-                                "That didn't work. Are you sure you returned the submission for this study? "
-                                "Please go to the Prolific interface, make sure you have returned the submission, "
-                                "then click the 'Next' button.",
+                        logic_if_false=conditional(
+                            label="assignment_return_unverifiable",
+                            condition=lambda participant: (
+                                participant.var.assignment_return_unverifiable
                             ),
-                            time_estimate=0.5,
+                            logic_if_true=None,
+                            logic_if_false=InfoPage(
+                                _p(
+                                    "assignment_return_retry",
+                                    "That didn't work. Are you sure you returned the submission for this study? "
+                                    "Please go to the Prolific interface, make sure you have returned the submission, "
+                                    "then click the 'Next' button.",
+                                ),
+                                time_estimate=0.5,
+                            ),
                         ),
                     ),
                 ),
@@ -336,16 +351,18 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 raise
             logger.info(
                 "Prolific submission for assignment %s was not found; "
-                "treating it as not returned.",
+                "treating the assignment return as unverifiable.",
                 participant.assignment_id,
             )
             participant.var.assignment_returned = False
+            participant.var.assignment_return_unverifiable = True
             return False
         logger.info(
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )
         is_returned = bool(submission and submission.get("status") == "RETURNED")
         participant.var.assignment_returned = is_returned
+        participant.var.assignment_return_unverifiable = False
         return is_returned
 
     @staticmethod

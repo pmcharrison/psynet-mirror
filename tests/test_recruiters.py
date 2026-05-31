@@ -43,6 +43,7 @@ def test_check_assignment_return_status_sets_true_for_returned_submission(monkey
 
     assert returned is True
     assert participant.var.assignment_returned is True
+    assert participant.var.assignment_return_unverifiable is False
     assert service.calls == ["submission-id"]
 
 
@@ -55,10 +56,13 @@ def test_check_assignment_return_status_sets_false_for_active_submission(monkeyp
 
     assert returned is False
     assert participant.var.assignment_returned is False
+    assert participant.var.assignment_return_unverifiable is False
     assert service.calls == ["submission-id"]
 
 
-def test_check_assignment_return_status_handles_missing_submission(monkeypatch):
+def test_check_assignment_return_status_marks_missing_submission_unverifiable(
+    monkeypatch,
+):
     service = FakeProlificService(
         exception=ProlificServiceException(
             json.dumps({"response": {"error": "Not found."}})
@@ -71,6 +75,7 @@ def test_check_assignment_return_status_handles_missing_submission(monkeypatch):
 
     assert returned is False
     assert participant.var.assignment_returned is False
+    assert participant.var.assignment_return_unverifiable is True
     assert service.calls == ["0shuj912lqi"]
 
 
