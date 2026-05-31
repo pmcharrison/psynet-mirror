@@ -68,7 +68,7 @@ def assert_running_from_source_checkout_root() -> None:
 def get_latest_dallinger_patch_version(major_minor_version):
     """Get the latest patch version for a given major.minor version of Dallinger."""
     try:
-        # Use pip index to get available versions.
+        # Use pip index to get available versions
         result = subprocess.run(
             ["pip", "index", "versions", "dallinger"],
             capture_output=True,
@@ -76,32 +76,32 @@ def get_latest_dallinger_patch_version(major_minor_version):
             check=True,
         )
 
-        # Parse the output to find versions matching the major.minor pattern.
+        # Parse the output to find versions matching the major.minor pattern
         lines = result.stdout.split("\n")
         versions = []
 
         for line in lines:
             if "Available versions:" in line:
-                # Extract version numbers from this line.
+                # Extract version numbers from this line
                 version_part = line.split("Available versions:")[1].strip()
                 versions = [v.strip() for v in version_part.split(",")]
                 break
 
-        # Filter versions that start with the major.minor version.
+        # Filter versions that start with the major.minor version
         matching_versions = [
             v for v in versions if v.startswith(f"{major_minor_version}.")
         ]
 
         if matching_versions:
-            # Sort versions and return the latest patch release.
+            # Sort versions and return the latest patch release
             matching_versions.sort(key=lambda x: tuple(map(int, x.split(".")[2:])))
             return matching_versions[-1]
 
-        # Fallback to the major.minor version with .0.
+        # Fallback to the major.minor version with .0
         return f"{major_minor_version}.0"
 
     except Exception:
-        # Fallback to the major.minor version with .0 if we can't fetch versions.
+        # Fallback to the major.minor version with .0 if we can't fetch versions
         return f"{major_minor_version}.0"
 
 
@@ -168,7 +168,7 @@ def pre_update_constraints(dir):
 
 def post_update_constraints(dir, commit_hash_master, latest_dallinger_patch_version):
     with working_directory(dir):
-        # Determine the correct psynet requirement for constraints.txt.
+        # Determine the correct psynet requirement for constraints.txt
         if use_master_psynet_reference():
             psynet_constraint = (
                 "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master"
