@@ -155,7 +155,10 @@ class TestCommandLine(object):
             )
 
         assert result.exit_code != 0
-        assert "Run from a PsyNet source checkout" in result.output
+        assert (
+            "This command must be run from the PsyNet source checkout root directory"
+            in result.output
+        )
 
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
