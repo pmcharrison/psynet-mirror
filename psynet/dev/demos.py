@@ -180,20 +180,22 @@ def post_update_constraints(dir, commit_hash_master, latest_dallinger_patch_vers
             for line in file:
                 updated_line = line
 
-                # Replace any psynet git reference with the correct constraint.
+                # Replace any psynet git reference with the version number
                 if "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@" in updated_line:
                     updated_line = updated_line.replace(
                         updated_line.strip(), psynet_constraint
                     )
 
-                # Replace any existing psynet version with the current constraint.
+                # Replace any existing psynet version with the current version
+                # Matches e.g. "psynet==13.0.0rc2"
                 updated_line = re.sub(
                     r"^psynet==[^\s]+",
                     psynet_constraint,
                     updated_line,
                 )
 
-                # Ensure Dallinger is pinned to the latest patch version.
+                # Ensure Dallinger is pinned to the latest patch version
+                # Matches e.g. "dallinger==11.5.2"
                 updated_line = re.sub(
                     r"^dallinger==[^\s]+",
                     f"dallinger=={latest_dallinger_patch_version}",
@@ -213,22 +215,23 @@ def post_update_constraints(dir, commit_hash_master, latest_dallinger_patch_vers
 
 def update_psynet_requirement(dir):
     with working_directory(dir):
-        # Keep the git reference that was set in pre_update_constraints.
+        # Determine the correct psynet requirement based on branch
         if use_master_psynet_reference():
-            return
+            # Keep the git reference that was set in pre_update_constraints.
+            return  # Don't override the git reference
 
         with open("requirements.txt", "r") as orig_file:
             with open("updated_requirements.txt", "w") as updated_file:
                 version = r"([0-9]+)\.([0-9]+)\.([0-9]+(?:rc[0-9]+|a[0-9]+)?)"
                 for line in orig_file:
-                    # Handle psynet==X.Y.Z format.
+                    # Handle psynet==X.Y.Z format
                     match = re.search(
                         r"^psynet(\s?)==(\s?)" + version + "$",
                         line,
                     )
                     if match is not None:
                         updated_file.write(re.sub(version, f"{psynet_version}", line))
-                    # Handle master git references left by older generated files.
+                    # Handle psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet format
                     elif (
                         "psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet"
                         in line
