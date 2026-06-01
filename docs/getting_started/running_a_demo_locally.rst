@@ -1,7 +1,9 @@
-Running a demo
-==============
+.. _running_a_demo_locally:
 
-The goal of this exercise is to run a demo experiment in debug mode.
+Running a demo locally
+======================
+
+The goal of this chapter is to run a demo experiment in debug mode on your own computer.
 Once you have an experiment running in debug mode, it's easy to make small tweaks
 and immediately test the results.
 
@@ -19,7 +21,7 @@ demos.
     git clone https://gitlab.com/PsyNetDev/PsyNet.git
     cd PsyNet
 
-Create a virtual environment for the tutorial and install the demo's dependencies.
+Create a virtual environment and activate it.
 We suggest using `uv <https://docs.astral.sh/uv/>`_, but ``python -m venv`` also works.
 
 .. code-block:: bash
@@ -31,12 +33,35 @@ You will install the dependencies on a per-demo basis, because each demo has
 its own ``constraints.txt`` file pinning compatible versions of PsyNet and its
 dependencies.
 
-Choose an experiment to run from the ``demos/`` directory.
-Let's say we want to run the ``simple_rating`` pipeline. We can do this as follows:
+Choosing a demo
+---------------
+
+PsyNet contains many demo experiments in the ``demos`` directory.
+These are organized into three main subdirectories:
+
+* ``demos/features/`` - focused demos that each illustrate a single building block of PsyNet.
+* ``demos/pipelines/`` - end-to-end experiment pipelines for common paradigms.
+* ``demos/experiments/`` - more complete example experiments.
+
+.. admonition:: Two demos to start with
+   :class: tip
+
+   If you are new to PsyNet, the two most useful demos to read and run first are
+   ``demos/features/pages/`` and ``demos/features/timeline/``. Together they cover
+   the core building blocks (info pages, modular pages, prompts, controls,
+   page makers, code blocks, conditional logic, loops). They are also the
+   companion demos for the :doc:`Pages <pages>` and
+   :doc:`Timelines <timelines>` chapters of the tutorial.
+
+Launching a demo
+----------------
+
+To run a demo, navigate to its directory, install its dependencies, and launch it
+in debug mode. For example, to run the ``timeline`` feature demo:
 
 .. code-block:: bash
 
-    cd demos/pipelines/simple_rating
+    cd demos/features/timeline
     uv pip install -r constraints.txt
     psynet debug local
 
@@ -53,18 +78,38 @@ Let's say we want to run the ``simple_rating`` pipeline. We can do this as follo
     being occupied, you can add ``port = 5001`` (or another port of your choice)
     to your experiment's ``config.txt`` file and try again.
 
-If everything works successfully, a couple of browser windows should open: one
-contains the experiment dashboard, and the other contains the participant interface.
-If this doesn't happen, check the terminal output for any errors.
+You will need to wait a few seconds for the demo to start.
+You may see one or more pop-ups asking whether you want to open an external website;
+you should say Yes to these.
 
-Try taking a few pages as a participant, and check that the pages advance appropriately.
+If everything works properly, you should see two web pages.
+One is a participant interface, looking something like this:
+
+.. image:: ../getting_started/images/participant-interface.png
+    :alt: Screenshot showing a participant interface in a PsyNet demo.
+    :class: bordered
+    :align: center
+    :width: 600px
+
+The other is an admin (dashboard) interface, looking something like this:
+
+.. image:: ../getting_started/images/admin-interface.png
+    :alt: Screenshot showing an admin interface in a PsyNet demo.
+    :class: bordered
+    :align: center
+    :width: 600px
+
+You can now interact with the demo as if you were a participant.
+Try taking a few pages, and check that the pages advance appropriately.
+If you want to start a second participant session, you can do this via the admin interface,
+clicking the 'New participant' button on the 'Development' tab.
 
 Viewing your data
 -----------------
 
+You can use the admin interface to view the data collected from participants.
 Once you have taken a few pages yourself, and ideally seen an experiment trial or two,
-you can also check out the dashboard to see your own data.
-Click the "Database" dropdown in the navbar and then select "Participant".
+click the "Database" dropdown in the navbar and then select "Participant".
 You should see a table containing one row, which corresponds to you as a participant.
 Scroll to the right to see various attributes that have been stored.
 If you click again on "Database" you should also see somewhere some variant of "Trial"

@@ -58,7 +58,7 @@ Steps
 -----
 
 1. Choose a pipeline from the list above.
-2. Make sure you can run the corresponding demo (see :doc:`running_a_demo`).
+2. Make sure you can run the corresponding demo (see :doc:`running_a_demo_locally`).
 3. Copy your stimuli into the ``data/`` directory.
 4. Update the ``experiment.py`` file to point to your stimuli.
 5. Try the experiment again by running ``psynet debug local``.
