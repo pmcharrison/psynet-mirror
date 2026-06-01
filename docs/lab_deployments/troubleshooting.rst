@@ -41,7 +41,7 @@ in the past.
 **Q**: Port 5000 is already in use.
 
 **A**: Disable AirDrop receiver on macOS. Alternatively, stop any other
-experiment running in another terminal or PyCharm window. To kill all
+experiment running in another terminal or IDE window. To kill all
 running Python processes you can run:
 
 .. code:: bash

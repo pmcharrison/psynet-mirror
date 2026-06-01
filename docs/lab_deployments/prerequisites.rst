@@ -39,134 +39,49 @@ example of another group, or a global repository with your personal
 account), but this is not recommended within the group (see more
 information https://psynetdev.gitlab.io/PsyNet/deploy/ssh_server.html)
 
-PyCharm
-~~~~~~~
+IDE setup
+~~~~~~~~~
 
-Install PyCharm
-^^^^^^^^^^^^^^^
+We most strongly recommend **Cursor** as the default IDE for PsyNet
+development. **VSCode** is the closest alternative because Cursor is
+built on VSCode, so the same project settings and debugging files
+generally work in both editors. **PyCharm** is also supported as an
+alternative IDE, but it is no longer the default recommendation for PsyNet.
 
--  Apply for educational discount
-   (https://www.jetbrains.com/shop/eform/students )
+1. Download and install your IDE:
 
--  Download and install `PyCharm Pro <https://www.jetbrains.com/pycharm/>`__.
+   - Cursor: https://cursor.sh/
+   - VSCode: https://code.visualstudio.com/
+   - PyCharm: https://www.jetbrains.com/pycharm/
 
-**Important:** you need PyCharm Professional to use the debugger.
+2. Open your experiment repository as the project folder.
 
-Choose your environment
-^^^^^^^^^^^^^^^^^^^^^^^
+3. Select the Python interpreter or virtual environment you use for
+   PsyNet. If you are working with Docker-based experiment scripts, use
+   the terminal and helper scripts that come with the experiment
+   repository.
 
-1. Open the project.
+4. To test that your setup works, open the IDE's integrated terminal, go
+   to an experiment folder (for example, ``demos/timeline``), and run the
+   local debug command used by your experiment setup, for example:
 
-2. Go to settings -> Python interpreter:
+   .. code:: bash
 
-3. Select show all:
+      psynet debug local
 
-.. image:: /_static/images/lab_deployments/image42.png
-   :width: 8.5in
+   For Docker-based experiment templates, the command is typically:
 
-4. Go to plus sign
+   .. code:: bash
 
-5. Go to existing environments and select from the list the one that
-relates to you
+      bash docker/psynet debug local
 
-.. image:: /_static/images/lab_deployments/image40.png
-   :width: 2.5in
+   The command should eventually print a dashboard link. Open that link
+   in Google Chrome and start a participant session to confirm that the
+   experiment runs locally.
 
-6. Press OK
-
-7. Optional: Sometimes you already added the virtual environment. In
-this case, you can select it from the list on the left. You may need to
-turn off the filter in order to see it:
-
-.. image:: /_static/images/lab_deployments/image17.png
-   :width: 8.5in
-
-Pressing the filter icon (the one on the right from the pencil icon):
-
-.. image:: /_static/images/lab_deployments/image26.png
-   :width: 3.5in
-
-to test open the terminal in the lower part of the pycharm window, and
-go to the folder of an experiment (e.g **demos/timeline**) and type
-**psynet debug local**.
-
-.. image:: /_static/images/lab_deployments/image47.png
-   :width: 8.5in
-
-Custom keymaps
-^^^^^^^^^^^^^^
-
-To further customize the ability to select a code and execute it go to
-setting in python and search for “​​execute selection in python Console”
-select this option:
-
-.. image:: /_static/images/lab_deployments/image15.png
-   :width: 8.5in
-
-Add a simple shortcut for example replace this by Command+Enter. Now you
-can select a code and Command+Enter will execute it in the console.
-
-Debugging in PyCharm
-^^^^^^^^^^^^^^^^^^^^
-
-1. In the top right go to here:
-
-.. image:: /_static/images/lab_deployments/image43.png
-   :width: 8.5in
-
-2. Select edit configurations:
-
-3. Select + and debug server
-
-4. Set the name to “Debug” and port to “1234”. If you use docker
-locally. For Docker set the name to “Docker Debug”, set the port to
-“12345” and change “localhost” to “host.internal”.
-
-5. Copy the pip install command:
-
-.. image:: /_static/images/lab_deployments/image8.png
-   :width: 8.5in
-
-6. Run it in the virtual environment.
-
-7. Start the debugger.
-
-8. Copy this line from the console to set a breakpoint.
-
-.. image:: /_static/images/lab_deployments/image12.png
-   :width: 8.5in
-
-9. Put the breakpoint in your code
-
-10. Your code should now stop at the breakpoint. You can now select
-lines code in your console and press Command+Enter to execute the
-selection in the debugger. You can see the variables when looking into
-“Debugger”.
-
-.. image:: /_static/images/lab_deployments/image31.png
-   :width: 8.5in
-
-9. Perform the following changes to the pycharm debug settings: go to
-preferences and search for python debugger unselect “attach to
-subprocesses” and select “gevent compatible”
-
-.. image:: /_static/images/lab_deployments/image24.png
-   :width: 8.5in
-
-Set up Copilot
-^^^^^^^^^^^^^^
-
-Copilot gives you autocomplete-suggestions for programming
-
-Website for Copilot
-(https://plugins.jetbrains.com/plugin/17718-github-copilot )
-
-In PyCharm, go to Preferences -> Plugins -> Marketplace and search for
-Copilot. Click Install and restart PyCharm. You should now see Copilot
-in “Installed”.
-
-.. image:: /_static/images/lab_deployments/image55.png
-   :width: 8.5in
+In particular, PyCharm remote debugging is currently known to be
+unreliable, so we do not maintain detailed PyCharm setup instructions
+here.
 
 Git: version control and best practices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,7 +137,8 @@ Git: version control and best practices
       git push                      # update remote
       git checkout <branch>         # switch branches
 
-   We strongly recommend using PyCharm or Cursor for committing.
+   We recommend using the Git interface in VSCode, Cursor, or another
+   IDE for reviewing and committing changes.
 
    It is important to make sure you are logged in to git registry before
    deploying:
@@ -285,11 +201,11 @@ Git: version control and best practices
 
          git push origin main
 
-How to commit in PyCharm
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to commit in your IDE
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
--  Instead of using git commit -m “<your message>”, you can also commit
-   via PyCharm.
+-  Instead of using ``git commit -m "<your message>"``, you can also
+   commit through your IDE's Git interface.
 
 -  Go to “Commit” on the left side and check the files you want to
    commit. Type the message below and press “Commit”, or “Commit and

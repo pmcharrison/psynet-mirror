@@ -102,8 +102,8 @@ We recommend a shared workflow because it makes problems easier to
 diagnose and support:
 
 - Use macOS where possible.
-- Install `Docker <prerequisites.html#docker-desktop>`__ and an IDE such as
-  `PyCharm Professional <prerequisites.html#pycharm>`__ or Cursor.
+- Install `Docker <prerequisites.html#docker-desktop>`__ and an IDE. Cursor is
+  most strongly recommended; VSCode and PyCharm are supported alternatives.
 - Use Docker for both local development and remote deployment.
 - Use one of the currently supported recruiters: Prolific, CINT, or Lab
   Recruiter.
