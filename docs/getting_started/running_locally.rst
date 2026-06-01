@@ -3,13 +3,6 @@
 Running PsyNet locally
 ======================
 
-Installation
-------------
-
-PsyNet has detailed installation instructions in the :doc:`installation section <../installation/index>`.
-Follow the appropriate instructions for your operating system,
-then follow the instructions below to check your setup.
-
 Launch a PsyNet demo
 --------------------
 
@@ -27,8 +20,8 @@ These are organized into three main subdirectories:
    ``demos/features/pages/`` and ``demos/features/timeline/``. Together they cover
    the core building blocks (info pages, modular pages, prompts, controls,
    page makers, code blocks, conditional logic, loops). They are also the
-   companion demos for the :doc:`Pages <tutorial/pages>` and
-   :doc:`Timelines <tutorial/timelines>` chapters of the tutorial.
+   companion demos for the :doc:`Pages <pages>` and
+   :doc:`Timelines <timelines>` chapters of the tutorial.
 
 To run a demo, you first need to navigate to it in the terminal.
 The following code navigates to the 'timeline' demo:

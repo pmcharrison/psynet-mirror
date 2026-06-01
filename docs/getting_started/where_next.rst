@@ -11,12 +11,12 @@ Deploying experiments
 ---------------------
 
 Deploying an experiment to a remote web server requires some additional setup.
-See :doc:`../running_remotely` for details, as well as the :doc:`/deploy/index` documentation.
+See :doc:`running_remotely` for details, as well as the :doc:`/deploy/index` documentation.
 
 Customizing your own experiment
 -------------------------------
 
-The :doc:`../customizing_an_experiment` page describes how to start your own experiment by
+The :doc:`customizing_an_experiment` page describes how to start your own experiment by
 copying one of the demos and modifying it.
 
 Topical tutorials
