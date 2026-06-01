@@ -7,7 +7,7 @@ PsyNet source checkout, where `CHANGELOG.md` and `changelog.d/` are present.
 import click
 
 from psynet.dev import changelog as changelog_module
-from psynet.dev import demos as demos_module
+from psynet.dev import experiments as experiments_module
 
 CHANGELOG_CATEGORIES = (
     "breaking",
@@ -39,29 +39,29 @@ def dev():
     """Developer utilities for PsyNet source checkouts."""
 
 
-@dev.group("demos")
-def demos():
-    """Manage bundled demos from a PsyNet source checkout."""
+@dev.group("experiments")
+def experiments():
+    """Manage bundled demo and test experiments from a PsyNet source checkout."""
 
 
-@demos.command("update")
+@experiments.command("update")
 @click.option(
     "--jobs",
     "n_jobs",
     default=8,
     show_default=True,
     type=int,
-    help="Number of parallel jobs to use when updating demos.",
+    help="Number of parallel jobs to use when updating experiments.",
 )
 @click.option(
     "--skip-constraints",
     is_flag=True,
-    help="Update demo files without regenerating constraints.txt files.",
+    help="Update experiment files without regenerating constraints.txt files.",
 )
-def update_demos(n_jobs, skip_constraints):
-    """Update bundled demo files from the current PsyNet source checkout."""
+def update_experiments(n_jobs, skip_constraints):
+    """Update bundled demo and test experiment files."""
     try:
-        demos_module.update_command(
+        experiments_module.update_command(
             n_jobs=n_jobs,
             skip_constraints_=True if skip_constraints else None,
         )

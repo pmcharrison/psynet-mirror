@@ -1,6 +1,6 @@
 """Update PsyNet's bundled demo and test experiment files.
 
-This module powers the source-checkout-only `psynet dev demos update` command
+This module powers the source-checkout-only `psynet dev experiments update` command
 group. Paths are resolved relative to the current working directory, so
 contributors must run the commands from the PsyNet repository root.
 """
@@ -26,7 +26,7 @@ from psynet.version import psynet_version, recommended_dallinger_major_minor
 
 
 def update_command(n_jobs=8, skip_constraints_=None) -> int:
-    """Update bundled demo files from the current PsyNet source checkout."""
+    """Update bundled demo and test experiment files from the source checkout."""
     assert_running_from_source_checkout_root()
     skip_constraints = (
         bool(os.getenv("SKIP_CONSTRAINTS"))
@@ -51,7 +51,9 @@ def update_command(n_jobs=8, skip_constraints_=None) -> int:
     # Use importable package functions for Joblib workers. Dynamically loaded
     # modules cannot be imported by Loky child processes during unpickling.
     Parallel(verbose=10, n_jobs=n_jobs)(
-        delayed(update_demo)(_dir, skip_constraints, latest_dallinger_patch_version)
+        delayed(update_experiment)(
+            _dir, skip_constraints, latest_dallinger_patch_version
+        )
         for _dir in list_experiment_dirs()
     )
     return 0
@@ -113,7 +115,7 @@ def use_master_psynet_reference():
     )
 
 
-def update_demo(dir, skip_constraints, latest_dallinger_patch_version):
+def update_experiment(dir, skip_constraints, latest_dallinger_patch_version):
     update_scripts(dir)
     if not skip_constraints:
         commit_hash_master = pre_update_constraints(dir)

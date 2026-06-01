@@ -54,11 +54,11 @@ Commit the changes with
 
   git commit -m "Bump version to X.Y.Z"
 
-5. Update the demos' `constraints.txt` files by executing
+5. Update the bundled demo and test experiment files by executing
 
 .. code-block:: console
 
-    psynet dev demos update
+    psynet dev experiments update
 
 from inside PsyNet's root directory. This could take a while depending on the processing power of your system.
 
