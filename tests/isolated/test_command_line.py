@@ -116,6 +116,51 @@ class TestCommandLine(object):
         assert result.exit_code != 0
         assert "Run from a PsyNet source checkout" in result.output
 
+    def test_dev_update_experiments_dispatches_to_script(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import experiments as experiments_module
+
+        calls = []
+        monkeypatch.setattr(
+            experiments_module,
+            "update_command",
+            lambda n_jobs, skip_constraints_: (
+                calls.append((n_jobs, skip_constraints_)) or 0
+            ),
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            ["dev", "experiments", "update", "--jobs", "3", "--skip-constraints"],
+        )
+
+        assert result.exit_code == 0
+        assert calls == [(3, True)]
+
+    def test_dev_update_experiments_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "experiments", "update", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--skip-constraints" in result.output
+        assert "--jobs" in result.output
+
+    def test_dev_update_experiments_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(
+                psynet, ["dev", "experiments", "update", "--skip-constraints"]
+            )
+
+        assert result.exit_code != 0
+        assert (
+            "This command must be run from the PsyNet source checkout root directory"
+            in result.output
+        )
+
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
         output = subprocess.check_output(
