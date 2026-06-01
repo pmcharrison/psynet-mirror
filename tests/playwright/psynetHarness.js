@@ -782,9 +782,10 @@ async function waitForTrialEvents(
     .toBe(true);
 }
 
-function withFreshParticipantIds(rawUrl) {
+function withFreshParticipantIds(rawUrl, label = null) {
   const url = new URL(rawUrl);
-  const suffix = Math.random().toString(36).slice(2, 10);
+  const randomSuffix = Math.random().toString(36).slice(2, 10);
+  const suffix = label ? `${label}_${randomSuffix}` : randomSuffix;
   if (url.searchParams.has("assignmentId")) {
     url.searchParams.set("assignmentId", `a_${suffix}`);
   }
@@ -886,6 +887,7 @@ module.exports = {
   waitForAudioRecordingReady,
   waitForVideoRecordingReady,
   withExperiment,
+  withFreshParticipantIds,
   waitForNextEnabled,
   waitForPageChange
 };

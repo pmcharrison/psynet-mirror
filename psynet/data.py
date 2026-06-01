@@ -507,7 +507,7 @@ class SQLMixin(SQLMixinDallinger):
 
     @declared_attr
     def type(cls):
-        return Column(String(50))
+        return Column(String)
 
 
 old_init_db = dallinger.db.init_db
