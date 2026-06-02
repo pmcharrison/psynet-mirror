@@ -186,6 +186,11 @@ Prefer red/green test-driven development, but avoid committing overly verbose te
 Implement sensible unit tests where appropriate.
 Verify changes end-to-end by running `psynet test local` within a relevant demo.
 
+## Code organization and documentation
+
+- Prefer marking module-internal helper functions with a leading underscore. Keep public-looking names for functions that are intended to be imported or called from outside the module.
+- When adding a feature that operates heavily within a module and that module lacks an explanatory module docstring, add one. The docstring should explain why the module exists, the important design constraints, and how maintainers should interact with it. When you add such a docstring, explicitly suggest that the user reviews it.
+
 ## Finishing up changes
 
 When you make changes to the PsyNet codebase:
