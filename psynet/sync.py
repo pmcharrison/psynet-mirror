@@ -50,7 +50,7 @@ this module. That loop:
 - Calls ``Barrier.process_potential_releases`` in an isolated transaction.
 - Logs and skips failures per barrier so one bad barrier does not stall others.
 
-Callback attributes on barriers (e.g., ``on_release``) are serialized via
+Callable attributes on barriers (e.g., ``on_release``) are serialized via
 ``serialize_callback`` so they can be stored inside ``BarrierRecord`` safely.
 """
 
@@ -329,7 +329,7 @@ class GroupBarrier(Barrier):
         and sent to the end of the experiment.
 
     on_release
-        Optional callback invoked when the barrier releases participants.
+        Optional callable invoked when the barrier releases participants.
         Must be a module-level function, ``@staticmethod``/``@classmethod``,
         or a bound method on a TrialMaker or ORM instance with a primary key.
 
