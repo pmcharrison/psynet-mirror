@@ -7,9 +7,7 @@ Dallinger's tested dependency pins. Dallinger publishes these pins as
 
 Originally the Docker build fetched Dallinger's constraints helper directly from
 GitHub. That made parallel CI builds depend on several live network calls to
-``raw.githubusercontent.com``. It also let ``uv run`` discover the partial Docker
-build context as a PsyNet project, which can fail before ``LICENSE`` and other
-metadata files have been copied into the image.
+``raw.githubusercontent.com``.
 
 To keep Docker builds reproducible and less sensitive to transient GitHub
 timeouts, PsyNet vendors the relevant Dallinger ``dev-requirements.txt`` snapshot
