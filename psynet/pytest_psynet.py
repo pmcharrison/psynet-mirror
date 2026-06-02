@@ -66,6 +66,9 @@ def _create_chrome_driver(chrome_options):
     from selenium import webdriver
     from selenium.webdriver.chrome.service import Service
 
+    if os.environ.get("CI") is None:
+        return webdriver.Chrome(options=chrome_options)
+
     chrome_path = shutil.which("chrome")
     if chrome_path:
         chrome_options.binary_location = chrome_path

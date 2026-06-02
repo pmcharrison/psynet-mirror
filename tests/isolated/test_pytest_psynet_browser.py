@@ -1,7 +1,7 @@
 from psynet.pytest_psynet import _create_chrome_driver
 
 
-def test_create_chrome_driver_uses_local_binaries(monkeypatch):
+def test_create_chrome_driver_uses_local_binaries_in_ci(monkeypatch):
     class DummyDriver:
         pass
 
@@ -26,6 +26,7 @@ def test_create_chrome_driver_uses_local_binaries(monkeypatch):
         captured["binary_location"] = options.binary_location
         return driver
 
+    monkeypatch.setenv("CI", "true")
     monkeypatch.setattr("psynet.pytest_psynet.shutil.which", fake_which)
     monkeypatch.setattr("selenium.webdriver.chrome.service.Service", DummyService)
     monkeypatch.setattr("selenium.webdriver.Chrome", fake_chrome)
@@ -35,3 +36,26 @@ def test_create_chrome_driver_uses_local_binaries(monkeypatch):
         "service_path": "/usr/local/bin/chromedriver",
         "binary_location": "/usr/local/bin/chrome",
     }
+
+
+def test_create_chrome_driver_uses_selenium_defaults_outside_ci(monkeypatch):
+    class DummyDriver:
+        pass
+
+    class DummyOptions:
+        binary_location = None
+
+    driver = DummyDriver()
+    captured = {}
+
+    def fake_chrome(*, options=None):
+        captured["options"] = options
+        return driver
+
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.setattr("selenium.webdriver.Chrome", fake_chrome)
+
+    options = DummyOptions()
+    assert _create_chrome_driver(options) is driver
+    assert captured == {"options": options}
+    assert options.binary_location is None
