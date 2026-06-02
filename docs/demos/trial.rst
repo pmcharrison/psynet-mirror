@@ -1,7 +1,7 @@
 Trials (1)
 ==========
 
-Source: ``demos/trial``
+Source: ``demos/experiments/trial``
 
 Often psychological experiments are organized into 'trials'. A trial is a single unit of data collection,
 which might typically involve recording the participant's response to a single stimulus.
