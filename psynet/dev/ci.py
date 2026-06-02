@@ -40,9 +40,7 @@ def get_dallinger_dependency_version(pyproject_path: Path) -> str:
     pyproject = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     dependencies = pyproject["project"]["dependencies"]
     dependency = next(
-        dependency
-        for dependency in dependencies
-        if dependency.startswith("dallinger[")
+        dependency for dependency in dependencies if dependency.startswith("dallinger[")
     )
     match = re.search(r">=(\d+\.\d+\.\d+)", dependency)
     if match is None:

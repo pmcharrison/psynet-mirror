@@ -53,12 +53,7 @@ def ci():
 )
 def update_dallinger_constraints(skip_compile_check):
     """Refresh the vendored Dallinger dev-requirements snapshot."""
-    try:
-        ci_module.update_dallinger_constraints_command(
-            check_compile=not skip_compile_check
-        )
-    except ValueError as exc:
-        raise click.ClickException(str(exc)) from exc
+    ci_module.update_dallinger_constraints_command(check_compile=not skip_compile_check)
 
 
 @dev.group("experiments")
