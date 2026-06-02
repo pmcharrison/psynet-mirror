@@ -51,7 +51,7 @@ this module. That loop:
 - Logs and skips failures per barrier so one bad barrier does not stall others.
 
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
-``serialize_callback`` so they can be stored inside ``BarrierRecord`` safely.
+``serialize_callable`` so they can be stored inside ``BarrierRecord`` safely.
 """
 
 import copy
@@ -79,7 +79,7 @@ from psynet.db import transaction
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
-from psynet.serialize import serialize_callback
+from psynet.serialize import serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.utils import get_logger
 
@@ -143,7 +143,7 @@ class Barrier(EltCollection):
 
     def __setattr__(self, name, value):
         if name.startswith("on_"):
-            value = serialize_callback(value, f"{self.__class__.__name__}.{name}")
+            value = serialize_callable(value, f"{self.__class__.__name__}.{name}")
         super().__setattr__(name, value)
 
     def choose_who_to_release(

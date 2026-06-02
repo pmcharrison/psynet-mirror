@@ -31,6 +31,7 @@
 - Barrier handling now uses a database-backed registry for sync experiments.
 - GroupBarrier `on_release` callbacks now accept module-level, static/class, TrialMaker, or ORM instance methods with clear validation errors.
 - Improved internal test coverage for ORM callback serialization.
+- Renamed callback serialization helpers to use callable terminology.
 - Expanded synchronization documentation and refactored barrier processing helpers.
 - Simplified barrier processing by removing a redundant conditional.
 - Simplified barrier processing by removing redundant helper lookup.
