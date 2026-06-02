@@ -50,9 +50,12 @@ dependencies = [
     )
     constraints = tmp_path / "ci" / "dallinger-dev-requirements.txt"
     constraints.parent.mkdir()
+    dockerfile = tmp_path / "Dockerfile"
+    dockerfile.write_text("ARG PYTHON_VERSION=3.13\n", encoding="utf-8")
     compile_checks = []
 
     monkeypatch.setattr(ci_module, "PYPROJECT_PATH", pyproject)
+    monkeypatch.setattr(ci_module, "DOCKERFILE_PATH", dockerfile)
     monkeypatch.setattr(ci_module, "DALLINGER_CONSTRAINTS_PATH", constraints)
     monkeypatch.setattr(
         ci_module,
@@ -62,8 +65,8 @@ dependencies = [
     monkeypatch.setattr(
         ci_module,
         "_check_docker_constraints_compile",
-        lambda pyproject_path, constraints_path: compile_checks.append(
-            (pyproject_path, constraints_path)
+        lambda pyproject_path, constraints_path, dockerfile_path: compile_checks.append(
+            (pyproject_path, constraints_path, dockerfile_path)
         ),
     )
 
@@ -75,4 +78,14 @@ dependencies = [
         "# Source: https://raw.githubusercontent.com/Dallinger/Dallinger/v12.2.0/dev-requirements.txt\n"
     )
     assert text.endswith("# Dallinger generated header\nrequests==2.33.1\n")
-    assert compile_checks == [(pyproject, constraints)]
+    assert compile_checks == [(pyproject, constraints, dockerfile)]
+
+
+def test_get_docker_python_version(tmp_path):
+    dockerfile = tmp_path / "Dockerfile"
+    dockerfile.write_text(
+        "ARG DOCKER_PLATFORM=linux/amd64\nARG PYTHON_VERSION=3.13\n",
+        encoding="utf-8",
+    )
+
+    assert ci_module._get_docker_python_version(dockerfile) == "3.13"

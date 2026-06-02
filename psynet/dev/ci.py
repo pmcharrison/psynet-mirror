@@ -34,6 +34,7 @@ except ModuleNotFoundError:  # pragma: no cover
 
 
 PYPROJECT_PATH = Path("pyproject.toml")
+DOCKERFILE_PATH = Path("Dockerfile")
 DALLINGER_CONSTRAINTS_PATH = Path("ci/dallinger-dev-requirements.txt")
 DALLINGER_CONSTRAINTS_URL_TEMPLATE = (
     "https://raw.githubusercontent.com/Dallinger/Dallinger/v{version}/"
@@ -50,7 +51,9 @@ def update_dallinger_constraints_command(check_compile: bool = True) -> int:
     DALLINGER_CONSTRAINTS_PATH.write_text(rendered, encoding="utf-8")
 
     if check_compile:
-        _check_docker_constraints_compile(PYPROJECT_PATH, DALLINGER_CONSTRAINTS_PATH)
+        _check_docker_constraints_compile(
+            PYPROJECT_PATH, DALLINGER_CONSTRAINTS_PATH, DOCKERFILE_PATH
+        )
 
     print(f"Updated {DALLINGER_CONSTRAINTS_PATH} from {url}")
     return 0
@@ -75,6 +78,15 @@ def _download_text(url: str) -> str:
     """Download a UTF-8 text file."""
     with urllib.request.urlopen(url, timeout=120) as response:
         return response.read().decode("utf-8")
+
+
+def _get_docker_python_version(dockerfile_path: Path) -> str:
+    """Return the Python version used by the Docker image."""
+    dockerfile = dockerfile_path.read_text(encoding="utf-8")
+    match = re.search(r"^ARG PYTHON_VERSION=([^\s]+)$", dockerfile, flags=re.MULTILINE)
+    if match is None:
+        raise ValueError("Could not find ARG PYTHON_VERSION in Dockerfile.")
+    return match.group(1)
 
 
 def _render_dallinger_constraints_snapshot(version: str, content: str) -> str:
@@ -104,9 +116,10 @@ def _strip_psynet_snapshot_header(content: str) -> str:
 
 
 def _check_docker_constraints_compile(
-    pyproject_path: Path, dallinger_constraints_path: Path
+    pyproject_path: Path, dallinger_constraints_path: Path, dockerfile_path: Path
 ) -> None:
     """Validate the vendored constraints with Docker's compile command shape."""
+    python_version = _get_docker_python_version(dockerfile_path)
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         (tmp_path / "pyproject.toml").write_text(
@@ -123,7 +136,7 @@ def _check_docker_constraints_compile(
                 "pip",
                 "compile",
                 "--python-version",
-                "3.13",
+                python_version,
                 "pyproject.toml",
                 "--extra",
                 "demos",

@@ -2,7 +2,9 @@
 # On Apple Silicon Macs, Docker will emulate x86_64 but pip can use pre-built wheels
 # Can be overridden with: docker build --build-arg DOCKER_PLATFORM=linux/arm64
 ARG DOCKER_PLATFORM=linux/amd64
-FROM --platform=${DOCKER_PLATFORM} python:3.13-bookworm
+ARG PYTHON_VERSION=3.13
+FROM --platform=${DOCKER_PLATFORM} python:${PYTHON_VERSION}-bookworm
+ARG PYTHON_VERSION
 ARG CHROME_VERSION=149.0.7827.54
 
 RUN pip install uv
@@ -34,7 +36,7 @@ COPY ci/dallinger-dev-requirements.txt dallinger-dev-requirements.txt
 # Generate PsyNet constraints.txt (PyPI deps from the [demos] extra) and install it.
 # Use a vendored Dallinger dev-requirements snapshot so parallel CI Docker
 # builds do not depend on raw.githubusercontent.com availability.
-RUN uv pip compile --python-version 3.13 pyproject.toml --extra demos \
+RUN uv pip compile --python-version ${PYTHON_VERSION} pyproject.toml --extra demos \
         --constraint dallinger-dev-requirements.txt \
         --output-file constraints.txt
 RUN uv pip install --no-cache --system -r constraints.txt
