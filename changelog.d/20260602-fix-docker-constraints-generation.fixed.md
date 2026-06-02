@@ -1,1 +1,1 @@
-Fixed Docker constraints generation when `uv run` discovers the PsyNet project.
+Fixed CI Docker constraints generation and browser startup when local Chrome binaries are available.
