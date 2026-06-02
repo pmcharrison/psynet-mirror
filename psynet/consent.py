@@ -200,9 +200,7 @@ class LucidConsent(Module):
             self.LucidConsentPage(time_estimate=time_estimate),
             conditional(
                 "lucid_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["lucid_consent"]
-                ),
+                lambda experiment, participant: not participant.answer["lucid_consent"],
                 RejectedConsentPage(),
             ),
             CodeBlock(
@@ -394,9 +392,7 @@ class MainConsent(Module):
             self.MainConsentPage(time_estimate=time_estimate),
             conditional(
                 "main_consent_conditional",
-                lambda experiment, participant: (
-                    not participant.answer["main_consent"]
-                ),
+                lambda experiment, participant: not participant.answer["main_consent"],
                 RejectedConsentPage(failure_tags=["main_consent_rejected"]),
             ),
             CodeBlock(

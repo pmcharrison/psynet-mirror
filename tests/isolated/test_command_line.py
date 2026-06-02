@@ -3,6 +3,8 @@ import json
 import subprocess
 import tempfile
 from contextlib import contextmanager
+from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -37,6 +39,127 @@ class TestCommandLine(object):
         output = subprocess.check_output(["psynet", "--help"])
         assert b"Options:" in output
         assert b"Commands:" in output
+
+    def test_dev_changelog_dispatches_to_builder(self, monkeypatch, tmp_path):
+        from psynet.command_line import psynet
+        from psynet.dev import changelog as changelog_module
+
+        calls = []
+
+        fragments_dir = tmp_path / "changelog.d"
+        fragments_dir.mkdir()
+        changelog_path = tmp_path / "CHANGELOG.md"
+        changelog_path.write_text("# CHANGELOG\n", encoding="utf-8")
+
+        monkeypatch.setattr(changelog_module, "FRAGMENTS_DIR", fragments_dir)
+        monkeypatch.setattr(changelog_module, "CHANGELOG_PATH", changelog_path)
+        monkeypatch.setattr(
+            changelog_module,
+            "new_command",
+            lambda c, d: calls.append(("new", c, d)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "release_command",
+            lambda v, d: calls.append(("release", v, d)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "build_command",
+            lambda: calls.append(("build",)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "check_mr_command",
+            lambda b, h: calls.append(("check-mr", b, h)) or 0,
+        )
+
+        runner = CliRunner()
+
+        result = runner.invoke(
+            psynet, ["dev", "changelog", "new", "fixed", "Fix thing"]
+        )
+        assert result.exit_code == 0, result.output
+        assert calls == [("new", "fixed", "Fix thing")]
+
+        result = runner.invoke(
+            psynet,
+            ["dev", "changelog", "release", "13.2.0", "2026-03-13"],
+        )
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("release", "13.2.0", "2026-03-13")
+
+        result = runner.invoke(psynet, ["dev", "changelog", "preview"])
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("build",)
+
+        result = runner.invoke(psynet, ["dev", "changelog", "check-mr", "base", "head"])
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("check-mr", "base", "head")
+
+    def test_dev_changelog_check_mr_is_hidden_from_help(self):
+        result = subprocess.run(
+            ["psynet", "dev", "changelog", "--help"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert "check-mr" not in result.stdout
+
+    def test_dev_changelog_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(psynet, ["dev", "changelog", "preview"])
+
+        assert result.exit_code != 0
+        assert "Run from a PsyNet source checkout" in result.output
+
+    def test_dev_update_experiments_dispatches_to_script(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import experiments as experiments_module
+
+        calls = []
+        monkeypatch.setattr(
+            experiments_module,
+            "update_command",
+            lambda n_jobs, skip_constraints_: (
+                calls.append((n_jobs, skip_constraints_)) or 0
+            ),
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            ["dev", "experiments", "update", "--jobs", "3", "--skip-constraints"],
+        )
+
+        assert result.exit_code == 0
+        assert calls == [(3, True)]
+
+    def test_dev_update_experiments_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "experiments", "update", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--skip-constraints" in result.output
+        assert "--jobs" in result.output
+
+    def test_dev_update_experiments_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(
+                psynet, ["dev", "experiments", "update", "--skip-constraints"]
+            )
+
+        assert result.exit_code != 0
+        assert (
+            "This command must be run from the PsyNet source checkout root directory"
+            in result.output
+        )
 
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
@@ -349,7 +472,6 @@ class TestExport:
             patch("psynet.command_line.log") as mock_log,
             patch("psynet.command_line.yaspin") as mock_yaspin,
         ):
-
             mock_yaspin.return_value.__enter__.return_value = mock_spinner
             mock_executor.run.return_value.strip.return_value = "/home/testuser"
 
@@ -397,7 +519,6 @@ class TestExport:
             ),
             patch("psynet.command_line.log") as mock_log,
         ):
-
             mock_executor.run.return_value.strip.return_value = "/home/testuser"
 
             export_logs("test-app", "test-server", str(tmp_path))
@@ -716,3 +837,131 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
     config.load_from_file.assert_called_once_with(
         "/tmp/dallinger_develop/exp/config.txt"
     )
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (None, None),
+        (True, True),
+        (False, False),
+        (42, 42),
+        ("hello", "hello"),
+        (3.14, 3.14),
+        (0.0, 0.0),
+        (float("nan"), None),
+        (float("inf"), None),
+        (float("-inf"), None),
+        (Decimal("1.5"), 1.5),
+        (datetime(2025, 5, 7, 12, 30, 45), "2025-05-07T12:30:45"),
+        (date(2025, 5, 7), "2025-05-07"),
+        ((1, 2, 3), [1, 2, 3]),
+    ],
+)
+def test_to_json_safe_scalars_and_simple_collections(value, expected):
+    from psynet.perf_test import _to_json_safe
+
+    assert _to_json_safe(value) == expected
+
+
+def test_to_json_safe_decimal_returns_float_type():
+    # `Decimal == float` compares by value; pin the type explicitly.
+    from psynet.perf_test import _to_json_safe
+
+    assert isinstance(_to_json_safe(Decimal("1.5")), float)
+
+
+def test_to_json_safe_set_and_frozenset_are_sorted_lists():
+    # Output must be deterministic so repeated runs produce identical JSON
+    # (otherwise git diffs of stored results are noisy).
+    from psynet.perf_test import _to_json_safe
+
+    assert _to_json_safe({3, 1, 2}) == [1, 2, 3]
+    assert _to_json_safe(frozenset({"b", "a", "c"})) == ["a", "b", "c"]
+
+
+def test_to_json_safe_mixed_type_set_falls_back_to_unsorted_list():
+    # Heterogeneous sets aren't sortable across types; the helper must still
+    # return a list rather than raising.
+    from psynet.perf_test import _to_json_safe
+
+    result = _to_json_safe({1, "a", None})
+    assert isinstance(result, list)
+    assert set(result) == {1, "a", None}
+
+
+def test_to_json_safe_recurses_through_nested_dict_and_list():
+    from psynet.perf_test import _to_json_safe
+
+    nested = {
+        "rows": [
+            {"value": Decimal("0.5"), "missing": float("nan")},
+            {"value": Decimal("0.75"), "missing": None},
+        ],
+    }
+    assert _to_json_safe(nested) == {
+        "rows": [
+            {"value": 0.5, "missing": None},
+            {"value": 0.75, "missing": None},
+        ],
+    }
+
+
+def test_collect_run_metadata_includes_environment_fields():
+    from psynet.command_line import _collect_run_metadata
+
+    metadata = _collect_run_metadata("my-experiment")
+    assert metadata["experiment_label"] == "my-experiment"
+    for key in ("psynet_version", "dallinger_version", "python_version", "platform"):
+        assert isinstance(metadata[key], str) and metadata[key]
+
+
+def test_write_json_results_emits_expected_schema_with_coerced_values(tmp_path):
+    from psynet.command_line import _write_json_results
+
+    json_output = str(tmp_path / "results.json")
+    metadata = {
+        "psynet_version": "13.2.0a0",
+        "dallinger_version": "12.2.0",
+        "python_version": "3.13.9",
+        "platform": "Linux-test",
+        "experiment_label": "static_big",
+        "started_at": "2026-05-07T14:23:11",
+        "finished_at": "2026-05-07T14:25:42",
+    }
+    options = {
+        "n_bots_sweep": [1, 2],
+        "duration_minutes": 1.5,
+        "stagger_interval_s": 0.1,
+        "time_factor": 1.0,
+    }
+    all_results = [
+        {
+            "n_bots": 1,
+            "avg_latency": Decimal("0.5"),
+            "nan_value": float("nan"),
+            "inf_value": float("inf"),
+            "process_stats": [{"avg": Decimal("0.001"), "max": float("nan")}],
+        },
+        {"n_bots": 2, "avg_latency": Decimal("0.6")},
+    ]
+
+    _write_json_results(
+        json_output, metadata=metadata, options=options, all_results=all_results
+    )
+
+    with open(json_output) as f:
+        payload = json.load(f)
+
+    assert payload["schema_version"] == 1
+    for key, expected in metadata.items():
+        assert payload[key] == expected
+    assert payload["options"] == options
+    assert len(payload["results"]) == 2
+
+    first = payload["results"][0]
+    assert first["avg_latency"] == 0.5
+    assert first["nan_value"] is None
+    assert first["inf_value"] is None
+    assert first["process_stats"][0]["avg"] == 0.001
+    assert first["process_stats"][0]["max"] is None

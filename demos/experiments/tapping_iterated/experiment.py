@@ -9,14 +9,16 @@ from markupsafe import Markup
 from repp.config import ConfigUpdater, sms_tapping
 
 with warnings.catch_warnings():
-    # reppextension has a deprecation warning that we don't want to worry about
+    # repp.extensions.iterated_tapping imports numpy.matlib (used by
+    # randomize_ioi_from_simplex). numpy.matlib emits a
+    # PendingDeprecationWarning at import time, which PsyNet's pytest
+    # setup escalates to an error.
     warnings.filterwarnings(
         "ignore",
         message=r"Importing from numpy\.matlib is deprecated.*",
         category=PendingDeprecationWarning,
-        module="reppextension",
     )
-    from reppextension.iterated_tapping import (
+    from repp.extensions.iterated_tapping import (
         REPPAnalysisItap,
         REPPStimulusItap,
         make_stim_onsets_from_ioi_seed,

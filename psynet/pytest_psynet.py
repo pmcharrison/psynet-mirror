@@ -214,20 +214,38 @@ def bot_class(headless=None):
             from selenium import webdriver
             from selenium.webdriver.chrome.options import Options
 
-            chrome_options = Options()
-            chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument("--no-sandbox")
+            max_attempts = 3
+            for attempt in range(1, max_attempts + 1):
+                chrome_options = Options()
+                chrome_options.add_argument("--disable-dev-shm-usage")
+                chrome_options.add_argument("--no-sandbox")
 
-            user_data_dir = tempfile.mkdtemp(prefix="psynet-chrome-")
-            chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
+                user_data_dir = tempfile.mkdtemp(prefix="psynet-chrome-")
+                chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
-            if headless:
-                chrome_options.add_argument("--headless")
+                if headless:
+                    chrome_options.add_argument("--headless")
 
-            driver = webdriver.Chrome(options=chrome_options)
-            driver.set_window_size(1024, 768)
+                try:
+                    driver = webdriver.Chrome(options=chrome_options)
+                    driver.set_window_size(1024, 768)
+                    return driver
+                except Exception:
+                    import shutil
 
-            return driver
+                    shutil.rmtree(user_data_dir, ignore_errors=True)
+                    if attempt < max_attempts:
+                        logger.warning(
+                            "Chrome failed to start (attempt %d/%d), retrying...",
+                            attempt,
+                            max_attempts,
+                        )
+                        time.sleep(2)
+                    else:
+                        logger.error(
+                            "Chrome failed to start after %d attempts", max_attempts
+                        )
+                        raise
 
     return PYTEST_BOT_CLASS
 

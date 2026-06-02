@@ -38,7 +38,9 @@ class TestAutomaticBackups:
             "database.zip",
             "experiment_status.json",
             "recruitment_status.json",
-        }, f"The contents of {artifacts_dir} are not as expected. Instead found: {artifact_files}"
+        }, (
+            f"The contents of {artifacts_dir} are not as expected. Instead found: {artifact_files}"
+        )
 
         experiment_status = (
             launched_experiment.artifact_storage.read_experiment_status()

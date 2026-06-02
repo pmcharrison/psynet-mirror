@@ -75,9 +75,9 @@ def split_kwargs(obj, kwargs, trial_maker_class, mixin_class):
 class CreateAndRateTrialMixin(object):
     def __init__(self, experiment, node, participant, *args, **kwargs):
         trial_class = get_extended_class(self)
-        assert issubclass(
-            trial_class, ChainTrial
-        ), "The trial class must inherit from ChainTrial"
+        assert issubclass(trial_class, ChainTrial), (
+            "The trial class must inherit from ChainTrial"
+        )
         super().__init__(experiment, node, participant, *args, **kwargs)
         trial_class.__init__(self, experiment, node, participant, *args, **kwargs)
 
@@ -139,9 +139,9 @@ class SelectTrialMixin(RateOrSelectTrialMixin):
 
     def format_answer(self, answer, **kwargs):
         rated_target_strs = [f"{target}" for target in self.targets]
-        assert (
-            answer in rated_target_strs
-        ), "The answer must be one of the rated target_strs"
+        assert answer in rated_target_strs, (
+            "The answer must be one of the rated target_strs"
+        )
         return answer
 
 
@@ -204,12 +204,12 @@ class RateTrialMixin(RateOrSelectTrialMixin):
         rated_target_strs = [f"{target}" for target in self.targets]
         if len(self.targets) > 1:
             assert type(answer) is list, "The answer must be a list of ratings"
-            assert len(answer) == len(
-                self.targets
-            ), "The answer must have the same length as the number of targets"
-            assert all(
-                [type(rating) in [int, float] for rating in answer]
-            ), "The answer must be a list of numbers"
+            assert len(answer) == len(self.targets), (
+                "The answer must have the same length as the number of targets"
+            )
+            assert all([type(rating) in [int, float] for rating in answer]), (
+                "The answer must be a list of numbers"
+            )
             answer = dict(zip(rated_target_strs, answer))
         else:
             if isinstance(answer, str):
@@ -225,9 +225,9 @@ class RateTrialMixin(RateOrSelectTrialMixin):
 class CreateAndRateNodeMixin(object):
     def __init__(self, **kwargs):
         extended_class = get_extended_class(self)
-        assert issubclass(
-            extended_class, ChainNode
-        ), "The extended class must be a ChainNode"
+        assert issubclass(extended_class, ChainNode), (
+            "The extended class must be a ChainNode"
+        )
         extended_class.__init__(self, **kwargs)
 
     def get_str2target(self, rate_or_select_trials):
@@ -296,9 +296,9 @@ class CreateAndRateTrialMakerMixin(object):
     def __init__(self, **kwargs):
         assert_correct_inheritance(self.__class__, CreateAndRateTrialMakerMixin)
         extended_class = get_extended_class(self)
-        assert issubclass(
-            extended_class, TrialMaker
-        ), "The extended class must be a TrialMaker"
+        assert issubclass(extended_class, TrialMaker), (
+            "The extended class must be a TrialMaker"
+        )
         trial_maker_kwargs, mixin_kwargs = self.prepare_kwargs(
             kwargs, extended_class, CreateAndRateTrialMakerMixin
         )
@@ -376,9 +376,9 @@ class CreateAndRateTrialMakerMixin(object):
                 assert self.n_raters % (self.n_rate_stimuli) == 0, error_msg
                 self.n_rate_stimuli = 1
         elif self.rate_mode == "select":
-            assert (
-                self.n_rate_stimuli > 1
-            ), '`n_rate_stimuli` must be greater than 1 if `rate_mode` is "select"'
+            assert self.n_rate_stimuli > 1, (
+                '`n_rate_stimuli` must be greater than 1 if `rate_mode` is "select"'
+            )
         else:
             raise NotImplementedError(f"Unknown rate_mode value: {rate_mode}")
 

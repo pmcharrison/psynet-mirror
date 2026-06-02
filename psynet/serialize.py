@@ -255,9 +255,10 @@ class PsyNetUnpickler(Unpickler):
 
 def serialize(x, **kwargs):
     pickler = PsyNetPickler()
+    keys = kwargs.pop("keys", True)
     with warnings.catch_warnings():
         warnings.filterwarnings("error", message="jsonpickle cannot pickle")
-        return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
+        return jsonpickle.encode(x, keys=keys, **kwargs, context=pickler, warn=True)
 
 
 def to_dict(x):
