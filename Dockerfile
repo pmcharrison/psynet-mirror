@@ -29,7 +29,7 @@ RUN echo Installing Chrome $CHROME_VERSION && \
     rm -f chrome.deb chrome-driver.zip
 
 COPY pyproject.toml pyproject.toml
-COPY ci/dallinger-dev-requirements-v12.2.0.txt dallinger-dev-requirements.txt
+COPY ci/dallinger-dev-requirements.txt dallinger-dev-requirements.txt
 
 # Generate PsyNet constraints.txt (PyPI deps from the [demos] extra) and install it.
 # Use a vendored Dallinger dev-requirements snapshot so parallel CI Docker
