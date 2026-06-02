@@ -63,6 +63,14 @@ local_only = pytest.mark.skipif(
 
 
 def _create_chrome_driver(chrome_options):
+    """Create a Chrome driver for PsyNet's browser-based test bots.
+
+    In CI, the Docker image already installs matching Chrome and ChromeDriver
+    binaries. Passing those paths explicitly avoids Selenium Manager's network
+    metadata lookup, which can hang in restricted CI network conditions. Outside
+    CI, keep Selenium's default discovery so local developers do not get pinned
+    to a stale ``chromedriver`` that happens to be on ``PATH``.
+    """
     from selenium import webdriver
     from selenium.webdriver.chrome.service import Service
 
