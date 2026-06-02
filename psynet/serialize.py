@@ -15,7 +15,7 @@ from jsonpickle.util import importable_name
 from markupsafe import Markup
 
 from .data import SQLBase, get_primary_key_values
-from .utils import call_function_with_context, get_logger
+from .utils import NoArgumentProvided, call_function_with_context, get_logger
 
 logger = get_logger()
 
@@ -31,7 +31,20 @@ class SerializedCallable:
     function: callable
     arguments: dict
 
-    def __call__(self, **kwargs):
+    def __call__(
+        self,
+        participant=NoArgumentProvided,
+        experiment=NoArgumentProvided,
+        **kwargs,
+    ):
+        # TODO: Generalize this context forwarding to cover the other
+        # callback/context args too, such as group, participants, barrier,
+        # assets, nodes, trial_maker, and trial.
+        # Should ideally do this without hardcoding the arguments.
+        if participant is not NoArgumentProvided:
+            kwargs["participant"] = participant
+        if experiment is not NoArgumentProvided:
+            kwargs["experiment"] = experiment
         merged = {**(self.arguments or {}), **kwargs}
         return call_function_with_context(self.function, **merged)
 
