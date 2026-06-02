@@ -1,4 +1,27 @@
-"""Helpers for maintaining CI build inputs."""
+"""Maintain vendored inputs used by CI.
+
+PsyNet's Docker image needs a ``constraints.txt`` file before the package itself
+is installed. The image builds this file from PsyNet's ``pyproject.toml`` plus
+Dallinger's tested dependency pins. Dallinger publishes these pins as
+``dev-requirements.txt`` in the Dallinger repository.
+
+Originally the Docker build fetched Dallinger's constraints helper directly from
+GitHub. That made parallel CI builds depend on several live network calls to
+``raw.githubusercontent.com``. It also let ``uv run`` discover the partial Docker
+build context as a PsyNet project, which can fail before ``LICENSE`` and other
+metadata files have been copied into the image.
+
+To keep Docker builds reproducible and less sensitive to transient GitHub
+timeouts, PsyNet vendors the relevant Dallinger ``dev-requirements.txt`` snapshot
+in ``ci/dallinger-dev-requirements.txt``. Docker copies this local file and runs
+``uv pip compile`` against it. The file has a PsyNet-specific provenance header
+recording the Dallinger release tag it came from.
+
+When PsyNet upgrades its Dallinger dependency, maintainers should run
+``psynet dev ci update-dallinger-constraints`` from the repository root. This
+module downloads the matching Dallinger snapshot, rewrites the provenance header,
+and validates that Docker's constraints compile command still succeeds.
+"""
 
 import re
 import subprocess
