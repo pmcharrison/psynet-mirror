@@ -4,7 +4,6 @@
 ARG DOCKER_PLATFORM=linux/amd64
 FROM --platform=${DOCKER_PLATFORM} python:3.13-bookworm
 ARG CHROME_VERSION=149.0.7827.54
-ARG DALLINGER_CONSTRAINTS_VERSION=v12.2.0
 
 RUN pip install uv
 
@@ -30,14 +29,12 @@ RUN echo Installing Chrome $CHROME_VERSION && \
     rm -f chrome.deb chrome-driver.zip
 
 COPY pyproject.toml pyproject.toml
+COPY ci/dallinger-dev-requirements-v12.2.0.txt dallinger-dev-requirements.txt
 
 # Generate PsyNet constraints.txt (PyPI deps from the [demos] extra) and install it.
-# Download Dallinger's tested pins with retries so transient GitHub timeouts do not
-# fail the Docker build after dependency resolution has already started.
-RUN curl --retry 5 --retry-all-errors --connect-timeout 30 --max-time 120 -fsSL \
-        -o dallinger-dev-requirements.txt \
-        https://raw.githubusercontent.com/Dallinger/Dallinger/${DALLINGER_CONSTRAINTS_VERSION}/dev-requirements.txt && \
-    uv pip compile --python-version 3.13 pyproject.toml --extra demos \
+# Use a vendored Dallinger dev-requirements snapshot so parallel CI Docker
+# builds do not depend on raw.githubusercontent.com availability.
+RUN uv pip compile --python-version 3.13 pyproject.toml --extra demos \
         --constraint dallinger-dev-requirements.txt \
         --output-file constraints.txt
 RUN uv pip install --no-cache --system -r constraints.txt
