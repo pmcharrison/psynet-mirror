@@ -34,5 +34,5 @@ COPY pyproject.toml pyproject.toml
 # All audio-tooling demo dependencies (repp-tapping, sing4me) are now public PyPI
 # packages and live in pyproject.toml's [demos] extra, so no further private-URL
 # harvesting from per-demo requirements.txt files is needed here.
-RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra demos
+RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run --no-project - generate --extra demos
 RUN uv pip install --no-cache --system -r constraints.txt
