@@ -39,7 +39,7 @@ In your IDE's terminal, you can navigate to a particular demo you want to run li
 .. code-block:: bash
 
    # The precise path will depend on where you downloaded PsyNet.
-   cd ~/PsyNet/demos/timeline
+   cd ~/PsyNet/demos/experiments/timeline
 
 Then you can run the demo using the standard PsyNet debug command:
 
