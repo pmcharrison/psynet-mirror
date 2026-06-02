@@ -2568,59 +2568,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         exp.check_barriers()
 
     @staticmethod
-    def _next_waiting_barrier(excluded_ids):
-        """Return the next eligible barrier record, if any."""
-        from .sync import BarrierRecord, ParticipantLinkBarrier
-
-        waiting_barrier_query = BarrierRecord.query.filter(
-            db.session.query(ParticipantLinkBarrier.id)
-            .join(Participant)
-            .filter(
-                ParticipantLinkBarrier.barrier_id == BarrierRecord.id,
-                ~ParticipantLinkBarrier.released,
-                ~Participant.failed,
-                Participant.status == "working",
-            )
-            .exists()
-        )
-        if excluded_ids:
-            waiting_barrier_query = waiting_barrier_query.filter(
-                ~BarrierRecord.id.in_(excluded_ids)
-            )
-        return (
-            waiting_barrier_query.order_by(BarrierRecord.id)
-            .with_for_update(skip_locked=True)
-            .populate_existing()
-            .first()
-        )
-
-    @staticmethod
     def check_barriers():
-        from .sync import Barrier
+        from .sync import check_barriers as sync_check_barriers
 
-        excluded_ids = set()
-
-        while True:
-            barrier_id = None
-            try:
-                with transaction():
-                    barrier_record = Experiment._next_waiting_barrier(excluded_ids)
-                    if barrier_record is None:
-                        return
-                    barrier_id = barrier_record.id
-                    barrier = barrier_record.barrier
-                    if not isinstance(barrier, Barrier):
-                        raise RuntimeError(
-                            f"Barrier '{barrier_record.id}' is missing or invalid."
-                        )
-                    barrier.process_potential_releases()
-            except Exception:
-                if barrier_id is None:
-                    raise
-                logger.exception("Failed to process barrier '%s'.", barrier_id)
-            finally:
-                if barrier_id is not None:
-                    excluded_ids.add(barrier_id)
+        sync_check_barriers()
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken

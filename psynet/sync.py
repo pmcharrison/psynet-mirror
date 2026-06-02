@@ -1,3 +1,35 @@
+"""
+Synchronization primitives for coordinating participants.
+
+This module implements the database-backed synchronization flow used by
+barriers and sync groups. The core pieces are:
+
+- ``Barrier`` and ``GroupBarrier``: timeline elements that hold participants
+  until release conditions are satisfied.
+- ``BarrierRecord`` and ``ParticipantLinkBarrier``: durable storage for barrier
+  definitions and waiting participants, replacing the older in-memory registry.
+- ``check_barriers``: the processing loop that finds waiting barrier records,
+  claims them with ``FOR UPDATE SKIP LOCKED``, and calls
+  ``Barrier.process_potential_releases`` in isolated transactions.
+- ``SimpleGrouper``/``SyncGroup``: grouping primitives that build sync groups
+  and feed participants into barriers.
+
+The high-level flow is:
+
+1. ``Barrier.receive_participant`` registers the barrier (``BarrierRecord``)
+   and links the participant to it (``ParticipantLinkBarrier``).
+2. A scheduled task in ``Experiment._check_barriers`` delegates to
+   ``check_barriers`` here, which repeatedly selects the next waiting barrier
+   and processes it. Errors are logged per-barrier so one failure does not block
+   the rest.
+3. ``Barrier.process_potential_releases`` (implemented by barrier subclasses)
+   determines who to release and marks ``ParticipantLinkBarrier`` rows as
+   released.
+
+Callback attributes on barriers (e.g., ``on_release``) are serialized via
+``serialize_callback`` to ensure they can be persisted inside ``BarrierRecord``.
+"""
+
 import copy
 import random
 from math import floor
@@ -19,6 +51,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref, deferred, joinedload, object_session, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
+from psynet.db import transaction
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
@@ -851,6 +884,58 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     def get_waiting_participants(self, for_update: bool = False):
         barrier = self.get_barrier()
         return barrier.get_waiting_participants(for_update=for_update)
+
+
+def _next_waiting_barrier(excluded_ids):
+    """Return the next eligible barrier record, if any."""
+    waiting_barrier_query = BarrierRecord.query.filter(
+        db.session.query(ParticipantLinkBarrier.id)
+        .join(Participant)
+        .filter(
+            ParticipantLinkBarrier.barrier_id == BarrierRecord.id,
+            ~ParticipantLinkBarrier.released,
+            ~Participant.failed,
+            Participant.status == "working",
+        )
+        .exists()
+    )
+    if excluded_ids:
+        waiting_barrier_query = waiting_barrier_query.filter(
+            ~BarrierRecord.id.in_(excluded_ids)
+        )
+    return (
+        waiting_barrier_query.order_by(BarrierRecord.id)
+        .with_for_update(skip_locked=True)
+        .populate_existing()
+        .first()
+    )
+
+
+def check_barriers():
+    """Process waiting barriers one at a time."""
+    excluded_ids = set()
+
+    while True:
+        barrier_id = None
+        try:
+            with transaction():
+                barrier_record = _next_waiting_barrier(excluded_ids)
+                if barrier_record is None:
+                    return
+                barrier_id = barrier_record.id
+                barrier = barrier_record.barrier
+                if not isinstance(barrier, Barrier):
+                    raise RuntimeError(
+                        f"Barrier '{barrier_record.id}' is missing or invalid."
+                    )
+                barrier.process_potential_releases()
+        except Exception:
+            if barrier_id is None:
+                raise
+            logger.exception("Failed to process barrier '%s'.", barrier_id)
+        finally:
+            if barrier_id is not None:
+                excluded_ids.add(barrier_id)
 
 
 Participant.sync_group_links = relationship(
