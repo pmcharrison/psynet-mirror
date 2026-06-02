@@ -116,6 +116,27 @@ class TestCommandLine(object):
         assert result.exit_code != 0
         assert "Run from a PsyNet source checkout" in result.output
 
+    def test_dev_ci_update_dallinger_constraints_dispatches_to_script(
+        self, monkeypatch
+    ):
+        from psynet.command_line import psynet
+        from psynet.dev import ci as ci_module
+
+        calls = []
+        monkeypatch.setattr(
+            ci_module,
+            "update_dallinger_constraints_command",
+            lambda check_compile: calls.append(check_compile) or 0,
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            ["dev", "ci", "update-dallinger-constraints", "--skip-compile-check"],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert calls == [False]
+
     def test_dev_update_experiments_dispatches_to_script(self, monkeypatch):
         from psynet.command_line import psynet
         from psynet.dev import experiments as experiments_module

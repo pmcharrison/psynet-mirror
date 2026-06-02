@@ -1,7 +1,9 @@
 import re
-import tomllib
 from pathlib import Path
 
+import tomllib
+
+from psynet.dev import ci as ci_module
 
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT = ROOT / "pyproject.toml"
@@ -31,3 +33,46 @@ def test_vendored_dallinger_constraints_match_pyproject_dependency():
 
     assert snapshot_version == dependency_version
     assert source_version == dependency_version
+
+
+def test_update_dallinger_constraints_command_writes_header_and_validates(
+    tmp_path, monkeypatch
+):
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        """
+[project]
+dependencies = [
+    "dallinger[docker]>=12.2.0,<13",
+]
+""",
+        encoding="utf-8",
+    )
+    constraints = tmp_path / "ci" / "dallinger-dev-requirements.txt"
+    constraints.parent.mkdir()
+    compile_checks = []
+
+    monkeypatch.setattr(ci_module, "PYPROJECT_PATH", pyproject)
+    monkeypatch.setattr(ci_module, "DALLINGER_CONSTRAINTS_PATH", constraints)
+    monkeypatch.setattr(
+        ci_module,
+        "download_text",
+        lambda url: "# Dallinger generated header\nrequests==2.33.1\n",
+    )
+    monkeypatch.setattr(
+        ci_module,
+        "check_docker_constraints_compile",
+        lambda pyproject_path, constraints_path: compile_checks.append(
+            (pyproject_path, constraints_path)
+        ),
+    )
+
+    assert ci_module.update_dallinger_constraints_command() == 0
+
+    text = constraints.read_text(encoding="utf-8")
+    assert text.startswith(
+        "# PsyNet CI snapshot for Dallinger release: v12.2.0\n"
+        "# Source: https://raw.githubusercontent.com/Dallinger/Dallinger/v12.2.0/dev-requirements.txt\n"
+    )
+    assert text.endswith("# Dallinger generated header\nrequests==2.33.1\n")
+    assert compile_checks == [(pyproject, constraints)]

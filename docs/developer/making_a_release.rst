@@ -46,7 +46,12 @@ After all changes to be released have been merged into the ``master`` branch fol
 
     .. attention::
 
-        In case you are upgrading Dallinger in this release via `pyproject.toml`, make sure to also update the Dallinger version in both `psynet/version.py` and `PsyNet/Dockerfile` accordingly.
+        In case you are upgrading Dallinger in this release via `pyproject.toml`, make sure to also update the Dallinger version in `psynet/version.py`.
+        You should also refresh the vendored Dallinger CI constraints snapshot by running:
+
+        .. code-block:: console
+
+          psynet dev ci update-dallinger-constraints
 
 Commit the changes with
 
