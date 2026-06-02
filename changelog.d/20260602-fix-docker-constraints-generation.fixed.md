@@ -1,1 +1,1 @@
-Fixed CI Docker constraints generation and browser startup when local Chrome binaries are available.
+Fixed CI Docker constraints generation, Chrome installation, and browser startup when local Chrome binaries are available.

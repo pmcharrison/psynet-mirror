@@ -3,6 +3,7 @@
 # Can be overridden with: docker build --build-arg DOCKER_PLATFORM=linux/arm64
 ARG DOCKER_PLATFORM=linux/amd64
 FROM --platform=${DOCKER_PLATFORM} python:3.13-bookworm
+ARG CHROME_VERSION=149.0.7827.54
 
 RUN pip install uv
 
@@ -15,8 +16,7 @@ RUN service redis-server start
 ENV HEADLESS=TRUE
 
 # Install Chrome and ChromeDriver
-RUN CHROME_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json | jq .channels.Stable.version | tr -d '"') && \
-    echo Installing Chrome $CHROME_VERSION && \
+RUN echo Installing Chrome $CHROME_VERSION && \
     wget -O chrome.deb https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip && \
     unzip chrome.deb -d /opt/ && \
     ln -s /opt/chrome-linux64/chrome /usr/local/bin/chrome && \
