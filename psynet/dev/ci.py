@@ -43,20 +43,20 @@ DALLINGER_CONSTRAINTS_URL_TEMPLATE = (
 
 def update_dallinger_constraints_command(check_compile: bool = True) -> int:
     """Refresh the vendored Dallinger constraints snapshot."""
-    version = get_dallinger_dependency_version(PYPROJECT_PATH)
+    version = _get_dallinger_dependency_version(PYPROJECT_PATH)
     url = DALLINGER_CONSTRAINTS_URL_TEMPLATE.format(version=version)
-    content = download_text(url)
-    rendered = render_dallinger_constraints_snapshot(version, content)
+    content = _download_text(url)
+    rendered = _render_dallinger_constraints_snapshot(version, content)
     DALLINGER_CONSTRAINTS_PATH.write_text(rendered, encoding="utf-8")
 
     if check_compile:
-        check_docker_constraints_compile(PYPROJECT_PATH, DALLINGER_CONSTRAINTS_PATH)
+        _check_docker_constraints_compile(PYPROJECT_PATH, DALLINGER_CONSTRAINTS_PATH)
 
     print(f"Updated {DALLINGER_CONSTRAINTS_PATH} from {url}")
     return 0
 
 
-def get_dallinger_dependency_version(pyproject_path: Path) -> str:
+def _get_dallinger_dependency_version(pyproject_path: Path) -> str:
     """Return the Dallinger lower-bound version declared by PsyNet."""
     pyproject = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     dependencies = pyproject["project"]["dependencies"]
@@ -71,15 +71,15 @@ def get_dallinger_dependency_version(pyproject_path: Path) -> str:
     return match.group(1)
 
 
-def download_text(url: str) -> str:
+def _download_text(url: str) -> str:
     """Download a UTF-8 text file."""
     with urllib.request.urlopen(url, timeout=120) as response:
         return response.read().decode("utf-8")
 
 
-def render_dallinger_constraints_snapshot(version: str, content: str) -> str:
+def _render_dallinger_constraints_snapshot(version: str, content: str) -> str:
     """Prepend PsyNet provenance metadata to Dallinger's constraints content."""
-    content = strip_psynet_snapshot_header(content)
+    content = _strip_psynet_snapshot_header(content)
     url = DALLINGER_CONSTRAINTS_URL_TEMPLATE.format(version=version)
     header = (
         f"# PsyNet CI snapshot for Dallinger release: v{version}\n"
@@ -90,7 +90,7 @@ def render_dallinger_constraints_snapshot(version: str, content: str) -> str:
     return header + content.lstrip()
 
 
-def strip_psynet_snapshot_header(content: str) -> str:
+def _strip_psynet_snapshot_header(content: str) -> str:
     """Remove an existing PsyNet snapshot header if present."""
     pattern = re.compile(
         r"\A"
@@ -103,7 +103,7 @@ def strip_psynet_snapshot_header(content: str) -> str:
     return pattern.sub("", content, count=1)
 
 
-def check_docker_constraints_compile(
+def _check_docker_constraints_compile(
     pyproject_path: Path, dallinger_constraints_path: Path
 ) -> None:
     """Validate the vendored constraints with Docker's compile command shape."""

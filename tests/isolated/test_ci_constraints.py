@@ -56,12 +56,12 @@ dependencies = [
     monkeypatch.setattr(ci_module, "DALLINGER_CONSTRAINTS_PATH", constraints)
     monkeypatch.setattr(
         ci_module,
-        "download_text",
+        "_download_text",
         lambda url: "# Dallinger generated header\nrequests==2.33.1\n",
     )
     monkeypatch.setattr(
         ci_module,
-        "check_docker_constraints_compile",
+        "_check_docker_constraints_compile",
         lambda pyproject_path, constraints_path: compile_checks.append(
             (pyproject_path, constraints_path)
         ),
