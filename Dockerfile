@@ -4,6 +4,7 @@
 ARG DOCKER_PLATFORM=linux/amd64
 FROM --platform=${DOCKER_PLATFORM} python:3.13-bookworm
 ARG CHROME_VERSION=149.0.7827.54
+ARG DALLINGER_CONSTRAINTS_VERSION=v12.2.0
 
 RUN pip install uv
 
@@ -31,8 +32,12 @@ RUN echo Installing Chrome $CHROME_VERSION && \
 COPY pyproject.toml pyproject.toml
 
 # Generate PsyNet constraints.txt (PyPI deps from the [demos] extra) and install it.
-# All audio-tooling demo dependencies (repp-tapping, sing4me) are now public PyPI
-# packages and live in pyproject.toml's [demos] extra, so no further private-URL
-# harvesting from per-demo requirements.txt files is needed here.
-RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run --no-project - generate --extra demos
+# Download Dallinger's tested pins with retries so transient GitHub timeouts do not
+# fail the Docker build after dependency resolution has already started.
+RUN curl --retry 5 --retry-all-errors --connect-timeout 30 --max-time 120 -fsSL \
+        -o dallinger-dev-requirements.txt \
+        https://raw.githubusercontent.com/Dallinger/Dallinger/${DALLINGER_CONSTRAINTS_VERSION}/dev-requirements.txt && \
+    uv pip compile --python-version 3.13 pyproject.toml --extra demos \
+        --constraint dallinger-dev-requirements.txt \
+        --output-file constraints.txt
 RUN uv pip install --no-cache --system -r constraints.txt
