@@ -1,33 +1,57 @@
 """
 Synchronization primitives for coordinating participants.
 
-This module implements the database-backed synchronization flow used by
-barriers and sync groups. The core pieces are:
+This module contains the core building blocks for synchronous experiments.
+If you have not seen PsyNet's synchronization features before, the key idea is
+simple: participants move through a timeline, sometimes waiting for other
+participants to arrive at the same point. We implement that waiting logic with
+barriers, and we implement grouping logic with groupers and sync groups.
 
-- ``Barrier`` and ``GroupBarrier``: timeline elements that hold participants
-  until release conditions are satisfied.
-- ``BarrierRecord`` and ``ParticipantLinkBarrier``: durable storage for barrier
-  definitions and waiting participants, replacing the older in-memory registry.
-- ``check_barriers``: the processing loop that finds waiting barrier records,
-  claims them with ``FOR UPDATE SKIP LOCKED``, and calls
-  ``Barrier.process_potential_releases`` in isolated transactions.
-- ``SimpleGrouper``/``SyncGroup``: grouping primitives that build sync groups
-  and feed participants into barriers.
+Glossary
+--------
+Barrier
+    A timeline element that pauses participants until some release condition is
+    satisfied (for example, "wait until two participants arrive"). Barriers are
+    subclasses of ``Barrier``/``GroupBarrier``. In a timeline they usually wrap
+    a ``WaitPage`` loop so participants see a waiting screen while they wait.
 
-The high-level flow is:
+Grouper and sync group
+    A ``SimpleGrouper`` (or other grouper) is a timeline element that forms
+    ``SyncGroup`` rows once enough participants are available. Group barriers
+    rely on these groups to decide who to release together.
 
-1. ``Barrier.receive_participant`` registers the barrier (``BarrierRecord``)
-   and links the participant to it (``ParticipantLinkBarrier``).
-2. A scheduled task in ``Experiment._check_barriers`` delegates to
-   ``check_barriers`` here, which repeatedly selects the next waiting barrier
-   and processes it. Errors are logged per-barrier so one failure does not block
-   the rest.
-3. ``Barrier.process_potential_releases`` (implemented by barrier subclasses)
-   determines who to release and marks ``ParticipantLinkBarrier`` rows as
-   released.
+Barrier registry
+    Barriers and their waiting participants are persisted in the database via
+    ``BarrierRecord`` and ``ParticipantLinkBarrier``. This replaces the older
+    in-memory registry so multiple worker processes can safely cooperate.
+
+Where this shows up in a timeline
+---------------------------------
+The most common pattern is:
+
+1. A grouper runs early in the timeline to create sync groups.
+2. A ``GroupBarrier`` appears later in the timeline to pause participants until
+   the group is ready.
+3. After release, the timeline continues with shared or individual tasks.
+
+How processing works
+--------------------
+When a participant reaches a barrier, ``Barrier.receive_participant``:
+
+- Ensures a ``BarrierRecord`` exists (storing a lightweight copy of the barrier).
+- Inserts a ``ParticipantLinkBarrier`` row marking the participant as waiting.
+
+A scheduled task in ``Experiment._check_barriers`` calls ``check_barriers`` in
+this module. That loop:
+
+- Finds the next waiting barrier record.
+- Locks it using ``SELECT ... FOR UPDATE SKIP LOCKED`` so only one worker
+  processes a barrier at a time.
+- Calls ``Barrier.process_potential_releases`` in an isolated transaction.
+- Logs and skips failures per barrier so one bad barrier does not stall others.
 
 Callback attributes on barriers (e.g., ``on_release``) are serialized via
-``serialize_callback`` to ensure they can be persisted inside ``BarrierRecord``.
+``serialize_callback`` so they can be stored inside ``BarrierRecord`` safely.
 """
 
 import copy
