@@ -1,1 +1,1 @@
-Added early app-exists checks for `psynet deploy ssh` and `psynet debug ssh` (author: Peter Harrison)
+Added early app-exists checks for `psynet deploy ssh` and `psynet debug ssh`
