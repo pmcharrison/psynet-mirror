@@ -786,6 +786,8 @@ def test_pre_launch_aborts_when_app_exists():
             )
 
     mock_run_pre_checks.assert_not_called()
+
+
 def test_enable_sql_profile_uses_unique_run_subdirectories(tmp_path, monkeypatch):
     monkeypatch.delenv("PSYNET_SQL_PROFILE", raising=False)
     monkeypatch.delenv("PSYNET_SQL_PROFILE_DIR", raising=False)

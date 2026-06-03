@@ -1026,7 +1026,7 @@ def _abort_if_app_exists(server, app):
             "\n".join(
                 [
                     f"App with name {app} already exists: found on server. Aborting.",
-                    "Use a different name, destroy the current app or add --update",
+                    "Use a different name or destroy the current app.",
                 ]
             )
         )
