@@ -2178,7 +2178,7 @@ def export__heroku(ctx, app, **kwargs):
     default=None,
     required=False,
     callback=verify_id,
-    help="Name of the app to export (optional if only one app is available)",
+    help=("Name of the app to export (optional if only one running app is available)"),
 )
 @option_server
 @export_arguments
