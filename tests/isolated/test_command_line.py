@@ -40,6 +40,14 @@ class TestCommandLine(object):
         assert b"Options:" in output
         assert b"Commands:" in output
 
+    def test_psynet_docs_command_is_not_registered(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["docs", "--help"])
+
+        assert result.exit_code != 0
+        assert "No such command 'docs'" in result.output
+
     def test_dev_changelog_dispatches_to_builder(self, monkeypatch, tmp_path):
         from psynet.command_line import psynet
         from psynet.dev import changelog as changelog_module
@@ -181,6 +189,59 @@ class TestCommandLine(object):
             "This command must be run from the PsyNet source checkout root directory"
             in result.output
         )
+
+    def test_dev_docs_make_dispatches_to_builder(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        calls = []
+        monkeypatch.setattr(
+            docs_module,
+            "make_command",
+            lambda **kwargs: calls.append(kwargs) or 0,
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            [
+                "dev",
+                "docs",
+                "make",
+                "dirhtml",
+                "--clean",
+                "--open",
+                "--strict",
+                "--jobs",
+                "auto",
+                "--sphinx-option=--nitpicky",
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert calls == [
+            {
+                "target": "dirhtml",
+                "clean": True,
+                "open_browser": True,
+                "strict": True,
+                "jobs": "auto",
+                "sphinx_options": ("--nitpicky",),
+            }
+        ]
+
+    def test_dev_docs_make_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "make", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--clean" in result.output
+        assert "--open" in result.output
+        assert "--strict" in result.output
+        assert "--jobs" in result.output
+        assert "deterministic output" in result.output
+        assert "--sphinx-option" in result.output
+        assert "Uses --jobs 1 by default" in result.output
 
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""

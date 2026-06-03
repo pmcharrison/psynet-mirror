@@ -8,6 +8,7 @@ import click
 
 from psynet.dev import changelog as changelog_module
 from psynet.dev import ci as ci_module
+from psynet.dev import docs as docs_module
 from psynet.dev import experiments as experiments_module
 
 CHANGELOG_CATEGORIES = (
@@ -81,6 +82,67 @@ def update_experiments(n_jobs, skip_constraints):
         experiments_module.update_command(
             n_jobs=n_jobs,
             skip_constraints_=True if skip_constraints else None,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
+@dev.group("docs")
+def docs():
+    """Build PsyNet documentation from a source checkout."""
+
+
+@docs.command("make")
+@click.argument("target", default="html", metavar="[TARGET]")
+@click.option(
+    "--clean",
+    "-c",
+    is_flag=True,
+    help="Delete docs/_build before running the Sphinx target.",
+)
+@click.option(
+    "--open",
+    "open_browser",
+    is_flag=True,
+    help="Open docs/_build/html/index.html after a successful html build.",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    help="Treat Sphinx warnings as errors and keep going to report all warnings.",
+)
+@click.option(
+    "--jobs",
+    "-j",
+    default="1",
+    show_default=True,
+    help="Parallel Sphinx build jobs to pass through SPHINXOPTS, e.g. 1, 4, or auto.",
+)
+@click.option(
+    "--sphinx-option",
+    "sphinx_options",
+    multiple=True,
+    help=(
+        "Extra option passed to Sphinx via SPHINXOPTS; repeat as needed. "
+        "Common examples: --nitpicky, -E, -a, -T, -v."
+    ),
+)
+def make_docs(target, clean, open_browser, strict, jobs, sphinx_options):
+    """Run a Sphinx Makefile TARGET for PsyNet docs.
+
+    TARGET defaults to html, matching `make html` in docs/.
+
+    Uses --jobs 1 by default for deterministic output. Pass extra Sphinx flags
+    with --sphinx-option.
+    """
+    try:
+        docs_module.make_command(
+            target=target,
+            clean=clean,
+            open_browser=open_browser,
+            strict=strict,
+            jobs=jobs,
+            sphinx_options=sphinx_options,
         )
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
