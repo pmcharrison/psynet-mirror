@@ -750,6 +750,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
+        if not self.complete:
+            return
         if self.finalized:
             return
         if self.failed:
