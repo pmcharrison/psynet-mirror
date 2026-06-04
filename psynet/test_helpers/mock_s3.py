@@ -1,15 +1,15 @@
 """
-Minimal S3 client mock for PsyNet's artifact-storage tests.
+Minimal S3 client/resource mock for PsyNet's S3 tests.
 
-This helper intentionally implements only the boto client surface exercised by
-the lightweight S3 artifact-storage tests: bucket creation, file
-upload/download/copy/delete, object metadata lookups, and paginator-based
-object listings.
+This helper intentionally implements only the boto surface exercised by the
+lightweight S3 tests: bucket creation, file upload/download/copy/delete, object
+metadata lookups, bucket object listings, and paginator-based object listings.
 """
 
 import shutil
 from datetime import datetime, timezone
 from functools import cache
+from io import BytesIO
 from pathlib import Path, PurePosixPath
 from types import SimpleNamespace
 
@@ -71,6 +71,10 @@ class ArtifactStorageS3TestClient:
 
         return contents
 
+    def _delete_prefix(self, bucket_name: str, prefix: str):
+        for obj in list(self._list_objects(bucket_name=bucket_name, prefix=prefix)):
+            self._delete_object(bucket_name, obj["Key"])
+
     def _upload_file(self, filename: str, bucket_name: str, key: str):
         if not self._has_bucket(bucket_name):
             raise _client_error("NoSuchBucket", "PutObject")
@@ -110,6 +114,21 @@ class ArtifactStorageS3TestClient:
             )
         }
 
+    def _put_object(self, bucket_name: str, key: str, body):
+        if not self._has_bucket(bucket_name):
+            raise _client_error("NoSuchBucket", "PutObject")
+        target = self._object_path(bucket_name, key)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(body, str):
+            body = body.encode("utf-8")
+        target.write_bytes(body)
+
+    def _get_object(self, bucket_name: str, key: str):
+        source = self._object_path(bucket_name, key)
+        if not source.is_file():
+            raise _client_error("NoSuchKey", "GetObject")
+        return {"Body": BytesIO(source.read_bytes())}
+
     def upload_file(self, Filename: str, Bucket: str, Key: str):
         self._upload_file(Filename, Bucket, Key)
 
@@ -124,6 +143,17 @@ class ArtifactStorageS3TestClient:
 
     def head_object(self, Bucket: str, Key: str):
         return self._head_object(Bucket, Key)
+
+    def head_bucket(self, Bucket: str):
+        if not self._has_bucket(Bucket):
+            raise _client_error("404", "HeadBucket")
+        return {}
+
+    def put_object(self, Bucket: str, Key: str, Body):
+        self._put_object(Bucket, Key, Body)
+
+    def get_object(self, Bucket: str, Key: str):
+        return self._get_object(Bucket, Key)
 
     def get_paginator(self, name: str):
         def paginate(
@@ -140,6 +170,70 @@ class ArtifactStorageS3TestClient:
         return SimpleNamespace(paginate=paginate)
 
 
+class ArtifactStorageS3ObjectSummary:
+    def __init__(self, client: ArtifactStorageS3TestClient, bucket_name: str, key: str):
+        self.client = client
+        self.bucket_name = bucket_name
+        self.key = key
+
+    @property
+    def last_modified(self):
+        return self.client._head_object(self.bucket_name, self.key)["LastModified"]
+
+    def delete(self):
+        self.client._delete_object(self.bucket_name, self.key)
+
+
+class ArtifactStorageS3ObjectCollection:
+    def __init__(
+        self,
+        client: ArtifactStorageS3TestClient,
+        bucket_name: str,
+        prefix: str = "",
+    ):
+        self.client = client
+        self.bucket_name = bucket_name
+        self.prefix = prefix
+
+    def __iter__(self):
+        for obj in self.client._list_objects(self.bucket_name, self.prefix):
+            yield ArtifactStorageS3ObjectSummary(
+                self.client,
+                self.bucket_name,
+                obj["Key"],
+            )
+
+    def filter(self, Prefix: str = ""):
+        return type(self)(self.client, self.bucket_name, Prefix)
+
+    def delete(self):
+        self.client._delete_prefix(self.bucket_name, self.prefix)
+
+
+class ArtifactStorageS3Bucket:
+    def __init__(self, client: ArtifactStorageS3TestClient, bucket_name: str):
+        self.client = client
+        self.bucket_name = bucket_name
+        self.objects = ArtifactStorageS3ObjectCollection(client, bucket_name)
+
+    def Object(self, key: str):
+        return ArtifactStorageS3ObjectSummary(self.client, self.bucket_name, key)
+
+
+class ArtifactStorageS3TestResource:
+    def __init__(self, client: ArtifactStorageS3TestClient):
+        self.client = client
+        self.meta = SimpleNamespace(client=client)
+
+    def Bucket(self, bucket_name: str):
+        return ArtifactStorageS3Bucket(self.client, bucket_name)
+
+
 @cache
 def get_artifact_storage_s3_test_client(root: str):
     return ArtifactStorageS3TestClient(root)
+
+
+@cache
+def get_artifact_storage_s3_test_resource(root: str):
+    return ArtifactStorageS3TestResource(get_artifact_storage_s3_test_client(root))

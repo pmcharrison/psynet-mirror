@@ -44,7 +44,10 @@ from .data import init_db
 from .experiment import get_experiment, import_local_experiment
 from .modular_page import ModularPage, PushButtonControl
 from .redis import redis_vars
-from .test_helpers.mock_s3 import get_artifact_storage_s3_test_client
+from .test_helpers.mock_s3 import (
+    get_artifact_storage_s3_test_client,
+    get_artifact_storage_s3_test_resource,
+)
 from .trial.main import TrialNetwork
 from .trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from .utils import clear_all_caches, wait_until
@@ -95,7 +98,10 @@ def assert_text(driver, element_id, value):
 def artifact_storage_s3_test_root(tmp_path, monkeypatch):
     root = str(tmp_path / "psynet-artifact-storage-s3-test")
     client = get_artifact_storage_s3_test_client(root)
+    resource = get_artifact_storage_s3_test_resource(root)
     monkeypatch.setattr(psynet_asset, "get_s3_client", lambda: client)
+    monkeypatch.setattr(psynet_asset, "get_s3_resource", lambda: resource)
+    monkeypatch.setattr(psynet_asset, "get_s3_bucket", resource.Bucket)
     monkeypatch.setattr(psynet_artifact, "get_s3_client", lambda: client)
     psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
     try:

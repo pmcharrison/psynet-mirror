@@ -3,6 +3,7 @@ import tempfile
 from glob import glob
 from os import makedirs
 from os.path import basename, join
+from uuid import uuid4
 
 from psynet.asset import S3Storage
 
@@ -33,14 +34,15 @@ def get_test_files(test_folder):
     return sorted(glob(test_folder + "/*"))
 
 
-def run_test(storage):
+def run_test(storage, remote_prefix=""):
     with tempfile.TemporaryDirectory() as tempdir:
         test_folder = join(tempdir, "test_folder")
         test_file_name = "test_file"
         test_file_path = join(test_folder, test_file_name)
         test_file_path_downloaded = test_file_path + "_downloaded"
-        remote_test_file_name = test_file_name + "_remote"
-        remote_test_folder = "test_folder_remote"
+        remote_prefix = remote_prefix.strip("/")
+        remote_test_file_name = join(remote_prefix, test_file_name + "_remote")
+        remote_test_folder = join(remote_prefix, "test_folder_remote")
 
         create_test_file(test_folder, test_file_path)
 
@@ -77,9 +79,9 @@ def test_s3_storage_awscli():
 
     if which("aws") is not None:
         storage = get_s3_storage("awscli")
-        run_test(storage)
+        run_test(storage, f"s3-tests/{uuid4().hex}")
 
 
-def test_s3_storage_boto3():
+def test_s3_storage_boto3(artifact_storage_s3_test_root):
     storage = get_s3_storage("boto3")
     run_test(storage)
