@@ -100,3 +100,42 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
     await expect(stylesheetMarker).not.toHaveCSS("border-left-width", "7px");
   });
 });
+
+test("legacy response handler errors do not use SPA fragment failure UI", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/deferred_page_scripts"
+  );
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+
+    await experimentPage.route("**/response", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ submission: "approved" })
+      });
+    });
+
+    const result = await experimentPage.evaluate(async () => {
+      window.__fragmentFailureCalls = 0;
+      window.psynetTemplateData.flags.inplaceTimelineTransitions = false;
+      window.psynet.handleTimelineTransitionFailure = async function () {
+        window.__fragmentFailureCalls += 1;
+      };
+      return {
+        passedValidation: await window.psynet.nextPage("malformed-response"),
+        fragmentFailureCalls: window.__fragmentFailureCalls
+      };
+    });
+
+    expect(result).toEqual({
+      passedValidation: false,
+      fragmentFailureCalls: 0
+    });
+  });
+});
