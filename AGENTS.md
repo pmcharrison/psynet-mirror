@@ -179,6 +179,45 @@ Cursor command `/review`.
 - `/review` is defined in `.cursor/commands/review.md`
 - its detailed workflow lives in `.cursor/skills/branch-review/SKILL.md`
 
+## Merge request descriptions
+
+Use the following standardized format for merge request descriptions:
+
+```markdown
+## Motivation
+
+Why this change is needed. Reconstruct this from the initial user prompt and
+any investigation performed during the agent conversation. Link to the original
+issue, failing CI job, merge request discussion, or other source when available,
+and summarize the key evidence, such as the relevant error message.
+
+## Summary of changes
+
+What changed in the code. Mention the main files, APIs, data model changes,
+architectural implications, and any notable implementation choices.
+
+## Behavior changes
+
+What package users or experiment authors may notice. Describe new functionality,
+bug fixes, compatibility implications, changed defaults, migration steps, or
+state that there are no outward-facing behavior changes.
+
+## Testing
+
+List the checks that were run and their outcomes. Include command names,
+relevant demo/manual testing, CI results, and any tests that were intentionally
+not run with the reason.
+
+## Automatic code review
+
+State whether the repo-local `/review` action has been run on the merge request.
+If it has not been run, explain why.
+```
+
+Keep the description concise, but include enough context for a reviewer to
+understand the original motivation, the implemented approach, the user-facing
+impact, and the evidence that the change works.
+
 ## Testing
 
 Non-trivial code changes should be tested.
