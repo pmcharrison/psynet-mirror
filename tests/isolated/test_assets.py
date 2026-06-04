@@ -434,6 +434,26 @@ def test_add_asset_external_asset_does_not_mutate_url(trial):
     "experiment_directory", [path_to_test_experiment("static")], indirect=True
 )
 @pytest.mark.usefixtures("launched_experiment")
+def test_add_asset_external_asset_sets_missing_metadata(trial):
+    external_asset = ExternalAsset("http://example.com/example.mp3")
+
+    assert external_asset.local_key is None
+
+    trial.add_asset("external", external_asset)
+
+    assert external_asset.parent is trial
+    assert external_asset.local_key == "external"
+    assert external_asset.key_within_module
+    assert "external" in external_asset.key_within_module
+    assert external_asset.export_path
+    assert external_asset.export_path != "common/.mp3"
+    assert trial.assets["external"] is external_asset
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("static")], indirect=True
+)
+@pytest.mark.usefixtures("launched_experiment")
 def test_chain_node_stage_assets_overwrites_undeposited_metadata(
     launched_experiment, participant
 ):

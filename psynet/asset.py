@@ -447,8 +447,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         any trial/node definition used to parameterize on-demand assets.
 
         For undeposited assets, this overwrites parent/key/module/definition metadata
-        so the asset is bound to the current owner. Deposited assets are left unchanged
-        to preserve their storage identity.
+        so the asset is bound to the current owner. Deposited assets retain existing
+        metadata to preserve their storage identity, but missing parent/link fields
+        are filled in so exported paths remain unique.
 
         Parameters
         ----------
@@ -477,6 +478,17 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.module_id = getattr(parent, "module_id", None)
             if definition is not None:
                 self.receive_node_definition(definition)
+            return self
+
+        if self.parent is None:
+            self.parent = parent
+        if not self.local_key:
+            self.local_key = local_key
+        if self.module_id is None:
+            if module_id is not None:
+                self.module_id = module_id
+            else:
+                self.module_id = getattr(parent, "module_id", None)
 
         return self
 
