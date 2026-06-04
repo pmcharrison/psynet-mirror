@@ -2223,7 +2223,12 @@
                 passedValidation = false;
               }
             } catch (error) {
-              await psynet.handleTimelineTransitionFailure(error);
+              if (psynetTemplateData.flags.inplaceTimelineTransitions) {
+                await psynet.handleTimelineTransitionFailure(error);
+              } else {
+                psynet.log.error(error.stack || String(error));
+                onErrorResponse(request);
+              }
               passedValidation = false;
             } finally {
               resolve(passedValidation);
