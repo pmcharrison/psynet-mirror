@@ -11,6 +11,7 @@ import inspect
 import json
 import random
 import time
+import warnings
 from collections import Counter
 from datetime import datetime
 from functools import cached_property
@@ -893,6 +894,14 @@ class Page(Elt):
     template_str:
         Alternative way of specifying the jinja2 template as a string.
 
+    template_fragment_path:
+        Path to a jinja2 template containing only the contents of the timeline
+        page's ``main_body`` block. This is the recommended custom-template
+        style for pages used with ``inplace_timeline_transitions``.
+
+    template_fragment_str:
+        Alternative way of specifying a main-body template fragment as a string.
+
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.
 
@@ -1037,6 +1046,8 @@ class Page(Elt):
         time_estimate: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None,
+        template_fragment_path: Optional[str] = None,
+        template_fragment_str: Optional[str] = None,
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
@@ -1055,6 +1066,7 @@ class Page(Elt):
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
+        allow_inplace_complete_template: bool = False,
     ):
         super().__init__()
 
@@ -1069,14 +1081,41 @@ class Page(Elt):
         if css_links is None:
             css_links = []
 
-        if template_path is None and template_str is None:
-            raise ValueError("Must provide either template_path or template_str.")
+        complete_template_provided = (
+            template_path is not None or template_str is not None
+        )
+        fragment_template_provided = (
+            template_fragment_path is not None or template_fragment_str is not None
+        )
+
+        if not complete_template_provided and not fragment_template_provided:
+            raise ValueError(
+                "Must provide either template_path/template_str or "
+                "template_fragment_path/template_fragment_str."
+            )
         if template_path is not None and template_str is not None:
             raise ValueError("Cannot provide both template_path and template_str.")
+        if template_fragment_path is not None and template_fragment_str is not None:
+            raise ValueError(
+                "Cannot provide both template_fragment_path and template_fragment_str."
+            )
+        if complete_template_provided and fragment_template_provided:
+            raise ValueError(
+                "Cannot provide both a complete template and a template fragment."
+            )
 
         if template_path is not None:
             with open(template_path, "r") as file:
                 template_str = file.read()
+        template_mode = "complete"
+        template_contract_source = template_str
+        if fragment_template_provided:
+            template_mode = "fragment"
+            if template_fragment_path is not None:
+                with open(template_fragment_path, "r") as file:
+                    template_fragment_str = file.read()
+            template_contract_source = template_fragment_str
+            template_str = self._wrap_template_fragment(template_fragment_str)
 
         assert len(label) <= 250
         assert isinstance(template_arg, dict)
@@ -1084,6 +1123,10 @@ class Page(Elt):
 
         self.time_estimate = time_estimate
         self.template_str = template_str
+        self.template_mode = template_mode
+        self.template_contract_source = template_contract_source
+        self.allow_inplace_complete_template = allow_inplace_complete_template
+        self._inplace_template_contract_warning_shown = False
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
@@ -1122,6 +1165,16 @@ class Page(Elt):
 
         self._bot_response = bot_response
         self._validate_function = validate
+
+    @staticmethod
+    def _wrap_template_fragment(template_fragment_str):
+        return f"""
+        {{% extends "timeline-page.html" %}}
+
+        {{% block main_body %}}
+            {template_fragment_str}
+        {{% endblock %}}
+        """
 
     def call__get_bot_response(self, experiment, bot, response=NoArgumentProvided):
         """
@@ -1477,6 +1530,9 @@ class Page(Elt):
         locale = get_locale()
         language_dict = get_language_dict(locale)
         config = get_config()
+        self._check_inplace_template_contract(
+            inplace_timeline_transitions=config.get("inplace_timeline_transitions"),
+        )
         js_vars = {**self.js_vars, **internal_js_vars}
         inplace_timeline_transitions = config.get("inplace_timeline_transitions")
 
@@ -1521,6 +1577,96 @@ class Page(Elt):
             rendered = self._defer_executable_scripts(rendered)
             rendered = self._extract_partial_body(rendered)
         return rendered
+
+    def _check_inplace_template_contract(self, inplace_timeline_transitions):
+        if self.allow_inplace_complete_template:
+            return
+
+        problems = self._collect_template_contract_problems()
+        if not problems:
+            return
+
+        message = "\n\n".join(problems)
+        if inplace_timeline_transitions:
+            raise ValueError(message)
+
+        if not self._inplace_template_contract_warning_shown:
+            warnings.warn(message, UserWarning, stacklevel=2)
+            self._inplace_template_contract_warning_shown = True
+
+    def _collect_template_contract_problems(self):
+        problems = []
+        template_source = self.template_contract_source or ""
+
+        if self.template_mode == "complete":
+            problems.append(self._complete_template_contract_message())
+
+        soup = BeautifulSoup(template_source, "html.parser")
+
+        for script in soup.find_all("script"):
+            if script.get("src"):
+                problems.append(
+                    "The template includes a page JavaScript link in a "
+                    "<script src=...> tag. Supply page JavaScript files via "
+                    "the Page js_links argument instead."
+                )
+            else:
+                problems.append(
+                    "The template includes a raw <script> block. Supply "
+                    "page JavaScript via the Page scripts argument instead, "
+                    "and use PsyNet lifecycle hooks such as "
+                    "psynet.trial.onEvent('trialConstruct', ...) for page setup."
+                )
+
+        if soup.find_all("style"):
+            problems.append(
+                "The template includes inline CSS in a <style> tag. Supply "
+                "page-local CSS via the Page css argument instead."
+            )
+
+        for link in soup.find_all(
+            "link", rel=lambda value: value and "stylesheet" in value
+        ):
+            problems.append(
+                "The template includes a stylesheet <link> tag. Supply "
+                "page-local stylesheet links via the Page css_links argument "
+                "instead."
+            )
+
+        if "DOMContentLoaded" in template_source:
+            problems.append(
+                "The template registers a DOMContentLoaded listener. "
+                "In-place timeline transitions do not reload the document for "
+                "each page, so page setup should use PsyNet lifecycle hooks "
+                "such as psynet.trial.onEvent('trialConstruct', ...), or "
+                "page scripts supplied through scripts/js_links."
+            )
+
+        if (
+            "window.addEventListener" in template_source
+            and "psynet.addPageEventListener" not in template_source
+            and "psynet.addPageCleanupCallback" not in template_source
+        ):
+            problems.append(
+                "The template registers a window event listener without a "
+                "PsyNet cleanup hook. Use psynet.addPageEventListener(...) "
+                "when possible, or register cleanup with "
+                "psynet.addPageCleanupCallback(...)."
+            )
+
+        return problems
+
+    def _complete_template_contract_message(self):
+        return (
+            f"Page '{self.label}' uses a complete custom template. "
+            "Complete templates that extend timeline-page.html are supported "
+            "only by the legacy full-page reload path unless PsyNet explicitly "
+            "marks the template as in-place compatible. For custom pages used "
+            "with inplace_timeline_transitions, pass "
+            "template_fragment_path or template_fragment_str with only the "
+            "contents of the main_body block, and supply page-local CSS/JS via "
+            "css, css_links, scripts, and js_links."
+        )
 
     @staticmethod
     def _defer_executable_scripts(rendered_html):

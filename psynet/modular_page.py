@@ -1947,6 +1947,7 @@ class ModularPage(Page):
             start_trial_automatically=start_trial_automatically,
             validate=validate,
             css=css,
+            allow_inplace_complete_template=True,
             **kwargs,
         )
 

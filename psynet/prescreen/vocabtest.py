@@ -260,6 +260,7 @@ class VocabPage(Page):
             label="vocabtest",
             time_estimate=time_estimate,
             template_str=get_template("vocabtest.html"),
+            allow_inplace_complete_template=True,
             js_vars={
                 "items": items,
                 "testConfig": test_config,
