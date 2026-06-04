@@ -150,6 +150,7 @@ class UnityPage(Page):
             contents=self.contents,
             time_estimate=time_estimate,
             template_str=get_template(template),
+            allow_inplace_complete_template=True,
             template_arg={
                 "title": self.title,
                 "resources": "" if self.resources is None else self.resources,
@@ -201,6 +202,7 @@ class WaitPage(Page):
             label="wait",
             time_estimate=wait_time,
             template_str=get_template("wait-page.html"),
+            allow_inplace_complete_template=True,
             template_arg={"content": self.content, "wait_time": self.wait_time},
             **kwargs,
         )
@@ -475,6 +477,7 @@ class JsPsychPage(Page):
             js_vars=js_vars,
             js_links=js_links,
             css_links=css_links,
+            allow_inplace_complete_template=True,
             **kwargs,
         )
 

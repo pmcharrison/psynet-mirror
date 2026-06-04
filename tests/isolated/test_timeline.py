@@ -124,6 +124,120 @@ def test_partial_body_extraction_requires_named_fragment_wrapper():
         Page._extract_partial_body("<div id='main-body'></div>")
 
 
+def test_template_fragment_input_wraps_main_body_content():
+    page = Page(template_fragment_str="<p id='fragment-only'>Fragment content</p>")
+
+    assert page.template_mode == "fragment"
+    assert '{% extends "timeline-page.html" %}' in page.template_str
+    assert "{% block main_body %}" in page.template_str
+    assert "fragment-only" in page.template_str
+
+
+def test_inplace_transitions_reject_complete_custom_templates():
+    page = Page(template_str='{% extends "timeline-page.html" %}')
+
+    with pytest.raises(ValueError, match="template_fragment_path"):
+        page._check_inplace_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_transitions_warn_on_complete_custom_templates():
+    page = Page(template_str='{% extends "timeline-page.html" %}')
+
+    with pytest.warns(UserWarning, match="template_fragment_path"):
+        page._check_inplace_template_contract(inplace_timeline_transitions=False)
+
+
+def test_inplace_transitions_allow_framework_compatible_complete_templates():
+    page = Page(
+        template_str='{% extends "timeline-page.html" %}',
+        allow_inplace_complete_template=True,
+    )
+
+    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+
+
+def test_inplace_transitions_reject_dom_content_loaded_in_custom_templates():
+    page = Page(
+        template_fragment_str="""
+        <div data-hook="DOMContentLoaded"></div>
+        """
+    )
+
+    with pytest.raises(ValueError, match="DOMContentLoaded"):
+        page._check_inplace_template_contract(inplace_timeline_transitions=True)
+
+
+@pytest.mark.parametrize(
+    "template_fragment, match",
+    [
+        (
+            "<script>psynet.trial.onEvent('trialConstruct', function () {});</script>",
+            "raw <script>",
+        ),
+        ('<script src="/static/example.js"></script>', "js_links"),
+        ("<style>.example { color: red; }</style>", "Page css argument"),
+        ('<link rel="stylesheet" href="/static/example.css">', "css_links"),
+        (
+            "<script>window.addEventListener('resize', function () {});</script>",
+            "window event listener",
+        ),
+    ],
+)
+def test_inplace_transitions_reject_forbidden_custom_template_content(
+    template_fragment, match
+):
+    page = Page(template_fragment_str=template_fragment)
+
+    with pytest.raises(ValueError, match=match):
+        page._check_inplace_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_transitions_warn_on_forbidden_custom_template_content():
+    page = Page(template_fragment_str="<style>.example { color: red; }</style>")
+
+    with pytest.warns(UserWarning, match="Page css argument"):
+        page._check_inplace_template_contract(inplace_timeline_transitions=False)
+
+
+def test_window_event_listener_with_cleanup_evidence_is_allowed():
+    page = Page(
+        template_fragment_str="""
+        <div
+            data-script="
+                window.addEventListener('resize', onResize);
+                psynet.addPageCleanupCallback(function () {});
+            "
+        ></div>
+        """
+    )
+
+    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+
+
+def test_page_asset_arguments_are_not_forbidden_template_content():
+    page = Page(
+        template_fragment_str="<p>Page content</p>",
+        css=[".example { color: red; }"],
+        css_links=["/static/example.css"],
+        scripts=["psynet.trial.onEvent('trialConstruct', function () {});"],
+        js_links=["/static/example.js"],
+    )
+
+    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+
+
+def test_framework_compatible_templates_skip_forbidden_content_validation():
+    page = Page(
+        template_str="""
+        {% extends "timeline-page.html" %}
+        <script>document.addEventListener("DOMContentLoaded", function () {});</script>
+        """,
+        allow_inplace_complete_template=True,
+    )
+
+    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+
+
 class CustomTrial(ChainTrial):
     time_estimate = 5
 
