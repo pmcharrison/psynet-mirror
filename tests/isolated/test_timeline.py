@@ -159,12 +159,22 @@ def test_inplace_transitions_allow_framework_compatible_complete_templates():
 def test_inplace_transitions_reject_dom_content_loaded_in_custom_templates():
     page = Page(
         template_fragment_str="""
-        <div data-hook="DOMContentLoaded"></div>
+        <div
+            data-script="
+                document.addEventListener('DOMContentLoaded', function () {});
+            "
+        ></div>
         """
     )
 
     with pytest.raises(ValueError, match="DOMContentLoaded"):
         page._check_inplace_template_contract(inplace_timeline_transitions=True)
+
+
+def test_inplace_transitions_allow_dom_content_loaded_text_in_custom_templates():
+    page = Page(template_fragment_str='<div data-hook="DOMContentLoaded"></div>')
+
+    page._check_inplace_template_contract(inplace_timeline_transitions=True)
 
 
 @pytest.mark.parametrize(
