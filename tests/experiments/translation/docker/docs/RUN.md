@@ -55,8 +55,14 @@ for debugging.
 
 ## Remote debugging
 
-You can use PyCharm's remote debugger within this Docker-based PsyNet environment.
-To set this up, follow these instructions:
+### VSCode/Cursor
+
+Unfortunately we don't currently have a workflow for using the debugger in VSCode/Cursor when running in Docker mode.
+
+### PyCharm
+
+We used to have a workflow for Docker debugging in PyCharm, but this is not currently working either
+(as of February 2025). For reference, this is how it worked:
 
 1. Click Run > Edit Configurations in PyCharm.
 2. Create a new Python Debug Server configuration, and call it something like 'Dockerized Python debug server'.

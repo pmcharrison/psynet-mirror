@@ -76,6 +76,11 @@ author = "Peter Harrison"
 #
 # The full version, including alpha/beta/rc tags.
 display_version = os.environ.get("DOCS_VERSION", version)
+# Strip a leading ``v`` so the page header reads e.g. ``13.0.5`` rather
+# than ``v13.0.5``. Git tags use the ``v`` prefix but it adds noise in
+# the rendered docs title.
+if display_version.startswith("v"):
+    display_version = display_version[1:]
 version = display_version
 release = display_version
 

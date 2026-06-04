@@ -5,6 +5,7 @@ Contributing to PsyNet
    :maxdepth: 1
 
    workflow
+   branch_review
    contributing_a_feature_or_bugfix
    prescreening_tasks
    updating_documentation

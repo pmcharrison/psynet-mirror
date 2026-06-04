@@ -26,7 +26,6 @@ def test_pre_deploy_normal_deployment():
         patch.object(experiment, "create_database_snapshot") as mock_db,
         patch.object(experiment, "create_source_code_zip_file") as mock_zip,
     ):
-
         experiment.pre_deploy(redeploying_from_archive=False)
 
         # Verify that asset preparation and database snapshot are called
@@ -49,7 +48,6 @@ def test_pre_deploy_archive_deployment():
         patch.object(experiment, "create_database_snapshot") as mock_db,
         patch.object(experiment, "create_source_code_zip_file") as mock_zip,
     ):
-
         experiment.pre_deploy(redeploying_from_archive=True)
 
         # Verify that asset preparation and database snapshot are NOT called

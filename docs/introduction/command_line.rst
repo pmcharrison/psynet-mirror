@@ -92,7 +92,7 @@ append ``--help`` to these commands:
     psynet export ssh --help
     psynet export heroku --help
 
-For more information on PsyNet data export see `Exporting <../deploy/export.html>`_.
+For more information on PsyNet data export see `Data <../deploy/data.html>`_.
 
 
 .. _generate_constraints:

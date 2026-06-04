@@ -567,7 +567,7 @@ def main():
 
     with html:
         tags.p(
-            "We're now ready to start the main experiment. " "You'll take ",
+            "We're now ready to start the main experiment. You'll take ",
             tags.strong(TRIALS_PER_PARTICIPANT),
             " trials in total. Good luck!",
         )

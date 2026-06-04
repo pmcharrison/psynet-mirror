@@ -33,7 +33,7 @@ def reset():
 
 
 def write_all(content: dict):
-    encoded = jsonpickle.encode(content, indent=4)
+    encoded = jsonpickle.encode(content, indent=4, keys=True)
 
     def f():
         with open(path, "w") as file:
@@ -56,7 +56,7 @@ def write(**kwargs):
 def read_all():
     with open(path, "r") as file:
         txt = file.read()
-    content = jsonpickle.decode(txt)
+    content = jsonpickle.decode(txt, keys=True)
     assert isinstance(content, dict)
     return content
 
