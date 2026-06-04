@@ -342,23 +342,17 @@
       script.remove();
     };
 
-    psynet.loadExternalScriptOnce = function (src) {
+    psynet.executeExternalScript = function (src) {
       let normalizedSrc = new URL(src, window.location.href).href;
-      if (
-        Array.from(document.scripts).some(
-          (script) =>
-            script.src === normalizedSrc &&
-            script.type !== "text/psynet-script",
-        )
-      ) {
-        return Promise.resolve();
-      }
 
       return new Promise((resolve, reject) => {
         let script = document.createElement("script");
         script.src = normalizedSrc;
         script.async = false;
-        script.onload = resolve;
+        script.onload = () => {
+          script.remove();
+          resolve();
+        };
         script.onerror = () =>
           reject(new Error("Could not load script " + normalizedSrc + "."));
         document.head.appendChild(script);
@@ -384,7 +378,7 @@
         }
         if (script.src) {
           await flushInlineBuffer();
-          await psynet.loadExternalScriptOnce(script.src);
+          await psynet.executeExternalScript(script.src);
         } else if (script.textContent.trim() !== "") {
           inlineBuffer.push(script.textContent);
         }

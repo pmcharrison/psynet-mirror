@@ -49,8 +49,8 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
         () =>
           experimentPage.evaluate(
             () =>
-              window.__psynetDeferredPageScript?.scriptExecuted === true &&
-              window.__psynetDeferredPageScript?.trialConstructHandlerRan === true
+              window.__psynetDeferredPageScript?.scriptExecutions === 1 &&
+              window.__psynetDeferredPageScript?.trialConstructRuns === 1
           ),
         { timeout: STEP_TIMEOUT_MS }
       )
@@ -68,6 +68,30 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
+    await waitForMainBodyContains(
+      experimentPage,
+      "Repeated linked page script lifecycle page",
+      STEP_TIMEOUT_MS
+    );
+    await expect(deferredMarker).toHaveAttribute(
+      "data-trial-construct-handler-ran",
+      "true",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(
+            () =>
+              window.__psynetDeferredPageScript?.scriptExecutions === 2 &&
+              window.__psynetDeferredPageScript?.trialConstructRuns === 2
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(true);
+
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
     await waitForMainBodyContains(experimentPage, "Cleanup page", STEP_TIMEOUT_MS);
     await expect(stylesheetMarker).toContainText("Unstyled cleanup marker", {
       timeout: STEP_TIMEOUT_MS
@@ -76,4 +100,3 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
     await expect(stylesheetMarker).not.toHaveCSS("border-left-width", "7px");
   });
 });
-
