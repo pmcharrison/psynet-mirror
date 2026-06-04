@@ -118,8 +118,10 @@ arguments:
 * Prefer ``template_fragment_path`` for experiment templates stored in
   ``templates/``. ``template_fragment_str`` is useful for small generated
   fragments, but file-based fragments are usually clearer for authored pages.
-* Use ``css`` and ``css_links`` for page-local styles.
-* Use ``scripts`` and ``js_links`` for page-local JavaScript.
+* Prefer ``css_links`` and ``js_links`` for authored page-local CSS and
+  JavaScript files stored in ``static/``.
+* Use ``css`` and ``scripts`` for small generated snippets when file-based
+  assets would be less clear.
 * Use PsyNet lifecycle hooks such as ``psynet.trial.onEvent("trialConstruct",
   ...)`` for page setup.
 * Use ``psynet.addPageEventListener(...)`` for event listeners that should be

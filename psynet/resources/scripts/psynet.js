@@ -481,15 +481,6 @@
       }
     };
 
-    psynet.hydrateFragmentAssets = async function () {
-      psynet.ensureStylesheetLinks();
-      psynet.applyInlinePageStyles();
-    };
-
-    psynet.runFragmentScripts = async function (scriptElements) {
-      await psynet.executeScriptSequence(scriptElements);
-    };
-
     // ---- Timeline fragment transitions -------------------------------------
     psynet.setTimelineTransitionBusy = function (isBusy) {
       document.body.classList.toggle("timeline-transition-pending", isBusy);
@@ -502,12 +493,6 @@
     psynet.finalizePageReady = async function () {
       await new Promise((resolve) => setTimeout(resolve, 0));
       psynet.setPageReady(true);
-    };
-
-    psynet.initActivatedPage = async function () {
-      psynet.trialProgress = createTrialProgress();
-      psynet.initLucidTermination();
-      await psynet.initPage();
     };
 
     psynet.applyTimelineFragmentPayload = function (payload) {
@@ -549,12 +534,15 @@
       psynet.clearLucidTermination();
       psynet.resetPageState();
       psynet.refreshTemplateData();
-      await psynet.hydrateFragmentAssets();
+      psynet.ensureStylesheetLinks();
+      psynet.applyInlinePageStyles();
       await psynet.rebuildTrial();
-      await psynet.runFragmentScripts(psynet.getPageJsLinkScripts());
-      await psynet.runFragmentScripts(psynet.getMainBodyScripts());
-      await psynet.runFragmentScripts(psynet.getDeferredPageScripts());
-      await psynet.initActivatedPage();
+      await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
+      await psynet.executeScriptSequence(psynet.getMainBodyScripts());
+      await psynet.executeScriptSequence(psynet.getDeferredPageScripts());
+      psynet.trialProgress = createTrialProgress();
+      psynet.initLucidTermination();
+      await psynet.initPage();
       await psynet.finalizePageReady();
       psynet.nextPagePending = false;
       psynet.setTimelineTransitionBusy(false);

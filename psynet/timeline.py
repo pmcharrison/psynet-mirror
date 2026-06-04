@@ -10,6 +10,7 @@ import copy
 import inspect
 import json
 import random
+import re
 import time
 import warnings
 from collections import Counter
@@ -1601,7 +1602,11 @@ class Page(Elt):
                 "instead."
             )
 
-        if "DOMContentLoaded" in template_source:
+        if re.search(
+            r"\b(?:document|window)\s*\.\s*addEventListener\s*\(\s*"
+            r"['\"]DOMContentLoaded['\"]",
+            template_source,
+        ):
             problems.append(
                 "The template registers a DOMContentLoaded listener. "
                 "In-place timeline transitions do not reload the document for "
@@ -1610,11 +1615,15 @@ class Page(Elt):
                 "page scripts supplied through scripts/js_links."
             )
 
-        if (
-            "window.addEventListener" in template_source
-            and "psynet.addPageEventListener" not in template_source
-            and "psynet.addPageCleanupCallback" not in template_source
-        ):
+        has_window_event_listener = re.search(
+            r"\bwindow\s*\.\s*addEventListener\s*\(",
+            template_source,
+        )
+        has_page_cleanup = (
+            "psynet.addPageEventListener" in template_source
+            or "psynet.addPageCleanupCallback" in template_source
+        )
+        if has_window_event_listener and not has_page_cleanup:
             problems.append(
                 "The template registers a window event listener without a "
                 "PsyNet cleanup hook. Use psynet.addPageEventListener(...) "
