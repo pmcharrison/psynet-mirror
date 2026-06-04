@@ -46,6 +46,21 @@ class Exp(psynet.experiment.Experiment):
         InfoPage(
             Markup(
                 """
+                <p>Repeated linked page script lifecycle page</p>
+                <p
+                    id="deferred-trial-construct-marker"
+                    data-trial-construct-handler-ran="false"
+                >
+                    repeated trialConstruct handler has not run
+                </p>
+                """
+            ),
+            time_estimate=1,
+            js_links=["/static/deferred-script.js"],
+        ),
+        InfoPage(
+            Markup(
+                """
                 <p>Cleanup page</p>
                 <p id="custom-stylesheet-marker">Unstyled cleanup marker</p>
                 """
