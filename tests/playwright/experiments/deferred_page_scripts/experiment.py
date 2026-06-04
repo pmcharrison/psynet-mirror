@@ -4,59 +4,16 @@ import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import Page, Timeline
 
-DEFERRED_SCRIPT = """
-window.__psynetDeferredPageScript = {
-    scriptExecuted: true,
-    trialConstructHandlerRan: false,
-};
-
-psynet.trial.onEvent("trialConstruct", function () {
-    window.__psynetDeferredPageScript.trialConstructHandlerRan = true;
-    const marker = document.getElementById("deferred-trial-construct-marker");
-    if (marker) {
-        marker.dataset.trialConstructHandlerRan = "true";
-        marker.textContent = "trialConstruct handler ran";
-    }
-});
-"""
-
-
-CUSTOM_STYLE_PAGE_TEMPLATE = """
-{% extends "timeline-page.html" %}
-
-{% block stylesheets %}
-    {{ super() }}
-    <style>
-        #custom-stylesheet-marker {
-            color: rgb(12, 34, 56);
-            border-left: 7px solid rgb(78, 90, 12);
-            padding-left: 13px;
-        }
-    </style>
-{% endblock %}
-
-{% block main_body %}
-    <p id="custom-stylesheet-marker">Styled custom template page</p>
-    <button id="next-button" type="button" class="btn btn-primary submit">Next</button>
-    <script>
-        psynet.trial.onEvent("trialConstruct", function () {
-            var button = document.getElementById("next-button");
-            psynet.addPageEventListener(button, "click", function () {
-                psynet.submitResponse();
-            });
-        });
-    </script>
-{% endblock %}
-"""
-
 
 class CustomStylesheetPage(Page):
     def __init__(self):
         super().__init__(
             label="custom_stylesheet",
-            template_str=CUSTOM_STYLE_PAGE_TEMPLATE,
+            template_fragment_path="templates/custom-stylesheet-page.html",
             save_answer=False,
             time_estimate=1,
+            js_links=["/static/custom-style-page.js"],
+            css_links=["/static/deferred-page-scripts.css"],
         )
 
     def get_bot_response(self, experiment, bot):
@@ -82,14 +39,8 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=1,
-            scripts=[DEFERRED_SCRIPT],
-            css=[
-                """
-                #deferred-css-marker {
-                    color: rgb(12, 34, 56);
-                }
-                """
-            ],
+            js_links=["/static/deferred-script.js"],
+            css_links=["/static/deferred-page-scripts.css"],
         ),
         CustomStylesheetPage(),
         InfoPage(

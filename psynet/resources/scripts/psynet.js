@@ -484,7 +484,6 @@
     psynet.hydrateFragmentAssets = async function () {
       psynet.ensureStylesheetLinks();
       psynet.applyInlinePageStyles();
-      await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
     };
 
     psynet.runFragmentScripts = async function (scriptElements) {
@@ -552,6 +551,7 @@
       psynet.refreshTemplateData();
       await psynet.hydrateFragmentAssets();
       await psynet.rebuildTrial();
+      await psynet.runFragmentScripts(psynet.getPageJsLinkScripts());
       await psynet.runFragmentScripts(psynet.getMainBodyScripts());
       await psynet.runFragmentScripts(psynet.getDeferredPageScripts());
       await psynet.initActivatedPage();

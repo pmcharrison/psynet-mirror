@@ -249,9 +249,6 @@
     <script src="/static/scripts/jquery-3.7.1.min.js"></script>
     <script src="/static/scripts/JSZip/jszip.min.js"></script>
 
-    {% for x in js_links %}
-        <script src="{{ x }}"></script>
-    {% endfor %}
     {% if not partial_mode %}
         {{ template_data_script() }}
     {% endif %}
@@ -270,16 +267,20 @@
     {% if not partial_mode %}
         {{ super() }}
 
-        <script>
-            psynet.initLucidTermination();
-            psynet.initPagePromise = psynet.initPage();
-        </script>
+        {% for x in js_links %}
+            <script src="{{ x }}"></script>
+        {% endfor %}
 
         {% for x in scripts %}
             <script>
                 {{ x }}
             </script>
         {% endfor %}
+
+        <script>
+            psynet.initLucidTermination();
+            psynet.initPagePromise = psynet.initPage();
+        </script>
 
         <script>
             (async function () {
