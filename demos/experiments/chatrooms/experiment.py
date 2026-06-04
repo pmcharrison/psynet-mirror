@@ -61,13 +61,15 @@ class ChatroomPage(Page):
 
         super().__init__(
             label="chatroom",
-            template_path="templates/chatroom-page.html",
+            template_fragment_path="templates/chatroom-page.html",
             js_vars={
                 "chatroom_room_id": room_id,
                 "chatroom_global_channel": global_channel,
                 "chatroom_room_label": self.room_label,
                 "chatroom_show_history": show_history,
             },
+            css_links=["/static/chatroom.css"],
+            js_links=["/static/chatroom.js"],
             save_answer=False,
             **kwargs,
         )
@@ -82,12 +84,13 @@ class RoomSelectionPage(Page):
         super().__init__(
             label="choose_chatroom",
             time_estimate=15,
-            template_path="templates/room-selection.html",
+            template_fragment_path="templates/room-selection.html",
             js_vars={
                 "num_chatrooms": config.get("num_chatrooms", 3),
                 "max_occupancy": config.get("chatroom_max_occupancy", None),
                 "chatroom_global_channel": GLOBAL_CHANNEL,
             },
+            js_links=["/static/room-selection.js"],
             # save_answer="current_room" writes the chosen value to
             # participant.var.current_room, which the next PageMaker reads to
             # configure ChatroomPage.
