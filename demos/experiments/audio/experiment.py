@@ -124,7 +124,8 @@ example_js_synth_3 = ModularPage(
             ),
         ),
         "disableSlider": Event(
-            is_triggered_by="promptStart", js="psynet.page.control.slider.disable(true);"
+            is_triggered_by="promptStart",
+            js="psynet.page.control.slider.disable(true);",
         ),
         "enableSlider": Event(
             is_triggered_by="promptEnd", js="psynet.page.control.slider.enable(true);"
