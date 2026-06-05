@@ -127,7 +127,7 @@ def test_partial_body_extraction_requires_named_fragment_wrapper():
 def test_template_fragment_input_wraps_main_body_content():
     page = Page(template_fragment_str="<p id='fragment-only'>Fragment content</p>")
 
-    assert page.template_mode == "fragment"
+    assert page.template_kind == "fragment"
     assert '{% extends "timeline-page.html" %}' in page.template_str
     assert "{% block main_body %}" in page.template_str
     assert "fragment-only" in page.template_str
@@ -137,23 +137,23 @@ def test_inplace_transitions_reject_complete_custom_templates():
     page = Page(template_str='{% extends "timeline-page.html" %}')
 
     with pytest.raises(ValueError, match="template_fragment_path"):
-        page._check_inplace_template_contract(inplace_timeline_transitions=True)
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_legacy_transitions_warn_on_complete_custom_templates():
     page = Page(template_str='{% extends "timeline-page.html" %}')
 
     with pytest.warns(UserWarning, match="template_fragment_path"):
-        page._check_inplace_template_contract(inplace_timeline_transitions=False)
+        page._check_spa_template_contract(inplace_timeline_transitions=False)
 
 
-def test_inplace_transitions_allow_framework_compatible_complete_templates():
+def test_inplace_transitions_allow_framework_owned_complete_templates():
     page = Page(
         template_str='{% extends "timeline-page.html" %}',
-        allow_inplace_complete_template=True,
+        framework_owned_template=True,
     )
 
-    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_inplace_transitions_reject_dom_content_loaded_in_custom_templates():
@@ -168,13 +168,13 @@ def test_inplace_transitions_reject_dom_content_loaded_in_custom_templates():
     )
 
     with pytest.raises(ValueError, match="DOMContentLoaded"):
-        page._check_inplace_template_contract(inplace_timeline_transitions=True)
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_inplace_transitions_allow_dom_content_loaded_text_in_custom_templates():
     page = Page(template_fragment_str='<div data-hook="DOMContentLoaded"></div>')
 
-    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 @pytest.mark.parametrize(
@@ -199,14 +199,14 @@ def test_inplace_transitions_reject_forbidden_custom_template_content(
     page = Page(template_fragment_str=template_fragment)
 
     with pytest.raises(ValueError, match=match):
-        page._check_inplace_template_contract(inplace_timeline_transitions=True)
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_legacy_transitions_warn_on_forbidden_custom_template_content():
     page = Page(template_fragment_str="<style>.example { color: red; }</style>")
 
     with pytest.warns(UserWarning, match="Page css argument"):
-        page._check_inplace_template_contract(inplace_timeline_transitions=False)
+        page._check_spa_template_contract(inplace_timeline_transitions=False)
 
 
 def test_window_event_listener_with_cleanup_evidence_is_allowed():
@@ -221,7 +221,7 @@ def test_window_event_listener_with_cleanup_evidence_is_allowed():
         """
     )
 
-    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_page_asset_arguments_are_not_forbidden_template_content():
@@ -233,19 +233,19 @@ def test_page_asset_arguments_are_not_forbidden_template_content():
         js_links=["/static/example.js"],
     )
 
-    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
-def test_framework_compatible_templates_skip_forbidden_content_validation():
+def test_framework_owned_templates_skip_forbidden_content_validation():
     page = Page(
         template_str="""
         {% extends "timeline-page.html" %}
         <script>document.addEventListener("DOMContentLoaded", function () {});</script>
         """,
-        allow_inplace_complete_template=True,
+        framework_owned_template=True,
     )
 
-    page._check_inplace_template_contract(inplace_timeline_transitions=True)
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 class CustomTrial(ChainTrial):
