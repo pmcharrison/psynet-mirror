@@ -893,6 +893,21 @@
             return a - (n * Math.floor(a/n));
         };
 
+        let sliderPageActive = true;
+        psynet.addPageCleanupCallback(() => {
+            sliderPageActive = false;
+        });
+
+        let runSliderEvent = function(eventType) {
+            if (!sliderPageActive || !slider.isConnected) {
+                return;
+            }
+            let sliderState = psynet.page.control.slider;
+            if (sliderState && typeof sliderState.onSliderEvent === "function") {
+                sliderState.onSliderEvent(eventType);
+            }
+        };
+
         // ---- Trial lifecycle wiring -----------------------------------------
         psynet.trial.onEvent("trialPrepare", () => {
             // Disable the slider during trialPrepare so a participant cannot
@@ -909,7 +924,7 @@
             psynet.log.debug("Slider phase:" + phase);
             snapSlider();
             formatSliderValue();
-            psynet.page.control.slider.onSliderEvent("initialise");
+            runSliderEvent("initialise");
             slider.updateLog();
             hadMinimalInteractions = false;
             checkMinimalInteractions();
@@ -934,7 +949,7 @@
             }
             formatSliderValue();
             if (continuousUpdates) {
-                psynet.page.control.slider.onSliderEvent("sliderChanged");
+                runSliderEvent("sliderChanged");
                 slider.updateLog();
             }
         };
@@ -943,7 +958,7 @@
             // Triggered whenever the slider is released on a new value
             if (!continuousUpdates) {
                 snapSlider();
-                psynet.page.control.slider.onSliderEvent("sliderChanged");
+                runSliderEvent("sliderChanged");
                 slider.updateLog();
             }
             slider.interactionCount += 1;
@@ -1738,11 +1753,27 @@
 
     <script>
         let sliderVideoAnimationFrame = null;
+        let sliderVideoActive = true;
+
+        function stopSliderVideoAnimation() {
+            sliderVideoActive = false;
+            if (sliderVideoAnimationFrame !== null) {
+                cancelAnimationFrame(sliderVideoAnimationFrame);
+                sliderVideoAnimationFrame = null;
+            }
+        }
+
+        psynet.addPageCleanupCallback(stopSliderVideoAnimation);
 
         function updateVideoFromSlider() {
-            let slider_value = document.getElementById("slider").value;
+            let slider = document.getElementById("slider");
             let video = document.getElementById("slider-video");
+            if (!sliderVideoActive || slider === null || video === null) {
+                sliderVideoAnimationFrame = null;
+                return;
+            }
 
+            let slider_value = slider.value;
             video.currentTime = slider_value * video.duration;
             sliderVideoAnimationFrame = window.requestAnimationFrame(updateVideoFromSlider);
         };
@@ -1755,10 +1786,7 @@
         });
 
         psynet.trial.onEvent("trialStop", function() {
-            if (sliderVideoAnimationFrame !== null) {
-                cancelAnimationFrame(sliderVideoAnimationFrame);
-                sliderVideoAnimationFrame = null;
-            }
+            stopSliderVideoAnimation();
         });
 
         psynet.setRetrieveResponseHandler(function() {
