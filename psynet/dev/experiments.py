@@ -1,29 +1,70 @@
-# Run me as follows: python3 demos/update_demos.py
-#
-# Warning: the chosen constraints will depend on the version of Dallinger that you currently have installed.
-# In general, you want to make sure you have installed the version of Dallinger stated in PsyNet's `psynet/version.py`.
-#
-# Warning: this command currently takes several minutes to complete because generating constraints.txt files is slow.
-# We plan to remove these constraints.txt files in due course from PsyNet, but currently they are required for
-# Dallinger back-compatibility.
-# In the meantime, if you want to skip generating constraints and only update other demo files,
-# run the following instead: SKIP_CONSTRAINTS=1 python3 demos/update_demos.py
+"""Update PsyNet's bundled demo and test experiment files.
+
+This module powers the source-checkout-only `psynet dev experiments update` command
+group. Paths are resolved relative to the current working directory, so
+contributors must run the commands from the PsyNet repository root.
+"""
 
 import fileinput
 import os
 import re
 import shutil
 import subprocess
-import sys
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
 
 from joblib import Parallel, delayed
 
-import psynet.command_line
-from psynet.utils import current_git_branch, list_experiment_dirs, working_directory
+from psynet.utils import (
+    current_git_branch,
+    get_psynet_root,
+    list_experiment_dirs,
+    working_directory,
+)
 from psynet.version import psynet_version, recommended_dallinger_major_minor
+
+
+def update_command(n_jobs=8, skip_constraints_=None) -> int:
+    """Update bundled demo and test experiment files from the source checkout."""
+    assert_running_from_source_checkout_root()
+    skip_constraints = (
+        bool(os.getenv("SKIP_CONSTRAINTS"))
+        if skip_constraints_ is None
+        else skip_constraints_
+    )
+
+    # Constraint regeneration can pull a lower patch release unless we pin the latest
+    # available Dallinger patch for PsyNet's recommended major/minor version.
+    latest_dallinger_patch_version = get_latest_dallinger_patch_version(
+        recommended_dallinger_major_minor
+    )
+
+    # Update PsyNet Docker image version.
+    for path in [
+        "psynet/resources/experiment_scripts/Dockerfile",
+        "psynet/resources/experiment_scripts/docker/generate-constraints",
+    ]:
+        with fileinput.FileInput(path, inplace=True) as file:
+            update_image_tag(file)
+
+    # Use importable package functions for Joblib workers. Dynamically loaded
+    # modules cannot be imported by Loky child processes during unpickling.
+    Parallel(verbose=10, n_jobs=n_jobs)(
+        delayed(update_experiment)(
+            _dir, skip_constraints, latest_dallinger_patch_version
+        )
+        for _dir in list_experiment_dirs()
+    )
+    return 0
+
+
+def assert_running_from_source_checkout_root() -> None:
+    """Fail fast when not running from the PsyNet source checkout root."""
+    if Path.cwd().resolve() != get_psynet_root().resolve():
+        raise ValueError(
+            "This command must be run from the PsyNet source checkout root directory."
+        )
 
 
 def get_latest_dallinger_patch_version(major_minor_version):
@@ -54,24 +95,16 @@ def get_latest_dallinger_patch_version(major_minor_version):
         ]
 
         if matching_versions:
-            # Sort versions and return the latest
+            # Sort versions and return the latest patch release
             matching_versions.sort(key=lambda x: tuple(map(int, x.split(".")[2:])))
             return matching_versions[-1]
-        else:
-            # Fallback to the major.minor version with .0
-            return f"{major_minor_version}.0"
 
-    except (subprocess.CalledProcessError, Exception):
-        # Fallback to the major.minor version with .0 if we can't fetch
+        # Fallback to the major.minor version with .0
         return f"{major_minor_version}.0"
 
-
-skip_constraints = bool(os.getenv("SKIP_CONSTRAINTS"))
-
-# Fetch the latest Dallinger patch version once, outside of parallel execution
-latest_dallinger_patch_version = get_latest_dallinger_patch_version(
-    recommended_dallinger_major_minor
-)
+    except Exception:
+        # Fallback to the major.minor version with .0 if we can't fetch versions
+        return f"{major_minor_version}.0"
 
 
 def use_master_psynet_reference():
@@ -82,12 +115,16 @@ def use_master_psynet_reference():
     )
 
 
-def update_demo(dir):
+def update_experiment(dir, skip_constraints, latest_dallinger_patch_version):
     update_scripts(dir)
     if not skip_constraints:
         commit_hash_master = pre_update_constraints(dir)
         generate_constraints(dir)
-        post_update_constraints(dir, commit_hash_master)
+        post_update_constraints(
+            dir,
+            commit_hash_master,
+            latest_dallinger_patch_version,
+        )
         update_psynet_requirement(dir)
         post_update_psynet_requirement(dir)
 
@@ -131,9 +168,9 @@ def pre_update_constraints(dir):
         return commit_hash
 
 
-def post_update_constraints(dir, commit_hash_master):
+def post_update_constraints(dir, commit_hash_master, latest_dallinger_patch_version):
     with working_directory(dir):
-        # Determine the correct psynet requirement for constraints.txt based on branch
+        # Determine the correct psynet requirement for constraints.txt
         if use_master_psynet_reference():
             psynet_constraint = (
                 "psynet @ git+https://gitlab.com/PsyNetDev/PsyNet@master"
@@ -230,7 +267,9 @@ def post_update_psynet_requirement(dir):
 
 def update_scripts(dir):
     with working_directory(dir):
-        psynet.command_line.update_scripts_()
+        from psynet.command_line import update_scripts_
+
+        update_scripts_()
 
         with resources.as_file(
             resources.files("psynet") / "resources/experiment_scripts/config.txt"
@@ -255,18 +294,3 @@ def update_image_tag(file):
                 print(re.sub(branch_tag, f"psynet:v{psynet_version}", line), end="")
             else:
                 print(line, end="")
-
-
-# Update PsyNet Docker image version
-for path in [
-    "psynet/resources/experiment_scripts/Dockerfile",
-    "psynet/resources/experiment_scripts/docker/generate-constraints",
-]:
-    with fileinput.FileInput(path, inplace=True) as file:
-        update_image_tag(file)
-
-# Update demos
-n_jobs = int(sys.argv[1]) if len(sys.argv) > 1 else 8
-Parallel(verbose=10, n_jobs=n_jobs)(
-    delayed(update_demo)(_dir) for _dir in list_experiment_dirs()
-)

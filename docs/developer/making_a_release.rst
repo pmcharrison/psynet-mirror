@@ -46,7 +46,12 @@ After all changes to be released have been merged into the ``master`` branch fol
 
     .. attention::
 
-        In case you are upgrading Dallinger in this release via `pyproject.toml`, make sure to also update the Dallinger version in both `psynet/version.py` and `PsyNet/Dockerfile` accordingly.
+        In case you are upgrading Dallinger in this release via `pyproject.toml`, make sure to also update the Dallinger version in `psynet/version.py`.
+        You should also refresh the vendored Dallinger CI constraints snapshot by running the following from the project root:
+
+        .. code-block:: console
+
+          psynet dev ci update-dallinger-constraints
 
 Commit the changes with
 
@@ -54,11 +59,11 @@ Commit the changes with
 
   git commit -m "Bump version to X.Y.Z"
 
-5. Update the demos' `constraints.txt` files by executing
+5. Update the bundled demo and test experiment files by executing
 
 .. code-block:: console
 
-    python3 demos/update_demos.py
+    psynet dev experiments update
 
 from inside PsyNet's root directory. This could take a while depending on the processing power of your system.
 

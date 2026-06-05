@@ -2,7 +2,10 @@
 # On Apple Silicon Macs, Docker will emulate x86_64 but pip can use pre-built wheels
 # Can be overridden with: docker build --build-arg DOCKER_PLATFORM=linux/arm64
 ARG DOCKER_PLATFORM=linux/amd64
-FROM --platform=${DOCKER_PLATFORM} python:3.13-bookworm
+ARG PYTHON_VERSION=3.13
+FROM --platform=${DOCKER_PLATFORM} python:${PYTHON_VERSION}-bookworm
+ARG PYTHON_VERSION
+ARG CHROME_VERSION=149.0.7827.54
 
 RUN pip install uv
 
@@ -15,8 +18,7 @@ RUN service redis-server start
 ENV HEADLESS=TRUE
 
 # Install Chrome and ChromeDriver
-RUN CHROME_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json | jq .channels.Stable.version | tr -d '"') && \
-    echo Installing Chrome $CHROME_VERSION && \
+RUN echo Installing Chrome $CHROME_VERSION && \
     wget -O chrome.deb https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip && \
     unzip chrome.deb -d /opt/ && \
     ln -s /opt/chrome-linux64/chrome /usr/local/bin/chrome && \
@@ -29,10 +31,12 @@ RUN CHROME_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testi
     rm -f chrome.deb chrome-driver.zip
 
 COPY pyproject.toml pyproject.toml
+COPY ci/dallinger-dev-requirements.txt dallinger-dev-requirements.txt
 
 # Generate PsyNet constraints.txt (PyPI deps from the [demos] extra) and install it.
-# All audio-tooling demo dependencies (repp-tapping, sing4me) are now public PyPI
-# packages and live in pyproject.toml's [demos] extra, so no further private-URL
-# harvesting from per-demo requirements.txt files is needed here.
-RUN curl -s https://raw.githubusercontent.com/Dallinger/Dallinger/master/dallinger/constraints.py | uv run - generate --extra demos
+# Use a vendored Dallinger dev-requirements snapshot so parallel CI Docker
+# builds do not depend on raw.githubusercontent.com availability.
+RUN uv pip compile --python-version ${PYTHON_VERSION} pyproject.toml --extra demos \
+        --constraint dallinger-dev-requirements.txt \
+        --output-file constraints.txt
 RUN uv pip install --no-cache --system -r constraints.txt

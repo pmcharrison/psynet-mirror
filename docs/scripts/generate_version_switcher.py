@@ -153,6 +153,14 @@ def _strip_v_prefix(value):
     return value[1:] if value.startswith("v") else value
 
 
+def format_alpha_name(alpha_version):
+    """Return the user-facing switcher label for the alpha docs."""
+    match = re.match(r"^(\d+\.\d+\.\d+)a\d+$", alpha_version)
+    if match is None:
+        raise ValueError(f"Expected an alpha version, got {alpha_version!r}.")
+    return f"{match.group(1)} alpha"
+
+
 def build_entries(base_url, tags, alpha_version, latest_rc_tag=None):
     """Build the version_switcher.json entry list.
 
@@ -168,7 +176,7 @@ def build_entries(base_url, tags, alpha_version, latest_rc_tag=None):
 
     entries = [
         {
-            "name": f"alpha ({alpha_version})",
+            "name": format_alpha_name(alpha_version),
             "version": alpha_version,
             "url": f"{base_url}/alpha/",
         }

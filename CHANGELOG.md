@@ -12,15 +12,6 @@
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
 - Added developer documentation plus a repo-local `/review` Cursor workflow backed by the `branch-review` skill for reviewing branches against `master`.
-- Added ``make_next_definition`` method to streamline the implementation of chain experiments.
-  We have done this in a back-compatible manner and left existing dependencies unchanged for now.
-  We have added a demo of the new approach called `chain_trial_maker`.
-  More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
-  the main PsyNet documentation.
-- Added `AGENTS.md` to help Cursor know how to run experiments locally.
-- Added 'getting started' section to documentation.
-- Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
-  to aid with configuring VSCode.
 - Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking.
 - Added checks to catch cases where Assets are created in the wrong place.
 - Added Playwright (JS) end-to-end tests for audio, graphics, imitation_chain_video, and static_audio demos, plus the video feature demo.
@@ -163,7 +154,6 @@
 - Hardened Playwright demo tests against flaky timeline transitions by replacing brittle exact-count/transient-text assertions with event/baseline waits and tolerant auto-advance handling across audio, graphics, static_audio, imitation_chain_video, and video_feature specs.
 - Replaced bare `assert response.ok` in Lucid API calls with informative error messages that include the HTTP status code, URL, and response body.
 - Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners).
-- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization.
 
 ### Documentation
 
