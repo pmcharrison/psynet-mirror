@@ -692,10 +692,12 @@ class ChainNode(TrialNode):
         # self.assets = {}
 
         for local_key, asset in self._staged_assets.items():
-            asset.local_key = local_key
-            asset.parent = self
-            asset.receive_node_definition(self.definition)
-            asset.module_id = self.module_id
+            asset.update_metadata(
+                self,
+                local_key,
+                definition=self.definition,
+                module_id=self.module_id,
+            )
 
             experiment.assets.stage(asset)
             self.assets[local_key] = asset
