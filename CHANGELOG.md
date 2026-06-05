@@ -41,14 +41,6 @@
 - Added detection and reporting of bots that started but never created DB participant records.
 - Added RQ worker count display in async process times section for context on queue delays.
 
-## Changed
-- Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
-- Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
-- Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
-- Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
-- Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
-- Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
-- Reworked lab deployment documentation under `docs/lab_deployments/` with split section pages, improved navigation integration, repaired internal links, and standardized code/image formatting (author: Frank Höger)
 ### Changed
 
 - Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates.
