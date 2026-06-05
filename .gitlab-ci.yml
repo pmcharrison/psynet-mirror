@@ -145,7 +145,7 @@ playwright_e2e_inplace:
       -e inplace_timeline_transitions=true
       -v "$PWD:$PSYNET_WORKSPACE"
       -w $PSYNET_WORKSPACE
-      $DOCKER_LOCAL_TAG bash -c "bash install-ci-dependencies.sh && npm ci && npx playwright install --with-deps chromium && npx playwright test tests/playwright/demos --reporter=line,junit,html"
+      $DOCKER_LOCAL_TAG bash -c "bash install-ci-dependencies.sh && npm ci && npx playwright install --with-deps chromium && npx playwright test tests/playwright/demos tests/playwright/inplace_timeline_transitions.spec.js --reporter=line,junit,html"
   artifacts:
     when: always
     paths:
