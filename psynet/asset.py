@@ -432,6 +432,66 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 "rather than reusing an Asset instance defined at module import time."
             )
 
+    def update_metadata(
+        self,
+        parent,
+        local_key: str,
+        definition: Optional[dict] = None,
+        module_id: Optional[str] = None,
+    ):
+        """
+        Update parent-related metadata when linking an asset.
+
+        Parent-related metadata includes the asset's parent object, its link key
+        (``local_key``), the parent ``module_id`` used for key generation, and
+        any trial/node definition used to parameterize on-demand assets.
+
+        For undeposited assets, this overwrites parent/key/module/definition metadata
+        so the asset is bound to the current owner. Deposited assets retain existing
+        metadata to preserve their storage identity, but missing parent/link fields
+        are filled in so exported paths remain unique.
+
+        Parameters
+        ----------
+        parent : object
+            The parent object to which the asset is linked.
+        local_key : str
+            The key under which the asset is linked.
+        definition : dict, optional
+            Trial or node definition used to populate on-demand asset arguments.
+        module_id : str, optional
+            Module identifier to set when missing.
+
+        Returns
+        -------
+        Asset
+            The updated asset instance.
+        """
+        self._raise_if_detached()
+
+        if not self.deposited:
+            self.parent = parent
+            self.local_key = local_key
+            if module_id is not None:
+                self.module_id = module_id
+            else:
+                self.module_id = getattr(parent, "module_id", None)
+            if definition is not None:
+                self.receive_node_definition(definition)
+            return self
+
+        if self.parent is None:
+            self.parent = parent
+        if not self.local_key:
+            self.local_key = local_key
+        if self.module_id is None:
+            if module_id is not None:
+                self.module_id = module_id
+            else:
+                self.module_id = getattr(parent, "module_id", None)
+
+        return self
+
     @property
     def trial_maker(self):
         from psynet.experiment import get_trial_maker
@@ -520,7 +580,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             "participant": self.participant.id if self.participant else None,
         }
 
-    def set_keys(self):
+    def ensure_keys_and_paths(self):
+        """
+        Fill in missing key fields and derived paths for the asset.
+
+        For deposited assets, this method preserves existing ``host_path``/``url`` values
+        (and only fills them if missing) so the storage identity does not change.
+        """
         if self.key_within_module is None:
             self.key_within_module = self.generate_key_within_module()
 
@@ -530,9 +596,32 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if not self.local_key and self.key_within_module:
             self.local_key = self.key_within_module
 
-        self.host_path = self.generate_host_path()
-        self.export_path = self.generate_export_path()
-        self.url = self.get_url()
+        if not self.deposited:
+            self.host_path = self.generate_host_path()
+            self.export_path = self.generate_export_path()
+            self.url = self.get_url()
+            return
+
+        host_path_was_missing = self.host_path is None
+        if host_path_was_missing:
+            self.host_path = self.generate_host_path()
+
+        if self.export_path is None:
+            self.export_path = self.generate_export_path()
+
+        if self.url is None or host_path_was_missing:
+            self.url = self.get_url()
+
+    def set_keys(self):
+        """
+        Deprecated. Use :meth:`ensure_keys_and_paths` instead.
+        """
+        warnings.warn(
+            "Asset.set_keys is deprecated; use Asset.ensure_keys_and_paths instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.ensure_keys_and_paths()
 
     def generate_key_within_experiment(self):
         if self.module_id is None:
@@ -583,7 +672,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     def consume(self, experiment, participant):
         if not self.module_id:
             self.module_id = participant.module_id
-        self.set_keys()
+        self.ensure_keys_and_paths()
         if self.deposit_on_the_fly:
             self.deposit()
 
@@ -633,7 +722,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.deployment_id = self.registry.deployment_id
             self.content_id = self.get_content_id()
 
-            self.set_keys()
+            self.ensure_keys_and_paths()
             db.session.add(self)
 
             if self.parent:
@@ -1042,7 +1131,7 @@ class ManagedAsset(Asset):
                 "in your experiment class."
             )
 
-        self.set_keys()
+        # ensure_keys_and_paths() is called by deposit() before _deposit().
         self.storage.update_asset_metadata(self)
 
         if self._needs_depositing():

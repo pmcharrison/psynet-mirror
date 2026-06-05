@@ -93,20 +93,14 @@ class AssetParentMixin:
 
     def add_asset(self, local_key: str, asset: Asset):
         assert isinstance(asset, Asset)
-        asset._raise_if_detached()
-
-        if asset.parent is None:
-            asset.parent = self
-
-        asset.receive_node_definition(self.definition)
-        asset.local_key = local_key
+        asset.update_metadata(self, local_key, definition=self.definition)
         if self.id is None:
             # Ensure the trial has an ID before asset keys/depositing.
             db.session.flush([self])
         if asset.deposited:
-            asset.set_keys()
+            asset.ensure_keys_and_paths()
         else:
-            # deposit() will call set_keys() internally.
+            # deposit() will call ensure_keys_and_paths() internally.
             asset.deposit()
 
         self.assets[local_key] = asset
@@ -650,8 +644,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     def finalize_assets(self):
         for _, asset in self.assets.items():
-            asset.receive_node_definition(self.definition)
             if not asset.deposited:
+                asset.receive_node_definition(self.definition)
                 asset.deposit()
 
     def show_trial(self, experiment, participant):
