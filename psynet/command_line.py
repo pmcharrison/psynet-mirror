@@ -1013,6 +1013,26 @@ def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
         )
 
 
+def _abort_if_app_exists(server, app):
+    if not app:
+        return
+
+    from dallinger.command_line.docker_ssh import get_apps
+
+    apps = get_apps(server)
+    existing_apps = {entry.name for entry in apps}
+    if app in existing_apps:
+        click.echo(
+            "\n".join(
+                [
+                    f"App with name {app} already exists: found on server. Aborting.",
+                    "Use a different name or destroy the current app.",
+                ]
+            )
+        )
+        raise click.Abort
+
+
 ##########
 # deploy #
 ##########
@@ -1053,6 +1073,7 @@ def _pre_launch(
         from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
 
         ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+        _abort_if_app_exists(server, app)
 
     run_pre_checks(mode, local_, heroku, docker, app)
 

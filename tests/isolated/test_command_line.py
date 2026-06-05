@@ -744,6 +744,71 @@ def test_check_dockerfile():
                 check_dockerfile()
 
 
+def test_abort_if_app_exists():
+    from psynet.command_line import _abort_if_app_exists
+
+    app = Mock()
+    app.name = "test-app"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.get_apps",
+            return_value=[app],
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        with pytest.raises(click.Abort):
+            _abort_if_app_exists(server="test-server", app="test-app")
+    assert mock_echo.call_count == 1
+
+
+def test_abort_if_app_exists_skips_missing_app():
+    from psynet.command_line import _abort_if_app_exists
+
+    app = Mock()
+    app.name = "other-app"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.get_apps",
+            return_value=[app],
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        _abort_if_app_exists(server="test-server", app="test-app")
+
+    mock_echo.assert_not_called()
+
+
+def test_pre_launch_aborts_when_app_exists():
+    from psynet.command_line import _pre_launch
+
+    ctx = Mock()
+    with (
+        patch("psynet.command_line.redis_vars.clear"),
+        patch("psynet.command_line.deployment_info.init"),
+        patch("psynet.command_line.deployment_info.write"),
+        patch("dallinger.command_line.docker_ssh.ensure_remote_host_in_known_hosts"),
+        patch("psynet.command_line._abort_if_app_exists", side_effect=click.Abort),
+        patch("psynet.command_line.run_pre_checks") as mock_run_pre_checks,
+        patch(
+            "psynet.command_line.CONFIGURED_HOSTS",
+            {"test-server": {"host": "example.com", "user": "test-user"}},
+        ),
+    ):
+        with pytest.raises(click.Abort):
+            _pre_launch(
+                ctx,
+                mode="live",
+                archive=None,
+                local_=False,
+                ssh=True,
+                docker=True,
+                server="test-server",
+                app="test-app",
+            )
+
+    mock_run_pre_checks.assert_not_called()
+
+
 def test_enable_sql_profile_uses_unique_run_subdirectories(tmp_path, monkeypatch):
     monkeypatch.delenv("PSYNET_SQL_PROFILE", raising=False)
     monkeypatch.delenv("PSYNET_SQL_PROFILE_DIR", raising=False)
