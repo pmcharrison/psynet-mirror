@@ -58,6 +58,7 @@
       comments: [],
       var: psynetTemplateData.jsVars,
     };
+    psynet.SUBMISSION_HANDLED = Symbol("psynet.SUBMISSION_HANDLED");
 
     psynet.utils.shallowCopy = function (x) {
       return Object.assign({}, x);
@@ -2003,6 +2004,9 @@
         onRejection();
         throw error;
       }
+      if (response === psynet.SUBMISSION_HANDLED) {
+        return;
+      }
 
       await psynet.nextPage(
         response.rawAnswer,
@@ -2019,7 +2023,10 @@
 
       if (typeof retrieveResponseHandler == "undefined") {
         if (stageResponseHandler) {
-          await stageResponseHandler();
+          let stagedResponse = await stageResponseHandler();
+          if (stagedResponse === psynet.SUBMISSION_HANDLED) {
+            return stagedResponse;
+          }
         }
         response = psynet.response.staged;
       } else {
