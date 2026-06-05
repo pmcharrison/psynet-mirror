@@ -1,5 +1,5 @@
 const path = require("path");
-const { test, expect } = require("@playwright/test");
+const { test, expect } = require("./fixtures");
 
 const {
   assertInplaceTimelinePathActive,
@@ -28,6 +28,10 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
     });
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
+    await expect(
+      experimentPage.locator("#body-library-load-count-marker")
+    ).toHaveAttribute("data-load-count", "1", { timeout: STEP_TIMEOUT_MS });
 
     const deferredMarker = experimentPage.locator(
       "#deferred-trial-construct-marker"

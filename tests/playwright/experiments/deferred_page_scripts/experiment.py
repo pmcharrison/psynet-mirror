@@ -24,11 +24,28 @@ class Exp(psynet.experiment.Experiment):
     label = "In-place timeline transition lifecycle test"
 
     timeline = Timeline(
-        InfoPage("First page", time_estimate=1),
+        InfoPage(
+            Markup(
+                """
+                <p>First page</p>
+                <script src="/static/redeclared-body-library.js"></script>
+                """
+            ),
+            time_estimate=1,
+        ),
         InfoPage(
             Markup(
                 """
                 <p>Deferred page script lifecycle page</p>
+                <script src="/static/redeclared-body-library.js"></script>
+                <p id="body-library-load-count-marker">
+                    Body library load count marker
+                </p>
+                <script>
+                    document.getElementById(
+                        "body-library-load-count-marker"
+                    ).dataset.loadCount = window.__psynetBodyLibraryLoads;
+                </script>
                 <p
                     id="deferred-trial-construct-marker"
                     data-trial-construct-handler-ran="false"

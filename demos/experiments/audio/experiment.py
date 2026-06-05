@@ -118,13 +118,16 @@ example_js_synth_3 = ModularPage(
     events={
         "playMelody": Event(
             is_triggered_by="sliderChange",
-            js="stimulus.notes[1].pitches = [info.outputValue]; psynet.trial.restart();",
+            js=(
+                "psynet.getJsSynthState().stimulus.notes[1].pitches = "
+                "[info.outputValue]; psynet.trial.restart();"
+            ),
         ),
         "disableSlider": Event(
-            is_triggered_by="promptStart", js="slider.disabled = true;"
+            is_triggered_by="promptStart", js="psynet.page.control.slider.disable(true);"
         ),
         "enableSlider": Event(
-            is_triggered_by="promptEnd", js="slider.disabled = false;"
+            is_triggered_by="promptEnd", js="psynet.page.control.slider.enable(true);"
         ),
     },
 )

@@ -809,6 +809,9 @@
 
         // Metadata collection
         var slider = document.getElementById(sliderId);
+        psynet.page.control.slider.element = slider;
+        psynet.page.control.slider.enable = enableSlider;
+        psynet.page.control.slider.disable = disableSlider;
 
         if (continuousUpdates) {
             slider.log = "The slider log is disabled when continuous slider updates are enabled.";

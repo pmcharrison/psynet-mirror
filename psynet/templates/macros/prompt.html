@@ -282,6 +282,8 @@
         let stimulus = {{ params.stimulus | tojson }};
         let options = {{ params.options | tojson }};
         let jsSynthState = psynet.getJsSynthState();
+        jsSynthState.stimulus = stimulus;
+        jsSynthState.options = options;
 
         jsSynthState.defaultParams = { // Default parameters to use if not otherwise specified by backend.
             "attack": 0.2, // Attack phase duration in seconds
@@ -350,7 +352,6 @@
 
             jsSynthState.loadedInstruments = {};
             jsSynthState.activeNodes = undefined;
-            jsSynthState.defaultParams = undefined;
         }
 
         psynet.trial.onEvent("trialPrepare", async function() {
