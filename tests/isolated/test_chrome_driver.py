@@ -66,7 +66,7 @@ def chrome_paths(tmp_path, monkeypatch):
     def fake_mkstemp(prefix, suffix):
         assert prefix == "psynet-chromedriver-"
         assert suffix == ".log"
-        fd = os.open(log_path, os.O_RDWR)
+        fd = os.open(log_path, os.O_RDWR | os.O_CREAT)
         return fd, str(log_path)
 
     monkeypatch.setattr(chrome_driver.tempfile, "mkdtemp", fake_mkdtemp)
@@ -147,3 +147,63 @@ def test_create_chrome_driver_cleans_profile_on_launch_error(chrome_paths, monke
 
     assert not profile_path.exists()
     assert log_path.exists()
+
+
+def test_create_chrome_driver_retries_until_success(tmp_path, monkeypatch):
+    profile_paths = []
+    log_paths = []
+    sleep_calls = []
+    fake_driver = FakeDriver()
+    attempts = {"count": 0}
+
+    def fake_mkdtemp(prefix):
+        assert prefix == "psynet-chrome-"
+        profile_path = tmp_path / f"profile-{len(profile_paths)}"
+        profile_path.mkdir()
+        profile_paths.append(profile_path)
+        return str(profile_path)
+
+    def fake_mkstemp(prefix, suffix):
+        assert prefix == "psynet-chromedriver-"
+        assert suffix == ".log"
+        log_path = tmp_path / f"chromedriver-{len(log_paths)}.log"
+        fd = os.open(log_path, os.O_RDWR | os.O_CREAT)
+        log_paths.append(log_path)
+        return fd, str(log_path)
+
+    def chrome(options, service):
+        attempts["count"] += 1
+        if attempts["count"] < 3:
+            raise RuntimeError("boom")
+        return fake_driver
+
+    fake_webdriver = FakeWebDriver()
+    fake_webdriver.Chrome = chrome
+
+    monkeypatch.setattr(chrome_driver.tempfile, "mkdtemp", fake_mkdtemp)
+    monkeypatch.setattr(chrome_driver.tempfile, "mkstemp", fake_mkstemp)
+    monkeypatch.setattr(chrome_driver.time, "sleep", sleep_calls.append)
+    monkeypatch.delenv("PSYNET_KEEP_CHROMEDRIVER_LOGS", raising=False)
+    monkeypatch.setattr(
+        chrome_driver,
+        "_get_chrome_dependencies",
+        lambda: (fake_webdriver, FakeOptions, FakeService),
+    )
+
+    driver = chrome_driver.create_psynet_chrome_driver(headless=False)
+
+    assert attempts["count"] == 3
+    assert sleep_calls == [2, 2]
+    assert len(profile_paths) == 3
+    assert len(log_paths) == 3
+    assert not profile_paths[0].exists()
+    assert not profile_paths[1].exists()
+    assert not log_paths[0].exists()
+    assert not log_paths[1].exists()
+    assert profile_paths[2].exists()
+    assert log_paths[2].exists()
+
+    driver.quit()
+
+    assert not profile_paths[2].exists()
+    assert not log_paths[2].exists()

@@ -66,95 +66,124 @@ def _get_chrome_dependencies():
     return webdriver, Options, Service
 
 
+def _cleanup_failed_launch_artifacts(user_data_dir, chromedriver_log_path):
+    shutil.rmtree(user_data_dir, ignore_errors=True)
+    if (
+        os.path.exists(chromedriver_log_path)
+        and os.getenv("PSYNET_KEEP_CHROMEDRIVER_LOGS", "0") != "1"
+    ):
+        try:
+            os.remove(chromedriver_log_path)
+        except OSError:
+            pass
+
+
 def create_psynet_chrome_driver(headless):
     webdriver, options_class, service_class = _get_chrome_dependencies()
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        chrome_options = options_class()
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--remote-debugging-pipe")
 
-    chrome_options = options_class()
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--remote-debugging-pipe")
+        user_data_dir = tempfile.mkdtemp(prefix="psynet-chrome-")
+        chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
-    user_data_dir = tempfile.mkdtemp(prefix="psynet-chrome-")
-    chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
+        chrome_binary = _find_chrome_binary()
+        if chrome_binary:
+            chrome_options.binary_location = chrome_binary
 
-    chrome_binary = _find_chrome_binary()
-    if chrome_binary:
-        chrome_options.binary_location = chrome_binary
+        if headless:
+            chrome_options.add_argument("--headless=new")
 
-    if headless:
-        chrome_options.add_argument("--headless=new")
+        fd, chromedriver_log_path = tempfile.mkstemp(
+            prefix="psynet-chromedriver-", suffix=".log"
+        )
+        os.close(fd)
+        chromedriver_verbose = os.getenv(
+            "PSYNET_CHROMEDRIVER_VERBOSE", "1" if os.getenv("CI") else "0"
+        )
+        service = service_class(
+            log_output=chromedriver_log_path,
+            service_args=["--verbose"] if chromedriver_verbose == "1" else None,
+        )
 
-    fd, chromedriver_log_path = tempfile.mkstemp(
-        prefix="psynet-chromedriver-", suffix=".log"
-    )
-    os.close(fd)
-    chromedriver_verbose = os.getenv(
-        "PSYNET_CHROMEDRIVER_VERBOSE", "1" if os.getenv("CI") else "0"
-    )
-    service = service_class(
-        log_output=chromedriver_log_path,
-        service_args=["--verbose"] if chromedriver_verbose == "1" else None,
-    )
-
-    tmp_usage = shutil.disk_usage(tempfile.gettempdir())
-    _append_debug_log(
-        location="psynet/testing/chrome_driver.py:create_driver:before_launch",
-        message="Preparing Chrome launch",
-        data={
-            "headless": headless,
-            "chromeBinary": chrome_binary,
-            "tmpFreeBytes": tmp_usage.free,
-            "tmpChromeProfileCount": _count_psynet_chrome_profiles(),
-            "chromeProcessCount": len(list_psynet_chrome_processes()),
-            "chromedriverProcessCount": len(list_chromedriver_processes()),
-            "chromedriverVerbose": chromedriver_verbose,
-            "chromedriverLogPath": chromedriver_log_path,
-        },
-    )
-
-    try:
-        driver = webdriver.Chrome(options=chrome_options, service=service)
-    except Exception as e:
-        chromedriver_log_excerpt = None
-        if os.path.exists(chromedriver_log_path):
-            try:
-                with open(chromedriver_log_path, "r", encoding="utf-8") as f:
-                    chromedriver_log_excerpt = f.read()[-4000:]
-            except Exception:
-                logger.warning(
-                    "Failed to read chromedriver log excerpt.",
-                    exc_info=True,
-                )
+        tmp_usage = shutil.disk_usage(tempfile.gettempdir())
         _append_debug_log(
-            location="psynet/testing/chrome_driver.py:create_driver:launch_exception",
-            message="Chrome launch failed",
+            location="psynet/testing/chrome_driver.py:create_driver:before_launch",
+            message="Preparing Chrome launch",
             data={
-                "exceptionType": type(e).__name__,
-                "exceptionMessage": str(e),
+                "attempt": attempt,
+                "maxAttempts": max_attempts,
                 "headless": headless,
                 "chromeBinary": chrome_binary,
+                "tmpFreeBytes": tmp_usage.free,
                 "tmpChromeProfileCount": _count_psynet_chrome_profiles(),
+                "chromeProcessCount": len(list_psynet_chrome_processes()),
+                "chromedriverProcessCount": len(list_chromedriver_processes()),
+                "chromedriverVerbose": chromedriver_verbose,
                 "chromedriverLogPath": chromedriver_log_path,
-                "chromedriverLogExcerpt": chromedriver_log_excerpt,
             },
         )
-        shutil.rmtree(user_data_dir, ignore_errors=True)
-        raise
 
-    _append_debug_log(
-        location="psynet/testing/chrome_driver.py:create_driver:launch_success",
-        message="Chrome launched successfully",
-        data={
-            "sessionId": driver.session_id,
-            "browserVersion": driver.capabilities.get("browserVersion"),
-            "chromedriverVersion": driver.capabilities.get("chrome", {}).get(
-                "chromedriverVersion"
-            ),
-            "tmpChromeProfileCount": _count_psynet_chrome_profiles(),
-            "chromedriverLogPath": chromedriver_log_path,
-        },
-    )
+        try:
+            driver = webdriver.Chrome(options=chrome_options, service=service)
+        except Exception as e:
+            chromedriver_log_excerpt = None
+            if os.path.exists(chromedriver_log_path):
+                try:
+                    with open(chromedriver_log_path, "r", encoding="utf-8") as f:
+                        chromedriver_log_excerpt = f.read()[-4000:]
+                except Exception:
+                    logger.warning(
+                        "Failed to read chromedriver log excerpt.",
+                        exc_info=True,
+                    )
+            _append_debug_log(
+                location="psynet/testing/chrome_driver.py:create_driver:launch_exception",
+                message="Chrome launch failed",
+                data={
+                    "attempt": attempt,
+                    "maxAttempts": max_attempts,
+                    "exceptionType": type(e).__name__,
+                    "exceptionMessage": str(e),
+                    "headless": headless,
+                    "chromeBinary": chrome_binary,
+                    "tmpChromeProfileCount": _count_psynet_chrome_profiles(),
+                    "chromedriverLogPath": chromedriver_log_path,
+                    "chromedriverLogExcerpt": chromedriver_log_excerpt,
+                },
+            )
+            if attempt < max_attempts:
+                _cleanup_failed_launch_artifacts(user_data_dir, chromedriver_log_path)
+                logger.warning(
+                    "Chrome failed to start (attempt %d/%d), retrying...",
+                    attempt,
+                    max_attempts,
+                )
+                time.sleep(2)
+                continue
+            shutil.rmtree(user_data_dir, ignore_errors=True)
+            raise
+
+        _append_debug_log(
+            location="psynet/testing/chrome_driver.py:create_driver:launch_success",
+            message="Chrome launched successfully",
+            data={
+                "attempt": attempt,
+                "maxAttempts": max_attempts,
+                "sessionId": driver.session_id,
+                "browserVersion": driver.capabilities.get("browserVersion"),
+                "chromedriverVersion": driver.capabilities.get("chrome", {}).get(
+                    "chromedriverVersion"
+                ),
+                "tmpChromeProfileCount": _count_psynet_chrome_profiles(),
+                "chromedriverLogPath": chromedriver_log_path,
+            },
+        )
+        break
 
     original_quit = driver.quit
     cleanup_done = False
