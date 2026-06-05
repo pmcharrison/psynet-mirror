@@ -349,6 +349,8 @@
         let script = document.createElement("script");
         script.src = normalizedSrc;
         script.async = false;
+        // js_links are page behavior, not global libraries; rerun them on
+        // every SPA page activation even if the same URL appeared before.
         script.onload = () => {
           script.remove();
           resolve();
@@ -376,6 +378,8 @@
         if (script.type === "application/json") {
           continue;
         }
+        // Preserve HTML parser ordering: inline scripts before a linked script
+        // run first, then the linked script, then subsequent inline scripts.
         if (script.src) {
           await flushInlineBuffer();
           await psynet.executeExternalScript(script.src);
@@ -467,6 +471,8 @@
         .querySelectorAll("style[data-psynet-fragment-style]")
         .forEach((style) => style.remove());
 
+      // Inline page CSS is page-scoped in SPA mode, so it must be replaced
+      // rather than accumulated across fragment swaps.
       for (let style of psynet.getPageStyles()) {
         let newStyle = document.createElement("style");
         newStyle.setAttribute("data-psynet-fragment-style", "true");

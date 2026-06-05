@@ -903,6 +903,12 @@ class Page(Elt):
     template_fragment_str:
         Alternative way of specifying a main-body template fragment as a string.
 
+    framework_owned_template:
+        Internal marker for PsyNet-owned templates. Framework pages may still
+        use complete templates in SPA mode because PsyNet controls their page
+        shell and lifecycle; experiment-authored complete templates should use
+        ``template_fragment_path`` or ``template_fragment_str`` for SPA.
+
     template_arg:
         Dictionary of arguments to pass to the jinja2 template.
 
@@ -1067,7 +1073,7 @@ class Page(Elt):
         aggressive_termination_on_no_focus: bool = False,
         bot_response=NoArgumentProvided,
         validate: Optional[callable] = None,
-        allow_inplace_complete_template: bool = False,
+        framework_owned_template: bool = False,
     ):
         super().__init__()
 
@@ -1108,10 +1114,11 @@ class Page(Elt):
         if template_path is not None:
             with open(template_path, "r") as file:
                 template_str = file.read()
-        template_mode = "complete"
+
+        template_kind = "complete"
         template_contract_source = template_str
         if fragment_template_provided:
-            template_mode = "fragment"
+            template_kind = "fragment"
             if template_fragment_path is not None:
                 with open(template_fragment_path, "r") as file:
                     template_fragment_str = file.read()
@@ -1124,10 +1131,10 @@ class Page(Elt):
 
         self.time_estimate = time_estimate
         self.template_str = template_str
-        self.template_mode = template_mode
+        self.template_kind = template_kind
         self.template_contract_source = template_contract_source
-        self.allow_inplace_complete_template = allow_inplace_complete_template
-        self._inplace_template_contract_warning_shown = False
+        self.framework_owned_template = framework_owned_template
+        self._spa_template_contract_warning_shown = False
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
@@ -1531,7 +1538,9 @@ class Page(Elt):
         locale = get_locale()
         language_dict = get_language_dict(locale)
         config = get_config()
-        self._check_inplace_template_contract(
+        # The SPA template contract applies to author-provided template source,
+        # not to PsyNet's generated timeline shell or supported page assets.
+        self._check_spa_template_contract(
             inplace_timeline_transitions=config.get("inplace_timeline_transitions"),
         )
         js_vars = {**self.js_vars, **internal_js_vars}
@@ -1579,11 +1588,11 @@ class Page(Elt):
             rendered = self._extract_partial_body(rendered)
         return rendered
 
-    def _check_inplace_template_contract(self, inplace_timeline_transitions):
-        if self.allow_inplace_complete_template:
+    def _check_spa_template_contract(self, inplace_timeline_transitions):
+        if self.framework_owned_template:
             return
 
-        problems = self._collect_template_contract_problems()
+        problems = self._collect_spa_template_contract_problems()
         if not problems:
             return
 
@@ -1591,17 +1600,19 @@ class Page(Elt):
         if inplace_timeline_transitions:
             raise ValueError(message)
 
-        if not self._inplace_template_contract_warning_shown:
+        if not self._spa_template_contract_warning_shown:
             warnings.warn(message, UserWarning, stacklevel=2)
-            self._inplace_template_contract_warning_shown = True
+            self._spa_template_contract_warning_shown = True
 
-    def _collect_template_contract_problems(self):
+    def _collect_spa_template_contract_problems(self):
         problems = []
         template_source = self.template_contract_source or ""
 
-        if self.template_mode == "complete":
-            problems.append(self._complete_template_contract_message())
+        if self.template_kind == "complete":
+            problems.append(self._complete_template_spa_contract_message())
 
+        # These checks intentionally cover common authoring mistakes rather
+        # than trying to prove that arbitrary HTML/JS is SPA-safe.
         soup = BeautifulSoup(template_source, "html.parser")
 
         for script in soup.find_all("script"):
@@ -1665,12 +1676,12 @@ class Page(Elt):
 
         return problems
 
-    def _complete_template_contract_message(self):
+    def _complete_template_spa_contract_message(self):
         return (
             f"Page '{self.label}' uses a complete custom template. "
             "Complete templates that extend timeline-page.html are supported "
             "only by the legacy full-page reload path unless PsyNet explicitly "
-            "marks the template as in-place compatible. For custom pages used "
+            "marks the template as framework-owned. For custom pages used "
             "with inplace_timeline_transitions, pass "
             "template_fragment_path or template_fragment_str with only the "
             "contents of the main_body block, and supply page-local CSS/JS via "
