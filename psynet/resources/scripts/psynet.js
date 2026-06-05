@@ -342,16 +342,34 @@
       script.remove();
     };
 
-    psynet.executeExternalScript = function (src) {
+    psynet.loadedDocumentScripts = new Set();
+
+    psynet.rememberLoadedDocumentScripts = function () {
+      document.querySelectorAll("script[src]").forEach((script) => {
+        psynet.loadedDocumentScripts.add(
+          new URL(script.src, window.location.href).href,
+        );
+      });
+    };
+
+    psynet.executeExternalScript = function (src, options = {}) {
       let normalizedSrc = new URL(src, window.location.href).href;
+
+      if (
+        options.skipIfLoaded &&
+        psynet.loadedDocumentScripts.has(normalizedSrc)
+      ) {
+        return Promise.resolve();
+      }
 
       return new Promise((resolve, reject) => {
         let script = document.createElement("script");
         script.src = normalizedSrc;
         script.async = false;
-        // js_links are page behavior, not global libraries; rerun them on
-        // every SPA page activation even if the same URL appeared before.
         script.onload = () => {
+          if (options.skipIfLoaded) {
+            psynet.loadedDocumentScripts.add(normalizedSrc);
+          }
           script.remove();
           resolve();
         };
@@ -361,7 +379,7 @@
       });
     };
 
-    psynet.executeScriptSequence = async function (scriptElements) {
+    psynet.executeScriptSequence = async function (scriptElements, options = {}) {
       let inlineBuffer = [];
 
       let flushInlineBuffer = async function () {
@@ -382,7 +400,7 @@
         // run first, then the linked script, then subsequent inline scripts.
         if (script.src) {
           await flushInlineBuffer();
-          await psynet.executeExternalScript(script.src);
+          await psynet.executeExternalScript(script.src, options);
         } else if (script.textContent.trim() !== "") {
           inlineBuffer.push(script.textContent);
         }
@@ -538,7 +556,12 @@
       psynet.applyInlinePageStyles();
       await psynet.rebuildTrial();
       await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
-      await psynet.executeScriptSequence(psynet.getMainBodyScripts());
+      // External body scripts are normally document-level libraries. They
+      // cannot be undeclared between SPA pages, so rerun inline setup while
+      // skipping linked libraries that this browser document already loaded.
+      await psynet.executeScriptSequence(psynet.getMainBodyScripts(), {
+        skipIfLoaded: true,
+      });
       await psynet.executeScriptSequence(psynet.getDeferredPageScripts());
       psynet.trialProgress = createTrialProgress();
       psynet.initLucidTermination();
@@ -1943,6 +1966,7 @@
       $(".wait-for-media-load").attr("disabled", "disabled");
 
       await waitForDocumentReady();
+      psynet.rememberLoadedDocumentScripts();
 
       psynet.pageLoadTime = new Date();
       psynet.pageLoaded = true;
