@@ -471,8 +471,10 @@ Prolific
 Partial payment
 ...............
 
-The following two variables concern the situation in Prolific experiments where participants do not
-accumulate enough reward to cover the base payment (e.g. because they fail a pre-screening test).
+The following two variables concern the situation in Prolific experiments where participants cannot
+proceed to a successful completion, for example because they fail a pre-screening test. These settings
+do not apply to participants who reach a successful end page; successful participants are approved and
+receive the base payment even if their accumulated reward is lower than the base payment.
 
 In this situation, PsyNet will first check if ``prolific_enable_screen_out`` is ``True``.
 If so, PsyNet will start trying to pay the participant via the 'screen out' API route in Prolific.
