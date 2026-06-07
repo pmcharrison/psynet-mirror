@@ -209,7 +209,9 @@ class TestCommandLine(object):
                 "make",
                 "dirhtml",
                 "--clean",
-                "--open",
+                "--live-preview",
+                "--port",
+                "8001",
                 "--strict",
                 "--jobs",
                 "auto",
@@ -223,11 +225,31 @@ class TestCommandLine(object):
                 "target": "dirhtml",
                 "clean": True,
                 "open_browser": True,
+                "live_preview": True,
+                "live_preview_port": 8001,
                 "strict": True,
                 "jobs": "auto",
                 "sphinx_options": ("--nitpicky",),
             }
         ]
+
+    def test_dev_docs_make_reports_subprocess_failure(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        def fail(**kwargs):
+            raise subprocess.CalledProcessError(
+                returncode=1,
+                cmd=["sphinx-autobuild"],
+            )
+
+        monkeypatch.setattr(docs_module, "make_command", fail)
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "make", "--live-preview"])
+
+        assert result.exit_code == 1
+        assert "Docs command failed with exit code 1." in result.output
+        assert "Traceback" not in result.output
 
     def test_dev_docs_make_help(self):
         from psynet.command_line import psynet
@@ -237,6 +259,9 @@ class TestCommandLine(object):
         assert result.exit_code == 0, result.output
         assert "--clean" in result.output
         assert "--open" in result.output
+        assert "--live-preview" in result.output
+        assert "--port" in result.output
+        assert "sphinx-autobuild" in result.output
         assert "--strict" in result.output
         assert "--jobs" in result.output
         assert "deterministic output" in result.output

@@ -4,6 +4,8 @@ These commands are part of the installed package but only function from a
 PsyNet source checkout, where `CHANGELOG.md` and `changelog.d/` are present.
 """
 
+import subprocess
+
 import click
 
 from psynet.dev import changelog as changelog_module
@@ -104,7 +106,20 @@ def docs():
     "--open",
     "open_browser",
     is_flag=True,
-    help="Open docs/_build/html/index.html after a successful html build.",
+    help="Open the HTML docs after building. Implied by --live-preview.",
+)
+@click.option(
+    "--live-preview",
+    is_flag=True,
+    help="Serve the HTML docs with sphinx-autobuild and reload on changes.",
+)
+@click.option(
+    "--port",
+    "live_preview_port",
+    default=8000,
+    show_default=True,
+    type=int,
+    help="Port to use with --live-preview.",
 )
 @click.option(
     "--strict",
@@ -127,25 +142,43 @@ def docs():
         "Common examples: --nitpicky, -E, -a, -T, -v."
     ),
 )
-def make_docs(target, clean, open_browser, strict, jobs, sphinx_options):
+def make_docs(
+    target,
+    clean,
+    open_browser,
+    live_preview,
+    live_preview_port,
+    strict,
+    jobs,
+    sphinx_options,
+):
     """Run a Sphinx Makefile TARGET for PsyNet docs.
 
     TARGET defaults to html, matching `make html` in docs/.
 
     Uses --jobs 1 by default for deterministic output. Pass extra Sphinx flags
-    with --sphinx-option.
+    with --sphinx-option. Pass --live-preview to serve the HTML docs with
+    sphinx-autobuild and reload the browser when files change.
     """
     try:
+        if live_preview:
+            open_browser = True
         docs_module.make_command(
             target=target,
             clean=clean,
             open_browser=open_browser,
+            live_preview=live_preview,
+            live_preview_port=live_preview_port,
             strict=strict,
             jobs=jobs,
             sphinx_options=sphinx_options,
         )
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
+    except subprocess.CalledProcessError as exc:
+        raise click.ClickException(
+            f"Docs command failed with exit code {exc.returncode}."
+        ) from exc
 
 
 @dev.group("changelog")

@@ -2,10 +2,14 @@
 
 import shlex
 import shutil
+import socket
 import subprocess
 from pathlib import Path
 
 from psynet.utils import get_psynet_root
+
+LIVE_PREVIEW_IGNORE_PATTERNS = ("_build", "_build/*", "_build/**/*")
+LIVE_PREVIEW_RE_IGNORE_PATTERNS = (r".*/_build($|/.*)",)
 
 
 def make_command(
@@ -13,6 +17,8 @@ def make_command(
     *,
     clean: bool = False,
     open_browser: bool = False,
+    live_preview: bool = False,
+    live_preview_port: int = 8000,
     strict: bool = False,
     jobs: str | None = "1",
     sphinx_options: tuple[str, ...] = (),
@@ -26,9 +32,19 @@ def make_command(
 
     options = build_sphinx_options(
         strict=strict,
-        jobs=jobs,
+        jobs="1" if live_preview else jobs,
         sphinx_options=sphinx_options,
     )
+    if live_preview:
+        run_live_preview(
+            target=target,
+            options=options,
+            docs_dir=docs_dir,
+            build_dir=build_dir,
+            port=live_preview_port,
+        )
+        return 0
+
     command = ["make", target]
     if options:
         command.append(f"SPHINXOPTS={shlex.join(options)}")
@@ -39,6 +55,88 @@ def make_command(
         open_html_index(target, build_dir)
 
     return 0
+
+
+def run_live_preview(
+    *,
+    target: str,
+    options: list[str],
+    docs_dir: Path,
+    build_dir: Path,
+    port: int,
+) -> None:
+    """Serve the HTML docs with automatic rebuilds and browser reloads."""
+    if target != "html":
+        raise ValueError("--live-preview is only supported for the html docs target.")
+
+    if shutil.which("sphinx-autobuild") is None:
+        raise ValueError(
+            "sphinx-autobuild is required for --live-preview. "
+            "Install or update the PsyNet dev dependencies, for example with "
+            "`uv pip install -e '.[dev,slack]'`."
+        )
+
+    assert_live_preview_port_available(port)
+
+    command = [
+        "sphinx-autobuild",
+        *options,
+        "--no-color",
+        "--open-browser",
+        "--port",
+        str(port),
+    ]
+    for pattern in LIVE_PREVIEW_IGNORE_PATTERNS:
+        command.extend(["--ignore", pattern])
+        command.extend(["--ignore", str(docs_dir / pattern)])
+    for pattern in LIVE_PREVIEW_RE_IGNORE_PATTERNS:
+        command.extend(["--re-ignore", pattern])
+
+    run_live_preview_process(
+        [*command, ".", str(build_dir / "html")],
+        docs_dir,
+    )
+
+
+def assert_live_preview_port_available(port: int, host: str = "127.0.0.1") -> None:
+    """Fail before building docs if the live-preview server port is occupied."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(0.2)
+        is_in_use = sock.connect_ex((host, port)) == 0
+
+    if is_in_use:
+        raise ValueError(
+            f"Port {port} is already in use. Stop the existing docs preview server "
+            f"or choose another port with `--port {port + 1}`."
+        )
+
+
+def run_live_preview_process(
+    command: list[str],
+    docs_dir: Path,
+) -> None:
+    """Run sphinx-autobuild."""
+    with subprocess.Popen(
+        command,
+        cwd=docs_dir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    ) as process:
+        assert process.stdout is not None
+        try:
+            for line in process.stdout:
+                print(line, end="")
+
+            return_code = process.wait()
+        except KeyboardInterrupt:
+            process.terminate()
+            process.wait()
+            raise
+
+    if return_code:
+        raise subprocess.CalledProcessError(return_code, command)
 
 
 def assert_docs_available() -> Path:
