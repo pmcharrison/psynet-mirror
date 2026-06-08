@@ -15,9 +15,10 @@ class FakeOptions:
 
 
 class FakeService:
-    def __init__(self, log_output, service_args):
+    def __init__(self, log_output, service_args, executable_path=None):
         self.log_output = log_output
         self.service_args = service_args
+        self.executable_path = executable_path
 
 
 class FakeDriver:
@@ -207,3 +208,33 @@ def test_create_chrome_driver_retries_until_success(tmp_path, monkeypatch):
 
     assert not profile_paths[2].exists()
     assert not log_paths[2].exists()
+
+
+def test_create_chrome_driver_pins_chromedriver_in_ci(chrome_paths, monkeypatch):
+    _, log_path = chrome_paths
+    fake_driver = FakeDriver()
+    fake_webdriver = FakeWebDriver(driver=fake_driver)
+
+    monkeypatch.setenv("CI", "true")
+    monkeypatch.setenv("PSYNET_CHROMEDRIVER_VERBOSE", "1")
+    monkeypatch.setattr(
+        chrome_driver.shutil,
+        "which",
+        lambda name: {
+            "chrome": "/usr/local/bin/chrome",
+            "chromedriver": "/usr/local/bin/chromedriver",
+        }.get(name),
+    )
+    monkeypatch.setattr(
+        chrome_driver,
+        "_get_chrome_dependencies",
+        lambda: (fake_webdriver, FakeOptions, FakeService),
+    )
+
+    driver = chrome_driver.create_psynet_chrome_driver(headless=True)
+
+    assert fake_webdriver.last_options.binary_location == "/usr/local/bin/chrome"
+    assert fake_webdriver.last_service.executable_path == "/usr/local/bin/chromedriver"
+    assert fake_webdriver.last_service.log_output == str(log_path)
+
+    driver.quit()

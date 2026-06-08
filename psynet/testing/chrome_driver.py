@@ -80,6 +80,9 @@ def _cleanup_failed_launch_artifacts(user_data_dir, chromedriver_log_path):
 
 def create_psynet_chrome_driver(headless):
     webdriver, options_class, service_class = _get_chrome_dependencies()
+    ci_chromedriver_path = (
+        shutil.which("chromedriver") if os.getenv("CI") is not None else None
+    )
     max_attempts = 3
     for attempt in range(1, max_attempts + 1):
         chrome_options = options_class()
@@ -105,9 +108,14 @@ def create_psynet_chrome_driver(headless):
         chromedriver_verbose = os.getenv(
             "PSYNET_CHROMEDRIVER_VERBOSE", "1" if os.getenv("CI") else "0"
         )
+        service_kwargs = {
+            "log_output": chromedriver_log_path,
+            "service_args": ["--verbose"] if chromedriver_verbose == "1" else None,
+        }
+        if ci_chromedriver_path:
+            service_kwargs["executable_path"] = ci_chromedriver_path
         service = service_class(
-            log_output=chromedriver_log_path,
-            service_args=["--verbose"] if chromedriver_verbose == "1" else None,
+            **service_kwargs,
         )
 
         tmp_usage = shutil.disk_usage(tempfile.gettempdir())
@@ -124,6 +132,7 @@ def create_psynet_chrome_driver(headless):
                 "chromeProcessCount": len(list_psynet_chrome_processes()),
                 "chromedriverProcessCount": len(list_chromedriver_processes()),
                 "chromedriverVerbose": chromedriver_verbose,
+                "chromedriverPath": ci_chromedriver_path,
                 "chromedriverLogPath": chromedriver_log_path,
             },
         )
