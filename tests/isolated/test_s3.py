@@ -79,7 +79,11 @@ def test_s3_storage_awscli():
 
     if which("aws") is not None:
         storage = get_s3_storage("awscli")
-        run_test(storage, f"s3-tests/{uuid4().hex}")
+        remote_prefix = f"s3-tests/{uuid4().hex}"
+        try:
+            run_test(storage, remote_prefix)
+        finally:
+            storage.delete_folder(remote_prefix)
 
 
 def test_s3_storage_boto3(artifact_storage_s3_test_root):
