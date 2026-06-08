@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -59,6 +60,33 @@ ci_only = pytest.mark.skipif(
 local_only = pytest.mark.skipif(
     os.environ.get("CI") is not None, reason="This test only runs in local environment"
 )
+
+
+def _create_chrome_driver(chrome_options):
+    """Create a Chrome driver for PsyNet's browser-based test bots.
+
+    In CI, the Docker image already installs matching Chrome and ChromeDriver
+    binaries. Passing those paths explicitly avoids Selenium Manager's network
+    metadata lookup, which can hang in restricted CI network conditions. Outside
+    CI, keep Selenium's default discovery so local developers do not get pinned
+    to a stale ``chromedriver`` that happens to be on ``PATH``.
+    """
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+
+    if os.environ.get("CI") is None:
+        return webdriver.Chrome(options=chrome_options)
+
+    chrome_path = shutil.which("chrome")
+    if chrome_path:
+        chrome_options.binary_location = chrome_path
+
+    chromedriver_path = shutil.which("chromedriver")
+    if chromedriver_path:
+        service = Service(executable_path=chromedriver_path)
+        return webdriver.Chrome(service=service, options=chrome_options)
+
+    return webdriver.Chrome(options=chrome_options)
 
 
 def assert_text(driver, element_id, value):
@@ -211,7 +239,6 @@ def bot_class(headless=None):
 
         @cached_property
         def driver(self):
-            from selenium import webdriver
             from selenium.webdriver.chrome.options import Options
 
             max_attempts = 3
@@ -227,12 +254,10 @@ def bot_class(headless=None):
                     chrome_options.add_argument("--headless")
 
                 try:
-                    driver = webdriver.Chrome(options=chrome_options)
+                    driver = _create_chrome_driver(chrome_options)
                     driver.set_window_size(1024, 768)
                     return driver
                 except Exception:
-                    import shutil
-
                     shutil.rmtree(user_data_dir, ignore_errors=True)
                     if attempt < max_attempts:
                         logger.warning(

@@ -1013,6 +1013,26 @@ def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
         )
 
 
+def _abort_if_app_exists(server, app):
+    if not app:
+        return
+
+    from dallinger.command_line.docker_ssh import get_apps
+
+    apps = get_apps(server)
+    existing_apps = {entry.name for entry in apps}
+    if app in existing_apps:
+        click.echo(
+            "\n".join(
+                [
+                    f"App with name {app} already exists: found on server. Aborting.",
+                    "Use a different name or destroy the current app.",
+                ]
+            )
+        )
+        raise click.Abort
+
+
 ##########
 # deploy #
 ##########
@@ -1053,6 +1073,7 @@ def _pre_launch(
         from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
 
         ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+        _abort_if_app_exists(server, app)
 
     run_pre_checks(mode, local_, heroku, docker, app)
 
@@ -2080,6 +2101,21 @@ def app_argument(func):
     )(func)
 
 
+def _resolve_ssh_app(ctx, app, server):
+    if app:
+        return app
+
+    from dallinger.command_line.docker_ssh import select_running_app
+
+    try:
+        resolved_app = select_running_app(server)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
+
+    log(f"No --app provided; using running app on the server: {resolved_app}")
+    return resolved_app
+
+
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
@@ -2160,8 +2196,10 @@ def export__heroku(ctx, app, **kwargs):
 @export.command("ssh")
 @click.option(
     "--app",
-    required=True,
-    help="Name of the app to export",
+    default=None,
+    required=False,
+    callback=verify_id,
+    help=("Name of the app to export (optional if only one running app is available)"),
 )
 @option_server
 @export_arguments
@@ -2170,6 +2208,7 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     """
     Export the experiment from a remote server via Docker and SSH.
     """
+    app = _resolve_ssh_app(ctx, app, server)
     exp_variables = ctx.invoke(
         experiment_variables, location="ssh", app=app, server=server
     )

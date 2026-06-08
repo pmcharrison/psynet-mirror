@@ -12,15 +12,6 @@
 - Added `ChatRoom` element for modular pages.
 - Added optional websocket support for timeline elements.
 - Added developer documentation plus a repo-local `/review` Cursor workflow backed by the `branch-review` skill for reviewing branches against `master`.
-- Added ``make_next_definition`` method to streamline the implementation of chain experiments.
-  We have done this in a back-compatible manner and left existing dependencies unchanged for now.
-  We have added a demo of the new approach called `chain_trial_maker`.
-  More documentation will be added soon when we incorporate the ISMIR 2025 tutorial into
-  the main PsyNet documentation.
-- Added `AGENTS.md` to help Cursor know how to run experiments locally.
-- Added 'getting started' section to documentation.
-- Added default ``.vscode/extensions.json`` and ``.vscode/settings.json`` to experiment scripts,
-  to aid with configuring VSCode.
 - Added SQLAlchemy profiling utilities with aggregation, CLI flags, and pytest assertions (e.g. `psynet test local --sql-profile`) plus execution callsite tracking.
 - Added checks to catch cases where Assets are created in the wrong place.
 - Added Playwright (JS) end-to-end tests for audio, graphics, imitation_chain_video, and static_audio demos, plus the video feature demo.
@@ -41,14 +32,6 @@
 - Added detection and reporting of bots that started but never created DB participant records.
 - Added RQ worker count display in async process times section for context on queue delays.
 
-## Changed
-- Removed deprecated `initial_recruitment_size` attribute from all demo and test experiment classes. This attribute should now be set via `config.txt` or `experiment.config` instead (author: Peter Harrison)
-- Renamed version-checking helpers in `psynet/version.py` for clearer intent. (author: Peter Harrison)
-- Updated IDE recommendations in documentation to recommend VSCode/Cursor as the default IDE instead of PyCharm. PyCharm is now mentioned as an alternative with warnings about debugging issues. Removed detailed PyCharm setup instructions that may become outdated, and removed PyCharm debugger references from Dockerfiles (author: Peter Harrison)
-- Updated GitLab CI configuration to auto-cancel redundant pipelines when new commits are pushed to a branch that already has a running pipeline (author: Cursor; reviewer: Peter Harrison)
-- Updated S3 test code to use proper mocking and hence avoid conflicts between testing processes (author: Peter Harrison)
-- Switched docs deployment to the PyData Sphinx theme for the current alpha docs and future release docs, and updated versioned publishing to build each docs version from its own git ref (author: Frank Höger)
-- Reworked lab deployment documentation under `docs/lab_deployments/` with split section pages, improved navigation integration, repaired internal links, and standardized code/image formatting (author: Frank Höger)
 ### Changed
 
 - Migrated Python linting and formatting from black/isort/flake8 to Ruff, including pre-commit and contributor documentation updates.
@@ -171,7 +154,6 @@
 - Hardened Playwright demo tests against flaky timeline transitions by replacing brittle exact-count/transient-text assertions with event/baseline waits and tolerant auto-advance handling across audio, graphics, static_audio, imitation_chain_video, and video_feature specs.
 - Replaced bare `assert response.ok` in Lucid API calls with informative error messages that include the HTTP status code, URL, and response body.
 - Fixed Playwright browser download timeout in CI by copying the browser cache from the official Playwright Docker image at build time (cdn.playwright.dev is unreachable from CI runners).
-- Fixed flaky Selenium test failures caused by transient Chrome startup crashes (`SessionNotCreatedException`) by adding retry logic to the bot WebDriver initialization.
 
 ### Documentation
 
