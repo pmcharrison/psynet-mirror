@@ -1840,7 +1840,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "min_browser_version": "80.0",
             "prolific_is_custom_screening": False,
             "prolific_enable_return_for_bonus": True,
-            "prolific_enable_screen_out": False,
             "protected_routes": json.dumps(_protected_routes),
             "show_abort_button": False,
             "show_footer": True,
@@ -2832,8 +2831,22 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         config.register("color_mode", str, validators=[color_mode_validator])
 
+        def unsupported_prolific_screen_out_validator(value):
+            if value:
+                raise ValueError(
+                    "`prolific_enable_screen_out` is no longer supported. "
+                    "Prolific no longer supports the corresponding screen-out "
+                    "API route. Please remove this parameter from your "
+                    "configuration and use `prolific_enable_return_for_bonus` "
+                    "instead."
+                )
+
         config.register("prolific_enable_return_for_bonus", bool)
-        config.register("prolific_enable_screen_out", bool)
+        config.register(
+            "prolific_enable_screen_out",
+            bool,
+            validators=[unsupported_prolific_screen_out_validator],
+        )
 
     @dashboard_tab("Export")
     @classmethod
