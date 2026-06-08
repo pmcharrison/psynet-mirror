@@ -23,7 +23,7 @@ def _client_error(code: str, operation_name: str):
     )
 
 
-class ArtifactStorageS3TestClient:
+class MockS3Client:
     def __init__(self, root: str):
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
@@ -170,8 +170,8 @@ class ArtifactStorageS3TestClient:
         return SimpleNamespace(paginate=paginate)
 
 
-class ArtifactStorageS3ObjectSummary:
-    def __init__(self, client: ArtifactStorageS3TestClient, bucket_name: str, key: str):
+class MockS3ObjectSummary:
+    def __init__(self, client: MockS3Client, bucket_name: str, key: str):
         self.client = client
         self.bucket_name = bucket_name
         self.key = key
@@ -184,10 +184,10 @@ class ArtifactStorageS3ObjectSummary:
         self.client._delete_object(self.bucket_name, self.key)
 
 
-class ArtifactStorageS3ObjectCollection:
+class MockS3ObjectCollection:
     def __init__(
         self,
-        client: ArtifactStorageS3TestClient,
+        client: MockS3Client,
         bucket_name: str,
         prefix: str = "",
     ):
@@ -197,7 +197,7 @@ class ArtifactStorageS3ObjectCollection:
 
     def __iter__(self):
         for obj in self.client._list_objects(self.bucket_name, self.prefix):
-            yield ArtifactStorageS3ObjectSummary(
+            yield MockS3ObjectSummary(
                 self.client,
                 self.bucket_name,
                 obj["Key"],
@@ -210,30 +210,30 @@ class ArtifactStorageS3ObjectCollection:
         self.client._delete_prefix(self.bucket_name, self.prefix)
 
 
-class ArtifactStorageS3Bucket:
-    def __init__(self, client: ArtifactStorageS3TestClient, bucket_name: str):
+class MockS3Bucket:
+    def __init__(self, client: MockS3Client, bucket_name: str):
         self.client = client
         self.bucket_name = bucket_name
-        self.objects = ArtifactStorageS3ObjectCollection(client, bucket_name)
+        self.objects = MockS3ObjectCollection(client, bucket_name)
 
     def Object(self, key: str):
-        return ArtifactStorageS3ObjectSummary(self.client, self.bucket_name, key)
+        return MockS3ObjectSummary(self.client, self.bucket_name, key)
 
 
-class ArtifactStorageS3TestResource:
-    def __init__(self, client: ArtifactStorageS3TestClient):
+class MockS3Resource:
+    def __init__(self, client: MockS3Client):
         self.client = client
         self.meta = SimpleNamespace(client=client)
 
     def Bucket(self, bucket_name: str):
-        return ArtifactStorageS3Bucket(self.client, bucket_name)
+        return MockS3Bucket(self.client, bucket_name)
 
 
 @cache
-def get_artifact_storage_s3_test_client(root: str):
-    return ArtifactStorageS3TestClient(root)
+def get_mock_s3_client(root: str):
+    return MockS3Client(root)
 
 
 @cache
-def get_artifact_storage_s3_test_resource(root: str):
-    return ArtifactStorageS3TestResource(get_artifact_storage_s3_test_client(root))
+def get_mock_s3_resource(root: str):
+    return MockS3Resource(get_mock_s3_client(root))
