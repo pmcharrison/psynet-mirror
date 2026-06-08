@@ -358,6 +358,10 @@ def _async_target(participant):
     return None
 
 
+def _other_async_target(participant):
+    return None
+
+
 def _make_participant(stale_process=None):
     participant = MagicMock()
     participant.id = 42
@@ -383,6 +387,47 @@ def test_async_code_block_initiate__raises_when_previous_process_still_pending()
     stale.pending = True
     stale.failed = False
     stale.finished = False
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with pytest.raises(RuntimeError, match="already has an async code block"):
+            block.initiate(participant)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+
+
+def test_async_code_block_initiate__waits_for_pending_process_when_waiting(caplog):
+    block = AsyncCodeBlock(_async_target, wait=True, expected_wait=1)
+    stale = MagicMock(name="stale_process")
+    stale.id = 99
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    stale.arguments = {"function": _async_target}
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with caplog.at_level("WARNING"):
+            block.initiate(participant)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+    assert any(
+        "waiting for the existing process" in record.message
+        for record in caplog.records
+    ), (
+        f"Expected a duplicate-process warning, got: {[r.message for r in caplog.records]}"
+    )
+
+
+def test_async_code_block_initiate__raises_for_different_pending_waited_process():
+    block = AsyncCodeBlock(_async_target, wait=True, expected_wait=1)
+    stale = MagicMock(name="stale_process")
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    stale.arguments = {"function": _other_async_target}
     participant = _make_participant(stale_process=stale)
 
     with patch("psynet.process.WorkerAsyncProcess") as ctor:
