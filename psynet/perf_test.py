@@ -1232,7 +1232,7 @@ def format_performance_summary(results):
         "|| Bots",
         "Succeeded",
         "Requests",
-        "Req/s",
+        "Resp Med (s)",
         "Resp P95 (s)",
     ]
     if show_scaling:
@@ -1249,11 +1249,7 @@ def format_performance_summary(results):
             result["n_bots"],
             result["bots_succeeded"],
             result["total_requests"],
-            (
-                f"{result['requests_per_sec']:.1f}"
-                if result.get("requests_per_sec") is not None
-                else "N/A"
-            ),
+            _fmt(result.get("median_response_time")),
             _fmt(p95),
         ]
         if show_scaling:
@@ -1275,6 +1271,9 @@ def format_performance_summary(results):
 
     lines.append("")
     lines.append(bold("CUMULATIVE PERFORMANCE TEST SUMMARY\n"))
+    lines.append(
+        "  Resp Med — median HTTP response time for key endpoints (/timeline, /response)"
+    )
     lines.append(
         "  Resp P95 — P95 HTTP response time for key endpoints (/timeline, /response)"
     )
