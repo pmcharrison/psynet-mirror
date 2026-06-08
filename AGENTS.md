@@ -224,11 +224,21 @@ Non-trivial code changes should be tested.
 Prefer red/green test-driven development, but avoid committing overly verbose tests in the final PR.
 Implement sensible unit tests where appropriate.
 Verify changes end-to-end by running `psynet test local` within a relevant demo.
+Prefer concise tests that exercise real/public interfaces.
+Avoid very long tests with extensive monkeypatching unless there is no practical
+alternative; if monkeypatching is necessary, keep it minimal and focused on
+observable behavior rather than internal implementation details.
 
 ## Code organization and documentation
 
 - Prefer marking module-internal helper functions with a leading underscore. Keep public-looking names for functions that are intended to be imported or called from outside the module.
 - When adding a feature that operates heavily within a module and that module lacks an explanatory module docstring, add one. The docstring should explain why the module exists, the important design constraints, and how maintainers should interact with it. When you add such a docstring, explicitly suggest that the user reviews it.
+
+## Error handling policy
+
+Avoid silently suppressing broad exceptions (for example `except Exception: pass`).
+If a broad exception must be caught for resilience, emit at least a warning-level log
+with useful context unless the path is intentionally noisy best-effort cleanup.
 
 ## Finishing up changes
 
