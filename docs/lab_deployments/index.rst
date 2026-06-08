@@ -16,8 +16,3 @@ Lab Deployments
    Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>
    Troubleshooting <troubleshooting>
    Group Skills <group_skills>
-
-..
-   Massive Deployments <massive_deployments>
-   Batch Automation for Massive Deployments <batch_automation>
-

@@ -23,107 +23,29 @@ Before you deploy your experiment, you need to:
 
 See :doc:`Prerequisites <prerequisites>` for Git setup instructions.
 
-Updating PsyNet in Your Virtual Environment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When there are new commits in the PsyNet repository, you can update your
-local installation in your virtual environment by following these steps:
-
-1. **Go to the PsyNet Directory**
-
-.. code:: bash
-
-   cd ~/psynet
-
-2. **Check Your Branch and Switch if Necessary**
-
-Before pulling updates, confirm which branch you're on. If you need a
-different version, check the current branch and switch accordingly:
-
-.. code:: bash
-
-   git branch  # Lists branches and highlights the current one
-
-.. code:: bash
-
-   git checkout <branch_name>  # Switch to the desired branch if needed
-
-3. **Pull the Latest Changes**
-
-.. code:: bash
-
-   git pull
-
-This command fetches and integrates the latest commits from the remote
-repository.
-
-4. **Verify the Latest Commit**
-
-.. code:: bash
-
-   git log
-
-Check the commit messages and hashes to ensure you have the most recent
-commit.
-
-5. **Update your requirements.txt**
-
-Once you have confirmed the latest commit, update the version or commit
-hash reference in ``requirements.txt`` if the experiment points to a
-specific PsyNet commit or branch. This keeps the deployment environment
-aligned with the version you tested locally.
-
-6. **Install the Updated Requirements**
-
-.. code:: bash
-
-   pip install -r requirements.txt
-
-This command installs any new dependencies and updates existing ones as
-necessary.
-
-7. **Generate Constraints**
-
-.. code:: bash
-
-    psynet generate-constraints
-
 Requirements and dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Make sure your local PsyNet (and Dallinger) version is the same as the
-version listed in ``requirements.txt`` (otherwise you will get an error
-when you try to deploy later). Usually, updating PsyNet to the latest
-version used by your experiment helps deployment run smoothly.
-
-Also, generate the constraints using ``psynet generate-constraints``.
-Remember to run this command again if you make any changes to
-``requirements.txt``.
-
-Also test your experiment locally before trying it on the server. This
-helps catch dependencies that are missing from ``requirements.txt``.
-For a virtual-environment installation:
+Make sure the PsyNet and Dallinger versions you tested locally match the
+versions listed in ``requirements.txt`` and ``constraints.txt``. If you
+change ``requirements.txt``, regenerate and commit ``constraints.txt``:
 
 .. code:: bash
 
-   psynet debug local
+   psynet generate-constraints
 
-For a Docker installation (see the
-`Docker installation guide <https://psynetdev.gitlab.io/PsyNet/installation/docker_installation/index.html>`__):
-
-.. code:: bash
-
-   bash docker/psynet debug local
-
-Make sure the experiment has been sufficiently tested. See
-`Test <general_deployment_process.html#test>`__.
+For the canonical dependency workflow, see
+:doc:`Dependencies <../experiment_development/dependencies>`. Before
+deploying, test the exact environment locally with ``psynet debug local``
+and complete the testing checklist in
+:doc:`general_deployment_process`.
 
 Remote debug
 ^^^^^^^^^^^^
 
 Before deployment, you need to make sure your experiment runs
 successfully on a remote server. Make sure you did all types of
-`tests <general_deployment_process.html#test>`__ and thus did a remote debug.
+:ref:`tests <lab-deployment-test>` and thus did a remote debug.
 
 Actual deployment
 -----------------
@@ -188,8 +110,9 @@ Troubleshooting a prolonged launch
 
 Sometimes the experiment appears to be stuck for more than a few minutes
 at the "Launching experiment" stage. The best first step is to inspect
-the Dozzle logs for HTTP server errors:
-https://psynetdev.gitlab.io/PsyNet/deploy/ssh_server.html#deploying-experiments-via-ssh
+the Dozzle logs for HTTP server errors. See
+:ref:`SSH deployment <ssh_server>` for the canonical deployment and log
+inspection workflow.
 
 There is a known issue where ``nip.io`` refuses to provide an HTTPS
 address because of quota constraints. Other common causes include an
@@ -200,5 +123,5 @@ message.
 Redeployment from archive
 -------------------------
 
-If you need to redeploy from an archive, see:
-https://psynetdev.gitlab.io/PsyNet/deploy/deploy_from_archive.html
+If you need to redeploy from an archive, see
+:doc:`Deploying from archive <../deploy/deploy_from_archive>`.

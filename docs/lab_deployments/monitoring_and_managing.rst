@@ -8,6 +8,8 @@ recruitment.
 This section provides general guidelines. Recruiter-specific details
 (Prolific, CINT, Lab Recruiter) can be found in their
 :doc:`respective sections <recruiter_specific_deployment_steps>`.
+For the full deployment monitor reference, see
+:doc:`Deployment monitor <../deploy/deployment_monitor>`.
 
 Using the Dashboard
 -------------------
@@ -72,3 +74,37 @@ Recruitment and Payment Strategies
 
 -  If you are using auto-recruit, stop it before reaching the final
    stages to prevent excess costs.
+
+For the canonical payment and recruitment configuration keys, see the
+:doc:`configuration reference <../experiment_development/configuration>`.
+
+Advanced monitoring for large deployments
+-----------------------------------------
+
+Large or parallel deployments need the same basic workflow as a single
+deployment, but with more discipline around monitoring, notes, and
+exports.
+
+- If you need lightweight live checks, implement ``get_basic_data`` in
+  your experiment. This lets you inspect an analysis-friendly view of
+  the data from the dashboard or via the ``/basic_data`` endpoint
+  without running a full export each time. For details, see
+  :doc:`Data <../deploy/data>`.
+
+- Use the deployment monitor when you are running multiple active or
+  recent deployments and need one place to check recruitment status,
+  cost, runtime, server health, errors, participant counts, and quick
+  links to dashboards or exports. For details, see
+  :doc:`Deployment monitor <../deploy/deployment_monitor>`.
+
+- For high-risk or multi-day deployments, configure Slack notifications
+  so errors and recruitment status changes are visible without
+  repeatedly checking every dashboard. Ask your lab administrator which
+  channel and bot token to use, then follow the PsyNet Slack setup
+  instructions: :doc:`Setting up Slack <../tutorials/setting_up_slack>`.
+
+- If your lab maintains scripts for provisioning, deploying, or
+  destroying many experiments at once, treat them as lab-specific
+  helpers. Verify each generated configuration before launch, keep app
+  names and server names traceable, and export/check data early before
+  scaling up recruitment.

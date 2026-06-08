@@ -8,12 +8,11 @@ PsyNet experiments are deployed to an SSH-accessible Linux server. You
 can use several types of server depending on your setup:
 
 - **Your own physical server**: install Ubuntu and expose it to the
-  internet. See the
-  `physical server setup guide <https://psynetdev.gitlab.io/PsyNet/deploy/physical_server_setup.html>`__.
+  internet. See the :doc:`physical server setup guide
+  <../deploy/physical_server_setup>`.
 - **A cloud provider (e.g., AWS EC2, Hetzner, Contabo)**: rent a virtual
-  machine with SSH access. See the
-  `SSH server guide <https://psynetdev.gitlab.io/PsyNet/deploy/ssh_server.html>`__ and
-  `AWS server setup guide <https://psynetdev.gitlab.io/PsyNet/deploy/aws_server_setup.html>`__.
+  machine with SSH access. See the :ref:`SSH server guide <ssh_server>`
+  and :ref:`AWS server setup guide <aws_server_setup>`.
 - **A lab-provided internal server**: if your lab has a shared server,
   follow your lab's instructions for adding it to Dallinger.
 
@@ -24,41 +23,16 @@ Once you have a server, register it with Dallinger once:
    dallinger docker-ssh servers add --host <your-server-hostname> --user <your-username>
 
 For the full list of server options and trade-offs, see the
-`web servers overview <https://psynetdev.gitlab.io/PsyNet/deploy/web_servers.html>`__.
+:doc:`web servers overview <../deploy/web_servers>`.
 
 EC2 servers (AWS automatic provisioning)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 PsyNet supports automatic provisioning of AWS EC2 servers, which is
-convenient for cloud deployments. EC2 servers are virtual machines that
-provide scalable computing power, and let you choose the region closest
-to your participants.
-
-Before you can use automatic EC2 provisioning, you need:
-
-- An AWS account (https://aws.amazon.com/).
-- AWS credentials configured for Dallinger (AWS access key ID and secret
-  access key, typically set via ``~/.aws/credentials`` or environment
-  variables).
-- A PEM key file for SSH access, with permissions set to ``600``.
-- A domain name and DNS setup (e.g., via AWS Route 53) that points a
-  wildcard subdomain at your server. See the
-  `AWS server setup guide <https://psynetdev.gitlab.io/PsyNet/deploy/aws_server_setup.html>`__
-  for detailed instructions on registering a domain and configuring
-  Route 53.
-- Your PEM key path and security group name configured in
-  ``~/.dallingerconfig``:
-
-  .. code:: ini
-
-     [EC2]
-     ec2_default_pem = /path/to/your/key
-     ec2_default_security_group = <your-security-group>
-
-- A Docker registry accessible by the server (see the
-  `Docker registry setup <https://psynetdev.gitlab.io/PsyNet/deploy/ssh_server.html#setting-up-your-docker-registry>`__).
-- S3 storage configured if your experiment creates many assets (see
-  :ref:`Storage <storage>` below).
+convenient for cloud deployments. Before using the commands below, make
+sure AWS credentials, SSH access, DNS, and the Docker registry are
+configured as described in the :ref:`AWS server setup <aws_server_setup>`
+and :ref:`SSH server <ssh_server>` guides.
 
 EC2 servers operate on a pay-as-you-go model. You are charged while the
 server is running, so it is important to monitor usage and tear the
@@ -185,8 +159,8 @@ You can find instance storage information in the AWS EC2 documentation:
 https://aws.amazon.com/ec2/instance-types/
 
 Usually, PsyNet should be responsible for uploading assets to storage.
-For more information, see:
-https://psynetdev.gitlab.io/PsyNet/tutorials/assets.html#assets
+For more information, see the :doc:`Assets tutorial
+<../tutorials/assets>`.
 
 During the provisioning, all steps are printed to the terminal. At the
 end, you should see something like this printed in the terminal:
@@ -212,22 +186,16 @@ hostname. For example:
 
    logs.alice.<your-domain>
 
-Terminate an EC2 server instance
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Stopping an EC2 server instance
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Once you are finished with your experiment, terminate the EC2 server to
-avoid ongoing charges. EC2 servers incur costs while they are running, so
-terminate them after the experiment is complete:
+For multi-day deployments, you can **stop the EC2 instance overnight**
+to reduce costs. While you won't be charged for running the server
+during the stopped period, you will still incur minimal charges for
+storage. Do not forget to terminate the server when the experiment is
+done; see :doc:`teardown`.
 
-.. code:: bash
-
-   dallinger ec2 teardown --name <server_name> --region <region> --dns-host <your-subdomain>.<your-domain>
-
-Alternatively, for multi-day deployments, you can **stop the EC2
-instance overnight** to reduce costs. While you won't be charged for
-running the server during the stopped period, you will still incur
-minimal charges for storage. Do not forget to terminate it once your
-experiment is done. To stop the instance:
+To stop the instance:
 
 .. code:: bash
 

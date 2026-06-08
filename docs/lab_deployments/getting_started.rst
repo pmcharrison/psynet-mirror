@@ -28,10 +28,13 @@ Read the pages in order the first time you deploy an experiment:
 6. :doc:`Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>`:
    confirm any extra Prolific, CINT, or Lab Recruiter requirements.
 
-The current recommended workflow uses Docker and either an internal lab
-server or an EC2 server. Prolific is used as the main example, but the
-same general process also applies to CINT and Lab Recruiter deployments
-unless a recruiter-specific page says otherwise.
+The current recommended workflow uses the standard PsyNet installation
+locally and deploys to either an internal lab server or an EC2 server.
+Some deployment routes still require Docker registry access, so follow
+the checklist in :doc:`Prerequisites <prerequisites>` for your specific
+setup. Prolific is used as the main example, but the same general process
+also applies to CINT and Lab Recruiter deployments unless a
+recruiter-specific page says otherwise.
 
 Glossary
 --------
@@ -51,8 +54,8 @@ Glossary
 
 **Docker**
    Container software used to run an experiment in a fixed environment
-   to avoid unexpected behavior. It is recommended for local debugging
-   and deployment (see `Best practices <#best-practices>`__).
+   to avoid unexpected behavior. Some deployment routes and experiment
+   templates require Docker registry access.
 
 **Recruiter**
    A *service* that invites and pays participants with optional
@@ -102,9 +105,9 @@ We recommend a shared workflow because it makes problems easier to
 diagnose and support:
 
 - Use macOS where possible.
-- Install `Docker <prerequisites.html#docker-desktop>`__ and an IDE. Cursor is
-  most strongly recommended; VSCode and PyCharm are supported alternatives.
-- Use Docker for both local development and remote deployment.
+- Complete the :doc:`Prerequisites <prerequisites>` checklist, including
+  Docker setup if your deployment route uses Docker. Cursor is most
+  strongly recommended; VSCode and PyCharm are supported alternatives.
 - Use one of the currently supported recruiters: Prolific, CINT, or Lab
   Recruiter.
 - Check that your experiment satisfies the requirements of the recruiter
@@ -116,8 +119,10 @@ Deployment Checklist
 1. **Prerequisites**
 
    - Set up PsyNet and complete the required installations.
-   - Ensure Docker Desktop is `installed and running <prerequisites.html#docker-desktop>`__.
-   - Log in to the `group Docker registry <prerequisites.html#log-into-the-docker-registry>`__ via GitLab (one-time).
+   - Ensure Docker Desktop is installed and running if your deployment
+     route uses Docker.
+   - Log in to the group Docker registry via GitLab if your lab uses
+     Docker images for deployment.
 
 2. **Experiment Setup**
 
@@ -140,8 +145,10 @@ Deployment Checklist
 
 4. **Deployment**
 
-   - Test your experiment end-to-end (including edge cases) in Docker.
-   - Open Docker Desktop before deployment and confirm it is running.
+   - Test your experiment end-to-end locally and on the remote server,
+     including edge cases.
+   - Open Docker Desktop before deployment if your deployment route uses
+     Docker.
    - Ensure ``requirements.txt`` is correct and constraints are generated.
    - If using Prolific, ensure account balance is sufficient.
    - Deploy to your server and publish the experiment in Prolific/CINT.

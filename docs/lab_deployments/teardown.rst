@@ -2,7 +2,9 @@ Teardown
 ========
 
 The teardown steps depend on the server type you used. Follow the
-section that matches your setup.
+section that matches your setup. For the canonical cleanup workflow, see
+:doc:`Running PsyNet remotely <../getting_started/running_remotely>` and
+:ref:`SSH servers <ssh_server>`.
 
 EC2 Server
 ----------
@@ -19,7 +21,8 @@ terminating promptly avoids unnecessary costs:
 terminated, any data that was not exported is permanently lost.**
 
 If you need to delete the app without tearing down the server (for
-example, when redeploying from archive on the same server), use:
+example, when redeploying from archive on the same server), use
+``psynet destroy ssh``:
 
 .. code:: bash
 

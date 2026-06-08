@@ -116,8 +116,8 @@ using browser add-ons. If you don’t care about this display issue you
 can set this to False.
 
 This forces people to use an incognito browser, which helps against the
-red screen error. For an overview of all options, see
-https://psynetdev.gitlab.io/PsyNet/experiment_development/configuration.html
+red screen error. For an overview of all options, see the
+:doc:`configuration reference <../experiment_development/configuration>`.
 
 Then, you will need to add the function get_prolific_settings() to set
 up config parameters specifically pertaining to Prolific. Add this

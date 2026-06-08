@@ -17,8 +17,8 @@ real error is above.
 
 To get more insight on the issue, put a break point at the position
 where your code breaks. This usually gives you more information about
-why the error occurs. See the `IDE setup section <prerequisites.html#ide-setup>`__
-for the recommended editor setup.
+why the error occurs. See the :ref:`development workflow
+<development_workflow>` for the recommended editor and debugging setup.
 
 Once you identified where your problem is, try searching for the
 substring of error messages on Slack and on Google. Usually the last
