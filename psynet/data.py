@@ -35,6 +35,7 @@ from dallinger.utils import classproperty
 from jsonpickle.util import importable_name
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
@@ -205,6 +206,12 @@ def _db_instance_to_dict(obj, scrub_pii: bool):
     for key, value in data.items():
         if isinstance(value, datetime):
             data[key] = value.strftime("%Y-%m-%d %H:%M:%S")
+            continue
+        if isinstance(value, MutableDict):
+            data[key] = dict(value)
+            continue
+        if isinstance(value, MutableList):
+            data[key] = list(value)
             continue
         if not is_basic_type(value):
             from .serialize import serialize

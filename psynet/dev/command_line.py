@@ -7,6 +7,7 @@ PsyNet source checkout, where `CHANGELOG.md` and `changelog.d/` are present.
 import click
 
 from psynet.dev import changelog as changelog_module
+from psynet.dev import ci as ci_module
 from psynet.dev import experiments as experiments_module
 
 CHANGELOG_CATEGORIES = (
@@ -37,6 +38,22 @@ def assert_changelog_available() -> None:
 @click.group("dev")
 def dev():
     """Developer utilities for PsyNet source checkouts."""
+
+
+@dev.group("ci")
+def ci():
+    """Maintain CI build inputs from a PsyNet source checkout."""
+
+
+@ci.command("update-dallinger-constraints")
+@click.option(
+    "--skip-compile-check",
+    is_flag=True,
+    help="Refresh the snapshot without validating Docker constraints compilation.",
+)
+def update_dallinger_constraints(skip_compile_check):
+    """Refresh the vendored Dallinger dev-requirements snapshot."""
+    ci_module.update_dallinger_constraints_command(check_compile=not skip_compile_check)
 
 
 @dev.group("experiments")
