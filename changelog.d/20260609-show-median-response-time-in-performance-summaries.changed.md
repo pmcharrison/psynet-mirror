@@ -1,1 +1,1 @@
-Changed performance test summaries to show median response times instead of requests per second.
+Changed performance test summaries to include median response times alongside requests per second.

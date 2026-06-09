@@ -181,9 +181,10 @@ def test_format_performance_summary_single_result():
     lines = format_performance_summary([_base_result()])
     text = _join(lines)
     assert "CUMULATIVE PERFORMANCE TEST SUMMARY" in text
+    assert "Req/s" in text
+    assert "1.6" in text
     assert "Resp Med (s)" in text
     assert "0.04" in text
-    assert "Req/s" not in text
 
 
 def test_format_performance_summary_none_metrics():
