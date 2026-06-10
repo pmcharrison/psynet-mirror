@@ -140,6 +140,13 @@ DEFAULT_LOCALE = "en"
 INITIAL_RECRUITMENT_SIZE = 1
 
 
+def _get_dashboard_credentials(config):
+    return {
+        "dashboard_user": config.get("dashboard_user", "admin"),
+        "dashboard_password": config.get("dashboard_password", None),
+    }
+
+
 def error_response(*args, **kwargs):
     from dallinger.experiment_server.utils import (
         error_response as dallinger_error_response,
@@ -853,8 +860,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             # get the launch data from the command-line invocation.
             export_launch_data(
                 self.var.deployment_id,
-                dashboard_user=config.get("dashboard_user"),
-                dashboard_password=config.get("dashboard_password"),
+                **_get_dashboard_credentials(config),
             )
         self.load_deployment_config()
         self.asset_storage.on_every_launch()
