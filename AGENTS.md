@@ -218,6 +218,19 @@ Keep the description concise, but include enough context for a reviewer to
 understand the original motivation, the implemented approach, the user-facing
 impact, and the evidence that the change works.
 
+## CLI development
+
+Use Click for new and refactored command-line interfaces, following the
+project's existing command patterns.
+
+## Simplification and refactoring
+
+When a change seems to require adding substantial new code, pause to consider
+whether package functionality or behavior can be simplified instead. Prefer
+solutions that avoid unnecessary code growth, remove obsolete code, or reuse
+existing abstractions, and call out promising refactoring opportunities to the
+user when they are relevant.
+
 ## Testing
 
 Non-trivial code changes should be tested.
@@ -250,7 +263,7 @@ When you make changes to the PsyNet codebase:
    psynet dev changelog new <category> "<short description>"
    ```
 
-   `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The helper writes a fragment `changelog.d/<YYYYMMDD>-<slug>.<category>.md` containing your description as a stub, which you then edit to the final entry (e.g. `Added support for X.`). Do not include author or reviewer metadata in changelog fragments. End each entry with a period. The date prefix keeps fragments roughly chronological and the slug makes them descriptive at a glance; same-day collisions are caught by the helper, in which case use a more specific description. Each entry should summarize the overall user-facing change rather than the incremental process of building it.
+   `<category>` is one of `breaking`, `added`, `changed`, `deprecated`, `removed`, `fixed`, `updated`, or `documentation`. The helper writes a fragment `changelog.d/<YYYYMMDD>-<slug>.<category>.md` containing your description as a stub, which you then edit to the final entry (e.g. `Added support for X.`). Do not include author or reviewer metadata in changelog fragments. End each entry with a period. The date prefix keeps fragments roughly chronological and the slug makes them descriptive at a glance; same-day collisions are caught by the helper, in which case use a more specific description. Each entry should summarize the overall user-facing change rather than the incremental process of building it. Do not describe undoing, reverting, or revising content that was created earlier in the same merge request; describe only the final result that the merge request delivers.
 
    Do **not** commit a regenerated `CHANGELOG.md` from your MR — `CHANGELOG.md` is a generated artifact, rebuilt by the maintainer at release time. Committing fragments only avoids merge conflicts on `CHANGELOG.md` between MRs. Run `psynet dev changelog preview` locally from a PsyNet source checkout if you want to preview how the fragments will render; it prints the preview to stdout and leaves `CHANGELOG.md` unchanged. Maintainers cut a release from a PsyNet source checkout with `psynet dev changelog release <version> <date>`, which consumes fragments and inserts a versioned section. Alpha versions do not get changelog release sections. Stable releases consume matching beta/release-candidate sections plus any remaining fragments.
 
