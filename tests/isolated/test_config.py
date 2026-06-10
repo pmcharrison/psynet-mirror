@@ -5,7 +5,6 @@ from psynet.experiment import _get_dashboard_credentials, get_experiment
 from psynet.pytest_psynet import path_to_test_experiment
 from psynet.utils import get_from_config
 
-
 _NO_DEFAULT = object()
 
 
