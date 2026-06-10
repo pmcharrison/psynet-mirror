@@ -25,7 +25,7 @@ class SerializeRoundtrip:
     timeout = 120
 
     # Explicit benchmark version; see
-    # ``experiment_performance._BaseExperiment``. Bump this integer when a
+    # ``slow.experiment_performance._BaseExperiment``. Bump this integer when a
     # benchmark change makes new results incomparable to old ones.
     version = 1
 
