@@ -143,7 +143,7 @@ INITIAL_RECRUITMENT_SIZE = 1
 def _get_dashboard_credentials(config):
     return {
         "dashboard_user": config.get("dashboard_user", "admin"),
-        "dashboard_password": config.get("dashboard_password"),
+        "dashboard_password": config.get("dashboard_password", None),
     }
 
 
