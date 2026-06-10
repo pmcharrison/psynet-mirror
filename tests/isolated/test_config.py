@@ -59,10 +59,12 @@ def test_prolific_screen_out_is_no_longer_supported(in_experiment_directory):
         config.set("prolific_enable_screen_out", True)
 
 
-def test_dashboard_credentials_allow_missing_config_values():
-    assert _get_dashboard_credentials(_StrictConfig({})) == {
+def test_dashboard_credentials_allow_missing_user():
+    assert _get_dashboard_credentials(
+        _StrictConfig({"dashboard_password": "generated-password"})
+    ) == {
         "dashboard_user": "admin",
-        "dashboard_password": None,
+        "dashboard_password": "generated-password",
     }
 
 
@@ -78,3 +80,8 @@ def test_dashboard_credentials_preserve_config_values():
         "dashboard_user": "experimenter",
         "dashboard_password": "secret",
     }
+
+
+def test_dashboard_credentials_require_generated_password():
+    with pytest.raises(KeyError):
+        _get_dashboard_credentials(_StrictConfig({}))
