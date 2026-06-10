@@ -88,7 +88,7 @@ will be deployed:
 
    .. code:: bash
 
-      psynet test --n-bots 3 --parallel
+      psynet test local --n-bots 3 --parallel
 
 3. Run a shortened pilot with colleagues or collaborators using
    ``hotair`` recruitment. Provision a server and launch a remote debug
