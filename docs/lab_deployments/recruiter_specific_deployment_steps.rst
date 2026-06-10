@@ -1,8 +1,8 @@
 Recruiter-Specific Deployment Steps
 ===================================
 
-🔹 Prolific
------------
+Prolific
+--------
 
 Setting up the experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -16,47 +16,41 @@ recommendation).
 
 .. code:: python
 
-   "wage_per_hour": 9
+   config = {
+       "wage_per_hour": 9,
+   }
 
 2. Run psynet estimate in the terminal and note your estimated
 experiment duration and cost. You should include the cost and the
-duration in your experiment’s title Also, say people need Chrome and
+duration in your experiment’s title. Also, say people need Chrome and
 optionally headphones and microphones if needed.
 
-3. In the get_prolific_settings() <#experiment-script>`__
-function, specify the duration using the
-"prolific_estimated_completion_minutes" parameter and the cost using the
-"base_payment" parameter.
+3. In the ``get_prolific_settings()`` function, specify the duration
+   using the ``prolific_estimated_completion_minutes`` parameter and
+   the cost using the ``base_payment`` parameter.
 
- 
+- For example, when you run ``psynet estimate``, you will get a result
+  like this:
 
-- For example, when you run psynet estimate, you will get a result like
-  this one:
+.. code:: text
 
-❯❯ Estimated maximum reward for participant: EUR4.95.
-
-❯❯ Estimated time to complete experiment: 33 min.
+ Estimated maximum reward for participant: EUR4.95.
+ Estimated time to complete experiment: 33 min.
 
 - In this case, the prolific parameters must be as follows:
 
 .. code:: python
 
-   "base_payment": 4.95
-   "prolific_estimated_completion_minutes": 33
+   config = {
+       "base_payment": 4.95,
+       "prolific_estimated_completion_minutes": 33,
+   }
 
-4. After calculating the base payment, you **MUST** set the
-**“wage_per_hour”** parameter to 0 for the actual Prolific deployment.
-Otherwise, it would cause problems in the payment.
+4. Make sure all ``time_estimate`` values are set appropriately so
+that the overall duration from ``psynet estimate`` matches your
+expectation.
 
-.. code:: python
-
-   "wage_per_hour": 0
-
-5. Make sure all time_estimates are set appropriately such that
-the overall duration of your experiment (you get it from psynet
-estimate) matches your expectation.
-
-6. Check that the experiment costs are right:
+5. Check that the experiment costs are right:
 
 -  Use your own data (and possibly but not mandatory the group
    data) to estimate how long it takes for each trial, pre-screeners,
@@ -71,35 +65,6 @@ estimate) matches your expectation.
 
 
 
-
-Example of adapting the consent form to say 9 pounds per hour
-while wage_per_hour in config is set to 0:
-\*
-customconsent.py <https://gitlab.com/computational-audition-lab/octa_projects-elinevg/octa_gibbs1/-/blob/main/customconsent.py?ref_type=heads>`__`
-
-\*
-templates/custom_main_consent.html <https://gitlab.com/computational-audition-lab/octa_projects-elinevg/octa_gibbs1/-/blob/main/templates/custom_main_consent.html?ref_type=heads>`__`
-
-Payment strategy
-^^^^^^^^^^^^^^^^
-
-Nori- write this down.
-
--  Experiments with minimal pre-screening (e.g static experiments)
-
--  Experiments that needs some pre-screening (e.g GSP and chain
-   experiments) 25% Traffic -> this is a classical use case to
-   explicitly test; if you get 10 people, ~7-8 people should pass
-
--  Experiments with “technical” pre-screening.
-
--  Experiments with high percentage of filtered people (more 25% and
-   particularly more than 50%). → separate experiment for prescreener
-   and then whitelist participants who succeed prescreen experiment
-
-.. _section-7:
-
-.. _section-8:
 
 Experiment script
 ^^^^^^^^^^^^^^^^^
@@ -120,8 +85,8 @@ Add config params under class Exp(psynet.experiment.Experiment):
            "place WITHOUT headphones. You will be asked to imitate rhythms. "
            "The task will take about 15 minutes."
        ),
-       "contact_email_on_error": "computational.audition@gmail.com",
-       "organization_name": "Max Planck Institute for Empirical Aesthetics",
+       "contact_email_on_error": "<your-lab-contact-email>",
+       "organization_name": "<your-institution>",
        "show_reward": False,
    }
 
@@ -151,15 +116,18 @@ using browser add-ons. If you don’t care about this display issue you
 can set this to False.
 
 This forces people to use an incognito browser, which helps against the
-red screen error. For an overview of all options, see
-https://psynetdev.gitlab.io/PsyNet/experiment_development/configuration.html
+red screen error. For an overview of all options, see the
+:doc:`configuration reference <../experiment_development/configuration>`.
 
 Then, you will need to add the function get_prolific_settings() to set
 up config parameters specifically pertaining to Prolific. Add this
-function at the top of your project (you can find
-qualification_prolific.json in the CAP-safe):
+function at the top of your project. Your lab administrator should
+provide the Prolific qualification JSON file:
 
 .. code:: python
+
+   import json
+
 
    def get_prolific_settings():
        with open("qualification_prolific_en.json", "r") as f:
@@ -167,20 +135,13 @@ qualification_prolific.json in the CAP-safe):
 
        return {
            "recruiter": "prolific",
-           "base_payment": <base payment in currency>,  # based on survey minutes
-           "prolific_estimated_completion_minutes": <estimated completion time>,
+           "base_payment": 4.95,  # based on survey minutes
+           "prolific_estimated_completion_minutes": 33,
            "prolific_recruitment_config": qualification,
            "auto_recruit": False,
            "currency": "£",
-           "wage_per_hour": 0,  # use base payment only
        }
 
-.. note::
-
-   For the time being, until we change PsyNet, you need to use
-   ``wage_per_hour = 0``. This overrides the bonus payment system.
-   Currently, variable payment is not allowed in Prolific, so everything
-   is paid as base payment.
 
 -  **Make sure your payment is in line with the estimated completion
    time**; Prolific requires a *minimum of £6 per hour*, based on the
@@ -190,19 +151,12 @@ qualification_prolific.json in the CAP-safe):
    deploy and checking their median completion time. Keep an eye on this
    while running the experiment with participants!
 
--  **Do NOT set a value for the ‘id’ parameter in the config**. We do
-   not set it to a meaningful name through the config parameters because
-   it is shown to participants on the first page of the experiment (in
-   the left top corner after ‘Application ID’). If you do not set an
-   ‘id’ parameter in config, PsyNet will generate a random hash string
-   as ID. In Prolific this ID will show as the internal name of the
-   experiment.
 
 Prolific qualifications
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Add the qualification_prolific_en.json file to your experiment folder
-(You can find it in the cap-safe). This currently specifies
+Your lab administrator should provide this file. It currently specifies
 qualifications for collecting data from **English speaking participants
 in the UK**. This file will also specify important parameters for
 Prolific, such as country of recruitment, participant demographics, etc.
@@ -215,7 +169,7 @@ Prolific, such as country of recruitment, participant demographics, etc.
 Deployment
 ~~~~~~~~~~
 
-**IMPORTANT NOTE:** In **PsyNet 11.9.0** you should add
+**IMPORTANT NOTE:** In **PsyNet 11.9.0** or higher you should add
 following settings to .dallingerconfig:
 
 [Prolific]
@@ -230,7 +184,7 @@ prolific_project = <YOUR_PROJECT_FOLDER>
    :width: 8.5in
 
 -  You should create a project folder for your experiments. Please use
-      your own name. For example: ‘Elif Experiments’
+   your own name. For example: ``Your Name Experiments``.
 
 .. image:: /_static/images/lab_deployments/image13.png
    :width: 8.5in
@@ -242,10 +196,10 @@ Prolific: check & adapt study details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before participants can take part in your experiment, you will have to
-confirm some settings on Prolific first. For that go to
-`prolific.com <https://www.prolific.com/>`__ and login to the group's
-account. You can find the credential in the
-`cap-safe <https://gitlab.com/computational-audition-lab/cap-safe>`__.
+confirm some settings on Prolific first. Go to
+`prolific.com <https://www.prolific.com/>`__ and log in to your lab's
+Prolific account. Your lab administrator should provide you with login
+credentials.
 
 In the “Draft” tab of the “Projects” folder you will find your
 experiment:
@@ -253,8 +207,7 @@ experiment:
 .. image:: /_static/images/lab_deployments/image14.png
    :width: 8.5in
 
-Click on the ‘ACTION’ button and next on the ‘Move’ button to move the
-experiment to your personal experiment folder.
+Your deployed experiment will be found as a draft in the prolific_project you specified.
 
 Then click on the name of your experiment. This will lead you to a page
 where you can check and adjust some of your experiment parameters. Make
@@ -263,7 +216,7 @@ payment parameters! Also check whether the formatting of the description
 is as intended.
 
 Here, you should set the internal name to “<your name> -
-<keyword/phrase>” (e.g. “ofer - coin game”). This is not visible to
+<keyword/phrase>” (e.g. “your-name - short-experiment-name”). This is not visible to
 participants. This will help us identify who each study belongs to,
 especially when sorting through messages from participants.
 
@@ -279,10 +232,8 @@ the recruitment size to the total number of participants you are looking
 to recruit (plus a few more to be safe, if you have a prescreener) and
 scrolling down to the “Study Cost” section and finding the total. This
 includes the Prolific service fee. **Check whether there is enough
-unclaimed money in the Prolific account (if not, contact Nori about
-this). Once there is enough unclaimed money, post the estimate to the
-#prolific_experiment_claims channel** on Slack, and **set your
-recruitment size back to your initial recruitment size**.
+unclaimed money in the Prolific account. If not, contact the responsible person about
+this.**
 
 .. image:: /_static/images/lab_deployments/image52.png
    :width: 8.5in
@@ -325,10 +276,9 @@ places”.
 .. image:: /_static/images/lab_deployments/image35.png
    :width: 8.5in
 
-The number you set here is the number of the total number of
-participants for your experiment. I.e., if you have already 5
-participants and you want to get 5 additional participants, this number
-has to be 10. Make sure that you do not have too many participants
+The number you set here is the additional number of participants you wish to add to your experiment.
+For example, if you already have 5 participants and want to recruit 5 more, you should enter 5.
+Make sure that you do not have too many participants
 taking your experiment at once, because this could overload the server
 and cause errors and slow-downs.
 
@@ -341,8 +291,6 @@ the prolific dashboard) does not go under the minimum of £6 per hour.
 Auto-recruit is a functionality in psynet that automatically increases
 places in your experiment. You can change this parameter from the
 experiment dashboard:
-
-.. _section-9:
 
 |image5|
 
@@ -368,8 +316,6 @@ make sure to consider following points:
 -  **Really make sure that auto-recruit is off, when stopping the
    experiment. Clicking on “stop” in the prolific dashboard is not
    enough.**
-
-.. _section-10:
 
 Messages in Prolific
 ^^^^^^^^^^^^^^^^^^^^
@@ -424,8 +370,8 @@ Termination
 
 -  Put experiment in your folder on Prolific.
 
-🔹 CINT (Lucid)
----------------
+CINT (Lucid)
+------------
 
 .. _setting-up-the-experiment-1:
 
@@ -486,8 +432,8 @@ S3Storage or a LocalStorage.
            "auto_recruit": False,
            "wage_per_hour": 6.5,  # set to minimum wage of target country
            "title": "Put your experiment title here (Chrome browser, ~XX mins)",
-           "contact_email_on_error": "computational.audition+online_running@gmail.com",
-           "organization_name": "Max Planck Institute for Empirical Aesthetics",
+           "contact_email_on_error": "<your-lab-contact-email>",
+           "organization_name": "<your-institution>",
        }
 
 CINT Recruiter Settings 
@@ -530,6 +476,8 @@ Set the following parameters:
 
 .. code:: python
 
+   from psynet.recruiters import get_lucid_settings
+
    recruiter_settings = get_lucid_settings(
        lucid_recruitment_config_path=LUCID_CONFIG_PATH,
        termination_time_in_s=120 * 60,
@@ -544,23 +492,7 @@ Set the following parameters:
 CINT Consent
 ^^^^^^^^^^^^
 
-You need to use CINT (Lucid) consent while deploying to CINT.
-
-1) Import it from psynet.consent
-
-.. code:: python
-
-   from psynet.consent import LucidConsent
-
-2) Define the consent parameter in your experiment.py
-
-.. code:: python
-
-   consent = LucidConsent
-
-3) Make sure to add consent() function to your timeline. (Please
-   note that additional audiovisual consent may be needed depending on
-   your experiment.)
+Please ensure that you use the correct consent for the CINT platform. Please advise if you are unsure.
 
 CINT Qualifications
 ^^^^^^^^^^^^^^^^^^^
@@ -568,32 +500,24 @@ CINT Qualifications
 Setting Qualifications Automatically
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-CINT has a standard qualification library and you can create custom
-qualifications.
 
-Currently, we have the following custom qualifications:
+CINT provides a standard qualification library and also supports custom qualifications.
+However, custom qualifications are specific to each CINT account and may not be available across deployments.
+Check your lab's internal deployment documentation for any account-specific custom qualifications.
 
--  [\`\ `TIMEOUT <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=187e22aa-8a67-45c9-8a7c-481eeeaddfb0>`__\ \`]:
-   warning participants they can't leave the page as they might be
-   kicked out otherwise (set automatically)
+Standard CINT Qualifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  [\`\ `MONOLINGUALISM <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=08a162fe-4c14-48c7-b850-1d09f95527a1>`__\ \`]:
-   asking participants if they are monolingual
+These qualifications are available for all accounts. Example:
 
--  [\`\ `HAS_AUDIO <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=25434891-030a-405a-9616-e43961d674fa>`__\ \`]:
-   asking participants if they can play audio
+- **HAS_AUDIO**
+  Checks whether participants are able to play audio during the experiment.
 
--  [\`\ `ALLOW_VOICE_RECORDING <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=9242d802-f6d6-4786-8049-50490dcd5179>`__\ \`]:
-   asking participants if they can record their voice
 
--  [\`\ `BORN_IN_COUNTRY <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=2a6d41c7-c38c-4a69-ad12-2cca5074d98f>`__\ \`]:
-   asking participants if they were born in the country
+-----------------------------------
 
--  [\`\ `HAS_NATIONALITY <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=f91c6b4f-7167-4e30-95ab-9efb408f0537>`__\ \`]:
-   asking participants
-
--  [\`\ `IS_NATIVE <https://www.samplicio.us/fulcrum/QuestionDetails.aspx?QuestionSID=c0833d98-be26-46df-8e01-1abbb740cda6>`__\ \`]:
-   asking participants if they are native speakers
+Working with Languages and Countries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are a variety of languages and countries available on CINT with
 specific tags. You can get a list of all the available language (3
@@ -604,10 +528,18 @@ following code in your terminal:
 
    psynet lucid locale
 
+-----------------------------------
+
+Creating Qualification Configs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 After getting the desired locales, you can generate qualifications
-specific to each country by using a custom create_qualifications.py.
-Please find an example code below that you can adjust and add to your
-create_qualifications.py.
+specific to each country by using a custom code.
+
+This step will create a JSON file, which is necessary during deployment
+for setting up CINT qualifications for your experiment.
+
+Please find an example code below that you can adjust and create a qualifications JSON file:
 
 .. code:: python
 
@@ -618,101 +550,43 @@ create_qualifications.py.
 
    for language_tag, country_tag in tqdm(country_language_tags):
        config_path = f"qualifications/lucid/lucid-{language_tag}-{country_tag}.json"
+
        create_lucid_recruitment_config(
            language_tag=language_tag,
            country_tag=country_tag,
            question_answer_dict={
-               "MONOLINGUALISM": ["I was raised with my native language only"],
                "HAS_AUDIO": ["Yes"],
-               "ALLOW_VOICE_RECORDING": ["Yes"],
-               "BORN_IN_COUNTRY": ["Yes"],
-               "HAS_NATIONALITY": ["Yes"],
-               "IS_NATIVE": ["Yes"],
            },
            config_path=config_path,
            debug=True,
        )
 
-Extending the qualification to new languages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You need to specify the language, country, and the path
+to the generated JSON configuration. This path is then used in
+``experiment.py`` to load the correct qualification setup during runtime.
 
-You can expand an existing qualification for a new language. Go to the
-qualification page and add the question and the options. Make sure that
-the options are in the same order as in the original. It is recommended
-to use the English language as a reference so that the options match up.
-
-.. _section-11:
-
-Adding a new qualification
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Go to the [`qualification overview
-page <https://www.samplicio.us/fulcrum/Questions.aspx>`__] and click the
-button "Add Qualification". Now set the Qualification Name. It is
-recommended to use only capital letters and underscores
-(e.g.`HAS_AUDIO\`). For the Qualification Type, select "Conditional List
-– Single Punch". Set Minimum Displayed Conditions and Maximum Displayed
-Conditions to 2. Now click "Save". Move down to "Step 2: Questions".
-Click "Add Question Text". Select the language country pair you want to
-add. Add the question text. Now add the options with line breaks in
-"Mass Upload" and select the right language pair. Click "Save".
-
-It takes some time for CINT to register new custom qualifications. If
-you want to use it in your experiment, go to your qualification page,
-right-click in Chrome on the page, and select "View Page Source". Now
-search for "QuestionID", this field is the ID of the qualification. You
-can now use this ID in your experiment:
+Please find an example below that should be added to your
+``experiment.py``:
 
 .. code:: python
 
-   from psynet.experiment import get_and_load_config
-   from psynet.lucid import get_lucid_service
-   from psynet.lucid.qualifications import create_lucid_recruitment_config
+   LANGUAGE = "DUT"
+   COUNTRY = "NL"
+   LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
 
-   language_tag = "DUT"
-   country_tag = "NL"
-   config_path = f"qualifications/lucid/lucid-{language_tag}-{country_tag}.json"
+-----------------------------------
 
-   config = get_and_load_config()
-   service = get_lucid_service(config=config)
-   custom_qualifications_dict = {
-       **service.get_qualifications_dict(),
-       "MY_NEW_QUALIFICATION": 200093,  # replace 200093 with actual ID
-   }
-
-   create_lucid_recruitment_config(
-       language_tag=language_tag,
-       country_tag=country_tag,
-       question_answer_dict={
-           "MONOLINGUALISM": ["I was raised with my native language only"],
-           "HAS_AUDIO": ["Yes"],
-           "ALLOW_VOICE_RECORDING": ["Yes"],
-           "BORN_IN_COUNTRY": ["Yes"],
-           "HAS_NATIONALITY": ["Yes"],
-           "IS_NATIVE": ["Yes"],
-       },
-       config_path=config_path,
-       debug=True,
-       config=config,
-       service=service,
-       qualifications_dict=custom_qualifications_dict,
-   )
-
-Front-end confirmation of qualifications
+Front-end Confirmation of Qualifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is recommended to let users confirm the qualifications in the
-front-end. There are multiple reasons for this:
+It is recommended to confirm key qualifications in the experiment frontend.
 
--  First, on the qualification pages, we have strict rules concerning
-   how long they can leave the page. Since the majority of participants
-   leave the experiment on the first page, this is a good way to
-   terminate them here. Also, since this is fairly fast, it will reduce
-   the termination LOI.
+Reasons:
+-  Reduces early participant drop-off due to qualification issues
+-  Ensures participants meet required criteria
+-  Improves data quality and reduces invalid completions
 
--  Second, it is good to double-check the requirements.
-
-To do this, you can use the following code:
+Example implementation:
 
 .. code:: python
 
@@ -733,29 +607,23 @@ To do this, you can use the following code:
            SuccessfulEndPage(),
        )
 
-If you don't want to show all qualifications to the participants or want
-to show them in a different order, you can specify them as an additional
-argument:
+You can optionally restrict which qualifications are shown:
 
 .. code:: python
 
    verify_lucid_qualifications(
        LUCID_CONFIG_PATH,
-       question_names=["TIMEOUT", "MONOLINGUALISM"],
+       question_names=["HAS_AUDIO"],
    )
 
-.. _section-12:
+-----------------------------------
 
 Summary Steps for Setting CINT Qualifications:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1) Access a list of available language and country tags using the
-   command psynet lucid locale.
-
-2) Use the provided Python script to create predefined qualifications
-   (e.g.`HAS_AUDIO\`) specific to each country.
-
-3) Be sure that you have added the following parameters to your
+1. Use ``psynet lucid locale`` to retrieve available language/country tags
+2. Create a JSON qualification file that, for example, includes the ``HAS_AUDIO`` qualification.
+3. Be sure that you have added the following parameters to your
    experiment.py:
 
 .. code:: python
@@ -765,19 +633,8 @@ Summary Steps for Setting CINT Qualifications:
    LOCALE = "nl"  # ISO-2 code for experiment language
    LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
 
-4) Implement front-end confirmation of qualifications to ensure
-   participant adherence to requirements and improve termination
-   efficiency. Optionally, you can specify which qualifications to
-   display and their order using additional arguments in the front-end
-   confirmation code. Adjust and add the following code to your
-   timeline.
+4. Implement front-end verification for participant validation if necessary
 
-.. code:: python
-
-   verify_lucid_qualifications(
-       LUCID_CONFIG_PATH,
-       question_names=["TIMEOUT", "MONOLINGUALISM"],
-   )
 
 .. _deployment-1:
 
@@ -789,8 +646,8 @@ CINT: check & adjust quota
 
 After you deploy, go to `CINT
 marketplace <https://auth.lucidhq.com/u/login/identifier?state=hKFo2SBEOHYxNU9ac25wQ3Y1ajlZSUhJX0gxcnF3eS1jSjFUU6Fur3VuaXZlcnNhbC1sb2dpbqN0aWTZIHBoMGRGTFdKMEoyQU9rRjAtaGtPWHRJMXdwQ2V2M3Zio2NpZNkgdFZ2aUpIUUc2VUV6dkw4Z3hwQVBoNG9jNWg5ajl6Z2o>`__
-and log in to the group's account. You can find the credentials in the
-`cap-safe <https://gitlab.com/computational-audition-lab/cap-safe>`__.
+and log in to your lab's CINT account. Your lab administrator should
+provide you with login credentials.
 
 Also, save and open the link provided in the terminal after successful
 deployment to `monitor <#monitoring-1>`__ the experiment. When you open
@@ -902,8 +759,6 @@ variety of ways to monitor the experiment.
 .. image:: /_static/images/lab_deployments/image56.png
    :width: 8.5in
 
-.. _section-13:
-
 .. _termination-1:
 
 Termination
@@ -934,28 +789,28 @@ You need to add all completed RIDs, **so also those that are already
 marked as completed! Otherwise, already completed participants are
 marked as terminated!**
 
-🔹 Lab Recruiter
-----------------
+Lab Recruiter
+-------------
 
 The Group Manager (usually the experimenter) is responsible for setting
 up and managing participant recruitment through Lab Recruiter. The
 system provides full control over participant selection, experiment
 access, and tracking.
 
-Registering to the CAP Platform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Registering to the Lab Recruiter Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create an Admin account
 ^^^^^^^^^^^^^^^^^^^^^^^
 
--  For now, please contact us at coco-experiments@cornell.edu to
-      have your admin account created in the Lab Recruiter app.
+-  For now, please contact your Lab Recruiter administrator to have your admin
+   account created in the Lab Recruiter app.
 
 Create a Group
 ^^^^^^^^^^^^^^
 
 -  As the Group Manager, go to the Group tab and click **‘New**
-      **Group’** to create a participant group.
+   **Group’** to create a participant group.
 
 .. image:: /_static/images/lab_deployments/image3.png
    :width: 8.5in
@@ -964,11 +819,11 @@ Set an Initial Test
 ~~~~~~~~~~~~~~~~~~~
 
 -  In your group settings, you can enable an "Initial Test Experiment"
-      designed to verify device compatibility—including headphone
-      functionality and audio quality. Participants must complete this
-      test before accessing any actual experiments, ensuring they meet
-      the necessary technical standards. If your experiments have
-      additional requirements, please contact us for further assistance.
+   designed to verify device compatibility—including headphone
+   functionality and audio quality. Participants must complete this
+   test before accessing any actual experiments, ensuring they meet
+   the necessary technical standards. If your experiments have
+   additional requirements, please contact us for further assistance.
 
 .. image:: /_static/images/lab_deployments/image38.png
    :width: 8.5in
@@ -1032,8 +887,8 @@ recruiter as 'lab-recruiter':
            "place WITHOUT headphones. You will be asked to imitate rhythms. "
            "The task will take about 15 minutes."
        ),
-       "contact_email_on_error": "computational.audition@gmail.com",
-       "organization_name": "Max Planck Institute for Empirical Aesthetics",
+       "contact_email_on_error": "<your-lab-contact-email>",
+       "organization_name": "<your-institution>",
        "show_reward": False,
    }
 
@@ -1051,9 +906,8 @@ min.”
 Consent
 ^^^^^^^
 
-You can choose the consent while creating the group. Currently we are
-using ‘Cornell University’. Please contact if you want to create your own consent
-form.
+You can choose the consent while creating the group. Contact your lab
+administrator if you want to create or use a custom consent form.
 
 .. image:: /_static/images/lab_deployments/image1.png
    :width: 8.5in
@@ -1076,25 +930,23 @@ process <deploying.html#actual-deployment>`__.
 -  Here please set the required parameters.
 
    -  **Estimated Duration:** This is the predicted duration of the
-         experiment.
+      experiment.
 
    -  **Maximum Duration:** This is the total time participants are
-         allowed to remain in the experiment before being timed out.
+      allowed to remain in the experiment before being timed out.
 
    -  **Batches:** This specifies the number of times each participant
-         can take part.
+      can take part.
 
    -  **URL:** This is the link provided on the console after deployment
-         (e.g., https://your-app-name.experiments1.cococo-lab.cornell.edu).
+      (e.g., ``https://<app-name>.<your-server-hostname>``)
 
 -  At the bottom of the page move your Group from “Available groups” up
-      into the **‘Groups’** section to make the experiment accessible to
-      all participants in that group.
+   into the **‘Groups’** section to make the experiment accessible to
+   all participants in that group.
 
 .. image:: /_static/images/lab_deployments/image48.png
    :width: 8.5in
-
-.. _section-14:
 
 -  You can also later edit it by click **‘Edit’** on your experiment.
 
@@ -1114,7 +966,7 @@ Invite Participants
 -  Send this link to participants via email.
 
 -  Participants registering with this link will automatically use the
-      Group Manager code for your group.
+   Group Manager code for your group.
 
 .. image:: /_static/images/lab_deployments/image18.png
    :width: 8.5in
@@ -1123,11 +975,11 @@ Send Messages
 ^^^^^^^^^^^^^^
 
 -  Using the messages option, you can send emails to participants in
-      each group. Simply compose your message—such as informing them
-      about a new study—and choose whether to send it to all
-      participants or only specific individuals from the recipients
-      list. The message is then sent from the Lab Recruiter official
-      email account to the selected group.
+   each group. Simply compose your message—such as informing them
+   about a new study—and choose whether to send it to all
+   participants or only specific individuals from the recipients
+   list. The message is then sent from the Lab Recruiter official
+   email account to the selected group.
 
 .. image:: /_static/images/lab_deployments/image21.png
    :width: 8.5in
@@ -1145,7 +997,7 @@ Participant tracking
 ^^^^^^^^^^^^^^^^^^^^
 
 -  Track participant progress in the Participants tab (experiments
-      taken, payment status, etc.).
+   taken, payment status, etc.).
 
 .. image:: /_static/images/lab_deployments/image20.png
    :width: 8.5in
@@ -1154,7 +1006,7 @@ Managing Experiment Tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Reset failed experiments by navigating to ‘Tasks’ and clicking the
-      **‘Reset’** button.
+   **‘Reset’** button.
 
 .. image:: /_static/images/lab_deployments/image39.png
    :width: 8.5in
@@ -1168,18 +1020,18 @@ Experiment Completion
 ^^^^^^^^^^^^^^^^^^^^^
 
 -  Upon completion or failure, experiment status, time tracking, and
-      payment records are updated. Payments are processed externally by
-      the lab team so please **DO NOT** press the ‘\ **Payment Done**\ ’
-      button for the completed participants.
+   payment records are updated. Payments are processed externally by
+   the lab team so please **DO NOT** press the ‘\ **Payment Done**\ ’
+   button for the completed participants.
 
 Terminate the Experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Once you reach the desired number of participants, export your data
-      again and set it to **‘Archive’** on the Lab Recruiter.
+   again and set it to **‘Archive’** on the Lab Recruiter.
 
 -  You also need to delete the experiment from the server. Please see
-      `teardown <teardown.html#teardown>`__.
+   `teardown <teardown.html#teardown>`__.
 
 Lab Recruiter For Participants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1187,7 +1039,7 @@ Lab Recruiter For Participants
 1. Sign Up & Verification
 
    -  Sign up to Lab Recruiter using the unique Group Manager code
-         received via email.
+      received via email.
 
    -  Verify your email to activate your account.
 
@@ -1207,19 +1059,26 @@ Lab Recruiter For Participants
 3. Initial Test Experiment
 
    -  Participants complete an initial test experiment to verify device
-         compatibility:
+      compatibility:
 
       -  Successful participants gain access to real experiments.
 
       -  Unsuccessful participants can retry the test if the experiment
-            resets their attempt.
+         resets their attempt.
 
 4. Experiment Participation
 
    -  Once eligible, participants can take available experiments from
-         the Lab Recruiter platform.
+      the Lab Recruiter platform.
 
 5. Completion & Payment
 
    -  Experiment status is updated automatically, and payment is
-         processed externally by the lab team regularly every two weeks.
+      processed externally by the lab team regularly every two weeks.
+
+.. |image4| image:: /_static/images/lab_deployments/image33.png
+   :width: 8.5in
+.. |image5| image:: /_static/images/lab_deployments/image5.png
+   :width: 8.5in
+.. |image6| image:: /_static/images/lab_deployments/image45.png
+   :width: 8.5in

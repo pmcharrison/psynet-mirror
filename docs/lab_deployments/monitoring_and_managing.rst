@@ -1,88 +1,110 @@
-Monitoring & Managing 
-======================
+Monitoring & Managing
+=====================
 
 Once your experiment is deployed, continuous monitoring is essential to
 ensure smooth data collection, handle participant issues, and optimize
-recruitment. If you cannot do it yourself (e.g., due to time-zone
-issues), you can contact Nori or Elif for help.
+recruitment.
 
-This section provides general guidelines, while recruiter-specific
-details (Prolific, CINT, Lab Recruiter) can be found in their respective
-sections.
+This section provides general guidelines. Recruiter-specific details
+(Prolific, CINT, Lab Recruiter) can be found in their
+:doc:`respective sections <recruiter_specific_deployment_steps>`.
+For the full deployment monitor reference, see
+:doc:`Deployment monitor <../deploy/deployment_monitor>`.
 
-🛑 Using the Dashboard 
-----------------------
+Using the Dashboard
+-------------------
 
 The experiment dashboard is your main tool for tracking and managing the
-study. It is the same for each recruiter. It is printed on the terminal
-after the deployment command (how to find the `dashboard
-link <deploying.html#actual-deployment>`__).
+study. It is the same for each recruiter. The URL is printed in the
+terminal after the deployment command (see
+`Deploying <deploying.html#actual-deployment>`__).
 
-Key Features:
+Key features:
 
 -  **Monitoring Tab:** View networks, nodes, parameters, and participant
-      answers. Click shapes for details.
+   answers. Click shapes for details.
 
 -  **Timeline Tab:** Track participant counts, completions, and
-      failures. Also, see all the modules in your experiment and
-      completion percentages.
+   failures. Also, see all the modules in your experiment and
+   completion percentages.
 
 -  **Database Tab:** View or export data via the Export Tab.
 
-🛑 Monitoring Participants & Data Collection 
---------------------------------------------
+Monitoring Participants & Data Collection
+-----------------------------------------
 
--  Track participant progress (dropouts or errors).
+-  Track participant progress and look for dropouts or errors.
 
 -  Use **Dozzle logs** for real-time debugging. Regularly check for
-      error messages in logs and fix critical issues immediately. (how
-      to find the `dozzle link <provisioning.html#provisioning>`__)
+   error messages in logs and fix critical issues immediately. The
+   Dozzle URL is available at ``logs.<your-subdomain>.<your-domain>``
+   (see `Provisioning <provisioning.html#provisioning>`__).
 
 -  Monitor Prolific/CINT marketplaces for recruiter-specific insights.
 
-🛑 Participant Issues 
----------------------
+Participant Issues
+------------------
 
-Participants might directly contact you in some cases of errors and
-issues.
+Participants may contact you directly when they encounter errors.
 
-Where Participants May Contact You:
+Where participants may contact you:
 
--  **Prolific:** Via the Prolific messaging system.
+-  **Prolific:** Via the Prolific messaging system. Participants can
+   contact you through Prolific messages, so check messages regularly
+   and respond in a timely manner.
 
--  **CINT:** currently not possible.
+-  **CINT:** Currently not possible through the platform.
 
--  **Lab Recruiter:** Emails sent to coco-experiments@cornell.edu.
+-  **Lab Recruiter:** Via email sent to the address configured in your
+   lab's Lab Recruiter setup.
 
-Messages in gmail account 
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Recruitment and Payment Strategies
+------------------------------------
 
-It might also be the case that participants will text you on the group’s
-gmail account computational.audition@gmail.com (you can find the
-credential in cap-safe). It could be that your login has to be verified
-through some further authentication. In that case, contact Nori for
-help. This was an important mode of communication in the past but rarely
-happens now.
+-  Start with a small recruitment batch (5–10 participants) and review
+   data quality before increasing participation. After these initial
+   participants have finished, check that there are no errors and that
+   your time estimate for the experiment is accurate.
 
-When you are done with a message, move the message to the “Done”
-subfolder. Sometimes, you will see emails, which contain bills and are
-not related to your experiment. These mails should be moved to the
-“accounts” subfolder.
-
-🛑 Recruitment and Payment Strategies 
--------------------------------------
-
--  Start with a small recruitment batch (5-10 participants) and review
-      data quality before increasing participation. After all these
-      initial participants have finished the experiment, you should
-      check that you do not get any errors and that your initial time
-      estimate for the experiment is accurate.
-
--  Regularly increase recruitment size manually instead of relying on
-      auto-recruit for the entire study.
+-  Regularly increase recruitment size manually rather than relying on
+   auto-recruit for the entire study.
 
 -  Adjust wage per hour and completion time estimates based on actual
-      participant behavior.
+   participant behavior.
 
 -  If you are using auto-recruit, stop it before reaching the final
-      stages to prevent excess costs.
+   stages to prevent excess costs.
+
+For the canonical payment and recruitment configuration keys, see the
+:doc:`configuration reference <../experiment_development/configuration>`.
+
+Advanced monitoring for large deployments
+-----------------------------------------
+
+Large or parallel deployments need the same basic workflow as a single
+deployment, but with more discipline around monitoring, notes, and
+exports.
+
+- If you need lightweight live checks, implement ``get_basic_data`` in
+  your experiment. This lets you inspect an analysis-friendly view of
+  the data from the dashboard or via the ``/basic_data`` endpoint
+  without running a full export each time. For details, see
+  :doc:`Data <../deploy/data>`.
+
+- Use the deployment monitor when you are running multiple active or
+  recent deployments and need one place to check recruitment status,
+  cost, runtime, server health, errors, participant counts, and quick
+  links to dashboards or exports. For details, see
+  :doc:`Deployment monitor <../deploy/deployment_monitor>`.
+
+- For high-risk or multi-day deployments, configure Slack notifications
+  so errors and recruitment status changes are visible without
+  repeatedly checking every dashboard. Ask your lab administrator which
+  channel and bot token to use, then follow the PsyNet Slack setup
+  instructions: :doc:`Setting up Slack <../tutorials/setting_up_slack>`.
+
+- If your lab maintains scripts for provisioning, deploying, or
+  destroying many experiments at once, treat them as lab-specific
+  helpers. Verify each generated configuration before launch, keep app
+  names and server names traceable, and export/check data early before
+  scaling up recruitment.
