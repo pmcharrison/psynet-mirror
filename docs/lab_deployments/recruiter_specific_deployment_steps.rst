@@ -11,57 +11,57 @@ Experiment costs
 ^^^^^^^^^^^^^^^^
 
 1. To calculate the base payment for your experiment, set the
-“\ **wage_per_hour**\ ” parameter in the config to 9 Pounds (Prolific
-recommendation).
+   “\ **wage_per_hour**\ ” parameter in the config to 9 Pounds
+   (Prolific recommendation).
 
-.. code:: python
+   .. code:: python
 
-   config = {
-       "wage_per_hour": 9,
-   }
+      config = {
+          "wage_per_hour": 9,
+      }
 
 2. Run psynet estimate in the terminal and note your estimated
-experiment duration and cost. You should include the cost and the
-duration in your experiment’s title. Also, say people need Chrome and
-optionally headphones and microphones if needed.
+   experiment duration and cost. You should include the cost and the
+   duration in your experiment’s title. Also, say people need Chrome and
+   optionally headphones and microphones if needed.
 
 3. In the ``get_prolific_settings()`` function, specify the duration
    using the ``prolific_estimated_completion_minutes`` parameter and
    the cost using the ``base_payment`` parameter.
 
-- For example, when you run ``psynet estimate``, you will get a result
-  like this:
+   - For example, when you run ``psynet estimate``, you will get a
+     result like this:
 
-.. code:: text
+     .. code:: text
 
- Estimated maximum reward for participant: EUR4.95.
- Estimated time to complete experiment: 33 min.
+        Estimated maximum reward for participant: EUR4.95.
+        Estimated time to complete experiment: 33 min.
 
-- In this case, the prolific parameters must be as follows:
+   - In this case, the prolific parameters must be as follows:
 
-.. code:: python
+     .. code:: python
 
-   config = {
-       "base_payment": 4.95,
-       "prolific_estimated_completion_minutes": 33,
-   }
+        config = {
+            "base_payment": 4.95,
+            "prolific_estimated_completion_minutes": 33,
+        }
 
 4. Make sure all ``time_estimate`` values are set appropriately so
-that the overall duration from ``psynet estimate`` matches your
-expectation.
+   that the overall duration from ``psynet estimate`` matches your
+   expectation.
 
 5. Check that the experiment costs are right:
 
--  Use your own data (and possibly but not mandatory the group
-   data) to estimate how long it takes for each trial, pre-screeners,
-   and the entire experiment
+   -  Use your own data (and possibly but not mandatory the group
+      data) to estimate how long it takes for each trial, pre-screeners,
+      and the entire experiment
 
--  Start running (if possible) a small number of participants
-   (e.g., 10) and try to see if your time estimate is wrong by more than
-   30% - redeploy.
+   -  Start running (if possible) a small number of participants
+      (e.g., 10) and try to see if your time estimate is wrong by more
+      than 30% - redeploy.
 
--  If you had run the experiment, update the run time based on
-   real data.
+   -  If you had run the experiment, update the run time based on
+      real data.
 
 
 
@@ -383,36 +383,36 @@ Setting up the experiment
 Experiment costs
 ^^^^^^^^^^^^^^^^
 
-1) Adjust the “\ **wage_per_hour**\ ” parameter in the config according
+1. Adjust the “\ **wage_per_hour**\ ” parameter in the config according
    to the minimum wage in the targeted country. A list of minimum wages
    per country can be found at this
    `link <https://docs.google.com/spreadsheets/d/1Yl-eEsLTxFAVyZECZfRQnDlYM8ykY9xlJpnsTpi5oKQ/edit#gid=0>`__.
 
-.. code:: python
+   .. code:: python
 
-   "wage_per_hour": 6.5
+      "wage_per_hour": 6.5
 
-2) Make sure all time_estimates are set appropriately such that the
+2. Make sure all time_estimates are set appropriately such that the
    overall duration of your experiment (you get from psynet estimate)
    matches your expectation.
 
-3) Run psynet estimate in the terminal and note your estimated
+3. Run psynet estimate in the terminal and note your estimated
    experiment duration and cost. **DO NOT indicate the cost in your
    experiment’s title, only the duration. Also, say people need Chrome
    and optionally headphones and microphones if needed**.
 
-4) Check that the experiment costs are right:
+4. Check that the experiment costs are right:
 
--  Use your own data (and possibly but not mandatory the group data) to
-   estimate how long it takes for each trial, pre-screeners, and the
-   entire experiment
+   -  Use your own data (and possibly but not mandatory the group data)
+      to estimate how long it takes for each trial, pre-screeners, and
+      the entire experiment
 
--  Start running (if possible) a small number of participants (e.g., 10)
-   and try to see if your time estimate is wrong by more than 30% -
-   redeploy.
+   -  Start running (if possible) a small number of participants
+      (e.g., 10) and try to see if your time estimate is wrong by more
+      than 30% - redeploy.
 
--  If you had run the experiment, update the run time based on real
-   data.
+   -  If you had run the experiment, update the run time based on real
+      data.
 
 .. _experiment-script-1:
 
@@ -621,19 +621,22 @@ You can optionally restrict which qualifications are shown:
 Summary Steps for Setting CINT Qualifications:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Use ``psynet lucid locale`` to retrieve available language/country tags
-2. Create a JSON qualification file that, for example, includes the ``HAS_AUDIO`` qualification.
+1. Use ``psynet lucid locale`` to retrieve available language/country
+   tags.
+2. Create a JSON qualification file that, for example, includes the
+   ``HAS_AUDIO`` qualification.
 3. Be sure that you have added the following parameters to your
    experiment.py:
 
-.. code:: python
+   .. code:: python
 
-   LANGUAGE = "DUT"  # lucid language code, not ISO language code
-   COUNTRY = "NL"  # lucid country code, not always ISO country code
-   LOCALE = "nl"  # ISO-2 code for experiment language
-   LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
+      LANGUAGE = "DUT"  # lucid language code, not ISO language code
+      COUNTRY = "NL"  # lucid country code, not always ISO country code
+      LOCALE = "nl"  # ISO-2 code for experiment language
+      LUCID_CONFIG_PATH = f"qualifications/lucid/lucid-{LANGUAGE}-{COUNTRY}.json"
 
-4. Implement front-end verification for participant validation if necessary
+4. Implement front-end verification for participant validation if
+   necessary.
 
 
 .. _deployment-1:
@@ -658,38 +661,38 @@ experiment.
 .. image:: /_static/images/lab_deployments/image34.png
    :width: 8.5in
 
-1) **Checking qualifications:** Here, click the “Qualifications” tab to
+1. **Checking qualifications:** Here, click the “Qualifications” tab to
    check if the qualifications are set correctly. This will direct you
    to the official marketplace site.
 
-.. image:: /_static/images/lab_deployments/image30.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image30.png
+      :width: 8.5in
 
-.. image:: /_static/images/lab_deployments/image53.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image53.png
+      :width: 8.5in
 
-2) **Adjusting quota:** To manage the quota settings, go to the ‘Quota’
+2. **Adjusting quota:** To manage the quota settings, go to the ‘Quota’
    tab. This will direct you to the official marketplace site.
 
-.. image:: /_static/images/lab_deployments/image10.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image10.png
+      :width: 8.5in
 
-There are two types of calculations in CINT: completed and prescreens.
-Completes are when a survey fills based on respondents that complete the
-survey. Prescreens are when a survey fills based on respondents that
-complete the Marketplace prescreener. By default, deployments are set to
-'Completes.' However, it's advisable to consider switching to
-'Prescreens' and setting a quota at the outset of your experiment. This
-proactive measure helps prevent server overload, especially during
-periods of high participant influx, which could otherwise lead to
-experiment crashes. To implement this, navigate to the 'CALCULATION
-TYPE' and switch to 'Prescreens.' Begin by setting a modest quota, such
-as 10, then gradually adjust it based on experiment progression and
-participant traffic. You can change it back to ‘Completes’ if the
-experiment pace slows down.
+   There are two types of calculations in CINT: completed and
+   prescreens. Completes are when a survey fills based on respondents
+   that complete the survey. Prescreens are when a survey fills based on
+   respondents that complete the Marketplace prescreener. By default,
+   deployments are set to 'Completes.' However, it's advisable to
+   consider switching to 'Prescreens' and setting a quota at the outset
+   of your experiment. This proactive measure helps prevent server
+   overload, especially during periods of high participant influx, which
+   could otherwise lead to experiment crashes. To implement this,
+   navigate to the 'CALCULATION TYPE' and switch to 'Prescreens.' Begin
+   by setting a modest quota, such as 10, then gradually adjust it based
+   on experiment progression and participant traffic. You can change it
+   back to ‘Completes’ if the experiment pace slows down.
 
-.. image:: /_static/images/lab_deployments/image6.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image6.png
+      :width: 8.5in
 
 .. _monitoring-1:
 
@@ -703,61 +706,63 @@ variety of ways to monitor the experiment.
    It is important to inspect ‘Termination reasons’ as it might reveal
    if something is wrong with the experiment.
 
-.. image:: /_static/images/lab_deployments/image46.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image46.png
+      :width: 8.5in
 
 2. Check the vital metrics of the experiment. Note that they are usually
    not optimized at the beginning of the experiment so you need to wait
    a little to see the realistic results:
 
--  **Conversion rate** gives the percentage of respondents who complete
-   the study after exiting the Marketplace prescreener. To increase the
-   conversion rate you can build quotas into the Marketplace to avoid
-   client side over quotas. It should be higher than 10%.
+   -  **Conversion rate** gives the percentage of respondents who
+      complete the study after exiting the Marketplace prescreener. To
+      increase the conversion rate you can build quotas into the
+      Marketplace to avoid client side over quotas. It should be higher
+      than 10%.
 
--  **Dropoff rate** gives the percentage of respondents who passed the
-   qualifications but did not return to the Marketplace. This should be
-   less than 20%. If this is high you should look for possible setup
-   errors i.e. routing, images/videos are displayed correctly
+   -  **Dropoff rate** gives the percentage of respondents who passed
+      the qualifications but did not return to the Marketplace. This
+      should be less than 20%. If this is high you should look for
+      possible setup errors i.e. routing, images/videos are displayed
+      correctly
 
--  **Incidence rate** gives the percentage of respondents that will
-   qualify for the study after qualification targeting. It is set to 66%
-   by default on psynet lucid setting. You should aim for as high a
-   number as possible. However, you can change it to a lower value if
-   necessary. Use the bid_incidence parameter in the
-   get_lucid_settings() to change it.
+   -  **Incidence rate** gives the percentage of respondents that will
+      qualify for the study after qualification targeting. It is set to
+      66% by default on psynet lucid setting. You should aim for as high
+      a number as possible. However, you can change it to a lower value
+      if necessary. Use the bid_incidence parameter in the
+      get_lucid_settings() to change it.
 
--  **EPC (Earnings Per Click)** measures the gross dollar amount a
-   supplier can expect for each respondent they send into a survey,
-   indicating whether the survey is appropriately priced. EPCs of $0.20
-   - $0.30 are considered healthy, whereas EPCs below $0.15 will
-   struggle to attract supplier traffic. Find more information
-   `here <https://support.lucidhq.com/s/article/EPC-FAQ>`__.
+   -  **EPC (Earnings Per Click)** measures the gross dollar amount a
+      supplier can expect for each respondent they send into a survey,
+      indicating whether the survey is appropriately priced. EPCs of
+      $0.20 - $0.30 are considered healthy, whereas EPCs below $0.15
+      will struggle to attract supplier traffic. Find more information
+      `here <https://support.lucidhq.com/s/article/EPC-FAQ>`__.
 
-.. image:: /_static/images/lab_deployments/image49.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image49.png
+      :width: 8.5in
 
 3. Check how many participants enter the survey overtime on the
    ‘Respondents’ graph. If it is dying out, you may need to adjust the
    quota.
 
-.. image:: /_static/images/lab_deployments/image11.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image11.png
+      :width: 8.5in
 
 4. Monitor participant status across survey pages by clicking on bars to
    access participant IDs and termination reasons. It is typical to have
    a high termination rate at the early stage of the experiment.
 
-.. image:: /_static/images/lab_deployments/image4.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image4.png
+      :width: 8.5in
 
 5. Check completion LOI and termination LOI. The completion LOI should
    match your time estimate. Termination LOI should be low as much as
    possible. If it is higher than expected you should inspect for
    possible errors in your experiment.
 
-.. image:: /_static/images/lab_deployments/image56.png
-   :width: 8.5in
+   .. image:: /_static/images/lab_deployments/image56.png
+      :width: 8.5in
 
 .. _termination-1:
 
@@ -838,32 +843,32 @@ Setting up the experiment
 Experiment costs
 ^^^^^^^^^^^^^^^^
 
-1) We typically pay 15 Euros per hour. So adjust the
-      “\ **wage_per_hour**\ ” parameter in the config accordingly.
+1. We typically pay 15 Euros per hour. So adjust the
+   “\ **wage_per_hour**\ ” parameter in the config accordingly.
 
-.. code:: python
+   .. code:: python
 
-   "wage_per_hour": 15
+      "wage_per_hour": 15
 
-2) Make sure all time_estimates are set appropriately such that the
-      overall duration of your experiment (you get from psynet estimate)
-      matches your expectation.
+2. Make sure all time_estimates are set appropriately such that the
+   overall duration of your experiment (you get from psynet estimate)
+   matches your expectation.
 
-3) Run psynet estimate in the terminal and note your estimated
-      experiment duration and cost.
+3. Run psynet estimate in the terminal and note your estimated
+   experiment duration and cost.
 
-4) Check that the experiment costs are right:
+4. Check that the experiment costs are right:
 
--  Use your own data (and possibly but not mandatory the group data) to
-   estimate how long it takes for each trial, pre-screeners, and the
-   entire experiment
+   -  Use your own data (and possibly but not mandatory the group data)
+      to estimate how long it takes for each trial, pre-screeners, and
+      the entire experiment
 
--  Start running (if possible) a small number of participants (e.g., 10)
-   and try to see if your time estimate is wrong by more than 30% -
-   redeploy.
+   -  Start running (if possible) a small number of participants
+      (e.g., 10) and try to see if your time estimate is wrong by more
+      than 30% - redeploy.
 
--  If you had run the experiment, update the run time based on real
-   data.
+   -  If you had run the experiment, update the run time based on real
+      data.
 
 .. _experiment-script-2:
 
