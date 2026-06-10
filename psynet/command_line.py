@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import zipfile
 from contextlib import contextmanager
 from hashlib import md5
@@ -819,6 +820,30 @@ def _debug_auto_reload(ctx, archive, no_browsers):
         reset_console()
 
 
+def _load_runtime_server_config(config=None):
+    config = config or get_config()
+    if not config.ready:
+        config.load()
+
+    # The debug server runs from Dallinger's generated development directory,
+    # whose config.txt includes runtime values such as dashboard credentials.
+    server_working_directory = redis_vars.get("server_working_directory")
+    if server_working_directory:
+        config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+
+    return config
+
+
+def _launch_app_and_open_browser_with_runtime_config(port):
+    develop_module = importlib.import_module("dallinger.command_line.develop")
+
+    develop_module._launch_app(port)
+    _load_runtime_server_config()
+    develop_module._async_browser("dashboard", port)
+    time.sleep(0.1)
+    develop_module._async_browser("ad", port)
+
+
 def patch_dallinger_develop():
     from dallinger.deployment import DevelopmentDeployment
 
@@ -840,6 +865,13 @@ def patch_dallinger_develop():
 
         DevelopmentDeployment.run = new_run
         DevelopmentDeployment.patched = True
+
+    develop_module = importlib.import_module("dallinger.command_line.develop")
+    if not getattr(develop_module, "psynet_runtime_config_patched", False):
+        develop_module.launch_app_and_open_browser = (
+            _launch_app_and_open_browser_with_runtime_config
+        )
+        develop_module.psynet_runtime_config_patched = True
 
 
 patch_dallinger_develop()
@@ -3609,16 +3641,7 @@ def _run_performance_test_with_new_server(
     server_info = _start_local_server_and_wait_for_ready(debug=debug)
 
     try:
-        config = get_config()
-        if not config.ready:
-            config.load()
-
-        # Load runtime server config so dashboard credentials and URL settings
-        # match the launched debug instance.
-        server_working_directory = redis_vars.get("server_working_directory")
-        if server_working_directory:
-            config.load_from_file(os.path.join(server_working_directory, "config.txt"))
-
+        _load_runtime_server_config()
         _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )

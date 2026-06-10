@@ -977,12 +977,58 @@ def test_stop_server_gracefully_stops_debug_subprocess():
     kill_workers.assert_called_once()
 
 
+def test_load_runtime_server_config_loads_generated_config():
+    from psynet.command_line import _load_runtime_server_config
+
+    config = Mock()
+    config.ready = True
+
+    with patch(
+        "psynet.command_line.redis_vars.get",
+        return_value="/tmp/dallinger_develop/exp",
+    ):
+        _load_runtime_server_config(config)
+
+    config.load.assert_not_called()
+    config.load_from_file.assert_called_once_with(
+        "/tmp/dallinger_develop/exp/config.txt"
+    )
+
+
+def test_launch_app_and_open_browser_loads_runtime_config_before_dashboard():
+    from psynet.command_line import _launch_app_and_open_browser_with_runtime_config
+
+    calls = []
+
+    with (
+        patch(
+            "dallinger.command_line.develop._launch_app",
+            side_effect=lambda port: calls.append(("launch", port)),
+        ),
+        patch(
+            "psynet.command_line._load_runtime_server_config",
+            side_effect=lambda: calls.append(("load-config", None)),
+        ),
+        patch(
+            "dallinger.command_line.develop._async_browser",
+            side_effect=lambda route, port: calls.append((route, port)),
+        ),
+        patch("psynet.command_line.time.sleep"),
+    ):
+        _launch_app_and_open_browser_with_runtime_config(port=5000)
+
+    assert calls == [
+        ("launch", 5000),
+        ("load-config", None),
+        ("dashboard", 5000),
+        ("ad", 5000),
+    ]
+
+
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
     from psynet.command_line import _run_performance_test_with_new_server
 
     process = Mock()
-    config = Mock()
-    config.ready = True
     server_info = {
         "process": process,
         "tmp_log_path": "/tmp/psynet_server_test.log",
@@ -994,11 +1040,7 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
             "psynet.command_line._start_local_server_and_wait_for_ready",
             return_value=server_info,
         ),
-        patch("psynet.command_line.get_config", return_value=config),
-        patch(
-            "psynet.command_line.redis_vars.get",
-            return_value="/tmp/dallinger_develop/exp",
-        ),
+        patch("psynet.command_line._load_runtime_server_config") as load_runtime_config,
         patch("psynet.command_line._run_performance_test_with_existing_server"),
         patch("psynet.command_line._stop_server"),
     ):
@@ -1006,9 +1048,7 @@ def test_run_performance_test_with_new_server_loads_runtime_server_config():
             n_bots="2", stagger=0.1, time_factor=1.0, duration_minutes=0.5, debug=False
         )
 
-    config.load_from_file.assert_called_once_with(
-        "/tmp/dallinger_develop/exp/config.txt"
-    )
+    load_runtime_config.assert_called_once_with()
 
 
 @pytest.mark.parametrize(
