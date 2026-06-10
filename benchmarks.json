@@ -1,7 +1,52 @@
 {
-    "experiment_performance.Static.track_failure_rate": {
+    "fast.function_benchmarks.SerializeRoundtrip.time_serialize": {
+        "code": "class SerializeRoundtrip:\n    def time_serialize(self, cache):\n        serialize(cache[\"obj\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
+        "min_run_count": 2,
+        "name": "fast.function_benchmarks.SerializeRoundtrip.time_serialize",
+        "number": 0,
+        "param_names": [],
+        "params": [],
+        "repeat": 0,
+        "rounds": 2,
+        "sample_time": 0.01,
+        "setup_cache_key": "fast.function_benchmarks:32",
+        "timeout": 120,
+        "type": "time",
+        "unit": "seconds",
+        "version": "1",
+        "warmup_time": -1
+    },
+    "fast.function_benchmarks.SerializeRoundtrip.time_unserialize": {
+        "code": "class SerializeRoundtrip:\n    def time_unserialize(self, cache):\n        unserialize(cache[\"encoded\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
+        "min_run_count": 2,
+        "name": "fast.function_benchmarks.SerializeRoundtrip.time_unserialize",
+        "number": 0,
+        "param_names": [],
+        "params": [],
+        "repeat": 0,
+        "rounds": 2,
+        "sample_time": 0.01,
+        "setup_cache_key": "fast.function_benchmarks:32",
+        "timeout": 120,
+        "type": "time",
+        "unit": "seconds",
+        "version": "1",
+        "warmup_time": -1
+    },
+    "fast.function_benchmarks.SerializeRoundtrip.track_encoded_size": {
+        "code": "class SerializeRoundtrip:\n    def track_encoded_size(self, cache):\n        return len(cache[\"encoded\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
+        "name": "fast.function_benchmarks.SerializeRoundtrip.track_encoded_size",
+        "param_names": [],
+        "params": [],
+        "setup_cache_key": "fast.function_benchmarks:32",
+        "timeout": 120,
+        "type": "track",
+        "unit": "bytes",
+        "version": "1"
+    },
+    "slow.experiment_performance.Static.track_failure_rate": {
         "code": "class _BaseExperiment:\n    def track_failure_rate(self, data, *param_values):\n        # Percent of bots that failed. The denominator is completed bots\n        # (succeeded + failed). This should not be affected by how many bots a\n        # slow run left incomplete.\n        result = self._result_for(data, *param_values)\n        completed = result[\"bots_succeeded\"] + result[\"bots_failed\"]\n        return 100 * result[\"bots_failed\"] / max(completed, 1)\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Static.track_failure_rate",
+        "name": "slow.experiment_performance.Static.track_failure_rate",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -15,15 +60,15 @@
             ]
         ],
         "pretty_name": "static Failure rate",
-        "setup_cache_key": "experiment_performance:237",
+        "setup_cache_key": "slow.experiment_performance:237",
         "timeout": 1800,
         "type": "track",
         "unit": "%",
         "version": "4"
     },
-    "experiment_performance.Static.track_incomplete_rate": {
+    "slow.experiment_performance.Static.track_incomplete_rate": {
         "code": "class _BaseExperiment:\n    def track_incomplete_rate(self, data, *param_values):\n        # Percent of bots that were started and didn't complete during the\n        # duration. Denominator is total bots started so an increase in bots\n        # launched is not flagged as a regression.\n        result = self._result_for(data, *param_values)\n        return 100 * result[\"bots_incomplete\"] / max(result[\"total_bots_started\"], 1)\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Static.track_incomplete_rate",
+        "name": "slow.experiment_performance.Static.track_incomplete_rate",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -37,15 +82,15 @@
             ]
         ],
         "pretty_name": "static Incomplete rate",
-        "setup_cache_key": "experiment_performance:237",
+        "setup_cache_key": "slow.experiment_performance:237",
         "timeout": 1800,
         "type": "track",
         "unit": "%",
         "version": "4"
     },
-    "experiment_performance.Static.track_ms_per_request": {
+    "slow.experiment_performance.Static.track_ms_per_request": {
         "code": "class _BaseExperiment:\n    def track_ms_per_request(self, data, *param_values):\n        # Inverse of requests/sec: milliseconds of wall-clock per request. A run\n        # that served zero requests is a broken run, not a 0 ms result -- raise\n        # so ASV records the benchmark as failed (which the regression gate\n        # treats as worsened) rather than dividing by zero with a cryptic error.\n        requests_per_sec = self._result_for(data, *param_values)[\"requests_per_sec\"]\n        if not requests_per_sec:\n            raise RuntimeError(\"performance test recorded 0 requests/sec\")\n        return 1000.0 / requests_per_sec\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Static.track_ms_per_request",
+        "name": "slow.experiment_performance.Static.track_ms_per_request",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -59,15 +104,15 @@
             ]
         ],
         "pretty_name": "static Time/request",
-        "setup_cache_key": "experiment_performance:237",
+        "setup_cache_key": "slow.experiment_performance:237",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
         "version": "4"
     },
-    "experiment_performance.Static.track_p95_response_time_ms": {
+    "slow.experiment_performance.Static.track_p95_response_time_ms": {
         "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Static.track_p95_response_time_ms",
+        "name": "slow.experiment_performance.Static.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -81,15 +126,15 @@
             ]
         ],
         "pretty_name": "static P95 Response Time",
-        "setup_cache_key": "experiment_performance:237",
+        "setup_cache_key": "slow.experiment_performance:237",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
         "version": "4"
     },
-    "experiment_performance.Static.track_sec_per_bot": {
+    "slow.experiment_performance.Static.track_sec_per_bot": {
         "code": "class _BaseExperiment:\n    def track_sec_per_bot(self, data, *param_values):\n        # Bot (succeeded or failed) throughput per second. A failed bot\n        # finished within the time budget, so it counts toward throughput.\n        # Incomplete bots are excluded.\n        result = self._result_for(data, *param_values)\n        params = dict(zip(self.param_names, param_values))\n        # 1.0 = psynet performance-test --duration-minutes default, used when\n        # duration is not a swept axis.\n        duration_minutes = params.get(\"duration_minutes\", 1.0)\n        completed = result[\"bots_succeeded\"] + result[\"bots_failed\"]\n        return (duration_minutes * 60.0) / max(completed, 1)\n\nclass Static:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Static.track_sec_per_bot",
+        "name": "slow.experiment_performance.Static.track_sec_per_bot",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -103,15 +148,15 @@
             ]
         ],
         "pretty_name": "static Bot throughput (s/bot)",
-        "setup_cache_key": "experiment_performance:237",
+        "setup_cache_key": "slow.experiment_performance:237",
         "timeout": 1800,
         "type": "track",
         "unit": "s",
         "version": "4"
     },
-    "experiment_performance.StaticBig.track_failure_rate": {
+    "slow.experiment_performance.StaticBig.track_failure_rate": {
         "code": "class _BaseExperiment:\n    def track_failure_rate(self, data, *param_values):\n        # Percent of bots that failed. The denominator is completed bots\n        # (succeeded + failed). This should not be affected by how many bots a\n        # slow run left incomplete.\n        result = self._result_for(data, *param_values)\n        completed = result[\"bots_succeeded\"] + result[\"bots_failed\"]\n        return 100 * result[\"bots_failed\"] / max(completed, 1)\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.StaticBig.track_failure_rate",
+        "name": "slow.experiment_performance.StaticBig.track_failure_rate",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -125,15 +170,15 @@
             ]
         ],
         "pretty_name": "static_big Failure rate",
-        "setup_cache_key": "experiment_performance:248",
+        "setup_cache_key": "slow.experiment_performance:248",
         "timeout": 1800,
         "type": "track",
         "unit": "%",
         "version": "4"
     },
-    "experiment_performance.StaticBig.track_incomplete_rate": {
+    "slow.experiment_performance.StaticBig.track_incomplete_rate": {
         "code": "class _BaseExperiment:\n    def track_incomplete_rate(self, data, *param_values):\n        # Percent of bots that were started and didn't complete during the\n        # duration. Denominator is total bots started so an increase in bots\n        # launched is not flagged as a regression.\n        result = self._result_for(data, *param_values)\n        return 100 * result[\"bots_incomplete\"] / max(result[\"total_bots_started\"], 1)\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.StaticBig.track_incomplete_rate",
+        "name": "slow.experiment_performance.StaticBig.track_incomplete_rate",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -147,15 +192,15 @@
             ]
         ],
         "pretty_name": "static_big Incomplete rate",
-        "setup_cache_key": "experiment_performance:248",
+        "setup_cache_key": "slow.experiment_performance:248",
         "timeout": 1800,
         "type": "track",
         "unit": "%",
         "version": "4"
     },
-    "experiment_performance.StaticBig.track_ms_per_request": {
+    "slow.experiment_performance.StaticBig.track_ms_per_request": {
         "code": "class _BaseExperiment:\n    def track_ms_per_request(self, data, *param_values):\n        # Inverse of requests/sec: milliseconds of wall-clock per request. A run\n        # that served zero requests is a broken run, not a 0 ms result -- raise\n        # so ASV records the benchmark as failed (which the regression gate\n        # treats as worsened) rather than dividing by zero with a cryptic error.\n        requests_per_sec = self._result_for(data, *param_values)[\"requests_per_sec\"]\n        if not requests_per_sec:\n            raise RuntimeError(\"performance test recorded 0 requests/sec\")\n        return 1000.0 / requests_per_sec\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.StaticBig.track_ms_per_request",
+        "name": "slow.experiment_performance.StaticBig.track_ms_per_request",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -169,15 +214,15 @@
             ]
         ],
         "pretty_name": "static_big Time/request",
-        "setup_cache_key": "experiment_performance:248",
+        "setup_cache_key": "slow.experiment_performance:248",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
         "version": "4"
     },
-    "experiment_performance.StaticBig.track_p95_response_time_ms": {
+    "slow.experiment_performance.StaticBig.track_p95_response_time_ms": {
         "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.StaticBig.track_p95_response_time_ms",
+        "name": "slow.experiment_performance.StaticBig.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -191,15 +236,15 @@
             ]
         ],
         "pretty_name": "static_big P95 Response Time",
-        "setup_cache_key": "experiment_performance:248",
+        "setup_cache_key": "slow.experiment_performance:248",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
         "version": "4"
     },
-    "experiment_performance.StaticBig.track_sec_per_bot": {
+    "slow.experiment_performance.StaticBig.track_sec_per_bot": {
         "code": "class _BaseExperiment:\n    def track_sec_per_bot(self, data, *param_values):\n        # Bot (succeeded or failed) throughput per second. A failed bot\n        # finished within the time budget, so it counts toward throughput.\n        # Incomplete bots are excluded.\n        result = self._result_for(data, *param_values)\n        params = dict(zip(self.param_names, param_values))\n        # 1.0 = psynet performance-test --duration-minutes default, used when\n        # duration is not a swept axis.\n        duration_minutes = params.get(\"duration_minutes\", 1.0)\n        completed = result[\"bots_succeeded\"] + result[\"bots_failed\"]\n        return (duration_minutes * 60.0) / max(completed, 1)\n\nclass StaticBig:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.StaticBig.track_sec_per_bot",
+        "name": "slow.experiment_performance.StaticBig.track_sec_per_bot",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -213,15 +258,15 @@
             ]
         ],
         "pretty_name": "static_big Bot throughput (s/bot)",
-        "setup_cache_key": "experiment_performance:248",
+        "setup_cache_key": "slow.experiment_performance:248",
         "timeout": 1800,
         "type": "track",
         "unit": "s",
         "version": "4"
     },
-    "experiment_performance.Timeline.track_failure_rate": {
+    "slow.experiment_performance.Timeline.track_failure_rate": {
         "code": "class _BaseExperiment:\n    def track_failure_rate(self, data, *param_values):\n        # Percent of bots that failed. The denominator is completed bots\n        # (succeeded + failed). This should not be affected by how many bots a\n        # slow run left incomplete.\n        result = self._result_for(data, *param_values)\n        completed = result[\"bots_succeeded\"] + result[\"bots_failed\"]\n        return 100 * result[\"bots_failed\"] / max(completed, 1)\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Timeline.track_failure_rate",
+        "name": "slow.experiment_performance.Timeline.track_failure_rate",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -235,15 +280,15 @@
             ]
         ],
         "pretty_name": "timeline Failure rate",
-        "setup_cache_key": "experiment_performance:227",
+        "setup_cache_key": "slow.experiment_performance:227",
         "timeout": 1800,
         "type": "track",
         "unit": "%",
         "version": "4"
     },
-    "experiment_performance.Timeline.track_incomplete_rate": {
+    "slow.experiment_performance.Timeline.track_incomplete_rate": {
         "code": "class _BaseExperiment:\n    def track_incomplete_rate(self, data, *param_values):\n        # Percent of bots that were started and didn't complete during the\n        # duration. Denominator is total bots started so an increase in bots\n        # launched is not flagged as a regression.\n        result = self._result_for(data, *param_values)\n        return 100 * result[\"bots_incomplete\"] / max(result[\"total_bots_started\"], 1)\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Timeline.track_incomplete_rate",
+        "name": "slow.experiment_performance.Timeline.track_incomplete_rate",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -257,15 +302,15 @@
             ]
         ],
         "pretty_name": "timeline Incomplete rate",
-        "setup_cache_key": "experiment_performance:227",
+        "setup_cache_key": "slow.experiment_performance:227",
         "timeout": 1800,
         "type": "track",
         "unit": "%",
         "version": "4"
     },
-    "experiment_performance.Timeline.track_ms_per_request": {
+    "slow.experiment_performance.Timeline.track_ms_per_request": {
         "code": "class _BaseExperiment:\n    def track_ms_per_request(self, data, *param_values):\n        # Inverse of requests/sec: milliseconds of wall-clock per request. A run\n        # that served zero requests is a broken run, not a 0 ms result -- raise\n        # so ASV records the benchmark as failed (which the regression gate\n        # treats as worsened) rather than dividing by zero with a cryptic error.\n        requests_per_sec = self._result_for(data, *param_values)[\"requests_per_sec\"]\n        if not requests_per_sec:\n            raise RuntimeError(\"performance test recorded 0 requests/sec\")\n        return 1000.0 / requests_per_sec\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Timeline.track_ms_per_request",
+        "name": "slow.experiment_performance.Timeline.track_ms_per_request",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -279,15 +324,15 @@
             ]
         ],
         "pretty_name": "timeline Time/request",
-        "setup_cache_key": "experiment_performance:227",
+        "setup_cache_key": "slow.experiment_performance:227",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
         "version": "4"
     },
-    "experiment_performance.Timeline.track_p95_response_time_ms": {
+    "slow.experiment_performance.Timeline.track_p95_response_time_ms": {
         "code": "class _BaseExperiment:\n    def track_p95_response_time_ms(self, data, *param_values):\n        return self._result_for(data, *param_values)[\"p95_response_time\"] * 1000.0\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Timeline.track_p95_response_time_ms",
+        "name": "slow.experiment_performance.Timeline.track_p95_response_time_ms",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -301,15 +346,15 @@
             ]
         ],
         "pretty_name": "timeline P95 Response Time",
-        "setup_cache_key": "experiment_performance:227",
+        "setup_cache_key": "slow.experiment_performance:227",
         "timeout": 1800,
         "type": "track",
         "unit": "ms",
         "version": "4"
     },
-    "experiment_performance.Timeline.track_sec_per_bot": {
+    "slow.experiment_performance.Timeline.track_sec_per_bot": {
         "code": "class _BaseExperiment:\n    def track_sec_per_bot(self, data, *param_values):\n        # Bot (succeeded or failed) throughput per second. A failed bot\n        # finished within the time budget, so it counts toward throughput.\n        # Incomplete bots are excluded.\n        result = self._result_for(data, *param_values)\n        params = dict(zip(self.param_names, param_values))\n        # 1.0 = psynet performance-test --duration-minutes default, used when\n        # duration is not a swept axis.\n        duration_minutes = params.get(\"duration_minutes\", 1.0)\n        completed = result[\"bots_succeeded\"] + result[\"bots_failed\"]\n        return (duration_minutes * 60.0) / max(completed, 1)\n\nclass Timeline:\n    def setup_cache(self):\n        return super().setup_cache()",
-        "name": "experiment_performance.Timeline.track_sec_per_bot",
+        "name": "slow.experiment_performance.Timeline.track_sec_per_bot",
         "param_names": [
             "n_bots",
             "duration_minutes"
@@ -323,56 +368,11 @@
             ]
         ],
         "pretty_name": "timeline Bot throughput (s/bot)",
-        "setup_cache_key": "experiment_performance:227",
+        "setup_cache_key": "slow.experiment_performance:227",
         "timeout": 1800,
         "type": "track",
         "unit": "s",
         "version": "4"
-    },
-    "function_benchmarks.SerializeRoundtrip.time_serialize": {
-        "code": "class SerializeRoundtrip:\n    def time_serialize(self, cache):\n        serialize(cache[\"obj\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
-        "min_run_count": 2,
-        "name": "function_benchmarks.SerializeRoundtrip.time_serialize",
-        "number": 0,
-        "param_names": [],
-        "params": [],
-        "repeat": 0,
-        "rounds": 2,
-        "sample_time": 0.01,
-        "setup_cache_key": "function_benchmarks:32",
-        "timeout": 120,
-        "type": "time",
-        "unit": "seconds",
-        "version": "1",
-        "warmup_time": -1
-    },
-    "function_benchmarks.SerializeRoundtrip.time_unserialize": {
-        "code": "class SerializeRoundtrip:\n    def time_unserialize(self, cache):\n        unserialize(cache[\"encoded\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
-        "min_run_count": 2,
-        "name": "function_benchmarks.SerializeRoundtrip.time_unserialize",
-        "number": 0,
-        "param_names": [],
-        "params": [],
-        "repeat": 0,
-        "rounds": 2,
-        "sample_time": 0.01,
-        "setup_cache_key": "function_benchmarks:32",
-        "timeout": 120,
-        "type": "time",
-        "unit": "seconds",
-        "version": "1",
-        "warmup_time": -1
-    },
-    "function_benchmarks.SerializeRoundtrip.track_encoded_size": {
-        "code": "class SerializeRoundtrip:\n    def track_encoded_size(self, cache):\n        return len(cache[\"encoded\"])\n\n    def setup_cache(self):\n        obj = _make_payload()\n        return {\"obj\": obj, \"encoded\": serialize(obj)}",
-        "name": "function_benchmarks.SerializeRoundtrip.track_encoded_size",
-        "param_names": [],
-        "params": [],
-        "setup_cache_key": "function_benchmarks:32",
-        "timeout": 120,
-        "type": "track",
-        "unit": "bytes",
-        "version": "1"
     },
     "version": 2
 }
