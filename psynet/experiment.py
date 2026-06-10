@@ -834,11 +834,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def on_every_launch(self):
         # This check is helpful to stop the database from being ingested multiple times
         # if the launch fails the first time
-        deployment_db_ingested = redis_vars.get("deployment_db_ingested", False)
-        if not deployment_db_ingested:
+        if not ExperimentConfig.query.count():
             ingest_zip(database_template_path, db.engine)
-            redis_vars.set("deployment_db_ingested", True)
             assert ExperimentConfig.query.count() > 0
+        redis_vars.set("deployment_db_ingested", True)
 
         self._nodes_on_deploy()
 
@@ -1743,7 +1742,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @property
     def experiment_config(self):
-        self._experiment_config = ExperimentConfig.query.get(1)
+        self._experiment_config = ExperimentConfig.query.order_by(
+            ExperimentConfig.id
+        ).first()
         return self._experiment_config
 
     def register_participant_fail_routine(self, routine):
