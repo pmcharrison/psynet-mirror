@@ -33,6 +33,7 @@ class SerializedCallable:
 
     def __call__(
         self,
+        *,
         participant=NoArgumentProvided,
         experiment=NoArgumentProvided,
         **kwargs,
