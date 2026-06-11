@@ -995,23 +995,42 @@ def test_load_runtime_server_config_loads_generated_config():
     )
 
 
-def test_launch_app_and_open_browser_loads_runtime_config_before_dashboard():
+def test_launch_app_and_open_browser_uses_runtime_dashboard_credentials():
     from psynet.command_line import _launch_app_and_open_browser_with_runtime_config
 
     calls = []
+    config = Mock()
+    config.ready = True
+    config.dashboard_password = None
+
+    def load_from_file(path):
+        calls.append(("load-file", path))
+        config.dashboard_password = "generated-password"
+
+    def get_config_value(key):
+        if key == "dashboard_password" and config.dashboard_password is not None:
+            return config.dashboard_password
+        raise KeyError(key)
+
+    def open_browser(route, port):
+        if route == "dashboard":
+            # Mirrors Dallinger's command-side dashboard URL construction, which
+            # fails unless the generated runtime config has been loaded first.
+            get_config_value("dashboard_password")
+        calls.append((route, port))
+
+    config.load_from_file.side_effect = load_from_file
 
     with (
         patch(
             "dallinger.command_line.develop._launch_app",
             side_effect=lambda port: calls.append(("launch", port)),
         ),
-        patch(
-            "psynet.command_line._load_runtime_server_config",
-            side_effect=lambda: calls.append(("load-config", None)),
-        ),
+        patch("psynet.command_line.get_config", return_value=config),
+        patch("psynet.command_line.redis_vars.get", return_value="/tmp/runtime-exp"),
         patch(
             "dallinger.command_line.develop._async_browser",
-            side_effect=lambda route, port: calls.append((route, port)),
+            side_effect=open_browser,
         ),
         patch("psynet.command_line.time.sleep"),
     ):
@@ -1019,7 +1038,7 @@ def test_launch_app_and_open_browser_loads_runtime_config_before_dashboard():
 
     assert calls == [
         ("launch", 5000),
-        ("load-config", None),
+        ("load-file", "/tmp/runtime-exp/config.txt"),
         ("dashboard", 5000),
         ("ad", 5000),
     ]
