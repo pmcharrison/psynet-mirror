@@ -819,16 +819,27 @@ def _debug_auto_reload(ctx, archive, no_browsers):
         reset_console()
 
 
-def _load_runtime_server_config(config=None):
+def _load_runtime_server_config(config=None, deployment_id=None):
     config = config or get_config()
     if not config.ready:
         config.load()
 
     # The debug server runs from Dallinger's generated development directory,
     # whose config.txt includes runtime values such as dashboard credentials.
-    server_working_directory = redis_vars.get("server_working_directory")
+    server_working_directory = redis_vars.get("server_working_directory", None)
     if server_working_directory:
         config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+        return config
+
+    if deployment_id:
+        launch_info_path = (
+            Path("~/psynet-data/launch-data").expanduser()
+            / deployment_id
+            / "launch-info.json"
+        )
+        if launch_info_path.exists():
+            with open(launch_info_path, encoding="utf-8") as f:
+                config.extend(json.load(f))
 
     return config
 
@@ -2277,7 +2288,7 @@ def export_(
     if not config.ready:
         config.load()
     if local:
-        _load_runtime_server_config(config)
+        _load_runtime_server_config(config, deployment_id=deployment_id)
 
     if path is None:
         path = experiment_class.export_path(deployment_id)

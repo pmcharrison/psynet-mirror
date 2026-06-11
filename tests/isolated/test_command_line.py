@@ -995,29 +995,76 @@ def test_load_runtime_server_config_loads_generated_config():
     )
 
 
-def test_export_local_uses_runtime_dashboard_credentials(tmp_path):
-    from psynet.command_line import export_
+def test_load_runtime_server_config_loads_launch_info_when_runtime_dir_is_missing(
+    tmp_path, monkeypatch
+):
+    from psynet.command_line import _load_runtime_server_config
+
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
+    )
 
     config = Mock()
     config.ready = True
-    config.dashboard_password = None
+    monkeypatch.setenv("HOME", str(tmp_path))
 
-    def load_from_file(path):
-        config.dashboard_password = "generated-password"
+    with patch("psynet.command_line.redis_vars.get", return_value=None):
+        _load_runtime_server_config(config, deployment_id=deployment_id)
+
+    config.load.assert_not_called()
+    config.load_from_file.assert_not_called()
+    config.extend.assert_called_once_with(
+        {
+            "dashboard_user": "admin",
+            "dashboard_password": "generated-password",
+        }
+    )
+
+
+def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
+    from psynet.command_line import export_
+
+    deployment_id = "timeline-demo__mode=debug__launch=test"
+    launch_info_dir = tmp_path / "psynet-data" / "launch-data" / deployment_id
+    launch_info_dir.mkdir(parents=True)
+    (launch_info_dir / "launch-info.json").write_text(
+        json.dumps(
+            {
+                "dashboard_user": "admin",
+                "dashboard_password": "generated-password",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    config = Mock()
+    config.ready = True
+    config.values = {}
 
     def get_config_value(key):
-        if key == "dashboard_user":
-            return "admin"
-        if key == "dashboard_password" and config.dashboard_password is not None:
-            return config.dashboard_password
+        if key in config.values:
+            return config.values[key]
         raise KeyError(key)
+
+    def extend_config(values):
+        config.values.update(values)
 
     response = Mock(status_code=403, reason="Forbidden", content=b"")
     response.json.return_value = {"message": "not needed"}
     experiment_class = Mock(label="Timeline demo")
     experiment_class.export_path.return_value = str(tmp_path)
-    config.load_from_file.side_effect = load_from_file
+    config.extend.side_effect = extend_config
     config.get.side_effect = get_config_value
+    monkeypatch.setenv("HOME", str(tmp_path))
 
     with (
         patch(
@@ -1025,7 +1072,7 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path):
             return_value={"class": experiment_class},
         ),
         patch("psynet.command_line.get_config", return_value=config),
-        patch("psynet.command_line.redis_vars.get", return_value="/tmp/runtime-exp"),
+        patch("psynet.command_line.redis_vars.get", return_value=None),
         patch(
             "psynet.command_line.get_experiment_url",
             return_value="http://127.0.0.1:5000",
@@ -1035,7 +1082,7 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path):
         export_(
             ctx=Mock(),
             exp_variables={
-                "deployment_id": "timeline-demo__mode=debug__launch=test",
+                "deployment_id": deployment_id,
                 "label": "Timeline demo",
             },
             local=True,
@@ -1045,7 +1092,12 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path):
             anonymize="no",
         )
 
-    config.load_from_file.assert_called_once_with("/tmp/runtime-exp/config.txt")
+    config.extend.assert_called_once_with(
+        {
+            "dashboard_user": "admin",
+            "dashboard_password": "generated-password",
+        }
+    )
     request_get.assert_called_once()
     assert request_get.call_args.kwargs["auth"] == ("admin", "generated-password")
 
