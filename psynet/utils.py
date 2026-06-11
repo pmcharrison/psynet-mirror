@@ -1466,6 +1466,10 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
     spec = importlib.util.find_spec(module_name)
     if spec is None:
         return
+    # A package resolution can still support ``<name>.experiment``. The
+    # problematic case is a plain module such as the standard-library
+    # ``code.py``, which has no submodule search path and cannot contain
+    # ``code.experiment``.
     if spec.submodule_search_locations is not None:
         return
 
@@ -1473,6 +1477,8 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
     if spec.origin not in (None, "built-in"):
         candidate_paths.append(Path(spec.origin))
 
+    # If Python resolves the name back into the experiment directory, the import
+    # machinery will see the local experiment rather than an unrelated module.
     if any(
         _is_relative_to(candidate_path.resolve(), path)
         for candidate_path in candidate_paths
