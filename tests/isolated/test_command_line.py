@@ -1053,6 +1053,8 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
     def get_config_value(key):
         if key in config.values:
             return config.values[key]
+        if key == "base_port":
+            return 5000
         raise KeyError(key)
 
     def extend_config(values):
@@ -1075,7 +1077,7 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
         patch("psynet.command_line.redis_vars.get", return_value=None),
         patch(
             "psynet.command_line.get_experiment_url",
-            return_value="http://127.0.0.1:5000",
+            side_effect=KeyError,
         ),
         patch("psynet.command_line.requests.get", return_value=response) as request_get,
     ):
@@ -1099,6 +1101,9 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
         }
     )
     request_get.assert_called_once()
+    assert request_get.call_args.args[0].startswith(
+        "http://127.0.0.1:5000/dashboard/export/download?"
+    )
     assert request_get.call_args.kwargs["auth"] == ("admin", "generated-password")
 
 

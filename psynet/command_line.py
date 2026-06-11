@@ -2102,6 +2102,14 @@ def _resolve_ssh_app(ctx, app, server):
     return resolved_app
 
 
+def _get_local_export_url(config):
+    try:
+        port = config.get("base_port")
+    except KeyError:
+        port = 5000
+    return f"http://127.0.0.1:{port}"
+
+
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
@@ -2316,7 +2324,12 @@ def export_(
 
     source_code_exported = False
     if not legacy:
-        experiment_url = get_experiment_url(app, server)
+        try:
+            experiment_url = get_experiment_url(app, server)
+        except KeyError:
+            if not local:
+                raise
+            experiment_url = _get_local_export_url(config)
         params = {
             "type": "psynet",
             "anonymize": anonymize,
