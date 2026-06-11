@@ -3,6 +3,7 @@ import os
 import subprocess
 import tempfile
 from datetime import datetime, timedelta
+from importlib.machinery import ModuleSpec
 from math import isnan
 from pathlib import Path
 from unittest.mock import patch
@@ -384,6 +385,20 @@ def test_experiment_directory_name_rejects_non_package_module(tmp_path):
 
     with pytest.raises(ExperimentDirectoryNameError, match="Python's module 'code'"):
         ensure_experiment_directory_name_does_not_conflict(experiment_directory)
+
+
+def test_experiment_directory_name_allows_package_resolution(tmp_path, monkeypatch):
+    experiment_directory = tmp_path / "static"
+    experiment_directory.mkdir()
+    (experiment_directory / "experiment.py").write_text("")
+    spec = ModuleSpec("static", loader=None, is_package=True)
+
+    monkeypatch.setattr(
+        "importlib.util.find_spec",
+        lambda name: spec if name == "static" else None,
+    )
+
+    ensure_experiment_directory_name_does_not_conflict(experiment_directory)
 
 
 def test_get_locales_dir_from_path_uses_given_path(tmp_path):

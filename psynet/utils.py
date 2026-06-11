@@ -46,7 +46,7 @@ logger = get_logger()
 
 
 class ExperimentDirectoryNameError(ValueError):
-    """Raised when an experiment directory name collides with an importable module."""
+    """Raised when an experiment directory name collides with a non-package module."""
 
 
 class NoArgumentProvided:
@@ -1444,8 +1444,9 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
     Check that the experiment directory basename is safe for Dallinger imports.
 
     Dallinger imports a local experiment as ``<directory_name>.experiment``. A
-    directory named like an existing module, for example ``code``, can resolve to
-    the standard library module instead of the local experiment directory.
+    directory named like an existing non-package module, for example ``code``,
+    can resolve to the standard library module instead of the local experiment
+    directory.
 
     Parameters
     ----------
@@ -1455,7 +1456,7 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
     Raises
     ------
     ExperimentDirectoryNameError
-        If Python resolves the directory name to an unrelated module.
+        If Python resolves the directory name to an unrelated non-package module.
     """
     path = Path(path).resolve()
     if not (path / "experiment.py").exists():
@@ -1465,14 +1466,12 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
     spec = importlib.util.find_spec(module_name)
     if spec is None:
         return
+    if spec.submodule_search_locations is not None:
+        return
 
     candidate_paths = []
     if spec.origin not in (None, "built-in"):
         candidate_paths.append(Path(spec.origin))
-    if spec.submodule_search_locations is not None:
-        candidate_paths.extend(
-            Path(location) for location in spec.submodule_search_locations
-        )
 
     if any(
         _is_relative_to(candidate_path.resolve(), path)
@@ -1481,10 +1480,9 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
         return
 
     module_path = spec.origin if spec.origin is not None else module_name
-    module_type = "package" if spec.submodule_search_locations is not None else "module"
     raise ExperimentDirectoryNameError(
         f"The current experiment directory is named '{module_name}', but Python's "
-        f"{module_type} '{module_name}' resolves to '{module_path}' instead of "
+        f"module '{module_name}' resolves to '{module_path}' instead of "
         "this directory. Dallinger imports experiments by directory name, so it "
         "cannot import this experiment reliably. Rename the directory or move the "
         "runnable experiment into a nested non-conflicting directory, for example "
