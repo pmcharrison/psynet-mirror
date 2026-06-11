@@ -91,7 +91,9 @@ will be deployed:
       psynet test local --n-bots 3 --parallel
 
 3. Run a shortened pilot with colleagues or collaborators using
-   ``hotair`` recruitment. Provision a server and launch a remote debug
+   ``hotair`` recruitment. Before launching, confirm that the experiment is
+   configured with ``recruiter = hotair`` in ``config.txt`` or the equivalent
+   experiment configuration. Then provision a server and launch a remote debug
    session from the experiment directory:
 
    .. code:: bash

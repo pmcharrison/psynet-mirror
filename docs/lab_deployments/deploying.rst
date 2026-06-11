@@ -96,11 +96,11 @@ dashboard URL and login credentials. It will look similar to this:
 .. code:: text
 
    You can now log in to the console at
-   https://admin:XXX@probe-tone.18.170.62.137.nip.io/dashboard
+   https://admin:XXX@<app_name>.<your-subdomain>.<your-domain>/dashboard
    (user = admin, password = XXX)
 
    ✔ Saving a snapshot of the code to
-   /Users/kevin.nguyen/psynet-data/launch-data/probe-tone-experiment\__mode=live\__launch=2023-10-10--14-18-12/code…
+   /Users/<your-user>/psynet-data/launch-data/<app_name>\__mode=live\__launch=<timestamp>/code…
 
 Save this link to the dashboard so that you are able to
 `monitor <monitoring_and_managing.html#monitoring-managing>`__ the dashboard during deployment.

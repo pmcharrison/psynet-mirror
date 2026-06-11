@@ -647,10 +647,9 @@ Deployment
 CINT: check & adjust quota
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After you deploy, go to `CINT
-marketplace <https://auth.lucidhq.com/u/login/identifier?state=hKFo2SBEOHYxNU9ac25wQ3Y1ajlZSUhJX0gxcnF3eS1jSjFUU6Fur3VuaXZlcnNhbC1sb2dpbqN0aWTZIHBoMGRGTFdKMEoyQU9rRjAtaGtPWHRJMXdwQ2V2M3Zio2NpZNkgdFZ2aUpIUUc2VUV6dkw4Z3hwQVBoNG9jNWg5ajl6Z2o>`__
-and log in to your lab's CINT account. Your lab administrator should
-provide you with login credentials.
+After you deploy, go to the CINT marketplace sign-in page provided by
+your lab administrator and log in to your lab's CINT account. Your lab
+administrator should provide you with login credentials.
 
 Also, save and open the link provided in the terminal after successful
 deployment to `monitor <#monitoring-1>`__ the experiment. When you open
