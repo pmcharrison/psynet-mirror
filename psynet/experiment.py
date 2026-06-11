@@ -131,6 +131,7 @@ from .utils import (
 
 logger = get_logger()
 
+
 database_template_path = ".deploy/database_template.zip"
 
 
@@ -1637,7 +1638,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @scheduled_task("interval", seconds=0.5, max_instances=1)
     @log_time_taken
     @staticmethod
-    @with_transaction
     def _check_barriers():
         if not is_experiment_launched():
             return
@@ -1646,33 +1646,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @staticmethod
     def check_barriers():
-        from .sync import ParticipantLinkBarrier
+        from .sync import check_barriers as sync_check_barriers
 
-        barrier_links = (
-            ParticipantLinkBarrier.query.join(Participant)
-            .filter(
-                ~ParticipantLinkBarrier.released,
-                ~Participant.failed,
-                Participant.status == "working",
-            )
-            # We need to lock Participant rows to prevent race conditions with participants
-            # who are currently being processed in other tasks
-            # (e.g. advancing through the timeline).
-            .with_for_update(of=[ParticipantLinkBarrier, Participant])
-            .populate_existing()
-            .all()
-        )
-
-        # Before we used a DISTINCT clause --
-        # .distinct(ParticipantLinkBarrier.barrier_id)
-        # but DISTINCT is incompatible with FOR UPDATE in Postgres.
-        # We therefore do this filtering in Python instead.
-        processed_barriers = set()
-        for link in barrier_links:
-            if link.barrier_id not in processed_barriers:
-                barrier = link.get_barrier()
-                barrier.process_potential_releases()
-                processed_barriers.add(link.barrier_id)
+        sync_check_barriers()
 
     @scheduled_task("interval", seconds=2.5, max_instances=1)
     @log_time_taken

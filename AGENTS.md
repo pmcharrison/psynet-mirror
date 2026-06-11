@@ -253,6 +253,17 @@ Avoid silently suppressing broad exceptions (for example `except Exception: pass
 If a broad exception must be caught for resilience, emit at least a warning-level log
 with useful context unless the path is intentionally noisy best-effort cleanup.
 
+## Database migrations
+
+We assume PsyNet experiments are short-lived and their databases do not need
+to persist across PsyNet version upgrades. As a result, avoid complicating
+code to support database migrations or backward-compatible schema changes.
+
+## Docstrings
+
+Prefer including function docstrings. Short docstrings are fine; often a brief
+descriptive summary line is sufficient.
+
 ## Finishing up changes
 
 When you make changes to the PsyNet codebase:
