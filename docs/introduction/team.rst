@@ -9,7 +9,7 @@ and the University of Cambridge.
 
 **Core team**
 
-- `Peter Harrison <https://cms.mus.cam.ac.uk/staff/dr-peter-harrison>`_: Project creator, co-director, developer, and maintainer
+- `Peter Harrison <https://www.mus.cam.ac.uk/people/dr-peter-harrison>`_: Project creator, co-director, developer, and maintainer
 - Frank Höger: Project development and maintenance
 - `Pol van Rijn <https://pol.works/>`_: Project development and maintenance
 - `Nori Jacoby <https://norijacoby.com/>`_: Project co-director
@@ -25,7 +25,7 @@ and the University of Cambridge.
 We also collaborate regularly with the Dallinger initiative,
 an open-source software project for network-based experiments initially developed by
 `Jordan Suchow <https://suchow.io/>`_,
-`Tom Morgan <https://shesc.asu.edu/people/thomas-morgan>`_,
+`Tom Morgan <https://as.nyu.edu/faculty/thomas-morgan.html>`_,
 and `Tom Griffiths <https://cocosci.princeton.edu/tom/index.php>`_
 and maintained by the software consultancy
 `Jazkarta <https://www.jazkarta.com/>`_.

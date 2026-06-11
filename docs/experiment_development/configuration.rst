@@ -421,7 +421,7 @@ Prolific
 
 ``prolific_is_custom_screening`` *bool* |dlgr-icon|
     Whether or not this study includes a custom screening. Default: `False`.
-    See https://docs.prolific.com/docs/api-docs/public/#tag/Studies/operation/CreateStudy for more information.
+    See `Prolific's documentation <https://docs.prolific.com/documentation/get-started/overview>`__ for more information.
 
 ``prolific_project`` *str* |dlgr-icon|
     The Prolific project identifier.
@@ -435,7 +435,7 @@ Prolific
     * ``device_compatibility``
     * ``peripheral_requirements``
 
-    See the `Prolific API Documentation <https://docs.prolific.co/docs/api-docs/public/#tag/Studies/paths/~1api~1v1~1studies~1/post>`__
+    See the `Prolific documentation <https://docs.prolific.com/documentation/get-started/overview>`__
     for details.
 
     Configuration can also be stored in a separate JSON file, and included by using the
@@ -588,7 +588,7 @@ Heroku
     be deployed to Heroku in a `runtime.txt` file in accordance with Heroku's deployment
     API. Note that only the version number should be provided (eg: ``3.11.5``) and not the
     ``python-`` prefix included in the final `runtime.txt` format.
-    See `Heroku supported runtimes <https://devcenter.heroku.com/articles/python-support#supported-runtimes>`__.
+    See `Heroku supported runtimes <https://devcenter.heroku.com/articles/python-support>`__.
 
 ``heroku_region`` *str* |dlgr-icon|
     The Heroku region for deployment. Default: ``None``.
@@ -622,7 +622,7 @@ Heroku
     started per Heroku CPU count. Reduce this if you see Heroku warnings
     about memory limits for your experiment. Default: ``1.5``.
 
-For help on choosing appropriate configuration variables, also see this Dallinger documentation page at https://dallinger.readthedocs.io/en/latest/configuration.html#choosing-configuration-values
+For help on choosing appropriate configuration variables, also see this Dallinger documentation page at https://dallinger.readthedocs.io/latest/configuration.html#choosing-configuration-values
 
 Docker
 ~~~~~~
@@ -712,7 +712,7 @@ Email Notifications
 ``smtp_password`` *str* |dlgr-icon| |sensitive-icon|
     Password for the outgoing mail host.
 
-See `Email Notification Setup <https://dallinger.readthedocs.io/en/latest/email_setup.html>`__ in the Dallinger documentation for a much more detailed explanation of above config variables and their use.
+See `Email Notification Setup <https://dallinger.readthedocs.io/latest/email_setup.html>`__ in the Dallinger documentation for a much more detailed explanation of above config variables and their use.
 
 
 Notifications
@@ -773,11 +773,11 @@ Misc (internal) variables
 ``webdriver_type`` *str* |dlgr-icon|
     The webdriver type to use when using bots (e.g. when writing tests).
     Possible values are ``chrome``, ``chrome_headless``, and ``firefox``. Default: ``chrome_headless``.
-    Also see Dallinger's documentation on writing bots at https://dallinger.readthedocs.io/en/latest/writing_bots.html#selenium-bots.
+    Also see Dallinger's documentation on writing bots at https://dallinger.readthedocs.io/latest/writing_bots.html#selenium-bots.
 
 ``webdriver_url`` *str* |dlgr-icon|
     Used to provide a URL to a Selenium WebDriver instance.
-    Also see Dallinger's documentation on scaling Selenium bots at https://dallinger.readthedocs.io/en/latest/writing_bots.html#scaling-selenium-bots.
+    Also see Dallinger's documentation on scaling Selenium bots at https://dallinger.readthedocs.io/latest/writing_bots.html#scaling-selenium-bots.
 
 
 Config variables not to be set manually

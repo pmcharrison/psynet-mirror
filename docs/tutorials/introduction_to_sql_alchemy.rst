@@ -61,7 +61,7 @@ An important thing to know is that all class names within an experiment must be 
 
 PsyNet’s trial makers make heavy use of SQLAlchemy objects. Each trial is represented as a distinct SQLAlchemy object, and each trial is connected to a node in a network, with nodes and networks also being represented as SQLAlchemy objects.
 
-The underlying Dallinger framework also makes heavy use of SQLAlchemy objects. Dallinger experiments typically involve constructing various kinds of networks which develop according to participant behavior during the course of the experiment. PsyNet fully supports the creation and manipulation of Dallinger SQLAlchemy objects. For more information about Dallinger’s network infrastructure, see the `official Dallinger documentation <https://dallinger.readthedocs.io/en/latest/classes.html>`_ (which is unfortunately very limited).
+The underlying Dallinger framework also makes heavy use of SQLAlchemy objects. Dallinger experiments typically involve constructing various kinds of networks which develop according to participant behavior during the course of the experiment. PsyNet fully supports the creation and manipulation of Dallinger SQLAlchemy objects. For more information about Dallinger’s network infrastructure, see the `official Dallinger documentation <https://dallinger.readthedocs.io/latest/classes.html>`_ (which is unfortunately very limited).
 
 Querying SQLAlchemy objects
 ---------------------------

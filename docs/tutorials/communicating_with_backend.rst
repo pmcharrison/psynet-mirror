@@ -29,7 +29,7 @@ The Python side involves using a special decorator called ``experiment_route``. 
                 "time": time,
             }
 
-This code defines a custom *HTTP route* that returns the current date and time. If we spin up our experiment in debug mode, we can access this route in the web browse by navigating to the following address: http://localhost:5000/current_date_and_time.
+This code defines a custom *HTTP route* that returns the current date and time. If we spin up our experiment in debug mode, we can access this route in the web browse by navigating to the following address: ``http://localhost:5000/current_date_and_time``.
 
 .. note::
     Valid responses from the ``experiment_route`` function are strings, tuples, or dictionaries.
@@ -68,7 +68,7 @@ What is the ``.done()`` doing here? We need this because making HTTP queries hap
 
 In some cases, we might want our HTTP route to take some input data. There are several ways of achieving this, depending on how complex we expect our input data to be.
 
-The simplest approach involves passing the data as part of the HTTP route’s URL. For example, we might define an ``add`` function that is accessed via a URL like the following: `http://localhost:5000/add?x=5&y=3`
+The simplest approach involves passing the data as part of the HTTP route’s URL. For example, we might define an ``add`` function that is accessed via a URL like the following: ``http://localhost:5000/add?x=5&y=3``
 
 Here ``x=5`` and ``y=3`` are called *URL parameters*. We can access URL parameters in our PsyNet route by writing code like ``request.values["x"]``.
 

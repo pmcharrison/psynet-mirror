@@ -5,7 +5,7 @@ History
 
 The PsyNet project began in 2020 as a collaboration between Peter Harrison and Nori Jacoby,
 attempting to build a higher level of abstraction
-around the `Dallinger platform <https://dallinger.readthedocs.io/en/latest/>`_.
+around the `Dallinger platform <https://dallinger.readthedocs.io/latest/>`_.
 Highlights of Dallinger included sophisticated code for deploying online experiments onto
 Heroku webservers, an advanced system for representing network-based experiments as graph-based
 structures, and excellent integration with Amazon Mechanical Turk. However, implementing
@@ -31,7 +31,7 @@ making it easy to run such experiments without having to worry about practicalit
 data management and processing.
 
 The project started while Peter Harrison was based in Nori Jacoby's
-`Computational Auditory Perception <https://www.aesthetics.mpg.de/en/research/research-group-computational-auditory-perception.html>`_
+`Computational Auditory Perception <https://www.aesthetics.mpg.de/en/research/former-departments-and-research-groups/research-group-computational-auditory-perception.html>`_
 research group at the
 `Max Planck Institute for Empirical Aesthetics <https://www.aesthetics.mpg.de/en.html>`_
 in Frankfurt, Germany. Many other team members contributed directly or indirectly to the PsyNet project

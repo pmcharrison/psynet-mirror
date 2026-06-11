@@ -115,7 +115,7 @@ Installing a Unity-Psynet project
 
 You should install the free (Personal) version of Unity. Currently, we use Unity 2020.3
 
-https://store.unity.com/front-page#plans-individual
+https://unity.com/products/unity-personal
 
 Once Unity is installed in your system, it might be useful to begin by opening the very simple testing project that we included in the demo. It should look more or less like this:
 

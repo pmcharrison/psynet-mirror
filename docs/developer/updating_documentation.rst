@@ -13,8 +13,8 @@ To update PsyNet's documentation, work from the root of your PsyNet source check
 
 The ``docs`` directory and its subdirectories contain files in `rst` format which stands for `reStructuredText`. See `this primer`_ which introduces the most basic syntax elements of `reStructuredText` documents. For a detailed reference check out the `complete technical specification`_.
 
-.. _this primer: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
-.. _complete technical specification: https://docutils.readthedocs.io/en/sphinx-docs/ref/rst/restructuredtext.html
+.. _this primer: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+.. _complete technical specification: https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html
 
 Once you have made changes to one or more `rst` files compile them into `html` files by executing:
 

@@ -809,7 +809,7 @@ class CAPLogo(SVGLogo):
         width="125px",
         height="83px",
         alt_text="Computational Audition Group",
-        url="https://www.aesthetics.mpg.de/en/research/research-group-computational-auditory-perception.html",
+        url="https://www.aesthetics.mpg.de/en/research/former-departments-and-research-groups/research-group-computational-auditory-perception.html",
         **kwargs,
     ):
         super().__init__(

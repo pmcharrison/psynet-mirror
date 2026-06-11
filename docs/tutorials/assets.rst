@@ -316,7 +316,7 @@ You can alternatively set ``--assets none`` to export none.
             ~/Downloads/my-experiment-assets
 
     If you are unfamiliar with the ``scp`` command, you can read more about it
-    `here <https://linux.die.net/man/1/scp>`_.
+    `in the OpenBSD manual <https://man.openbsd.org/scp>`_.
 
     If you are using S3 storage, you can download the assets using the ``aws s3 cp`` command.
     for example:

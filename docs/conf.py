@@ -85,9 +85,25 @@ language = "en"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 linkcheck_ignore = [
+    # Local example URLs in tutorials and generated API docs.
+    r"http://localhost:5000(?:/.*)?",
     # Placeholder deployment URL used in SSH deployment examples.
     r"https://your-app-name\.121\.101\.152\.23\.nip\.io/?",
     r"https://your-app-name\.my-web-server\.com/?",
+    # Login-protected/private GitLab pages that are valid for authenticated users.
+    r"https://gitlab\.com/-/profile/keys/?",
+    r"https://gitlab\.com/computational-audition-lab/?",
+    r"https://gitlab\.com/computational-audition-lab/PsyNet/-/issues/?",
+    r"https://gitlab\.com/computational-audition-lab/ofer/unitydemo/?",
+    # Resources that are useful in the docs but fail automated link checks
+    # because of access controls, incomplete TLS chains in non-browser clients,
+    # or bot protection.
+    r"https://gold-msi\.org/?",
+    r"https://shiny\.gold-msi\.org/gmsiconfigurator/?",
+    r"https://s3\.amazonaws\.com/ishihara-eye-test/jpg/?",
+    r"https://stackoverflow\.com/questions/(538666|11828270)(?:/.*)?",
+    r"https://www\.aesthetics\.mpg\.de/en\.html",
+    r"https://www\.aesthetics\.mpg\.de/en/research/former-departments-and-research-groups/research-group-computational-auditory-perception\.html",
     # Stable reference page that aggressively rate-limits automated checks.
     r"https://www\.gnu\.org/software/gettext/manual/html_node/Usual-Language-Codes\.html",
 ]
