@@ -24,6 +24,14 @@ Once you have made changes to one or more `rst` files compile them into `html` f
 
 This uses a serial Sphinx build by default to keep generated HTML deterministic. To speed up local preview builds, pass ``--jobs auto``.
 
+For an automatically rebuilding local preview, run:
+
+.. code-block:: console
+
+  psynet dev docs make --live-preview
+
+This serves the HTML documentation with ``sphinx-autobuild`` and opens it in your browser. By default it uses port ``8000``; pass ``--port`` to use a different port.
+
 Adding or deleting files additionally requires a clean build for the links in the menu to be updated accordingly:
 
 .. code-block:: console
