@@ -995,53 +995,59 @@ def test_load_runtime_server_config_loads_generated_config():
     )
 
 
-def test_launch_app_and_open_browser_uses_runtime_dashboard_credentials():
-    from psynet.command_line import _launch_app_and_open_browser_with_runtime_config
+def test_export_local_uses_runtime_dashboard_credentials(tmp_path):
+    from psynet.command_line import export_
 
-    calls = []
     config = Mock()
     config.ready = True
     config.dashboard_password = None
 
     def load_from_file(path):
-        calls.append(("load-file", path))
         config.dashboard_password = "generated-password"
 
     def get_config_value(key):
+        if key == "dashboard_user":
+            return "admin"
         if key == "dashboard_password" and config.dashboard_password is not None:
             return config.dashboard_password
         raise KeyError(key)
 
-    def open_browser(route, port):
-        if route == "dashboard":
-            # Mirrors Dallinger's command-side dashboard URL construction, which
-            # fails unless the generated runtime config has been loaded first.
-            get_config_value("dashboard_password")
-        calls.append((route, port))
-
+    response = Mock(status_code=403, reason="Forbidden", content=b"")
+    response.json.return_value = {"message": "not needed"}
+    experiment_class = Mock(label="Timeline demo")
+    experiment_class.export_path.return_value = str(tmp_path)
     config.load_from_file.side_effect = load_from_file
+    config.get.side_effect = get_config_value
 
     with (
         patch(
-            "dallinger.command_line.develop._launch_app",
-            side_effect=lambda port: calls.append(("launch", port)),
+            "psynet.experiment.import_local_experiment",
+            return_value={"class": experiment_class},
         ),
         patch("psynet.command_line.get_config", return_value=config),
         patch("psynet.command_line.redis_vars.get", return_value="/tmp/runtime-exp"),
         patch(
-            "dallinger.command_line.develop._async_browser",
-            side_effect=open_browser,
+            "psynet.command_line.get_experiment_url",
+            return_value="http://127.0.0.1:5000",
         ),
-        patch("psynet.command_line.time.sleep"),
+        patch("psynet.command_line.requests.get", return_value=response) as request_get,
     ):
-        _launch_app_and_open_browser_with_runtime_config(port=5000)
+        export_(
+            ctx=Mock(),
+            exp_variables={
+                "deployment_id": "timeline-demo__mode=debug__launch=test",
+                "label": "Timeline demo",
+            },
+            local=True,
+            path=str(tmp_path),
+            no_source=True,
+            assets="experiment",
+            anonymize="no",
+        )
 
-    assert calls == [
-        ("launch", 5000),
-        ("load-file", "/tmp/runtime-exp/config.txt"),
-        ("dashboard", 5000),
-        ("ad", 5000),
-    ]
+    config.load_from_file.assert_called_once_with("/tmp/runtime-exp/config.txt")
+    request_get.assert_called_once()
+    assert request_get.call_args.kwargs["auth"] == ("admin", "generated-password")
 
 
 def test_run_performance_test_with_new_server_loads_runtime_server_config():
