@@ -211,6 +211,151 @@ def test_make_command_requires_source_checkout_root(source_checkout, tmp_path):
             docs_module.make_command()
 
 
+def test_make_command_reports_failed_make_command(source_checkout, monkeypatch):
+    def fake_run(command, **kwargs):
+        raise subprocess.CalledProcessError(2, command)
+
+    monkeypatch.setattr(docs_module.subprocess, "run", fake_run)
+
+    with working_directory(source_checkout):
+        with pytest.raises(ValueError, match="Docs build failed with exit code 2"):
+            docs_module.make_command(target="linkcheck")
+
+
+def test_linkcheck_command_prints_structured_summary(
+    source_checkout, monkeypatch, capsys
+):
+    output = (
+        "/tmp/project/docs/api/utils.rst:3: WARNING: broken link: "
+        "http://localhost:5000 (connection refused)\n"
+        "(deploy/ssh_server: line 205) broken "
+        "https://your-app-name.example.com - certificate mismatch\n"
+    )
+
+    def fake_run(command, **kwargs):
+        return subprocess.CompletedProcess(command, 1, stdout=output, stderr="")
+
+    monkeypatch.setattr(docs_module.subprocess, "run", fake_run)
+
+    with working_directory(source_checkout):
+        with pytest.raises(ValueError, match="Linkcheck found 2 broken link"):
+            docs_module.linkcheck_command(clean=False, show_progress=False)
+
+    summary = capsys.readouterr().out
+    assert "Linkcheck found 2 broken link(s):" in summary
+    assert (
+        "- /tmp/project/docs/api/utils.rst:3 [broken] http://localhost:5000" in summary
+    )
+    assert (
+        "- deploy/ssh_server:205 [broken] https://your-app-name.example.com" in summary
+    )
+    assert "certificate mismatch" in summary
+
+
+def test_linkcheck_command_updates_progress(source_checkout, monkeypatch, capsys):
+    updates = []
+    postfixes = []
+    spinner_texts = []
+
+    class FakeProcess:
+        stdout = [
+            "reading sources... [ 42%] tutorials/assets\n",
+            "(api/graphics: line    3) ok        https://www.w3.org/TR/SVG/\n",
+            "(api/utils: line    3) broken    http://localhost:5000 - refused\n",
+        ]
+
+        def wait(self):
+            return 1
+
+        def terminate(self):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+    class FakeProgress:
+        def __init__(self, **kwargs):
+            self.n = 0
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        def update(self, n=1):
+            updates.append(n)
+            self.n += n
+
+        def set_postfix_str(self, value):
+            postfixes.append(value)
+
+    class FakeSpinner:
+        def __init__(self, text, color):
+            self.text = text
+            spinner_texts.append(text)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        @property
+        def text(self):
+            return self._text
+
+        @text.setter
+        def text(self, value):
+            self._text = value
+            spinner_texts.append(value)
+
+    monkeypatch.setattr(
+        docs_module.subprocess,
+        "Popen",
+        lambda command, **kwargs: FakeProcess(),
+    )
+    monkeypatch.setattr(docs_module, "tqdm", FakeProgress)
+    monkeypatch.setattr(docs_module, "yaspin", FakeSpinner)
+
+    with working_directory(source_checkout):
+        with pytest.raises(ValueError, match="Linkcheck found 1 broken link"):
+            docs_module.linkcheck_command(clean=False)
+
+    assert updates == [42, 58]
+    assert spinner_texts == [
+        "Starting linkcheck...",
+        "Starting linkcheck...",
+        "Reading docs (42%)",
+        "Checked 1 links",
+        "Checked 2 links",
+    ]
+    assert postfixes == []
+    assert "http://localhost:5000" in capsys.readouterr().out
+
+
+def test_parse_linkcheck_warning_relativizes_docs_paths(source_checkout):
+    line = (
+        f"{source_checkout}/docs/api/utils.rst:3: WARNING: broken link: "
+        "http://localhost:5000 (connection refused)"
+    )
+
+    issues = docs_module.parse_linkcheck_issues(line, source_checkout / "docs")
+
+    assert issues == [
+        docs_module.LinkcheckIssue(
+            source="api/utils.rst",
+            line=3,
+            status="broken",
+            url="http://localhost:5000",
+            reason="connection refused",
+        )
+    ]
+
+
 def test_open_requires_html_target(source_checkout, monkeypatch):
     monkeypatch.setattr(
         docs_module.subprocess,

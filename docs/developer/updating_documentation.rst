@@ -50,6 +50,14 @@ Before submitting larger documentation changes, it is useful to treat Sphinx war
 
   psynet dev docs make --strict
 
+To check external links, run:
+
+.. code-block:: console
+
+  psynet dev docs linkcheck
+
+This runs from a clean build by default. For faster local reruns, pass ``--no-clean``.
+
 The generated HTML is written to ``docs/_build/html/index.html``.
 
 On completion of updating the documentation commit the corresponding `rst` files only. The compiled `html` files in the ``_build`` directory should be left ignored by Git.

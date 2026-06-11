@@ -1,15 +1,46 @@
 """Build PsyNet's developer documentation from a source checkout."""
 
+import re
 import shlex
 import shutil
 import socket
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
+
+from tqdm import tqdm
+from yaspin import yaspin
 
 from psynet.utils import get_psynet_root
 
 LIVE_PREVIEW_IGNORE_PATTERNS = ("_build", "_build/*", "_build/**/*")
 LIVE_PREVIEW_RE_IGNORE_PATTERNS = (r".*/_build($|/.*)",)
+
+LINKCHECK_WARNING_RE = re.compile(
+    r"^(?P<path>.*?):(?P<line>\d+): WARNING: broken link: "
+    r"(?P<url>\S+)(?: \((?P<reason>.*)\))?$"
+)
+LINKCHECK_STATUS_RE = re.compile(
+    r"^\(\s*(?P<source>.*?): line\s+(?P<line>\d+)\) "
+    r"(?P<status>broken|timeout)\s+(?P<url>\S+)"
+    r"(?:\s+-\s+(?P<reason>.*))?$"
+)
+LINKCHECK_PROGRESS_RE = re.compile(
+    r"^\(\s*.*?: line\s+\d+\) "
+    r"(?:ok|broken|redirected|timeout|ignored|working)\s+"
+)
+LINKCHECK_READ_PROGRESS_RE = re.compile(
+    r"^reading sources\.\.\. \[\s*(?P<percent>\d+)%\]"
+)
+
+
+@dataclass(frozen=True)
+class LinkcheckIssue:
+    source: str
+    line: int
+    status: str
+    url: str
+    reason: str
 
 
 def make_command(
@@ -49,7 +80,13 @@ def make_command(
     if options:
         command.append(f"SPHINXOPTS={shlex.join(options)}")
 
-    subprocess.run(command, cwd=docs_dir, check=True)
+    try:
+        subprocess.run(command, cwd=docs_dir, check=True)
+    except subprocess.CalledProcessError as exc:
+        raise ValueError(
+            f"Docs build failed with exit code {exc.returncode}: "
+            f"{shlex.join(str(arg) for arg in command)}"
+        ) from exc
 
     if open_browser:
         open_html_index(target, build_dir)
@@ -139,6 +176,176 @@ def run_live_preview_process(
         raise subprocess.CalledProcessError(return_code, command)
 
 
+def linkcheck_command(
+    *,
+    clean: bool = True,
+    jobs: str | None = "1",
+    sphinx_options: tuple[str, ...] = (),
+    show_progress: bool = True,
+) -> int:
+    """Run linkcheck and print a concise structured summary."""
+    docs_dir = assert_docs_available()
+    build_dir = docs_dir / "_build"
+
+    if clean and build_dir.exists():
+        shutil.rmtree(build_dir)
+
+    options = build_sphinx_options(
+        strict=False,
+        jobs=jobs,
+        sphinx_options=sphinx_options,
+    )
+    command = ["make", "linkcheck"]
+    if options:
+        command.append(f"SPHINXOPTS={shlex.join(options)}")
+
+    result = run_linkcheck_process(
+        command,
+        docs_dir=docs_dir,
+        show_progress=show_progress,
+    )
+    output = "\n".join(part for part in [result.stdout, result.stderr] if part)
+    issues = parse_linkcheck_issues(output, docs_dir)
+
+    print(format_linkcheck_summary(issues))
+
+    if result.returncode != 0:
+        if issues:
+            raise ValueError(
+                f"Linkcheck found {len(issues)} broken link(s); see summary above."
+            )
+        raise ValueError(
+            f"Linkcheck failed with exit code {result.returncode}: "
+            f"{shlex.join(str(arg) for arg in command)}"
+        )
+
+    return 0
+
+
+def run_linkcheck_process(
+    command: list[str],
+    *,
+    docs_dir: Path,
+    show_progress: bool,
+) -> subprocess.CompletedProcess:
+    """Run linkcheck, optionally showing progress as links are checked."""
+    if not show_progress:
+        return subprocess.run(
+            command,
+            cwd=docs_dir,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+    output = []
+    with subprocess.Popen(
+        command,
+        cwd=docs_dir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    ) as process:
+        assert process.stdout is not None
+        try:
+            checked_links = 0
+            last_read_percent = -1
+            with yaspin(text="Starting linkcheck...", color="green") as spinner:
+                with tqdm(
+                    desc="Linkcheck",
+                    total=100,
+                    unit="%",
+                    dynamic_ncols=True,
+                    leave=True,
+                    bar_format="{desc}: {percentage:3.0f}%|{bar}|{postfix}",
+                ) as progress:
+                    for line in process.stdout:
+                        output.append(line)
+                        read_match = LINKCHECK_READ_PROGRESS_RE.match(line)
+                        if read_match is not None:
+                            read_percent = int(read_match.group("percent"))
+                            if read_percent != last_read_percent:
+                                progress.update(read_percent - progress.n)
+                                spinner.text = f"Reading docs ({read_percent}%)"
+                                last_read_percent = read_percent
+                        elif LINKCHECK_PROGRESS_RE.match(line):
+                            checked_links += 1
+                            if progress.n < 100:
+                                progress.update(100 - progress.n)
+                            spinner.text = f"Checked {checked_links} links"
+
+            return_code = process.wait()
+        except KeyboardInterrupt:
+            process.terminate()
+            process.wait()
+            raise
+
+    return subprocess.CompletedProcess(
+        command,
+        return_code,
+        stdout="".join(output),
+        stderr="",
+    )
+
+
+def parse_linkcheck_issues(output: str, docs_dir: Path) -> list[LinkcheckIssue]:
+    """Parse broken links from Sphinx linkcheck output."""
+    issues = []
+    for line in output.splitlines():
+        issue = parse_linkcheck_warning(line, docs_dir) or parse_linkcheck_status(line)
+        if issue is not None:
+            issues.append(issue)
+    return issues
+
+
+def parse_linkcheck_warning(line: str, docs_dir: Path) -> LinkcheckIssue | None:
+    match = LINKCHECK_WARNING_RE.match(line)
+    if match is None:
+        return None
+
+    source = match.group("path")
+    try:
+        source = str(Path(source).resolve().relative_to(docs_dir.resolve()))
+    except ValueError:
+        pass
+
+    return LinkcheckIssue(
+        source=source,
+        line=int(match.group("line")),
+        status="broken",
+        url=match.group("url"),
+        reason=match.group("reason") or "",
+    )
+
+
+def parse_linkcheck_status(line: str) -> LinkcheckIssue | None:
+    match = LINKCHECK_STATUS_RE.match(line)
+    if match is None:
+        return None
+
+    return LinkcheckIssue(
+        source=match.group("source").strip(),
+        line=int(match.group("line")),
+        status=match.group("status"),
+        url=match.group("url"),
+        reason=match.group("reason") or "",
+    )
+
+
+def format_linkcheck_summary(issues: list[LinkcheckIssue]) -> str:
+    """Format linkcheck issues for terminal output."""
+    if not issues:
+        return "Linkcheck found no broken links."
+
+    lines = [f"Linkcheck found {len(issues)} broken link(s):"]
+    for issue in issues:
+        lines.append(f"- {issue.source}:{issue.line} [{issue.status}] {issue.url}")
+        if issue.reason:
+            lines.append(f"  {issue.reason}")
+    return "\n".join(lines)
+
+
 def assert_docs_available() -> Path:
     """Return the docs directory, or fail if not in the source checkout root."""
     root = get_psynet_root().resolve()
@@ -175,8 +382,11 @@ def open_html_index(target: str, build_dir: Path) -> None:
     if open_command is None:
         raise ValueError("Could not find xdg-open or open to display the HTML docs.")
 
-    subprocess.run(
-        [open_command, str(build_dir / "html" / "index.html")],
-        check=True,
-        stdout=subprocess.DEVNULL,
-    )
+    command = [open_command, str(build_dir / "html" / "index.html")]
+    try:
+        subprocess.run(command, check=True, stdout=subprocess.DEVNULL)
+    except subprocess.CalledProcessError as exc:
+        raise ValueError(
+            f"Could not open the HTML docs; command failed with exit code "
+            f"{exc.returncode}: {shlex.join(str(arg) for arg in command)}"
+        ) from exc

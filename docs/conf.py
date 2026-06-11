@@ -84,6 +84,14 @@ language = "en"
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+linkcheck_ignore = [
+    # Placeholder deployment URL used in SSH deployment examples.
+    r"https://your-app-name\.121\.101\.152\.23\.nip\.io/?",
+    r"https://your-app-name\.my-web-server\.com/?",
+    # Stable reference page that aggressively rate-limits automated checks.
+    r"https://www\.gnu\.org/software/gettext/manual/html_node/Usual-Language-Codes\.html",
+]
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 

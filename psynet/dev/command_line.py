@@ -181,6 +181,38 @@ def make_docs(
         ) from exc
 
 
+@docs.command("linkcheck")
+@click.option(
+    "--clean/--no-clean",
+    default=True,
+    show_default=True,
+    help="Delete docs/_build before checking links.",
+)
+@click.option(
+    "--jobs",
+    "-j",
+    default="1",
+    show_default=True,
+    help="Parallel Sphinx jobs to pass through SPHINXOPTS, e.g. 1, 4, or auto.",
+)
+@click.option(
+    "--sphinx-option",
+    "sphinx_options",
+    multiple=True,
+    help="Extra option passed to Sphinx via SPHINXOPTS; repeat as needed.",
+)
+def linkcheck_docs(clean, jobs, sphinx_options):
+    """Check external links in the PsyNet docs."""
+    try:
+        docs_module.linkcheck_command(
+            clean=clean,
+            jobs=jobs,
+            sphinx_options=sphinx_options,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
 @dev.group("changelog")
 def changelog():
     """Manage changelog fragments from a PsyNet source checkout."""
