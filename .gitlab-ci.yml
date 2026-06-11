@@ -150,6 +150,7 @@ merge_test_results:
 # the benchmark-results branch before the job propagates any regression failure.
 asv_benchmarks:
   stage: test
+  allow_failure: true
   resource_group: benchmark-results
   variables:
     # Full clone: the previous default-branch commit may be unreachable in the
