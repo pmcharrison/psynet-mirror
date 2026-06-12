@@ -62,7 +62,7 @@ Actual deployment
    :doc:`recruiter-specific steps <recruiter_specific_deployment_steps>`
    for the correct value for your recruiter.
 
--  Double-check all settings mentioned in the
+-  Double-check all settings mentioned in
    :doc:`recruiter-specific deployment steps
    <recruiter_specific_deployment_steps>`.
 
