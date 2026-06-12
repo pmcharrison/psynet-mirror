@@ -11,13 +11,15 @@ This section provides general guidelines. Recruiter-specific details
 For the full deployment monitor reference, see
 :doc:`Deployment monitor <../deploy/deployment_monitor>`.
 
+.. _lab-deployment-dashboard:
+
 Using the Dashboard
 -------------------
 
 The experiment dashboard is your main tool for tracking and managing the
 study. It is the same for each recruiter. The URL is printed in the
 terminal after the deployment command (see
-`Deploying <deploying.html#actual-deployment>`__).
+:ref:`Deploying <lab-deployment-actual-deployment>`).
 
 Key features:
 
@@ -38,7 +40,7 @@ Monitoring Participants & Data Collection
 -  Use **Dozzle logs** for real-time debugging. Regularly check for
    error messages in logs and fix critical issues immediately. The
    Dozzle URL is available at ``logs.<your-subdomain>.<your-domain>``
-   (see `Provisioning <provisioning.html#provisioning>`__).
+   (see :doc:`Provisioning <provisioning>`).
 
 -  Monitor Prolific/CINT marketplaces for recruiter-specific insights.
 

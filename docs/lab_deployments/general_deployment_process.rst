@@ -6,35 +6,37 @@ Experiment lifecycle
 
 Experiments follow a relatively fixed lifecycle.
 
--  `Design <#design>`__: Start with a research question and design an
+-  :ref:`Design <lab-deployment-design>`: Start with a research question and design an
    experiment that can answer it. Discuss the design with collaborators,
    group members, or ``#online-experiments`` on Slack before
    implementation.
 
--  `Test <#test>`__: Test the experiment automatically, on yourself, and
+-  :ref:`Test <lab-deployment-test>`: Test the experiment automatically, on yourself, and
    with a small group of colleagues or friends.
 
--  `Provision <provisioning.html#provisioning>`__: Prepare the server
+-  :doc:`Provision <provisioning>`: Prepare the server
    that will host the experiment. Use an internal server when appropriate
    or provision an EC2 server when participant location or capacity
    requires it.
 
--  `Deploy <deploying.html#deploying>`__: Launch the experiment for real
+-  :doc:`Deploy <deploying>`: Launch the experiment for real
    participants. For a first deployment, start with a pilot.
 
--  `Monitor <monitoring_and_managing.html#monitoring-managing>`__: Watch
+-  :doc:`Monitor <monitoring_and_managing>`: Watch
    the experiment during data collection, check for errors, review data
    quality, and compensate participants when needed.
 
--  `Export & Terminate <exporting_and_terminating.html>`__: Export the
+-  :doc:`Export & Terminate <exporting_and_terminating>`: Export the
    data, run preliminary checks, and terminate the experiment once data
    collection is complete.
 
--  `Teardown <teardown.html>`__: If you used an EC2 server, turn it off
+-  :doc:`Teardown <teardown>`: If you used an EC2 server, turn it off
    when you are done.
 
 .. image:: /_static/images/lab_deployments/image7.png
    :width: 8.5in
+
+.. _lab-deployment-design:
 
 Design
 ------

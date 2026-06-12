@@ -25,8 +25,8 @@ complete:
   <development_workflow>`. Cursor is the strongest recommendation;
   VSCode is the closest alternative; PyCharm is supported but no longer
   the default recommendation.
-- Learn the Git workflow using the
-  `PsyNet Git tutorial <../tutorials/version_control_with_git.html>`__.
+- Learn the Git workflow using the :doc:`PsyNet Git tutorial
+  <../tutorials/version_control_with_git>`.
   Your experiment should be in a Git repository, committed, and pushed
   before deployment.
 - Add your SSH key to GitLab if your lab uses SSH-based Git access; see

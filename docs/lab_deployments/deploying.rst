@@ -47,6 +47,8 @@ Before deployment, you need to make sure your experiment runs
 successfully on a remote server. Make sure you did all types of
 :ref:`tests <lab-deployment-test>` and thus did a remote debug.
 
+.. _lab-deployment-actual-deployment:
+
 Actual deployment
 -----------------
 
@@ -60,12 +62,13 @@ Actual deployment
    :doc:`recruiter-specific steps <recruiter_specific_deployment_steps>`
    for the correct value for your recruiter.
 
--  Double-check all settings mentioned in `recruiter-specific deployment
-   steps <recruiter_specific_deployment_steps.html#recruiter-specific-deployment-steps>`__.
+-  Double-check all settings mentioned in the
+   :doc:`recruiter-specific deployment steps
+   <recruiter_specific_deployment_steps>`.
 
 -  To deploy the experiment, run the following command from the
    experiment directory. Choose the server according to your deployment
-   needs; see `Provisioning <provisioning.html#provisioning>`__.
+   needs; see :doc:`Provisioning <provisioning>`.
 
    .. code:: bash
 
@@ -103,7 +106,7 @@ dashboard URL and login credentials. It will look similar to this:
    /Users/<your-user>/psynet-data/launch-data/<app_name>\__mode=live\__launch=<timestamp>/code…
 
 Save this link to the dashboard so that you are able to
-`monitor <monitoring_and_managing.html#monitoring-managing>`__ the dashboard during deployment.
+:doc:`monitor <monitoring_and_managing>` the dashboard during deployment.
 
 Troubleshooting a prolonged launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

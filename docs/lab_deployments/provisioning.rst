@@ -209,6 +209,8 @@ works after the restart. To start the instance:
 
    dallinger ec2 start --name <server_name> --region <region> --dns-host <your-subdomain>.<your-domain>
 
+.. _lab-deployment-ssh-into-instance:
+
 SSH into the instance
 ---------------------
 

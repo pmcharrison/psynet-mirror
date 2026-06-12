@@ -1,6 +1,8 @@
 Recruiter-Specific Deployment Steps
 ===================================
 
+.. _lab-deployment-prolific:
+
 Prolific
 --------
 
@@ -146,10 +148,10 @@ provide the Prolific qualification JSON file:
 -  **Make sure your payment is in line with the estimated completion
    time**; Prolific requires a *minimum of £6 per hour*, based on the
    median completion time across participants in your study. You can
-   verify your experiment duration by `having multiple group members
-   test out your experiment <general_deployment_process.html#testing-within-the-group>`__ before you
-   deploy and checking their median completion time. Keep an eye on this
-   while running the experiment with participants!
+   verify your experiment duration by :ref:`having multiple group
+   members test out your experiment <testing-within-the-group>` before
+   you deploy and checking their median completion time. Keep an eye on
+   this while running the experiment with participants!
 
 
 Prolific qualifications
@@ -189,8 +191,8 @@ prolific_project = <YOUR_PROJECT_FOLDER>
 .. image:: /_static/images/lab_deployments/image13.png
    :width: 8.5in
 
-Deploy the experiment. Please see `deployment
-process <deploying.html#actual-deployment>`__.
+Deploy the experiment. Please see the :ref:`deployment process
+<lab-deployment-actual-deployment>`.
 
 Prolific: check & adapt study details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -370,6 +372,8 @@ Termination
 
 -  Put experiment in your folder on Prolific.
 
+.. _lab-deployment-cint:
+
 CINT (Lucid)
 ------------
 
@@ -446,8 +450,8 @@ Add this function at the top of your project.
 Set the following parameters:
 
 -  lucid_recruitment_config_path: path to qualifications JSON
-   file. (see `CINT Qualifications <#cint-qualifications>`__ for
-   details)
+   file. (see :ref:`CINT Qualifications
+   <lab-deployment-cint-qualifications>` for details)
 
 -  termination_time_in_s: adjust the maximal time a participant
    can spend on the experiment
@@ -493,6 +497,8 @@ CINT Consent
 ^^^^^^^^^^^^
 
 Please ensure that you use the correct consent for the CINT platform. Please advise if you are unsure.
+
+.. _lab-deployment-cint-qualifications:
 
 CINT Qualifications
 ^^^^^^^^^^^^^^^^^^^
@@ -652,10 +658,10 @@ your lab administrator and log in to your lab's CINT account. Your lab
 administrator should provide you with login credentials.
 
 Also, save and open the link provided in the terminal after successful
-deployment to `monitor <#monitoring-1>`__ the experiment. When you open
-the link, you will see the dashboard. Here, click on the ‘Lucid’ tab to
-access many features from the marketplace as well as the reports of the
-experiment.
+deployment to :ref:`monitor <lab-deployment-cint-monitoring>` the
+experiment. When you open the link, you will see the dashboard. Here,
+click on the ‘Lucid’ tab to access many features from the marketplace as
+well as the reports of the experiment.
 
 .. image:: /_static/images/lab_deployments/image34.png
    :width: 8.5in
@@ -693,7 +699,7 @@ experiment.
    .. image:: /_static/images/lab_deployments/image6.png
       :width: 8.5in
 
-.. _monitoring-1:
+.. _lab-deployment-cint-monitoring:
 
 Monitoring 
 ~~~~~~~~~~~
@@ -769,9 +775,9 @@ Termination
 ~~~~~~~~~~~
 
 Once you reach the desired number of participants, set it to ‘Complete’
-and `export <exporting_and_terminating.html#export-data>`__ your data again. To destroy the app,
-wait until there are no more working participants left in the
-experiment.
+and :ref:`export <lab-deployment-export-data>` your data again. To
+destroy the app, wait until there are no more working participants left
+in the experiment.
 
 .. image:: /_static/images/lab_deployments/image9.png
    :width: 8.5in
@@ -792,6 +798,8 @@ You can compensate with the following command:
 You need to add all completed RIDs, **so also those that are already
 marked as completed! Otherwise, already completed participants are
 marked as terminated!**
+
+.. _lab-deployment-lab-recruiter:
 
 Lab Recruiter
 -------------
@@ -921,8 +929,8 @@ administrator if you want to create or use a custom consent form.
 Deployment
 ~~~~~~~~~~
 
-Deploy the Experiment. Please see `deployment
-process <deploying.html#actual-deployment>`__.
+Deploy the Experiment. Please see the :ref:`deployment process
+<lab-deployment-actual-deployment>`.
 
 -  After deploying your experiment, navigate to the Experiments tab.
 
@@ -995,7 +1003,7 @@ Dashboard
 ^^^^^^^^^
 
 Use your experiment dashboard to monitor your experiment. See
-`dashboard <monitoring_and_managing.html#using-the-dashboard>`__.
+:ref:`dashboard <lab-deployment-dashboard>`.
 
 Participant tracking
 ^^^^^^^^^^^^^^^^^^^^
@@ -1035,7 +1043,7 @@ Terminate the Experiment
    again and set it to **‘Archive’** on the Lab Recruiter.
 
 -  You also need to delete the experiment from the server. Please see
-   `teardown <teardown.html#teardown>`__.
+   :doc:`teardown <teardown>`.
 
 Lab Recruiter For Participants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

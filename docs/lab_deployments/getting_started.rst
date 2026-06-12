@@ -3,10 +3,9 @@ Getting Started
 
 This section is a practical guide for deploying PsyNet experiments in the
 lab workflow. It covers the common steps that everyone needs, then points
-you to recruiter-specific instructions for
-`Prolific <recruiter_specific_deployment_steps.html#prolific>`__,
-`CINT <recruiter_specific_deployment_steps.html#cint-lucid>`__, and
-`Lab Recruiter <recruiter_specific_deployment_steps.html#lab-recruiter>`__.
+you to recruiter-specific instructions for :ref:`Prolific
+<lab-deployment-prolific>`, :ref:`CINT <lab-deployment-cint>`, and
+:ref:`Lab Recruiter <lab-deployment-lab-recruiter>`.
 
 How to use this guide
 ---------------------

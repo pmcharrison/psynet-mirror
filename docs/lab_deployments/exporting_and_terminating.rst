@@ -1,6 +1,8 @@
 Exporting & Terminating
 =======================
 
+.. _lab-deployment-export-data:
+
 Export data
 -----------
 
@@ -98,8 +100,8 @@ Additional manual export (large assets)
   nice cleaned names as when exported via psynet export ssh!
 | To do this manual export of the assets:
 
--  ssh to the server as explained in `SSH into the
-   instance <provisioning.html#ssh-into-the-instance>`__
+-  ssh to the server as explained in :ref:`SSH into the instance
+   <lab-deployment-ssh-into-instance>`
 
 -  then you create a tar.gz of the assets folder on the server, by
    running in the terminal:

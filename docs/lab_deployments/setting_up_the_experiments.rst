@@ -45,9 +45,9 @@ Choose a recruiter
 Choose the recruiter before you launch, because each recruiter has
 different setup requirements:
 
-- `Prolific <recruiter_specific_deployment_steps.html#prolific>`__.
-- `CINT <recruiter_specific_deployment_steps.html#cint-lucid>`__.
-- `Lab Recruiter <recruiter_specific_deployment_steps.html#lab-recruiter>`__.
+- :ref:`Prolific <lab-deployment-prolific>`.
+- :ref:`CINT <lab-deployment-cint>`.
+- :ref:`Lab Recruiter <lab-deployment-lab-recruiter>`.
 
 After choosing the recruiter, read the matching section in
 :doc:`Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>`
@@ -68,8 +68,8 @@ Before public deployment, test the experiment in each of these modes:
   before publishing the experiment to real participants.
 
 For full details on each testing mode, see the
-`testing section <general_deployment_process.html#test>`__ of the
-General Deployment Process.
+:ref:`testing section <lab-deployment-test>` of the General Deployment
+Process.
 
 Final pre-deployment check
 --------------------------
