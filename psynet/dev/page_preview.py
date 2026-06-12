@@ -5,15 +5,16 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from textwrap import dedent
 from typing import Iterator, Optional
 
-
 MIRRORED_PREVIEW_PATHS = (
     "assets",
+    ".gitignore",
     "config.txt",
     "constraints.txt",
     "requirements.txt",
@@ -128,6 +129,8 @@ def create_preview_experiment(
     preview_root.mkdir(parents=True, exist_ok=True)
     _write_preview_experiment(target, experiment_root, preview_root)
     _mirror_preview_paths(experiment_root, preview_root)
+    _write_default_preview_files(preview_root)
+    _initialize_preview_git_repository(preview_root)
     return preview_root
 
 
@@ -176,3 +179,38 @@ def _mirror_path(source: Path, destination: Path) -> None:
         shutil.copytree(source, destination, symlinks=True)
     else:
         shutil.copy2(source, destination)
+
+
+def _write_default_preview_files(preview_root: Path) -> None:
+    """Write minimal experiment files required by ``psynet debug local``."""
+    defaults = {
+        ".gitignore": "source_code.zip\nserver.log\nlogs.jsonl\n.deploy/\n",
+        "config.txt": (
+            "[Config]\n"
+            "title = PsyNet page preview\n"
+            "description = Preview a single PsyNet page.\n"
+            "contact_email_on_error = preview@example.com\n"
+            "organization_name = PsyNet\n"
+            "recruiter = generic\n"
+            "currency = $\n"
+            "wage_per_hour = 12.0\n"
+        ),
+        "constraints.txt": "",
+        "requirements.txt": "",
+    }
+
+    for filename, contents in defaults.items():
+        path = preview_root / filename
+        if not path.exists() and not path.is_symlink():
+            path.write_text(contents, encoding="utf-8")
+
+
+def _initialize_preview_git_repository(preview_root: Path) -> None:
+    """Make the temporary preview directory pass local debug git checks."""
+    if (preview_root / ".git").exists():
+        return
+    subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=preview_root,
+        check=True,
+    )

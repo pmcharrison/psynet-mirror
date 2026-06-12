@@ -134,6 +134,8 @@ and ``experiment`` arguments, just like a :class:`~psynet.timeline.PageMaker`.
 This command starts ``psynet debug local`` from a temporary preview directory
 that symlinks common experiment paths such as ``static/``, ``assets/``,
 ``templates/``, ``config.txt``, ``requirements.txt``, and ``constraints.txt``.
+If ``config.txt``, ``requirements.txt``, ``constraints.txt``, or ``.gitignore``
+are missing, PsyNet creates minimal preview versions in the temporary directory.
 It is intended for visual inspection and light browser testing of a page; use
 ``psynet test local`` or custom front-end tests when you need to verify a full
 experiment flow.
