@@ -108,7 +108,10 @@ archive containing both files.
 
       [EC2]
       ec2_default_security_group = <your-security-group>
-      ec2_default_pem = your-key  # no path, just the name without extension
+      ec2_default_pem = <your-key-name>
+
+      [Server PEM file]
+      server_pem = ~/.ssh/<your-key-name>.pem
 
    You can verify the PEM file is in the right place by running:
 
