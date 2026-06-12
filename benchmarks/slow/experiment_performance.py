@@ -36,7 +36,7 @@ class _BaseExperiment:
     defaults.
 
     Sweep axes (``param_names``) map to ``psynet performance-test local`` CLI
-    flags by replacing underscores with dashes (e.g. ``"duration_minutes"`` →
+    flags by replacing underscores with dashes (e.g. ``"duration_minutes"`` ->
     ``--duration-minutes``); any flag the CLI accepts is sweepable. Values not
     specified take the CLI default. Each Cartesian combination triggers one
     psynet invocation.
@@ -81,7 +81,7 @@ class _BaseExperiment:
 
     # Explicit benchmark version. Without this ASV uses a hash of the benchmark
     # source, and silently drops historical results whose stored hash no longer
-    # matches — so cosmetic changes wipe the history. Pins version to allow
+    # matches -- so cosmetic changes wipe the history. Pins version to allow
     # refactors that shouldn't impact performance. Bump this integer when a
     # benchmark change makes new results incomparable to old ones.
     version = 4
@@ -91,7 +91,7 @@ class _BaseExperiment:
         # Prefix each base-class track_* method's pretty_name with demo_name so
         # the rendered ASV table distinguishes per-demo rows at a glance. The
         # base track_* methods are shared function objects, so the prefix has
-        # to go on a per-subclass clone — mutating the shared object in place
+        # to go on a per-subclass clone -- mutating the shared object in place
         # would clobber the other subclasses. A track_* the subclass defines
         # itself is left alone (its own pretty_name stands), as is any base
         # track_* without a pretty_name (ASV falls back to its name).
@@ -110,7 +110,7 @@ class _BaseExperiment:
         if self.demo_name is None:
             raise NotImplementedError("subclass must set demo_name")
 
-        repo_root = Path(__file__).parent.parent
+        repo_root = Path(__file__).parents[2]
         demo_dir = repo_root / self.demo_root / self.demo_name
 
         results = {}
