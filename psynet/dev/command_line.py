@@ -9,6 +9,7 @@ import click
 from psynet.dev import changelog as changelog_module
 from psynet.dev import ci as ci_module
 from psynet.dev import experiments as experiments_module
+from psynet.dev import page_preview as page_preview_module
 
 CHANGELOG_CATEGORIES = (
     "breaking",
@@ -59,6 +60,32 @@ def update_dallinger_constraints(skip_compile_check):
 @dev.group("experiments")
 def experiments():
     """Manage bundled demo and test experiments from a PsyNet source checkout."""
+
+
+@dev.command("preview-page")
+@click.argument("page_factory", metavar="MODULE:ATTRIBUTE")
+def preview_page(page_factory):
+    """Preview a page factory in a minimal one-page debug experiment."""
+    try:
+        page_preview_module.parse_page_target(page_factory)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
+
+    from psynet.command_line import _run_local, debug
+    from psynet.utils import working_directory
+
+    with page_preview_module.preview_experiment_directory(page_factory) as preview_dir:
+        click.echo(f"Previewing {page_factory} from {preview_dir}.")
+        with working_directory(preview_dir):
+            _run_local(
+                ctx=None,
+                docker=False,
+                archive=None,
+                legacy=False,
+                no_browsers=False,
+                mode="debug",
+                context_group=debug,
+            )
 
 
 @experiments.command("update")

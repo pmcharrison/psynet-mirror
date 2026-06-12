@@ -86,6 +86,59 @@ to close the debug session and create a new one for those assets to be incorpora
 into the experiment. You can close a debug session by entering Ctrl-C into the bash terminal.
 
 
+Previewing a single page
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+When you are working on the display of one page, it can be faster to put that
+page in a temporary one-page timeline instead of navigating through the full
+experiment. One simple pattern is to move the page construction into a small
+factory function:
+
+.. code-block:: python
+
+    import psynet.experiment
+
+    from psynet.modular_page import ModularPage, PushButtonControl
+    from psynet.timeline import Timeline
+
+
+    def preview_page(participant=None, experiment=None):
+        return ModularPage(
+            "preview",
+            "Does this page look right?",
+            PushButtonControl(["Yes", "No"]),
+            time_estimate=5,
+        )
+
+
+    class Exp(psynet.experiment.Experiment):
+        timeline = Timeline(preview_page())
+
+Run ``psynet debug local`` as usual, then create a participant from the
+dashboard. The browser will open directly onto the preview page, but the page
+still uses the real PsyNet template, JavaScript, CSS, media handling, progress
+bar, and response machinery.
+
+If you do not want to edit the experiment timeline while iterating on the page,
+you can instead ask PsyNet to create the one-page preview experiment for you:
+
+.. code-block:: bash
+
+    psynet dev preview-page experiment.py:preview_page
+
+The target uses ``MODULE:ATTRIBUTE`` syntax. The module can be an import name or
+a Python file path relative to the experiment directory. The attribute should
+return a PsyNet page or other timeline element; it may request ``participant``
+and ``experiment`` arguments, just like a :class:`~psynet.timeline.PageMaker`.
+
+This command starts ``psynet debug local`` from a temporary preview directory
+that symlinks common experiment paths such as ``static/``, ``assets/``,
+``templates/``, ``config.txt``, ``requirements.txt``, and ``constraints.txt``.
+It is intended for visual inspection and light browser testing of a page; use
+``psynet test local`` or custom front-end tests when you need to verify a full
+experiment flow.
+
+
 Breakpoints
 ^^^^^^^^^^^
 

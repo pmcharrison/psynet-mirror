@@ -116,6 +116,41 @@ class TestCommandLine(object):
         assert result.exit_code != 0
         assert "Run from a PsyNet source checkout" in result.output
 
+    def test_dev_preview_page_runs_debug_from_generated_directory(
+        self, monkeypatch, tmp_path
+    ):
+        from psynet.command_line import psynet
+
+        preview_dir = tmp_path / "preview"
+        preview_dir.mkdir()
+        calls = []
+
+        @contextmanager
+        def fake_preview_directory(page_factory):
+            calls.append(("preview-directory", page_factory))
+            yield preview_dir
+
+        def fake_run_local(**kwargs):
+            calls.append(("run-local", Path.cwd(), kwargs))
+
+        monkeypatch.setattr(
+            "psynet.dev.page_preview.preview_experiment_directory",
+            fake_preview_directory,
+        )
+        monkeypatch.setattr("psynet.command_line._run_local", fake_run_local)
+
+        result = CliRunner().invoke(
+            psynet, ["dev", "preview-page", "experiment.py:preview_page"]
+        )
+
+        assert result.exit_code == 0, result.output
+        assert calls[0] == ("preview-directory", "experiment.py:preview_page")
+        assert calls[1][0] == "run-local"
+        assert calls[1][1] == preview_dir
+        assert calls[1][2]["mode"] == "debug"
+        assert calls[1][2]["docker"] is False
+        assert calls[1][2]["legacy"] is False
+
     def test_dev_ci_update_dallinger_constraints_dispatches_to_script(
         self, monkeypatch
     ):

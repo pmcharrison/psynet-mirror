@@ -200,11 +200,12 @@ The tests described above focus on testing the back-end logic of your
 PsyNet experiment. They catch errors to do with the instantiation of pages,
 the running of code blocks, the growing of networks, and so on.
 They do not catch logic to do with the front-end display of your
-experiment. Writing such tests is more complicated, and we haven't
-provided a tutorial for this yet; however, if you are interested in writing
-your own such tests, please have a look at corresponding tests in the
-PsyNet source code, for example ``test_demo_timeline.py`` and
-``test_demo_static.py``.
+experiment. For quick visual inspection of one page, see
+:ref:`development_workflow` for the ``psynet dev preview-page`` workflow.
+Writing automated front-end tests is more complicated, and we haven't provided
+a tutorial for this yet; however, if you are interested in writing your own such
+tests, please have a look at corresponding tests in the PsyNet source code, for
+example ``test_demo_timeline.py`` and ``test_demo_static.py``.
 
 The front-end testing patterns mentioned above (e.g. ``test_demo_timeline.py`` and ``test_demo_static.py``)
 have certain restrictions, most notably that they do not test concurrency.
