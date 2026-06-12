@@ -431,7 +431,7 @@ msgstr "Jos kohtasit, kuvaile ongelmaa muutamalla sanalla."
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Lopeta"
+msgstr "Valmis"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

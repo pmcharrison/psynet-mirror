@@ -430,7 +430,7 @@ msgstr "Agar aail, to kripya kuch sabd me samasya ke varnan karen."
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "ᱪᱟᱵᱟ ᱢᱮ"
+msgstr "ᱪᱟᱹᱵᱟ"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

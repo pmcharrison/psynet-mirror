@@ -434,7 +434,7 @@ msgstr "அப்படியானால், பிரச்சினையை 
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "முடிக்கவும்"
+msgstr "முடிக்க"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

@@ -431,7 +431,7 @@ msgstr "Om så är fallet, vänligen ge några ord som beskriver problemet."
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Slutför"
+msgstr "Avsluta"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

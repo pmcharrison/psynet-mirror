@@ -428,7 +428,7 @@ msgstr "यदि तथा, कृपया समस्यायाः वर�
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "समापयतु"
+msgstr "समाप्तिः"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

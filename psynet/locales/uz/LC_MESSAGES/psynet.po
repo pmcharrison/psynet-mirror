@@ -433,7 +433,7 @@ msgstr "Agar shunday bo'lsa, muammoni bir necha so'z bilan tasvirlab bering."
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Yakunlash"
+msgstr "Tugatish"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

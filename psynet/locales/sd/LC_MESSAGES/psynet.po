@@ -431,7 +431,7 @@ msgstr "جيڪڏهن ائين آهي، مهرباني ڪري مسئلي جي و�
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "ختم ڪريو"
+msgstr "ختم"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

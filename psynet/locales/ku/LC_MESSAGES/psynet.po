@@ -429,7 +429,7 @@ msgstr "ئەگەر هەبوو، تکایە چەند وشەیەک دیاری بک
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Biqedîne"
+msgstr "کۆتایی"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

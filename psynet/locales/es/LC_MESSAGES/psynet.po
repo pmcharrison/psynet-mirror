@@ -433,7 +433,7 @@ msgstr ""
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Finalizar"
+msgstr "Terminar"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

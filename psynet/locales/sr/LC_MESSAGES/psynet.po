@@ -431,7 +431,7 @@ msgstr "Ako jeste, molimo navedite nekoliko reči koje opisuju problem."
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Заврши"
+msgstr "Završi"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

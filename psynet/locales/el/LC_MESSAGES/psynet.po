@@ -432,7 +432,7 @@ msgstr "Αν ναι, παρακαλώ δώστε μερικές λέξεις π�
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Ολοκλήρωση"
+msgstr "Τέλος"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

@@ -437,7 +437,7 @@ msgstr ""
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Tapusin"
+msgstr "Tapos"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format

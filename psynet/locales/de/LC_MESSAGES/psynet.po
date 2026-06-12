@@ -432,7 +432,7 @@ msgstr "Wenn ja, beschreiben Sie bitte das Problem in ein paar Worten."
 #: psynet/end.py
 #, fuzzy
 msgid "Finish"
-msgstr "Abschließen"
+msgstr "Fertig"
 
 #: psynet/end.py
 #, fuzzy, python-brace-format
