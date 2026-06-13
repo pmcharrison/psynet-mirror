@@ -20,6 +20,7 @@
 import os
 import sys
 from glob import glob
+from io import StringIO
 from os.path import abspath, basename, join
 
 import pandas as pd
@@ -300,18 +301,24 @@ class RstCloth:
 
 
 def generate_translation_table():
-    with open("dashboards/translation.rst", "w") as output_file:
-        doc = RstCloth(output_file)
-        doc.title("Translation dashboard")
-        doc.newline()
+    output = StringIO()
+    doc = RstCloth(output)
+    doc.title("Translation dashboard")
+    doc.newline()
 
-        table = extract_translation_information()
-        doc.h3(f"PsyNet is available in {len(table)} languages:")
+    table = extract_translation_information()
+    doc.h3(f"PsyNet is available in {len(table)} languages:")
 
-        doc.table(
-            ["Language", "Percent translated", "Percent verified", "Translator"],
-            [process_row(row) for row in table],
-        )
+    doc.table(
+        ["Language", "Percent translated", "Percent verified", "Translator"],
+        [process_row(row) for row in table],
+    )
+
+    output_path = "dashboards/translation.rst"
+    content = output.getvalue()
+    if not os.path.exists(output_path) or open(output_path).read() != content:
+        with open(output_path, "w") as output_file:
+            output_file.write(content)
 
 
 generate_translation_table()
