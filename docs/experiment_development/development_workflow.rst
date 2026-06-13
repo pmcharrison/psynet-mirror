@@ -120,7 +120,7 @@ still uses the real PsyNet template, JavaScript, CSS, media handling, progress
 bar, and response machinery.
 
 If you do not want to edit the experiment timeline while iterating on the page,
-you can instead ask PsyNet to create the one-page preview experiment for you:
+you can instead ask PsyNet to run a lightweight page preview server:
 
 .. code-block:: bash
 
@@ -131,8 +131,19 @@ a Python file path relative to the experiment directory. The attribute should
 return a PsyNet page or other timeline element; it may request ``participant``
 and ``experiment`` arguments, just like a :class:`~psynet.timeline.PageMaker`.
 
-This command starts ``psynet debug local`` from a temporary preview directory
-that symlinks common experiment paths such as ``static/``, ``assets/``,
+By default, this command starts a minimal Flask server that renders the page
+directly, without creating a participant, launching the dashboard, starting
+workers, or running the experiment timeline. It serves PsyNet's built-in static
+resources plus files from the experiment's ``static/`` and ``templates/``
+directories. If you need the full PsyNet debug stack for a page that depends on
+database state or runtime services, use:
+
+.. code-block:: bash
+
+    psynet dev preview-page experiment.py:preview_page --mode debug
+
+The debug fallback starts ``psynet debug local`` from a temporary preview
+directory that symlinks common experiment paths such as ``static/``, ``assets/``,
 ``templates/``, ``config.txt``, ``requirements.txt``, and ``constraints.txt``.
 If ``config.txt``, ``requirements.txt``, ``constraints.txt``, or ``.gitignore``
 are missing, PsyNet creates minimal preview versions in the temporary directory.

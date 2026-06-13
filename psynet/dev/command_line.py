@@ -4,6 +4,8 @@ These commands are part of the installed package but only function from a
 PsyNet source checkout, where `CHANGELOG.md` and `changelog.d/` are present.
 """
 
+from pathlib import Path
+
 import click
 
 from psynet.dev import changelog as changelog_module
@@ -64,12 +66,31 @@ def experiments():
 
 @dev.command("preview-page")
 @click.argument("page_factory", metavar="MODULE:ATTRIBUTE")
-def preview_page(page_factory):
-    """Preview a page factory in a minimal one-page debug experiment."""
+@click.option(
+    "--mode",
+    "preview_mode",
+    type=click.Choice(["minimal", "debug"]),
+    default="minimal",
+    show_default=True,
+    help="Preview using a lightweight Flask server or the full debug server.",
+)
+@click.option("--host", default="127.0.0.1", show_default=True, help="Preview host.")
+@click.option("--port", default=5000, show_default=True, help="Preview port.")
+def preview_page(page_factory, preview_mode, host, port):
+    """Preview a page factory without running a full experiment timeline."""
     try:
         page_preview_module.parse_page_target(page_factory)
     except ValueError as exc:
         raise click.UsageError(str(exc)) from exc
+
+    if preview_mode == "minimal":
+        page_preview_module.run_minimal_preview_server(
+            page_factory,
+            experiment_root=Path.cwd(),
+            host=host,
+            port=port,
+        )
+        return
 
     from psynet.command_line import _run_local, debug
     from psynet.utils import working_directory

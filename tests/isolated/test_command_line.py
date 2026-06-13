@@ -116,7 +116,46 @@ class TestCommandLine(object):
         assert result.exit_code != 0
         assert "Run from a PsyNet source checkout" in result.output
 
-    def test_dev_preview_page_runs_debug_from_generated_directory(
+    def test_dev_preview_page_runs_minimal_server_by_default(
+        self, monkeypatch, tmp_path
+    ):
+        from psynet.command_line import psynet
+
+        calls = []
+
+        def fake_run_minimal(page_factory, **kwargs):
+            calls.append((page_factory, kwargs))
+
+        monkeypatch.setattr(
+            "psynet.dev.page_preview.run_minimal_preview_server",
+            fake_run_minimal,
+        )
+
+        with working_directory(tmp_path):
+            result = CliRunner().invoke(
+                psynet,
+                [
+                    "dev",
+                    "preview-page",
+                    "experiment.py:preview_page",
+                    "--port",
+                    "5050",
+                ],
+            )
+
+        assert result.exit_code == 0, result.output
+        assert calls == [
+            (
+                "experiment.py:preview_page",
+                {
+                    "experiment_root": tmp_path,
+                    "host": "127.0.0.1",
+                    "port": 5050,
+                },
+            )
+        ]
+
+    def test_dev_preview_page_debug_mode_runs_debug_from_generated_directory(
         self, monkeypatch, tmp_path
     ):
         from psynet.command_line import psynet
@@ -140,7 +179,14 @@ class TestCommandLine(object):
         monkeypatch.setattr("psynet.command_line._run_local", fake_run_local)
 
         result = CliRunner().invoke(
-            psynet, ["dev", "preview-page", "experiment.py:preview_page"]
+            psynet,
+            [
+                "dev",
+                "preview-page",
+                "experiment.py:preview_page",
+                "--mode",
+                "debug",
+            ],
         )
 
         assert result.exit_code == 0, result.output

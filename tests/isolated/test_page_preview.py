@@ -17,6 +17,20 @@ def test_parse_page_target_requires_module_and_attribute():
         page_preview.parse_page_target("preview_page")
 
 
+def test_load_page_factory_resolves_file_target(tmp_path):
+    experiment_root = tmp_path / "experiment"
+    experiment_root.mkdir()
+    (experiment_root / "experiment.py").write_text(
+        "def preview_page():\n    return 'loaded'\n", encoding="utf-8"
+    )
+
+    factory = page_preview.load_page_factory(
+        "experiment.py:preview_page", experiment_root
+    )
+
+    assert factory() == "loaded"
+
+
 def test_create_preview_experiment_writes_wrapper_and_mirrors_paths(tmp_path):
     experiment_root = tmp_path / "experiment"
     experiment_root.mkdir()
@@ -46,6 +60,22 @@ def test_create_preview_experiment_writes_wrapper_and_mirrors_paths(tmp_path):
         encoding="utf-8"
     ) == "hello"
     assert (preview_root / ".git").exists()
+
+
+def test_resolve_static_file_prefers_experiment_static(tmp_path):
+    experiment_static = tmp_path / "static" / "audio"
+    experiment_static.mkdir(parents=True)
+    stimulus = experiment_static / "stimulus.wav"
+    stimulus.write_text("audio", encoding="utf-8")
+
+    assert page_preview._resolve_static_file("audio/stimulus.wav", tmp_path) == stimulus
+
+
+def test_resolve_static_file_uses_psynet_resources():
+    path = page_preview._resolve_static_file("scripts/psynet.js", Path.cwd())
+
+    assert path is not None
+    assert path.name == "psynet.js"
 
 
 def test_create_preview_experiment_writes_required_defaults(tmp_path):
