@@ -201,12 +201,8 @@ def test_format_performance_summary_none_metrics():
 
 
 def test_format_performance_summary_scaling():
-    r1 = _base_result(
-        n_bots=1, median_response_time=0.1, q_delay_median=0.05
-    )
-    r2 = _base_result(
-        n_bots=2, median_response_time=0.2, q_delay_median=0.1
-    )
+    r1 = _base_result(n_bots=1, median_response_time=0.1, q_delay_median=0.05)
+    r2 = _base_result(n_bots=2, median_response_time=0.2, q_delay_median=0.1)
     lines = format_performance_summary([r1, r2])
     text = _join(lines)
     assert "2.0x" in text
