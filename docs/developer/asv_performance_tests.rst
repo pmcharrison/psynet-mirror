@@ -19,7 +19,9 @@ Benchmarks are split by directory:
   these as the ASV regression gate.
 - ``benchmarks/slow/`` contains end-to-end experiment performance benchmarks.
   These are intentionally excluded from the merge-request gate, but they do run
-  on ``master``.
+  on ``master``. The slow ASV history focuses on median request latency and
+  median async-process queue delay; participant failures and incomplete bots are
+  left in the performance-test output instead of being tracked as ASV metrics.
 
 Merge-request checks
 ====================
@@ -37,8 +39,9 @@ Commits to ``master`` run the ``asv_benchmarks`` CI job. This job uses
 slow benchmark tiers. It compares the previous ``master`` commit with the new
 commit on the same runner, writes the generated result files, commits those
 results to the ``benchmark-results`` branch, pushes them, and then propagates
-the ASV exit status. This means ``master`` CI fails on performance regressions
-while still preserving the data needed for the published benchmark history.
+the ASV exit status. The job is currently allowed to fail while the benchmark
+suite is being tuned, but it still preserves the data needed for the published
+benchmark history.
 
 ASV command modes
 =================
