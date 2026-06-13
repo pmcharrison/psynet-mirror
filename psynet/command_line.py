@@ -15,7 +15,6 @@ from contextlib import contextmanager
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
-from shutil import rmtree, which
 from urllib.parse import urlencode
 
 import click
@@ -39,7 +38,6 @@ from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
-from psynet import __path__ as psynet_path
 from psynet import __version__
 from psynet.dev.command_line import dev as _dev_command_group
 from psynet.version import (
@@ -1286,43 +1284,6 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
             f,
             indent=4,
         )
-
-
-########
-# docs #
-########
-@psynet.command()
-@click.option(
-    "--force-rebuild",
-    "-f",
-    is_flag=True,
-    help="Force complete rebuild by deleting the '_build' directory",
-)
-def docs(force_rebuild):
-    """
-    Build the documentation.
-    """
-    docs_dir = os.path.join(psynet_path[0], "..", "docs")
-    docs_build_dir = os.path.join(docs_dir, "_build")
-    try:
-        os.chdir(docs_dir)
-    except FileNotFoundError as e:
-        log(
-            "There was an error building the documentation. Be sure to have activated your 'psynet' virtual environment."
-        )
-        raise SystemExit(e)
-    if os.path.exists(docs_build_dir) and force_rebuild:
-        rmtree(docs_build_dir)
-    os.chdir(docs_dir)
-    subprocess.run(["make", "html"])
-    if which("xdg-open") is not None:
-        open_command = "xdg-open"
-    else:
-        open_command = "open"
-    subprocess.run(
-        [open_command, os.path.join(docs_build_dir, "html/index.html")],
-        stdout=subprocess.DEVNULL,
-    )
 
 
 ##############

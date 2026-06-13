@@ -4,10 +4,13 @@ These commands are part of the installed package but only function from a
 PsyNet source checkout, where `CHANGELOG.md` and `changelog.d/` are present.
 """
 
+import subprocess
+
 import click
 
 from psynet.dev import changelog as changelog_module
 from psynet.dev import ci as ci_module
+from psynet.dev import docs as docs_module
 from psynet.dev import experiments as experiments_module
 
 CHANGELOG_CATEGORIES = (
@@ -84,6 +87,98 @@ def update_experiments(n_jobs, skip_constraints):
         )
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
+
+
+@dev.group("docs")
+def docs():
+    """Build PsyNet documentation from a source checkout."""
+
+
+@docs.command("make")
+@click.argument("target", default="html", metavar="[TARGET]")
+@click.option(
+    "--clean",
+    "-c",
+    is_flag=True,
+    help="Delete docs/_build before running the Sphinx target.",
+)
+@click.option(
+    "--open",
+    "open_browser",
+    is_flag=True,
+    help="Open the HTML docs after building. Implied by --live-preview.",
+)
+@click.option(
+    "--live-preview",
+    is_flag=True,
+    help="Serve the HTML docs with sphinx-autobuild and reload on changes.",
+)
+@click.option(
+    "--port",
+    "live_preview_port",
+    default=8000,
+    show_default=True,
+    type=int,
+    help="Port to use with --live-preview.",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    help="Treat Sphinx warnings as errors and keep going to report all warnings.",
+)
+@click.option(
+    "--jobs",
+    "-j",
+    default="1",
+    show_default=True,
+    help="Parallel Sphinx build jobs to pass through SPHINXOPTS, e.g. 1, 4, or auto.",
+)
+@click.option(
+    "--sphinx-option",
+    "sphinx_options",
+    multiple=True,
+    help=(
+        "Extra option passed to Sphinx via SPHINXOPTS; repeat as needed. "
+        "Common examples: --nitpicky, -E, -a, -T, -v."
+    ),
+)
+def make_docs(
+    target,
+    clean,
+    open_browser,
+    live_preview,
+    live_preview_port,
+    strict,
+    jobs,
+    sphinx_options,
+):
+    """Run a Sphinx Makefile TARGET for PsyNet docs.
+
+    TARGET defaults to html, matching `make html` in docs/.
+
+    Uses --jobs 1 by default for deterministic output. Pass extra Sphinx flags
+    with --sphinx-option. Pass --live-preview to serve the HTML docs with
+    sphinx-autobuild and reload the browser when files change.
+    """
+    try:
+        if live_preview:
+            open_browser = True
+        docs_module.make_command(
+            target=target,
+            clean=clean,
+            open_browser=open_browser,
+            live_preview=live_preview,
+            live_preview_port=live_preview_port,
+            strict=strict,
+            jobs=jobs,
+            sphinx_options=sphinx_options,
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    except subprocess.CalledProcessError as exc:
+        raise click.ClickException(
+            f"Docs command failed with exit code {exc.returncode}."
+        ) from exc
 
 
 @dev.group("changelog")
