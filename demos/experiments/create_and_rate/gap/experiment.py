@@ -68,6 +68,7 @@ NUM_ITERATIONS_PER_CHAIN = 20
 class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
     time_estimate = 13
     accumulate_answers = True
+    run_async_post_trial = False
 
     def analyze_recording(self, audio_file: str, output_plot: str):
         # You can add ASR here if you like
@@ -450,16 +451,21 @@ class Exp(psynet.experiment.Experiment):
         n_expected_nodes = len(start_nodes) * 2  # Seed nodes + iteration 1
         participants = Participant.query.all()
         assert len(participants) == self.test_n_bots
-        participants = sorted(participants, key=lambda p: p.id)
-        assert [p.var.is_rater for p in participants] == [False] * N_CREATORS + [
-            True
-        ] * N_RATERS * 2
+        participants_by_id = {p.id: p for p in participants}
+
         creations = CreateTrial.query.all()
         assert len(creations) == 4
-        assert len(set([t.participant_id for t in creations])) == 2
+        creator_ids = {t.participant_id for t in creations}
+        assert len(creator_ids) == 2
+
         ratings = SelectTrial.query.all()
         assert len(ratings) == 6
-        assert len(set([t.participant_id for t in ratings])) == 6
+        rater_ids = {t.participant_id for t in ratings}
+        assert len(rater_ids) == 6
+
+        assert creator_ids.isdisjoint(rater_ids)
+        assert all(not participants_by_id[p_id].var.is_rater for p_id in creator_ids)
+        assert all(participants_by_id[p_id].var.is_rater for p_id in rater_ids)
 
         all_trials = creations + ratings
         assert all([t.finalized for t in all_trials])
