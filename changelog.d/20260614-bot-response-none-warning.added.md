@@ -1,0 +1,1 @@
+Added a warning when a control is given ``bot_response=None``, since this is treated as an explicit answer of ``None`` and bypasses an overridden ``get_bot_response`` (and ``format_answer``); leave ``bot_response`` unset to use ``get_bot_response``.

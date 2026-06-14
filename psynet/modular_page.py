@@ -630,6 +630,14 @@ class Control:
         Alternatively, it can be an instance of class ``BotResponse``, which can accept more detailed
         information, for example:
 
+        .. note::
+
+            Leave ``bot_response`` unset to use the control's ``get_bot_response`` method.
+            Passing ``bot_response=None`` does **not** mean "no response provided"; it is
+            treated as an explicit (formatted) bot answer of ``None`` and therefore bypasses
+            both ``get_bot_response`` and ``format_answer``. A warning is emitted if
+            ``bot_response=None`` is passed to a control that overrides ``get_bot_response``.
+
         raw_answer :
             The raw_answer returned from the page.
 
@@ -807,6 +815,18 @@ class Control:
         pass
 
     def call__get_bot_response(self, experiment, bot, page, prompt):
+        if (
+            self._bot_response is None
+            and type(self).get_bot_response is not Control.get_bot_response
+        ):
+            logger.warning(
+                "%s was given bot_response=None. This is treated as an explicit "
+                "(formatted) bot answer of None, so it bypasses the overridden "
+                "get_bot_response() method (and therefore format_answer()). If you "
+                "intended your get_bot_response() to run, omit the bot_response "
+                "argument instead of passing None.",
+                type(self).__name__,
+            )
         if self._bot_response == NoArgumentProvided:
             res = self.get_bot_response(experiment, bot, page, prompt)
         elif callable(self._bot_response):

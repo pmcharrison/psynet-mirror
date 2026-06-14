@@ -93,6 +93,33 @@ def test_prompt_metadata_excludes_text():
     assert "text" not in prompt.metadata
 
 
+def test_bot_response_none_bypasses_overridden_get_bot_response(caplog):
+    from psynet.bot import BotResponse
+
+    class MyControl(Control):
+        macro = "null"
+
+        def get_bot_response(self, experiment, bot, page, prompt):
+            return BotResponse(answer="from_get_bot_response")
+
+    # Passing bot_response=None is treated as an explicit answer of None, so it
+    # bypasses get_bot_response (and format_answer). This is an easy footgun, so we
+    # warn the experimenter.
+    control = MyControl(bot_response=None)
+    with caplog.at_level("WARNING"):
+        res = control.call__get_bot_response(None, None, None, None)
+    assert res.answer is None
+    assert "bot_response=None" in caplog.text
+
+    # Leaving bot_response unset runs the overridden get_bot_response, with no warning.
+    caplog.clear()
+    control_unset = MyControl()
+    with caplog.at_level("WARNING"):
+        res_unset = control_unset.call__get_bot_response(None, None, None, None)
+    assert res_unset.answer == "from_get_bot_response"
+    assert "bot_response=None" not in caplog.text
+
+
 # The following tests have been disabled because they rely on the iterated singing demo,
 # but it has proved tricky to maintain compatibility between the tests and the demo.
 # Long-term we should rewrite these.
