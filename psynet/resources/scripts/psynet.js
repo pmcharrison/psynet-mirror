@@ -2150,6 +2150,17 @@
       );
     };
 
+    psynet.isUnityPageTransition = function (response) {
+      return Boolean(
+        psynet.page.attributes?.is_unity_page ||
+          response.page.attributes?.is_unity_page,
+      );
+    };
+
+    psynet.loadNextTimelinePageWithReload = function () {
+      window.location = "/timeline?unique_id=" + psynet.uniqueId;
+    };
+
     psynet.handleApprovedResponse = async function (response) {
       psynet.log.debug("Response received successfully.");
 
@@ -2160,12 +2171,17 @@
         return true;
       }
 
+      if (psynet.isUnityPageTransition(response)) {
+        psynet.loadNextTimelinePageWithReload();
+        return true;
+      }
+
       if (psynetTemplateData.flags.inplaceTimelineTransitions) {
         await psynet.loadNextTimelinePageFromResponse(
           psynet.requireTimelineFragmentPayload(response),
         );
       } else {
-        window.location = "/timeline?unique_id=" + psynet.uniqueId;
+        psynet.loadNextTimelinePageWithReload();
       }
 
       return true;

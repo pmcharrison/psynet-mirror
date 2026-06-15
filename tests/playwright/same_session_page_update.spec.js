@@ -3,6 +3,7 @@ const { test, expect } = require("./fixtures");
 
 const {
   assertInplaceTimelinePathActive,
+  assertNoBackendError,
   completeInitialGateway,
   waitForMainBodyContains,
   waitForTimelinePageReady,
@@ -67,5 +68,74 @@ test("same-session timeline update preserves page fragment and emits pageUpdated
       "First same-session page"
     );
     await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
+  });
+});
+
+test("non-same-session Unity transitions fall back to timeline reload", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/same_session_page_update"
+  );
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+
+    await waitForMainBodyContains(
+      experimentPage,
+      "First same-session page",
+      STEP_TIMEOUT_MS
+    );
+    await experimentPage.route("**/response", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          submission: "approved",
+          page: {
+            attributes: {
+              session_id: "new-unity-session",
+              is_unity_page: true
+            },
+            contents: {
+              step: 99
+            }
+          }
+        })
+      });
+    });
+
+    const result = await experimentPage.evaluate(async () => {
+      window.__timelineReloadCalls = 0;
+      window.psynet.loadNextTimelinePageWithReload = function () {
+        window.__timelineReloadCalls += 1;
+        window.psynet.nextPagePending = false;
+      };
+
+      return window.psynet.nextPage("different-session");
+    });
+
+    expect(result).toBe(true);
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() => ({
+            reloadCalls: window.__timelineReloadCalls,
+            nextPagePending: window.psynet.nextPagePending,
+            markerText:
+              document.getElementById("same-session-marker")?.textContent || "",
+            messageCount: window.__sameSessionUnityMessages?.length || 0
+          })),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toEqual({
+        reloadCalls: 1,
+        nextPagePending: false,
+        markerText: "First same-session page",
+        messageCount: 0
+      });
+    await assertNoBackendError(experimentPage);
   });
 });
