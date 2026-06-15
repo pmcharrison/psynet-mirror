@@ -86,10 +86,10 @@ test("unity_autoplay demo handles same-session page updates in real WebGL build"
           experimentPage.evaluate(() => ({
             pageUuid: window.pageUuid,
             sessionId: window.psynet.page.attributes?.session_id || null,
-            messageCount: window.__realUnityMessages.length,
-            nextPageCalls: window.__realUnityNextPageCalls.length,
+            messageCount: window.__realUnityMessages?.length || 0,
+            nextPageCalls: window.__realUnityNextPageCalls?.length || 0,
             latestPayload:
-              window.__realUnityMessages[window.__realUnityMessages.length - 1]
+              window.__realUnityMessages?.[window.__realUnityMessages.length - 1]
                 ?.payload || null,
             nextPagePending: window.psynet.nextPagePending
           })),
