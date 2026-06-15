@@ -470,13 +470,15 @@ class GroupBarrier(Barrier):
             if group.n_active_participants < group.min_group_size:
                 # If join_existing_groups is False, then the group will never be able
                 # to get to the minimum size, so we remove all participants from the group
-                # and release them. Optionally fail them (when fail_participants_below_min_size is True).
+                # and release participants who are waiting at this barrier. Optionally fail them
+                # (when fail_participants_below_min_size is True).
                 if not group.accepts_top_ups:
                     for participant in list(group.active_participants):
                         if getattr(group, "fail_participants_below_min_size", True):
                             participant.fail("sync group below minimum size")
                         group.remove_participant(participant)
-                        participants_to_release.append(participant)
+                        if participant.id in waiting_participant_ids:
+                            participants_to_release.append(participant)
                     group.check_numbers()
                     if group.n_active_participants == 0:
                         group.close()
@@ -508,37 +510,12 @@ class GroupBarrier(Barrier):
     def release(self, participant: Participant):
         link = participant.active_barriers.get(self.id, None)
         if link is None:
-            self._repair_participant_missing_barrier_link(participant)
-            return
+            raise RuntimeError(
+                "Could not find an appropriate barrier link to release the participant from "
+                f"(participant_id = {participant.id}, barrier_id = '{self.id}')."
+            )
 
         link.release()
-
-    def _repair_participant_missing_barrier_link(self, participant: Participant):
-        group = participant.active_sync_groups.get(self.group_type)
-        group_id = group.id if group is not None else None
-        reason = "sync_group_missing_barrier_link"
-
-        logger.warning(
-            "GroupBarrier '%s' selected participant %s for release, but the "
-            "participant has no active barrier link. Removing them from sync "
-            "group %s and preventing the barrier scheduler from retrying this "
-            "invalid release.",
-            self.id,
-            participant.id,
-            group_id,
-        )
-
-        should_fail_participant = (
-            participant.status == "working"
-            and not participant.failed
-            and not participant.complete
-            and not participant.aborted
-        )
-
-        if should_fail_participant:
-            participant.fail(reason)
-        elif group is not None:
-            group.remove_participant(participant)
 
 
 class Grouper(Barrier):
