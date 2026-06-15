@@ -80,7 +80,7 @@ from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
 from psynet.serialize import SerializedCallable, serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
-from psynet.utils import get_logger
+from psynet.utils import call_function_with_context, get_logger
 
 logger = get_logger()
 
@@ -179,7 +179,7 @@ class Barrier(EltCollection):
                 max_loop_time=self.max_wait_time,
                 fix_time_credit=self.fix_time_credit,
                 fail_on_timeout=(self.max_wait_action == "fail"),
-                on_timeout=getattr(self, "on_max_wait_timeout", None),
+                on_timeout=self.handle_max_wait_timeout,
             ),
             conditional(
                 "participant_failed",
@@ -193,6 +193,15 @@ class Barrier(EltCollection):
             elt.links["barrier"] = self
 
         return elts
+
+    def handle_max_wait_timeout(self, participant: Participant):
+        """Run timeout cleanup before letting a participant leave the barrier."""
+        on_timeout = getattr(self, "on_max_wait_timeout", None)
+        if on_timeout is not None:
+            call_function_with_context(on_timeout, participant=participant)
+
+        if self.id in participant.active_barriers:
+            self.release(participant)
 
     def receive_participant(self, participant: Participant):
         if object_session(participant) is None:

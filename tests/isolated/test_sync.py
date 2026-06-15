@@ -710,3 +710,44 @@ def test_group_barrier_participant_kick(in_experiment_directory, db_session):
     db_session.commit()
 
     assert participant.active_sync_groups.get("main") is None
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_group_barrier_max_wait_kick_releases_barrier_link(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    participant = new_participant(exp)
+    participant.status = "working"
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=1,
+        max_group_size=1,
+        min_group_size=1,
+        n_active_participants=1,
+        accepts_top_ups=False,
+        fail_participants_below_min_size=True,
+    )
+    db_session.add(group)
+    group.add_participant(participant)
+
+    barrier = GroupBarrier(
+        id_="max_wait_kick",
+        group_type="main",
+        max_wait_action="kick",
+    )
+    barrier.receive_participant(participant)
+    db_session.commit()
+
+    assert "main" in participant.active_sync_groups
+    assert "max_wait_kick" in participant.active_barriers
+
+    barrier.handle_max_wait_timeout(participant)
+    db_session.commit()
+
+    assert participant.active_sync_groups.get("main") is None
+    assert "max_wait_kick" not in participant.active_barriers
+    assert barrier.get_waiting_participants() == []
