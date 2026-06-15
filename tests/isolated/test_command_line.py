@@ -955,7 +955,12 @@ class TestRunPerformanceTestWithNewServer:
         """_time_export_fn called once per stage when do_export=True."""
         mock_run = Mock(return_value=[{"n_bots": 1}])
         mock_export = Mock(return_value=(1.0, None))
-        self.subject(bot_counts=[5, 10], do_export=True, _run_stage=mock_run, _time_export_fn=mock_export)
+        self.subject(
+            bot_counts=[5, 10],
+            do_export=True,
+            _run_stage=mock_run,
+            _time_export_fn=mock_export,
+        )
         assert mock_export.call_count == 2
 
     def test_skips_export_when_disabled(self):
