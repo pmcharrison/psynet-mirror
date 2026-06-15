@@ -1480,7 +1480,7 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
     # If Python resolves the name back into the experiment directory, the import
     # machinery will see the local experiment rather than an unrelated module.
     if any(
-        _is_relative_to(candidate_path.resolve(), path)
+        candidate_path.resolve().is_relative_to(path)
         for candidate_path in candidate_paths
     ):
         return
@@ -1494,15 +1494,6 @@ def ensure_experiment_directory_name_does_not_conflict(path="."):
         "runnable experiment into a nested non-conflicting directory, for example "
         f"'{module_name}/<experiment_slug>/'."
     )
-
-
-def _is_relative_to(path, parent):
-    try:
-        path.relative_to(parent)
-    except ValueError:
-        return False
-    else:
-        return True
 
 
 def get_package_source_directory(path="."):
