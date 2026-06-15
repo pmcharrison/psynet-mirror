@@ -40,7 +40,7 @@ test("same-session timeline update preserves page fragment and emits pageUpdated
         () =>
           experimentPage.evaluate(() => ({
             pageUuid: window.pageUuid,
-            pageStep: window.psynet.page.contents.step,
+            pageStep: window.psynet.page.contents?.step || null,
             messageCount: window.__sameSessionUnityMessages?.length || 0,
             mainBodyHtml: document.getElementById("main-body")?.innerHTML || "",
             nextPagePending: window.psynet.nextPagePending
