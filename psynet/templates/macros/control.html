@@ -1920,6 +1920,17 @@
         survey.onCompleting.add(handleSurveyCompletion);
 
         $("#surveyContainer").Survey({ model: survey });
+
+        psynet.addPageCleanupCallback(function() {
+            if (survey) {
+                survey.onCompleting.remove(handleSurveyCompletion);
+                if (typeof survey.dispose === "function") {
+                    survey.dispose();
+                }
+                survey = null;
+            }
+            $("#surveyContainer").empty();
+        });
     }
 
     psynet.trial.onEvent("trialConstruct", initSurvey);
