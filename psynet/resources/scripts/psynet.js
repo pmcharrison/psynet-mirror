@@ -830,6 +830,9 @@
 
       trial.initEvents();
 
+      // TODO: Distinguish page-scoped timers from trial-cycle timers. Some
+      // pages use delayed trial events for page-level gating across prompt
+      // loops, so normal trial restarts must not clear all timers blindly.
       trial.setTimer = function (handler, timeout) {
         let timer = setTimeout(handler, timeout);
         trial.timers.push(timer);
