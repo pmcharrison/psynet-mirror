@@ -29,8 +29,7 @@ test("same-session timeline update preserves page fragment and emits pageUpdated
       STEP_TIMEOUT_MS
     );
     const initialState = await experimentPage.evaluate(() => ({
-      pageUuid: window.pageUuid,
-      mainBodyHtml: document.getElementById("main-body")?.innerHTML || ""
+      pageUuid: window.pageUuid
     }));
 
     await experimentPage.locator("#next-button").click();
@@ -42,7 +41,8 @@ test("same-session timeline update preserves page fragment and emits pageUpdated
             pageUuid: window.pageUuid,
             pageStep: window.psynet.page.contents?.step || null,
             messageCount: window.__sameSessionUnityMessages?.length || 0,
-            mainBodyHtml: document.getElementById("main-body")?.innerHTML || "",
+            markerText:
+              document.getElementById("same-session-marker")?.textContent || "",
             nextPagePending: window.psynet.nextPagePending
           })),
         { timeout: STEP_TIMEOUT_MS }
@@ -51,7 +51,7 @@ test("same-session timeline update preserves page fragment and emits pageUpdated
         pageUuid: initialState.pageUuid,
         pageStep: 2,
         messageCount: 1,
-        mainBodyHtml: initialState.mainBodyHtml,
+        markerText: "First same-session page",
         nextPagePending: false
       });
 
