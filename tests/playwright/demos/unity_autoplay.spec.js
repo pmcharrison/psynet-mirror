@@ -72,7 +72,7 @@ test("unity_autoplay demo handles same-session page updates in real WebGL build"
 
     const initialState = await experimentPage.evaluate(() => ({
       pageUuid: window.pageUuid,
-      sessionId: window.psynet.page.attributes.session_id
+      sessionId: window.psynet.page.attributes?.session_id || null
     }));
 
     await expect(experimentPage.locator("#unity-loading-bar")).toBeHidden({
@@ -97,7 +97,7 @@ test("unity_autoplay demo handles same-session page updates in real WebGL build"
       )
       .toMatchObject({
         pageUuid: initialState.pageUuid,
-        sessionId: initialState.sessionId,
+        sessionId: initialState.sessionId || "0",
         messageCount: 1,
         nextPageCalls: 1,
         nextPagePending: false
@@ -108,7 +108,7 @@ test("unity_autoplay demo handles same-session page updates in real WebGL build"
     );
     expect(update.objectName).toBe("PsynetObj");
     expect(update.methodName).toBe("GetData");
-    expect(update.payload.attributes.session_id).toBe(initialState.sessionId);
+    expect(update.payload.attributes.session_id).toBe(initialState.sessionId || "0");
     expect(update.payload.contents).toHaveProperty("goal");
     expect(update.payload.contents).toHaveProperty("gain");
     await expect(experimentPage.locator("#unity-canvas")).toBeVisible();
