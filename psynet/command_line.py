@@ -3573,7 +3573,7 @@ def _start_local_server_and_wait_for_ready(
             server_output = process.before or ""
             for line in server_output.splitlines():
                 if "Server is running on" in line:
-                    match = re.search(r"(https?://\S+?)[\.\s]", line)
+                    match = re.search(r"(https?://[^:\s]+:\d+)", line)
                     if match:
                         base_url = match.group(1)
                         break
