@@ -78,7 +78,7 @@ from psynet.db import transaction
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
-from psynet.serialize import SerializedCallback, serialize_callable
+from psynet.serialize import SerializedCallable, serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.utils import get_logger
 
@@ -396,7 +396,7 @@ class GroupBarrier(Barrier):
         self.on_release = on_release
         self.participant_timeout = participant_timeout
         if max_wait_action == "kick":
-            self.on_max_wait_timeout = SerializedCallback(
+            self.on_max_wait_timeout = SerializedCallable(
                 function=GroupBarrier._kick_participant_after_max_wait,
                 arguments={"group_type": group_type},
             )

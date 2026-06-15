@@ -14,7 +14,7 @@ from psynet.data import SQLBase
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
 from psynet.pytest_psynet import path_to_test_experiment
-from psynet.serialize import SerializedCallback
+from psynet.serialize import SerializedCallable
 from psynet.sync import (
     Barrier,
     BarrierRecord,
@@ -409,7 +409,7 @@ def test_group_barrier_accepts_orm_instance_method(in_experiment_directory, db_s
         group_type="group",
         on_release=instance.on_release,
     )
-    assert isinstance(barrier.on_release, SerializedCallback)
+    assert isinstance(barrier.on_release, SerializedCallable)
 
 
 @pytest.mark.parametrize(
