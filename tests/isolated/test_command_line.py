@@ -1,7 +1,9 @@
 import hashlib
+import io
 import json
 import subprocess
 import tempfile
+import zipfile
 from contextlib import contextmanager
 from datetime import date, datetime
 from decimal import Decimal
@@ -1050,18 +1052,23 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
     config.ready = True
     config.values = {}
 
-    def get_config_value(key):
+    def get_config_value(key, default=None):
         if key in config.values:
             return config.values[key]
         if key == "base_port":
             return 5000
+        if default is not None:
+            return default
         raise KeyError(key)
 
     def extend_config(values):
         config.values.update(values)
 
-    response = Mock(status_code=403, reason="Forbidden", content=b"")
-    response.json.return_value = {"message": "not needed"}
+    data_zip = io.BytesIO()
+    with zipfile.ZipFile(data_zip, "w"):
+        pass
+    data_response = Mock(status_code=200, reason="OK", content=data_zip.getvalue())
+    source_response = Mock(status_code=200, reason="OK", content=b"source-code")
     experiment_class = Mock(label="Timeline demo")
     experiment_class.export_path.return_value = str(tmp_path)
     config.extend.side_effect = extend_config
@@ -1079,7 +1086,10 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
             "psynet.command_line.get_experiment_url",
             side_effect=KeyError,
         ),
-        patch("psynet.command_line.requests.get", return_value=response) as request_get,
+        patch(
+            "psynet.command_line.requests.get",
+            side_effect=[data_response, source_response],
+        ) as request_get,
     ):
         export_(
             ctx=Mock(),
@@ -1089,7 +1099,7 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
             },
             local=True,
             path=str(tmp_path),
-            no_source=True,
+            no_source=False,
             assets="experiment",
             anonymize="no",
         )
@@ -1100,11 +1110,14 @@ def test_export_local_uses_runtime_dashboard_credentials(tmp_path, monkeypatch):
             "dashboard_password": "generated-password",
         }
     )
-    request_get.assert_called_once()
-    assert request_get.call_args.args[0].startswith(
+    assert request_get.call_count == 2
+    data_request, source_request = request_get.call_args_list
+    assert data_request.args[0].startswith(
         "http://127.0.0.1:5000/dashboard/export/download?"
     )
-    assert request_get.call_args.kwargs["auth"] == ("admin", "generated-password")
+    assert data_request.kwargs["auth"] == ("admin", "generated-password")
+    assert source_request.args[0] == "http://127.0.0.1:5000/download_source"
+    assert source_request.kwargs["auth"] == ("admin", "generated-password")
 
 
 def test_run_performance_test_with_new_server_loads_runtime_server_config():

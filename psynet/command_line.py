@@ -2354,7 +2354,15 @@ def export_(
                 zip_ref.extractall(path)
             # Download source code unless --no-source was passed
             if not no_source:
-                _export_source_code(app, local, server, path, username, password)
+                _export_source_code(
+                    app,
+                    local,
+                    server,
+                    path,
+                    username,
+                    password,
+                    experiment_url=experiment_url,
+                )
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -2466,7 +2474,9 @@ def export_logs(app, server, export_path):
         log(f"Warning: Failed to export logs from {remote_logs_path}: {str(e)}")
 
 
-def _export_source_code(app, local, server, export_path, username, password):
+def _export_source_code(
+    app, local, server, export_path, username, password, experiment_url=None
+):
     import requests
 
     config = get_config()
@@ -2495,7 +2505,9 @@ def _export_source_code(app, local, server, export_path, username, password):
     log(
         "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
     )
-    if local:
+    if experiment_url:
+        url = experiment_url.rstrip("/")
+    elif local:
         url = "http://localhost:5000"
     else:
         if server:
