@@ -217,6 +217,38 @@ def test_manual_sync_group_participant_kick(in_experiment_directory, db_session)
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_manual_sync_group_participant_kick_handles_empty_top_up_group(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    participant = new_participant(exp)
+    participant.status = "working"
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=1,
+        max_group_size=2,
+        min_group_size=1,
+        n_active_participants=1,
+        accepts_top_ups=True,
+    )
+    db_session.add(group)
+    group.add_participant(participant)
+    group.leader = participant
+    db_session.commit()
+
+    kicked_participant = _kick_sync_group_participant(participant.id, "manual_kick")
+
+    assert not kicked_participant.failed
+    assert group.active_participants == []
+    assert group.n_active_participants == 0
+    assert group.leader is None
+    assert group.active
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 @pytest.mark.parametrize("fail_below_min_size", [True, False])
 def test_manual_sync_group_participant_kick_dissolves_group_below_min_size(
     in_experiment_directory, db_session, fail_below_min_size

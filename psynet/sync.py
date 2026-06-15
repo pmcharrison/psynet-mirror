@@ -929,8 +929,11 @@ class SyncGroup(SQLBase, SQLMixin):
     )
 
     def check_leader(self):
-        if self.leader not in self.active_participants:
-            self.leader = sorted(self.active_participants, key=lambda p: p.id)[0]
+        active_participants = sorted(self.active_participants, key=lambda p: p.id)
+        if len(active_participants) == 0:
+            self.leader = None
+        elif self.leader not in active_participants:
+            self.leader = active_participants[0]
 
     @property
     def active_followers(self):
