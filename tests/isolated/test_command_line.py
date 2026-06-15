@@ -882,7 +882,7 @@ class TestRunPerformanceTestWithNewServer:
     def subject(self, **kwargs):
         from psynet.command_line import _run_performance_test_with_new_server
 
-        kwargs.setdefault("n_bots", "5")
+        kwargs.setdefault("bot_counts", [5])
         kwargs.setdefault("stagger", 0.1)
         kwargs.setdefault("time_factor", 1.0)
         kwargs.setdefault("duration_minutes", 0.5)
@@ -902,7 +902,7 @@ class TestRunPerformanceTestWithNewServer:
         mock_stop = Mock()
         mock_run = Mock(return_value=[])
         self.subject(
-            n_bots="5,10",
+            bot_counts=[5, 10],
             _start_server=mock_start,
             _stop_server_fn=mock_stop,
             _run_stage=mock_run,
@@ -910,8 +910,8 @@ class TestRunPerformanceTestWithNewServer:
         assert mock_start.call_count == 2
         assert mock_stop.call_count == 2
         assert mock_run.call_count == 2
-        assert mock_run.call_args_list[0].kwargs["n_bots"] == "5"
-        assert mock_run.call_args_list[1].kwargs["n_bots"] == "10"
+        assert mock_run.call_args_list[0].kwargs["bot_counts"] == [5]
+        assert mock_run.call_args_list[1].kwargs["bot_counts"] == [10]
 
     def test_single_bot_count_one_start_stop(self):
         """Single bot count should start/stop once."""
@@ -934,13 +934,13 @@ class TestRunPerformanceTestWithNewServer:
     def test_collects_results_from_all_stages(self):
         """Results returned by each stage are accumulated into the final list."""
         mock_run = Mock(return_value=[{"n_bots": 1}])
-        results = self.subject(n_bots="5,10", _run_stage=mock_run)
+        results = self.subject(bot_counts=[5, 10], _run_stage=mock_run)
         assert len(results) == 2
 
     def test_passes_do_export_per_stage(self):
         """do_export=True is forwarded to each stage."""
         mock_run = Mock(return_value=[])
-        self.subject(n_bots="5,10", do_export=True, _run_stage=mock_run)
+        self.subject(bot_counts=[5, 10], do_export=True, _run_stage=mock_run)
         for call in mock_run.call_args_list:
             assert call.kwargs["do_export"] is True
 

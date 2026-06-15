@@ -343,7 +343,9 @@ class TestPerformanceTesterRun:
 
     def test_calls_test_performance_once_per_count(self, tester):
         fake_result = _base_result()
-        with patch.object(tester, "_test_performance", return_value=fake_result) as mock_test:
+        with patch.object(
+            tester, "_test_performance", return_value=fake_result
+        ) as mock_test:
             tester.run(bot_counts=[5, 10], bot_log_file=Mock())
         assert mock_test.call_count == 2
         assert mock_test.call_args_list[0].args[0] == 5

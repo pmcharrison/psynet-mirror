@@ -3326,6 +3326,12 @@ def performance_test__local(
     console_handler.setFormatter(logging.Formatter("%(message)s"))
     root_logger.addHandler(console_handler)
 
+    from psynet.experiment import get_experiment
+
+    exp = get_experiment()
+    opts = _resolve_perf_test_options(
+        exp, n_bots, stagger, time_factor, duration_minutes
+    )
     do_export = not no_export
     started_at = datetime.datetime.now().isoformat(timespec="seconds")
     if existing:
@@ -3335,11 +3341,12 @@ def performance_test__local(
         print(f"Bot output log: {bot_log.name}")
         try:
             results = _run_performance_test_with_existing_server(
-                n_bots,
-                stagger,
-                time_factor,
-                duration_minutes,
+                bot_counts=opts["bot_counts"],
+                stagger=opts["stagger"],
+                time_factor=opts["time_factor"],
+                duration_minutes=opts["duration_minutes"],
                 bot_log_file=bot_log,
+                base_url=exp.base_url,
                 do_export=do_export,
             )
         finally:
@@ -3347,11 +3354,11 @@ def performance_test__local(
         print(f"Bot output log: {bot_log.name}")
     else:
         results = _run_performance_test_with_new_server(
-            n_bots,
-            stagger,
-            time_factor,
-            duration_minutes,
-            debug,
+            bot_counts=opts["bot_counts"],
+            stagger=opts["stagger"],
+            time_factor=opts["time_factor"],
+            duration_minutes=opts["duration_minutes"],
+            debug=debug,
             do_export=do_export,
         )
     finished_at = datetime.datetime.now().isoformat(timespec="seconds")
@@ -3360,7 +3367,7 @@ def performance_test__local(
         logger.info(line)
 
     if json_output and results:
-        experiment_label = get_config(load=True).get("label")
+        experiment_label = exp.label
         bot_counts = [r["n_bots"] for r in results]
         metadata = {
             **_collect_run_metadata(experiment_label),
@@ -3424,49 +3431,38 @@ def _resolve_perf_test_options(exp, n_bots, stagger, time_factor, duration_minut
         "stagger": float(stagger) if stagger else exp.test_parallel_stagger_interval_s,
         "time_factor": time_factor if time_factor is not None else exp.test_time_factor,
         "duration_minutes": (
-            duration_minutes if duration_minutes is not None else exp.test_duration_minutes
+            duration_minutes
+            if duration_minutes is not None
+            else exp.test_duration_minutes
         ),
     }
 
 
 def _run_performance_test_with_existing_server(
-    n_bots,
+    bot_counts,
     stagger,
     time_factor,
     duration_minutes,
     bot_log_file,
-    base_url=None,
+    base_url,
     do_export=True,
 ):
     """Run performance test connecting to an already-running server. Returns results list."""
-    from psynet.experiment import get_experiment
     from psynet.utils import get_authenticated_session
-
-    try:
-        exp = get_experiment()
-    except Exception as e:
-        print(f"ERROR: Failed to get experiment: {e}", file=sys.stderr)
-        print(
-            "Make sure the experiment server is running first (psynet debug local)",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
 
-    opts = _resolve_perf_test_options(exp, n_bots, stagger, time_factor, duration_minutes)
-    effective_base_url = base_url or exp.base_url
-    authenticated_session = get_authenticated_session(effective_base_url)
+    authenticated_session = get_authenticated_session(base_url)
 
     tester = PerformanceTester(
         authenticated_session=authenticated_session,
-        base_url=effective_base_url,
-        duration_minutes=opts["duration_minutes"],
-        stagger_interval_s=opts["stagger"],
-        time_factor=opts["time_factor"],
+        base_url=base_url,
+        duration_minutes=duration_minutes,
+        stagger_interval_s=stagger,
+        time_factor=time_factor,
     )
     results = tester.run(
-        bot_counts=opts["bot_counts"],
+        bot_counts=bot_counts,
         bot_log_file=bot_log_file,
     )
 
@@ -3761,7 +3757,7 @@ def _load_server_url(server_info):
 
 
 def _run_performance_test_with_new_server(
-    n_bots,
+    bot_counts,
     stagger,
     time_factor,
     duration_minutes,
@@ -3778,7 +3774,6 @@ def _run_performance_test_with_new_server(
     so each stage gets a clean database.  A single shared log file is used
     across all stages with demarcation lines between them.
     """
-    bot_counts = [int(x.strip()) for x in n_bots.split(",")]
     all_results = []
 
     # Create single shared log files for all stages.
@@ -3808,7 +3803,7 @@ def _run_performance_test_with_new_server(
             try:
                 base_url = _base_url or _load_server_url(server_info)
                 stage_results = _run_stage(
-                    n_bots=str(count),
+                    bot_counts=[count],
                     stagger=stagger,
                     time_factor=time_factor,
                     duration_minutes=duration_minutes,
