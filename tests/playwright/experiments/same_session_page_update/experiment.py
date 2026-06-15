@@ -4,7 +4,6 @@ import psynet.experiment
 from psynet.page import InfoPage
 from psynet.timeline import Timeline
 
-
 SESSION_ID = "shared-session"
 
 
