@@ -514,6 +514,48 @@ def test_group_barrier_participant_timeout_kick_missing_participants(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
+def test_group_barrier_participant_timeout_kick_releases_waiters_after_dissolution(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    barrier = GroupBarrier(
+        id_="participant_timeout_kick_below_min",
+        group_type="main",
+        participant_timeout=5,
+        participant_timeout_action="kick",
+    )
+
+    participants = [new_participant(exp) for _ in range(3)]
+    for p in participants:
+        p.status = "working"
+    waiting_participants = participants[:2]
+    missing_participant = participants[2]
+
+    group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=3,
+        max_group_size=3,
+        min_group_size=3,
+        n_active_participants=3,
+        accepts_top_ups=False,
+        fail_participants_below_min_size=False,
+    )
+    group.last_barrier_pass_time = timenow() - timedelta(seconds=10)
+    db_session.add(group)
+    for p in participants:
+        group.add_participant(p)
+    db_session.commit()
+
+    released = barrier.choose_who_to_release(waiting_participants)
+
+    assert group.active_participants == []
+    assert missing_participant not in released
+    assert set(released) == set(waiting_participants)
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
 def test_group_barrier_participant_timeout_fail_missing_participants(
     in_experiment_directory, db_session
 ):

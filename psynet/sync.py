@@ -415,12 +415,6 @@ class GroupBarrier(Barrier):
         waiting_participant_ids = {p.id for p in waiting_participants}
         participants_to_release = []
 
-        # Participants at the barrier but no longer in a group (e.g. kicked) are released
-        # so they can continue the timeline.
-        for participant in waiting_participants:
-            if self.group_type not in participant.active_sync_groups:
-                participants_to_release.append(participant)
-
         groups = {
             participant.active_sync_groups[
                 self.group_type
@@ -500,6 +494,15 @@ class GroupBarrier(Barrier):
                         participant=group.leader,
                         barrier=self,
                     )
+
+        participants_to_release_ids = {p.id for p in participants_to_release}
+        for participant in waiting_participants:
+            if (
+                self.group_type not in participant.active_sync_groups
+                and participant.id not in participants_to_release_ids
+            ):
+                participants_to_release.append(participant)
+                participants_to_release_ids.add(participant.id)
 
         return participants_to_release
 
