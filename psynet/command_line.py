@@ -3415,6 +3415,20 @@ def _write_json_results(json_output, *, metadata, options, all_results):
         json.dump(payload, f, indent=2, allow_nan=False)
 
 
+def _resolve_perf_test_options(exp, n_bots, stagger, time_factor, duration_minutes):
+    """Resolve CLI args against experiment defaults. Returns a dict of concrete values."""
+    return {
+        "bot_counts": (
+            [int(x.strip()) for x in n_bots.split(",")] if n_bots else [exp.test_n_bots]
+        ),
+        "stagger": float(stagger) if stagger else exp.test_parallel_stagger_interval_s,
+        "time_factor": time_factor if time_factor is not None else exp.test_time_factor,
+        "duration_minutes": (
+            duration_minutes if duration_minutes is not None else exp.test_duration_minutes
+        ),
+    }
+
+
 def _run_performance_test_with_existing_server(
     n_bots,
     stagger,
@@ -3440,27 +3454,19 @@ def _run_performance_test_with_existing_server(
 
     os.environ["PASSTHROUGH_ERRORS"] = "True"
 
-    # Parse n_bots - can be comma-separated list
-    if n_bots:
-        bot_counts = [int(x.strip()) for x in n_bots.split(",")]
-    else:
-        bot_counts = [exp.test_n_bots]
-
+    opts = _resolve_perf_test_options(exp, n_bots, stagger, time_factor, duration_minutes)
     effective_base_url = base_url or exp.base_url
     authenticated_session = get_authenticated_session(effective_base_url)
 
     tester = PerformanceTester(
         authenticated_session=authenticated_session,
         base_url=effective_base_url,
-        n_bots=exp.test_n_bots,
-        duration_minutes=duration_minutes or exp.test_duration_minutes,
-        stagger_interval_s=(
-            float(stagger) if stagger else exp.test_parallel_stagger_interval_s
-        ),
-        time_factor=time_factor or exp.test_time_factor,
+        duration_minutes=opts["duration_minutes"],
+        stagger_interval_s=opts["stagger"],
+        time_factor=opts["time_factor"],
     )
     results = tester.run(
-        bot_counts=bot_counts,
+        bot_counts=opts["bot_counts"],
         bot_log_file=bot_log_file,
     )
 

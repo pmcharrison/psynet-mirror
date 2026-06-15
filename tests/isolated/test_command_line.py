@@ -810,6 +810,72 @@ class TestLoadServerUrl:
         assert base_url == "http://localhost:5000"
 
 
+class TestResolvePerfTestOptions:
+    @pytest.fixture
+    def exp(self):
+        exp = Mock()
+        exp.test_n_bots = 8
+        exp.test_parallel_stagger_interval_s = 0.5
+        exp.test_time_factor = 2.0
+        exp.test_duration_minutes = 3.0
+        return exp
+
+    def resolve(self, exp, **kwargs):
+        from psynet.command_line import _resolve_perf_test_options
+
+        kwargs.setdefault("n_bots", None)
+        kwargs.setdefault("stagger", None)
+        kwargs.setdefault("time_factor", None)
+        kwargs.setdefault("duration_minutes", None)
+        return _resolve_perf_test_options(exp, **kwargs)
+
+    def test_n_bots_none_uses_exp_default(self, exp):
+        assert self.resolve(exp).get("bot_counts") == [exp.test_n_bots]
+
+    def test_n_bots_single(self, exp):
+        assert self.resolve(exp, n_bots="3").get("bot_counts") == [3]
+
+    def test_n_bots_comma_separated(self, exp):
+        assert self.resolve(exp, n_bots="3,5,10").get("bot_counts") == [3, 5, 10]
+
+    def test_stagger_none_uses_exp_default(self, exp):
+        assert self.resolve(exp).get("stagger") == exp.test_parallel_stagger_interval_s
+
+    def test_stagger_from_cli(self, exp):
+        assert self.resolve(exp, stagger="0.2").get("stagger") == pytest.approx(0.2)
+
+    def test_time_factor_none_uses_exp_default(self, exp):
+        assert self.resolve(exp).get("time_factor") == exp.test_time_factor
+
+    def test_time_factor_zero_not_replaced_by_exp_default(self, exp):
+        assert self.resolve(exp, time_factor=0.0).get("time_factor") == 0.0
+
+    def test_time_factor_from_cli(self, exp):
+        assert self.resolve(exp, time_factor=1.5).get("time_factor") == 1.5
+
+    def test_duration_minutes_none_uses_exp_default(self, exp):
+        assert self.resolve(exp).get("duration_minutes") == exp.test_duration_minutes
+
+    def test_duration_minutes_from_cli(self, exp):
+        assert self.resolve(exp, duration_minutes=0.5).get("duration_minutes") == 0.5
+
+    def test_cli_takes_precedence_over_exp_for_n_bots(self, exp):
+        exp.test_n_bots = 99
+        assert self.resolve(exp, n_bots="3").get("bot_counts") == [3]
+
+    def test_cli_takes_precedence_over_exp_for_stagger(self, exp):
+        exp.test_parallel_stagger_interval_s = 99.0
+        assert self.resolve(exp, stagger="0.2").get("stagger") == pytest.approx(0.2)
+
+    def test_cli_takes_precedence_over_exp_for_time_factor(self, exp):
+        exp.test_time_factor = 99.0
+        assert self.resolve(exp, time_factor=1.5).get("time_factor") == 1.5
+
+    def test_cli_takes_precedence_over_exp_for_duration_minutes(self, exp):
+        exp.test_duration_minutes = 99.0
+        assert self.resolve(exp, duration_minutes=0.5).get("duration_minutes") == 0.5
+
+
 class TestRunPerformanceTestWithNewServer:
     """Tests for multi-stage server orchestration in _run_performance_test_with_new_server."""
 
