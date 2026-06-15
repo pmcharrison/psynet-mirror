@@ -73,30 +73,38 @@ def _get_waiting_by_participant_and_barrier():
 
 
 def manual_fail_sync_group_participant(
-    participant_id, fail_reason=MANUAL_FAILURE_REASON
+    participant_id, sync_group_id, fail_reason=MANUAL_FAILURE_REASON
 ):
     try:
-        participant = _fail_sync_group_participant(participant_id, fail_reason)
+        participant = _fail_sync_group_participant(
+            participant_id, sync_group_id, fail_reason
+        )
     except ValueError as err:
         return error_response(str(err))
 
     return success_response(participant_id=participant.id)
 
 
-def manual_kick_sync_group_participant(participant_id, kick_reason=MANUAL_KICK_REASON):
+def manual_kick_sync_group_participant(
+    participant_id, sync_group_id, kick_reason=MANUAL_KICK_REASON
+):
     try:
-        participant = _kick_sync_group_participant(participant_id, kick_reason)
+        participant = _kick_sync_group_participant(
+            participant_id, sync_group_id, kick_reason
+        )
     except ValueError as err:
         return error_response(str(err))
 
     return success_response(participant_id=participant.id)
 
 
-def _fail_sync_group_participant(participant_id, fail_reason):
+def _fail_sync_group_participant(participant_id, sync_group_id, fail_reason):
     if fail_reason != MANUAL_FAILURE_REASON:
         raise ValueError(f"Invalid fail reason: {fail_reason}")
 
-    participant, _ = _get_active_sync_group_participant_link(participant_id)
+    participant, _ = _get_active_sync_group_participant_link(
+        participant_id, sync_group_id
+    )
 
     if participant.failed or participant.status != "working":
         raise ValueError("Only active working participants can be failed manually.")
@@ -105,12 +113,12 @@ def _fail_sync_group_participant(participant_id, fail_reason):
     return participant
 
 
-def _kick_sync_group_participant(participant_id, kick_reason):
+def _kick_sync_group_participant(participant_id, sync_group_id, kick_reason):
     if kick_reason != MANUAL_KICK_REASON:
         raise ValueError(f"Invalid kick reason: {kick_reason}")
 
     participant, active_group_link = _get_active_sync_group_participant_link(
-        participant_id
+        participant_id, sync_group_id
     )
 
     if participant.failed or participant.status != "working":
@@ -120,7 +128,7 @@ def _kick_sync_group_participant(participant_id, kick_reason):
     return participant
 
 
-def _get_active_sync_group_participant_link(participant_id):
+def _get_active_sync_group_participant_link(participant_id, sync_group_id):
     participant = (
         Participant.query.with_for_update(of=Participant)
         .populate_existing()
@@ -133,6 +141,7 @@ def _get_active_sync_group_participant_link(participant_id):
         ParticipantLinkSyncGroup.query.join(SyncGroup)
         .filter(
             ParticipantLinkSyncGroup.participant_id == participant_id,
+            ParticipantLinkSyncGroup.sync_group_id == sync_group_id,
             ParticipantLinkSyncGroup.active,
             SyncGroup.active,
         )
@@ -141,7 +150,7 @@ def _get_active_sync_group_participant_link(participant_id):
     )
     if active_group_link is None:
         raise ValueError(
-            "This participant is not currently active in an active sync group."
+            "This participant is not currently active in the selected sync group."
         )
 
     return participant, active_group_link

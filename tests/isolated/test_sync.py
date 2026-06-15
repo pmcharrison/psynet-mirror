@@ -178,7 +178,7 @@ def test_manual_sync_group_participant_failure(in_experiment_directory, db_sessi
     db_session.commit()
 
     failed_participant = _fail_sync_group_participant(
-        participants[0].id, "manual_failure"
+        participants[0].id, group.id, "manual_failure"
     )
 
     assert failed_participant.failed
@@ -210,12 +210,58 @@ def test_manual_sync_group_participant_kick(in_experiment_directory, db_session)
     group.leader = participants[0]
     db_session.commit()
 
-    kicked_participant = _kick_sync_group_participant(participants[0].id, "manual_kick")
+    kicked_participant = _kick_sync_group_participant(
+        participants[0].id, group.id, "manual_kick"
+    )
 
     assert not kicked_participant.failed
     assert "manual_failure" not in kicked_participant.failure_tags
     assert participants[0] not in group.active_participants
     assert participants[1] in group.active_participants
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("consents")], indirect=True
+)
+def test_manual_sync_group_participant_kick_targets_selected_group(
+    in_experiment_directory, db_session
+):
+    exp = get_experiment()
+    participant = new_participant(exp)
+    participant.status = "working"
+
+    main_group = SimpleSyncGroup(
+        group_type="main",
+        initial_group_size=1,
+        max_group_size=2,
+        min_group_size=1,
+        n_active_participants=1,
+        accepts_top_ups=True,
+    )
+    secondary_group = SimpleSyncGroup(
+        group_type="secondary",
+        initial_group_size=1,
+        max_group_size=2,
+        min_group_size=1,
+        n_active_participants=1,
+        accepts_top_ups=True,
+    )
+    db_session.add(main_group)
+    db_session.add(secondary_group)
+    main_group.add_participant(participant)
+    secondary_group.add_participant(participant)
+    main_group.leader = participant
+    secondary_group.leader = participant
+    db_session.commit()
+
+    kicked_participant = _kick_sync_group_participant(
+        participant.id, secondary_group.id, "manual_kick"
+    )
+
+    assert kicked_participant == participant
+    assert participant in main_group.active_participants
+    assert participant not in secondary_group.active_participants
+    assert participant.active_sync_groups == {"main": main_group}
 
 
 @pytest.mark.parametrize(
@@ -241,7 +287,9 @@ def test_manual_sync_group_participant_kick_handles_empty_top_up_group(
     group.leader = participant
     db_session.commit()
 
-    kicked_participant = _kick_sync_group_participant(participant.id, "manual_kick")
+    kicked_participant = _kick_sync_group_participant(
+        participant.id, group.id, "manual_kick"
+    )
 
     assert not kicked_participant.failed
     assert group.active_participants == []
@@ -277,7 +325,9 @@ def test_manual_sync_group_participant_kick_dissolves_group_below_min_size(
     group.leader = participants[0]
     db_session.commit()
 
-    kicked_participant = _kick_sync_group_participant(participants[0].id, "manual_kick")
+    kicked_participant = _kick_sync_group_participant(
+        participants[0].id, group.id, "manual_kick"
+    )
 
     assert not kicked_participant.failed
     assert participants[0] not in group.active_participants
@@ -316,7 +366,7 @@ def test_manual_sync_group_participant_failure_rejects_non_working_participants(
     with pytest.raises(
         ValueError, match="Only active working participants can be failed manually."
     ):
-        _fail_sync_group_participant(participant.id, "manual_failure")
+        _fail_sync_group_participant(participant.id, group.id, "manual_failure")
 
     assert not participant.failed
 
@@ -346,9 +396,9 @@ def test_manual_sync_group_participant_failure_rejects_inactive_group_member(
     db_session.commit()
 
     with pytest.raises(
-        ValueError, match="not currently active in an active sync group"
+        ValueError, match="not currently active in the selected sync group"
     ):
-        _fail_sync_group_participant(participant.id, "manual_failure")
+        _fail_sync_group_participant(participant.id, group.id, "manual_failure")
 
     assert not participant.failed
 

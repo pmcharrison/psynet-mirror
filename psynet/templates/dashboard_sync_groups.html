@@ -131,8 +131,8 @@ async function failSyncGroupParticipant(button) {
                         <span class="text-muted">(</span>{% for p in g.participants %}{% if p.can_fail_manually %}<button
                             type="button"
                             class="btn btn-link btn-sm p-0 align-baseline text-success"
-                            data-fail-url="{{ url_for('dashboard.manual_fail_sync_group_participant', participant_id=p.id) }}"
-                            data-kick-url="{{ url_for('dashboard.manual_kick_sync_group_participant', participant_id=p.id) }}"
+                            data-fail-url="{{ url_for('dashboard.manual_fail_sync_group_participant', sync_group_id=g.id, participant_id=p.id) }}"
+                            data-kick-url="{{ url_for('dashboard.manual_kick_sync_group_participant', sync_group_id=g.id, participant_id=p.id) }}"
                             data-participant-id="{{ p.id }}"
                             title="Status: {{ p.status }}"
                             onclick="showParticipantActionModal(this)"
