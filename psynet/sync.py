@@ -109,12 +109,7 @@ class Barrier(EltCollection):
 
     max_wait_time
         The maximum amount of time in seconds that the participant will be allowed to wait at the barrier;
-        if this time is exceeded, the participant is either failed or kicked (see ``max_wait_action``).
-
-    max_wait_action
-        When ``max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end of the
-        experiment; ``"kick"`` (GroupBarrier only) removes them from the group and lets them continue.
-        Default is ``"fail"``.
+        if this time is exceeded then the participant will be failed and sent to the end of the experiment.
 
     fix_time_credit
         If set to ``True``, then the amount of time 'credit' that the participant receives will be capped
@@ -127,7 +122,6 @@ class Barrier(EltCollection):
         waiting_logic=None,
         waiting_logic_expected_repetitions=3,
         max_wait_time=20,
-        max_wait_action: Literal["fail", "kick"] = "fail",
         fix_time_credit=False,
     ):
         if waiting_logic is None:
@@ -137,7 +131,7 @@ class Barrier(EltCollection):
         self.waiting_logic = waiting_logic
         self.waiting_logic_expected_repetitions = waiting_logic_expected_repetitions
         self.max_wait_time = max_wait_time
-        self.max_wait_action = max_wait_action
+        self.max_wait_action = "fail"
         self.fix_time_credit = fix_time_credit
 
     def for_registry(self):
@@ -371,6 +365,12 @@ class GroupBarrier(Barrier):
         if group_type in participant.active_sync_groups:
             participant.active_sync_groups[group_type].remove_participant(participant)
 
+    def _validate_max_wait_action(self, max_wait_action):
+        if max_wait_action not in ("fail", "kick"):
+            raise ValueError(
+                f"max_wait_action must be 'fail' or 'kick', got {max_wait_action!r}."
+            )
+
     def __init__(
         self,
         id_: str,
@@ -384,14 +384,15 @@ class GroupBarrier(Barrier):
         participant_timeout: Optional[int] = None,
         participant_timeout_action: Literal["kick", "fail"] = "fail",
     ):
+        self._validate_max_wait_action(max_wait_action)
         super().__init__(
             id_=id_,
             waiting_logic=waiting_logic,
             waiting_logic_expected_repetitions=waiting_logic_expected_repetitions,
             max_wait_time=max_wait_time,
-            max_wait_action=max_wait_action,
             fix_time_credit=fix_time_credit,
         )
+        self.max_wait_action = max_wait_action
         self.group_type = group_type
         self.on_release = on_release
         self.participant_timeout = participant_timeout

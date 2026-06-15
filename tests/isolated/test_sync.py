@@ -89,6 +89,21 @@ def test_random_partition():
     assert sorted(contents) == list(range(10))
 
 
+def test_max_wait_action_kick_requires_group_barrier():
+    with pytest.raises(TypeError, match="max_wait_action"):
+        Barrier(id_="plain_barrier", max_wait_action="kick")
+
+    with pytest.raises(TypeError, match="max_wait_action"):
+        RecordingBarrier(id_="recording_barrier", max_wait_action="kick")
+
+    barrier = GroupBarrier(
+        id_="group_barrier",
+        group_type="main",
+        max_wait_action="kick",
+    )
+    assert barrier.max_wait_action == "kick"
+
+
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
