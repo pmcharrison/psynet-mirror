@@ -3376,9 +3376,9 @@ def performance_test__local(
         }
         options = {
             "n_bots_sweep": bot_counts,
-            "duration_minutes": duration_minutes,
-            "stagger_interval_s": float(stagger) if stagger else None,
-            "time_factor": time_factor,
+            "duration_minutes": opts["duration_minutes"],
+            "stagger_interval_s": opts["stagger"],
+            "time_factor": opts["time_factor"],
         }
         _write_json_results(
             json_output,
