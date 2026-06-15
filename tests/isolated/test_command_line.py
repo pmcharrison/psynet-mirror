@@ -725,16 +725,23 @@ def test_start_local_server_uses_debug_local_subprocess():
     process.isalive.return_value = False
     process.before = ""
 
-    with patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn:
+    mock_cfg = Mock()
+    mock_cfg.get.return_value = 5000
+    with (
+        patch("psynet.command_line.pexpect.spawn", return_value=process) as spawn,
+        patch("psynet.command_line.port_is_open", return_value=False),
+        patch("psynet.command_line.get_config", return_value=mock_cfg),
+        patch("psynet.command_line.kill_psynet_worker_processes"),
+    ):
         server_info = _start_local_server_and_wait_for_ready(debug=False, max_wait=5)
 
-    assert server_info["process"] is process
-    args, kwargs = spawn.call_args
-    assert args == ("psynet", ["debug", "local", "--legacy", "--no-browsers"])
-    assert kwargs["encoding"] == "utf-8"
-    assert kwargs["env"]["SKIP_DEPENDENCY_CHECK"] == "1"
-    assert kwargs["env"]["BROWSER"] == "true"
-    _stop_server(server_info)
+        assert server_info["process"] is process
+        args, kwargs = spawn.call_args
+        assert args == ("psynet", ["debug", "local", "--legacy", "--no-browsers"])
+        assert kwargs["encoding"] == "utf-8"
+        assert kwargs["env"]["SKIP_DEPENDENCY_CHECK"] == "1"
+        assert kwargs["env"]["BROWSER"] == "true"
+        _stop_server(server_info)
 
 
 def test_stop_server_gracefully_stops_debug_subprocess():
@@ -751,7 +758,13 @@ def test_stop_server_gracefully_stops_debug_subprocess():
         "log_file": log_file,
     }
 
-    with patch("psynet.command_line.kill_psynet_worker_processes") as kill_workers:
+    mock_cfg = Mock()
+    mock_cfg.get.return_value = 5000
+    with (
+        patch("psynet.command_line.kill_psynet_worker_processes") as kill_workers,
+        patch("psynet.command_line.port_is_open", return_value=False),
+        patch("psynet.command_line.get_config", return_value=mock_cfg),
+    ):
         _stop_server(server_info)
 
     process.sendcontrol.assert_called_once_with("c")
