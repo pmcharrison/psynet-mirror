@@ -27,30 +27,47 @@ test("unity_autoplay demo handles same-session page updates in real WebGL build"
     await expect(experimentPage.locator("#unity-canvas")).toBeVisible({
       timeout: STEP_TIMEOUT_MS
     });
-    await expect(experimentPage.locator("#unity-loading-bar")).toBeHidden({
-      timeout: STEP_TIMEOUT_MS
-    });
-    await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
-
-    await experimentPage.waitForFunction(
-      () =>
-        typeof unityInstance !== "undefined" &&
-        unityInstance &&
-        typeof unityInstance.SendMessage === "function",
-      { timeout: STEP_TIMEOUT_MS }
-    );
-
     await experimentPage.evaluate(() => {
       window.__realUnityMessages = [];
-      const originalSendMessage = unityInstance.SendMessage.bind(unityInstance);
-      unityInstance.SendMessage = function (objectName, methodName, payload) {
-        window.__realUnityMessages.push({
-          objectName,
-          methodName,
-          payload: JSON.parse(payload)
+      window.__realUnityNextPageCalls = [];
+
+      const originalNextPage = window.psynet.nextPage.bind(window.psynet);
+      window.psynet.nextPage = function (rawAnswer, metadata, blobs, onRejection) {
+        const rewrittenAnswer =
+          window.__realUnityNextPageCalls.length === 0 &&
+          rawAnswer &&
+          rawAnswer.expire === true
+            ? { ...rawAnswer, expire: false }
+            : rawAnswer;
+        window.__realUnityNextPageCalls.push({
+          rawAnswer,
+          rewrittenAnswer
         });
-        return originalSendMessage(objectName, methodName, payload);
+        return originalNextPage(rewrittenAnswer, metadata, blobs, onRejection);
       };
+
+      const wrapUnitySendMessage = window.setInterval(() => {
+        if (
+          typeof unityInstance === "undefined" ||
+          !unityInstance ||
+          typeof unityInstance.SendMessage !== "function" ||
+          unityInstance.__psynetPlaywrightWrapped
+        ) {
+          return;
+        }
+
+        const originalSendMessage = unityInstance.SendMessage.bind(unityInstance);
+        unityInstance.SendMessage = function (objectName, methodName, payload) {
+          window.__realUnityMessages.push({
+            objectName,
+            methodName,
+            payload: JSON.parse(payload)
+          });
+          return originalSendMessage(objectName, methodName, payload);
+        };
+        unityInstance.__psynetPlaywrightWrapped = true;
+        window.clearInterval(wrapUnitySendMessage);
+      }, 20);
     });
 
     const initialState = await experimentPage.evaluate(() => ({
@@ -58,19 +75,19 @@ test("unity_autoplay demo handles same-session page updates in real WebGL build"
       sessionId: window.psynet.page.attributes.session_id
     }));
 
-    await expect(
-      experimentPage.evaluate(() =>
-        window.psynet.nextPage({ reward: 50, expire: false })
-      )
-    ).resolves.toBe(true);
+    await expect(experimentPage.locator("#unity-loading-bar")).toBeHidden({
+      timeout: STEP_TIMEOUT_MS
+    });
+    await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
 
     await expect
       .poll(
         () =>
           experimentPage.evaluate(() => ({
             pageUuid: window.pageUuid,
-            sessionId: window.psynet.page.attributes.session_id,
+            sessionId: window.psynet.page.attributes?.session_id || null,
             messageCount: window.__realUnityMessages.length,
+            nextPageCalls: window.__realUnityNextPageCalls.length,
             latestPayload:
               window.__realUnityMessages[window.__realUnityMessages.length - 1]
                 ?.payload || null,
@@ -82,6 +99,7 @@ test("unity_autoplay demo handles same-session page updates in real WebGL build"
         pageUuid: initialState.pageUuid,
         sessionId: initialState.sessionId,
         messageCount: 1,
+        nextPageCalls: 1,
         nextPagePending: false
       });
 
