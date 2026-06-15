@@ -9,7 +9,15 @@ SESSION_ID = "shared-session"
 
 
 def unity_stub_script():
-    return """
+    return f"""
+    psynet.page.attributes = {{
+        session_id: "{SESSION_ID}",
+        is_unity_page: true,
+    }};
+    psynet.page.contents = {{
+        step: 1,
+        label: "first",
+    }};
     window.__sameSessionUnityMessages = window.__sameSessionUnityMessages || [];
     var unityInstance = {
         SendMessage: function (objectName, methodName, payload) {
