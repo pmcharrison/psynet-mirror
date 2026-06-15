@@ -1306,8 +1306,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         longer have any pending asynchronous processes.
     """
 
-    centralize_grow_network = Column(Boolean)
-
     state_class = ChainTrialMakerState
 
     def __init__(
@@ -1464,9 +1462,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.propagate_failure = propagate_failure
         self.allow_revisiting_networks_in_across_chains = (
             allow_revisiting_networks_in_across_chains
-        )
-        self.centralize_grow_network = (
-            chain_type == "across" or sync_group_type is not None
         )
         self.choose_participant_group = choose_participant_group
 
