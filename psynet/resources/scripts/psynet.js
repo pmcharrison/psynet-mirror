@@ -545,13 +545,19 @@
       }
     };
 
+    psynet.deactivateTimelineFragmentLifecycle = async function () {
+      if (psynet.trial) {
+        await psynet.trial.stop();
+      }
+      await psynet.cleanupPageResources();
+      psynet.clearLucidTermination();
+      psynet.resetPageState();
+    };
+
     psynet.activateTimelineFragmentLifecycle = async function () {
       // A full page reload used to clear old handlers, globals, and transient
       // page state automatically. In inplace mode we must recreate that
       // lifecycle explicitly before we can mark the new page as ready.
-      await psynet.cleanupPageResources();
-      psynet.clearLucidTermination();
-      psynet.resetPageState();
       psynet.refreshTemplateData();
       psynet.ensureStylesheetLinks();
       psynet.applyInlinePageStyles();
@@ -578,6 +584,7 @@
       psynet.setPageReady(false);
       psynet.setTimelineTransitionBusy(true);
       try {
+        await psynet.deactivateTimelineFragmentLifecycle();
         psynet.applyTimelineFragmentPayload(payload);
         await psynet.activateTimelineFragmentLifecycle();
       } catch (error) {
@@ -673,11 +680,13 @@
         eventLog: [],
         inProgress: false,
         stopping: false,
+        stopped: false,
       };
 
       trial.reset = function () {
         trial.state = null;
         trial.inProgress = false;
+        trial.stopped = false;
         trial.startTime = null;
         Object.values(trial.events).forEach((e) => e.reset());
       };
@@ -710,6 +719,9 @@
         });
 
         event.checkTriggers = function (info) {
+          if (trial.stopping || trial.stopped) {
+            return;
+          }
           let allTriggersFired = event.isTriggeredBy.every(
             (trigger) => trigger.fired,
           );
@@ -784,6 +796,9 @@
         };
 
         event.hitTriggers = function (info) {
+          if ((trial.stopping || trial.stopped) && id !== "trialStop") {
+            return;
+          }
           for (const target of event.toBeTriggered) {
             trial.setTimer(() => target.fire(info), target.delay * 1000);
           }
@@ -905,6 +920,12 @@
       };
 
       trial.registerEvent = async function (id, providedOptions) {
+        if (
+          (trial.stopping || trial.stopped) &&
+          !["trialStop", "trialStopped"].includes(id)
+        ) {
+          return;
+        }
         let options = {
           info: null,
           once: false,
@@ -939,6 +960,12 @@
           event.showMessage();
           event.runJS(options.info);
           await event.runHandlers(options.info);
+          if (
+            (trial.stopping || trial.stopped) &&
+            !["trialStop", "trialStopped"].includes(id)
+          ) {
+            return;
+          }
           event.hitTriggers(options.info);
         }
       };
@@ -984,13 +1011,18 @@
          * Is idempotent (you can call it multiple times
          * with no bad side effects).
          */
-        if (trial.inProgress && !trial.stopping) {
-          trial.stopping = true;
-          trial.clearTimers();
-          trial.inProgress = false;
+        if (trial.stopping || trial.stopped) {
+          return;
+        }
+        trial.stopping = true;
+        trial.clearTimers();
+        trial.inProgress = false;
+        try {
           await this.pendingEventHandlers.waitFor();
           await trial.registerEvent("trialStop");
           trial.reset();
+          trial.stopped = true;
+        } finally {
           trial.stopping = false;
         }
       };
