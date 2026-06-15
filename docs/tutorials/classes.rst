@@ -65,7 +65,7 @@ If some of these concepts are new to you, we recommend doing a few relevant onli
 PsyNet classes in experiment.py
 -------------------------------
 
-If you open a given PsyNet experiment (e.g. ``demos/mcmcp/experiment.py``) you will typically see a variety of
+If you open a given PsyNet experiment (e.g. ``demos/experiments/mcmcp/experiment.py``) you will typically see a variety of
 PsyNet classes. These will be imported from particular PsyNet modules, for example:
 
 .. code-block:: python

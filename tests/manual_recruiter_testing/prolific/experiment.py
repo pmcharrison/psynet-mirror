@@ -94,11 +94,9 @@ class Exp(psynet.experiment.Experiment):
         "contact_email_on_error": "computational.audition@gmail.com",
         "organization_name": "Max Planck Institute for Empirical Aesthetics",
         "show_reward": False,
-        # The experiment should be tested with three configurations (three deployments):
-        # 1. prolific_enable_screen_out = True, prolific_enable_return_for_bonus = True
-        # 2. prolific_enable_screen_out = False, prolific_enable_return_for_bonus = True
-        # 3. prolific_enable_screen_out = False, prolific_enable_return_for_bonus = False
-        "prolific_enable_screen_out": True,
+        # The experiment should be tested with two configurations (two deployments):
+        # 1. prolific_enable_return_for_bonus = True
+        # 2. prolific_enable_return_for_bonus = False
         "prolific_enable_return_for_bonus": True,
     }
 

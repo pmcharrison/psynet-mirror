@@ -21,6 +21,7 @@ from psynet.sync import (
     GroupBarrier,
     SimpleGrouper,
     SimpleSyncGroup,
+    check_barriers,
 )
 
 
@@ -331,7 +332,7 @@ def test_check_barriers_skips_failure(in_experiment_directory, db_session):
     good_barrier.receive_participant(participants[1])
     db.session.commit()
 
-    exp.check_barriers()
+    check_barriers()
 
     assert "b_good" in processed_barriers
 

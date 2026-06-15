@@ -57,7 +57,7 @@ class NoArgumentProvided:
 
 def deep_copy(x):
     try:
-        return jsonpickle.decode(jsonpickle.encode(x))
+        return jsonpickle.decode(jsonpickle.encode(x, keys=True), keys=True)
     except Exception:
         logger.error(f"Failed to copy the following object: {x}")
         raise
@@ -338,7 +338,7 @@ def corr(x: list, y: list, method="pearson"):
 
 
 def md5_object(x):
-    string = jsonpickle.encode(x).encode("utf-8")
+    string = jsonpickle.encode(x, keys=True).encode("utf-8")
     hashed = hashlib.md5(string)
     return str(hashed.hexdigest())
 
@@ -730,8 +730,12 @@ def get_translator(
 
     if namespace is None:
         frame = inspect.currentframe().f_back
-        package_name = frame.f_globals["__package__"]
-        package_name = package_name.split(".")[0]  # Remove any subpackage names.
+        package_name = frame.f_globals.get("__package__")
+
+        if package_name is None:
+            namespace = "experiment"
+        else:
+            package_name = package_name.split(".")[0]  # Remove any subpackage names.
 
         if package_name == "dallinger_experiment":
             namespace = "experiment"
@@ -739,7 +743,7 @@ def get_translator(
             raise ValueError(
                 "_get_translator could not work out what namespace to use. Try providing the namespace explicitly."
             )
-        else:
+        elif namespace is None:
             namespace = package_name
 
     def _get_translators(locales_dir, locale, namespace):

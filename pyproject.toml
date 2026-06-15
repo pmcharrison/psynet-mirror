@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "psynet"
-version = "13.2.0a0"
+version = "13.3.0a0"
 authors = [
   {name="Peter Harrison", email="pmch2@cam.ac.uk"},
   {name="Frank Höger", email="frank.hoeger@ae.mpg.de"},
@@ -70,7 +70,6 @@ dependencies = [
 dev = [
     "asv",
     "beautifulsoup4",
-    "bump-my-version",
     "google-cloud-translate",
     "openai",
     "pre-commit",
@@ -78,6 +77,7 @@ dev = [
     "pytest-test-groups",
     "ruff",
     "sphinx",
+    "sphinx-autobuild",
     "sphinx-autodoc-typehints<3.0.0",
     "sphinx-copybutton",
     "sphinx-inline-tabs",
@@ -90,6 +90,7 @@ demos = [
     "music21",
     "numpy",
     "praat-parselmouth",
+    "psynet-step==0.1.0",
     "repp-tapping",
     "scipy",
     "sing4me",

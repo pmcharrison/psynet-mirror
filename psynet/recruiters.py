@@ -50,18 +50,6 @@ from .utils import get_logger, get_translator, render_template_with_translations
 logger = get_logger()
 
 
-def screen_out_participant(participant):
-    """
-    Standalone function for AsyncCodeBlock to use (can be serialized properly)
-    """
-    from psynet.experiment import get_experiment
-
-    experiment = get_experiment()
-    recruiter = experiment.recruiter
-
-    return recruiter.screen_out(participant, participant.calculate_reward())
-
-
 class PsyNetRecruiterMixin:
     show_termination_button = False
 
@@ -121,21 +109,6 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
 
 
 class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
-    def screen_out(self, participant, bonus):
-        response = super().screen_out(participant, bonus)
-        message = response.get("message")
-        success = (
-            message == "The request to bulk screen out has been made successfully."
-        )
-        if success:
-            logger.info(message)
-        else:
-            logger.warning(f"Screen out failed: {response}")
-
-        participant.var.prolific_screen_out_successful = success
-
-        return success
-
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
@@ -145,22 +118,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     def reject_assignment(self, participant) -> TimelineLogic:
         return PageMaker(self._reject_assignment, time_estimate=0.0)
-
-    def successful_screenout_logic(self) -> TimelineLogic:
-        """Create the TimelineLogic for successful screen out."""
-        _p = get_translator(context=True)
-
-        return InfoPage(
-            _p(
-                "screen_out_successful",
-                "You have been credited for the time spent on the experiment. "
-                "Because you could not progress to the main experiment "
-                "your submission will appear as 'screened out' in Prolific. "
-                "You can now close this browser window.",
-            ),
-            show_next_button=False,
-            time_estimate=0.0,
-        )
 
     def assignment_returned_logic(self) -> TimelineLogic:
         """Create the TimelineLogic for checking assignment return status."""
@@ -264,52 +221,18 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.5,
         )
 
-    def screen_out_logic(self, enable_screen_out) -> TimelineLogic:
-        """Create the TimelineLogic for screen out."""
-        if not enable_screen_out:
-            return None
-
-        return conditional(
-            "screen_out_enabled",
-            lambda participant: enable_screen_out,
-            join(
-                AsyncCodeBlock(
-                    screen_out_participant,
-                    wait=True,
-                    expected_wait=5.0,
-                    check_interval=0.5,
-                ),
-                conditional(
-                    label="screen_out_successful",
-                    condition=self.check_screen_out_successful,
-                    logic_if_true=self.successful_screenout_logic(),
-                ),
-            ),
-            None,
-        )
-
     def _reject_assignment(self, participant) -> TimelineLogic:
         enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
-        enable_screen_out = get_config().get("prolific_enable_screen_out")
 
-        logic_screen_out = self.screen_out_logic(enable_screen_out)
         logic_return_for_bonus = self.return_for_bonus_logic(enable_return_for_bonus)
         logic_return_and_message_experimenter = (
             self.return_and_message_experimenter_logic()
         )
 
         return join(
-            logic_screen_out,
             logic_return_for_bonus,
             logic_return_and_message_experimenter,
         )
-
-    def check_screen_out_successful(self, participant) -> bool:
-        """Check if the participant has been successfully screened out."""
-        try:
-            return participant.var.prolific_screen_out_successful
-        except KeyError:
-            return False
 
     @staticmethod
     def check_assignment_return_status(participant) -> bool:

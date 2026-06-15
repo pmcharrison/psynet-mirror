@@ -20,20 +20,28 @@ from .utils import NoArgumentProvided, call_function_with_context, get_logger
 logger = get_logger()
 
 
-class CallbackSerializationError(ValueError):
+class CallableSerializationError(ValueError):
     """
-    Raised when a callback cannot be serialized safely.
+    Raised when a callable cannot be serialized safely.
     """
 
 
 @dataclass
-class SerializedCallback:
+class SerializedCallable:
     function: callable
     arguments: dict
 
     def __call__(
-        self, participant=NoArgumentProvided, experiment=NoArgumentProvided, **kwargs
+        self,
+        *,
+        participant=NoArgumentProvided,
+        experiment=NoArgumentProvided,
+        **kwargs,
     ):
+        # TODO: Generalize this context forwarding to cover the other
+        # callback/context args too, such as group, participants, barrier,
+        # assets, nodes, trial_maker, and trial.
+        # Should ideally do this without hardcoding the arguments.
         if participant is not NoArgumentProvided:
             kwargs["participant"] = participant
         if experiment is not NoArgumentProvided:
@@ -42,55 +50,55 @@ class SerializedCallback:
         return call_function_with_context(self.function, **merged)
 
 
-def serialize_callback(callback, context: str):
+def serialize_callable(callable_obj, context: str):
     """
-    Serialize a callback with centralized validation and error messaging.
+    Serialize a callable with centralized validation and error messaging.
     """
-    if callback is None or isinstance(callback, SerializedCallback):
-        return callback
-    if not callable(callback):
-        raise CallbackSerializationError(
-            _format_callback_error(
+    if callable_obj is None or isinstance(callable_obj, SerializedCallable):
+        return callable_obj
+    if not callable(callable_obj):
+        raise CallableSerializationError(
+            _format_callable_error(
                 context,
-                f"Received {type(callback).__name__}, which is not callable.",
+                f"Received {type(callable_obj).__name__}, which is not callable.",
             )
         )
 
-    if inspect.ismethod(callback) and callback.__self__ is not None:
-        method_self = callback.__self__
+    if inspect.ismethod(callable_obj) and callable_obj.__self__ is not None:
+        method_self = callable_obj.__self__
         if isinstance(method_self, type):
-            function, arguments = prepare_function_for_serialization(callback, {})
-            return SerializedCallback(function=function, arguments=arguments)
+            function, arguments = prepare_function_for_serialization(callable_obj, {})
+            return SerializedCallable(function=function, arguments=arguments)
         if _is_trial_maker(method_self):
-            return SerializedCallback(
+            return SerializedCallable(
                 function=_call_trial_maker_method,
                 arguments={
                     "trial_maker_id": method_self.id,
-                    "method_name": callback.__name__,
+                    "method_name": callable_obj.__name__,
                 },
             )
         if isinstance(method_self, SQLBase):
             _ensure_sql_primary_key(method_self, context)
-            function, arguments = prepare_function_for_serialization(callback, {})
-            return SerializedCallback(function=function, arguments=arguments)
+            function, arguments = prepare_function_for_serialization(callable_obj, {})
+            return SerializedCallable(function=function, arguments=arguments)
 
-        raise CallbackSerializationError(
-            _format_callback_error(
+        raise CallableSerializationError(
+            _format_callable_error(
                 context,
-                f"Provided a bound instance method ('{callback.__qualname__}').",
+                f"Provided a bound instance method ('{callable_obj.__qualname__}').",
             )
         )
 
     try:
-        function, arguments = prepare_function_for_serialization(callback, {})
+        function, arguments = prepare_function_for_serialization(callable_obj, {})
     except Exception as err:
-        raise CallbackSerializationError(
-            _format_callback_error(context, str(err))
+        raise CallableSerializationError(
+            _format_callable_error(context, str(err))
         ) from err
-    return SerializedCallback(function=function, arguments=arguments)
+    return SerializedCallable(function=function, arguments=arguments)
 
 
-def _format_callback_error(context: str, detail: str) -> str:
+def _format_callable_error(context: str, detail: str) -> str:
     return (
         f"{context} must be a module-level function, a @staticmethod/@classmethod, "
         "or an instance method on a TrialMaker or ORM model with a primary key. "
@@ -116,9 +124,9 @@ def _call_trial_maker_method(
     from psynet.experiment import get_trial_maker
 
     if not trial_maker_id:
-        raise CallbackSerializationError(
-            _format_callback_error(
-                "TrialMaker callback",
+        raise CallableSerializationError(
+            _format_callable_error(
+                "TrialMaker callable",
                 "TrialMaker is missing an id. Ensure the TrialMaker is initialized.",
             )
         )
@@ -137,8 +145,8 @@ def _call_trial_maker_method(
 def _ensure_sql_primary_key(instance, context: str) -> None:
     primary_keys = get_primary_key_values(instance)
     if any(key is None for key in primary_keys.values()):
-        raise CallbackSerializationError(
-            _format_callback_error(
+        raise CallableSerializationError(
+            _format_callable_error(
                 context,
                 f"The ORM instance is missing a primary key: {primary_keys}.",
             )
@@ -261,9 +269,10 @@ class PsyNetUnpickler(Unpickler):
 
 def serialize(x, **kwargs):
     pickler = PsyNetPickler()
+    keys = kwargs.pop("keys", True)
     with warnings.catch_warnings():
         warnings.filterwarnings("error", message="jsonpickle cannot pickle")
-        return jsonpickle.encode(x, **kwargs, context=pickler, warn=True)
+        return jsonpickle.encode(x, keys=keys, **kwargs, context=pickler, warn=True)
 
 
 def to_dict(x):

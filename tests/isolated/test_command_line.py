@@ -40,6 +40,234 @@ class TestCommandLine(object):
         assert b"Options:" in output
         assert b"Commands:" in output
 
+    def test_psynet_docs_command_is_not_registered(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["docs", "--help"])
+
+        assert result.exit_code != 0
+        assert "No such command 'docs'" in result.output
+
+    def test_dev_changelog_dispatches_to_builder(self, monkeypatch, tmp_path):
+        from psynet.command_line import psynet
+        from psynet.dev import changelog as changelog_module
+
+        calls = []
+
+        fragments_dir = tmp_path / "changelog.d"
+        fragments_dir.mkdir()
+        changelog_path = tmp_path / "CHANGELOG.md"
+        changelog_path.write_text("# CHANGELOG\n", encoding="utf-8")
+
+        monkeypatch.setattr(changelog_module, "FRAGMENTS_DIR", fragments_dir)
+        monkeypatch.setattr(changelog_module, "CHANGELOG_PATH", changelog_path)
+        monkeypatch.setattr(
+            changelog_module,
+            "new_command",
+            lambda c, d: calls.append(("new", c, d)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "release_command",
+            lambda v, d: calls.append(("release", v, d)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "build_command",
+            lambda: calls.append(("build",)) or 0,
+        )
+        monkeypatch.setattr(
+            changelog_module,
+            "check_mr_command",
+            lambda b, h: calls.append(("check-mr", b, h)) or 0,
+        )
+
+        runner = CliRunner()
+
+        result = runner.invoke(
+            psynet, ["dev", "changelog", "new", "fixed", "Fix thing"]
+        )
+        assert result.exit_code == 0, result.output
+        assert calls == [("new", "fixed", "Fix thing")]
+
+        result = runner.invoke(
+            psynet,
+            ["dev", "changelog", "release", "13.2.0", "2026-03-13"],
+        )
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("release", "13.2.0", "2026-03-13")
+
+        result = runner.invoke(psynet, ["dev", "changelog", "preview"])
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("build",)
+
+        result = runner.invoke(psynet, ["dev", "changelog", "check-mr", "base", "head"])
+        assert result.exit_code == 0, result.output
+        assert calls[-1] == ("check-mr", "base", "head")
+
+    def test_dev_changelog_check_mr_is_hidden_from_help(self):
+        result = subprocess.run(
+            ["psynet", "dev", "changelog", "--help"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert "check-mr" not in result.stdout
+
+    def test_dev_changelog_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(psynet, ["dev", "changelog", "preview"])
+
+        assert result.exit_code != 0
+        assert "Run from a PsyNet source checkout" in result.output
+
+    def test_dev_ci_update_dallinger_constraints_dispatches_to_script(
+        self, monkeypatch
+    ):
+        from psynet.command_line import psynet
+        from psynet.dev import ci as ci_module
+
+        calls = []
+        monkeypatch.setattr(
+            ci_module,
+            "update_dallinger_constraints_command",
+            lambda check_compile: calls.append(check_compile) or 0,
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            ["dev", "ci", "update-dallinger-constraints", "--skip-compile-check"],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert calls == [False]
+
+    def test_dev_update_experiments_dispatches_to_script(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import experiments as experiments_module
+
+        calls = []
+        monkeypatch.setattr(
+            experiments_module,
+            "update_command",
+            lambda n_jobs, skip_constraints_: (
+                calls.append((n_jobs, skip_constraints_)) or 0
+            ),
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            ["dev", "experiments", "update", "--jobs", "3", "--skip-constraints"],
+        )
+
+        assert result.exit_code == 0
+        assert calls == [(3, True)]
+
+    def test_dev_update_experiments_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "experiments", "update", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--skip-constraints" in result.output
+        assert "--jobs" in result.output
+
+    def test_dev_update_experiments_requires_source_checkout(self, tmp_path):
+        from psynet.command_line import psynet
+
+        runner = CliRunner()
+        with working_directory(tmp_path):
+            result = runner.invoke(
+                psynet, ["dev", "experiments", "update", "--skip-constraints"]
+            )
+
+        assert result.exit_code != 0
+        assert (
+            "This command must be run from the PsyNet source checkout root directory"
+            in result.output
+        )
+
+    def test_dev_docs_make_dispatches_to_builder(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        calls = []
+        monkeypatch.setattr(
+            docs_module,
+            "make_command",
+            lambda **kwargs: calls.append(kwargs) or 0,
+        )
+
+        result = CliRunner().invoke(
+            psynet,
+            [
+                "dev",
+                "docs",
+                "make",
+                "dirhtml",
+                "--clean",
+                "--live-preview",
+                "--port",
+                "8001",
+                "--strict",
+                "--jobs",
+                "auto",
+                "--sphinx-option=--nitpicky",
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert calls == [
+            {
+                "target": "dirhtml",
+                "clean": True,
+                "open_browser": True,
+                "live_preview": True,
+                "live_preview_port": 8001,
+                "strict": True,
+                "jobs": "auto",
+                "sphinx_options": ("--nitpicky",),
+            }
+        ]
+
+    def test_dev_docs_make_reports_subprocess_failure(self, monkeypatch):
+        from psynet.command_line import psynet
+        from psynet.dev import docs as docs_module
+
+        def fail(**kwargs):
+            raise subprocess.CalledProcessError(
+                returncode=1,
+                cmd=["sphinx-autobuild"],
+            )
+
+        monkeypatch.setattr(docs_module, "make_command", fail)
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "make", "--live-preview"])
+
+        assert result.exit_code == 1
+        assert "Docs command failed with exit code 1." in result.output
+        assert "Traceback" not in result.output
+
+    def test_dev_docs_make_help(self):
+        from psynet.command_line import psynet
+
+        result = CliRunner().invoke(psynet, ["dev", "docs", "make", "--help"])
+
+        assert result.exit_code == 0, result.output
+        assert "--clean" in result.output
+        assert "--open" in result.output
+        assert "--live-preview" in result.output
+        assert "--port" in result.output
+        assert "sphinx-autobuild" in result.output
+        assert "--strict" in result.output
+        assert "--jobs" in result.output
+        assert "deterministic output" in result.output
+        assert "--sphinx-option" in result.output
+        assert "Uses --jobs 1 by default" in result.output
+
     def test_install_autocomplete_help(self):
         """Test that the install autocomplete command shows help."""
         output = subprocess.check_output(
@@ -600,6 +828,71 @@ def test_check_dockerfile():
                 match="Your Dockerfile appears to be using an outdated format",
             ):
                 check_dockerfile()
+
+
+def test_abort_if_app_exists():
+    from psynet.command_line import _abort_if_app_exists
+
+    app = Mock()
+    app.name = "test-app"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.get_apps",
+            return_value=[app],
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        with pytest.raises(click.Abort):
+            _abort_if_app_exists(server="test-server", app="test-app")
+    assert mock_echo.call_count == 1
+
+
+def test_abort_if_app_exists_skips_missing_app():
+    from psynet.command_line import _abort_if_app_exists
+
+    app = Mock()
+    app.name = "other-app"
+    with (
+        patch(
+            "dallinger.command_line.docker_ssh.get_apps",
+            return_value=[app],
+        ),
+        patch("psynet.command_line.click.echo") as mock_echo,
+    ):
+        _abort_if_app_exists(server="test-server", app="test-app")
+
+    mock_echo.assert_not_called()
+
+
+def test_pre_launch_aborts_when_app_exists():
+    from psynet.command_line import _pre_launch
+
+    ctx = Mock()
+    with (
+        patch("psynet.command_line.redis_vars.clear"),
+        patch("psynet.command_line.deployment_info.init"),
+        patch("psynet.command_line.deployment_info.write"),
+        patch("dallinger.command_line.docker_ssh.ensure_remote_host_in_known_hosts"),
+        patch("psynet.command_line._abort_if_app_exists", side_effect=click.Abort),
+        patch("psynet.command_line.run_pre_checks") as mock_run_pre_checks,
+        patch(
+            "psynet.command_line.CONFIGURED_HOSTS",
+            {"test-server": {"host": "example.com", "user": "test-user"}},
+        ),
+    ):
+        with pytest.raises(click.Abort):
+            _pre_launch(
+                ctx,
+                mode="live",
+                archive=None,
+                local_=False,
+                ssh=True,
+                docker=True,
+                server="test-server",
+                app="test-app",
+            )
+
+    mock_run_pre_checks.assert_not_called()
 
 
 def test_enable_sql_profile_uses_unique_run_subdirectories(tmp_path, monkeypatch):

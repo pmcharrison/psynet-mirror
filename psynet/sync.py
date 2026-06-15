@@ -1,3 +1,59 @@
+"""
+Synchronization primitives for coordinating participants.
+
+This module contains the core building blocks for synchronous experiments.
+If you have not seen PsyNet's synchronization features before, the key idea is
+simple: participants move through a timeline, sometimes waiting for other
+participants to arrive at the same point. We implement that waiting logic with
+barriers, and we implement grouping logic with groupers and sync groups.
+
+Glossary
+--------
+Barrier
+    A timeline element that pauses participants until some release condition is
+    satisfied (for example, "wait until two participants arrive"). Barriers are
+    subclasses of ``Barrier``/``GroupBarrier``. In a timeline they usually wrap
+    a ``WaitPage`` loop so participants see a waiting screen while they wait.
+
+Grouper and sync group
+    A ``SimpleGrouper`` (or other grouper) is a timeline element that forms
+    ``SyncGroup`` rows once enough participants are available. Group barriers
+    rely on these groups to decide who to release together.
+
+Barrier registry
+    Barriers and their waiting participants are persisted in the database via
+    ``BarrierRecord`` and ``ParticipantLinkBarrier``. This replaces the older
+    in-memory registry so multiple worker processes can safely cooperate.
+
+Where this shows up in a timeline
+---------------------------------
+The most common pattern is:
+
+1. A grouper runs early in the timeline to create sync groups.
+2. A ``GroupBarrier`` appears later in the timeline to pause participants until
+   the group is ready.
+3. After release, the timeline continues with shared or individual tasks.
+
+How processing works
+--------------------
+When a participant reaches a barrier, ``Barrier.receive_participant``:
+
+- Ensures a ``BarrierRecord`` exists (storing a lightweight copy of the barrier).
+- Inserts a ``ParticipantLinkBarrier`` row marking the participant as waiting.
+
+A scheduled task in ``Experiment._check_barriers`` calls ``check_barriers`` in
+this module. That loop:
+
+- Finds the next waiting barrier record.
+- Locks it using ``SELECT ... FOR UPDATE SKIP LOCKED`` so only one worker
+  processes a barrier at a time.
+- Calls ``Barrier.process_potential_releases`` in an isolated transaction.
+- Logs and skips failures per barrier so one bad barrier does not stall others.
+
+Callable attributes on barriers (e.g., ``on_release``) are serialized via
+``serialize_callable`` so they can be stored inside ``BarrierRecord`` safely.
+"""
+
 import copy
 import random
 from math import floor
@@ -18,10 +74,11 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import backref, deferred, joinedload, object_session, relationship
 
 from psynet.data import SQLBase, SQLMixin, register_table
+from psynet.db import transaction
 from psynet.field import PythonClass, PythonObject
 from psynet.page import UnsuccessfulEndPage, WaitPage
 from psynet.participant import Participant
-from psynet.serialize import SerializedCallback, serialize_callback
+from psynet.serialize import SerializedCallback, serialize_callable
 from psynet.timeline import CodeBlock, EltCollection, conditional
 from psynet.utils import get_logger
 
@@ -91,7 +148,7 @@ class Barrier(EltCollection):
 
     def __setattr__(self, name, value):
         if name.startswith("on_"):
-            value = serialize_callback(value, f"{self.__class__.__name__}.{name}")
+            value = serialize_callable(value, f"{self.__class__.__name__}.{name}")
         super().__setattr__(name, value)
 
     def choose_who_to_release(
@@ -293,6 +350,11 @@ class GroupBarrier(Barrier):
 
     on_release
         Optional callback invoked when the barrier releases participants.
+        Must be a module-level function, ``@staticmethod``/``@classmethod``,
+        or a bound method on a TrialMaker or ORM instance with a primary key.
+
+    on_release
+        Optional callable invoked when the barrier releases participants.
         Must be a module-level function, ``@staticmethod``/``@classmethod``,
         or a bound method on a TrialMaker or ORM instance with a primary key.
 
@@ -1050,6 +1112,58 @@ class ParticipantLinkBarrier(SQLBase, SQLMixin):
     def get_waiting_participants(self, for_update: bool = False):
         barrier = self.get_barrier()
         return barrier.get_waiting_participants(for_update=for_update)
+
+
+def _next_waiting_barrier(excluded_ids):
+    """Return the next eligible barrier record, if any."""
+    waiting_barrier_query = BarrierRecord.query.filter(
+        db.session.query(ParticipantLinkBarrier.id)
+        .join(Participant)
+        .filter(
+            ParticipantLinkBarrier.barrier_id == BarrierRecord.id,
+            ~ParticipantLinkBarrier.released,
+            ~Participant.failed,
+            Participant.status == "working",
+        )
+        .exists()
+    )
+    if excluded_ids:
+        waiting_barrier_query = waiting_barrier_query.filter(
+            ~BarrierRecord.id.in_(excluded_ids)
+        )
+    return (
+        waiting_barrier_query.order_by(BarrierRecord.id)
+        .with_for_update(skip_locked=True)
+        .populate_existing()
+        .first()
+    )
+
+
+def check_barriers():
+    """Process waiting barriers, isolating failures to individual barriers."""
+    excluded_ids = set()
+
+    while True:
+        barrier_id = None
+        try:
+            with transaction():
+                barrier_record = _next_waiting_barrier(excluded_ids)
+                if barrier_record is None:
+                    return
+                barrier_id = barrier_record.id
+                barrier = barrier_record.barrier
+                if not isinstance(barrier, Barrier):
+                    raise RuntimeError(
+                        f"Barrier '{barrier_record.id}' is missing or invalid."
+                    )
+                barrier.process_potential_releases()
+        except Exception:
+            if barrier_id is None:
+                raise
+            logger.exception("Failed to process barrier '%s'.", barrier_id)
+        finally:
+            if barrier_id is not None:
+                excluded_ids.add(barrier_id)
 
 
 Participant.sync_group_links = relationship(
