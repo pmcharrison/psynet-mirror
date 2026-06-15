@@ -3720,7 +3720,7 @@ def _time_export(_run=subprocess.run):
                 text=True,
                 timeout=600,
             )
-        duration = time.time() - start
+            duration = time.time() - start
         if result.returncode != 0:
             err = f"Exit code {result.returncode}"
             print(f"⚠ Export finished with error in {duration:.1f}s: {err}")
