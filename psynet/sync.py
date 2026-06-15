@@ -455,10 +455,6 @@ class GroupBarrier(Barrier):
                                 group.id,
                             )
                             group.remove_participant(participant)
-                            if participant.current_trial is not None:
-                                participant.current_trial.fail(
-                                    reason="participant timeout at barrier"
-                                )
                         else:
                             logger.info(
                                 "GroupBarrier '%s': failing participant %s (timeout)",
