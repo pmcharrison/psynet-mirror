@@ -3568,15 +3568,7 @@ def _start_local_server_and_wait_for_ready(
             )
             drain_thread.start()
 
-            # Extract base_url from server output
-            base_url = None
-            server_output = process.before or ""
-            for line in server_output.splitlines():
-                if "Server is running on" in line:
-                    match = re.search(r"(https?://[^:\s]+:\d+)", line)
-                    if match:
-                        base_url = match.group(1)
-                        break
+            base_url = _extract_base_url_from_server_output(process.before or "")
 
             return {
                 "process": process,
@@ -3737,6 +3729,20 @@ def _time_export(_run=subprocess.run):
         err = str(e)
         print(f"⚠ Export failed in {duration:.1f}s: {err}")
         return duration, err
+
+
+def _extract_base_url_from_server_output(output):
+    # Workaround for a Dallinger bug: in legacy mode with num_dynos_web > 1,
+    # dallinger_get_base_url() picks a random port, so redis_vars["base_url"]
+    # can have the wrong port. Dallinger prints "Server is running on <url>"
+    # only after confirming connectivity via wait_for_server(), so this source
+    # is reliable. Remove once Dallinger's multi-web-race-condition branch is merged.
+    for line in output.splitlines():
+        if "Server is running on" in line:
+            match = re.search(r"(https?://[^:\s]+:\d+)", line)
+            if match:
+                return match.group(1)
+    return None
 
 
 def _load_server_url(server_info):

@@ -769,6 +769,22 @@ def _make_server_info():
     }
 
 
+@pytest.mark.parametrize(
+    "output, expected",
+    [
+        ("Server is running on http://localhost:5000\n", "http://localhost:5000"),
+        ("Server is running on http://192.168.1.10:5000\n", "http://192.168.1.10:5000"),
+        ("Server is running on https://localhost:8443\n", "https://localhost:8443"),
+        ("unrelated output\n", None),
+        ("", None),
+    ],
+)
+def test_extract_base_url_from_server_output(output, expected):
+    from psynet.command_line import _extract_base_url_from_server_output
+
+    assert _extract_base_url_from_server_output(output) == expected
+
+
 class TestLoadServerUrl:
     @pytest.fixture
     def subject(self):
