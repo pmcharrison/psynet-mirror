@@ -1363,6 +1363,8 @@
 
         var recorder;
         var recordingBlob;
+        var audioRecordingStream = null;
+        var audioRecordingInput = null;
         recorderState.hasRecorded = false;
 
         psynet.page.control.playRecording = async function() {
@@ -1412,10 +1414,22 @@
                 video: false
             }).then(function(stream) {
                 psynet.log.debug("Initialising audio recorder.");
-                let input = psynet.media.audioContext.createMediaStreamSource(stream);
+                audioRecordingStream = stream;
+                audioRecordingInput = psynet.media.audioContext.createMediaStreamSource(stream);
                 let microphoneMetadata = psynet.media.getMicrophoneMetadataFromAudioStream(stream);
                 Object.assign(psynet.response.staged.metadata, microphoneMetadata);
-                recorder = new Recorder(input, channelCount);
+                recorder = new Recorder(audioRecordingInput, channelCount);
+                psynet.addPageCleanupCallback(function() {
+                    if (recorder) {
+                        recorder.stop();
+                    }
+                    if (audioRecordingInput && typeof audioRecordingInput.disconnect === "function") {
+                        audioRecordingInput.disconnect();
+                    }
+                    audioRecordingInput = null;
+                    psynet.media.stopStream(audioRecordingStream);
+                    audioRecordingStream = null;
+                });
                 psynet.trial.registerEvent("audioRecorderReady");
                 resolve();
             });
@@ -1464,6 +1478,7 @@
             let cameraStream = null;
             var videoRecorder = null;
             let audioSettings = null;
+            let recordedVideoObjectUrl = null;
 
             if ({{ params.record_audio | lower }}) {
                 audioSettings = {
@@ -1526,7 +1541,12 @@
                 videoPreviewPlayer.src = null;
                 videoPreviewPlayer.srcObject = null;
                 let blob = psynet.media.data.videoBlob;
-                videoPreviewPlayer.src = URL.createObjectURL(blob);
+                if (recordedVideoObjectUrl !== null) {
+                    psynet.media.revokeObjectUrl(recordedVideoObjectUrl);
+                    recordedVideoObjectUrl = null;
+                }
+                recordedVideoObjectUrl = psynet.media.registerObjectUrl(URL.createObjectURL(blob));
+                videoPreviewPlayer.src = recordedVideoObjectUrl;
                 videoPreviewPlayer.muted = false;
                 await videoPreviewPlayer.pause();
                 videoDisplayMode = "playback";
@@ -1569,6 +1589,17 @@
                     await videoRecorder.reset();
                 }
                 await loadCameraPreview();
+            });
+
+            psynet.addPageCleanupCallback(function() {
+                psynet.media.stopStream(cameraStream);
+                cameraStream = null;
+                if (recordedVideoObjectUrl !== null) {
+                    psynet.media.revokeObjectUrl(recordedVideoObjectUrl);
+                    recordedVideoObjectUrl = null;
+                }
+                videoPreviewPlayer.srcObject = null;
+                videoPreviewPlayer.removeAttribute("src");
             });
         }
 
@@ -1617,6 +1648,11 @@
                     await screenRecorder.stopRecording();
                 }
                 await screenRecorder.reset();
+            });
+
+            psynet.addPageCleanupCallback(function() {
+                psynet.media.stopStream(screenStream);
+                screenStream = null;
             });
 
         }

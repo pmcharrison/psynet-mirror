@@ -1216,6 +1216,17 @@
       }
     };
 
+    psynet.media.stopStream = function (stream) {
+      if (!stream || typeof stream.getTracks !== "function") {
+        return;
+      }
+      stream.getTracks().forEach(function (track) {
+        if (track && typeof track.stop === "function") {
+          track.stop();
+        }
+      });
+    };
+
     psynet.cleanupPageResources = async function () {
       psynet.log.info("Cleaning page resources before swapped-page activation.");
       psynet.media.stopAllAudio();
