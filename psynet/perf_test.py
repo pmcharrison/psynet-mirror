@@ -221,26 +221,21 @@ class PerformanceTester:
         self,
         authenticated_session,
         base_url,
-        n_bots=1,
         duration_minutes=1,
         stagger_interval_s=0.1,
         time_factor=0.0,
     ):
         self.authenticated_session = authenticated_session
         self.base_url = base_url
-        self.n_bots = n_bots
         self.duration_minutes = duration_minutes
         self.stagger_interval_s = stagger_interval_s
         self.time_factor = time_factor
 
-    def run(self, bot_counts=None, bot_log_file=None):
+    def run(self, bot_counts, bot_log_file=None):
         """Run performance tests for one or more bot count values.
 
         Returns a list of result dicts, one per bot count.
         """
-        if bot_counts is None:
-            bot_counts = [self.n_bots]
-
         all_results = []
 
         logger.info(bold("=" * 80))

@@ -1,4 +1,9 @@
+from unittest.mock import Mock, patch
+
+import pytest
+
 from psynet.perf_test import (
+    PerformanceTester,
     colorize_success_rate,
     format_performance_summary,
     format_test_results,
@@ -316,3 +321,30 @@ def test_format_performance_summary_no_export():
     lines = format_performance_summary([_base_result()])
     text = _join(lines)
     assert "Export" not in text
+
+
+# --- PerformanceTester.run ---
+
+
+class TestPerformanceTesterRun:
+    @pytest.fixture
+    def tester(self):
+        return PerformanceTester(
+            authenticated_session=Mock(),
+            base_url="http://localhost:5000",
+            duration_minutes=0.1,
+            stagger_interval_s=0.1,
+            time_factor=0.0,
+        )
+
+    def test_bot_counts_required(self, tester):
+        with pytest.raises(TypeError):
+            tester.run()
+
+    def test_calls_test_performance_once_per_count(self, tester):
+        fake_result = _base_result()
+        with patch.object(tester, "_test_performance", return_value=fake_result) as mock_test:
+            tester.run(bot_counts=[5, 10], bot_log_file=Mock())
+        assert mock_test.call_count == 2
+        assert mock_test.call_args_list[0].args[0] == 5
+        assert mock_test.call_args_list[1].args[0] == 10
