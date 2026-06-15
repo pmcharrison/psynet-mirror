@@ -30,8 +30,7 @@ test("same-session timeline update preserves page fragment and emits pageUpdated
     );
     const initialState = await experimentPage.evaluate(() => ({
       pageUuid: window.pageUuid,
-      mainBodyHtml: document.getElementById("main-body")?.innerHTML || "",
-      pageStep: window.psynet.page.contents.step
+      mainBodyHtml: document.getElementById("main-body")?.innerHTML || ""
     }));
 
     await experimentPage.locator("#next-button").click();
