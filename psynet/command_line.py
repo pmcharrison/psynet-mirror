@@ -3347,8 +3347,11 @@ def performance_test__local(
                 duration_minutes=opts["duration_minutes"],
                 bot_log_file=bot_log,
                 base_url=exp.base_url,
-                do_export=do_export,
             )
+            if do_export and results:
+                export_duration, export_error = _time_export()
+                results[-1]["export_duration_s"] = export_duration
+                results[-1]["export_error"] = export_error
         finally:
             bot_log.close()
         print(f"Bot output log: {bot_log.name}")
@@ -3445,7 +3448,6 @@ def _run_performance_test_with_existing_server(
     duration_minutes,
     bot_log_file,
     base_url,
-    do_export=True,
 ):
     """Run performance test connecting to an already-running server. Returns results list."""
     from psynet.utils import get_authenticated_session
@@ -3461,17 +3463,10 @@ def _run_performance_test_with_existing_server(
         stagger_interval_s=stagger,
         time_factor=time_factor,
     )
-    results = tester.run(
+    return tester.run(
         bot_counts=bot_counts,
         bot_log_file=bot_log_file,
     )
-
-    if do_export and results:
-        export_duration, export_error = _time_export()
-        results[-1]["export_duration_s"] = export_duration
-        results[-1]["export_error"] = export_error
-
-    return results
 
 
 class _OutputTee:
@@ -3766,6 +3761,7 @@ def _run_performance_test_with_new_server(
     _start_server=_start_local_server_and_wait_for_ready,
     _stop_server_fn=_stop_server,
     _run_stage=_run_performance_test_with_existing_server,
+    _time_export_fn=_time_export,
     _base_url=None,
 ):
     """Run performance test after starting a new experiment server. Returns results list.
@@ -3809,8 +3805,11 @@ def _run_performance_test_with_new_server(
                     duration_minutes=duration_minutes,
                     base_url=base_url,
                     bot_log_file=shared_bot_log,
-                    do_export=do_export,
                 )
+                if do_export and stage_results:
+                    export_duration, export_error = _time_export_fn()
+                    stage_results[0]["export_duration_s"] = export_duration
+                    stage_results[0]["export_error"] = export_error
                 all_results.extend(stage_results)
             finally:
                 _stop_server_fn(server_info)

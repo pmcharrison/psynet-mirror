@@ -906,6 +906,7 @@ class TestRunPerformanceTestWithNewServer:
         )
         kwargs.setdefault("_stop_server_fn", Mock())
         kwargs.setdefault("_run_stage", Mock(return_value=[]))
+        kwargs.setdefault("_time_export_fn", Mock(return_value=(1.0, None)))
         kwargs.setdefault("_base_url", "http://localhost:5000")
         return _run_performance_test_with_new_server(**kwargs)
 
@@ -950,18 +951,19 @@ class TestRunPerformanceTestWithNewServer:
         results = self.subject(bot_counts=[5, 10], _run_stage=mock_run)
         assert len(results) == 2
 
-    def test_passes_do_export_per_stage(self):
-        """do_export=True is forwarded to each stage."""
-        mock_run = Mock(return_value=[])
-        self.subject(bot_counts=[5, 10], do_export=True, _run_stage=mock_run)
-        for call in mock_run.call_args_list:
-            assert call.kwargs["do_export"] is True
+    def test_runs_export_per_stage_when_enabled(self):
+        """_time_export_fn called once per stage when do_export=True."""
+        mock_run = Mock(return_value=[{"n_bots": 1}])
+        mock_export = Mock(return_value=(1.0, None))
+        self.subject(bot_counts=[5, 10], do_export=True, _run_stage=mock_run, _time_export_fn=mock_export)
+        assert mock_export.call_count == 2
 
     def test_skips_export_when_disabled(self):
-        """do_export=False is forwarded to each stage."""
-        mock_run = Mock(return_value=[])
-        self.subject(do_export=False, _run_stage=mock_run)
-        assert mock_run.call_args.kwargs["do_export"] is False
+        """_time_export_fn not called when do_export=False."""
+        mock_run = Mock(return_value=[{"n_bots": 1}])
+        mock_export = Mock(return_value=(1.0, None))
+        self.subject(do_export=False, _run_stage=mock_run, _time_export_fn=mock_export)
+        mock_export.assert_not_called()
 
 
 # --- _time_export tests ---
