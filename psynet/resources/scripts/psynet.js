@@ -547,7 +547,7 @@
 
     psynet.deactivateTimelineFragmentLifecycle = async function () {
       if (psynet.trial) {
-        await psynet.trial.stop();
+        await psynet.trial.stop({ force: true });
       }
       await psynet.cleanupPageResources();
       psynet.clearLucidTermination();
@@ -719,7 +719,7 @@
         });
 
         event.checkTriggers = function (info) {
-          if (trial.stopping || trial.stopped) {
+          if ((trial.stopping || trial.stopped) && id !== "trialStopped") {
             return;
           }
           let allTriggersFired = event.isTriggeredBy.every(
@@ -1005,13 +1005,21 @@
         $("#buttonStart").attr("disabled", false);
       };
 
-      trial.stop = async function () {
+      trial.stop = async function (providedOptions) {
         /**
          * Can be called manually to stop the trial.
          * Is idempotent (you can call it multiple times
          * with no bad side effects).
          */
+        let options = {
+          force: false,
+        };
+        Object.assign(options, providedOptions);
+
         if (trial.stopping || trial.stopped) {
+          return;
+        }
+        if (!options.force && !trial.inProgress) {
           return;
         }
         trial.stopping = true;
@@ -1085,7 +1093,7 @@
 
     psynet.rebuildTrial = async function () {
       if (psynet.trial) {
-        await psynet.trial.stop();
+        await psynet.trial.stop({ force: true });
       }
       psynet.trial = Trial();
       registerCoreTrialHandlers(psynet.trial);
