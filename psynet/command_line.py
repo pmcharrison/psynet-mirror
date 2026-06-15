@@ -380,7 +380,6 @@ def _run_local(ctx, docker, archive, legacy, no_browsers, mode, context_group):
 
     _pre_launch(ctx, mode=mode, archive=archive, local_=True, docker=docker, app=None)
     _cleanup_before_debug()
-    _check_port_available()
 
     try:
         # Note: PsyNet bypasses Dallinger's deploy-from-archive system and uses its own, so we set archive=None.
@@ -3510,6 +3509,7 @@ def _start_local_server_and_wait_for_ready(
     If *log_file* is supplied the caller owns the file handle; this function
     will not create or close it.
     """
+    _check_port_available()
     print("▶ Starting experiment server...")
 
     externally_managed_log = log_file is not None
