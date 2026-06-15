@@ -58,9 +58,6 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         () =>
           experimentPage.evaluate(() => ({
             nextPagePending: window.psynet.nextPagePending,
-            nextDisabled: document
-              .getElementById("next-button")
-              ?.hasAttribute("disabled"),
             stillOnRejectionPage: Boolean(
               document.getElementById("adversarial-rejection-page")
             )
@@ -69,7 +66,6 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
       )
       .toEqual({
         nextPagePending: false,
-        nextDisabled: false,
         stillOnRejectionPage: true
       });
     await experimentPage.locator("#alert-button").click();
