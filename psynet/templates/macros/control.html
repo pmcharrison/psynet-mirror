@@ -302,11 +302,11 @@
         {% if params.show_free_text_option %}
         psynet.trial.onEvent("responseEnable", function () {
             var elem = $('#free_text')
-            $('#free_text_input').change(function () {
-                elem[0].checked = true;
-            }).click(function (){
-                elem[0].checked = true;
-            })
+            $('#free_text_input')
+                .off("change.psynetFreeText click.psynetFreeText")
+                .on("change.psynetFreeText click.psynetFreeText", function () {
+                    elem[0].checked = true;
+                })
         });
         {% endif %}
 
@@ -1039,7 +1039,7 @@
                     $(this).html(value);
                 });
 
-                range.on('input', function(){
+                range.off('input.psynetSliderCollection').on('input.psynetSliderCollection', function(){
                     $(this).next(value).html(this.value);
                 });
             });
