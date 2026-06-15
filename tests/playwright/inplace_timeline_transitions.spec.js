@@ -2,14 +2,25 @@ const path = require("path");
 const { test, expect } = require("./fixtures");
 
 const {
+  assertNoBackendError,
   assertInplaceTimelinePathActive,
   clickNextAndWait,
   completeInitialGateway,
+  waitForPageChange,
   waitForMainBodyContains,
+  waitForTimelinePageReady,
   withExperiment
 } = require("./psynetHarness");
 
 const STEP_TIMEOUT_MS = 120000;
+
+function deferredPromise() {
+  let resolve;
+  const promise = new Promise((innerResolve) => {
+    resolve = innerResolve;
+  });
+  return { promise, resolve };
+}
 
 test("in-place timeline transitions replay page scripts and hydrate page styles", async ({
   page,
@@ -141,5 +152,124 @@ test("legacy response handler errors do not use SPA fragment failure UI", async 
       passedValidation: false,
       fragmentFailureCalls: 0
     });
+  });
+});
+
+test("in-place timeline transitions ignore duplicate nextPage while response is pending", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/deferred_page_scripts"
+  );
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+    await expect(experimentPage.locator("#main-body")).toContainText("First page", {
+      timeout: STEP_TIMEOUT_MS
+    });
+
+    const firstResponseGate = deferredPromise();
+    let responseRequests = 0;
+    await experimentPage.route("**/response", async (route) => {
+      responseRequests += 1;
+      if (responseRequests === 1) {
+        await firstResponseGate.promise;
+      }
+      await route.continue();
+    });
+
+    const oldUuid = await experimentPage.evaluate(() => window.pageUuid || null);
+    const submitResultsPromise = experimentPage.evaluate(async () => {
+      const firstSubmit = window.psynet.nextPage("first-submit");
+      const duplicateSubmit = window.psynet.nextPage("duplicate-submit");
+      return {
+        firstSubmit: await firstSubmit,
+        duplicateSubmit: await duplicateSubmit
+      };
+    });
+
+    await expect.poll(() => responseRequests, { timeout: 10000 }).toBe(1);
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() => ({
+            nextPagePending: window.psynet.nextPagePending,
+            pageReady: window.psynet.pageReady
+          })),
+        { timeout: 10000 }
+      )
+      .toEqual({
+        nextPagePending: true,
+        pageReady: true
+      });
+
+    firstResponseGate.resolve();
+    await expect(submitResultsPromise).resolves.toEqual({
+      firstSubmit: true,
+      duplicateSubmit: false
+    });
+    await waitForPageChange(experimentPage, oldUuid, STEP_TIMEOUT_MS);
+    await waitForTimelinePageReady(experimentPage, STEP_TIMEOUT_MS);
+    await expect.poll(() => responseRequests, { timeout: 5000 }).toBe(1);
+    await assertNoBackendError(experimentPage);
+  });
+});
+
+test("in-place timeline transition failures show refresh prompt and unlock controls", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/deferred_page_scripts"
+  );
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+    await expect(experimentPage.locator("#main-body")).toContainText("First page", {
+      timeout: STEP_TIMEOUT_MS
+    });
+
+    await experimentPage.route("**/response", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ submission: "approved", page: { attributes: {} } })
+      });
+    });
+
+    const resultPromise = experimentPage.evaluate(() =>
+      window.psynet.nextPage("malformed-response")
+    );
+
+    await expect(experimentPage.locator("#alert-message")).toContainText(
+      "The next timeline page could not be loaded. Please refresh the page and try again.",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() => ({
+            nextPagePending: window.psynet.nextPagePending,
+            transitionBusy: document.body.classList.contains(
+              "timeline-transition-pending"
+            ),
+            nextDisabled: document
+              .getElementById("next-button")
+              ?.hasAttribute("disabled")
+          })),
+        { timeout: 10000 }
+      )
+      .toEqual({
+        nextPagePending: false,
+        transitionBusy: false,
+        nextDisabled: false
+      });
+
+    await experimentPage.locator("#alert-button").click();
+    await expect(resultPromise).resolves.toBe(false);
+    await assertNoBackendError(experimentPage);
   });
 });
