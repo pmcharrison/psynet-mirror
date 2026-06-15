@@ -9,15 +9,15 @@ SESSION_ID = "shared-session"
 
 
 def unity_stub_script():
-    return f"""
-    psynet.page.attributes = {{
-        session_id: "{SESSION_ID}",
+    return """
+    psynet.page.attributes = {
+        session_id: "__SESSION_ID__",
         is_unity_page: true,
-    }};
-    psynet.page.contents = {{
+    };
+    psynet.page.contents = {
         step: 1,
         label: "first",
-    }};
+    };
     window.__sameSessionUnityMessages = window.__sameSessionUnityMessages || [];
     var unityInstance = {
         SendMessage: function (objectName, methodName, payload) {
@@ -28,7 +28,7 @@ def unity_stub_script():
             });
         },
     };
-    """
+    """.replace("__SESSION_ID__", SESSION_ID)
 
 
 class Exp(psynet.experiment.Experiment):
