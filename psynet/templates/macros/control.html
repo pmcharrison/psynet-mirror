@@ -1904,7 +1904,9 @@
 
             const success = await psynet.nextPage(results);
             if (success) {
-                sender.doComplete();
+                if (survey === sender) {
+                    sender.doComplete();
+                }
             } else {
                 $("#main-body").show()
                 survey.onCompleting.add(handleSurveyCompletion);
