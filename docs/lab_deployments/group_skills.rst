@@ -1,4 +1,4 @@
-Group Skills
+Getting help
 ============
 
 
@@ -88,7 +88,7 @@ dependencies (e.g., numpy, or librosa) or 3rd party software (e.g.,
 docker). Google usually points to helpful directions. You can also put
 the error or parts of it in double quotes, which will give you exact
 matches. Also note that all public issues for PsyNet and Dallinger are
-public and thus searchable via Google. Some group members have also used
+public and thus searchable via Google. Some lab members have also used
 ChatGPT for debugging, which you can if Google or Slack don’t give you
 the answer.
 
@@ -103,14 +103,14 @@ colleagues.
    experiments (including internal deployment tooling), or #programming if
    it is a general question. *Do not send direct messages to people
    to ask for help.* Your replies and solutions cannot be found by
-   other group members. Also, this will allow all group members to
-   respond and not a handful of them. Clearly indicate if it is an
+   other lab members. Also, this allows the whole team to respond
+   rather than only a handful of people. Clearly indicate if it is an
    error you are facing or if its more a general question or comment.
 
 -  **Be thoughtful about each other’s time.** A core philosophy of the
-   group is that it’s a waste of time to be stuck on something and
+   lab workflow is that it’s a waste of time to be stuck on something and
    that a small amount of time of other people can get you going.
-   However, it’s a thin balance between wasting group members time
+   However, it’s a thin balance between using colleagues' time
    and being stuck on a problem for too long. As a rule of thumb, if
    you are stuck on the same problem for more than an hour, you need
    help. But make sure you did all possible steps to look for and

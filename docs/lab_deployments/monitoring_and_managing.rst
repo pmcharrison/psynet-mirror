@@ -1,5 +1,5 @@
-Monitoring & Managing
-=====================
+Monitoring and managing
+=======================
 
 Once your experiment is deployed, continuous monitoring is essential to
 ensure smooth data collection, handle participant issues, and optimize
@@ -44,7 +44,7 @@ Monitoring Participants & Data Collection
 
 -  Monitor Prolific/CINT marketplaces for recruiter-specific insights.
 
-Participant Issues
+Participant issues
 ------------------
 
 Participants may contact you directly when they encounter errors.
@@ -60,7 +60,7 @@ Where participants may contact you:
 -  **Lab Recruiter:** Via email sent to the address configured in your
    lab's Lab Recruiter setup.
 
-Recruitment and Payment Strategies
+Recruitment and payment strategies
 ------------------------------------
 
 -  Start with a small recruitment batch (5–10 participants) and review

@@ -1,5 +1,5 @@
-Exporting & Terminating
-=======================
+Exporting and terminating
+=========================
 
 .. _lab-deployment-export-data:
 

@@ -1,9 +1,9 @@
-Getting Started
-===============
+Overview
+========
 
-This section is a practical guide for deploying PsyNet experiments in the
-lab workflow. It covers the common steps that everyone needs, then points
-you to recruiter-specific instructions for :ref:`Prolific
+This section is a practical guide for deploying PsyNet experiments using
+a generic lab workflow. It covers the common steps that many research
+teams need, then points you to recruiter-specific instructions for :ref:`Prolific
 <lab-deployment-prolific>`, :ref:`CINT <lab-deployment-cint>`, and
 :ref:`Lab Recruiter <lab-deployment-lab-recruiter>`.
 
@@ -14,17 +14,17 @@ Read the pages in order the first time you deploy an experiment:
 
 1. :doc:`Prerequisites <prerequisites>`: complete one-time software,
    account, credential, and Git setup.
-2. :doc:`General Deployment Process <general_deployment_process>`:
+2. :doc:`General deployment process <general_deployment_process>`:
    understand the full experiment lifecycle, from design through testing
    and deployment.
 3. :doc:`Provisioning <provisioning>`: choose and prepare the server that
    will host your experiment.
-4. :doc:`Setting Up the Experiments <setting_up_the_experiments>`:
+4. :doc:`Pre-deployment setup overview <setting_up_the_experiments>`:
    configure your experiment, recruiter, storage, and pre-deployment
    checks.
 5. :doc:`Deploying <deploying>`: run the deployment command and save the
    dashboard and log URLs.
-6. :doc:`Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>`:
+6. :doc:`Recruiter-specific deployment steps <recruiter_specific_deployment_steps>`:
    confirm any extra Prolific, CINT, or Lab Recruiter requirements.
 
 The current recommended workflow uses the standard PsyNet installation
@@ -112,7 +112,7 @@ diagnose and support:
 - Check that your experiment satisfies the requirements of the recruiter
   you choose before you launch.
 
-Deployment Checklist
+Deployment checklist
 --------------------
 
 1. **Prerequisites**
@@ -120,7 +120,7 @@ Deployment Checklist
    - Set up PsyNet and complete the required installations.
    - Ensure Docker Desktop is installed and running if your deployment
      route uses Docker.
-   - Log in to the group Docker registry via GitLab if your lab uses
+   - Log in to the shared Docker registry via GitLab if your lab uses
      Docker images for deployment.
 
 2. **Experiment Setup**
@@ -130,12 +130,12 @@ Deployment Checklist
    - Verify recruiter-specific settings, such as payment parameters,
      participant qualifications, demographic requirements, and any
      recruiter-specific configuration. See
-     :doc:`Recruiter-Specific Deployment Steps <recruiter_specific_deployment_steps>`.
+     :doc:`Recruiter-specific deployment steps <recruiter_specific_deployment_steps>`.
 
    - Use an appropriate storage backend (S3 or LocalStorage, not
      DebugStorage).
 
-3. **Provisioning (Server Setup)**
+3. **Provisioning (server setup)**
 
    - Choose the correct server type (internal or EC2).
    - If using EC2, provision in the region closest to participants.
@@ -154,7 +154,7 @@ Deployment Checklist
      Double-check demographics and technical qualifications in the
      marketplace.
 
-5. **Monitoring & Management**
+5. **Monitoring and management**
 
    - Start with 5-10 participants, then gradually scale once data and
      completions look good.
@@ -163,7 +163,7 @@ Deployment Checklist
    - Monitor participant messages/free-text feedback and debug as needed.
    - Check data quality regularly (e.g., with an export script).
 
-6. **Export & Termination**
+6. **Export and termination**
 
    - Export all collected data for analysis.
    - If using an internal server, delete the app.

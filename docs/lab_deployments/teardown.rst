@@ -6,7 +6,7 @@ section that matches your setup. For the canonical cleanup workflow, see
 :doc:`Running PsyNet remotely <../getting_started/running_remotely>` and
 :ref:`SSH servers <ssh_server>`.
 
-EC2 Server
+EC2 server
 ----------
 
 If you provisioned an EC2 server, terminate it after you have finished
@@ -52,7 +52,7 @@ the running charges stop. Do not forget to terminate the instance when
 you are fully done. See the stop/start commands in
 :doc:`Provisioning <provisioning>`.
 
-Internal or Physical Server
+Internal or physical server
 ----------------------------
 
 If you used an internal or physical server, delete the app once your

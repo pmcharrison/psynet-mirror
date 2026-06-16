@@ -1,4 +1,4 @@
-Recruiter-Specific Deployment Steps
+Recruiter-specific deployment steps
 ===================================
 
 .. _lab-deployment-prolific:
@@ -54,9 +54,9 @@ Experiment costs
 
 5. Check that the experiment costs are right:
 
-   -  Use your own data (and possibly but not mandatory the group
-      data) to estimate how long it takes for each trial, pre-screeners,
-      and the entire experiment
+   -  Use your own data (and, optionally, pilot data from colleagues) to
+      estimate how long it takes for each trial, pre-screeners, and the
+      entire experiment
 
    -  Start running (if possible) a small number of participants
       (e.g., 10) and try to see if your time estimate is wrong by more
@@ -407,9 +407,9 @@ Experiment costs
 
 4. Check that the experiment costs are right:
 
-   -  Use your own data (and possibly but not mandatory the group data)
-      to estimate how long it takes for each trial, pre-screeners, and
-      the entire experiment
+   -  Use your own data (and, optionally, pilot data from colleagues) to
+      estimate how long it takes for each trial, pre-screeners, and the
+      entire experiment
 
    -  Start running (if possible) a small number of participants
       (e.g., 10) and try to see if your time estimate is wrong by more
@@ -493,17 +493,17 @@ Set the following parameters:
        aggressive_no_focus_timeout_in_s=3,
    )
 
-CINT Consent
+CINT consent
 ^^^^^^^^^^^^
 
 Please ensure that you use the correct consent for the CINT platform. Please advise if you are unsure.
 
 .. _lab-deployment-cint-qualifications:
 
-CINT Qualifications
+CINT qualifications
 ^^^^^^^^^^^^^^^^^^^
 
-Setting Qualifications Automatically
+Setting qualifications automatically
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -511,7 +511,7 @@ CINT provides a standard qualification library and also supports custom qualific
 However, custom qualifications are specific to each CINT account and may not be available across deployments.
 Check your lab's internal deployment documentation for any account-specific custom qualifications.
 
-Standard CINT Qualifications
+Standard CINT qualifications
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These qualifications are available for all accounts. Example:
@@ -522,7 +522,7 @@ These qualifications are available for all accounts. Example:
 
 -----------------------------------
 
-Working with Languages and Countries
+Working with languages and countries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are a variety of languages and countries available on CINT with
@@ -536,7 +536,7 @@ following code in your terminal:
 
 -----------------------------------
 
-Creating Qualification Configs
+Creating qualification configs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After getting the desired locales, you can generate qualifications
@@ -809,16 +809,16 @@ up and managing participant recruitment through Lab Recruiter. The
 system provides full control over participant selection, experiment
 access, and tracking.
 
-Registering to the Lab Recruiter Platform
+Registering to the Lab Recruiter platform
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Create an Admin account
+Create an admin account
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 -  For now, please contact your Lab Recruiter administrator to have your admin
    account created in the Lab Recruiter app.
 
-Create a Group
+Create a group
 ^^^^^^^^^^^^^^
 
 -  As the Group Manager, go to the Group tab and click **‘New**
@@ -827,7 +827,7 @@ Create a Group
 .. image:: /_static/images/lab_deployments/image3.png
    :width: 8.5in
 
-Set an Initial Test
+Set an initial test
 ~~~~~~~~~~~~~~~~~~~
 
 -  In your group settings, you can enable an "Initial Test Experiment"
@@ -866,9 +866,9 @@ Experiment costs
 
 4. Check that the experiment costs are right:
 
-   -  Use your own data (and possibly but not mandatory the group data)
-      to estimate how long it takes for each trial, pre-screeners, and
-      the entire experiment
+   -  Use your own data (and, optionally, pilot data from colleagues) to
+      estimate how long it takes for each trial, pre-screeners, and the
+      entire experiment
 
    -  Start running (if possible) a small number of participants
       (e.g., 10) and try to see if your time estimate is wrong by more
@@ -879,7 +879,7 @@ Experiment costs
 
 .. _experiment-script-2:
 
-Experiment Script
+Experiment script
 ^^^^^^^^^^^^^^^^^
 
 In case of assets, make sure you are not using DebugStorage, but
@@ -965,10 +965,10 @@ Deploy the Experiment. Please see :ref:`deployment process
 .. image:: /_static/images/lab_deployments/image27.png
    :width: 8.5in
 
-Inviting Participants
+Inviting participants
 ~~~~~~~~~~~~~~~~~~~~~
 
-Invite Participants
+Invite participants
 ^^^^^^^^^^^^^^^^^^^
 
 -  Once the setup is complete, go to the Groups tab.
@@ -983,7 +983,7 @@ Invite Participants
 .. image:: /_static/images/lab_deployments/image18.png
    :width: 8.5in
 
-Send Messages 
+Send messages
 ^^^^^^^^^^^^^^
 
 -  Using the messages option, you can send emails to participants in
@@ -996,7 +996,7 @@ Send Messages
 .. image:: /_static/images/lab_deployments/image21.png
    :width: 8.5in
 
-Monitor and Manage Participants
+Monitor and manage participants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dashboard
@@ -1014,7 +1014,7 @@ Participant tracking
 .. image:: /_static/images/lab_deployments/image20.png
    :width: 8.5in
 
-Managing Experiment Tasks
+Managing experiment tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Reset failed experiments by navigating to ‘Tasks’ and clicking the
@@ -1028,7 +1028,7 @@ Managing Experiment Tasks
 Termination
 ~~~~~~~~~~~
 
-Experiment Completion
+Experiment completion
 ^^^^^^^^^^^^^^^^^^^^^
 
 -  Upon completion or failure, experiment status, time tracking, and
@@ -1036,7 +1036,7 @@ Experiment Completion
    the lab team so please **DO NOT** press the ‘\ **Payment Done**\ ’
    button for the completed participants.
 
-Terminate the Experiment
+Terminate the experiment
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 -  Once you reach the desired number of participants, export your data
@@ -1045,17 +1045,17 @@ Terminate the Experiment
 -  You also need to delete the experiment from the server. Please see
    :doc:`teardown <teardown>`.
 
-Lab Recruiter For Participants
+Lab Recruiter for participants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Sign Up & Verification
+1. Sign up and verification
 
    -  Sign up to Lab Recruiter using the unique Group Manager code
       received via email.
 
    -  Verify your email to activate your account.
 
-2. Accessing Experiments
+2. Accessing experiments
 
    -  Through the Lab Recruiter interface, participants can:
 
