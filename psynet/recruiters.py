@@ -339,12 +339,10 @@ class ProlificRecruiter(
         unread_messages = self.prolificservice.get_unread_messages()
         relevant_messages = []
         for message in unread_messages:
-            study_id = message["data"].get("study_id")
+            message_data = message.get("data", {})
+            study_id = message_data.get("study_id")
             if study_id and study_id == self.current_study_id:
-                message_concat = " ".join(
-                    [message[key] for key in ["sender_id", "body", "sent_at"]]
-                )
-                message_hash = hashlib.md5(message_concat.encode()).hexdigest()
+                message_hash = self._prolific_message_hash(message)
                 from psynet.redis import redis_vars
 
                 if redis_vars.get(message_hash, None) is None:
@@ -357,14 +355,30 @@ class ProlificRecruiter(
             exp = get_experiment()
             messages = [f"Found {len(relevant_messages)} unread messages"]
             for message in relevant_messages:
-                sender_id = message.get("sender_id")
-                body = message.get("body")
-                sent_at = message.get("sent_at")
+                sender_id = self._prolific_message_value(message, "sender_id")
+                body = self._prolific_message_value(message, "body")
+                sent_at = self._prolific_message_value(message, "sent_at")
                 msg = exp.notifier.bold("Message from Prolific") + ":\n"
                 msg += f"Sender: `{sender_id}` at {sent_at}\n"
                 msg += f"> {body}"
                 messages.append(msg)
             exp.notifier.notify(exp.notifier.combine(messages))
+
+    @staticmethod
+    def _prolific_message_value(message, key):
+        return message.get(key) or message.get("data", {}).get(key)
+
+    @classmethod
+    def _prolific_message_hash(cls, message):
+        fields = {
+            key: cls._prolific_message_value(message, key)
+            for key in ["id", "sender_id", "body", "sent_at"]
+        }
+        if not any(fields.values()):
+            fields = message
+
+        serialized = json.dumps(fields, sort_keys=True, default=str)
+        return hashlib.md5(serialized.encode()).hexdigest()
 
 
 class DevProlificRecruiter(

@@ -163,7 +163,16 @@ def _is_undefined_table_error(error):
     )
 
 
+def _is_deadlock_error(error):
+    orig = getattr(error, "orig", None)
+    return isinstance(error, sqlalchemy.exc.OperationalError) and (
+        getattr(orig, "pgcode", None) == "40P01"
+        or orig.__class__.__name__ == "DeadlockDetected"
+    )
+
+
 _logged_barrier_schema_not_ready = False
+_logged_barrier_database_busy = False
 _logged_sync_group_schema_not_ready = False
 
 
@@ -1210,6 +1219,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def record_experiment_status(cls, online: bool = True):
+        if redis_vars.get("creation_time", default=None) is None:
+            logger.info(
+                "Skipping experiment status recording because launch has not started yet."
+            )
+            return
         status = cls.get_status(lookback_s=60)  # since we poll every minute
         status["isOffline"] = not online
         status_obj = ExperimentStatus(**status)
@@ -1656,7 +1670,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_barriers():
         if not is_experiment_launched():
             return
-        global _logged_barrier_schema_not_ready
+        global _logged_barrier_database_busy, _logged_barrier_schema_not_ready
         exp = get_experiment()
         try:
             exp.check_barriers()
@@ -1669,6 +1683,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     "Skipping barrier check because the database schema is not ready yet."
                 )
                 _logged_barrier_schema_not_ready = True
+        except sqlalchemy.exc.OperationalError as error:
+            if not _is_deadlock_error(error):
+                raise
+            db.session.rollback()
+            if not _logged_barrier_database_busy:
+                logger.warning(
+                    "Skipping barrier check because the database is busy during launch."
+                )
+                _logged_barrier_database_busy = True
 
     @staticmethod
     def check_barriers():
