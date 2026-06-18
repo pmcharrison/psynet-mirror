@@ -83,7 +83,7 @@ def test_prolific_run_checks_handles_message_fields_in_data():
     ]
     notifier = MagicMock()
     notifier.bold.side_effect = lambda text: f"**{text}**"
-    notifier.combine.side_effect = "\n".join
+    notifier.combine.side_effect = lambda *args: "\n".join(args)
     experiment = MagicMock(notifier=notifier)
 
     with patch.object(
@@ -98,5 +98,8 @@ def test_prolific_run_checks_handles_message_fields_in_data():
                     recruiter.run_checks()
 
     mark_seen.assert_called_once()
+    notifier.combine.assert_called_once()
+    assert notifier.combine.call_args.args[0] == "Found 1 unread messages"
+    assert "worker-1" in notifier.combine.call_args.args[1]
     notifier.notify.assert_called_once()
     assert "worker-1" in notifier.notify.call_args.args[0]
