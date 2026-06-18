@@ -1,4 +1,5 @@
-psynet@git+https://gitlab.com/PsyNetDev/PsyNet@master#egg=psynet
+psynet@git+https://gitlab.com/PsyNetDev/PsyNet@c19e71e7a1ff902470e6e6361565e7e8007abf11#egg=psynet
+dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@31e368173dda0a85d05240288ca36eb778e867dc
 
 # Alternatively, you can use one of the following syntaxes to specify a custom PsyNet version
 # psynet@git+https://gitlab.com/PsyNetDev/PsyNet@v10.4.0#egg=psynet
