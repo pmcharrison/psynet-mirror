@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock, PropertyMock, patch
 
+import pytest
+from dallinger.prolific import ProlificServiceException
+
 from psynet.recruiters import ProlificRecruiter, PsyNetProlificRecruiterMixin
 
 
@@ -42,6 +45,49 @@ def test_check_assignment_return_status_preserves_non_returned_participant_statu
     assert result is False
     assert participant.var.assignment_returned is False
     assert participant.status == "screened_out"
+
+
+def prolific_error(status):
+    return ProlificServiceException(
+        f'{{"response": {{"error": {{"status": {status}}}}}}}'
+    )
+
+
+@pytest.mark.parametrize("status", [404, 408, 429, 500, 502, 503, 504])
+def test_check_assignment_return_status_handles_retriable_prolific_lookup_failure(
+    status,
+    caplog,
+):
+    participant = make_participant()
+    experiment = MagicMock()
+    experiment.recruiter.prolificservice.get_participant_submission.side_effect = (
+        prolific_error(status)
+    )
+
+    with patch("psynet.experiment.get_experiment", return_value=experiment):
+        result = PsyNetProlificRecruiterMixin.check_assignment_return_status(
+            participant
+        )
+
+    assert result is False
+    assert participant.var.assignment_returned is False
+    assert participant.status == "screened_out"
+    assert any(
+        "Treating the assignment as not returned yet" in record.message
+        for record in caplog.records
+    )
+
+
+def test_check_assignment_return_status_raises_for_non_retriable_prolific_failure():
+    participant = make_participant()
+    experiment = MagicMock()
+    experiment.recruiter.prolificservice.get_participant_submission.side_effect = (
+        prolific_error(400)
+    )
+
+    with patch("psynet.experiment.get_experiment", return_value=experiment):
+        with pytest.raises(ProlificServiceException):
+            PsyNetProlificRecruiterMixin.check_assignment_return_status(participant)
 
 
 def test_prolific_run_checks_combines_unread_message_notifications():
