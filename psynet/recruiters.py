@@ -17,6 +17,7 @@ from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
+from dallinger.prolific import ProlificServiceException
 from dallinger.recruiters import (
     DevRecruiter,
     MockRecruiter,
@@ -48,6 +49,25 @@ from .timeline import (
 from .utils import get_logger, get_translator, render_template_with_translations
 
 logger = get_logger()
+
+
+RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES = {404, 429, 500, 502, 503, 504}
+
+
+def _prolific_error_status(error: ProlificServiceException):
+    try:
+        payload = json.loads(str(error))
+    except json.JSONDecodeError:
+        return None
+
+    try:
+        return payload["response"]["error"]["status"]
+    except (KeyError, TypeError):
+        return None
+
+
+def _is_retriable_prolific_return_lookup_error(error: ProlificServiceException):
+    return _prolific_error_status(error) in RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES
 
 
 class PsyNetRecruiterMixin:
@@ -248,9 +268,21 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         logger.info(
             f"Checking Prolific submission status for assignment {participant.assignment_id}"
         )
-        submission = recruiter.prolificservice.get_participant_submission(
-            participant.assignment_id
-        )
+        try:
+            submission = recruiter.prolificservice.get_participant_submission(
+                participant.assignment_id
+            )
+        except ProlificServiceException as error:
+            if not _is_retriable_prolific_return_lookup_error(error):
+                raise
+            logger.warning(
+                "Could not check Prolific submission status for assignment %s. "
+                "Treating the assignment as not returned yet.",
+                participant.assignment_id,
+                exc_info=True,
+            )
+            participant.var.assignment_returned = False
+            return False
         logger.info(
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )
