@@ -28,6 +28,7 @@ import dallinger.models
 import flask
 import psutil
 import rpdb
+import sqlalchemy.exc
 import sqlalchemy.orm.exc
 from click import Context
 from dallinger import db
@@ -151,6 +152,19 @@ def error_response(*args, **kwargs):
 
 def is_experiment_launched():
     return redis_vars.get("launch_finished", default=False)
+
+
+def _is_undefined_table_error(error):
+    orig = getattr(error, "orig", None)
+    return isinstance(error, sqlalchemy.exc.ProgrammingError) and (
+        getattr(orig, "pgcode", None) == "42P01"
+        or orig.__class__.__name__ == "UndefinedTable"
+        or "does not exist" in str(orig)
+    )
+
+
+_logged_barrier_schema_not_ready = False
+_logged_sync_group_schema_not_ready = False
 
 
 def json_serial(obj):
@@ -1642,8 +1656,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_barriers():
         if not is_experiment_launched():
             return
+        global _logged_barrier_schema_not_ready
         exp = get_experiment()
-        exp.check_barriers()
+        try:
+            exp.check_barriers()
+        except sqlalchemy.exc.ProgrammingError as error:
+            if not _is_undefined_table_error(error):
+                raise
+            db.session.rollback()
+            if not _logged_barrier_schema_not_ready:
+                logger.warning(
+                    "Skipping barrier check because the database schema is not ready yet."
+                )
+                _logged_barrier_schema_not_ready = True
 
     @staticmethod
     def check_barriers():
@@ -1658,8 +1683,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_sync_groups():
         if not is_experiment_launched():
             return
+        global _logged_sync_group_schema_not_ready
         exp = get_experiment()
-        exp.check_sync_groups()
+        try:
+            exp.check_sync_groups()
+        except sqlalchemy.exc.ProgrammingError as error:
+            if not _is_undefined_table_error(error):
+                raise
+            db.session.rollback()
+            if not _logged_sync_group_schema_not_ready:
+                logger.warning(
+                    "Skipping sync group check because the database schema is not ready yet."
+                )
+                _logged_sync_group_schema_not_ready = True
 
     @staticmethod
     def check_sync_groups():
