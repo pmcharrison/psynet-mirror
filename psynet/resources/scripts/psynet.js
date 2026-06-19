@@ -545,13 +545,19 @@
       }
     };
 
+    psynet.deactivateTimelineFragmentLifecycle = async function () {
+      if (psynet.trial) {
+        await psynet.trial.stop({ force: true });
+      }
+      await psynet.cleanupPageResources();
+      psynet.clearLucidTermination();
+      psynet.resetPageState();
+    };
+
     psynet.activateTimelineFragmentLifecycle = async function () {
       // A full page reload used to clear old handlers, globals, and transient
       // page state automatically. In inplace mode we must recreate that
       // lifecycle explicitly before we can mark the new page as ready.
-      await psynet.cleanupPageResources();
-      psynet.clearLucidTermination();
-      psynet.resetPageState();
       psynet.refreshTemplateData();
       psynet.ensureStylesheetLinks();
       psynet.applyInlinePageStyles();
@@ -578,6 +584,7 @@
       psynet.setPageReady(false);
       psynet.setTimelineTransitionBusy(true);
       try {
+        await psynet.deactivateTimelineFragmentLifecycle();
         psynet.applyTimelineFragmentPayload(payload);
         await psynet.activateTimelineFragmentLifecycle();
       } catch (error) {
@@ -673,11 +680,13 @@
         eventLog: [],
         inProgress: false,
         stopping: false,
+        stopped: false,
       };
 
       trial.reset = function () {
         trial.state = null;
         trial.inProgress = false;
+        trial.stopped = false;
         trial.startTime = null;
         Object.values(trial.events).forEach((e) => e.reset());
       };
@@ -710,6 +719,9 @@
         });
 
         event.checkTriggers = function (info) {
+          if ((trial.stopping || trial.stopped) && id !== "trialStopped") {
+            return;
+          }
           let allTriggersFired = event.isTriggeredBy.every(
             (trigger) => trigger.fired,
           );
@@ -784,6 +796,9 @@
         };
 
         event.hitTriggers = function (info) {
+          if ((trial.stopping || trial.stopped) && id !== "trialStop") {
+            return;
+          }
           for (const target of event.toBeTriggered) {
             trial.setTimer(() => target.fire(info), target.delay * 1000);
           }
@@ -815,6 +830,9 @@
 
       trial.initEvents();
 
+      // TODO: Distinguish page-scoped timers from trial-cycle timers. Some
+      // pages use delayed trial events for page-level gating across prompt
+      // loops, so normal trial restarts must not clear all timers blindly.
       trial.setTimer = function (handler, timeout) {
         let timer = setTimeout(handler, timeout);
         trial.timers.push(timer);
@@ -905,6 +923,12 @@
       };
 
       trial.registerEvent = async function (id, providedOptions) {
+        if (
+          (trial.stopping || trial.stopped) &&
+          !["trialStop", "trialStopped"].includes(id)
+        ) {
+          return;
+        }
         let options = {
           info: null,
           once: false,
@@ -939,6 +963,12 @@
           event.showMessage();
           event.runJS(options.info);
           await event.runHandlers(options.info);
+          if (
+            (trial.stopping || trial.stopped) &&
+            !["trialStop", "trialStopped"].includes(id)
+          ) {
+            return;
+          }
           event.hitTriggers(options.info);
         }
       };
@@ -978,19 +1008,32 @@
         $("#buttonStart").attr("disabled", false);
       };
 
-      trial.stop = async function () {
+      trial.stop = async function (providedOptions) {
         /**
          * Can be called manually to stop the trial.
          * Is idempotent (you can call it multiple times
          * with no bad side effects).
          */
-        if (trial.inProgress && !trial.stopping) {
-          trial.stopping = true;
-          trial.clearTimers();
-          trial.inProgress = false;
+        let options = {
+          force: false,
+        };
+        Object.assign(options, providedOptions);
+
+        if (trial.stopping || trial.stopped) {
+          return;
+        }
+        if (!options.force && !trial.inProgress) {
+          return;
+        }
+        trial.stopping = true;
+        trial.clearTimers();
+        trial.inProgress = false;
+        try {
           await this.pendingEventHandlers.waitFor();
           await trial.registerEvent("trialStop");
           trial.reset();
+          trial.stopped = true;
+        } finally {
           trial.stopping = false;
         }
       };
@@ -1053,7 +1096,7 @@
 
     psynet.rebuildTrial = async function () {
       if (psynet.trial) {
-        await psynet.trial.stop();
+        await psynet.trial.stop({ force: true });
       }
       psynet.trial = Trial();
       registerCoreTrialHandlers(psynet.trial);
@@ -1171,6 +1214,17 @@
       } finally {
         psynet.media.objectUrls.delete(url);
       }
+    };
+
+    psynet.media.stopStream = function (stream) {
+      if (!stream || typeof stream.getTracks !== "function") {
+        return;
+      }
+      stream.getTracks().forEach(function (track) {
+        if (track && typeof track.stop === "function") {
+          track.stop();
+        }
+      });
     };
 
     psynet.cleanupPageResources = async function () {
@@ -2118,6 +2172,17 @@
       );
     };
 
+    psynet.isUnityPageTransition = function (response) {
+      return Boolean(
+        psynet.page.attributes?.is_unity_page ||
+          response.page.attributes?.is_unity_page,
+      );
+    };
+
+    psynet.loadNextTimelinePageWithReload = function () {
+      window.location = "/timeline?unique_id=" + psynet.uniqueId;
+    };
+
     psynet.handleApprovedResponse = async function (response) {
       psynet.log.debug("Response received successfully.");
 
@@ -2128,12 +2193,17 @@
         return true;
       }
 
+      if (psynet.isUnityPageTransition(response)) {
+        psynet.loadNextTimelinePageWithReload();
+        return true;
+      }
+
       if (psynetTemplateData.flags.inplaceTimelineTransitions) {
         await psynet.loadNextTimelinePageFromResponse(
           psynet.requireTimelineFragmentPayload(response),
         );
       } else {
-        window.location = "/timeline?unique_id=" + psynet.uniqueId;
+        psynet.loadNextTimelinePageWithReload();
       }
 
       return true;
