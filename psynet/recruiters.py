@@ -334,7 +334,7 @@ class ProlificRecruiter(
                 msg += f"Sender: `{sender_id}` at {sent_at}\n"
                 msg += f"> {body}"
                 messages.append(msg)
-            exp.notifier.notify(exp.notifier.combine(messages))
+            exp.notifier.notify(exp.notifier.combine(*messages))
 
 
 class DevProlificRecruiter(
