@@ -256,6 +256,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
         is_returned = submission and submission.get("status") == "RETURNED"
         participant.var.assignment_returned = is_returned
+        if is_returned:
+            participant.status = "returned"
         return is_returned
 
     @staticmethod
