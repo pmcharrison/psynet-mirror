@@ -39,6 +39,8 @@ audioMeterControl.init = function(json) {
     this.audioMeterText = document.getElementById("audio-meter-text");
     this.audioMeterDeviceName = document.getElementById("audio-meter-device-name");
     this.canvasContext = null;
+    this.mediaStream = null;
+    this.mediaStreamSource = null;
     this.audioMeterMaxWidth=300;
     this.audioMeterMaxHeight=50;
     this.rafID = null;
@@ -69,6 +71,9 @@ audioMeterControl.init = function(json) {
           }, video: false })
             .then(function(stream) {
                 audioMeterControl.onMicrophoneGranted(stream);
+                psynet.addPageCleanupCallback(function() {
+                    audioMeterControl.dispose();
+                });
                 resolve();
             });
         });
@@ -115,11 +120,12 @@ audioMeterControl.onMicrophoneGranted = async function(stream) {
     Object.assign(psynet.response.staged.metadata, microphoneMetadata);
 
     // Create an AudioNode from the stream.
-    var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
+    this.mediaStream = stream;
+    this.mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
 
     // Create a new volume meter and connect it.
     this.audioMeter = this.createAudioMeter(this.audioContext);
-    mediaStreamSource.connect(this.audioMeter);
+    this.mediaStreamSource.connect(this.audioMeter);
 
     // kick off the visual updating
     var audioMeterControl = this;
@@ -145,6 +151,16 @@ audioMeterControl.destroy = function() {
         clearTimeout(this.messageTimer);
         this.messageTimer = null;
     }
+}
+
+audioMeterControl.dispose = function() {
+    this.destroy();
+    if (this.mediaStreamSource && typeof this.mediaStreamSource.disconnect === "function") {
+        this.mediaStreamSource.disconnect();
+    }
+    this.mediaStreamSource = null;
+    psynet.media.stopStream(this.mediaStream);
+    this.mediaStream = null;
 }
 
 audioMeterControl.showMessage = function(message, color) {

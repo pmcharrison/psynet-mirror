@@ -21,11 +21,44 @@ Step summary:
 4. Participant B replies; both participants see the reply.
 5. The test reads chat history through the participant-facing endpoint to verify
    submitted messages were persisted, not just relayed live over WebSocket.
+6. Participant A leaves; the leaving participant advances, the remaining
+   participant sees occupancy update, and exactly one leave message is sent.
 
 Intentionally not covered:
-- Exact occupancy timing for every transient join/leave update.
 - Multi-room isolation beyond both participants sharing the same room.
 */
+
+function parseChatroomFrame(payload) {
+  const text = String(payload || "");
+  const prefix = "chatrooms:";
+  if (!text.startsWith(prefix)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text.slice(prefix.length));
+  } catch (error) {
+    return null;
+  }
+}
+
+function startChatroomFrameTracker(page) {
+  const sentFrames = [];
+  page.on("websocket", (ws) => {
+    ws.on("framesent", (event) => {
+      const parsed = parseChatroomFrame(event.payload);
+      if (parsed) {
+        sentFrames.push(parsed);
+      }
+    });
+  });
+
+  return {
+    countSentByType(type) {
+      return sentFrames.filter((frame) => frame.type === type).length;
+    }
+  };
+}
 
 async function waitForRoomSelectionOrConsent(page) {
   const roomButtons = page.locator("#room-buttons button");
@@ -119,6 +152,17 @@ async function expectPersistedMessages(page, expectedContents) {
     .toEqual(expect.arrayContaining(expectedContents));
 }
 
+async function leaveRoomAndWait(page) {
+  const leaveButton = page.locator("#leave-btn");
+  await expect(leaveButton).toBeVisible({ timeout: STEP_TIMEOUT_MS });
+  await expect(leaveButton).toBeEnabled({ timeout: STEP_TIMEOUT_MS });
+  await leaveButton.click();
+  await expect(page.locator("#main-body")).toContainText("Thanks for participating!", {
+    timeout: STEP_TIMEOUT_MS
+  });
+  await expect(page.locator("#chat-input")).toHaveCount(0);
+}
+
 test("websocket_chatroom demo relays and persists messages between two participants", async ({
   browser,
   page,
@@ -142,6 +186,8 @@ test("websocket_chatroom demo relays and persists messages between two participa
       withFreshParticipantIds(recruitmentUrl, "p2")
     );
 
+    const participantOneFrames = startChatroomFrameTracker(participantOnePage);
+
     await joinFirstRoom(participantOnePage);
     await joinFirstRoom(participantTwoPage);
     await waitForOccupancy(participantOnePage, 2);
@@ -159,6 +205,15 @@ test("websocket_chatroom demo relays and persists messages between two participa
 
     await expectPersistedMessages(participantOnePage, [firstMessage, secondMessage]);
     await expectPersistedMessages(participantTwoPage, [firstMessage, secondMessage]);
+
+    const participantOneLeaveFramesBefore = participantOneFrames.countSentByType(
+      "leave_room"
+    );
+    await leaveRoomAndWait(participantOnePage);
+    await waitForOccupancy(participantTwoPage, 1);
+    expect(participantOneFrames.countSentByType("leave_room")).toBe(
+      participantOneLeaveFramesBefore + 1
+    );
 
     await assertNoBackendError(participantOnePage);
     await assertNoBackendError(participantTwoPage);

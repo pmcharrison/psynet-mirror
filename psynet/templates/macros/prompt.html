@@ -100,13 +100,13 @@
     psynet.trial.onEvent("trialStop", psynet.media.stopAllAudio);
 
     psynet.trial.onEvent("trialConstruct", function() {
-        $("#audio-prompt-play").on("click", function() {
+        $("#audio-prompt-play").off("click.psynetAudioPrompt").on("click.psynetAudioPrompt", function() {
             psynet.trial.restart();
         });
-        $("#audio-prompt-stop").on("click", function() {
+        $("#audio-prompt-stop").off("click.psynetAudioPrompt").on("click.psynetAudioPrompt", function() {
             psynet.trial.stop();
         });
-        $("#audio-prompt-loop-input").on("change", function(event) {
+        $("#audio-prompt-loop-input").off("change.psynetAudioPrompt").on("change.psynetAudioPrompt", function(event) {
             psynet.page.prompt.loop = event.target.checked;
         });
         $(".audio-prompt-button").prop("disabled", false)
