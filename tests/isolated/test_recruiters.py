@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, PropertyMock, patch
 
-from psynet.recruiters import PsyNetProlificRecruiterMixin
-from psynet.recruiters import ProlificRecruiter
+from psynet.recruiters import ProlificRecruiter, PsyNetProlificRecruiterMixin
 
 
 def make_participant(status="screened_out"):
@@ -44,7 +43,8 @@ def test_check_assignment_return_status_preserves_non_returned_participant_statu
     assert participant.var.assignment_returned is False
     assert participant.status == "screened_out"
 
-def test_prolific_run_checks_handles_message_fields_in_data():
+
+def test_prolific_run_checks_combines_unread_message_notifications():
     recruiter = object.__new__(ProlificRecruiter)
     recruiter.prolificservice = MagicMock()
     recruiter.prolificservice.get_unread_messages.return_value = [
