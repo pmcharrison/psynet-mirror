@@ -9,6 +9,7 @@ from psynet.recruiters import ProlificRecruiter, PsyNetProlificRecruiterMixin
 def make_participant():
     participant = MagicMock()
     participant.assignment_id = "submission-1"
+    participant.status = "working"
     return participant
 
 
@@ -26,6 +27,24 @@ def test_check_assignment_return_status_returns_true_for_returned_submission():
 
     assert result is True
     assert participant.var.assignment_returned is True
+    assert participant.status == "returned"
+
+
+def test_check_assignment_return_status_preserves_status_for_active_submission():
+    participant = make_participant()
+    experiment = MagicMock()
+    experiment.recruiter.prolificservice.get_participant_submission.return_value = {
+        "status": "ACTIVE"
+    }
+
+    with patch("psynet.experiment.get_experiment", return_value=experiment):
+        result = PsyNetProlificRecruiterMixin.check_assignment_return_status(
+            participant
+        )
+
+    assert result is False
+    assert participant.var.assignment_returned is False
+    assert participant.status == "working"
 
 
 def prolific_error(status):
@@ -50,6 +69,7 @@ def test_check_assignment_return_status_handles_retriable_prolific_lookup_failur
 
     assert result is False
     assert participant.var.assignment_returned is False
+    assert participant.status == "working"
     assert any(
         "Treating the assignment as not returned yet" in record.message
         for record in caplog.records
