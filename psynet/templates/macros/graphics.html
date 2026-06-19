@@ -206,7 +206,7 @@
                 queueFrame(0);
 
                 {% if params.auto_advance_after is defined and params.auto_advance_after is not none %}
-                    setTimeout(function() {
+                    psynet.trial.setTimer(function() {
                         let clickedObject = null;
                         let clickCoordinates = null;
                         submitAnswer(clickedObject, clickCoordinates);

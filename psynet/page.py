@@ -406,6 +406,9 @@ class VolumeCalibration(Module):
                 id_,
                 AudioPrompt(assets["volume_calibration_audio"], self.text(), loop=True),
                 events={
+                    # TODO: This is page-level gating expressed as a trial event.
+                    # Prefer a page-scoped timer API once the frontend lifecycle
+                    # distinguishes page timers from prompt/trial-cycle timers.
                     "submitEnable": Event(is_triggered_by="trialStart", delay=min_time)
                 },
             ),
