@@ -441,33 +441,37 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = N_RATERS * 2 + N_CREATORS
     test_mode = "serial"
 
-    @staticmethod
-    def _completed_generation_node():
-        """Return a grown node with a complete create-and-rate parent generation."""
-        db.session.commit()
-        grown_nodes = CreateAndRateNode.query.filter(CreateAndRateNode.degree > 0).all()
-        for node in grown_nodes:
-            parent = node.parent
-            parent_creations = CreateTrial.query.filter_by(
-                node_id=parent.id, failed=False, finalized=True, complete=True
-            ).all()
-            parent_ratings = SelectTrial.query.filter_by(
-                node_id=parent.id, failed=False, finalized=True, complete=True
-            ).all()
-            if len(parent_creations) == N_CREATORS and len(parent_ratings) == N_RATERS:
-                rated_urls = {
-                    get_target_url(target)
-                    for rating in parent_ratings
-                    for target in rating.targets
-                }
-                if node.definition["url"] in rated_urls:
-                    return node
-        return None
-
     def test_experiment(self):
+        def completed_generation_node():
+            """Return a grown node with a complete create-and-rate parent generation."""
+            db.session.commit()
+            grown_nodes = CreateAndRateNode.query.filter(
+                CreateAndRateNode.degree > 0
+            ).all()
+            for node in grown_nodes:
+                parent = node.parent
+                parent_creations = CreateTrial.query.filter_by(
+                    node_id=parent.id, failed=False, finalized=True, complete=True
+                ).all()
+                parent_ratings = SelectTrial.query.filter_by(
+                    node_id=parent.id, failed=False, finalized=True, complete=True
+                ).all()
+                if (
+                    len(parent_creations) == N_CREATORS
+                    and len(parent_ratings) == N_RATERS
+                ):
+                    rated_urls = {
+                        get_target_url(target)
+                        for rating in parent_ratings
+                        for target in rating.targets
+                    }
+                    if node.definition["url"] in rated_urls:
+                        return node
+            return None
+
         super().test_experiment()
         wait_until(
-            self._completed_generation_node,
+            completed_generation_node,
             max_wait=10,
             error_message="No create-and-rate chain completed a full generation.",
         )
@@ -482,4 +486,4 @@ class Exp(psynet.experiment.Experiment):
         assert all(not t.participant.var.is_rater for t in creations)
         assert all(t.participant.var.is_rater for t in ratings)
 
-        assert self._completed_generation_node() is not None
+        assert completed_generation_node() is not None
