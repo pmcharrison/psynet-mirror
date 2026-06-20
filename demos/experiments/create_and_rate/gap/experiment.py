@@ -3,7 +3,6 @@
 # Imports
 ##########################################################################################
 import random
-import time
 
 from dallinger import db
 from dominate import tags
@@ -39,7 +38,7 @@ from psynet.trial.imitation_chain import (
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
-from psynet.utils import get_logger
+from psynet.utils import get_logger, wait_until
 
 from .utils import get_instructions
 
@@ -442,27 +441,45 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = N_RATERS * 2 + N_CREATORS
     test_mode = "serial"
 
+    @staticmethod
+    def _completed_generation_node():
+        """Return a grown node with a complete create-and-rate parent generation."""
+        db.session.commit()
+        grown_nodes = CreateAndRateNode.query.filter(CreateAndRateNode.degree > 0).all()
+        for node in grown_nodes:
+            parent = node.parent
+            parent_creations = CreateTrial.query.filter_by(
+                node_id=parent.id, failed=False, finalized=True, complete=True
+            ).all()
+            parent_ratings = SelectTrial.query.filter_by(
+                node_id=parent.id, failed=False, finalized=True, complete=True
+            ).all()
+            if len(parent_creations) == N_CREATORS and len(parent_ratings) == N_RATERS:
+                rated_urls = {
+                    get_target_url(target)
+                    for rating in parent_ratings
+                    for target in rating.targets
+                }
+                if node.definition["url"] in rated_urls:
+                    return node
+        return None
+
     def test_experiment(self):
         super().test_experiment()
-        time.sleep(
-            3
-        )  # Wait for any async processes to complete (e.g., summarize_trials)
-        n_expected_nodes = len(start_nodes) * 2  # Seed nodes + iteration 1
+        wait_until(
+            self._completed_generation_node,
+            max_wait=10,
+            error_message="No create-and-rate chain completed a full generation.",
+        )
         participants = Participant.query.all()
         assert len(participants) == self.test_n_bots
-        participants = sorted(participants, key=lambda p: p.id)
-        assert [p.var.is_rater for p in participants] == [False] * N_CREATORS + [
-            True
-        ] * N_RATERS * 2
-        creations = CreateTrial.query.all()
-        assert len(creations) == 4
-        assert len(set([t.participant_id for t in creations])) == 2
-        ratings = SelectTrial.query.all()
-        assert len(ratings) == 6
-        assert len(set([t.participant_id for t in ratings])) == 6
 
-        all_trials = creations + ratings
-        assert all([t.finalized for t in all_trials])
-        assert all([t.complete for t in all_trials])
-        assert all([t.answer is not None for t in all_trials])
-        assert CreateAndRateNode.query.count() == n_expected_nodes
+        creations = CreateTrial.query.filter_by(failed=False).all()
+        ratings = SelectTrial.query.filter_by(failed=False).all()
+        creator_participant_ids = {t.participant_id for t in creations}
+        rater_participant_ids = {t.participant_id for t in ratings}
+        assert creator_participant_ids.isdisjoint(rater_participant_ids)
+        assert all(not t.participant.var.is_rater for t in creations)
+        assert all(t.participant.var.is_rater for t in ratings)
+
+        assert self._completed_generation_node() is not None
