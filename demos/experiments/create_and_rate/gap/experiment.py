@@ -296,15 +296,15 @@ class CreateAndRateNode(CreateAndRateNodeMixin, AudioImitationChainNode):
 class CreateAndRateTrialMaker(CreateAndRateTrialMakerMixin, ImitationChainTrialMaker):
     def has_enough_trials(self, participant):
         if participant.var.is_rater:
-            n_ratings = len(
-                self.rater_class.query.filter_by(participant=participant).all()
-            )
+            n_ratings = self.rater_class.query.filter_by(
+                participant_id=participant.id
+            ).count()
             if n_ratings >= MAX_RATINGS_PER_PARTICIPANT:
                 return True
         else:
-            n_creations = len(
-                self.creator_class.query.filter_by(participant=participant).all()
-            )
+            n_creations = self.creator_class.query.filter_by(
+                participant_id=participant.id
+            ).count()
             if n_creations >= MAX_CREATIONS_PER_PARTICIPANT:
                 return True
         return False

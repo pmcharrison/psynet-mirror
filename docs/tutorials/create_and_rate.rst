@@ -167,15 +167,15 @@ Also, you can easily modify the number of trials for creators and raters, e.g.:
             @classmethod
             def has_enough_trials(cls, participant):
                 if participant.var.is_rater:
-                    n_ratings = len(
-                        cls.rater_class.query.filter_by(participant=participant).all()
-                    )
+                    n_ratings = cls.rater_class.query.filter_by(
+                        participant_id=participant.id
+                    ).count()
                     if n_ratings >= MAX_RATINGS_PER_PARTICIPANT:
                         return True
                 else:
-                    n_creations = len(
-                        cls.creator_class.query.filter_by(participant=participant).all()
-                    )
+                    n_creations = cls.creator_class.query.filter_by(
+                        participant_id=participant.id
+                    ).count()
                     if n_creations >= MAX_CREATIONS_PER_PARTICIPANT:
                         return True
                 return False
