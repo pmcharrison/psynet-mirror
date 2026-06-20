@@ -389,13 +389,11 @@ class AsyncCodeBlock(EltCollection):
     def initiate(self, participant, code_block=None):
         from psynet.process import WorkerAsyncProcess
 
-        async_code_block_id = self.async_code_block_id(code_block)
+        code_block_id = self.code_block_id(code_block)
         stale = participant.awaited_async_code_block_process
         if stale is not None:
             if stale.pending and not stale.failed:
-                if self.wait and self.matches_pending_process(
-                    stale, async_code_block_id
-                ):
+                if self.wait and self.matches_pending_process(stale, code_block_id):
                     logger.warning(
                         "Participant %s already has an async code block process "
                         "(id=%s) pending; waiting for the existing process instead "
@@ -430,22 +428,22 @@ class AsyncCodeBlock(EltCollection):
             arguments=dict(
                 function=self.function,
                 participant=participant,
-                async_code_block_id=async_code_block_id,
+                code_block_id=code_block_id,
             ),
         )
 
     @staticmethod
-    def async_code_block_id(code_block):
+    def code_block_id(code_block):
         return getattr(code_block, "id", None)
 
-    def matches_pending_process(self, process, async_code_block_id):
+    def matches_pending_process(self, process, code_block_id):
         try:
             pending_function = process.arguments["function"]
-            pending_code_block_id = process.arguments["async_code_block_id"]
+            pending_code_block_id = process.arguments["code_block_id"]
         except (KeyError, TypeError):
             return False
 
-        return pending_code_block_id == async_code_block_id and self.function_key(
+        return pending_code_block_id == code_block_id and self.function_key(
             pending_function
         ) == self.function_key(self.function)
 

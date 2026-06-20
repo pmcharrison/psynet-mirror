@@ -379,7 +379,24 @@ def test_async_code_block_initiate__no_stale_process():
         block.initiate(participant, code_block=code_block)
 
     ctor.assert_called_once()
-    assert ctor.call_args.kwargs["arguments"]["async_code_block_id"] == ["main", 3]
+    assert ctor.call_args.kwargs["arguments"]["code_block_id"] == ["main", 3]
+    assert participant.awaited_async_code_block_process is new_process
+
+
+def test_async_code_block_initiate__stores_generated_code_block_id_from_timeline():
+    timeline = Timeline(AsyncCodeBlock(_async_target, wait=False))
+    code_block = timeline.elts["main"][0]
+    participant = _make_participant(stale_process=None)
+    new_process = MagicMock(name="new_process")
+
+    assert isinstance(code_block, CodeBlock)
+    assert code_block.id == ["main", 0]
+
+    with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
+        code_block.consume(MagicMock(), participant)
+
+    ctor.assert_called_once()
+    assert ctor.call_args.kwargs["arguments"]["code_block_id"] == code_block.id
     assert participant.awaited_async_code_block_process is new_process
 
 
@@ -410,7 +427,7 @@ def test_async_code_block_initiate__waits_for_pending_process_when_waiting(caplo
     stale.finished = False
     stale.arguments = {
         "function": _async_target,
-        "async_code_block_id": ["main", 3],
+        "code_block_id": ["main", 3],
     }
     participant = _make_participant(stale_process=stale)
 
@@ -437,7 +454,7 @@ def test_async_code_block_initiate__raises_for_different_pending_waited_process(
     stale.finished = False
     stale.arguments = {
         "function": _other_async_target,
-        "async_code_block_id": ["main", 3],
+        "code_block_id": ["main", 3],
     }
     participant = _make_participant(stale_process=stale)
 
@@ -458,7 +475,7 @@ def test_async_code_block_initiate__raises_for_same_function_different_waited_pr
     stale.finished = False
     stale.arguments = {
         "function": _async_target,
-        "async_code_block_id": ["main", 4],
+        "code_block_id": ["main", 4],
     }
     participant = _make_participant(stale_process=stale)
 
