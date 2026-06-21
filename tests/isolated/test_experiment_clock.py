@@ -29,7 +29,7 @@ def test_check_barriers_skips_when_schema_is_not_ready(caplog):
     experiment = MagicMock()
     experiment.check_barriers.side_effect = programming_error(UndefinedTable())
 
-    with patch("psynet.experiment._logged_barrier_schema_not_ready", False):
+    with patch("psynet.experiment._schema_not_ready_warned", set()):
         with patch("psynet.experiment.is_experiment_launched", return_value=True):
             with patch("psynet.experiment.get_experiment", return_value=experiment):
                 with patch("psynet.experiment.db.session.rollback") as rollback:
@@ -77,7 +77,7 @@ def test_check_sync_groups_skips_when_schema_is_not_ready(caplog):
     experiment = MagicMock()
     experiment.check_sync_groups.side_effect = programming_error(UndefinedTable())
 
-    with patch("psynet.experiment._logged_sync_group_schema_not_ready", False):
+    with patch("psynet.experiment._schema_not_ready_warned", set()):
         with patch("psynet.experiment.is_experiment_launched", return_value=True):
             with patch("psynet.experiment.get_experiment", return_value=experiment):
                 with patch("psynet.experiment.db.session.rollback") as rollback:

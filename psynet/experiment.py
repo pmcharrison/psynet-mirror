@@ -12,6 +12,7 @@ import traceback
 import uuid
 import zipfile
 from collections import Counter, OrderedDict
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from functools import cache, cached_property
 from importlib import resources
@@ -164,8 +165,33 @@ def _is_undefined_table_error(error):
     return orig is not None and orig.__class__.__name__ == "UndefinedTable"
 
 
-_logged_barrier_schema_not_ready = False
-_logged_sync_group_schema_not_ready = False
+_schema_not_ready_warned = set()
+
+
+def _log_schema_not_ready_once(label):
+    if label not in _schema_not_ready_warned:
+        logger.warning(
+            "Skipping %s check because the database schema is not ready yet.", label
+        )
+        _schema_not_ready_warned.add(label)
+
+
+@contextmanager
+def _skip_when_schema_not_ready(label):
+    """Suppress clock checks that run before the database schema exists.
+
+    During the startup window a scheduled check can fire while its tables have
+    not been created yet (e.g. a stale launch flag). We swallow only undefined
+    table errors, roll back the session, and warn once per ``label``; any other
+    error still propagates.
+    """
+    try:
+        yield
+    except sqlalchemy.exc.ProgrammingError as error:
+        if not _is_undefined_table_error(error):
+            raise
+        db.session.rollback()
+        _log_schema_not_ready_once(label)
 
 
 def json_serial(obj):
@@ -1657,19 +1683,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_barriers():
         if not is_experiment_launched():
             return
-        global _logged_barrier_schema_not_ready
         exp = get_experiment()
-        try:
+        with _skip_when_schema_not_ready("barrier"):
             exp.check_barriers()
-        except sqlalchemy.exc.ProgrammingError as error:
-            if not _is_undefined_table_error(error):
-                raise
-            db.session.rollback()
-            if not _logged_barrier_schema_not_ready:
-                logger.warning(
-                    "Skipping barrier check because the database schema is not ready yet."
-                )
-                _logged_barrier_schema_not_ready = True
 
     @staticmethod
     def check_barriers():
@@ -1684,19 +1700,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_sync_groups():
         if not is_experiment_launched():
             return
-        global _logged_sync_group_schema_not_ready
         exp = get_experiment()
-        try:
+        with _skip_when_schema_not_ready("sync group"):
             exp.check_sync_groups()
-        except sqlalchemy.exc.ProgrammingError as error:
-            if not _is_undefined_table_error(error):
-                raise
-            db.session.rollback()
-            if not _logged_sync_group_schema_not_ready:
-                logger.warning(
-                    "Skipping sync group check because the database schema is not ready yet."
-                )
-                _logged_sync_group_schema_not_ready = True
 
     @staticmethod
     def check_sync_groups():
