@@ -77,3 +77,41 @@ def test_prolific_run_checks_combines_unread_message_notifications():
     assert "worker-1" in notifier.combine.call_args.args[1]
     notifier.notify.assert_called_once()
     assert "worker-1" in notifier.notify.call_args.args[0]
+
+
+def test_prolific_run_checks_handles_current_unread_message_shape():
+    recruiter = object.__new__(ProlificRecruiter)
+    recruiter.prolificservice = MagicMock()
+    recruiter.prolificservice.get_unread_messages.return_value = [
+        {
+            "id": "message-1",
+            "sender": "worker-1",
+            "body": "Hello",
+            "datetime_created": "2026-06-14T18:00:00Z",
+            "data": {
+                "study_id": "study-1",
+                "category": "technical-issues",
+            },
+        }
+    ]
+    notifier = MagicMock()
+    notifier.bold.side_effect = lambda text: f"**{text}**"
+    notifier.combine.side_effect = lambda *args: "\n".join(args)
+    experiment = MagicMock(notifier=notifier)
+
+    with patch.object(
+        ProlificRecruiter,
+        "current_study_id",
+        new_callable=PropertyMock,
+        return_value="study-1",
+    ):
+        with patch("psynet.redis.redis_vars.get", return_value=None):
+            with patch("psynet.redis.redis_vars.set") as mark_seen:
+                with patch("psynet.experiment.get_experiment", return_value=experiment):
+                    recruiter.run_checks()
+
+    mark_seen.assert_called_once()
+    notifier.combine.assert_called_once()
+    assert "worker-1" in notifier.combine.call_args.args[1]
+    assert "2026-06-14T18:00:00Z" in notifier.combine.call_args.args[1]
+    notifier.notify.assert_called_once()
