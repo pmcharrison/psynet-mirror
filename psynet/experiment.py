@@ -1664,7 +1664,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.rollback()
             if not _logged_barrier_database_busy:
                 logger.warning(
-                    "Skipping barrier check because the database is busy during launch."
+                    "Skipping barrier check because the database is temporarily deadlocked."
                 )
                 _logged_barrier_database_busy = True
 

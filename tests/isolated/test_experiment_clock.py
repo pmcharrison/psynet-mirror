@@ -18,7 +18,7 @@ def operational_error(orig):
     return sqlalchemy.exc.OperationalError("SELECT 1", {}, orig)
 
 
-def test_check_barriers_skips_deadlocks_during_launch(caplog):
+def test_check_barriers_skips_deadlocks(caplog):
     experiment = MagicMock()
     experiment.check_barriers.side_effect = operational_error(DeadlockDetected())
 
@@ -35,7 +35,7 @@ def test_check_barriers_skips_deadlocks_during_launch(caplog):
         record
         for record in caplog.records
         if "barrier check" in record.message
-        and "database is busy during launch" in record.message
+        and "database is temporarily deadlocked" in record.message
     ]
     assert len(matching_records) == 1
     assert all(record.exc_info is None for record in matching_records)
