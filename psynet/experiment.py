@@ -1198,7 +1198,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def record_experiment_status(cls, online: bool = True):
         if redis_vars.get("creation_time", default=None) is None:
             logger.info(
-                "Skipping experiment status recording because launch has not started yet."
+                "Skipping experiment status recording because launch metadata is not available yet."
             )
             return
         status = cls.get_status(lookback_s=60)  # since we poll every minute
