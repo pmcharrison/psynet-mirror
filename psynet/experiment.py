@@ -28,6 +28,7 @@ import dallinger.models
 import flask
 import psutil
 import rpdb
+import sqlalchemy.exc
 import sqlalchemy.orm.exc
 from click import Context
 from dallinger import db
@@ -151,6 +152,17 @@ def error_response(*args, **kwargs):
 
 def is_experiment_launched():
     return redis_vars.get("launch_finished", default=False)
+
+
+def _is_deadlock_error(error):
+    orig = getattr(error, "orig", None)
+    return isinstance(error, sqlalchemy.exc.OperationalError) and (
+        getattr(orig, "pgcode", None) == "40P01"
+        or orig.__class__.__name__ == "DeadlockDetected"
+    )
+
+
+_logged_barrier_database_busy = False
 
 
 def json_serial(obj):
@@ -1642,8 +1654,19 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def _check_barriers():
         if not is_experiment_launched():
             return
+        global _logged_barrier_database_busy
         exp = get_experiment()
-        exp.check_barriers()
+        try:
+            exp.check_barriers()
+        except sqlalchemy.exc.OperationalError as error:
+            if not _is_deadlock_error(error):
+                raise
+            db.session.rollback()
+            if not _logged_barrier_database_busy:
+                logger.warning(
+                    "Skipping barrier check because the database is busy during launch."
+                )
+                _logged_barrier_database_busy = True
 
     @staticmethod
     def check_barriers():
