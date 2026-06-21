@@ -155,12 +155,13 @@ def is_experiment_launched():
 
 
 def _is_undefined_table_error(error):
+    if not isinstance(error, sqlalchemy.exc.ProgrammingError):
+        return False
     orig = getattr(error, "orig", None)
-    return isinstance(error, sqlalchemy.exc.ProgrammingError) and (
-        getattr(orig, "pgcode", None) == "42P01"
-        or orig.__class__.__name__ == "UndefinedTable"
-        or "does not exist" in str(orig)
-    )
+    pgcode = getattr(orig, "pgcode", None)
+    if pgcode is not None:
+        return pgcode == "42P01"
+    return orig is not None and orig.__class__.__name__ == "UndefinedTable"
 
 
 _logged_barrier_schema_not_ready = False

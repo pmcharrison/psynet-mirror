@@ -14,6 +14,13 @@ class OtherDatabaseError:
     pgcode = "99999"
 
 
+class UndefinedColumn:
+    pgcode = "42703"
+
+    def __str__(self):
+        return 'column "missing_column" does not exist'
+
+
 def programming_error(orig):
     return sqlalchemy.exc.ProgrammingError("SELECT 1", {}, orig)
 
@@ -43,6 +50,19 @@ def test_check_barriers_skips_when_schema_is_not_ready(caplog):
 def test_check_barriers_raises_other_programming_errors():
     experiment = MagicMock()
     error = programming_error(OtherDatabaseError())
+    experiment.check_barriers.side_effect = error
+
+    with patch("psynet.experiment.is_experiment_launched", return_value=True):
+        with patch("psynet.experiment.get_experiment", return_value=experiment):
+            with pytest.raises(sqlalchemy.exc.ProgrammingError) as exc_info:
+                Experiment._check_barriers()
+
+    assert exc_info.value is error
+
+
+def test_check_barriers_raises_non_table_errors_with_does_not_exist_message():
+    experiment = MagicMock()
+    error = programming_error(UndefinedColumn())
     experiment.check_barriers.side_effect = error
 
     with patch("psynet.experiment.is_experiment_launched", return_value=True):
