@@ -109,14 +109,68 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
 
 
 class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
+    @staticmethod
+    def _participant_study_id_debug_context(participant):
+        return {
+            "participant_id": getattr(participant, "id", None),
+            "participant_status": getattr(participant, "status", None),
+            "participant_failed": getattr(participant, "failed", None),
+            "participant_hit_id": getattr(participant, "hit_id", None),
+            "participant_assignment_id": getattr(participant, "assignment_id", None),
+            "participant_worker_id": getattr(participant, "worker_id", None),
+        }
+
+    @staticmethod
+    def _log_psynet_study_id_debug(event, participant=None, recruiter=None, **context):
+        if recruiter is None:
+            try:
+                from psynet.experiment import get_experiment
+
+                recruiter = get_experiment().recruiter
+            except Exception as error:
+                recruiter = None
+                context["recruiter_lookup_error"] = repr(error)
+
+        try:
+            current_study_id = (
+                recruiter.current_study_id if recruiter is not None else None
+            )
+        except Exception as error:
+            current_study_id = f"<current_study_id failed: {error!r}>"
+
+        context.update(
+            PsyNetProlificRecruiterMixin._participant_study_id_debug_context(
+                participant
+            )
+            if participant is not None
+            else {}
+        )
+        logger.warning(
+            "PSYNET_PROLIFIC_STUDY_ID_DEBUG event=%s recruiter=%s "
+            "current_study_id=%s context=%s",
+            event,
+            recruiter.__class__.__name__ if recruiter is not None else None,
+            current_study_id,
+            context,
+        )
+
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
+        self._log_psynet_study_id_debug(
+            "release_participant",
+            participant=participant,
+            recruiter=self,
+            participant_failed=participant.failed,
+        )
         if participant.failed:
             return self.reject_assignment(participant)
         return self.approve_assignment()
 
     def reject_assignment(self, participant) -> TimelineLogic:
+        self._log_psynet_study_id_debug(
+            "reject_assignment", participant=participant, recruiter=self
+        )
         return PageMaker(self._reject_assignment, time_estimate=0.0)
 
     def assignment_returned_logic(self) -> TimelineLogic:
@@ -223,6 +277,12 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     def _reject_assignment(self, participant) -> TimelineLogic:
         enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
+        self._log_psynet_study_id_debug(
+            "_reject_assignment",
+            participant=participant,
+            recruiter=self,
+            prolific_enable_return_for_bonus=enable_return_for_bonus,
+        )
 
         logic_return_for_bonus = self.return_for_bonus_logic(enable_return_for_bonus)
         logic_return_and_message_experimenter = (
@@ -245,11 +305,22 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
         experiment = get_experiment()
         recruiter = experiment.recruiter
+        PsyNetProlificRecruiterMixin._log_psynet_study_id_debug(
+            "check_assignment_return_status.start",
+            participant=participant,
+            recruiter=recruiter,
+        )
         logger.info(
             f"Checking Prolific submission status for assignment {participant.assignment_id}"
         )
         submission = recruiter.prolificservice.get_participant_submission(
             participant.assignment_id
+        )
+        PsyNetProlificRecruiterMixin._log_psynet_study_id_debug(
+            "check_assignment_return_status.submission",
+            participant=participant,
+            recruiter=recruiter,
+            submission=submission,
         )
         logger.info(
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
@@ -258,6 +329,13 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         participant.var.assignment_returned = is_returned
         if is_returned:
             participant.status = "returned"
+        PsyNetProlificRecruiterMixin._log_psynet_study_id_debug(
+            "check_assignment_return_status.result",
+            participant=participant,
+            recruiter=recruiter,
+            is_returned=is_returned,
+            participant_var_assignment_returned=is_returned,
+        )
         return is_returned
 
     @staticmethod
@@ -268,12 +346,24 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         recruiter = experiment.recruiter
 
         bonus = participant.calculate_reward()
+        PsyNetProlificRecruiterMixin._log_psynet_study_id_debug(
+            "reward_and_set_bonus.before_reward_bonus",
+            participant=participant,
+            recruiter=recruiter,
+            calculated_bonus=bonus,
+        )
         recruiter.reward_bonus(
             participant,
             bonus,
             "Partial payment for incomplete participation",
         )
         participant.bonus = bonus
+        PsyNetProlificRecruiterMixin._log_psynet_study_id_debug(
+            "reward_and_set_bonus.after_reward_bonus",
+            participant=participant,
+            recruiter=recruiter,
+            participant_bonus=participant.bonus,
+        )
 
     def check_for_returned_assignment(self, participant) -> bool:
         """Check if the participant has returned the assignment."""
@@ -287,7 +377,17 @@ class ProlificRecruiter(
     PsyNetProlificRecruiterMixin, dallinger.recruiters.ProlificRecruiter
 ):
     def open_recruitment(self, n: int = 1) -> dict:
+        self._log_psynet_study_id_debug(
+            "ProlificRecruiter.open_recruitment.start",
+            recruiter=self,
+            requested_places=n,
+        )
         response = super().open_recruitment(n)
+        self._log_psynet_study_id_debug(
+            "ProlificRecruiter.open_recruitment.after_super",
+            recruiter=self,
+            response=response,
+        )
 
         from .experiment import get_experiment
 
@@ -302,14 +402,24 @@ class ProlificRecruiter(
         )
         msg = f"Prolific:\n- {study_details}\n- {submissions}"
         exp.notifier.notify(msg)
+        self._log_psynet_study_id_debug(
+            "ProlificRecruiter.open_recruitment.notified", recruiter=self
+        )
         return response
 
     def run_checks(self):
         logger.info("Polling Prolific API to check for unread messages")
+        self._log_psynet_study_id_debug("ProlificRecruiter.run_checks.start")
         unread_messages = self.prolificservice.get_unread_messages()
         relevant_messages = []
         for message in unread_messages:
             study_id = message["data"].get("study_id")
+            self._log_psynet_study_id_debug(
+                "ProlificRecruiter.run_checks.message",
+                message_study_id=study_id,
+                message_keys=sorted(message.keys()),
+                message_data_keys=sorted(message.get("data", {}).keys()),
+            )
             if study_id and study_id == self.current_study_id:
                 message_concat = " ".join(
                     [message[key] for key in ["sender_id", "body", "sent_at"]]
@@ -325,6 +435,10 @@ class ProlificRecruiter(
             from .experiment import get_experiment
 
             exp = get_experiment()
+            self._log_psynet_study_id_debug(
+                "ProlificRecruiter.run_checks.relevant_messages",
+                relevant_message_count=len(relevant_messages),
+            )
             messages = [f"Found {len(relevant_messages)} unread messages"]
             for message in relevant_messages:
                 sender_id = message.get("sender_id")
