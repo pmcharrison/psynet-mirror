@@ -1,5 +1,5 @@
-General deployment process
-==========================
+General research process
+========================
 
 Experiment lifecycle
 --------------------
@@ -19,7 +19,7 @@ Experiments follow a relatively fixed lifecycle.
    or provision an EC2 server when participant location or capacity
    requires it.
 
--  :doc:`Deploy <deploying>`: Launch the experiment for real
+-  :doc:`Launch <deploying>`: Launch the experiment for real
    participants. For a first deployment, start with a pilot.
 
 -  :doc:`Monitor <monitoring_and_managing>`: Watch
@@ -116,7 +116,7 @@ Automatic translation
 
 PsyNet supports automatic machine translation so you can run your
 experiment in different languages. Treat translation as part of the
-pre-deployment checklist: set the target locale, mark strings for
+pre-launch checklist: set the target locale, mark strings for
 translation, generate translations, then review the translated experiment
 before recruiting real participants.
 
@@ -143,7 +143,7 @@ We currently use three recruiters: **Prolific, CINT, and Lab Recruiter
    participants across different countries and languages, allowing
    for more culturally diverse studies. The provisioning steps for
    both platforms are identical. For detailed instructions, please
-   refer to the deployment steps for Prolific and CINT. Note that
+   refer to the recruiter-specific steps for Prolific and CINT. Note that
    Lucid was recently acquired by CINT, a large global recruiter.
 
 -  **Lab Recruiter** (LR) is an internally established recruitment

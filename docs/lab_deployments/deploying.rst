@@ -1,5 +1,5 @@
-Deploying
-=========
+Launch the experiment
+=====================
 
 Sanity check
 ------------
@@ -49,8 +49,8 @@ successfully on a remote server. Make sure you did all types of
 
 .. _lab-deployment-actual-deployment:
 
-Actual deployment
------------------
+Run the deployment command
+--------------------------
 
 -  Set up the experiment for live deployment. For example, restore the
    production number of trials or networks if you reduced them during
@@ -63,8 +63,7 @@ Actual deployment
    for the correct value for your recruiter.
 
 -  Double-check all settings mentioned in
-   :doc:`recruiter-specific deployment steps
-   <recruiter_specific_deployment_steps>`.
+   :doc:`recruiter-specific steps <recruiter_specific_deployment_steps>`.
 
 -  To deploy the experiment, run the following command from the
    experiment directory. Choose the server according to your deployment

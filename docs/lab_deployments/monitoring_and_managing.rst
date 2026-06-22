@@ -19,7 +19,7 @@ Using the Dashboard
 The experiment dashboard is your main tool for tracking and managing the
 study. It is the same for each recruiter. The URL is printed in the
 terminal after the deployment command (see
-:ref:`Deploying <lab-deployment-actual-deployment>`).
+:ref:`Launch the experiment <lab-deployment-actual-deployment>`).
 
 Key features:
 

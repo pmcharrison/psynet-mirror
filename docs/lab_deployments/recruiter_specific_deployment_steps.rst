@@ -1,5 +1,5 @@
-Recruiter-specific deployment steps
-===================================
+Recruiter-specific steps
+========================
 
 .. _lab-deployment-prolific:
 
@@ -191,8 +191,8 @@ prolific_project = <YOUR_PROJECT_FOLDER>
 .. image:: /_static/images/lab_deployments/image13.png
    :width: 8.5in
 
-Deploy the experiment. Please see :ref:`deployment process
-<lab-deployment-actual-deployment>`.
+Deploy the experiment. Please see
+:ref:`Launch the experiment <lab-deployment-actual-deployment>`.
 
 Prolific: check & adapt study details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -929,8 +929,8 @@ administrator if you want to create or use a custom consent form.
 Deployment
 ~~~~~~~~~~
 
-Deploy the Experiment. Please see :ref:`deployment process
-<lab-deployment-actual-deployment>`.
+Deploy the experiment. Please see
+:ref:`Launch the experiment <lab-deployment-actual-deployment>`.
 
 -  After deploying your experiment, navigate to the Experiments tab.
 

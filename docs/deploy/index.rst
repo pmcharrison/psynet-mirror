@@ -1,5 +1,11 @@
-Deploying
-=========
+Deployment reference
+====================
+
+This section is the reference for deployment targets, server setup, data
+export, monitoring tools, and troubleshooting. If you are looking for a
+step-by-step lab workflow around these pieces, including recruiter
+setup, piloting, monitoring participants, and teardown, see the
+:doc:`Lab research workflow </lab_deployments/index>`.
 
 .. toctree::
    :maxdepth: 1

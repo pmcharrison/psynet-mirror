@@ -1,10 +1,10 @@
-Pre-deployment setup overview
-=============================
+Pre-launch setup overview
+=========================
 
-This page is a summary of the checks to complete before deploying your
+This page is a summary of the checks to complete before launching your
 experiment. Each section links to the detailed documentation where you
 can find full instructions. Recruiter-specific instructions are covered
-in :doc:`Recruiter-specific deployment steps <recruiter_specific_deployment_steps>`.
+in :doc:`Recruiter-specific steps <recruiter_specific_deployment_steps>`.
 
 Define the experiment configuration
 -----------------------------------
@@ -50,7 +50,7 @@ different setup requirements:
 - :ref:`Lab Recruiter <lab-deployment-lab-recruiter>`.
 
 After choosing the recruiter, read the matching section in
-:doc:`Recruiter-specific deployment steps <recruiter_specific_deployment_steps>`
+:doc:`Recruiter-specific steps <recruiter_specific_deployment_steps>`
 and configure all recruiter-specific settings.
 
 Test the experiment
@@ -68,11 +68,11 @@ Before public deployment, test the experiment in each of these modes:
   before publishing the experiment to real participants.
 
 For full details on each testing mode, see the
-:ref:`testing section <lab-deployment-test>` of the General Deployment
-Process.
+:ref:`testing section <lab-deployment-test>` of the general research
+process.
 
-Final pre-deployment check
---------------------------
+Final pre-launch check
+----------------------
 
 Before running the deployment command:
 

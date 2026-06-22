@@ -22,8 +22,8 @@ while placing minimal constraints on the complexity of the experiment design.
    learning/index
    dependencies/index
    installation/index
-   lab_deployments/index
    experiment_development/index
+   lab_deployments/index
    deploy/index
    developer/index
    dashboards/translation
