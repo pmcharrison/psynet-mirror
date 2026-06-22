@@ -442,8 +442,8 @@ class Exp(psynet.experiment.Experiment):
     test_mode = "serial"
 
     def test_experiment(self):
-        def completed_generation_node():
-            """Return a grown node with a complete create-and-rate parent generation."""
+        def completed_generation():
+            """Return a grown node and its complete create-and-rate parent trials."""
             db.session.commit()
             grown_nodes = CreateAndRateNode.query.filter(
                 CreateAndRateNode.degree > 0
@@ -466,14 +466,17 @@ class Exp(psynet.experiment.Experiment):
                         for target in rating.targets
                     }
                     if node.definition["url"] in rated_urls:
-                        return node
+                        return node, parent_creations, parent_ratings
             return None
 
         super().test_experiment()
         wait_until(
-            completed_generation_node,
+            completed_generation,
             max_wait=10,
             error_message="No create-and-rate chain completed a full generation.",
+        )
+        generation_node, generation_creations, generation_ratings = (
+            completed_generation()
         )
         participants = Participant.query.all()
         assert len(participants) == self.test_n_bots
@@ -486,4 +489,8 @@ class Exp(psynet.experiment.Experiment):
         assert all(not t.participant.var.is_rater for t in creations)
         assert all(t.participant.var.is_rater for t in ratings)
 
-        assert completed_generation_node() is not None
+        generation_trials = generation_creations + generation_ratings
+        assert all(t.finalized for t in generation_trials)
+        assert all(t.complete for t in generation_trials)
+        assert all(t.answer is not None for t in generation_trials)
+        assert generation_node is not None
