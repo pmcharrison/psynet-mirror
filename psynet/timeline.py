@@ -1101,6 +1101,9 @@ class Page(Elt):
         self.template_str = template_str
         self.template_kind = template_kind
         self.template_contract_source = template_contract_source
+        self._template_contract_soup = BeautifulSoup(
+            template_contract_source or "", "html.parser"
+        )
         self.framework_owned_template = framework_owned_template
         self._spa_template_contract_warning_shown = False
         self.template_arg = template_arg
@@ -1144,13 +1147,12 @@ class Page(Elt):
 
     @staticmethod
     def _wrap_template_fragment(template_fragment_str):
-        return f"""
-        {{% extends "timeline-page.html" %}}
-
-        {{% block main_body %}}
-            {template_fragment_str}
-        {{% endblock %}}
-        """
+        return (
+            '{% extends "timeline-page.html" %}\n\n'
+            "{% block main_body %}\n"
+            f"{template_fragment_str}\n"
+            "{% endblock %}"
+        )
 
     def call__get_bot_response(self, experiment, bot, response=NoArgumentProvided):
         """
@@ -1552,8 +1554,7 @@ class Page(Elt):
             template_string=self.template_str, **all_template_args
         )
         if partial_mode:
-            rendered = self._defer_executable_scripts(rendered)
-            rendered = self._extract_partial_body(rendered)
+            rendered = self._extract_partial_render(rendered)
         return rendered
 
     def _check_spa_template_contract(self, inplace_timeline_transitions):
@@ -1581,7 +1582,7 @@ class Page(Elt):
 
         # These checks intentionally cover common authoring mistakes rather
         # than trying to prove that arbitrary HTML/JS is SPA-safe.
-        soup = BeautifulSoup(template_source, "html.parser")
+        soup = self._template_contract_soup
 
         for script in soup.find_all("script"):
             if script.get("src"):
@@ -1653,11 +1654,22 @@ class Page(Elt):
             "with inplace_timeline_transitions, pass "
             "template_fragment_path or template_fragment_str with only the "
             "contents of the main_body block, and supply page-local CSS/JS via "
-            "css, css_links, scripts, and js_links."
+            "css, css_links, scripts, and js_links. Search your experiment "
+            f"code for Page(...) calls with label='{self.label}'."
         )
 
     @staticmethod
-    def _defer_executable_scripts(rendered_html):
+    def _extract_partial_render(rendered_html):
+        soup = BeautifulSoup(rendered_html, "html.parser")
+        Page._defer_executable_scripts(soup)
+        return Page._extract_partial_body(soup)
+
+    @staticmethod
+    def _defer_executable_scripts(soup):
+        parsed_from_string = isinstance(soup, str)
+        if parsed_from_string:
+            soup = BeautifulSoup(soup, "html.parser")
+
         executable_script_types = {
             "",
             "application/ecmascript",
@@ -1666,17 +1678,20 @@ class Page(Elt):
             "text/ecmascript",
             "text/javascript",
         }
-        soup = BeautifulSoup(rendered_html, "html.parser")
         for script in soup.find_all("script"):
             script_type = (script.get("type") or "").strip().lower()
             if script_type not in executable_script_types:
                 continue
             script["type"] = "text/psynet-script"
-        return str(soup)
+        if parsed_from_string:
+            return str(soup)
+        return soup
 
     @staticmethod
-    def _extract_partial_body(rendered_html):
-        soup = BeautifulSoup(rendered_html, "html.parser")
+    def _extract_partial_body(soup):
+        if isinstance(soup, str):
+            soup = BeautifulSoup(soup, "html.parser")
+
         fragment = soup.find(id="psynet-timeline-fragment")
         if fragment is None:
             raise ValueError(
