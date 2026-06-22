@@ -171,13 +171,17 @@ When adding or updating Playwright E2E tests, follow these rules to reduce CI fl
     - For `VideoPrompt`, verify `video#prompt` playback behavior.
     - Align assertions with how that step is implemented in experiment/template code.
 
-## Branch review command
+## Automatic code review
 
-When reviewing the current PsyNet branch against `master`, prefer the repo-local
-Cursor command `/review`.
+Before finalizing a merge request, prompt the user to run an automatic code
+review. Suggest the repo-local Cursor command `code-review` rather than
+`/review`, because `code-review` applies the desired review mindset: prioritize
+bugs, behavioral regressions, security issues, and missing tests before summary
+comments.
 
-- `/review` is defined in `.cursor/commands/review.md`
-- its detailed workflow lives in `.cursor/skills/branch-review/SKILL.md`
+If the user runs `code-review`, address any actionable findings before
+finalizing the merge request. If the user declines or the review is not run,
+record that explicitly in the merge request description.
 
 ## Merge request descriptions
 
@@ -210,8 +214,9 @@ not run with the reason.
 
 ## Automatic code review
 
-State whether the repo-local `/review` action has been run on the merge request.
-If it has not been run, explain why.
+State whether the repo-local `code-review` action has been run on the merge
+request. If it has not been run, explain whether the user declined it or has not
+yet been prompted.
 ```
 
 Keep the description concise, but include enough context for a reviewer to
