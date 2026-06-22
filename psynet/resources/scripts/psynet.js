@@ -387,6 +387,9 @@
         if (inlineBuffer.length === 0) {
           return;
         }
+        // Keep grouped inline scripts in a page-local scope. This prevents
+        // var/function declarations from one SPA fragment leaking into later
+        // fragments while preserving parser order within each inline group.
         psynet.executeInlineScript(
           "(function(){\n" + inlineBuffer.join("\n") + "\n})();",
         );
@@ -529,7 +532,7 @@
         "psynet-template-data",
       ];
 
-      requiredIds.forEach((id) => {
+      let replacements = requiredIds.map((id) => {
         let nextElement = template.content.querySelector("#" + id);
         let currentElement = document.getElementById(id);
         if (!nextElement || !currentElement) {
@@ -537,6 +540,10 @@
             "Failed to apply timeline fragment payload: missing element #" + id + ".",
           );
         }
+        return { currentElement, nextElement };
+      });
+
+      replacements.forEach(({ currentElement, nextElement }) => {
         currentElement.replaceWith(nextElement);
       });
 

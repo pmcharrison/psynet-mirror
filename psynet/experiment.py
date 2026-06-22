@@ -4097,8 +4097,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         return page
 
-    @classmethod
-    def render_partial_timeline_payload(cls, page, experiment, participant):
+    @staticmethod
+    def render_partial_timeline_payload(page, experiment, participant):
         """
         Render the current timeline page as the internal inplace fragment payload.
 
