@@ -56,7 +56,7 @@ PROLIFIC_MESSAGE_FIELD_ALIASES = {
 }
 
 
-RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES = {404, 408, 429, 500, 502, 503, 504}
+RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES = {408, 429, 500, 502, 503, 504}
 
 
 def _prolific_error_status(error: ProlificServiceException):
@@ -69,10 +69,6 @@ def _prolific_error_status(error: ProlificServiceException):
         return payload["response"]["error"]["status"]
     except (KeyError, TypeError):
         return None
-
-
-def _is_retriable_prolific_return_lookup_error(error: ProlificServiceException):
-    return _prolific_error_status(error) in RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES
 
 
 class PsyNetRecruiterMixin:
@@ -278,7 +274,16 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
                 participant.assignment_id
             )
         except ProlificServiceException as error:
-            if not _is_retriable_prolific_return_lookup_error(error):
+            status = _prolific_error_status(error)
+            if status not in RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES:
+                logger.error(
+                    "Could not check Prolific submission status for assignment %s "
+                    "because Prolific returned a non-retriable lookup error "
+                    "with status %s.",
+                    participant.assignment_id,
+                    status,
+                    exc_info=True,
+                )
                 raise
             logger.warning(
                 "Could not check Prolific submission status for assignment %s. "

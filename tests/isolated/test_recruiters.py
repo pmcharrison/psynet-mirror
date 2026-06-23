@@ -53,7 +53,7 @@ def prolific_error(status):
     )
 
 
-@pytest.mark.parametrize("status", [404, 408, 429, 500, 502, 503, 504])
+@pytest.mark.parametrize("status", [408, 429, 500, 502, 503, 504])
 def test_check_assignment_return_status_handles_retriable_prolific_lookup_failure(
     status,
     caplog,
@@ -74,6 +74,25 @@ def test_check_assignment_return_status_handles_retriable_prolific_lookup_failur
     assert participant.status == "screened_out"
     assert any(
         "Treating the assignment as not returned yet" in record.message
+        for record in caplog.records
+    )
+
+
+def test_check_assignment_return_status_raises_for_missing_prolific_submission(
+    caplog,
+):
+    participant = make_participant()
+    experiment = MagicMock()
+    experiment.recruiter.prolificservice.get_participant_submission.side_effect = (
+        prolific_error(404)
+    )
+
+    with patch("psynet.experiment.get_experiment", return_value=experiment):
+        with pytest.raises(ProlificServiceException):
+            PsyNetProlificRecruiterMixin.check_assignment_return_status(participant)
+
+    assert any(
+        "non-retriable lookup error with status 404" in record.message
         for record in caplog.records
     )
 
