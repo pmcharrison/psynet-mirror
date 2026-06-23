@@ -389,7 +389,7 @@ class AsyncCodeBlock(EltCollection):
     def initiate(self, participant, code_block=None):
         from psynet.process import WorkerAsyncProcess
 
-        code_block_id = self.code_block_id(code_block)
+        code_block_id = getattr(code_block, "id", None)
         stale = participant.awaited_async_code_block_process
         if stale is not None:
             if stale.pending and not stale.failed:
@@ -431,10 +431,6 @@ class AsyncCodeBlock(EltCollection):
                 code_block_id=code_block_id,
             ),
         )
-
-    @staticmethod
-    def code_block_id(code_block):
-        return getattr(code_block, "id", None)
 
     def matches_pending_process(self, process, code_block_id):
         try:
