@@ -843,6 +843,8 @@ class ProgressDisplay(dict):
 
 
 class Page(Elt):
+    _jsonpickle_exclude = ("_template_contract_soup",)
+
     """
     The base class for pages, customised by passing values to the ``__init__``
     function and by overriding the following methods:
@@ -1101,9 +1103,6 @@ class Page(Elt):
         self.template_str = template_str
         self.template_kind = template_kind
         self.template_contract_source = template_contract_source
-        self._template_contract_soup = BeautifulSoup(
-            template_contract_source or "", "html.parser"
-        )
         self.framework_owned_template = framework_owned_template
         self._spa_template_contract_warning_shown = False
         self.template_arg = template_arg
@@ -1582,7 +1581,7 @@ class Page(Elt):
 
         # These checks intentionally cover common authoring mistakes rather
         # than trying to prove that arbitrary HTML/JS is SPA-safe.
-        soup = self._template_contract_soup
+        soup = self._get_template_contract_soup()
 
         for script in soup.find_all("script"):
             if script.get("src"):
@@ -1657,6 +1656,13 @@ class Page(Elt):
             "css, css_links, scripts, and js_links. Search your experiment "
             f"code for Page(...) calls with label='{self.label}'."
         )
+
+    def _get_template_contract_soup(self):
+        soup = getattr(self, "_template_contract_soup", None)
+        if soup is None:
+            soup = BeautifulSoup(self.template_contract_source or "", "html.parser")
+            self._template_contract_soup = soup
+        return soup
 
     @staticmethod
     def _extract_partial_render(rendered_html):
