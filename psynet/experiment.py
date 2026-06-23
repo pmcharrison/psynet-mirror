@@ -1196,11 +1196,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def record_experiment_status(cls, online: bool = True):
-        if redis_vars.get("creation_time", default=None) is None:
-            logger.info(
-                "Skipping experiment status recording because launch metadata is not available yet."
-            )
-            return
         status = cls.get_status(lookback_s=60)  # since we poll every minute
         status["isOffline"] = not online
         status_obj = ExperimentStatus(**status)
@@ -1214,6 +1209,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def status_and_backups():
         # TODO: consider placing these in separate scheduled tasks
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         safe(exp.record_experiment_status)()
         if exp.automatic_backups:

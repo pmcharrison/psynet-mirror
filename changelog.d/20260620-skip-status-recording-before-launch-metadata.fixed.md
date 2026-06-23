@@ -1,1 +1,1 @@
-Skipped experiment status recording before launch metadata is available.
+Skipped scheduled experiment status recording until experiment launch has finished.

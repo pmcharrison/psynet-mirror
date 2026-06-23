@@ -1,15 +1,15 @@
+from contextlib import nullcontext
 from unittest.mock import patch
 
 from psynet.experiment import Experiment
 
 
-def test_record_experiment_status_skips_before_launch_metadata():
+def test_status_and_backups_skips_before_launch_finished():
     with (
-        patch("psynet.experiment.redis_vars.get", return_value=None),
-        patch.object(Experiment, "get_status") as get_status,
-        patch("psynet.experiment.db.session.add") as add,
+        patch("psynet.db.transaction", return_value=nullcontext()),
+        patch("psynet.experiment.is_experiment_launched", return_value=False),
+        patch("psynet.experiment.get_experiment") as get_experiment,
     ):
-        Experiment.record_experiment_status()
+        Experiment.status_and_backups()
 
-    get_status.assert_not_called()
-    add.assert_not_called()
+    get_experiment.assert_not_called()
