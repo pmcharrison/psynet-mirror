@@ -386,10 +386,10 @@ class AsyncCodeBlock(EltCollection):
             CodeBlock(self.wrap_up),
         )
 
-    def initiate(self, participant, code_block=None):
+    def initiate(self, participant, code_block):
         from psynet.process import WorkerAsyncProcess
 
-        code_block_id = getattr(code_block, "id", None)
+        code_block_id = code_block.id
         stale = participant.awaited_async_code_block_process
         if stale is not None:
             if stale.pending and not stale.failed:
