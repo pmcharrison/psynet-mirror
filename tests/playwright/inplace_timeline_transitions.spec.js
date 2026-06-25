@@ -22,6 +22,14 @@ function deferredPromise() {
   return { promise, resolve };
 }
 
+function hasManagedStylesheet(page, stylesheetPath) {
+  return page.evaluate((pathSuffix) => {
+    return Array.from(
+      document.head.querySelectorAll("link[data-psynet-fragment-stylesheet]")
+    ).some((link) => link.href.endsWith(pathSuffix));
+  }, stylesheetPath);
+}
+
 test("in-place timeline transitions replay page scripts and hydrate page styles", async ({
   page,
   context
@@ -80,6 +88,16 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
     await expect(stylesheetMarker).toHaveCSS("color", "rgb(12, 34, 56)");
     await expect(stylesheetMarker).toHaveCSS("border-left-width", "7px");
     await expect(stylesheetMarker).toHaveCSS("padding-left", "13px");
+    await expect
+      .poll(
+        () =>
+          hasManagedStylesheet(
+            experimentPage,
+            "/static/deferred-page-scripts.css"
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(true);
 
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
@@ -111,6 +129,16 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
     await expect(stylesheetMarker).toContainText("Unstyled cleanup marker", {
       timeout: STEP_TIMEOUT_MS
     });
+    await expect
+      .poll(
+        () =>
+          hasManagedStylesheet(
+            experimentPage,
+            "/static/deferred-page-scripts.css"
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(false);
     await expect(stylesheetMarker).not.toHaveCSS("color", "rgb(12, 34, 56)");
     await expect(stylesheetMarker).not.toHaveCSS("border-left-width", "7px");
   });

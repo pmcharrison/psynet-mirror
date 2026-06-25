@@ -473,16 +473,25 @@
       return Array.from(cssTemplate.querySelectorAll("style"));
     };
 
+    psynet.removePageStylesheetLinks = function () {
+      document
+        .querySelectorAll("link[data-psynet-fragment-stylesheet]")
+        .forEach((link) => link.remove());
+    };
+
     psynet.ensureStylesheetLinks = function () {
+      psynet.removePageStylesheetLinks();
+
       for (let link of psynet.getPageCssLinks()) {
         let href = new URL(link.href, window.location.href).href;
         let alreadyPresent = Array.from(
-          document.querySelectorAll("link[rel='stylesheet']"),
+          document.head.querySelectorAll("link[rel='stylesheet']"),
         ).some((existingLink) => existingLink.href === href);
         if (!alreadyPresent) {
-          let newLink = document.createElement("link");
+          let newLink = link.cloneNode(false);
           newLink.rel = "stylesheet";
           newLink.href = href;
+          newLink.setAttribute("data-psynet-fragment-stylesheet", "true");
           document.head.appendChild(newLink);
         }
       }
