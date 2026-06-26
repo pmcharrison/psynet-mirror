@@ -15,12 +15,30 @@ Use this skill for deployed PsyNet test experiments when the user provides an ex
 - PsyNet dashboard credentials for these test deployments: `admin` / `dallinger`
 - Dozzle credentials for these test deployments: `dallinger` / `dallinger`
 
+## Python Environment
+
+Always use the PsyNet virtual environment at
+`/home/frank/projects/PsyNet/.venv-psynet` for PsyNet commands and Python
+dependency commands. Before running `psynet`, `python`, `pip`, `uv`, `pytest`,
+or `pre-commit` from the PsyNet checkout, activate it and verify it:
+
+```bash
+cd /home/frank/projects/PsyNet
+source .venv-psynet/bin/activate
+echo "$VIRTUAL_ENV"
+```
+
+If `.venv-psynet` is missing or activation fails, stop and tell the user before
+running any PsyNet or Python-related command.
+
 ## Deploy The Prolific Test From The Test Branch
 
 When asked to redeploy the Prolific manual recruiter test, deploy
 `tests/manual_recruiter_testing/prolific` from the dedicated PsyNet branch
 `test-deployments/prolific-manual-recruiter`. Keep this branch based on the
 latest PsyNet `master`, and use the latest Dallinger `master`.
+Always start by updating both local `master` branches to their latest remote
+commits before preparing the deployment branch.
 
 Before deploying:
 
@@ -40,7 +58,7 @@ git merge --ff-only master
 PSYNET_SHA=$(git rev-parse HEAD)
 ```
 
-3. Update Dallinger to latest `master`:
+1. Update Dallinger to latest `master`:
 
 ```bash
 cd /home/frank/projects/Dallinger
@@ -50,21 +68,22 @@ git pull --ff-only origin master
 DALLINGER_SHA=$(git rev-parse HEAD)
 ```
 
-4. Activate the PsyNet virtual environment and install both local checkouts in
+1. Activate the PsyNet virtual environment and install both local checkouts in
    editable mode so the deployment command is run from the latest local code:
 
 ```bash
 cd /home/frank/projects/PsyNet
 source .venv-psynet/bin/activate
+echo "$VIRTUAL_ENV"
 uv pip install -e /home/frank/projects/Dallinger
 uv pip install -e ".[dev,slack]"
 ```
 
-5. Ensure `tests/manual_recruiter_testing/prolific/requirements.txt` points
+1. Ensure `tests/manual_recruiter_testing/prolific/requirements.txt` points
    PsyNet at `test-deployments/prolific-manual-recruiter`. Push that branch
    before deploying if the remote build must install PsyNet from GitLab. Record
    the PsyNet branch/commit and Dallinger commit in the final report.
-6. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
+1. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
    `prolific_is_custom_screening` to `False`. Prolific no longer supports the
    older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
@@ -73,6 +92,7 @@ Deploy from the experiment directory:
 
 ```bash
 cd /home/frank/projects/PsyNet/tests/manual_recruiter_testing/prolific
+source /home/frank/projects/PsyNet/.venv-psynet/bin/activate
 psynet deploy ssh \
   --server experiments1.cococo-lab.cornell.edu \
   --dns-host experiments1.cococo-lab.cornell.edu \
