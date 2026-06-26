@@ -227,23 +227,26 @@ def page_loaded(driver):
 
 
 def psynet_loaded(driver):
-    psynet_loaded = driver.execute_script(
-        "try { return psynet != undefined } catch(e) { if (e instanceof ReferenceError) { return false }}"
+    return driver.execute_script(
+        """
+        const psynet = window.psynet;
+        if (!psynet || psynet.nextPagePending === true) {
+            return false;
+        }
+        if (typeof psynet.pageReady !== "undefined") {
+            return psynet.pageReady === true &&
+                document.querySelector("#main-body[data-page-ready]") !== null &&
+                typeof window.pageUuid !== "undefined";
+        }
+        return psynet.pageLoaded === true &&
+            psynet.trial?.events?.responseEnable?.happened === true;
+        """
     )
-    if psynet_loaded:
-        page_loaded = driver.execute_script("return psynet.pageLoaded")
-        if page_loaded:
-            response_enabled = driver.execute_script(
-                "return psynet.trial.events.responseEnable.happened"
-            )
-            if response_enabled:
-                return True
-    return False
 
 
 def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0):
     def get_uuid():
-        return driver.execute_script("return pageUuid")
+        return driver.execute_script("return window.pageUuid")
 
     def click_button():
         button = driver.find_element(by, button_identifier)
