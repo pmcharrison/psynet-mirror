@@ -77,7 +77,8 @@ def get_prolific_settings():
         "prolific_is_custom_screening": False,
         "prolific_estimated_completion_minutes": 1,
         "prolific_recruitment_config": qualification,
-        "auto_recruit": False,
+        "initial_recruitment_size": 12,
+        "auto_recruit": True,
         "currency": "£",
         "wage_per_hour": 9,
     }
