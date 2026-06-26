@@ -5,6 +5,7 @@ import tempfile
 import warnings
 from typing import Callable, Dict, Iterable, List, Optional, Union
 
+from bs4 import BeautifulSoup
 from dominate import tags
 from dominate.dom_tag import dom_tag
 from dominate.util import raw
@@ -143,6 +144,30 @@ class Prompt:
 
     def get_css(self):
         return []
+
+    def _collect_spa_markup_contract_problems(self):
+        if self.text_html is None:
+            return []
+
+        soup = BeautifulSoup(str(self.text_html), "html.parser")
+        problems = []
+
+        if soup.find_all("style"):
+            problems.append(
+                "The page prompt/content includes inline CSS in a <style> tag. "
+                "Supply page-local CSS via the Page css argument instead."
+            )
+
+        for link in soup.find_all(
+            "link", rel=lambda value: value and "stylesheet" in value
+        ):
+            problems.append(
+                "The page prompt/content includes a stylesheet <link> tag. "
+                "Supply page-local stylesheet links via the Page css_links "
+                "argument instead."
+            )
+
+        return problems
 
     @property
     def plain_text(self):
@@ -1950,6 +1975,21 @@ class ModularPage(Page):
             framework_owned_template=True,
             **kwargs,
         )
+
+    def _check_spa_template_contract(self, inplace_timeline_transitions):
+        super()._check_spa_template_contract(inplace_timeline_transitions)
+
+        problems = self.prompt._collect_spa_markup_contract_problems()
+        if not problems:
+            return
+
+        message = "\n\n".join(problems)
+        if inplace_timeline_transitions:
+            raise ValueError(message)
+
+        if not self._spa_template_contract_warning_shown:
+            warnings.warn(message, UserWarning, stacklevel=2)
+            self._spa_template_contract_warning_shown = True
 
     def get_renderers(self, **kwargs):
         return {
