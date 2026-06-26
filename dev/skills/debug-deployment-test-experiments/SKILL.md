@@ -79,10 +79,12 @@ uv pip install -e /home/frank/projects/Dallinger
 uv pip install -e ".[dev,slack]"
 ```
 
-1. Ensure `tests/manual_recruiter_testing/prolific/requirements.txt` points
-   PsyNet at `test-deployments/prolific-manual-recruiter`. Push that branch
-   before deploying if the remote build must install PsyNet from GitLab. Record
-   the PsyNet branch/commit and Dallinger commit in the final report.
+1. Ensure `tests/manual_recruiter_testing/prolific/requirements.txt` pins
+   PsyNet to the latest pushed commit on
+   `test-deployments/prolific-manual-recruiter`, not to the branch name.
+   PsyNet's deploy pre-check rejects branch-name requirements as ambiguous.
+   Push the branch before choosing the SHA, then record the PsyNet branch/commit
+   and Dallinger commit in the final report.
 1. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
    `prolific_is_custom_screening` to `False`. Prolific no longer supports the
    older custom-screening study creation flow; a launch payload with
@@ -229,6 +231,12 @@ For each matching container, scan the extracted full log files for:
 - Whether the error stopped the deployment or was followed by a successful launch.
 
 Always correlate timestamps across containers. A web traceback during `/launch` may be transient if a later `/launch` succeeds.
+
+After the experiment completes on Prolific, download the full Dozzle logs again
+and repeat the log review. Do not rely only on the deployment-time ZIP, because
+completion can trigger later recruiter, approval, bonus, assignment-return, and
+participant-status jobs. Compare the post-completion logs with the initial scan
+and report any new errors separately.
 
 Useful search patterns for downloaded logs:
 
