@@ -15,7 +15,6 @@ from contextlib import contextmanager
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
-from shutil import rmtree, which
 from urllib.parse import urlencode
 
 import click
@@ -39,7 +38,6 @@ from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
-from psynet import __path__ as psynet_path
 from psynet import __version__
 from psynet.dev.command_line import dev as _dev_command_group
 from psynet.version import (
@@ -1013,6 +1011,26 @@ def run_pre_checks_deploy(exp, config, is_mturk, local_, recruiter):
         )
 
 
+def _abort_if_app_exists(server, app):
+    if not app:
+        return
+
+    from dallinger.command_line.docker_ssh import get_apps
+
+    apps = get_apps(server)
+    existing_apps = {entry.name for entry in apps}
+    if app in existing_apps:
+        click.echo(
+            "\n".join(
+                [
+                    f"App with name {app} already exists: found on server. Aborting.",
+                    "Use a different name or destroy the current app.",
+                ]
+            )
+        )
+        raise click.Abort
+
+
 ##########
 # deploy #
 ##########
@@ -1053,6 +1071,7 @@ def _pre_launch(
         from dallinger.command_line.docker_ssh import ensure_remote_host_in_known_hosts
 
         ensure_remote_host_in_known_hosts(ssh_host, ssh_user)
+        _abort_if_app_exists(server, app)
 
     run_pre_checks(mode, local_, heroku, docker, app)
 
@@ -1265,43 +1284,6 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
             f,
             indent=4,
         )
-
-
-########
-# docs #
-########
-@psynet.command()
-@click.option(
-    "--force-rebuild",
-    "-f",
-    is_flag=True,
-    help="Force complete rebuild by deleting the '_build' directory",
-)
-def docs(force_rebuild):
-    """
-    Build the documentation.
-    """
-    docs_dir = os.path.join(psynet_path[0], "..", "docs")
-    docs_build_dir = os.path.join(docs_dir, "_build")
-    try:
-        os.chdir(docs_dir)
-    except FileNotFoundError as e:
-        log(
-            "There was an error building the documentation. Be sure to have activated your 'psynet' virtual environment."
-        )
-        raise SystemExit(e)
-    if os.path.exists(docs_build_dir) and force_rebuild:
-        rmtree(docs_build_dir)
-    os.chdir(docs_dir)
-    subprocess.run(["make", "html"])
-    if which("xdg-open") is not None:
-        open_command = "xdg-open"
-    else:
-        open_command = "open"
-    subprocess.run(
-        [open_command, os.path.join(docs_build_dir, "html/index.html")],
-        stdout=subprocess.DEVNULL,
-    )
 
 
 ##############
@@ -2080,6 +2062,21 @@ def app_argument(func):
     )(func)
 
 
+def _resolve_ssh_app(ctx, app, server):
+    if app:
+        return app
+
+    from dallinger.command_line.docker_ssh import select_running_app
+
+    try:
+        resolved_app = select_running_app(server)
+    except ValueError as exc:
+        raise click.UsageError(str(exc)) from exc
+
+    log(f"No --app provided; using running app on the server: {resolved_app}")
+    return resolved_app
+
+
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
@@ -2160,8 +2157,10 @@ def export__heroku(ctx, app, **kwargs):
 @export.command("ssh")
 @click.option(
     "--app",
-    required=True,
-    help="Name of the app to export",
+    default=None,
+    required=False,
+    callback=verify_id,
+    help=("Name of the app to export (optional if only one running app is available)"),
 )
 @option_server
 @export_arguments
@@ -2170,6 +2169,7 @@ def export__docker_ssh(ctx, app, server, **kwargs):
     """
     Export the experiment from a remote server via Docker and SSH.
     """
+    app = _resolve_ssh_app(ctx, app, server)
     exp_variables = ctx.invoke(
         experiment_variables, location="ssh", app=app, server=server
     )
@@ -3191,7 +3191,7 @@ def test__docker_ssh(
         cmd += " --serial"
 
     if stagger:
-        cmd += " --stagger"
+        cmd += f" --stagger {stagger}"
 
     if time_factor:
         cmd += f" --time-factor {time_factor}"
@@ -3676,7 +3676,7 @@ def performance_test__docker_ssh(
         cmd += f" --n-bots {n_bots}"
 
     if stagger:
-        cmd += " --stagger"
+        cmd += f" --stagger {stagger}"
 
     if time_factor:
         cmd += f" --time-factor {time_factor}"
