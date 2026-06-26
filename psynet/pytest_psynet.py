@@ -238,6 +238,9 @@ def psynet_loaded(driver):
                 document.querySelector("#main-body[data-page-ready]") !== null &&
                 typeof window.pageUuid !== "undefined";
         }
+        // Legacy pages used responseEnable as a broad "ready to advance" signal.
+        // Prefer pageReady for new timeline code; keep this fallback until the
+        // full-page transition path is retired.
         return psynet.pageLoaded === true &&
             psynet.trial?.events?.responseEnable?.happened === true;
         """
