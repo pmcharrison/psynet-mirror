@@ -84,9 +84,10 @@ def test_partial_body_extraction_uses_named_fragment_wrapper():
     html = """
     <html>
       <head>
-        <style>.custom-template-style { color: rgb(1, 2, 3); }</style>
+        <style>.global-template-style { color: rgb(1, 2, 3); }</style>
         <style data-psynet-fragment-style="true">.page-api-style { color: rgb(4, 5, 6); }</style>
-        <link rel="stylesheet" href="/static/custom-template.css">
+        <link rel="stylesheet" href="/static/global-template.css">
+        <link rel="stylesheet" href="/static/page-api.css" data-psynet-fragment-stylesheet="true">
       </head>
       <body>
         <template><div>outside fragment</div></template>
@@ -95,8 +96,12 @@ def test_partial_body_extraction_uses_named_fragment_wrapper():
           <div id="main-body">
             <template><div>inside fragment</div></template>
             <div id="psynet-fragment-assets">
-              <div id="psynet-page-css-links"></div>
-              <div id="psynet-page-css"></div>
+              <div id="psynet-page-css-links">
+                <link rel="stylesheet" href="/static/page-api.css">
+              </div>
+              <div id="psynet-page-css">
+                <style>.page-api-style { color: rgb(4, 5, 6); }</style>
+              </div>
             </div>
           </div>
           <nav id="footer"></nav>
@@ -112,9 +117,12 @@ def test_partial_body_extraction_uses_named_fragment_wrapper():
     assert "timeline-header" in fragment
     assert "inside fragment" in fragment
     assert "psynet-template-data" in fragment
-    assert ".custom-template-style" in fragment
-    assert "/static/custom-template.css" in fragment
-    assert ".page-api-style" not in fragment
+    assert ".page-api-style" in fragment
+    assert "/static/page-api.css" in fragment
+    assert fragment.count(".page-api-style") == 1
+    assert fragment.count("/static/page-api.css") == 1
+    assert ".global-template-style" not in fragment
+    assert "/static/global-template.css" not in fragment
     assert "outside fragment" not in fragment
     assert "spinner" not in fragment
 

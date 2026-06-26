@@ -1714,17 +1714,35 @@ class Page(Elt):
 
         css_container = fragment.find(id="psynet-page-css")
         if css_container is not None:
-            for style in head.find_all("style", recursive=False):
-                if style.has_attr("data-psynet-fragment-style"):
-                    continue
-                css_container.append(copy.copy(style))
+            existing_styles = {
+                style.get_text() for style in css_container.find_all("style")
+            }
+            for style in head.find_all(
+                "style", attrs={"data-psynet-fragment-style": True}, recursive=False
+            ):
+                style_text = style.get_text()
+                if style_text not in existing_styles:
+                    css_container.append(copy.copy(style))
+                    existing_styles.add(style_text)
 
         css_link_container = fragment.find(id="psynet-page-css-links")
         if css_link_container is not None:
+            existing_hrefs = {
+                link.get("href")
+                for link in css_link_container.find_all(
+                    "link", rel=lambda value: value and "stylesheet" in value
+                )
+            }
             for link in head.find_all(
-                "link", rel=lambda value: value and "stylesheet" in value
+                "link",
+                attrs={"data-psynet-fragment-stylesheet": True},
+                rel=lambda value: value and "stylesheet" in value,
+                recursive=False,
             ):
-                css_link_container.append(copy.copy(link))
+                href = link.get("href")
+                if href not in existing_hrefs:
+                    css_link_container.append(copy.copy(link))
+                    existing_hrefs.add(href)
 
     @property
     def plain_text(self):
