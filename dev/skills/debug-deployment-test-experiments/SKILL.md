@@ -153,6 +153,107 @@ When using browser automation, launch a dedicated browser subagent for dashboard
 
 Important fields for the Prolific manual test are: `id`, `worker_id`, `assignment_id`, `hit_id`, `failed`, `failed_reason`, `status`, `complete`, `branch_log`, `failure_tags`, `base_payment`, `performance_reward`, `progress`, and `time_credit`.
 
+## Observe Until Prolific Completion
+
+After deployment, observe the ongoing experiment until it completed on Prolific
+instead of stopping at launch success. Poll the dashboard participant table,
+recruiter state, and logs until the Prolific participant is complete, failed,
+returned, or otherwise reaches a terminal state. Record the participant status,
+completion flag, failure fields, payment fields, and any recruiter-state changes
+seen during the wait.
+
+Also check the Prolific study state directly from the deployed app/container.
+Do not print environment variables or config values, because they may include
+the Prolific API token. Instead, call `prolific_service_from_config()` inside
+the web container and print only the study status and submission status counts.
+The experiment is not complete while the Prolific study status is still
+`ACTIVE`, even if there are no currently `ACTIVE` submissions and even if all
+visible PsyNet participant rows are terminal. The study as a whole must be in
+state `COMPLETED`, not `ACTIVE`.
+
+Use the study id from the deployment output, Prolific study URL, or participant
+`hit_id`, then query Prolific like this:
+
+```bash
+ssh -i /home/frank/.ssh/cap.pem co3@experiments1.cococo-lab.cornell.edu \
+  "docker compose -f ~/dallinger/<app-name>/docker-compose.yml exec -T web python - <<'PY'
+import json
+from collections import Counter
+
+from dallinger.prolific import prolific_service_from_config
+
+study_id = '<prolific-study-id>'
+service = prolific_service_from_config(strict=False)
+study = service.get_study(study_id)
+submissions = service.get_submissions(study_id)
+counts = Counter(s.get('status') for s in submissions)
+active = [s.get('id') for s in submissions if s.get('status') == 'ACTIVE']
+print(json.dumps({
+    'study_status': study.get('status'),
+    'places_taken': study.get('places_taken'),
+    'total_available_places': study.get('total_available_places'),
+    'number_of_submissions': study.get('number_of_submissions'),
+    'submission_status_counts': dict(sorted(counts.items())),
+    'active_submission_count': len(active),
+}, sort_keys=True, indent=2))
+PY"
+```
+
+Do not declare completion from a single poll with `active_submission_count == 0`.
+If the study is still `ACTIVE`, Prolific can still recruit replacement
+participants after returns or time-outs. Continue observing until
+`study_status == "COMPLETED"`. Treat all other study states as not completed
+unless the user explicitly asks to stop watching.
+
+Once the Prolific run reaches a terminal state, perform the post-completion
+Dozzle log download and review described below. Compare these logs against the
+initial deployment-time scan and call out errors that only appeared after
+completion.
+
+After the study status is `COMPLETED`, write a detailed Markdown log-analysis
+file in a tracked directory on the deployment branch. Use the app name and the
+study-completion date/time in the filename so every deployment keeps its own
+audit record, for example:
+
+```text
+dev/deployment-log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-log-analysis.md
+```
+
+At the same time, add the corresponding downloaded full Dozzle logs ZIP to the
+branch with the same timestamp and app-name stem, for example:
+
+```text
+dev/deployment-log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-logs.zip
+```
+
+Use local time for the timestamp unless the user requests UTC. Do not leave the
+analysis only under `dev/tmp`; `dev/tmp` is for downloaded ZIPs and extracted
+logs. The Markdown analysis and logs ZIP should be added to the branch for each
+deployment. Do not add extracted raw logs to the branch unless the user
+explicitly asks.
+
+This report should be more detailed than the chat summary. Include:
+
+- Deployment metadata: app name, experiment URL, dashboard URL, PsyNet commit,
+  Dallinger commit, Prolific study id, and final Prolific study status.
+- Final Prolific counts by submission status, including `APPROVED`, `RETURNED`,
+  `TIMED-OUT`, `AWAITING REVIEW`, and any unexpected statuses.
+- Dashboard-vs-Prolific reconciliation: compare participant rows against
+  Prolific submissions using assignment/submission id, worker id, status,
+  completion flag, failure fields, payment fields, reward/bonus fields, and
+  branch/failure logs. Highlight mismatches or explain why they are expected.
+- Detailed log findings by container (`web`, `worker`, `clock`, `redis`,
+  `pgbouncer`), including tracebacks, errors, warnings, repeated warning loops,
+  unusual status transitions, and suspicious but non-fatal events.
+- A concise timeline of important events: launch, study creation, recruitment,
+  participant completions/returns/time-outs, approval attempts, bonus payments,
+  study completion, and post-completion log download.
+- Interpretation and severity for each finding, distinguishing confirmed bugs,
+  likely harmless noise, expected Prolific edge cases, and unresolved questions.
+
+Reference the exact downloaded log directory and file names used for the
+analysis so the evidence can be rechecked later.
+
 ## Dozzle Full Log Download
 
 Always examine the logs from the downloaded complete Dozzle logs ZIP file instead of relying on the visible stream. Use the visible stream only to find the right containers, merged-log page, and download URL.
@@ -263,5 +364,6 @@ Keep the report concise and evidence-based:
 - Include the relevant exception class and top stack frame.
 - Distinguish harmless scanner traffic/404s from PsyNet/Dallinger failures.
 - If a code fix is needed, name the likely file/function and propose the minimal regression test.
+- Mention the detailed Markdown log-analysis file path created after completion.
 
 Do not ask the user to re-paste logs that are already accessible in Dozzle unless browser login or permissions block access.
