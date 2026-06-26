@@ -93,7 +93,7 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
         () =>
           hasManagedStylesheet(
             experimentPage,
-            "/static/deferred-page-scripts.css"
+            "/static/custom-stylesheet-page.css"
           ),
         { timeout: STEP_TIMEOUT_MS }
       )
@@ -134,13 +134,66 @@ test("in-place timeline transitions replay page scripts and hydrate page styles"
         () =>
           hasManagedStylesheet(
             experimentPage,
-            "/static/deferred-page-scripts.css"
+            "/static/custom-stylesheet-page.css"
           ),
         { timeout: STEP_TIMEOUT_MS }
       )
       .toBe(false);
     await expect(stylesheetMarker).not.toHaveCSS("color", "rgb(12, 34, 56)");
     await expect(stylesheetMarker).not.toHaveCSS("border-left-width", "7px");
+  });
+});
+
+test("in-place timeline transitions preload linked CSS before swapping DOM", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/deferred_page_scripts"
+  );
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+    await expect(experimentPage.locator("#main-body")).toContainText("First page", {
+      timeout: STEP_TIMEOUT_MS
+    });
+
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "Deferred page script lifecycle page",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+
+    const stylesheetGate = deferredPromise();
+    let stylesheetRequested = false;
+    await experimentPage.route("**/static/custom-stylesheet-page.css", async (route) => {
+      stylesheetRequested = true;
+      await stylesheetGate.promise;
+      await route.continue();
+    });
+
+    const transitionPromise = clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
+    await expect
+      .poll(() => stylesheetRequested, { timeout: STEP_TIMEOUT_MS })
+      .toBe(true);
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "Deferred page script lifecycle page",
+      { timeout: STEP_TIMEOUT_MS }
+    );
+    await expect(experimentPage.locator("#main-body")).not.toContainText(
+      "Styled custom template page"
+    );
+
+    stylesheetGate.resolve();
+    await transitionPromise;
+
+    const stylesheetMarker = experimentPage.locator("#custom-stylesheet-marker");
+    await expect(stylesheetMarker).toContainText("Styled custom template page", {
+      timeout: STEP_TIMEOUT_MS
+    });
+    await expect(stylesheetMarker).toHaveCSS("border-left-width", "7px");
   });
 });
 
