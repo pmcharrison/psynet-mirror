@@ -49,17 +49,10 @@ from .utils import get_logger, get_translator, render_template_with_translations
 
 logger = get_logger()
 
-
-def screen_out_participant(participant):
-    """
-    Standalone function for AsyncCodeBlock to use (can be serialized properly)
-    """
-    from psynet.experiment import get_experiment
-
-    experiment = get_experiment()
-    recruiter = experiment.recruiter
-
-    return recruiter.screen_out(participant, participant.calculate_reward())
+PROLIFIC_MESSAGE_FIELD_ALIASES = {
+    "sender_id": ("sender_id", "sender"),
+    "sent_at": ("sent_at", "datetime_created"),
+}
 
 
 class PsyNetRecruiterMixin:
@@ -121,21 +114,6 @@ class HotAirRecruiter(PsyNetRecruiterMixin, dallinger.recruiters.HotAirRecruiter
 
 
 class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
-    def screen_out(self, participant, bonus):
-        response = super().screen_out(participant, bonus)
-        message = response.get("message")
-        success = (
-            message == "The request to bulk screen out has been made successfully."
-        )
-        if success:
-            logger.info(message)
-        else:
-            logger.warning(f"Screen out failed: {response}")
-
-        participant.var.prolific_screen_out_successful = success
-
-        return success
-
     def release_participant(
         self, experiment, participant: Participant
     ) -> TimelineLogic:
@@ -145,22 +123,6 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
 
     def reject_assignment(self, participant) -> TimelineLogic:
         return PageMaker(self._reject_assignment, time_estimate=0.0)
-
-    def successful_screenout_logic(self) -> TimelineLogic:
-        """Create the TimelineLogic for successful screen out."""
-        _p = get_translator(context=True)
-
-        return InfoPage(
-            _p(
-                "screen_out_successful",
-                "You have been credited for the time spent on the experiment. "
-                "Because you could not progress to the main experiment "
-                "your submission will appear as 'screened out' in Prolific. "
-                "You can now close this browser window.",
-            ),
-            show_next_button=False,
-            time_estimate=0.0,
-        )
 
     def assignment_returned_logic(self) -> TimelineLogic:
         """Create the TimelineLogic for checking assignment return status."""
@@ -264,52 +226,18 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
             time_estimate=0.5,
         )
 
-    def screen_out_logic(self, enable_screen_out) -> TimelineLogic:
-        """Create the TimelineLogic for screen out."""
-        if not enable_screen_out:
-            return None
-
-        return conditional(
-            "screen_out_enabled",
-            lambda participant: enable_screen_out,
-            join(
-                AsyncCodeBlock(
-                    screen_out_participant,
-                    wait=True,
-                    expected_wait=5.0,
-                    check_interval=0.5,
-                ),
-                conditional(
-                    label="screen_out_successful",
-                    condition=self.check_screen_out_successful,
-                    logic_if_true=self.successful_screenout_logic(),
-                ),
-            ),
-            None,
-        )
-
     def _reject_assignment(self, participant) -> TimelineLogic:
         enable_return_for_bonus = get_config().get("prolific_enable_return_for_bonus")
-        enable_screen_out = get_config().get("prolific_enable_screen_out")
 
-        logic_screen_out = self.screen_out_logic(enable_screen_out)
         logic_return_for_bonus = self.return_for_bonus_logic(enable_return_for_bonus)
         logic_return_and_message_experimenter = (
             self.return_and_message_experimenter_logic()
         )
 
         return join(
-            logic_screen_out,
             logic_return_for_bonus,
             logic_return_and_message_experimenter,
         )
-
-    def check_screen_out_successful(self, participant) -> bool:
-        """Check if the participant has been successfully screened out."""
-        try:
-            return participant.var.prolific_screen_out_successful
-        except KeyError:
-            return False
 
     @staticmethod
     def check_assignment_return_status(participant) -> bool:
@@ -333,6 +261,8 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         )
         is_returned = submission and submission.get("status") == "RETURNED"
         participant.var.assignment_returned = is_returned
+        if is_returned:
+            participant.status = "returned"
         return is_returned
 
     @staticmethod
@@ -384,12 +314,12 @@ class ProlificRecruiter(
         unread_messages = self.prolificservice.get_unread_messages()
         relevant_messages = []
         for message in unread_messages:
-            study_id = message["data"].get("study_id")
+            message_data = message.get("data", {})
+            study_id = (
+                message_data.get("study_id") if isinstance(message_data, dict) else None
+            )
             if study_id and study_id == self.current_study_id:
-                message_concat = " ".join(
-                    [message[key] for key in ["sender_id", "body", "sent_at"]]
-                )
-                message_hash = hashlib.md5(message_concat.encode()).hexdigest()
+                message_hash = self._prolific_message_hash(message)
                 from psynet.redis import redis_vars
 
                 if redis_vars.get(message_hash, None) is None:
@@ -402,14 +332,34 @@ class ProlificRecruiter(
             exp = get_experiment()
             messages = [f"Found {len(relevant_messages)} unread messages"]
             for message in relevant_messages:
-                sender_id = message.get("sender_id")
-                body = message.get("body")
-                sent_at = message.get("sent_at")
+                sender_id = self._prolific_message_value(message, "sender_id")
+                body = self._prolific_message_value(message, "body")
+                sent_at = self._prolific_message_value(message, "sent_at")
                 msg = exp.notifier.bold("Message from Prolific") + ":\n"
                 msg += f"Sender: `{sender_id}` at {sent_at}\n"
                 msg += f"> {body}"
                 messages.append(msg)
-            exp.notifier.notify(exp.notifier.combine(messages))
+            exp.notifier.notify(exp.notifier.combine(*messages))
+
+    @staticmethod
+    def _prolific_message_value(message, key):
+        candidates = PROLIFIC_MESSAGE_FIELD_ALIASES.get(key, (key,))
+        for candidate in candidates:
+            if candidate in message:
+                return message[candidate]
+        return None
+
+    @classmethod
+    def _prolific_message_hash(cls, message):
+        fields = {
+            key: cls._prolific_message_value(message, key)
+            for key in ["id", "sender_id", "body", "sent_at"]
+        }
+        if not any(fields.values()):
+            fields = message
+
+        serialized = json.dumps(fields, sort_keys=True, default=str)
+        return hashlib.md5(serialized.encode()).hexdigest()
 
 
 class DevProlificRecruiter(
