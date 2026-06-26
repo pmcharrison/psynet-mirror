@@ -581,7 +581,7 @@
       psynet.setPageReady(true);
     };
 
-    psynet.prepareTimelineFragmentPayload = function (payload) {
+    psynet.prepareTimelineFragment = function (payload) {
       if (!payload || typeof payload.html !== "string" || payload.html === "") {
         throw new Error("Missing timeline fragment HTML payload.");
       }
@@ -607,30 +607,28 @@
         return { currentElement, nextElement };
       });
 
-      return { payload, template, replacements };
+      return {
+        payload,
+        template,
+        replacements,
+        stylesheetLinks: psynet.getPageCssLinks(template.content),
+      };
     };
 
-    psynet.preloadTimelineFragmentStyles = async function (preparedPayload) {
-      await psynet.preloadStylesheetLinks(
-        psynet.getPageCssLinks(preparedPayload.template.content),
-      );
+    psynet.preloadTimelineFragmentAssets = async function (fragment) {
+      await psynet.preloadStylesheetLinks(fragment.stylesheetLinks);
     };
 
-    psynet.applyTimelineFragmentPayload = function (payloadOrPreparedPayload) {
-      let preparedPayload =
-        payloadOrPreparedPayload && payloadOrPreparedPayload.template
-          ? payloadOrPreparedPayload
-          : psynet.prepareTimelineFragmentPayload(payloadOrPreparedPayload);
+    psynet.commitTimelineFragment = function (fragment) {
+      psynet.ensureStylesheetLinks(fragment.template.content);
+      psynet.applyInlinePageStyles(fragment.template.content);
 
-      psynet.ensureStylesheetLinks(preparedPayload.template.content);
-      psynet.applyInlinePageStyles(preparedPayload.template.content);
-
-      preparedPayload.replacements.forEach(({ currentElement, nextElement }) => {
+      fragment.replacements.forEach(({ currentElement, nextElement }) => {
         currentElement.replaceWith(nextElement);
       });
 
-      if (preparedPayload.payload.page_uuid !== undefined) {
-        window.pageUuid = preparedPayload.payload.page_uuid;
+      if (fragment.payload.page_uuid !== undefined) {
+        window.pageUuid = fragment.payload.page_uuid;
       }
     };
 
@@ -643,15 +641,11 @@
       psynet.resetPageState();
     };
 
-    psynet.activateTimelineFragmentLifecycle = async function (options = {}) {
+    psynet.activateTimelineFragmentLifecycle = async function () {
       // A full page reload used to clear old handlers, globals, and transient
       // page state automatically. In inplace mode we must recreate that
       // lifecycle explicitly before we can mark the new page as ready.
       psynet.refreshTemplateData();
-      if (!options.stylesAlreadyApplied) {
-        psynet.ensureStylesheetLinks();
-        psynet.applyInlinePageStyles();
-      }
       await psynet.rebuildTrial();
       await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
       // External body scripts are normally document-level libraries. They
@@ -676,12 +670,10 @@
       psynet.setTimelineTransitionBusy(true);
       try {
         await psynet.deactivateTimelineFragmentLifecycle();
-        let preparedPayload = psynet.prepareTimelineFragmentPayload(payload);
-        await psynet.preloadTimelineFragmentStyles(preparedPayload);
-        psynet.applyTimelineFragmentPayload(preparedPayload);
-        await psynet.activateTimelineFragmentLifecycle({
-          stylesAlreadyApplied: true,
-        });
+        let fragment = psynet.prepareTimelineFragment(payload);
+        await psynet.preloadTimelineFragmentAssets(fragment);
+        psynet.commitTimelineFragment(fragment);
+        await psynet.activateTimelineFragmentLifecycle();
       } catch (error) {
         await psynet.handleTimelineTransitionFailure(error);
         throw error;
