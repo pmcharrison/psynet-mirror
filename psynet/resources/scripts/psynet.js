@@ -519,7 +519,12 @@
       }
     };
 
-    psynet.preloadStylesheetLinks = async function (links, timeoutMs = 10000) {
+    const STYLESHEET_PRELOAD_TIMEOUT_MS = 10000;
+
+    psynet.preloadStylesheetLinks = async function (
+      links,
+      timeoutMs = STYLESHEET_PRELOAD_TIMEOUT_MS,
+    ) {
       let uniqueHrefs = Array.from(
         new Set(
           links.map((link) => new URL(link.href, window.location.href).href),
@@ -541,6 +546,8 @@
               let preload = document.createElement("link");
               let timeout = setTimeout(() => {
                 preload.remove();
+                // Treat slow page-local CSS as a transition failure so participants
+                // never see a page whose appearance depends on missing styles.
                 reject(new Error("Timed out preloading stylesheet " + href + "."));
               }, timeoutMs);
 
