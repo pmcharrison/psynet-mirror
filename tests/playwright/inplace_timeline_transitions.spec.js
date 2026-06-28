@@ -197,6 +197,84 @@ test("in-place timeline transitions preload linked CSS before swapping DOM", asy
   });
 });
 
+test("in-place timeline transitions manage stylesheets that target shell elements", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/deferred_page_scripts"
+  );
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+    await waitForMainBodyContains(experimentPage, "First page", STEP_TIMEOUT_MS);
+
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+    await waitForMainBodyContains(
+      experimentPage,
+      "Deferred page script lifecycle page",
+      STEP_TIMEOUT_MS
+    );
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+    await waitForMainBodyContains(
+      experimentPage,
+      "Styled custom template page",
+      STEP_TIMEOUT_MS
+    );
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+    await waitForMainBodyContains(
+      experimentPage,
+      "Repeated linked page script lifecycle page",
+      STEP_TIMEOUT_MS
+    );
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+    await waitForMainBodyContains(experimentPage, "Cleanup page", STEP_TIMEOUT_MS);
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+
+    await waitForMainBodyContains(
+      experimentPage,
+      "Shell stylesheet page",
+      STEP_TIMEOUT_MS
+    );
+    await expect
+      .poll(
+        () =>
+          hasManagedStylesheet(
+            experimentPage,
+            "/static/shell-stylesheet-page.css"
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(true);
+    await expect(experimentPage.locator("#timeline-progress-bar")).toHaveCSS(
+      "border-bottom-width",
+      "9px"
+    );
+
+    await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
+    await waitForMainBodyContains(
+      experimentPage,
+      "Shell stylesheet cleanup page",
+      STEP_TIMEOUT_MS
+    );
+    await expect
+      .poll(
+        () =>
+          hasManagedStylesheet(
+            experimentPage,
+            "/static/shell-stylesheet-page.css"
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(false);
+    await expect(experimentPage.locator("#timeline-progress-bar")).toHaveCSS(
+      "border-bottom-width",
+      "0px"
+    );
+  });
+});
+
 test("legacy response handler errors do not use SPA fragment failure UI", async ({
   page,
   context

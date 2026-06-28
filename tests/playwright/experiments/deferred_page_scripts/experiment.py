@@ -84,4 +84,21 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=1,
         ),
+        InfoPage(
+            Markup(
+                """
+                <p id="shell-stylesheet-marker">Shell stylesheet page</p>
+                """
+            ),
+            time_estimate=1,
+            css_links=["/static/shell-stylesheet-page.css"],
+        ),
+        InfoPage(
+            Markup(
+                """
+                <p>Shell stylesheet cleanup page</p>
+                """
+            ),
+            time_estimate=1,
+        ),
     )
