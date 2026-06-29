@@ -226,7 +226,8 @@ def page_loaded(driver):
     return driver.execute_script("return document.readyState == 'complete'")
 
 
-def psynet_loaded(driver):
+def psynet_page_ready(driver):
+    """Return whether the current PsyNet page lifecycle is ready."""
     return driver.execute_script(
         """
         const psynet = window.psynet;
@@ -238,32 +239,77 @@ def psynet_loaded(driver):
                 document.querySelector("#main-body[data-page-ready]") !== null &&
                 typeof window.pageUuid !== "undefined";
         }
-        // Legacy pages used responseEnable as a broad "ready to advance" signal.
-        // Prefer pageReady for new timeline code; keep this fallback until the
-        // full-page transition path is retired.
         return psynet.pageLoaded === true &&
-            psynet.trial?.events?.responseEnable?.happened === true;
+            typeof window.pageUuid !== "undefined";
         """
     )
+
+
+def psynet_trial_event_ready(driver, event_id):
+    """Return whether a PsyNet trial event has happened on the current page."""
+    return driver.execute_script(
+        """
+        const psynet = window.psynet;
+        return psynet?.trial?.events?.[arguments[0]]?.happened === true;
+        """,
+        event_id,
+    )
+
+
+def psynet_response_ready(driver):
+    """Return whether response controls may be used on the current page."""
+    return psynet_page_ready(driver) and psynet_trial_event_ready(
+        driver, "responseEnable"
+    )
+
+
+def psynet_submit_ready(driver):
+    """Return whether submit controls may be used on the current page."""
+    return psynet_page_ready(driver) and psynet_trial_event_ready(
+        driver, "submitEnable"
+    )
+
+
+def psynet_loaded(driver):
+    """Backward-compatible alias for page lifecycle readiness."""
+    return psynet_page_ready(driver)
 
 
 def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0):
     def get_uuid():
         return driver.execute_script("return window.pageUuid")
 
-    def click_button():
-        button = driver.find_element(by, button_identifier)
-        button.click()
+    def find_button():
+        return driver.find_element(by, button_identifier)
+
+    def target_ready_to_click():
+        try:
+            button = find_button()
+        except NoSuchElementException:
+            return False
+        classes = button.get_attribute("class") or ""
+        # Page readiness and response/submit readiness are distinct: many pages
+        # finish loading before their controls are intentionally enabled.
+        if "response" in classes.split() and not psynet_response_ready(driver):
+            return False
+        if "submit" in classes.split() and not psynet_submit_ready(driver):
+            return False
+        return button.is_displayed() and button.is_enabled()
 
     wait_until(
-        psynet_loaded,
+        psynet_page_ready,
         max_wait=max_wait,
         error_message="Page never became ready.",
         driver=driver,
     )
+    wait_until(
+        target_ready_to_click,
+        max_wait=max_wait,
+        error_message=f"Button {button_identifier!r} never became ready to click.",
+    )
 
     old_uuid = get_uuid()
-    click_button()
+    find_button().click()
     if finished:
         wait_until(
             lambda: "recruiter-exit" in driver.current_url,
@@ -277,7 +323,7 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
             )
 
         wait_until(
-            lambda: psynet_loaded(driver) and get_uuid() != old_uuid,
+            lambda: psynet_page_ready(driver) and get_uuid() != old_uuid,
             max_wait=max_wait,
             error_message="Failed to load new page.",
         )
