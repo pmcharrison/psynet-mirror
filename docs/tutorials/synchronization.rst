@@ -39,6 +39,10 @@ code as follows:
 
 If the participant is a member of multiple active SyncGroups, then they can be accessed
 via ``participant.active_sync_groups``, which takes the form of a dictionary keyed by ``group_type``.
+Note that ``participant.sync_group`` raises an error in this multi-group case, so within a
+synchronised trial maker it is safer to use ``self.sync_group``
+(:attr:`Trial.sync_group <psynet.trial.main.Trial.sync_group>`), which always resolves to the
+group matching that trial maker's ``sync_group_type``.
 The full list of participants within the SyncGroup can then be accessed (and modified)
 via ``sync_group.participants``, which is a list.
 The order of ``sync_group.participants`` is not guaranteed. If you need a stable ordering
