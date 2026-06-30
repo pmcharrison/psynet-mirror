@@ -234,11 +234,17 @@ def psynet_page_ready(driver):
         if (!psynet || psynet.nextPagePending === true) {
             return false;
         }
+        // New in-place timeline pages expose an explicit lifecycle readiness
+        // flag. The DOM marker confirms that the swapped fragment has updated
+        // the visible page body, and pageUuid is needed for transition checks.
         if (typeof psynet.pageReady !== "undefined") {
             return psynet.pageReady === true &&
                 document.querySelector("#main-body[data-page-ready]") !== null &&
                 typeof window.pageUuid !== "undefined";
         }
+        // Legacy full-page loads do not define pageReady; pageLoaded is the
+        // older PsyNet lifecycle signal. Keep this fallback until those tests
+        // move fully to the in-place timeline contract.
         return psynet.pageLoaded === true &&
             typeof window.pageUuid !== "undefined";
         """
