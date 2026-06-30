@@ -81,7 +81,8 @@ def test_sync_trial_maker_initializes_participant_without_active_group():
         if getattr(elt, "label", None) == "init_participant"
     )
 
-    assert start_switch.get_target(experiment=None, participant=participant) is (
-        start_switch.targets[False]
+    assert (
+        start_switch.get_target(experiment=None, participant=participant)
+        is (start_switch.targets[False])
     )
     assert participant.branch_log == [["init_participant", False]]
