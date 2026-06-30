@@ -20,6 +20,7 @@ class DummyParticipant:
     def __init__(self):
         self.active_sync_groups = {}
         self.branch_log = []
+        self.module_state = None
 
     def append_branch_log(self, entry):
         self.branch_log.append(entry)
