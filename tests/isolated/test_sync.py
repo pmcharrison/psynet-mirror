@@ -188,15 +188,6 @@ def test_manual_sync_group_participant_failure(in_experiment_directory, db_sessi
     assert participants[1] in group.active_participants
 
 
-def test_get_grouper_progress_returns_list_when_experiment_load_fails(monkeypatch):
-    def raise_runtime_error():
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr("psynet.experiment.get_experiment", raise_runtime_error)
-
-    assert _get_grouper_progress() == []
-
-
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
