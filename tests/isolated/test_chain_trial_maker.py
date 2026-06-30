@@ -16,6 +16,15 @@ class CustomStaticTrial(StaticTrial):
     time_estimate = 1
 
 
+class DummyParticipant:
+    def __init__(self):
+        self.active_sync_groups = {}
+        self.branch_log = []
+
+    def append_branch_log(self, entry):
+        self.branch_log.append(entry)
+
+
 def make_trial_maker(**kwargs):
     args = dict(
         id_="test_trial_maker",
@@ -60,3 +69,18 @@ def test_static_trial_maker_error_mentions_nodes():
             recruit_mode="n_trials",
             target_trials_per_node=1,
         )
+
+
+def test_sync_trial_maker_initializes_participant_without_active_group():
+    trial_maker = make_trial_maker(sync_group_type="sync")
+    participant = DummyParticipant()
+    start_switch = next(
+        elt
+        for elt in trial_maker._init_participant()
+        if getattr(elt, "label", None) == "init_participant"
+    )
+
+    assert start_switch.get_target(experiment=None, participant=participant) is (
+        start_switch.targets[False]
+    )
+    assert participant.branch_log == [["init_participant", False]]

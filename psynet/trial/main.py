@@ -1355,6 +1355,7 @@ class TrialMaker(Module):
             # Otherwise we go ahead and initialize the participant.
             lambda participant: (
                 self.sync_group_type is not None
+                and self.sync_group_type in participant.active_sync_groups
                 and not self._leader_is_initialized(participant)
             ),
             logic_if_true=GroupBarrier(
