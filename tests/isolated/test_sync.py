@@ -8,7 +8,6 @@ from sqlalchemy import Column, String
 
 from psynet.dashboard.sync_groups import (
     _fail_sync_group_participant,
-    _get_grouper_progress,
     _kick_sync_group_participant,
 )
 from psynet.data import SQLBase
