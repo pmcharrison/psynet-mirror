@@ -76,14 +76,14 @@ def render_sync_groups_dashboard(**context):
     app.register_blueprint(dashboard)
 
     with app.test_request_context():
-        return render_template(
-            "dashboard_sync_groups.html",
+        template_context = dict(
             title="Sync groups",
             groups=[],
             has_simple_groups=False,
             grouper_progress=[],
-            **context,
         )
+        template_context.update(context)
+        return render_template("dashboard_sync_groups.html", **template_context)
 
 
 processed_barriers = []
