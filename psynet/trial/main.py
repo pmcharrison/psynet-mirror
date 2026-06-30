@@ -536,6 +536,31 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         if self.trial_maker_id:
             return get_trial_maker(self.trial_maker_id)
 
+    @property
+    def sync_group(self) -> Optional[SyncGroup]:
+        """
+        The :class:`~psynet.sync.SyncGroup` that this trial's participant belongs
+        to for this trial maker, or ``None`` if the trial maker is not
+        synchronised (i.e. its ``sync_group_type`` is ``None``).
+
+        This is the recommended way to obtain a trial's sync group. Unlike
+        :attr:`psynet.participant.Participant.sync_group`, it is safe to use when
+        the participant is simultaneously a member of several sync groups (for
+        example when multiple synchronised trial makers run in the same
+        experiment), because it selects the group matching this trial maker's
+        ``sync_group_type``. ``participant.sync_group`` instead raises an error
+        when more than one group is active.
+
+        A typical use is deriving a stable, per-group identifier such as a
+        chatroom ``room_id``::
+
+            room_id=f"room_{self.sync_group.id}"
+        """
+        sync_group_type = self.trial_maker.sync_group_type
+        if sync_group_type is None:
+            return None
+        return self.participant.active_sync_groups[sync_group_type]
+
     def _allocate_performance_reward(self):
         reward = self.compute_performance_reward(score=self.score)
         assert isinstance(reward, (float, int))
