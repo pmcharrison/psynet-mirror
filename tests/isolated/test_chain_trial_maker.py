@@ -18,6 +18,7 @@ class CustomStaticTrial(StaticTrial):
 
 class DummyParticipant:
     def __init__(self):
+        self.id = 1
         self.active_sync_groups = {}
         self.branch_log = []
         self.module_state = None
@@ -72,7 +73,7 @@ def test_static_trial_maker_error_mentions_nodes():
         )
 
 
-def test_sync_trial_maker_initializes_participant_without_active_group():
+def test_sync_trial_maker_requires_active_group_for_synced_participant():
     trial_maker = make_trial_maker(sync_group_type="sync")
     participant = DummyParticipant()
     start_switch = next(
@@ -81,8 +82,7 @@ def test_sync_trial_maker_initializes_participant_without_active_group():
         if getattr(elt, "label", None) == "init_participant"
     )
 
-    assert (
+    with pytest.raises(RuntimeError, match="active sync group of type 'sync'"):
         start_switch.get_target(experiment=None, participant=participant)
-        is (start_switch.targets[False])
-    )
-    assert participant.branch_log == [["init_participant", False]]
+
+    assert participant.branch_log == []
