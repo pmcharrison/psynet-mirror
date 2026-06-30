@@ -245,31 +245,6 @@ def psynet_page_ready(driver):
     )
 
 
-def psynet_trial_event_ready(driver, event_id):
-    """Return whether a PsyNet trial event has happened on the current page."""
-    return driver.execute_script(
-        """
-        const psynet = window.psynet;
-        return psynet?.trial?.events?.[arguments[0]]?.happened === true;
-        """,
-        event_id,
-    )
-
-
-def psynet_response_ready(driver):
-    """Return whether response controls may be used on the current page."""
-    return psynet_page_ready(driver) and psynet_trial_event_ready(
-        driver, "responseEnable"
-    )
-
-
-def psynet_submit_ready(driver):
-    """Return whether submit controls may be used on the current page."""
-    return psynet_page_ready(driver) and psynet_trial_event_ready(
-        driver, "submitEnable"
-    )
-
-
 def psynet_loaded(driver):
     """Backward-compatible alias for page lifecycle readiness."""
     return psynet_page_ready(driver)
@@ -286,13 +261,6 @@ def next_page(driver, button_identifier, by=By.ID, finished=False, max_wait=10.0
         try:
             button = find_button()
         except NoSuchElementException:
-            return False
-        classes = button.get_attribute("class") or ""
-        # Page readiness and response/submit readiness are distinct: many pages
-        # finish loading before their controls are intentionally enabled.
-        if "response" in classes.split() and not psynet_response_ready(driver):
-            return False
-        if "submit" in classes.split() and not psynet_submit_ready(driver):
             return False
         return button.is_displayed() and button.is_enabled()
 
