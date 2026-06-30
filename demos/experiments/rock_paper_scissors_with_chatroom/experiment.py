@@ -68,11 +68,18 @@ class RockPaperScissorsTrial(StaticTrial):
             )
             tags.h2("Now chat with your partner about the round you just played!")
 
+        # We derive the chatroom's room_id from this trial's own sync group
+        # (``self.sync_group``) rather than from ``participant.sync_group``.
+        # ``participant.sync_group`` only works when the participant belongs to a
+        # single active sync group and raises an error otherwise, whereas
+        # ``self.sync_group`` always resolves to the group that matches this
+        # trial maker's ``sync_group_type``. Both members of the group share the
+        # same ``self.sync_group.id``, so they land in the same room.
         return ModularPage(
             "results",
             prompt,
             chatroom=ChatRoom(
-                room_id=f"rps_room_{participant.sync_group.id}",
+                room_id=f"rps_room_{self.sync_group.id}",
                 show_participants=True,
                 show_history=True,
             ),
@@ -111,7 +118,7 @@ class RockPaperScissorsTrial(StaticTrial):
 
 
 class Exp(psynet.experiment.Experiment):
-    label = "Rock paper scissors demo"
+    label = "Rock paper scissors with chatroom demo"
 
     timeline = Timeline(
         EnableChatrooms(),

@@ -15,7 +15,7 @@ const MESSAGE_TIMEOUT_MS = 30000;
 
 /*
 Step summary:
-1. Start one chatrooms demo backend and create two isolated browser contexts.
+1. Start one websocket_chatroom demo backend and create two isolated browser contexts.
 2. Each participant clears the gateway/consent flow and joins Room 1.
 3. Participant A sends a message; both participants see it in the live chat feed.
 4. Participant B replies; both participants see the reply.
@@ -119,12 +119,12 @@ async function expectPersistedMessages(page, expectedContents) {
     .toEqual(expect.arrayContaining(expectedContents));
 }
 
-test("chatrooms demo relays and persists messages between two participants", async ({
+test("websocket_chatroom demo relays and persists messages between two participants", async ({
   browser,
   page,
   context
 }) => {
-  const absDir = path.resolve("demos/experiments/chatrooms");
+  const absDir = path.resolve("demos/features/websocket_chatroom");
   const { proc, urlPromise } = startExperiment(absDir);
   const secondContext = await browser.newContext();
   const secondBootstrapPage = await secondContext.newPage();
