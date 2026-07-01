@@ -16,18 +16,20 @@ machinery, exactly as the ``ChatRoom`` component does
 * :class:`EnableRockPaperScissors` is a :class:`~psynet.timeline.WebSocketElt`
   placed in the timeline. It subscribes the experiment to a Redis channel and
   receives every ``choose`` message. Once both players have submitted a move for
-  the current round it computes the outcome and broadcasts an authoritative
-  snapshot back to both browsers.
+  the current round it scores the round and sends each player a ready-to-render
+  snapshot (the result line, scoreboard, and next status) addressed to them.
 * :class:`RockPaperScissorsControl` is a :class:`~psynet.modular_page.Control`
   backed by a small custom template that renders the buttons and connects to the
   channel with the same ``ReconnectingWebSocket`` relay (``/chat``) used by the
   chatroom component.
 
-The server is the sole authority for the game state: the browser only renders
-the snapshots it receives. Moves are persisted to the ``RockPaperScissorsMove``
-table (the raw event log), while the authoritative overall score is recomputed
-from the submitted moves inside a :class:`~psynet.sync.GroupBarrier` on release,
-so the flow is also fully testable with non-WebSocket bots.
+The server is the sole authority for the game state; the browser only sends the
+chosen action and drops the server's snapshot text into the page, so there is
+almost no game logic in JavaScript. Moves are persisted to the
+``RockPaperScissorsMove`` table (the raw event log), while the authoritative
+overall score is recomputed from the submitted moves inside a
+:class:`~psynet.sync.GroupBarrier` on release, so the flow is also fully testable
+with non-WebSocket bots.
 """
 
 import json
@@ -148,26 +150,48 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
         self._broadcast_reveal(experiment, room_id, round_number, this_round)
 
     def _broadcast_reveal(self, experiment, room_id, round_number, this_round):
-        """Send both players an authoritative snapshot of the completed round."""
+        """Send each player a ready-to-render snapshot of the completed round.
+
+        The server owns all game state, so it does the scoring and even builds
+        the display strings; the browser just drops them into the page. Each
+        snapshot is addressed to one participant (``target``) with their own
+        point of view already resolved.
+        """
         pids = sorted(this_round.keys())
-        round_scores = {
-            pids[0]: score_round(this_round[pids[0]], this_round[pids[1]]),
-            pids[1]: score_round(this_round[pids[1]], this_round[pids[0]]),
-        }
-        total_scores = self._cumulative_scores(room_id, round_number, pids)
-        experiment.publish_to_subscribers(
-            json.dumps(
-                {
-                    "type": "reveal",
-                    "room_id": room_id,
-                    "round": round_number,
-                    "moves": {str(pid): this_round[pid] for pid in pids},
-                    "round_scores": {str(pid): round_scores[pid] for pid in pids},
-                    "total_scores": {str(pid): total_scores[pid] for pid in pids},
-                }
-            ),
-            channel_name=self.channel,
-        )
+        totals = self._cumulative_scores(room_id, round_number, pids)
+        finished = round_number >= N_ROUNDS
+        for me, partner in [(pids[0], pids[1]), (pids[1], pids[0])]:
+            delta = score_round(this_round[me], this_round[partner])
+            outcome = (
+                "you won the round!"
+                if delta > 0
+                else "you lost the round."
+                if delta < 0
+                else "the round was a draw."
+            )
+            snapshot = {
+                "type": "reveal",
+                "target": str(me),
+                "round": round_number + 1,
+                "result": (
+                    f"Round {round_number}: you played {this_round[me]}, "
+                    f"your partner played {this_round[partner]} — {outcome}"
+                ),
+                "scoreboard": (
+                    f"Score — you: {totals[me]}, partner: {totals[partner]}"
+                ),
+                "status": (
+                    "Game over!"
+                    if finished
+                    else f"Round {round_number + 1} of {N_ROUNDS}: choose your action."
+                ),
+                "finished": finished,
+            }
+            if finished:
+                snapshot["answer"] = self._participant_moves(room_id, me)
+            experiment.publish_to_subscribers(
+                json.dumps(snapshot), channel_name=self.channel
+            )
 
     @staticmethod
     def _cumulative_scores(room_id, up_to_round, pids):
@@ -185,6 +209,17 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
                 totals[pids[0]] += score_round(actions[pids[0]], actions[pids[1]])
                 totals[pids[1]] += score_round(actions[pids[1]], actions[pids[0]])
         return totals
+
+    @staticmethod
+    def _participant_moves(room_id, participant_id):
+        return [
+            move.action
+            for move in RockPaperScissorsMove.query.filter_by(
+                room_id=room_id, participant_id=participant_id
+            )
+            .order_by(RockPaperScissorsMove.round_number)
+            .all()
+        ]
 
 
 class RockPaperScissorsControl(Control):
