@@ -19,6 +19,7 @@ def test_s3_asset_preparation(in_experiment_directory, monkeypatch, tmp_path):
 
     try:
         exp = get_experiment()
+        exp.asset_storage.create_bucket(exp.asset_storage.s3_bucket)
         exp.asset_storage.delete_all()
         deployment_info.init(
             redeploying_from_archive=False,
