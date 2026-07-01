@@ -89,6 +89,13 @@ def get_s3_endpoint_url():
     return os.environ.get("PSYNET_S3_ENDPOINT_URL")
 
 
+def get_mock_s3_root():
+    """
+    Get the filesystem root for the test S3 mock, if configured.
+    """
+    return os.environ.get("PSYNET_MOCK_S3_ROOT")
+
+
 def get_s3_client_kwargs():
     """
     Build boto3 client/resource kwargs for custom S3 endpoints.
@@ -107,10 +114,22 @@ def get_s3_client_kwargs():
 
 
 def get_s3_client():
+    mock_s3_root = get_mock_s3_root()
+    if mock_s3_root:
+        from psynet.test_helpers.mock_s3 import get_mock_s3_client
+
+        return get_mock_s3_client(mock_s3_root)
+
     return boto3.client("s3", **get_aws_credentials(), **get_s3_client_kwargs())
 
 
 def get_s3_resource():
+    mock_s3_root = get_mock_s3_root()
+    if mock_s3_root:
+        from psynet.test_helpers.mock_s3 import get_mock_s3_resource
+
+        return get_mock_s3_resource(mock_s3_root)
+
     return boto3.resource("s3", **get_aws_credentials(), **get_s3_client_kwargs())
 
 

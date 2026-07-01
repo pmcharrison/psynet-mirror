@@ -210,6 +210,14 @@ class MockS3ObjectCollection:
         self.client._delete_prefix(self.bucket_name, self.prefix)
 
 
+class MockS3NoOpConfiguration:
+    def delete(self):
+        return None
+
+    def put(self, **_kwargs):
+        return None
+
+
 class MockS3Bucket:
     def __init__(self, client: MockS3Client, bucket_name: str):
         self.client = client
@@ -219,6 +227,12 @@ class MockS3Bucket:
     def Object(self, key: str):
         return MockS3ObjectSummary(self.client, self.bucket_name, key)
 
+    def Acl(self):
+        return MockS3NoOpConfiguration()
+
+    def Cors(self):
+        return MockS3NoOpConfiguration()
+
 
 class MockS3Resource:
     def __init__(self, client: MockS3Client):
@@ -227,6 +241,9 @@ class MockS3Resource:
 
     def Bucket(self, bucket_name: str):
         return MockS3Bucket(self.client, bucket_name)
+
+    def BucketPolicy(self, _bucket_name: str):
+        return MockS3NoOpConfiguration()
 
 
 @cache
