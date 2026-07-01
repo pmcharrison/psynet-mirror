@@ -101,7 +101,8 @@ def mock_s3_root(tmp_path, monkeypatch):
 
     This fixture monkeypatches current-process S3 helpers and sets
     ``PSYNET_MOCK_S3_ROOT``, so child processes such as ``psynet prepare`` use
-    the same mock too. See ``docs/developer/s3_testing.rst`` for details.
+    the same mock too. It verifies storage/export behavior, not public HTTP
+    access to generated S3 URLs.
     """
     root = tmp_path / "psynet-mock-s3"
     client = get_mock_s3_client(str(root))

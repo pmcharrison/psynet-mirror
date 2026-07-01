@@ -5,7 +5,10 @@ This helper intentionally implements only the boto surface exercised by the
 lightweight S3 tests: bucket creation, file upload/download/copy/delete, object
 metadata lookups, bucket object listings, and paginator-based object listings.
 
-See ``docs/developer/s3_testing.rst`` for setup options and limitations.
+Use the ``mock_s3_root`` pytest fixture to route both current-process and
+subprocess S3 calls to this filesystem-backed mock. The mock does not provide
+a public HTTP endpoint, so it verifies storage operations and exports, not
+browser reachability of generated ``https://s3.amazonaws.com`` URLs.
 """
 
 import shutil
