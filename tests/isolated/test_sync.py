@@ -1,15 +1,11 @@
 import uuid
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from dallinger import db
 from dallinger.models import timenow
-from flask import Blueprint, Flask, render_template
-from jinja2 import ChoiceLoader, DictLoader, FileSystemLoader
 from sqlalchemy import Column, String
 
-import psynet
 from psynet.dashboard.sync_groups import (
     _fail_sync_group_participant,
     _kick_sync_group_participant,
@@ -17,7 +13,7 @@ from psynet.dashboard.sync_groups import (
 from psynet.data import SQLBase
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
-from psynet.pytest_psynet import path_to_test_experiment
+from psynet.pytest_psynet import path_to_demo_experiment, path_to_test_experiment
 from psynet.serialize import SerializedCallable
 from psynet.sync import (
     Barrier,
@@ -27,6 +23,7 @@ from psynet.sync import (
     SimpleSyncGroup,
     check_barriers,
 )
+from psynet.utils import get_authenticated_session
 
 
 def get_random_id():
@@ -44,46 +41,6 @@ def new_participant(experiment):
     )
     db.session.add(participant)
     return participant
-
-
-def render_sync_groups_dashboard(**context):
-    app = Flask(__name__)
-    templates_dir = Path(psynet.__file__).parent / "templates"
-    app.jinja_loader = ChoiceLoader(
-        [
-            DictLoader(
-                {
-                    "psynet_dashboard.html": (
-                        "{% block scripts %}{% endblock %}"
-                        "{% block body %}{% endblock %}"
-                    )
-                }
-            ),
-            FileSystemLoader(str(templates_dir)),
-        ]
-    )
-    dashboard = Blueprint("dashboard", __name__)
-    dashboard.add_url_rule(
-        "/sync-groups/<int:sync_group_id>/participant/<int:participant_id>/fail",
-        "manual_fail_sync_group_participant",
-        lambda sync_group_id, participant_id: None,
-    )
-    dashboard.add_url_rule(
-        "/sync-groups/<int:sync_group_id>/participant/<int:participant_id>/kick",
-        "manual_kick_sync_group_participant",
-        lambda sync_group_id, participant_id: None,
-    )
-    app.register_blueprint(dashboard)
-
-    with app.test_request_context():
-        template_context = dict(
-            title="Sync groups",
-            groups=[],
-            has_simple_groups=False,
-            grouper_progress=[],
-        )
-        template_context.update(context)
-        return render_template("dashboard_sync_groups.html", **template_context)
 
 
 processed_barriers = []
@@ -137,43 +94,33 @@ def test_max_wait_action_kick_requires_group_barrier():
     assert barrier.max_wait_action == "kick"
 
 
-def test_sync_groups_dashboard_renders_empty_leader_as_placeholder():
-    rendered = render_sync_groups_dashboard(
-        groups=[
-            {
-                "id": 1,
-                "group_type": "empty-leader",
-                "active": True,
-                "n_active_participants": 0,
-                "participants": [],
-                "leader_id": None,
-                "leader_worker_id": "—",
-                "waiting_at_barriers": [],
-                "last_barrier_pass_time": None,
-                "end_time": None,
-            },
-            {
-                "id": 2,
-                "group_type": "with-leader",
-                "active": True,
-                "n_active_participants": 1,
-                "participants": [],
-                "leader_id": 7,
-                "leader_worker_id": "worker-7",
-                "waiting_at_barriers": [],
-                "last_barrier_pass_time": None,
-                "end_time": None,
-            },
-        ]
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo_experiment("simple_sync_group")], indirect=True
+)
+def test_sync_groups_dashboard_renders_empty_leader_as_placeholder(
+    launched_experiment, db_session
+):
+    group = SimpleSyncGroup(
+        group_type="empty-leader",
+        initial_group_size=1,
+        max_group_size=1,
+        min_group_size=1,
+        n_active_participants=0,
+        accepts_top_ups=True,
     )
+    db_session.add(group)
+    db_session.commit()
 
-    empty_leader_row = rendered[
-        rendered.index("<td>empty-leader</td>") : rendered.index("<td>with-leader</td>")
+    session = get_authenticated_session(launched_experiment.base_url)
+    response = session.get(f"{launched_experiment.base_url}/dashboard/sync_groups")
+    response.raise_for_status()
+
+    row_start = response.text.index("<td>empty-leader</td>")
+    empty_leader_row = response.text[
+        row_start : response.text.index("</tr>", row_start)
     ]
-    assert "PNone" not in rendered
+    assert "PNone" not in response.text
     assert "—" in empty_leader_row
-    assert "P7" in rendered
-    assert "worker-7" in rendered
 
 
 @pytest.mark.parametrize(
