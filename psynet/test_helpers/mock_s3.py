@@ -5,16 +5,7 @@ This helper intentionally implements only the boto surface exercised by the
 lightweight S3 tests: bucket creation, file upload/download/copy/delete, object
 metadata lookups, bucket object listings, and paginator-based object listings.
 
-Tests can use this mock in two ways. For code that runs in the current pytest
-process, monkeypatch the S3 helpers to return ``get_mock_s3_client`` and
-``get_mock_s3_resource``. For code that runs in a subprocess, set
-``PSYNET_MOCK_S3_ROOT`` so PsyNet's S3 helpers create filesystem-backed clients
-inside the child process too.
-
-The mock stores objects on disk and does not provide a public HTTP endpoint.
-It can verify S3-style storage operations such as upload, listing, download,
-and export, but it cannot verify that generated ``https://s3.amazonaws.com``
-URLs are reachable by browsers or other HTTP clients.
+See ``docs/developer/s3_testing.rst`` for setup options and limitations.
 """
 
 import shutil

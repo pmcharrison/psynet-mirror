@@ -11,5 +11,6 @@ Contributing to PsyNet
    updating_documentation
    ../tutorials/internationalization
    running_tests
+   s3_testing
    asv_performance_tests
    making_a_release
