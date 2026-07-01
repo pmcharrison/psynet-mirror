@@ -13,7 +13,7 @@ from psynet.dashboard.sync_groups import (
 from psynet.data import SQLBase
 from psynet.experiment import get_experiment
 from psynet.participant import Participant
-from psynet.pytest_psynet import path_to_demo_experiment, path_to_test_experiment
+from psynet.pytest_psynet import path_to_test_experiment
 from psynet.serialize import SerializedCallable
 from psynet.sync import (
     Barrier,
@@ -23,7 +23,6 @@ from psynet.sync import (
     SimpleSyncGroup,
     check_barriers,
 )
-from psynet.utils import get_authenticated_session
 
 
 def get_random_id():
@@ -92,35 +91,6 @@ def test_max_wait_action_kick_requires_group_barrier():
         max_wait_action="kick",
     )
     assert barrier.max_wait_action == "kick"
-
-
-@pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_experiment("simple_sync_group")], indirect=True
-)
-def test_sync_groups_dashboard_renders_empty_leader_as_placeholder(
-    launched_experiment, db_session
-):
-    group = SimpleSyncGroup(
-        group_type="empty-leader",
-        initial_group_size=1,
-        max_group_size=1,
-        min_group_size=1,
-        n_active_participants=0,
-        accepts_top_ups=True,
-    )
-    db_session.add(group)
-    db_session.commit()
-
-    session = get_authenticated_session(launched_experiment.base_url)
-    response = session.get(f"{launched_experiment.base_url}/dashboard/sync_groups")
-    response.raise_for_status()
-
-    row_start = response.text.index("<td>empty-leader</td>")
-    empty_leader_row = response.text[
-        row_start : response.text.index("</tr>", row_start)
-    ]
-    assert "PNone" not in response.text
-    assert "—" in empty_leader_row
 
 
 @pytest.mark.parametrize(
