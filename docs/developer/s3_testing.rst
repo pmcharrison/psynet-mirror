@@ -4,27 +4,20 @@ S3 testing strategies
 PsyNet has several ways to test code that normally talks to S3. Choose the
 smallest strategy that exercises the behavior you need.
 
-Filesystem-backed mock in the current process
----------------------------------------------
+Filesystem-backed mock fixture
+------------------------------
 
-Use ``artifact_storage_s3_test_root`` when the code under test runs in the same
-pytest process. This fixture monkeypatches PsyNet's S3 helper functions to use
-the lightweight filesystem-backed mock in ``psynet.test_helpers.mock_s3``.
+Use ``mock_s3_root`` when the code under test normally talks to S3. This fixture
+monkeypatches PsyNet's S3 helper functions in the current pytest process and
+sets ``PSYNET_MOCK_S3_ROOT`` so subprocesses, for example ``psynet prepare``,
+construct filesystem-backed mock S3 clients too.
 
 This strategy is fast and isolated. It is appropriate for unit and integration
 tests that need S3-style upload, listing, metadata, download, copy, delete, or
 export behavior.
 
-Filesystem-backed mock in subprocesses
---------------------------------------
-
-Use ``subprocess_mock_s3_root`` when the code under test starts a child process,
-for example via ``psynet prepare``. This fixture sets ``PSYNET_MOCK_S3_ROOT``,
-which makes PsyNet's S3 helper functions construct filesystem-backed mock S3
-clients inside subprocesses too.
-
 Tests using this strategy should assert durable evidence that the mock was used,
-for example that files were written under ``subprocess_mock_s3_root``.
+for example that files were written under ``mock_s3_root``.
 
 Limitations of the filesystem-backed mock
 -----------------------------------------

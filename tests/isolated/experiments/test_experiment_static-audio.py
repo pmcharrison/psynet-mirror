@@ -13,7 +13,7 @@ from psynet.pytest_psynet import path_to_test_experiment
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("static_audio")], indirect=True
 )
-def test_s3_asset_preparation(in_experiment_directory, subprocess_mock_s3_root):
+def test_s3_asset_preparation(in_experiment_directory, mock_s3_root):
     exp = get_experiment()
     exp.asset_storage.delete_all()
     deployment_info.init(
@@ -32,7 +32,7 @@ def test_s3_asset_preparation(in_experiment_directory, subprocess_mock_s3_root):
         assert asset.url.startswith("https://s3")
 
     mock_storage_root = (
-        subprocess_mock_s3_root / exp.asset_storage.s3_bucket / exp.asset_storage.root
+        mock_s3_root / exp.asset_storage.s3_bucket / exp.asset_storage.root
     )
     assert any(path.is_file() for path in mock_storage_root.rglob("*"))
 

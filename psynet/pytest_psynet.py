@@ -95,37 +95,27 @@ def assert_text(driver, element_id, value):
 
 
 @pytest.fixture
-def artifact_storage_s3_test_root(tmp_path, monkeypatch):
-    root = str(tmp_path / "psynet-artifact-storage-s3-test")
-    client = get_mock_s3_client(root)
-    resource = get_mock_s3_resource(root)
+def mock_s3_root(tmp_path, monkeypatch):
+    """
+    Configure the filesystem-backed S3 mock for PsyNet tests.
+
+    This fixture monkeypatches current-process S3 helpers and sets
+    ``PSYNET_MOCK_S3_ROOT``, so child processes such as ``psynet prepare`` use
+    the same mock too. See ``docs/developer/s3_testing.rst`` for details.
+    """
+    root = tmp_path / "psynet-mock-s3"
+    client = get_mock_s3_client(str(root))
+    resource = get_mock_s3_resource(str(root))
+
+    monkeypatch.setenv("PSYNET_MOCK_S3_ROOT", str(root))
     monkeypatch.setattr(psynet_asset, "get_s3_client", lambda: client)
     monkeypatch.setattr(psynet_asset, "get_s3_resource", lambda: resource)
     monkeypatch.setattr(psynet_asset, "get_s3_bucket", resource.Bucket)
     monkeypatch.setattr(psynet_artifact, "get_s3_client", lambda: client)
     psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
+
     try:
         client.create_bucket(Bucket="psynet-tests")
-        yield root
-    finally:
-        psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
-
-
-@pytest.fixture
-def subprocess_mock_s3_root(tmp_path, monkeypatch):
-    """
-    Configure the filesystem-backed S3 mock for code running in subprocesses.
-
-    This fixture sets ``PSYNET_MOCK_S3_ROOT`` rather than monkeypatching Python
-    objects, so child processes such as ``psynet prepare`` use the mock too.
-    It validates storage/export behavior, but not public HTTP access to the
-    generated S3 URLs. See ``docs/developer/s3_testing.rst`` for details.
-    """
-    root = tmp_path / "psynet-mock-s3"
-    monkeypatch.setenv("PSYNET_MOCK_S3_ROOT", str(root))
-    psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
-    try:
-        get_mock_s3_client(str(root)).create_bucket(Bucket="psynet-tests")
         yield root
     finally:
         psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
@@ -805,7 +795,7 @@ def _debug_click_interception(driver, element):
 
 
 @pytest.fixture(params=["local", "s3"])
-def artifact_storage(request, tmp_path, artifact_storage_s3_test_root):
+def artifact_storage(request, tmp_path, mock_s3_root):
     if request.param == "local":
         yield LocalArtifactStorage(str(tmp_path))
     elif request.param == "s3":
