@@ -6,7 +6,9 @@ from psynet.utils import get_authenticated_session
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", [path_to_demo_experiment("simple_sync_group")], indirect=True
+    "experiment_directory",
+    [path_to_demo_experiment("simple_sync_group")],
+    indirect=True,
 )
 def test_sync_groups_dashboard_renders_empty_leader_as_placeholder(
     launched_experiment, db_session
