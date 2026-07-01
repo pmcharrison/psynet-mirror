@@ -111,6 +111,21 @@ def artifact_storage_s3_test_root(tmp_path, monkeypatch):
         psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
 
 
+@pytest.fixture
+def subprocess_mock_s3_root(tmp_path, monkeypatch):
+    """
+    Configure the filesystem-backed S3 mock for code running in subprocesses.
+    """
+    root = tmp_path / "psynet-mock-s3"
+    monkeypatch.setenv("PSYNET_MOCK_S3_ROOT", str(root))
+    psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
+    try:
+        get_mock_s3_client(str(root)).create_bucket(Bucket="psynet-tests")
+        yield root
+    finally:
+        psynet_asset.list_files_in_s3_bucket__cached.cache_clear()
+
+
 def bot_class(headless=None):
     if headless is None:
         headless_env = os.getenv("HEADLESS", default="FALSE").upper()
