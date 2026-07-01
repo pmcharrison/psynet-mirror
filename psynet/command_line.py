@@ -15,7 +15,6 @@ from contextlib import contextmanager
 from hashlib import md5
 from importlib import resources
 from pathlib import Path
-from shutil import rmtree, which
 from urllib.parse import urlencode
 
 import click
@@ -39,7 +38,6 @@ from dallinger.version import __version__ as dallinger_version
 from sqlalchemy.exc import ProgrammingError
 from yaspin import yaspin
 
-from psynet import __path__ as psynet_path
 from psynet import __version__
 from psynet.dev.command_line import dev as _dev_command_group
 from psynet.version import (
@@ -821,6 +819,31 @@ def _debug_auto_reload(ctx, archive, no_browsers):
         reset_console()
 
 
+def _load_runtime_server_config(config=None, deployment_id=None):
+    config = config or get_config()
+    if not config.ready:
+        config.load()
+
+    # The debug server runs from Dallinger's generated development directory,
+    # whose config.txt includes runtime values such as dashboard credentials.
+    server_working_directory = redis_vars.get("server_working_directory", None)
+    if server_working_directory:
+        config.load_from_file(os.path.join(server_working_directory, "config.txt"))
+        return config
+
+    if deployment_id:
+        launch_info_path = (
+            Path("~/psynet-data/launch-data").expanduser()
+            / deployment_id
+            / "launch-info.json"
+        )
+        if launch_info_path.exists():
+            with open(launch_info_path, encoding="utf-8") as f:
+                config.extend(json.load(f))
+
+    return config
+
+
 def patch_dallinger_develop():
     from dallinger.deployment import DevelopmentDeployment
 
@@ -1286,43 +1309,6 @@ def _export_launch_info(directory, dashboard_user, dashboard_password, **kwargs)
             f,
             indent=4,
         )
-
-
-########
-# docs #
-########
-@psynet.command()
-@click.option(
-    "--force-rebuild",
-    "-f",
-    is_flag=True,
-    help="Force complete rebuild by deleting the '_build' directory",
-)
-def docs(force_rebuild):
-    """
-    Build the documentation.
-    """
-    docs_dir = os.path.join(psynet_path[0], "..", "docs")
-    docs_build_dir = os.path.join(docs_dir, "_build")
-    try:
-        os.chdir(docs_dir)
-    except FileNotFoundError as e:
-        log(
-            "There was an error building the documentation. Be sure to have activated your 'psynet' virtual environment."
-        )
-        raise SystemExit(e)
-    if os.path.exists(docs_build_dir) and force_rebuild:
-        rmtree(docs_build_dir)
-    os.chdir(docs_dir)
-    subprocess.run(["make", "html"])
-    if which("xdg-open") is not None:
-        open_command = "xdg-open"
-    else:
-        open_command = "open"
-    subprocess.run(
-        [open_command, os.path.join(docs_build_dir, "html/index.html")],
-        stdout=subprocess.DEVNULL,
-    )
 
 
 ##############
@@ -2116,6 +2102,14 @@ def _resolve_ssh_app(ctx, app, server):
     return resolved_app
 
 
+def _get_local_export_url(config):
+    try:
+        port = config.get("base_port")
+    except KeyError:
+        port = 5000
+    return f"http://127.0.0.1:{port}"
+
+
 def export_arguments(func):
     args = [
         click.option("--path", default=None, help="Path to export directory"),
@@ -2301,6 +2295,8 @@ def export_(
     config = get_config()
     if not config.ready:
         config.load()
+    if local:
+        _load_runtime_server_config(config, deployment_id=deployment_id)
 
     if path is None:
         path = experiment_class.export_path(deployment_id)
@@ -2328,7 +2324,12 @@ def export_(
 
     source_code_exported = False
     if not legacy:
-        experiment_url = get_experiment_url(app, server)
+        try:
+            experiment_url = get_experiment_url(app, server)
+        except KeyError:
+            if not local:
+                raise
+            experiment_url = _get_local_export_url(config)
         params = {
             "type": "psynet",
             "anonymize": anonymize,
@@ -2353,7 +2354,15 @@ def export_(
                 zip_ref.extractall(path)
             # Download source code unless --no-source was passed
             if not no_source:
-                _export_source_code(app, local, server, path, username, password)
+                _export_source_code(
+                    app,
+                    local,
+                    server,
+                    path,
+                    username,
+                    password,
+                    experiment_url=experiment_url,
+                )
             log(f"Export complete. You can find your results at: {path}")
         else:
             log(
@@ -2465,7 +2474,9 @@ def export_logs(app, server, export_path):
         log(f"Warning: Failed to export logs from {remote_logs_path}: {str(e)}")
 
 
-def _export_source_code(app, local, server, export_path, username, password):
+def _export_source_code(
+    app, local, server, export_path, username, password, experiment_url=None
+):
     import requests
 
     config = get_config()
@@ -2494,7 +2505,9 @@ def _export_source_code(app, local, server, export_path, username, password):
     log(
         "Downloading source code... (if this fails, you can skip this step by appending `--no-source` to your `psynet export` command)"
     )
-    if local:
+    if experiment_url:
+        url = experiment_url.rstrip("/")
+    elif local:
         url = "http://localhost:5000"
     else:
         if server:
@@ -3648,16 +3661,7 @@ def _run_performance_test_with_new_server(
     server_info = _start_local_server_and_wait_for_ready(debug=debug)
 
     try:
-        config = get_config()
-        if not config.ready:
-            config.load()
-
-        # Load runtime server config so dashboard credentials and URL settings
-        # match the launched debug instance.
-        server_working_directory = redis_vars.get("server_working_directory")
-        if server_working_directory:
-            config.load_from_file(os.path.join(server_working_directory, "config.txt"))
-
+        _load_runtime_server_config()
         _run_performance_test_with_existing_server(
             n_bots, stagger, time_factor, duration_minutes, debug, json_output
         )

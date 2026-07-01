@@ -358,6 +358,10 @@ def _async_target(participant):
     return None
 
 
+def _other_async_target(participant):
+    return None
+
+
 def _make_participant(stale_process=None):
     participant = MagicMock()
     participant.id = 42
@@ -367,18 +371,38 @@ def _make_participant(stale_process=None):
 
 def test_async_code_block_initiate__no_stale_process():
     block = AsyncCodeBlock(_async_target, wait=False)
+    code_block = MagicMock(id=["main", 3])
     participant = _make_participant(stale_process=None)
     new_process = MagicMock(name="new_process")
 
     with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
-        block.initiate(participant)
+        block.initiate(participant, code_block=code_block)
 
     ctor.assert_called_once()
+    assert ctor.call_args.kwargs["arguments"]["code_block_id"] == ["main", 3]
+    assert participant.awaited_async_code_block_process is new_process
+
+
+def test_async_code_block_initiate__stores_generated_code_block_id_from_timeline():
+    timeline = Timeline(AsyncCodeBlock(_async_target, wait=False))
+    code_block = timeline.elts["main"][0]
+    participant = _make_participant(stale_process=None)
+    new_process = MagicMock(name="new_process")
+
+    assert isinstance(code_block, CodeBlock)
+    assert code_block.id == ["main", 0]
+
+    with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
+        code_block.consume(MagicMock(), participant)
+
+    ctor.assert_called_once()
+    assert ctor.call_args.kwargs["arguments"]["code_block_id"] == code_block.id
     assert participant.awaited_async_code_block_process is new_process
 
 
 def test_async_code_block_initiate__raises_when_previous_process_still_pending():
     block = AsyncCodeBlock(_async_target, wait=False)
+    code_block = MagicMock(id=["main", 3])
     stale = MagicMock(name="stale_process")
     stale.pending = True
     stale.failed = False
@@ -387,7 +411,77 @@ def test_async_code_block_initiate__raises_when_previous_process_still_pending()
 
     with patch("psynet.process.WorkerAsyncProcess") as ctor:
         with pytest.raises(RuntimeError, match="already has an async code block"):
-            block.initiate(participant)
+            block.initiate(participant, code_block=code_block)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+
+
+def test_async_code_block_initiate__waits_for_pending_process_when_waiting(caplog):
+    block = AsyncCodeBlock(_async_target, wait=True, expected_wait=1)
+    code_block = MagicMock(id=["main", 3])
+    stale = MagicMock(name="stale_process")
+    stale.id = 99
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    stale.arguments = {
+        "function": _async_target,
+        "code_block_id": ["main", 3],
+    }
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with caplog.at_level("WARNING"):
+            block.initiate(participant, code_block=code_block)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+    assert any(
+        "waiting for the existing process" in record.message
+        for record in caplog.records
+    ), (
+        f"Expected a duplicate-process warning, got: {[r.message for r in caplog.records]}"
+    )
+
+
+def test_async_code_block_initiate__raises_for_different_pending_waited_process():
+    block = AsyncCodeBlock(_async_target, wait=True, expected_wait=1)
+    code_block = MagicMock(id=["main", 3])
+    stale = MagicMock(name="stale_process")
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    stale.arguments = {
+        "function": _other_async_target,
+        "code_block_id": ["main", 3],
+    }
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with pytest.raises(RuntimeError, match="already has an async code block"):
+            block.initiate(participant, code_block=code_block)
+
+    ctor.assert_not_called()
+    assert participant.awaited_async_code_block_process is stale
+
+
+def test_async_code_block_initiate__raises_for_same_function_different_waited_process():
+    block = AsyncCodeBlock(_async_target, wait=True, expected_wait=1)
+    code_block = MagicMock(id=["main", 3])
+    stale = MagicMock(name="stale_process")
+    stale.pending = True
+    stale.failed = False
+    stale.finished = False
+    stale.arguments = {
+        "function": _async_target,
+        "code_block_id": ["main", 4],
+    }
+    participant = _make_participant(stale_process=stale)
+
+    with patch("psynet.process.WorkerAsyncProcess") as ctor:
+        with pytest.raises(RuntimeError, match="already has an async code block"):
+            block.initiate(participant, code_block=code_block)
 
     ctor.assert_not_called()
     assert participant.awaited_async_code_block_process is stale
@@ -405,13 +499,14 @@ def test_async_code_block_initiate__clears_stale_finished_or_failed_process(
     stale_state, caplog
 ):
     block = AsyncCodeBlock(_async_target, wait=False)
+    code_block = MagicMock(id=["main", 3])
     stale = MagicMock(name="stale_process", id=99, **stale_state)
     participant = _make_participant(stale_process=stale)
     new_process = MagicMock(name="new_process")
 
     with patch("psynet.process.WorkerAsyncProcess", return_value=new_process) as ctor:
         with caplog.at_level("WARNING"):
-            block.initiate(participant)
+            block.initiate(participant, code_block=code_block)
 
     ctor.assert_called_once()
     assert participant.awaited_async_code_block_process is new_process

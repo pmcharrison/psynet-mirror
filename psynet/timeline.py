@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Unio
 
 from dallinger import db
 from dominate import tags
+from jsonpickle.util import importable_name
 from markupsafe import Markup
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -30,7 +31,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonObject
-from .serialize import is_lambda_function
+from .serialize import is_lambda_function, prepare_function_for_serialization
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -323,6 +324,7 @@ class CodeBlock(Elt):
         call_function_with_context(
             self.function,
             self=self,
+            code_block=self,
             experiment=experiment,
             participant=participant,
         )
@@ -384,12 +386,22 @@ class AsyncCodeBlock(EltCollection):
             CodeBlock(self.wrap_up),
         )
 
-    def initiate(self, participant):
+    def initiate(self, participant, code_block):
         from psynet.process import WorkerAsyncProcess
 
+        code_block_id = code_block.id
         stale = participant.awaited_async_code_block_process
         if stale is not None:
             if stale.pending and not stale.failed:
+                if self.wait and self.matches_pending_process(stale, code_block_id):
+                    logger.warning(
+                        "Participant %s already has an async code block process "
+                        "(id=%s) pending; waiting for the existing process instead "
+                        "of starting a duplicate.",
+                        participant.id,
+                        stale.id,
+                    )
+                    return
                 raise RuntimeError(
                     "Participant already has an async code block process pending, this shouldn't happen."
                 )
@@ -413,8 +425,28 @@ class AsyncCodeBlock(EltCollection):
             call_function_with_context,
             label="AsyncCodeBlock",
             participant=participant,
-            arguments=dict(function=self.function, participant=participant),
+            arguments=dict(
+                function=self.function,
+                participant=participant,
+                code_block_id=code_block_id,
+            ),
         )
+
+    def matches_pending_process(self, process, code_block_id):
+        try:
+            pending_function = process.arguments["function"]
+            pending_code_block_id = process.arguments["code_block_id"]
+        except (KeyError, TypeError):
+            return False
+
+        return pending_code_block_id == code_block_id and self.function_key(
+            pending_function
+        ) == self.function_key(self.function)
+
+    @staticmethod
+    def function_key(function):
+        function, _ = prepare_function_for_serialization(function, {})
+        return importable_name(function)
 
     def wait_logic(self):
         from .page import wait_while

@@ -117,6 +117,7 @@ from .utils import (
     call_function,
     call_function_with_context,
     disable_logger,
+    ensure_experiment_directory_name_does_not_conflict,
     get_arg_from_dict,
     get_authenticated_session,
     get_logger,
@@ -1208,6 +1209,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @with_transaction
     def status_and_backups():
         # TODO: consider placing these in separate scheduled tasks
+        if not is_experiment_launched():
+            return
         exp = get_experiment()
         safe(exp.record_experiment_status)()
         if exp.automatic_backups:
@@ -4291,6 +4294,7 @@ def import_local_experiment():
     # import pdb; pdb.set_trace()
     #
     # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
+    ensure_experiment_directory_name_does_not_conflict()
     dallinger_get_config()
 
     import dallinger.experiment
