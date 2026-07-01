@@ -115,6 +115,11 @@ def artifact_storage_s3_test_root(tmp_path, monkeypatch):
 def subprocess_mock_s3_root(tmp_path, monkeypatch):
     """
     Configure the filesystem-backed S3 mock for code running in subprocesses.
+
+    This fixture sets ``PSYNET_MOCK_S3_ROOT`` rather than monkeypatching Python
+    objects, so child processes such as ``psynet prepare`` use the mock too.
+    It validates storage/export behavior, but not public HTTP access to the
+    generated S3 URLs.
     """
     root = tmp_path / "psynet-mock-s3"
     monkeypatch.setenv("PSYNET_MOCK_S3_ROOT", str(root))
