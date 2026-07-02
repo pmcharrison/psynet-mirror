@@ -93,20 +93,14 @@ class AssetParentMixin:
 
     def add_asset(self, local_key: str, asset: Asset):
         assert isinstance(asset, Asset)
-        asset._raise_if_detached()
-
-        if asset.parent is None:
-            asset.parent = self
-
-        asset.receive_node_definition(self.definition)
-        asset.local_key = local_key
+        asset.update_metadata(self, local_key, definition=self.definition)
         if self.id is None:
             # Ensure the trial has an ID before asset keys/depositing.
             db.session.flush([self])
         if asset.deposited:
-            asset.set_keys()
+            asset.ensure_keys_and_paths()
         else:
-            # deposit() will call set_keys() internally.
+            # deposit() will call ensure_keys_and_paths() internally.
             asset.deposit()
 
         self.assets[local_key] = asset
@@ -542,6 +536,18 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         if self.trial_maker_id:
             return get_trial_maker(self.trial_maker_id)
 
+    @property
+    def sync_group(self) -> Optional[SyncGroup]:
+        """
+        The :class:`~psynet.sync.SyncGroup` that this trial's participant belongs
+        to for this trial maker, or ``None`` if the trial maker is not
+        synchronised (i.e. its ``sync_group_type`` is ``None``).
+        """
+        sync_group_type = self.trial_maker.sync_group_type
+        if sync_group_type is None:
+            return None
+        return self.participant.active_sync_groups[sync_group_type]
+
     def _allocate_performance_reward(self):
         reward = self.compute_performance_reward(score=self.score)
         assert isinstance(reward, (float, int))
@@ -650,8 +656,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
 
     def finalize_assets(self):
         for _, asset in self.assets.items():
-            asset.receive_node_definition(self.definition)
             if not asset.deposited:
+                asset.receive_node_definition(self.definition)
                 asset.deposit()
 
     def show_trial(self, experiment, participant):
@@ -750,6 +756,8 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         return repeat_trial
 
     def check_if_can_mark_as_finalized(self):
+        if not self.complete:
+            return
         if self.finalized:
             return
         if self.failed:
@@ -1982,41 +1990,19 @@ class TrialMaker(Module):
         )
 
     def _wait_for_trial(self):
-        def _try_to_prepare_trial__solo(experiment, participant):
-            trial, trial_status = self._prepare_trial(experiment, participant)
-            participant.current_trial = trial
-            participant.trial_status = trial_status
-
-        def _try_to_prepare_trial__group(group: SyncGroup):
-            from ..experiment import get_experiment
-
-            experiment = get_experiment()
-
-            leader = group.leader
-
-            leader.current_trial, leader.trial_status = self._prepare_trial(
-                experiment=experiment, participant=group.leader
-            )
-            for follower in group.active_followers:
-                follower.current_trial, follower.trial_status = self._prepare_trial(
-                    experiment=experiment,
-                    participant=follower,
-                    leader=group.leader,
-                )
-
         def try_to_prepare_trial():
             if self.sync_group_type:
                 return join(
                     GroupBarrier(
                         id_="prepare_trial",
                         group_type=self.sync_group_type,
-                        on_release=_try_to_prepare_trial__group,
+                        on_release=self._try_to_prepare_trial_group,
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
                         max_wait_time=self.sync_group_max_wait_time,
                     )
                 )
             else:
-                return CodeBlock(_try_to_prepare_trial__solo)
+                return CodeBlock(self._try_to_prepare_trial_solo)
 
         return join(
             try_to_prepare_trial(),
@@ -2032,6 +2018,28 @@ class TrialMaker(Module):
                 fix_time_credit=False,
             ),
         )
+
+    def _try_to_prepare_trial_solo(self, experiment, participant):
+        trial, trial_status = self._prepare_trial(experiment, participant)
+        participant.current_trial = trial
+        participant.trial_status = trial_status
+
+    def _try_to_prepare_trial_group(self, group: SyncGroup):
+        from ..experiment import get_experiment
+
+        experiment = get_experiment()
+
+        leader = group.leader
+
+        leader.current_trial, leader.trial_status = self._prepare_trial(
+            experiment=experiment, participant=group.leader
+        )
+        for follower in group.active_followers:
+            follower.current_trial, follower.trial_status = self._prepare_trial(
+                experiment=experiment,
+                participant=follower,
+                leader=group.leader,
+            )
 
     max_time_waiting_for_trial = 60
 
