@@ -117,7 +117,7 @@ This updates `requirements.txt`, `constraints.txt`, Dockerfiles, and other
 generated files across all demos and tests to reference the new version.
 
 ```bash
-python3 demos/update_demos.py
+psynet dev experiments update
 ```
 
 This can take several minutes because it regenerates `constraints.txt` files.
@@ -330,7 +330,7 @@ Then regenerate demo and test experiment files so `master` demos track the
 current alpha version:
 
 ```bash
-python3 demos/update_demos.py
+psynet dev experiments update
 ```
 
 New changes on `master` should be recorded as fragments in `changelog.d/`.
@@ -403,7 +403,7 @@ git commit -m "Bump version to 13.2.0rc0"
 #### 3. Update demo and test experiments
 
 ```bash
-python3 demos/update_demos.py
+psynet dev experiments update
 git add -A
 git commit -m "Update demo and test experiments for PsyNet 13.2.0rc0"
 ```
@@ -579,7 +579,7 @@ RC by repeating the same four-commit sequence with the next RC number
    git commit -m "Bump version to 13.2.0rc1"
    ```
 
-3. Run `python3 demos/update_demos.py`.
+3. Run `psynet dev experiments update`.
 
    ```bash
    git add -A
@@ -615,7 +615,7 @@ Once the latest RC has been validated and no further changes are needed:
 2. Bump the version from `13.2.0rcN` to `13.2.0` in `psynet/version.py`
    and `pyproject.toml`.
 
-3. Run `python3 demos/update_demos.py`.
+3. Run `psynet dev experiments update`.
 
 4. Commit each step using the standard messages
    (`Update CHANGELOG for version 13.2.0`, `Bump version to 13.2.0`,
@@ -635,8 +635,8 @@ If this release upgrades the Dallinger dependency:
   (e.g. `dallinger[docker]>=12.2.0,<13`).
 - Update `recommended_dallinger_major_minor` in `psynet/version.py`.
 - Make sure the correct Dallinger version is installed in your environment
-  before running `demos/update_demos.py`, as the script uses it to resolve
-  constraint versions.
+  before running `psynet dev experiments update`, as the command uses it to
+  resolve constraint versions.
 
 ## Version files reference
 

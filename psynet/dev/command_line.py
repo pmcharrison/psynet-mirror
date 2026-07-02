@@ -229,9 +229,7 @@ def release_announce(version, channel, dry_run, dry_run_json):
             dry_run=dry_run,
             dry_run_json=dry_run_json,
         )
-    except ValueError as exc:
-        raise click.ClickException(str(exc)) from exc
-    except RuntimeError as exc:
+    except (ValueError, RuntimeError) as exc:
         raise click.ClickException(str(exc)) from exc
 
 

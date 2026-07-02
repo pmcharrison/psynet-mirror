@@ -65,7 +65,7 @@ def extract_changelog_section(version: str) -> str | None:
     headings = list(RELEASE_HEADING_RE.finditer(changelog))
 
     for i, match in enumerate(headings):
-        if version in match.group(0):
+        if f"[{version}]" in match.group(0):
             start = match.end()
             end = headings[i + 1].start() if i + 1 < len(headings) else len(changelog)
             return changelog[start:end].strip()
@@ -266,7 +266,8 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
         docs_url = "https://psynetdev.gitlab.io/PsyNet/"
         versioned_docs_url = f"https://psynetdev.gitlab.io/PsyNet/v{version}/"
         notice = None
-        install = guidance.stable_upgrade_instructions.format(version=version)
+        # Not str.format, so that literal braces in the config file are safe.
+        install = guidance.stable_upgrade_instructions.replace("{version}", version)
 
     links = f"*PyPI*: {pypi_url}\n*Documentation*: {docs_url}"
     if not is_prerelease(version):

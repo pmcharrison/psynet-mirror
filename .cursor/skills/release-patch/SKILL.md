@@ -28,11 +28,10 @@ git log --oneline v13.1.0..HEAD   # confirm which fixes are included
 
 ### 2. Bump the version
 
-Update the version string in three files:
+Update the version string in two files:
 
 | File | Field |
 |---|---|
-| `.bumpversion.toml` | `current_version` |
 | `psynet/version.py` | `psynet_version` |
 | `pyproject.toml` | `version` |
 
@@ -40,7 +39,7 @@ Change all occurrences from the old version (e.g. `13.1.0`) to the new version
 (e.g. `13.1.1`). Then commit:
 
 ```bash
-git add .bumpversion.toml psynet/version.py pyproject.toml
+git add psynet/version.py pyproject.toml
 git commit -m "Bump version to 13.1.1"
 ```
 
@@ -50,7 +49,7 @@ This updates `requirements.txt`, `constraints.txt`, Dockerfiles, and other
 generated files across all demos and tests to reference the new version.
 
 ```bash
-python3 demos/update_demos.py
+psynet dev experiments update
 ```
 
 This can take several minutes because it regenerates `constraints.txt` files.
@@ -157,9 +156,8 @@ Then bump the master version back to the next alpha if needed
 
 ## Version files reference
 
-The version is tracked in three files, all updated together:
+The version is tracked in two files, both updated together:
 
-- **`.bumpversion.toml`** — `current_version` field
 - **`psynet/version.py`** — `psynet_version` variable
 - **`pyproject.toml`** — `version` field under `[project]`
 
