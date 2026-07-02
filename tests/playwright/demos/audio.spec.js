@@ -160,6 +160,49 @@ async function useStandardAudioControls(page, options = {}) {
   }
 }
 
+async function changeRangeSliderByOneStep(slider) {
+  const before = await slider.evaluate((element) => {
+    const eventLog = window.psynet?.trial?.eventLog || [];
+    return {
+      value: Number(element.value),
+      outputValue: Number(element.getAttribute("output-value")),
+      sliderChangeCount: eventLog.filter((event) => event.eventType === "sliderChange")
+        .length
+    };
+  });
+
+  const after = await slider.evaluate((element) => {
+    const currentValue = Number(element.value);
+    const minValue = Number(element.min);
+    const maxValue = Number(element.max);
+    const stepSize = Number(element.step) || 1;
+    const nextValue =
+      currentValue + stepSize <= maxValue
+        ? currentValue + stepSize
+        : currentValue - stepSize;
+
+    if (nextValue < minValue || nextValue > maxValue || nextValue === currentValue) {
+      throw new Error("Could not compute a valid slider test value.");
+    }
+
+    element.value = String(nextValue);
+    element.dispatchEvent(new Event("input", { bubbles: true }));
+    element.dispatchEvent(new Event("change", { bubbles: true }));
+
+    const eventLog = window.psynet?.trial?.eventLog || [];
+    return {
+      value: Number(element.value),
+      outputValue: Number(element.getAttribute("output-value")),
+      sliderChangeCount: eventLog.filter((event) => event.eventType === "sliderChange")
+        .length
+    };
+  });
+
+  expect(after.value).not.toBe(before.value);
+  expect(after.outputValue).not.toBe(before.outputValue);
+  expect(after.sliderChangeCount).toBeGreaterThan(before.sliderChangeCount);
+}
+
 async function completeRecordedPlaybackCheckpoint(
   page,
   checkpointEventBaseline = 0
@@ -209,12 +252,7 @@ test("audio demo", async ({ page, context }) => {
       experimentPage.locator("#main-body"),
       "audio-slider-page.png"
     );
-    const sliderValueBefore = Number(await slider.inputValue());
-    await slider.focus();
-    await experimentPage.keyboard.press("ArrowRight");
-    await expect
-      .poll(async () => Number(await slider.inputValue()), { timeout: 5000 })
-      .not.toBe(sliderValueBefore);
+    await changeRangeSliderByOneStep(slider);
     await expect(experimentPage.locator("#next-button")).toBeEnabled({ timeout: 30000 });
     await clickNextAndWait(experimentPage, STEP_TIMEOUT_MS);
 
