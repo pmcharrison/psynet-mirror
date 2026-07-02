@@ -74,6 +74,7 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
     expect(accepted).toBe(true);
 
     await waitForMainBodyContains(experimentPage, "Tracked timer page", STEP_TIMEOUT_MS);
+    await experimentPage.evaluate(() => window.__scheduleTrackedLifecycleTimers());
     expect(await nextPageFromBrowser(experimentPage, "manual-timer-advance")).toBe(true);
     await waitForMainBodyContains(
       experimentPage,
@@ -83,13 +84,14 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
     const ticksAfterTransition = await experimentPage.evaluate(
       () => window.__trackedTimerLifecycle.intervalTicks
     );
-    await experimentPage.waitForTimeout(400);
+    await experimentPage.waitForTimeout(1200);
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Timer cleanup checkpoint"
     );
     await expect
       .poll(() => experimentPage.evaluate(() => window.__trackedTimerLifecycle))
       .toEqual({
+        started: true,
         timeoutFired: false,
         intervalTicks: ticksAfterTransition
       });

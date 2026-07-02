@@ -75,20 +75,22 @@ class TrackedTimerPage(Page):
             scripts=[
                 """
                 window.__trackedTimerLifecycle = {
+                    started: false,
                     timeoutFired: false,
                     intervalTicks: 0,
                 };
 
-                psynet.trial.onEvent("trialConstruct", function () {
+                window.__scheduleTrackedLifecycleTimers = function () {
+                    window.__trackedTimerLifecycle.started = true;
                     psynet.trial.setTimer(function () {
                         window.__trackedTimerLifecycle.timeoutFired = true;
                         psynet.nextPage("stale-timeout");
-                    }, 250);
+                    }, 1000);
 
                     psynet.trial.setRepeatingTimer(function () {
                         window.__trackedTimerLifecycle.intervalTicks += 1;
                     }, 25);
-                });
+                };
                 """
             ],
         )
