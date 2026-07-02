@@ -42,7 +42,8 @@ Overview
    ``psynet dev release announce X.Y.Z`` (preview first with ``--dry-run``).
    Posting to Slack requires ``SLACK_BOT_TOKEN`` in the process environment;
    see ``.cursor/skills/announce-release/SKILL.md`` for setup, token-loading,
-   and test-channel instructions.
+   and test-channel instructions. For a one-off test-channel preview:
+   ``SLACK_BOT_TOKEN=xoxb-... psynet dev release announce X.Y.Z --channel psynet-release-test --dry-run``.
 
 4. For minor releases, merge the release branch back into ``master`` (merge
    commit, no squash) and bump ``master`` to the next alpha version.
