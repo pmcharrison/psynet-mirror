@@ -50,10 +50,14 @@ class EndLogic(EltCollection):
     ) -> TimelineLogic:
         from .modular_page import ModularPage, PushButtonControl
 
+        _ = get_translator()
+
         # Todo - Once automatic translation is updated, revisit the logic in RejectedConsentPage,
         # and ask the participant to return the HIT if appropriate.
         if show_finish_button:
-            control = PushButtonControl(["Finish"])
+            # The choice key "Finish" stays untranslated so that recorded answers
+            # are locale-independent; only the visible label is translated.
+            control = PushButtonControl(["Finish"], labels=[_("Finish")])
         else:
             control = NullControl()
 
