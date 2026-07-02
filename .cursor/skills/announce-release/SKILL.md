@@ -34,7 +34,7 @@ inline code, and `<URL|label>` for clickable links.
    /invite @PsyNet Releases
    ```
 
-5. **Copy the bot token** (`xoxb-…`) from *OAuth & Permissions*. Treat
+5. **Copy the bot token** (`<slack-bot-token>`) from *OAuth & Permissions*. Treat
    it like a password — it grants posting rights to anyone who has it.
 
 ## Token storage
@@ -43,13 +43,13 @@ The command reads `SLACK_BOT_TOKEN` from the process environment. Export it
 before running the command, or pass it inline for one-shot use:
 
 ```bash
-export SLACK_BOT_TOKEN=xoxb-...
+export SLACK_BOT_TOKEN=<slack-bot-token>
 psynet dev release announce 13.2.0 --dry-run
 psynet dev release announce 13.2.0
 ```
 
 ```bash
-SLACK_BOT_TOKEN=xoxb-... psynet dev release announce 13.2.0
+SLACK_BOT_TOKEN=<slack-bot-token> psynet dev release announce 13.2.0
 ```
 
 `.env` at the repo root is gitignored, so it's a safe place to store the
@@ -57,7 +57,7 @@ token:
 
 ```bash
 # /home/<you>/projects/PsyNet/.env
-SLACK_BOT_TOKEN=xoxb-...
+SLACK_BOT_TOKEN=<slack-bot-token>
 ```
 
 However, the command does not load `.env` automatically. If you store the

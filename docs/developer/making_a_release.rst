@@ -44,9 +44,9 @@ Overview
    see ``.cursor/skills/announce-release/SKILL.md`` for setup, token-loading,
    and test-channel instructions. For a one-off test-channel preview, either
    pass the token inline:
-   ``SLACK_BOT_TOKEN=xoxb-... psynet dev release announce X.Y.Z --channel psynet-release-test --dry-run``.
+   ``SLACK_BOT_TOKEN=<slack-bot-token> psynet dev release announce X.Y.Z --channel psynet-release-test --dry-run``.
    Or export it first:
-   ``export SLACK_BOT_TOKEN=xoxb-...`` followed by
+   ``export SLACK_BOT_TOKEN=<slack-bot-token>`` followed by
    ``psynet dev release announce X.Y.Z --channel psynet-release-test --dry-run``.
 
 4. For minor releases, merge the release branch back into ``master`` (merge
