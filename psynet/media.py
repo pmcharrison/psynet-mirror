@@ -76,29 +76,22 @@ def get_aws_credentials(capitalize=False):
     return cred
 
 
-def get_mock_s3_root():
-    """
-    Get the filesystem root for the test S3 mock, if configured.
-    """
-    return os.environ.get("PSYNET_MOCK_S3_ROOT")
-
-
 def get_s3_client():
-    mock_s3_root = get_mock_s3_root()
-    if mock_s3_root:
-        from psynet.test_helpers.mock_s3 import get_mock_s3_client
+    from psynet.test_helpers.mock_s3 import get_configured_mock_s3_client
 
-        return get_mock_s3_client(mock_s3_root)
+    mock_client = get_configured_mock_s3_client()
+    if mock_client is not None:
+        return mock_client
 
     return boto3.client("s3", **get_aws_credentials())
 
 
 def get_s3_resource():
-    mock_s3_root = get_mock_s3_root()
-    if mock_s3_root:
-        from psynet.test_helpers.mock_s3 import get_mock_s3_resource
+    from psynet.test_helpers.mock_s3 import get_configured_mock_s3_resource
 
-        return get_mock_s3_resource(mock_s3_root)
+    mock_resource = get_configured_mock_s3_resource()
+    if mock_resource is not None:
+        return mock_resource
 
     return boto3.resource("s3", **get_aws_credentials())
 
