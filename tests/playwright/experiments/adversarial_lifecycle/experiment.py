@@ -71,24 +71,26 @@ class TrackedTimerPage(Page):
                 <p id="tracked-timer-page">
                     Tracked timer page
                 </p>
-                <script>
-                    window.__trackedTimerLifecycle = {
-                        timeoutFired: false,
-                        intervalTicks: 0,
-                    };
-
-                    psynet.trial.onEvent("trialConstruct", function () {
-                        psynet.trial.setTimer(function () {
-                            window.__trackedTimerLifecycle.timeoutFired = true;
-                            psynet.nextPage("stale-timeout");
-                        }, 250);
-
-                        psynet.trial.setRepeatingTimer(function () {
-                            window.__trackedTimerLifecycle.intervalTicks += 1;
-                        }, 25);
-                    });
-                </script>
             """,
+            scripts=[
+                """
+                window.__trackedTimerLifecycle = {
+                    timeoutFired: false,
+                    intervalTicks: 0,
+                };
+
+                psynet.trial.onEvent("trialConstruct", function () {
+                    psynet.trial.setTimer(function () {
+                        window.__trackedTimerLifecycle.timeoutFired = true;
+                        psynet.nextPage("stale-timeout");
+                    }, 250);
+
+                    psynet.trial.setRepeatingTimer(function () {
+                        window.__trackedTimerLifecycle.intervalTicks += 1;
+                    }, 25);
+                });
+                """
+            ],
         )
 
     def get_bot_response(self, experiment, bot):
