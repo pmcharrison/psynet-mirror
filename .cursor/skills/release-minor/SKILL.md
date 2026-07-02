@@ -273,15 +273,16 @@ Verify the release is live at
 > `#psynet-support` and cannot be unsent. The release manager must
 > approve the message body before posting.
 
-Use the `docs/scripts/announce_release.py` helper. It composes the
-message from a single version argument and posts it to
-`#psynet-support` using the `[slack]` extra (already installed via the
-prerequisites). Set `SLACK_BOT_TOKEN` to a bot token that has
-`chat:write` access to the channel, then preview and post:
+Use the `psynet dev release announce` command (see the
+`announce-release` skill). It composes the message from a single
+version argument and posts it to `#psynet-support` using the `[slack]`
+extra (already installed via the prerequisites). Set `SLACK_BOT_TOKEN`
+to a bot token that has `chat:write` access to the channel, then
+preview and post:
 
 ```bash
-python docs/scripts/announce_release.py 13.2.0 --dry-run
-python docs/scripts/announce_release.py 13.2.0
+psynet dev release announce 13.2.0 --dry-run
+psynet dev release announce 13.2.0
 ```
 
 The dry run prints the exact body that would be posted; the second
@@ -510,14 +511,14 @@ pre-release checkbox. After running the command, open
 > `#psynet-support` and cannot be unsent. The release manager must
 > approve the message body before posting.
 
-Use the same `docs/scripts/announce_release.py` helper as for final
+Use the same `psynet dev release announce` command as for final
 releases — it auto-detects the `rc` segment and generates an
 RC-flavoured message with the `/rc/<tag>/` docs URL and the opt-in
 `pip install psynet==13.2.0rc0` instruction:
 
 ```bash
-python docs/scripts/announce_release.py 13.2.0rc0 --dry-run
-python docs/scripts/announce_release.py 13.2.0rc0
+psynet dev release announce 13.2.0rc0 --dry-run
+psynet dev release announce 13.2.0rc0
 ```
 
 The RC template uses Slack `mrkdwn` syntax (single `*` for bold,

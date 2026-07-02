@@ -1,39 +1,33 @@
-#!/usr/bin/env python3
-"""Announce a PsyNet release in the ``#psynet-support`` Slack channel.
+"""Post PsyNet release announcements to Slack (`psynet dev release announce`).
 
-Usage::
+This module builds the release announcement message and posts it to the
+``#psynet-support`` Slack channel. Like the other `psynet dev` modules it
+only functions from a PsyNet source checkout: it reads ``CHANGELOG.md`` from
+the current working directory. The sibling ``slack_announcement.md`` file is
+runtime configuration (summary intro, upgrade instructions, and
+include/exclude patterns for condensing changelog entries), so editing the
+announcement style should not require code changes.
 
-    python docs/scripts/announce_release.py 13.2.0               # final release
-    python docs/scripts/announce_release.py 13.2.0rc0            # release candidate
-    python docs/scripts/announce_release.py 13.2.0 --dry-run     # print, do not post
-    python docs/scripts/announce_release.py 13.2.0 --dry-run-json  # raw Block Kit JSON
-
-Requirements:
-
-- The ``[slack]`` extra is installed (covered by the
-  ``uv pip install -e '.[dev,slack]'`` line in the release prerequisites).
-- ``SLACK_BOT_TOKEN`` is set in the environment to a bot token that has
-  ``chat:write`` access to ``#psynet-support``.
-
-The script chooses an RC-flavoured or final-flavoured message based on
-whether the version contains a pre-release segment (``rc``/``a``/``b``).
+Posting requires the ``[slack]`` extra and a ``SLACK_BOT_TOKEN`` environment
+variable with ``chat:write`` access to the target channel. The message
+flavour (release candidate vs. final) is auto-detected from the version
+string.
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-CHANNEL = "psynet-support"
-ROOT = Path(__file__).resolve().parents[2]
-CHANGELOG_PATH = ROOT / "CHANGELOG.md"
-ANNOUNCEMENT_GUIDANCE_PATH = ROOT / "SLACK_ANNOUNCEMENT.md"
+DEFAULT_CHANNEL = "psynet-support"
+CHANGELOG_PATH = Path("CHANGELOG.md")
+ANNOUNCEMENT_GUIDANCE_PATH = Path(__file__).with_suffix(".md")
 
 PRERELEASE_RE = re.compile(r"(rc|a|b)\d+$", re.IGNORECASE)
 RELEASE_HEADING_RE = re.compile(r"^#{1,2} \[.*?\].*$", re.MULTILINE)
@@ -51,20 +45,19 @@ class AnnouncementGuidance:
 
 
 def is_prerelease(version: str) -> bool:
+    """Return True if *version* has a pre-release segment (rc/a/b)."""
     return bool(PRERELEASE_RE.search(version))
 
 
 def extract_changelog_section(version: str) -> str | None:
     """Return the body of the CHANGELOG section for *version*, or None."""
     try:
-        import subprocess
-
         changelog = subprocess.check_output(
             ["git", "show", f"v{version}:CHANGELOG.md"],
-            cwd=ROOT,
             text=True,
+            stderr=subprocess.DEVNULL,
         )
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         if not CHANGELOG_PATH.exists():
             return None
         changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
@@ -97,10 +90,11 @@ def _concise(text: str) -> str:
 
 @lru_cache(maxsize=1)
 def load_announcement_guidance() -> AnnouncementGuidance:
-    """Read Slack summary guidance from ``SLACK_ANNOUNCEMENT.md``."""
+    """Read Slack summary guidance from ``slack_announcement.md``."""
     if not ANNOUNCEMENT_GUIDANCE_PATH.exists():
-        raise FileNotFoundError(
-            f"Missing announcement guidance: {ANNOUNCEMENT_GUIDANCE_PATH}"
+        raise ValueError(
+            f"Missing announcement guidance: {ANNOUNCEMENT_GUIDANCE_PATH.resolve()}. "
+            "Run from a PsyNet source checkout."
         )
 
     markdown = ANNOUNCEMENT_GUIDANCE_PATH.read_text(encoding="utf-8")
@@ -118,23 +112,23 @@ def load_announcement_guidance() -> AnnouncementGuidance:
     exclude_patterns = _markdown_section_patterns(markdown, "Exclude Patterns")
 
     if not include_patterns:
-        raise ValueError("SLACK_ANNOUNCEMENT.md must define include patterns.")
+        raise ValueError("slack_announcement.md must define include patterns.")
     if not exclude_patterns:
-        raise ValueError("SLACK_ANNOUNCEMENT.md must define exclude patterns.")
+        raise ValueError("slack_announcement.md must define exclude patterns.")
     if not stable_release_description:
         raise ValueError(
-            "SLACK_ANNOUNCEMENT.md must define a stable release description."
+            "slack_announcement.md must define a stable release description."
         )
     if not experimenter_summary_intro:
         raise ValueError(
-            "SLACK_ANNOUNCEMENT.md must define an experimenter summary intro."
+            "slack_announcement.md must define an experimenter summary intro."
         )
     if not stable_upgrade_instructions:
         raise ValueError(
-            "SLACK_ANNOUNCEMENT.md must define stable upgrade instructions."
+            "slack_announcement.md must define stable upgrade instructions."
         )
     if not category_order:
-        raise ValueError("SLACK_ANNOUNCEMENT.md must define a category order.")
+        raise ValueError("slack_announcement.md must define a category order.")
 
     return AnnouncementGuidance(
         stable_release_description=stable_release_description,
@@ -279,6 +273,14 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
         links += f"\n*Versioned documentation*: {versioned_docs_url}"
 
     section = extract_changelog_section(version)
+    if section is None:
+        print(
+            f"Warning: no CHANGELOG.md section found for {version}; "
+            "the announcement will not include a summary of changes. "
+            "Run `psynet dev changelog release` first if the release "
+            "section has not been generated yet.",
+            file=sys.stderr,
+        )
     summary = summarize_for_experimenters(section) if section else ""
 
     blocks: list[dict] = [
@@ -316,78 +318,63 @@ def _mrkdwn_block(text: str) -> dict:
     return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("version", help="e.g. 13.2.0 or 13.2.0rc0 (no leading 'v')")
-    parser.add_argument(
-        "--channel",
-        default=CHANNEL,
-        help=f"Slack channel name (default: {CHANNEL})",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Print the message instead of posting",
-    )
-    parser.add_argument(
-        "--dry-run-json",
-        action="store_true",
-        help=(
-            "Print the raw Block Kit JSON payload (paste into "
-            "https://app.slack.com/block-kit-builder to preview rendering)"
-        ),
-    )
-    args = parser.parse_args()
+def render_dry_run(blocks: list[dict], channel: str) -> str:
+    """Render the Block Kit payload as readable preview text."""
+    lines = [f"# Would post to #{channel}:", ""]
+    for block in blocks:
+        if block["type"] == "divider":
+            lines.append("---")
+        elif block["type"] == "header":
+            lines.append(f"# {block['text']['text']}")
+            lines.append("")
+        else:
+            lines.append(block["text"]["text"])
+            lines.append("")
+    return "\n".join(lines)
 
-    blocks, fallback = build_blocks(args.version)
 
-    if args.dry_run_json:
+def announce_command(
+    version: str,
+    channel: str = DEFAULT_CHANNEL,
+    dry_run: bool = False,
+    dry_run_json: bool = False,
+) -> None:
+    """Build the announcement for *version* and post or preview it.
+
+    Raises ValueError for configuration problems and RuntimeError for
+    Slack API failures.
+    """
+    blocks, fallback = build_blocks(version)
+
+    if dry_run_json:
         print(json.dumps({"blocks": blocks}, indent=2))
-        return 0
+        return
 
-    if args.dry_run:
-        print(f"# Would post to #{args.channel}:\n")
-        for block in blocks:
-            if block["type"] == "divider":
-                print("---")
-            elif block["type"] == "header":
-                print(f"# {block['text']['text']}")
-                print()
-            else:
-                print(block["text"]["text"])
-                print()
-        return 0
+    if dry_run:
+        print(render_dry_run(blocks, channel))
+        return
 
     try:
         from slack_sdk import WebClient
         from slack_sdk.errors import SlackApiError
-    except ImportError:
-        print(
+    except ImportError as exc:
+        raise ValueError(
             "slack_sdk is not installed. Install the [slack] extra:\n"
-            "    uv pip install -e '.[slack]'",
-            file=sys.stderr,
-        )
-        return 2
+            "    uv pip install -e '.[slack]'"
+        ) from exc
 
     token = os.environ.get("SLACK_BOT_TOKEN")
     if not token:
-        print("SLACK_BOT_TOKEN is not set.", file=sys.stderr)
-        return 2
+        raise ValueError("SLACK_BOT_TOKEN is not set.")
 
     client = WebClient(token=token)
     try:
         resp = client.chat_postMessage(
-            channel=args.channel,
+            channel=channel,
             text=fallback,
             blocks=blocks,
         )
-    except SlackApiError as e:
-        print(f"Slack error: {e.response['error']}", file=sys.stderr)
-        return 1
+    except SlackApiError as exc:
+        raise RuntimeError(f"Slack error: {exc.response['error']}") from exc
 
-    print(f"Posted to #{args.channel} (ts={resp['ts']})")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    print(f"Posted to #{channel} (ts={resp['ts']})")

@@ -1,13 +1,17 @@
 ---
 name: announce-release
-description: Use docs/scripts/announce_release.py to preview and post PsyNet release announcements to Slack.
+description: Use psynet dev release announce to preview and post PsyNet release announcements to Slack.
 ---
 
-# `announce_release.py`
+# `psynet dev release announce`
 
 Post a PsyNet release announcement to the `#psynet-support` Slack
 channel. RC vs final flavour is auto-detected from the version string
 (`(rc|a|b)\d+$` → release-candidate template).
+
+Run the command from the root of a PsyNet source checkout: it reads
+`CHANGELOG.md` from the repository root. The message content and
+filtering rules are configured in `psynet/dev/slack_announcement.md`.
 
 The output is Slack `mrkdwn` — single-asterisk bold, single-backtick
 inline code, and `<URL|label>` for clickable links.
@@ -46,30 +50,30 @@ Or export it from `~/.zshrc` if you'd rather have it available
 everywhere. Or pass it inline for one-shot use:
 
 ```bash
-SLACK_BOT_TOKEN=xoxb-... python docs/scripts/announce_release.py 13.2.0
+SLACK_BOT_TOKEN=xoxb-... psynet dev release announce 13.2.0
 ```
 
 ## Usage
 
 ```bash
 # Preview the message without posting (always do this first)
-python docs/scripts/announce_release.py 13.2.0rc0 --dry-run
-python docs/scripts/announce_release.py 13.2.0    --dry-run
+psynet dev release announce 13.2.0rc0 --dry-run
+psynet dev release announce 13.2.0    --dry-run
 
 # Actually post
-python docs/scripts/announce_release.py 13.2.0rc0
-python docs/scripts/announce_release.py 13.2.0
+psynet dev release announce 13.2.0rc0
+psynet dev release announce 13.2.0
 
 # Override channel (default: psynet-support)
-python docs/scripts/announce_release.py 13.2.0 --channel some-other-channel
+psynet dev release announce 13.2.0 --channel some-other-channel
 ```
 
-The script exits non-zero on Slack API errors or missing dependencies,
+The command exits non-zero on Slack API errors or missing dependencies,
 so it can be wired into release scripts safely.
 
 ## Dependencies
 
-The script requires `slack_sdk`, which is provided by PsyNet's
+Posting requires `slack_sdk`, which is provided by PsyNet's
 `[slack]` extra:
 
 ```bash

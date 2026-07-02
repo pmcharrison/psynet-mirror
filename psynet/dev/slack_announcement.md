@@ -1,7 +1,8 @@
 # Slack Announcement Guidance
 
-This file controls how `docs/scripts/announce_release.py` condenses
-`CHANGELOG.md` entries into a short Slack announcement.
+This file is runtime configuration for `psynet dev release announce`
+(implemented in the sibling `slack_announcement.py`). It controls how
+`CHANGELOG.md` entries are condensed into a short Slack announcement.
 
 ## Stable Release Description
 
