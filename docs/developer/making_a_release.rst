@@ -40,6 +40,9 @@ Overview
 3. Publish: tag ``vX.Y.Z`` on the release branch, wait for CI, build and
    upload to PyPI, create the GitLab release, and announce on Slack with
    ``psynet dev release announce X.Y.Z`` (preview first with ``--dry-run``).
+   Posting to Slack requires ``SLACK_BOT_TOKEN`` in the process environment;
+   see ``.cursor/skills/announce-release/SKILL.md`` for setup, token-loading,
+   and test-channel instructions.
 
 4. For minor releases, merge the release branch back into ``master`` (merge
    commit, no squash) and bump ``master`` to the next alpha version.
