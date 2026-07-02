@@ -80,12 +80,11 @@ Posting requires `slack_sdk`, which is provided by PsyNet's
 uv pip install -e '.[dev,slack]'
 ```
 
-This is already part of the prerequisites listed in the `release-minor`
-and `release-patch` skills.
+This is already part of the prerequisites listed in the `release` skill.
 
 ## Where this fits in the release flow
 
-See the **Announce the release on Slack** step in the `release-minor` skill for final releases and release candidates. Use the same dry-run approval pattern for patch releases when announcing them.
+See the **Announce the release on Slack** shared step in the `release` skill; it applies to minor releases, patch releases, and release candidates alike.
 
 The step is gated by an explicit human checkpoint: the message body
 must be approved (via `--dry-run`) before any real post.

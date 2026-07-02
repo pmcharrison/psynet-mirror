@@ -1,5 +1,5 @@
 # Release Patch
 
-Use the shared project skill at `.cursor/skills/release-patch/SKILL.md` to guide a PsyNet patch release.
+Use the shared project skill at `.cursor/skills/release/SKILL.md` to guide a PsyNet patch release, following its "Patch release path".
 
-Apply that skill's workflow in full, including checks on the target release branch before tagging or publishing.
+Apply that skill's workflow in full, including every human checkpoint before externally visible or irreversible steps.
