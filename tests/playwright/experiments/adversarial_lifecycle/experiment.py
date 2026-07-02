@@ -97,6 +97,67 @@ class TrackedTimerPage(Page):
         return None
 
 
+class AudioFadeOutPage(Page):
+    def __init__(self):
+        super().__init__(
+            label="audio_fade_out",
+            time_estimate=1,
+            template_fragment_str="""
+                <p id="audio-fade-out-page">
+                    Audio fade-out page
+                </p>
+            """,
+            scripts=[
+                """
+                window.__audioFadeOutLifecycle = { ready: false };
+
+                function writeAscii(view, offset, text) {
+                    for (let i = 0; i < text.length; i++) {
+                        view.setUint8(offset + i, text.charCodeAt(i));
+                    }
+                }
+
+                function makeSilentWavBuffer(durationSeconds) {
+                    const sampleRate = 8000;
+                    const samples = Math.floor(sampleRate * durationSeconds);
+                    const dataSize = samples * 2;
+                    const buffer = new ArrayBuffer(44 + dataSize);
+                    const view = new DataView(buffer);
+                    writeAscii(view, 0, "RIFF");
+                    view.setUint32(4, 36 + dataSize, true);
+                    writeAscii(view, 8, "WAVE");
+                    writeAscii(view, 12, "fmt ");
+                    view.setUint32(16, 16, true);
+                    view.setUint16(20, 1, true);
+                    view.setUint16(22, 1, true);
+                    view.setUint32(24, sampleRate, true);
+                    view.setUint32(28, sampleRate * 2, true);
+                    view.setUint16(32, 2, true);
+                    view.setUint16(34, 16, true);
+                    writeAscii(view, 36, "data");
+                    view.setUint32(40, dataSize, true);
+                    return buffer;
+                }
+
+                psynet.trial.onEvent("trialConstruct", async function () {
+                    await psynet.media.addExtraAudioStimulus(
+                        makeSilentWavBuffer(0.8),
+                        "fadeout_stale_audio"
+                    );
+                    psynet.audio.fadeout_stale_audio.play({
+                        fadeOut: 0.3,
+                        gain: 0.001,
+                    });
+                    window.__audioFadeOutLifecycle.ready = true;
+                });
+                """
+            ],
+        )
+
+    def get_bot_response(self, experiment, bot):
+        return None
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Adversarial lifecycle test"
 
@@ -104,6 +165,8 @@ class Exp(psynet.experiment.Experiment):
         RejectUntilAcceptedPage(),
         TrackedTimerPage(),
         InfoPage("Timer cleanup checkpoint", time_estimate=1),
+        AudioFadeOutPage(),
+        InfoPage("Audio fade-out checkpoint", time_estimate=1),
         ListenerPage("first"),
         InfoPage("Listener cleanup checkpoint", time_estimate=1),
         ListenerPage("second"),

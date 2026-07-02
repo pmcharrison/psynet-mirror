@@ -95,6 +95,36 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
       });
 
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
+    await waitForMainBodyContains(experimentPage, "Audio fade-out page", STEP_TIMEOUT_MS);
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(
+            () => window.__audioFadeOutLifecycle?.ready === true
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(true);
+    expect(await nextPageFromBrowser(experimentPage, "advance-during-audio")).toBe(
+      true
+    );
+    await waitForMainBodyContains(
+      experimentPage,
+      "Audio fade-out checkpoint",
+      STEP_TIMEOUT_MS
+    );
+    await experimentPage.waitForTimeout(500);
+    await expect
+      .poll(() =>
+        experimentPage.evaluate(() =>
+          window.psynet.trial.eventLog.some(
+            (event) => event.eventType === "audioFinished: fadeout_stale_audio"
+          )
+        )
+      )
+      .toBe(false);
+
+    expect(await nextPageFromBrowser(experimentPage)).toBe(true);
     await waitForMainBodyContains(experimentPage, "Listener page first", STEP_TIMEOUT_MS);
 
     await dispatchWindowClick(experimentPage);

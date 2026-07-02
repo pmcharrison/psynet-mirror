@@ -4,6 +4,11 @@
     var LABEL = psynet.var["chatroom_room_label"];
     var SHOW_HISTORY = psynet.var["chatroom_show_history"];
     var MY_ID = dallinger.identity.participantId;
+    var pageActive = true;
+
+    psynet.addPageCleanupCallback(function () {
+        pageActive = false;
+    });
 
     // ROOM_ID could be absent if the participant reached this page without
     // completing room selection (e.g. via browser history navigation).
@@ -11,7 +16,8 @@
     // nextPage requires the PsyNet timeline to be fully initialised.
     if (ROOM_ID === null || ROOM_ID === undefined) {
         (function wait() {
-            if (!psynet.pageLoaded) { setTimeout(wait, 50); return; }
+            if (!pageActive) return;
+            if (!psynet.pageLoaded) { psynet.trial.setTimer(wait, 50); return; }
             psynet.nextPage();
         })();
         return;
