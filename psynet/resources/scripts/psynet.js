@@ -847,7 +847,9 @@
       };
 
       trial.setRepeatingTimer = function (handler, interval) {
-        trial.intervals.push(setInterval(handler, interval));
+        let timer = setInterval(handler, interval);
+        trial.intervals.push(timer);
+        return timer;
       };
 
       trial.clearTimers = function () {
@@ -1597,22 +1599,34 @@
               onEnd: null,
             };
 
+            let stopTimer = null;
             let completionTimer = null;
             let completed = false;
+
+            let clearSoundTimers = function () {
+              if (stopTimer !== null) {
+                clearTimeout(stopTimer);
+                stopTimer = null;
+              }
+              if (completionTimer !== null) {
+                clearTimeout(completionTimer);
+                completionTimer = null;
+              }
+            };
 
             let completeSound = function () {
               if (completed) {
                 return;
               }
               completed = true;
-              clearTimeout(stopTimer);
-              if (completionTimer !== null) {
-                clearTimeout(completionTimer);
-              }
+              clearSoundTimers();
               psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
               psynet.media.sounds = psynet.media.sounds.filter(
                 (s) => s !== sound,
               );
+              if (psynet.trial.stopping || psynet.trial.stopped) {
+                return;
+              }
               psynet.trial.registerEvent("audioFinished: " + sound.stimulusId);
               if (sound.options.loop && !sound.manuallyStopped) {
                 psynet.log.debug("Looping sound with ID = " + out.stimulusId);
@@ -1638,16 +1652,14 @@
               );
             }
 
-            let stopTimer;
-
             if (sound.options.fadeOut > 0.0) {
-              stopTimer = setTimeout(
+              stopTimer = psynet.trial.setTimer(
                 () => sound.stop({ fadeOut: options.fadeOut, manual: false }),
                 1000 * (options.startDelay + sound.duration - options.fadeOut),
               );
             }
 
-            completionTimer = setTimeout(() => {
+            completionTimer = psynet.trial.setTimer(() => {
               psynet.log.warn(
                 "Audio ended event did not fire for " +
                   sound.stimulusId +
@@ -1664,7 +1676,7 @@
 
               Object.assign(options, providedOptions);
 
-              clearTimeout(stopTimer);
+              clearSoundTimers();
 
               psynet.log.debug("Stopping audio " + sound.stimulusId + ".");
 
@@ -1684,6 +1696,7 @@
               return new Promise((resolve) => {
                 setTimeout(() => {
                   sound.source.stop();
+                  completeSound();
                   resolve();
                 }, options.fadeOut * 1000);
               });
@@ -2392,7 +2405,10 @@
         if (psynet.trialProgressIntervalId) {
           clearInterval(psynet.trialProgressIntervalId);
         }
-        psynet.trialProgressIntervalId = setInterval(update, 5);
+        psynet.trialProgressIntervalId = psynet.trial.setRepeatingTimer(
+          update,
+          5,
+        );
       };
 
       let bound = function (x, min, max) {

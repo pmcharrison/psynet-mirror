@@ -62,11 +62,46 @@ class ListenerPage(Page):
         return None
 
 
+class TrackedTimerPage(Page):
+    def __init__(self):
+        super().__init__(
+            label="tracked_timer",
+            time_estimate=1,
+            template_fragment_str="""
+                <p id="tracked-timer-page">
+                    Tracked timer page
+                </p>
+                <script>
+                    window.__trackedTimerLifecycle = {
+                        timeoutFired: false,
+                        intervalTicks: 0,
+                    };
+
+                    psynet.trial.onEvent("trialConstruct", function () {
+                        psynet.trial.setTimer(function () {
+                            window.__trackedTimerLifecycle.timeoutFired = true;
+                            psynet.nextPage("stale-timeout");
+                        }, 250);
+
+                        psynet.trial.setRepeatingTimer(function () {
+                            window.__trackedTimerLifecycle.intervalTicks += 1;
+                        }, 25);
+                    });
+                </script>
+            """,
+        )
+
+    def get_bot_response(self, experiment, bot):
+        return None
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Adversarial lifecycle test"
 
     timeline = Timeline(
         RejectUntilAcceptedPage(),
+        TrackedTimerPage(),
+        InfoPage("Timer cleanup checkpoint", time_estimate=1),
         ListenerPage("first"),
         InfoPage("Listener cleanup checkpoint", time_estimate=1),
         ListenerPage("second"),
