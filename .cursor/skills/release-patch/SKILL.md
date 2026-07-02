@@ -1,3 +1,8 @@
+---
+name: release-patch
+description: Guide a PsyNet patch release from an existing release branch, including version bump, demo updates, changelog, tagging, PyPI upload, and merge-back steps.
+---
+
 # PsyNet Patch Release Process
 
 This document describes how to create a patch release (e.g. 13.1.0 → 13.1.1)

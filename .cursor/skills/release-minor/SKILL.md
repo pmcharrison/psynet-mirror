@@ -1,10 +1,15 @@
+---
+name: release-minor
+description: Guide a PsyNet minor release from master, including changelog, version bump, demo updates, tagging, PyPI upload, GitLab release, Slack announcement, release candidates, and human checkpoints.
+---
+
 # PsyNet Minor Release Process
 
 This document describes how to create a minor release (e.g. 13.1.0 → 13.2.0)
 from the `master` branch. Minor releases include new features and bugfixes
 that are backwards-compatible.
 
-For patch releases on an existing release branch, see `RELEASE_PATCH.md`.
+For patch releases on an existing release branch, use the `release-patch` skill.
 
 ## Prerequisites
 

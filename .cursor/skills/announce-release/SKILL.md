@@ -1,3 +1,8 @@
+---
+name: announce-release
+description: Use docs/scripts/announce_release.py to preview and post PsyNet release announcements to Slack.
+---
+
 # `announce_release.py`
 
 Post a PsyNet release announcement to the `#psynet-support` Slack
@@ -71,15 +76,12 @@ The script requires `slack_sdk`, which is provided by PsyNet's
 uv pip install -e '.[dev,slack]'
 ```
 
-This is already part of the prerequisites listed in `RELEASE_MINOR.md`
-and `RELEASE_PATCH.md`.
+This is already part of the prerequisites listed in the `release-minor`
+and `release-patch` skills.
 
 ## Where this fits in the release flow
 
-See the **Announce the release on Slack** step in:
-
-- `RELEASE_MINOR.md` — step 12 (final) and RC sub-step 7.
-- `RELEASE_PATCH.md` — when patch releases also adopt the step.
+See the **Announce the release on Slack** step in the `release-minor` skill for final releases and release candidates. Use the same dry-run approval pattern for patch releases when announcing them.
 
 The step is gated by an explicit human checkpoint: the message body
 must be approved (via `--dry-run`) before any real post.
