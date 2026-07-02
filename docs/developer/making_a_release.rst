@@ -7,14 +7,14 @@ Making a release
 
 PsyNet releases are made periodically by the core developers. There is no real rule about how often these releases are made; it comes down to a balance between making new features available early and avoiding spamming PsyNet users with too many updates to keep track of.
 
-The authoritative step-by-step release process is maintained as a repo-local
-Cursor skill at ``.cursor/skills/release/SKILL.md``. It covers both release
-types, and can be invoked in Cursor via the ``/release-minor`` and
-``/release-patch`` slash commands for agent-assisted releases. The Slack
-announcement step is documented separately in
+The step-by-step release process is maintained as a Cursor skill at
+``.cursor/skills/release/SKILL.md``. It currently covers patch and minor releases,
+and can be invoked in Cursor via the ``/release-minor`` and
+``/release-patch`` slash commands (a major version release command will be added soon).
+The Slack announcement step is documented in a separate Cursor skill at
 ``.cursor/skills/announce-release/SKILL.md`` (``/announce-release``).
 
-The skill is written to be followed by a human release manager working with
+The release skill is written to be followed by a human working with
 an AI agent, but it works equally well as a plain checklist read directly.
 
 Overview
