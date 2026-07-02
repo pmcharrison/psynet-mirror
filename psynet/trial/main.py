@@ -536,6 +536,18 @@ class Trial(SQLMixinDallinger, Info, AssetParentMixin):
         if self.trial_maker_id:
             return get_trial_maker(self.trial_maker_id)
 
+    @property
+    def sync_group(self) -> Optional[SyncGroup]:
+        """
+        The :class:`~psynet.sync.SyncGroup` that this trial's participant belongs
+        to for this trial maker, or ``None`` if the trial maker is not
+        synchronised (i.e. its ``sync_group_type`` is ``None``).
+        """
+        sync_group_type = self.trial_maker.sync_group_type
+        if sync_group_type is None:
+            return None
+        return self.participant.active_sync_groups[sync_group_type]
+
     def _allocate_performance_reward(self):
         reward = self.compute_performance_reward(score=self.score)
         assert isinstance(reward, (float, int))

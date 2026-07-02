@@ -17,6 +17,7 @@ from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.notifications import admin_notifier, get_mailer
+from dallinger.prolific import ProlificServiceException
 from dallinger.recruiters import (
     DevRecruiter,
     MockRecruiter,
@@ -48,6 +49,26 @@ from .timeline import (
 from .utils import get_logger, get_translator, render_template_with_translations
 
 logger = get_logger()
+
+PROLIFIC_MESSAGE_FIELD_ALIASES = {
+    "sender_id": ("sender_id", "sender"),
+    "sent_at": ("sent_at", "datetime_created"),
+}
+
+
+RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES = {408, 429, 500, 502, 503, 504}
+
+
+def _prolific_error_status(error: ProlificServiceException):
+    try:
+        payload = json.loads(str(error))
+    except json.JSONDecodeError:
+        return None
+
+    try:
+        return payload["response"]["error"]["status"]
+    except (KeyError, TypeError):
+        return None
 
 
 class PsyNetRecruiterMixin:
@@ -248,14 +269,37 @@ class PsyNetProlificRecruiterMixin(PsyNetRecruiterMixin):
         logger.info(
             f"Checking Prolific submission status for assignment {participant.assignment_id}"
         )
-        submission = recruiter.prolificservice.get_participant_submission(
-            participant.assignment_id
-        )
+        try:
+            submission = recruiter.prolificservice.get_participant_submission(
+                participant.assignment_id
+            )
+        except ProlificServiceException as error:
+            status = _prolific_error_status(error)
+            if status not in RETRIABLE_PROLIFIC_RETURN_LOOKUP_STATUSES:
+                logger.error(
+                    "Could not check Prolific submission status for assignment %s "
+                    "because Prolific returned a non-retriable lookup error "
+                    "with status %s.",
+                    participant.assignment_id,
+                    status,
+                    exc_info=True,
+                )
+                raise
+            logger.warning(
+                "Could not check Prolific submission status for assignment %s. "
+                "Treating the assignment as not returned yet.",
+                participant.assignment_id,
+                exc_info=True,
+            )
+            participant.var.assignment_returned = False
+            return False
         logger.info(
             f"Received Prolific submission response for assignment {participant.assignment_id}: {submission}"
         )
         is_returned = submission and submission.get("status") == "RETURNED"
         participant.var.assignment_returned = is_returned
+        if is_returned:
+            participant.status = "returned"
         return is_returned
 
     @staticmethod
@@ -307,12 +351,12 @@ class ProlificRecruiter(
         unread_messages = self.prolificservice.get_unread_messages()
         relevant_messages = []
         for message in unread_messages:
-            study_id = message["data"].get("study_id")
+            message_data = message.get("data", {})
+            study_id = (
+                message_data.get("study_id") if isinstance(message_data, dict) else None
+            )
             if study_id and study_id == self.current_study_id:
-                message_concat = " ".join(
-                    [message[key] for key in ["sender_id", "body", "sent_at"]]
-                )
-                message_hash = hashlib.md5(message_concat.encode()).hexdigest()
+                message_hash = self._prolific_message_hash(message)
                 from psynet.redis import redis_vars
 
                 if redis_vars.get(message_hash, None) is None:
@@ -325,14 +369,34 @@ class ProlificRecruiter(
             exp = get_experiment()
             messages = [f"Found {len(relevant_messages)} unread messages"]
             for message in relevant_messages:
-                sender_id = message.get("sender_id")
-                body = message.get("body")
-                sent_at = message.get("sent_at")
+                sender_id = self._prolific_message_value(message, "sender_id")
+                body = self._prolific_message_value(message, "body")
+                sent_at = self._prolific_message_value(message, "sent_at")
                 msg = exp.notifier.bold("Message from Prolific") + ":\n"
                 msg += f"Sender: `{sender_id}` at {sent_at}\n"
                 msg += f"> {body}"
                 messages.append(msg)
-            exp.notifier.notify(exp.notifier.combine(messages))
+            exp.notifier.notify(exp.notifier.combine(*messages))
+
+    @staticmethod
+    def _prolific_message_value(message, key):
+        candidates = PROLIFIC_MESSAGE_FIELD_ALIASES.get(key, (key,))
+        for candidate in candidates:
+            if candidate in message:
+                return message[candidate]
+        return None
+
+    @classmethod
+    def _prolific_message_hash(cls, message):
+        fields = {
+            key: cls._prolific_message_value(message, key)
+            for key in ["id", "sender_id", "body", "sent_at"]
+        }
+        if not any(fields.values()):
+            fields = message
+
+        serialized = json.dumps(fields, sort_keys=True, default=str)
+        return hashlib.md5(serialized.encode()).hexdigest()
 
 
 class DevProlificRecruiter(
