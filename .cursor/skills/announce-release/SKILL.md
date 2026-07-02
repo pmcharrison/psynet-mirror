@@ -39,18 +39,35 @@ inline code, and `<URL|label>` for clickable links.
 
 ## Token storage
 
-`.env` at the repo root is gitignored, so it's a safe place:
+The command reads `SLACK_BOT_TOKEN` from the process environment. Export it
+before running the command, or pass it inline for one-shot use:
+
+```bash
+export SLACK_BOT_TOKEN=xoxb-...
+psynet dev release announce 13.2.0 --dry-run
+psynet dev release announce 13.2.0
+```
+
+```bash
+SLACK_BOT_TOKEN=xoxb-... psynet dev release announce 13.2.0
+```
+
+`.env` at the repo root is gitignored, so it's a safe place to store the
+token:
 
 ```bash
 # /home/<you>/projects/PsyNet/.env
 SLACK_BOT_TOKEN=xoxb-...
 ```
 
-Or export it from `~/.zshrc` if you'd rather have it available
-everywhere. Or pass it inline for one-shot use:
+However, the command does not load `.env` automatically. If you store the
+token there, load it into the shell before running the command, for example:
 
 ```bash
-SLACK_BOT_TOKEN=xoxb-... psynet dev release announce 13.2.0
+set -a
+source .env
+set +a
+psynet dev release announce 13.2.0 --dry-run
 ```
 
 ## Usage
