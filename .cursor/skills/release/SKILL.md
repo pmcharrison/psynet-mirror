@@ -373,6 +373,9 @@ release branch, not from a later merge commit on `master`, because `master`
 may have gained additional changes after the release branch was created.
 
 - **Title:** `Release version 13.2.0`
+- **Label:** apply the `Release` label, either at creation
+  (`glab mr create ... --label Release`) or afterwards
+  (`glab mr update <iid> --label Release`).
 - Review the changes one last time in the MR "Changes" tab.
 - Use a **merge commit** (do not squash), so the individual release commits
   are preserved on `master`.
