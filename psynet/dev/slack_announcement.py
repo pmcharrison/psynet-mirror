@@ -305,9 +305,8 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
 
     if summary:
         blocks.append({"type": "divider"})
-        blocks.append(
-            _mrkdwn_block(f"{guidance.experimenter_summary_intro}\n\n{summary}")
-        )
+        summary_text = f"{guidance.experimenter_summary_intro}\n\n{summary}"
+        blocks.extend(_mrkdwn_block(chunk) for chunk in _split_mrkdwn(summary_text))
         blocks.append(
             _mrkdwn_block(
                 f"See the <{release_url}|full release notes> for all details."
@@ -325,6 +324,35 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
 
 def _mrkdwn_block(text: str) -> dict:
     return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
+
+
+# Slack rejects section blocks whose text exceeds 3000 characters
+# ("invalid_blocks"); leave headroom for safety.
+SECTION_TEXT_LIMIT = 2900
+
+
+def _split_mrkdwn(text: str, limit: int = SECTION_TEXT_LIMIT) -> list[str]:
+    """Split mrkdwn text into chunks below Slack's section length limit.
+
+    Splits on line boundaries so bullet entries stay intact. A single line
+    longer than the limit is emitted as its own (oversized) chunk rather
+    than being broken mid-line; Slack's limit is far above any realistic
+    changelog entry length.
+    """
+    chunks: list[str] = []
+    current: list[str] = []
+    current_len = 0
+    for line in text.split("\n"):
+        line_len = len(line) + 1
+        if current and current_len + line_len > limit:
+            chunks.append("\n".join(current))
+            current = []
+            current_len = 0
+        current.append(line)
+        current_len += line_len
+    if current:
+        chunks.append("\n".join(current))
+    return chunks
 
 
 def render_dry_run(blocks: list[dict], channel: str) -> str:
