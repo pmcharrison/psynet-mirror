@@ -323,11 +323,7 @@ class RockPaperScissorsGameState(SQLBase, SQLMixin):
 
 @register_table
 class RockPaperScissorsMove(SQLBase, SQLMixin):
-    """A single move submitted by a participant during one round.
-
-    This table is an auditable action log. The real-time source of truth lives
-    in ``RockPaperScissorsGameState``.
-    """
+    """A single move submitted by a participant during one round."""
 
     __tablename__ = "rock_paper_scissors_move"
     __table_args__ = (
