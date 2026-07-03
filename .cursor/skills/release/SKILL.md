@@ -299,8 +299,11 @@ Use the `psynet dev release announce` command (see the
 `announce-release` skill). It composes the message from a single
 version argument and posts it to `#psynet-support` using the `[slack]`
 extra (already installed via the prerequisites). Set `SLACK_BOT_TOKEN`
-to a bot token that has `chat:write` access to the channel, then
-preview and post:
+to a bot token that has `chat:write` access to the channel. If the
+token is not set in the environment and not present in the user's
+`~/.zshrc` or `~/.bashrc` (check for the variable name only; never
+print the value), ask the user to paste the token. Then preview and
+post:
 
 ```bash
 psynet dev release announce X.Y.Z --dry-run
