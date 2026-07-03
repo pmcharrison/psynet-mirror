@@ -265,7 +265,8 @@ update older release entries to point at that permanent URL.
 
 1. Open <https://gitlab.com/PsyNetDev/PsyNet/-/releases/new>.
 2. Select the `vX.Y.Z` tag.
-3. Set the release title to `vX.Y.Z`.
+3. Set the release title to `X.Y.Z` (the version number without the
+   tag's `v` prefix).
 4. Paste the contents of `release-notes-X.Y.Z.md` into the
    description box.
 5. Leave the **pre-release** flag **unticked** for final releases.
@@ -276,7 +277,7 @@ update older release entries to point at that permanent URL.
 
 ```bash
 glab release create vX.Y.Z \
-  --name "vX.Y.Z" \
+  --name "X.Y.Z" \
   --notes-file release-notes-X.Y.Z.md \
   --ref vX.Y.Z
 ```
@@ -555,7 +556,8 @@ using the shared steps with the RC version:
    <https://psynetdev.gitlab.io/PsyNet/>.
 7. [Create the GitLab release](#create-the-gitlab-release) as a
    **pre-release**, with these RC-specific differences:
-   - Title: `v13.2.0rc0 (Release candidate)`.
+   - Title: `13.2.0rc0 (Release candidate)` (no `v` prefix in release
+     titles; the tag keeps it).
    - **Tick the pre-release flag.** This is critical — it prevents the
      RC from showing up as the project's "latest release" and signals to
      users that the artifact is for testing only. `glab release create`
