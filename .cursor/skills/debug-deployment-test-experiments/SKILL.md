@@ -22,21 +22,35 @@ dashboard or Dozzle, ask the user to provide:
 Do not proceed with authenticated steps until the user has supplied them, and
 do not record the provided credentials in reports, logs, or committed files.
 
+## Local Environment Inputs
+
+This skill does not hardcode machine-specific paths. Before running local
+commands, ask the user for (or confirm from repo-local rules/context):
+
+- `<psynet-root>`: the PsyNet repository root (e.g. `~/PsyNet`).
+- `<dallinger-root>`: the Dallinger repository root (e.g. `~/Dallinger`).
+- `<venv>`: the name of the PsyNet virtual environment directory inside
+  `<psynet-root>`. Default to `.venv` unless the user or a repo-local rule
+  specifies otherwise.
+- `<ssh-user>@<ssh-host>`: the SSH login for the deployment server (e.g.
+  `user@experiments1.cococo-lab.cornell.edu`), and the SSH key path
+  `<ssh-key>` if one is required.
+
 ## Python Environment
 
-Always use the PsyNet virtual environment at
-`/home/frank/projects/PsyNet/.venv-psynet` for PsyNet commands and Python
-dependency commands. Before running `psynet`, `python`, `pip`, `uv`, `pytest`,
-or `pre-commit` from the PsyNet checkout, activate it and verify it:
+Always use the PsyNet virtual environment at `<psynet-root>/<venv>` for PsyNet
+commands and Python dependency commands. Before running `psynet`, `python`,
+`pip`, `uv`, `pytest`, or `pre-commit` from the PsyNet checkout, activate it
+and verify it:
 
 ```bash
-cd /home/frank/projects/PsyNet
-source .venv-psynet/bin/activate
+cd <psynet-root>
+source <venv>/bin/activate
 echo "$VIRTUAL_ENV"
 ```
 
-If `.venv-psynet` is missing or activation fails, stop and tell the user before
-running any PsyNet or Python-related command.
+If the virtual environment is missing or activation fails, stop and tell the
+user before running any PsyNet or Python-related command.
 
 ## Deploy The Prolific Test From The Test Branch
 
@@ -56,7 +70,7 @@ Before deploying:
    to date with `master`:
 
 ```bash
-cd /home/frank/projects/PsyNet
+cd <psynet-root>
 git fetch origin master
 git switch master
 git pull --ff-only origin master
@@ -68,7 +82,7 @@ PSYNET_SHA=$(git rev-parse HEAD)
 3. Update Dallinger to latest `master`:
 
 ```bash
-cd /home/frank/projects/Dallinger
+cd <dallinger-root>
 git fetch origin master
 git switch master
 git pull --ff-only origin master
@@ -79,10 +93,10 @@ DALLINGER_SHA=$(git rev-parse HEAD)
    editable mode so the deployment command is run from the latest local code:
 
 ```bash
-cd /home/frank/projects/PsyNet
-source .venv-psynet/bin/activate
+cd <psynet-root>
+source <venv>/bin/activate
 echo "$VIRTUAL_ENV"
-uv pip install -e /home/frank/projects/Dallinger
+uv pip install -e <dallinger-root>
 uv pip install -e ".[dev,slack]"
 ```
 
@@ -100,8 +114,8 @@ uv pip install -e ".[dev,slack]"
 Deploy from the experiment directory:
 
 ```bash
-cd /home/frank/projects/PsyNet/tests/manual_recruiter_testing/prolific
-source /home/frank/projects/PsyNet/.venv-psynet/bin/activate
+cd <psynet-root>/tests/manual_recruiter_testing/prolific
+source <psynet-root>/<venv>/bin/activate
 psynet deploy ssh \
   --server experiments1.cococo-lab.cornell.edu \
   --dns-host experiments1.cococo-lab.cornell.edu \
@@ -182,7 +196,7 @@ Use the study id from the deployment output, Prolific study URL, or participant
 `hit_id`, then query Prolific like this:
 
 ```bash
-ssh -i /home/frank/.ssh/cap.pem co3@experiments1.cococo-lab.cornell.edu \
+ssh -i <ssh-key> <ssh-user>@<ssh-host> \
   "docker compose -f ~/dallinger/<app-name>/docker-compose.yml exec -T web python - <<'PY'
 import json
 from collections import Counter
