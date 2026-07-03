@@ -35,6 +35,8 @@ commands, ask the user for (or confirm from repo-local rules/context):
 - `<ssh-user>@<ssh-host>`: the SSH login for the deployment server (e.g.
   `user@experiments1.cococo-lab.cornell.edu`), and the SSH key path
   `<ssh-key>` if one is required.
+- `<dns-host>`: the public DNS host used by deployed experiment URLs. Default
+  to `<ssh-host>` when the SSH server and DNS host are the same.
 
 ## Python Environment
 
@@ -117,8 +119,8 @@ Deploy from the experiment directory:
 cd <psynet-root>/tests/manual_recruiter_testing/prolific
 source <psynet-root>/<venv>/bin/activate
 psynet deploy ssh \
-  --server experiments1.cococo-lab.cornell.edu \
-  --dns-host experiments1.cococo-lab.cornell.edu \
+  --server <ssh-host> \
+  --dns-host <dns-host> \
   --app <app-name>
 ```
 
