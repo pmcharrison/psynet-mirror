@@ -339,7 +339,11 @@ test("in-place media cleanup ignores late audio loads from previous pages", asyn
     });
     await expect.poll(() => staleRequests, { timeout: 10000 }).toBe(1);
 
+    // Declared page media normally blocks page readiness, so a normal page
+    // transition cannot leave that media request pending. This forces the
+    // stale-load edge case directly and verifies the cleanup generation guard.
     await experimentPage.evaluate(() => window.psynet.cleanupPageResources());
+
     const currentDuration = await experimentPage.evaluate(async () => {
       window.psynet.media.requests = {
         audio: { prompt: "/current-audio.wav" },
