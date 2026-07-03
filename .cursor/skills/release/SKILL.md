@@ -222,7 +222,7 @@ This builds both the sdist (`.tar.gz`) and wheel (`.whl`) into the `dist/`
 directory, then uploads them to PyPI. The pre-build `rm -rf` ensures we
 start from a clean slate; the upload glob is intentionally narrow because
 `dist/psynet-X.Y.Z*` would also match leftover RC artifacts such as
-`psynet-X.Y.Zrc0*`. The post-upload `rm -rf` removes generated files.
+`psynet-X.Y.Zrc1*`. The post-upload `rm -rf` removes generated files.
 
 You will be prompted for PyPI credentials unless you have a `~/.pypirc`
 file or a `TWINE_USERNAME` / `TWINE_PASSWORD` / `TWINE_API_KEY`
@@ -330,7 +330,7 @@ into a message in `#psynet-support`.
 Example: releasing 13.2.0 from `master` while `master` is at `13.2.0a0`.
 
 **Default to a release candidate first.** For minor releases, cut an RC
-(e.g. `13.2.0rc0`) before the final version, unless the release manager
+(e.g. `13.2.0rc1`) before the final version, unless the release manager
 explicitly instructs otherwise. After creating the release branch (step 1
 below), switch to the [release candidate flow](#release-candidates-minor-releases)
 instead of continuing with steps 2–7; return to the final-release steps via
@@ -524,6 +524,10 @@ convention matches what major GitLab-hosted projects (GitLab Runner,
 Inkscape, Wireshark) do. The RC's changelog section, PyPI page, and docs
 build carry all the information testers need.
 
+Number release candidates starting from **rc1** (`13.2.0rc1`, `13.2.0rc2`,
+…), matching the common convention across major projects. (Releases up to
+13.3.0 started at `rc0`.)
+
 RCs are especially valuable when:
 
 - The release contains risky or far-reaching changes (e.g. a Dallinger
@@ -532,18 +536,18 @@ RCs are especially valuable when:
   studies before the final tag.
 - CI is green but you want soak time on real deployments.
 
-### RC0: Cut the first release candidate
+### RC1: Cut the first release candidate
 
 Start from the release branch created in step 1 of the minor release path.
-Instead of bumping straight to `13.2.0`, bump to `13.2.0rc0` and tag it,
+Instead of bumping straight to `13.2.0`, bump to `13.2.0rc1` and tag it,
 using the shared steps with the RC version:
 
 1. [Update the CHANGELOG](#update-the-changelog) with
-   `psynet dev changelog release 13.2.0rc0 YYYY-MM-DD`. This creates a
-   `# [13.2.0rc0](...) Release candidate - YYYY-MM-DD` section. If further
+   `psynet dev changelog release 13.2.0rc1 YYYY-MM-DD`. This creates a
+   `# [13.2.0rc1](...) Release candidate - YYYY-MM-DD` section. If further
    changes land before the next RC or final release, record them as new
    fragments in `changelog.d/`.
-2. [Bump the version](#bump-the-version) from `13.2.0a0` to `13.2.0rc0`.
+2. [Bump the version](#bump-the-version) from `13.2.0a0` to `13.2.0rc1`.
 3. [Update demo and test experiments](#update-demo-and-test-experiments).
 4. Push the release branch and tag the RC. RC tags are pushed directly from
    the release branch — there is **no MR** and **no merge to `master`** at
@@ -551,44 +555,44 @@ using the shared steps with the RC version:
 
    ```bash
    git push --set-upstream origin release-13.2
-   git tag v13.2.0rc0
-   git push origin v13.2.0rc0
+   git tag v13.2.0rc1
+   git push origin v13.2.0rc1
    ```
 
    Wait for the tag pipeline to pass on GitLab.
 5. [Build and upload to PyPI](#build-and-upload-to-pypi) using the RC
    version. Since the pre-build `rm -rf` guarantees a clean `dist/`, the
-   broader glob `dist/psynet-13.2.0rc0*` is safe here. RCs are not marked
+   broader glob `dist/psynet-13.2.0rc1*` is safe here. RCs are not marked
    as the latest release on PyPI, so users must opt in with
-   `pip install psynet==13.2.0rc0`.
+   `pip install psynet==13.2.0rc1`.
 6. [Verify the documentation deployment](#verify-the-documentation-deployment):
-   confirm that `https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc0/` loads
+   confirm that `https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc1/` loads
    and that the RC appears in the version dropdown at
    <https://psynetdev.gitlab.io/PsyNet/>.
 7. **Skip the GitLab release entry.** RCs are tag-only on GitLab (see
    above); the [Create the GitLab release](#create-the-gitlab-release)
    step applies to final releases only.
 8. [Announce the release on Slack](#announce-the-release-on-slack) with the
-   RC version. `psynet dev release announce 13.2.0rc0` auto-detects the
+   RC version. `psynet dev release announce 13.2.0rc1` auto-detects the
    `rc` segment and generates an RC-flavoured message with the
    `/rc/<tag>/` docs URL, the CHANGELOG-at-tag link (since there is no
    GitLab release entry), and the opt-in install instruction:
 
    ```text
-   *:test_tube: PsyNet 13.2.0rc0 (release candidate) is out*
+   *:test_tube: PsyNet 13.2.0rc1 (release candidate) is out*
 
-   • <https://gitlab.com/PsyNetDev/PsyNet/-/blob/v13.2.0rc0/CHANGELOG.md|Release notes>
-   • <https://pypi.org/project/psynet/13.2.0rc0/|PyPI>
-   • <https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc0/|Documentation>
+   • <https://gitlab.com/PsyNetDev/PsyNet/-/blob/v13.2.0rc1/CHANGELOG.md|Release notes>
+   • <https://pypi.org/project/psynet/13.2.0rc1/|PyPI>
+   • <https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc1/|Documentation>
 
-   Opt in with `pip install psynet==13.2.0rc0`. Please test against your
+   Opt in with `pip install psynet==13.2.0rc1`. Please test against your
    studies and report any regressions before the final tag.
    ```
 
    Tag any specific people whose feedback you need on a thread under the
    post rather than `@channel`-ing the whole channel.
 
-### Iterate: RC1, RC2, …
+### Iterate: RC2, RC3, …
 
 While the RC is being tested, additional fixes may need to land on the
 release branch. Prefer to land the fix on `master` first via a normal MR,
@@ -610,9 +614,9 @@ revert), commit it directly on `release-13.2` and remember to port it
 back to `master` later if needed.
 
 When you have enough fixes to justify another candidate, cut the next RC by
-repeating the RC0 sequence with the next RC number (e.g. `13.2.0rc1`):
+repeating the RC1 sequence with the next RC number (e.g. `13.2.0rc2`):
 CHANGELOG, version bump, demo update, then push, tag, upload, and
-announcement, with the same human checkpoints. Repeat for `rc2`, `rc3`,
+announcement, with the same human checkpoints. Repeat for `rc3`, `rc4`,
 etc. until you are confident the release is ready.
 
 ### Promote the final RC to the official release
