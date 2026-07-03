@@ -26,6 +26,7 @@ def _check_websocket_event_contracts(experiment_globals):
     """Check websocket event parsing without importing the experiment twice."""
     parse_client_event = experiment_globals["_parse_client_event"]
     choose_event = experiment_globals["ChooseEvent"]
+    game_state = experiment_globals["RockPaperScissorsGameState"]
     game_context = experiment_globals["RockPaperScissorsGameContext"]
     reveal_event = experiment_globals["RevealEvent"]
 
@@ -57,6 +58,15 @@ def _check_websocket_event_contracts(experiment_globals):
     assert context.accepts_event(event)
     assert not context.accepts_event(event.model_copy(update={"page_uuid": "old-page"}))
     assert not context.accepts_event(event.model_copy(update={"room_id": "rps_room_2"}))
+
+    state = game_state(room_id="rps_room_1")
+    assert state.record_choice(1, participant_id=1, action="rock")
+    assert not state.record_choice(2, participant_id=2, action="scissors")
+    assert state.record_choice(1, participant_id=2, action="scissors")
+    assert state.current_round == 2
+    assert state.score_for(1) == 1
+    assert state.score_for(2) == -1
+    assert state.participant_moves(1) == ["rock"]
 
     invalid_payloads = [
         {"type": "reveal", "target": "1"},
