@@ -1,0 +1,1 @@
+Improved `psynet dev release announce`: long summaries are split across Slack blocks (fixing `invalid_blocks` errors), the experimenter summary now covers Breaking/Deprecated/Removed categories and recruiter/trial/translation changes while excluding maintainer tooling, and announcements are posted to a testing channel for review before the real broadcast.
