@@ -13,16 +13,17 @@
 
 import json
 import os
+import sys
 
 import pytest
-from experiment import ChooseEvent, RevealEvent, _parse_client_event
 
 pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
 experiment_dir = os.path.dirname(__file__)
 
 
-def test_choose_event_parses_valid_websocket_message():
-    event = _parse_client_event(
+def _check_websocket_event_contracts(experiment_module):
+    """Check websocket event parsing without importing the experiment twice."""
+    event = experiment_module._parse_client_event(
         json.dumps(
             {
                 "type": "choose",
@@ -33,16 +34,13 @@ def test_choose_event_parses_valid_websocket_message():
         )
     )
 
-    assert event == ChooseEvent(
+    assert event == experiment_module.ChooseEvent(
         room_id="rps_room_1",
         round_number=2,
         action="paper",
     )
 
-
-@pytest.mark.parametrize(
-    "payload",
-    [
+    invalid_payloads = [
         {"type": "reveal", "target": "1"},
         {"type": "choose", "round": 1, "action": "rock"},
         {"type": "choose", "room_id": "rps_room_1", "round": 0, "action": "rock"},
@@ -52,14 +50,11 @@ def test_choose_event_parses_valid_websocket_message():
             "round": 1,
             "action": "lizard",
         },
-    ],
-)
-def test_choose_event_rejects_invalid_websocket_messages(payload):
-    assert _parse_client_event(json.dumps(payload)) is None
+    ]
+    for payload in invalid_payloads:
+        assert experiment_module._parse_client_event(json.dumps(payload)) is None
 
-
-def test_reveal_event_serializes_browser_payload():
-    event = RevealEvent(
+    event = experiment_module.RevealEvent(
         target_participant_id=7,
         round_number=3,
         result="Round 2: you played rock, your partner played scissors - you won!",
@@ -88,4 +83,6 @@ def test_experiment(launched_experiment):
     # we recommend either running the test externally (`psynet test local`)
     # or editing your PyCharm run configuration to add `--tb=short` to your additional
     # arguments. This should ensure that the full traceback is printed.
+    experiment_module = sys.modules[launched_experiment.__class__.__module__]
+    _check_websocket_event_contracts(experiment_module)
     launched_experiment.test_experiment()
