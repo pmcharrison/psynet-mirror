@@ -24,6 +24,33 @@ def test_alpha_switcher_name_rejects_non_alpha_version():
         generate_version_switcher.format_alpha_name("13.3.0")
 
 
+def test_prerelease_switcher_name_matches_alpha_style():
+    assert (
+        generate_version_switcher.format_prerelease_name("v13.3.0rc0") == "13.3.0 rc0"
+    )
+    assert generate_version_switcher.format_prerelease_name("v13.4.0a1") == "13.4.0 a1"
+
+
+def test_prerelease_switcher_name_rejects_stable_tag():
+    with pytest.raises(ValueError, match="Expected a prerelease tag"):
+        generate_version_switcher.format_prerelease_name("v13.3.0")
+
+
+def test_rc_switcher_entry_keeps_raw_version_for_matching():
+    entries = generate_version_switcher.build_entries(
+        "https://psynetdev.gitlab.io/PsyNet",
+        tags=["v13.2.0"],
+        alpha_version="13.3.0a0",
+        latest_rc_tag="v13.3.0rc0",
+    )
+
+    assert entries[1] == {
+        "name": "13.3.0 rc0",
+        "version": "v13.3.0rc0",
+        "url": "https://psynetdev.gitlab.io/PsyNet/rc/v13.3.0rc0/",
+    }
+
+
 def test_alpha_switcher_entry_keeps_raw_version_for_matching():
     entries = generate_version_switcher.build_entries(
         "https://psynetdev.gitlab.io/PsyNet",
