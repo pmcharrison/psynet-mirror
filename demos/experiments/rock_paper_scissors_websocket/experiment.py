@@ -95,10 +95,10 @@ class ChooseEvent(PageScopedWebSocketEvent):
     round: int = Field(ge=1, le=N_ROUNDS)
     action: Choice
 
-    def handle(self, context):
+    def handle(self, service):
         """Apply this event to the running websocket game."""
-        if context.record_choice(self):
-            context.broadcast_reveal_if_complete(self)
+        if service.record_choice(self):
+            service.broadcast_reveal_if_complete(self)
 
 
 class RevealEvent(BaseModel):
@@ -126,7 +126,7 @@ def _parse_client_event(message):
 
 
 @dataclass(frozen=True)
-class RockPaperScissorsGameContext:
+class RockPaperScissorsGameService:
     """Runtime game services available to websocket event handlers."""
 
     participant: Participant
@@ -164,7 +164,7 @@ class RockPaperScissorsGameContext:
         from dallinger import db
 
         game_state = self._get_or_create_game_state(event.room_id)
-        rejection_reason = game_state.choice_rejection_reason(
+        rejection_reason = game_state.rejection_reason_for_choice(
             event.round, self.participant.id
         )
         if rejection_reason is not None:
@@ -227,9 +227,12 @@ class RockPaperScissorsGameState(SQLBase, SQLMixin):
         self.finished = False
 
     def record_choice(self, round_number: int, participant_id: int, action: Choice):
-        """Record a participant choice in the current round."""
-        if self.choice_rejection_reason(round_number, participant_id) is not None:
-            return False
+        """Record a participant choice that has already been validated."""
+        rejection_reason = self.rejection_reason_for_choice(
+            round_number, participant_id
+        )
+        if rejection_reason is not None:
+            raise ValueError(rejection_reason)
 
         round_moves = self.moves_for_round(round_number)
 
@@ -246,7 +249,7 @@ class RockPaperScissorsGameState(SQLBase, SQLMixin):
             self._score_completed_round(round_moves)
         return True
 
-    def choice_rejection_reason(self, round_number: int, participant_id: int):
+    def rejection_reason_for_choice(self, round_number: int, participant_id: int):
         """Return why a choice would be rejected, or ``None`` if accepted."""
         if self.finished:
             return "game already finished"
@@ -381,10 +384,10 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
                 err.error_count(),
             )
             return
-        context = RockPaperScissorsGameContext(participant, experiment, self.channel)
-        if not context.accepts_event(event):
+        service = RockPaperScissorsGameService(participant, experiment, self.channel)
+        if not service.accepts_event(event):
             return
-        event.handle(context)
+        event.handle(service)
 
 
 class RockPaperScissorsControl(Control):
@@ -625,14 +628,14 @@ class Exp(psynet.experiment.Experiment):
         participant = SimpleNamespace(
             page_uuid="current-page", sync_group=SimpleNamespace(id=1)
         )
-        context = RockPaperScissorsGameContext(
+        service = RockPaperScissorsGameService(
             participant, SimpleNamespace(), "rock_paper_scissors"
         )
-        assert context.accepts_event(event)
-        assert not context.accepts_event(
+        assert service.accepts_event(event)
+        assert not service.accepts_event(
             event.model_copy(update={"page_uuid": "old-page"})
         )
-        assert not context.accepts_event(
+        assert not service.accepts_event(
             event.model_copy(update={"room_id": "rps_room_2"})
         )
 
@@ -642,11 +645,16 @@ class Exp(psynet.experiment.Experiment):
         state = RockPaperScissorsGameState(room_id="rps_room_1")
         assert state.record_choice(1, participant_id=1, action="rock")
         assert (
-            state.choice_rejection_reason(1, participant_id=1)
+            state.rejection_reason_for_choice(1, participant_id=1)
             == "participant already moved this round"
         )
-        assert not state.record_choice(1, participant_id=1, action="paper")
-        assert not state.record_choice(2, participant_id=2, action="scissors")
+        try:
+            state.record_choice(1, participant_id=1, action="paper")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Expected duplicate move to be rejected.")
+        assert state.rejection_reason_for_choice(2, participant_id=2) is not None
         assert state.record_choice(1, participant_id=2, action="scissors")
         assert state.current_round == 2
         assert state.score_for(1) == 1
