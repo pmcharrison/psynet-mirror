@@ -58,9 +58,10 @@ Externally visible or irreversible steps (pushing tags, PyPI uploads, GitLab
 releases, Slack posts) require explicit approval from the human release
 manager; the skill marks each of these with a **Human checkpoint** callout.
 
-For releases that need wider testing before the final tag, the skill also
-documents an optional release-candidate flow (``X.Y.Zrc0``, ``rc1``, …)
-with PyPI pre-releases and GitLab pre-release entries.
+Minor releases go through a release-candidate flow (``X.Y.Zrc0``,
+``rc1``, …) by default, with PyPI pre-releases and GitLab pre-release
+entries, before the final tag. Skip the RC stage only when the release
+manager explicitly decides to release directly.
 
 .. attention::
 
