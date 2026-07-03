@@ -13,7 +13,6 @@
 
 import json
 import os
-import sys
 
 import pytest
 
@@ -21,9 +20,13 @@ pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
 experiment_dir = os.path.dirname(__file__)
 
 
-def _check_websocket_event_contracts(experiment_module):
+def _check_websocket_event_contracts(experiment_globals):
     """Check websocket event parsing without importing the experiment twice."""
-    event = experiment_module._parse_client_event(
+    parse_client_event = experiment_globals["_parse_client_event"]
+    choose_event = experiment_globals["ChooseEvent"]
+    reveal_event = experiment_globals["RevealEvent"]
+
+    event = parse_client_event(
         json.dumps(
             {
                 "type": "choose",
@@ -34,7 +37,7 @@ def _check_websocket_event_contracts(experiment_module):
         )
     )
 
-    assert event == experiment_module.ChooseEvent(
+    assert event == choose_event(
         room_id="rps_room_1",
         round_number=2,
         action="paper",
@@ -52,9 +55,9 @@ def _check_websocket_event_contracts(experiment_module):
         },
     ]
     for payload in invalid_payloads:
-        assert experiment_module._parse_client_event(json.dumps(payload)) is None
+        assert parse_client_event(json.dumps(payload)) is None
 
-    event = experiment_module.RevealEvent(
+    event = reveal_event(
         target_participant_id=7,
         round_number=3,
         result="Round 2: you played rock, your partner played scissors - you won!",
@@ -83,6 +86,6 @@ def test_experiment(launched_experiment):
     # we recommend either running the test externally (`psynet test local`)
     # or editing your PyCharm run configuration to add `--tb=short` to your additional
     # arguments. This should ensure that the full traceback is printed.
-    experiment_module = sys.modules[launched_experiment.__class__.__module__]
-    _check_websocket_event_contracts(experiment_module)
+    experiment_globals = launched_experiment.__class__.test_serial_run_bots.__globals__
+    _check_websocket_event_contracts(experiment_globals)
     launched_experiment.test_experiment()
