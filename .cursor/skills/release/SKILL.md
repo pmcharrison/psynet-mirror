@@ -159,9 +159,10 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-Pushing the tag triggers the CI test pipeline for the tagged commit.
-Documentation is deployed separately via the `pages_latest` CI job when
-changes land on the default branch.
+Pushing the tag triggers the CI test pipeline for the tagged commit. The
+tag pipeline also includes the `pages` job, which builds and deploys the
+documentation for the tag (see
+[Verify the documentation deployment](#verify-the-documentation-deployment)).
 
 ### Wait for CI to pass
 
@@ -170,6 +171,36 @@ proceed until CI is green.**
 
 Check the pipeline at:
 `https://gitlab.com/PsyNetDev/PsyNet/-/pipelines`
+
+### Verify the documentation deployment
+
+The `pages` job in the tag pipeline builds the documentation for the
+tagged version and publishes it to GitLab Pages:
+
+- **Stable tags** (`vX.Y.Z`) are published to
+  `https://psynetdev.gitlab.io/PsyNet/vX.Y.Z/`, and additionally to the
+  docs root when the tag is the highest stable release.
+- **Prerelease tags** (`vX.Y.ZrcN`, `vX.Y.ZaN`) are published to
+  `https://psynetdev.gitlab.io/PsyNet/rc/vX.Y.ZrcN/`.
+
+After the `pages` job has finished (Pages deployment can take a few extra
+minutes after the job succeeds), verify:
+
+1. The tag's docs URL above loads and shows the correct version number in
+   the page header.
+2. The new version is accessible from the version dropdown menu at
+   <https://psynetdev.gitlab.io/PsyNet/>. The dropdown is driven by
+   `https://psynetdev.gitlab.io/PsyNet/_static/version_switcher.json`, so
+   you can also check programmatically that the JSON contains an entry
+   for the tag:
+
+   ```bash
+   curl -s https://psynetdev.gitlab.io/PsyNet/_static/version_switcher.json | python3 -m json.tool
+   ```
+
+If the tag is missing from the dropdown or its docs URL 404s, inspect the
+`pages` job log in the tag pipeline before proceeding to the announcement
+steps.
 
 ### Build and upload to PyPI
 
@@ -353,8 +384,9 @@ Perform the shared steps, in this order:
 1. [Wait for CI to pass](#wait-for-ci-to-pass)
 2. [Tag the release](#tag-the-release)
 3. [Build and upload to PyPI](#build-and-upload-to-pypi)
-4. [Create the GitLab release](#create-the-gitlab-release)
-5. [Announce the release on Slack](#announce-the-release-on-slack)
+4. [Verify the documentation deployment](#verify-the-documentation-deployment)
+5. [Create the GitLab release](#create-the-gitlab-release)
+6. [Announce the release on Slack](#announce-the-release-on-slack)
 
 ### 6. Merge the release branch back into master
 
@@ -442,8 +474,9 @@ Perform the shared steps, in this order:
 2. [Wait for CI to pass](#wait-for-ci-to-pass) (the tag pipeline runs
    tests against the tagged commit)
 3. [Build and upload to PyPI](#build-and-upload-to-pypi)
-4. [Create the GitLab release](#create-the-gitlab-release)
-5. [Announce the release on Slack](#announce-the-release-on-slack)
+4. [Verify the documentation deployment](#verify-the-documentation-deployment)
+5. [Create the GitLab release](#create-the-gitlab-release)
+6. [Announce the release on Slack](#announce-the-release-on-slack)
 
 ### 5. Merge back to master (if applicable)
 
@@ -513,7 +546,11 @@ using the shared steps with the RC version:
    broader glob `dist/psynet-13.2.0rc0*` is safe here. RCs are not marked
    as the latest release on PyPI, so users must opt in with
    `pip install psynet==13.2.0rc0`.
-6. [Create the GitLab release](#create-the-gitlab-release) as a
+6. [Verify the documentation deployment](#verify-the-documentation-deployment):
+   confirm that `https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc0/` loads
+   and that the RC appears in the version dropdown at
+   <https://psynetdev.gitlab.io/PsyNet/>.
+7. [Create the GitLab release](#create-the-gitlab-release) as a
    **pre-release**, with these RC-specific differences:
    - Title: `v13.2.0rc0 (Release candidate)`.
    - **Tick the pre-release flag.** This is critical — it prevents the
@@ -529,7 +566,7 @@ using the shared steps with the RC version:
      > PyPI; opt in explicitly with `pip install psynet==13.2.0rc0`.
      > Please test against your studies and report any regressions before
      > the final 13.2.0 tag.
-7. [Announce the release on Slack](#announce-the-release-on-slack) with the
+8. [Announce the release on Slack](#announce-the-release-on-slack) with the
    RC version. `psynet dev release announce 13.2.0rc0` auto-detects the
    `rc` segment and generates an RC-flavoured message with the
    `/rc/<tag>/` docs URL and the opt-in install instruction:

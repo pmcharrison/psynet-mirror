@@ -1,1 +1,1 @@
-Release skill: minor releases now default to a release-candidate flow, and release commits stage explicit paths to avoid sweeping in unrelated local files. (author: [Your Name])
+Release skill: minor releases now default to a release-candidate flow, release commits stage explicit paths to avoid sweeping in unrelated local files, and the publish steps now verify that the tag's documentation is deployed and reachable from the docs version dropdown.
