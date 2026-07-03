@@ -61,12 +61,14 @@ def _check_websocket_event_contracts(experiment_globals):
 
     state = game_state(room_id="rps_room_1")
     assert state.record_choice(1, participant_id=1, action="rock")
+    assert not state.record_choice(1, participant_id=1, action="paper")
     assert not state.record_choice(2, participant_id=2, action="scissors")
     assert state.record_choice(1, participant_id=2, action="scissors")
     assert state.current_round == 2
     assert state.score_for(1) == 1
     assert state.score_for(2) == -1
     assert state.participant_moves(1) == ["rock"]
+    assert len(state.moves) == 2
 
     invalid_payloads = [
         {"type": "reveal", "target": "1"},

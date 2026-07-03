@@ -25,8 +25,8 @@ machinery, exactly as the ``ChatRoom`` component does
 
 The server is the sole authority for the game state; the browser only sends the
 chosen action and drops the server's snapshot text into the page, so there is
-almost no game logic in JavaScript. The authoritative live state is persisted as
-a compact ``RockPaperScissorsGameStateRecord`` snapshot, while
+almost no game logic in JavaScript. The authoritative live state is persisted in
+the ``RockPaperScissorsGameState`` row, while
 ``RockPaperScissorsMove`` rows provide an auditable action log. The final score
 is recomputed from participant submissions inside a :class:`~psynet.sync.GroupBarrier`
 on release, so the flow is also fully testable with non-WebSocket bots.
@@ -34,11 +34,12 @@ on release, so the flow is also fully testable with non-WebSocket bots.
 
 import random
 from dataclasses import dataclass
-from typing import Dict, List, Literal, Optional
+from typing import List, Literal, Optional
 
 from dominate import tags
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
-from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import relationship
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
@@ -117,60 +118,6 @@ class RevealEvent(BaseModel):
         return self.model_dump_json(exclude_none=True)
 
 
-class RockPaperScissorsGameState(BaseModel):
-    """Pure authoritative state for one rock-paper-scissors websocket room."""
-
-    room_id: str
-    current_round: int = 1
-    moves: Dict[int, Dict[int, Choice]] = Field(default_factory=dict)
-    scores: Dict[int, int] = Field(default_factory=dict)
-    finished: bool = False
-
-    def record_choice(self, round_number: int, participant_id: int, action: Choice):
-        """Record a participant choice in the current round."""
-        if self.finished or round_number != self.current_round:
-            return False
-
-        round_moves = self.moves.setdefault(round_number, {})
-        if participant_id in round_moves:
-            return False
-
-        round_moves[participant_id] = action
-        self.scores.setdefault(participant_id, 0)
-        if len(round_moves) >= 2:
-            self._score_completed_round(round_moves)
-        return True
-
-    def round_is_complete(self, round_number: int):
-        """Return whether both players have chosen in the given round."""
-        return len(self.moves.get(round_number, {})) >= 2
-
-    def _score_completed_round(self, round_moves):
-        pids = sorted(round_moves.keys())
-        score = score_round(round_moves[pids[0]], round_moves[pids[1]])
-        self.scores[pids[0]] += score
-        self.scores[pids[1]] -= score
-        self.finished = self.current_round >= N_ROUNDS
-        if not self.finished:
-            self.current_round += 1
-
-    def moves_for_round(self, round_number: int):
-        """Return the submitted moves for a completed round."""
-        return self.moves[round_number]
-
-    def score_for(self, participant_id: int):
-        """Return a participant's current score."""
-        return self.scores.get(participant_id, 0)
-
-    def participant_moves(self, participant_id: int):
-        """Return a participant's submitted moves in round order."""
-        return [
-            round_moves[participant_id]
-            for _, round_moves in sorted(self.moves.items())
-            if participant_id in round_moves
-        ]
-
-
 def _parse_client_event(message):
     """Parse a raw websocket message into a supported client event."""
     return ChooseEvent.model_validate_json(message)
@@ -199,48 +146,33 @@ class RockPaperScissorsGameContext:
         """Persist the state snapshot and audit row for a participant choice."""
         from dallinger import db
 
-        state_record = self._get_or_create_state_record(event.room_id)
-        state = state_record.game_state
-        accepted = state.record_choice(event.round, self.participant.id, event.action)
-        if not accepted:
+        game_state = self._get_or_create_game_state(event.room_id)
+        if not game_state.record_choice(event.round, self.participant.id, event.action):
             return False
-        state_record.game_state = state
-        db.session.add(state_record)
-        db.session.add(
-            RockPaperScissorsMove(
-                event.room_id, event.round, self.participant.id, event.action
-            )
-        )
+        db.session.add(game_state)
         db.session.commit()
         return True
 
     @staticmethod
-    def _get_or_create_state_record(room_id):
-        state_record = (
-            RockPaperScissorsGameStateRecord.query.filter_by(room_id=room_id)
+    def _get_or_create_game_state(room_id):
+        game_state = (
+            RockPaperScissorsGameState.query.filter_by(room_id=room_id)
             .with_for_update()
             .one_or_none()
         )
-        if state_record is None:
-            state_record = RockPaperScissorsGameStateRecord(
-                room_id=room_id,
-                state=RockPaperScissorsGameState(room_id=room_id).model_dump(
-                    mode="json"
-                ),
-            )
-        return state_record
+        if game_state is None:
+            game_state = RockPaperScissorsGameState(room_id=room_id)
+        return game_state
 
     def broadcast_reveal_if_complete(self, event: ChooseEvent):
         """Broadcast the completed round once both participants have chosen."""
-        state = (
-            RockPaperScissorsGameStateRecord.query.filter_by(room_id=event.room_id)
-            .one()
-            .game_state
-        )
-        if not state.round_is_complete(event.round):
+        game_state = RockPaperScissorsGameState.query.filter_by(
+            room_id=event.room_id
+        ).one()
+        if not game_state.round_is_complete(event.round):
             return
 
-        this_round = state.moves_for_round(event.round)
+        this_round = game_state.moves_for_round(event.round)
         pids = sorted(this_round.keys())
         for me, partner in [(pids[0], pids[1]), (pids[1], pids[0])]:
             delta = score_round(this_round[me], this_round[partner])
@@ -259,16 +191,18 @@ class RockPaperScissorsGameContext:
                     f"your partner played {this_round[partner]} — {outcome}"
                 ),
                 scoreboard=(
-                    f"Score — you: {state.score_for(me)}, "
-                    f"partner: {state.score_for(partner)}"
+                    f"Score — you: {game_state.score_for(me)}, "
+                    f"partner: {game_state.score_for(partner)}"
                 ),
                 status=(
                     "Game over!"
-                    if state.finished
+                    if game_state.finished
                     else f"Round {event.round + 1} of {N_ROUNDS}: choose your action."
                 ),
-                finished=state.finished,
-                answer=state.participant_moves(me) if state.finished else None,
+                finished=game_state.finished,
+                answer=game_state.participant_moves(me)
+                if game_state.finished
+                else None,
             )
             self.experiment.publish_to_subscribers(
                 snapshot.to_json(), channel_name=self.channel
@@ -276,15 +210,101 @@ class RockPaperScissorsGameContext:
 
 
 @register_table
+class RockPaperScissorsGameState(SQLBase, SQLMixin):
+    """Persisted authoritative state for one websocket game room."""
+
+    __tablename__ = "rock_paper_scissors_game_state"
+    __table_args__ = (UniqueConstraint("room_id"),)
+
+    room_id = Column(String(128), index=True)
+    current_round = Column(Integer)
+    scores = Column(PythonDict)
+    finished = Column(Boolean)
+    moves = relationship(
+        "RockPaperScissorsMove",
+        back_populates="game_state",
+        order_by="RockPaperScissorsMove.round_number",
+    )
+
+    def __init__(self, room_id):
+        self.room_id = room_id
+        self.current_round = 1
+        self.scores = {}
+        self.finished = False
+
+    def record_choice(self, round_number: int, participant_id: int, action: Choice):
+        """Record a participant choice in the current round."""
+        if self.finished or round_number != self.current_round:
+            return False
+
+        round_moves = self.moves_for_round(round_number)
+        if participant_id in round_moves:
+            return False
+
+        self.moves.append(
+            RockPaperScissorsMove(
+                room_id=self.room_id,
+                round_number=round_number,
+                participant_id=participant_id,
+                action=action,
+            )
+        )
+        round_moves[participant_id] = action
+        if len(round_moves) >= 2:
+            self._score_completed_round(round_moves)
+        return True
+
+    def round_is_complete(self, round_number: int):
+        """Return whether both players have chosen in the given round."""
+        return len(self.moves_for_round(round_number)) >= 2
+
+    def _score_completed_round(self, round_moves):
+        pids = sorted(round_moves.keys())
+        score = score_round(round_moves[pids[0]], round_moves[pids[1]])
+        scores = dict(self.scores or {})
+        scores.setdefault(pids[0], 0)
+        scores.setdefault(pids[1], 0)
+        scores[pids[0]] += score
+        scores[pids[1]] -= score
+        self.scores = scores
+        self.finished = self.current_round >= N_ROUNDS
+        if not self.finished:
+            self.current_round += 1
+
+    def moves_for_round(self, round_number: int):
+        """Return submitted moves for a given round."""
+        return {
+            move.participant_id: move.action
+            for move in self.moves
+            if move.round_number == round_number
+        }
+
+    def score_for(self, participant_id: int):
+        """Return a participant's current score."""
+        return self.scores.get(participant_id, 0)
+
+    def participant_moves(self, participant_id: int):
+        """Return a participant's submitted moves in round order."""
+        return [
+            move.action for move in self.moves if move.participant_id == participant_id
+        ]
+
+
+@register_table
 class RockPaperScissorsMove(SQLBase, SQLMixin):
     """A single move submitted by a participant during one round.
 
     This table is an auditable action log. The real-time source of truth lives
-    in ``RockPaperScissorsGameStateRecord``.
+    in ``RockPaperScissorsGameState``.
     """
 
     __tablename__ = "rock_paper_scissors_move"
+    __table_args__ = (
+        UniqueConstraint("game_state_id", "round_number", "participant_id"),
+    )
 
+    game_state_id = Column(Integer, ForeignKey("rock_paper_scissors_game_state.id"))
+    game_state = relationship("RockPaperScissorsGameState", back_populates="moves")
     room_id = Column(String(128), index=True)
     round_number = Column(Integer)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
@@ -295,30 +315,6 @@ class RockPaperScissorsMove(SQLBase, SQLMixin):
         self.round_number = round_number
         self.participant_id = participant_id
         self.action = action
-
-
-@register_table
-class RockPaperScissorsGameStateRecord(SQLBase, SQLMixin):
-    """Persisted authoritative state snapshot for one websocket game room."""
-
-    __tablename__ = "rock_paper_scissors_game_state"
-    __table_args__ = (UniqueConstraint("room_id"),)
-
-    room_id = Column(String(128), index=True)
-    state = Column(PythonDict)
-
-    def __init__(self, room_id, state):
-        self.room_id = room_id
-        self.state = state
-
-    @property
-    def game_state(self):
-        """Return the Pydantic game state stored in this row."""
-        return RockPaperScissorsGameState.model_validate(self.state)
-
-    @game_state.setter
-    def game_state(self, value):
-        self.state = value.model_dump(mode="json")
 
 
 class EnableRockPaperScissors(NullElt, WebSocketElt):
