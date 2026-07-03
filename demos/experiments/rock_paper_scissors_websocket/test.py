@@ -15,6 +15,7 @@ import json
 import os
 
 import pytest
+from pydantic import ValidationError
 
 pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
 experiment_dir = os.path.dirname(__file__)
@@ -33,19 +34,23 @@ def _check_websocket_event_contracts(experiment_globals):
                 "room_id": "rps_room_1",
                 "round": 2,
                 "action": "paper",
+                "sender": "7",
             }
         )
     )
 
     assert event == choose_event(
+        type="choose",
         room_id="rps_room_1",
-        round_number=2,
+        round=2,
         action="paper",
     )
 
     invalid_payloads = [
         {"type": "reveal", "target": "1"},
         {"type": "choose", "round": 1, "action": "rock"},
+        {"type": "choose", "room_id": "", "round": 1, "action": "rock"},
+        {"type": "choose", "room_id": "rps_room_1", "round": "1", "action": "rock"},
         {"type": "choose", "room_id": "rps_room_1", "round": 0, "action": "rock"},
         {
             "type": "choose",
@@ -55,11 +60,15 @@ def _check_websocket_event_contracts(experiment_globals):
         },
     ]
     for payload in invalid_payloads:
-        assert parse_client_event(json.dumps(payload)) is None
+        with pytest.raises(ValidationError):
+            parse_client_event(json.dumps(payload))
+
+    with pytest.raises(ValidationError):
+        parse_client_event("not JSON")
 
     event = reveal_event(
-        target_participant_id=7,
-        round_number=3,
+        target="7",
+        round=3,
         result="Round 2: you played rock, your partner played scissors - you won!",
         scoreboard="Score - you: 1, partner: -1",
         status="Round 3 of 5: choose your action.",

@@ -50,6 +50,7 @@ dependencies = [
     "paramiko",
     "polib",
     "progress",
+    "pydantic>=2,<3",
     "pytest",
     "pytest-dependency",
     "pytest-mock",

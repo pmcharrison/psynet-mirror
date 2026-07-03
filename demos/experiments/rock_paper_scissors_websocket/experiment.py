@@ -32,12 +32,11 @@ overall score is recomputed from the submitted moves inside a
 with non-WebSocket bots.
 """
 
-import json
 import random
-from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from dominate import tags
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy import Column, ForeignKey, Integer, String
 
 import psynet.experiment
@@ -72,88 +71,48 @@ def score_round(action_self, action_other):
     return SCORING_MATRIX[action_self][action_other]
 
 
-@dataclass(frozen=True)
-class ChooseEvent:
+Choice = Literal["rock", "paper", "scissors"]
+
+
+class ChooseEvent(BaseModel):
     """A participant's committed choice for one websocket game round."""
 
-    room_id: str
-    round_number: int
-    action: str
+    model_config = ConfigDict(extra="ignore", strict=True)
 
-    message_type = "choose"
+    type: Literal["choose"]
+    room_id: str = Field(min_length=1)
+    round: int = Field(ge=1, le=N_ROUNDS)
+    action: Choice
 
-    @classmethod
-    def from_payload(cls, payload):
-        """Parse and validate an inbound ``choose`` websocket payload."""
-        if payload.get("type") != cls.message_type:
-            return None
-
-        room_id = payload.get("room_id")
-        round_number = payload.get("round")
-        action = payload.get("action")
-
-        if not isinstance(room_id, str) or not room_id:
-            return None
-        if (
-            not isinstance(round_number, int)
-            or isinstance(round_number, bool)
-            or not 1 <= round_number <= N_ROUNDS
-        ):
-            return None
-        if action not in SCORING_MATRIX:
-            return None
-
-        return cls(room_id=room_id, round_number=round_number, action=action)
+    def handle(self, websocket, participant, experiment):
+        """Apply this event to the running websocket game."""
+        if participant is None:
+            return
+        websocket._record_choice_and_reveal(self, participant, experiment)
 
 
-@dataclass(frozen=True)
-class RevealEvent:
+class RevealEvent(BaseModel):
     """A server-authored snapshot for rendering a completed round."""
 
-    target_participant_id: int
-    round_number: int
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    type: Literal["reveal"] = "reveal"
+    target: str
+    round: int
     result: str
     scoreboard: str
     status: str
     finished: bool
     answer: Optional[List[str]] = None
 
-    message_type = "reveal"
-
-    def to_payload(self):
-        """Serialize the reveal snapshot for the browser."""
-        payload = {
-            "type": self.message_type,
-            "target": str(self.target_participant_id),
-            "round": self.round_number,
-            "result": self.result,
-            "scoreboard": self.scoreboard,
-            "status": self.status,
-            "finished": self.finished,
-        }
-        if self.answer is not None:
-            payload["answer"] = self.answer
-        return payload
-
     def to_json(self):
         """Serialize the reveal snapshot as a websocket JSON message."""
-        return json.dumps(self.to_payload())
+        return self.model_dump_json(exclude_none=True)
 
 
 def _parse_client_event(message):
     """Parse a raw websocket message into a supported client event."""
-    try:
-        payload = json.loads(message)
-    except (json.JSONDecodeError, TypeError):
-        return None
-
-    if not isinstance(payload, dict):
-        return None
-
-    if payload.get("type") == ChooseEvent.message_type:
-        return ChooseEvent.from_payload(payload)
-
-    return None
+    return ChooseEvent.model_validate_json(message)
 
 
 @register_table
@@ -191,17 +150,22 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
     def handle_message(
         self, message, channel_name, participant, node, receive_time, experiment
     ):
-        from dallinger import db
 
-        event = _parse_client_event(message)
-        if event is None or participant is None:
+        try:
+            event = _parse_client_event(message)
+        except ValidationError:
             return
+        event.handle(self, participant, experiment)
+
+    def _record_choice_and_reveal(self, event, participant, experiment):
+        """Persist a choose event and reveal the round if both players moved."""
+        from dallinger import db
 
         # ``ReconnectingWebSocket`` may resend a move on reconnect; ignore
         # duplicates so a participant cannot overwrite their committed choice.
         already_moved = RockPaperScissorsMove.query.filter_by(
             room_id=event.room_id,
-            round_number=event.round_number,
+            round_number=event.round,
             participant_id=participant.id,
         ).first()
         if already_moved is not None:
@@ -209,7 +173,7 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
 
         db.session.add(
             RockPaperScissorsMove(
-                event.room_id, event.round_number, participant.id, event.action
+                event.room_id, event.round, participant.id, event.action
             )
         )
         db.session.commit()
@@ -217,16 +181,14 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
         this_round = {
             move.participant_id: move.action
             for move in RockPaperScissorsMove.query.filter_by(
-                room_id=event.room_id, round_number=event.round_number
+                room_id=event.room_id, round_number=event.round
             ).all()
         }
         if len(this_round) < 2:
             # Waiting for the partner's move; nothing to reveal yet.
             return
 
-        self._broadcast_reveal(
-            experiment, event.room_id, event.round_number, this_round
-        )
+        self._broadcast_reveal(experiment, event.room_id, event.round, this_round)
 
     def _broadcast_reveal(self, experiment, room_id, round_number, this_round):
         """Send each player a ready-to-render snapshot of the completed round.
@@ -249,8 +211,8 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
                 else "the round was a draw."
             )
             snapshot = RevealEvent(
-                target_participant_id=me,
-                round_number=round_number + 1,
+                target=str(me),
+                round=round_number + 1,
                 result=(
                     f"Round {round_number}: you played {this_round[me]}, "
                     f"your partner played {this_round[partner]} — {outcome}"
