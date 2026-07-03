@@ -45,8 +45,9 @@ Then read the sections that apply to your study:
   study is recruiting.
 - :doc:`Exporting and terminating <exporting_and_terminating>` and
   :doc:`Teardown <teardown>` before you consider the deployment finished.
-- :doc:`Troubleshooting <troubleshooting>` and :doc:`Getting help
-  <group_skills>` when something does not behave as expected.
+- :doc:`Deployment reference troubleshooting </deploy/troubleshooting>`
+  and :doc:`Getting help <group_skills>` when something does not behave
+  as expected.
 
 The examples here assume the standard PsyNet installation locally and a
 deployment to either an internal lab server or an EC2 server. Some
@@ -205,5 +206,4 @@ setup and monitoring details.
    Exporting and terminating <exporting_and_terminating>
    Teardown <teardown>
    Recruiter-specific steps <recruiter_specific_deployment_steps>
-   Troubleshooting <troubleshooting>
    Getting help <group_skills>

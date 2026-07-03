@@ -13,24 +13,14 @@ For the full deployment monitor reference, see
 
 .. _lab-deployment-dashboard:
 
-Using the Dashboard
+Using the dashboard
 -------------------
 
-The experiment dashboard is your main tool for tracking and managing the
-study. It is the same for each recruiter. The URL is printed in the
-terminal after the deployment command (see
-:ref:`Launch the experiment <lab-deployment-actual-deployment>`).
-
-Key features:
-
--  **Monitoring Tab:** View networks, nodes, parameters, and participant
-   answers. Click shapes for details.
-
--  **Timeline Tab:** Track participant counts, completions, and
-   failures. Also, see all the modules in your experiment and
-   completion percentages.
-
--  **Database Tab:** View or export data via the Export Tab.
+Once your experiment is deployed, the URL printed in the terminal (see
+:ref:`Launch the experiment <lab-deployment-actual-deployment>`) opens
+the same dashboard for every recruiter. For what each tab shows, see
+:ref:`The experiment dashboard <experiment_dashboard>` in the
+deployment reference.
 
 Monitoring Participants & Data Collection
 -----------------------------------------

@@ -65,62 +65,18 @@ Run the deployment command
 -  Double-check all settings mentioned in
    :doc:`recruiter-specific steps <recruiter_specific_deployment_steps>`.
 
--  To deploy the experiment, run the following command from the
-   experiment directory. Choose the server according to your deployment
-   needs; see :doc:`Provisioning <provisioning>`.
+-  Deploy from the experiment directory, choosing the server according
+   to your setup; see :doc:`Provisioning <provisioning>`. For the full
+   deploy command syntax, expected output, and what to do if the launch
+   gets stuck, see :ref:`Deploying experiments via SSH <ssh_server>`.
 
    .. code:: bash
 
       psynet deploy ssh --app <app_name> --dns-host <your-subdomain>.<your-domain> --server <your-subdomain>.<your-domain>
 
--  Do not use an underscore character (``_``) in ``<app_name>``. It can
-   cause an error during deployment.
-
-**Example deployment:**
-
-.. code:: bash
-
-   psynet deploy ssh --app my-experiment --dns-host alice.<your-domain> --server alice.<your-domain>
-
-**The app will be deployed to:**
-``<app_name>.<your-subdomain>.<your-domain>``
-
-**The logs will be available under:**
-``logs.<your-subdomain>.<your-domain>``
-
-**Note that the app name will be visible to participants, as it’s used
-in the experiment URL. You can make it meaningful to you, but make sure
-it does not give away too much to your participants.**
-
-When the experiment is successfully deployed, the terminal prints the
-dashboard URL and login credentials. It will look similar to this:
-
-.. code:: text
-
-   You can now log in to the console at
-   https://admin:XXX@<app_name>.<your-subdomain>.<your-domain>/dashboard
-   (user = admin, password = XXX)
-
-   ✔ Saving a snapshot of the code to
-   /Users/<your-user>/psynet-data/launch-data/<app_name>\__mode=live\__launch=<timestamp>/code…
-
-Save this link to the dashboard so that you are able to
-:doc:`monitor <monitoring_and_managing>` the dashboard during deployment.
-
-Troubleshooting a prolonged launch
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Sometimes the experiment appears to be stuck for more than a few minutes
-at the "Launching experiment" stage. The best first step is to inspect
-the Dozzle logs for HTTP server errors. See
-:ref:`SSH deployment <ssh_server>` for the canonical deployment and log
-inspection workflow.
-
-There is a known issue where ``nip.io`` refuses to provide an HTTPS
-address because of quota constraints. Other common causes include an
-invalid server name or incorrect Prolific parameters. If the terminal
-does not show a clear error, the Dozzle logs often contain a more useful
-message.
+Once deployed, save the dashboard link that is printed in the terminal
+so that you are able to :doc:`monitor <monitoring_and_managing>` the
+experiment during data collection.
 
 Redeployment from archive
 -------------------------
