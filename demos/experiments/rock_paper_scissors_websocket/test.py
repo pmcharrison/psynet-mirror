@@ -11,134 +11,12 @@
 # - test_check_bots
 # - test_check_bot
 
-import json
 import os
-from types import SimpleNamespace
 
 import pytest
-from pydantic import ValidationError
 
 pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
 experiment_dir = os.path.dirname(__file__)
-
-
-def _check_websocket_event_contracts(experiment_globals):
-    """Check websocket event parsing without importing the experiment twice."""
-    parse_client_event = experiment_globals["_parse_client_event"]
-    choose_event = experiment_globals["ChooseEvent"]
-    game_state = experiment_globals["RockPaperScissorsGameState"]
-    game_context = experiment_globals["RockPaperScissorsGameContext"]
-    reveal_event = experiment_globals["RevealEvent"]
-
-    event = parse_client_event(
-        json.dumps(
-            {
-                "type": "choose",
-                "room_id": "rps_room_1",
-                "round": 2,
-                "action": "paper",
-                "page_uuid": "current-page",
-                "sender": "7",
-            }
-        )
-    )
-
-    assert event == choose_event(
-        type="choose",
-        room_id="rps_room_1",
-        round=2,
-        action="paper",
-        page_uuid="current-page",
-    )
-
-    participant = SimpleNamespace(
-        page_uuid="current-page", sync_group=SimpleNamespace(id=1)
-    )
-    context = game_context(participant, SimpleNamespace(), "rock_paper_scissors")
-    assert context.accepts_event(event)
-    assert not context.accepts_event(event.model_copy(update={"page_uuid": "old-page"}))
-    assert not context.accepts_event(event.model_copy(update={"room_id": "rps_room_2"}))
-
-    state = game_state(room_id="rps_room_1")
-    assert state.record_choice(1, participant_id=1, action="rock")
-    assert (
-        state.choice_rejection_reason(1, participant_id=1)
-        == "participant already moved this round"
-    )
-    assert not state.record_choice(1, participant_id=1, action="paper")
-    assert not state.record_choice(2, participant_id=2, action="scissors")
-    assert state.record_choice(1, participant_id=2, action="scissors")
-    assert state.current_round == 2
-    assert state.score_for(1) == 1
-    assert state.score_for(2) == -1
-    assert state.participant_moves(1) == ["rock"]
-    assert len(state.moves) == 2
-
-    invalid_payloads = [
-        {"type": "reveal", "target": "1"},
-        {"type": "choose", "round": 1, "action": "rock"},
-        {"type": "choose", "room_id": "rps_room_1", "round": 1, "action": "rock"},
-        {
-            "type": "choose",
-            "room_id": "rps_room_1",
-            "round": 1,
-            "action": "rock",
-            "page_uuid": "",
-        },
-        {
-            "type": "choose",
-            "room_id": "",
-            "round": 1,
-            "action": "rock",
-            "page_uuid": "current-page",
-        },
-        {
-            "type": "choose",
-            "room_id": "rps_room_1",
-            "round": "1",
-            "action": "rock",
-            "page_uuid": "current-page",
-        },
-        {
-            "type": "choose",
-            "room_id": "rps_room_1",
-            "round": 0,
-            "action": "rock",
-            "page_uuid": "current-page",
-        },
-        {
-            "type": "choose",
-            "room_id": "rps_room_1",
-            "round": 1,
-            "action": "lizard",
-            "page_uuid": "current-page",
-        },
-    ]
-    for payload in invalid_payloads:
-        with pytest.raises(ValidationError):
-            parse_client_event(json.dumps(payload))
-
-    with pytest.raises(ValidationError):
-        parse_client_event("not JSON")
-
-    event = reveal_event(
-        target="7",
-        round=3,
-        result="Round 2: you played rock, your partner played scissors - you won!",
-        scoreboard="Score - you: 1, partner: -1",
-        status="Round 3 of 5: choose your action.",
-        finished=False,
-    )
-
-    assert json.loads(event.to_json()) == {
-        "type": "reveal",
-        "target": "7",
-        "round": 3,
-        "result": "Round 2: you played rock, your partner played scissors - you won!",
-        "scoreboard": "Score - you: 1, partner: -1",
-        "status": "Round 3 of 5: choose your action.",
-        "finished": False,
-    }
 
 
 @pytest.mark.parametrize("experiment_directory", [experiment_dir], indirect=True)
@@ -150,6 +28,4 @@ def test_experiment(launched_experiment):
     # we recommend either running the test externally (`psynet test local`)
     # or editing your PyCharm run configuration to add `--tb=short` to your additional
     # arguments. This should ensure that the full traceback is printed.
-    experiment_globals = launched_experiment.__class__.test_serial_run_bots.__globals__
-    _check_websocket_event_contracts(experiment_globals)
     launched_experiment.test_experiment()

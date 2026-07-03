@@ -32,8 +32,10 @@ is recomputed from participant submissions inside a :class:`~psynet.sync.GroupBa
 on release, so the flow is also fully testable with non-WebSocket bots.
 """
 
+import json
 import random
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import List, Literal, Optional
 
 from dominate import tags
@@ -526,7 +528,135 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 2
     test_mode = "serial"
 
+    def test_websocket_event_contracts(self):
+        """Check websocket event parsing, authorization, and state transitions."""
+        event = _parse_client_event(
+            json.dumps(
+                {
+                    "type": "choose",
+                    "room_id": "rps_room_1",
+                    "round": 2,
+                    "action": "paper",
+                    "page_uuid": "current-page",
+                    "sender": "7",
+                }
+            )
+        )
+
+        assert event == ChooseEvent(
+            type="choose",
+            room_id="rps_room_1",
+            round=2,
+            action="paper",
+            page_uuid="current-page",
+        )
+
+        participant = SimpleNamespace(
+            page_uuid="current-page", sync_group=SimpleNamespace(id=1)
+        )
+        context = RockPaperScissorsGameContext(
+            participant, SimpleNamespace(), "rock_paper_scissors"
+        )
+        assert context.accepts_event(event)
+        assert not context.accepts_event(
+            event.model_copy(update={"page_uuid": "old-page"})
+        )
+        assert not context.accepts_event(
+            event.model_copy(update={"room_id": "rps_room_2"})
+        )
+
+        state = RockPaperScissorsGameState(room_id="rps_room_1")
+        assert state.record_choice(1, participant_id=1, action="rock")
+        assert (
+            state.choice_rejection_reason(1, participant_id=1)
+            == "participant already moved this round"
+        )
+        assert not state.record_choice(1, participant_id=1, action="paper")
+        assert not state.record_choice(2, participant_id=2, action="scissors")
+        assert state.record_choice(1, participant_id=2, action="scissors")
+        assert state.current_round == 2
+        assert state.score_for(1) == 1
+        assert state.score_for(2) == -1
+        assert state.participant_moves(1) == ["rock"]
+        assert len(state.moves) == 2
+
+        invalid_payloads = [
+            {"type": "reveal", "target": "1"},
+            {"type": "choose", "round": 1, "action": "rock"},
+            {"type": "choose", "room_id": "rps_room_1", "round": 1, "action": "rock"},
+            {
+                "type": "choose",
+                "room_id": "rps_room_1",
+                "round": 1,
+                "action": "rock",
+                "page_uuid": "",
+            },
+            {
+                "type": "choose",
+                "room_id": "",
+                "round": 1,
+                "action": "rock",
+                "page_uuid": "current-page",
+            },
+            {
+                "type": "choose",
+                "room_id": "rps_room_1",
+                "round": "1",
+                "action": "rock",
+                "page_uuid": "current-page",
+            },
+            {
+                "type": "choose",
+                "room_id": "rps_room_1",
+                "round": 0,
+                "action": "rock",
+                "page_uuid": "current-page",
+            },
+            {
+                "type": "choose",
+                "room_id": "rps_room_1",
+                "round": 1,
+                "action": "lizard",
+                "page_uuid": "current-page",
+            },
+        ]
+        for payload in invalid_payloads:
+            try:
+                _parse_client_event(json.dumps(payload))
+            except ValidationError:
+                pass
+            else:
+                raise AssertionError(f"Expected payload to be rejected: {payload}")
+
+        try:
+            _parse_client_event("not JSON")
+        except ValidationError:
+            pass
+        else:
+            raise AssertionError("Expected malformed JSON to be rejected.")
+
+        event = RevealEvent(
+            target="7",
+            round=3,
+            result="Round 2: you played rock, your partner played scissors - you won!",
+            scoreboard="Score - you: 1, partner: -1",
+            status="Round 3 of 5: choose your action.",
+            finished=False,
+        )
+
+        assert json.loads(event.to_json()) == {
+            "type": "reveal",
+            "target": "7",
+            "round": 3,
+            "result": "Round 2: you played rock, your partner played scissors - you won!",
+            "scoreboard": "Score - you: 1, partner: -1",
+            "status": "Round 3 of 5: choose your action.",
+            "finished": False,
+        }
+
     def test_serial_run_bots(self, bots: List[BotDriver]):
+        self.test_websocket_event_contracts()
+
         advance_past_wait_pages(bots)
 
         # Both players are placed together on the WebSocket game page.
