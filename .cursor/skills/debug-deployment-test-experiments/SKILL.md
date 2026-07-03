@@ -65,7 +65,7 @@ git merge --ff-only master
 PSYNET_SHA=$(git rev-parse HEAD)
 ```
 
-1. Update Dallinger to latest `master`:
+3. Update Dallinger to latest `master`:
 
 ```bash
 cd /home/frank/projects/Dallinger
@@ -75,7 +75,7 @@ git pull --ff-only origin master
 DALLINGER_SHA=$(git rev-parse HEAD)
 ```
 
-1. Activate the PsyNet virtual environment and install both local checkouts in
+4. Activate the PsyNet virtual environment and install both local checkouts in
    editable mode so the deployment command is run from the latest local code:
 
 ```bash
@@ -86,13 +86,13 @@ uv pip install -e /home/frank/projects/Dallinger
 uv pip install -e ".[dev,slack]"
 ```
 
-1. Ensure `tests/manual_recruiter_testing/prolific/requirements.txt` pins
+5. Ensure `tests/manual_recruiter_testing/prolific/requirements.txt` pins
    PsyNet to the latest pushed commit on
    `test-deployments/prolific-manual-recruiter`, not to the branch name.
    PsyNet's deploy pre-check rejects branch-name requirements as ambiguous.
    Push the branch before choosing the SHA, then record the PsyNet branch/commit
    and Dallinger commit in the final report.
-1. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
+6. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
    `prolific_is_custom_screening` to `False`. Prolific no longer supports the
    older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
