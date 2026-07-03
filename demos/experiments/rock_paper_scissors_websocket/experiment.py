@@ -196,36 +196,8 @@ class RockPaperScissorsGameContext:
 
         this_round = game_state.moves_for_round(event.round)
         pids = sorted(this_round.keys())
-        for me, partner in [(pids[0], pids[1]), (pids[1], pids[0])]:
-            delta = score_round(this_round[me], this_round[partner])
-            outcome = (
-                "you won the round!"
-                if delta > 0
-                else "you lost the round."
-                if delta < 0
-                else "the round was a draw."
-            )
-            snapshot = RevealEvent(
-                target=str(me),
-                round=event.round + 1,
-                result=(
-                    f"Round {event.round}: you played {this_round[me]}, "
-                    f"your partner played {this_round[partner]} — {outcome}"
-                ),
-                scoreboard=(
-                    f"Score — you: {game_state.score_for(me)}, "
-                    f"partner: {game_state.score_for(partner)}"
-                ),
-                status=(
-                    "Game over!"
-                    if game_state.finished
-                    else f"Round {event.round + 1} of {N_ROUNDS}: choose your action."
-                ),
-                finished=game_state.finished,
-                answer=game_state.participant_moves(me)
-                if game_state.finished
-                else None,
-            )
+        for participant_id in pids:
+            snapshot = game_state.reveal_for(participant_id, event.round)
             self.experiment.publish_to_subscribers(
                 snapshot.to_json(), channel_name=self.channel
             )
@@ -321,6 +293,38 @@ class RockPaperScissorsGameState(SQLBase, SQLMixin):
         return [
             move.action for move in self.moves if move.participant_id == participant_id
         ]
+
+    def reveal_for(self, participant_id: int, round_number: int):
+        """Return a reveal event from one participant's point of view."""
+        round_moves = self.moves_for_round(round_number)
+        partner_id = next(pid for pid in round_moves if pid != participant_id)
+        delta = score_round(round_moves[participant_id], round_moves[partner_id])
+        outcome = (
+            "you won the round!"
+            if delta > 0
+            else "you lost the round."
+            if delta < 0
+            else "the round was a draw."
+        )
+        return RevealEvent(
+            target=str(participant_id),
+            round=round_number + 1,
+            result=(
+                f"Round {round_number}: you played {round_moves[participant_id]}, "
+                f"your partner played {round_moves[partner_id]} — {outcome}"
+            ),
+            scoreboard=(
+                f"Score — you: {self.score_for(participant_id)}, "
+                f"partner: {self.score_for(partner_id)}"
+            ),
+            status=(
+                "Game over!"
+                if self.finished
+                else f"Round {round_number + 1} of {N_ROUNDS}: choose your action."
+            ),
+            finished=self.finished,
+            answer=self.participant_moves(participant_id) if self.finished else None,
+        )
 
 
 @register_table
@@ -528,9 +532,9 @@ class Exp(psynet.experiment.Experiment):
     test_n_bots = 2
     test_mode = "serial"
 
-    def test_websocket_event_contracts(self):
-        """Check websocket event parsing, authorization, and state transitions."""
-        event = _parse_client_event(
+    @staticmethod
+    def _valid_choose_event():
+        return _parse_client_event(
             json.dumps(
                 {
                     "type": "choose",
@@ -543,6 +547,19 @@ class Exp(psynet.experiment.Experiment):
             )
         )
 
+    @staticmethod
+    def _assert_payload_rejected(payload):
+        try:
+            _parse_client_event(json.dumps(payload))
+        except ValidationError:
+            pass
+        else:
+            raise AssertionError(f"Expected payload to be rejected: {payload}")
+
+    @staticmethod
+    def test_websocket_event_parsing():
+        """Check websocket event parsing and validation."""
+        event = Exp._valid_choose_event()
         assert event == ChooseEvent(
             type="choose",
             room_id="rps_room_1",
@@ -550,35 +567,6 @@ class Exp(psynet.experiment.Experiment):
             action="paper",
             page_uuid="current-page",
         )
-
-        participant = SimpleNamespace(
-            page_uuid="current-page", sync_group=SimpleNamespace(id=1)
-        )
-        context = RockPaperScissorsGameContext(
-            participant, SimpleNamespace(), "rock_paper_scissors"
-        )
-        assert context.accepts_event(event)
-        assert not context.accepts_event(
-            event.model_copy(update={"page_uuid": "old-page"})
-        )
-        assert not context.accepts_event(
-            event.model_copy(update={"room_id": "rps_room_2"})
-        )
-
-        state = RockPaperScissorsGameState(room_id="rps_room_1")
-        assert state.record_choice(1, participant_id=1, action="rock")
-        assert (
-            state.choice_rejection_reason(1, participant_id=1)
-            == "participant already moved this round"
-        )
-        assert not state.record_choice(1, participant_id=1, action="paper")
-        assert not state.record_choice(2, participant_id=2, action="scissors")
-        assert state.record_choice(1, participant_id=2, action="scissors")
-        assert state.current_round == 2
-        assert state.score_for(1) == 1
-        assert state.score_for(2) == -1
-        assert state.participant_moves(1) == ["rock"]
-        assert len(state.moves) == 2
 
         invalid_payloads = [
             {"type": "reveal", "target": "1"},
@@ -621,12 +609,7 @@ class Exp(psynet.experiment.Experiment):
             },
         ]
         for payload in invalid_payloads:
-            try:
-                _parse_client_event(json.dumps(payload))
-            except ValidationError:
-                pass
-            else:
-                raise AssertionError(f"Expected payload to be rejected: {payload}")
+            Exp._assert_payload_rejected(payload)
 
         try:
             _parse_client_event("not JSON")
@@ -635,6 +618,48 @@ class Exp(psynet.experiment.Experiment):
         else:
             raise AssertionError("Expected malformed JSON to be rejected.")
 
+    @staticmethod
+    def test_websocket_event_authorization():
+        """Check page UUID and room ownership authorization."""
+        event = Exp._valid_choose_event()
+        participant = SimpleNamespace(
+            page_uuid="current-page", sync_group=SimpleNamespace(id=1)
+        )
+        context = RockPaperScissorsGameContext(
+            participant, SimpleNamespace(), "rock_paper_scissors"
+        )
+        assert context.accepts_event(event)
+        assert not context.accepts_event(
+            event.model_copy(update={"page_uuid": "old-page"})
+        )
+        assert not context.accepts_event(
+            event.model_copy(update={"room_id": "rps_room_2"})
+        )
+
+    @staticmethod
+    def test_game_state_transitions():
+        """Check SQLAlchemy game-state transition logic."""
+        state = RockPaperScissorsGameState(room_id="rps_room_1")
+        assert state.record_choice(1, participant_id=1, action="rock")
+        assert (
+            state.choice_rejection_reason(1, participant_id=1)
+            == "participant already moved this round"
+        )
+        assert not state.record_choice(1, participant_id=1, action="paper")
+        assert not state.record_choice(2, participant_id=2, action="scissors")
+        assert state.record_choice(1, participant_id=2, action="scissors")
+        assert state.current_round == 2
+        assert state.score_for(1) == 1
+        assert state.score_for(2) == -1
+        assert state.participant_moves(1) == ["rock"]
+        assert len(state.moves) == 2
+        reveal = state.reveal_for(participant_id=1, round_number=1)
+        assert reveal.scoreboard == "Score — you: 1, partner: -1"
+        assert reveal.finished is False
+
+    @staticmethod
+    def test_reveal_serialization():
+        """Check outbound reveal serialization."""
         event = RevealEvent(
             target="7",
             round=3,
@@ -653,6 +678,13 @@ class Exp(psynet.experiment.Experiment):
             "status": "Round 3 of 5: choose your action.",
             "finished": False,
         }
+
+    def test_websocket_event_contracts(self):
+        """Check websocket event, authorization, state, and reveal contracts."""
+        self.test_websocket_event_parsing()
+        self.test_websocket_event_authorization()
+        self.test_game_state_transitions()
+        self.test_reveal_serialization()
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
         self.test_websocket_event_contracts()
