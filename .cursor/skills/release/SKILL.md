@@ -295,44 +295,50 @@ Verify the release is live at
 > `#psynet-support` and cannot be unsent. The release manager must
 > approve the message body before posting.
 
-Use the `psynet dev release announce` command (see the
-`announce-release` skill). It composes the message from a single
-version argument and posts it to `#psynet-support` using the `[slack]`
-extra (already installed via the prerequisites). Set `SLACK_BOT_TOKEN`
-to a bot token that has `chat:write` access to the channel. If the
-token is not set in the environment and not present in the user's
-`~/.zshrc` or `~/.bashrc` (check for the variable name only; never
-print the value), ask the user to paste the token. Then preview and
-post:
+Use the `psynet dev release announce` command. It composes the message
+envelope (title, RC notice, upgrade instructions, links) from the
+version argument and posts using the `[slack]` extra (already installed
+via the prerequisites). Set `SLACK_BOT_TOKEN` to a bot token that has
+`chat:write` access to the channel. If the token is not set in the
+environment and not present in the user's `~/.zshrc` or `~/.bashrc`
+(check for the variable name only; never print the value), ask the user
+to paste the token.
+
+**Write the experimenter-facing summary yourself.** The command does
+not generate the changes summary; you supply it via `--summary-file`.
+Read the release's section in `CHANGELOG.md` (for tagged versions:
+`git show vX.Y.Z:CHANGELOG.md`) and write a Slack-mrkdwn highlights
+file, e.g. `/tmp/release-highlights-X.Y.Z.md`:
+
+- Use `*Category*` headers in this order, keeping only non-empty ones:
+  Breaking, Added, Changed, Deprecated, Removed, Fixed.
+- One `•` bullet per entry, condensed to its essential point (drop
+  leading "Added"/"Fixed", trailing rationale clauses, and author
+  metadata). Use single `*` for bold and single backticks for code.
+- **Include** what affects people building or running experiments:
+  experiment API changes (timeline, trials, trial makers, assets,
+  sync groups, modular pages), recruiter changes (Prolific/Lucid),
+  anything under Breaking/Deprecated/Removed, deploy/export/debug
+  command changes, translation and demo changes.
+- **Exclude** maintainer-facing items: CI, tests, benchmarks, docs
+  scripts, release tooling (`psynet dev` commands), Cursor skills, and
+  internal refactors with no observable behavior change.
+
+Then preview and post:
 
 ```bash
-psynet dev release announce X.Y.Z --dry-run
-psynet dev release announce X.Y.Z --channel testing-bot-messages
-psynet dev release announce X.Y.Z
+psynet dev release announce X.Y.Z --summary-file /tmp/release-highlights-X.Y.Z.md --dry-run
+psynet dev release announce X.Y.Z --summary-file /tmp/release-highlights-X.Y.Z.md --channel testing-bot-messages
+psynet dev release announce X.Y.Z --summary-file /tmp/release-highlights-X.Y.Z.md
 ```
 
-The dry run prints the exact body that would be posted. **Curate the
-generated summary before posting**: the "key changes relevant for
-experimenters" list is selected by keyword patterns in
-`psynet/dev/slack_announcement.md`, which is inherently imprecise.
-Compare the dry-run bullets against the release's CHANGELOG section and
-check both directions:
-
-- **False positives**: maintainer/internal items that slipped in (e.g.
-  entries about `psynet dev` tooling, demo regeneration, CI, or tests).
-- **False negatives**: experimenter-relevant entries that were dropped —
-  pay special attention to recruiter changes (Prolific/Lucid), anything
-  under `Breaking`/`Deprecated`/`Removed`, trial/timeline behavior
-  changes, and translation fixes.
-
-Fix mismatches by adjusting the include/exclude patterns in
-`psynet/dev/slack_announcement.md` (preferred, so future releases
-benefit) and re-running the dry run until the list is right.
-
-Then post to the `#testing-bot-messages` channel, so the release
-manager can review the actual Slack rendering (link previews, mrkdwn
-formatting, block layout) before the real announcement; only after that
-review post to `#psynet-support`. The message uses Slack `mrkdwn` syntax (single `*`
+The dry run prints the exact body that would be posted; have the
+release manager check the summary against the CHANGELOG section for
+missing or superfluous bullets. Then post to the
+`#testing-bot-messages` channel, so the release manager can review the
+actual Slack rendering (link previews, mrkdwn formatting, block layout)
+before the real announcement; only after that review post to
+`#psynet-support`. The message uses Slack `mrkdwn` syntax (single `*`
 for bold, `<URL|label>` for inline links); the final-release template
 looks like:
 
@@ -597,10 +603,12 @@ using the shared steps with the RC version:
    above); the [Create the GitLab release](#create-the-gitlab-release)
    step applies to final releases only.
 8. [Announce the release on Slack](#announce-the-release-on-slack) with the
-   RC version. `psynet dev release announce 13.2.0rc1` auto-detects the
-   `rc` segment and generates an RC-flavoured message with the
-   `/rc/<tag>/` docs URL, the CHANGELOG-at-tag link (since there is no
-   GitLab release entry), and the opt-in install instruction:
+   RC version, writing the highlights file from the RC's CHANGELOG
+   section as described there. `psynet dev release announce 13.2.0rc1
+   --summary-file ...` auto-detects the `rc` segment and generates an
+   RC-flavoured envelope with the `/rc/<tag>/` docs URL, the
+   CHANGELOG-at-tag link (since there is no GitLab release entry), and
+   the opt-in install instruction:
 
    ```text
    *:test_tube: PsyNet 13.2.0rc1 (release candidate) is out*

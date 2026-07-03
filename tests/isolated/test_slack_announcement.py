@@ -2,29 +2,12 @@ import pytest
 
 from psynet.dev import slack_announcement
 
-SAMPLE_CHANGELOG = """# CHANGELOG
+SAMPLE_SUMMARY = """*Added*
+• A new demo experiment
 
-# [13.2.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0) Release - 2026-04-01
-
-## Added
-
-- Added a new demo experiment.
-
-# [13.2.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0) Release candidate - 2026-03-20
-
-## Fixed
-
-- Fixed a participant recruitment bug.
+*Fixed*
+• A participant recruitment bug
 """
-
-
-@pytest.fixture
-def changelog(tmp_path, monkeypatch):
-    changelog_path = tmp_path / "CHANGELOG.md"
-    changelog_path.write_text(SAMPLE_CHANGELOG, encoding="utf-8")
-    monkeypatch.setattr(slack_announcement, "CHANGELOG_PATH", changelog_path)
-    # Ensure `git show v<version>:CHANGELOG.md` fails so the file is used.
-    monkeypatch.chdir(tmp_path)
 
 
 @pytest.mark.parametrize(
@@ -40,29 +23,13 @@ def test_is_prerelease(version, expected):
     assert slack_announcement.is_prerelease(version) is expected
 
 
-def test_extract_changelog_section_returns_matching_section(changelog):
-    section = slack_announcement.extract_changelog_section("13.2.0")
-    assert "Added a new demo experiment." in section
-    assert "recruitment bug" not in section
-
-    rc_section = slack_announcement.extract_changelog_section("13.2.0rc0")
-    assert "Fixed a participant recruitment bug." in rc_section
-
-
-def test_extract_changelog_section_requires_exact_version(changelog):
-    # "3.2.0" is a substring of "13.2.0" but must not match its heading.
-    assert slack_announcement.extract_changelog_section("3.2.0") is None
-    assert slack_announcement.extract_changelog_section("13.2.1") is None
-
-
-def test_build_blocks_final_release(changelog):
-    blocks, fallback = slack_announcement.build_blocks("13.2.0")
+def test_build_blocks_final_release():
+    blocks, fallback = slack_announcement.build_blocks("13.2.0", summary=SAMPLE_SUMMARY)
     texts = [block["text"]["text"] for block in blocks if block["type"] != "divider"]
     joined = "\n".join(texts)
 
     assert "PsyNet 13.2.0 is out" in texts[0]
     assert "13.2.0" in fallback
-    # _concise strips the leading "Added " from changelog entries.
     assert "A new demo experiment" in joined
     assert "pip install --upgrade psynet" in joined
     # The {version} placeholder from the guidance file must be substituted.
@@ -70,30 +37,58 @@ def test_build_blocks_final_release(changelog):
     assert "release candidate" not in joined.lower()
 
 
-def test_build_blocks_release_candidate(changelog):
-    blocks, _ = slack_announcement.build_blocks("13.2.0rc0")
+def test_build_blocks_release_candidate():
+    blocks, _ = slack_announcement.build_blocks("13.2.0rc1", summary=SAMPLE_SUMMARY)
     texts = [block["text"]["text"] for block in blocks if block["type"] != "divider"]
     joined = "\n".join(texts)
 
     assert "Release Candidate" in texts[0]
-    assert "pip install psynet==13.2.0rc0" in joined
-    assert "/rc/v13.2.0rc0/" in joined
+    assert "pip install psynet==13.2.0rc1" in joined
+    assert "/rc/v13.2.0rc1/" in joined
+    # RCs are tag-only on GitLab; release notes link to the CHANGELOG at the tag.
+    assert "/-/blob/v13.2.0rc1/CHANGELOG.md" in joined
 
 
-def test_build_blocks_without_changelog_section_warns(changelog, capsys):
-    blocks, _ = slack_announcement.build_blocks("13.9.9")
-    assert "no CHANGELOG.md section found for 13.9.9" in capsys.readouterr().err
-    # Announcement is still produced, just without the highlights block.
+def test_build_blocks_without_summary_omits_highlights():
+    blocks, _ = slack_announcement.build_blocks("13.2.0")
+    joined = "\n".join(
+        block["text"]["text"] for block in blocks if block["type"] != "divider"
+    )
+    assert "key changes relevant for experimenters" not in joined
     assert any(block["type"] == "header" for block in blocks)
 
 
-def test_concise_shortens_entries():
-    assert (
-        slack_announcement._concise(
-            "Added a new `ChatRoom` element, including websocket support."
+def test_announce_command_rejects_missing_summary_file(tmp_path):
+    with pytest.raises(ValueError, match="Summary file not found"):
+        slack_announcement.announce_command(
+            "13.2.0",
+            summary_file=str(tmp_path / "nope.md"),
+            dry_run=True,
         )
-        == "A new `ChatRoom` element"
+
+
+def test_announce_command_rejects_empty_summary_file(tmp_path):
+    empty = tmp_path / "empty.md"
+    empty.write_text("  \n", encoding="utf-8")
+    with pytest.raises(ValueError, match="Summary file is empty"):
+        slack_announcement.announce_command(
+            "13.2.0",
+            summary_file=str(empty),
+            dry_run=True,
+        )
+
+
+def test_announce_command_dry_run_uses_summary_file(tmp_path, capsys):
+    summary = tmp_path / "highlights.md"
+    summary.write_text(SAMPLE_SUMMARY, encoding="utf-8")
+    slack_announcement.announce_command(
+        "13.2.0",
+        summary_file=str(summary),
+        dry_run=True,
     )
+    out = capsys.readouterr().out
+    assert "A new demo experiment" in out
+    assert "Would post to #psynet-support" in out
 
 
 def test_split_mrkdwn_short_text_is_single_chunk():

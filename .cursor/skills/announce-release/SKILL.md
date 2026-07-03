@@ -9,9 +9,12 @@ Post a PsyNet release announcement to the `#psynet-support` Slack
 channel. RC vs final flavour is auto-detected from the version string
 (`(rc|a|b)\d+$` → release-candidate template).
 
-Run the command from the root of a PsyNet source checkout: it reads
-`CHANGELOG.md` from the repository root. The message content and
-filtering rules are configured in `psynet/dev/slack_announcement.md`.
+The command composes only the message envelope (title, RC notice,
+upgrade instructions, links); the experimenter-facing changes summary
+is written by hand and passed via `--summary-file` (see the
+**Announce the release on Slack** step in the `release` skill for the
+writing guidance). The envelope wording is configured in
+`psynet/dev/slack_announcement.md`.
 
 The output is Slack `mrkdwn` — single-asterisk bold, single-backtick
 inline code, and `<URL|label>` for clickable links.
@@ -74,15 +77,15 @@ psynet dev release announce 13.2.0 --dry-run
 
 ```bash
 # Preview the message without posting (always do this first)
-psynet dev release announce 13.2.0rc0 --dry-run
-psynet dev release announce 13.2.0    --dry-run
+psynet dev release announce 13.2.0rc1 --summary-file highlights.md --dry-run
+psynet dev release announce 13.2.0    --summary-file highlights.md --dry-run
+
+# Post to the testing channel for rendering review
+psynet dev release announce 13.2.0 --summary-file highlights.md --channel testing-bot-messages
 
 # Actually post
-psynet dev release announce 13.2.0rc0
-psynet dev release announce 13.2.0
-
-# Override channel (default: psynet-support)
-psynet dev release announce 13.2.0 --channel some-other-channel
+psynet dev release announce 13.2.0rc1 --summary-file highlights.md
+psynet dev release announce 13.2.0    --summary-file highlights.md
 ```
 
 The command exits non-zero on Slack API errors or missing dependencies,

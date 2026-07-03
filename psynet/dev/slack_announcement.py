@@ -1,12 +1,21 @@
 """Post PsyNet release announcements to Slack (`psynet dev release announce`).
 
-This module builds the release announcement message and posts it to the
-``#psynet-support`` Slack channel. Like the other `psynet dev` modules it
-only functions from a PsyNet source checkout: it reads ``CHANGELOG.md`` from
-the current working directory. The sibling ``slack_announcement.md`` file is
-runtime configuration (summary intro, upgrade instructions, and
-include/exclude patterns for condensing changelog entries), so editing the
-announcement style should not require code changes.
+This module handles the *mechanical* side of a release announcement: the
+message envelope (title, release-candidate notice, upgrade instructions,
+links), Slack Block Kit assembly (including splitting text across section
+blocks to respect Slack's length limits), dry-run previews, and the actual
+posting. The *editorial* side — the experimenter-facing summary of changes —
+is deliberately not generated here: the release manager (usually assisted by
+an AI agent following the repo's release skill) writes the summary by hand
+from the release's CHANGELOG section and passes it in via ``--summary-file``.
+Earlier versions selected changelog entries with keyword patterns, which
+proved too brittle in both directions (missed recruiter changes, included
+maintainer tooling).
+
+The sibling ``slack_announcement.md`` file is runtime configuration for the
+envelope wording (stable release description, summary intro, upgrade
+instructions), so editing the announcement style should not require code
+changes.
 
 Posting requires the ``[slack]`` extra and a ``SLACK_BOT_TOKEN`` environment
 variable with ``chat:write`` access to the target channel. The message
@@ -19,19 +28,14 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
-import sys
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
 DEFAULT_CHANNEL = "psynet-support"
-CHANGELOG_PATH = Path("CHANGELOG.md")
 ANNOUNCEMENT_GUIDANCE_PATH = Path(__file__).with_suffix(".md")
 
 PRERELEASE_RE = re.compile(r"(rc|a|b)\d+$", re.IGNORECASE)
-RELEASE_HEADING_RE = re.compile(r"^#{1,2} \[.*?\].*$", re.MULTILINE)
-SECTION_HEADING_RE = re.compile(r"^#{2,3} (\w+)$", re.MULTILINE)
 
 
 @dataclass(frozen=True)
@@ -39,9 +43,6 @@ class AnnouncementGuidance:
     stable_release_description: str
     experimenter_summary_intro: str
     stable_upgrade_instructions: str
-    category_order: list[str]
-    include_re: re.Pattern[str]
-    exclude_re: re.Pattern[str]
 
 
 def is_prerelease(version: str) -> bool:
@@ -49,48 +50,9 @@ def is_prerelease(version: str) -> bool:
     return bool(PRERELEASE_RE.search(version))
 
 
-def extract_changelog_section(version: str) -> str | None:
-    """Return the body of the CHANGELOG section for *version*, or None."""
-    try:
-        changelog = subprocess.check_output(
-            ["git", "show", f"v{version}:CHANGELOG.md"],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        )
-    except (subprocess.CalledProcessError, OSError):
-        if not CHANGELOG_PATH.exists():
-            return None
-        changelog = CHANGELOG_PATH.read_text(encoding="utf-8")
-
-    headings = list(RELEASE_HEADING_RE.finditer(changelog))
-
-    for i, match in enumerate(headings):
-        if f"[{version}]" in match.group(0):
-            start = match.end()
-            end = headings[i + 1].start() if i + 1 < len(headings) else len(changelog)
-            return changelog[start:end].strip()
-
-    return None
-
-
-def _concise(text: str) -> str:
-    """Shorten a CHANGELOG entry to its essential point."""
-    line = " ".join(text.split())
-    line = re.sub(r"^(Added|Fixed) ", "", line)
-    line = re.split(r"(?<=[.!;]) (?=[A-Z])", line, maxsplit=1)[0]
-    line = re.sub(
-        r",\s+(?:with|including|plus|so |causing |preventing |fixing ).*$", "", line
-    )
-    line = re.sub(r"\s*\([^)]*\)\s*$", "", line)
-    line = re.sub(r"``([^`]+)``", r"`\1`", line)
-    line = line.rstrip(".:; ")
-    line = line[0].upper() + line[1:] if line else line
-    return line
-
-
 @lru_cache(maxsize=1)
 def load_announcement_guidance() -> AnnouncementGuidance:
-    """Read Slack summary guidance from ``slack_announcement.md``."""
+    """Read announcement envelope wording from ``slack_announcement.md``."""
     if not ANNOUNCEMENT_GUIDANCE_PATH.exists():
         raise ValueError(
             f"Missing announcement guidance: {ANNOUNCEMENT_GUIDANCE_PATH.resolve()}. "
@@ -107,14 +69,7 @@ def load_announcement_guidance() -> AnnouncementGuidance:
     stable_upgrade_instructions = _markdown_section_message(
         markdown, "Stable Upgrade Instructions"
     )
-    category_order = _markdown_section_items(markdown, "Category Order")
-    include_patterns = _markdown_section_patterns(markdown, "Include Patterns")
-    exclude_patterns = _markdown_section_patterns(markdown, "Exclude Patterns")
 
-    if not include_patterns:
-        raise ValueError("slack_announcement.md must define include patterns.")
-    if not exclude_patterns:
-        raise ValueError("slack_announcement.md must define exclude patterns.")
     if not stable_release_description:
         raise ValueError(
             "slack_announcement.md must define a stable release description."
@@ -127,16 +82,11 @@ def load_announcement_guidance() -> AnnouncementGuidance:
         raise ValueError(
             "slack_announcement.md must define stable upgrade instructions."
         )
-    if not category_order:
-        raise ValueError("slack_announcement.md must define a category order.")
 
     return AnnouncementGuidance(
         stable_release_description=stable_release_description,
         experimenter_summary_intro=experimenter_summary_intro,
         stable_upgrade_instructions=stable_upgrade_instructions,
-        category_order=category_order,
-        include_re=_compile_announcement_patterns(include_patterns),
-        exclude_re=_compile_announcement_patterns(exclude_patterns),
     )
 
 
@@ -160,26 +110,6 @@ def _markdown_section_message(markdown: str, heading: str) -> str:
     return "\n".join(lines)
 
 
-def _markdown_section_patterns(markdown: str, heading: str) -> list[str]:
-    section = _markdown_section(markdown, heading)
-    patterns: list[str] = []
-    for line in section.splitlines():
-        match = re.match(r"^-\s+`(.+)`\s*$", line.strip())
-        if match:
-            patterns.append(match.group(1))
-    return patterns
-
-
-def _markdown_section_items(markdown: str, heading: str) -> list[str]:
-    section = _markdown_section(markdown, heading)
-    items: list[str] = []
-    for line in section.splitlines():
-        match = re.match(r"^-\s+(.+?)\s*$", line.strip())
-        if match:
-            items.append(match.group(1))
-    return items
-
-
 def _markdown_section(markdown: str, heading: str) -> str:
     pattern = re.compile(rf"^## {re.escape(heading)}\s*$", re.MULTILINE)
     match = pattern.search(markdown)
@@ -191,60 +121,14 @@ def _markdown_section(markdown: str, heading: str) -> str:
     return markdown[match.end() : end].strip()
 
 
-def _compile_announcement_patterns(patterns: list[str]) -> re.Pattern[str]:
-    return re.compile(
-        "|".join(f"(?:{pattern})" for pattern in patterns),
-        re.IGNORECASE,
-    )
+def build_blocks(version: str, summary: str | None = None) -> tuple[list[dict], str]:
+    """Return (blocks, fallback_text) for a Slack message.
 
-
-def summarize_for_experimenters(section_body: str) -> str:
-    """Condense a CHANGELOG section into experimenter-facing highlights."""
-    guidance = load_announcement_guidance()
-    categories: dict[str, list[str]] = {}
-    current_category: str | None = None
-    last_entry_included = False
-
-    for line in section_body.splitlines():
-        heading_match = SECTION_HEADING_RE.match(line)
-        if heading_match:
-            current_category = heading_match.group(1)
-            last_entry_included = False
-            continue
-
-        if current_category and line.startswith("- "):
-            entry = line[2:].strip()
-            entry = re.sub(r"\s*\(author:.*?\)\.?", "", entry)
-            last_entry_included = bool(
-                guidance.include_re.search(entry)
-                and not guidance.exclude_re.search(entry)
-            )
-            if last_entry_included:
-                categories.setdefault(current_category, []).append(entry)
-        elif current_category and line.startswith("  ") and last_entry_included:
-            # Continuation lines belong to the most recent top-level entry;
-            # only append them when that entry itself was included.
-            sub = line.strip()
-            if sub.startswith("- "):
-                sub = sub[2:].strip()
-            if sub:
-                sub = re.sub(r"\s*\(author:.*?\)\.?", "", sub)
-                categories[current_category][-1] += " " + sub
-
-    parts: list[str] = []
-    for cat in guidance.category_order:
-        entries = categories.get(cat, [])
-        if not entries:
-            continue
-        parts.append(f"\n*{cat}*")
-        for entry in entries:
-            parts.append(f"• {_concise(entry)}")
-
-    return "\n".join(parts).strip()
-
-
-def build_blocks(version: str) -> tuple[list[dict], str]:
-    """Return (blocks, fallback_text) for a Slack message."""
+    *summary* is the hand-written, experimenter-facing highlights text in
+    Slack mrkdwn (typically ``*Category*`` headers with ``•`` bullets). When
+    omitted, the announcement carries only the envelope (title, notice,
+    upgrade instructions, links).
+    """
     guidance = load_announcement_guidance()
     pypi_url = f"https://pypi.org/project/psynet/{version}/"
 
@@ -254,10 +138,6 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
         release_url = (
             f"https://gitlab.com/PsyNetDev/PsyNet/-/blob/v{version}/CHANGELOG.md"
         )
-    else:
-        release_url = f"https://gitlab.com/PsyNetDev/PsyNet/-/releases/v{version}"
-
-    if is_prerelease(version):
         final_version = PRERELEASE_RE.sub("", version)
         title = f":test_tube: PsyNet {version} — Release Candidate :test_tube:"
         subtitle = "A new release candidate is ready for testing!"
@@ -271,6 +151,7 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
         )
         install = None
     else:
+        release_url = f"https://gitlab.com/PsyNetDev/PsyNet/-/releases/v{version}"
         title = f":tada: PsyNet {version} is out! :rocket:"
         subtitle = guidance.stable_release_description
         docs_url = "https://psynetdev.gitlab.io/PsyNet/"
@@ -282,17 +163,6 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
     links = f"*PyPI*: {pypi_url}\n*Documentation*: {docs_url}"
     if not is_prerelease(version):
         links += f"\n*Versioned documentation*: {versioned_docs_url}"
-
-    section = extract_changelog_section(version)
-    if section is None:
-        print(
-            f"Warning: no CHANGELOG.md section found for {version}; "
-            "the announcement will not include a summary of changes. "
-            "Run `psynet dev changelog release` first if the release "
-            "section has not been generated yet.",
-            file=sys.stderr,
-        )
-    summary = summarize_for_experimenters(section) if section else ""
 
     blocks: list[dict] = [
         {
@@ -307,7 +177,7 @@ def build_blocks(version: str) -> tuple[list[dict], str]:
 
     if summary:
         blocks.append({"type": "divider"})
-        summary_text = f"{guidance.experimenter_summary_intro}\n\n{summary}"
+        summary_text = f"{guidance.experimenter_summary_intro}\n\n{summary.strip()}"
         blocks.extend(_mrkdwn_block(chunk) for chunk in _split_mrkdwn(summary_text))
         blocks.append(
             _mrkdwn_block(
@@ -375,6 +245,7 @@ def render_dry_run(blocks: list[dict], channel: str) -> str:
 def announce_command(
     version: str,
     channel: str = DEFAULT_CHANNEL,
+    summary_file: str | None = None,
     dry_run: bool = False,
     dry_run_json: bool = False,
 ) -> None:
@@ -383,7 +254,16 @@ def announce_command(
     Raises ValueError for configuration problems and RuntimeError for
     Slack API failures.
     """
-    blocks, fallback = build_blocks(version)
+    summary = None
+    if summary_file:
+        summary_path = Path(summary_file)
+        if not summary_path.exists():
+            raise ValueError(f"Summary file not found: {summary_path.resolve()}")
+        summary = summary_path.read_text(encoding="utf-8").strip()
+        if not summary:
+            raise ValueError(f"Summary file is empty: {summary_path.resolve()}")
+
+    blocks, fallback = build_blocks(version, summary=summary)
 
     if dry_run_json:
         print(json.dumps({"blocks": blocks}, indent=2))

@@ -196,6 +196,17 @@ def release():
     help="Slack channel name to post to.",
 )
 @click.option(
+    "--summary-file",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help=(
+        "Path to a hand-written experimenter-facing summary in Slack mrkdwn "
+        "(e.g. *Category* headers with bullet entries). Written by the "
+        "release manager from the release's CHANGELOG section; see the "
+        "release skill for curation guidance."
+    ),
+)
+@click.option(
     "--dry-run",
     is_flag=True,
     help="Print the message instead of posting.",
@@ -208,10 +219,10 @@ def release():
         "https://app.slack.com/block-kit-builder to preview rendering)."
     ),
 )
-def release_announce(version, channel, dry_run, dry_run_json):
+def release_announce(version, channel, summary_file, dry_run, dry_run_json):
     """Announce a PsyNet release on Slack.
 
-    VERSION is e.g. 13.2.0 or 13.2.0rc0 (no leading 'v'). The release
+    VERSION is e.g. 13.2.0 or 13.2.0rc1 (no leading 'v'). The release
     candidate vs. final message flavour is auto-detected from the version.
 
     Posting requires the [slack] extra and a SLACK_BOT_TOKEN environment
@@ -220,12 +231,13 @@ def release_announce(version, channel, dry_run, dry_run_json):
 
     Example:
 
-        psynet dev release announce 13.2.0 --dry-run
+        psynet dev release announce 13.2.0 --summary-file highlights.md --dry-run
     """
     try:
         slack_announcement_module.announce_command(
             version,
             channel=channel,
+            summary_file=summary_file,
             dry_run=dry_run,
             dry_run_json=dry_run_json,
         )
