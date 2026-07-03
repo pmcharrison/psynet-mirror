@@ -131,15 +131,30 @@ class RockPaperScissorsGameContext:
     experiment: psynet.experiment.Experiment
     channel: str
 
+    def warn_rejected_event(self, reason, event=None):
+        """Log a rejected websocket event with participant context."""
+        event_type = getattr(event, "type", None)
+        logger.warning(
+            "Rejected rock-paper-scissors websocket event: %s "
+            "(participant_id=%s, event_type=%s)",
+            reason,
+            self.participant.id,
+            event_type,
+        )
+
     def accepts_event(self, event: PageScopedWebSocketEvent):
         """Return whether an event is authorized for the participant's current page."""
         if event.page_uuid != self.participant.page_uuid:
+            self.warn_rejected_event("stale page UUID", event)
             return False
         if isinstance(event, ChooseEvent):
             sync_group_id = getattr(self.participant.sync_group, "id", None)
             if sync_group_id is None:
+                self.warn_rejected_event("participant has no sync group", event)
                 return False
-            return event.room_id == f"rps_room_{sync_group_id}"
+            if event.room_id != f"rps_room_{sync_group_id}":
+                self.warn_rejected_event("wrong room ID", event)
+                return False
         return True
 
     def record_choice(self, event: ChooseEvent):
@@ -147,8 +162,13 @@ class RockPaperScissorsGameContext:
         from dallinger import db
 
         game_state = self._get_or_create_game_state(event.room_id)
-        if not game_state.record_choice(event.round, self.participant.id, event.action):
+        rejection_reason = game_state.choice_rejection_reason(
+            event.round, self.participant.id
+        )
+        if rejection_reason is not None:
+            self.warn_rejected_event(rejection_reason, event)
             return False
+        game_state.record_choice(event.round, self.participant.id, event.action)
         db.session.add(game_state)
         db.session.commit()
         return True
@@ -234,12 +254,10 @@ class RockPaperScissorsGameState(SQLBase, SQLMixin):
 
     def record_choice(self, round_number: int, participant_id: int, action: Choice):
         """Record a participant choice in the current round."""
-        if self.finished or round_number != self.current_round:
+        if self.choice_rejection_reason(round_number, participant_id) is not None:
             return False
 
         round_moves = self.moves_for_round(round_number)
-        if participant_id in round_moves:
-            return False
 
         self.moves.append(
             RockPaperScissorsMove(
@@ -253,6 +271,19 @@ class RockPaperScissorsGameState(SQLBase, SQLMixin):
         if len(round_moves) >= 2:
             self._score_completed_round(round_moves)
         return True
+
+    def choice_rejection_reason(self, round_number: int, participant_id: int):
+        """Return why a choice would be rejected, or ``None`` if accepted."""
+        if self.finished:
+            return "game already finished"
+        if round_number != self.current_round:
+            return (
+                f"stale/future round {round_number}; "
+                f"current round is {self.current_round}"
+            )
+        if participant_id in self.moves_for_round(round_number):
+            return "participant already moved this round"
+        return None
 
     def round_is_complete(self, round_number: int):
         """Return whether both players have chosen in the given round."""
@@ -333,11 +364,20 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
         self, message, channel_name, participant, node, receive_time, experiment
     ):
         if participant is None:
+            logger.warning(
+                "Rejected rock-paper-scissors websocket event: missing participant"
+            )
             return
 
         try:
             event = _parse_client_event(message)
-        except ValidationError:
+        except ValidationError as err:
+            logger.warning(
+                "Rejected rock-paper-scissors websocket event: validation failed "
+                "(participant_id=%s, errors=%s)",
+                participant.id,
+                err.error_count(),
+            )
             return
         context = RockPaperScissorsGameContext(participant, experiment, self.channel)
         if not context.accepts_event(event):

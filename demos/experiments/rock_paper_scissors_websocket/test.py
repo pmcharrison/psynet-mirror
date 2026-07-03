@@ -61,6 +61,10 @@ def _check_websocket_event_contracts(experiment_globals):
 
     state = game_state(room_id="rps_room_1")
     assert state.record_choice(1, participant_id=1, action="rock")
+    assert (
+        state.choice_rejection_reason(1, participant_id=1)
+        == "participant already moved this round"
+    )
     assert not state.record_choice(1, participant_id=1, action="paper")
     assert not state.record_choice(2, participant_id=2, action="scissors")
     assert state.record_choice(1, participant_id=2, action="scissors")
