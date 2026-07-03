@@ -12,6 +12,7 @@ from psynet.dev import changelog as changelog_module
 from psynet.dev import ci as ci_module
 from psynet.dev import docs as docs_module
 from psynet.dev import experiments as experiments_module
+from psynet.dev import slack_announcement as slack_announcement_module
 
 CHANGELOG_CATEGORIES = (
     "breaking",
@@ -179,6 +180,57 @@ def make_docs(
         raise click.ClickException(
             f"Docs command failed with exit code {exc.returncode}."
         ) from exc
+
+
+@dev.group("release")
+def release():
+    """Release management helpers for PsyNet source checkouts."""
+
+
+@release.command("announce")
+@click.argument("version", metavar="VERSION")
+@click.option(
+    "--channel",
+    default=slack_announcement_module.DEFAULT_CHANNEL,
+    show_default=True,
+    help="Slack channel name to post to.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Print the message instead of posting.",
+)
+@click.option(
+    "--dry-run-json",
+    is_flag=True,
+    help=(
+        "Print the raw Block Kit JSON payload (paste into "
+        "https://app.slack.com/block-kit-builder to preview rendering)."
+    ),
+)
+def release_announce(version, channel, dry_run, dry_run_json):
+    """Announce a PsyNet release on Slack.
+
+    VERSION is e.g. 13.2.0 or 13.2.0rc0 (no leading 'v'). The release
+    candidate vs. final message flavour is auto-detected from the version.
+
+    Posting requires the [slack] extra and a SLACK_BOT_TOKEN environment
+    variable with chat:write access to the channel. Always preview with
+    --dry-run first.
+
+    Example:
+
+        psynet dev release announce 13.2.0 --dry-run
+    """
+    try:
+        slack_announcement_module.announce_command(
+            version,
+            channel=channel,
+            dry_run=dry_run,
+            dry_run_json=dry_run_json,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise click.ClickException(str(exc)) from exc
 
 
 @dev.group("changelog")
