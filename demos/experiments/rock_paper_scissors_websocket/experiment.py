@@ -120,12 +120,12 @@ def _parse_client_event(message):
 
 
 @dataclass(frozen=True)
-class RockPaperScissorsEventContext:
-    """Runtime services available to websocket event handlers."""
+class RockPaperScissorsGameContext:
+    """Runtime game services available to websocket event handlers."""
 
-    websocket: "EnableRockPaperScissors"
     participant: Optional[Participant]
     experiment: psynet.experiment.Experiment
+    channel: str
 
     def record_choice(self, event: ChooseEvent):
         """Persist a choice unless this participant already moved this round."""
@@ -163,9 +163,65 @@ class RockPaperScissorsEventContext:
 
     def broadcast_reveal(self, event: ChooseEvent, this_round):
         """Broadcast the completed round from each participant's point of view."""
-        self.websocket._broadcast_reveal(
-            self.experiment, event.room_id, event.round, this_round
-        )
+        pids = sorted(this_round.keys())
+        totals = self._cumulative_scores(event.room_id, event.round, pids)
+        finished = event.round >= N_ROUNDS
+        for me, partner in [(pids[0], pids[1]), (pids[1], pids[0])]:
+            delta = score_round(this_round[me], this_round[partner])
+            outcome = (
+                "you won the round!"
+                if delta > 0
+                else "you lost the round."
+                if delta < 0
+                else "the round was a draw."
+            )
+            snapshot = RevealEvent(
+                target=str(me),
+                round=event.round + 1,
+                result=(
+                    f"Round {event.round}: you played {this_round[me]}, "
+                    f"your partner played {this_round[partner]} — {outcome}"
+                ),
+                scoreboard=(f"Score — you: {totals[me]}, partner: {totals[partner]}"),
+                status=(
+                    "Game over!"
+                    if finished
+                    else f"Round {event.round + 1} of {N_ROUNDS}: choose your action."
+                ),
+                finished=finished,
+                answer=self._participant_moves(event.room_id, me) if finished else None,
+            )
+            self.experiment.publish_to_subscribers(
+                snapshot.to_json(), channel_name=self.channel
+            )
+
+    @staticmethod
+    def _cumulative_scores(room_id, up_to_round, pids):
+        totals = {pids[0]: 0, pids[1]: 0}
+        by_round = {}
+        for move in RockPaperScissorsMove.query.filter(
+            RockPaperScissorsMove.room_id == room_id,
+            RockPaperScissorsMove.round_number <= up_to_round,
+        ).all():
+            by_round.setdefault(move.round_number, {})[move.participant_id] = (
+                move.action
+            )
+        for actions in by_round.values():
+            if pids[0] in actions and pids[1] in actions:
+                totals[pids[0]] += score_round(actions[pids[0]], actions[pids[1]])
+                totals[pids[1]] += score_round(actions[pids[1]], actions[pids[0]])
+        return totals
+
+    @staticmethod
+    def _participant_moves(room_id, participant_id):
+        return [
+            move.action
+            for move in RockPaperScissorsMove.query.filter_by(
+                room_id=room_id, participant_id=participant_id
+            )
+            .order_by(RockPaperScissorsMove.round_number)
+            .all()
+        ]
 
 
 @register_table
@@ -208,75 +264,9 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
             event = _parse_client_event(message)
         except ValidationError:
             return
-        event.handle(RockPaperScissorsEventContext(self, participant, experiment))
-
-    def _broadcast_reveal(self, experiment, room_id, round_number, this_round):
-        """Send each player a ready-to-render snapshot of the completed round.
-
-        The server owns all game state, so it does the scoring and even builds
-        the display strings; the browser just drops them into the page. Each
-        snapshot is addressed to one participant (``target``) with their own
-        point of view already resolved.
-        """
-        pids = sorted(this_round.keys())
-        totals = self._cumulative_scores(room_id, round_number, pids)
-        finished = round_number >= N_ROUNDS
-        for me, partner in [(pids[0], pids[1]), (pids[1], pids[0])]:
-            delta = score_round(this_round[me], this_round[partner])
-            outcome = (
-                "you won the round!"
-                if delta > 0
-                else "you lost the round."
-                if delta < 0
-                else "the round was a draw."
-            )
-            snapshot = RevealEvent(
-                target=str(me),
-                round=round_number + 1,
-                result=(
-                    f"Round {round_number}: you played {this_round[me]}, "
-                    f"your partner played {this_round[partner]} — {outcome}"
-                ),
-                scoreboard=(f"Score — you: {totals[me]}, partner: {totals[partner]}"),
-                status=(
-                    "Game over!"
-                    if finished
-                    else f"Round {round_number + 1} of {N_ROUNDS}: choose your action."
-                ),
-                finished=finished,
-                answer=self._participant_moves(room_id, me) if finished else None,
-            )
-            experiment.publish_to_subscribers(
-                snapshot.to_json(), channel_name=self.channel
-            )
-
-    @staticmethod
-    def _cumulative_scores(room_id, up_to_round, pids):
-        totals = {pids[0]: 0, pids[1]: 0}
-        by_round = {}
-        for move in RockPaperScissorsMove.query.filter(
-            RockPaperScissorsMove.room_id == room_id,
-            RockPaperScissorsMove.round_number <= up_to_round,
-        ).all():
-            by_round.setdefault(move.round_number, {})[move.participant_id] = (
-                move.action
-            )
-        for actions in by_round.values():
-            if pids[0] in actions and pids[1] in actions:
-                totals[pids[0]] += score_round(actions[pids[0]], actions[pids[1]])
-                totals[pids[1]] += score_round(actions[pids[1]], actions[pids[0]])
-        return totals
-
-    @staticmethod
-    def _participant_moves(room_id, participant_id):
-        return [
-            move.action
-            for move in RockPaperScissorsMove.query.filter_by(
-                room_id=room_id, participant_id=participant_id
-            )
-            .order_by(RockPaperScissorsMove.round_number)
-            .all()
-        ]
+        event.handle(
+            RockPaperScissorsGameContext(participant, experiment, self.channel)
+        )
 
 
 class RockPaperScissorsControl(Control):
