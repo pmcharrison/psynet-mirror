@@ -221,9 +221,9 @@ class RockPaperScissorsGameState(SQLBase, SQLMixin):
     scores = Column(PythonDict)
     finished = Column(Boolean)
     moves = relationship(
-        "RockPaperScissorsMove",
+        lambda: RockPaperScissorsMove,
         back_populates="game_state",
-        order_by="RockPaperScissorsMove.round_number",
+        order_by=lambda: RockPaperScissorsMove.round_number,
     )
 
     def __init__(self, room_id):
@@ -304,7 +304,9 @@ class RockPaperScissorsMove(SQLBase, SQLMixin):
     )
 
     game_state_id = Column(Integer, ForeignKey("rock_paper_scissors_game_state.id"))
-    game_state = relationship("RockPaperScissorsGameState", back_populates="moves")
+    game_state = relationship(
+        lambda: RockPaperScissorsGameState, back_populates="moves"
+    )
     room_id = Column(String(128), index=True)
     round_number = Column(Integer)
     participant_id = Column(Integer, ForeignKey("participant.id"), index=True)
