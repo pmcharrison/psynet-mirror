@@ -33,6 +33,7 @@ with non-WebSocket bots.
 """
 
 import random
+from dataclasses import dataclass
 from typing import List, Literal, Optional
 
 from dominate import tags
@@ -84,11 +85,14 @@ class ChooseEvent(BaseModel):
     round: int = Field(ge=1, le=N_ROUNDS)
     action: Choice
 
-    def handle(self, websocket, participant, experiment):
+    def handle(self, context):
         """Apply this event to the running websocket game."""
-        if participant is None:
+        if not context.record_choice(self):
             return
-        websocket._record_choice_and_reveal(self, participant, experiment)
+
+        this_round = context.completed_round_moves(self)
+        if this_round is not None:
+            context.broadcast_reveal(self, this_round)
 
 
 class RevealEvent(BaseModel):
@@ -113,6 +117,55 @@ class RevealEvent(BaseModel):
 def _parse_client_event(message):
     """Parse a raw websocket message into a supported client event."""
     return ChooseEvent.model_validate_json(message)
+
+
+@dataclass(frozen=True)
+class RockPaperScissorsEventContext:
+    """Runtime services available to websocket event handlers."""
+
+    websocket: "EnableRockPaperScissors"
+    participant: Optional[Participant]
+    experiment: psynet.experiment.Experiment
+
+    def record_choice(self, event: ChooseEvent):
+        """Persist a choice unless this participant already moved this round."""
+        from dallinger import db
+
+        if self.participant is None:
+            return False
+
+        already_moved = RockPaperScissorsMove.query.filter_by(
+            room_id=event.room_id,
+            round_number=event.round,
+            participant_id=self.participant.id,
+        ).first()
+        if already_moved is not None:
+            return False
+
+        db.session.add(
+            RockPaperScissorsMove(
+                event.room_id, event.round, self.participant.id, event.action
+            )
+        )
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def completed_round_moves(event: ChooseEvent):
+        """Return the round's moves once both participants have chosen."""
+        this_round = {
+            move.participant_id: move.action
+            for move in RockPaperScissorsMove.query.filter_by(
+                room_id=event.room_id, round_number=event.round
+            ).all()
+        }
+        return this_round if len(this_round) >= 2 else None
+
+    def broadcast_reveal(self, event: ChooseEvent, this_round):
+        """Broadcast the completed round from each participant's point of view."""
+        self.websocket._broadcast_reveal(
+            self.experiment, event.room_id, event.round, this_round
+        )
 
 
 @register_table
@@ -155,40 +208,7 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
             event = _parse_client_event(message)
         except ValidationError:
             return
-        event.handle(self, participant, experiment)
-
-    def _record_choice_and_reveal(self, event, participant, experiment):
-        """Persist a choose event and reveal the round if both players moved."""
-        from dallinger import db
-
-        # ``ReconnectingWebSocket`` may resend a move on reconnect; ignore
-        # duplicates so a participant cannot overwrite their committed choice.
-        already_moved = RockPaperScissorsMove.query.filter_by(
-            room_id=event.room_id,
-            round_number=event.round,
-            participant_id=participant.id,
-        ).first()
-        if already_moved is not None:
-            return
-
-        db.session.add(
-            RockPaperScissorsMove(
-                event.room_id, event.round, participant.id, event.action
-            )
-        )
-        db.session.commit()
-
-        this_round = {
-            move.participant_id: move.action
-            for move in RockPaperScissorsMove.query.filter_by(
-                room_id=event.room_id, round_number=event.round
-            ).all()
-        }
-        if len(this_round) < 2:
-            # Waiting for the partner's move; nothing to reveal yet.
-            return
-
-        self._broadcast_reveal(experiment, event.room_id, event.round, this_round)
+        event.handle(RockPaperScissorsEventContext(self, participant, experiment))
 
     def _broadcast_reveal(self, experiment, room_id, round_number, this_round):
         """Send each player a ready-to-render snapshot of the completed round.
