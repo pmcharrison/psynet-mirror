@@ -59,7 +59,7 @@
     {% endfor %}
 
     {% for x in css_links %}
-        <link rel="stylesheet" href={{ x }}>
+        <link rel="stylesheet" href="{{ x }}" data-psynet-fragment-stylesheet="true">
     {% endfor %}
 {% endblock %}
 

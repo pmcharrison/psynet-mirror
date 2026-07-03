@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from markupsafe import Markup
 
 from psynet.end import UnsuccessfulEndLogic
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -84,9 +85,10 @@ def test_partial_body_extraction_uses_named_fragment_wrapper():
     html = """
     <html>
       <head>
-        <style>.custom-template-style { color: rgb(1, 2, 3); }</style>
+        <style>.global-template-style { color: rgb(1, 2, 3); }</style>
         <style data-psynet-fragment-style="true">.page-api-style { color: rgb(4, 5, 6); }</style>
-        <link rel="stylesheet" href="/static/custom-template.css">
+        <link rel="stylesheet" href="/static/global-template.css">
+        <link rel="stylesheet" href="/static/page-api.css" data-psynet-fragment-stylesheet="true">
       </head>
       <body>
         <template><div>outside fragment</div></template>
@@ -95,8 +97,12 @@ def test_partial_body_extraction_uses_named_fragment_wrapper():
           <div id="main-body">
             <template><div>inside fragment</div></template>
             <div id="psynet-fragment-assets">
-              <div id="psynet-page-css-links"></div>
-              <div id="psynet-page-css"></div>
+              <div id="psynet-page-css-links">
+                <link rel="stylesheet" href="/static/page-api.css">
+              </div>
+              <div id="psynet-page-css">
+                <style>.page-api-style { color: rgb(4, 5, 6); }</style>
+              </div>
             </div>
           </div>
           <nav id="footer"></nav>
@@ -112,9 +118,12 @@ def test_partial_body_extraction_uses_named_fragment_wrapper():
     assert "timeline-header" in fragment
     assert "inside fragment" in fragment
     assert "psynet-template-data" in fragment
-    assert ".custom-template-style" in fragment
-    assert "/static/custom-template.css" in fragment
-    assert ".page-api-style" not in fragment
+    assert ".page-api-style" in fragment
+    assert "/static/page-api.css" in fragment
+    assert fragment.count(".page-api-style") == 1
+    assert fragment.count("/static/page-api.css") == 1
+    assert ".global-template-style" not in fragment
+    assert "/static/global-template.css" not in fragment
     assert "outside fragment" not in fragment
     assert "spinner" not in fragment
 
@@ -231,6 +240,43 @@ def test_page_asset_arguments_are_not_forbidden_template_content():
         css_links=["/static/example.css"],
         scripts=["psynet.trial.onEvent('trialConstruct', function () {});"],
         js_links=["/static/example.js"],
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+@pytest.mark.parametrize(
+    "content, match",
+    [
+        (
+            "<p>Page content</p><style>.example { color: red; }</style>",
+            "Page css argument",
+        ),
+        (
+            '<p>Page content</p><link rel="stylesheet" href="/static/example.css">',
+            "Page css_links argument",
+        ),
+    ],
+)
+def test_inplace_transitions_reject_prompt_markup_stylesheets(content, match):
+    page = InfoPage(Markup(content))
+
+    with pytest.raises(ValueError, match=match):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_transitions_warn_on_prompt_markup_stylesheets():
+    page = InfoPage(
+        Markup("<p>Page content</p><style>.example { color: red; }</style>")
+    )
+
+    with pytest.warns(UserWarning, match="Page css argument"):
+        page._check_spa_template_contract(inplace_timeline_transitions=False)
+
+
+def test_inplace_transitions_allow_safe_prompt_markup():
+    page = InfoPage(
+        Markup('<p><span style="font-weight: bold;">Page content</span></p>')
     )
 
     page._check_spa_template_contract(inplace_timeline_transitions=True)

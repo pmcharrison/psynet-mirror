@@ -449,8 +449,15 @@
       return Array.from(scriptContainer.querySelectorAll(query));
     };
 
-    psynet.getPageCssLinks = function () {
-      let cssTemplate = document.getElementById("psynet-page-css-links");
+    psynet.getElementById = function (root, id) {
+      if (typeof root.getElementById === "function") {
+        return root.getElementById(id);
+      }
+      return root.querySelector("#" + id);
+    };
+
+    psynet.getPageCssLinks = function (root = document) {
+      let cssTemplate = psynet.getElementById(root, "psynet-page-css-links");
       if (!cssTemplate) {
         return [];
       }
@@ -462,8 +469,8 @@
       return Array.from(cssTemplate.querySelectorAll("link[rel='stylesheet']"));
     };
 
-    psynet.getPageStyles = function () {
-      let cssTemplate = document.getElementById("psynet-page-css");
+    psynet.getPageStyles = function (root = document) {
+      let cssTemplate = psynet.getElementById(root, "psynet-page-css");
       if (!cssTemplate) {
         return [];
       }
@@ -473,34 +480,84 @@
       return Array.from(cssTemplate.querySelectorAll("style"));
     };
 
-    psynet.ensureStylesheetLinks = function () {
-      for (let link of psynet.getPageCssLinks()) {
+    psynet.removePageStylesheetLinks = function () {
+      document
+        .querySelectorAll("link[data-psynet-fragment-stylesheet]")
+        .forEach((link) => link.remove());
+    };
+
+    psynet.ensureStylesheetLinks = function (root = document) {
+      psynet.removePageStylesheetLinks();
+
+      for (let link of psynet.getPageCssLinks(root)) {
         let href = new URL(link.href, window.location.href).href;
         let alreadyPresent = Array.from(
-          document.querySelectorAll("link[rel='stylesheet']"),
+          document.head.querySelectorAll("link[rel='stylesheet']"),
         ).some((existingLink) => existingLink.href === href);
         if (!alreadyPresent) {
-          let newLink = document.createElement("link");
+          let newLink = link.cloneNode(false);
           newLink.rel = "stylesheet";
           newLink.href = href;
+          newLink.setAttribute("data-psynet-fragment-stylesheet", "true");
           document.head.appendChild(newLink);
         }
       }
     };
 
-    psynet.applyInlinePageStyles = function () {
+    psynet.applyInlinePageStyles = function (root = document) {
       document
         .querySelectorAll("style[data-psynet-fragment-style]")
         .forEach((style) => style.remove());
 
       // Inline page CSS is page-scoped in SPA mode, so it must be replaced
       // rather than accumulated across fragment swaps.
-      for (let style of psynet.getPageStyles()) {
+      for (let style of psynet.getPageStyles(root)) {
         let newStyle = document.createElement("style");
         newStyle.setAttribute("data-psynet-fragment-style", "true");
         newStyle.textContent = style.textContent;
         document.head.appendChild(newStyle);
       }
+    };
+
+    psynet.preloadStylesheetLinks = async function (links) {
+      let uniqueHrefs = Array.from(
+        new Set(
+          links.map((link) => new URL(link.href, window.location.href).href),
+        ),
+      );
+
+      await Promise.all(
+        uniqueHrefs.map(
+          (href) =>
+            new Promise((resolve, reject) => {
+              let alreadyLoaded = Array.from(
+                document.head.querySelectorAll("link[rel='stylesheet']"),
+              ).some((existingLink) => existingLink.href === href);
+              if (alreadyLoaded) {
+                resolve();
+                return;
+              }
+
+              let preload = document.createElement("link");
+              preload.rel = "preload";
+              preload.as = "style";
+              preload.href = href;
+              preload.setAttribute(
+                "data-psynet-fragment-stylesheet-preload",
+                "true",
+              );
+              preload.onload = () => {
+                preload.remove();
+                resolve();
+              };
+              preload.onerror = () => {
+                preload.remove();
+                reject(new Error("Could not preload stylesheet " + href + "."));
+              };
+              document.head.appendChild(preload);
+            }),
+        ),
+      );
     };
 
     // ---- Timeline fragment transitions -------------------------------------
@@ -517,7 +574,7 @@
       psynet.setPageReady(true);
     };
 
-    psynet.applyTimelineFragmentPayload = function (payload) {
+    psynet.prepareTimelineFragment = function (payload) {
       if (!payload || typeof payload.html !== "string" || payload.html === "") {
         throw new Error("Missing timeline fragment HTML payload.");
       }
@@ -543,12 +600,28 @@
         return { currentElement, nextElement };
       });
 
-      replacements.forEach(({ currentElement, nextElement }) => {
+      return {
+        payload,
+        template,
+        replacements,
+        stylesheetLinks: psynet.getPageCssLinks(template.content),
+      };
+    };
+
+    psynet.preloadTimelineFragmentAssets = async function (fragment) {
+      await psynet.preloadStylesheetLinks(fragment.stylesheetLinks);
+    };
+
+    psynet.commitTimelineFragment = function (fragment) {
+      psynet.ensureStylesheetLinks(fragment.template.content);
+      psynet.applyInlinePageStyles(fragment.template.content);
+
+      fragment.replacements.forEach(({ currentElement, nextElement }) => {
         currentElement.replaceWith(nextElement);
       });
 
-      if (payload.page_uuid !== undefined) {
-        window.pageUuid = payload.page_uuid;
+      if (fragment.payload.page_uuid !== undefined) {
+        window.pageUuid = fragment.payload.page_uuid;
       }
     };
 
@@ -566,8 +639,6 @@
       // page state automatically. In inplace mode we must recreate that
       // lifecycle explicitly before we can mark the new page as ready.
       psynet.refreshTemplateData();
-      psynet.ensureStylesheetLinks();
-      psynet.applyInlinePageStyles();
       await psynet.rebuildTrial();
       await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
       // External body scripts are normally document-level libraries. They
@@ -592,7 +663,9 @@
       psynet.setTimelineTransitionBusy(true);
       try {
         await psynet.deactivateTimelineFragmentLifecycle();
-        psynet.applyTimelineFragmentPayload(payload);
+        let fragment = psynet.prepareTimelineFragment(payload);
+        await psynet.preloadTimelineFragmentAssets(fragment);
+        psynet.commitTimelineFragment(fragment);
         await psynet.activateTimelineFragmentLifecycle();
       } catch (error) {
         await psynet.handleTimelineTransitionFailure(error);

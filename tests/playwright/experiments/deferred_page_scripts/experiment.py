@@ -13,7 +13,7 @@ class CustomStylesheetPage(Page):
             save_answer=False,
             time_estimate=1,
             js_links=["/static/custom-style-page.js"],
-            css_links=["/static/deferred-page-scripts.css"],
+            css_links=["/static/custom-stylesheet-page.css"],
         )
 
     def get_bot_response(self, experiment, bot):
@@ -80,6 +80,23 @@ class Exp(psynet.experiment.Experiment):
                 """
                 <p>Cleanup page</p>
                 <p id="custom-stylesheet-marker">Unstyled cleanup marker</p>
+                """
+            ),
+            time_estimate=1,
+        ),
+        InfoPage(
+            Markup(
+                """
+                <p id="shell-stylesheet-marker">Shell stylesheet page</p>
+                """
+            ),
+            time_estimate=1,
+            css_links=["/static/shell-stylesheet-page.css"],
+        ),
+        InfoPage(
+            Markup(
+                """
+                <p>Shell stylesheet cleanup page</p>
                 """
             ),
             time_estimate=1,
