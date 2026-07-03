@@ -920,7 +920,9 @@
       };
 
       trial.setRepeatingTimer = function (handler, interval) {
-        trial.intervals.push(setInterval(handler, interval));
+        let timer = setInterval(handler, interval);
+        trial.intervals.push(timer);
+        return timer;
       };
 
       trial.clearTimers = function () {
@@ -1263,15 +1265,15 @@
     //     }
     // };
 
-    psynet.media.stopAllAudio = function () {
+    psynet.media.stopAllAudio = function (options) {
       if (typeof stop_all_tonejs_audio === "function") {
         stop_all_tonejs_audio();
       }
-      if (psynet.audio) {
-        Object.values(psynet.audio).forEach(function (x) {
-          x.stop();
-        });
-      }
+      return Promise.all(
+        psynet.media.sounds.slice().map(function (sound) {
+          return sound.stop(options);
+        }),
+      );
     };
 
     psynet.media.registerObjectUrl = function (url) {
@@ -1309,7 +1311,7 @@
 
     psynet.cleanupPageResources = async function () {
       psynet.log.info("Cleaning page resources before swapped-page activation.");
-      psynet.media.stopAllAudio();
+      await psynet.media.stopAllAudio({ fadeOut: 0 });
 
       let clearPlayer = function (player) {
         if (!player) {
@@ -1670,23 +1672,67 @@
               onEnd: null,
             };
 
+            const soundTrial = psynet.trial;
+            const soundPageUuid = window.pageUuid;
+            let stopTimer = null;
             let completionTimer = null;
+            let stopCompletionTimer = null;
             let completed = false;
+
+            let clearSoundTimers = function () {
+              if (stopTimer !== null) {
+                clearTimeout(stopTimer);
+                stopTimer = null;
+              }
+              if (completionTimer !== null) {
+                clearTimeout(completionTimer);
+                completionTimer = null;
+              }
+              if (stopCompletionTimer !== null) {
+                clearTimeout(stopCompletionTimer);
+                stopCompletionTimer = null;
+              }
+            };
+
+            let isSoundTrialActive = function () {
+              return (
+                psynet.trial === soundTrial &&
+                window.pageUuid === soundPageUuid &&
+                !soundTrial.stopping &&
+                !soundTrial.stopped
+              );
+            };
+
+            let stopSource = function () {
+              try {
+                sound.source.stop();
+              } catch (error) {
+                if (!error || error.name !== "InvalidStateError") {
+                  psynet.log.warn(
+                    "Failed to stop audio " +
+                      sound.stimulusId +
+                      ": " +
+                      (error && error.message ? error.message : String(error)),
+                  );
+                }
+              }
+              completeSound();
+            };
 
             let completeSound = function () {
               if (completed) {
                 return;
               }
               completed = true;
-              clearTimeout(stopTimer);
-              if (completionTimer !== null) {
-                clearTimeout(completionTimer);
-              }
+              clearSoundTimers();
               psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
               psynet.media.sounds = psynet.media.sounds.filter(
                 (s) => s !== sound,
               );
-              psynet.trial.registerEvent("audioFinished: " + sound.stimulusId);
+              if (!isSoundTrialActive()) {
+                return;
+              }
+              soundTrial.registerEvent("audioFinished: " + sound.stimulusId);
               if (sound.options.loop && !sound.manuallyStopped) {
                 psynet.log.debug("Looping sound with ID = " + out.stimulusId);
                 out.play(sound.options);
@@ -1711,16 +1757,14 @@
               );
             }
 
-            let stopTimer;
-
             if (sound.options.fadeOut > 0.0) {
-              stopTimer = setTimeout(
+              stopTimer = psynet.trial.setTimer(
                 () => sound.stop({ fadeOut: options.fadeOut, manual: false }),
                 1000 * (options.startDelay + sound.duration - options.fadeOut),
               );
             }
 
-            completionTimer = setTimeout(() => {
+            completionTimer = psynet.trial.setTimer(() => {
               psynet.log.warn(
                 "Audio ended event did not fire for " +
                   sound.stimulusId +
@@ -1737,7 +1781,11 @@
 
               Object.assign(options, providedOptions);
 
-              clearTimeout(stopTimer);
+              if (completed) {
+                return Promise.resolve();
+              }
+
+              clearSoundTimers();
 
               psynet.log.debug("Stopping audio " + sound.stimulusId + ".");
 
@@ -1755,8 +1803,9 @@
               }
 
               return new Promise((resolve) => {
-                setTimeout(() => {
-                  sound.source.stop();
+                stopCompletionTimer = soundTrial.setTimer(() => {
+                  stopCompletionTimer = null;
+                  stopSource();
                   resolve();
                 }, options.fadeOut * 1000);
               });
@@ -2465,7 +2514,10 @@
         if (psynet.trialProgressIntervalId) {
           clearInterval(psynet.trialProgressIntervalId);
         }
-        psynet.trialProgressIntervalId = setInterval(update, 5);
+        psynet.trialProgressIntervalId = psynet.trial.setRepeatingTimer(
+          update,
+          5,
+        );
       };
 
       let bound = function (x, min, max) {

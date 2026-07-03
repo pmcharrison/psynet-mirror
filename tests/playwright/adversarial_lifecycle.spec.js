@@ -41,6 +41,7 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
     await completeInitialGateway(experimentPage);
     await assertInplaceTimelinePathActive(experimentPage, 20000);
 
+    // Rejected responses should leave the page active and unlock submission state.
     await waitForMainBodyContains(
       experimentPage,
       "Rejection retry page",
@@ -72,6 +73,66 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
 
     const accepted = await nextPageFromBrowser(experimentPage, "accepted");
     expect(accepted).toBe(true);
+
+    // Timers scheduled immediately before an SPA transition must not fire later
+    // on the checkpoint page, and repeating timers must stop ticking.
+    await waitForMainBodyContains(experimentPage, "Tracked timer page", STEP_TIMEOUT_MS);
+    await experimentPage.evaluate(() => window.__scheduleTrackedLifecycleTimers());
+    expect(await nextPageFromBrowser(experimentPage, "manual-timer-advance")).toBe(true);
+    await waitForMainBodyContains(
+      experimentPage,
+      "Timer cleanup checkpoint",
+      STEP_TIMEOUT_MS
+    );
+    const ticksAfterTransition = await experimentPage.evaluate(
+      () => window.__trackedTimerLifecycle.intervalTicks
+    );
+    await experimentPage.waitForTimeout(1200);
+    await expect(experimentPage.locator("#main-body")).toContainText(
+      "Timer cleanup checkpoint"
+    );
+    await expect
+      .poll(() => experimentPage.evaluate(() => window.__trackedTimerLifecycle))
+      .toEqual({
+        started: true,
+        timeoutFired: false,
+        intervalTicks: ticksAfterTransition
+      });
+
+    // Audio stopped during a transition must not report completion on the next
+    // trial, even if the original sound was in a fade-out window.
+    expect(await nextPageFromBrowser(experimentPage)).toBe(true);
+    await waitForMainBodyContains(experimentPage, "Audio fade-out page", STEP_TIMEOUT_MS);
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(
+            () => window.__audioFadeOutLifecycle?.ready === true
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(true);
+    expect(await nextPageFromBrowser(experimentPage, "advance-during-audio")).toBe(
+      true
+    );
+    await waitForMainBodyContains(
+      experimentPage,
+      "Audio fade-out checkpoint",
+      STEP_TIMEOUT_MS
+    );
+    await experimentPage.waitForTimeout(500);
+    await expect
+      .poll(() =>
+        experimentPage.evaluate(() =>
+          window.psynet.trial.eventLog.some(
+            (event) => event.eventType === "audioFinished: fadeout_stale_audio"
+          )
+        )
+      )
+      .toBe(false);
+
+    // Page-scoped event listeners should work while their page is active.
+    expect(await nextPageFromBrowser(experimentPage)).toBe(true);
     await waitForMainBodyContains(experimentPage, "Listener page first", STEP_TIMEOUT_MS);
 
     await dispatchWindowClick(experimentPage);
@@ -86,6 +147,7 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         activations: ["first"]
       });
 
+    // The listener from the previous page should be removed during cleanup.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
     await waitForMainBodyContains(
       experimentPage,
@@ -104,6 +166,7 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
         activations: ["first"]
       });
 
+    // A later page can register its own listener without reviving the old one.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
     await waitForMainBodyContains(experimentPage, "Listener page second", STEP_TIMEOUT_MS);
     await dispatchWindowClick(experimentPage);
