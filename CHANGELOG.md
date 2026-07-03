@@ -1,5 +1,91 @@
 # CHANGELOG
 
+## [13.3.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.3.0rc0) Release candidate - 2026-07-03
+
+### Added
+
+- Refactored timeline to use named branches for end logic. `Timeline.elts` is now a dict of named branches (`main`, `successful_end`, `unsuccessful_end`, `rejected_consent`). `elt_id` now starts with the branch name (e.g. `["main", 3]`). `EndPage` classes are now redirect elements instead of `PageMaker` wrappers. `participant.fail()` automatically redirects to the `unsuccessful_end` branch unless the participant is already in an end logic branch or already completed.
+- Added `psynet dev experiments update` as the source-checkout command for updating bundled demo and test experiment files, including a `--skip-constraints` option for faster non-constraints updates.
+- Added an ASV performance benchmark suite (demo experiment performance tests
+  and serialize/deserialize micro-benchmarks). A CI job publishes rendered
+  graphs to GitLab Pages alongside the docs, and an `asv_regression` job fails a
+  merge request when `asv continuous` finds a significant regression between its
+  merge base and branch tip.
+- Added a two-participant Playwright test for the chatrooms demo that verifies live message relay and persisted chat history.
+- Added support for agent-assisted PsyNet releases via a repo-local release skill and a `psynet dev release announce` command.
+- Added a `chatroom_simple` demo showing a minimal real-time chatroom built with the high-level `ChatRoom` component and a synchronised trial maker.
+- Added a `Trial.sync_group` property that returns the `SyncGroup` matching the trial maker's `sync_group_type`, giving a multi-group-safe alternative to `participant.sync_group`.
+
+### Changed
+
+- Refactored chain network growth to use live readiness queries instead of the cached `ready_to_spawn` flag, added non-blocking polling for within-chain growth, and normalized graph-chain topology into SQL vertex/edge tables.
+- Temporarily allowed the ASV regression CI job to fail while benchmark reliability is improved.
+- Changed ASV CI so merge requests run only benchmarks under `benchmarks/fast/` as the regression gate, while default-branch CI runs the full benchmark suite with `asv continuous` before publishing results.
+- Updated demo regeneration so post-release alpha versions keep demo and test experiment dependencies pointed at the `master` branch.
+- Fixed `/review` skill to diff against `origin/master` instead of stale local `master`, preventing inflated diffs that include changes already on master.
+- Sync barriers now use a database-backed registry with per-barrier processing and serialized release callables to improve multi-process coordination.
+- Changed performance test summaries to include median response times alongside requests per second.
+- Updated CI so full ASV benchmark regressions are reported without blocking master pipelines, and made Heroku CLI installation fail fast when unavailable.
+- Added regression coverage for nested transaction session reuse and commit behavior.
+- Made SerializedCallable keyword-only for participant/experiment arguments to prevent positional misuse.
+- Moved the multi-room chatrooms demo from `demos/experiments/chatrooms` to `demos/features/websocket_chatroom`.
+- Updated the rock-paper-scissors demo and the chatroom and synchronization tutorials to derive a chatroom `room_id` from the new `Trial.sync_group` property instead of `participant.sync_group`, which is unsafe when a participant belongs to multiple sync groups.
+
+### Deprecated
+
+- Deprecated Asset.set_keys in favor of ensure_keys_and_paths.
+
+### Removed
+
+- Removed support for Prolific screen-out payments because Prolific no longer supports the screen-out API route.
+
+### Fixed
+
+- Two substantial performance optimizations for graph-based experiments.
+- Fixed a Playwright audio demo flake by centralizing PsyNet page-loaded synchronization before timeline consent clicks.
+- Fixed `AsyncCodeBlock` raising `RuntimeError: Participant already has an async code block process pending, this shouldn't happen.` when a participant re-entered an `AsyncCodeBlock` while a previously finished or failed process was still attached. `AsyncCodeBlock.initiate` now logs a warning and clears the stale reference instead of crashing, so participants no longer get stuck (e.g. inside the Prolific failed-participant `wait_for_assignment_return` loop).
+- Fixed graph demo `generate_grid` returning `blocks` instead of `groups` for the `participant_groups` key in the network structure, and added `choose_participant_group` support to `GraphChainTrialMaker`.
+- Fixed PsyNet custom SQL table polymorphic discriminator columns to use flexible string lengths, avoiding truncation errors for fully qualified polymorphic identities longer than 50 characters. (author: [Peter Harrison])
+- Fixed PsyNet's `jsonpickle` usage to pass the `keys` option explicitly, avoiding deprecation warnings that could fail tests when warnings are treated as errors.
+- Exported request parameters as plain JSON-like dict/list values to avoid jsonpickle `py/object` payloads in database exports.
+- Fixed CI Docker constraints generation, Chrome installation, and browser startup when local Chrome binaries are available.
+- Fixed serialized callables to receive participant and experiment context when invoked through PsyNet's context helper.
+- Allow `psynet export ssh` to omit `--app` by selecting the running app on the server.
+- Prevent deposited assets from changing storage identity when re-linked, and ensure undeposited assets adopt current parent metadata, including finalize_assets behavior.
+- Added early app-exists checks for `psynet deploy ssh` and `psynet debug ssh`.
+- Prevented `Trial.check_if_can_mark_as_finalized()` from finalizing incomplete trials by requiring `trial.complete` before finalization checks proceed.
+- Fill missing parent/link metadata for deposited assets so external asset export paths remain unique.
+- Fixed `--stagger` value not being passed in SSH test and performance-test commands.
+- Stabilized S3 storage tests by using local mocking for the boto3 backend and unique prefixes for AWS CLI integration checks.
+- Refactored Selenium Chrome-driver setup into `psynet.testing.chrome_driver`, preserved retry-based launch resilience, restored CI chromedriver pinning to avoid Selenium Manager network hangs, and emitted startup diagnostics to stdout for CI triage.
+- Fixed translation test mock translations to preserve variable placeholders.
+- Fixed `get_translator()` failing when called from a top-level script without a package context.
+- Loaded the generated runtime server configuration before exporting local debug data.
+- Raised a clearer error for experiment directory import-name collisions.
+- Fixed the end-page "Finish" button showing an untranslated English label in non-English locales; the visible label is now translatable while the recorded answer value stays "Finish".
+- Fixed Prolific return-for-bonus checks so transient return-status lookup failures no longer fail the participant flow.
+- Fixed waited async code blocks so participants who re-enter the same pending async code block process wait for the existing process instead of starting a duplicate.
+- Fixed Prolific unread message notifications so recruiter checks no longer crash when combining multiple notification lines.
+- Recorded returned Prolific assignment status in the return-for-bonus flow.
+- Fixed Prolific unread-message checks when message field names differ from the documented response shape.
+- Skipped scheduled experiment status recording until experiment launch has finished.
+- Stabilized the create-and-rate gap demo test by balancing trial assignment and asserting durable chain growth outcomes.
+- Mocked S3 access in the static audio preparation test.
+
+### Documentation
+
+- Documented contributor guidance for using Click in command-line interfaces, seeking simplifications before adding substantial code, writing changelog fragments without author attributions that summarize only the final merge-request result, and understanding the ASV performance-testing setup.
+- Integrated the ISMIR 2025 PsyNet tutorial: added the tutorial chapters under `docs/getting_started/`, added the companion `demos/features/pages` and `demos/features/timeline` demos, added the tutorial pipeline demos under `demos/pipelines/`, and included `psynet-step` in the demos extra so the `step_tag` pipeline runs in CI.
+- Fixed stale demo paths in the documentation.
+- Added a developer docs build command with live preview support.
+- Removed the version number from the documentation title and simplified the alpha version switcher label.
+- Added a repo-local refactor Cursor skill for maintainability-focused PR review guidance.
+- Removed changelog reminder from AGENTS.
+- Documented the standard merge request description format for PsyNet agent work.
+- Clarified how Prolific base payments, bonuses, and partial payments are handled.
+- Documented that agents should prompt users to run `/branch-review` before finalizing merge requests.
+- Added a repo-local Cursor skill for debugging deployed PsyNet test experiments via the dashboard and Dozzle logs.
+
 ## [13.2.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0) Release - 2026-05-26
 
 ### Added
