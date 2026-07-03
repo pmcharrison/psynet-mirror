@@ -34,7 +34,8 @@ with non-WebSocket bots.
 
 import json
 import random
-from typing import List
+from dataclasses import dataclass
+from typing import List, Optional
 
 from dominate import tags
 from sqlalchemy import Column, ForeignKey, Integer, String
@@ -69,6 +70,90 @@ SCORING_MATRIX = {
 
 def score_round(action_self, action_other):
     return SCORING_MATRIX[action_self][action_other]
+
+
+@dataclass(frozen=True)
+class ChooseEvent:
+    """A participant's committed choice for one websocket game round."""
+
+    room_id: str
+    round_number: int
+    action: str
+
+    message_type = "choose"
+
+    @classmethod
+    def from_payload(cls, payload):
+        """Parse and validate an inbound ``choose`` websocket payload."""
+        if payload.get("type") != cls.message_type:
+            return None
+
+        room_id = payload.get("room_id")
+        round_number = payload.get("round")
+        action = payload.get("action")
+
+        if not isinstance(room_id, str) or not room_id:
+            return None
+        if (
+            not isinstance(round_number, int)
+            or isinstance(round_number, bool)
+            or not 1 <= round_number <= N_ROUNDS
+        ):
+            return None
+        if action not in SCORING_MATRIX:
+            return None
+
+        return cls(room_id=room_id, round_number=round_number, action=action)
+
+
+@dataclass(frozen=True)
+class RevealEvent:
+    """A server-authored snapshot for rendering a completed round."""
+
+    target_participant_id: int
+    round_number: int
+    result: str
+    scoreboard: str
+    status: str
+    finished: bool
+    answer: Optional[List[str]] = None
+
+    message_type = "reveal"
+
+    def to_payload(self):
+        """Serialize the reveal snapshot for the browser."""
+        payload = {
+            "type": self.message_type,
+            "target": str(self.target_participant_id),
+            "round": self.round_number,
+            "result": self.result,
+            "scoreboard": self.scoreboard,
+            "status": self.status,
+            "finished": self.finished,
+        }
+        if self.answer is not None:
+            payload["answer"] = self.answer
+        return payload
+
+    def to_json(self):
+        """Serialize the reveal snapshot as a websocket JSON message."""
+        return json.dumps(self.to_payload())
+
+
+def _parse_client_event(message):
+    """Parse a raw websocket message into a supported client event."""
+    try:
+        payload = json.loads(message)
+    except (json.JSONDecodeError, TypeError):
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    if payload.get("type") == ChooseEvent.message_type:
+        return ChooseEvent.from_payload(payload)
+
+    return None
 
 
 @register_table
@@ -108,46 +193,40 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
     ):
         from dallinger import db
 
-        data = json.loads(message)
-        if data.get("type") != "choose":
-            # Ignore the server's own ``reveal`` broadcasts and anything else.
-            return
-
-        room_id = data.get("room_id")
-        round_number = data.get("round")
-        action = data.get("action")
-        if (
-            participant is None
-            or room_id is None
-            or round_number is None
-            or action not in SCORING_MATRIX
-        ):
+        event = _parse_client_event(message)
+        if event is None or participant is None:
             return
 
         # ``ReconnectingWebSocket`` may resend a move on reconnect; ignore
         # duplicates so a participant cannot overwrite their committed choice.
         already_moved = RockPaperScissorsMove.query.filter_by(
-            room_id=room_id, round_number=round_number, participant_id=participant.id
+            room_id=event.room_id,
+            round_number=event.round_number,
+            participant_id=participant.id,
         ).first()
         if already_moved is not None:
             return
 
         db.session.add(
-            RockPaperScissorsMove(room_id, round_number, participant.id, action)
+            RockPaperScissorsMove(
+                event.room_id, event.round_number, participant.id, event.action
+            )
         )
         db.session.commit()
 
         this_round = {
             move.participant_id: move.action
             for move in RockPaperScissorsMove.query.filter_by(
-                room_id=room_id, round_number=round_number
+                room_id=event.room_id, round_number=event.round_number
             ).all()
         }
         if len(this_round) < 2:
             # Waiting for the partner's move; nothing to reveal yet.
             return
 
-        self._broadcast_reveal(experiment, room_id, round_number, this_round)
+        self._broadcast_reveal(
+            experiment, event.room_id, event.round_number, this_round
+        )
 
     def _broadcast_reveal(self, experiment, room_id, round_number, this_round):
         """Send each player a ready-to-render snapshot of the completed round.
@@ -169,28 +248,24 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
                 if delta < 0
                 else "the round was a draw."
             )
-            snapshot = {
-                "type": "reveal",
-                "target": str(me),
-                "round": round_number + 1,
-                "result": (
+            snapshot = RevealEvent(
+                target_participant_id=me,
+                round_number=round_number + 1,
+                result=(
                     f"Round {round_number}: you played {this_round[me]}, "
                     f"your partner played {this_round[partner]} — {outcome}"
                 ),
-                "scoreboard": (
-                    f"Score — you: {totals[me]}, partner: {totals[partner]}"
-                ),
-                "status": (
+                scoreboard=(f"Score — you: {totals[me]}, partner: {totals[partner]}"),
+                status=(
                     "Game over!"
                     if finished
                     else f"Round {round_number + 1} of {N_ROUNDS}: choose your action."
                 ),
-                "finished": finished,
-            }
-            if finished:
-                snapshot["answer"] = self._participant_moves(room_id, me)
+                finished=finished,
+                answer=self._participant_moves(room_id, me) if finished else None,
+            )
             experiment.publish_to_subscribers(
-                json.dumps(snapshot), channel_name=self.channel
+                snapshot.to_json(), channel_name=self.channel
             )
 
     @staticmethod
@@ -333,9 +408,7 @@ class RockPaperScissorsTrial(StaticTrial):
                 f"partner: {result['partner_score']}. {outcome}"
             )
             with tags.ol():
-                for me, partner in zip(
-                    result["my_moves"], result["partner_moves"]
-                ):
+                for me, partner in zip(result["my_moves"], result["partner_moves"]):
                     tags.li(f"You played {me}, your partner played {partner}.")
 
         return InfoPage(prompt, time_estimate=5)

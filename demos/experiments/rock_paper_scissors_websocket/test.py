@@ -11,12 +11,72 @@
 # - test_check_bots
 # - test_check_bot
 
+import json
 import os
 
 import pytest
+from experiment import ChooseEvent, RevealEvent, _parse_client_event
 
 pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
 experiment_dir = os.path.dirname(__file__)
+
+
+def test_choose_event_parses_valid_websocket_message():
+    event = _parse_client_event(
+        json.dumps(
+            {
+                "type": "choose",
+                "room_id": "rps_room_1",
+                "round": 2,
+                "action": "paper",
+            }
+        )
+    )
+
+    assert event == ChooseEvent(
+        room_id="rps_room_1",
+        round_number=2,
+        action="paper",
+    )
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"type": "reveal", "target": "1"},
+        {"type": "choose", "round": 1, "action": "rock"},
+        {"type": "choose", "room_id": "rps_room_1", "round": 0, "action": "rock"},
+        {
+            "type": "choose",
+            "room_id": "rps_room_1",
+            "round": 1,
+            "action": "lizard",
+        },
+    ],
+)
+def test_choose_event_rejects_invalid_websocket_messages(payload):
+    assert _parse_client_event(json.dumps(payload)) is None
+
+
+def test_reveal_event_serializes_browser_payload():
+    event = RevealEvent(
+        target_participant_id=7,
+        round_number=3,
+        result="Round 2: you played rock, your partner played scissors - you won!",
+        scoreboard="Score - you: 1, partner: -1",
+        status="Round 3 of 5: choose your action.",
+        finished=False,
+    )
+
+    assert json.loads(event.to_json()) == {
+        "type": "reveal",
+        "target": "7",
+        "round": 3,
+        "result": "Round 2: you played rock, your partner played scissors - you won!",
+        "scoreboard": "Score - you: 1, partner: -1",
+        "status": "Round 3 of 5: choose your action.",
+        "finished": False,
+    }
 
 
 @pytest.mark.parametrize("experiment_directory", [experiment_dir], indirect=True)
