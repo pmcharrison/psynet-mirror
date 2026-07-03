@@ -240,18 +240,20 @@ audit record, for example:
 dev/deployment-log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-log-analysis.md
 ```
 
-At the same time, add the corresponding downloaded full Dozzle logs ZIP to the
-branch with the same timestamp and app-name stem, for example:
+Keep the corresponding downloaded full Dozzle logs ZIP in local storage only,
+with the same timestamp and app-name stem so it can be matched to the analysis,
+for example:
 
 ```text
-dev/deployment-log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-logs.zip
+dev/tmp/deployment-log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-logs.zip
 ```
+
+Do not commit logs ZIPs or extracted raw logs to the branch; they bloat the git
+history. Only the Markdown analysis is added to the branch for each deployment.
 
 Use local time for the timestamp unless the user requests UTC. Do not leave the
 analysis only under `dev/tmp`; `dev/tmp` is for downloaded ZIPs and extracted
-logs. The Markdown analysis and logs ZIP should be added to the branch for each
-deployment. Do not add extracted raw logs to the branch unless the user
-explicitly asks.
+logs.
 
 This report should be more detailed than the chat summary. Include:
 
@@ -273,7 +275,7 @@ This report should be more detailed than the chat summary. Include:
   likely harmless noise, expected Prolific edge cases, and unresolved questions.
 
 Reference the exact downloaded log directory and file names used for the
-analysis so the evidence can be rechecked later.
+analysis so the evidence can be rechecked later from the local ZIP.
 
 ## Dozzle Full Log Download
 
