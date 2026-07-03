@@ -304,11 +304,15 @@ preview and post:
 
 ```bash
 psynet dev release announce X.Y.Z --dry-run
+psynet dev release announce X.Y.Z --channel testing-bot-messages
 psynet dev release announce X.Y.Z
 ```
 
-The dry run prints the exact body that would be posted; the second
-command posts it. The message uses Slack `mrkdwn` syntax (single `*`
+The dry run prints the exact body that would be posted. Then post to
+the `#testing-bot-messages` channel first, so the release manager can
+review the actual Slack rendering (link previews, mrkdwn formatting,
+block layout) before the real announcement; only after that review
+post to `#psynet-support`. The message uses Slack `mrkdwn` syntax (single `*`
 for bold, `<URL|label>` for inline links); the final-release template
 looks like:
 
