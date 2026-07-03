@@ -87,12 +87,8 @@ class ChooseEvent(BaseModel):
 
     def handle(self, context):
         """Apply this event to the running websocket game."""
-        if not context.record_choice(self):
-            return
-
-        this_round = context.completed_round_moves(self)
-        if this_round is not None:
-            context.broadcast_reveal(self, this_round)
+        if context.record_choice(self):
+            context.broadcast_reveal_if_complete(self)
 
 
 class RevealEvent(BaseModel):
@@ -123,16 +119,13 @@ def _parse_client_event(message):
 class RockPaperScissorsGameContext:
     """Runtime game services available to websocket event handlers."""
 
-    participant: Optional[Participant]
+    participant: Participant
     experiment: psynet.experiment.Experiment
     channel: str
 
     def record_choice(self, event: ChooseEvent):
         """Persist a choice unless this participant already moved this round."""
         from dallinger import db
-
-        if self.participant is None:
-            return False
 
         already_moved = RockPaperScissorsMove.query.filter_by(
             room_id=event.room_id,
@@ -151,18 +144,21 @@ class RockPaperScissorsGameContext:
         return True
 
     @staticmethod
-    def completed_round_moves(event: ChooseEvent):
-        """Return the round's moves once both participants have chosen."""
-        this_round = {
+    def _round_moves(event: ChooseEvent):
+        """Return the moves submitted for the event's round."""
+        return {
             move.participant_id: move.action
             for move in RockPaperScissorsMove.query.filter_by(
                 room_id=event.room_id, round_number=event.round
             ).all()
         }
-        return this_round if len(this_round) >= 2 else None
 
-    def broadcast_reveal(self, event: ChooseEvent, this_round):
-        """Broadcast the completed round from each participant's point of view."""
+    def broadcast_reveal_if_complete(self, event: ChooseEvent):
+        """Broadcast the completed round once both participants have chosen."""
+        this_round = self._round_moves(event)
+        if len(this_round) < 2:
+            return
+
         pids = sorted(this_round.keys())
         totals = self._cumulative_scores(event.room_id, event.round, pids)
         finished = event.round >= N_ROUNDS
@@ -259,6 +255,8 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
     def handle_message(
         self, message, channel_name, participant, node, receive_time, experiment
     ):
+        if participant is None:
+            return
 
         try:
             event = _parse_client_event(message)
