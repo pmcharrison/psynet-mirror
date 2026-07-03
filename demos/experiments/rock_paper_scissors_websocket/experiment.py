@@ -138,7 +138,7 @@ class RockPaperScissorsGameContext:
             "Rejected rock-paper-scissors websocket event: %s "
             "(participant_id=%s, event_type=%s)",
             reason,
-            self.participant.id,
+            getattr(self.participant, "id", None),
             event_type,
         )
 
