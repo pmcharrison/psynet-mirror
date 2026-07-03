@@ -244,8 +244,16 @@ def summarize_for_experimenters(section_body: str) -> str:
 def build_blocks(version: str) -> tuple[list[dict], str]:
     """Return (blocks, fallback_text) for a Slack message."""
     guidance = load_announcement_guidance()
-    release_url = f"https://gitlab.com/PsyNetDev/PsyNet/-/releases/v{version}"
     pypi_url = f"https://pypi.org/project/psynet/{version}/"
+
+    if is_prerelease(version):
+        # Prereleases are tag-only: no GitLab release entry is created for
+        # them, so link to the CHANGELOG at the tag instead.
+        release_url = (
+            f"https://gitlab.com/PsyNetDev/PsyNet/-/blob/v{version}/CHANGELOG.md"
+        )
+    else:
+        release_url = f"https://gitlab.com/PsyNetDev/PsyNet/-/releases/v{version}"
 
     if is_prerelease(version):
         final_version = PRERELEASE_RE.sub("", version)

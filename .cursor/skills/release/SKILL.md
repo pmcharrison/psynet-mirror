@@ -236,6 +236,10 @@ Verify the release is live at `https://pypi.org/project/psynet/X.Y.Z/`.
 > for this version. The release manager must approve the release notes
 > before publishing.
 
+This step applies to **final releases only**. Release candidates and
+other prereleases are tag-only on GitLab — see
+[Release candidates](#release-candidates-minor-releases) for why.
+
 Compose a release-notes file (e.g. `release-notes-X.Y.Z.md`) that
 mirrors the corresponding section of `CHANGELOG.md` and points at the
 freshly published artifacts. The body should be short — it is meant to
@@ -510,8 +514,15 @@ into `master` until the final release.
 The human checkpoints from the
 [Human-in-the-loop policy](#human-in-the-loop-policy) apply at the
 equivalent points: pushing the release branch, pushing the RC tag,
-uploading the RC to PyPI, creating the GitLab pre-release, and posting the
-Slack announcement.
+uploading the RC to PyPI, and posting the Slack announcement.
+
+RCs are **tag-only** on GitLab: do **not** create a GitLab release entry
+for them. GitLab has no pre-release flag (unlike GitHub), so an RC
+release entry would become the project's "latest release" (permalink,
+releases feed, and badge) until the final version ships. This tag-only
+convention matches what major GitLab-hosted projects (GitLab Runner,
+Inkscape, Wireshark) do. The RC's changelog section, PyPI page, and docs
+build carry all the information testers need.
 
 RCs are especially valuable when:
 
@@ -554,32 +565,19 @@ using the shared steps with the RC version:
    confirm that `https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc0/` loads
    and that the RC appears in the version dropdown at
    <https://psynetdev.gitlab.io/PsyNet/>.
-7. [Create the GitLab release](#create-the-gitlab-release) as a
-   **pre-release**, with these RC-specific differences:
-   - Title: `13.2.0rc0 (Release candidate)` (no `v` prefix in release
-     titles; the tag keeps it).
-   - **Tick the pre-release flag.** This is critical — it prevents the
-     RC from showing up as the project's "latest release" and signals to
-     users that the artifact is for testing only. `glab release create`
-     does not currently expose a flag for this checkbox; after running the
-     command, open the release's edit page and tick it manually.
-   - In the release notes, use the RC docs URL
-     `https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc0/` so the link is
-     stable across future releases, and add:
-
-     > This is a **release candidate**. It is not the latest release on
-     > PyPI; opt in explicitly with `pip install psynet==13.2.0rc0`.
-     > Please test against your studies and report any regressions before
-     > the final 13.2.0 tag.
+7. **Skip the GitLab release entry.** RCs are tag-only on GitLab (see
+   above); the [Create the GitLab release](#create-the-gitlab-release)
+   step applies to final releases only.
 8. [Announce the release on Slack](#announce-the-release-on-slack) with the
    RC version. `psynet dev release announce 13.2.0rc0` auto-detects the
    `rc` segment and generates an RC-flavoured message with the
-   `/rc/<tag>/` docs URL and the opt-in install instruction:
+   `/rc/<tag>/` docs URL, the CHANGELOG-at-tag link (since there is no
+   GitLab release entry), and the opt-in install instruction:
 
    ```text
    *:test_tube: PsyNet 13.2.0rc0 (release candidate) is out*
 
-   • <https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0rc0|Release notes>
+   • <https://gitlab.com/PsyNetDev/PsyNet/-/blob/v13.2.0rc0/CHANGELOG.md|Release notes>
    • <https://pypi.org/project/psynet/13.2.0rc0/|PyPI>
    • <https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc0/|Documentation>
 
@@ -613,8 +611,8 @@ back to `master` later if needed.
 
 When you have enough fixes to justify another candidate, cut the next RC by
 repeating the RC0 sequence with the next RC number (e.g. `13.2.0rc1`):
-CHANGELOG, version bump, demo update, then push, tag, upload, pre-release,
-and announcement, with the same human checkpoints. Repeat for `rc2`, `rc3`,
+CHANGELOG, version bump, demo update, then push, tag, upload, and
+announcement, with the same human checkpoints. Repeat for `rc2`, `rc3`,
 etc. until you are confident the release is ready.
 
 ### Promote the final RC to the official release

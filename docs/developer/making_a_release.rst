@@ -59,8 +59,10 @@ releases, Slack posts) require explicit approval from the human release
 manager; the skill marks each of these with a **Human checkpoint** callout.
 
 Minor releases go through a release-candidate flow (``X.Y.Zrc0``,
-``rc1``, …) by default, with PyPI pre-releases and GitLab pre-release
-entries, before the final tag. Skip the RC stage only when the release
+``rc1``, …) by default before the final tag: RCs are tagged, uploaded to
+PyPI as pre-releases, and announced on Slack, but get no GitLab release
+entry (GitLab has no pre-release flag, so an RC entry would displace the
+"latest release" permalink). Skip the RC stage only when the release
 manager explicitly decides to release directly.
 
 .. attention::
