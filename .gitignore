@@ -166,3 +166,7 @@ dump.rdb
 .asv/
 .asv-sync.conf.json
 .asv-local.conf.json
+
+# Local scratch space for downloaded deployment logs (see
+# .cursor/skills/debug-deployment-test-experiments/SKILL.md)
+dev/tmp/
