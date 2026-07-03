@@ -1,1 +1,1 @@
-Added Pydantic-backed websocket event models.
+Added Pydantic-backed websocket event models with page-scoped validation.

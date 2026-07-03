@@ -75,10 +75,16 @@ def score_round(action_self, action_other):
 Choice = Literal["rock", "paper", "scissors"]
 
 
-class ChooseEvent(BaseModel):
-    """A participant's committed choice for one websocket game round."""
+class PageScopedWebSocketEvent(BaseModel):
+    """A websocket event authorized by the current PsyNet page UUID."""
 
     model_config = ConfigDict(extra="ignore", strict=True)
+
+    page_uuid: str = Field(min_length=1)
+
+
+class ChooseEvent(PageScopedWebSocketEvent):
+    """A participant's committed choice for one websocket game round."""
 
     type: Literal["choose"]
     room_id: str = Field(min_length=1)
@@ -122,6 +128,17 @@ class RockPaperScissorsGameContext:
     participant: Participant
     experiment: psynet.experiment.Experiment
     channel: str
+
+    def accepts_event(self, event: PageScopedWebSocketEvent):
+        """Return whether an event is authorized for the participant's current page."""
+        if event.page_uuid != self.participant.page_uuid:
+            return False
+        if isinstance(event, ChooseEvent):
+            sync_group_id = getattr(self.participant.sync_group, "id", None)
+            if sync_group_id is None:
+                return False
+            return event.room_id == f"rps_room_{sync_group_id}"
+        return True
 
     def record_choice(self, event: ChooseEvent):
         """Persist a choice unless this participant already moved this round."""
@@ -262,9 +279,10 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
             event = _parse_client_event(message)
         except ValidationError:
             return
-        event.handle(
-            RockPaperScissorsGameContext(participant, experiment, self.channel)
-        )
+        context = RockPaperScissorsGameContext(participant, experiment, self.channel)
+        if not context.accepts_event(event):
+            return
+        event.handle(context)
 
 
 class RockPaperScissorsControl(Control):

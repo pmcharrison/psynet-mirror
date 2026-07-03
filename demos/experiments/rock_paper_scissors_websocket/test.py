@@ -13,6 +13,7 @@
 
 import json
 import os
+from types import SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
@@ -25,6 +26,7 @@ def _check_websocket_event_contracts(experiment_globals):
     """Check websocket event parsing without importing the experiment twice."""
     parse_client_event = experiment_globals["_parse_client_event"]
     choose_event = experiment_globals["ChooseEvent"]
+    game_context = experiment_globals["RockPaperScissorsGameContext"]
     reveal_event = experiment_globals["RevealEvent"]
 
     event = parse_client_event(
@@ -34,6 +36,7 @@ def _check_websocket_event_contracts(experiment_globals):
                 "room_id": "rps_room_1",
                 "round": 2,
                 "action": "paper",
+                "page_uuid": "current-page",
                 "sender": "7",
             }
         )
@@ -44,19 +47,55 @@ def _check_websocket_event_contracts(experiment_globals):
         room_id="rps_room_1",
         round=2,
         action="paper",
+        page_uuid="current-page",
     )
+
+    participant = SimpleNamespace(
+        page_uuid="current-page", sync_group=SimpleNamespace(id=1)
+    )
+    context = game_context(participant, SimpleNamespace(), "rock_paper_scissors")
+    assert context.accepts_event(event)
+    assert not context.accepts_event(event.model_copy(update={"page_uuid": "old-page"}))
+    assert not context.accepts_event(event.model_copy(update={"room_id": "rps_room_2"}))
 
     invalid_payloads = [
         {"type": "reveal", "target": "1"},
         {"type": "choose", "round": 1, "action": "rock"},
-        {"type": "choose", "room_id": "", "round": 1, "action": "rock"},
-        {"type": "choose", "room_id": "rps_room_1", "round": "1", "action": "rock"},
-        {"type": "choose", "room_id": "rps_room_1", "round": 0, "action": "rock"},
+        {"type": "choose", "room_id": "rps_room_1", "round": 1, "action": "rock"},
+        {
+            "type": "choose",
+            "room_id": "rps_room_1",
+            "round": 1,
+            "action": "rock",
+            "page_uuid": "",
+        },
+        {
+            "type": "choose",
+            "room_id": "",
+            "round": 1,
+            "action": "rock",
+            "page_uuid": "current-page",
+        },
+        {
+            "type": "choose",
+            "room_id": "rps_room_1",
+            "round": "1",
+            "action": "rock",
+            "page_uuid": "current-page",
+        },
+        {
+            "type": "choose",
+            "room_id": "rps_room_1",
+            "round": 0,
+            "action": "rock",
+            "page_uuid": "current-page",
+        },
         {
             "type": "choose",
             "room_id": "rps_room_1",
             "round": 1,
             "action": "lizard",
+            "page_uuid": "current-page",
         },
     ]
     for payload in invalid_payloads:
