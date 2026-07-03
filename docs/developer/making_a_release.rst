@@ -11,6 +11,8 @@ The step-by-step release process is maintained as a Cursor skill at
 ``.cursor/skills/release/SKILL.md``. It currently covers patch and minor releases,
 and can be invoked in Cursor via the ``/release`` slash command (skills are
 auto-discovered and exposed as slash commands under their skill name).
+Pass the release type as an argument to select the corresponding path in
+the skill, e.g. ``/release minor`` or ``/release patch``.
 The Slack announcement step is documented in a separate Cursor skill at
 ``.cursor/skills/announce-release/SKILL.md`` (``/announce-release``).
 

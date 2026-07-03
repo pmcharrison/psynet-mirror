@@ -5,6 +5,10 @@ description: Guide a PsyNet release (minor from master, or patch from an existin
 
 # PsyNet Release Process
 
+Invoke this skill in Cursor with the release type as an argument, e.g.
+`/release minor` or `/release patch`. If no release type is given, ask the
+user which one applies before proceeding.
+
 This skill covers both release types:
 
 - **Minor release** (e.g. 13.1.0 → 13.2.0): cut from `master`; new
