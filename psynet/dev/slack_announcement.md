@@ -24,10 +24,12 @@ Upgrade options:
 
 ## Category Order
 
+- Breaking
 - Added
 - Changed
-- Fixed
+- Deprecated
 - Removed
+- Fixed
 
 ## Include Patterns
 
@@ -58,6 +60,17 @@ developing PsyNet experiments.
 - `sing4me`
 - `participant`
 - `recruitment`
+- `recruiters?`
+- `Prolific`
+- `Lucid`
+- `\btrials?\b`
+- `translations?`
+- `translators?`
+- `\blocales?\b`
+- `psynet (deploy|debug|export|test)`
+- `\bchains?\b`
+- `sync group`
+- `sync barrier`
 - `websocket`
 
 ## Exclude Patterns
@@ -67,6 +80,12 @@ generally internal implementation, CI, testing, documentation, or maintenance
 items that should remain in the full release notes but not the Slack summary.
 
 - `AGENTS\.md`
+- `psynet dev\b`
+- `demo regeneration`
+- `demo test`
+- `\bdemo\b.*\btest\b`
+- `release skill`
+- `Cursor skill`
 - `CI[ _]job`
 - `CI[ _]test`
 - `CI[ _]config`
@@ -140,6 +159,7 @@ items that should remain in the full release notes but not the Slack summary.
 - `\x60NumpySerializer`
 - `\x60SVGLogo`
 - `\x60os\.path\.remove`
+- `translation test`
 - `translation validation`
 - `translation_contains`
 - `_experiment_variables`

@@ -203,25 +203,27 @@ def summarize_for_experimenters(section_body: str) -> str:
     guidance = load_announcement_guidance()
     categories: dict[str, list[str]] = {}
     current_category: str | None = None
+    last_entry_included = False
 
     for line in section_body.splitlines():
         heading_match = SECTION_HEADING_RE.match(line)
         if heading_match:
             current_category = heading_match.group(1)
+            last_entry_included = False
             continue
 
         if current_category and line.startswith("- "):
             entry = line[2:].strip()
             entry = re.sub(r"\s*\(author:.*?\)\.?", "", entry)
-            if guidance.include_re.search(entry) and not guidance.exclude_re.search(
-                entry
-            ):
+            last_entry_included = bool(
+                guidance.include_re.search(entry)
+                and not guidance.exclude_re.search(entry)
+            )
+            if last_entry_included:
                 categories.setdefault(current_category, []).append(entry)
-        elif (
-            current_category
-            and line.startswith("  ")
-            and categories.get(current_category)
-        ):
+        elif current_category and line.startswith("  ") and last_entry_included:
+            # Continuation lines belong to the most recent top-level entry;
+            # only append them when that entry itself was included.
             sub = line.strip()
             if sub.startswith("- "):
                 sub = sub[2:].strip()

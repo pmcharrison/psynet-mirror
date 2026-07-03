@@ -311,11 +311,28 @@ psynet dev release announce X.Y.Z --channel testing-bot-messages
 psynet dev release announce X.Y.Z
 ```
 
-The dry run prints the exact body that would be posted. Then post to
-the `#testing-bot-messages` channel first, so the release manager can
-review the actual Slack rendering (link previews, mrkdwn formatting,
-block layout) before the real announcement; only after that review
-post to `#psynet-support`. The message uses Slack `mrkdwn` syntax (single `*`
+The dry run prints the exact body that would be posted. **Curate the
+generated summary before posting**: the "key changes relevant for
+experimenters" list is selected by keyword patterns in
+`psynet/dev/slack_announcement.md`, which is inherently imprecise.
+Compare the dry-run bullets against the release's CHANGELOG section and
+check both directions:
+
+- **False positives**: maintainer/internal items that slipped in (e.g.
+  entries about `psynet dev` tooling, demo regeneration, CI, or tests).
+- **False negatives**: experimenter-relevant entries that were dropped —
+  pay special attention to recruiter changes (Prolific/Lucid), anything
+  under `Breaking`/`Deprecated`/`Removed`, trial/timeline behavior
+  changes, and translation fixes.
+
+Fix mismatches by adjusting the include/exclude patterns in
+`psynet/dev/slack_announcement.md` (preferred, so future releases
+benefit) and re-running the dry run until the list is right.
+
+Then post to the `#testing-bot-messages` channel, so the release
+manager can review the actual Slack rendering (link previews, mrkdwn
+formatting, block layout) before the real announcement; only after that
+review post to `#psynet-support`. The message uses Slack `mrkdwn` syntax (single `*`
 for bold, `<URL|label>` for inline links); the final-release template
 looks like:
 
