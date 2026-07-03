@@ -9,8 +9,8 @@ PsyNet releases are made periodically by the core developers. There is no real r
 
 The step-by-step release process is maintained as a Cursor skill at
 ``.cursor/skills/release/SKILL.md``. It currently covers patch and minor releases,
-and can be invoked in Cursor via the ``/release-minor`` and
-``/release-patch`` slash commands (a major version release command will be added soon).
+and can be invoked in Cursor via the ``/release`` slash command (skills are
+auto-discovered and exposed as slash commands under their skill name).
 The Slack announcement step is documented in a separate Cursor skill at
 ``.cursor/skills/announce-release/SKILL.md`` (``/announce-release``).
 
