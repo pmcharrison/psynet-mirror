@@ -33,7 +33,6 @@ on release, so the flow is also fully testable with non-WebSocket bots.
 """
 
 import json
-import random
 from types import SimpleNamespace
 from typing import List
 
@@ -42,90 +41,25 @@ from pydantic import ValidationError
 
 import psynet.experiment
 from psynet.bot import BotDriver, advance_past_wait_pages
-from psynet.modular_page import Control, ModularPage
+from psynet.modular_page import ModularPage
 from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
-from psynet.timeline import NullElt, Timeline, WebSocketElt, join
+from psynet.timeline import Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.utils import get_logger
 
 from .game import (
-    CHANNEL,
-    CHOICES,
     GROUP_TYPE,
     N_ROUNDS,
     ChooseEvent,
+    EnableRockPaperScissors,
     RevealEvent,
+    RockPaperScissorsControl,
     RockPaperScissorsGameService,
     RockPaperScissorsGameState,
     parse_client_event,
     score_round,
 )
-
-logger = get_logger()
-
-
-class EnableRockPaperScissors(NullElt, WebSocketElt):
-    """Timeline element that activates the rock-paper-scissors WebSocket channel.
-
-    Place this directly in the experiment timeline whenever a
-    :class:`RockPaperScissorsControl` is used. It is a ``NullElt`` and is
-    invisible to participants.
-    """
-
-    channel = CHANNEL
-
-    def handle_message(
-        self, message, channel_name, participant, node, receive_time, experiment
-    ):
-        if participant is None:
-            logger.warning(
-                "Rejected rock-paper-scissors websocket event: missing participant"
-            )
-            return
-
-        try:
-            event = parse_client_event(message)
-        except ValidationError as err:
-            logger.warning(
-                "Rejected rock-paper-scissors websocket event: validation failed "
-                "(participant_id=%s, errors=%s)",
-                participant.id,
-                err.error_count(),
-            )
-            return
-        service = RockPaperScissorsGameService(participant, experiment, self.channel)
-        if not service.accepts_event(event):
-            return
-        event.handle(service)
-
-
-class RockPaperScissorsControl(Control):
-    """Control that renders the rock-paper-scissors board and drives it over a
-    WebSocket. The submitted answer is the participant's list of ``n_rounds``
-    moves."""
-
-    external_template = "rps-control.html"
-    macro = "rps_control"
-
-    def __init__(self, room_id, color, n_rounds=N_ROUNDS, choices=CHOICES):
-        # The board advances itself once all rounds are revealed, so we hide the
-        # default 'Next' button and submit programmatically from the template.
-        super().__init__(show_next_button=False)
-        self.room_id = room_id
-        self.color = color
-        self.n_rounds = n_rounds
-        self.choices = choices
-        self.channel = EnableRockPaperScissors.channel
-
-    def format_answer(self, raw_answer, **kwargs):
-        return raw_answer
-
-    def get_bot_response(self, experiment, bot, page, prompt):
-        # Bots cannot use WebSockets, so they simply submit a full set of moves;
-        # the authoritative scoring happens server-side in ``score_game``.
-        return [random.choice(self.choices) for _ in range(self.n_rounds)]
 
 
 class RockPaperScissorsTrialMaker(StaticTrialMaker):
