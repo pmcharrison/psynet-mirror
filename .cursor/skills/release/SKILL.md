@@ -323,6 +323,17 @@ file, e.g. `/tmp/release-highlights-X.Y.Z.md`:
 - **Exclude** maintainer-facing items: CI, tests, benchmarks, docs
   scripts, release tooling (`psynet dev` commands), Cursor skills, and
   internal refactors with no observable behavior change.
+- **Add references to high-value bullets** using inline Slack links
+  (`<URL|label>`): link major new features and Breaking/Deprecated/
+  Removed items to the relevant documentation section, and link new or
+  moved demos to their directory in the repo at the tag
+  (`https://gitlab.com/PsyNetDev/PsyNet/-/tree/vX.Y.Z/demos/...`). For
+  release candidates, use the RC docs site
+  (`https://psynetdev.gitlab.io/PsyNet/rc/vX.Y.ZrcN/...`) so links show
+  the new behavior. Do not link every bullet — small fixes need no
+  reference. **Verify each URL resolves** (e.g. `curl -sI -o /dev/null
+  -w '%{http_code}' <url>`) before posting; a 404 in an announcement is
+  worse than no link.
 
 Then preview and post:
 
