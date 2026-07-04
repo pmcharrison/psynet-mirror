@@ -315,7 +315,7 @@ tracked `analysis.md` and a gitignored `local/` subfolder for all raw
 artifacts:
 
 ```text
-dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/
+deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/
   analysis.md                            # tracked: the Markdown analysis
   local/                                 # gitignored: raw data, never committed
     logs.zip                             # full Dozzle logs download
@@ -354,7 +354,7 @@ Collect the `local/` artifacts as follows:
 ```bash
 cd <psynet-root>/tests/manual_recruiter_testing/prolific
 psynet export ssh --app <app-name> --server <ssh-host> --anonymize no \
-  --path <psynet-root>/dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/export
+  --path <psynet-root>/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/export
 ```
 
    This saves the database dump (`regular/database.zip`), per-table CSVs
@@ -422,8 +422,8 @@ Array.from(document.querySelectorAll("a"))
 If direct `curl -u <dozzle-username>:<dozzle-password>` returns `401`, fetch the ZIP through the authenticated browser session instead; Dozzle uses the browser login session. The download is a ZIP containing one log file per container. For post-completion downloads, save it in the deployment folder's `local/` subfolder:
 
 ```text
-dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/logs.zip
-dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/logs/
+deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/logs.zip
+deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/logs/
 ```
 
 For throwaway intermediate scans during the run, use a system temp path (e.g.
