@@ -1,6 +1,6 @@
 ---
 name: deployment-test
-description: Debug deployed PsyNet test experiments by logging into the PsyNet dashboard and Dozzle logs, inferring the app name from deployment URLs, finding matching containers, and summarizing deployment, web, worker, clock, and recruiter errors. Use when the user asks to debug a deployed PsyNet experiment, inspect Dozzle logs, inspect the PsyNet dashboard, or diagnose a test deployment app such as test-v13.3.0rc0-prolific-1.
+description: Debug deployed PsyNet test experiments by logging into the PsyNet dashboard and Dozzle logs, inferring the app name from deployment URLs, finding matching containers, and summarizing deployment, web, worker, clock, and recruiter errors. Use when the user asks to debug a deployed PsyNet experiment, inspect Dozzle logs, inspect the PsyNet dashboard, or diagnose a test deployment app such as test-v13-3-0rc0-prolific-1.
 ---
 
 # Deployment Test
@@ -9,7 +9,7 @@ Use this skill for deployed PsyNet test experiments when the user provides an ex
 
 ## Default URLs And Credentials
 
-- Experiment URL example: `https://test-v13.3.0rc0-prolific-1.experiments1.cococo-lab.cornell.edu/`
+- Experiment URL example: `https://test-v13-3-0rc0-prolific-1.experiments1.cococo-lab.cornell.edu/`
 - Dashboard path: `/dashboard/`
 - Dozzle URL: `https://logs.experiments1.cococo-lab.cornell.edu/`
 
@@ -163,7 +163,18 @@ git add . && git commit -m "Refresh experiment scripts via psynet update-scripts
    deployment branch (for auditability), and record the base tag (or master
    commit), the deployment-branch commit, and the Dallinger pin in the final
    report.
-7. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
+7. Regenerate `constraints.txt` from the updated `requirements.txt` before
+   deploying, and commit it. The experiment Dockerfile installs from
+   `constraints.txt` when it exists, so a stale file would silently override
+   the new pins:
+
+```bash
+cd <psynet-root>/tests/manual_recruiter_testing/prolific
+psynet generate-constraints
+git add constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
+```
+
+8. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
    `prolific_is_custom_screening` to `False`. Prolific no longer supports the
    older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
@@ -180,8 +191,10 @@ psynet deploy ssh \
 ```
 
 Name the app after the deployment branch: `test-<base-tag>-prolific`,
-appending `-2`, `-3`, ... for repeat deployments, e.g.
-`test-v13.3.0rc0-prolific-3`. After deployment, inspect the launch
+appending `-2`, `-3`, ... for repeat deployments. App names only allow
+`a-z`, `0-9`, and `-` (the deploy command rejects anything else), so
+replace the dots in the base tag with dashes, e.g. base tag `v13.3.0rc0`
+gives `test-v13-3-0rc0-prolific-1`. After deployment, inspect the launch
 output for the experiment URL, dashboard URL, and Dozzle URL.
 
 ## Infer The App Name
@@ -189,8 +202,8 @@ output for the experiment URL, dashboard URL, and Dozzle URL.
 If the user gives an experiment URL, infer the app name from the first hostname segment:
 
 ```text
-https://test-v13.3.0rc0-prolific-1.experiments1.cococo-lab.cornell.edu/
-app name = test-v13.3.0rc0-prolific-1
+https://test-v13-3-0rc0-prolific-1.experiments1.cococo-lab.cornell.edu/
+app name = test-v13-3-0rc0-prolific-1
 ```
 
 Use the app name to filter Dozzle containers and to identify related logs.
