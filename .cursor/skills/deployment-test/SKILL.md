@@ -70,7 +70,7 @@ base tag with the user if there is any ambiguity (e.g. an RC and a final tag
 for the same version).
 
 Name the branch after the base, e.g.
-`test-deployments/v13.3.0rc0-prolific`, appending `-2`, `-3`, ... for repeat
+`deployment-tests/v13.3.0rc0-prolific`, appending `-2`, `-3`, ... for repeat
 deployments from the same base.
 
 Before deploying:
@@ -89,7 +89,7 @@ cd <psynet-root>
 git fetch origin master --tags
 BASE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the tag the user specifies
 echo "Base: $BASE_TAG"
-git switch -c test-deployments/$BASE_TAG-prolific "$BASE_TAG"
+git switch -c deployment-tests/$BASE_TAG-prolific "$BASE_TAG"
 git checkout <previous-deployment-branch> -- tests/manual_recruiter_testing/prolific
 ```
 
