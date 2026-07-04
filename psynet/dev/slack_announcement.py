@@ -160,9 +160,13 @@ def build_blocks(version: str, summary: str | None = None) -> tuple[list[dict], 
         # Not str.format, so that literal braces in the config file are safe.
         install = guidance.stable_upgrade_instructions.replace("{version}", version)
 
-    links = f"*PyPI*: {pypi_url}\n*Documentation*: {docs_url}"
+    buttons = [
+        ("Release notes", release_url),
+        ("Documentation", docs_url),
+        ("PyPI", pypi_url),
+    ]
     if not is_prerelease(version):
-        links += f"\n*Versioned documentation*: {versioned_docs_url}"
+        buttons.insert(2, ("Versioned docs", versioned_docs_url))
 
     blocks: list[dict] = [
         {
@@ -177,21 +181,89 @@ def build_blocks(version: str, summary: str | None = None) -> tuple[list[dict], 
 
     if summary:
         blocks.append({"type": "divider"})
-        summary_text = f"{guidance.experimenter_summary_intro}\n\n{summary.strip()}"
-        blocks.extend(_mrkdwn_block(chunk) for chunk in _split_mrkdwn(summary_text))
-        blocks.append(
-            _mrkdwn_block(
-                f"See the <{release_url}|full release notes> for all details."
-            )
+        summary_text = (
+            f"{guidance.experimenter_summary_intro}\n\n"
+            f"{_decorate_category_headers(summary.strip())}"
         )
+        blocks.extend(_mrkdwn_block(chunk) for chunk in _split_mrkdwn(summary_text))
 
     blocks.append({"type": "divider"})
     if install:
         blocks.append(_mrkdwn_block(install))
-    blocks.append(_mrkdwn_block(links))
+    blocks.append(_actions_block(buttons))
+    blocks.append(_context_block(_footer_text(version)))
 
     fallback = f"{title} — {release_url}"
     return blocks, fallback
+
+
+# Emoji markers prepended to the hand-written summary's category headers so
+# authors don't have to remember them.
+CATEGORY_EMOJI = {
+    "Breaking": ":rotating_light:",
+    "Added": ":sparkles:",
+    "Changed": ":arrows_counterclockwise:",
+    "Deprecated": ":hourglass:",
+    "Removed": ":wastebasket:",
+    "Fixed": ":lady_beetle:",
+}
+
+
+def _decorate_category_headers(summary: str) -> str:
+    """Prefix known ``*Category*`` header lines with their emoji marker."""
+    lines = []
+    for line in summary.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("*") and stripped.endswith("*"):
+            category = stripped.strip("*")
+            emoji = CATEGORY_EMOJI.get(category)
+            if emoji:
+                line = f"{emoji} {stripped}"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _footer_text(version: str) -> str:
+    from datetime import date
+
+    released = date.today().strftime("%-d %b %Y")
+    return (
+        f"PsyNet {version}  •  released {released}  •  "
+        "questions and regression reports in #psynet-support"
+    )
+
+
+def _actions_block(buttons: list[tuple[str, str]]) -> dict:
+    """Render URL buttons. Clicking one opens the link directly; note that
+    Slack may show an 'app cannot handle interactive responses' toast if the
+    posting app has no interactivity endpoint configured."""
+    return {
+        "type": "actions",
+        "elements": [
+            {
+                "type": "button",
+                "text": {"type": "plain_text", "text": label, "emoji": True},
+                "url": url,
+            }
+            for label, url in buttons
+        ],
+    }
+
+
+LOGO_URL = (
+    "https://gitlab.com/PsyNetDev/PsyNet/-/raw/master/"
+    "docs/_static/images/psynet-transparent.png"
+)
+
+
+def _context_block(text: str) -> dict:
+    return {
+        "type": "context",
+        "elements": [
+            {"type": "image", "image_url": LOGO_URL, "alt_text": "PsyNet logo"},
+            {"type": "mrkdwn", "text": text},
+        ],
+    }
 
 
 def _mrkdwn_block(text: str) -> dict:
@@ -235,6 +307,23 @@ def render_dry_run(blocks: list[dict], channel: str) -> str:
             lines.append("---")
         elif block["type"] == "header":
             lines.append(f"# {block['text']['text']}")
+            lines.append("")
+        elif block["type"] == "actions":
+            lines.append(
+                "Buttons: "
+                + " | ".join(
+                    f"[{el['text']['text']}]({el['url']})" for el in block["elements"]
+                )
+            )
+            lines.append("")
+        elif block["type"] == "context":
+            lines.append(
+                "Footer: "
+                + " ".join(
+                    el["text"] if el["type"] == "mrkdwn" else f"[{el['alt_text']}]"
+                    for el in block["elements"]
+                )
+            )
             lines.append("")
         else:
             lines.append(block["text"]["text"])

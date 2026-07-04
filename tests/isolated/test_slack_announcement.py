@@ -23,9 +23,26 @@ def test_is_prerelease(version, expected):
     assert slack_announcement.is_prerelease(version) is expected
 
 
+def _section_texts(blocks):
+    return [
+        block["text"]["text"]
+        for block in blocks
+        if block["type"] in ("header", "section")
+    ]
+
+
+def _button_urls(blocks):
+    return [
+        element["url"]
+        for block in blocks
+        if block["type"] == "actions"
+        for element in block["elements"]
+    ]
+
+
 def test_build_blocks_final_release():
     blocks, fallback = slack_announcement.build_blocks("13.2.0", summary=SAMPLE_SUMMARY)
-    texts = [block["text"]["text"] for block in blocks if block["type"] != "divider"]
+    texts = _section_texts(blocks)
     joined = "\n".join(texts)
 
     assert "PsyNet 13.2.0 is out" in texts[0]
@@ -36,26 +53,47 @@ def test_build_blocks_final_release():
     assert "{version}" not in joined
     assert "release candidate" not in joined.lower()
 
+    urls = _button_urls(blocks)
+    assert "https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0" in urls
+    assert "https://pypi.org/project/psynet/13.2.0/" in urls
+    assert "https://psynetdev.gitlab.io/PsyNet/v13.2.0/" in urls
+
 
 def test_build_blocks_release_candidate():
     blocks, _ = slack_announcement.build_blocks("13.2.0rc1", summary=SAMPLE_SUMMARY)
-    texts = [block["text"]["text"] for block in blocks if block["type"] != "divider"]
+    texts = _section_texts(blocks)
     joined = "\n".join(texts)
 
     assert "Release Candidate" in texts[0]
     assert "pip install psynet==13.2.0rc1" in joined
-    assert "/rc/v13.2.0rc1/" in joined
+
+    urls = _button_urls(blocks)
+    assert "https://psynetdev.gitlab.io/PsyNet/rc/v13.2.0rc1/" in urls
     # RCs are tag-only on GitLab; release notes link to the CHANGELOG at the tag.
-    assert "/-/blob/v13.2.0rc1/CHANGELOG.md" in joined
+    assert "https://gitlab.com/PsyNetDev/PsyNet/-/blob/v13.2.0rc1/CHANGELOG.md" in urls
 
 
 def test_build_blocks_without_summary_omits_highlights():
     blocks, _ = slack_announcement.build_blocks("13.2.0")
-    joined = "\n".join(
-        block["text"]["text"] for block in blocks if block["type"] != "divider"
-    )
+    joined = "\n".join(_section_texts(blocks))
     assert "key changes relevant for experimenters" not in joined
     assert any(block["type"] == "header" for block in blocks)
+
+
+def test_build_blocks_decorates_category_headers():
+    blocks, _ = slack_announcement.build_blocks("13.2.0", summary=SAMPLE_SUMMARY)
+    joined = "\n".join(_section_texts(blocks))
+    assert ":sparkles: *Added*" in joined
+    assert ":lady_beetle: *Fixed*" in joined
+
+
+def test_build_blocks_includes_context_footer():
+    blocks, _ = slack_announcement.build_blocks("13.2.0", summary=SAMPLE_SUMMARY)
+    context_blocks = [block for block in blocks if block["type"] == "context"]
+    assert len(context_blocks) == 1
+    elements = context_blocks[0]["elements"]
+    assert elements[0]["type"] == "image"
+    assert "PsyNet 13.2.0" in elements[1]["text"]
 
 
 def test_announce_command_rejects_missing_summary_file(tmp_path):
