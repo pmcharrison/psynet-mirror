@@ -129,7 +129,21 @@ uv pip install -e <dallinger-root>
 uv pip install -e ".[dev,slack]"
 ```
 
-5. Pin the packages in `tests/manual_recruiter_testing/prolific/requirements.txt`
+5. Refresh the experiment template scripts from the installed PsyNet (which
+   matches the base after step 4) and commit the result, so the deployment
+   image is built with the base version's current templates (Dockerfile,
+   `docker/` helpers, `pytest.ini`, etc.):
+
+```bash
+cd <psynet-root>/tests/manual_recruiter_testing/prolific
+psynet update-scripts
+git add . && git commit -m "Refresh experiment scripts via psynet update-scripts"
+```
+
+   Review the diff before committing; template changes should be plausible for
+   the base version (e.g. pinned image tags matching the base tag).
+
+6. Pin the packages in `tests/manual_recruiter_testing/prolific/requirements.txt`
    to match the base:
 
    - **Release-tag deployment (default)**: pin PsyNet to the base tag and
@@ -148,7 +162,7 @@ uv pip install -e ".[dev,slack]"
    deployment branch (for auditability), and record the base tag (or master
    commit), the deployment-branch commit, and the Dallinger pin in the final
    report.
-6. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
+7. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
    `prolific_is_custom_screening` to `False`. Prolific no longer supports the
    older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
