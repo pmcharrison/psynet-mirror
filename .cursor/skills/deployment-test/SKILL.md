@@ -356,6 +356,26 @@ psynet export ssh --app <app-name> --server <ssh-host> --anonymize no \
 Like the logs ZIP, these exports contain participant identifiers and must not
 be committed; reference their paths in the Markdown analysis instead.
 
+### Post-completion checklist
+
+Work through all of these once `study_status == "COMPLETED"`:
+
+1. Download the full Dozzle logs ZIP again and re-run the log review,
+   comparing against the deployment-time scan.
+2. Export the database and data locally with `psynet export ssh`
+   (see above; `dev/tmp/deployment-tests/exports/<stem>/`).
+3. Save the raw Prolific study and submissions JSON locally
+   (see above; `prolific-study-and-submissions.json`).
+4. Write the Markdown log-analysis file, referencing the local artifact
+   paths, and commit it to the deployment branch.
+5. Offer to tear down the deployed app once the data is captured. Do not
+   destroy it without explicit user confirmation:
+
+```bash
+cd <psynet-root>/tests/manual_recruiter_testing/prolific
+psynet destroy ssh --server <ssh-host> --app <app-name>
+```
+
 This report should be more detailed than the chat summary. Include:
 
 - Deployment metadata: app name, experiment URL, dashboard URL, PsyNet commit,
