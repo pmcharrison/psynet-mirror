@@ -1,6 +1,6 @@
 ---
 name: debug-deployment-test-experiments
-description: Debug deployed PsyNet test experiments by logging into the PsyNet dashboard and Dozzle logs, inferring the app name from deployment URLs, finding matching containers, and summarizing deployment, web, worker, clock, and recruiter errors. Use when the user asks to debug a deployed PsyNet experiment, inspect Dozzle logs, inspect the PsyNet dashboard, or diagnose a test deployment app such as fh-test-deployment-1.
+description: Debug deployed PsyNet test experiments by logging into the PsyNet dashboard and Dozzle logs, inferring the app name from deployment URLs, finding matching containers, and summarizing deployment, web, worker, clock, and recruiter errors. Use when the user asks to debug a deployed PsyNet experiment, inspect Dozzle logs, inspect the PsyNet dashboard, or diagnose a test deployment app such as test-v13.3.0rc0-prolific-1.
 ---
 
 # Debug Deployment Test Experiments
@@ -9,7 +9,7 @@ Use this skill for deployed PsyNet test experiments when the user provides an ex
 
 ## Default URLs And Credentials
 
-- Experiment URL example: `https://fh-test-deployment-1.experiments1.cococo-lab.cornell.edu/`
+- Experiment URL example: `https://test-v13.3.0rc0-prolific-1.experiments1.cococo-lab.cornell.edu/`
 - Dashboard path: `/dashboard/`
 - Dozzle URL: `https://logs.experiments1.cococo-lab.cornell.edu/`
 
@@ -57,8 +57,10 @@ user before running any PsyNet or Python-related command.
 ## Deploy The Prolific Test From The Test Branch
 
 When asked to redeploy the Prolific manual recruiter test, deploy
-`tests/manual_recruiter_testing/prolific` from the dedicated PsyNet branch
-`test-deployments/prolific-manual-recruiter`.
+`tests/manual_recruiter_testing/prolific` from a **fresh deployment branch
+created for this deployment**. Do not reuse or rebase a long-lived deployment
+branch; each deployment gets its own branch so its exact code is preserved
+for later auditing.
 
 **Base the branch on the latest PsyNet release tag by default** (including
 release candidates, e.g. `v13.3.0rc0`), so the test exercises what users
@@ -67,30 +69,39 @@ a master-based deployment. Always fetch tags first and confirm the chosen
 base tag with the user if there is any ambiguity (e.g. an RC and a final tag
 for the same version).
 
+Name the branch after the base, e.g.
+`test-deployments/v13.3.0rc0-prolific`, appending `-2`, `-3`, ... for repeat
+deployments from the same base.
+
 Before deploying:
 
 1. Check both repositories for local changes. Do not discard or overwrite user
    work. If either checkout is dirty in a way that affects deployment, stop and
    ask the user how to proceed.
-2. Pick the base and rebase the deployment branch onto it. The branch carries
-   its own deployment commits, so this is a rebase (history rewrite) followed
-   by a force-push, not a fast-forward merge:
+2. Create the deployment branch from the base and import the experiment
+   configuration from the most recent previous deployment branch (the
+   `tests/manual_recruiter_testing/prolific` directory carries deployment
+   settings that are not on release tags or `master`):
 
 ```bash
 cd <psynet-root>
 git fetch origin master --tags
 BASE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the tag the user specifies
 echo "Base: $BASE_TAG"
-git switch test-deployments/prolific-manual-recruiter
-# Replay only the branch's own deployment commits onto the tag. Release tags
-# live on release branches, so a plain `git rebase $BASE_TAG` would wrongly
-# replay shared master history as well.
-git rebase --onto "$BASE_TAG" "$(git merge-base HEAD origin/master)"
+git switch -c test-deployments/$BASE_TAG-prolific "$BASE_TAG"
+git checkout <previous-deployment-branch> -- tests/manual_recruiter_testing/prolific
 ```
 
    For an explicitly requested master-based deployment, update local `master`
-   (`git switch master && git pull --ff-only origin master`) and use
-   `git rebase master` instead.
+   (`git switch master && git pull --ff-only origin master`) and branch from
+   `master` instead.
+
+   Verify the imported experiment configuration includes the standing
+   deployment settings:
+
+   - `experiment.py`: `prolific_is_custom_screening=False`,
+     `auto_recruit=True`, `initial_recruitment_size=12`.
+   - `config.txt`: `publish_experiment = true`.
 
 3. Match Dallinger to the PsyNet base. For a release-tag deployment, check out
    the Dallinger version that the PsyNet tag pins in its `pyproject.toml`
@@ -118,13 +129,25 @@ uv pip install -e <dallinger-root>
 uv pip install -e ".[dev,slack]"
 ```
 
-5. Ensure `tests/manual_recruiter_testing/prolific/requirements.txt` pins
-   PsyNet to the latest pushed commit on
-   `test-deployments/prolific-manual-recruiter`, not to the branch name.
-   PsyNet's deploy pre-check rejects branch-name requirements as ambiguous.
-   Push the branch before choosing the SHA (a force-push after the rebase),
-   then record the base tag (or master commit), the PsyNet branch/commit, and
-   the Dallinger commit in the final report.
+5. Pin the packages in `tests/manual_recruiter_testing/prolific/requirements.txt`
+   to match the base:
+
+   - **Release-tag deployment (default)**: pin PsyNet to the base tag and
+     Dallinger to its matching tag, e.g.
+
+     ```text
+     dallinger[docker] @ git+https://github.com/Dallinger/Dallinger.git@v12.2.1
+     psynet @ git+https://gitlab.com/PsyNetDev/PsyNet.git@v13.3.0rc0
+     ```
+
+   - **Master-based deployment**: pin both to the latest pushed `master`
+     commit hash. Never pin to a branch name; PsyNet's deploy pre-check
+     rejects branch-name requirements as ambiguous.
+
+   Commit the imported/updated experiment configuration and pins, push the
+   deployment branch (for auditability), and record the base tag (or master
+   commit), the deployment-branch commit, and the Dallinger pin in the final
+   report.
 6. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
    `prolific_is_custom_screening` to `False`. Prolific no longer supports the
    older custom-screening study creation flow; a launch payload with
@@ -141,8 +164,9 @@ psynet deploy ssh \
   --app <app-name>
 ```
 
-Use an app name that encodes the test condition, for example
-`fh-test-deployment-<n>`. After deployment, inspect the launch
+Name the app after the deployment branch: `test-<base-tag>-prolific`,
+appending `-2`, `-3`, ... for repeat deployments, e.g.
+`test-v13.3.0rc0-prolific-3`. After deployment, inspect the launch
 output for the experiment URL, dashboard URL, and Dozzle URL.
 
 ## Infer The App Name
@@ -150,8 +174,8 @@ output for the experiment URL, dashboard URL, and Dozzle URL.
 If the user gives an experiment URL, infer the app name from the first hostname segment:
 
 ```text
-https://fh-test-deployment-1.experiments1.cococo-lab.cornell.edu/
-app name = fh-test-deployment-1
+https://test-v13.3.0rc0-prolific-1.experiments1.cococo-lab.cornell.edu/
+app name = test-v13.3.0rc0-prolific-1
 ```
 
 Use the app name to filter Dozzle containers and to identify related logs.
@@ -256,7 +280,7 @@ study-completion date/time in the filename so every deployment keeps its own
 audit record, for example:
 
 ```text
-dev/deployment-log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-log-analysis.md
+dev/deployment-tests/log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-log-analysis.md
 ```
 
 Keep the corresponding downloaded full Dozzle logs ZIP in local storage only,
@@ -264,7 +288,7 @@ with the same timestamp and app-name stem so it can be matched to the analysis,
 for example:
 
 ```text
-dev/tmp/deployment-log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-logs.zip
+dev/tmp/deployment-tests/log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-logs.zip
 ```
 
 Do not commit logs ZIPs or extracted raw logs to the branch; they bloat the git

@@ -170,3 +170,9 @@ dump.rdb
 # Local scratch space for downloaded deployment logs (see
 # .cursor/skills/debug-deployment-test-experiments/SKILL.md)
 dev/tmp/
+
+# Deployment log ZIPs and raw log files stay local; only Markdown analyses
+# are committed under dev/deployment-tests/log-analyses/.
+dev/deployment-tests/**
+!dev/deployment-tests/**/
+!dev/deployment-tests/**/*.md
