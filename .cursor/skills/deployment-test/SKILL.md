@@ -1,9 +1,9 @@
 ---
-name: debug-deployment-test-experiments
+name: deployment-test
 description: Debug deployed PsyNet test experiments by logging into the PsyNet dashboard and Dozzle logs, inferring the app name from deployment URLs, finding matching containers, and summarizing deployment, web, worker, clock, and recruiter errors. Use when the user asks to debug a deployed PsyNet experiment, inspect Dozzle logs, inspect the PsyNet dashboard, or diagnose a test deployment app such as test-v13.3.0rc0-prolific-1.
 ---
 
-# Debug Deployment Test Experiments
+# Deployment Test
 
 Use this skill for deployed PsyNet test experiments when the user provides an experiment URL, a Dozzle logs URL, an app name, deployment logs, or asks to inspect the dashboard/logs.
 
