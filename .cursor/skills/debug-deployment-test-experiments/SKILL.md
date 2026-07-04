@@ -58,36 +58,52 @@ user before running any PsyNet or Python-related command.
 
 When asked to redeploy the Prolific manual recruiter test, deploy
 `tests/manual_recruiter_testing/prolific` from the dedicated PsyNet branch
-`test-deployments/prolific-manual-recruiter`. Keep this branch based on the
-latest PsyNet `master`, and use the latest Dallinger `master`.
-Always start by updating both local `master` branches to their latest remote
-commits before preparing the deployment branch.
+`test-deployments/prolific-manual-recruiter`.
+
+**Base the branch on the latest PsyNet release tag by default** (including
+release candidates, e.g. `v13.3.0rc0`), so the test exercises what users
+actually install. Base it on `master` only when the user explicitly asks for
+a master-based deployment. Always fetch tags first and confirm the chosen
+base tag with the user if there is any ambiguity (e.g. an RC and a final tag
+for the same version).
 
 Before deploying:
 
 1. Check both repositories for local changes. Do not discard or overwrite user
    work. If either checkout is dirty in a way that affects deployment, stop and
    ask the user how to proceed.
-2. Update PsyNet `master`, then switch to the deployment branch and bring it up
-   to date with `master`:
+2. Pick the base and rebase the deployment branch onto it. The branch carries
+   its own deployment commits, so this is a rebase (history rewrite) followed
+   by a force-push, not a fast-forward merge:
 
 ```bash
 cd <psynet-root>
-git fetch origin master
-git switch master
-git pull --ff-only origin master
+git fetch origin master --tags
+BASE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the tag the user specifies
+echo "Base: $BASE_TAG"
 git switch test-deployments/prolific-manual-recruiter
-git merge --ff-only master
-PSYNET_SHA=$(git rev-parse HEAD)
+# Replay only the branch's own deployment commits onto the tag. Release tags
+# live on release branches, so a plain `git rebase $BASE_TAG` would wrongly
+# replay shared master history as well.
+git rebase --onto "$BASE_TAG" "$(git merge-base HEAD origin/master)"
 ```
 
-3. Update Dallinger to latest `master`:
+   For an explicitly requested master-based deployment, update local `master`
+   (`git switch master && git pull --ff-only origin master`) and use
+   `git rebase master` instead.
+
+3. Match Dallinger to the PsyNet base. For a release-tag deployment, check out
+   the Dallinger version that the PsyNet tag pins in its `pyproject.toml`
+   (e.g. the `vX.Y.Z` Dallinger tag satisfying the pin). For a master-based
+   deployment, use the latest Dallinger `master`:
 
 ```bash
 cd <dallinger-root>
-git fetch origin master
-git switch master
-git pull --ff-only origin master
+git fetch origin master --tags
+# Release-tag deployment:
+git checkout <dallinger-tag-matching-psynet-pin>
+# Master-based deployment:
+# git switch master && git pull --ff-only origin master
 DALLINGER_SHA=$(git rev-parse HEAD)
 ```
 
@@ -106,8 +122,9 @@ uv pip install -e ".[dev,slack]"
    PsyNet to the latest pushed commit on
    `test-deployments/prolific-manual-recruiter`, not to the branch name.
    PsyNet's deploy pre-check rejects branch-name requirements as ambiguous.
-   Push the branch before choosing the SHA, then record the PsyNet branch/commit
-   and Dallinger commit in the final report.
+   Push the branch before choosing the SHA (a force-push after the rebase),
+   then record the base tag (or master commit), the PsyNet branch/commit, and
+   the Dallinger commit in the final report.
 6. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
    `prolific_is_custom_screening` to `False`. Prolific no longer supports the
    older custom-screening study creation flow; a launch payload with
