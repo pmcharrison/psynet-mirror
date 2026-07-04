@@ -1,9 +1,9 @@
 ---
-name: debug-deployment-test-experiments
+name: deployment-test
 description: Debug deployed PsyNet test experiments by logging into the PsyNet dashboard and Dozzle logs, inferring the app name from deployment URLs, finding matching containers, and summarizing deployment, web, worker, clock, and recruiter errors. Use when the user asks to debug a deployed PsyNet experiment, inspect Dozzle logs, inspect the PsyNet dashboard, or diagnose a test deployment app such as test-v13.3.0rc0-prolific-1.
 ---
 
-# Debug Deployment Test Experiments
+# Deployment Test
 
 Use this skill for deployed PsyNet test experiments when the user provides an experiment URL, a Dozzle logs URL, an app name, deployment logs, or asks to inspect the dashboard/logs.
 
@@ -79,9 +79,10 @@ Before deploying:
    work. If either checkout is dirty in a way that affects deployment, stop and
    ask the user how to proceed.
 2. Create the deployment branch from the base and import the experiment
-   configuration from the most recent previous deployment branch (the
+   configuration from the most recent previous deployment branch, or from
+   `master` if it is newer or no previous deployment branch exists (the
    `tests/manual_recruiter_testing/prolific` directory carries deployment
-   settings that are not on release tags or `master`):
+   settings that are typically not on release tags):
 
 ```bash
 cd <psynet-root>
