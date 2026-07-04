@@ -181,11 +181,15 @@ def build_blocks(version: str, summary: str | None = None) -> tuple[list[dict], 
 
     if summary:
         blocks.append({"type": "divider"})
-        summary_text = (
-            f"{guidance.experimenter_summary_intro}\n\n"
-            f"{_decorate_category_headers(summary.strip())}"
-        )
-        blocks.extend(_mrkdwn_block(chunk) for chunk in _split_mrkdwn(summary_text))
+        blocks.append(_mrkdwn_block(guidance.experimenter_summary_intro))
+        # One section block per category: Slack adds vertical padding
+        # between blocks, which keeps the categories visually separated.
+        for category_text in _split_categories(
+            _decorate_category_headers(summary.strip())
+        ):
+            blocks.extend(
+                _mrkdwn_block(chunk) for chunk in _split_mrkdwn(category_text)
+            )
 
     blocks.append({"type": "divider"})
     if install:
@@ -210,17 +214,43 @@ CATEGORY_EMOJI = {
 
 
 def _decorate_category_headers(summary: str) -> str:
-    """Prefix known ``*Category*`` header lines with their emoji marker."""
-    lines = []
+    """Prefix known ``*Category*`` header lines with their emoji marker.
+
+    Also inserts a blank line before every category header (except when it
+    opens the summary), so the sections stay visually separated even when
+    the author wrote them back to back.
+    """
+    lines: list[str] = []
     for line in summary.split("\n"):
         stripped = line.strip()
         if stripped.startswith("*") and stripped.endswith("*"):
             category = stripped.strip("*")
             emoji = CATEGORY_EMOJI.get(category)
             if emoji:
+                if lines and lines[-1].strip():
+                    lines.append("")
                 line = f"{emoji} {stripped}"
         lines.append(line)
     return "\n".join(lines)
+
+
+def _split_categories(summary: str) -> list[str]:
+    """Split the decorated summary into one text chunk per category section.
+
+    A new chunk starts at each emoji-decorated ``*Category*`` header line;
+    any text before the first header stays in its own leading chunk.
+    """
+    emoji_prefixes = tuple(CATEGORY_EMOJI.values())
+    chunks: list[list[str]] = []
+    current: list[str] = []
+    for line in summary.split("\n"):
+        if line.strip().startswith(emoji_prefixes) and current:
+            chunks.append(current)
+            current = []
+        current.append(line)
+    if current:
+        chunks.append(current)
+    return ["\n".join(chunk).strip() for chunk in chunks if "\n".join(chunk).strip()]
 
 
 def _footer_text(version: str) -> str:

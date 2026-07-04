@@ -87,6 +87,28 @@ def test_build_blocks_decorates_category_headers():
     assert ":lady_beetle: *Fixed*" in joined
 
 
+def test_build_blocks_puts_each_category_in_its_own_section():
+    blocks, _ = slack_announcement.build_blocks("13.2.0", summary=SAMPLE_SUMMARY)
+    category_sections = [
+        text
+        for text in _section_texts(blocks)
+        if text.startswith((":sparkles:", ":lady_beetle:"))
+    ]
+    assert len(category_sections) == 2
+    assert category_sections[0].startswith(":sparkles: *Added*")
+    assert category_sections[1].startswith(":lady_beetle: *Fixed*")
+
+
+def test_split_categories_separates_back_to_back_headers():
+    summary = "*Added*\n• one\n*Fixed*\n• two"
+    decorated = slack_announcement._decorate_category_headers(summary)
+    chunks = slack_announcement._split_categories(decorated)
+    assert chunks == [
+        ":sparkles: *Added*\n• one",
+        ":lady_beetle: *Fixed*\n• two",
+    ]
+
+
 def test_build_blocks_includes_context_footer():
     blocks, _ = slack_announcement.build_blocks("13.2.0", summary=SAMPLE_SUMMARY)
     context_blocks = [block for block in blocks if block["type"] == "context"]
