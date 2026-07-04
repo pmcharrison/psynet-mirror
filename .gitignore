@@ -171,8 +171,11 @@ dump.rdb
 # .cursor/skills/deployment-test/SKILL.md)
 dev/tmp/
 
-# Deployment log ZIPs and raw log files stay local; only Markdown analyses
-# are committed under dev/deployment-tests/log-analyses/.
+# Deployment-test artifacts: each deployment gets a folder
+# dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/ containing a tracked
+# analysis.md and a local/ subfolder (logs, database export, Prolific data)
+# that stays local because it contains participant identifiers.
 dev/deployment-tests/**
 !dev/deployment-tests/**/
 !dev/deployment-tests/**/*.md
+dev/deployment-tests/*/local/**

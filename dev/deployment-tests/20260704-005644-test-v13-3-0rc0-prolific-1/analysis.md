@@ -48,17 +48,15 @@ bulk-bonus API (`bulk-bonus-payments/.../pay/` calls visible in worker log).
 
 ## Log findings by container
 
-Full downloaded logs (local only, not committed):
-`dev/tmp/deployment-tests/log-analyses/20260704-005644-test-v13-3-0rc0-prolific-1-logs.zip`
-(extracted alongside; one file per container, timestamped `2026-07-04T04-56-45`).
+All raw artifacts live in this deployment's `local/` subfolder (gitignored,
+never committed, contains participant identifiers):
 
-Additional local-only artifacts for later inspection (not committed):
-
-- Database/data export (`psynet export ssh`, non-anonymized): database dump,
-  per-table CSVs, and deployed source code under
-  `dev/tmp/deployment-tests/exports/20260704-005644-test-v13-3-0rc0-prolific-1/`.
-- Raw Prolific study object and all 16 submissions:
-  `dev/tmp/deployment-tests/exports/20260704-005644-test-v13-3-0rc0-prolific-1/prolific-study-and-submissions.json`.
+- `local/logs.zip` and `local/logs/`: full Dozzle logs, one file per
+  container, timestamped `2026-07-04T04-56-45`.
+- `local/export/`: database/data export (`psynet export ssh`, non-anonymized)
+  with database dump, per-table CSVs, and deployed source code.
+- `local/prolific-study-and-submissions.json`: raw Prolific study object and
+  all 16 submissions.
 
 - **web** (~1.4 MB): no tracebacks, no 500s, no errors. Launch at
   04:16:09 UTC ("Experiment launch complete!"). Normal request traffic
