@@ -1,6 +1,12 @@
 Timeline
 ########
 
+==============
+AsyncCodeBlock
+==============
+
+.. autoclass:: psynet.timeline.AsyncCodeBlock
+
 =========
 CodeBlock
 =========
