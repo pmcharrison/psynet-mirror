@@ -1,0 +1,1 @@
+Debug-deployment skill: test deployments now use a fresh branch per deployment based on the latest release tag, refresh experiment scripts via `psynet update-scripts`, and keep log ZIPs and raw logs out of git.
