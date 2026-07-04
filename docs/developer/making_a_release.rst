@@ -41,15 +41,18 @@ Overview
 
 3. Publish: tag ``vX.Y.Z`` on the release branch, wait for CI, build and
    upload to PyPI, create the GitLab release, and announce on Slack with
-   ``psynet dev release announce X.Y.Z`` (preview first with ``--dry-run``).
-   Posting to Slack requires ``SLACK_BOT_TOKEN`` in the process environment;
+   ``psynet dev release announce X.Y.Z --summary-file highlights.md``
+   (preview first with ``--dry-run``). The summary file contains the
+   hand-written, experimenter-facing highlights in Slack mrkdwn; see the
+   release skill for writing guidance. Posting to Slack requires
+   ``SLACK_BOT_TOKEN`` in the process environment;
    see ``.cursor/skills/announce-release/SKILL.md`` for setup, token-loading,
    and test-channel instructions. For a one-off test-channel preview, either
    pass the token inline:
-   ``SLACK_BOT_TOKEN=<slack-bot-token> psynet dev release announce X.Y.Z --channel psynet-release-test --dry-run``.
+   ``SLACK_BOT_TOKEN=<slack-bot-token> psynet dev release announce X.Y.Z --summary-file highlights.md --channel psynet-release-test --dry-run``.
    Or export it first:
    ``export SLACK_BOT_TOKEN=<slack-bot-token>`` followed by
-   ``psynet dev release announce X.Y.Z --channel psynet-release-test --dry-run``.
+   ``psynet dev release announce X.Y.Z --summary-file highlights.md --channel psynet-release-test --dry-run``.
 
 4. For minor releases, merge the release branch back into ``master`` (merge
    commit, no squash) and bump ``master`` to the next alpha version.
