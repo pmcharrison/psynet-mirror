@@ -200,7 +200,7 @@ def release():
     type=click.Path(exists=True, dir_okay=False),
     default=None,
     help=(
-        "Path to a hand-written experimenter-facing summary in Slack mrkdwn "
+        "Path to the experimenter-facing summary in Slack mrkdwn "
         "(e.g. *Category* headers with bullet entries). Written by the "
         "release manager from the release's CHANGELOG section; see the "
         "release skill for curation guidance."

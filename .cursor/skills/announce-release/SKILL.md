@@ -11,7 +11,8 @@ channel. RC vs final flavour is auto-detected from the version string
 
 The command composes only the message envelope (title, RC notice,
 upgrade instructions, links); the experimenter-facing changes summary
-is written by hand and passed via `--summary-file` (see the
+is written by the release manager (usually with AI assistance)
+and passed via `--summary-file` (see the
 **Announce the release on Slack** step in the `release` skill for the
 writing guidance). The envelope wording is configured in
 `psynet/dev/slack_announcement.md`.

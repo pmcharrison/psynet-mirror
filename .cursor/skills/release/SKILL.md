@@ -374,7 +374,7 @@ looks like:
 Upgrade with `pip install --upgrade psynet`.
 ```
 
-If you would rather post by hand, copy the dry-run output verbatim
+If you would rather post manually, copy the dry-run output verbatim
 into a message in `#psynet-support`.
 
 ## Minor release path

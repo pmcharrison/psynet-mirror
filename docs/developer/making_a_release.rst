@@ -43,7 +43,7 @@ Overview
    upload to PyPI, create the GitLab release, and announce on Slack with
    ``psynet dev release announce X.Y.Z --summary-file highlights.md``
    (preview first with ``--dry-run``). The summary file contains the
-   hand-written, experimenter-facing highlights in Slack mrkdwn; see the
+   release manager's experimenter-facing highlights in Slack mrkdwn; see the
    release skill for writing guidance. Posting to Slack requires
    ``SLACK_BOT_TOKEN`` in the process environment;
    see ``.cursor/skills/announce-release/SKILL.md`` for setup, token-loading,

@@ -6,8 +6,8 @@ links), Slack Block Kit assembly (including splitting text across section
 blocks to respect Slack's length limits), dry-run previews, and the actual
 posting. The *editorial* side — the experimenter-facing summary of changes —
 is deliberately not generated here: the release manager (usually assisted by
-an AI agent following the repo's release skill) writes the summary by hand
-from the release's CHANGELOG section and passes it in via ``--summary-file``.
+an AI agent following the repo's release skill) writes the summary from the
+release's CHANGELOG section and passes it in via ``--summary-file``.
 Earlier versions selected changelog entries with keyword patterns, which
 proved too brittle in both directions (missed recruiter changes, included
 maintainer tooling).
@@ -124,7 +124,7 @@ def _markdown_section(markdown: str, heading: str) -> str:
 def build_blocks(version: str, summary: str | None = None) -> tuple[list[dict], str]:
     """Return (blocks, fallback_text) for a Slack message.
 
-    *summary* is the hand-written, experimenter-facing highlights text in
+    *summary* is the release manager's experimenter-facing highlights text in
     Slack mrkdwn (typically ``*Category*`` headers with ``•`` bullets). When
     omitted, the announcement carries only the envelope (title, notice,
     upgrade instructions, links).
@@ -197,7 +197,7 @@ def build_blocks(version: str, summary: str | None = None) -> tuple[list[dict], 
     return blocks, fallback
 
 
-# Emoji markers prepended to the hand-written summary's category headers so
+# Emoji markers prepended to the summary's category headers so
 # authors don't have to remember them.
 CATEGORY_EMOJI = {
     "Breaking": ":rotating_light:",
