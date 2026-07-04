@@ -79,9 +79,10 @@ Before deploying:
    work. If either checkout is dirty in a way that affects deployment, stop and
    ask the user how to proceed.
 2. Create the deployment branch from the base and import the experiment
-   configuration from the most recent previous deployment branch (the
+   configuration from the most recent previous deployment branch, or from
+   `master` if it is newer or no previous deployment branch exists (the
    `tests/manual_recruiter_testing/prolific` directory carries deployment
-   settings that are not on release tags or `master`):
+   settings that are typically not on release tags):
 
 ```bash
 cd <psynet-root>
