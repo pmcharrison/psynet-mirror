@@ -99,11 +99,9 @@ def test_build_blocks_puts_each_category_in_its_own_section():
     assert category_sections[1].startswith(":lady_beetle: *Fixed*")
 
 
-def test_split_categories_separates_back_to_back_headers():
+def test_summary_sections_split_and_decorate_headers():
     summary = "*Added*\n• one\n*Fixed*\n• two"
-    decorated = slack_announcement._decorate_category_headers(summary)
-    chunks = slack_announcement._split_categories(decorated)
-    assert chunks == [
+    assert slack_announcement._summary_sections(summary) == [
         ":sparkles: *Added*\n• one",
         ":lady_beetle: *Fixed*\n• two",
     ]
