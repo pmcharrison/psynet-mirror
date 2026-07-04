@@ -426,7 +426,8 @@ dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/logs.zip
 dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/logs/
 ```
 
-For intermediate scans during the run, a scratch path under `dev/tmp/` is fine.
+For throwaway intermediate scans during the run, use a system temp path (e.g.
+`/tmp/dozzle-<app-name>/`) so nothing transient lands in the repository.
 
 ### Dozzle API shortcut
 
