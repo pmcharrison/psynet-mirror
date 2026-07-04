@@ -308,66 +308,57 @@ Dozzle log download and review described below. Compare these logs against the
 initial deployment-time scan and call out errors that only appeared after
 completion.
 
-After the study status is `COMPLETED`, write a detailed Markdown log-analysis
-file in a tracked directory on the deployment branch. Use the app name and the
-study-completion date/time in the filename so every deployment keeps its own
-audit record, for example:
+After the study status is `COMPLETED`, record the deployment's audit trail in
+a per-deployment folder on the deployment branch. Each deployment gets one
+folder named after the study-completion date/time and app name, containing a
+tracked `analysis.md` and a gitignored `local/` subfolder for all raw
+artifacts:
 
 ```text
-dev/deployment-tests/log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-log-analysis.md
+dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/
+  analysis.md                            # tracked: the Markdown analysis
+  local/                                 # gitignored: raw data, never committed
+    logs.zip                             # full Dozzle logs download
+    logs/                                # extracted per-container logs
+    export/                              # psynet export output
+    prolific-study-and-submissions.json  # raw Prolific data
 ```
 
-Keep the corresponding downloaded full Dozzle logs ZIP in local storage only,
-with the same timestamp and app-name stem so it can be matched to the analysis,
-for example:
+Only `analysis.md` is committed. Everything in `local/` contains participant
+identifiers and/or bloats git history, and `.gitignore` blocks it from being
+tracked. Use local time for the timestamp unless the user requests UTC.
 
-```text
-dev/tmp/deployment-tests/log-analyses/<YYYYMMDD-HHMMSS>-<app-name>-logs.zip
-```
+Collect the `local/` artifacts as follows:
 
-Do not commit logs ZIPs or extracted raw logs to the branch; they bloat the git
-history. Only the Markdown analysis is added to the branch for each deployment.
-
-Use local time for the timestamp unless the user requests UTC. Do not leave the
-analysis only under `dev/tmp`; `dev/tmp` is for downloaded ZIPs and extracted
-logs.
-
-Also keep a local (uncommitted) copy of the experiment data and the raw
-Prolific data for later inspection, using the same timestamp and app-name stem:
-
-1. **Database/data export**: run `psynet export ssh` from the experiment
-   directory into the local scratch space:
+1. **Full Dozzle logs**: save the downloaded ZIP as `local/logs.zip` and
+   extract it to `local/logs/` (see the Dozzle section below).
+2. **Database/data export**: run `psynet export ssh` from the experiment
+   directory into `local/export/`:
 
 ```bash
 cd <psynet-root>/tests/manual_recruiter_testing/prolific
 psynet export ssh --app <app-name> --server <ssh-host> --anonymize no \
-  --path <psynet-root>/dev/tmp/deployment-tests/exports/<YYYYMMDD-HHMMSS>-<app-name>
+  --path <psynet-root>/dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/export
 ```
 
    This saves the database dump (`regular/database.zip`), per-table CSVs
    (`regular/data/`), and the deployed source code (`source_code.zip`).
 
-2. **Raw Prolific data**: save the full study object and all submissions as
-   JSON next to the export (run the `prolific_service_from_config()` snippet
-   above with `print(json.dumps({'study': study, 'submissions': submissions}, ...))`
-   and redirect to
-   `dev/tmp/deployment-tests/exports/<YYYYMMDD-HHMMSS>-<app-name>/prolific-study-and-submissions.json`).
-
-Like the logs ZIP, these exports contain participant identifiers and must not
-be committed; reference their paths in the Markdown analysis instead.
+3. **Raw Prolific data**: save the full study object and all submissions as
+   JSON (run the `prolific_service_from_config()` snippet above with
+   `print(json.dumps({'study': study, 'submissions': submissions}, ...))`
+   and redirect to `local/prolific-study-and-submissions.json`).
 
 ### Post-completion checklist
 
 Work through all of these once `study_status == "COMPLETED"`:
 
 1. Download the full Dozzle logs ZIP again and re-run the log review,
-   comparing against the deployment-time scan.
-2. Export the database and data locally with `psynet export ssh`
-   (see above; `dev/tmp/deployment-tests/exports/<stem>/`).
-3. Save the raw Prolific study and submissions JSON locally
-   (see above; `prolific-study-and-submissions.json`).
-4. Write the Markdown log-analysis file, referencing the local artifact
-   paths, and commit it to the deployment branch.
+   comparing against the deployment-time scan; store it in `local/`.
+2. Export the database and data with `psynet export ssh` into `local/export/`.
+3. Save the raw Prolific study and submissions JSON into `local/`.
+4. Write `analysis.md`, referencing the `local/` artifacts, and commit it to
+   the deployment branch.
 5. Offer to tear down the deployed app once the data is captured. Do not
    destroy it without explicit user confirmation:
 
@@ -412,12 +403,14 @@ Array.from(document.querySelectorAll("a"))
   .filter((a) => a.href.includes("/download"));
 ```
 
-If direct `curl -u <dozzle-username>:<dozzle-password>` returns `401`, fetch the ZIP through the authenticated browser session instead; Dozzle uses the browser login session. The download is a ZIP containing one log file per container. Save it under a temporary workspace path such as:
+If direct `curl -u <dozzle-username>:<dozzle-password>` returns `401`, fetch the ZIP through the authenticated browser session instead; Dozzle uses the browser login session. The download is a ZIP containing one log file per container. For post-completion downloads, save it in the deployment folder's `local/` subfolder:
 
 ```text
-dev/tmp/dozzle-<app-name>/logs.zip
-dev/tmp/dozzle-<app-name>/extracted/
+dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/logs.zip
+dev/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/logs/
 ```
+
+For intermediate scans during the run, a scratch path under `dev/tmp/` is fine.
 
 ### Dozzle API shortcut
 
