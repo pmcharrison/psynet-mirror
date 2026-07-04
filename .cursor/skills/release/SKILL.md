@@ -329,6 +329,10 @@ file, e.g. `/tmp/release-highlights-X.Y.Z.md`:
     the relevant documentation section. For release candidates, use
     the RC docs site (`https://psynetdev.gitlab.io/PsyNet/rc/vX.Y.ZrcN/...`)
     so links show the new behavior.
+  - Link mentioned classes/APIs to their API reference anchor when one
+    exists (e.g. `api/sync.html#psynet.sync.SyncGroup`); check the
+    defining module against `docs/api/` and confirm the anchor is
+    present on the rendered page before linking.
   - Link new or moved demos to their directory in the repo at the tag
     (`https://gitlab.com/PsyNetDev/PsyNet/-/tree/vX.Y.Z/demos/...`),
     and also to the demo's docs page when one exists (check
