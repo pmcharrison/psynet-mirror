@@ -264,7 +264,13 @@ visible PsyNet participant rows are terminal. The study as a whole must be in
 state `COMPLETED`, not `ACTIVE`.
 
 Use the study id from the deployment output, Prolific study URL, or participant
-`hit_id`, then query Prolific like this:
+`hit_id`. If you need to read the `hit_id` from the database inside the
+container, use raw SQL (e.g.
+`SELECT DISTINCT hit_id FROM participant WHERE hit_id IS NOT NULL`) rather
+than the Dallinger ORM: querying `Participant` via the ORM from a plain
+container Python shell fails with
+`No such polymorphic_identity 'psynet.participant.Participant'` because the
+PsyNet models are not imported in that context. Then query Prolific like this:
 
 ```bash
 ssh -i <ssh-key> <ssh-user>@<ssh-host> \
