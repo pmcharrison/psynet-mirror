@@ -332,6 +332,30 @@ Use local time for the timestamp unless the user requests UTC. Do not leave the
 analysis only under `dev/tmp`; `dev/tmp` is for downloaded ZIPs and extracted
 logs.
 
+Also keep a local (uncommitted) copy of the experiment data and the raw
+Prolific data for later inspection, using the same timestamp and app-name stem:
+
+1. **Database/data export**: run `psynet export ssh` from the experiment
+   directory into the local scratch space:
+
+```bash
+cd <psynet-root>/tests/manual_recruiter_testing/prolific
+psynet export ssh --app <app-name> --server <ssh-host> --anonymize no \
+  --path <psynet-root>/dev/tmp/deployment-tests/exports/<YYYYMMDD-HHMMSS>-<app-name>
+```
+
+   This saves the database dump (`regular/database.zip`), per-table CSVs
+   (`regular/data/`), and the deployed source code (`source_code.zip`).
+
+2. **Raw Prolific data**: save the full study object and all submissions as
+   JSON next to the export (run the `prolific_service_from_config()` snippet
+   above with `print(json.dumps({'study': study, 'submissions': submissions}, ...))`
+   and redirect to
+   `dev/tmp/deployment-tests/exports/<YYYYMMDD-HHMMSS>-<app-name>/prolific-study-and-submissions.json`).
+
+Like the logs ZIP, these exports contain participant identifiers and must not
+be committed; reference their paths in the Markdown analysis instead.
+
 This report should be more detailed than the chat summary. Include:
 
 - Deployment metadata: app name, experiment URL, dashboard URL, PsyNet commit,
