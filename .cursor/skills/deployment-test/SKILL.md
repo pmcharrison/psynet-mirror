@@ -328,6 +328,22 @@ Only `analysis.md` is committed. Everything in `local/` contains participant
 identifiers and/or bloats git history, and `.gitignore` blocks it from being
 tracked. Use local time for the timestamp unless the user requests UTC.
 
+**Never commit sensitive data in `analysis.md` itself.** The analysis is
+tracked and pushed, so before committing it, check that it contains none of:
+
+- Prolific worker/participant IDs (`worker_id` / `PROLIFIC_PID` values) or any
+  other platform account identifiers.
+- Participant personal data: names, demographics, free-text responses, or
+  quoted answer content.
+- Credentials, API tokens, or secret config values (including anything the
+  user supplied for dashboard/Dozzle/SSH login).
+
+Referring to participants by their PsyNet row id (`participant 16`) and to
+submissions by Prolific submission/assignment id is fine; those are needed for
+cross-referencing and are not personal identifiers. When log excerpts are
+quoted, strip any worker IDs they contain. If in doubt, describe the evidence
+and point to the `local/` artifact instead of quoting it.
+
 Collect the `local/` artifacts as follows:
 
 1. **Full Dozzle logs**: save the downloaded ZIP as `local/logs.zip` and
@@ -357,8 +373,8 @@ Work through all of these once `study_status == "COMPLETED"`:
    comparing against the deployment-time scan; store it in `local/`.
 2. Export the database and data with `psynet export ssh` into `local/export/`.
 3. Save the raw Prolific study and submissions JSON into `local/`.
-4. Write `analysis.md`, referencing the `local/` artifacts, and commit it to
-   the deployment branch.
+4. Write `analysis.md`, referencing the `local/` artifacts, verify it contains
+   no sensitive data (see above), and commit it to the deployment branch.
 5. Offer to tear down the deployed app once the data is captured. Do not
    destroy it without explicit user confirmation:
 
