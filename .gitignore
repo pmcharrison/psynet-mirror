@@ -167,6 +167,11 @@ dump.rdb
 .asv-sync.conf.json
 .asv-local.conf.json
 
-# Local scratch space for downloaded deployment logs (see
-# .cursor/skills/debug-deployment-test-experiments/SKILL.md)
-dev/tmp/
+# Deployment-test artifacts: each deployment gets a folder
+# deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/ containing a tracked
+# analysis.md and a local/ subfolder (logs, database export, Prolific data)
+# that stays local because it contains participant identifiers.
+deployment-tests/**
+!deployment-tests/**/
+!deployment-tests/**/*.md
+deployment-tests/*/local/**
