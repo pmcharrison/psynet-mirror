@@ -41,15 +41,18 @@ Overview
 
 3. Publish: tag ``vX.Y.Z`` on the release branch, wait for CI, build and
    upload to PyPI, create the GitLab release, and announce on Slack with
-   ``psynet dev release announce X.Y.Z`` (preview first with ``--dry-run``).
-   Posting to Slack requires ``SLACK_BOT_TOKEN`` in the process environment;
+   ``psynet dev release announce X.Y.Z --summary-file highlights.md``
+   (preview first with ``--dry-run``). The summary file contains the
+   release manager's experimenter-facing highlights in Slack mrkdwn; see the
+   release skill for writing guidance. Posting to Slack requires
+   ``SLACK_BOT_TOKEN`` in the process environment;
    see ``.cursor/skills/announce-release/SKILL.md`` for setup, token-loading,
    and test-channel instructions. For a one-off test-channel preview, either
    pass the token inline:
-   ``SLACK_BOT_TOKEN=<slack-bot-token> psynet dev release announce X.Y.Z --channel psynet-release-test --dry-run``.
+   ``SLACK_BOT_TOKEN=<slack-bot-token> psynet dev release announce X.Y.Z --summary-file highlights.md --channel psynet-release-test --dry-run``.
    Or export it first:
    ``export SLACK_BOT_TOKEN=<slack-bot-token>`` followed by
-   ``psynet dev release announce X.Y.Z --channel psynet-release-test --dry-run``.
+   ``psynet dev release announce X.Y.Z --summary-file highlights.md --channel psynet-release-test --dry-run``.
 
 4. For minor releases, merge the release branch back into ``master`` (merge
    commit, no squash) and bump ``master`` to the next alpha version.
@@ -58,9 +61,12 @@ Externally visible or irreversible steps (pushing tags, PyPI uploads, GitLab
 releases, Slack posts) require explicit approval from the human release
 manager; the skill marks each of these with a **Human checkpoint** callout.
 
-For releases that need wider testing before the final tag, the skill also
-documents an optional release-candidate flow (``X.Y.Zrc0``, ``rc1``, …)
-with PyPI pre-releases and GitLab pre-release entries.
+Minor releases go through a release-candidate flow (``X.Y.Zrc1``,
+``rc2``, …) by default before the final tag: RCs are tagged, uploaded to
+PyPI as pre-releases, and announced on Slack, but get no GitLab release
+entry (GitLab has no pre-release flag, so an RC entry would displace the
+"latest release" permalink). Skip the RC stage only when the release
+manager explicitly decides to release directly.
 
 .. attention::
 
