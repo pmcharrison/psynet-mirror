@@ -200,11 +200,19 @@ def test_demo_dirs():
         psynet_root.joinpath("tests/experiments/recruiters/lab_recruiter").__str__()
         in dirs
     )
+    assert (
+        psynet_root.joinpath("tests/manual_recruiter_testing/prolific").__str__()
+        in dirs
+    )
 
     dirs = list_experiment_dirs(for_ci_tests=True)
     assert psynet_root.joinpath("demos/experiments/mcmcp").__str__() in dirs
     assert (
         psynet_root.joinpath("tests/experiments/recruiters/lab_recruiter").__str__()
+        not in dirs
+    )
+    assert (
+        psynet_root.joinpath("tests/manual_recruiter_testing/prolific").__str__()
         not in dirs
     )
 
