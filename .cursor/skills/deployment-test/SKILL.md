@@ -69,6 +69,13 @@ a master-based deployment. Always fetch tags first and confirm the chosen
 base tag with the user if there is any ambiguity (e.g. an RC and a final tag
 for the same version).
 
+Deployment tests against an RC tag are the validation gate in the release
+process: the `release` skill (`.cursor/skills/release/SKILL.md`) requires a
+successful RC deployment test before the RC is promoted to the final
+release. For RC-based deployments, end `analysis.md` with an explicit
+verdict line — either recommending promotion to the final release or
+recommending another RC, naming the blocking findings.
+
 Name the branch after the base, e.g.
 `deployment-tests/v13.3.0rc0-prolific`, appending `-2`, `-3`, ... for repeat
 deployments from the same base. For a master-based deployment, name it
