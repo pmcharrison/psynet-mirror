@@ -71,7 +71,11 @@ for the same version).
 
 Name the branch after the base, e.g.
 `deployment-tests/v13.3.0rc0-prolific`, appending `-2`, `-3`, ... for repeat
-deployments from the same base.
+deployments from the same base. For a master-based deployment, name it
+after `master` plus the short commit hash it was cut from, e.g.
+`deployment-tests/master-8ece25f0-prolific`, so master-based test
+deployments are clearly distinguishable from release-tag ones and from
+each other.
 
 Before deploying:
 
@@ -194,8 +198,13 @@ Name the app after the deployment branch: `test-<base-tag>-prolific`,
 appending `-2`, `-3`, ... for repeat deployments. App names only allow
 `a-z`, `0-9`, and `-` (the deploy command rejects anything else), so
 replace the dots in the base tag with dashes, e.g. base tag `v13.3.0rc0`
-gives `test-v13-3-0rc0-prolific-1`. After deployment, inspect the launch
-output for the experiment URL, dashboard URL, and Dozzle URL.
+gives `test-v13-3-0rc0-prolific-1`. For a master-based deployment the
+same rule applied to the branch name gives e.g.
+`test-master-8ece25f0-prolific-1`. Because the per-deployment folder
+under `deployment-tests/` is named after the app, this also keeps
+master-based audit folders clearly separate from release-tag ones.
+After deployment, inspect the launch output for the experiment URL,
+dashboard URL, and Dozzle URL.
 
 ## Infer The App Name
 
