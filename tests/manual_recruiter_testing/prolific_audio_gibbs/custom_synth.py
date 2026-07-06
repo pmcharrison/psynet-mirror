@@ -1,6 +1,6 @@
-# Note: parselmouth must be installed with pip install praat-parselmouth
-# Note: synth_stimulus is the only function required by the Audio Gibbs Sampler;
-#       synth_batch is just here as relic from a previous implementation.
+# Note: parselmouth must be installed with pip install praat-parselmouth.
+# synth_stimulus is the entry point called by the Audio Gibbs sampler;
+# it delegates to synth_batch, which does the parselmouth/Praat synthesis.
 
 import os
 

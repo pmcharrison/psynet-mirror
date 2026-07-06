@@ -1,4 +1,11 @@
-# pylint: disable=unused-import,abstract-method,unused-argument,no-member
+"""Audio Gibbs sampler test experiment for Prolific deployment tests.
+
+Participants adjust a slider to make a synthesized word sound as
+"dominant" or "trustworthy" as possible. Compared to the sibling
+``prolific`` test experiment, this one additionally exercises on-the-fly
+audio synthesis (parselmouth), asset generation and storage, parallel
+async worker processes, and a headphone prescreen.
+"""
 
 import json
 from typing import List
@@ -6,7 +13,6 @@ from typing import List
 from markupsafe import Markup
 
 import psynet.experiment
-import psynet.media
 from psynet.asset import LocalStorage
 from psynet.bot import Bot
 from psynet.demography.general import ExperimentFeedback, HearingLoss
@@ -18,32 +24,27 @@ from psynet.trial.audio_gibbs import (
     AudioGibbsTrial,
     AudioGibbsTrialMaker,
 )
-from psynet.utils import get_logger
 
 from . import custom_synth
 from .customconsent import CustomMainConsent
 
-logger = get_logger()
-
-# Custom parameters, change these as you like!
 TARGETS = ["dominant", "trustworthy"]
 DIMENSIONS = 7
 RANGE = [-800, 800]
 GRANULARITY = 25
-SNAP_SLIDER = True
-AUTOPLAY = True
-DEBUG = False
-NUM_ITERATIONS_PER_CHAIN = (
-    2  # In a real experiment we'd make this something like DIMENSIONS * 2
-)
+# Kept deliberately small so a deployment test stays short and cheap.
+NUM_ITERATIONS_PER_CHAIN = 2
 CHAINS_PER_PARTICIPANT = len(TARGETS)
 NUM_TRIALS_PER_PARTICIPANT = NUM_ITERATIONS_PER_CHAIN * CHAINS_PER_PARTICIPANT
 
+INITIAL_RECRUITMENT_SIZE = 3
+TARGET_N_PARTICIPANTS = 5
+
 
 class CustomTrial(AudioGibbsTrial):
-    snap_slider = SNAP_SLIDER
-    autoplay = AUTOPLAY
-    debug = DEBUG
+    snap_slider = True
+    autoplay = True
+    debug = False
     minimal_time = 3.0
     time_estimate = 7.0
 
@@ -59,7 +60,8 @@ class CustomNode(AudioGibbsNode):
     vector_length = DIMENSIONS
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
-    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
+    # Parallelizes stimulus synthesis across async worker processes.
+    n_jobs = 8
 
     def synth_function(self, vector, output_path, chain_definition):
         custom_synth.synth_stimulus(vector, output_path, chain_definition)
@@ -81,22 +83,22 @@ class CustomTrialMaker(AudioGibbsTrialMaker):
 
 
 trial_maker = CustomTrialMaker(
-    id_="audio_gibbs_demo",
+    id_="audio_gibbs",
     trial_class=CustomTrial,
     node_class=CustomNode,
-    chain_type="within",  # can be "within" or "across"
+    chain_type="within",
     expected_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     max_nodes_per_chain=NUM_ITERATIONS_PER_CHAIN,
     start_nodes=lambda: [CustomNode(context={"target": target}) for target in TARGETS],
-    chains_per_experiment=None,  # set to None if chain_type="within"
+    chains_per_experiment=None,
     trials_per_node=1,
     balance_across_chains=True,
     check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="n_participants",
-    target_n_participants=10,
+    target_n_participants=TARGET_N_PARTICIPANTS,
     wait_for_networks=True,
     n_repeat_trials=1,
 )
@@ -111,21 +113,21 @@ def get_prolific_settings():
         "base_payment": 0.42,
         "prolific_estimated_completion_minutes": 3,
         "prolific_recruitment_config": qualification,
-        "auto_recruit": False,
+        # True so deployment tests exercise the programmatic top-up path
+        # (ProlificRecruiter.recruit); recruitment grows from
+        # INITIAL_RECRUITMENT_SIZE toward TARGET_N_PARTICIPANTS.
+        "auto_recruit": True,
         "currency": "£",
         "wage_per_hour": 10,
     }
 
 
-##########################################################################################
-# Experiment
-##########################################################################################
 class Exp(psynet.experiment.Experiment):
     label = "Audio game - play with sounds."
     asset_storage = LocalStorage()
     config = {
         **get_prolific_settings(),
-        "initial_recruitment_size": 5,
+        "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
         "force_incognito_mode": False,
         "title": "Sound game: play with sounds (Chrome browser, Headphones required ~3 min)",
         "description": "A short sound game. Requires a Chrome browser and headphones. The game lasts approximately 3 minutes.",
@@ -135,7 +137,7 @@ class Exp(psynet.experiment.Experiment):
     }
 
     timeline = Timeline(
-        CustomMainConsent(),  # since we have 0 wage per hour so we need to delete this.
+        CustomMainConsent(),
         HugginsHeadphoneTest(performance_threshold=0),
         trial_maker,
         HearingLoss(),
