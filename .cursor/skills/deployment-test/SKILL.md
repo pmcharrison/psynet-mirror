@@ -62,6 +62,16 @@ created for this deployment**. Do not reuse or rebase a long-lived deployment
 branch; each deployment gets its own branch so its exact code is preserved
 for later auditing.
 
+A second test experiment lives at
+`tests/manual_recruiter_testing/prolific_audio_gibbs`: an audio Gibbs
+sampler experiment that additionally exercises audio synthesis
+(parselmouth), asset generation/storage, async worker processes, and a
+headphone prescreen. Deploy it the same way when asked, using the same
+conventions with an `-audio-gibbs` suffix in place of `-prolific` in the
+deployment branch and app names (e.g.
+`deployment-tests/v13.3.0rc1-audio-gibbs`,
+`test-v13-3-0rc1-audio-gibbs-1`).
+
 **Base the branch on the latest PsyNet release tag by default** (including
 release candidates, e.g. `v13.3.0rc0`), so the test exercises what users
 actually install. Base it on `master` only when the user explicitly asks for
