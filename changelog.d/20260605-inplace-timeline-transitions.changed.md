@@ -1,1 +1,1 @@
-Added feature-flagged in-place timeline transitions with a documented fragment-template contract, SPA template validation, CI coverage, and a migrated chatrooms demo.
+Made in-place timeline transitions the default, with a documented fragment-template contract, SPA template validation, default and legacy CI coverage, and migrated first-party demos.

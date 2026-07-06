@@ -53,6 +53,24 @@ class ColorSliderPage(ModularPage):
         not_selected_colors = [COLORS[i] for i in not_selected_idxs]
         not_selected_values = [starting_values[i] for i in not_selected_idxs]
         hidden_inputs = dict(zip(not_selected_colors, not_selected_values))
+        color_slider_css = """
+            .main-body {
+                background-color: white;
+                padding: 30px;
+            }
+            .color-box-container {
+                display: flex;
+                justify-content: center;
+            }
+            .color-box {
+                width: 200px;
+                height: 200px;
+                margin: 0;
+                border-style: solid;
+                border-color: black;
+                background-color: white;
+            }
+        """
         kwargs["template_arg"] = {
             "hidden_inputs": hidden_inputs,
         }
@@ -72,6 +90,8 @@ class ColorSliderPage(ModularPage):
                 },
             ),
             time_estimate=time_estimate,
+            css=[color_slider_css],
+            js_links=["/static/color-slider.js"],
         )
 
     def metadata(self, **kwargs):

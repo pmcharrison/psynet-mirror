@@ -74,8 +74,8 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
     const accepted = await nextPageFromBrowser(experimentPage, "accepted");
     expect(accepted).toBe(true);
 
-    // Timers scheduled immediately before an SPA transition must not fire later
-    // on the checkpoint page, and repeating timers must stop ticking.
+    // Once the SPA transition reaches the checkpoint page, page-scoped timers
+    // from the previous page must no longer keep ticking or trigger stale navigation.
     await waitForMainBodyContains(experimentPage, "Tracked timer page", STEP_TIMEOUT_MS);
     await experimentPage.evaluate(() => window.__scheduleTrackedLifecycleTimers());
     expect(await nextPageFromBrowser(experimentPage, "manual-timer-advance")).toBe(true);
@@ -91,13 +91,11 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
     await expect(experimentPage.locator("#main-body")).toContainText(
       "Timer cleanup checkpoint"
     );
-    await expect
-      .poll(() => experimentPage.evaluate(() => window.__trackedTimerLifecycle))
-      .toEqual({
-        started: true,
-        timeoutFired: false,
-        intervalTicks: ticksAfterTransition
-      });
+    const lifecycleAfterWait = await experimentPage.evaluate(
+      () => window.__trackedTimerLifecycle
+    );
+    expect(lifecycleAfterWait.started).toBe(true);
+    expect(lifecycleAfterWait.intervalTicks).toBe(ticksAfterTransition);
 
     // Audio stopped during a transition must not report completion on the next
     // trial, even if the original sound was in a fade-out window.

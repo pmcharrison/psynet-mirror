@@ -238,6 +238,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             control=ColorText("aquamarine"),
             time_estimate=5,
+            js_links=["/static/color-text.js"],
         ),
         DebugResponsePage(),
     )

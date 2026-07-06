@@ -67,6 +67,17 @@ We covered them in detail in the previous chapter, :doc:`pages`.
 Custom templates and in-place timeline transitions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+PsyNet uses in-place timeline transitions by default. This means that when a
+participant advances from one timeline page to the next, PsyNet swaps the
+timeline page content inside the existing browser document instead of reloading
+the whole page. Custom pages should therefore follow the fragment-template
+contract described below.
+
+Experiments that explicitly need the old full-page reload behavior can set
+``inplace_timeline_transitions = false`` in ``config.txt``. This legacy path is
+kept for backwards compatibility, but new and migrated custom pages should be
+written for in-place transitions.
+
 PsyNet supports two styles of custom page templates.
 
 The legacy style is a complete Jinja template that extends ``timeline-page.html``
@@ -81,11 +92,12 @@ and overrides blocks such as ``main_body``:
     {% endblock %}
 
 This complete-template style remains supported for the legacy full-page reload
-path, where ``inplace_timeline_transitions = False``. It should not be used for
-custom pages that need to run with ``inplace_timeline_transitions = True``.
+path, where ``inplace_timeline_transitions = false`` is set explicitly. It
+should not be used for custom pages that inherit the default in-place
+transition behavior.
 
-For in-place timeline transitions, custom pages should provide only the contents
-of the page's ``main_body`` block by using ``template_fragment_path`` or
+For the default in-place timeline transitions, custom pages should provide only
+the contents of the page's ``main_body`` block by using ``template_fragment_path`` or
 ``template_fragment_str``:
 
 .. code-block:: python
@@ -133,12 +145,12 @@ Do not rely on ``DOMContentLoaded`` for page setup when using in-place
 transitions. In-place transitions do not reload the browser document for every
 timeline page, so ``DOMContentLoaded`` will not fire for each page activation.
 
-When ``inplace_timeline_transitions = True``, PsyNet raises an error if a custom
-page uses a complete template or if author-provided template content includes
-patterns that are incompatible with the in-place lifecycle. When
-``inplace_timeline_transitions = False``, PsyNet keeps legacy templates working
-but may warn about patterns that should be migrated before enabling in-place
-transitions.
+With the default ``inplace_timeline_transitions = true`` behavior, PsyNet raises
+an error if a custom page uses a complete template or if author-provided
+template content includes patterns that are incompatible with the in-place
+lifecycle. When ``inplace_timeline_transitions = false`` is set explicitly,
+PsyNet keeps legacy templates working but may warn about patterns that should be
+migrated before returning to the default mode.
 
 The validation checks only author-provided template content, not PsyNet's own
 timeline shell or assets supplied through supported page arguments. The checked
@@ -156,9 +168,9 @@ patterns are:
   argument instead.
 
 Existing experiments may therefore be legacy-only, SPA-ready, or incidentally
-compatible with both modes. A validation error in SPA mode means that the page
-has not yet been migrated to the fragment-template contract; it does not imply
-that the same page should stop working in legacy reload mode.
+compatible with both modes. A validation error in the default mode means that
+the page has not yet been migrated to the fragment-template contract; it does
+not imply that the same page should stop working in legacy reload mode.
 
 Page makers
 ~~~~~~~~~~~

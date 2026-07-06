@@ -1824,7 +1824,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "show_footer": True,
             "show_progress_bar": True,
             "show_reward": True,
-            "inplace_timeline_transitions": False,
+            "inplace_timeline_transitions": True,
             "needs_internet_access": True,
             "check_participant_opened_devtools": False,
             "supported_locales": "[]",
@@ -2386,6 +2386,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         page_uuid,
         client_ip_address,
         answer=NoArgumentProvided,
+        include_timeline_fragment=True,
     ):
         _p = get_translator(context=True)
         logger.info(
@@ -2444,7 +2445,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.inc_progress(event.time_estimate)
 
             self.timeline.advance_page(self, participant)
-            return self.response_approved(participant)
+            return self.response_approved(participant, include_timeline_fragment)
         except Exception as err:
             if os.getenv("PASSTHROUGH_ERRORS"):
                 raise
@@ -2466,7 +2467,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 )
             return error_response(participant=participant)
 
-    def response_approved(self, participant):
+    def response_approved(self, participant, include_timeline_fragment=True):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_elt(self, participant)
         payload = {
@@ -2476,7 +2477,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config = get_config()
         # In inplace mode, the same /response round-trip both advances the
         # participant state and returns the next timeline fragment.
-        if config.get("inplace_timeline_transitions"):
+        if include_timeline_fragment and config.get("inplace_timeline_transitions"):
             payload["timeline_fragment"] = self.render_partial_timeline_payload(
                 page, self, participant
             )
@@ -4161,6 +4162,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             json_data, "answer", use_default=True, default=NoArgumentProvided
         )
         metadata = get_arg_from_dict(json_data, "metadata")
+        include_timeline_fragment = get_arg_from_dict(
+            json_data, "include_timeline_fragment", use_default=True, default=True
+        )
         client_ip_address = cls.get_client_ip_address()
 
         res = exp.process_response(
@@ -4171,6 +4175,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             page_uuid,
             client_ip_address,
             answer,
+            include_timeline_fragment,
         )
 
         return res

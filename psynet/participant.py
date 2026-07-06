@@ -1071,6 +1071,8 @@ class ParticipantDriver:
             "participant_id": self.id,
             "page_uuid": status["page_uuid"],
             **bot_response,
+            # Drivers fetch status separately and do not consume SPA fragments.
+            "include_timeline_fragment": False,
         }
 
         if "time_taken" not in submission_data["metadata"]:

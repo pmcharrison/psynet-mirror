@@ -102,7 +102,6 @@ def find_nearest(array, value):
 
 
 extra_css = """
-<style>
     #prompt-text {
         text-align: center;
         font-size: 1.5em;
@@ -117,8 +116,12 @@ extra_css = """
         max-width: 350px;
         max-height: 350px;
     }
-</style>
 """
+
+
+class RobotVoicePrompt(ImagePrompt):
+    def get_css(self):
+        return [extra_css]
 
 
 def get_prompt(trial):
@@ -130,5 +133,6 @@ def get_prompt(trial):
         prompt = "How well does the voice match the robot?"
     else:
         raise ValueError(f"Unknown class type: {trial.__class__}")
-    prompt = extra_css + prompt
-    return ImagePrompt(trial.context["img_url"], Markup(prompt), width="", height="")
+    return RobotVoicePrompt(
+        trial.context["img_url"], Markup(prompt), width="", height=""
+    )

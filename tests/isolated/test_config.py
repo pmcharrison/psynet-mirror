@@ -17,6 +17,16 @@ def test_config(in_experiment_directory):
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
 )
+def test_inplace_timeline_transitions_default(in_experiment_directory):
+    get_experiment()
+    config = get_config()
+
+    assert config.get("inplace_timeline_transitions") is True
+
+
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_test_experiment("timeline")], indirect=True
+)
 def test_secrets(in_experiment_directory):
     get_experiment()
     config = get_config()
