@@ -92,7 +92,7 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    (function () {
         var ROOM_ID      = {{ config.room_id | tojson }};
         var GLOBAL_CH    = {{ config.channel | tojson }};
         var SHOW_PARTS   = {{ "true" if show_participants else "false" }};
@@ -130,6 +130,7 @@
         };
 
         chatSocket.onmessage = function (event) {
+            if (leftChat) return;
             if (event.data.indexOf(GLOBAL_CH + ":") !== 0) return;
             var msg;
             try {
@@ -151,7 +152,7 @@
             }
         };
 
-        window.addEventListener("beforeunload", function () {
+        function leaveChat() {
             if (leftChat) return;
             leftChat = true;
             try {
@@ -161,6 +162,16 @@
                     sender: MY_ID,
                 }));
             } catch (e) {}
+            try {
+                if (chatSocket && typeof chatSocket.close === "function") {
+                    chatSocket.close();
+                }
+            } catch (e) {}
+        }
+
+        psynet.addPageCleanupCallback(leaveChat);
+        psynet.addPageEventListener(window, "beforeunload", function () {
+            leaveChat();
         });
 
         document.getElementById("chatroom-send-btn").onclick = function () {
@@ -177,7 +188,7 @@
             input.focus();
         };
 
-        document.getElementById("chatroom-chat-input").addEventListener("keypress", function (e) {
+        psynet.addPageEventListener(document.getElementById("chatroom-chat-input"), "keypress", function (e) {
             if (e.key === "Enter") {
                 document.getElementById("chatroom-send-btn").click();
                 e.preventDefault();
@@ -209,6 +220,6 @@
                 list.appendChild(li);
             });
         }
-    });
+    })();
 </script>
 {% endmacro %}
