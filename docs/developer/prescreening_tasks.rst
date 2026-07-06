@@ -20,7 +20,7 @@ In general, a pre-screening task is a :class:`~psynet.trial.Module` which contai
 
 In the following we show an example of a pre-screening task that consists of a single Yes/No question checking for the participant's suitability for a follow-up hearing test.
 
-The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module` and defines the actual pre-screening. It has a single event (:class:`~psynet.trial.Module`) assigned to its ``events`` property which consists of a ``label``, a :class:`~psynet.timeline.Page` (:class:`~psynet.page.ModularPage`) for the participant's input and the logic (:class:`~psynet.timeline.conditional`) to determine a positive or negative outcome. In the negative case the :class:`~psynet.page.UnsuccessfulEndPage` is shown and the participant exits the pre-screening. This class also needs to be provided with a value for ``label``.
+The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module` and defines the actual pre-screening. It has a single event (:class:`~psynet.trial.Module`) assigned to its ``events`` property which consists of a ``label``, a :class:`~psynet.timeline.Page` (:class:`~psynet.modular_page.ModularPage`) for the participant's input and the logic (:class:`~psynet.timeline.conditional`) to determine a positive or negative outcome. In the negative case the :class:`~psynet.page.UnsuccessfulEndPage` is shown and the participant exits the pre-screening. This class also needs to be provided with a value for ``label``.
 
 ::
 
@@ -51,7 +51,7 @@ The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module`
             )
             super().__init__(self.label, self.elts)
 
-\* Another simple example would be a :class:`~psynet.page.ModularPage` with a :class:`~psynet.modular_page.TextControl` where the text provided by the participant is evaluated by some logic determining the positive/negative outcome.
+\* Another simple example would be a :class:`~psynet.modular_page.ModularPage` with a :class:`~psynet.modular_page.TextControl` where the text provided by the participant is evaluated by some logic determining the positive/negative outcome.
 
 A pre-screening task can then be included in an experiment as follows:
 
@@ -149,7 +149,7 @@ However, this logic doesn't apply to pre-screening tasks, where we are not tryin
 a specific quota of data. We therefore disable this behavior, setting
 ``fail_trials_on_premature_exit=False`` in the above code.
 
-The :meth:`trial` method returns a :class:`~psynet.trial.static.StaticTrial` which implements :meth:`~psynet.trial.main.show_trial` that in turn returns a :class:`~psynet.page.ModularPage` e.g.:
+The :meth:`trial` method returns a :class:`~psynet.trial.static.StaticTrial` which implements :meth:`~psynet.trial.main.show_trial` that in turn returns a :class:`~psynet.modular_page.ModularPage` e.g.:
 
 ::
 
