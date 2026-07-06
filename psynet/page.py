@@ -150,6 +150,7 @@ class UnityPage(Page):
             contents=self.contents,
             time_estimate=time_estimate,
             template_str=get_template(template),
+            framework_owned_template=True,
             template_arg={
                 "title": self.title,
                 "resources": "" if self.resources is None else self.resources,
@@ -201,6 +202,7 @@ class WaitPage(Page):
             label="wait",
             time_estimate=wait_time,
             template_str=get_template("wait-page.html"),
+            framework_owned_template=True,
             template_arg={"content": self.content, "wait_time": self.wait_time},
             **kwargs,
         )
@@ -404,6 +406,9 @@ class VolumeCalibration(Module):
                 id_,
                 AudioPrompt(assets["volume_calibration_audio"], self.text(), loop=True),
                 events={
+                    # TODO: This is page-level gating expressed as a trial event.
+                    # Prefer a page-scoped timer API once the frontend lifecycle
+                    # distinguishes page timers from prompt/trial-cycle timers.
                     "submitEnable": Event(is_triggered_by="trialStart", delay=min_time)
                 },
             ),
@@ -475,6 +480,7 @@ class JsPsychPage(Page):
             js_vars=js_vars,
             js_links=js_links,
             css_links=css_links,
+            framework_owned_template=True,
             **kwargs,
         )
 

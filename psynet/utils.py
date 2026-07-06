@@ -1176,11 +1176,18 @@ def get_psynet_root():
 def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=None):
     demo_root = get_psynet_root() / "demos"
     test_experiments_root = get_psynet_root() / "tests/experiments"
+    # Included so release tooling keeps its template scripts up to date;
+    # excluded from CI test runs via the for_ci_tests filter below.
+    manual_recruiter_testing_root = get_psynet_root() / "tests/manual_recruiter_testing"
 
     dirs = sorted(
         [
             dir_
-            for root in [demo_root, test_experiments_root]
+            for root in [
+                demo_root,
+                test_experiments_root,
+                manual_recruiter_testing_root,
+            ]
             for dir_, sub_dirs, files in os.walk(root)
             if (
                 "experiment.py" in files
