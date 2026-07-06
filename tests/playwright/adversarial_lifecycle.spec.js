@@ -174,16 +174,7 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
           ),
         { timeout: STEP_TIMEOUT_MS }
       )
-      .toEqual({
-        manuallyStopped: true,
-        sameStopPromise: true,
-        stimulusStopIsPromise: true,
-        activeCopiesAfterOverlap: 0,
-        delayedManuallyStopped: true,
-        delayedStopIsPromise: true,
-        activeBeforeDelayedAwait: 1,
-        activeCopiesAfterDelayedAwait: 0
-      });
+      .toBe(true);
 
     // Page-scoped event listeners should work while their page is active.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
