@@ -48,7 +48,7 @@
         };
 
         psynet.page.prompt.stop = function(providedOptions) {
-            psynet.media.stopAllAudio();
+            return psynet.media.stopAllAudio();
         }
 
         psynet.trial.onEvent("promptStart", psynet.page.prompt.play);

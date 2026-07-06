@@ -2150,6 +2150,10 @@
               if (completed) {
                 return Promise.resolve();
               }
+              if (stopPromise !== null) {
+                sound.manuallyStopped = sound.manuallyStopped || options.manual;
+                return stopPromise;
+              }
 
               clearSoundTimers();
 
@@ -2174,10 +2178,19 @@
                 );
               }
 
-              stopCompletionTimer = soundTrial.setTimer(() => {
+              const finishStop = () => {
                 stopCompletionTimer = null;
                 stopSource();
-              }, options.fadeOut * 1000);
+              };
+
+              if (options.fadeOut <= 0) {
+                queueMicrotask(finishStop);
+              } else {
+                stopCompletionTimer = soundTrial.setTimer(
+                  finishStop,
+                  options.fadeOut * 1000,
+                );
+              }
               return stopPromise;
             };
 
@@ -2190,12 +2203,11 @@
           };
 
           out.stop = function (options) {
-            psynet.media.sounds.forEach(function (s) {
-              if (s.stimulusId == stimulusId) {
-                s.stop(options);
-              }
-            });
-            return this;
+            return Promise.all(
+              psynet.media.sounds
+                .filter((s) => s.stimulusId == stimulusId)
+                .map((s) => s.stop(options)),
+            );
           };
 
           out.loaded = true;
