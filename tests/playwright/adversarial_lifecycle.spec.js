@@ -149,6 +149,37 @@ test("adversarial lifecycle handles rejection retry and page listener cleanup", 
       )
       .toBe(false);
 
+    // Manual stop intent must win even when it overlaps an already pending
+    // automatic stop, otherwise a looping sound can restart during cleanup.
+    expect(await nextPageFromBrowser(experimentPage)).toBe(true);
+    await waitForMainBodyContains(
+      experimentPage,
+      "Overlapping audio stop page",
+      STEP_TIMEOUT_MS
+    );
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(
+            () => window.__overlappingAudioStopLifecycle?.ready === true
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toBe(true);
+    await expect
+      .poll(
+        () =>
+          experimentPage.evaluate(() =>
+            window.__runOverlappingAudioStopRegression()
+          ),
+        { timeout: STEP_TIMEOUT_MS }
+      )
+      .toEqual({
+        manuallyStopped: true,
+        sameStopPromise: true,
+        activeCopies: 0
+      });
+
     // Page-scoped event listeners should work while their page is active.
     expect(await nextPageFromBrowser(experimentPage)).toBe(true);
     await waitForMainBodyContains(experimentPage, "Listener page first", STEP_TIMEOUT_MS);
