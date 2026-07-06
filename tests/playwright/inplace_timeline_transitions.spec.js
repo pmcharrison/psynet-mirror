@@ -30,6 +30,26 @@ function hasManagedStylesheet(page, stylesheetPath) {
   }, stylesheetPath);
 }
 
+function makeSilentWav(durationSeconds) {
+  const sampleRate = 8000;
+  const samples = Math.max(1, Math.round(sampleRate * durationSeconds));
+  const buffer = Buffer.alloc(44 + samples * 2);
+  buffer.write("RIFF", 0);
+  buffer.writeUInt32LE(36 + samples * 2, 4);
+  buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * 2, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write("data", 36);
+  buffer.writeUInt32LE(samples * 2, 40);
+  return buffer;
+}
+
 test("in-place timeline transitions replay page scripts and hydrate page styles", async ({
   page,
   context
@@ -272,6 +292,83 @@ test("in-place timeline transitions manage stylesheets that target shell element
       "border-bottom-width",
       "0px"
     );
+  });
+});
+
+test("in-place media cleanup ignores late audio loads from previous pages", async ({
+  page,
+  context
+}) => {
+  const absDir = path.resolve(
+    "tests/playwright/experiments/deferred_page_scripts"
+  );
+  const staleResponseGate = deferredPromise();
+  const staleAudio = makeSilentWav(0.1);
+  const currentAudio = makeSilentWav(0.6);
+  let staleRequests = 0;
+
+  await withExperiment(page, context, absDir, async (experimentPage) => {
+    await completeInitialGateway(experimentPage);
+    await assertInplaceTimelinePathActive(experimentPage, 20000);
+
+    await experimentPage.route("**/stale-audio.wav", async (route) => {
+      staleRequests += 1;
+      await staleResponseGate.promise;
+      await route.fulfill({
+        status: 200,
+        contentType: "audio/wav",
+        body: staleAudio
+      }).catch(() => {});
+    });
+    await experimentPage.route("**/current-audio.wav", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "audio/wav",
+        body: currentAudio
+      });
+    });
+
+    await experimentPage.evaluate(() => {
+      window.psynet.media.requests = {
+        audio: { prompt: "/stale-audio.wav" },
+        image: {},
+        html: {},
+        video: {}
+      };
+      window.__staleAudioInit = window.psynet.media.init();
+    });
+    await expect.poll(() => staleRequests, { timeout: 10000 }).toBe(1);
+
+    // Declared page media normally blocks page readiness, so a normal page
+    // transition cannot leave that media request pending. This forces the
+    // stale-load edge case directly and verifies the cleanup generation guard.
+    await experimentPage.evaluate(() => window.psynet.cleanupPageResources());
+
+    const currentDuration = await experimentPage.evaluate(async () => {
+      window.psynet.media.requests = {
+        audio: { prompt: "/current-audio.wav" },
+        image: {},
+        html: {},
+        video: {}
+      };
+      await window.psynet.media.init();
+      return window.psynet.audio.prompt.buffer.duration;
+    });
+    expect(currentDuration).toBeGreaterThan(0.5);
+
+    staleResponseGate.resolve();
+    await experimentPage.evaluate(async () => {
+      await window.__staleAudioInit.catch(() => false);
+    });
+    await experimentPage.waitForTimeout(250);
+
+    const result = await experimentPage.evaluate(() => ({
+      duration: window.psynet.audio.prompt.buffer.duration,
+      activeRequests: window.psynet.media.activeRequests.size
+    }));
+    expect(result.duration).toBeGreaterThan(0.5);
+    expect(result.activeRequests).toBe(0);
+    await assertNoBackendError(experimentPage);
   });
 });
 
