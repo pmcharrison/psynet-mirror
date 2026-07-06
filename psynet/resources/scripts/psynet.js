@@ -1196,6 +1196,9 @@
 
     psynet.media.objectUrls = new Set();
 
+    psynet.media.activeRequests = new Set();
+    psynet.media.loadGeneration = 0;
+
     psynet.media.downloadProgress = {
       byFile: {},
     };
@@ -1276,6 +1279,28 @@
       );
     };
 
+    psynet.media.isCurrentLoadGeneration = function (loadGeneration) {
+      return (
+        loadGeneration === undefined ||
+        loadGeneration === psynet.media.loadGeneration
+      );
+    };
+
+    psynet.media.invalidateActiveLoads = function () {
+      psynet.media.loadGeneration += 1;
+      Array.from(psynet.media.activeRequests).forEach(function (request) {
+        try {
+          request.abort();
+        } catch (error) {
+          psynet.log.warn(
+            "Failed to abort media request: " +
+              (error && error.message ? error.message : String(error)),
+          );
+        }
+      });
+      psynet.media.activeRequests.clear();
+    };
+
     psynet.media.registerObjectUrl = function (url) {
       if (typeof url === "string" && url.startsWith("blob:")) {
         psynet.media.objectUrls.add(url);
@@ -1311,6 +1336,7 @@
 
     psynet.cleanupPageResources = async function () {
       psynet.log.info("Cleaning page resources before swapped-page activation.");
+      psynet.media.invalidateActiveLoads();
       await psynet.media.stopAllAudio({ fadeOut: 0 });
 
       let clearPlayer = function (player) {
@@ -1503,6 +1529,7 @@
         stimulusIds: batch.ids,
         mediaType: mediaType,
         fileId: batchId,
+        loadGeneration: psynet.media.loadGeneration,
       };
       args.stimulusIds.forEach(function (id) {
         initStimulus(id, mediaType);
@@ -1527,6 +1554,7 @@
         stimulusId: stimulusId,
         mediaType: mediaType,
         fileId: stimulusId,
+        loadGeneration: psynet.media.loadGeneration,
       };
       initStimulus(stimulusId, mediaType);
       return createRequest(
@@ -1556,6 +1584,7 @@
     async function createRequest(url, mediaType, callbackFunction, args) {
       let request = new XMLHttpRequest();
       request.open("GET", url, true);
+      let loadGeneration = args.loadGeneration;
 
       if (mediaType == "audio" || mediaType == "html") {
         request.responseType = "arraybuffer";
@@ -1571,6 +1600,9 @@
       }
 
       request.onprogress = function (e) {
+        if (!psynet.media.isCurrentLoadGeneration(loadGeneration)) {
+          return;
+        }
         psynet.media.downloadProgress.set(
           args["mediaType"],
           args["fileId"],
@@ -1578,16 +1610,46 @@
         );
       };
 
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
+        let finishRequest = function () {
+          psynet.media.activeRequests.delete(request);
+        };
+
         request.onload = async function () {
-          if (request.status === 200) {
-            await callbackFunction(request.response, args);
-            resolve();
-          } else {
-            reportRequestError(url, request.status);
+          finishRequest();
+          if (!psynet.media.isCurrentLoadGeneration(loadGeneration)) {
+            resolve(false);
+            return;
+          }
+          try {
+            if (request.status === 200) {
+              await callbackFunction(request.response, args);
+              resolve(true);
+            } else {
+              reportRequestError(url, request.status);
+            }
+          } catch (error) {
+            reject(error);
           }
         };
 
+        request.onerror = function () {
+          finishRequest();
+          reject(
+            Error(
+              "Failed to load media asset at " +
+                url +
+                " (network error).",
+            ),
+          );
+        };
+
+        request.onabort = function () {
+          finishRequest();
+          resolve(false);
+        };
+
+        psynet.media.activeRequests.add(request);
         request.send();
       });
     }
@@ -1633,14 +1695,22 @@
       Object.keys(requests).forEach(log);
     };
 
-    let createAudioStimulus = function (data, stimulusId, handler) {
+    let createAudioStimulus = function (data, stimulusId, loadGeneration) {
       psynet.log.debug("Decoding sound " + stimulusId + "...");
 
       return new Promise((resolve) => {
         psynet.media.audioContext.decodeAudioData(data, function (buffer) {
+          if (!psynet.media.isCurrentLoadGeneration(loadGeneration)) {
+            resolve(false);
+            return;
+          }
           psynet.log.debug("Sound " + stimulusId + " decoded.");
 
           let out = psynet.media.data.audio[stimulusId];
+          if (!out) {
+            resolve(false);
+            return;
+          }
           out.buffer = buffer;
 
           out.play = function (providedOptions) {
@@ -1830,7 +1900,7 @@
 
           out.loaded = true;
 
-          resolve();
+          resolve(true);
         });
       });
     };
@@ -1844,13 +1914,20 @@
     // (needs refactoring in a general cross-media way)
     psynet.media.addExtraAudioStimulus = async function (buffer, stimulusId) {
       initStimulus(stimulusId, "audio");
-      await createAudioStimulus(buffer, stimulusId, () => Promise.resolve());
+      await createAudioStimulus(
+        buffer,
+        stimulusId,
+        psynet.media.loadGeneration,
+      );
     };
 
     let createMediaFromBuffer = {};
     createMediaFromBuffer.audio = function (data, args) {
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       psynet.media.downloadProgress.set(args.mediaType, args.fileId, 100);
-      return createAudioStimulus(data, args.stimulusId);
+      return createAudioStimulus(data, args.stimulusId, args.loadGeneration);
     };
 
     let getImageMetadataFromURL = function (url) {
@@ -1883,6 +1960,9 @@
       let mediaType = args["mediaType"];
       let fileId = args["fileId"];
 
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       let player = document.getElementById(stimulusId);
       if (player != null) {
         psynet.log.debug(
@@ -1897,6 +1977,9 @@
         player.innerHTML = dec.decode(uint8arr);
       }
       let out = psynet.media.data[mediaType][stimulusId];
+      if (!out) {
+        return false;
+      }
       out.player = player;
       out.innerHTML = player.innerHTML;
       // let metadata = await getSvgMetadataFromData(player.innerHTML);
@@ -1915,6 +1998,9 @@
       let mediaType = args["mediaType"];
       let fileId = args["fileId"];
 
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       let player = document.getElementById(stimulusId);
 
       if (player) {
@@ -1937,11 +2023,17 @@
       player.src = psynet.media.registerObjectUrl(URL.createObjectURL(data));
 
       let out = psynet.media.data[mediaType][stimulusId];
+      if (!out) {
+        return false;
+      }
       out.player = player;
       out.objectUrl = player.src;
 
       let url = player.src;
       let metadata = await getImageMetadataFromURL(url);
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       out.url = url;
       out.width = metadata.width;
       out.height = metadata.height;
@@ -1957,6 +2049,9 @@
       let mediaType = args["mediaType"];
       let fileId = args["fileId"];
 
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       let player = document.getElementById(stimulusId);
       if (player != null) {
         psynet.log.debug(
@@ -1973,7 +2068,13 @@
         await psynet.waitForEventListener(player, "canplaythrough");
       }
 
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       let out = psynet.media.data[mediaType][stimulusId];
+      if (!out) {
+        return false;
+      }
       out.player = player;
       if (player != null && player.src) {
         out.objectUrl = player.src;
@@ -1990,6 +2091,11 @@
       let stimulusIds = args["stimulusIds"];
       let mediaType = args["mediaType"];
       let fileId = args["fileId"];
+      let loadGeneration = args["loadGeneration"];
+
+      if (!psynet.media.isCurrentLoadGeneration(loadGeneration)) {
+        return false;
+      }
 
       function extractBuffer(src, start, length) {
         // This function is used to find the start and end of each file
@@ -2030,6 +2136,7 @@
           stimulusId: stimulusId,
           mediaType: mediaType,
           fileId: fileId,
+          loadGeneration: loadGeneration,
         };
 
         // In contrast to audio, video, and image are not loaded into the DOM, so we need to create a player
