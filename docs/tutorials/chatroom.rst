@@ -128,15 +128,12 @@ so every attribute you set on the subclass is accessible inside the template:
     <div id="chatroom-widget">
         ...
     </div>
-    <script>
-        var ROOM_ID = {{ config.room_id | tojson }};
-        var CHANNEL = {{ config.channel | tojson }};
-        var SHOW_PARTS   = {{ "true" if show_participants else "false" }};
-        var SHOW_HISTORY = {{ "true" if show_history else "false" }};
-        var MY_ID        = String(dallinger.identity.participantId);
-        ...
-    </script>
     {% endmacro %}
+
+Keep this macro focused on markup. Page-local JavaScript should be loaded with
+the page's ``js_links`` or ``scripts`` arguments, and setup code should use
+PsyNet lifecycle hooks such as ``psynet.trial.onEvent("trialConstruct", ...)``.
+This keeps the chatroom compatible with in-place timeline transitions.
 
 If you only need minor CSS changes (e.g. a different height or colour scheme)
 you can override the built-in IDs (``#chatroom-widget``,

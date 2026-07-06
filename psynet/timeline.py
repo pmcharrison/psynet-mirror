@@ -875,8 +875,6 @@ class ProgressDisplay(dict):
 
 
 class Page(Elt):
-    _jsonpickle_exclude = ("_template_contract_soup",)
-
     """
     The base class for pages, customised by passing values to the ``__init__``
     function and by overriding the following methods:
@@ -1611,20 +1609,34 @@ class Page(Elt):
         if self.template_kind == "complete":
             problems.append(self._complete_template_spa_contract_message())
 
+        problems.extend(
+            self._collect_spa_markup_contract_problems(
+                template_source, source_description="The template"
+            )
+        )
+
+        return problems
+
+    @staticmethod
+    def _collect_spa_markup_contract_problems(
+        markup_source, source_description="The template"
+    ):
         # These checks intentionally cover common authoring mistakes rather
         # than trying to prove that arbitrary HTML/JS is SPA-safe.
-        soup = self._get_template_contract_soup()
+        problems = []
+        markup_source = markup_source or ""
+        soup = BeautifulSoup(markup_source, "html.parser")
 
         for script in soup.find_all("script"):
             if script.get("src"):
                 problems.append(
-                    "The template includes a page JavaScript link in a "
+                    f"{source_description} includes a page JavaScript link in a "
                     "<script src=...> tag. Supply page JavaScript files via "
                     "the Page js_links argument instead."
                 )
             else:
                 problems.append(
-                    "The template includes a raw <script> block. Supply "
+                    f"{source_description} includes a raw <script> block. Supply "
                     "page JavaScript via the Page scripts argument instead, "
                     "and use PsyNet lifecycle hooks such as "
                     "psynet.trial.onEvent('trialConstruct', ...) for page setup."
@@ -1632,7 +1644,7 @@ class Page(Elt):
 
         if soup.find_all("style"):
             problems.append(
-                "The template includes inline CSS in a <style> tag. Supply "
+                f"{source_description} includes inline CSS in a <style> tag. Supply "
                 "page-local CSS via the Page css argument instead."
             )
 
@@ -1640,7 +1652,7 @@ class Page(Elt):
             "link", rel=lambda value: value and "stylesheet" in value
         ):
             problems.append(
-                "The template includes a stylesheet <link> tag. Supply "
+                f"{source_description} includes a stylesheet <link> tag. Supply "
                 "page-local stylesheet links via the Page css_links argument "
                 "instead."
             )
@@ -1648,10 +1660,10 @@ class Page(Elt):
         if re.search(
             r"\b(?:document|window)\s*\.\s*addEventListener\s*\(\s*"
             r"['\"]DOMContentLoaded['\"]",
-            template_source,
+            markup_source,
         ):
             problems.append(
-                "The template registers a DOMContentLoaded listener. "
+                f"{source_description} registers a DOMContentLoaded listener. "
                 "In-place timeline transitions do not reload the document for "
                 "each page, so page setup should use PsyNet lifecycle hooks "
                 "such as psynet.trial.onEvent('trialConstruct', ...), or "
@@ -1660,15 +1672,15 @@ class Page(Elt):
 
         has_window_event_listener = re.search(
             r"\bwindow\s*\.\s*addEventListener\s*\(",
-            template_source,
+            markup_source,
         )
         has_page_cleanup = (
-            "psynet.addPageEventListener" in template_source
-            or "psynet.addPageCleanupCallback" in template_source
+            "psynet.addPageEventListener" in markup_source
+            or "psynet.addPageCleanupCallback" in markup_source
         )
         if has_window_event_listener and not has_page_cleanup:
             problems.append(
-                "The template registers a window event listener without a "
+                f"{source_description} registers a window event listener without a "
                 "PsyNet cleanup hook. Use psynet.addPageEventListener(...) "
                 "when possible, or register cleanup with "
                 "psynet.addPageCleanupCallback(...)."
@@ -1688,13 +1700,6 @@ class Page(Elt):
             "css, css_links, scripts, and js_links. Search your experiment "
             f"code for Page(...) calls with label='{self.label}'."
         )
-
-    def _get_template_contract_soup(self):
-        soup = getattr(self, "_template_contract_soup", None)
-        if soup is None:
-            soup = BeautifulSoup(self.template_contract_source or "", "html.parser")
-            self._template_contract_soup = soup
-        return soup
 
     @staticmethod
     def _extract_partial_render(rendered_html):

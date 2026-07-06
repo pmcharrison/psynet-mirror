@@ -364,24 +364,7 @@ Here's an example...
 
     {% macro color_text_area(params) %}
 
-    <textarea id="text-input" type="text" class="form-control"></textarea>
-
-    <style>
-        #text-input {
-            background-color: {{ params.color }};
-            margin-bottom: {{ params.margin_bottom }};
-        }
-    </style>
-
-    <script>
-        function retrieveResponse() {
-            return {
-                rawAnswer: document.getElementById('text-input').value,
-                metadata: {},
-                blobs: {}
-            }
-        }
-    </script>
+    <textarea id="text-input" type="text" class="form-control color-text-area"></textarea>
 
     {% endmacro %}
 
@@ -393,8 +376,11 @@ There are a few key things to note here.
   that takes a single input, ``params``.
 - The control is specified like an ordinary HTML file, but the customizable aspects are acquired
   from the ``params`` object using curly bracket notation.
-- The user must define a JS function called ``retrieveResponse`` that, when called, should return
-  an object containing the following:
+- Page-local CSS and JavaScript should be supplied through page arguments such as
+  ``css``, ``css_links``, ``scripts``, and ``js_links`` rather than by putting
+  ``<style>`` or ``<script>`` blocks inside the macro template.
+- In the accompanying JavaScript, the user must define a JS function called ``retrieveResponse`` that,
+  when called, should return an object containing the following:
 
     - ``rawAnswer`` - The participant's answer in JSON-serializable form (numbers, strings, or an
       object comprising these).
@@ -423,6 +409,16 @@ The user must then define a corresponding class in Python, writing code like thi
 
         def get_bot_response(self, experiment, bot, page, prompt):
             return "Hello, I am a bot!"
+
+        def get_css(self):
+            return [
+                f"""
+                #text-input {{
+                    background-color: {self.color};
+                    margin-bottom: 40px;
+                }}
+                """
+            ]
 
 There are a few more key things to note here:
 

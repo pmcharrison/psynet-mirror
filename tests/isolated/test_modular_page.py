@@ -1,5 +1,7 @@
-# import pytest
+import pytest
 
+from flask import Flask
+from jinja2 import DictLoader
 from markupsafe import Markup
 
 from psynet.modular_page import (  # AudioPrompt,; VideoSliderControl,
@@ -30,6 +32,84 @@ def test_import_templates():
         page_2.import_external_templates
         == '{% import "my-prompt.html" as custom_prompt with context %} {% import "my-control.html" as custom_control with context %}'
     )
+
+
+def test_inplace_transitions_reject_forbidden_external_control_template():
+    app = Flask(__name__)
+    app.jinja_loader = DictLoader(
+        {
+            "custom-control.html": """
+            {% macro control(config) %}
+                <button>Continue</button>
+                <script>psynet.nextPage();</script>
+            {% endmacro %}
+            """,
+        }
+    )
+
+    class CustomControl(Control):
+        external_template = "custom-control.html"
+        macro = "control"
+
+    page = ModularPage("test", Prompt("Hi!"), CustomControl())
+
+    with app.app_context():
+        with pytest.raises(ValueError, match="control external template"):
+            page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_legacy_transitions_warn_on_forbidden_external_control_template():
+    app = Flask(__name__)
+    app.jinja_loader = DictLoader(
+        {
+            "custom-control.html": """
+            {% macro control(config) %}
+                <style>.control { color: red; }</style>
+            {% endmacro %}
+            """,
+        }
+    )
+
+    class CustomControl(Control):
+        external_template = "custom-control.html"
+        macro = "control"
+
+    page = ModularPage("test", Prompt("Hi!"), CustomControl())
+
+    with app.app_context():
+        with pytest.warns(UserWarning, match="control external template"):
+            page._check_spa_template_contract(inplace_timeline_transitions=False)
+
+
+def test_inplace_transitions_allow_clean_external_templates():
+    app = Flask(__name__)
+    app.jinja_loader = DictLoader(
+        {
+            "custom-prompt.html": """
+            {% macro prompt(config) %}
+                <p>Hello</p>
+            {% endmacro %}
+            """,
+            "custom-control.html": """
+            {% macro control(config) %}
+                <button>Continue</button>
+            {% endmacro %}
+            """,
+        }
+    )
+
+    class CustomPrompt(Prompt):
+        external_template = "custom-prompt.html"
+        macro = "prompt"
+
+    class CustomControl(Control):
+        external_template = "custom-control.html"
+        macro = "control"
+
+    page = ModularPage("test", CustomPrompt("Hi!"), CustomControl())
+
+    with app.app_context():
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
 def test_modular_page_text():

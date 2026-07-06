@@ -5,10 +5,10 @@ import tempfile
 import warnings
 from typing import Callable, Dict, Iterable, List, Optional, Union
 
-from bs4 import BeautifulSoup
 from dominate import tags
 from dominate.dom_tag import dom_tag
 from dominate.util import raw
+from flask import current_app
 from markupsafe import Markup
 
 from .asset import Asset, LocalStorage
@@ -149,25 +149,9 @@ class Prompt:
         if self.text_html is None:
             return []
 
-        soup = BeautifulSoup(str(self.text_html), "html.parser")
-        problems = []
-
-        if soup.find_all("style"):
-            problems.append(
-                "The page prompt/content includes inline CSS in a <style> tag. "
-                "Supply page-local CSS via the Page css argument instead."
-            )
-
-        for link in soup.find_all(
-            "link", rel=lambda value: value and "stylesheet" in value
-        ):
-            problems.append(
-                "The page prompt/content includes a stylesheet <link> tag. "
-                "Supply page-local stylesheet links via the Page css_links "
-                "argument instead."
-            )
-
-        return problems
+        return Page._collect_spa_markup_contract_problems(
+            str(self.text_html), source_description="The page prompt/content"
+        )
 
     @property
     def plain_text(self):
@@ -1979,7 +1963,10 @@ class ModularPage(Page):
     def _check_spa_template_contract(self, inplace_timeline_transitions):
         super()._check_spa_template_contract(inplace_timeline_transitions)
 
-        problems = self.prompt._collect_spa_markup_contract_problems()
+        problems = (
+            self.prompt._collect_spa_markup_contract_problems()
+            + self._collect_external_template_contract_problems()
+        )
         if not problems:
             return
 
@@ -1990,6 +1977,43 @@ class ModularPage(Page):
         if not self._spa_template_contract_warning_shown:
             warnings.warn(message, UserWarning, stacklevel=2)
             self._spa_template_contract_warning_shown = True
+
+    def _collect_external_template_contract_problems(self):
+        problems = []
+
+        for role, template_name in self._external_template_sources:
+            template_source = self._load_external_template_source(template_name)
+            problems.extend(
+                Page._collect_spa_markup_contract_problems(
+                    template_source,
+                    source_description=f"The {role} external template '{template_name}'",
+                )
+            )
+
+        return problems
+
+    @property
+    def _external_template_sources(self):
+        template_names = [
+            ("prompt", self.prompt.external_template),
+            ("control", self.control.external_template),
+            (
+                "chatroom",
+                self.chatroom.external_template if self.chatroom is not None else None,
+            ),
+        ]
+        seen = set()
+        for role, template_name in template_names:
+            if template_name is None or template_name in seen:
+                continue
+            seen.add(template_name)
+            yield role, template_name
+
+    @staticmethod
+    def _load_external_template_source(template_name):
+        loader = current_app.jinja_env.loader
+        source, _, _ = loader.get_source(current_app.jinja_env, template_name)
+        return source
 
     def get_renderers(self, **kwargs):
         return {
