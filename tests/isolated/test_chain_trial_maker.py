@@ -1,7 +1,12 @@
+import inspect
+
 import pytest
 
 from psynet.sync import GroupBarrier
 from psynet.trial.chain import ChainNode, ChainTrial, ChainTrialMaker
+from psynet.trial.graph import GraphChainTrialMaker
+from psynet.trial.main import _SYNC_GROUP_TRIAL_MAKER_KWARGS, NetworkTrialMaker
+from psynet.trial.staircase import GeometricStaircaseTrialMaker
 from psynet.trial.static import StaticTrial, StaticTrialMaker
 
 
@@ -84,6 +89,42 @@ def test_static_trial_maker_error_mentions_nodes():
             recruit_mode="n_trials",
             target_trials_per_node=1,
         )
+
+
+@pytest.mark.parametrize(
+    "trial_maker_class",
+    [
+        NetworkTrialMaker,
+        ChainTrialMaker,
+        StaticTrialMaker,
+        GraphChainTrialMaker,
+        GeometricStaircaseTrialMaker,
+    ],
+)
+def test_trial_maker_subclasses_expose_sync_group_kwargs(trial_maker_class):
+    parameters = inspect.signature(trial_maker_class.__init__).parameters
+
+    missing_parameters = [
+        name for name in _SYNC_GROUP_TRIAL_MAKER_KWARGS if name not in parameters
+    ]
+
+    assert missing_parameters == []
+
+
+def test_chain_trial_maker_maps_sync_group_barrier_kwargs():
+    trial_maker = make_trial_maker(
+        sync_group_max_wait_time=12.5,
+        sync_group_max_wait_action="kick",
+        sync_group_timeout=7,
+        sync_group_timeout_action="fail",
+    )
+
+    assert trial_maker._sync_group_barrier_kwargs() == {
+        "max_wait_time": 12.5,
+        "max_wait_action": "kick",
+        "participant_timeout": 7,
+        "participant_timeout_action": "fail",
+    }
 
 
 def test_sync_trial_maker_prepare_barrier_kick_exits_cleanly(monkeypatch):

@@ -40,6 +40,7 @@ from .main import (
     Trial,
     TrialNetwork,
     TrialNode,
+    _sync_group_trial_maker_kwargs,
 )
 
 logger = get_logger()
@@ -1481,11 +1482,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             n_repeat_trials=n_repeat_trials,
             wait_for_networks=wait_for_networks,
             assets=assets,
-            sync_group_type=sync_group_type,
-            sync_group_max_wait_time=sync_group_max_wait_time,
-            sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout=sync_group_timeout,
-            sync_group_timeout_action=sync_group_timeout_action,
+            **_sync_group_trial_maker_kwargs(locals()),
         )
 
         self.check_initialization()

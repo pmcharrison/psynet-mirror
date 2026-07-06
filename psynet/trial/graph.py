@@ -9,7 +9,7 @@ from sqlalchemy.orm import aliased
 from ..data import SQLBase, SQLMixin, register_table
 from ..field import Integer, PythonObject
 from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
-from .main import with_trial_maker_namespace
+from .main import _sync_group_trial_maker_kwargs, with_trial_maker_namespace
 
 
 @register_table
@@ -401,6 +401,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         allow_revisiting_networks_in_across_chains: bool = False,
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
         sync_group_timeout: Optional[int] = None,
         sync_group_timeout_action: Literal["kick", "fail"] = "fail",
@@ -433,10 +434,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             wait_for_networks=wait_for_networks,
             allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
             choose_participant_group=choose_participant_group,
-            sync_group_type=sync_group_type,
-            sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout=sync_group_timeout,
-            sync_group_timeout_action=sync_group_timeout_action,
+            **_sync_group_trial_maker_kwargs(locals()),
         )
 
     @property

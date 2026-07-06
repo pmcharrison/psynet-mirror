@@ -3,7 +3,7 @@ from typing import List, Literal, Optional, Union
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 from ..utils import get_logger
-from .main import Trial
+from .main import Trial, _sync_group_trial_maker_kwargs
 
 logger = get_logger()
 
@@ -206,6 +206,24 @@ class StaticTrialMaker(ChainTrialMaker):
         of each SyncGroup. The other members of this SyncGroup will follow that leader around,
         so that in every given trial the SyncGroup works on the same node together.
 
+    sync_group_max_wait_time
+        The maximum time that the participant will be allowed to wait for the SyncGroup to be ready.
+        If this time is exceeded, the participant is either failed or kicked (see ``sync_group_max_wait_action``).
+        Defaults to 45.0 seconds.
+
+    sync_group_max_wait_action
+        When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant; ``"kick"`` removes them
+        from the group and lets them continue. Defaults to ``"fail"``.
+
+    sync_group_timeout
+        Optional timeout in seconds (since the group's last barrier pass) after which a participant
+        is considered too slow. When set, ``participant_timeout`` is passed to sync GroupBarriers.
+        When ``None`` (default), no participant timeout is applied.
+
+    sync_group_timeout_action
+        When ``sync_group_timeout`` is set: ``"kick"`` removes the participant from the group so
+        the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
+
     Attributes
     ----------
 
@@ -270,6 +288,7 @@ class StaticTrialMaker(ChainTrialMaker):
         assets=None,
         choose_participant_group: Optional[callable] = None,
         sync_group_type: Optional[str] = None,
+        sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
         sync_group_timeout: Optional[int] = None,
         sync_group_timeout_action: Literal["kick", "fail"] = "fail",
@@ -356,10 +375,7 @@ class StaticTrialMaker(ChainTrialMaker):
             n_repeat_trials=n_repeat_trials,
             assets=assets,
             choose_participant_group=choose_participant_group,
-            sync_group_type=sync_group_type,
-            sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout=sync_group_timeout,
-            sync_group_timeout_action=sync_group_timeout_action,
+            **_sync_group_trial_maker_kwargs(locals()),
         )
 
     def _start_nodes_param_name(self) -> str:

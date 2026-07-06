@@ -73,6 +73,23 @@ from ..utils import (
 logger = get_logger()
 
 
+_SYNC_GROUP_TRIAL_MAKER_KWARGS = (
+    "sync_group_type",
+    "sync_group_max_wait_time",
+    "sync_group_max_wait_action",
+    "sync_group_timeout",
+    "sync_group_timeout_action",
+)
+
+
+def _sync_group_trial_maker_kwargs(values):
+    """Collect sync-group kwargs for forwarding between trial-maker subclasses."""
+    missing = [name for name in _SYNC_GROUP_TRIAL_MAKER_KWARGS if name not in values]
+    if missing:
+        raise TypeError(f"Missing sync-group constructor kwargs: {missing}.")
+    return {name: values[name] for name in _SYNC_GROUP_TRIAL_MAKER_KWARGS}
+
+
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
     if x is None:
         return trial_maker_id
@@ -1372,15 +1389,21 @@ class TrialMaker(Module):
             logic_if_true=GroupBarrier(
                 "init_participant",
                 group_type=self.sync_group_type,
-                max_wait_time=self.sync_group_max_wait_time,
-                max_wait_action=self.sync_group_max_wait_action,
                 on_release=self._init_participants_in_sync_group,
-                participant_timeout=self.sync_group_timeout,
-                participant_timeout_action=self.sync_group_timeout_action,
+                **self._sync_group_barrier_kwargs(),
             ),
             logic_if_false=CodeBlock(self.init_participant),
             time_estimate=0.0 if self.sync_group_type is None else 3.0,
         )
+
+    def _sync_group_barrier_kwargs(self):
+        """Return sync-group settings using GroupBarrier's parameter names."""
+        return {
+            "max_wait_time": self.sync_group_max_wait_time,
+            "max_wait_action": self.sync_group_max_wait_action,
+            "participant_timeout": self.sync_group_timeout,
+            "participant_timeout_action": self.sync_group_timeout_action,
+        }
 
     def _leader_is_initialized(self, participant):
         group = participant.active_sync_groups[self.sync_group_type]
@@ -2029,10 +2052,7 @@ class TrialMaker(Module):
                         group_type=self.sync_group_type,
                         on_release=self._try_to_prepare_trial_group,
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
-                        max_wait_time=self.sync_group_max_wait_time,
-                        max_wait_action=self.sync_group_max_wait_action,
-                        participant_timeout=self.sync_group_timeout,
-                        participant_timeout_action=self.sync_group_timeout_action,
+                        **self._sync_group_barrier_kwargs(),
                     )
                 ),
                 CodeBlock(self._try_to_prepare_trial_solo),
@@ -2350,11 +2370,7 @@ class NetworkTrialMaker(TrialMaker):
             target_n_participants=target_n_participants,
             n_repeat_trials=n_repeat_trials,
             assets=assets,
-            sync_group_type=sync_group_type,
-            sync_group_max_wait_time=sync_group_max_wait_time,
-            sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout=sync_group_timeout,
-            sync_group_timeout_action=sync_group_timeout_action,
+            **_sync_group_trial_maker_kwargs(locals()),
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
