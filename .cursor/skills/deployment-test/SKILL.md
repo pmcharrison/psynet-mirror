@@ -63,7 +63,7 @@ branch; each deployment gets its own branch so its exact code is preserved
 for later auditing.
 
 A second test experiment lives at
-`tests/deployment/prolific_audio_gibbs`: an audio Gibbs
+`tests/deployment/audio_gibbs`: an audio Gibbs
 sampler experiment that additionally exercises audio synthesis
 (parselmouth), asset generation/storage, async worker processes, and a
 headphone prescreen. Deploy it the same way when asked, using the same
