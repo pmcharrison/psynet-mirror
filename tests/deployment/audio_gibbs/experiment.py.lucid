@@ -34,7 +34,10 @@ NUM_ITERATIONS_PER_CHAIN = 2
 CHAINS_PER_PARTICIPANT = len(TARGETS)
 NUM_TRIALS_PER_PARTICIPANT = NUM_ITERATIONS_PER_CHAIN * CHAINS_PER_PARTICIPANT
 
-INITIAL_RECRUITMENT_SIZE = 1
+# Matches TARGET_N_PARTICIPANTS so the Lucid survey is created with its full
+# quota up front: the marketplace UI then shows "Expected Completes = 10" and
+# Lucid keeps fielding until 10 completes without PsyNet-side quota top-ups.
+INITIAL_RECRUITMENT_SIZE = 10
 TARGET_N_PARTICIPANTS = 10
 
 

@@ -156,6 +156,10 @@ git checkout <previous-deployment-branch> -- tests/deployment/prolific tests/dep
      `auto_recruit=True`, `initial_recruitment_size=12`.
    - `audio_gibbs/experiment.py`: `auto_recruit=True`,
      `initial_recruitment_size=3`, `target_n_participants=5`.
+   - `audio_gibbs/experiment.py.lucid`: `initial_recruitment_size=10` equal to
+     `target_n_participants=10`, so the Lucid survey is created with its full
+     quota (the marketplace UI shows the full expected completes and fields
+     to target without PsyNet-side quota top-ups).
    - All `config.txt` files, including `config.txt.lucid`:
      `publish_experiment = true`.
 
