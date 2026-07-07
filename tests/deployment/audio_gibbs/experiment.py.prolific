@@ -110,7 +110,7 @@ def get_prolific_settings():
 
     return {
         "recruiter": "prolific",
-        "base_payment": 0.42,
+        "base_payment": 0.50,
         "prolific_estimated_completion_minutes": 3,
         "prolific_recruitment_config": qualification,
         # True so deployment tests exercise the programmatic top-up path
