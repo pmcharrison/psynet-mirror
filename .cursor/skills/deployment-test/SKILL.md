@@ -531,6 +531,12 @@ This report should be more detailed than the chat summary. Include:
   Dallinger commit, Prolific study id, and final Prolific study status.
 - Final Prolific counts by submission status, including `APPROVED`, `RETURNED`,
   `TIMED-OUT`, `AWAITING REVIEW`, and any unexpected statuses.
+- The total cost of the run as reported by the recruiting platform itself.
+  Fetch it inside the app's web container: for Prolific apps use
+  `ProlificService.get_total_cost(study_id)` (via
+  `prolific_service_from_config()`); for Lucid apps use
+  `LucidService.get_cost(survey_number)` (via `get_lucid_service()`). Report
+  the amount with its currency and state which platform figure it is.
 - Dashboard-vs-Prolific reconciliation: compare participant rows against
   Prolific submissions using assignment/submission id, worker id, status,
   completion flag, failure fields, payment fields, reward/bonus fields, and
