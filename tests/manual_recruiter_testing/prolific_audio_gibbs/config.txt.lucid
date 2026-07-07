@@ -1,0 +1,9 @@
+[Parameters]
+aws_region = us-east-1
+publish_experiment = false
+
+[Lucid]
+recruiter = lucid-recruiter
+# debug_recruiter = DevLucidRecruiter
+lucid_recruitment_config = file:./lucid_recruitment_config.json
+# show_reward = false
