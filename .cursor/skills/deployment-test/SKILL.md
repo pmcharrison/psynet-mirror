@@ -273,7 +273,7 @@ cd <psynet-root>/tests/deployment/audio_gibbs
 psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
-  --app <audio-gibbs-app-name> &
+  --app <audio-gibbs-prolific-app-name> &
 
 wait
 ```
@@ -281,14 +281,15 @@ wait
 Do not let one deployment's failure silently abort the other: check each
 launch output separately, and report per-app success/failure.
 
-Name each app after the deployment branch and experiment:
-`test-<base-tag>-payment-flows-prolific` and `test-<base-tag>-audio-gibbs`, appending
-`-2`, `-3`, ... for repeat deployments. App names only allow `a-z`, `0-9`,
-and `-` (the deploy command rejects anything else), so replace the dots in
-the base tag with dashes, e.g. base tag `v13.3.0rc1` gives
-`test-v13-3-0rc1-payment-flows-prolific-1` and `test-v13-3-0rc1-audio-gibbs-1`.
-(Older deployments of this experiment used app names with a `-prolific`
-suffix, matching the directory's previous name.) After
+Name each app after the deployment branch, experiment, and recruiter:
+`test-<base-tag>-payment-flows-prolific` and
+`test-<base-tag>-audio-gibbs-prolific`, appending `-2`, `-3`, ... for repeat
+deployments. App names only allow `a-z`, `0-9`, and `-` (the deploy command
+rejects anything else), so replace the dots in the base tag with dashes,
+e.g. base tag `v13.3.0rc1` gives `test-v13-3-0rc1-payment-flows-prolific-1`
+and `test-v13-3-0rc1-audio-gibbs-prolific-1`. (Older deployments used the
+app names `test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs`,
+before the recruiter suffix became part of the convention.) After
 deployment, inspect each launch output for the experiment URL, dashboard
 URL, and Dozzle URL.
 
