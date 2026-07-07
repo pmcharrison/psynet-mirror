@@ -22,7 +22,7 @@ class CustomMainConsent(Module):
     ):
         label = "main_consent"
         elts = join(
-            self.MainConsentPage(),
+            self.MainConsentPage(time_estimate=time_estimate),
             conditional(
                 "main_consent_conditional",
                 lambda experiment, participant: not participant.answer["main_consent"],
