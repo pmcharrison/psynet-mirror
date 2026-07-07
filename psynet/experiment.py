@@ -98,6 +98,7 @@ from .timeline import (
     DatabaseCheck,
     FailedValidation,
     ModuleState,
+    Page,
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
@@ -1993,6 +1994,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                     self.channel = WEBSOCKET_CHANNEL
                 self._websocket_message_handlers.setdefault(elt.channel, []).append(
                     elt.handle_message
+                )
+
+        self._check_spa_template_contracts()
+
+    def _check_spa_template_contracts(self):
+        """
+        Validate the SPA (inplace timeline transition) template contract for
+        every statically-defined page at experiment construction time.
+
+        Doing this here surfaces authoring mistakes (e.g. raw ``<script>``
+        blocks, ``DOMContentLoaded`` listeners, page-level CSS/JS) at
+        deploy/test time. Previously the contract was only checked lazily inside
+        ``Page.render()``; for a page reached via an inplace timeline transition
+        that render happens in ``response_approved()`` *after* the participant
+        has already been advanced past their previous page, so a contract
+        violation surfaced as a generic mid-response error rather than a clear
+        startup failure. Pages generated dynamically by ``PageMaker`` are not
+        included here and still rely on the render-time check as a backstop.
+        """
+        try:
+            inplace_timeline_transitions = get_config().get(
+                "inplace_timeline_transitions", False
+            )
+        except Exception:
+            # Config may not be available in every construction context; the
+            # render-time check remains as a backstop in that case.
+            return
+
+        for elt in self.timeline.all_elts:
+            if isinstance(elt, Page):
+                elt._check_spa_template_contract(
+                    inplace_timeline_transitions=inplace_timeline_transitions
                 )
 
     def receive_message(
@@ -4106,6 +4139,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         This helper is the shared render authority for inplace fragment output
         returned directly from /response.
         """
+        # Mirror the full-page /timeline path (see get_current_page), which
+        # calls pre_render() before rendering. Without this, pages advanced via
+        # an inplace transition would skip pre_render() hooks (e.g. prompt/control
+        # setup such as S3 presigned URL preparation).
+        page.pre_render()
         return {
             "html": page.render(experiment, participant, partial_mode=True),
             "page_uuid": participant.page_uuid,

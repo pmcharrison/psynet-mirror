@@ -5,6 +5,7 @@ import pytest
 from markupsafe import Markup
 
 from psynet.end import UnsuccessfulEndLogic
+from psynet.experiment import Experiment
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import (
     AsyncCodeBlock,
@@ -131,6 +132,25 @@ def test_partial_body_extraction_uses_named_fragment_wrapper():
 def test_partial_body_extraction_requires_named_fragment_wrapper():
     with pytest.raises(ValueError, match="could not find fragment root"):
         Page._extract_partial_body("<div id='main-body'></div>")
+
+
+def test_partial_fragment_rendering_calls_pre_render_before_render():
+    # The inplace /response path must run pre_render() before rendering, mirroring
+    # the full /timeline path (get_current_page). Otherwise prompt/control
+    # pre_render() hooks are skipped when a page is reached via an inplace
+    # transition, which is now the default behavior.
+    calls = []
+    page = MagicMock()
+    page.pre_render.side_effect = lambda: calls.append("pre_render")
+    page.render.side_effect = lambda *args, **kwargs: calls.append("render") or "<html>"
+    participant = SimpleNamespace(page_uuid="uuid-123")
+
+    payload = Experiment.render_partial_timeline_payload(
+        page, experiment=MagicMock(), participant=participant
+    )
+
+    assert calls == ["pre_render", "render"]
+    assert payload == {"html": "<html>", "page_uuid": "uuid-123"}
 
 
 def test_template_fragment_input_wraps_main_body_content():
@@ -292,6 +312,32 @@ def test_framework_owned_templates_skip_forbidden_content_validation():
     )
 
     page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_construction_validates_spa_contracts_for_static_pages():
+    # A statically-defined page that violates the SPA contract should fail at
+    # experiment construction time (inplace mode), rather than surfacing as a
+    # generic mid-response error after the participant has already been advanced.
+    good_page = Page(template_fragment_str="<p>ok</p>")
+    bad_page = Page(template_fragment_str="<style>.x { color: red; }</style>")
+    exp = SimpleNamespace(
+        timeline=SimpleNamespace(all_elts=[good_page, bad_page]),
+    )
+
+    with patch("psynet.experiment.get_config") as mock_get_config:
+        mock_get_config.return_value.get.return_value = True
+        with pytest.raises(ValueError, match="Page css argument"):
+            Experiment._check_spa_template_contracts(exp)
+
+
+def test_construction_validation_skipped_when_config_unavailable():
+    # If config cannot be read during construction, the render-time check remains
+    # the backstop and construction should not raise.
+    bad_page = Page(template_fragment_str="<style>.x { color: red; }</style>")
+    exp = SimpleNamespace(timeline=SimpleNamespace(all_elts=[bad_page]))
+
+    with patch("psynet.experiment.get_config", side_effect=RuntimeError):
+        Experiment._check_spa_template_contracts(exp)
 
 
 class CustomTrial(ChainTrial):
