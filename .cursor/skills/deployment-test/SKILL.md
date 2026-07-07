@@ -58,7 +58,9 @@ user before running any PsyNet or Python-related command.
 
 A full deployment test covers two experiments in `tests/deployment`:
 
-- `tests/deployment/prolific`: the basic Prolific manual recruiter test.
+- `tests/deployment/payment_flows_prolific`: the basic Prolific recruiter test,
+  exercising payment flows (base payment, screen-out compensation, and
+  performance rewards).
 - `tests/deployment/audio_gibbs`: an audio Gibbs sampler experiment that
   additionally exercises audio synthesis (parselmouth), asset
   generation/storage, async worker processes, and a headphone prescreen.
@@ -142,7 +144,7 @@ git fetch origin master --tags
 BASE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the tag the user specifies
 echo "Base: $BASE_TAG"
 git switch -c deployment-tests/$BASE_TAG "$BASE_TAG"
-git checkout <previous-deployment-branch> -- tests/deployment/prolific tests/deployment/audio_gibbs
+git checkout <previous-deployment-branch> -- tests/deployment/payment_flows_prolific tests/deployment/audio_gibbs
 ```
 
    For an explicitly requested master-based deployment, update local `master`
@@ -152,7 +154,7 @@ git checkout <previous-deployment-branch> -- tests/deployment/prolific tests/dep
    Verify the imported experiment configuration includes the standing
    deployment settings:
 
-   - `prolific/experiment.py`: `prolific_is_custom_screening=False`,
+   - `payment_flows_prolific/experiment.py`: `prolific_is_custom_screening=False`,
      `auto_recruit=True`, `initial_recruitment_size=12`.
    - `audio_gibbs/experiment.py`: `auto_recruit=True`,
      `initial_recruitment_size=3`, `target_n_participants=5`.
@@ -206,7 +208,7 @@ uv pip install -e ".[dev,slack]"
    directory being deployed:
 
 ```bash
-for exp in prolific audio_gibbs; do
+for exp in payment_flows_prolific audio_gibbs; do
   (cd <psynet-root>/tests/deployment/$exp && psynet update-scripts)
 done
 git add tests/deployment && git commit -m "Refresh experiment scripts via psynet update-scripts"
@@ -241,14 +243,15 @@ git add tests/deployment && git commit -m "Refresh experiment scripts via psynet
    would silently override the new pins:
 
 ```bash
-for exp in prolific audio_gibbs; do
+for exp in payment_flows_prolific audio_gibbs; do
   (cd <psynet-root>/tests/deployment/$exp && psynet generate-constraints)
 done
 git add tests/deployment/*/constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
 ```
 
 10. Ensure neither experiment enables `prolific_is_custom_screening`
-   (`tests/deployment/prolific/experiment.py` sets it to `False` explicitly;
+   (`tests/deployment/payment_flows_prolific/experiment.py` sets it to `False`
+   explicitly;
    `audio_gibbs` relies on the `False` default). Prolific no longer supports
    the older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
@@ -260,11 +263,11 @@ terminals) and monitor both launch outputs:
 ```bash
 source <psynet-root>/<venv>/bin/activate
 
-cd <psynet-root>/tests/deployment/prolific
+cd <psynet-root>/tests/deployment/payment_flows_prolific
 psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
-  --app <prolific-app-name> &
+  --app <payment-flows-prolific-app-name> &
 
 cd <psynet-root>/tests/deployment/audio_gibbs
 psynet deploy ssh \
@@ -279,11 +282,13 @@ Do not let one deployment's failure silently abort the other: check each
 launch output separately, and report per-app success/failure.
 
 Name each app after the deployment branch and experiment:
-`test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs`, appending
+`test-<base-tag>-payment-flows-prolific` and `test-<base-tag>-audio-gibbs`, appending
 `-2`, `-3`, ... for repeat deployments. App names only allow `a-z`, `0-9`,
 and `-` (the deploy command rejects anything else), so replace the dots in
 the base tag with dashes, e.g. base tag `v13.3.0rc1` gives
-`test-v13-3-0rc1-prolific-1` and `test-v13-3-0rc1-audio-gibbs-1`. After
+`test-v13-3-0rc1-payment-flows-prolific-1` and `test-v13-3-0rc1-audio-gibbs-1`.
+(Older deployments of this experiment used app names with a `-prolific`
+suffix, matching the directory's previous name.) After
 deployment, inspect each launch output for the experiment URL, dashboard
 URL, and Dozzle URL.
 
