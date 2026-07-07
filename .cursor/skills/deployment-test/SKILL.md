@@ -57,13 +57,13 @@ user before running any PsyNet or Python-related command.
 ## Deploy The Prolific Test From The Test Branch
 
 When asked to redeploy the Prolific manual recruiter test, deploy
-`tests/manual_recruiter_testing/prolific` from a **fresh deployment branch
+`tests/deployment/prolific` from a **fresh deployment branch
 created for this deployment**. Do not reuse or rebase a long-lived deployment
 branch; each deployment gets its own branch so its exact code is preserved
 for later auditing.
 
 A second test experiment lives at
-`tests/manual_recruiter_testing/prolific_audio_gibbs`: an audio Gibbs
+`tests/deployment/prolific_audio_gibbs`: an audio Gibbs
 sampler experiment that additionally exercises audio synthesis
 (parselmouth), asset generation/storage, async worker processes, and a
 headphone prescreen. Deploy it the same way when asked, using the same
@@ -91,7 +91,7 @@ Before deploying:
 2. Create the deployment branch from the base and import the experiment
    configuration from the most recent previous deployment branch, or from
    `master` if it is newer or no previous deployment branch exists (the
-   `tests/manual_recruiter_testing/prolific` directory carries deployment
+   `tests/deployment/prolific` directory carries deployment
    settings that are typically not on release tags):
 
 ```bash
@@ -100,7 +100,7 @@ git fetch origin master --tags
 BASE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the tag the user specifies
 echo "Base: $BASE_TAG"
 git switch -c deployment-tests/$BASE_TAG-prolific "$BASE_TAG"
-git checkout <previous-deployment-branch> -- tests/manual_recruiter_testing/prolific
+git checkout <previous-deployment-branch> -- tests/deployment/prolific
 ```
 
    For an explicitly requested master-based deployment, update local `master`
@@ -146,7 +146,7 @@ uv pip install -e ".[dev,slack]"
    `docker/` helpers, `pytest.ini`, etc.):
 
 ```bash
-cd <psynet-root>/tests/manual_recruiter_testing/prolific
+cd <psynet-root>/tests/deployment/prolific
 psynet update-scripts
 git add . && git commit -m "Refresh experiment scripts via psynet update-scripts"
 ```
@@ -154,7 +154,7 @@ git add . && git commit -m "Refresh experiment scripts via psynet update-scripts
    Review the diff before committing; template changes should be plausible for
    the base version (e.g. pinned image tags matching the base tag).
 
-6. Pin the packages in `tests/manual_recruiter_testing/prolific/requirements.txt`
+6. Pin the packages in `tests/deployment/prolific/requirements.txt`
    to match the base:
 
    - **Release-tag deployment (default)**: pin PsyNet to the base tag and
@@ -179,12 +179,12 @@ git add . && git commit -m "Refresh experiment scripts via psynet update-scripts
    the new pins:
 
 ```bash
-cd <psynet-root>/tests/manual_recruiter_testing/prolific
+cd <psynet-root>/tests/deployment/prolific
 psynet generate-constraints
 git add constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
 ```
 
-8. Ensure `tests/manual_recruiter_testing/prolific/experiment.py` sets
+8. Ensure `tests/deployment/prolific/experiment.py` sets
    `prolific_is_custom_screening` to `False`. Prolific no longer supports the
    older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
@@ -192,7 +192,7 @@ git add constraints.txt && git commit -m "Regenerate constraints from pinned req
 Deploy from the experiment directory:
 
 ```bash
-cd <psynet-root>/tests/manual_recruiter_testing/prolific
+cd <psynet-root>/tests/deployment/prolific
 source <psynet-root>/<venv>/bin/activate
 psynet deploy ssh \
   --server <ssh-host> \
@@ -362,7 +362,7 @@ Collect the `local/` artifacts as follows:
    directory into `local/export/`:
 
 ```bash
-cd <psynet-root>/tests/manual_recruiter_testing/prolific
+cd <psynet-root>/tests/deployment/prolific
 psynet export ssh --app <app-name> --server <ssh-host> --anonymize no \
   --path <psynet-root>/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/export
 ```
@@ -389,7 +389,7 @@ Work through all of these once `study_status == "COMPLETED"`:
    destroy it without explicit user confirmation:
 
 ```bash
-cd <psynet-root>/tests/manual_recruiter_testing/prolific
+cd <psynet-root>/tests/deployment/prolific
 psynet destroy ssh --server <ssh-host> --app <app-name>
 ```
 
