@@ -156,7 +156,8 @@ git checkout <previous-deployment-branch> -- tests/deployment/prolific tests/dep
      `auto_recruit=True`, `initial_recruitment_size=12`.
    - `audio_gibbs/experiment.py`: `auto_recruit=True`,
      `initial_recruitment_size=3`, `target_n_participants=5`.
-   - Both `config.txt` files: `publish_experiment = true`.
+   - All `config.txt` files, including `config.txt.lucid`:
+     `publish_experiment = true`.
 
 5. Match Dallinger to the PsyNet base. For a release-tag deployment, check out
    the Dallinger version that the PsyNet tag pins in its `pyproject.toml`
@@ -319,9 +320,10 @@ git commit -m "Restore Prolific variant after Lucid deployment"
 
 Notes for the Lucid app:
 
-- The Lucid config intentionally sets `publish_experiment = false`; the
-  `publish_experiment = true` standing setting applies only to the Prolific
-  configurations.
+- Like the Prolific configs, `config.txt.lucid` sets
+  `publish_experiment = true`, so the Lucid survey goes live automatically at
+  launch (survey status `03`) instead of requiring manual publication in the
+  Lucid marketplace.
 - The "Observe Until Prolific Completion" workflow below is
   Prolific-specific. For the Lucid app there is no Prolific study to poll;
   observe the dashboard participant table, recruiter state, and Dozzle logs
