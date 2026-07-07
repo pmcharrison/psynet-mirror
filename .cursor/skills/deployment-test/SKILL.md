@@ -167,9 +167,9 @@ git checkout <previous-deployment-branch> -- tests/deployment/payment_flows_prol
      ~0.5, which converted poorly) and opens with a short plain-language
      welcome page ("4-minute listening study, headphones required, ...")
      before consent to reduce voluntary bounces at entry. The experiment
-     also pauses the Lucid survey via the API once the participant target is
-     reached (`Exp.recruit` override): Lucid does not reliably stop
-     admitting entrants at the quota on its own, and
+     also sets the Lucid survey to `complete` via the API once the
+     participant target is reached (`Exp.recruit` override): Lucid does not
+     promptly stop admitting entrants at the quota on its own, and
      `LucidRecruiter.close_recruitment` is a no-op.
    - `audio_gibbs/lucid_recruitment_config.json` carries marketplace
      qualifications that prescreen panelists before they enter PsyNet:
