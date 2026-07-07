@@ -170,3 +170,7 @@ dump.rdb
 # Local scratch space for downloaded deployment logs (see
 # .cursor/skills/debug-deployment-test-experiments/SKILL.md)
 dev/tmp/
+
+# Raw deployment-test artifacts: participant data and bulky logs/exports
+# stay local; only analysis.md is committed (see the deployment-test skill).
+deployment-tests/*/local/
