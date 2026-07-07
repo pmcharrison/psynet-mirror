@@ -1,1 +1,1 @@
-Release and deployment-test skills now cross-reference each other: RC validation requires a successful deployment test whose per-app analyses end with an explicit promotion verdict.
+Release and deployment-test skills now cross-reference each other: RC validation requires a successful deployment test whose per-app analyses end with an explicit promotion verdict, and release branches merged back into master must use a merge commit without deleting the source branch.

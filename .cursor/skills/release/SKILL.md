@@ -436,6 +436,8 @@ may have gained additional changes after the release branch was created.
 - Review the changes one last time in the MR "Changes" tab.
 - Use a **merge commit** (do not squash), so the individual release commits
   are preserved on `master`.
+- Disable source-branch deletion. Release branches are long-lived maintenance
+  branches and must remain available after they are merged back into `master`.
 
 ### 5. Publish
 
@@ -455,9 +457,10 @@ Perform the shared steps, in this order:
 > release branch back into `master`.
 
 Merge the release MR via the GitLab interface using a **merge commit** (not
-squash). This carries forward release bookkeeping such as the finalized
-`CHANGELOG.md`, version bump, and regenerated demo constraints. It is not
-the commit that should be tagged for the release.
+squash), and make sure the source branch is not deleted. This carries forward
+release bookkeeping such as the finalized `CHANGELOG.md`, version bump, and
+regenerated demo constraints. It is not the commit that should be tagged for
+the release.
 
 ### 7. Bump master to the next alpha
 
