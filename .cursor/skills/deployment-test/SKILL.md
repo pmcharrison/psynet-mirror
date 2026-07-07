@@ -62,14 +62,19 @@ A full deployment test covers two experiments in `tests/deployment`:
 - `tests/deployment/audio_gibbs`: an audio Gibbs sampler experiment that
   additionally exercises audio synthesis (parselmouth), asset
   generation/storage, async worker processes, and a headphone prescreen.
+  Besides the default Prolific configuration, it carries a **Lucid variant**
+  (`experiment.py.lucid` + `config.txt.lucid`), used for a third,
+  Lucid-recruiter deployment (see "Deploy The Lucid Variant" below).
 
-By default deploy **both** experiments, as two separate apps running **in
-parallel** to save wall-clock time; deploy only one when the user explicitly
-asks for it. Prepare both experiment directories on a **single fresh
-deployment branch created for this deployment** (the preparation steps below
-are shared), then run the two `psynet deploy ssh` commands concurrently. Do
-not reuse or rebase a long-lived deployment branch; each deployment gets its
-own branch so its exact code is preserved for later auditing.
+By default a full deployment test produces **three apps**: the two Prolific
+experiments deployed **in parallel** to save wall-clock time, plus the Lucid
+variant of `audio_gibbs` deployed right after its Prolific sibling. Deploy a
+subset only when the user explicitly asks for it. Prepare both experiment
+directories on a **single fresh deployment branch created for this
+deployment** (the preparation steps below are shared), then run the two
+Prolific `psynet deploy ssh` commands concurrently. Do not reuse or rebase a
+long-lived deployment branch; each deployment gets its own branch so its
+exact code is preserved for later auditing.
 
 **Base the branch on the latest PsyNet release tag by default** (including
 release candidates, e.g. `v13.3.0rc0`), so the test exercises what users
@@ -230,6 +235,64 @@ the base tag with dashes, e.g. base tag `v13.3.0rc1` gives
 deployment, inspect each launch output for the experiment URL, dashboard
 URL, and Dozzle URL.
 
+## Deploy The Lucid Variant
+
+The full deployment test also includes a third app: the `audio_gibbs`
+experiment deployed with the **Lucid recruiter**, exercising the Lucid
+recruitment path (`LucidConsent`, `lucid_recruitment_config.json`).
+
+The Lucid variant deploys from the same `tests/deployment/audio_gibbs`
+directory, so it cannot start until the Prolific `audio_gibbs` deploy command
+has finished (the running Prolific app is unaffected by later file changes).
+Start it as soon as that deploy completes, so it runs while the Prolific apps
+are being observed.
+
+1. Switch the directory to the Lucid variant and commit the swap, so the
+   deployment branch records exactly what was deployed:
+
+```bash
+cd <psynet-root>/tests/deployment/audio_gibbs
+cp experiment.py.lucid experiment.py
+cp config.txt.lucid config.txt
+git add experiment.py config.txt
+git commit -m "Switch audio_gibbs to Lucid variant for Lucid deployment"
+```
+
+2. Deploy with the app name `test-<base-tag>-audio-gibbs-lucid`, appending
+   `-2`, `-3`, ... for repeat deployments (e.g.
+   `test-v13-3-0rc1-audio-gibbs-lucid-1`):
+
+```bash
+psynet deploy ssh \
+  --server <ssh-host> \
+  --dns-host <dns-host> \
+  --app <audio-gibbs-lucid-app-name>
+```
+
+3. After the Lucid deploy has launched, restore the Prolific variant and
+   commit, so the directory's final state on the deployment branch is the
+   default configuration:
+
+```bash
+cp experiment.py.prolific experiment.py
+cp config.txt.prolific config.txt
+git add experiment.py config.txt
+git commit -m "Restore Prolific variant after Lucid deployment"
+```
+
+Notes for the Lucid app:
+
+- The Lucid config intentionally sets `publish_experiment = false`; the
+  `publish_experiment = true` standing setting applies only to the Prolific
+  configurations.
+- The "Observe Until Prolific Completion" workflow below is
+  Prolific-specific. For the Lucid app there is no Prolific study to poll;
+  observe the dashboard participant table, recruiter state, and Dozzle logs
+  until the target number of participants completes or the user stops the
+  test, then apply the same per-app audit-trail workflow (skipping the
+  Prolific study/submissions JSON artifact and capturing the equivalent
+  Lucid recruiter-state evidence instead).
+
 ## Infer The App Name
 
 If the user gives an experiment URL, infer the app name from the first hostname segment:
@@ -341,10 +404,12 @@ Dozzle log download and review described below. Compare these logs against the
 initial deployment-time scan and call out errors that only appeared after
 completion.
 
-When both experiments were deployed, observe both apps in parallel and apply
-this whole completion/audit workflow to each app independently: each has its
-own Prolific study, its own dashboard, and its own audit folder keyed by app
-name. Do not stop observing one app because the other completed first.
+When several apps were deployed, observe them in parallel and apply this
+whole completion/audit workflow to each app independently: each has its own
+recruiter run, its own dashboard, and its own audit folder keyed by app name
+(the Lucid app follows the adapted observation described in "Deploy The
+Lucid Variant"). Do not stop observing one app because another completed
+first.
 
 After the study status is `COMPLETED`, record the deployment's audit trail in
 a per-deployment folder on the deployment branch. Each deployment gets one
