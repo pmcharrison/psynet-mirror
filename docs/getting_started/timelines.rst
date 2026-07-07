@@ -64,6 +64,102 @@ Pages define the web page that is shown to the participant at a given
 point in time, and have fixed content that is the same for all participants.
 We covered them in detail in the previous chapter, :doc:`pages`.
 
+Custom templates and in-place timeline transitions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+PsyNet supports two styles of custom page templates.
+
+The legacy style is a complete Jinja template that extends ``timeline-page.html``
+and overrides blocks such as ``main_body``:
+
+.. code-block:: html
+
+    {% extends "timeline-page.html" %}
+
+    {% block main_body %}
+        <p>Custom page content</p>
+    {% endblock %}
+
+This complete-template style remains supported for the legacy full-page reload
+path, where ``inplace_timeline_transitions = False``. It should not be used for
+custom pages that need to run with ``inplace_timeline_transitions = True``.
+
+For in-place timeline transitions, custom pages should provide only the contents
+of the page's ``main_body`` block by using ``template_fragment_path`` or
+``template_fragment_str``:
+
+.. code-block:: python
+
+    from psynet.timeline import Page
+
+
+    class MyPage(Page):
+        def __init__(self):
+            super().__init__(
+                label="my_page",
+                template_fragment_path="templates/my-page.html",
+                css_links=["/static/my-page.css"],
+                js_links=["/static/my-page.js"],
+                time_estimate=5,
+            )
+
+        def get_bot_response(self, experiment, bot):
+            return None
+
+PsyNet wraps this fragment in the standard timeline page shell, including the
+timeline header, main body container, footer, page asset bundle, and
+``psynet-template-data``. Authors should not include ``{% extends
+"timeline-page.html" %}``, ``{% block main_body %}``, ``<html>``, ``<head>``,
+or ``<body>`` in a fragment template.
+
+Page-local CSS and JavaScript should be supplied through explicit page
+arguments:
+
+* Prefer ``template_fragment_path`` for experiment templates stored in
+  ``templates/``. ``template_fragment_str`` is useful for small generated
+  fragments, but file-based fragments are usually clearer for authored pages.
+* Prefer ``css_links`` and ``js_links`` for authored page-local CSS and
+  JavaScript files stored in ``static/``.
+* Use ``css`` and ``scripts`` for small generated snippets when file-based
+  assets would be less clear.
+* Use PsyNet lifecycle hooks such as ``psynet.trial.onEvent("trialConstruct",
+  ...)`` for page setup.
+* Use ``psynet.addPageEventListener(...)`` for event listeners that should be
+  removed automatically on page cleanup.
+* Use ``psynet.addPageCleanupCallback(...)`` for resources that must not survive
+  a page swap, such as timers, websockets, or media resources.
+
+Do not rely on ``DOMContentLoaded`` for page setup when using in-place
+transitions. In-place transitions do not reload the browser document for every
+timeline page, so ``DOMContentLoaded`` will not fire for each page activation.
+
+When ``inplace_timeline_transitions = True``, PsyNet raises an error if a custom
+page uses a complete template or if author-provided template content includes
+patterns that are incompatible with the in-place lifecycle. When
+``inplace_timeline_transitions = False``, PsyNet keeps legacy templates working
+but may warn about patterns that should be migrated before enabling in-place
+transitions.
+
+The validation checks only author-provided template content, not PsyNet's own
+timeline shell or assets supplied through supported page arguments. The checked
+patterns are:
+
+* ``document.addEventListener("DOMContentLoaded", ...)``. Use
+  ``psynet.trial.onEvent("trialConstruct", ...)`` instead.
+* ``window.addEventListener(...)`` without evidence of PsyNet cleanup. Use
+  ``psynet.addPageEventListener(...)`` where possible, or register cleanup with
+  ``psynet.addPageCleanupCallback(...)``.
+* Raw template ``<script>`` blocks. Use the ``scripts`` argument instead.
+* Template ``<script src=...>`` tags. Use the ``js_links`` argument instead.
+* Template ``<style>`` blocks. Use the ``css`` argument instead.
+* Template stylesheet ``<link rel="stylesheet">`` tags. Use the ``css_links``
+  argument instead.
+
+Existing experiments may therefore be legacy-only, SPA-ready, or incidentally
+compatible with both modes. A validation error in SPA mode means that the page
+has not yet been migrated to the fragment-template contract; it does not imply
+that the same page should stop working in legacy reload mode.
+
 Page makers
 ~~~~~~~~~~~
 

@@ -12,9 +12,24 @@
   const psynetTemplateData = JSON.parse(templateDataElement.textContent);
   window.psynetTemplateData = psynetTemplateData;
 
-  Object.entries(psynetTemplateData.jsVars || {}).forEach(([key, value]) => {
-    window[key] = value;
-  });
+  // Keep template-provided JS variables mirrored onto `window` so that
+  // page scripts can continue using the historical global contract.
+  let activeJsVarKeys = new Set();
+
+  let syncJsVars = function () {
+    let jsVars = psynetTemplateData.jsVars || {};
+    activeJsVarKeys.forEach((key) => {
+      if (!(key in jsVars)) {
+        delete window[key];
+      }
+    });
+    Object.entries(jsVars).forEach(([key, value]) => {
+      window[key] = value;
+    });
+    activeJsVarKeys = new Set(Object.keys(jsVars));
+  };
+
+  syncJsVars();
 
   $(document).on("change", "#iso-language", function () {
     const locale = $(this).val();
@@ -43,6 +58,7 @@
       comments: [],
       var: psynetTemplateData.jsVars,
     };
+    psynet.SUBMISSION_HANDLED = Symbol("psynet.SUBMISSION_HANDLED");
 
     psynet.utils.shallowCopy = function (x) {
       return Object.assign({}, x);
@@ -109,6 +125,564 @@
 
     psynet.removeBeforeUnloadEventListener = function () {
       window.removeEventListener("beforeunload", beforeunloadFunction);
+    };
+
+    // ---- Template data bootstrap / refresh ---------------------------------
+    // In inplace mode we keep one persistent document and replace only the
+    // timeline fragment. After each swap we must refresh the bootstrap payload
+    // explicitly, because a browser reload is no longer doing that for us.
+    psynet.refreshTemplateData = function () {
+      const refreshedTemplateDataElement = document.getElementById(
+        "psynet-template-data",
+      );
+      if (!refreshedTemplateDataElement) {
+        throw new Error("Missing refreshed psynet template data.");
+      }
+      const refreshedTemplateData = JSON.parse(
+        refreshedTemplateDataElement.textContent,
+      );
+      Object.keys(psynetTemplateData).forEach((key) => {
+        delete psynetTemplateData[key];
+      });
+      Object.assign(psynetTemplateData, refreshedTemplateData);
+      window.psynetTemplateData = psynetTemplateData;
+      syncJsVars();
+      psynet.var = psynetTemplateData.jsVars || {};
+      psynet.media.requests = psynetTemplateData.mediaRequests || {};
+    };
+
+    psynet.pageReady = false;
+
+    // ---- Page readiness -----------------------------------------------------
+    psynet.updatePageReadyMarker = function () {
+      let mainBody = document.getElementById("main-body");
+      if (!mainBody) {
+        return;
+      }
+      mainBody.setAttribute(
+        "data-page-ready",
+        psynet.pageReady ? "true" : "false",
+      );
+    };
+
+    psynet.setPageReady = function (isReady) {
+      psynet.pageReady = isReady;
+      psynet.updatePageReadyMarker();
+      if (isReady) {
+        window.dispatchEvent(new CustomEvent("timelinePageReady"));
+      }
+    };
+
+    psynet.runWhenDocumentReady = function (callback) {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", callback, { once: true });
+        return;
+      }
+      callback();
+    };
+
+    psynet.getJsSynthState = function () {
+      if (!psynet.page.prompt.jsSynth) {
+        psynet.page.prompt.jsSynth = {
+          defaultParams: undefined,
+          loadedInstruments: {},
+          activeNodes: undefined,
+        };
+      }
+      return psynet.page.prompt.jsSynth;
+    };
+
+    psynet.page.response = {
+      retrieveResponse: undefined,
+      stageResponse: null,
+    };
+
+    // ---- Response handler registration -------------------------------------
+    psynet.setRetrieveResponseHandler = function (handler) {
+      psynet.page.response.retrieveResponse = handler;
+    };
+
+    psynet.getRetrieveResponseHandler = function () {
+      return psynet.page.response.retrieveResponse;
+    };
+
+    psynet.clearRetrieveResponseHandler = function () {
+      psynet.page.response.retrieveResponse = undefined;
+    };
+
+    psynet.setStageResponseHandler = function (handler) {
+      psynet.page.response.stageResponse = handler;
+      psynet.stageResponse = handler;
+    };
+
+    psynet.getStageResponseHandler = function () {
+      return psynet.page.response.stageResponse || psynet.stageResponse;
+    };
+
+    psynet.clearStageResponseHandler = function () {
+      psynet.page.response.stageResponse = null;
+      psynet.stageResponse = null;
+    };
+
+    Object.defineProperty(window, "retrieveResponse", {
+      configurable: true,
+      get() {
+        return psynet.getRetrieveResponseHandler();
+      },
+      set(handler) {
+        psynet.setRetrieveResponseHandler(handler);
+      },
+    });
+
+    Object.defineProperty(window, "DEFAULT_PARAMS", {
+      configurable: true,
+      get() {
+        return psynet.getJsSynthState().defaultParams;
+      },
+      set(value) {
+        psynet.getJsSynthState().defaultParams = value;
+      },
+    });
+
+    Object.defineProperty(window, "LOADED_INSTRUMENTS", {
+      configurable: true,
+      get() {
+        return psynet.getJsSynthState().loadedInstruments;
+      },
+      set(value) {
+        psynet.getJsSynthState().loadedInstruments = value;
+      },
+    });
+
+    Object.defineProperty(window, "ACTIVE_NODES", {
+      configurable: true,
+      get() {
+        return psynet.getJsSynthState().activeNodes;
+      },
+      set(value) {
+        psynet.getJsSynthState().activeNodes = value;
+      },
+    });
+
+    // ---- Page-scoped listeners / resources ---------------------------------
+    psynet.pageEventListeners = [];
+    psynet.pageCleanupCallbacks = [];
+
+    psynet.addPageEventListener = function (
+      target,
+      eventName,
+      handler,
+      options,
+    ) {
+      target.addEventListener(eventName, handler, options);
+      psynet.pageEventListeners.push({
+        target: target,
+        eventName: eventName,
+        handler: handler,
+        options: options,
+      });
+    };
+
+    psynet.addPageCleanupCallback = function (callback) {
+      psynet.pageCleanupCallbacks.push(callback);
+    };
+
+    psynet.runPageCleanupCallbacks = function () {
+      psynet.pageCleanupCallbacks.forEach(function (callback) {
+        try {
+          callback();
+        } catch (error) {
+          psynet.log.warn(
+            "Page cleanup callback failed: " +
+              (error && error.message ? error.message : String(error)),
+          );
+        }
+      });
+      psynet.pageCleanupCallbacks = [];
+    };
+
+    psynet.clearPageEventListeners = function () {
+      psynet.pageEventListeners.forEach(function (listener) {
+        listener.target.removeEventListener(
+          listener.eventName,
+          listener.handler,
+          listener.options,
+        );
+      });
+      psynet.pageEventListeners = [];
+    };
+
+    psynet.resetPageState = function () {
+      psynet.runPageCleanupCallbacks();
+      psynet.clearPageEventListeners();
+      psynet.comments = [];
+      psynet.page = {
+        prompt: {},
+        control: {},
+        response: {
+          retrieveResponse: undefined,
+          stageResponse: null,
+        },
+      };
+      psynet.setPageReady(false);
+      psynet.pageLoaded = false;
+      psynet.nextPagePending = false;
+      psynet.clearStageResponseHandler();
+      psynet.response.staged = {
+        rawAnswer: null,
+        metadata: {},
+        blobs: {},
+      };
+      psynet.clearRetrieveResponseHandler();
+    };
+
+    psynet.executeInlineScript = function (code) {
+      let script = document.createElement("script");
+      script.textContent = code;
+      document.body.appendChild(script);
+      script.remove();
+    };
+
+    psynet.loadedDocumentScripts = new Set();
+
+    psynet.rememberLoadedDocumentScripts = function () {
+      document.querySelectorAll("script[src]").forEach((script) => {
+        psynet.loadedDocumentScripts.add(
+          new URL(script.src, window.location.href).href,
+        );
+      });
+    };
+
+    psynet.executeExternalScript = function (src, options = {}) {
+      let normalizedSrc = new URL(src, window.location.href).href;
+
+      if (
+        options.skipIfLoaded &&
+        psynet.loadedDocumentScripts.has(normalizedSrc)
+      ) {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve, reject) => {
+        let script = document.createElement("script");
+        script.src = normalizedSrc;
+        script.async = false;
+        script.onload = () => {
+          if (options.skipIfLoaded) {
+            psynet.loadedDocumentScripts.add(normalizedSrc);
+          }
+          script.remove();
+          resolve();
+        };
+        script.onerror = () =>
+          reject(new Error("Could not load script " + normalizedSrc + "."));
+        document.head.appendChild(script);
+      });
+    };
+
+    psynet.executeScriptSequence = async function (scriptElements, options = {}) {
+      let inlineBuffer = [];
+
+      let flushInlineBuffer = async function () {
+        if (inlineBuffer.length === 0) {
+          return;
+        }
+        // Keep grouped inline scripts in a page-local scope. This prevents
+        // var/function declarations from one SPA fragment leaking into later
+        // fragments while preserving parser order within each inline group.
+        psynet.executeInlineScript(
+          "(function(){\n" + inlineBuffer.join("\n") + "\n})();",
+        );
+        inlineBuffer = [];
+      };
+
+      for (let script of scriptElements) {
+        if (script.type === "application/json") {
+          continue;
+        }
+        // Preserve HTML parser ordering: inline scripts before a linked script
+        // run first, then the linked script, then subsequent inline scripts.
+        if (script.src) {
+          await flushInlineBuffer();
+          await psynet.executeExternalScript(script.src, options);
+        } else if (script.textContent.trim() !== "") {
+          inlineBuffer.push(script.textContent);
+        }
+      }
+
+      await flushInlineBuffer();
+    };
+
+    psynet.getMainBodyScripts = function () {
+      let mainBody = document.getElementById("main-body");
+      if (!mainBody) {
+        return [];
+      }
+      return Array.from(
+        mainBody.querySelectorAll(
+          'script[type="text/psynet-script"]:not([data-psynet-script-scope])',
+        ),
+      );
+    };
+
+    psynet.getDeferredPageScripts = function () {
+      let scriptContainer = document.getElementById("psynet-page-scripts");
+      if (!scriptContainer) {
+        return [];
+      }
+      let query = 'script[type="text/psynet-script"][data-psynet-script-scope="deferred"]';
+      if (scriptContainer.content) {
+        return Array.from(scriptContainer.content.querySelectorAll(query));
+      }
+      return Array.from(scriptContainer.querySelectorAll(query));
+    };
+
+    psynet.getPageJsLinkScripts = function () {
+      let scriptContainer = document.getElementById("psynet-page-js-links");
+      if (!scriptContainer) {
+        return [];
+      }
+      let query = 'script[type="text/psynet-script"][data-psynet-script-scope="js-link"]';
+      if (scriptContainer.content) {
+        return Array.from(scriptContainer.content.querySelectorAll(query));
+      }
+      return Array.from(scriptContainer.querySelectorAll(query));
+    };
+
+    psynet.getElementById = function (root, id) {
+      if (typeof root.getElementById === "function") {
+        return root.getElementById(id);
+      }
+      return root.querySelector("#" + id);
+    };
+
+    psynet.getPageCssLinks = function (root = document) {
+      let cssTemplate = psynet.getElementById(root, "psynet-page-css-links");
+      if (!cssTemplate) {
+        return [];
+      }
+      if (cssTemplate.content) {
+        return Array.from(
+          cssTemplate.content.querySelectorAll("link[rel='stylesheet']"),
+        );
+      }
+      return Array.from(cssTemplate.querySelectorAll("link[rel='stylesheet']"));
+    };
+
+    psynet.getPageStyles = function (root = document) {
+      let cssTemplate = psynet.getElementById(root, "psynet-page-css");
+      if (!cssTemplate) {
+        return [];
+      }
+      if (cssTemplate.content) {
+        return Array.from(cssTemplate.content.querySelectorAll("style"));
+      }
+      return Array.from(cssTemplate.querySelectorAll("style"));
+    };
+
+    psynet.removePageStylesheetLinks = function () {
+      document
+        .querySelectorAll("link[data-psynet-fragment-stylesheet]")
+        .forEach((link) => link.remove());
+    };
+
+    psynet.ensureStylesheetLinks = function (root = document) {
+      psynet.removePageStylesheetLinks();
+
+      for (let link of psynet.getPageCssLinks(root)) {
+        let href = new URL(link.href, window.location.href).href;
+        let alreadyPresent = Array.from(
+          document.head.querySelectorAll("link[rel='stylesheet']"),
+        ).some((existingLink) => existingLink.href === href);
+        if (!alreadyPresent) {
+          let newLink = link.cloneNode(false);
+          newLink.rel = "stylesheet";
+          newLink.href = href;
+          newLink.setAttribute("data-psynet-fragment-stylesheet", "true");
+          document.head.appendChild(newLink);
+        }
+      }
+    };
+
+    psynet.applyInlinePageStyles = function (root = document) {
+      document
+        .querySelectorAll("style[data-psynet-fragment-style]")
+        .forEach((style) => style.remove());
+
+      // Inline page CSS is page-scoped in SPA mode, so it must be replaced
+      // rather than accumulated across fragment swaps.
+      for (let style of psynet.getPageStyles(root)) {
+        let newStyle = document.createElement("style");
+        newStyle.setAttribute("data-psynet-fragment-style", "true");
+        newStyle.textContent = style.textContent;
+        document.head.appendChild(newStyle);
+      }
+    };
+
+    psynet.preloadStylesheetLinks = async function (links) {
+      let uniqueHrefs = Array.from(
+        new Set(
+          links.map((link) => new URL(link.href, window.location.href).href),
+        ),
+      );
+
+      await Promise.all(
+        uniqueHrefs.map(
+          (href) =>
+            new Promise((resolve, reject) => {
+              let alreadyLoaded = Array.from(
+                document.head.querySelectorAll("link[rel='stylesheet']"),
+              ).some((existingLink) => existingLink.href === href);
+              if (alreadyLoaded) {
+                resolve();
+                return;
+              }
+
+              let preload = document.createElement("link");
+              preload.rel = "preload";
+              preload.as = "style";
+              preload.href = href;
+              preload.setAttribute(
+                "data-psynet-fragment-stylesheet-preload",
+                "true",
+              );
+              preload.onload = () => {
+                preload.remove();
+                resolve();
+              };
+              preload.onerror = () => {
+                preload.remove();
+                reject(new Error("Could not preload stylesheet " + href + "."));
+              };
+              document.head.appendChild(preload);
+            }),
+        ),
+      );
+    };
+
+    // ---- Timeline fragment transitions -------------------------------------
+    psynet.setTimelineTransitionBusy = function (isBusy) {
+      document.body.classList.toggle("timeline-transition-pending", isBusy);
+      let mainBody = document.getElementById("main-body");
+      if (mainBody) {
+        mainBody.setAttribute("aria-busy", isBusy ? "true" : "false");
+      }
+    };
+
+    psynet.finalizePageReady = async function () {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      psynet.setPageReady(true);
+    };
+
+    psynet.prepareTimelineFragment = function (payload) {
+      if (!payload || typeof payload.html !== "string" || payload.html === "") {
+        throw new Error("Missing timeline fragment HTML payload.");
+      }
+
+      let template = document.createElement("template");
+      template.innerHTML = payload.html.trim();
+
+      let requiredIds = [
+        "timeline-header",
+        "main-body",
+        "footer",
+        "psynet-template-data",
+      ];
+
+      let replacements = requiredIds.map((id) => {
+        let nextElement = template.content.querySelector("#" + id);
+        let currentElement = document.getElementById(id);
+        if (!nextElement || !currentElement) {
+          throw new Error(
+            "Failed to apply timeline fragment payload: missing element #" + id + ".",
+          );
+        }
+        return { currentElement, nextElement };
+      });
+
+      return {
+        payload,
+        template,
+        replacements,
+        stylesheetLinks: psynet.getPageCssLinks(template.content),
+      };
+    };
+
+    psynet.preloadTimelineFragmentAssets = async function (fragment) {
+      await psynet.preloadStylesheetLinks(fragment.stylesheetLinks);
+    };
+
+    psynet.commitTimelineFragment = function (fragment) {
+      psynet.ensureStylesheetLinks(fragment.template.content);
+      psynet.applyInlinePageStyles(fragment.template.content);
+
+      fragment.replacements.forEach(({ currentElement, nextElement }) => {
+        currentElement.replaceWith(nextElement);
+      });
+
+      if (fragment.payload.page_uuid !== undefined) {
+        window.pageUuid = fragment.payload.page_uuid;
+      }
+    };
+
+    psynet.deactivateTimelineFragmentLifecycle = async function () {
+      if (psynet.trial) {
+        await psynet.trial.stop({ force: true });
+      }
+      await psynet.cleanupPageResources();
+      psynet.clearLucidTermination();
+      psynet.resetPageState();
+    };
+
+    psynet.activateTimelineFragmentLifecycle = async function () {
+      // A full page reload used to clear old handlers, globals, and transient
+      // page state automatically. In inplace mode we must recreate that
+      // lifecycle explicitly before we can mark the new page as ready.
+      psynet.refreshTemplateData();
+      await psynet.rebuildTrial();
+      await psynet.executeScriptSequence(psynet.getPageJsLinkScripts());
+      // External body scripts are normally document-level libraries. They
+      // cannot be undeclared between SPA pages, so rerun inline setup while
+      // skipping linked libraries that this browser document already loaded.
+      await psynet.executeScriptSequence(psynet.getMainBodyScripts(), {
+        skipIfLoaded: true,
+      });
+      await psynet.executeScriptSequence(psynet.getDeferredPageScripts());
+      psynet.trialProgress = createTrialProgress();
+      psynet.initLucidTermination();
+      await psynet.initPage();
+      await psynet.finalizePageReady();
+      psynet.nextPagePending = false;
+      psynet.setTimelineTransitionBusy(false);
+      psynet.log.info("Timeline fragment activation complete.");
+    };
+
+    psynet.loadNextTimelinePageFromResponse = async function (payload) {
+      psynet.log.info("Applying next timeline fragment directly from /response.");
+      psynet.setPageReady(false);
+      psynet.setTimelineTransitionBusy(true);
+      try {
+        await psynet.deactivateTimelineFragmentLifecycle();
+        let fragment = psynet.prepareTimelineFragment(payload);
+        await psynet.preloadTimelineFragmentAssets(fragment);
+        psynet.commitTimelineFragment(fragment);
+        await psynet.activateTimelineFragmentLifecycle();
+      } catch (error) {
+        await psynet.handleTimelineTransitionFailure(error);
+        throw error;
+      }
+    };
+
+    psynet.handleTimelineTransitionFailure = async function (error) {
+      psynet.setPageReady(false);
+      psynet.nextPagePending = false;
+      psynet.setTimelineTransitionBusy(false);
+      psynet.response.enable();
+      psynet.submit.enable();
+      psynet.log.error(error.stack || String(error));
+      await psynet.alert(
+        "The next timeline page could not be loaded. Please refresh the page and try again.",
+      );
     };
 
     psynet.waitForEventListener = async function (target, type) {
@@ -182,14 +756,17 @@
         state: null,
         events: {},
         timers: [],
+        intervals: [],
         eventLog: [],
         inProgress: false,
         stopping: false,
+        stopped: false,
       };
 
       trial.reset = function () {
         trial.state = null;
         trial.inProgress = false;
+        trial.stopped = false;
         trial.startTime = null;
         Object.values(trial.events).forEach((e) => e.reset());
       };
@@ -222,6 +799,9 @@
         });
 
         event.checkTriggers = function (info) {
+          if ((trial.stopping || trial.stopped) && id !== "trialStopped") {
+            return;
+          }
           let allTriggersFired = event.isTriggeredBy.every(
             (trigger) => trigger.fired,
           );
@@ -279,12 +859,26 @@
 
           for (const handler of handlers) {
             trial.pendingEventHandlers.add(id);
-            await handler.func(info);
-            trial.pendingEventHandlers.remove(id);
+            try {
+              await handler.func(info);
+            } catch (error) {
+              psynet.log.error(
+                "Error in trial handler for event " +
+                  id +
+                  ": " +
+                  (error && error.stack ? error.stack : String(error)),
+              );
+              throw error;
+            } finally {
+              trial.pendingEventHandlers.remove(id);
+            }
           }
         };
 
         event.hitTriggers = function (info) {
+          if ((trial.stopping || trial.stopped) && id !== "trialStop") {
+            return;
+          }
           for (const target of event.toBeTriggered) {
             trial.setTimer(() => target.fire(info), target.delay * 1000);
           }
@@ -316,12 +910,26 @@
 
       trial.initEvents();
 
+      // TODO: Distinguish page-scoped timers from trial-cycle timers. Some
+      // pages use delayed trial events for page-level gating across prompt
+      // loops, so normal trial restarts must not clear all timers blindly.
       trial.setTimer = function (handler, timeout) {
-        trial.timers.push(setTimeout(handler, timeout));
+        let timer = setTimeout(handler, timeout);
+        trial.timers.push(timer);
+        return timer;
+      };
+
+      trial.setRepeatingTimer = function (handler, interval) {
+        let timer = setInterval(handler, interval);
+        trial.intervals.push(timer);
+        return timer;
       };
 
       trial.clearTimers = function () {
         trial.timers.forEach((timer) => clearTimeout(timer));
+        trial.intervals.forEach((interval) => clearInterval(interval));
+        trial.timers = [];
+        trial.intervals = [];
       };
 
       trial.pendingEventHandlers = (() => {
@@ -368,10 +976,12 @@
                   } else {
                     timer += options.pollInterval;
                     if (timer >= options.timeOut) {
+                      let pendingHandlers = Object.keys(data);
                       reject();
                       clearInterval(poller);
                       throw new Error(
-                        "Timed out when waiting for event handlers to complete.",
+                        "Timed out when waiting for event handlers to complete. Pending handlers: " +
+                          pendingHandlers.join(", "),
                       );
                     }
                   }
@@ -395,6 +1005,12 @@
       };
 
       trial.registerEvent = async function (id, providedOptions) {
+        if (
+          (trial.stopping || trial.stopped) &&
+          !["trialStop", "trialStopped"].includes(id)
+        ) {
+          return;
+        }
         let options = {
           info: null,
           once: false,
@@ -408,12 +1024,33 @@
 
         trial.state = id;
         trial.logEvent(id, options.info);
+        if (
+          [
+            "trialPrepare",
+            "trialStart",
+            "promptStart",
+            "promptEnd",
+            "trialFinish",
+            "trialStop",
+            "trialStopped",
+            "responseEnable",
+            "submitEnable",
+          ].includes(id)
+        ) {
+          psynet.log.info("Registered trial event: " + id + ".");
+        }
 
         if (event !== undefined) {
           event.happened = true;
           event.showMessage();
           event.runJS(options.info);
           await event.runHandlers(options.info);
+          if (
+            (trial.stopping || trial.stopped) &&
+            !["trialStop", "trialStopped"].includes(id)
+          ) {
+            return;
+          }
           event.hitTriggers(options.info);
         }
       };
@@ -453,19 +1090,32 @@
         $("#buttonStart").attr("disabled", false);
       };
 
-      trial.stop = async function () {
+      trial.stop = async function (providedOptions) {
         /**
          * Can be called manually to stop the trial.
          * Is idempotent (you can call it multiple times
          * with no bad side effects).
          */
-        if (trial.inProgress && !trial.stopping) {
-          trial.stopping = true;
-          trial.clearTimers();
-          trial.inProgress = false;
+        let options = {
+          force: false,
+        };
+        Object.assign(options, providedOptions);
+
+        if (trial.stopping || trial.stopped) {
+          return;
+        }
+        if (!options.force && !trial.inProgress) {
+          return;
+        }
+        trial.stopping = true;
+        trial.clearTimers();
+        trial.inProgress = false;
+        try {
           await this.pendingEventHandlers.waitFor();
           await trial.registerEvent("trialStop");
           trial.reset();
+          trial.stopped = true;
+        } finally {
           trial.stopping = false;
         }
       };
@@ -486,24 +1136,27 @@
       return trial;
     };
 
-    psynet.trial = Trial();
+    let registerCoreTrialHandlers = function (trial) {
+      trial.onEvent("trialConstruct", async function () {
+        await psynet.media.init();
+        $(".wait-for-media-load").removeAttr("disabled");
+      });
 
-    psynet.trial.onEvent("trialConstruct", async function () {
-      await psynet.media.init();
-      $(".wait-for-media-load").removeAttr("disabled");
-    });
+      trial.onEvent("trialPrepare", function () {
+        trial.inProgress = true;
+      });
 
-    psynet.trial.onEvent("trialPrepare", function () {
-      psynet.trial.inProgress = true;
-    });
+      trial.onEvent("trialFinished", function () {
+        trial.inProgress = false;
+      });
 
-    psynet.trial.onEvent("trialFinished", function () {
-      psynet.trial.inProgress = false;
-    });
+      trial.onEvent("trialStopped", function () {
+        trial.inProgress = false;
+      });
 
-    psynet.trial.onEvent("trialStopped", function () {
-      psynet.trial.inProgress = false;
-    });
+      trial.onEvent("responseEnable", psynet.response.enable);
+      trial.onEvent("submitEnable", psynet.submit.enable);
+    };
 
     psynet.submit = {
       // .sd-navigation__complete-btn is the complete button in SurveyJS
@@ -523,8 +1176,16 @@
       disable: () => $(".response").attr("disabled", "disabled"),
     };
 
-    psynet.trial.onEvent("responseEnable", psynet.response.enable);
-    psynet.trial.onEvent("submitEnable", psynet.submit.enable);
+    psynet.rebuildTrial = async function () {
+      if (psynet.trial) {
+        await psynet.trial.stop({ force: true });
+      }
+      psynet.trial = Trial();
+      registerCoreTrialHandlers(psynet.trial);
+    };
+
+    psynet.trial = Trial();
+    registerCoreTrialHandlers(psynet.trial);
 
     psynet.media.types = ["audio", "image", "html", "video"];
     psynet.media.data = {};
@@ -532,6 +1193,11 @@
     psynet.media.sounds = [];
 
     psynet.media.loaded = false;
+
+    psynet.media.objectUrls = new Set();
+
+    psynet.media.activeRequests = new Set();
+    psynet.media.loadGeneration = 0;
 
     psynet.media.downloadProgress = {
       byFile: {},
@@ -575,6 +1241,17 @@
       }
     };
 
+    psynet.media.downloadProgress.reset = function () {
+      psynet.media.types.forEach(function (mediaType) {
+        psynet.media.downloadProgress.byFile[mediaType] = {};
+      });
+      let bar = psynet.media.downloadProgress.bar();
+      if (bar !== null) {
+        bar.style.width = "0%";
+        bar.classList.remove("colorfadeanim");
+      }
+    };
+
     // The last thing we expect of the user is that the resources, that need to be loaded, are dumped as a json:
     // For example here, we request a batch file that contains three files and we request a single file
     // As we can see each file has a ID and a url where the file is stored
@@ -591,15 +1268,120 @@
     //     }
     // };
 
-    psynet.media.stopAllAudio = function () {
+    psynet.media.stopAllAudio = function (options) {
       if (typeof stop_all_tonejs_audio === "function") {
         stop_all_tonejs_audio();
       }
-      if (psynet.audio) {
-        Object.values(psynet.audio).forEach(function (x) {
-          x.stop();
-        });
+      return Promise.all(
+        psynet.media.sounds.slice().map(function (sound) {
+          return sound.stop(options);
+        }),
+      );
+    };
+
+    psynet.media.isCurrentLoadGeneration = function (loadGeneration) {
+      return (
+        loadGeneration === undefined ||
+        loadGeneration === psynet.media.loadGeneration
+      );
+    };
+
+    psynet.media.invalidateActiveLoads = function () {
+      psynet.media.loadGeneration += 1;
+      Array.from(psynet.media.activeRequests).forEach(function (request) {
+        try {
+          request.abort();
+        } catch (error) {
+          psynet.log.warn(
+            "Failed to abort media request: " +
+              (error && error.message ? error.message : String(error)),
+          );
+        }
+      });
+      psynet.media.activeRequests.clear();
+    };
+
+    psynet.media.registerObjectUrl = function (url) {
+      if (typeof url === "string" && url.startsWith("blob:")) {
+        psynet.media.objectUrls.add(url);
       }
+      return url;
+    };
+
+    psynet.media.revokeObjectUrl = function (url) {
+      if (!(typeof url === "string" && url.startsWith("blob:"))) {
+        return;
+      }
+      try {
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        psynet.log.warn(
+          "Failed to revoke object URL: " + (error && error.message ? error.message : String(error)),
+        );
+      } finally {
+        psynet.media.objectUrls.delete(url);
+      }
+    };
+
+    psynet.media.stopStream = function (stream) {
+      if (!stream || typeof stream.getTracks !== "function") {
+        return;
+      }
+      stream.getTracks().forEach(function (track) {
+        if (track && typeof track.stop === "function") {
+          track.stop();
+        }
+      });
+    };
+
+    psynet.cleanupPageResources = async function () {
+      psynet.log.info("Cleaning page resources before swapped-page activation.");
+      psynet.media.invalidateActiveLoads();
+      await psynet.media.stopAllAudio({ fadeOut: 0 });
+
+      let clearPlayer = function (player) {
+        if (!player) {
+          return;
+        }
+        if (player.tagName === "VIDEO") {
+          try {
+            player.pause();
+          } catch (error) {}
+          player.removeAttribute("src");
+          if (typeof player.load === "function") {
+            player.load();
+          }
+        } else if (player.tagName === "IMG") {
+          player.removeAttribute("src");
+        }
+      };
+
+      Object.values(psynet.media.data).forEach(function (entries) {
+        Object.values(entries || {}).forEach(function (entry) {
+          if (!entry) {
+            return;
+          }
+          if (entry.objectUrl) {
+            psynet.media.revokeObjectUrl(entry.objectUrl);
+          }
+          if (entry.url) {
+            psynet.media.revokeObjectUrl(entry.url);
+          }
+          clearPlayer(entry.player);
+        });
+      });
+
+      Array.from(psynet.media.objectUrls).forEach(function (url) {
+        psynet.media.revokeObjectUrl(url);
+      });
+
+      psynet.media.types.forEach(function (mediaType) {
+        psynet.media.data[mediaType] = {};
+        psynet[mediaType] = psynet.media.data[mediaType];
+      });
+      psynet.media.sounds = [];
+      psynet.media.loaded = false;
+      psynet.media.downloadProgress.reset();
     };
 
     psynet.media.getMicrophoneMetadataFromAudioStream = function (stream) {
@@ -635,6 +1417,16 @@
     };
 
     psynet.media.initAudioContext = function () {
+      if (
+        psynet.media.audioContext &&
+        psynet.media.audioContext.state !== "closed"
+      ) {
+        if (psynet.media.audioContext.state === "suspended") {
+          psynet.media.audioContext.resume();
+        }
+        return;
+      }
+
       let context = null;
       if ("webkitAudioContext" in window) context = new webkitAudioContext();
       if ("AudioContext" in window) context = new AudioContext();
@@ -737,6 +1529,7 @@
         stimulusIds: batch.ids,
         mediaType: mediaType,
         fileId: batchId,
+        loadGeneration: psynet.media.loadGeneration,
       };
       args.stimulusIds.forEach(function (id) {
         initStimulus(id, mediaType);
@@ -761,6 +1554,7 @@
         stimulusId: stimulusId,
         mediaType: mediaType,
         fileId: stimulusId,
+        loadGeneration: psynet.media.loadGeneration,
       };
       initStimulus(stimulusId, mediaType);
       return createRequest(
@@ -790,6 +1584,7 @@
     async function createRequest(url, mediaType, callbackFunction, args) {
       let request = new XMLHttpRequest();
       request.open("GET", url, true);
+      let loadGeneration = args.loadGeneration;
 
       if (mediaType == "audio" || mediaType == "html") {
         request.responseType = "arraybuffer";
@@ -805,6 +1600,9 @@
       }
 
       request.onprogress = function (e) {
+        if (!psynet.media.isCurrentLoadGeneration(loadGeneration)) {
+          return;
+        }
         psynet.media.downloadProgress.set(
           args["mediaType"],
           args["fileId"],
@@ -812,16 +1610,46 @@
         );
       };
 
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
+        let finishRequest = function () {
+          psynet.media.activeRequests.delete(request);
+        };
+
         request.onload = async function () {
-          if (request.status === 200) {
-            await callbackFunction(request.response, args);
-            resolve();
-          } else {
-            reportRequestError(url, request.status);
+          finishRequest();
+          if (!psynet.media.isCurrentLoadGeneration(loadGeneration)) {
+            resolve(false);
+            return;
+          }
+          try {
+            if (request.status === 200) {
+              await callbackFunction(request.response, args);
+              resolve(true);
+            } else {
+              reportRequestError(url, request.status);
+            }
+          } catch (error) {
+            reject(error);
           }
         };
 
+        request.onerror = function () {
+          finishRequest();
+          reject(
+            Error(
+              "Failed to load media asset at " +
+                url +
+                " (network error).",
+            ),
+          );
+        };
+
+        request.onabort = function () {
+          finishRequest();
+          resolve(false);
+        };
+
+        psynet.media.activeRequests.add(request);
         request.send();
       });
     }
@@ -867,14 +1695,22 @@
       Object.keys(requests).forEach(log);
     };
 
-    let createAudioStimulus = function (data, stimulusId, handler) {
+    let createAudioStimulus = function (data, stimulusId, loadGeneration) {
       psynet.log.debug("Decoding sound " + stimulusId + "...");
 
       return new Promise((resolve) => {
         psynet.media.audioContext.decodeAudioData(data, function (buffer) {
+          if (!psynet.media.isCurrentLoadGeneration(loadGeneration)) {
+            resolve(false);
+            return;
+          }
           psynet.log.debug("Sound " + stimulusId + " decoded.");
 
           let out = psynet.media.data.audio[stimulusId];
+          if (!out) {
+            resolve(false);
+            return;
+          }
           out.buffer = buffer;
 
           out.play = function (providedOptions) {
@@ -906,6 +1742,73 @@
               onEnd: null,
             };
 
+            const soundTrial = psynet.trial;
+            const soundPageUuid = window.pageUuid;
+            let stopTimer = null;
+            let completionTimer = null;
+            let stopCompletionTimer = null;
+            let completed = false;
+
+            let clearSoundTimers = function () {
+              if (stopTimer !== null) {
+                clearTimeout(stopTimer);
+                stopTimer = null;
+              }
+              if (completionTimer !== null) {
+                clearTimeout(completionTimer);
+                completionTimer = null;
+              }
+              if (stopCompletionTimer !== null) {
+                clearTimeout(stopCompletionTimer);
+                stopCompletionTimer = null;
+              }
+            };
+
+            let isSoundTrialActive = function () {
+              return (
+                psynet.trial === soundTrial &&
+                window.pageUuid === soundPageUuid &&
+                !soundTrial.stopping &&
+                !soundTrial.stopped
+              );
+            };
+
+            let stopSource = function () {
+              try {
+                sound.source.stop();
+              } catch (error) {
+                if (!error || error.name !== "InvalidStateError") {
+                  psynet.log.warn(
+                    "Failed to stop audio " +
+                      sound.stimulusId +
+                      ": " +
+                      (error && error.message ? error.message : String(error)),
+                  );
+                }
+              }
+              completeSound();
+            };
+
+            let completeSound = function () {
+              if (completed) {
+                return;
+              }
+              completed = true;
+              clearSoundTimers();
+              psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
+              psynet.media.sounds = psynet.media.sounds.filter(
+                (s) => s !== sound,
+              );
+              if (!isSoundTrialActive()) {
+                return;
+              }
+              soundTrial.registerEvent("audioFinished: " + sound.stimulusId);
+              if (sound.options.loop && !sound.manuallyStopped) {
+                psynet.log.debug("Looping sound with ID = " + out.stimulusId);
+                out.play(sound.options);
+              }
+            };
+
             sound.source.buffer = buffer;
 
             sound.source.connect(sound.gainNode);
@@ -924,14 +1827,21 @@
               );
             }
 
-            let stopTimer;
-
             if (sound.options.fadeOut > 0.0) {
-              stopTimer = setTimeout(
+              stopTimer = psynet.trial.setTimer(
                 () => sound.stop({ fadeOut: options.fadeOut, manual: false }),
                 1000 * (options.startDelay + sound.duration - options.fadeOut),
               );
             }
+
+            completionTimer = psynet.trial.setTimer(() => {
+              psynet.log.warn(
+                "Audio ended event did not fire for " +
+                  sound.stimulusId +
+                  "; using timed fallback completion.",
+              );
+              completeSound();
+            }, 1000 * (options.startDelay + sound.duration + 0.1));
 
             sound.stop = function (providedOptions) {
               let options = {
@@ -941,7 +1851,11 @@
 
               Object.assign(options, providedOptions);
 
-              clearTimeout(stopTimer);
+              if (completed) {
+                return Promise.resolve();
+              }
+
+              clearSoundTimers();
 
               psynet.log.debug("Stopping audio " + sound.stimulusId + ".");
 
@@ -959,24 +1873,16 @@
               }
 
               return new Promise((resolve) => {
-                setTimeout(() => {
-                  sound.source.stop();
+                stopCompletionTimer = soundTrial.setTimer(() => {
+                  stopCompletionTimer = null;
+                  stopSource();
                   resolve();
                 }, options.fadeOut * 1000);
               });
             };
 
             sound.source.addEventListener("ended", function () {
-              clearTimeout(stopTimer);
-              psynet.log.debug("Finished sound with ID = " + sound.stimulusId);
-              psynet.media.sounds = psynet.media.sounds.filter(
-                (s) => s !== sound,
-              );
-              psynet.trial.registerEvent("audioFinished: " + sound.stimulusId);
-              if (sound.options.loop && !sound.manuallyStopped) {
-                psynet.log.debug("Looping sound with ID = " + out.stimulusId);
-                out.play(sound.options);
-              }
+              completeSound();
             });
 
             psynet.media.sounds.push(sound);
@@ -994,7 +1900,7 @@
 
           out.loaded = true;
 
-          resolve();
+          resolve(true);
         });
       });
     };
@@ -1008,13 +1914,20 @@
     // (needs refactoring in a general cross-media way)
     psynet.media.addExtraAudioStimulus = async function (buffer, stimulusId) {
       initStimulus(stimulusId, "audio");
-      await createAudioStimulus(buffer, stimulusId, () => Promise.resolve());
+      await createAudioStimulus(
+        buffer,
+        stimulusId,
+        psynet.media.loadGeneration,
+      );
     };
 
     let createMediaFromBuffer = {};
     createMediaFromBuffer.audio = function (data, args) {
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       psynet.media.downloadProgress.set(args.mediaType, args.fileId, 100);
-      return createAudioStimulus(data, args.stimulusId);
+      return createAudioStimulus(data, args.stimulusId, args.loadGeneration);
     };
 
     let getImageMetadataFromURL = function (url) {
@@ -1047,6 +1960,9 @@
       let mediaType = args["mediaType"];
       let fileId = args["fileId"];
 
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       let player = document.getElementById(stimulusId);
       if (player != null) {
         psynet.log.debug(
@@ -1061,6 +1977,9 @@
         player.innerHTML = dec.decode(uint8arr);
       }
       let out = psynet.media.data[mediaType][stimulusId];
+      if (!out) {
+        return false;
+      }
       out.player = player;
       out.innerHTML = player.innerHTML;
       // let metadata = await getSvgMetadataFromData(player.innerHTML);
@@ -1079,6 +1998,9 @@
       let mediaType = args["mediaType"];
       let fileId = args["fileId"];
 
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       let player = document.getElementById(stimulusId);
 
       if (player) {
@@ -1098,13 +2020,20 @@
         data = new Blob([data], { type: mimeType });
       }
 
-      player.src = URL.createObjectURL(data);
+      player.src = psynet.media.registerObjectUrl(URL.createObjectURL(data));
 
       let out = psynet.media.data[mediaType][stimulusId];
+      if (!out) {
+        return false;
+      }
       out.player = player;
+      out.objectUrl = player.src;
 
       let url = player.src;
       let metadata = await getImageMetadataFromURL(url);
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       out.url = url;
       out.width = metadata.width;
       out.height = metadata.height;
@@ -1120,6 +2049,9 @@
       let mediaType = args["mediaType"];
       let fileId = args["fileId"];
 
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       let player = document.getElementById(stimulusId);
       if (player != null) {
         psynet.log.debug(
@@ -1130,14 +2062,23 @@
             "' with the player of the same name.'",
         );
         data = new Blob([data]); // convert to blob
-        player.src = URL.createObjectURL(data);
+        player.src = psynet.media.registerObjectUrl(URL.createObjectURL(data));
         player.classList.remove("loader");
         player.load();
         await psynet.waitForEventListener(player, "canplaythrough");
       }
 
+      if (!psynet.media.isCurrentLoadGeneration(args.loadGeneration)) {
+        return false;
+      }
       let out = psynet.media.data[mediaType][stimulusId];
+      if (!out) {
+        return false;
+      }
       out.player = player;
+      if (player != null && player.src) {
+        out.objectUrl = player.src;
+      }
       out.loaded = true;
 
       psynet.media.downloadProgress.set(mediaType, fileId, 100);
@@ -1150,6 +2091,11 @@
       let stimulusIds = args["stimulusIds"];
       let mediaType = args["mediaType"];
       let fileId = args["fileId"];
+      let loadGeneration = args["loadGeneration"];
+
+      if (!psynet.media.isCurrentLoadGeneration(loadGeneration)) {
+        return false;
+      }
 
       function extractBuffer(src, start, length) {
         // This function is used to find the start and end of each file
@@ -1190,6 +2136,7 @@
           stimulusId: stimulusId,
           mediaType: mediaType,
           fileId: fileId,
+          loadGeneration: loadGeneration,
         };
 
         // In contrast to audio, video, and image are not loaded into the DOM, so we need to create a player
@@ -1259,7 +2206,9 @@
         };
       }
 
-      $("#send-comment").click(function () {
+      $("#send-comment")
+        .off("click.psynetComment")
+        .on("click.psynetComment", function () {
         var text = $("#comment-text");
         var textValue = text.val();
 
@@ -1268,7 +2217,7 @@
           text.val("");
           psynet.alert(psynetTemplateData.strings.commentStored);
         }
-      });
+        });
     };
 
     psynet.estimateDownloadSpeed = function () {
@@ -1287,9 +2236,9 @@
 
     psynet.pageLoaded = false;
 
-    let waitForPageLoad = function () {
+    let waitForDocumentReady = function () {
       return new Promise((resolve) => {
-        window.addEventListener("load", () => resolve());
+        psynet.runWhenDocumentReady(resolve);
       });
     };
 
@@ -1307,8 +2256,8 @@
       psynet.submit.disable();
       $(".wait-for-media-load").attr("disabled", "disabled");
 
-      await waitForPageLoad();
-      let correctBrowser = await waitForBrowserCheck();
+      await waitForDocumentReady();
+      psynet.rememberLoadedDocumentScripts();
 
       psynet.pageLoadTime = new Date();
       psynet.pageLoaded = true;
@@ -1316,10 +2265,13 @@
       psynet.participantId = psynetTemplateData.participantId;
       psynet.uniqueId = psynetTemplateData.uniqueId;
 
+      let correctBrowser = await waitForBrowserCheck();
+
       updateProgressAndReward();
 
       if (correctBrowser) {
-        setTimeout(() => psynet.trial.init(), 25);
+        await new Promise((resolve) => setTimeout(resolve, 25));
+        await psynet.trial.init();
       }
     };
 
@@ -1342,6 +2294,9 @@
         onRejection();
         throw error;
       }
+      if (response === psynet.SUBMISSION_HANDLED) {
+        return;
+      }
 
       await psynet.nextPage(
         response.rawAnswer,
@@ -1353,30 +2308,39 @@
 
     psynet.compileResponse = async function () {
       let response = {};
+      let retrieveResponseHandler = psynet.getRetrieveResponseHandler();
+      let stageResponseHandler = psynet.getStageResponseHandler();
 
-      if (typeof retrieveResponse == "undefined") {
-        if (psynet.stageResponse) {
-          await psynet.stageResponse();
+      if (typeof retrieveResponseHandler == "undefined") {
+        if (stageResponseHandler) {
+          let stagedResponse = await stageResponseHandler();
+          if (stagedResponse === psynet.SUBMISSION_HANDLED) {
+            return stagedResponse;
+          }
         }
         response = psynet.response.staged;
       } else {
-        response = retrieveResponse();
+        response = retrieveResponseHandler();
       }
 
       return response;
     };
 
+    // ---- Response submission / handling ------------------------------------
     psynet.nextPage = async function (rawAnswer, metadata, blobs, onRejection) {
-      if (!psynet.pageLoaded) {
+      if (!psynet.pageReady) {
+        psynet.log.info("Blocked nextPage because pageReady is false.");
         psynet.alert(psynetTemplateData.strings.pageLoadNotReady);
         return false;
       }
       if (psynet.nextPagePending) {
+        psynet.log.info("Blocked nextPage because nextPagePending is true.");
         psynet.log.debug(
           "Skipping nextPage request as nextPage is already pending.",
         );
         return false;
       }
+      psynet.log.info("Submitting response via nextPage.");
       psynet.nextPagePending = true;
       // rawAnswer, metadata, and blobs default to psynet.response.staged if they
       // are not provided explicitly.
@@ -1423,38 +2387,84 @@
       });
     };
 
-    let onSuccessResponse = function (request, onRejection) {
-      let response = JSON.parse(request.response);
-      let passedValidation;
-      if (response.submission === "approved") {
-        psynet.log.debug("Response received successfully.");
-        let shouldRefreshPage = !(
-          response.page.attributes &&
-          psynet.page.attributes &&
-          response.page.attributes.session_id ==
-            psynet.page.attributes.session_id
-        );
-        if (shouldRefreshPage) {
-          window.location = "/timeline?unique_id=" + psynet.uniqueId;
-        } else {
-          psynet.page = response.page;
-          psynet.trial.registerEvent("pageUpdated");
-          psynet.nextPagePending = false;
-        }
-        passedValidation = true;
-      } else if (response.submission === "rejected") {
-        psynet.log.debug("Response rejected.");
-        psynet.alert(response.message);
-        psynet.response.enable();
-        psynet.submit.enable();
-        if (onRejection) {
-          onRejection(response);
-        }
-        passedValidation = false;
-      } else {
-        throw Error("Received a malformed response.");
+    psynet.requireTimelineFragmentPayload = function (response) {
+      if (response && response.timeline_fragment) {
+        return response.timeline_fragment;
       }
-      return passedValidation;
+      throw new Error(
+        "Missing timeline_fragment in approved /response while inplace timeline transitions are enabled.",
+      );
+    };
+
+    psynet.isSameSessionPageUpdate = function (response) {
+      let nextSessionId = response.page.attributes?.session_id;
+      let currentSessionId = psynet.page.attributes?.session_id;
+      return (
+        nextSessionId !== undefined &&
+        nextSessionId !== null &&
+        currentSessionId !== undefined &&
+        currentSessionId !== null &&
+        nextSessionId === currentSessionId
+      );
+    };
+
+    psynet.isUnityPageTransition = function (response) {
+      return Boolean(
+        psynet.page.attributes?.is_unity_page ||
+          response.page.attributes?.is_unity_page,
+      );
+    };
+
+    psynet.loadNextTimelinePageWithReload = function () {
+      window.location = "/timeline?unique_id=" + psynet.uniqueId;
+    };
+
+    psynet.handleApprovedResponse = async function (response) {
+      psynet.log.debug("Response received successfully.");
+
+      if (psynet.isSameSessionPageUpdate(response)) {
+        psynet.page = response.page;
+        psynet.trial.registerEvent("pageUpdated");
+        psynet.nextPagePending = false;
+        return true;
+      }
+
+      if (psynet.isUnityPageTransition(response)) {
+        psynet.loadNextTimelinePageWithReload();
+        return true;
+      }
+
+      if (psynetTemplateData.flags.inplaceTimelineTransitions) {
+        await psynet.loadNextTimelinePageFromResponse(
+          psynet.requireTimelineFragmentPayload(response),
+        );
+      } else {
+        psynet.loadNextTimelinePageWithReload();
+      }
+
+      return true;
+    };
+
+    psynet.handleRejectedResponse = async function (response, onRejection) {
+      psynet.log.debug("Response rejected.");
+      psynet.alert(response.message);
+      psynet.response.enable();
+      psynet.submit.enable();
+      if (onRejection) {
+        onRejection(response);
+      }
+      return false;
+    };
+
+    let onSuccessResponse = async function (request, onRejection) {
+      let response = JSON.parse(request.response);
+      if (response.submission === "approved") {
+        return await psynet.handleApprovedResponse(response);
+      }
+      if (response.submission === "rejected") {
+        return await psynet.handleRejectedResponse(response, onRejection);
+      }
+      throw Error("Received a malformed response.");
     };
 
     let onPageUpdated = function (event) {
@@ -1543,18 +2553,29 @@
 
       return new Promise((resolve) => {
         let request = new XMLHttpRequest();
-        request.onreadystatechange = function () {
+        request.onreadystatechange = async function () {
           if (request.readyState === 4) {
             let passedValidation;
-            if (request.status === 200) {
-              psynet.log.debug("Response was successfully received.");
-              passedValidation = onSuccessResponse(request, onRejection);
-            } else {
-              psynet.log.debug("Something went wrong.");
-              onErrorResponse(request);
+            try {
+              if (request.status === 200) {
+                psynet.log.debug("Response was successfully received.");
+                passedValidation = await onSuccessResponse(request, onRejection);
+              } else {
+                psynet.log.debug("Something went wrong.");
+                onErrorResponse(request);
+                passedValidation = false;
+              }
+            } catch (error) {
+              if (psynetTemplateData.flags.inplaceTimelineTransitions) {
+                await psynet.handleTimelineTransitionFailure(error);
+              } else {
+                psynet.log.error(error.stack || String(error));
+                onErrorResponse(request);
+              }
               passedValidation = false;
+            } finally {
+              resolve(passedValidation);
             }
-            resolve(passedValidation);
           }
         };
         request.open("POST", "/response");
@@ -1562,7 +2583,7 @@
       });
     };
 
-    psynet.trialProgress = (() => {
+    let createTrialProgress = function () {
       let config = psynetTemplateData.trialProgressDisplayConfig;
       let opacities = { light: 0.25, medium: 0.6, dark: 1.0 };
 
@@ -1597,7 +2618,13 @@
             }
           };
         });
-        setInterval(update, 5);
+        if (psynet.trialProgressIntervalId) {
+          clearInterval(psynet.trialProgressIntervalId);
+        }
+        psynet.trialProgressIntervalId = psynet.trial.setRepeatingTimer(
+          update,
+          5,
+        );
       };
 
       let bound = function (x, min, max) {
@@ -1680,7 +2707,9 @@
         start: start,
         stop: stop,
       };
-    })();
+    };
+
+    psynet.trialProgress = createTrialProgress();
 
     psynet.audio = psynet.media.data.audio;
     psynet.image = psynet.media.data.image;
@@ -1764,7 +2793,27 @@
 
   window.psynet = psynet;
 
+  psynet.clearLucidTermination = function () {
+    psynet.removeBeforeUnloadEventListener();
+    $(document).off(".psynetLucidTermination");
+
+    if (psynet.lucidTerminationIntervalIds) {
+      psynet.lucidTerminationIntervalIds.forEach((id) => clearInterval(id));
+    }
+    psynet.lucidTerminationIntervalIds = [];
+
+    if (psynet.lucidTerminationEvents && psynet.lucidTerminationResetHandler) {
+      psynet.lucidTerminationEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, psynet.lucidTerminationResetHandler);
+      });
+    }
+    psynet.lucidTerminationEvents = [];
+    psynet.lucidTerminationResetHandler = null;
+  };
+
   psynet.initLucidTermination = function () {
+    psynet.clearLucidTermination();
+
     if (!psynetTemplateData.flags.lucidRecruitment) {
       return;
     }
@@ -1856,13 +2905,22 @@
     );
     const clockIntervalID = setInterval(updateClocks, POLLING_INTERVAL);
 
-    $(document).on("click", ".btn, .sd-btn", function () {
+    psynet.lucidTerminationIntervalIds = [
+      checkTriedToLeaveIntervalID,
+      clockIntervalID,
+    ];
+
+    $(document).on("click.psynetLucidTermination", ".btn, .sd-btn", function () {
       psynet.removeBeforeUnloadEventListener();
     });
 
-    $(document).on("click", "#terminate-button", function () {
+    $(document).on(
+      "click.psynetLucidTermination",
+      "#terminate-button",
+      function () {
       terminateParticipant("terminate-button");
-    });
+      },
+    );
 
     const events = [
       "click",
@@ -1872,10 +2930,12 @@
       "mousemove",
       "touchstart",
     ];
-    events.forEach((eventName) => {
-      window.addEventListener(eventName, function () {
+    psynet.lucidTerminationEvents = events;
+    psynet.lucidTerminationResetHandler = function () {
         noActivitySince = 0;
-      });
+    };
+    events.forEach((eventName) => {
+      window.addEventListener(eventName, psynet.lucidTerminationResetHandler);
     });
   };
 })();
