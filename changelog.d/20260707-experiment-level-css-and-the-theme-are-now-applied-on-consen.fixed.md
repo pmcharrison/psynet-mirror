@@ -1,1 +1,0 @@
-Fixed consent pages ignoring experiment-level `css` and the theme: consent templates overrode the stylesheet block without calling `super()`, so e.g. CSS rules hiding the Lucid terminate button did not apply on consent pages.
