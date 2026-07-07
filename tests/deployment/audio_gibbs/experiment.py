@@ -1,13 +1,10 @@
-"""Audio Gibbs sampler test experiment for Prolific deployment tests.
+"""Lucid variant of the audio Gibbs test experiment.
 
-Participants adjust a slider to make a synthesized word sound as
-"dominant" or "trustworthy" as possible. Compared to the sibling
-``prolific`` test experiment, this one additionally exercises on-the-fly
-audio synthesis (parselmouth), asset generation and storage, parallel
-async worker processes, and a headphone prescreen.
+To use it, copy this file over ``experiment.py`` and ``config.txt.lucid``
+over ``config.txt`` (the recruiter settings live in the config file and
+``lucid_recruitment_config.json``).
 """
 
-import json
 from typing import List
 
 from markupsafe import Markup
@@ -15,6 +12,7 @@ from markupsafe import Markup
 import psynet.experiment
 from psynet.asset import LocalStorage
 from psynet.bot import Bot
+from psynet.consent import LucidConsent
 from psynet.demography.general import ExperimentFeedback, HearingLoss
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import HugginsHeadphoneTest
@@ -26,7 +24,6 @@ from psynet.trial.audio_gibbs import (
 )
 
 from . import custom_synth
-from .customconsent import CustomMainConsent
 
 TARGETS = ["dominant", "trustworthy"]
 DIMENSIONS = 7
@@ -37,8 +34,11 @@ NUM_ITERATIONS_PER_CHAIN = 2
 CHAINS_PER_PARTICIPANT = len(TARGETS)
 NUM_TRIALS_PER_PARTICIPANT = NUM_ITERATIONS_PER_CHAIN * CHAINS_PER_PARTICIPANT
 
-INITIAL_RECRUITMENT_SIZE = 3
-TARGET_N_PARTICIPANTS = 5
+# Matches TARGET_N_PARTICIPANTS so the Lucid survey is created with its full
+# quota up front: the marketplace UI then shows "Expected Completes = 10" and
+# Lucid keeps fielding until 10 completes without PsyNet-side quota top-ups.
+INITIAL_RECRUITMENT_SIZE = 10
+TARGET_N_PARTICIPANTS = 10
 
 
 class CustomTrial(AudioGibbsTrial):
@@ -104,29 +104,11 @@ trial_maker = CustomTrialMaker(
 )
 
 
-def get_prolific_settings():
-    with open("qualification_prolific_en.json", "r") as f:
-        qualification = json.dumps(json.load(f))
-
-    return {
-        "recruiter": "prolific",
-        "base_payment": 0.50,
-        "prolific_estimated_completion_minutes": 3,
-        "prolific_recruitment_config": qualification,
-        # True so deployment tests exercise the programmatic top-up path
-        # (ProlificRecruiter.recruit); recruitment grows from
-        # INITIAL_RECRUITMENT_SIZE toward TARGET_N_PARTICIPANTS.
-        "auto_recruit": True,
-        "currency": "£",
-        "wage_per_hour": 10,
-    }
-
-
 class Exp(psynet.experiment.Experiment):
     label = "Audio game - play with sounds."
     asset_storage = LocalStorage()
+    css = ["#terminate-button { display: none !important; }"]
     config = {
-        **get_prolific_settings(),
         "initial_recruitment_size": INITIAL_RECRUITMENT_SIZE,
         "force_incognito_mode": False,
         "title": "Sound game: play with sounds (Chrome browser, Headphones required ~3 min)",
@@ -134,10 +116,25 @@ class Exp(psynet.experiment.Experiment):
         "contact_email_on_error": "computational.audition@gmail.com",
         "organization_name": "Max Planck Institute for Empirical Aesthetics",
         "show_reward": False,
+        # Lucid's QuotaCPI is derived from estimated_max_reward(wage_per_hour).
+        # The default wage of 9/hour yielded a CPI of ~0.5, which converted
+        # poorly; doubling the wage roughly doubles the CPI.
+        "wage_per_hour": 18,
     }
 
     timeline = Timeline(
-        CustomMainConsent(),
+        # Panelists decide within seconds whether to stay; a short plain
+        # description up front reduces bounces at entry.
+        InfoPage(
+            Markup(
+                "<h3>4-minute listening study</h3>"
+                "<p><strong>Headphones required.</strong> You will make "
+                f"{NUM_TRIALS_PER_PARTICIPANT + 1} short sound ratings by "
+                "adjusting a slider.</p>"
+            ),
+            time_estimate=5,
+        ),
+        LucidConsent(),
         HugginsHeadphoneTest(performance_threshold=0),
         trial_maker,
         HearingLoss(),
