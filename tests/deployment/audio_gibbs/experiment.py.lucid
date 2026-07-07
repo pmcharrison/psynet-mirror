@@ -116,9 +116,24 @@ class Exp(psynet.experiment.Experiment):
         "contact_email_on_error": "computational.audition@gmail.com",
         "organization_name": "Max Planck Institute for Empirical Aesthetics",
         "show_reward": False,
+        # Lucid's QuotaCPI is derived from estimated_max_reward(wage_per_hour).
+        # The default wage of 9/hour yielded a CPI of ~0.5, which converted
+        # poorly; doubling the wage roughly doubles the CPI.
+        "wage_per_hour": 18,
     }
 
     timeline = Timeline(
+        # Panelists decide within seconds whether to stay; a short plain
+        # description up front reduces bounces at entry.
+        InfoPage(
+            Markup(
+                "<h3>4-minute listening study</h3>"
+                "<p><strong>Headphones required.</strong> You will make "
+                f"{NUM_TRIALS_PER_PARTICIPANT + 1} short sound ratings by "
+                "adjusting a slider.</p>"
+            ),
+            time_estimate=5,
+        ),
         LucidConsent(),
         HugginsHeadphoneTest(performance_threshold=0),
         trial_maker,

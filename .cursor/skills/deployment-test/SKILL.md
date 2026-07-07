@@ -159,7 +159,17 @@ git checkout <previous-deployment-branch> -- tests/deployment/prolific tests/dep
    - `audio_gibbs/experiment.py.lucid`: `initial_recruitment_size=10` equal to
      `target_n_participants=10`, so the Lucid survey is created with its full
      quota (the marketplace UI shows the full expected completes and fields
-     to target without PsyNet-side quota top-ups).
+     to target without PsyNet-side quota top-ups). It also sets
+     `wage_per_hour=18` (Lucid's `QuotaCPI` is derived from
+     `estimated_max_reward(wage_per_hour)`; the default wage yielded a CPI of
+     ~0.5, which converted poorly) and opens with a short plain-language
+     welcome page ("4-minute listening study, headphones required, ...")
+     before consent to reduce voluntary bounces at entry.
+   - `audio_gibbs/lucid_recruitment_config.json` carries marketplace
+     qualifications that prescreen panelists before they enter PsyNet:
+     desktop-only (`MS_is_mobile`/`MS_is_tablet` excluded) and audio
+     capability (`HAS_AUDIO v1`). This shifts ineligible participants from
+     entry bounces to marketplace screen-outs.
    - All `config.txt` files, including `config.txt.lucid`:
      `publish_experiment = true`.
 
