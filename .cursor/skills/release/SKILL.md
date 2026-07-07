@@ -645,6 +645,15 @@ using the shared steps with the RC version:
 
    Tag any specific people whose feedback you need on a thread under the
    post rather than `@channel`-ing the whole channel.
+9. **Validate the RC with a deployment test.** Run the deployment test
+   suite against the RC tag by following the `deployment-test` skill
+   (`.cursor/skills/deployment-test/SKILL.md`): by default this deploys
+   the two Prolific test experiments (`payment_flows_prolific` and
+   `audio_gibbs`) in parallel plus the `audio_gibbs` Lucid variant. The
+   skill's default flow — basing the deployment branch on the latest
+   release tag, including RCs — is designed for exactly this step. The
+   test produces a committed `analysis.md` per app on the deployment
+   branch; their verdicts feed the promotion decision below.
 
 ### Iterate: RC2, RC3, …
 
@@ -674,6 +683,13 @@ announcement, with the same human checkpoints. Repeat for `rc3`, `rc4`,
 etc. until you are confident the release is ready.
 
 ### Promote the final RC to the official release
+
+Validation of an RC means at minimum one successful deployment test of the
+RC tag via the `deployment-test` skill, with committed `analysis.md` files
+(one per deployed app) whose verdicts recommend promotion (see step 9 of
+the RC sequence). If the deployment test surfaced bugs, fix them and cut
+another RC instead. Record a link to the deployment-test branch and its
+`analysis.md` files in the release MR description.
 
 Once the latest RC has been validated and no further changes are needed:
 

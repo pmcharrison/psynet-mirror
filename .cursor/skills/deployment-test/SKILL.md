@@ -85,10 +85,20 @@ a master-based deployment. Always fetch tags first and confirm the chosen
 base tag with the user if there is any ambiguity (e.g. an RC and a final tag
 for the same version).
 
+Deployment tests against an RC tag are the validation gate in the release
+process: the `release` skill (`.cursor/skills/release/SKILL.md`) requires a
+successful RC deployment test before the RC is promoted to the final
+release. For RC-based deployments, end each app's `analysis.md` with an
+explicit verdict line — either recommending promotion to the final release
+or recommending another RC, naming the blocking findings.
+
 Name the branch after the base, e.g. `deployment-tests/v13.3.0rc1`,
-appending `-2`, `-3`, ... for repeat deployments from the same base. (Older
-deployment branches carry a per-experiment suffix such as `-prolific`; new
-branches cover both experiments and drop it.)
+appending `-2`, `-3`, ... for repeat deployments from the same base. For a
+master-based deployment, name it after `master` plus the short commit hash
+it was cut from, e.g. `deployment-tests/master-8ece25f0`, so master-based
+test deployments are clearly distinguishable from release-tag ones and
+from each other. (Older deployment branches carry a per-experiment suffix
+such as `-prolific`; new branches cover both experiments and drop it.)
 
 Before deploying:
 
@@ -291,11 +301,15 @@ Name each app after the deployment branch, experiment, and recruiter:
 deployments. App names only allow `a-z`, `0-9`, and `-` (the deploy command
 rejects anything else), so replace the dots in the base tag with dashes,
 e.g. base tag `v13.3.0rc1` gives `test-v13-3-0rc1-payment-flows-prolific-1`
-and `test-v13-3-0rc1-audio-gibbs-prolific-1`. (Older deployments used the
-app names `test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs`,
-before the recruiter suffix became part of the convention.) After
-deployment, inspect each launch output for the experiment URL, dashboard
-URL, and Dozzle URL.
+and `test-v13-3-0rc1-audio-gibbs-prolific-1`. For a master-based
+deployment the same rule applied to the branch name gives e.g.
+`test-master-8ece25f0-payment-flows-prolific-1`. Because the
+per-deployment folder under `deployment-tests/` is named after the app,
+this also keeps master-based audit folders clearly separate from
+release-tag ones. (Older deployments used the app names
+`test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs`, before the
+recruiter suffix became part of the convention.) After deployment, inspect
+each launch output for the experiment URL, dashboard URL, and Dozzle URL.
 
 ## Deploy The Lucid Variant
 
