@@ -41,6 +41,21 @@ INITIAL_RECRUITMENT_SIZE = 10
 TARGET_N_PARTICIPANTS = 10
 
 
+class ConsentWithoutTerminateButton(LucidConsent):
+    """LucidConsent without the "Terminate the experiment early" button.
+
+    The Lucid recruiter shows the terminate button by default. The
+    experiment-level ``css`` hide-rule does not reach consent pages (their
+    templates do not inherit the experiment stylesheet block), so the button
+    is disabled via the page setting instead.
+    """
+
+    class LucidConsentPage(LucidConsent.LucidConsentPage):
+        def __init__(self, time_estimate=30):
+            super().__init__(time_estimate=time_estimate)
+            self.show_termination_button = False
+
+
 class CustomTrial(AudioGibbsTrial):
     snap_slider = True
     autoplay = True
@@ -134,7 +149,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             time_estimate=5,
         ),
-        LucidConsent(),
+        ConsentWithoutTerminateButton(),
         HugginsHeadphoneTest(performance_threshold=0),
         trial_maker,
         HearingLoss(),
