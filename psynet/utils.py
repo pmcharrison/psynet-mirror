@@ -1197,7 +1197,7 @@ def list_experiment_dirs(for_ci_tests=False, ci_node_total=None, ci_node_index=N
                     or not (
                         # Skip the recruiter demos because they're not meaningful to run here
                         "recruiters" in dir_
-                        or "tests/deployment" in dir_
+                        or dir_.startswith(str(deployment_testing_root))
                         # Skip the gibbs_video demo because it relies on ffmpeg which is not installed
                         # in the CI environment
                         or dir_.endswith("/gibbs_video")
