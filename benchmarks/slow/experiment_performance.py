@@ -31,7 +31,7 @@ class _BaseExperiment:
     ``setup_cache`` invokes ``psynet performance-test local`` for each
     combination of ``params`` and stores the per-combination output in a dict
     keyed by parameter tuple (in ``param_names`` order). ``track_*`` methods
-    then extract scalars (requests/sec, p95 response time, bots succeeded) per
+    then extract scalar metrics such as median request time or queue delay per
     combination. Subclasses must set ``demo_name``; everything else has sensible
     defaults.
 
@@ -170,7 +170,8 @@ class Timeline(_BaseExperiment):
     demo_name = "timeline"
     # n_bots set to the throughput knee from the load sweep (benchmark_load_sweep
     # CI job). Longer duration than the other demos: Timeline's bots are slow,
-    # so a short run completes too few for a stable sec_per_bot / incomplete_rate.
+    # so a short run yields too little completed-request data for stable median
+    # request timing.
     params = [[12], [8.0]]
 
     # See `_BaseExperiment.setup_cache` for why each subclass must redefine

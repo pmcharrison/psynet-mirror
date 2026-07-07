@@ -70,7 +70,8 @@ class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
     run_async_post_trial = False
 
     def analyze_recording(self, audio_file: str, output_plot: str):
-        # You can add ASR here if you like
+        # Inert unless run_async_post_trial is re-enabled; kept as the demo hook
+        # for adding ASR or other recording analysis.
         return {"failed": False, "reason": "Recording looks good"}
 
     def format_answer(self, raw_answer, **kwargs):
