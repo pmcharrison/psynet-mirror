@@ -90,10 +90,23 @@ branches cover both experiments and drop it.)
 
 Before deploying:
 
-1. Check both repositories for local changes. Do not discard or overwrite user
+1. Verify the deployment server is reachable before doing any preparation
+   work, so connectivity problems surface immediately rather than after the
+   branch and pins are already set up. Check both SSH login and the Docker
+   daemon on the server:
+
+```bash
+ssh -i <ssh-key> -o BatchMode=yes -o ConnectTimeout=10 <ssh-user>@<ssh-host> \
+  "docker info --format '{{.ServerVersion}}'"
+```
+
+   Success prints the server's Docker version. If the SSH login or the Docker
+   check fails, stop and report the failure to the user instead of starting
+   the deployment preparation.
+2. Check both repositories for local changes. Do not discard or overwrite user
    work. If either checkout is dirty in a way that affects deployment, stop and
    ask the user how to proceed.
-2. Create the deployment branch from the base and import both experiment
+3. Create the deployment branch from the base and import both experiment
    directories from the most recent previous deployment branch, or from
    `master` if it is newer or no previous deployment branch exists (the
    `tests/deployment` directories carry deployment settings that are
@@ -121,7 +134,7 @@ git checkout <previous-deployment-branch> -- tests/deployment/prolific tests/dep
      `initial_recruitment_size=3`, `target_n_participants=5`.
    - Both `config.txt` files: `publish_experiment = true`.
 
-3. Match Dallinger to the PsyNet base. For a release-tag deployment, check out
+4. Match Dallinger to the PsyNet base. For a release-tag deployment, check out
    the Dallinger version that the PsyNet tag pins in its `pyproject.toml`
    (e.g. the `vX.Y.Z` Dallinger tag satisfying the pin). For a master-based
    deployment, use the latest Dallinger `master`:
@@ -136,7 +149,7 @@ git checkout <dallinger-tag-matching-psynet-pin>
 DALLINGER_SHA=$(git rev-parse HEAD)
 ```
 
-4. Activate the PsyNet virtual environment and install both local checkouts in
+5. Activate the PsyNet virtual environment and install both local checkouts in
    editable mode so the deployment command is run from the latest local code:
 
 ```bash
@@ -147,8 +160,8 @@ uv pip install -e <dallinger-root>
 uv pip install -e ".[dev,slack]"
 ```
 
-5. Refresh the experiment template scripts from the installed PsyNet (which
-   matches the base after step 4) and commit the result, so the deployment
+6. Refresh the experiment template scripts from the installed PsyNet (which
+   matches the base after step 5) and commit the result, so the deployment
    image is built with the base version's current templates (Dockerfile,
    `docker/` helpers, `pytest.ini`, etc.). Run this in **each** experiment
    directory being deployed:
@@ -163,7 +176,7 @@ git add tests/deployment && git commit -m "Refresh experiment scripts via psynet
    Review the diff before committing; template changes should be plausible for
    the base version (e.g. pinned image tags matching the base tag).
 
-6. Pin the packages in each experiment's `requirements.txt`
+7. Pin the packages in each experiment's `requirements.txt`
    to match the base (keep the extra `audio_gibbs` dependencies such as
    `praat-parselmouth` and `scipy` in place):
 
@@ -183,7 +196,7 @@ git add tests/deployment && git commit -m "Refresh experiment scripts via psynet
    deployment branch (for auditability), and record the base tag (or master
    commit), the deployment-branch commit, and the Dallinger pin in the final
    report.
-7. Regenerate `constraints.txt` from the updated `requirements.txt` in each
+8. Regenerate `constraints.txt` from the updated `requirements.txt` in each
    experiment directory before deploying, and commit them. The experiment
    Dockerfile installs from `constraints.txt` when it exists, so a stale file
    would silently override the new pins:
@@ -195,7 +208,7 @@ done
 git add tests/deployment/*/constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
 ```
 
-8. Ensure neither experiment enables `prolific_is_custom_screening`
+9. Ensure neither experiment enables `prolific_is_custom_screening`
    (`tests/deployment/prolific/experiment.py` sets it to `False` explicitly;
    `audio_gibbs` relies on the `False` default). Prolific no longer supports
    the older custom-screening study creation flow; a launch payload with
