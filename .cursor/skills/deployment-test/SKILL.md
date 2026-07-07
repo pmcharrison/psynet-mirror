@@ -103,10 +103,34 @@ ssh -i <ssh-key> -o BatchMode=yes -o ConnectTimeout=10 <ssh-user>@<ssh-host> \
    Success prints the server's Docker version. If the SSH login or the Docker
    check fails, stop and report the failure to the user instead of starting
    the deployment preparation.
-2. Check both repositories for local changes. Do not discard or overwrite user
+2. Verify the recruiter credentials are set up for **both Prolific and
+   Lucid** before deploying anything. The Prolific token and the Lucid
+   API/hashing keys must be present (typically in `~/.dallingerconfig`);
+   commented-out entries count as missing. Check presence without printing
+   any values:
+
+```bash
+python - <<'PY'
+from dallinger.config import get_config
+
+config = get_config()
+config.load()
+for key in ["prolific_api_token", "lucid_api_key", "lucid_sha1_hashing_key"]:
+    try:
+        status = "set" if config.get(key) else "EMPTY"
+    except KeyError:
+        status = "MISSING"
+    print(f"{key}: {status}")
+PY
+```
+
+   If any credential is missing or empty, stop and ask the user to set it
+   before deploying (a missing Lucid key otherwise only surfaces after the
+   Lucid app's Docker image is already built, wasting a deploy cycle).
+3. Check both repositories for local changes. Do not discard or overwrite user
    work. If either checkout is dirty in a way that affects deployment, stop and
    ask the user how to proceed.
-3. Create the deployment branch from the base and import both experiment
+4. Create the deployment branch from the base and import both experiment
    directories from the most recent previous deployment branch, or from
    `master` if it is newer or no previous deployment branch exists (the
    `tests/deployment` directories carry deployment settings that are
@@ -134,7 +158,7 @@ git checkout <previous-deployment-branch> -- tests/deployment/prolific tests/dep
      `initial_recruitment_size=3`, `target_n_participants=5`.
    - Both `config.txt` files: `publish_experiment = true`.
 
-4. Match Dallinger to the PsyNet base. For a release-tag deployment, check out
+5. Match Dallinger to the PsyNet base. For a release-tag deployment, check out
    the Dallinger version that the PsyNet tag pins in its `pyproject.toml`
    (e.g. the `vX.Y.Z` Dallinger tag satisfying the pin). For a master-based
    deployment, use the latest Dallinger `master`:
@@ -149,7 +173,7 @@ git checkout <dallinger-tag-matching-psynet-pin>
 DALLINGER_SHA=$(git rev-parse HEAD)
 ```
 
-5. Activate the PsyNet virtual environment and install both local checkouts in
+6. Activate the PsyNet virtual environment and install both local checkouts in
    editable mode so the deployment command is run from the latest local code:
 
 ```bash
@@ -160,8 +184,8 @@ uv pip install -e <dallinger-root>
 uv pip install -e ".[dev,slack]"
 ```
 
-6. Refresh the experiment template scripts from the installed PsyNet (which
-   matches the base after step 5) and commit the result, so the deployment
+7. Refresh the experiment template scripts from the installed PsyNet (which
+   matches the base after step 6) and commit the result, so the deployment
    image is built with the base version's current templates (Dockerfile,
    `docker/` helpers, `pytest.ini`, etc.). Run this in **each** experiment
    directory being deployed:
@@ -176,7 +200,7 @@ git add tests/deployment && git commit -m "Refresh experiment scripts via psynet
    Review the diff before committing; template changes should be plausible for
    the base version (e.g. pinned image tags matching the base tag).
 
-7. Pin the packages in each experiment's `requirements.txt`
+8. Pin the packages in each experiment's `requirements.txt`
    to match the base (keep the extra `audio_gibbs` dependencies such as
    `praat-parselmouth` and `scipy` in place):
 
@@ -196,7 +220,7 @@ git add tests/deployment && git commit -m "Refresh experiment scripts via psynet
    deployment branch (for auditability), and record the base tag (or master
    commit), the deployment-branch commit, and the Dallinger pin in the final
    report.
-8. Regenerate `constraints.txt` from the updated `requirements.txt` in each
+9. Regenerate `constraints.txt` from the updated `requirements.txt` in each
    experiment directory before deploying, and commit them. The experiment
    Dockerfile installs from `constraints.txt` when it exists, so a stale file
    would silently override the new pins:
@@ -208,7 +232,7 @@ done
 git add tests/deployment/*/constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
 ```
 
-9. Ensure neither experiment enables `prolific_is_custom_screening`
+10. Ensure neither experiment enables `prolific_is_custom_screening`
    (`tests/deployment/prolific/experiment.py` sets it to `False` explicitly;
    `audio_gibbs` relies on the `False` default). Prolific no longer supports
    the older custom-screening study creation flow; a launch payload with
