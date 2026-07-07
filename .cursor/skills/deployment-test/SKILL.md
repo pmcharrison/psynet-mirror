@@ -166,7 +166,11 @@ git checkout <previous-deployment-branch> -- tests/deployment/payment_flows_prol
      `estimated_max_reward(wage_per_hour)`; the default wage yielded a CPI of
      ~0.5, which converted poorly) and opens with a short plain-language
      welcome page ("4-minute listening study, headphones required, ...")
-     before consent to reduce voluntary bounces at entry.
+     before consent to reduce voluntary bounces at entry. The experiment
+     also pauses the Lucid survey via the API once the participant target is
+     reached (`Exp.recruit` override): Lucid does not reliably stop
+     admitting entrants at the quota on its own, and
+     `LucidRecruiter.close_recruitment` is a no-op.
    - `audio_gibbs/lucid_recruitment_config.json` carries marketplace
      qualifications that prescreen panelists before they enter PsyNet:
      desktop-only (`MS_is_mobile`/`MS_is_tablet` excluded) and audio
