@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [13.3.0rc0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.3.0rc0) Release candidate - 2026-07-03
+## [13.3.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.3.0) Release - 2026-07-07
 
 ### Added
 
@@ -30,6 +30,7 @@
 - Made SerializedCallable keyword-only for participant/experiment arguments to prevent positional misuse.
 - Moved the multi-room chatrooms demo from `demos/experiments/chatrooms` to `demos/features/websocket_chatroom`.
 - Updated the rock-paper-scissors demo and the chatroom and synchronization tutorials to derive a chatroom `room_id` from the new `Trial.sync_group` property instead of `participant.sync_group`, which is unsafe when a participant belongs to multiple sync groups.
+- Reworked `psynet dev release announce`: the experimenter-facing changes summary is now written by the release manager and passed via `--summary-file` instead of being selected from the CHANGELOG by keyword patterns (which missed recruiter changes and included maintainer tooling), long summaries are split across Slack blocks (fixing `invalid_blocks` errors), announcements are posted to a testing channel for review before the real broadcast, and messages got a visual refresh (link buttons, emoji category headers, vertical spacing between category sections, and a logo footer).
 
 ### Deprecated
 
@@ -85,6 +86,9 @@
 - Clarified how Prolific base payments, bonuses, and partial payments are handled.
 - Documented that agents should prompt users to run `/branch-review` before finalizing merge requests.
 - Added a repo-local Cursor skill for debugging deployed PsyNet test experiments via the dashboard and Dozzle logs.
+- Filled gaps in the API reference, documenting `AsyncCodeBlock` and other timeline constructs, the end-logic classes, and `AudioForcedChoiceTest`, and fixed several broken cross-references.
+- Deployment-test skill (renamed from `debug-deployment-test-experiments` to `deployment-test`): test deployments now use a fresh branch per deployment based on the latest release tag, refresh experiment scripts via `psynet update-scripts`, and keep log ZIPs and raw logs out of git. `tests/manual_recruiter_testing` is now included in `list_experiment_dirs()` so release tooling keeps its template scripts up to date, while remaining excluded from CI test runs.
+- Release skill: minor releases now default to a release-candidate flow, release commits stage explicit paths to avoid sweeping in unrelated local files, the publish steps verify that the tag's documentation is deployed and reachable from the docs version dropdown, GitLab release titles omit the tag's `v` prefix, release candidates are now tag-only on GitLab (no release entry), since GitLab lacks a pre-release flag, the docs version switcher labels prereleases in the same style as the alpha entry (e.g. `13.3.0 rc0`), and release candidates are numbered starting from `rc1`.
 
 ## [13.2.0](https://gitlab.com/PsyNetDev/PsyNet/-/releases/v13.2.0) Release - 2026-05-26
 
