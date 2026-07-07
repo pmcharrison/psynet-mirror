@@ -54,23 +54,22 @@ echo "$VIRTUAL_ENV"
 If the virtual environment is missing or activation fails, stop and tell the
 user before running any PsyNet or Python-related command.
 
-## Deploy The Prolific Test From The Test Branch
+## Deploy The Test Experiments From The Test Branch
 
-When asked to redeploy the Prolific manual recruiter test, deploy
-`tests/deployment/prolific` from a **fresh deployment branch
-created for this deployment**. Do not reuse or rebase a long-lived deployment
-branch; each deployment gets its own branch so its exact code is preserved
-for later auditing.
+A full deployment test covers two experiments in `tests/deployment`:
 
-A second test experiment lives at
-`tests/deployment/audio_gibbs`: an audio Gibbs
-sampler experiment that additionally exercises audio synthesis
-(parselmouth), asset generation/storage, async worker processes, and a
-headphone prescreen. Deploy it the same way when asked, using the same
-conventions with an `-audio-gibbs` suffix in place of `-prolific` in the
-deployment branch and app names (e.g.
-`deployment-tests/v13.3.0rc1-audio-gibbs`,
-`test-v13-3-0rc1-audio-gibbs-1`).
+- `tests/deployment/prolific`: the basic Prolific manual recruiter test.
+- `tests/deployment/audio_gibbs`: an audio Gibbs sampler experiment that
+  additionally exercises audio synthesis (parselmouth), asset
+  generation/storage, async worker processes, and a headphone prescreen.
+
+By default deploy **both** experiments, as two separate apps running **in
+parallel** to save wall-clock time; deploy only one when the user explicitly
+asks for it. Prepare both experiment directories on a **single fresh
+deployment branch created for this deployment** (the preparation steps below
+are shared), then run the two `psynet deploy ssh` commands concurrently. Do
+not reuse or rebase a long-lived deployment branch; each deployment gets its
+own branch so its exact code is preserved for later auditing.
 
 **Base the branch on the latest PsyNet release tag by default** (including
 release candidates, e.g. `v13.3.0rc0`), so the test exercises what users
@@ -79,28 +78,29 @@ a master-based deployment. Always fetch tags first and confirm the chosen
 base tag with the user if there is any ambiguity (e.g. an RC and a final tag
 for the same version).
 
-Name the branch after the base, e.g.
-`deployment-tests/v13.3.0rc0-prolific`, appending `-2`, `-3`, ... for repeat
-deployments from the same base.
+Name the branch after the base, e.g. `deployment-tests/v13.3.0rc1`,
+appending `-2`, `-3`, ... for repeat deployments from the same base. (Older
+deployment branches carry a per-experiment suffix such as `-prolific`; new
+branches cover both experiments and drop it.)
 
 Before deploying:
 
 1. Check both repositories for local changes. Do not discard or overwrite user
    work. If either checkout is dirty in a way that affects deployment, stop and
    ask the user how to proceed.
-2. Create the deployment branch from the base and import the experiment
-   configuration from the most recent previous deployment branch, or from
+2. Create the deployment branch from the base and import both experiment
+   directories from the most recent previous deployment branch, or from
    `master` if it is newer or no previous deployment branch exists (the
-   `tests/deployment/prolific` directory carries deployment
-   settings that are typically not on release tags):
+   `tests/deployment` directories carry deployment settings that are
+   typically not on release tags):
 
 ```bash
 cd <psynet-root>
 git fetch origin master --tags
 BASE_TAG=$(git tag --list 'v*' --sort=-v:refname | head -1)  # or the tag the user specifies
 echo "Base: $BASE_TAG"
-git switch -c deployment-tests/$BASE_TAG-prolific "$BASE_TAG"
-git checkout <previous-deployment-branch> -- tests/deployment/prolific
+git switch -c deployment-tests/$BASE_TAG "$BASE_TAG"
+git checkout <previous-deployment-branch> -- tests/deployment/prolific tests/deployment/audio_gibbs
 ```
 
    For an explicitly requested master-based deployment, update local `master`
@@ -110,9 +110,11 @@ git checkout <previous-deployment-branch> -- tests/deployment/prolific
    Verify the imported experiment configuration includes the standing
    deployment settings:
 
-   - `experiment.py`: `prolific_is_custom_screening=False`,
+   - `prolific/experiment.py`: `prolific_is_custom_screening=False`,
      `auto_recruit=True`, `initial_recruitment_size=12`.
-   - `config.txt`: `publish_experiment = true`.
+   - `audio_gibbs/experiment.py`: `auto_recruit=True`,
+     `initial_recruitment_size=3`, `target_n_participants=5`.
+   - Both `config.txt` files: `publish_experiment = true`.
 
 3. Match Dallinger to the PsyNet base. For a release-tag deployment, check out
    the Dallinger version that the PsyNet tag pins in its `pyproject.toml`
@@ -143,19 +145,22 @@ uv pip install -e ".[dev,slack]"
 5. Refresh the experiment template scripts from the installed PsyNet (which
    matches the base after step 4) and commit the result, so the deployment
    image is built with the base version's current templates (Dockerfile,
-   `docker/` helpers, `pytest.ini`, etc.):
+   `docker/` helpers, `pytest.ini`, etc.). Run this in **each** experiment
+   directory being deployed:
 
 ```bash
-cd <psynet-root>/tests/deployment/prolific
-psynet update-scripts
-git add . && git commit -m "Refresh experiment scripts via psynet update-scripts"
+for exp in prolific audio_gibbs; do
+  (cd <psynet-root>/tests/deployment/$exp && psynet update-scripts)
+done
+git add tests/deployment && git commit -m "Refresh experiment scripts via psynet update-scripts"
 ```
 
    Review the diff before committing; template changes should be plausible for
    the base version (e.g. pinned image tags matching the base tag).
 
-6. Pin the packages in `tests/deployment/prolific/requirements.txt`
-   to match the base:
+6. Pin the packages in each experiment's `requirements.txt`
+   to match the base (keep the extra `audio_gibbs` dependencies such as
+   `praat-parselmouth` and `scipy` in place):
 
    - **Release-tag deployment (default)**: pin PsyNet to the base tag and
      Dallinger to its matching tag, e.g.
@@ -173,39 +178,57 @@ git add . && git commit -m "Refresh experiment scripts via psynet update-scripts
    deployment branch (for auditability), and record the base tag (or master
    commit), the deployment-branch commit, and the Dallinger pin in the final
    report.
-7. Regenerate `constraints.txt` from the updated `requirements.txt` before
-   deploying, and commit it. The experiment Dockerfile installs from
-   `constraints.txt` when it exists, so a stale file would silently override
-   the new pins:
+7. Regenerate `constraints.txt` from the updated `requirements.txt` in each
+   experiment directory before deploying, and commit them. The experiment
+   Dockerfile installs from `constraints.txt` when it exists, so a stale file
+   would silently override the new pins:
 
 ```bash
-cd <psynet-root>/tests/deployment/prolific
-psynet generate-constraints
-git add constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
+for exp in prolific audio_gibbs; do
+  (cd <psynet-root>/tests/deployment/$exp && psynet generate-constraints)
+done
+git add tests/deployment/*/constraints.txt && git commit -m "Regenerate constraints from pinned requirements"
 ```
 
-8. Ensure `tests/deployment/prolific/experiment.py` sets
-   `prolific_is_custom_screening` to `False`. Prolific no longer supports the
-   older custom-screening study creation flow; a launch payload with
+8. Ensure neither experiment enables `prolific_is_custom_screening`
+   (`tests/deployment/prolific/experiment.py` sets it to `False` explicitly;
+   `audio_gibbs` relies on the `False` default). Prolific no longer supports
+   the older custom-screening study creation flow; a launch payload with
    `"is_custom_screening": true` fails with Prolific error `140003`.
 
-Deploy from the experiment directory:
+Deploy both experiments **in parallel**, each from its own directory with its
+own app name. Start each deploy as a background process (or in separate
+terminals) and monitor both launch outputs:
 
 ```bash
-cd <psynet-root>/tests/deployment/prolific
 source <psynet-root>/<venv>/bin/activate
+
+cd <psynet-root>/tests/deployment/prolific
 psynet deploy ssh \
   --server <ssh-host> \
   --dns-host <dns-host> \
-  --app <app-name>
+  --app <prolific-app-name> &
+
+cd <psynet-root>/tests/deployment/audio_gibbs
+psynet deploy ssh \
+  --server <ssh-host> \
+  --dns-host <dns-host> \
+  --app <audio-gibbs-app-name> &
+
+wait
 ```
 
-Name the app after the deployment branch: `test-<base-tag>-prolific`,
-appending `-2`, `-3`, ... for repeat deployments. App names only allow
-`a-z`, `0-9`, and `-` (the deploy command rejects anything else), so
-replace the dots in the base tag with dashes, e.g. base tag `v13.3.0rc0`
-gives `test-v13-3-0rc0-prolific-1`. After deployment, inspect the launch
-output for the experiment URL, dashboard URL, and Dozzle URL.
+Do not let one deployment's failure silently abort the other: check each
+launch output separately, and report per-app success/failure.
+
+Name each app after the deployment branch and experiment:
+`test-<base-tag>-prolific` and `test-<base-tag>-audio-gibbs`, appending
+`-2`, `-3`, ... for repeat deployments. App names only allow `a-z`, `0-9`,
+and `-` (the deploy command rejects anything else), so replace the dots in
+the base tag with dashes, e.g. base tag `v13.3.0rc1` gives
+`test-v13-3-0rc1-prolific-1` and `test-v13-3-0rc1-audio-gibbs-1`. After
+deployment, inspect each launch output for the experiment URL, dashboard
+URL, and Dozzle URL.
 
 ## Infer The App Name
 
@@ -318,6 +341,11 @@ Dozzle log download and review described below. Compare these logs against the
 initial deployment-time scan and call out errors that only appeared after
 completion.
 
+When both experiments were deployed, observe both apps in parallel and apply
+this whole completion/audit workflow to each app independently: each has its
+own Prolific study, its own dashboard, and its own audit folder keyed by app
+name. Do not stop observing one app because the other completed first.
+
 After the study status is `COMPLETED`, record the deployment's audit trail in
 a per-deployment folder on the deployment branch. Each deployment gets one
 folder named after the study-completion date/time and app name, containing a
@@ -362,7 +390,7 @@ Collect the `local/` artifacts as follows:
    directory into `local/export/`:
 
 ```bash
-cd <psynet-root>/tests/deployment/prolific
+cd <psynet-root>/tests/deployment/<experiment>  # the app's experiment dir
 psynet export ssh --app <app-name> --server <ssh-host> --anonymize no \
   --path <psynet-root>/deployment-tests/<YYYYMMDD-HHMMSS>-<app-name>/local/export
 ```
@@ -389,7 +417,7 @@ Work through all of these once `study_status == "COMPLETED"`:
    destroy it without explicit user confirmation:
 
 ```bash
-cd <psynet-root>/tests/deployment/prolific
+cd <psynet-root>/tests/deployment/<experiment>  # the app's experiment dir
 psynet destroy ssh --server <ssh-host> --app <app-name>
 ```
 

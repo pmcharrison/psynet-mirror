@@ -1,1 +1,1 @@
-Added a second Prolific manual recruiter test experiment at `tests/deployment/audio_gibbs`, an audio Gibbs sampler experiment exercising audio synthesis, assets, and async worker processes in release deployment tests.
+Added a second Prolific manual recruiter test experiment at `tests/deployment/audio_gibbs`, an audio Gibbs sampler experiment exercising audio synthesis, assets, and async worker processes in release deployment tests. The deployment-test skill now deploys both test experiments from a single deployment branch as two apps running in parallel.
