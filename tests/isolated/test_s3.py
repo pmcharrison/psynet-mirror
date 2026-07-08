@@ -86,7 +86,7 @@ def test_s3_storage_awscli():
             storage.delete_folder(remote_prefix)
 
 
-def test_s3_storage_boto3(artifact_storage_s3_test_root):
+def test_s3_storage_boto3(mock_s3_root):
     # TODO: Add an opt-in real-S3 boto3 integration variant, guarded by an
     # environment variable and using a unique remote prefix like the AWS CLI path.
     storage = get_s3_storage("boto3")

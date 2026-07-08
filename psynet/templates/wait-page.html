@@ -36,7 +36,7 @@
     {{ super() }}
 
     <script>
-        setTimeout(function () {
+        psynet.trial.setTimer(function () {
             psynet.nextPage();
         }, 1000 * {{ wait_time }});
     </script>
