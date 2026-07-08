@@ -26,4 +26,4 @@ while placing minimal constraints on the complexity of the experiment design.
    deploy/index
    developer/index
    dashboards/translation
-   ASV benchmarks <https://psynetdev.gitlab.io/PsyNet/benchmarks/>
+   Benchmarks <https://psynetdev.gitlab.io/PsyNet/benchmarks/>
