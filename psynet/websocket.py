@@ -18,6 +18,16 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
+# TODO: Add private WebSocket delivery in a follow-up PR.
+# Dallinger currently relays every Redis message on a channel to every browser
+# socket subscribed to that channel, so client-side ``target`` filtering is not
+# a privacy boundary. A proper solution should split browser publish and
+# subscribe channels, let the experiment subscribe to command channels, and
+# let services publish server events to participant-specific private receive
+# channels. Private channel access should use unguessable names or signed
+# channel-authorization tokens, and PsyNet can then expose a helper such as
+# ``publish_to_participant(participant_id, event)``.
+
 
 class ClientWebSocketEvent(BaseModel):
     """A browser-authored event authorized against the current PsyNet page."""
