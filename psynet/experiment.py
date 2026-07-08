@@ -33,8 +33,7 @@ from click import Context
 from dallinger import db
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
-from dallinger.experiment import experiment_route
-from dallinger.experiment import scheduled_task as dallinger_scheduled_task
+from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import (
     DashboardTab,
     dashboard,
@@ -132,12 +131,6 @@ from .utils import (
 )
 
 logger = get_logger()
-
-
-def scheduled_task(trigger, **kwargs):
-    """Register a scheduled task with no misfire time limit by default."""
-    kwargs.setdefault("misfire_grace_time", None)
-    return dallinger_scheduled_task(trigger, **kwargs)
 
 
 database_template_path = ".deploy/database_template.zip"
@@ -977,7 +970,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "need_more_participants": exp.need_more_participants,
         }
 
-    @scheduled_task("interval", seconds=60, max_instances=1)
+    @scheduled_task("interval", seconds=60, max_instances=1, misfire_grace_time=None)
     @log_time_taken
     @staticmethod
     @with_transaction
@@ -1210,7 +1203,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if cls.automatic_backups:
             cls.artifact_storage.write_experiment_status(status, cls.deployment_id)
 
-    @scheduled_task("interval", seconds=60, max_instances=1)
+    @scheduled_task("interval", seconds=60, max_instances=1, misfire_grace_time=None)
     @log_time_taken
     @staticmethod
     @with_transaction
@@ -1575,7 +1568,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
         return html
 
-    @scheduled_task("interval", minutes=1, max_instances=1)
+    @scheduled_task("interval", minutes=1, max_instances=1, misfire_grace_time=None)
     @staticmethod
     @with_transaction
     def check_database():
@@ -1585,7 +1578,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for c in exp.database_checks:
             c.run()
 
-    @scheduled_task("interval", minutes=1, max_instances=1)
+    @scheduled_task("interval", minutes=1, max_instances=1, misfire_grace_time=None)
     @staticmethod
     @with_transaction
     def run_recruiter_checks():
@@ -1597,7 +1590,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
 
-    @scheduled_task("interval", seconds=2, max_instances=1)
+    @scheduled_task("interval", seconds=2, max_instances=1, misfire_grace_time=None)
     @log_time_taken
     @staticmethod
     @with_transaction
@@ -1645,7 +1638,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             logger.info("Finished growing networks.")
 
-    @scheduled_task("interval", seconds=0.5, max_instances=1)
+    @scheduled_task("interval", seconds=0.5, max_instances=1, misfire_grace_time=None)
     @log_time_taken
     @staticmethod
     def _check_barriers():
@@ -1660,7 +1653,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         sync_check_barriers()
 
-    @scheduled_task("interval", seconds=2.5, max_instances=1)
+    @scheduled_task("interval", seconds=2.5, max_instances=1, misfire_grace_time=None)
     @log_time_taken
     @staticmethod
     @with_transaction

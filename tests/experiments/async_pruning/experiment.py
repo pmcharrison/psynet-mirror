@@ -214,7 +214,7 @@ class Exp(psynet.experiment.Experiment):
         trial_maker,
     )
 
-    @scheduled_task("interval", seconds=2.0, max_instances=1)
+    @scheduled_task("interval", seconds=2.0, max_instances=1, misfire_grace_time=None)
     @staticmethod
     @with_transaction
     def add_random_var_to_trials():
