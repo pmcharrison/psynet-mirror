@@ -1638,13 +1638,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
             logger.info("Finished growing networks.")
 
-    @scheduled_task(
-        "interval",
-        seconds=0.5,
-        coalesce=True,
-        max_instances=2,
-        misfire_grace_time=None,
-    )
+    @scheduled_task("interval", seconds=0.5, max_instances=1, misfire_grace_time=None)
     @log_time_taken
     @staticmethod
     def _check_barriers():

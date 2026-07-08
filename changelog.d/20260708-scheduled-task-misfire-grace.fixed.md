@@ -1,1 +1,1 @@
-Allowed barrier polling to resume after long scheduler pauses without being blocked by a stale scheduler instance.
+Allowed scheduled tasks to remain eligible after long scheduler pauses by disabling the misfire grace limit.
