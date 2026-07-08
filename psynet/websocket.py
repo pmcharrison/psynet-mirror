@@ -19,22 +19,17 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-class WebSocketEvent(BaseModel):
-    """A Pydantic model for an inbound WebSocket event."""
+class ClientWebSocketEvent(BaseModel):
+    """A browser-authored event authorized against the current PsyNet page."""
 
     model_config = ConfigDict(extra="ignore", strict=True)
 
     type: str = Field(min_length=1)
-
-
-class PageScopedWebSocketEvent(WebSocketEvent):
-    """A WebSocket event authorized by the current PsyNet page UUID."""
-
     page_uuid: str = Field(min_length=1)
 
 
-class WebSocketOutboundMessage(BaseModel):
-    """A Pydantic model for an outbound WebSocket message."""
+class ServerWebSocketEvent(BaseModel):
+    """A server-authored event sent to browser WebSocket clients."""
 
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -45,11 +40,11 @@ class WebSocketOutboundMessage(BaseModel):
 
 @dataclass(frozen=True)
 class _WebSocketHandler:
-    event_model: Type[WebSocketEvent]
+    event_model: Type[ClientWebSocketEvent]
     method_name: str
 
 
-def get_websocket_event_type(event_model: Type[WebSocketEvent]):
+def get_websocket_event_type(event_model: Type[ClientWebSocketEvent]):
     """Return the event type declared by a WebSocket event model."""
     try:
         field = event_model.model_fields["type"]
@@ -70,7 +65,9 @@ def get_websocket_event_type(event_model: Type[WebSocketEvent]):
     )
 
 
-def websocket_handler(event_model: Type[WebSocketEvent], type_: Optional[str] = None):
+def websocket_handler(
+    event_model: Type[ClientWebSocketEvent], type_: Optional[str] = None
+):
     """Decorate a service method as the handler for a WebSocket event model."""
     event_type = type_ or get_websocket_event_type(event_model)
 
@@ -154,10 +151,9 @@ class WebSocketEventService:
 
     def accepts_event(self, event):
         """Return whether an event is authorized for this participant context."""
-        if isinstance(event, PageScopedWebSocketEvent):
-            if event.page_uuid != self.participant.page_uuid:
-                self.warn_rejected_event("stale page UUID", event)
-                return False
+        if event.page_uuid != self.participant.page_uuid:
+            self.warn_rejected_event("stale page UUID", event)
+            return False
         return True
 
     def publish(self, message, channel_name=None):

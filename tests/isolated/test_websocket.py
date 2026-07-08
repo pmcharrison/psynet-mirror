@@ -8,10 +8,10 @@ from pydantic import Field, ValidationError
 
 from psynet.timeline import NullElt
 from psynet.websocket import (
-    PageScopedWebSocketEvent,
+    ClientWebSocketEvent,
+    ServerWebSocketEvent,
     ValidatedWebSocketElt,
     WebSocketEventService,
-    WebSocketOutboundMessage,
     websocket_handler,
 )
 
@@ -19,7 +19,7 @@ from psynet.websocket import (
 class EchoService(WebSocketEventService):
     rejection_log_label = "echo websocket"
 
-    class EchoEvent(PageScopedWebSocketEvent):
+    class EchoEvent(ClientWebSocketEvent):
         """An event used to exercise validated dispatch."""
 
         type: Literal["echo"]
@@ -39,7 +39,7 @@ class EnableEcho(NullElt, ValidatedWebSocketElt):
 
 
 class ExplodingService(WebSocketEventService):
-    class ExplodeEvent(PageScopedWebSocketEvent):
+    class ExplodeEvent(ClientWebSocketEvent):
         type: Literal["explode"]
 
     @websocket_handler(ExplodeEvent)
@@ -95,8 +95,8 @@ def test_validated_websocket_elt_uses_configured_service():
     experiment.publish_to_subscribers.assert_called_once()
 
 
-def test_page_scoped_event_rejects_stale_page_uuid():
-    """Page-scoped event dispatch rejects messages from stale pages."""
+def test_client_event_rejects_stale_page_uuid():
+    """Client event dispatch rejects messages from stale pages."""
     service = EchoService(_participant(), _experiment(), "echo_channel")
 
     assert (
@@ -148,7 +148,7 @@ def test_handler_value_errors_are_not_swallowed():
 def test_outbound_message_serialization_excludes_none():
     """Outbound message models serialize to compact WebSocket JSON payloads."""
 
-    class DoneMessage(WebSocketOutboundMessage):
+    class DoneMessage(ServerWebSocketEvent):
         type: Literal["done"] = "done"
         answer: Optional[list[str]] = None
 

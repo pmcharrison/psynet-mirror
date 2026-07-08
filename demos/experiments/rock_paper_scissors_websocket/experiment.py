@@ -53,10 +53,10 @@ from psynet.sync import GroupBarrier, SimpleGrouper
 from psynet.timeline import NullElt, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 from psynet.websocket import (
-    PageScopedWebSocketEvent,
+    ClientWebSocketEvent,
+    ServerWebSocketEvent,
     ValidatedWebSocketElt,
     WebSocketEventService,
-    WebSocketOutboundMessage,
     websocket_handler,
 )
 
@@ -110,7 +110,7 @@ class RockPaperScissorsGameService(WebSocketEventService):
 
     rejection_log_label = "rock-paper-scissors websocket"
 
-    class ChooseEvent(PageScopedWebSocketEvent):
+    class ChooseEvent(ClientWebSocketEvent):
         """A participant's committed choice for one websocket game round."""
 
         type: Literal["choose"]
@@ -118,7 +118,7 @@ class RockPaperScissorsGameService(WebSocketEventService):
         round: int = Field(ge=1, le=N_ROUNDS)
         action: Choice
 
-    class RevealEvent(WebSocketOutboundMessage):
+    class RevealEvent(ServerWebSocketEvent):
         """A server-authored snapshot for rendering a completed round."""
 
         type: Literal["reveal"] = "reveal"
@@ -136,7 +136,7 @@ class RockPaperScissorsGameService(WebSocketEventService):
         if self.record_choice(event):
             self.broadcast_reveal_if_complete(event)
 
-    def accepts_event(self, event: PageScopedWebSocketEvent):
+    def accepts_event(self, event: ClientWebSocketEvent):
         """Return whether an event is authorized for the participant's current page."""
         if not super().accepts_event(event):
             return False
