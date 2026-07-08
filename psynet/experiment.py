@@ -33,7 +33,8 @@ from click import Context
 from dallinger import db
 from dallinger.config import get_config as dallinger_get_config
 from dallinger.config import is_valid_json
-from dallinger.experiment import experiment_route, scheduled_task
+from dallinger.experiment import experiment_route
+from dallinger.experiment import scheduled_task as dallinger_scheduled_task
 from dallinger.experiment_server.dashboard import (
     DashboardTab,
     dashboard,
@@ -131,6 +132,12 @@ from .utils import (
 )
 
 logger = get_logger()
+
+
+def scheduled_task(trigger, **kwargs):
+    """Register a scheduled task with no misfire time limit by default."""
+    kwargs.setdefault("misfire_grace_time", None)
+    return dallinger_scheduled_task(trigger, **kwargs)
 
 
 database_template_path = ".deploy/database_template.zip"
