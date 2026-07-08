@@ -139,6 +139,56 @@ def test_inplace_transitions_still_reject_style_in_page_content():
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
+def test_components_contribute_scripts_and_js_links_to_page():
+    # Reusable components ship JS through get_scripts()/get_js_links() rather
+    # than inlining <script> in a template.
+    class ScriptedPrompt(Prompt):
+        def get_scripts(self):
+            return ["console.log('prompt');"]
+
+    class ScriptedControl(Control):
+        macro = "control"
+
+        def get_scripts(self):
+            return ["console.log('control');"]
+
+        def get_js_links(self):
+            return ["/static/my-control.js"]
+
+    page = ModularPage("test", ScriptedPrompt("Hi!"), ScriptedControl())
+
+    joined = "\n".join(str(s) for s in page.scripts)
+    assert "console.log('prompt');" in joined
+    assert "console.log('control');" in joined
+    assert "/static/my-control.js" in page.js_links
+
+
+def test_chatroom_contributes_css_and_scripts_not_inline_markup():
+    from psynet.chatroom import ChatRoom
+
+    page = ModularPage(
+        "test",
+        Prompt("Hi!"),
+        chatroom=ChatRoom(room_id="room-42", show_history=True),
+    )
+
+    assert any("#chatroom-widget" in str(c) for c in page.css)
+    joined = "\n".join(str(s) for s in page.scripts)
+    assert '"room_id": "room-42"' in joined
+    assert "window.__psynetChatroomConfig" in joined
+    # The macro itself must be markup-only (no inline <script>/<style>) so it
+    # stays contract-compliant.
+    from importlib import resources
+
+    macro = (
+        resources.files("psynet")
+        .joinpath("templates/macros/chatroom.html")
+        .read_text(encoding="utf-8")
+    )
+    assert "<script" not in macro
+    assert "<style" not in macro
+
+
 def test_modular_page_text():
     page = ModularPage("test", Prompt("Hi!"))
     assert page.plain_text == "Hi!"

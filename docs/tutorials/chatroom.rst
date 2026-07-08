@@ -132,39 +132,42 @@ so every attribute you set on the subclass is accessible inside the template:
 
 Keep the macro focused on markup: inline ``<script>`` and ``<style>`` blocks in
 a custom template are rejected under in-place timeline transitions. Instead,
-expose any server-side config as ``data-`` attributes (the macro has access to
-``config``) and put the setup/teardown logic in a page script loaded via
-``js_links``, using PsyNet lifecycle hooks so it re-runs after each fragment
-swap:
+supply page-local CSS and JavaScript through the component's ``get_css()`` and
+``get_scripts()`` hooks (mirroring ``get_js_links()`` for external files).
+``ModularPage`` collects these from the chatroom and applies them as managed,
+per-page assets that are replayed and cleaned up correctly across fragment
+swaps. Bake any per-instance config into the script in Python, so the widget
+JavaScript never needs Jinja interpolation:
 
-.. code-block:: html
+.. code-block:: python
 
-    {% macro my_chatroom(config) %}
-    <div id="chatroom-widget"
-         data-room-id="{{ config.room_id }}"
-         data-channel="{{ config.channel }}">
-        ...
-    </div>
-    {% endmacro %}
+    import json
+    from markupsafe import Markup
 
-.. code-block:: javascript
+    class MyChatRoom(ChatRoom):
+        macro = "my_chatroom"
+        external_template = "my-chatroom.html"
 
-    // static/my-chatroom.js — referenced via the page's js_links
-    psynet.trial.onEvent("trialConstruct", function () {
-        const widget  = document.getElementById("chatroom-widget");
-        const roomId  = widget.dataset.roomId;
-        const channel = widget.dataset.channel;
-        // ... open the websocket, wire up input handlers ...
-    });
+        def get_css(self):
+            return ["#chatroom-widget { height: 400px; }"]
 
-    psynet.addPageCleanupCallback(function () {
-        // ... leave the room and close the socket ...
-    });
+        def get_scripts(self):
+            config = json.dumps({"room_id": self.room_id, "channel": self.channel})
+            widget_js = """
+                var CONFIG = window.__myChatroomConfig;
+                psynet.trial.onEvent("trialConstruct", function () {
+                    // ... open the websocket, wire up input handlers ...
+                });
+                psynet.addPageCleanupCallback(function () {
+                    // ... leave the room and close the socket ...
+                });
+            """
+            return [Markup(f"window.__myChatroomConfig = {config};\n{widget_js}")]
 
-The built-in ``chatroom_widget`` macro is a full working reference for the
-widget logic (WebSocket protocol, message rendering, occupancy updates); as a
-framework-owned template it may inline its script, whereas a custom template
-must supply JavaScript through ``js_links``/``scripts`` as shown above.
+The built-in ``ChatRoom`` uses exactly this pattern — see ``get_css`` and
+``get_scripts`` in ``psynet/chatroom.py`` and the widget logic in
+``psynet/resources/scripts/chatroom-widget.js`` (WebSocket protocol, message
+rendering, occupancy updates) for a full working reference.
 
 If you only need minor CSS changes (e.g. a different height or colour scheme)
 you can override the built-in IDs (``#chatroom-widget``,

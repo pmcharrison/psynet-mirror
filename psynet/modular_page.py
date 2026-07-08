@@ -145,6 +145,22 @@ class Prompt:
     def get_css(self):
         return []
 
+    def get_scripts(self):
+        """Page-local inline JavaScript this component contributes to the page.
+
+        Returned strings are supplied to the hosting ``ModularPage`` as ``scripts``
+        (deferred and replayed across in-place timeline transitions), so reusable
+        components can ship JavaScript without inlining ``<script>`` in a template.
+        """
+        return []
+
+    def get_js_links(self):
+        """Page-local external JavaScript files this component contributes.
+
+        Returned paths are supplied to the hosting ``ModularPage`` as ``js_links``.
+        """
+        return []
+
     def _collect_spa_markup_contract_problems(self):
         if self.text_html is None:
             return []
@@ -714,6 +730,20 @@ class Control:
         return {}
 
     def get_css(self):
+        return []
+
+    def get_scripts(self):
+        """Page-local inline JavaScript this control contributes to the page.
+
+        See :meth:`Prompt.get_scripts`.
+        """
+        return []
+
+    def get_js_links(self):
+        """Page-local external JavaScript files this control contributes.
+
+        See :meth:`Prompt.get_js_links`.
+        """
         return []
 
     @property
@@ -1927,13 +1957,29 @@ class ModularPage(Page):
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
 
-        css = self.prompt.get_css() + self.control.get_css()
-        if "css" in kwargs:
-            extra_css = kwargs.pop("css")
-            if isinstance(extra_css, list):
-                css.extend(extra_css)
-            else:
-                css.append(extra_css)
+        # Reusable components (prompt, control, chatroom) contribute their
+        # page-local assets through get_css/get_scripts/get_js_links hooks, so
+        # they don't have to inline <style>/<script> in a template (which the
+        # SPA contract forbids). Collect them here and merge with any assets the
+        # caller passed directly.
+        components = [self.prompt, self.control]
+        if self.chatroom is not None:
+            components.append(self.chatroom)
+
+        css = [c for component in components for c in component.get_css()]
+        scripts = [s for component in components for s in component.get_scripts()]
+        js_links = [
+            link for component in components for link in component.get_js_links()
+        ]
+
+        for key, collected in (
+            ("css", css),
+            ("scripts", scripts),
+            ("js_links", js_links),
+        ):
+            if key in kwargs:
+                extra = kwargs.pop(key)
+                collected.extend(extra if isinstance(extra, list) else [extra])
 
         super().__init__(
             label=label,
@@ -1958,6 +2004,8 @@ class ModularPage(Page):
             start_trial_automatically=start_trial_automatically,
             validate=validate,
             css=css,
+            scripts=scripts,
+            js_links=js_links,
             framework_owned_template=True,
             **kwargs,
         )
