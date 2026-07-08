@@ -185,14 +185,7 @@ record that explicitly in the merge request description.
 
 ## Merge request descriptions
 
-Use `.gitlab/merge_request_templates/Default.md` as the standardized merge
-request description template. Fill every section in that template and keep the
-description concise, but include enough context for a reviewer to understand the
-original motivation, the implemented approach, the user-facing impact, and the
-evidence that the change works.
-
-If the standard format changes, update the GitLab template rather than
-duplicating its contents here.
+Use `.gitlab/merge_request_templates/Default.md` as the template.
 
 ## CLI development
 
