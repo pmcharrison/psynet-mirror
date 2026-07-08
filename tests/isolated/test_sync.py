@@ -46,12 +46,12 @@ processed_barriers = []
 
 
 class ExplodingBarrier(Barrier):
-    def process_potential_releases(self):
+    def check(self):
         raise RuntimeError("boom")
 
 
 class RecordingBarrier(Barrier):
-    def process_potential_releases(self):
+    def check(self):
         processed_barriers.append(self.id)
 
 
@@ -125,7 +125,7 @@ def test_group_allocator(in_experiment_directory, db_session):
         assert participant.sync_group is None
 
     grouper.receive_participant(participants[2])
-    grouper.process_potential_releases()
+    grouper.check()
 
     db.session.commit()
 
@@ -504,6 +504,7 @@ def test_group_barrier_late_participant_timeout_kick_missing_participants(
         group.add_participant(p)
     db_session.commit()
 
+    barrier.check_waiting_participants(waiting_participants)
     released = barrier.choose_who_to_release(waiting_participants)
 
     assert missing_participant not in group.active_participants
@@ -546,6 +547,7 @@ def test_group_barrier_late_participant_timeout_kick_releases_waiters_after_diss
         group.add_participant(p)
     db_session.commit()
 
+    barrier.check_waiting_participants(waiting_participants)
     released = barrier.choose_who_to_release(waiting_participants)
 
     assert group.active_participants == []
@@ -588,6 +590,7 @@ def test_group_barrier_late_participant_timeout_fail_missing_participants(
         group.add_participant(p)
     db_session.commit()
 
+    barrier.check_waiting_participants(waiting_participants)
     released = barrier.choose_who_to_release(waiting_participants)
 
     assert missing_participant.failed is True
