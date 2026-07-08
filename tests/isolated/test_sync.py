@@ -504,7 +504,7 @@ def test_group_barrier_late_participant_timeout_kick_missing_participants(
         group.add_participant(p)
     db_session.commit()
 
-    barrier.prepare_for_release(waiting_participants)
+    barrier.check_waiting_participants(waiting_participants)
     released = barrier.choose_who_to_release(waiting_participants)
 
     assert missing_participant not in group.active_participants
@@ -547,7 +547,7 @@ def test_group_barrier_late_participant_timeout_kick_releases_waiters_after_diss
         group.add_participant(p)
     db_session.commit()
 
-    barrier.prepare_for_release(waiting_participants)
+    barrier.check_waiting_participants(waiting_participants)
     released = barrier.choose_who_to_release(waiting_participants)
 
     assert group.active_participants == []
@@ -590,7 +590,7 @@ def test_group_barrier_late_participant_timeout_fail_missing_participants(
         group.add_participant(p)
     db_session.commit()
 
-    barrier.prepare_for_release(waiting_participants)
+    barrier.check_waiting_participants(waiting_participants)
     released = barrier.choose_who_to_release(waiting_participants)
 
     assert missing_participant.failed is True

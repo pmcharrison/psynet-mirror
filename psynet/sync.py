@@ -279,7 +279,7 @@ class Barrier(EltCollection):
         barrier_is_active = self.id in participant.active_barriers
         return not barrier_is_active
 
-    def prepare_for_release(self, waiting_participants: List[Participant]):
+    def check_waiting_participants(self, waiting_participants: List[Participant]):
         """Run any side-effecting checks before deciding who to release."""
 
     def check(self):
@@ -293,7 +293,7 @@ class Barrier(EltCollection):
             ", ".join([str(p.id) for p in waiting_participants]),
         )
 
-        self.prepare_for_release(waiting_participants)
+        self.check_waiting_participants(waiting_participants)
         participants_to_release = self.choose_who_to_release(waiting_participants)
         participants_to_release.sort(key=lambda p: p.id)
 
@@ -485,7 +485,7 @@ class GroupBarrier(Barrier):
 
         return participants_to_release
 
-    def prepare_for_release(self, waiting_participants: List[Participant]):
+    def check_waiting_participants(self, waiting_participants: List[Participant]):
         for group in self.get_waiting_groups(waiting_participants).values():
             group.check_numbers()
             self.timeout_late_participants(group, waiting_participants)
