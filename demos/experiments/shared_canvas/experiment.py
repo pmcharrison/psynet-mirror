@@ -664,25 +664,21 @@ class SharedCanvasTrial(StaticTrial):
 
     def score_canvas_game(self, participants: List[Participant]):
         group = participants[0].active_sync_groups[GROUP_TYPE]
-        game_state = CanvasGameState.query.filter_by(
-            session_id=build_session_id(self, group)
-        ).one_or_none()
+        ordered = sorted(participants, key=lambda p: p.id)
+        world = self.definition["world"]
+        game_state = CanvasGameState.get_or_create(
+            build_session_id(self, group),
+            defaults={
+                "group_id": int(group.id),
+                "network_id": self.network.id,
+                "world_id": world["world_id"],
+                "state": CanvasGameState.initial_state([p.id for p in ordered], world),
+            },
+        )
         for participant in participants:
-            if game_state is None:
-                participant.var.shared_canvas_result = {
-                    "completed_live_canvas": False,
-                    "participant_id": participant.id,
-                    "collected_coin_ids": [],
-                    "coin_bonus": 0.0,
-                    "collection_count": 0,
-                    "final_position": None,
-                    "world_id": self.definition["world"]["world_id"],
-                    "error": "missing_canvas_game_state",
-                }
-            else:
-                participant.var.shared_canvas_result = game_state.participant_result(
-                    participant.id
-                )
+            participant.var.shared_canvas_result = game_state.participant_result(
+                participant.id
+            )
 
     def format_answer(self, raw_answer, **kwargs):
         participant = kwargs.get("participant", self.participant)
