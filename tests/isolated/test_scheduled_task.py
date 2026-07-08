@@ -18,9 +18,12 @@ def test_scheduled_task_defaults_to_unlimited_misfire_grace_time(tasks_with_clea
     def task_with_default_misfire_grace_time():
         pass
 
-    assert _registered_task_kwargs("task_with_default_misfire_grace_time")[
-        "misfire_grace_time"
-    ] is None
+    assert (
+        _registered_task_kwargs("task_with_default_misfire_grace_time")[
+            "misfire_grace_time"
+        ]
+        is None
+    )
 
 
 def test_scheduled_task_preserves_explicit_misfire_grace_time(tasks_with_cleanup):
