@@ -121,6 +121,30 @@ def extract_websocket_event_type(message):
     return event_type
 
 
+def _extract_websocket_participant_id(message):
+    """Extract a participant ID from a raw WebSocket JSON message, if present."""
+    try:
+        data = json.loads(message)
+    except json.JSONDecodeError:
+        return None
+
+    if not isinstance(data, dict):
+        return None
+
+    participant_id = data.get("sender") or data.get("participant_id")
+    client = data.get("client")
+    if participant_id is None and isinstance(client, dict):
+        participant_id = client.get("participant_id")
+
+    if participant_id in (None, ""):
+        return None
+
+    try:
+        return int(participant_id)
+    except (TypeError, ValueError):
+        return None
+
+
 class WebSocketEventService:
     """Parse, authorize, and dispatch WebSocket events for one request context."""
 
@@ -220,14 +244,33 @@ class ValidatedWebSocketElt(WebSocketElt):
 
     service_class = WebSocketEventService
 
+    def resolve_participant(self, message):
+        """Resolve a participant from a raw WebSocket message."""
+        participant_id = _extract_websocket_participant_id(message)
+        if participant_id is None:
+            return None
+
+        from psynet.participant import Participant
+
+        return Participant.query.get(participant_id)
+
     def handle_message(
         self, message, channel_name, participant, node, receive_time, experiment
     ):
         """Parse, authorize, and dispatch an incoming WebSocket message."""
         if participant is None:
+            participant = self.resolve_participant(message)
+
+        if participant is None:
+            try:
+                event = self.service_class.parse_event(message)
+            except (ValidationError, ValueError):
+                return
+
             warn_rejected_websocket_event(
                 "missing participant",
                 channel=channel_name or self.channel,
+                event=event,
                 label=self.service_class.get_rejection_log_label(),
             )
             return

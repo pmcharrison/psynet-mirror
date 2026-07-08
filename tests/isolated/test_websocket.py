@@ -13,6 +13,7 @@ from psynet.websocket import (
     ServerWebSocketEvent,
     ValidatedWebSocketElt,
     WebSocketEventService,
+    _extract_websocket_participant_id,
     websocket_handler,
 )
 
@@ -36,6 +37,13 @@ class EchoService(WebSocketEventService):
 class EnableEcho(NullElt, ValidatedWebSocketElt):
     channel = "echo_channel"
     service_class = EchoService
+
+
+class ResolveEcho(EnableEcho):
+    def resolve_participant(self, message):
+        """Resolve test participants from immediate-style websocket messages."""
+        self.resolved_participant_id = _extract_websocket_participant_id(message)
+        return _participant()
 
 
 class ExplodingService(WebSocketEventService):
@@ -95,6 +103,62 @@ def test_validated_websocket_elt_uses_configured_service():
 
     assert participant.handled_value == 5
     experiment.publish_to_subscribers.assert_called_once()
+
+
+def test_validated_websocket_elt_resolves_participant_from_message():
+    """Immediate websocket messages can resolve participant context from payloads."""
+    experiment = _experiment()
+    elt = ResolveEcho()
+
+    elt.handle_message(
+        json.dumps(
+            {
+                "type": "echo",
+                "page_uuid": "current-page",
+                "value": 8,
+                "sender": "7",
+                "immediate": True,
+            }
+        ),
+        channel_name="echo_channel",
+        participant=None,
+        node=None,
+        receive_time=None,
+        experiment=experiment,
+    )
+
+    assert elt.resolved_participant_id == 7
+    experiment.publish_to_subscribers.assert_called_once()
+
+
+def test_extract_websocket_participant_id_supports_dallinger_fields():
+    """Participant IDs can be extracted from Dallinger websocket payload shapes."""
+    assert _extract_websocket_participant_id(json.dumps({"sender": "12"})) == 12
+    assert _extract_websocket_participant_id(json.dumps({"participant_id": 13})) == 13
+    assert (
+        _extract_websocket_participant_id(
+            json.dumps({"client": {"participant_id": "14"}})
+        )
+        == 14
+    )
+    assert _extract_websocket_participant_id(json.dumps({"sender": "bad"})) is None
+
+
+def test_validated_websocket_elt_ignores_server_events_without_participant(caplog):
+    """Server broadcasts on the same channel are not rejected as client events."""
+    experiment = _experiment()
+
+    EnableEcho().handle_message(
+        json.dumps({"type": "echoed", "value": 3}),
+        channel_name="echo_channel",
+        participant=None,
+        node=None,
+        receive_time=None,
+        experiment=experiment,
+    )
+
+    assert "missing participant" not in caplog.text
+    experiment.publish_to_subscribers.assert_not_called()
 
 
 def test_client_event_rejects_stale_page_uuid():
