@@ -104,12 +104,6 @@ Choice = Literal["rock", "paper", "scissors"]
 class RockPaperScissorsGameService(WebSocketEventService):
     """Runtime game services available to websocket event handlers."""
 
-    participant: Participant
-    experiment: psynet.experiment.Experiment
-    channel: str
-
-    rejection_log_label = "rock-paper-scissors websocket"
-
     class ChooseEvent(ClientWebSocketEvent):
         """A participant's committed choice for one websocket game round."""
 

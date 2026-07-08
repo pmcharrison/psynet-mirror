@@ -17,8 +17,6 @@ from psynet.websocket import (
 
 
 class EchoService(WebSocketEventService):
-    rejection_log_label = "echo websocket"
-
     class EchoEvent(ClientWebSocketEvent):
         """An event used to exercise validated dispatch."""
 
@@ -66,6 +64,8 @@ def _experiment():
 def test_decorated_service_handler_parses_and_dispatches_event():
     """A decorated service method handles its registered Pydantic event model."""
     service = EchoService(_participant(), _experiment(), "echo_channel")
+
+    assert EchoService.get_rejection_log_label() == "EchoService"
 
     result = service.dispatch(
         json.dumps({"type": "echo", "page_uuid": "current-page", "value": 3})

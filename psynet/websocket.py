@@ -109,7 +109,7 @@ def extract_websocket_event_type(message):
 class WebSocketEventService:
     """Parse, authorize, and dispatch WebSocket events for one request context."""
 
-    rejection_log_label = "websocket"
+    rejection_log_label = None
     _websocket_handlers: ClassVar[dict[str, _WebSocketHandler]] = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -133,6 +133,11 @@ class WebSocketEventService:
         self.channel = channel
         self.node = node
         self.receive_time = receive_time
+
+    @classmethod
+    def get_rejection_log_label(cls):
+        """Return the label used when logging rejected WebSocket events."""
+        return cls.rejection_log_label or cls.__name__
 
     @classmethod
     def parse_event(cls, message):
@@ -191,7 +196,7 @@ class WebSocketEventService:
             channel=self.channel,
             event=event,
             error=error,
-            label=self.rejection_log_label,
+            label=self.get_rejection_log_label(),
         )
 
 
@@ -208,7 +213,7 @@ class ValidatedWebSocketElt(WebSocketElt):
             warn_rejected_websocket_event(
                 "missing participant",
                 channel=channel_name or self.channel,
-                label=self.service_class.rejection_log_label,
+                label=self.service_class.get_rejection_log_label(),
             )
             return
 
