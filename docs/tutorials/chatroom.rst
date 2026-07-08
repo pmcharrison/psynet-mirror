@@ -56,12 +56,14 @@ Basic setup
 Room IDs
 --------
 
-The ``room_id`` can be any string.  Experiments may want separate groups with
-private rooms. In such cases you can use an ID derived from a group
-identifier::
+The ``room_id`` can be any string.  Experiments often want each synchronised
+group of participants to share a private room. Inside a trial, the most robust
+way to obtain a per-group identifier is
+:attr:`Trial.sync_group <psynet.trial.main.Trial.sync_group>`, which returns the
+:class:`~psynet.sync.SyncGroup` matching the trial maker's ``sync_group_type``::
 
     chatroom=ChatRoom(
-        room_id=f"group_{participant.sync_group.id}",
+        room_id=f"group_{self.sync_group.id}",
         show_participants=True,
         show_history=True,
     )

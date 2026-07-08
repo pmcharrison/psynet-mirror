@@ -14,7 +14,7 @@ import requests
 import psynet.artifact as psynet_artifact
 import psynet.asset as psynet_asset
 from psynet.artifact import LocalArtifactStorage
-from psynet.pytest_psynet import artifact_storage_s3_test_root, path_to_demo_experiment
+from psynet.pytest_psynet import mock_s3_root, path_to_demo_experiment
 
 
 def test_list_subfolders(artifact_storage, tmp_path):
@@ -89,13 +89,14 @@ def test_get_modification_date(artifact_storage, tmp_path):
     assert modified is not None
 
 
-def test_artifact_storage_s3_test_root_restores_s3_globals(tmp_path, monkeypatch):
+def test_mock_s3_root_configures_s3_globals(tmp_path, monkeypatch):
     original_asset_get_s3_client = psynet_asset.get_s3_client
     original_artifact_get_s3_client = psynet_artifact.get_s3_client
 
-    fixture = artifact_storage_s3_test_root.__wrapped__(tmp_path, monkeypatch)
-    next(fixture)
+    fixture = mock_s3_root.__wrapped__(tmp_path, monkeypatch)
+    root = next(fixture)
 
+    assert os.environ["PSYNET_MOCK_S3_ROOT"] == str(root)
     assert psynet_asset.get_s3_client is not original_asset_get_s3_client
     assert psynet_artifact.get_s3_client is not original_artifact_get_s3_client
 
