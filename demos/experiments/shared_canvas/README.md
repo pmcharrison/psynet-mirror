@@ -19,7 +19,6 @@ The implementation is based on
 - `constraints.txt` is present for Dallinger dependency locking workflows.
 - `Dockerfile` supports PsyNet/Dallinger SSH deployments.
 - `test.py` runs the standard PsyNet experiment test through pytest.
-- `AGENTS.md` links PsyNetSkills guidance for future agent work.
 
 ## Local checks
 
