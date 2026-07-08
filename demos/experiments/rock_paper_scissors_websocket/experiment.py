@@ -34,12 +34,11 @@ on release, so the flow is also fully testable with non-WebSocket bots.
 
 import json
 import random
-from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import List, Literal, Optional
 
 from dominate import tags
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import Field, ValidationError
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
@@ -51,11 +50,15 @@ from psynet.modular_page import Control, ModularPage
 from psynet.page import InfoPage
 from psynet.participant import Participant
 from psynet.sync import GroupBarrier, SimpleGrouper
-from psynet.timeline import NullElt, Timeline, WebSocketElt, join
+from psynet.timeline import NullElt, Timeline, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
-from psynet.utils import get_logger
-
-logger = get_logger()
+from psynet.websocket import (
+    PageScopedWebSocketEvent,
+    ValidatedWebSocketElt,
+    WebSocketEventService,
+    WebSocketOutboundMessage,
+    websocket_handler,
+)
 
 GROUP_TYPE = "rock_paper_scissors"
 CHANNEL = "rock_paper_scissors"
@@ -79,32 +82,8 @@ def score_round(action_self, action_other):
 Choice = Literal["rock", "paper", "scissors"]
 
 
-class PageScopedWebSocketEvent(BaseModel):
-    """A websocket event authorized by the current PsyNet page UUID."""
-
-    model_config = ConfigDict(extra="ignore", strict=True)
-
-    page_uuid: str = Field(min_length=1)
-
-
-class ChooseEvent(PageScopedWebSocketEvent):
-    """A participant's committed choice for one websocket game round."""
-
-    type: Literal["choose"]
-    room_id: str = Field(min_length=1)
-    round: int = Field(ge=1, le=N_ROUNDS)
-    action: Choice
-
-    def handle(self, service):
-        """Apply this event to the running websocket game."""
-        if service.record_choice(self):
-            service.broadcast_reveal_if_complete(self)
-
-
-class RevealEvent(BaseModel):
+class RevealEvent(WebSocketOutboundMessage):
     """A server-authored snapshot for rendering a completed round."""
-
-    model_config = ConfigDict(extra="forbid", strict=True)
 
     type: Literal["reveal"] = "reveal"
     target: str
@@ -115,41 +94,35 @@ class RevealEvent(BaseModel):
     finished: bool
     answer: Optional[List[str]] = None
 
-    def to_json(self):
-        """Serialize the reveal snapshot as a websocket JSON message."""
-        return self.model_dump_json(exclude_none=True)
 
-
-def _parse_client_event(message):
-    """Parse a raw websocket message into a supported client event."""
-    return ChooseEvent.model_validate_json(message)
-
-
-@dataclass(frozen=True)
-class RockPaperScissorsGameService:
+class RockPaperScissorsGameService(WebSocketEventService):
     """Runtime game services available to websocket event handlers."""
 
     participant: Participant
     experiment: psynet.experiment.Experiment
     channel: str
 
-    def warn_rejected_event(self, reason, event=None):
-        """Log a rejected websocket event with participant context."""
-        event_type = getattr(event, "type", None)
-        logger.warning(
-            "Rejected rock-paper-scissors websocket event: %s "
-            "(participant_id=%s, event_type=%s)",
-            reason,
-            getattr(self.participant, "id", None),
-            event_type,
-        )
+    rejection_log_label = "rock-paper-scissors websocket"
+
+    class ChooseEvent(PageScopedWebSocketEvent):
+        """A participant's committed choice for one websocket game round."""
+
+        type: Literal["choose"]
+        room_id: str = Field(min_length=1)
+        round: int = Field(ge=1, le=N_ROUNDS)
+        action: Choice
+
+    @websocket_handler(ChooseEvent)
+    def choose(self, event):
+        """Apply a participant choice to the running websocket game."""
+        if self.record_choice(event):
+            self.broadcast_reveal_if_complete(event)
 
     def accepts_event(self, event: PageScopedWebSocketEvent):
         """Return whether an event is authorized for the participant's current page."""
-        if event.page_uuid != self.participant.page_uuid:
-            self.warn_rejected_event("stale page UUID", event)
+        if not super().accepts_event(event):
             return False
-        if isinstance(event, ChooseEvent):
+        if isinstance(event, self.ChooseEvent):
             sync_group_id = getattr(self.participant.sync_group, "id", None)
             if sync_group_id is None:
                 self.warn_rejected_event("participant has no sync group", event)
@@ -159,7 +132,7 @@ class RockPaperScissorsGameService:
                 return False
         return True
 
-    def record_choice(self, event: ChooseEvent):
+    def record_choice(self, event: "RockPaperScissorsGameService.ChooseEvent"):
         """Persist the state snapshot and audit row for a participant choice."""
         from dallinger import db
 
@@ -186,7 +159,9 @@ class RockPaperScissorsGameService:
             game_state = RockPaperScissorsGameState(room_id=room_id)
         return game_state
 
-    def broadcast_reveal_if_complete(self, event: ChooseEvent):
+    def broadcast_reveal_if_complete(
+        self, event: "RockPaperScissorsGameService.ChooseEvent"
+    ):
         """Broadcast the completed round once both participants have chosen."""
         game_state = RockPaperScissorsGameState.query.filter_by(
             room_id=event.room_id
@@ -198,9 +173,7 @@ class RockPaperScissorsGameService:
         pids = sorted(this_round.keys())
         for participant_id in pids:
             snapshot = game_state.reveal_for(participant_id, event.round)
-            self.experiment.publish_to_subscribers(
-                snapshot.to_json(), channel_name=self.channel
-            )
+            self.publish(snapshot)
 
 
 @register_table
@@ -355,7 +328,7 @@ class RockPaperScissorsMove(SQLBase, SQLMixin):
         self.action = action
 
 
-class EnableRockPaperScissors(NullElt, WebSocketElt):
+class EnableRockPaperScissors(NullElt, ValidatedWebSocketElt):
     """Timeline element that activates the rock-paper-scissors WebSocket channel.
 
     Place this directly in the experiment timeline whenever a
@@ -364,30 +337,7 @@ class EnableRockPaperScissors(NullElt, WebSocketElt):
     """
 
     channel = CHANNEL
-
-    def handle_message(
-        self, message, channel_name, participant, node, receive_time, experiment
-    ):
-        if participant is None:
-            logger.warning(
-                "Rejected rock-paper-scissors websocket event: missing participant"
-            )
-            return
-
-        try:
-            event = _parse_client_event(message)
-        except ValidationError as err:
-            logger.warning(
-                "Rejected rock-paper-scissors websocket event: validation failed "
-                "(participant_id=%s, errors=%s)",
-                participant.id,
-                err.error_count(),
-            )
-            return
-        service = RockPaperScissorsGameService(participant, experiment, self.channel)
-        if not service.accepts_event(event):
-            return
-        event.handle(service)
+    service_class = RockPaperScissorsGameService
 
 
 class RockPaperScissorsControl(Control):
@@ -537,7 +487,7 @@ class Exp(psynet.experiment.Experiment):
 
     @staticmethod
     def _valid_choose_event():
-        return _parse_client_event(
+        return RockPaperScissorsGameService.parse_event(
             json.dumps(
                 {
                     "type": "choose",
@@ -553,8 +503,8 @@ class Exp(psynet.experiment.Experiment):
     @staticmethod
     def _assert_payload_rejected(payload):
         try:
-            _parse_client_event(json.dumps(payload))
-        except ValidationError:
+            RockPaperScissorsGameService.parse_event(json.dumps(payload))
+        except (ValidationError, ValueError):
             pass
         else:
             raise AssertionError(f"Expected payload to be rejected: {payload}")
@@ -563,7 +513,7 @@ class Exp(psynet.experiment.Experiment):
     def test_websocket_event_parsing():
         """Check websocket event parsing and validation."""
         event = Exp._valid_choose_event()
-        assert event == ChooseEvent(
+        assert event == RockPaperScissorsGameService.ChooseEvent(
             type="choose",
             room_id="rps_room_1",
             round=2,
@@ -615,8 +565,8 @@ class Exp(psynet.experiment.Experiment):
             Exp._assert_payload_rejected(payload)
 
         try:
-            _parse_client_event("not JSON")
-        except ValidationError:
+            RockPaperScissorsGameService.parse_event("not JSON")
+        except (ValidationError, ValueError):
             pass
         else:
             raise AssertionError("Expected malformed JSON to be rejected.")
@@ -626,7 +576,7 @@ class Exp(psynet.experiment.Experiment):
         """Check page UUID and room ownership authorization."""
         event = Exp._valid_choose_event()
         participant = SimpleNamespace(
-            page_uuid="current-page", sync_group=SimpleNamespace(id=1)
+            id=1, page_uuid="current-page", sync_group=SimpleNamespace(id=1)
         )
         service = RockPaperScissorsGameService(
             participant, SimpleNamespace(), "rock_paper_scissors"
