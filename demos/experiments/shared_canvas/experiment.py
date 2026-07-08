@@ -11,6 +11,7 @@ from typing import List, Literal
 
 from dallinger import db
 from dominate import tags
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import Field, ValidationError
 from sqlalchemy import (
     JSON,
@@ -909,11 +910,49 @@ class Exp(psynet.experiment.Experiment):
             "reason": "too_far",
         }
 
+    @staticmethod
+    def test_canvas_template_config_initialization():
+        template_dir = os.path.join(os.path.dirname(__file__), "templates")
+        env = Environment(
+            loader=FileSystemLoader(template_dir),
+            autoescape=select_autoescape(["html"]),
+        )
+        template = env.get_template("shared_canvas.html")
+        config = {
+            "channel": CANVAS_WS_CHANNEL,
+            "immediate": CANVAS_WS_IMMEDIATE,
+            "tolerance": CANVAS_WS_TOLERANCE,
+            "session_id": "shared_canvas:1:group:1",
+            "participant_id": 1,
+            "group_id": 1,
+            "role": "Player 1",
+            "world_id": WORLD_DEFINITIONS[0]["world_id"],
+            "canvas_size": CANVAS_SIZE,
+            "trial_seconds": TRIAL_SECONDS,
+            "send_interval_ms": SEND_INTERVAL_MS,
+            "draw_interval_ms": DRAW_INTERVAL_MS,
+            "player_radius": PLAYER_RADIUS,
+            "coin_radius": COIN_RADIUS,
+            "coin_bonus": COIN_BONUS,
+        }
+        html = template.module.shared_canvas_control(
+            SimpleNamespace(game_config=config)
+        )
+        config_line = next(
+            line.strip()
+            for line in html.splitlines()
+            if line.strip().startswith("var cfg =")
+        )
+        assert config_line.startswith("var cfg = {")
+        assert "&#" not in config_line
+        assert '"channel": "shared_canvas_live"' in config_line
+
     def test_canvas_websocket_contracts(self):
         self.test_websocket_event_parsing()
         self.test_canvas_state_transitions()
         self.test_websocket_event_authorization()
         self.test_server_event_serialization()
+        self.test_canvas_template_config_initialization()
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
         self.test_canvas_websocket_contracts()

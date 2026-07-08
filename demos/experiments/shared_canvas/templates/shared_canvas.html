@@ -39,7 +39,7 @@
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  var cfg = JSON.parse('{{ params.game_config | tojson | forceescape }}');
+  var cfg = {{ params.game_config | tojson }};
   var canvas = document.getElementById("shared-canvas");
   var ctx = canvas.getContext("2d");
   var socket = null;
