@@ -76,6 +76,9 @@ changelog_check:
     # Release branches regenerate CHANGELOG.md from fragments.
     - if: $CI_COMMIT_BRANCH =~ /^release-/ || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^release-/
       when: never
+    # Post-release version bumps are release bookkeeping, not user-facing changes.
+    - if: $CI_COMMIT_BRANCH == "bump-master-post-release" || $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "bump-master-post-release"
+      when: never
     - if: $CI_MERGE_REQUEST_ID
       when: always
     - when: never
