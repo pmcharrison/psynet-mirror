@@ -130,10 +130,41 @@ so every attribute you set on the subclass is accessible inside the template:
     </div>
     {% endmacro %}
 
-Keep this macro focused on markup. Page-local JavaScript should be loaded with
-the page's ``js_links`` or ``scripts`` arguments, and setup code should use
-PsyNet lifecycle hooks such as ``psynet.trial.onEvent("trialConstruct", ...)``.
-This keeps the chatroom compatible with in-place timeline transitions.
+Keep the macro focused on markup: inline ``<script>`` and ``<style>`` blocks in
+a custom template are rejected under in-place timeline transitions. Instead,
+expose any server-side config as ``data-`` attributes (the macro has access to
+``config``) and put the setup/teardown logic in a page script loaded via
+``js_links``, using PsyNet lifecycle hooks so it re-runs after each fragment
+swap:
+
+.. code-block:: html
+
+    {% macro my_chatroom(config) %}
+    <div id="chatroom-widget"
+         data-room-id="{{ config.room_id }}"
+         data-channel="{{ config.channel }}">
+        ...
+    </div>
+    {% endmacro %}
+
+.. code-block:: javascript
+
+    // static/my-chatroom.js — referenced via the page's js_links
+    psynet.trial.onEvent("trialConstruct", function () {
+        const widget  = document.getElementById("chatroom-widget");
+        const roomId  = widget.dataset.roomId;
+        const channel = widget.dataset.channel;
+        // ... open the websocket, wire up input handlers ...
+    });
+
+    psynet.addPageCleanupCallback(function () {
+        // ... leave the room and close the socket ...
+    });
+
+The built-in ``chatroom_widget`` macro is a full working reference for the
+widget logic (WebSocket protocol, message rendering, occupancy updates); as a
+framework-owned template it may inline its script, whereas a custom template
+must supply JavaScript through ``js_links``/``scripts`` as shown above.
 
 If you only need minor CSS changes (e.g. a different height or colour scheme)
 you can override the built-in IDs (``#chatroom-widget``,
