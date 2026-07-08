@@ -1,5 +1,4 @@
 import pytest
-
 from flask import Flask
 from jinja2 import DictLoader
 from markupsafe import Markup
