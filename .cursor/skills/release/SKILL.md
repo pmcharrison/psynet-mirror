@@ -556,6 +556,12 @@ git push --set-upstream origin bump-master-post-release
 Merge this MR promptly before any new feature branches land, so the version
 and generated demo/test files on `master` stay aligned with the CHANGELOG.
 
+Unlike release branches, **delete `bump-master-post-release` when the MR
+merges** (e.g. create the MR with `remove_source_branch=true`). It is a
+throwaway vehicle for the two bookkeeping commits, recreated from fresh
+`master` each cycle; a stale leftover from the previous cycle otherwise
+forces the next release to force-push over it.
+
 ## Patch release path
 
 Example: releasing 13.1.1 from the existing `release-13.1` branch.
