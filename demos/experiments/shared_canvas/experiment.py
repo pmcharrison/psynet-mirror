@@ -7,18 +7,18 @@ import random
 from copy import deepcopy
 from datetime import datetime
 from types import SimpleNamespace
-from typing import List, Literal, Optional
+from typing import List, Literal
 
 from dallinger import db
 from dominate import tags
 from pydantic import Field, ValidationError
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     DateTime,
     Float,
     Integer,
-    JSON,
     String,
     UniqueConstraint,
 )
@@ -40,7 +40,6 @@ from psynet.websocket import (
     WebSocketEventService,
     websocket_handler,
 )
-
 
 GROUP_TYPE = "shared_canvas_group"
 CANVAS_WS_CHANNEL = "shared_canvas_live"
@@ -470,7 +469,9 @@ class CanvasGameService(WebSocketEventService):
             )
         )
         self.publish(
-            self.StateSnapshotEvent(**game_state.state_snapshot_payload(self.participant.id))
+            self.StateSnapshotEvent(
+                **game_state.state_snapshot_payload(self.participant.id)
+            )
         )
         db.session.commit()
 
@@ -495,13 +496,15 @@ class CanvasGameService(WebSocketEventService):
             raise ValueError(f"Unknown canvas session_id: {session_id}")
         return game_state
 
-    def position_player_payload(self, game_state: CanvasGameState, event: PositionEvent):
+    def position_player_payload(
+        self, game_state: CanvasGameState, event: PositionEvent
+    ):
         state = game_state.state or {}
         participant_id = str(self.participant.id)
         players = state.get("players", {})
         player = deepcopy(players.get(participant_id, {}))
-        canvas_size = state.get("params", {}).get("world", {}).get(
-            "canvas_size", CANVAS_SIZE
+        canvas_size = (
+            state.get("params", {}).get("world", {}).get("canvas_size", CANVAS_SIZE)
         )
         player.update(
             {
@@ -682,7 +685,7 @@ class SharedCanvasTrial(StaticTrial):
                 )
 
     def format_answer(self, raw_answer, **kwargs):
-        participant = kwargs.get("participant")
+        participant = kwargs.get("participant", self.participant)
         if participant is not None:
             try:
                 result = participant.var.shared_canvas_result
@@ -753,7 +756,9 @@ class Exp(psynet.experiment.Experiment):
         StaticTrialMaker(
             id_="shared_canvas_worlds",
             trial_class=SharedCanvasTrial,
-            nodes=[WorldNode(definition={"world": world}) for world in WORLD_DEFINITIONS],
+            nodes=[
+                WorldNode(definition={"world": world}) for world in WORLD_DEFINITIONS
+            ],
             expected_trials_per_participant=1,
             max_trials_per_participant=1,
             sync_group_type=GROUP_TYPE,
@@ -940,9 +945,13 @@ class Exp(psynet.experiment.Experiment):
             assert answer["completed_live_canvas"] is True
             assert answer["coin_bonus"] == 0.0
             assert answer["collected_coin_ids"] == []
+            assert answer["participant_id"] == bot.id
             participant = Participant.query.get(bot.id)
             group_id = int(participant.active_sync_groups[GROUP_TYPE].id)
             answers_by_group.setdefault(group_id, []).append(answer)
 
         assert len(answers_by_group) == len(bots) // GROUP_SIZE
-        assert all(len(group_answers) == GROUP_SIZE for group_answers in answers_by_group.values())
+        assert all(
+            len(group_answers) == GROUP_SIZE
+            for group_answers in answers_by_group.values()
+        )
