@@ -272,8 +272,8 @@ class StaticTrialMaker(ChainTrialMaker):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
-        sync_group_timeout: Optional[int] = None,
-        sync_group_timeout_action: Literal["kick", "fail"] = "fail",
+        sync_group_late_participant_timeout: Optional[int] = None,
+        sync_group_late_participant_timeout_action: Literal["kick", "fail"] = "fail",
     ):
         # balance_across_chains = (
         #     active_balancing_across_participants or active_balancing_within_participants
@@ -360,8 +360,8 @@ class StaticTrialMaker(ChainTrialMaker):
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
             sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout=sync_group_timeout,
-            sync_group_timeout_action=sync_group_timeout_action,
+            sync_group_late_participant_timeout=sync_group_late_participant_timeout,
+            sync_group_late_participant_timeout_action=sync_group_late_participant_timeout_action,
         )
 
     def _start_nodes_param_name(self) -> str:

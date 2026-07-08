@@ -471,15 +471,15 @@ def test_barrier_registry_strips_waiting_logic(db_session):
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_group_barrier_participant_timeout_kick_missing_participants(
+def test_group_barrier_late_participant_timeout_kick_missing_participants(
     in_experiment_directory, db_session
 ):
     exp = get_experiment()
     barrier = GroupBarrier(
-        id_="participant_timeout_kick",
+        id_="late_participant_timeout_kick",
         group_type="main",
-        participant_timeout=5,
-        participant_timeout_action="kick",
+        late_participant_timeout=5,
+        late_participant_timeout_action="kick",
     )
 
     # Create 3 participants in the same sync group, but only 2 "reach" this barrier.
@@ -514,15 +514,15 @@ def test_group_barrier_participant_timeout_kick_missing_participants(
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_group_barrier_participant_timeout_kick_releases_waiters_after_dissolution(
+def test_group_barrier_late_participant_timeout_kick_releases_waiters_after_dissolution(
     in_experiment_directory, db_session
 ):
     exp = get_experiment()
     barrier = GroupBarrier(
-        id_="participant_timeout_kick_below_min",
+        id_="late_participant_timeout_kick_below_min",
         group_type="main",
-        participant_timeout=5,
-        participant_timeout_action="kick",
+        late_participant_timeout=5,
+        late_participant_timeout_action="kick",
     )
 
     participants = [new_participant(exp) for _ in range(3)]
@@ -556,15 +556,15 @@ def test_group_barrier_participant_timeout_kick_releases_waiters_after_dissoluti
 @pytest.mark.parametrize(
     "experiment_directory", [path_to_test_experiment("consents")], indirect=True
 )
-def test_group_barrier_participant_timeout_fail_missing_participants(
+def test_group_barrier_late_participant_timeout_fail_missing_participants(
     in_experiment_directory, db_session
 ):
     exp = get_experiment()
     barrier = GroupBarrier(
-        id_="participant_timeout_fail",
+        id_="late_participant_timeout_fail",
         group_type="main",
-        participant_timeout=5,
-        participant_timeout_action="fail",
+        late_participant_timeout=5,
+        late_participant_timeout_action="fail",
     )
 
     participants = [new_participant(exp) for _ in range(3)]

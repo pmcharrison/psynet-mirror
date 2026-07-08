@@ -1232,13 +1232,13 @@ class TrialMaker(Module):
         When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end
         of the experiment; ``"kick"`` removes them from the group and lets them continue. Defaults to ``"fail"``.
 
-    sync_group_timeout
+    sync_group_late_participant_timeout
         Optional timeout in seconds (since the group's last barrier pass) after which a participant
-        is considered too slow. When set, ``participant_timeout`` is passed to sync GroupBarriers.
-        When ``None`` (default), no participant timeout is applied.
+        is considered too slow. When set, ``late_participant_timeout`` is passed to sync GroupBarriers.
+        When ``None`` (default), no late-participant timeout is applied.
 
-    sync_group_timeout_action
-        When ``sync_group_timeout`` is set: ``"kick"`` removes the participant from the group so
+    sync_group_late_participant_timeout_action
+        When ``sync_group_late_participant_timeout`` is set: ``"kick"`` removes the participant from the group so
         the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
     """
 
@@ -1261,8 +1261,8 @@ class TrialMaker(Module):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
-        sync_group_timeout: Optional[int] = None,
-        sync_group_timeout_action: Literal["kick", "fail"] = "fail",
+        sync_group_late_participant_timeout: Optional[int] = None,
+        sync_group_late_participant_timeout_action: Literal["kick", "fail"] = "fail",
     ):
         if recruit_mode == "n_participants" and target_n_participants is None:
             raise ValueError(
@@ -1300,8 +1300,10 @@ class TrialMaker(Module):
         self.sync_group_type = sync_group_type
         self.sync_group_max_wait_time = sync_group_max_wait_time
         self.sync_group_max_wait_action = sync_group_max_wait_action
-        self.sync_group_timeout = sync_group_timeout
-        self.sync_group_timeout_action = sync_group_timeout_action
+        self.sync_group_late_participant_timeout = sync_group_late_participant_timeout
+        self.sync_group_late_participant_timeout_action = (
+            sync_group_late_participant_timeout_action
+        )
 
         elts = self.compile_elts()
 
@@ -1375,8 +1377,8 @@ class TrialMaker(Module):
                 max_wait_time=self.sync_group_max_wait_time,
                 max_wait_action=self.sync_group_max_wait_action,
                 on_release=self._init_participants_in_sync_group,
-                participant_timeout=self.sync_group_timeout,
-                participant_timeout_action=self.sync_group_timeout_action,
+                late_participant_timeout=self.sync_group_late_participant_timeout,
+                late_participant_timeout_action=self.sync_group_late_participant_timeout_action,
             ),
             logic_if_false=CodeBlock(self.init_participant),
             time_estimate=0.0 if self.sync_group_type is None else 3.0,
@@ -2033,8 +2035,8 @@ class TrialMaker(Module):
                         fix_time_credit=False,  # we're already within a while loop with fixed time credit
                         max_wait_time=self.sync_group_max_wait_time,
                         max_wait_action=self.sync_group_max_wait_action,
-                        participant_timeout=self.sync_group_timeout,
-                        participant_timeout_action=self.sync_group_timeout_action,
+                        late_participant_timeout=self.sync_group_late_participant_timeout,
+                        late_participant_timeout_action=self.sync_group_late_participant_timeout_action,
                     )
                 ),
                 CodeBlock(self._try_to_prepare_trial_solo),
@@ -2240,13 +2242,13 @@ class NetworkTrialMaker(TrialMaker):
         When ``sync_group_max_wait_time`` is exceeded: ``"fail"`` fails the participant and sends them to the end
         of the experiment; ``"kick"`` removes them from the group and lets them continue. Defaults to ``"fail"``.
 
-    sync_group_timeout
+    sync_group_late_participant_timeout
         Optional timeout in seconds (since the group's last barrier pass) after which a participant
-        is considered too slow. When set, ``participant_timeout`` is passed to sync GroupBarriers.
-        When ``None`` (default), no participant timeout is applied.
+        is considered too slow. When set, ``late_participant_timeout`` is passed to sync GroupBarriers.
+        When ``None`` (default), no late-participant timeout is applied.
 
-    sync_group_timeout_action
-        When ``sync_group_timeout`` is set: ``"kick"`` removes the participant from the group so
+    sync_group_late_participant_timeout_action
+        When ``sync_group_late_participant_timeout`` is set: ``"kick"`` removes the participant from the group so
         the rest can proceed, or ``"fail"`` fails the participant. Defaults to ``"fail"``.
 
     Attributes
@@ -2314,8 +2316,8 @@ class NetworkTrialMaker(TrialMaker):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
-        sync_group_timeout: Optional[int] = None,
-        sync_group_timeout_action: Literal["kick", "fail"] = "fail",
+        sync_group_late_participant_timeout: Optional[int] = None,
+        sync_group_late_participant_timeout_action: Literal["kick", "fail"] = "fail",
     ):
         performance_check_is_enabled = (
             check_performance_at_end or check_performance_every_trial
@@ -2355,8 +2357,8 @@ class NetworkTrialMaker(TrialMaker):
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
             sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout=sync_group_timeout,
-            sync_group_timeout_action=sync_group_timeout_action,
+            sync_group_late_participant_timeout=sync_group_late_participant_timeout,
+            sync_group_late_participant_timeout_action=sync_group_late_participant_timeout_action,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks

@@ -403,8 +403,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
         sync_group_type: Optional[str] = None,
         sync_group_max_wait_time: float = 45.0,
         sync_group_max_wait_action: Literal["fail", "kick"] = "fail",
-        sync_group_timeout: Optional[int] = None,
-        sync_group_timeout_action: Literal["kick", "fail"] = "fail",
+        sync_group_late_participant_timeout: Optional[int] = None,
+        sync_group_late_participant_timeout_action: Literal["kick", "fail"] = "fail",
     ):
         if chain_type == "within":
             raise NotImplementedError  # UNCLEAR TO ME HOW TO UNITE THE ON-DEMAND CREATION OF WITHIN CHAINS AND THE PRE-DFINED GRAPH NETWORK STRUCTURE
@@ -437,8 +437,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
             sync_group_type=sync_group_type,
             sync_group_max_wait_time=sync_group_max_wait_time,
             sync_group_max_wait_action=sync_group_max_wait_action,
-            sync_group_timeout=sync_group_timeout,
-            sync_group_timeout_action=sync_group_timeout_action,
+            sync_group_late_participant_timeout=sync_group_late_participant_timeout,
+            sync_group_late_participant_timeout_action=sync_group_late_participant_timeout_action,
         )
 
     @property
