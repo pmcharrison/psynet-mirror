@@ -8,6 +8,12 @@ recruiter = generic
 currency = $
 wage_per_hour = 12.0
 
+# The StepTag control (from the external `psynet-step` package) still ships a
+# complete inline template (page CSS/JS in step.html), which is not compatible
+# with the in-place timeline transition fragment contract. Opt this demo out of
+# the new default until STEP is migrated. See discussion in the MR.
+inplace_timeline_transitions = false
+
 [Prolific]
 # recruiter = prolific
 
