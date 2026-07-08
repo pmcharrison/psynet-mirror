@@ -485,6 +485,33 @@ conflicts there (keeping the pinned release versions; the post-release
 alpha bump re-points `master`'s copies at `master` again), and push that
 merge commit to `master` in place of the MR-button merge.
 
+#### Verify fragments after the merge-back
+
+After the release MR has merged, check `changelog.d/` on `master` for
+**resurrected fragments**. Fragments that were cherry-picked onto the
+release branch and consumed there by the CHANGELOG fold exist on both
+sides but were created after the branch point, so git's merge treats the
+`master` copies as new additions and keeps them — leaving fragments on
+`master` whose text is already in the released CHANGELOG section. If the
+next release folds them again, the entries are duplicated.
+
+Check each remaining fragment against the just-released section:
+
+```bash
+for f in changelog.d/*.md; do
+  [ "$(basename "$f")" = "README.md" ] && continue
+  snippet=$(head -c 60 "$f")
+  if awk '/^## \[X.Y.Z\]/{f=1;next} /^## \[/{f=0} f' CHANGELOG.md \
+      | grep -qF "$snippet"; then
+    echo "DUPLICATE: $f"
+  fi
+done
+```
+
+Delete any duplicates on `master` in a small follow-up commit. Fragments
+that do not appear in the released section are genuinely unreleased and
+must stay for the next release.
+
 ### 7. Bump master to the next alpha
 
 After the release branch has been merged back into `master`, bump `master`
@@ -513,6 +540,15 @@ git add -A
 git commit -m "Bump version to 13.3.0a0"
 git push --set-upstream origin bump-master-post-release
 ```
+
+- **Title:** `Bump version to 13.3.0a0`
+- **Description**, substituting the just-released version for `13.2.0`
+  and the next development version for `13.3.0a0`:
+
+  > Post-release bump after the 13.2.0 release: sets `master` to the next
+  > development version `13.3.0a0` and regenerates demo/test experiment
+  > files so they track the `master` image and branch again (instead of
+  > the pinned `v13.2.0`).
 
 > **Human checkpoint:** the release manager must approve the
 > `bump-master-post-release` MR before it is merged.
