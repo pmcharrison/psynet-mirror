@@ -173,9 +173,7 @@ def test_sync_group_dashboard_waiting_barrier_indexes():
         "barrier_a": (2, [1, 2]),
         "barrier_b": (1, [2]),
     }
-    assert _summarize_waiting_at_barriers(
-        {1, 2}, waiting_by_participant
-    ) == [
+    assert _summarize_waiting_at_barriers({1, 2}, waiting_by_participant) == [
         {"barrier_id": "barrier_a", "waiting_count": 2, "participant_ids": [1, 2]},
         {"barrier_id": "barrier_b", "waiting_count": 1, "participant_ids": [2]},
     ]
