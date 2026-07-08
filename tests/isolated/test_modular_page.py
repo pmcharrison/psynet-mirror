@@ -111,6 +111,34 @@ def test_inplace_transitions_allow_clean_external_templates():
         page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
+def test_inplace_transitions_allow_scripts_in_page_content():
+    # Page content/prompt Markup may embed <script> tags: PsyNet defers and
+    # replays them across in-place transitions (see deferred_page_scripts test
+    # experiment). The raw-<script> prohibition applies to author templates, not
+    # to page content.
+    page = ModularPage(
+        "test",
+        Prompt(
+            Markup(
+                "<p>Hi</p>"
+                '<script src="/static/example.js"></script>'
+                "<script>window.__x = 1;</script>"
+            )
+        ),
+    )
+
+    page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
+def test_inplace_transitions_still_reject_style_in_page_content():
+    # <style>/<link> in content are still forbidden: unlike scripts, they are
+    # not managed by the deferral machinery.
+    page = ModularPage("test", Prompt(Markup("<style>.x { color: red; }</style>")))
+
+    with pytest.raises(ValueError, match="page prompt/content"):
+        page._check_spa_template_contract(inplace_timeline_transitions=True)
+
+
 def test_modular_page_text():
     page = ModularPage("test", Prompt("Hi!"))
     assert page.plain_text == "Hi!"

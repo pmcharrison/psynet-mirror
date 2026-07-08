@@ -1619,28 +1619,35 @@ class Page(Elt):
 
     @staticmethod
     def _collect_spa_markup_contract_problems(
-        markup_source, source_description="The template"
+        markup_source, source_description="The template", allow_scripts=False
     ):
         # These checks intentionally cover common authoring mistakes rather
         # than trying to prove that arbitrary HTML/JS is SPA-safe.
+        #
+        # `allow_scripts` is set for page content/prompt markup, where embedded
+        # <script> tags are a supported pattern: PsyNet defers and replays them
+        # across in-place transitions (see Page._defer_executable_scripts). The
+        # prohibition still applies to author-provided page/prompt/control
+        # templates, which should route page JavaScript through scripts/js_links.
         problems = []
         markup_source = markup_source or ""
         soup = BeautifulSoup(markup_source, "html.parser")
 
-        for script in soup.find_all("script"):
-            if script.get("src"):
-                problems.append(
-                    f"{source_description} includes a page JavaScript link in a "
-                    "<script src=...> tag. Supply page JavaScript files via "
-                    "the Page js_links argument instead."
-                )
-            else:
-                problems.append(
-                    f"{source_description} includes a raw <script> block. Supply "
-                    "page JavaScript via the Page scripts argument instead, "
-                    "and use PsyNet lifecycle hooks such as "
-                    "psynet.trial.onEvent('trialConstruct', ...) for page setup."
-                )
+        if not allow_scripts:
+            for script in soup.find_all("script"):
+                if script.get("src"):
+                    problems.append(
+                        f"{source_description} includes a page JavaScript link in a "
+                        "<script src=...> tag. Supply page JavaScript files via "
+                        "the Page js_links argument instead."
+                    )
+                else:
+                    problems.append(
+                        f"{source_description} includes a raw <script> block. Supply "
+                        "page JavaScript via the Page scripts argument instead, "
+                        "and use PsyNet lifecycle hooks such as "
+                        "psynet.trial.onEvent('trialConstruct', ...) for page setup."
+                    )
 
         if soup.find_all("style"):
             problems.append(

@@ -150,7 +150,9 @@ class Prompt:
             return []
 
         return Page._collect_spa_markup_contract_problems(
-            str(self.text_html), source_description="The page prompt/content"
+            str(self.text_html),
+            source_description="The page prompt/content",
+            allow_scripts=True,
         )
 
     @property
