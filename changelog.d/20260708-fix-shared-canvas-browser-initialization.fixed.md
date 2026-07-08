@@ -1,1 +1,1 @@
-Fixed shared canvas browser initialization in the shared canvas demo.
+Fixed shared canvas browser initialization and websocket participant lookup.

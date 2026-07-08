@@ -44,7 +44,7 @@ from psynet.websocket import (
 
 GROUP_TYPE = "shared_canvas_group"
 CANVAS_WS_CHANNEL = "shared_canvas_live"
-CANVAS_WS_IMMEDIATE = True
+CANVAS_WS_IMMEDIATE = False
 CANVAS_WS_TOLERANCE = 0.005
 GROUP_SIZE = max(2, int(os.environ.get("CANVAS_GROUP_SIZE", "2")))
 CANVAS_SIZE = 640
@@ -946,6 +946,7 @@ class Exp(psynet.experiment.Experiment):
         assert config_line.startswith("var cfg = {")
         assert "&#" not in config_line
         assert '"channel": "shared_canvas_live"' in config_line
+        assert '"immediate": false' in config_line
 
     def test_canvas_websocket_contracts(self):
         self.test_websocket_event_parsing()
