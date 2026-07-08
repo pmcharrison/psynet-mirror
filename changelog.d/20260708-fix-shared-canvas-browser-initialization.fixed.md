@@ -1,1 +1,1 @@
-Fixed shared canvas browser initialization and websocket participant lookup.
+Fixed shared canvas browser initialization, websocket participant lookup, and arrow-key focus handling.

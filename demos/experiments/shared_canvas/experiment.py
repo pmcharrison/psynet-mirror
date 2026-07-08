@@ -322,7 +322,7 @@ class CanvasGameService(WebSocketEventService):
     """Typed websocket service for the shared-canvas game protocol."""
 
     class PositionEvent(ClientWebSocketEvent):
-        type: Literal[POSITION_EVENT]
+        type: Literal[POSITION_EVENT] = POSITION_EVENT
         session_id: str = Field(min_length=1)
         x: float = Field(ge=0, le=CANVAS_SIZE)
         y: float = Field(ge=0, le=CANVAS_SIZE)
@@ -332,7 +332,7 @@ class CanvasGameService(WebSocketEventService):
         low_latency: bool = True
 
     class CollectEvent(ClientWebSocketEvent):
-        type: Literal[COLLECT_EVENT]
+        type: Literal[COLLECT_EVENT] = COLLECT_EVENT
         session_id: str = Field(min_length=1)
         coin_id: str = Field(min_length=1)
         x: float = Field(ge=0, le=CANVAS_SIZE)
@@ -340,7 +340,7 @@ class CanvasGameService(WebSocketEventService):
         client_time: float
 
     class StateRequestEvent(ClientWebSocketEvent):
-        type: Literal[STATE_REQUEST_EVENT]
+        type: Literal[STATE_REQUEST_EVENT] = STATE_REQUEST_EVENT
         session_id: str = Field(min_length=1)
 
     class StateSnapshotEvent(ServerWebSocketEvent):
@@ -947,6 +947,12 @@ class Exp(psynet.experiment.Experiment):
         assert "&#" not in config_line
         assert '"channel": "shared_canvas_live"' in config_line
         assert '"immediate": false' in config_line
+        assert 'tabindex="0"' in html
+        assert 'aria-label="Shared canvas arrow-key navigation area"' in html
+        assert 'window.addEventListener("keydown", handleArrowKeyDown, true);' in html
+        assert 'window.addEventListener("keyup", handleArrowKeyUp, true);' in html
+        assert 'canvas.addEventListener("click", focusCanvas);' in html
+        assert "if (!wasPressed) {" in html
 
     def test_canvas_websocket_contracts(self):
         self.test_websocket_event_parsing()
