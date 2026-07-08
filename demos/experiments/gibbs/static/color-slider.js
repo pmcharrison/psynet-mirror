@@ -11,5 +11,11 @@ function updateSliderBackground() {
     document.getElementById("color-box").style.backgroundColor = hex;
 }
 
-updateSliderBackground();
-psynet.page.control.slider.onSliderEvent = updateSliderBackground;
+// In-place timeline transitions execute page js_links before the slider
+// control's main-body macro script initialises psynet.page.control.slider,
+// so register the hook via the trialConstruct lifecycle event, which fires
+// after the control is initialised in both legacy and in-place modes.
+psynet.trial.onEvent("trialConstruct", function () {
+    updateSliderBackground();
+    psynet.page.control.slider.onSliderEvent = updateSliderBackground;
+});
