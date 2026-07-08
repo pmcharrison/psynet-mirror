@@ -462,6 +462,29 @@ release bookkeeping such as the finalized `CHANGELOG.md`, version bump, and
 regenerated demo constraints. It is not the commit that should be tagged for
 the release.
 
+#### Resolving merge conflicts on the release MR
+
+If `master` has moved since the release branch was cut, the release MR may
+report merge conflicts (typically in regenerated demo/test files, where
+`master` tracks `psynet:master` while the release branch pins the release
+version). **Do not resolve them by merging `master` into the release
+branch.** That pulls every unreleased `master` change onto the release
+branch, polluting it as the base for future patch releases (a later
+`X.Y.1` would silently include unvalidated work).
+
+If such a merge does land on the release branch anyway, repair it after
+the release MR has merged: the merge commit is preserved on `master`, so
+the release branch can safely be reset to the release tag
+(`git checkout release-X.Y && git reset --hard vX.Y.Z &&
+git push --force origin release-X.Y`), restoring a clean patch base.
+This force push needs explicit release-manager approval.
+
+Instead, resolve conflicts without contaminating the release branch —
+for example, merge the release branch into `master` locally, resolve the
+conflicts there (keeping the pinned release versions; the post-release
+alpha bump re-points `master`'s copies at `master` again), and push that
+merge commit to `master` in place of the MR-button merge.
+
 ### 7. Bump master to the next alpha
 
 After the release branch has been merged back into `master`, bump `master`
