@@ -10,10 +10,12 @@ from psynet.sync import (
     SimpleSyncGroup,
     SyncGroup,
 )
+from psynet.utils import get_logger
 
 TEMPLATE_NAME = "dashboard_sync_groups.html"
 MANUAL_FAILURE_REASON = "manual_failure"
 MANUAL_KICK_REASON = "manual_kick"
+logger = get_logger()
 
 
 def _get_grouper_progress():
@@ -26,7 +28,11 @@ def _get_grouper_progress():
 
         exp = get_experiment()
     except Exception:
-        return [], {}
+        logger.warning(
+            "Could not load experiment timeline for sync groups dashboard.",
+            exc_info=True,
+        )
+        return []
 
     groupers = {}  # barrier_id -> {barrier_id, group_type, batch_size?, initial_group_size?}
 
