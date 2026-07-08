@@ -67,11 +67,9 @@ NUM_ITERATIONS_PER_CHAIN = 20
 class CreateTrial(CreateTrialMixin, AudioImitationChainTrial):
     time_estimate = 13
     accumulate_answers = True
-    run_async_post_trial = False
 
     def analyze_recording(self, audio_file: str, output_plot: str):
-        # Inert unless run_async_post_trial is re-enabled; kept as the demo hook
-        # for adding ASR or other recording analysis.
+        # You can add ASR here if you like
         return {"failed": False, "reason": "Recording looks good"}
 
     def format_answer(self, raw_answer, **kwargs):
