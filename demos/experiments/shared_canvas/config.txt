@@ -1,0 +1,16 @@
+[Config]
+title = Shared Canvas (Chrome browser, ~1 minute to complete)
+description = Move around a shared canvas with other participants and collect coins in real time.
+contact_email_on_error = XXX@gmail.com
+organization_name = XXX
+
+recruiter = generic
+currency = $
+wage_per_hour = 12.0
+host = 0.0.0.0
+
+[Prolific]
+# recruiter = prolific
+auto_recruit = false
+prolific_estimated_completion_minutes = 1
+base_payment = 0.20

@@ -8,6 +8,7 @@ them against the current page, and dispatch them to service methods.
 
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import ClassVar, Literal, Optional, Type, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -36,6 +37,20 @@ class ClientWebSocketEvent(BaseModel):
 
     type: str = Field(min_length=1)
     page_uuid: str = Field(min_length=1)
+    receive_time: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        exclude=True,
+    )
+
+    def with_receive_time(self, receive_time):
+        """Return a copy stamped with the server receive time."""
+        if receive_time is None:
+            receive_time = datetime.now(timezone.utc)
+        elif receive_time.tzinfo is None:
+            receive_time = receive_time.replace(tzinfo=timezone.utc)
+        else:
+            receive_time = receive_time.astimezone(timezone.utc)
+        return self.model_copy(update={"receive_time": receive_time})
 
 
 class ServerWebSocketEvent(BaseModel):
@@ -153,7 +168,7 @@ class WebSocketEventService:
 
     def dispatch(self, message):
         """Parse and dispatch a raw WebSocket message."""
-        event = self.parse_event(message)
+        event = self.parse_event(message).with_receive_time(self.receive_time)
         return self.dispatch_event(event)
 
     def dispatch_event(self, event):
@@ -230,7 +245,7 @@ class ValidatedWebSocketElt(WebSocketElt):
             service.warn_rejected_event("validation failed", error=err)
             return
 
-        service.dispatch_event(event)
+        service.dispatch_event(event.with_receive_time(receive_time))
 
 
 def warn_rejected_websocket_event(

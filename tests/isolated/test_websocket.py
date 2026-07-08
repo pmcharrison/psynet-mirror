@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from typing import Literal, Optional
 from unittest.mock import MagicMock
@@ -27,6 +28,7 @@ class EchoService(WebSocketEventService):
     def echo(self, event):
         """Record the event and publish a response."""
         self.participant.handled_value = event.value
+        self.participant.handled_receive_time = event.receive_time
         self.publish({"type": "echoed", "value": event.value})
         return event.value
 
@@ -108,6 +110,24 @@ def test_client_event_rejects_stale_page_uuid():
 
     assert not hasattr(service.participant, "handled_value")
     service.experiment.publish_to_subscribers.assert_not_called()
+
+
+def test_dispatch_stamps_event_with_receive_time():
+    """Dispatch passes server receive time through validated events."""
+    receive_time = datetime(2026, 7, 8, 16, 30)
+    service = EchoService(
+        _participant(),
+        _experiment(),
+        "echo_channel",
+        receive_time=receive_time,
+    )
+    service.dispatch(
+        json.dumps({"type": "echo", "page_uuid": "current-page", "value": 3})
+    )
+
+    assert service.participant.handled_receive_time == datetime(
+        2026, 7, 8, 16, 30, tzinfo=UTC
+    )
 
 
 def test_invalid_or_unknown_messages_are_rejected():
