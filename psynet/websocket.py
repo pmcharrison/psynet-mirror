@@ -54,9 +54,7 @@ def get_websocket_event_type(event_model: Type[WebSocketEvent]):
     try:
         field = event_model.model_fields["type"]
     except KeyError as exc:
-        raise ValueError(
-            f"{event_model.__name__} must define a 'type' field."
-        ) from exc
+        raise ValueError(f"{event_model.__name__} must define a 'type' field.") from exc
 
     annotation = field.annotation
     if get_origin(annotation) is Literal:

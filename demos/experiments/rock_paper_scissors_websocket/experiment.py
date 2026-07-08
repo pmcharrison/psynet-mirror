@@ -82,19 +82,6 @@ def score_round(action_self, action_other):
 Choice = Literal["rock", "paper", "scissors"]
 
 
-class RevealEvent(WebSocketOutboundMessage):
-    """A server-authored snapshot for rendering a completed round."""
-
-    type: Literal["reveal"] = "reveal"
-    target: str
-    round: int
-    result: str
-    scoreboard: str
-    status: str
-    finished: bool
-    answer: Optional[List[str]] = None
-
-
 class RockPaperScissorsGameService(WebSocketEventService):
     """Runtime game services available to websocket event handlers."""
 
@@ -111,6 +98,18 @@ class RockPaperScissorsGameService(WebSocketEventService):
         room_id: str = Field(min_length=1)
         round: int = Field(ge=1, le=N_ROUNDS)
         action: Choice
+
+    class RevealEvent(WebSocketOutboundMessage):
+        """A server-authored snapshot for rendering a completed round."""
+
+        type: Literal["reveal"] = "reveal"
+        target: str
+        round: int
+        result: str
+        scoreboard: str
+        status: str
+        finished: bool
+        answer: Optional[List[str]] = None
 
     @websocket_handler(ChooseEvent)
     def choose(self, event):
@@ -172,8 +171,49 @@ class RockPaperScissorsGameService(WebSocketEventService):
         this_round = game_state.moves_for_round(event.round)
         pids = sorted(this_round.keys())
         for participant_id in pids:
-            snapshot = game_state.reveal_for(participant_id, event.round)
+            snapshot = self.reveal_for(game_state, participant_id, event.round)
             self.publish(snapshot)
+
+    def reveal_for(
+        self,
+        game_state: "RockPaperScissorsGameState",
+        participant_id: int,
+        round_number: int,
+    ):
+        """Return a reveal event from one participant's point of view."""
+        round_moves = game_state.moves_for_round(round_number)
+        partner_id = next(pid for pid in round_moves if pid != participant_id)
+        delta = score_round(round_moves[participant_id], round_moves[partner_id])
+        outcome = (
+            "you won the round!"
+            if delta > 0
+            else "you lost the round."
+            if delta < 0
+            else "the round was a draw."
+        )
+        return self.RevealEvent(
+            target=str(participant_id),
+            round=round_number + 1,
+            result=(
+                f"Round {round_number}: you played {round_moves[participant_id]}, "
+                f"your partner played {round_moves[partner_id]} — {outcome}"
+            ),
+            scoreboard=(
+                f"Score — you: {game_state.score_for(participant_id)}, "
+                f"partner: {game_state.score_for(partner_id)}"
+            ),
+            status=(
+                "Game over!"
+                if game_state.finished
+                else f"Round {round_number + 1} of {N_ROUNDS}: choose your action."
+            ),
+            finished=game_state.finished,
+            answer=(
+                game_state.participant_moves(participant_id)
+                if game_state.finished
+                else None
+            ),
+        )
 
 
 @register_table
@@ -269,38 +309,6 @@ class RockPaperScissorsGameState(SQLBase, SQLMixin):
         return [
             move.action for move in self.moves if move.participant_id == participant_id
         ]
-
-    def reveal_for(self, participant_id: int, round_number: int):
-        """Return a reveal event from one participant's point of view."""
-        round_moves = self.moves_for_round(round_number)
-        partner_id = next(pid for pid in round_moves if pid != participant_id)
-        delta = score_round(round_moves[participant_id], round_moves[partner_id])
-        outcome = (
-            "you won the round!"
-            if delta > 0
-            else "you lost the round."
-            if delta < 0
-            else "the round was a draw."
-        )
-        return RevealEvent(
-            target=str(participant_id),
-            round=round_number + 1,
-            result=(
-                f"Round {round_number}: you played {round_moves[participant_id]}, "
-                f"your partner played {round_moves[partner_id]} — {outcome}"
-            ),
-            scoreboard=(
-                f"Score — you: {self.score_for(participant_id)}, "
-                f"partner: {self.score_for(partner_id)}"
-            ),
-            status=(
-                "Game over!"
-                if self.finished
-                else f"Round {round_number + 1} of {N_ROUNDS}: choose your action."
-            ),
-            finished=self.finished,
-            answer=self.participant_moves(participant_id) if self.finished else None,
-        )
 
 
 @register_table
@@ -501,6 +509,14 @@ class Exp(psynet.experiment.Experiment):
         )
 
     @staticmethod
+    def _game_service():
+        return RockPaperScissorsGameService(
+            SimpleNamespace(id=1, page_uuid="current-page", sync_group=None),
+            SimpleNamespace(),
+            "rock_paper_scissors",
+        )
+
+    @staticmethod
     def _assert_payload_rejected(payload):
         try:
             RockPaperScissorsGameService.parse_event(json.dumps(payload))
@@ -611,14 +627,11 @@ class Exp(psynet.experiment.Experiment):
         assert state.score_for(2) == -1
         assert state.participant_moves(1) == ["rock"]
         assert len(state.moves) == 2
-        reveal = state.reveal_for(participant_id=1, round_number=1)
-        assert reveal.scoreboard == "Score — you: 1, partner: -1"
-        assert reveal.finished is False
 
     @staticmethod
     def test_reveal_serialization():
         """Check outbound reveal serialization."""
-        event = RevealEvent(
+        event = RockPaperScissorsGameService.RevealEvent(
             target="7",
             round=3,
             result="Round 2: you played rock, your partner played scissors - you won!",
@@ -637,12 +650,25 @@ class Exp(psynet.experiment.Experiment):
             "finished": False,
         }
 
+    @staticmethod
+    def test_reveal_formatting():
+        """Check service-level reveal formatting."""
+        state = RockPaperScissorsGameState(room_id="rps_room_1")
+        assert state.record_choice(1, participant_id=1, action="rock")
+        assert state.record_choice(1, participant_id=2, action="scissors")
+
+        reveal = Exp._game_service().reveal_for(state, participant_id=1, round_number=1)
+
+        assert reveal.scoreboard == "Score — you: 1, partner: -1"
+        assert reveal.finished is False
+
     def test_websocket_event_contracts(self):
         """Check websocket event, authorization, state, and reveal contracts."""
         self.test_websocket_event_parsing()
         self.test_websocket_event_authorization()
         self.test_game_state_transitions()
         self.test_reveal_serialization()
+        self.test_reveal_formatting()
 
     def test_serial_run_bots(self, bots: List[BotDriver]):
         self.test_websocket_event_contracts()
