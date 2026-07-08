@@ -20,64 +20,6 @@ MANUAL_KICK_REASON = "manual_kick"
 logger = get_logger()
 
 
-def manual_fail_sync_group_participant(
-    participant_id, sync_group_id, fail_reason=MANUAL_FAILURE_REASON
-):
-    try:
-        participant = _fail_sync_group_participant(
-            participant_id, sync_group_id, fail_reason
-        )
-    except ValueError as err:
-        return error_response(str(err))
-
-    return success_response(participant_id=participant.id)
-
-
-def manual_kick_sync_group_participant(
-    participant_id, sync_group_id, kick_reason=MANUAL_KICK_REASON
-):
-    try:
-        participant = _kick_sync_group_participant(
-            participant_id, sync_group_id, kick_reason
-        )
-    except ValueError as err:
-        return error_response(str(err))
-
-    return success_response(participant_id=participant.id)
-
-
-def report_sync_groups():
-    """Render the sync groups dashboard page with active and recent sync groups."""
-    grouper_configs = _get_grouper_progress()
-
-    groups = (
-        SyncGroup.query.options(
-            joinedload(SyncGroup.participant_links).joinedload(
-                ParticipantLinkSyncGroup.participant
-            ),
-            joinedload(SyncGroup.leader),
-        )
-        .order_by(SyncGroup.id.desc())
-        .limit(500)
-        .all()
-    )
-
-    waiting_by_participant, waiting_by_barrier = _index_waiting_barriers(
-        _get_waiting_by_participant_and_barrier()
-    )
-
-    group_rows = [_group_row(group, waiting_by_participant) for group in groups]
-    has_simple_groups = any(r["min_group_size"] is not None for r in group_rows)
-
-    return render_template(
-        TEMPLATE_NAME,
-        title="Sync groups",
-        groups=group_rows,
-        has_simple_groups=has_simple_groups,
-        grouper_progress=_grouper_progress_rows(grouper_configs, waiting_by_barrier),
-    )
-
-
 def _get_grouper_progress():
     """
     Return list of dicts describing each Grouper in the timeline and how many
@@ -124,6 +66,32 @@ def _get_waiting_by_participant_and_barrier():
         )
         .all()
     )
+
+
+def manual_fail_sync_group_participant(
+    participant_id, sync_group_id, fail_reason=MANUAL_FAILURE_REASON
+):
+    try:
+        participant = _fail_sync_group_participant(
+            participant_id, sync_group_id, fail_reason
+        )
+    except ValueError as err:
+        return error_response(str(err))
+
+    return success_response(participant_id=participant.id)
+
+
+def manual_kick_sync_group_participant(
+    participant_id, sync_group_id, kick_reason=MANUAL_KICK_REASON
+):
+    try:
+        participant = _kick_sync_group_participant(
+            participant_id, sync_group_id, kick_reason
+        )
+    except ValueError as err:
+        return error_response(str(err))
+
+    return success_response(participant_id=participant.id)
 
 
 def _fail_sync_group_participant(participant_id, sync_group_id, fail_reason):
@@ -182,6 +150,38 @@ def _get_active_sync_group_participant_link(participant_id, sync_group_id):
         )
 
     return participant, active_group_link
+
+
+def report_sync_groups():
+    """Render the sync groups dashboard page with active and recent sync groups."""
+    grouper_configs = _get_grouper_progress()
+
+    groups = (
+        SyncGroup.query.options(
+            joinedload(SyncGroup.participant_links).joinedload(
+                ParticipantLinkSyncGroup.participant
+            ),
+            joinedload(SyncGroup.leader),
+        )
+        .order_by(SyncGroup.id.desc())
+        .limit(500)
+        .all()
+    )
+
+    waiting_by_participant, waiting_by_barrier = _index_waiting_barriers(
+        _get_waiting_by_participant_and_barrier()
+    )
+
+    group_rows = [_group_row(group, waiting_by_participant) for group in groups]
+    has_simple_groups = any(r["min_group_size"] is not None for r in group_rows)
+
+    return render_template(
+        TEMPLATE_NAME,
+        title="Sync groups",
+        groups=group_rows,
+        has_simple_groups=has_simple_groups,
+        grouper_progress=_grouper_progress_rows(grouper_configs, waiting_by_barrier),
+    )
 
 
 def _index_waiting_barriers(waiting_links):
