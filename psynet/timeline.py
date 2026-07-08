@@ -2449,7 +2449,7 @@ def while_loop(
         but allow them to proceed to the next page.
 
     on_timeout:
-        Optional callable invoked when ``max_loop_time`` is exceeded and ``fail_on_timeout`` is ``False``.
+        Optional callable invoked when ``max_loop_time`` is exceeded.
         Called with ``participant=...``.
 
     Returns
@@ -2496,22 +2496,25 @@ def while_loop(
 
     from .page import UnsuccessfulEndPage
 
+    timeout_callback = (
+        CodeBlock(
+            lambda participant: call_function_with_context(
+                on_timeout, participant=participant
+            )
+        )
+        if on_timeout is not None
+        else None
+    )
+
     if fail_on_timeout is True:
-        after_timeout_logic = UnsuccessfulEndPage(
-            failure_tags=[f"while_loop:{label}", "fail_on_timeout"]
+        after_timeout_logic = join(
+            timeout_callback,
+            UnsuccessfulEndPage(
+                failure_tags=[f"while_loop:{label}", "fail_on_timeout"]
+            ),
         )
     else:
-        if on_timeout is not None:
-            after_timeout_logic = join(
-                CodeBlock(
-                    lambda participant: call_function_with_context(
-                        on_timeout, participant=participant
-                    )
-                ),
-                GoTo(end_while),
-            )
-        else:
-            after_timeout_logic = GoTo(end_while)
+        after_timeout_logic = join(timeout_callback, GoTo(end_while))
 
     time_estimate = CreditEstimate(logic).get_max("time")
 

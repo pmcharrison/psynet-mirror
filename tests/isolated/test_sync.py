@@ -751,3 +751,4 @@ def test_group_barrier_max_wait_kick_releases_barrier_link(
     assert participant.active_sync_groups.get("main") is None
     assert "max_wait_kick" not in participant.active_barriers
     assert barrier.get_waiting_participants() == []
+    assert not participant.failed
