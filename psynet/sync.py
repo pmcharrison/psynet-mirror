@@ -47,7 +47,7 @@ this module. That loop:
 - Finds the next waiting barrier record.
 - Locks it using ``SELECT ... FOR UPDATE SKIP LOCKED`` so only one worker
   processes a barrier at a time.
-- Calls ``Barrier.process_potential_releases`` in an isolated transaction.
+- Calls ``Barrier.check`` in an isolated transaction.
 - Logs and skips failures per barrier so one bad barrier does not stall others.
 
 Callable attributes on barriers (e.g., ``on_release``) are serialized via
@@ -279,7 +279,10 @@ class Barrier(EltCollection):
         barrier_is_active = self.id in participant.active_barriers
         return not barrier_is_active
 
-    def process_potential_releases(self):
+    def prepare_for_release(self, waiting_participants: List[Participant]):
+        """Run any side-effecting checks before deciding who to release."""
+
+    def check(self):
         waiting_participants = self.get_waiting_participants(for_update=True)
         waiting_participants.sort(key=lambda p: p.id)
 
@@ -290,6 +293,7 @@ class Barrier(EltCollection):
             ", ".join([str(p.id) for p in waiting_participants]),
         )
 
+        self.prepare_for_release(waiting_participants)
         participants_to_release = self.choose_who_to_release(waiting_participants)
         participants_to_release.sort(key=lambda p: p.id)
 
@@ -427,18 +431,10 @@ class GroupBarrier(Barrier):
     def choose_who_to_release(self, waiting_participants: List[Participant]):
         waiting_participant_ids = {p.id for p in waiting_participants}
         participants_to_release = []
-
-        groups = {
-            participant.active_sync_groups[
-                self.group_type
-            ].id: participant.active_sync_groups[self.group_type]
-            for participant in waiting_participants
-            if self.group_type in participant.active_sync_groups
-        }
+        groups = self.get_waiting_groups(waiting_participants)
 
         for group in groups.values():
             group.check_numbers()
-            self.timeout_late_participants(group, waiting_participants)
 
             if group.n_active_participants < group.min_group_size:
                 # If join_existing_groups is False, then the group will never be able
@@ -488,6 +484,21 @@ class GroupBarrier(Barrier):
                 participants_to_release_ids.add(participant.id)
 
         return participants_to_release
+
+    def prepare_for_release(self, waiting_participants: List[Participant]):
+        for group in self.get_waiting_groups(waiting_participants).values():
+            group.check_numbers()
+            self.timeout_late_participants(group, waiting_participants)
+
+    def get_waiting_groups(self, waiting_participants: List[Participant]):
+        groups = {
+            participant.active_sync_groups[
+                self.group_type
+            ].id: participant.active_sync_groups[self.group_type]
+            for participant in waiting_participants
+            if self.group_type in participant.active_sync_groups
+        }
+        return groups
 
     def timeout_late_participants(
         self, group: "SyncGroup", waiting_participants: List[Participant]
@@ -1154,7 +1165,7 @@ def check_barriers():
                     raise RuntimeError(
                         f"Barrier '{barrier_record.id}' is missing or invalid."
                     )
-                barrier.process_potential_releases()
+                barrier.check()
         except Exception:
             if barrier_id is None:
                 raise
