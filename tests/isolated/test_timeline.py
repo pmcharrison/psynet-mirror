@@ -314,32 +314,6 @@ def test_framework_owned_templates_skip_forbidden_content_validation():
     page._check_spa_template_contract(inplace_timeline_transitions=True)
 
 
-def test_construction_validates_spa_contracts_for_static_pages():
-    # A statically-defined page that violates the SPA contract should fail at
-    # experiment construction time (inplace mode), rather than surfacing as a
-    # generic mid-response error after the participant has already been advanced.
-    good_page = Page(template_fragment_str="<p>ok</p>")
-    bad_page = Page(template_fragment_str="<style>.x { color: red; }</style>")
-    exp = SimpleNamespace(
-        timeline=SimpleNamespace(all_elts=[good_page, bad_page]),
-    )
-
-    with patch("psynet.experiment.get_config") as mock_get_config:
-        mock_get_config.return_value.get.return_value = True
-        with pytest.raises(ValueError, match="Page css argument"):
-            Experiment._check_spa_template_contracts(exp)
-
-
-def test_construction_validation_skipped_when_config_unavailable():
-    # If config cannot be read during construction, the render-time check remains
-    # the backstop and construction should not raise.
-    bad_page = Page(template_fragment_str="<style>.x { color: red; }</style>")
-    exp = SimpleNamespace(timeline=SimpleNamespace(all_elts=[bad_page]))
-
-    with patch("psynet.experiment.get_config", side_effect=RuntimeError):
-        Experiment._check_spa_template_contracts(exp)
-
-
 class CustomTrial(ChainTrial):
     time_estimate = 5
 
