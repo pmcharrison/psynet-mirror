@@ -1171,7 +1171,7 @@ Participant.sync_group_links = relationship(
 
 
 def _participant_sync_groups(participant) -> List["SyncGroup"]:
-    """Groups the participant is actively in (link.active=True)."""
+    """Sync groups with an active participant-group link for this participant."""
     return [
         link.sync_group
         for link in participant.sync_group_links
