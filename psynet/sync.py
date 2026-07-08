@@ -480,6 +480,8 @@ class GroupBarrier(Barrier):
 
         participants_to_release_ids = {p.id for p in participants_to_release}
         for participant in waiting_participants:
+            # Release participants who reached this barrier but no longer belong
+            # to the sync group (e.g., max-wait kicks or below-min-size dissolution).
             if (
                 self.group_type not in participant.active_sync_groups
                 and participant.id not in participants_to_release_ids
