@@ -1913,11 +1913,13 @@ class TrialMaker(Module):
 
     @log_time_taken
     def _prepare_trial(self, experiment, participant, leader=None):
+        # In synchronous trial makers, we only make sure that the participant is still in the sync group (and not e.g. kicked out) before delivering the next trial.
         if (
             self.sync_group_type is not None
             and self.sync_group_type not in participant.active_sync_groups
         ):
             return None, "exit"
+
         if not participant.module_state.in_repeat_phase:
             if leader is None:
                 trial, trial_status = self.prepare_trial(
