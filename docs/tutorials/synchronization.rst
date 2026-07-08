@@ -40,13 +40,14 @@ code as follows:
 If the participant is a member of multiple active SyncGroups, then they can be accessed
 via ``participant.active_sync_groups``, which takes the form of a dictionary keyed by ``group_type``.
 Alternatively, within a trial one can use ``self.sync_group``
-(:attr:`Trial.sync_group <psynet.trial.main.Trial.sync_group>`), 
+(:attr:`Trial.sync_group <psynet.trial.main.Trial.sync_group>`),
 which resolves to the group matching that trial maker's ``sync_group_type``.
 
 The full list of active participants within the SyncGroup can then be accessed
 via ``sync_group.participants``. To update membership, use
 ``sync_group.add_participant(participant)`` or
-``sync_group.remove_participant(participant)``. The order of ``sync_group.participants`` is not guaranteed. If you need a stable ordering
+``sync_group.remove_participant(participant)``.
+The order of ``sync_group.participants`` is not guaranteed. If you need a stable ordering
 (for example, to assign deterministic roles), sort by participant ID. A convenient pattern is to
 assign roles at a ``GroupBarrier`` so all group members are present:
 
