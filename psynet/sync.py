@@ -477,7 +477,7 @@ class GroupBarrier(Barrier):
                 # (when fail_participants_below_min_size is True).
                 if not group.accepts_top_ups:
                     for participant in list(group.active_participants):
-                        if getattr(group, "fail_participants_below_min_size", True):
+                        if group.fail_participants_below_min_size:
                             participant.fail("sync group below minimum size")
                         group.remove_participant(participant)
                         if participant.id in waiting_participant_ids:
